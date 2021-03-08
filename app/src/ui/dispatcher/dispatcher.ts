@@ -2702,6 +2702,10 @@ export class Dispatcher {
         this.startConflictCherryPickFlow(repository)
         break
       default:
+        // If the user closes error dialog and tries to cherry pick again, it
+        // will fail again due to ongoing cherry pick. Thus, if we get to an
+        // unhandled error state, we want to abort any ongoing cherry pick.
+        this.appStore._clearCherryPickingHead(repository)
         this.appStore._endCherryPickFlow(repository)
         throw Error(
           `Unable to perform cherry pick operation.

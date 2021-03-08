@@ -283,6 +283,7 @@ import {
   CherryPickResult,
   continueCherryPick,
   getCherryPickSnapshot,
+  isCherryPickHeadFound,
 } from '../git/cherry-pick'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -5977,6 +5978,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _clearCherryPickingHead(repository: Repository): Promise<void> {
+    if (!isCherryPickHeadFound(repository)) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() => abortCherryPick(repository))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _undoCherryPick(
     repository: Repository,
     targetBranchName: string
