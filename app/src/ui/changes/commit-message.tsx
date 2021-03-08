@@ -34,6 +34,7 @@ import { lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
+import { isAccountEmail } from '../../lib/is-account-email'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -293,7 +294,7 @@ export class CommitMessage extends React.Component<
     const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
-      accountEmails.includes(email) === false
+      isAccountEmail(accountEmails, email) === false
 
     return (
       <CommitMessageAvatar

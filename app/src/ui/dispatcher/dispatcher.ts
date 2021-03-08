@@ -2541,9 +2541,8 @@ export class Dispatcher {
     repository: Repository,
     targetBranch: Branch
   ) {
-    const stateBefore = this.repositoryStateManager.get(repository)
-    const beforeSha = getTipSha(stateBefore.branchesState.tip)
-
+    const beforeSha = targetBranch.tip.sha
+    this.appStore._setCherryPickTargetBranchUndoSha(repository, beforeSha)
     log.info(
       `[cherryPick] starting cherry pick for ${targetBranch.name} at ${beforeSha}`
     )
@@ -2613,6 +2612,9 @@ export class Dispatcher {
       type: BannerType.SuccessfulCherryPick,
       targetBranchName,
       countCherryPicked,
+      onUndoCherryPick: () => {
+        this.undoCherryPick(repository, targetBranchName)
+      },
     }
     this.setBanner(banner)
 
@@ -2775,5 +2777,16 @@ export class Dispatcher {
     })
 
     this.cherryPick(repository, targetBranch, commits)
+  }
+
+  /**
+   * This method will perform a hard reset back to the tip of the target branch
+   * before the cherry pick happened.
+   */
+  private async undoCherryPick(
+    repository: Repository,
+    targetBranchName: string
+  ): Promise<void> {
+    await this.appStore._undoCherryPick(repository, targetBranchName)
   }
 }

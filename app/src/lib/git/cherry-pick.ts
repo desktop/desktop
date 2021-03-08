@@ -291,6 +291,7 @@ export async function getCherryPickSnapshot(
     },
     remainingCommits: commits.slice(count, commits.length),
     commits,
+    targetBranchUndoSha: firstSha,
   }
 }
 
