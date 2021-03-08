@@ -2526,11 +2526,12 @@ export class Dispatcher {
   public async startCherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchCherryPickingFlowToShowProgress(repository)
-    this.cherryPick(repository, targetBranch, commits)
+    this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
   private logHowToRevertCherryPick(
@@ -2553,7 +2554,8 @@ export class Dispatcher {
   public async cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
   ): Promise<void> {
     this.logHowToRevertCherryPick(repository, targetBranch)
 
@@ -2567,7 +2569,8 @@ export class Dispatcher {
       repository,
       result,
       targetBranch.name,
-      commits.length
+      commits.length,
+      sourceBranch
     )
   }
 
@@ -2599,7 +2602,9 @@ export class Dispatcher {
   private async completeCherryPick(
     repository: Repository,
     targetBranchName: string,
-    countCherryPicked: number
+    countCherryPicked: number,
+    sourceBranch: Branch | null,
+    commitsCount: number
   ): Promise<void> {
     this.closePopup()
 
@@ -2608,7 +2613,12 @@ export class Dispatcher {
       targetBranchName,
       countCherryPicked,
       onUndoCherryPick: () => {
-        this.undoCherryPick(repository, targetBranchName)
+        this.undoCherryPick(
+          repository,
+          targetBranchName,
+          sourceBranch,
+          commitsCount
+        )
       },
     }
     this.setBanner(banner)
@@ -2656,7 +2666,8 @@ export class Dispatcher {
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     conflictsState: CherryPickConflictState,
-    commitsCount: number
+    commitsCount: number,
+    sourceBranch: Branch | null
   ): Promise<void> {
     await this.switchCherryPickingFlowToShowProgress(repository)
 
@@ -2670,7 +2681,8 @@ export class Dispatcher {
       repository,
       result,
       conflictsState.targetBranchName,
-      commitsCount
+      commitsCount,
+      sourceBranch
     )
   }
 
@@ -2684,7 +2696,8 @@ export class Dispatcher {
     repository: Repository,
     cherryPickResult: CherryPickResult,
     targetBranchName: string,
-    commitsCount: number
+    commitsCount: number,
+    sourceBranch: Branch | null
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
     // conflict flow if cherry pick results in conflict.
@@ -2695,6 +2708,8 @@ export class Dispatcher {
         await this.completeCherryPick(
           repository,
           targetBranchName,
+          commitsCount,
+          sourceBranch,
           commitsCount
         )
         break
@@ -2764,7 +2779,7 @@ export class Dispatcher {
       sourceBranch,
     })
 
-    this.startCherryPick(repository, targetBranch, commits)
+    this.startCherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
   /**
@@ -2773,8 +2788,15 @@ export class Dispatcher {
    */
   private async undoCherryPick(
     repository: Repository,
-    targetBranchName: string
+    targetBranchName: string,
+    sourceBranch: Branch | null,
+    commitsCount: number
   ): Promise<void> {
-    await this.appStore._undoCherryPick(repository, targetBranchName)
+    await this.appStore._undoCherryPick(
+      repository,
+      targetBranchName,
+      sourceBranch,
+      commitsCount
+    )
   }
 }
