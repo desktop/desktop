@@ -169,8 +169,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     this.props.onCommitsSelected(selectedCommits)
   }
 
-  // This is only needed to support the cherry picking feature flag once,
-  // cherry picking in place. This will be dead code.
+  // This is required along with onSelectedRangeChanged in the case of a user
+  // paging up/down or using arrow keys up/down.
   private onSelectedRowChanged = (row: number) => {
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
