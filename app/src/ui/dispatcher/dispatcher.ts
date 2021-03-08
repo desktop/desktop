@@ -2711,7 +2711,7 @@ export class Dispatcher {
         // target branch which means the cherry pick operation never started or
         // was cleanly aborted.
         this.appStore._endCherryPickFlow(repository)
-        return
+        break
       default:
         // If the user closes error dialog and tries to cherry pick again, it
         // will fail again due to ongoing cherry pick. Thus, if we get to an
