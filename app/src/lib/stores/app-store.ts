@@ -1739,7 +1739,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
-    this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, true)
+    this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, false)
 
     this.emitUpdateNow()
 
