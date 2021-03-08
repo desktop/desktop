@@ -1068,7 +1068,8 @@ export class List extends React.Component<IListProps, IListState> {
         }
       } else if (
         this.props.selectionMode === 'range' &&
-        this.props.selectedRows.length > 1
+        this.props.selectedRows.length > 1 &&
+        this.props.selectedRows.includes(row)
       ) {
         // Do nothing. Multiple rows are already selected for a range. We assume
         // the user is pressing down on multiple and may desire to start
@@ -1109,6 +1110,7 @@ export class List extends React.Component<IListProps, IListState> {
       !event.shiftKey &&
       !multiSelectKey &&
       this.props.selectedRows.length > 1 &&
+      this.props.selectedRows.includes(row) &&
       this.props.selectionMode === 'range'
     ) {
       // No special keys are depressed and multiple rows were selected in a
