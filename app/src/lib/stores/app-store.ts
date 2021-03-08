@@ -5979,7 +5979,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _undoCherryPick(
     repository: Repository,
     targetBranchName: string,
-    sourceBranch: Branch | null
+    sourceBranch: Branch | null,
+    countCherryPicked: number
   ): Promise<void> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
@@ -6012,6 +6013,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         checkoutBranch(repository, account, sourceBranch)
       )
     })
+
+    const banner: Banner = {
+      type: BannerType.CherryPickUndone,
+      targetBranchName,
+      countCherryPicked,
+    }
+    this._setBanner(banner)
 
     return this._refreshRepository(repository)
   }

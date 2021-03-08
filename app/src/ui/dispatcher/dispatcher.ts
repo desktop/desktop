@@ -2603,7 +2603,8 @@ export class Dispatcher {
     repository: Repository,
     targetBranchName: string,
     countCherryPicked: number,
-    sourceBranch: Branch | null
+    sourceBranch: Branch | null,
+    commitsCount: number
   ): Promise<void> {
     this.closePopup()
 
@@ -2612,7 +2613,12 @@ export class Dispatcher {
       targetBranchName,
       countCherryPicked,
       onUndoCherryPick: () => {
-        this.undoCherryPick(repository, targetBranchName, sourceBranch)
+        this.undoCherryPick(
+          repository,
+          targetBranchName,
+          sourceBranch,
+          commitsCount
+        )
       },
     }
     this.setBanner(banner)
@@ -2703,7 +2709,8 @@ export class Dispatcher {
           repository,
           targetBranchName,
           commitsCount,
-          sourceBranch
+          sourceBranch,
+          commitsCount
         )
         break
       case CherryPickResult.ConflictsEncountered:
@@ -2778,12 +2785,14 @@ export class Dispatcher {
   private async undoCherryPick(
     repository: Repository,
     targetBranchName: string,
-    sourceBranch: Branch | null
+    sourceBranch: Branch | null,
+    commitsCount: number
   ): Promise<void> {
     await this.appStore._undoCherryPick(
       repository,
       targetBranchName,
-      sourceBranch
+      sourceBranch,
+      commitsCount
     )
   }
 }
