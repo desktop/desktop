@@ -204,10 +204,13 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
         const {
           commits: { length: commitCount },
         } = this.props
+        const sourceBranchName =
+          this.props.sourceBranch !== null ? this.props.sourceBranch.name : null
         return (
           <ConfirmCherryPickAbortDialog
             step={step}
             commitCount={commitCount}
+            sourceBranchName={sourceBranchName}
             onReturnToConflicts={this.moveToShowConflictedFileState}
             onConfirmAbort={this.abortCherryPick}
           />

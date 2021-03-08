@@ -8,6 +8,7 @@ import { ConfirmAbortStep } from '../../models/cherry-pick'
 interface IConfirmCherryPickAbortDialogProps {
   readonly step: ConfirmAbortStep
   readonly commitCount: number
+  readonly sourceBranchName: string | null
 
   readonly onReturnToConflicts: (step: ConfirmAbortStep) => void
   readonly onConfirmAbort: () => Promise<void>
@@ -45,7 +46,7 @@ export class ConfirmCherryPickAbortDialog extends React.Component<
   }
 
   private renderTextContent() {
-    const { commitCount, step } = this.props
+    const { commitCount, step, sourceBranchName } = this.props
     const { targetBranchName } = step.conflictState
 
     const pluralize = commitCount > 1 ? 'commits' : 'commit'
@@ -57,13 +58,23 @@ export class ConfirmCherryPickAbortDialog extends React.Component<
       </p>
     )
 
+    let returnTo = null
+    if (sourceBranchName !== null) {
+      returnTo = (
+        <>
+          {' and you will be taken back to '}
+          <Ref>{sourceBranchName}</Ref>
+        </>
+      )
+    }
+
     return (
       <div className="column-left">
         {confirm}
         <p>
-          Aborting this cherry pick will take you back to the original branch
-          you started on and the conflicts you have already resolved will be
-          discarded.
+          {'The conflicts you have already resolved will be discarded'}
+          {returnTo}
+          {'.'}
         </p>
       </div>
     )
