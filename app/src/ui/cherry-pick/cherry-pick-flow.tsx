@@ -5,6 +5,7 @@ import { Branch } from '../../models/branch'
 import {
   CherryPickFlowStep,
   CherryPickStepKind,
+  ConfirmAbortStep,
   ShowConflictsStep,
 } from '../../models/cherry-pick'
 import { ICherryPickProgress } from '../../models/progress'
@@ -16,6 +17,8 @@ import { CherryPickProgressDialog } from './cherry-pick-progress-dialog'
 import { CommitOneLine } from '../../models/commit'
 import { CherryPickConflictsDialog } from './cherry-pick-conflicts-dialog'
 import { WorkingDirectoryStatus } from '../../models/status'
+import { getResolvedFiles } from '../../lib/status'
+import { ConfirmCherryPickAbortDialog } from './confirm-cherry-pick-abort-dialog'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
@@ -88,8 +91,34 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private onAbortCherryPick = (step: ShowConflictsStep) => {
+    const {
+      dispatcher,
+      repository,
+      workingDirectory,
+      userHasResolvedConflicts,
+    } = this.props
+    const { conflictState } = step
+    const { manualResolutions } = conflictState
+    const { length: countResolvedConflicts } = getResolvedFiles(
+      workingDirectory,
+      manualResolutions
+    )
+
+    if (userHasResolvedConflicts || countResolvedConflicts > 0) {
+      dispatcher.setCherryPickFlowStep(repository, {
+        kind: CherryPickStepKind.ConfirmAbort,
+        conflictState,
+      })
+      return
+    }
+
+    this.abortCherryPick()
+  }
+
+  private abortCherryPick = async () => {
     const { dispatcher, repository, sourceBranch } = this.props
-    dispatcher.abortCherryPick(repository, sourceBranch)
+
+    await dispatcher.abortCherryPick(repository, sourceBranch)
     dispatcher.closePopup()
   }
 
@@ -101,6 +130,15 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
       sourceBranch,
       commits
     )
+  }
+
+  private moveToShowConflictedFileState = (step: ConfirmAbortStep) => {
+    const { conflictState } = step
+    const { dispatcher, repository } = this.props
+    dispatcher.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowConflicts,
+      conflictState,
+    })
   }
 
   public render() {
@@ -167,6 +205,21 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             resolvedExternalEditor={resolvedExternalEditor}
             openRepositoryInShell={openRepositoryInShell}
             sourceBranchName={sourceBranch !== null ? sourceBranch.name : null}
+          />
+        )
+      case CherryPickStepKind.ConfirmAbort:
+        const {
+          commits: { length: commitCount },
+        } = this.props
+        const sourceBranchName =
+          this.props.sourceBranch !== null ? this.props.sourceBranch.name : null
+        return (
+          <ConfirmCherryPickAbortDialog
+            step={step}
+            commitCount={commitCount}
+            sourceBranchName={sourceBranchName}
+            onReturnToConflicts={this.moveToShowConflictedFileState}
+            onConfirmAbort={this.abortCherryPick}
           />
         )
       case CherryPickStepKind.CommitsChosen:
