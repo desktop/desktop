@@ -5924,10 +5924,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const { progress } = snapshot
+    const { progress, targetBranchUndoSha } = snapshot
 
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       progress,
+      targetBranchUndoSha,
     }))
   }
 
