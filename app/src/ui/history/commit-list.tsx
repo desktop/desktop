@@ -5,6 +5,10 @@ import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
+import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { Button } from '../lib/button'
+import { enableCherryPicking } from '../../lib/feature-flag'
+import { encodePathAsUrl } from '../../lib/path'
 
 const RowHeight = 50
 
@@ -70,6 +74,12 @@ interface ICommitListProps {
 
   /* Tags that haven't been pushed yet. This is used to show the unpushed indicator */
   readonly tagsToPush: ReadonlyArray<string> | null
+
+  /* Whether or not the user has been introduced to cherry picking feature */
+  readonly hasShownCherryPickIntro: boolean
+
+  /** Callback to fire when cherry pick intro popover has been dismissed */
+  readonly onDismissCherryPickIntro: () => void
 }
 
 /** A component which displays the list of commits. */
@@ -182,6 +192,36 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return this.props.commitSHAs.findIndex(s => s === sha)
   }
 
+  private renderCherryPickIntroPopover() {
+    if (this.props.hasShownCherryPickIntro || !enableCherryPicking()) {
+      return null
+    }
+
+    const cherryPickIntro = encodePathAsUrl(
+      __dirname,
+      'static/cherry-pick-intro.png'
+    )
+
+    return (
+      <Popover caretPosition={PopoverCaretPosition.LeftTop}>
+        <img src={cherryPickIntro} className="cherry-pick-intro" />
+        <h3>
+          Drag and drop to cherry pick!
+          <span className="call-to-action-bubble">New</span>
+        </h3>
+        <p>
+          Copy commits to another branch by dragging and dropping them onto a
+          branch in the branch menu, or by right clicking on a commit.
+        </p>
+        <div>
+          <Button onClick={this.props.onDismissCherryPickIntro} type="submit">
+            Got it
+          </Button>
+        </div>
+      </Popover>
+    )
+  }
+
   public render() {
     if (this.props.commitSHAs.length === 0) {
       return (
@@ -206,6 +246,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
+        {this.renderCherryPickIntroPopover()}
       </div>
     )
   }

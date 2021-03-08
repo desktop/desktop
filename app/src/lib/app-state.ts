@@ -251,6 +251,11 @@ export interface IAppState {
    * Whether or not the app should use spell check on commit summary and description
    */
   readonly commitSpellcheckEnabled: boolean
+
+  /**
+   * Whether or not the user has been introduced to the cherry pick feature
+   */
+  readonly hasShownCherryPickIntro: boolean
 }
 
 export enum FoldoutType {
