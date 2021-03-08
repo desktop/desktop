@@ -7,6 +7,8 @@ import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { Button } from '../lib/button'
+import { enableCherryPicking } from '../../lib/feature-flag'
+import { encodePathAsUrl } from '../../lib/path'
 
 const RowHeight = 50
 
@@ -191,12 +193,18 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private renderCherryPickIntroPopover() {
-    if (this.props.hasShownCherryPickIntro) {
+    if (this.props.hasShownCherryPickIntro || !enableCherryPicking()) {
       return null
     }
 
+    const cherryPickIntro = encodePathAsUrl(
+      __dirname,
+      'static/cherry-pick-intro.png'
+    )
+
     return (
       <Popover caretPosition={PopoverCaretPosition.LeftTop}>
+        <img src={cherryPickIntro} className="cherry-pick-intro" />
         <h3>
           Drag and drop to cherry pick!
           <span className="call-to-action-bubble">New</span>
