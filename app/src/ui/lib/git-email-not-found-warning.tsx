@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Account } from '../../models/account'
 import { LinkButton } from './link-button'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { isAccountEmail } from '../../lib/is-account-email'
 
 interface IGitEmailNotFoundWarningProps {
   /** The account the commit should be attributed to. */
@@ -31,7 +32,7 @@ export class GitEmailNotFoundWarning extends React.Component<
   public render() {
     if (
       this.props.accounts.length === 0 ||
-      this.accountEmails.includes(this.props.email)
+      isAccountEmail(this.accountEmails, this.props.email)
     ) {
       return null
     }
