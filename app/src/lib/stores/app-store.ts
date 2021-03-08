@@ -5911,7 +5911,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     })
 
-    return checkoutSuccessful ? null : CherryPickResult.UnableToStart
+    return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
