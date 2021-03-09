@@ -38,11 +38,13 @@ export enum CherryPickResult {
    */
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
   /**
-   * The cherry pick was not attempted because it could not check the status of
-   * the repository. The caller needs to confirm the repository is in a usable
-   * state.
+   * The cherry pick was not attempted:
+   * - it could not check the status of the repository.
+   * - there was an invalid revision range provided.
+   * - there were uncommitted changes present.
+   * - there were errors in checkout the target branch
    */
-  Aborted = 'Aborted',
+  UnableToStart = 'UnableToStart',
   /**
    * An unexpected error as part of the cherry pick flow was caught and handled.
    *
@@ -151,7 +153,7 @@ export async function cherryPick(
         `Unable to cherry pick these branches
         because one or both of the refs do not exist in the repository`
       )
-      return CherryPickResult.Error
+      return CherryPickResult.UnableToStart
     }
 
     baseOptions = await configureOptionsWithCallBack(
@@ -340,12 +342,12 @@ export async function continueCherryPick(
       `[continueCherryPick] unable to get status after staging changes,
         skipping any other steps`
     )
-    return CherryPickResult.Aborted
+    return CherryPickResult.UnableToStart
   }
 
   // make sure cherry pick is still in progress to continue
   if (await !isCherryPickHeadFound(repository)) {
-    return CherryPickResult.Aborted
+    return CherryPickResult.UnableToStart
   }
 
   let options: IGitExecutionOptions = {
@@ -365,7 +367,7 @@ export async function continueCherryPick(
       log.warn(
         `[continueCherryPick] unable to get cherry pick status, skipping other steps`
       )
-      return CherryPickResult.Aborted
+      return CherryPickResult.UnableToStart
     }
     options = configureOptionsWithCallBack(
       options,
