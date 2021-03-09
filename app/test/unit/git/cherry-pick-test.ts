@@ -248,7 +248,7 @@ describe('git/cherry-pick', () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
     } catch (error) {
       expect(error.toString()).toContain(
-        'is a merge but no -m option was given'
+        'GitError: Unable to cherry pick merge commits.'
       )
     }
     expect(result).toBe(null)
