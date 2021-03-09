@@ -220,9 +220,9 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    sha: string
+    shas: ReadonlyArray<string>
   ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, sha)
+    return this.appStore._changeCommitSelection(repository, shas)
   }
 
   /**
@@ -1911,6 +1911,13 @@ export class Dispatcher {
           retryAction.baseBranch,
           retryAction.targetBranch
         )
+      case RetryActionType.CherryPick:
+        return this.cherryPick(
+          retryAction.repository,
+          retryAction.targetBranch,
+          retryAction.commits,
+          retryAction.sourceBranch
+        )
 
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
@@ -2523,23 +2530,20 @@ export class Dispatcher {
   }
 
   /** Initialize and start the cherry pick operation */
-  public async startCherryPick(
+  public async initializeCherryPickFlow(
     repository: Repository,
-    targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchCherryPickingFlowToShowProgress(repository)
-    this.cherryPick(repository, targetBranch, commits)
   }
 
   private logHowToRevertCherryPick(
     repository: Repository,
     targetBranch: Branch
   ) {
-    const stateBefore = this.repositoryStateManager.get(repository)
-    const beforeSha = getTipSha(stateBefore.branchesState.tip)
-
+    const beforeSha = targetBranch.tip.sha
+    this.appStore._setCherryPickTargetBranchUndoSha(repository, beforeSha)
     log.info(
       `[cherryPick] starting cherry pick for ${targetBranch.name} at ${beforeSha}`
     )
@@ -2554,21 +2558,26 @@ export class Dispatcher {
   public async cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
   ): Promise<void> {
+    this.initializeCherryPickFlow(repository, commits)
+    this.dismissCherryPickIntro()
     this.logHowToRevertCherryPick(repository, targetBranch)
 
     const result = await this.appStore._cherryPick(
       repository,
       targetBranch,
-      commits
+      commits,
+      sourceBranch
     )
 
     this.processCherryPickResult(
       repository,
       result,
       targetBranch.name,
-      commits.length
+      commits.length,
+      sourceBranch
     )
   }
 
@@ -2600,7 +2609,9 @@ export class Dispatcher {
   private async completeCherryPick(
     repository: Repository,
     targetBranchName: string,
-    countCherryPicked: number
+    countCherryPicked: number,
+    sourceBranch: Branch | null,
+    commitsCount: number
   ): Promise<void> {
     this.closePopup()
 
@@ -2608,6 +2619,14 @@ export class Dispatcher {
       type: BannerType.SuccessfulCherryPick,
       targetBranchName,
       countCherryPicked,
+      onUndoCherryPick: () => {
+        this.undoCherryPick(
+          repository,
+          targetBranchName,
+          sourceBranch,
+          commitsCount
+        )
+      },
     }
     this.setBanner(banner)
 
@@ -2654,7 +2673,8 @@ export class Dispatcher {
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     conflictsState: CherryPickConflictState,
-    commitsCount: number
+    commitsCount: number,
+    sourceBranch: Branch | null
   ): Promise<void> {
     await this.switchCherryPickingFlowToShowProgress(repository)
 
@@ -2668,7 +2688,8 @@ export class Dispatcher {
       repository,
       result,
       conflictsState.targetBranchName,
-      commitsCount
+      commitsCount,
+      sourceBranch
     )
   }
 
@@ -2682,7 +2703,8 @@ export class Dispatcher {
     repository: Repository,
     cherryPickResult: CherryPickResult,
     targetBranchName: string,
-    commitsCount: number
+    commitsCount: number,
+    sourceBranch: Branch | null
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
     // conflict flow if cherry pick results in conflict.
@@ -2693,14 +2715,27 @@ export class Dispatcher {
         await this.completeCherryPick(
           repository,
           targetBranchName,
+          commitsCount,
+          sourceBranch,
           commitsCount
         )
         break
       case CherryPickResult.ConflictsEncountered:
         this.startConflictCherryPickFlow(repository)
         break
-      default:
+      case CherryPickResult.UnableToStart:
+        // This is an expected error such as not being able to checkout the
+        // target branch which means the cherry pick operation never started or
+        // was cleanly aborted.
         this.appStore._endCherryPickFlow(repository)
+        break
+      default:
+        // If the user closes error dialog and tries to cherry pick again, it
+        // will fail again due to ongoing cherry pick. Thus, if we get to an
+        // unhandled error state, we want to abort any ongoing cherry pick.
+        this.appStore._clearCherryPickingHead(repository)
+        this.appStore._endCherryPickFlow(repository)
+        this.appStore._closePopup()
         throw Error(
           `Unable to perform cherry pick operation.
           This should not happen as all expected errors were handled.`
@@ -2758,6 +2793,29 @@ export class Dispatcher {
       sourceBranch,
     })
 
-    this.startCherryPick(repository, targetBranch, commits)
+    this.cherryPick(repository, targetBranch, commits, sourceBranch)
+  }
+
+  /** Method to dismiss cherry pick intro */
+  public dismissCherryPickIntro(): void {
+    this.appStore._dismissCherryPickIntro()
+  }
+
+  /**
+   * This method will perform a hard reset back to the tip of the target branch
+   * before the cherry pick happened.
+   */
+  private async undoCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    sourceBranch: Branch | null,
+    commitsCount: number
+  ): Promise<void> {
+    await this.appStore._undoCherryPick(
+      repository,
+      targetBranchName,
+      sourceBranch,
+      commitsCount
+    )
   }
 }

@@ -8,6 +8,7 @@ export enum BannerType {
   BranchAlreadyUpToDate = 'BranchAlreadyUpToDate',
   SuccessfulCherryPick = 'SuccessfulCherryPick',
   CherryPickConflictsFound = 'CherryPickConflictsFound',
+  CherryPickUndone = 'CherryPickUndone',
 }
 
 export type Banner =
@@ -52,6 +53,8 @@ export type Banner =
       readonly targetBranchName: string
       /** number of commits cherry picked */
       readonly countCherryPicked: number
+      /** callback to run when user clicks undo link in banner */
+      readonly onUndoCherryPick: () => void
     }
   | {
       readonly type: BannerType.CherryPickConflictsFound
@@ -59,4 +62,11 @@ export type Banner =
       readonly targetBranchName: string
       /** callback to run when user clicks on link in banner text */
       readonly onOpenConflictsDialog: () => void
+    }
+  | {
+      readonly type: BannerType.CherryPickUndone
+      /** name of the branch that the commits were cherry picked onto */
+      readonly targetBranchName: string
+      /** number of commits cherry picked */
+      readonly countCherryPicked: number
     }

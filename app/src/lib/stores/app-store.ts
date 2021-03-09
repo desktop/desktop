@@ -155,6 +155,8 @@ import {
   deleteRemoteBranch,
   fastForwardBranches,
   revRangeInclusive,
+  GitResetMode,
+  reset,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -281,6 +283,7 @@ import {
   CherryPickResult,
   continueCherryPick,
   getCherryPickSnapshot,
+  isCherryPickHeadFound,
 } from '../git/cherry-pick'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -336,6 +339,8 @@ const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 
 const MaxInvalidFoldersToDisplay = 3
+
+const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -436,6 +441,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Which step the user needs to complete next in the onboarding tutorial */
   private currentOnboardingTutorialStep = TutorialStep.NotApplicable
   private readonly tutorialAssessor: OnboardingTutorialAssessor
+
+  /**
+   * Whether or not the user has been introduced to the cherry pick feature
+   */
+  private hasShownCherryPickIntro: boolean = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -783,6 +793,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
+      hasShownCherryPickIntro: this.hasShownCherryPickIntro,
     }
   }
 
@@ -951,7 +962,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private clearSelectedCommit(repository: Repository) {
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
-      sha: null,
+      shas: [],
       file: null,
       changedFiles: [],
       diff: null,
@@ -961,16 +972,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeCommitSelection(
     repository: Repository,
-    sha: string
+    shas: ReadonlyArray<string>
   ): Promise<void> {
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
-    if (commitSelection.sha === sha) {
+    if (
+      commitSelection.shas.length === shas.length &&
+      commitSelection.shas.every((sha, i) => sha === shas[i])
+    ) {
       return
     }
 
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
-      sha,
+      shas,
       file: null,
       changedFiles: [],
       diff: null,
@@ -984,7 +998,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commitSHAs: ReadonlyArray<string>
   ) {
     const state = this.repositoryStateCache.get(repository)
-    let selectedSHA = state.commitSelection.sha
+    let selectedSHA =
+      state.commitSelection.shas.length === 1
+        ? state.commitSelection.shas[0]
+        : null
     if (selectedSHA != null) {
       const index = commitSHAs.findIndex(sha => sha === selectedSHA)
       if (index < 0) {
@@ -995,8 +1012,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (selectedSHA == null && commitSHAs.length > 0) {
-      this._changeCommitSelection(repository, commitSHAs[0])
+    if (state.commitSelection.shas.length === 0 && commitSHAs.length > 0) {
+      this._changeCommitSelection(repository, [commitSHAs[0]])
       this._loadChangedFilesForCurrentSelection(repository)
     }
   }
@@ -1252,14 +1269,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
-    const currentSHA = commitSelection.sha
-    if (currentSHA == null) {
+    const currentSHAs = commitSelection.shas
+    if (currentSHAs.length !== 1) {
+      // if none or multiple, we don't display a diff
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     const changedFiles = await gitStore.performFailableOperation(() =>
-      getChangedFiles(repository, currentSHA)
+      getChangedFiles(repository, currentSHAs[0])
     )
     if (!changedFiles) {
       return
@@ -1268,7 +1286,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
     // SHA/path.
-    if (currentSHA !== state.commitSelection.sha) {
+    if (
+      commitSelection.shas.length !== currentSHAs.length ||
+      commitSelection.shas[0] !== currentSHAs[0]
+    ) {
       return
     }
 
@@ -1313,9 +1334,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const sha = stateBeforeLoad.commitSelection.sha
+    const shas = stateBeforeLoad.commitSelection.shas
 
-    if (!sha) {
+    if (shas.length === 0) {
       if (__DEV__) {
         throw new Error(
           "No currently selected sha yet we've been asked to switch file selection"
@@ -1325,19 +1346,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
+    // We do not get a diff when multiple commits selected
+    if (shas.length > 1) {
+      return
+    }
+
     const diff = await getCommitDiff(
       repository,
       file,
-      sha,
+      shas[0],
       this.hideWhitespaceInDiff
     )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
-
+    const { shas: shasAfter } = stateAfterLoad.commitSelection
     // A whole bunch of things could have happened since we initiated the diff load
-    if (
-      stateAfterLoad.commitSelection.sha !== stateBeforeLoad.commitSelection.sha
-    ) {
+    if (shasAfter.length !== shas.length || shasAfter[0] !== shas[0]) {
       return
     }
     if (!stateAfterLoad.commitSelection.file) {
@@ -1727,6 +1751,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.emitUpdate()
       }
     })
+
+    this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, false)
 
     this.emitUpdateNow()
 
@@ -4022,7 +4048,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
-    if (commitSelection.sha === commit.sha) {
+    if (
+      commitSelection.shas.length > 0 &&
+      commitSelection.shas.find(sha => sha === commit.sha) !== undefined
+    ) {
       this.clearSelectedCommit(repository)
     }
 
@@ -5805,19 +5834,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
-      // This shouldn't happen... but in case throw error.
-      throw new Error('Unable to cherry pick. No commits provided.')
+      log.warn('[_cherryPick] - Unable to cherry pick. No commits provided.')
+      return CherryPickResult.UnableToStart
+    }
+    let result: CherryPickResult | null | undefined
+
+    result = this.checkForUncommittedChangesBeforeCherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
+
+    if (result !== null) {
+      return result
     }
 
-    const gitStore = this.gitStoreCache.get(repository)
-    await this.withAuthenticatingUser(repository, async (r, account) => {
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, targetBranch)
-      )
-    })
+    result = await this.checkoutTargetBranchForCherryPick(
+      repository,
+      targetBranch
+    )
+
+    if (result !== null) {
+      return result
+    }
 
     const progressCallback = (progress: ICherryPickProgress) => {
       this.repositoryStateCache.updateCherryPickState(repository, () => ({
@@ -5830,15 +5874,76 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (commits.length === 1) {
       revisionRange = commits[0].sha
     } else {
-      const lastCommit = commits[commits.length - 1]
-      revisionRange = revRangeInclusive(commits[0].sha, lastCommit.sha)
+      const earliestCommit = commits[commits.length - 1]
+      revisionRange = revRangeInclusive(earliestCommit.sha, commits[0].sha)
     }
 
-    const result = await gitStore.performFailableOperation(() =>
+    const gitStore = this.gitStoreCache.get(repository)
+    result = await gitStore.performFailableOperation(() =>
       cherryPick(repository, revisionRange, progressCallback)
     )
 
     return result || CherryPickResult.Error
+  }
+
+  /**
+   * Checks for uncommitted changes before cherry pick
+   *
+   * If uncommitted changes exist, ask user to stash and return
+   * CherryPickResult.UnableToStart.
+   *
+   * If no uncommitted changes, return null.
+   */
+  private checkForUncommittedChangesBeforeCherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
+  ): CherryPickResult | null {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    const hasChanges = changesState.workingDirectory.files.length > 0
+    if (!hasChanges) {
+      return null
+    }
+
+    this._showPopup({
+      type: PopupType.LocalChangesOverwritten,
+      repository,
+      retryAction: {
+        type: RetryActionType.CherryPick,
+        repository,
+        targetBranch,
+        commits,
+        sourceBranch,
+      },
+      files: changesState.workingDirectory.files.map(f => f.path),
+    })
+
+    return CherryPickResult.UnableToStart
+  }
+
+  /**
+   * Attempts to checkout target branch of cherry pick operation
+   *
+   * If unable to checkout, return CherryPickResult.UnableToStart
+   * Otherwise, return null.
+   */
+  private async checkoutTargetBranchForCherryPick(
+    repository: Repository,
+    targetBranch: Branch
+  ): Promise<CherryPickResult | null> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const checkoutSuccessful = await this.withAuthenticatingUser(
+      repository,
+      (r, account) => {
+        return gitStore.performFailableOperation(() =>
+          checkoutBranch(repository, account, targetBranch)
+        )
+      }
+    )
+
+    return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5870,6 +5975,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setCherryPickTargetBranchUndoSha(
+    repository: Repository,
+    sha: string
+  ): void {
+    // An update is not emitted here because there is no need
+    // to trigger a re-render at this point. (storing for later)
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      targetBranchUndoSha: sha,
+    }))
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5910,10 +6027,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const { progress } = snapshot
+    const { progress, targetBranchUndoSha } = snapshot
 
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       progress,
+      targetBranchUndoSha,
     }))
   }
 
@@ -5960,6 +6078,72 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commits: snapshot?.commits,
       sourceBranch: null,
     })
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _dismissCherryPickIntro() {
+    setBoolean(hasShownCherryPickIntroKey, true)
+    this.hasShownCherryPickIntro = true
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _clearCherryPickingHead(repository: Repository): Promise<void> {
+    if (!isCherryPickHeadFound(repository)) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() => abortCherryPick(repository))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _undoCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    sourceBranch: Branch | null,
+    countCherryPicked: number
+  ): Promise<void> {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
+      log.warn(
+        '[undoCherryPick] - Could not undo cherry pick.  User no longer on target branch.'
+      )
+      return
+    }
+
+    const {
+      cherryPickState: { targetBranchUndoSha },
+    } = this.repositoryStateCache.get(repository)
+
+    if (targetBranchUndoSha === null) {
+      log.warn('[undoCherryPick] - Could not determine target branch undo sha')
+      return
+    }
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() =>
+      reset(repository, GitResetMode.Hard, targetBranchUndoSha)
+    )
+
+    if (sourceBranch === null) {
+      return this._refreshRepository(repository)
+    }
+
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, sourceBranch)
+      )
+    })
+
+    const banner: Banner = {
+      type: BannerType.CherryPickUndone,
+      targetBranchName,
+      countCherryPicked,
+    }
+    this._setBanner(banner)
+
+    return this._refreshRepository(repository)
   }
 }
 

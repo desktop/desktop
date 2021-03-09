@@ -20,6 +20,7 @@ import {
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
   readonly commit: Commit
+  readonly selectedCommits: ReadonlyArray<Commit>
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
@@ -162,13 +163,24 @@ export class CommitListItem extends React.PureComponent<
 
   private onCherryPick = () => {
     if (this.props.onCherryPick !== undefined) {
-      this.props.onCherryPick([this.props.commit])
+      this.props.onCherryPick(this.props.selectedCommits)
     }
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
+    let items: IMenuItem[] = []
+    if (this.props.selectedCommits.length > 1) {
+      items = this.getContextMenuMultipleCommits()
+    } else {
+      items = this.getContextMenuForSingleCommit()
+    }
+
+    showContextualMenu(items)
+  }
+
+  private getContextMenuForSingleCommit(): IMenuItem[] {
     let viewOnGitHubLabel = 'View on GitHub'
     const gitHubRepository = this.props.gitHubRepository
 
@@ -232,7 +244,23 @@ export class CommitListItem extends React.PureComponent<
       }
     )
 
-    showContextualMenu(items)
+    return items
+  }
+
+  private getContextMenuMultipleCommits(): IMenuItem[] {
+    const items: IMenuItem[] = []
+
+    const count = this.props.selectedCommits.length
+    if (enableCherryPicking()) {
+      items.push({
+        label: __DARWIN__
+          ? `Cherry Pick ${count} Commits…`
+          : `Cherry pick ${count} commits…`,
+        action: this.onCherryPick,
+      })
+    }
+
+    return items
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {

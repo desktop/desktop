@@ -13,6 +13,7 @@ import { SuccessfulRebase } from './successful-rebase'
 import { BranchAlreadyUpToDate } from './branch-already-up-to-date-banner'
 import { SuccessfulCherryPick } from './successful-cherry-pick'
 import { CherryPickConflictsBanner } from './cherry-pick-conflicts-banner'
+import { CherryPickUndone } from './cherry-pick-undone'
 
 export function renderBanner(
   banner: Banner,
@@ -74,6 +75,7 @@ export function renderBanner(
           targetBranchName={banner.targetBranchName}
           countCherryPicked={banner.countCherryPicked}
           onDismissed={onDismissed}
+          onUndoCherryPick={banner.onUndoCherryPick}
         />
       )
     case BannerType.CherryPickConflictsFound:
@@ -83,6 +85,15 @@ export function renderBanner(
           onOpenConflictsDialog={banner.onOpenConflictsDialog}
           onDismissed={onDismissed}
           key={'cherry-pick-conflicts'}
+        />
+      )
+    case BannerType.CherryPickUndone:
+      return (
+        <CherryPickUndone
+          key="cherry-pick-undone"
+          targetBranchName={banner.targetBranchName}
+          countCherryPicked={banner.countCherryPicked}
+          onDismissed={onDismissed}
         />
       )
     default:

@@ -1,6 +1,7 @@
 import { Repository } from './repository'
 import { CloneOptions } from './clone-options'
 import { Branch } from './branch'
+import { CommitOneLine } from './commit'
 
 /** The types of actions that can be retried. */
 export enum RetryActionType {
@@ -11,6 +12,7 @@ export enum RetryActionType {
   Checkout,
   Merge,
   Rebase,
+  CherryPick,
 }
 
 /** The retriable actions and their associated data. */
@@ -41,4 +43,11 @@ export type RetryAction =
       repository: Repository
       baseBranch: Branch
       targetBranch: Branch
+    }
+  | {
+      type: RetryActionType.CherryPick
+      repository: Repository
+      targetBranch: Branch
+      commits: ReadonlyArray<CommitOneLine>
+      sourceBranch: Branch | null
     }

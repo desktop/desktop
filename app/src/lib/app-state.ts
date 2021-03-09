@@ -251,6 +251,11 @@ export interface IAppState {
    * Whether or not the app should use spell check on commit summary and description
    */
   readonly commitSpellcheckEnabled: boolean
+
+  /**
+   * Whether or not the user has been introduced to the cherry pick feature
+   */
+  readonly hasShownCherryPickIntro: boolean
 }
 
 export enum FoldoutType {
@@ -530,8 +535,8 @@ export interface IRebaseState {
 }
 
 export interface ICommitSelection {
-  /** The commit currently selected in the app */
-  readonly sha: string | null
+  /** The commits currently selected in the app */
+  readonly shas: ReadonlyArray<string>
 
   /** The list of files associated with the current commit */
   readonly changedFiles: ReadonlyArray<CommittedFileChange>
@@ -755,6 +760,13 @@ export interface ICherryPickState {
    * cherry pick.
    */
   readonly userHasResolvedConflicts: boolean
+
+  /**
+   * The sha of the target branch tip before cherry pick initiated.
+   *
+   * This will be set to null if no cherry pick has been initiated.
+   */
+  readonly targetBranchUndoSha: string | null
 }
 
 /**

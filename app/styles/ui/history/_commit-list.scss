@@ -7,6 +7,27 @@
   flex: 1;
   min-height: 0;
 
+  .popover-component {
+    position: absolute;
+    left: 100%;
+    top: 73px;
+    width: 282px;
+
+    .call-to-action-bubble {
+      font-weight: var(--font-weight-semibold);
+      display: inline-block;
+      font-size: var(--font-size-xs);
+      border: 1px solid var(--call-to-action-bubble-border-color);
+      color: var(--call-to-action-bubble-color);
+      padding: 1px 5px;
+      border-radius: var(--border-radius);
+      margin-left: var(--spacing-third);
+    }
+    img {
+      width: 100%;
+    }
+  }
+
   .commit,
   .commit-drag-ghost {
     display: flex;
