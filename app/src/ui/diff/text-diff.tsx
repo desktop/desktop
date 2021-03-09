@@ -401,7 +401,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const currentDiff = this.state.diff
     const newDiff = getTextDiffWithBottomDummyHunk(
-      this.state.diff,
+      currentDiff,
       currentDiff.hunks,
       oldContentLines.length,
       this.newContentLines.length

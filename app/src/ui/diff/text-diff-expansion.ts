@@ -375,9 +375,11 @@ export function getTextDiffWithBottomDummyHunk(
     lastHunk.unifiedDiffEnd + 1
   )
 
+  const newHunks = [...hunks, dummyHunk]
+
   return {
     ...diff,
-    text: getDiffTextFromHunks(hunks),
-    hunks: [...hunks, dummyHunk],
+    text: getDiffTextFromHunks(newHunks),
+    hunks: newHunks,
   }
 }
