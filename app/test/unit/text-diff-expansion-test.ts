@@ -109,7 +109,7 @@ describe('text-diff-expansion', () => {
     expect(firstHunk.header.newLineCount).toBe(27)
 
     // Check the first line is still the header info
-    expect(firstHunk.lines[0].text).toStartWith('@@ -')
+    expect(firstHunk.lines[0].type).toBe(DiffLineType.Hunk)
   })
 
   it('expands the initial hunk reaching the top', async () => {
@@ -127,8 +127,8 @@ describe('text-diff-expansion', () => {
     expect(firstHunk.header.newStartLine).toBe(1)
     expect(firstHunk.header.newLineCount).toBe(19)
 
-    // Check the hunk header line has been removed because we reached the top
-    expect(firstHunk.lines[0].text).not.toStartWith('@@ -')
+    // Check the first line is still the header info
+    expect(firstHunk.lines[0].type).toBe(DiffLineType.Hunk)
   })
 
   // The last hunk is a dummy hunk to expand the bottom of the diff

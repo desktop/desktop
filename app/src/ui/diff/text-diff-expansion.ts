@@ -100,7 +100,7 @@ export function getHunkHeaderExpansionInfo(
         previousHunk.header.oldLineCount
 
   if (hunkIndex === 0) {
-    isExpandableUp = true
+    isExpandableUp = hunk.header.oldLineCount !== 0
   } else if (distanceToPrevious <= DiffExpansionDistance) {
     isExpandableShort = true
   } else if (hunkIndex === hunks.length - 1 && hunk.lines.length === 1) {
@@ -239,14 +239,11 @@ export function expandTextDiffHunk(
     hunk.header.newLineCount + numberOfLinesToAdd
   )
 
-  // Create a new Hunk header line, except if we're expanding up and we
-  // reached the top of the file. Store in an array to make it easier to add
-  // later to the new list of lines.
+  // Create a new Hunk header line. Store it in an array to make it easier to
+  // add later to the new list of lines.
   const newDiffHunkLine =
     diffHunkLine === null
       ? [firstHunkLine]
-      : isExpandingUp && from <= 0
-      ? []
       : [
           new DiffLine(
             newHunkHeader.toDiffLineRepresentation(),
