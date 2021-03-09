@@ -5818,19 +5818,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
-      // This shouldn't happen... but in case throw error.
-      throw new Error('Unable to cherry pick. No commits provided.')
+      log.warn('[_cherryPick] - Unable to cherry pick. No commits provided.')
+      return CherryPickResult.UnableToStart
+    }
+    let result: CherryPickResult | null | undefined
+
+    result = this.checkForUncommittedChangesBeforeCherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
+
+    if (result !== null) {
+      return result
     }
 
-    const gitStore = this.gitStoreCache.get(repository)
-    await this.withAuthenticatingUser(repository, async (r, account) => {
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, targetBranch)
-      )
-    })
+    result = await this.checkoutTargetBranchForCherryPick(
+      repository,
+      targetBranch
+    )
+
+    if (result !== null) {
+      return result
+    }
 
     const progressCallback = (progress: ICherryPickProgress) => {
       this.repositoryStateCache.updateCherryPickState(repository, () => ({
@@ -5847,11 +5862,72 @@ export class AppStore extends TypedBaseStore<IAppState> {
       revisionRange = revRangeInclusive(commits[0].sha, lastCommit.sha)
     }
 
-    const result = await gitStore.performFailableOperation(() =>
+    const gitStore = this.gitStoreCache.get(repository)
+    result = await gitStore.performFailableOperation(() =>
       cherryPick(repository, revisionRange, progressCallback)
     )
 
     return result || CherryPickResult.Error
+  }
+
+  /**
+   * Checks for uncommitted changes before cherry pick
+   *
+   * If uncommitted changes exist, ask user to stash and return
+   * CherryPickResult.UnableToStart.
+   *
+   * If no uncommitted changes, return null.
+   */
+  private checkForUncommittedChangesBeforeCherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
+  ): CherryPickResult | null {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    const hasChanges = changesState.workingDirectory.files.length > 0
+    if (!hasChanges) {
+      return null
+    }
+
+    this._showPopup({
+      type: PopupType.LocalChangesOverwritten,
+      repository,
+      retryAction: {
+        type: RetryActionType.CherryPick,
+        repository,
+        targetBranch,
+        commits,
+        sourceBranch,
+      },
+      files: changesState.workingDirectory.files.map(f => f.path),
+    })
+
+    return CherryPickResult.UnableToStart
+  }
+
+  /**
+   * Attempts to checkout target branch of cherry pick operation
+   *
+   * If unable to checkout, return CherryPickResult.UnableToStart
+   * Otherwise, return null.
+   */
+  private async checkoutTargetBranchForCherryPick(
+    repository: Repository,
+    targetBranch: Branch
+  ): Promise<CherryPickResult | null> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const checkoutSuccessful = await this.withAuthenticatingUser(
+      repository,
+      (r, account) => {
+        return gitStore.performFailableOperation(() =>
+          checkoutBranch(repository, account, targetBranch)
+        )
+      }
+    )
+
+    return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
