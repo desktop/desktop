@@ -173,9 +173,7 @@ describe('git/cherry-pick', () => {
     try {
       result = await cherryPick(repository, featureBranch.tip.sha)
     } catch (error) {
-      expect(error.toString()).toContain(
-        'is a merge but no -m option was given'
-      )
+      expect(error.toString()).toContain('Error: Unknown error: 53')
     }
     expect(result).toBe(null)
   })
