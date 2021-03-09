@@ -409,6 +409,11 @@ function getDescriptionForError(error: DugiteError): string | null {
     case DugiteError.MergeWithLocalChanges:
     case DugiteError.RebaseWithLocalChanges:
       return null
+    case DugiteError.MergeCommitNoMainlineOption:
+      // Note: This has been made specific to cherry pick, but this error can
+      // appear for revert; however, our revert logic provides the -m option
+      // and avoids this error.
+      return 'Unable to cherry pick merge commits.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }

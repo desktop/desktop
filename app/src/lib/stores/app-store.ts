@@ -6088,13 +6088,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _clearCherryPickingHead(repository: Repository): Promise<void> {
+  public async _clearCherryPickingHead(
+    repository: Repository,
+    sourceBranch: Branch | null
+  ): Promise<void> {
     if (!isCherryPickHeadFound(repository)) {
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
+
+    if (sourceBranch === null) {
+      return this._refreshRepository(repository)
+    }
+
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, sourceBranch)
+      )
+    })
+
+    return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
