@@ -173,7 +173,9 @@ describe('git/cherry-pick', () => {
     try {
       result = await cherryPick(repository, featureBranch.tip.sha)
     } catch (error) {
-      expect(error.toString()).toContain('Error: Unknown error: 53')
+      expect(error.toString()).toContain(
+        'GitError: You cannot cherry pick merge commits from GitHub Desktop.'
+      )
     }
     expect(result).toBe(null)
   })

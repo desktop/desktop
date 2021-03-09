@@ -409,6 +409,11 @@ function getDescriptionForError(error: DugiteError): string | null {
     case DugiteError.MergeWithLocalChanges:
     case DugiteError.RebaseWithLocalChanges:
       return null
+    case DugiteError.MergeCommitNoMainlineOption:
+      // Note: This has been made specific to cherry pick, but this error can
+      // appear for revert; however, our revert logic provides the -m option
+      // and avoids this error.
+      return 'You cannot cherry pick merge commits from GitHub Desktop. You can cherry pick merge commits from the terminal using the -m flag. Please select non-merge commits and try again.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
