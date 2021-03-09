@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.6.6-test1": [
+      "[Added] Test trampoline server before every remote Git operation"
+    ],
     "2.6.6-beta1": [
       "[Added] Add .avif image support - #11625. Thanks @brendonbarreto!",
       "[Fixed] Performing remote Git operations in rare cases displays an error message instead of crashing the app - #11694",
