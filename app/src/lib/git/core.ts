@@ -413,7 +413,7 @@ function getDescriptionForError(error: DugiteError): string | null {
       // Note: This has been made specific to cherry pick, but this error can
       // appear for revert; however, our revert logic provides the -m option
       // and avoids this error.
-      return 'Unable to cherry pick merge commits.'
+      return 'You cannot cherry pick merge commits from GitHub Desktop. You can cherry pick merge commits from the terminal using the -m flag. Please select non-merge commits and try again.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
