@@ -2779,6 +2779,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+    this.props.dispatcher.recordCherryPickViaContextMenu()
 
     this.showPopup({
       type: PopupType.CherryPick,

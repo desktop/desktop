@@ -355,6 +355,18 @@ export interface IDailyMeasures {
 
   /** Number of times the user has encountered an unhandled rejection */
   readonly unhandledRejectionCount: number
+
+  /** The number of times a successful cherry pick occurs */
+  readonly cherryPickSuccessfulCount: number
+
+  /** The number of times a cherry pick is initiated through drag and drop */
+  readonly cherryPickViaDragAndDropCount: number
+
+  /** The number of times a cherry pick is initiated through the context menu */
+  readonly cherryPickViaContextMenuCount: number
+
+  /** The number of times a cherry pick drag was started and canceled */
+  readonly cherryPickDragStartedAndCanceledCount: number
 }
 
 export class StatsDatabase extends Dexie {

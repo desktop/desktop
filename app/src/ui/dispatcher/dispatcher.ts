@@ -2626,6 +2626,8 @@ export class Dispatcher {
 
     this.appStore._endCherryPickFlow(repository)
 
+    this.statsStore.recordCherryPickSuccessful()
+
     await this.refreshRepository(repository)
   }
 
@@ -2780,6 +2782,7 @@ export class Dispatcher {
       sourceBranch,
     })
 
+    this.statsStore.recordCherryPickViaDragAndDrop()
     this.startCherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
@@ -2804,5 +2807,20 @@ export class Dispatcher {
       sourceBranch,
       commitsCount
     )
+  }
+
+  /** Method to record cherry pick initiated via the context menu. */
+  public recordCherryPickViaContextMenu() {
+    this.statsStore.recordCherryPickViaDragAndDrop()
+  }
+
+  /** Method to record cherry pick started via drag and drop and canceled. */
+  public recordCherryPickDragStartedAndCanceled() {
+    this.statsStore.recordCherryPickDragStartedAndCanceled()
+  }
+
+  /** Method to reset cherry picking state. */
+  public endCherryPickFlow(repository: Repository) {
+    this.appStore._endCherryPickFlow(repository)
   }
 }
