@@ -232,7 +232,7 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         isLocalRepository={this.props.state.remote === null}
         compareState={this.props.state.compareState}
-        selectedCommitSha={this.props.state.commitSelection.sha}
+        selectedCommitShas={this.props.state.commitSelection.shas}
         currentBranch={currentBranch}
         emoji={this.props.emoji}
         commitLookup={this.props.state.commitLookup}
@@ -332,7 +332,8 @@ export class RepositoryView extends React.Component<
   private renderContentForHistory(): JSX.Element {
     const { commitSelection } = this.props.state
 
-    const sha = commitSelection.sha
+    const sha =
+      commitSelection.shas.length === 1 ? commitSelection.shas[0] : null
 
     const selectedCommit =
       sha != null ? this.props.state.commitLookup.get(sha) || null : null
@@ -357,6 +358,7 @@ export class RepositoryView extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
+        areMultipleCommitsSelected={commitSelection.shas.length > 1}
       />
     )
   }

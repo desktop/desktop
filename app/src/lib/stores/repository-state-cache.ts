@@ -118,7 +118,7 @@ export class RepositoryStateCache {
 function getInitialRepositoryState(): IRepositoryState {
   return {
     commitSelection: {
-      sha: null,
+      shas: [],
       file: null,
       changedFiles: new Array<CommittedFileChange>(),
       diff: null,
