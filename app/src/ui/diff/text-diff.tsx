@@ -48,7 +48,8 @@ import {
   expandTextDiffHunk,
   ExpansionKind,
   getDiffTextFromHunks,
-  getHunkExpansionInfo,
+  getHunkHeaderExpansionInfo,
+  getTextDiffWithBottomDummyHunk,
 } from './text-diff-expansion'
 
 /** The longest line for which we'd try to calculate a line diff. */
@@ -398,50 +399,19 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     // TODO: what about \r or \r\n?? I_dont_know_what_im_doing.gif
     this.newContentLines = contents.newContents.split('\n')
+    const oldContentLines = contents.oldContents.split('\n')
 
-    const hunks = this.state.diff.hunks.slice()
-    let newDiff = null
-
-    if (hunks.length !== 0) {
-      // If the last hunk doesn't reach the end of the file, create a dummy hunk
-      // at the end to allow expanding the diff down.
-      const lastHunk = hunks[hunks.length - 1]
-      const lastHunkNewLine =
-        lastHunk.header.newStartLine + lastHunk.header.newLineCount
-
-      if (lastHunkNewLine < this.newContentLines.length) {
-        const oldContentsLength = contents.oldContents.split('\n').length
-
-        const dummyOldStartLine =
-          lastHunk.header.oldStartLine + lastHunk.header.oldLineCount
-        const dummyNewStartLine =
-          lastHunk.header.newStartLine + lastHunk.header.newLineCount
-        const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, false)
-        const dummyHeader = new DiffHunkHeader(
-          dummyOldStartLine,
-          oldContentsLength - dummyOldStartLine + 1,
-          dummyNewStartLine,
-          this.newContentLines.length - dummyNewStartLine + 1
-        )
-        const dummyHunk = new DiffHunk(
-          dummyHeader,
-          [dummyLine],
-          lastHunk.unifiedDiffEnd + 1,
-          lastHunk.unifiedDiffEnd + 1
-        )
-        hunks.push(dummyHunk)
-
-        newDiff = {
-          ...this.state.diff,
-          text: getDiffTextFromHunks(hunks),
-          hunks: hunks,
-        }
-      }
-    }
+    const currentDiff = this.state.diff
+    const newDiff = getTextDiffWithBottomDummyHunk(
+      this.state.diff,
+      currentDiff.hunks,
+      oldContentLines.length,
+      this.newContentLines.length
+    )
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
-      hunks: hunks,
+      hunks: newDiff !== null ? newDiff.hunks : currentDiff.hunks,
       oldTokens: tokens.oldTokens,
       newTokens: tokens.newTokens,
     }
@@ -981,7 +951,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     const hover = isIncludeable && inSelection(this.hunkHighlightRange, index)
     const hunkExpansionInfo =
       diffLine.type === DiffLineType.Hunk
-        ? getHunkExpansionInfo(hunks, hunk)
+        ? getHunkHeaderExpansionInfo(hunks, hunk)
         : undefined
 
     return {
