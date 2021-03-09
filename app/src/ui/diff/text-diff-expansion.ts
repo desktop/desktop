@@ -99,8 +99,15 @@ export function getHunkHeaderExpansionInfo(
         previousHunk.header.oldStartLine -
         previousHunk.header.oldLineCount
 
+  // In order to simplify the whole logic around expansion, only the hunk at the
+  // top can be expanded up, and only the hunk at the bottom (the dummy one) can
+  // be expanded down.
+  // The rest of the hunks can be expanded both ways, except those which are too
+  // short and therefore the direction of expansion doesn't matter.
   if (hunkIndex === 0) {
-    isExpandableUp = hunk.header.oldLineCount !== 0
+    // The top hunk can only be expanded if there is any content above
+    isExpandableUp =
+      hunk.header.oldStartLine > 1 && hunk.header.newStartLine > 1
   } else if (distanceToPrevious <= DiffExpansionDistance) {
     isExpandableShort = true
   } else if (hunkIndex === hunks.length - 1 && hunk.lines.length === 1) {
