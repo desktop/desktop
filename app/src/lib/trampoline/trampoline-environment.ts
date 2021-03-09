@@ -1,6 +1,7 @@
 import { IGitAccount } from '../../models/git-account'
 import { envForRemoteOperation } from '../git/environment'
 import { trampolineServer } from './trampoline-server'
+import { testTrampoline } from './trampoline-tester'
 import { withTrampolineToken } from './trampoline-tokens'
 
 /**
@@ -30,11 +31,24 @@ export async function withTrampolineEnvForRemoteOperation<T>(
 ): Promise<T> {
   const env = await envForRemoteOperation(account, remoteUrl)
 
-  return withTrampolineToken(async token =>
-    fn({
+  return withTrampolineToken(async token => {
+    const port = await trampolineServer.getPort()
+
+    if (port !== null) {
+      try {
+        console.log(
+          `Internal trampoline test to port ${port} succeeded?`,
+          await testTrampoline(port, token)
+        )
+      } catch (error) {
+        console.error(`Internal trampoline test to port ${port} failed`, error)
+      }
+    }
+
+    return fn({
       ...env,
-      DESKTOP_PORT: await trampolineServer.getPort(),
+      DESKTOP_PORT: port,
       DESKTOP_TRAMPOLINE_TOKEN: token,
     })
-  )
+  })
 }

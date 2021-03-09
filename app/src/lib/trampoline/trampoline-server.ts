@@ -9,6 +9,7 @@ import {
   TrampolineCommandIdentifier,
 } from './trampoline-command'
 import { TrampolineCommandParser } from './trampoline-command-parser'
+import { internalTestTrampolineHandler } from './trampoline-tester'
 import { isValidTrampolineToken } from './trampoline-tokens'
 
 /**
@@ -47,6 +48,10 @@ export class TrampolineServer {
     this.registerCommandHandler(
       TrampolineCommandIdentifier.AskPass,
       askpassTrampolineHandler
+    )
+    this.registerCommandHandler(
+      TrampolineCommandIdentifier.InternalTest,
+      internalTestTrampolineHandler
     )
   }
 

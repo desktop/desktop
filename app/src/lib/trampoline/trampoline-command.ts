@@ -1,4 +1,5 @@
 export enum TrampolineCommandIdentifier {
+  InternalTest = 'INTERNAL_TEST',
   AskPass = 'ASKPASS',
 }
 
