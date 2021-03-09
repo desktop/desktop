@@ -29,7 +29,7 @@ interface IHunkHeaderExpansionInfo {
 }
 
 /** Builds the diff text string given a list of hunks. */
-export function getDiffTextFromHunks(hunks: ReadonlyArray<DiffHunk>) {
+function getDiffTextFromHunks(hunks: ReadonlyArray<DiffHunk>) {
   // Grab all hunk lines and rebuild the diff text from it
   const newDiffLines = hunks.reduce<ReadonlyArray<DiffLine>>(
     (result, hunk) => result.concat(hunk.lines),

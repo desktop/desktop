@@ -8,7 +8,6 @@ import {
   DiffSelection,
   DiffLine,
   ITextDiff,
-  DiffHunkHeader,
 } from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
@@ -47,7 +46,6 @@ import { canSelect } from './diff-helpers'
 import {
   expandTextDiffHunk,
   ExpansionKind,
-  getDiffTextFromHunks,
   getHunkHeaderExpansionInfo,
   getTextDiffWithBottomDummyHunk,
 } from './text-diff-expansion'
