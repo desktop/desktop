@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.6.7-test1": [
+      "[Added] Test trampoline server before every remote Git operation"
+    ],
     "2.6.7-beta1": [
       "[Improved] Upgrade embedded Git to v2.29.3 on macOS, and to v2.29.2.windows.4 on Windows - #11755"
     ],
