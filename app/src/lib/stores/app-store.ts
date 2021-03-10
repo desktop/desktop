@@ -5955,7 +5955,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
 
-    this.checkoutBranchIfNotNull(repository, sourceBranch)
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6091,7 +6091,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
 
-    this.checkoutBranchIfNotNull(repository, sourceBranch)
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
 
     return this._refreshRepository(repository)
   }
@@ -6102,14 +6102,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     targetBranchName: string,
     sourceBranch: Branch | null,
     countCherryPicked: number
-  ): Promise<void> {
+  ): Promise<boolean> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
       log.warn(
         '[undoCherryPick] - Could not undo cherry pick.  User no longer on target branch.'
       )
-      return
+      return false
     }
 
     const {
@@ -6118,14 +6118,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (targetBranchUndoSha === null) {
       log.warn('[undoCherryPick] - Could not determine target branch undo sha')
-      return
+      return false
     }
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
+    const result = await gitStore.performFailableOperation(() =>
       reset(repository, GitResetMode.Hard, targetBranchUndoSha)
     )
 
-    this.checkoutBranchIfNotNull(repository, sourceBranch)
+    if (result !== true) {
+      return false
+    }
+
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
 
     const banner: Banner = {
       type: BannerType.CherryPickUndone,
@@ -6134,7 +6138,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     this._setBanner(banner)
 
-    return this._refreshRepository(repository)
+    await this._refreshRepository(repository)
+
+    return true
   }
 
   private async checkoutBranchIfNotNull(

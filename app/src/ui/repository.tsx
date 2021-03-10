@@ -14,6 +14,7 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ChangesSelectionKind,
+  FoldoutType,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
@@ -28,6 +29,8 @@ import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import { sleep } from '../lib/promise'
+import { CherryPickStepKind } from '../models/cherry-pick'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -247,6 +250,7 @@ export class RepositoryView extends React.Component<
         tagsToPush={this.props.state.tagsToPush}
         aheadBehindStore={this.props.aheadBehindStore}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
+        onDragCommitEnd={this.onDragCommitEnd}
       />
     )
   }
@@ -544,5 +548,28 @@ export class RepositoryView extends React.Component<
       )
     }
     return null
+  }
+
+  /**
+   * This method is a generic event handler for when a commit has ended being
+   * dragged.
+   *
+   * Currently only used for cherry picking, but this could be more generic.
+   */
+  private onDragCommitEnd = async () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+
+    // On drag end fires before the drop event, we need to wait here and see if
+    // the drop event results in a change of cherry picking state.
+    await sleep(10)
+    const { cherryPickState } = this.props.state
+    if (
+      cherryPickState !== null &&
+      cherryPickState.step !== null &&
+      cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
+    ) {
+      this.props.dispatcher.endCherryPickFlow(this.props.repository)
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+    }
   }
 }
