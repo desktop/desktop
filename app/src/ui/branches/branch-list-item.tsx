@@ -9,6 +9,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { String } from 'aws-sdk/clients/apigateway'
 import classNames from 'classnames'
+import { setBoolean } from '../../lib/local-storage'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -98,6 +99,7 @@ export class BranchListItem extends React.Component<
     const { onDropOntoBranch, name } = this.props
 
     if (onDropOntoBranch !== undefined) {
+      setBoolean('landed-on-expected-target', true)
       onDropOntoBranch(name)
     }
   }

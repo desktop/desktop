@@ -131,6 +131,7 @@ import {
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
+import { getBoolean, setBoolean } from '../lib/local-storage'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2669,6 +2670,36 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  /**
+   * Method to handle when any internal drag item is dropped in the app.
+   *
+   * If `onDrop` is registered to a child element that `onDrop` will fire first
+   * and we can set the local storage `landed-on-expected-target` so that this
+   * handler can handle what happens if a drag starts and does not land
+   * on an expected target.
+   */
+  private onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const landedOnExpectedTarget = getBoolean('landed-on-expected-target')
+    if (landedOnExpectedTarget) {
+      setBoolean('landed-on-expected-target', false)
+      return
+    }
+
+    this.afterUnexpectedDropTargetCheckIfCherryPick()
+  }
+
+  /**
+   * Drag and Drop api requires `onDragOver` to prevent the default in
+   * order for `onDrop` to fire.
+   */
+  private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    // We currently do not drag anything when a modal is open.
+    // This will prevent needless checking of dragged items.
+    if (!this.isShowingModal) {
+      e.preventDefault()
+    }
+  }
+
   public render() {
     if (this.loading) {
       return null
@@ -2681,7 +2712,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       : this.state.selectedTheme
 
     return (
-      <div id="desktop-app-chrome" className={className}>
+      <div
+        id="desktop-app-chrome"
+        className={className}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}
+      >
         <AppTheme theme={currentTheme} />
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow
@@ -2857,6 +2893,33 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
     return selectedState.state.changesState.workingDirectory
+  }
+
+  /**
+   * Handles what happens when cherry pick drag did not result in a cherry pick.
+   *
+   * - Clear cherry pick state.
+   * - Record that the cherry pick drag did not result in a cherry pick.
+   */
+  private afterUnexpectedDropTargetCheckIfCherryPick() {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return
+    }
+
+    const { state, repository } = selectedState
+    const { cherryPickState } = state
+    if (
+      cherryPickState !== null &&
+      cherryPickState.step !== null &&
+      cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
+    ) {
+      this.props.dispatcher.endCherryPickFlow(repository)
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+    }
   }
 }
 
