@@ -144,6 +144,10 @@ const DefaultDailyMeasures: IDailyMeasures = {
   cherryPickViaDragAndDropCount: 0,
   cherryPickViaContextMenuCount: 0,
   cherryPickDragStartedAndCanceledCount: 0,
+  cherryPickConflictsEncounteredCount: 0,
+  cherryPickSuccessfulWithConflictsCount: 0,
+  cherryPickMultipleCommitsCount: 0,
+  cherryPickUndoneCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1413,6 +1417,32 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       cherryPickDragStartedAndCanceledCount:
         m.cherryPickDragStartedAndCanceledCount + 1,
+    }))
+  }
+
+  public recordCherryPickConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickConflictsEncounteredCount:
+        m.cherryPickConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordCherryPickSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickSuccessfulWithConflictsCount:
+        m.cherryPickSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordCherryPickMultipleCommits(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickMultipleCommitsCount: m.cherryPickMultipleCommitsCount + 1,
+    }))
+  }
+
+  public recordCherryPickUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
     }))
   }
 

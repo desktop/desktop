@@ -559,6 +559,8 @@ export class RepositoryView extends React.Component<
   private onDragCommitEnd = async () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
+    // On drag end fires before the drop event, we need to wait here and see if
+    // the drop event results in a change of cherry picking state.
     await sleep(10)
     const { cherryPickState } = this.props.state
     if (

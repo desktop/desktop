@@ -367,6 +367,18 @@ export interface IDailyMeasures {
 
   /** The number of times a cherry pick drag was started and canceled */
   readonly cherryPickDragStartedAndCanceledCount: number
+
+  /** The number of times conflicts encountered during a cherry pick  */
+  readonly cherryPickConflictsEncounteredCount: number
+
+  /** The number of times cherry pick ended successfully after conflicts  */
+  readonly cherryPickSuccessfulWithConflictsCount: number
+
+  /** The number of times cherry pick of multiple commits initiated  */
+  readonly cherryPickMultipleCommitsCount: number
+
+  /** The number of times a cherry pick was undone  */
+  readonly cherryPickUndoneCount: number
 }
 
 export class StatsDatabase extends Dexie {
