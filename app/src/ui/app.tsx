@@ -2693,11 +2693,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * order for `onDrop` to fire.
    */
   private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    // We currently do not drag anything when a modal is open.
-    // This will prevent needless checking of dragged items.
-    if (!this.isShowingModal) {
-      e.preventDefault()
-    }
+    e.preventDefault()
   }
 
   public render() {
