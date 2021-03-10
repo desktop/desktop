@@ -21,10 +21,11 @@ import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { CodeMirrorHost } from './code-mirror-host'
 import {
   diffLineForIndex,
-  findInteractiveDiffRange,
+  findInteractiveOriginalDiffRange,
   lineNumberForDiffLine,
   DiffRangeType,
   diffLineInfoForIndex,
+  getLineInOriginalDiff,
 } from './diff-explorer'
 
 import {
@@ -437,10 +438,15 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       this.cancelSelection()
     }
 
-    const isSelected = !file.selection.isSelected(index)
+    const indexInOriginalDiff = getLineInOriginalDiff(hunks, index)
+    if (indexInOriginalDiff === null) {
+      return
+    }
+
+    const isSelected = !file.selection.isSelected(indexInOriginalDiff)
 
     if (kind === 'hunk') {
-      const range = findInteractiveDiffRange(hunks, index)
+      const range = findInteractiveOriginalDiffRange(hunks, index)
       if (!range) {
         console.error('unable to find range for given line in diff')
         return
@@ -449,7 +455,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       const { from, to } = range
       this.selection = { isSelected, from, to, kind }
     } else if (kind === 'range') {
-      this.selection = { isSelected, from: index, to: index, kind }
+      this.selection = {
+        isSelected,
+        from: indexInOriginalDiff,
+        to: indexInOriginalDiff,
+        kind,
+      }
       document.addEventListener('mousemove', this.onDocumentMouseMove)
     } else {
       assertNever(kind, `Unknown selection kind ${kind}`)
@@ -480,9 +491,15 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // pointer is placed underneath the last line so we clamp it
     // to the range of valid values.
     const max = Math.max(0, this.codeMirror.getDoc().lineCount() - 1)
-    const to = clamp(this.codeMirror.lineAtHeight(ev.y), 0, max)
+    const index = clamp(this.codeMirror.lineAtHeight(ev.y), 0, max)
 
-    this.codeMirror.scrollIntoView({ line: to, ch: 0 })
+    this.codeMirror.scrollIntoView({ line: index, ch: 0 })
+
+    const to = getLineInOriginalDiff(this.state.diff.hunks, index)
+
+    if (to === null) {
+      return
+    }
 
     if (to !== this.selection.to) {
       this.selection = { ...this.selection, to }
@@ -571,11 +588,21 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // we need to make sure the user is still within that hunk handle
     // section and in the correct range.
     if (this.selection.kind === 'hunk') {
+      const index = this.codeMirror.lineAtHeight(ev.y)
+      const indexInOriginalDiff = getLineInOriginalDiff(
+        this.state.diff.hunks,
+        index
+      )
+      if (indexInOriginalDiff === null) {
+        return
+      }
+
       // Is the pointer over the same range (i.e hunk) that the
       // selection was originally started from?
       if (
+        indexInOriginalDiff === null ||
         !targetHasClass(ev.target, 'hunk-handle') ||
-        !inSelection(this.selection, this.codeMirror.lineAtHeight(ev.y))
+        !inSelection(this.selection, indexInOriginalDiff)
       ) {
         return this.cancelSelection()
       }
@@ -687,7 +714,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return null
     }
 
-    const range = findInteractiveDiffRange(this.state.diff.hunks, lineNumber)
+    const range = findInteractiveOriginalDiffRange(
+      this.state.diff.hunks,
+      lineNumber
+    )
     if (range === null) {
       return null
     }
@@ -899,7 +929,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           ) {
             const marker = lineInfo.gutterMarkers[diffGutterName]
             if (marker instanceof HTMLElement) {
-              this.updateGutterMarker(marker, lineNumber, hunks, hunk, diffLine)
+              this.updateGutterMarker(marker, hunks, hunk, diffLine)
             }
           } else {
             batchedOps.push(() => {
@@ -933,20 +963,26 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
    */
   private isIncluded(index: number) {
     const { file } = this.props
+
     return inSelection(this.selection, index)
       ? this.selection.isSelected
       : canSelect(file) && file.selection.isSelected(index)
   }
 
   private getGutterLineClassNameInfo(
-    index: number,
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     diffLine: DiffLine
   ): { [className: string]: boolean } {
     const isIncludeable = diffLine.isIncludeableLine()
-    const isIncluded = isIncludeable && this.isIncluded(index)
-    const hover = isIncludeable && inSelection(this.hunkHighlightRange, index)
+    const isIncluded =
+      isIncludeable &&
+      diffLine.originalLineNumber !== null &&
+      this.isIncluded(diffLine.originalLineNumber)
+    const hover =
+      isIncludeable &&
+      diffLine.originalLineNumber !== null &&
+      inSelection(this.hunkHighlightRange, diffLine.originalLineNumber)
     const hunkExpansionInfo =
       diffLine.type === DiffLineType.Hunk
         ? getHunkHeaderExpansionInfo(hunks, hunk)
@@ -1014,7 +1050,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     )
     marker.appendChild(hunkExpandDownHandle)
 
-    this.updateGutterMarker(marker, index, hunks, hunk, diffLine)
+    this.updateGutterMarker(marker, hunks, hunk, diffLine)
 
     return marker
   }
@@ -1057,17 +1093,11 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   private updateGutterMarker(
     marker: HTMLElement,
-    index: number,
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     diffLine: DiffLine
   ) {
-    const classNameInfo = this.getGutterLineClassNameInfo(
-      index,
-      hunks,
-      hunk,
-      diffLine
-    )
+    const classNameInfo = this.getGutterLineClassNameInfo(hunks, hunk, diffLine)
     for (const [className, include] of Object.entries(classNameInfo)) {
       if (include) {
         marker.classList.add(className)
@@ -1108,20 +1138,21 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-
-    const diffLine = diffLineForIndex(this.state.diff.hunks, lineNumber)
+    const hunks = this.state.diff.hunks
+    const diffLine = diffLineForIndex(hunks, lineNumber)
 
     if (!diffLine || !diffLine.isIncludeableLine()) {
       return
     }
 
-    const range = findInteractiveDiffRange(this.state.diff.hunks, lineNumber)
+    const range = findInteractiveOriginalDiffRange(hunks, lineNumber)
 
     if (range === null) {
       return
     }
 
     const { from, to } = range
+
     this.hunkHighlightRange = { from, to, kind: 'hunk', isSelected: false }
     this.updateViewport()
   }

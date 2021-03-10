@@ -61,6 +61,7 @@ function mergeDiffHunks(hunk1: DiffHunk, hunk2: DiffHunk): DiffHunk {
           DiffLineType.Hunk,
           null,
           null,
+          null,
           false
         )
 
@@ -228,6 +229,7 @@ export function expandTextDiffHunk(
     return new DiffLine(
       ' ' + line,
       DiffLineType.Context,
+      null,
       newOldLineNumber,
       newNewLineNumber,
       false
@@ -255,6 +257,7 @@ export function expandTextDiffHunk(
           new DiffLine(
             newHunkHeader.toDiffLineRepresentation(),
             DiffLineType.Hunk,
+            null,
             diffHunkLine.oldLineNumber,
             diffHunkLine.newLineNumber,
             diffHunkLine.noTrailingNewLine
@@ -368,7 +371,7 @@ export function getTextDiffWithBottomDummyHunk(
     lastHunk.header.oldStartLine + lastHunk.header.oldLineCount
   const dummyNewStartLine =
     lastHunk.header.newStartLine + lastHunk.header.newLineCount
-  const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, false)
+  const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, null, false)
   const dummyHeader = new DiffHunkHeader(
     dummyOldStartLine,
     numberOfOldLines - dummyOldStartLine + 1,
