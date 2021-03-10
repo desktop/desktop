@@ -67,6 +67,9 @@ interface ISelectedCommitProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  /** Whether multiple commits are selected. */
+  readonly areMultipleCommitsSelected: boolean
 }
 
 interface ISelectedCommitState {
@@ -236,6 +239,10 @@ export class SelectedCommit extends React.Component<
   public render() {
     const commit = this.props.selectedCommit
 
+    if (this.props.areMultipleCommitsSelected) {
+      return <MultipleCommitsSelected />
+    }
+
     if (commit == null) {
       return <NoCommitSelected />
     }
@@ -321,6 +328,28 @@ function NoCommitSelected() {
     <div className="panel blankslate">
       <img src={BlankSlateImage} className="blankslate-image" />
       No commit selected
+    </div>
+  )
+}
+
+function MultipleCommitsSelected() {
+  const BlankSlateImage = encodePathAsUrl(
+    __dirname,
+    'static/empty-no-commit.svg'
+  )
+
+  return (
+    <div id="multiple-commits-selected" className="panel blankslate">
+      <img src={BlankSlateImage} className="blankslate-image" />
+      <div>
+        <p>Unable to display diff when multiple commits are selected.</p>
+        <div>You can:</div>
+        <ul>
+          <li>Select a single commit to view a diff.</li>
+          <li>Drag the commits to the branch menu to cherry pick them.</li>
+          <li>Right click on multiple commits to see options.</li>
+        </ul>
+      </div>
     </div>
   )
 }

@@ -535,8 +535,8 @@ export interface IRebaseState {
 }
 
 export interface ICommitSelection {
-  /** The commit currently selected in the app */
-  readonly sha: string | null
+  /** The commits currently selected in the app */
+  readonly shas: ReadonlyArray<string>
 
   /** The list of files associated with the current commit */
   readonly changedFiles: ReadonlyArray<CommittedFileChange>

@@ -199,10 +199,12 @@ describe('git/cherry-pick', () => {
       Path.join(repository.path, 'THING.md'),
       '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
     )
-    // This error is not one of the parsed dugite errors
-    // https://github.com/desktop/dugite/blob/master/lib/errors.ts
-    // TODO: add to dugite error so we can make use of
-    // `localChangesOverwrittenHandler` in `error-handler.ts`
+
+    // This error should not occur in the wild due to the nature of Desktop's UI
+    // starting on source branch and having to checkout the target branch.
+    // During target branch checkout, it will fail before we even get to cherry
+    // picking. Thus, this scenario from a UI's perspective is already handled.
+    // No need to add dugite errors to handle it.
     result = null
     try {
       result = await cherryPick(repository, featureBranch.tip.sha)
@@ -246,7 +248,7 @@ describe('git/cherry-pick', () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
     } catch (error) {
       expect(error.toString()).toContain(
-        'is a merge but no -m option was given'
+        'GitError: You cannot cherry pick merge commits from GitHub Desktop.'
       )
     }
     expect(result).toBe(null)
@@ -442,7 +444,7 @@ describe('git/cherry-pick', () => {
       result = await cherryPick(repository, 'INVALID REF', p =>
         progress.push(p)
       )
-      expect(result).toBe(CherryPickResult.Error)
+      expect(result).toBe(CherryPickResult.UnableToStart)
     })
 
     it('successfully parses progress for a single commit', async () => {

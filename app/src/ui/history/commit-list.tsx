@@ -3,7 +3,7 @@ import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List } from '../lib/list'
+import { List, SelectionSource } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { Button } from '../lib/button'
@@ -22,8 +22,8 @@ interface ICommitListProps {
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
-  /** The SHA of the selected commit */
-  readonly selectedSHA: string | null
+  /** The SHAs of the selected commits */
+  readonly selectedSHAs: ReadonlyArray<string>
 
   /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
@@ -35,7 +35,7 @@ interface ICommitListProps {
   readonly emptyListMessage: JSX.Element | string
 
   /** Callback which fires when a commit has been selected in the list */
-  readonly onCommitSelected: (commit: Commit) => void
+  readonly onCommitsSelected: (commits: ReadonlyArray<Commit>) => void
 
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
@@ -85,7 +85,6 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
-
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
     for (const sha of this.props.commitSHAs) {
@@ -140,6 +139,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onCherryPick={this.props.onCherryPick}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
         onDragStart={this.props.onDragCommitStart}
         onDragEnd={this.props.onDragCommitEnd}
       />
@@ -163,12 +163,46 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return undefined
   }
 
+  private onSelectedRangeChanged = (
+    start: number,
+    end: number,
+    source: SelectionSource
+  ) => {
+    // if user selects a range top down, start < end.
+    // if user selects a range down to up, start > end and need to be inverted.
+    // .slice is exclusive of last range end, thus + 1
+    const rangeStart = start < end ? start : end
+    const rangeEnd = start < end ? end + 1 : start + 1
+    const commitSHARange = this.props.commitSHAs.slice(rangeStart, rangeEnd)
+    const selectedCommits = this.lookupCommits(commitSHARange)
+    this.props.onCommitsSelected(selectedCommits)
+  }
+
+  // This is required along with onSelectedRangeChanged in the case of a user
+  // paging up/down or using arrow keys up/down.
   private onSelectedRowChanged = (row: number) => {
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
-      this.props.onCommitSelected(commit)
+      this.props.onCommitsSelected([commit])
     }
+  }
+
+  private lookupCommits(
+    commitSHAs: ReadonlyArray<string>
+  ): ReadonlyArray<Commit> {
+    const commits: Commit[] = []
+    commitSHAs.forEach(sha => {
+      const commit = this.props.commitLookup.get(sha)
+      if (commit === undefined) {
+        log.warn(
+          '[Commit List] - Unable to lookup commit from sha - This should not happen.'
+        )
+        return
+      }
+      commits.push(commit)
+    })
+    return commits
   }
 
   private onScroll = (scrollTop: number, clientHeight: number) => {
@@ -234,9 +268,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         <List
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
-          selectedRows={[this.rowForSHA(this.props.selectedSHA)]}
+          selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
+          onSelectedRangeChanged={this.onSelectedRangeChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
+          selectionMode={enableCherryPicking() ? 'range' : 'single'}
           onScroll={this.onScroll}
           invalidationProps={{
             commits: this.props.commitSHAs,

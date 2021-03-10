@@ -220,9 +220,9 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    sha: string
+    shas: ReadonlyArray<string>
   ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, sha)
+    return this.appStore._changeCommitSelection(repository, shas)
   }
 
   /**
@@ -1911,6 +1911,13 @@ export class Dispatcher {
           retryAction.baseBranch,
           retryAction.targetBranch
         )
+      case RetryActionType.CherryPick:
+        return this.cherryPick(
+          retryAction.repository,
+          retryAction.targetBranch,
+          retryAction.commits,
+          retryAction.sourceBranch
+        )
 
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
@@ -2523,15 +2530,12 @@ export class Dispatcher {
   }
 
   /** Initialize and start the cherry pick operation */
-  public async startCherryPick(
+  public async initializeCherryPickFlow(
     repository: Repository,
-    targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>,
-    sourceBranch: Branch | null
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchCherryPickingFlowToShowProgress(repository)
-    this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
   private logHowToRevertCherryPick(
@@ -2557,13 +2561,15 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>,
     sourceBranch: Branch | null
   ): Promise<void> {
+    this.initializeCherryPickFlow(repository, commits)
     this.dismissCherryPickIntro()
     this.logHowToRevertCherryPick(repository, targetBranch)
 
     const result = await this.appStore._cherryPick(
       repository,
       targetBranch,
-      commits
+      commits,
+      sourceBranch
     )
 
     this.processCherryPickResult(
@@ -2719,16 +2725,20 @@ export class Dispatcher {
       case CherryPickResult.ConflictsEncountered:
         this.startConflictCherryPickFlow(repository)
         break
+      case CherryPickResult.UnableToStart:
+        // This is an expected error such as not being able to checkout the
+        // target branch which means the cherry pick operation never started or
+        // was cleanly aborted.
+        this.appStore._endCherryPickFlow(repository)
+        break
       default:
         // If the user closes error dialog and tries to cherry pick again, it
         // will fail again due to ongoing cherry pick. Thus, if we get to an
         // unhandled error state, we want to abort any ongoing cherry pick.
-        this.appStore._clearCherryPickingHead(repository)
+        // A known error is if a user attempts to cherry pick a merge commit.
+        this.appStore._clearCherryPickingHead(repository, sourceBranch)
         this.appStore._endCherryPickFlow(repository)
-        throw Error(
-          `Unable to perform cherry pick operation.
-          This should not happen as all expected errors were handled.`
-        )
+        this.appStore._closePopup()
     }
   }
 
@@ -2783,7 +2793,7 @@ export class Dispatcher {
     })
 
     this.statsStore.recordCherryPickViaDragAndDrop()
-    this.startCherryPick(repository, targetBranch, commits, sourceBranch)
+    this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
   /** Method to dismiss cherry pick intro */
