@@ -28,7 +28,7 @@
     "desktop-trampoline": "desktop/desktop-trampoline#v0.9.3",
     "dexie": "^2.0.0",
     "double-ended-queue": "^2.1.0-0",
-    "dugite": "^1.99.0",
+    "dugite": "^1.100.0",
     "electron-window-state": "^5.0.3",
     "event-kit": "^2.0.0",
     "file-metadata": "^1.0.0",
