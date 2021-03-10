@@ -5955,7 +5955,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
 
-    this.checkoutBranchIfNotNull(repository, sourceBranch)
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6091,7 +6091,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
 
-    this.checkoutBranchIfNotNull(repository, sourceBranch)
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
 
     return this._refreshRepository(repository)
   }
@@ -6125,11 +6125,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       reset(repository, GitResetMode.Hard, targetBranchUndoSha)
     )
 
-    if(result !== true) {
+    if (result !== true) {
       return false
     }
 
-    this.checkoutBranchIfNotNull(repository, sourceBranch)
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
 
     const banner: Banner = {
       type: BannerType.CherryPickUndone,
