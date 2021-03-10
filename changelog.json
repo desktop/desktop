@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.6.6": [
+      "[Fixed] Commit attribution warning is not shown for emails with different capitalization - #11711",
+      "[Improved] Upgrade embedded Git to v2.29.3 on macOS, and to v2.29.2.windows.4 on Windows - #11755"
+    ],
     "2.6.6-beta1": [
       "[Added] Add .avif image support - #11625. Thanks @brendonbarreto!",
       "[Fixed] Performing remote Git operations in rare cases displays an error message instead of crashing the app - #11694",
