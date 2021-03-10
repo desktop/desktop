@@ -131,7 +131,6 @@ import {
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
-import { getBoolean, setBoolean } from '../lib/local-storage'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -198,6 +197,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   private getOnPopupDismissedFn = memoizeOne((popupType: PopupType) => {
     return () => this.onPopupDismissed(popupType)
   })
+
+  /**
+   * Whether a dragged commit landed on a branch to start a cherry pick.
+   *
+   * This will be false until commit lands on a branch. Then, it will be flipped
+   * to true until 'onDrop' fires and resets it to false for future drags/drops.
+   */
+  private didDraggedCommitStartCherryPick: boolean = false
 
   public constructor(props: IAppProps) {
     super(props)
@@ -2502,6 +2509,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+        onDropOntoBranch={this.onDropOntoBranch}
       />
     )
   }
@@ -2674,18 +2682,11 @@ export class App extends React.Component<IAppProps, IAppState> {
    * Method to handle when any internal drag item is dropped in the app.
    *
    * If `onDrop` is registered to a child element that `onDrop` will fire first
-   * and we can set the local storage `landed-on-expected-target` so that this
-   * handler can handle what happens if a drag starts and does not land
-   * on an expected target.
+   * and we can set a flag so that this method can handle what happens if a drag
+   * starts and does not land on an expected target.
    */
   private onDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    const landedOnExpectedTarget = getBoolean('landed-on-expected-target')
-    if (landedOnExpectedTarget) {
-      setBoolean('landed-on-expected-target', false)
-      return
-    }
-
-    this.afterUnexpectedDropTargetCheckIfCherryPick()
+    this.checkForCherryPickCanceledEvent()
   }
 
   /**
@@ -2892,12 +2893,17 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /**
-   * Handles what happens when cherry pick drag did not result in a cherry pick.
+   * Checks if a cherry pick drag did not result in a cherry pick.
    *
    * - Clear cherry pick state.
    * - Record that the cherry pick drag did not result in a cherry pick.
    */
-  private afterUnexpectedDropTargetCheckIfCherryPick() {
+  private checkForCherryPickCanceledEvent() {
+    if (this.didDraggedCommitStartCherryPick) {
+      this.didDraggedCommitStartCherryPick = false
+      return
+    }
+
     const { selectedState } = this.state
     if (
       selectedState === null ||
@@ -2916,6 +2922,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.endCherryPickFlow(repository)
       this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
     }
+  }
+
+  /**
+   * Generic handler for when something is dropped on a branch.
+   *
+   * Currently only cherry picked commits are dropped on branches and we want to
+   * track that action so that if a drop outside of a branch happens we can
+   * handle when a cherry pick drag was canceled.
+   */
+  private onDropOntoBranch = () => {
+    this.didDraggedCommitStartCherryPick = true
   }
 }
 
