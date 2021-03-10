@@ -41,6 +41,9 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** When a drag element has landed on a branch */
+  readonly onDropOntoBranch: () => void
 }
 
 interface IBranchesContainerState {
@@ -335,5 +338,7 @@ export class BranchesContainer extends React.Component<
       this.props.repository,
       branch
     )
+
+    this.props.onDropOntoBranch()
   }
 }
