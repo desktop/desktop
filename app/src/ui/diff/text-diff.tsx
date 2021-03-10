@@ -769,7 +769,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       .withSelectNone()
       .withRangeSelection(startLine, endLine - startLine + 1, true)
 
-    this.props.onDiscardChanges(this.state.diff, selection)
+    // Pass the original diff (from props) instead of the (potentially)
+    // expanded one.
+    this.props.onDiscardChanges(this.props.diff, selection)
   }
 
   private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
