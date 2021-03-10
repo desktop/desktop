@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Repository } from '../models/repository'
-import { Commit } from '../models/commit'
+import { Commit, CommitOneLine } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
@@ -85,6 +85,12 @@ interface IRepositoryViewProps {
 
   readonly onExitTutorial: () => void
   readonly aheadBehindStore: AheadBehindStore
+  readonly onCherryPick: (
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => void
+  /* Whether or not the user has been introduced to cherry picking feature */
+  readonly hasShownCherryPickIntro: boolean
 }
 
 interface IRepositoryViewState {
@@ -226,7 +232,7 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         isLocalRepository={this.props.state.remote === null}
         compareState={this.props.state.compareState}
-        selectedCommitSha={this.props.state.commitSelection.sha}
+        selectedCommitShas={this.props.state.commitSelection.shas}
         currentBranch={currentBranch}
         emoji={this.props.emoji}
         commitLookup={this.props.state.commitLookup}
@@ -236,9 +242,11 @@ export class RepositoryView extends React.Component<
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
+        onCherryPick={this.props.onCherryPick}
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}
         aheadBehindStore={this.props.aheadBehindStore}
+        hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
       />
     )
   }
@@ -324,7 +332,8 @@ export class RepositoryView extends React.Component<
   private renderContentForHistory(): JSX.Element {
     const { commitSelection } = this.props.state
 
-    const sha = commitSelection.sha
+    const sha =
+      commitSelection.shas.length === 1 ? commitSelection.shas[0] : null
 
     const selectedCommit =
       sha != null ? this.props.state.commitLookup.get(sha) || null : null
@@ -349,6 +358,7 @@ export class RepositoryView extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
+        areMultipleCommitsSelected={commitSelection.shas.length > 1}
       />
     )
   }

@@ -13,8 +13,10 @@ import {
   FoldoutType,
   ICompareFormUpdate,
   RepositorySectionTab,
-  isMergeConflictState,
   RebaseConflictState,
+  isRebaseConflictState,
+  isCherryPickConflictState,
+  CherryPickConflictState,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
@@ -97,6 +99,12 @@ import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
 import { resolveWithin } from '../../lib/path'
+import {
+  CherryPickFlowStep,
+  CherryPickStepKind,
+} from '../../models/cherry-pick'
+import { CherryPickResult } from '../../lib/git/cherry-pick'
+import { sleep } from '../../lib/promise'
 
 /**
  * An error handler function.
@@ -212,9 +220,9 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    sha: string
+    shas: ReadonlyArray<string>
   ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, sha)
+    return this.appStore._changeCommitSelection(repository, shas)
   }
 
   /**
@@ -450,7 +458,7 @@ export class Dispatcher {
     const repositoryState = this.repositoryStateManager.get(repository)
     const { conflictState } = repositoryState.changesState
 
-    if (conflictState === null || conflictState.kind === 'merge') {
+    if (conflictState === null || !isRebaseConflictState(conflictState)) {
       return
     }
 
@@ -1020,9 +1028,9 @@ export class Dispatcher {
         return
       }
 
-      if (isMergeConflictState(conflictState)) {
+      if (!isRebaseConflictState(conflictState)) {
         log.warn(
-          `[rebase] conflict state after rebase is merge conflicts - unable to continue`
+          `[rebase] conflict state after rebase is not rebase conflicts - unable to continue`
         )
         return
       }
@@ -1113,9 +1121,9 @@ export class Dispatcher {
         return
       }
 
-      if (isMergeConflictState(conflictState)) {
+      if (!isRebaseConflictState(conflictState)) {
         log.warn(
-          `[continueRebase] conflict state after rebase is merge conflicts - unable to continue`
+          `[continueRebase] conflict state after rebase is not rebase conflicts - unable to continue`
         )
         return
       }
@@ -1903,6 +1911,13 @@ export class Dispatcher {
           retryAction.baseBranch,
           retryAction.targetBranch
         )
+      case RetryActionType.CherryPick:
+        return this.cherryPick(
+          retryAction.repository,
+          retryAction.targetBranch,
+          retryAction.commits,
+          retryAction.sourceBranch
+        )
 
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
@@ -2505,16 +2520,299 @@ export class Dispatcher {
   }
 
   /**
-   * Show the cherry pick branch selection dialog
+   * Move the cherry pick flow to a new state.
    */
-  public showCherryPickBranchDialog(
+  public setCherryPickFlowStep(
     repository: Repository,
-    commitSha: string
+    step: CherryPickFlowStep
   ): Promise<void> {
-    return this.showPopup({
+    return this.appStore._setCherryPickFlowStep(repository, step)
+  }
+
+  /** Initialize and start the cherry pick operation */
+  public async initializeCherryPickFlow(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ): Promise<void> {
+    this.appStore._initializeCherryPickProgress(repository, commits)
+    this.switchCherryPickingFlowToShowProgress(repository)
+  }
+
+  private logHowToRevertCherryPick(
+    repository: Repository,
+    targetBranch: Branch
+  ) {
+    const beforeSha = targetBranch.tip.sha
+    this.appStore._setCherryPickTargetBranchUndoSha(repository, beforeSha)
+    log.info(
+      `[cherryPick] starting cherry pick for ${targetBranch.name} at ${beforeSha}`
+    )
+    log.info(
+      `[cherryPick] to restore the previous state if this completed cherry pick is unsatisfactory:`
+    )
+    log.info(`[cherryPick] - git checkout ${targetBranch.name}`)
+    log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
+  }
+
+  /** Starts a cherry pick of the given commits onto the target branch */
+  public async cherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
+  ): Promise<void> {
+    this.initializeCherryPickFlow(repository, commits)
+    this.dismissCherryPickIntro()
+    this.logHowToRevertCherryPick(repository, targetBranch)
+
+    const result = await this.appStore._cherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
+
+    this.processCherryPickResult(
+      repository,
+      result,
+      targetBranch.name,
+      commits.length,
+      sourceBranch
+    )
+  }
+
+  /**
+   * Obtains the current app conflict state and switches cherry pick flow to
+   * show conflicts step
+   */
+  private startConflictCherryPickFlow(repository: Repository): void {
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { conflictState } = stateAfter.changesState
+    if (conflictState === null || !isCherryPickConflictState(conflictState)) {
+      log.warn(
+        '[cherryPick] - conflict state was null or not in a cherry pick conflict state - unable to continue'
+      )
+      return
+    }
+    this.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowConflicts,
+      conflictState,
+    })
+  }
+
+  /** Tidy up the cherry pick flow after reaching the end */
+  /** Wrap cherry pick up actions:
+   * - closes flow popup
+   * - displays success banner
+   * - clears out cherry pick flow state
+   */
+  private async completeCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    countCherryPicked: number,
+    sourceBranch: Branch | null,
+    commitsCount: number
+  ): Promise<void> {
+    this.closePopup()
+
+    const banner: Banner = {
+      type: BannerType.SuccessfulCherryPick,
+      targetBranchName,
+      countCherryPicked,
+      onUndoCherryPick: () => {
+        this.undoCherryPick(
+          repository,
+          targetBranchName,
+          sourceBranch,
+          commitsCount
+        )
+      },
+    }
+    this.setBanner(banner)
+
+    this.appStore._endCherryPickFlow(repository)
+
+    await this.refreshRepository(repository)
+  }
+
+  /** Aborts an ongoing cherry pick and switches back to the source branch. */
+  public async abortCherryPick(
+    repository: Repository,
+    sourceBranch: Branch | null
+  ) {
+    await this.appStore._abortCherryPick(repository, sourceBranch)
+    await this.appStore._loadStatus(repository)
+    this.appStore._endCherryPickFlow(repository)
+  }
+
+  /**
+   * Update the cherry pick state to indicate the user has resolved conflicts in
+   * the current repository.
+   */
+  public setCherryPickConflictsResolved(repository: Repository) {
+    return this.appStore._setCherryPickConflictsResolved(repository)
+  }
+
+  /**
+   * Moves cherry pick flow step to progress and defers to allow user to
+   * see the cherry picking progress dialog instead of suddenly appearing
+   * and disappearing again.
+   */
+  private async switchCherryPickingFlowToShowProgress(repository: Repository) {
+    this.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowProgress,
+    })
+    await sleep(500)
+  }
+
+  /**
+   * Continue with the cherryPick after the user has resolved all conflicts with
+   * tracked files in the working directory.
+   */
+  public async continueCherryPick(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    conflictsState: CherryPickConflictState,
+    commitsCount: number,
+    sourceBranch: Branch | null
+  ): Promise<void> {
+    await this.switchCherryPickingFlowToShowProgress(repository)
+
+    const result = await this.appStore._continueCherryPick(
+      repository,
+      files,
+      conflictsState.manualResolutions
+    )
+
+    this.processCherryPickResult(
+      repository,
+      result,
+      conflictsState.targetBranchName,
+      commitsCount,
+      sourceBranch
+    )
+  }
+
+  /**
+   * Processes the cherry pick result.
+   *  1. Completes the cherry pick with banner if successful.
+   *  2. Moves cherry pick flow if conflicts.
+   *  3. Handles errors.
+   */
+  private async processCherryPickResult(
+    repository: Repository,
+    cherryPickResult: CherryPickResult,
+    targetBranchName: string,
+    commitsCount: number,
+    sourceBranch: Branch | null
+  ): Promise<void> {
+    // This will update the conflict state of the app. This is needed to start
+    // conflict flow if cherry pick results in conflict.
+    await this.appStore._loadStatus(repository)
+
+    switch (cherryPickResult) {
+      case CherryPickResult.CompletedWithoutError:
+        await this.completeCherryPick(
+          repository,
+          targetBranchName,
+          commitsCount,
+          sourceBranch,
+          commitsCount
+        )
+        break
+      case CherryPickResult.ConflictsEncountered:
+        this.startConflictCherryPickFlow(repository)
+        break
+      case CherryPickResult.UnableToStart:
+        // This is an expected error such as not being able to checkout the
+        // target branch which means the cherry pick operation never started or
+        // was cleanly aborted.
+        this.appStore._endCherryPickFlow(repository)
+        break
+      default:
+        // If the user closes error dialog and tries to cherry pick again, it
+        // will fail again due to ongoing cherry pick. Thus, if we get to an
+        // unhandled error state, we want to abort any ongoing cherry pick.
+        // A known error is if a user attempts to cherry pick a merge commit.
+        this.appStore._clearCherryPickingHead(repository, sourceBranch)
+        this.appStore._endCherryPickFlow(repository)
+        this.appStore._closePopup()
+    }
+  }
+
+  /**
+   * Update the cherry pick progress in application state by querying the Git
+   * repository state.
+   */
+  public setCherryPickProgressFromState(repository: Repository) {
+    return this.appStore._setCherryPickProgressFromState(repository)
+  }
+
+  /**
+   * This method starts a cherry pick after drag and dropping on a branch.
+   * It needs to:
+   *  - get the current branch,
+   *  - get the commits dragged from cherry picking state
+   *  - invoke popup
+   *  - invoke cherry pick
+   */
+  public async startCherryPickWithBranch(
+    repository: Repository,
+    targetBranch: Branch
+  ): Promise<void> {
+    const { branchesState, cherryPickState } = this.repositoryStateManager.get(
+      repository
+    )
+
+    if (
+      cherryPickState.step == null ||
+      cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
+    ) {
+      log.warn(
+        '[cherryPick] Invalid Cherry Picking State: Could not determine selected commits.'
+      )
+      return
+    }
+
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid) {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the cherry pick flow.'
+      )
+    }
+    const sourceBranch = tip.branch
+    const commits = cherryPickState.step.commits
+
+    this.showPopup({
       type: PopupType.CherryPick,
       repository,
-      commitSha,
+      commits,
+      sourceBranch,
     })
+
+    this.cherryPick(repository, targetBranch, commits, sourceBranch)
+  }
+
+  /** Method to dismiss cherry pick intro */
+  public dismissCherryPickIntro(): void {
+    this.appStore._dismissCherryPickIntro()
+  }
+
+  /**
+   * This method will perform a hard reset back to the tip of the target branch
+   * before the cherry pick happened.
+   */
+  private async undoCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    sourceBranch: Branch | null,
+    commitsCount: number
+  ): Promise<void> {
+    await this.appStore._undoCherryPick(
+      repository,
+      targetBranchName,
+      sourceBranch,
+      commitsCount
+    )
   }
 }

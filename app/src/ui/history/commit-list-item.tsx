@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Commit } from '../../models/commit'
+import { Commit, CommitOneLine } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
 import { IAvatarUser, getAvatarUsersForCommit } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
@@ -20,13 +20,16 @@ import {
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
   readonly commit: Commit
+  readonly selectedCommits: ReadonlyArray<Commit>
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
-  readonly onCherryPick?: (commitSha: string) => void
+  readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
+  readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
+  readonly onDragEnd?: () => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -69,8 +72,17 @@ export class CommitListItem extends React.PureComponent<
       author: { date },
     } = commit
 
+    const isDraggable =
+      this.props.onDragStart !== undefined && enableCherryPicking()
+
     return (
-      <div className="commit" onContextMenu={this.onContextMenu}>
+      <div
+        className="commit"
+        onContextMenu={this.onContextMenu}
+        draggable={isDraggable}
+        onDragStart={this.onDragStart}
+        onDragEnd={this.onDragEnd}
+      >
         <div className="info">
           <RichText
             className="summary"
@@ -146,13 +158,24 @@ export class CommitListItem extends React.PureComponent<
 
   private onCherryPick = () => {
     if (this.props.onCherryPick !== undefined) {
-      this.props.onCherryPick(this.props.commit.sha)
+      this.props.onCherryPick(this.props.selectedCommits)
     }
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
+    let items: IMenuItem[] = []
+    if (this.props.selectedCommits.length > 1) {
+      items = this.getContextMenuMultipleCommits()
+    } else {
+      items = this.getContextMenuForSingleCommit()
+    }
+
+    showContextualMenu(items)
+  }
+
+  private getContextMenuForSingleCommit(): IMenuItem[] {
     let viewOnGitHubLabel = 'View on GitHub'
     const gitHubRepository = this.props.gitHubRepository
 
@@ -216,7 +239,23 @@ export class CommitListItem extends React.PureComponent<
       }
     )
 
-    showContextualMenu(items)
+    return items
+  }
+
+  private getContextMenuMultipleCommits(): IMenuItem[] {
+    const items: IMenuItem[] = []
+
+    const count = this.props.selectedCommits.length
+    if (enableCherryPicking()) {
+      items.push({
+        label: __DARWIN__
+          ? `Cherry Pick ${count} Commits…`
+          : `Cherry pick ${count} commits…`,
+        action: this.onCherryPick,
+      })
+    }
+
+    return items
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {
@@ -252,6 +291,24 @@ export class CommitListItem extends React.PureComponent<
           enabled: unpushedTagsSet.has(tagName),
         }
       }),
+    }
+  }
+
+  /**
+   * Note: For typing, event is required parameter.
+   **/
+  private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
+    if (this.props.onDragStart !== undefined) {
+      this.props.onDragStart(this.props.selectedCommits)
+    }
+  }
+
+  /**
+   * Note: For typing, event is required parameter.
+   **/
+  private onDragEnd = (event: React.DragEvent<HTMLDivElement>): void => {
+    if (this.props.onDragEnd !== undefined) {
+      this.props.onDragEnd()
     }
   }
 }

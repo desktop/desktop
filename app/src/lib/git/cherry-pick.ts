@@ -17,6 +17,8 @@ import { ChildProcess } from 'child_process'
 import { round } from '../../ui/lib/round'
 import byline from 'byline'
 import { ICherryPickSnapshot } from '../../models/cherry-pick'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { stageManualConflictResolution } from './stage'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -36,11 +38,13 @@ export enum CherryPickResult {
    */
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
   /**
-   * The cherry pick was not attempted because it could not check the status of
-   * the repository. The caller needs to confirm the repository is in a usable
-   * state.
+   * The cherry pick was not attempted:
+   * - it could not check the status of the repository.
+   * - there was an invalid revision range provided.
+   * - there were uncommitted changes present.
+   * - there were errors in checkout the target branch
    */
-  Aborted = 'Aborted',
+  UnableToStart = 'UnableToStart',
   /**
    * An unexpected error as part of the cherry pick flow was caught and handled.
    *
@@ -149,7 +153,7 @@ export async function cherryPick(
         `Unable to cherry pick these branches
         because one or both of the refs do not exist in the repository`
       )
-      return CherryPickResult.Error
+      return CherryPickResult.UnableToStart
     }
 
     baseOptions = await configureOptionsWithCallBack(
@@ -159,8 +163,12 @@ export async function cherryPick(
     )
   }
 
+  // --keep-redundant-commits follows pattern of making sure someone cherry
+  // picked commit summaries appear in target branch history even tho they may
+  // be empty. This flag also results in the ability to cherry pick empty
+  // commits (thus, --allow-empty is not required.)
   const result = await git(
-    ['cherry-pick', revisionRange],
+    ['cherry-pick', revisionRange, '--keep-redundant-commits'],
     repository.path,
     'cherry pick',
     baseOptions
@@ -203,8 +211,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
 export async function getCherryPickSnapshot(
   repository: Repository
 ): Promise<ICherryPickSnapshot | null> {
-  const cherryPickHead = readCherryPickHead(repository)
-  if (cherryPickHead === null) {
+  if (!isCherryPickHeadFound(repository)) {
     // If there no cherry pick head, there is no cherry pick in progress.
     return null
   }
@@ -276,6 +283,7 @@ export async function getCherryPickSnapshot(
   }
 
   const count = commits.length - remainingShas.length
+  const commitSummaryIndex = count > 0 ? count - 1 : 0
   return {
     progress: {
       kind: 'cherryPick',
@@ -283,9 +291,11 @@ export async function getCherryPickSnapshot(
       value: round(count / commits.length, 2),
       cherryPickCommitCount: count,
       totalCommitCount: commits.length,
-      currentCommitSummary: commits[count - 1].summary ?? '',
+      currentCommitSummary: commits[commitSummaryIndex].summary ?? '',
     },
     remainingCommits: commits.slice(count, commits.length),
+    commits,
+    targetBranchUndoSha: firstSha,
   }
 }
 
@@ -303,13 +313,28 @@ export async function getCherryPickSnapshot(
 export async function continueCherryPick(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
   // only stage files related to cherry pick
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
   })
-  await stageFiles(repository, trackedFiles)
+
+  // apply conflict resolutions
+  for (const [path, resolution] of manualResolutions) {
+    const file = files.find(f => f.path === path)
+    if (file === undefined) {
+      log.error(
+        `[continueCherryPick] couldn't find file ${path} even though there's a manual resolution for it`
+      )
+      continue
+    }
+    await stageManualConflictResolution(repository, file, resolution)
+  }
+
+  const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
+  await stageFiles(repository, otherFiles)
 
   const status = await getStatus(repository)
   if (status == null) {
@@ -317,13 +342,12 @@ export async function continueCherryPick(
       `[continueCherryPick] unable to get status after staging changes,
         skipping any other steps`
     )
-    return CherryPickResult.Aborted
+    return CherryPickResult.UnableToStart
   }
 
   // make sure cherry pick is still in progress to continue
-  const cherryPickCurrentCommit = await readCherryPickHead(repository)
-  if (cherryPickCurrentCommit === null) {
-    return CherryPickResult.Aborted
+  if (await !isCherryPickHeadFound(repository)) {
+    return CherryPickResult.UnableToStart
   }
 
   let options: IGitExecutionOptions = {
@@ -343,7 +367,7 @@ export async function continueCherryPick(
       log.warn(
         `[continueCherryPick] unable to get cherry pick status, skipping other steps`
       )
-      return CherryPickResult.Aborted
+      return CherryPickResult.UnableToStart
     }
     options = configureOptionsWithCallBack(
       options,
@@ -352,8 +376,33 @@ export async function continueCherryPick(
     )
   }
 
+  const trackedFilesAfter = status.workingDirectory.files.filter(
+    f => f.status.kind !== AppFileStatusKind.Untracked
+  )
+
+  if (trackedFilesAfter.length === 0) {
+    log.warn(
+      `[cherryPick] no tracked changes to commit, continuing cherry pick but skipping this commit`
+    )
+
+    // This commits the empty commit so that the cherry picked commit still
+    // shows up in the target branches history.
+    const result = await git(
+      ['commit', '--allow-empty'],
+      repository.path,
+      'continueCherryPickSkipCurrentCommit',
+      options
+    )
+
+    return parseCherryPickResult(result)
+  }
+
+  // --keep-redundant-commits follows pattern of making sure someone cherry
+  // picked commit summaries appear in target branch history even tho they may
+  // be empty. This flag also results in the ability to cherry pick empty
+  // commits (thus, --allow-empty is not required.)
   const result = await git(
-    ['cherry-pick', '--continue'],
+    ['cherry-pick', '--continue', '--keep-redundant-commits'],
     repository.path,
     'continueCherryPick',
     options
@@ -368,29 +417,24 @@ export async function abortCherryPick(repository: Repository) {
 }
 
 /**
- * Attempt to read the `.git/CHERRY_PICK_HEAD` file inside a repository to confirm
- * the cherry pick is still active.
+ * Check if the `.git/CHERRY_PICK_HEAD` file exists
  */
-async function readCherryPickHead(
+export async function isCherryPickHeadFound(
   repository: Repository
-): Promise<string | null> {
+): Promise<boolean> {
   try {
-    const cherryPickHead = Path.join(
+    const cherryPickHeadPath = Path.join(
       repository.path,
       '.git',
       'CHERRY_PICK_HEAD'
     )
-    const cherryPickCurrentCommitOutput = await FSE.readFile(
-      cherryPickHead,
-      'utf8'
-    )
-    return cherryPickCurrentCommitOutput.trim()
+    return FSE.pathExists(cherryPickHeadPath)
   } catch (err) {
     log.warn(
       `[cherryPick] a problem was encountered reading .git/CHERRY_PICK_HEAD,
        so it is unsafe to continue cherry picking`,
       err
     )
-    return null
+    return false
   }
 }

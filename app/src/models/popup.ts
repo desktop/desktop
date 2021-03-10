@@ -10,7 +10,7 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { ICommitContext } from './commit'
+import { CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
@@ -273,5 +273,6 @@ export type Popup =
   | {
       type: PopupType.CherryPick
       repository: Repository
-      commitSha: string
+      commits: ReadonlyArray<CommitOneLine>
+      sourceBranch: Branch | null
     }

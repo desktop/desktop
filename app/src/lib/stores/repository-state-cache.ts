@@ -18,6 +18,7 @@ import {
   ICommitSelection,
   IRebaseState,
   ChangesSelectionKind,
+  ICherryPickState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -101,12 +102,23 @@ export class RepositoryStateCache {
       return { rebaseState: newState }
     })
   }
+
+  public updateCherryPickState<K extends keyof ICherryPickState>(
+    repository: Repository,
+    fn: (state: ICherryPickState) => Pick<ICherryPickState, K>
+  ) {
+    this.update(repository, state => {
+      const { cherryPickState } = state
+      const newState = merge(cherryPickState, fn(cherryPickState))
+      return { cherryPickState: newState }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
   return {
     commitSelection: {
-      sha: null,
+      shas: [],
       file: null,
       changedFiles: new Array<CommittedFileChange>(),
       diff: null,
@@ -170,5 +182,11 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
+    cherryPickState: {
+      step: null,
+      progress: null,
+      userHasResolvedConflicts: false,
+      targetBranchUndoSha: null,
+    },
   }
 }

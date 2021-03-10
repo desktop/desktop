@@ -15,7 +15,9 @@ import {
   continueCherryPick,
   getCherryPickSnapshot,
 } from '../../../src/lib/git/cherry-pick'
+import { isConflictedFile } from '../../../src/lib/status'
 import { Branch } from '../../../src/models/branch'
+import { ManualConflictResolution } from '../../../src/models/manual-conflict-resolution'
 import { ICherryPickProgress } from '../../../src/models/progress'
 import { Repository } from '../../../src/models/repository'
 import { AppFileStatusKind } from '../../../src/models/status'
@@ -94,6 +96,76 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
+  it('successfully cherry picks a redundant commit', async () => {
+    result = await cherryPick(repository, featureBranch.tip.sha)
+
+    const commits = await getCommits(repository, targetBranch.ref, 5)
+    expect(commits.length).toBe(2)
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+
+    result = await cherryPick(repository, featureBranch.tip.sha)
+
+    const commitsAfterRedundant = await getCommits(
+      repository,
+      targetBranch.ref,
+      5
+    )
+    expect(commitsAfterRedundant.length).toBe(3)
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+  })
+
+  it('successfully cherry picks an empty commit', async () => {
+    // add empty commit to feature branch
+    await switchTo(repository, featureBranchName)
+    await GitProcess.exec(
+      ['commit', '--allow-empty', '-m', 'Empty Commit'],
+      repository.path
+    )
+
+    featureBranch = await getBranchOrError(repository, featureBranchName)
+    await switchTo(repository, targetBranchName)
+
+    result = await cherryPick(repository, featureBranch.tip.sha)
+
+    const commits = await getCommits(repository, targetBranch.ref, 5)
+    expect(commits.length).toBe(2)
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+  })
+
+  it('successfully cherry picks an empty commit inside a range', async () => {
+    const firstCommitSha = featureBranch.tip.sha
+
+    // add empty commit to feature branch
+    await switchTo(repository, featureBranchName)
+    await GitProcess.exec(
+      ['commit', '--allow-empty', '-m', 'Empty Commit'],
+      repository.path
+    )
+
+    // add another commit so empty commit will be inside a range
+    const featureBranchCommitTwo = {
+      commitMessage: 'Cherry Picked Feature! Number Two',
+      entries: [
+        {
+          path: 'THING_TWO.md',
+          contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
+        },
+      ],
+    }
+    await makeCommit(repository, featureBranchCommitTwo)
+
+    featureBranch = await getBranchOrError(repository, featureBranchName)
+    await switchTo(repository, targetBranchName)
+
+    // cherry picking 3 (on added in setup, empty, featureBranchCommitTwo)
+    const commitRange = revRangeInclusive(firstCommitSha, featureBranch.tip.sha)
+    result = await cherryPick(repository, commitRange)
+
+    const commits = await getCommits(repository, targetBranch.ref, 5)
+    expect(commits.length).toBe(4) // original commit + 4 cherry picked
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+  })
+
   it('successfully cherry picked multiple commits without conflicts', async () => {
     // keep reference to the first commit in cherry pick range
     const firstCommitSha = featureBranch.tip.sha
@@ -127,10 +199,12 @@ describe('git/cherry-pick', () => {
       Path.join(repository.path, 'THING.md'),
       '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
     )
-    // This error is not one of the parsed dugite errors
-    // https://github.com/desktop/dugite/blob/master/lib/errors.ts
-    // TODO: add to dugite error so we can make use of
-    // `localChangesOverwrittenHandler` in `error-handler.ts`
+
+    // This error should not occur in the wild due to the nature of Desktop's UI
+    // starting on source branch and having to checkout the target branch.
+    // During target branch checkout, it will fail before we even get to cherry
+    // picking. Thus, this scenario from a UI's perspective is already handled.
+    // No need to add dugite errors to handle it.
     result = null
     try {
       result = await cherryPick(repository, featureBranch.tip.sha)
@@ -180,76 +254,6 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(null)
   })
 
-  it('fails to cherry pick an empty commit', async () => {
-    // add empty commit to feature branch
-    await switchTo(repository, featureBranchName)
-    await GitProcess.exec(
-      ['commit', '--allow-empty', '-m', 'Empty Commit'],
-      repository.path
-    )
-
-    featureBranch = await getBranchOrError(repository, featureBranchName)
-    await switchTo(repository, targetBranchName)
-
-    result = null
-    try {
-      result = await cherryPick(repository, featureBranch.tip.sha)
-    } catch (error) {
-      expect(error.toString()).toContain('There are no changes to commit')
-    }
-    expect(result).toBe(null)
-  })
-
-  it('fails to cherry pick an empty commit inside a range', async () => {
-    const firstCommitSha = featureBranch.tip.sha
-
-    // add empty commit to feature branch
-    await switchTo(repository, featureBranchName)
-    await GitProcess.exec(
-      ['commit', '--allow-empty', '-m', 'Empty Commit'],
-      repository.path
-    )
-
-    // add another commit so empty commit will be inside a range
-    const featureBranchCommitTwo = {
-      commitMessage: 'Cherry Picked Feature! Number Two',
-      entries: [
-        {
-          path: 'THING_TWO.md',
-          contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
-        },
-      ],
-    }
-    await makeCommit(repository, featureBranchCommitTwo)
-
-    featureBranch = await getBranchOrError(repository, featureBranchName)
-    await switchTo(repository, targetBranchName)
-
-    try {
-      const commitRange = revRangeInclusive(
-        firstCommitSha,
-        featureBranch.tip.sha
-      )
-      result = await cherryPick(repository, commitRange)
-    } catch (error) {
-      expect(error.toString()).toContain('There are no changes to commit')
-    }
-    expect(result).toBe(null)
-  })
-
-  it('fails to cherry pick a redundant commit', async () => {
-    result = await cherryPick(repository, featureBranch.tip.sha)
-    expect(result).toBe(CherryPickResult.CompletedWithoutError)
-
-    result = null
-    try {
-      result = await cherryPick(repository, featureBranch.tip.sha)
-    } catch (error) {
-      expect(error.toString()).toContain('There are no changes to commit')
-    }
-    expect(result).toBe(null)
-  })
-
   describe('cherry picking with conflicts', () => {
     beforeEach(async () => {
       // In the 'git/cherry-pick' `beforeEach`, we call `createRepository` which
@@ -279,7 +283,7 @@ describe('git/cherry-pick', () => {
       expect(conflictedFiles).toHaveLength(1)
     })
 
-    it('successfully continues cherry picking with conflicts after resolving them', async () => {
+    it('successfully continues cherry picking with conflicts after resolving them by overwriting', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
@@ -308,6 +312,62 @@ describe('git/cherry-pick', () => {
       expect(diffCheckAfter.exitCode).toEqual(0)
 
       result = await continueCherryPick(repository, files)
+
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+    })
+
+    it('successfully continues cherry picking with conflicts after resolving them manually', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
+
+      // git diff --check warns if conflict markers exist and will exit with
+      // non-zero status if conflicts found
+      const diffCheckBefore = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
+      expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
+
+      const manualResolutions = new Map<string, ManualConflictResolution>()
+
+      for (const file of files) {
+        if (isConflictedFile(file.status)) {
+          manualResolutions.set(file.path, ManualConflictResolution.theirs)
+        }
+      }
+
+      result = await continueCherryPick(repository, files, manualResolutions)
+
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+    })
+
+    it('successfully continues cherry picking with conflicts after resolving them manually and no changes to commit', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
+
+      // git diff --check warns if conflict markers exist and will exit with
+      // non-zero status if conflicts found
+      const diffCheckBefore = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
+      expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
+
+      const manualResolutions = new Map<string, ManualConflictResolution>()
+
+      for (const file of files) {
+        if (isConflictedFile(file.status)) {
+          manualResolutions.set(file.path, ManualConflictResolution.ours)
+        }
+      }
+
+      result = await continueCherryPick(repository, files, manualResolutions)
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
@@ -384,7 +444,7 @@ describe('git/cherry-pick', () => {
       result = await cherryPick(repository, 'INVALID REF', p =>
         progress.push(p)
       )
-      expect(result).toBe(CherryPickResult.Error)
+      expect(result).toBe(CherryPickResult.UnableToStart)
     })
 
     it('successfully parses progress for a single commit', async () => {
@@ -462,7 +522,7 @@ describe('git/cherry-pick', () => {
         Path.join(repository.path, 'THING_THREE.md'),
         '# Resolve conflicts!'
       )
-      result = await continueCherryPick(repository, files, p =>
+      result = await continueCherryPick(repository, files, new Map(), p =>
         progress.push(p)
       )
       expect(result).toBe(CherryPickResult.CompletedWithoutError)

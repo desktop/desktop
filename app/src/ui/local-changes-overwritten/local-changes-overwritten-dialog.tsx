@@ -170,6 +170,8 @@ export class LocalChangesOverwrittenDialog extends React.Component<
         return 'fetch'
       case RetryActionType.Push:
         return 'push'
+      case RetryActionType.CherryPick:
+        return 'cherry pick'
       default:
         assertNever(
           this.props.retryAction,
