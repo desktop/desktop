@@ -28,20 +28,24 @@
     }
   }
 
-  .commit,
-  .commit-drag-ghost {
+  .commit {
     display: flex;
     flex-direction: row;
     align-items: center;
     width: 100%;
     height: 100%;
+    z-index: 2;
+    background-color: var(--background-color);
 
     border-bottom: var(--base-border);
 
     // We need to give a bit more padding to the right to make place for the scrollbar
     padding-right: calc(var(--spacing) + var(--spacing-half));
     padding-left: var(--spacing);
-    z-index: 2;
+
+    .count {
+      display: none;
+    }
 
     .info {
       display: flex;
@@ -113,33 +117,27 @@
     }
   }
 
-  .commit-drag-ghost {
+  .commit.commit-ghost {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0px;
+    left: 0px;
     z-index: 1;
-    height: 0;
-    overflow: hidden;
 
-    .unpushed-indicator {
-      background: var(--list-item-selected-badge-background-color);
-      color: var(--list-item-selected-badge-color);
+    .count {
+      background-color: rgb(160, 24, 24);
+      color: white;
+      padding: 3px 7px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 12px;
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      display: block;
+      border-radius: 100%;
     }
-    .tag-name {
-      background: var(--list-item-selected-badge-background-color);
-      color: var(--list-item-selected-badge-color);
-      box-shadow: 1px 0 0 var(--box-selected-background-color);
-    }
-    .tag-indicator-more {
-      background: var(--list-item-selected-badge-background-color);
-    }
-
     color: var(--box-selected-text-color);
     background-color: var(--background-color);
-
-    &.boo {
-      height: 100%;
-    }
   }
 
   .list-item.selected {
@@ -156,6 +154,8 @@
       .tag-indicator-more {
         background: var(--list-item-selected-badge-background-color);
       }
+
+      background-color: var(--box-selected-background-color);
     }
   }
 
@@ -175,6 +175,8 @@
           background: var(--list-item-selected-active-badge-background-color);
           color: var(--list-item-selected-active-badge-color);
         }
+
+        background-color: var(--box-selected-active-background-color);
       }
     }
   }

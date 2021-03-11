@@ -45,8 +45,6 @@ export class CommitListItem extends React.PureComponent<
   ICommitProps,
   ICommitListItemState
 > {
-  private dragGhostRef: HTMLDivElement | undefined
-
   public constructor(props: ICommitProps) {
     super(props)
 
@@ -81,36 +79,34 @@ export class CommitListItem extends React.PureComponent<
       enableCherryPicking()
 
     return (
-      <>
-        {this.renderDragGhost()}
-        <div
-          className="commit"
-          onContextMenu={this.onContextMenu}
-          draggable={isDraggable}
-          onDragStart={this.onDragStart}
-          onDragEnd={this.onDragEnd}
-        >
-          <div className="info">
-            <RichText
-              className="summary"
-              emoji={this.props.emoji}
-              text={commit.summary}
-              renderUrlsAsLinks={false}
-            />
-            <div className="description">
-              <AvatarStack users={this.state.avatarUsers} />
-              <div className="byline">
-                <CommitAttribution
-                  gitHubRepository={this.props.gitHubRepository}
-                  commit={commit}
-                />
-                {renderRelativeTime(date)}
-              </div>
+      <div
+        className="commit"
+        onContextMenu={this.onContextMenu}
+        draggable={isDraggable}
+        onDragStart={this.onDragStart}
+        onDragEnd={this.onDragEnd}
+      >
+        <div className="count">{this.props.selectedCommits.length}</div>
+        <div className="info">
+          <RichText
+            className="summary"
+            emoji={this.props.emoji}
+            text={commit.summary}
+            renderUrlsAsLinks={false}
+          />
+          <div className="description">
+            <AvatarStack users={this.state.avatarUsers} />
+            <div className="byline">
+              <CommitAttribution
+                gitHubRepository={this.props.gitHubRepository}
+                commit={commit}
+              />
+              {renderRelativeTime(date)}
             </div>
           </div>
-          {this.renderCommitIndicators()}
         </div>
-      </>
+        {this.renderCommitIndicators()}
+      </div>
     )
   }
 
@@ -314,11 +310,13 @@ export class CommitListItem extends React.PureComponent<
    **/
   private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
     if (this.props.onDragStart !== undefined) {
-      if (this.dragGhostRef !== undefined) {
-        this.dragGhostRef.classList.add('boo')
-        event.dataTransfer.setDragImage(this.dragGhostRef, 0, 0)
-      }
-
+      const ghostEle: HTMLDivElement = event.currentTarget.cloneNode(
+        true
+      ) as HTMLDivElement
+      ghostEle.classList.add('commit-ghost')
+      event.currentTarget.append(ghostEle)
+      event.dataTransfer.setDragImage(ghostEle, 0, 0)
+      event.dataTransfer.effectAllowed = 'move'
       this.props.onDragStart(this.props.selectedCommits)
     }
   }
@@ -327,48 +325,15 @@ export class CommitListItem extends React.PureComponent<
    * Note: For typing, event is required parameter.
    **/
   private onDragEnd = (event: React.DragEvent<HTMLDivElement>): void => {
-    if (this.dragGhostRef !== undefined) {
-      this.dragGhostRef.classList.remove('boo')
+    // remove ghost
+    const commitGhosts = document.getElementsByClassName('commit-ghost')
+    for (let i = 0; i < commitGhosts.length; i++) {
+      commitGhosts.item(i)?.remove()
     }
 
     if (this.props.onDragEnd !== undefined) {
       this.props.onDragEnd()
     }
-  }
-
-  private onDragGhostRef = (el: HTMLDivElement) => {
-    this.dragGhostRef = el
-  }
-
-  private renderDragGhost() {
-    const commit = this.props.commit
-    const {
-      author: { date },
-    } = commit
-
-    return (
-      <div ref={this.onDragGhostRef} className="commit-drag-ghost">
-        <div className="info">
-          <RichText
-            className="summary"
-            emoji={this.props.emoji}
-            text={commit.summary}
-            renderUrlsAsLinks={false}
-          />
-          <div className="description">
-            <AvatarStack users={this.state.avatarUsers} />
-            <div className="byline">
-              <CommitAttribution
-                gitHubRepository={this.props.gitHubRepository}
-                commit={commit}
-              />
-              {renderRelativeTime(date)}
-            </div>
-          </div>
-        </div>
-        {this.renderCommitIndicators()}
-      </div>
-    )
   }
 }
 
