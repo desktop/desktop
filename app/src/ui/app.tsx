@@ -198,6 +198,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     return () => this.onPopupDismissed(popupType)
   })
 
+  /**
+   * Whether a dragged commit landed on a branch to start a cherry pick.
+   *
+   * This will be false until commit lands on a branch. Then, it will be flipped
+   * to true until 'onDrop' fires and resets it to false for future drags/drops.
+   */
+  private didDraggedCommitStartCherryPick: boolean = false
+
   public constructor(props: IAppProps) {
     super(props)
 
@@ -2501,6 +2509,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+        onDropOntoBranch={this.onDropOntoBranch}
       />
     )
   }
@@ -2669,6 +2678,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  /**
+   * Method to handle when any internal drag item is dropped in the app.
+   *
+   * If `onDrop` is registered to a child element that `onDrop` will fire first
+   * and we can set a flag so that this method can handle what happens if a drag
+   * starts and does not land on an expected target.
+   */
+  private onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    this.checkForCherryPickCanceledEvent()
+  }
+
+  /**
+   * Drag and Drop api requires `onDragOver` to prevent the default in
+   * order for `onDrop` to fire.
+   */
+  private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
   public render() {
     if (this.loading) {
       return null
@@ -2681,7 +2709,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       : this.state.selectedTheme
 
     return (
-      <div id="desktop-app-chrome" className={className}>
+      <div
+        id="desktop-app-chrome"
+        className={className}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}
+      >
         <AppTheme theme={currentTheme} />
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow
@@ -2779,6 +2812,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+    this.props.dispatcher.recordCherryPickViaContextMenu()
 
     this.showPopup({
       type: PopupType.CherryPick,
@@ -2856,6 +2890,49 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
     return selectedState.state.changesState.workingDirectory
+  }
+
+  /**
+   * Checks if a cherry pick drag did not result in a cherry pick.
+   *
+   * - Clear cherry pick state.
+   * - Record that the cherry pick drag did not result in a cherry pick.
+   */
+  private checkForCherryPickCanceledEvent() {
+    if (this.didDraggedCommitStartCherryPick) {
+      this.didDraggedCommitStartCherryPick = false
+      return
+    }
+
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return
+    }
+
+    const { state, repository } = selectedState
+    const { cherryPickState } = state
+    if (
+      cherryPickState !== null &&
+      cherryPickState.step !== null &&
+      cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
+    ) {
+      this.props.dispatcher.endCherryPickFlow(repository)
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+    }
+  }
+
+  /**
+   * Generic handler for when something is dropped on a branch.
+   *
+   * Currently only cherry picked commits are dropped on branches and we want to
+   * track that action so that if a drop outside of a branch happens we can
+   * handle when a cherry pick drag was canceled.
+   */
+  private onDropOntoBranch = () => {
+    this.didDraggedCommitStartCherryPick = true
   }
 }
 

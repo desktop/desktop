@@ -7,7 +7,6 @@ import {
   ICompareBranch,
   ComparisonMode,
   IDisplayHistory,
-  FoldoutType,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -45,11 +44,13 @@ interface ICompareSidebarProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
+  readonly onDragCommitEnd: () => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
   readonly hasShownCherryPickIntro: boolean
+  readonly isCherryPickInProgress: boolean
 }
 
 interface ICompareSidebarState {
@@ -243,9 +244,10 @@ export class CompareSidebar extends React.Component<
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
         onDragCommitStart={this.onDragCommitStart}
-        onDragCommitEnd={this.onDragCommitEnd}
+        onDragCommitEnd={this.props.onDragCommitEnd}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
+        isCherryPickInProgress={this.props.isCherryPickInProgress}
       />
     )
   }
@@ -536,16 +538,6 @@ export class CompareSidebar extends React.Component<
       kind: CherryPickStepKind.CommitsChosen,
       commits,
     })
-  }
-
-  /**
-   * This method is a generic event handler for when a commit has ended being
-   * dragged.
-   *
-   * Currently only used for cherry picking, but this could be more generic.
-   */
-  private onDragCommitEnd = () => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 }
 

@@ -5863,6 +5863,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return result
     }
 
+    await this._refreshRepository(repository)
+
     const progressCallback = (progress: ICherryPickProgress) => {
       this.repositoryStateCache.updateCherryPickState(repository, () => ({
         progress,
@@ -5955,15 +5957,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
 
-    if (sourceBranch === null) {
-      return
-    }
-
-    await this.withAuthenticatingUser(repository, async (r, account) => {
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, sourceBranch)
-      )
-    })
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6088,13 +6082,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _clearCherryPickingHead(repository: Repository): Promise<void> {
+  public async _clearCherryPickingHead(
+    repository: Repository,
+    sourceBranch: Branch | null
+  ): Promise<void> {
     if (!isCherryPickHeadFound(repository)) {
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
+
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
+
+    return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6103,14 +6104,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     targetBranchName: string,
     sourceBranch: Branch | null,
     countCherryPicked: number
-  ): Promise<void> {
+  ): Promise<boolean> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
       log.warn(
         '[undoCherryPick] - Could not undo cherry pick.  User no longer on target branch.'
       )
-      return
+      return false
     }
 
     const {
@@ -6119,22 +6120,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (targetBranchUndoSha === null) {
       log.warn('[undoCherryPick] - Could not determine target branch undo sha')
-      return
+      return false
     }
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
+    const result = await gitStore.performFailableOperation(() =>
       reset(repository, GitResetMode.Hard, targetBranchUndoSha)
     )
 
-    if (sourceBranch === null) {
-      return this._refreshRepository(repository)
+    if (result !== true) {
+      return false
     }
 
-    await this.withAuthenticatingUser(repository, async (r, account) => {
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, sourceBranch)
-      )
-    })
+    await this.checkoutBranchIfNotNull(repository, sourceBranch)
 
     const banner: Banner = {
       type: BannerType.CherryPickUndone,
@@ -6143,7 +6140,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     this._setBanner(banner)
 
-    return this._refreshRepository(repository)
+    await this._refreshRepository(repository)
+
+    return true
+  }
+
+  private async checkoutBranchIfNotNull(
+    repository: Repository,
+    sourceBranch: Branch | null
+  ) {
+    if (sourceBranch === null) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, sourceBranch)
+      )
+    })
   }
 }
 

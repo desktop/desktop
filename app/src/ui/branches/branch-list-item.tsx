@@ -95,9 +95,9 @@ export class BranchListItem extends React.Component<
   }
 
   private onDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    const { onDropOntoBranch, name } = this.props
+    const { onDropOntoBranch, name, isCurrentBranch } = this.props
 
-    if (onDropOntoBranch !== undefined) {
+    if (onDropOntoBranch !== undefined && !isCurrentBranch) {
       onDropOntoBranch(name)
     }
   }

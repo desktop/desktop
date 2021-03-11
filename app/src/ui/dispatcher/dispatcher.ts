@@ -2565,6 +2565,10 @@ export class Dispatcher {
     this.dismissCherryPickIntro()
     this.logHowToRevertCherryPick(repository, targetBranch)
 
+    if (commits.length > 1) {
+      this.statsStore.recordCherryPickMultipleCommits()
+    }
+
     const result = await this.appStore._cherryPick(
       repository,
       targetBranch,
@@ -2598,6 +2602,7 @@ export class Dispatcher {
       kind: CherryPickStepKind.ShowConflicts,
       conflictState,
     })
+    this.statsStore.recordCherryPickConflictsEncountered()
   }
 
   /** Tidy up the cherry pick flow after reaching the end */
@@ -2632,6 +2637,8 @@ export class Dispatcher {
 
     this.appStore._endCherryPickFlow(repository)
 
+    this.statsStore.recordCherryPickSuccessful()
+
     await this.refreshRepository(repository)
   }
 
@@ -2643,6 +2650,7 @@ export class Dispatcher {
     await this.appStore._abortCherryPick(repository, sourceBranch)
     await this.appStore._loadStatus(repository)
     this.appStore._endCherryPickFlow(repository)
+    await this.refreshRepository(repository)
   }
 
   /**
@@ -2683,6 +2691,10 @@ export class Dispatcher {
       files,
       conflictsState.manualResolutions
     )
+
+    if (result === CherryPickResult.CompletedWithoutError) {
+      this.statsStore.recordCherryPickSuccessfulWithConflicts()
+    }
 
     this.processCherryPickResult(
       repository,
@@ -2733,13 +2745,10 @@ export class Dispatcher {
         // If the user closes error dialog and tries to cherry pick again, it
         // will fail again due to ongoing cherry pick. Thus, if we get to an
         // unhandled error state, we want to abort any ongoing cherry pick.
-        this.appStore._clearCherryPickingHead(repository)
+        // A known error is if a user attempts to cherry pick a merge commit.
+        this.appStore._clearCherryPickingHead(repository, sourceBranch)
         this.appStore._endCherryPickFlow(repository)
         this.appStore._closePopup()
-        throw Error(
-          `Unable to perform cherry pick operation.
-          This should not happen as all expected errors were handled.`
-        )
     }
   }
 
@@ -2793,6 +2802,7 @@ export class Dispatcher {
       sourceBranch,
     })
 
+    this.statsStore.recordCherryPickViaDragAndDrop()
     this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
@@ -2811,11 +2821,29 @@ export class Dispatcher {
     sourceBranch: Branch | null,
     commitsCount: number
   ): Promise<void> {
-    await this.appStore._undoCherryPick(
+    const result = await this.appStore._undoCherryPick(
       repository,
       targetBranchName,
       sourceBranch,
       commitsCount
     )
+    if (result) {
+      this.statsStore.recordCherryPickUndone()
+    }
+  }
+
+  /** Method to record cherry pick initiated via the context menu. */
+  public recordCherryPickViaContextMenu() {
+    this.statsStore.recordCherryPickViaDragAndDrop()
+  }
+
+  /** Method to record cherry pick started via drag and drop and canceled. */
+  public recordCherryPickDragStartedAndCanceled() {
+    this.statsStore.recordCherryPickDragStartedAndCanceled()
+  }
+
+  /** Method to reset cherry picking state. */
+  public endCherryPickFlow(repository: Repository) {
+    this.appStore._endCherryPickFlow(repository)
   }
 }
