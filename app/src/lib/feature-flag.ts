@@ -153,5 +153,5 @@ export function enableUnhandledRejectionReporting(): boolean {
  * Should we allow cherry picking
  */
 export function enableCherryPicking(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
