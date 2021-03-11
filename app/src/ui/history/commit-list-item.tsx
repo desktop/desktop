@@ -33,6 +33,7 @@ interface ICommitProps {
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
+  readonly isCherryPickInProgress?: boolean
 }
 
 interface ICommitListItemState {
@@ -73,7 +74,9 @@ export class CommitListItem extends React.PureComponent<
     } = commit
 
     const isDraggable =
-      this.props.onDragStart !== undefined && enableCherryPicking()
+      this.props.onDragStart !== undefined &&
+      this.canCherryPick() &&
+      enableCherryPicking()
 
     return (
       <div
@@ -223,6 +226,7 @@ export class CommitListItem extends React.PureComponent<
       items.push({
         label: __DARWIN__ ? 'Cherry Pick Commit…' : 'Cherry pick commit…',
         action: this.onCherryPick,
+        enabled: this.canCherryPick(),
       })
     }
 
@@ -252,10 +256,16 @@ export class CommitListItem extends React.PureComponent<
           ? `Cherry Pick ${count} Commits…`
           : `Cherry pick ${count} commits…`,
         action: this.onCherryPick,
+        enabled: this.canCherryPick(),
       })
     }
 
     return items
+  }
+
+  private canCherryPick(): boolean {
+    const { onCherryPick, isCherryPickInProgress } = this.props
+    return onCherryPick !== undefined && isCherryPickInProgress === false
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {

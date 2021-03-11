@@ -80,6 +80,9 @@ interface ICommitListProps {
 
   /** Callback to fire when cherry pick intro popover has been dismissed */
   readonly onDismissCherryPickIntro: () => void
+
+  /** Whether a cherry pick is progress */
+  readonly isCherryPickInProgress: boolean
 }
 
 /** A component which displays the list of commits. */
@@ -142,6 +145,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
         onDragStart={this.props.onDragCommitStart}
         onDragEnd={this.props.onDragCommitEnd}
+        isCherryPickInProgress={this.props.isCherryPickInProgress}
       />
     )
   }

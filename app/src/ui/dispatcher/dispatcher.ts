@@ -2650,6 +2650,7 @@ export class Dispatcher {
     await this.appStore._abortCherryPick(repository, sourceBranch)
     await this.appStore._loadStatus(repository)
     this.appStore._endCherryPickFlow(repository)
+    await this.refreshRepository(repository)
   }
 
   /**

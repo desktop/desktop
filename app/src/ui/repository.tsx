@@ -249,6 +249,7 @@ export class RepositoryView extends React.Component<
         aheadBehindStore={this.props.aheadBehindStore}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDragCommitEnd={this.onDragCommitEnd}
+        isCherryPickInProgress={this.props.state.cherryPickState.step !== null}
       />
     )
   }
