@@ -66,7 +66,7 @@ export class TrampolineServer {
       this.server.listen(0, '127.0.0.1', async () => {
         // Replace the error handler
         this.server.removeAllListeners('error')
-        this.server.on('error', this.onError)
+        this.server.on('error', this.onServerError)
 
         resolve()
       })
@@ -126,7 +126,7 @@ export class TrampolineServer {
       this.onDataReceived(socket, parser, data)
     })
 
-    socket.on('error', this.onError)
+    socket.on('error', this.onClientError)
   }
 
   private onDataReceived(
@@ -179,9 +179,13 @@ export class TrampolineServer {
     }
   }
 
-  private onError = (error: Error) => {
+  private onServerError = (error: Error) => {
     sendNonFatalException('trampolineServer', error)
     this.close()
+  }
+
+  private onClientError = (error: Error) => {
+    sendNonFatalException('trampolineClient', error)
   }
 }
 
