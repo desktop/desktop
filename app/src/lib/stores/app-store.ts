@@ -5863,6 +5863,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return result
     }
 
+    await this._refreshRepository(repository)
+
     const progressCallback = (progress: ICherryPickProgress) => {
       this.repositoryStateCache.updateCherryPickState(repository, () => ({
         progress,
