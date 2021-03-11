@@ -50,6 +50,7 @@ interface ICompareSidebarProps {
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
   readonly hasShownCherryPickIntro: boolean
+  readonly isCherryPickInProgress: boolean
 }
 
 interface ICompareSidebarState {
@@ -246,6 +247,7 @@ export class CompareSidebar extends React.Component<
         onDragCommitEnd={this.props.onDragCommitEnd}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
+        isCherryPickInProgress={this.props.isCherryPickInProgress}
       />
     )
   }
