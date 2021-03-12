@@ -4,17 +4,12 @@ import { OcticonSymbol, syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
-import {
-  FoldoutType,
-  IRepositoryState,
-  isRebaseConflictState,
-} from '../../lib/app-state'
+import { IRepositoryState, isRebaseConflictState } from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
-import { CherryPickStepKind } from '../../models/cherry-pick'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -50,9 +45,6 @@ interface IBranchDropdownProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
-
-  /** When a drag element has landed on a branch */
-  readonly onDropOntoBranch: () => void
 }
 
 /**
@@ -78,7 +70,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        onDropOntoBranch={this.props.onDropOntoBranch}
       />
     )
   }
@@ -177,28 +168,10 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
         buttonClassName={buttonClassName}
-        onDragOver={this.onDragOver}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>
     )
-  }
-
-  /**
-   * Method to capture when something is dragged over the branch dropdown.
-   */
-  private onDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
-    event.preventDefault()
-
-    // If the cherry picking state is initiated, we assume the user is
-    // dragging commits. Therefore, we should open the branch menu.
-    const { cherryPickState } = this.props.repositoryState
-    if (
-      cherryPickState.step !== null &&
-      cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
-    ) {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-    }
   }
 
   private renderPullRequestInfo() {
