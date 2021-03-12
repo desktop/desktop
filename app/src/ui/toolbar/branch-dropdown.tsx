@@ -70,8 +70,19 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        onDropOntoCurrentBranch={this.onDropOntoCurrentBranch}
+        isCherryPickInProgress={repositoryState.cherryPickState.step !== null}
       />
     )
+  }
+
+  private onDropOntoCurrentBranch = () => {
+    const { repositoryState, repository } = this.props
+    const { cherryPickState } = repositoryState
+    if (cherryPickState !== null && cherryPickState.step !== null) {
+      this.props.dispatcher.endCherryPickFlow(repository)
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+    }
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {

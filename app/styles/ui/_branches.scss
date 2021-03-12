@@ -30,6 +30,10 @@
   }
 }
 
+#desktop-app-contents .branches-container .dragged-over {
+  cursor: copy;
+}
+
 .pull-request-tab {
   display: flex;
   flex-direction: row;

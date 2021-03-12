@@ -12,7 +12,9 @@ export function renderDefaultBranch(
   currentBranch: Branch | null,
   onRenameBranch?: (branchName: string) => void,
   onDeleteBranch?: (branchName: string) => void,
-  onDropOntoBranch?: (branchName: string) => void
+  onDropOntoBranch?: (branchName: string) => void,
+  onDropOntoCurrentBranch?: () => void,
+  isSomethingBeingDragged?: boolean
 ): JSX.Element {
   const branch = item.branch
   const commit = branch.tip
@@ -27,6 +29,8 @@ export function renderDefaultBranch(
       onRenameBranch={onRenameBranch}
       onDeleteBranch={onDeleteBranch}
       onDropOntoBranch={onDropOntoBranch}
+      onDropOntoCurrentBranch={onDropOntoCurrentBranch}
+      isSomethingBeingDragged={isSomethingBeingDragged}
     />
   )
 }
