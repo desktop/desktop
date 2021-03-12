@@ -29,115 +29,12 @@
   }
 
   .commit {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
     width: 100%;
     height: 100%;
-    z-index: 2;
-    background-color: var(--background-color);
-
-    border-bottom: var(--base-border);
-
-    // We need to give a bit more padding to the right to make place for the scrollbar
-    padding-right: calc(var(--spacing) + var(--spacing-half));
-    padding-left: var(--spacing);
 
     .count {
       display: none;
     }
-
-    .info {
-      display: flex;
-      flex: 1 1 auto;
-      flex-direction: column;
-      margin-top: -4px;
-      overflow: hidden;
-      min-width: 50px;
-
-      .description {
-        display: flex;
-        flex-direction: row;
-        margin-top: 3px;
-      }
-
-      .summary {
-        font-weight: var(--font-weight-semibold);
-      }
-
-      .summary,
-      .byline {
-        @include ellipsis;
-      }
-    }
-
-    .commit-indicators {
-      display: flex;
-      flex-flow: nowrap row;
-      flex: 1 1 auto;
-      justify-content: flex-end;
-      margin-left: var(--spacing);
-      color: var(--list-item-badge-color);
-      height: 16px;
-      line-height: 16px;
-      max-width: 50%;
-
-      .tag-indicator {
-        display: flex;
-        flex: 0 1 auto;
-        height: 100%;
-        min-width: 0;
-
-        .tag-name {
-          flex: 1 1 auto;
-          padding: 0 var(--spacing-half);
-          border-radius: var(--border-radius);
-          background: var(--list-item-badge-background-color);
-          box-shadow: 1px 0 0 var(--background-color);
-          z-index: 3;
-          @include ellipsis;
-        }
-        .tag-indicator-more {
-          flex: 0 0 auto;
-          width: var(--spacing);
-          margin-left: -5px;
-          border-radius: 0 var(--border-radius) var(--border-radius) 0;
-          background: var(--list-item-badge-background-color);
-        }
-      }
-
-      .unpushed-indicator {
-        flex: 0 0 auto;
-        height: 100%;
-        border-radius: 8px;
-        padding: 0 var(--spacing-half);
-        background: var(--list-item-badge-background-color);
-        margin-left: var(--spacing-half);
-      }
-    }
-  }
-
-  .commit.commit-ghost {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 1;
-
-    .count {
-      background-color: rgb(160, 24, 24);
-      color: white;
-      padding: 3px 7px;
-      font-weight: bold;
-      text-align: center;
-      font-size: 12px;
-      position: absolute;
-      top: 0px;
-      right: 0px;
-      display: block;
-      border-radius: 100%;
-    }
-    color: var(--box-selected-text-color);
-    background-color: var(--background-color);
   }
 
   .list-item.selected {
@@ -179,5 +76,130 @@
         background-color: var(--box-selected-active-background-color);
       }
     }
+  }
+}
+
+#commit-ghost,
+#commit-list .commit {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--background-color);
+
+  border-bottom: var(--base-border);
+
+  // We need to give a bit more padding to the right to make place for the scrollbar
+  padding-right: calc(var(--spacing) + var(--spacing-half));
+  padding-left: var(--spacing);
+
+  .info {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    margin-top: -4px;
+    overflow: hidden;
+    min-width: 50px;
+
+    .description {
+      display: flex;
+      flex-direction: row;
+      margin-top: 3px;
+    }
+
+    .summary {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .summary,
+    .byline {
+      @include ellipsis;
+    }
+  }
+
+  .commit-indicators {
+    display: flex;
+    flex-flow: nowrap row;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    margin-left: var(--spacing);
+    color: var(--list-item-badge-color);
+    height: 16px;
+    line-height: 16px;
+    max-width: 50%;
+
+    .tag-indicator {
+      display: flex;
+      flex: 0 1 auto;
+      height: 100%;
+      min-width: 0;
+
+      .tag-name {
+        flex: 1 1 auto;
+        padding: 0 var(--spacing-half);
+        border-radius: var(--border-radius);
+        background: var(--list-item-badge-background-color);
+        box-shadow: 1px 0 0 var(--background-color);
+        z-index: 3;
+        @include ellipsis;
+      }
+      .tag-indicator-more {
+        flex: 0 0 auto;
+        width: var(--spacing);
+        margin-left: -5px;
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        background: var(--list-item-badge-background-color);
+      }
+    }
+
+    .unpushed-indicator {
+      flex: 0 0 auto;
+      height: 100%;
+      border-radius: 8px;
+      padding: 0 var(--spacing-half);
+      background: var(--list-item-badge-background-color);
+      margin-left: var(--spacing-half);
+    }
+  }
+}
+
+#commit-ghost {
+  position: absolute;
+  height: 50px;
+  z-index: 1000;
+  cursor: not-allowed;
+  border: 1px solid #eee;
+
+  .count {
+    background-image: linear-gradient(#d73a49, darken(#d73a49, 5%));
+    color: white;
+    width: 18px;
+    height: 18px;
+    font-weight: 500;
+    font-size: 11px;
+    position: absolute;
+    top: -22px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 100%;
+  }
+
+  &.multiple-selected,
+  &.multiple-selected::before {
+    box-shadow: 2px 1px 1px rgba(0, 0, 0, 0.15);
+  }
+
+  &.multiple-selected::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color);
+    opacity: 50%;
+    z-index: -1;
+    left: 7px;
+    top: 5px;
   }
 }

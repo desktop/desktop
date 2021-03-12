@@ -59,7 +59,7 @@ interface ICommitListProps {
   readonly onDragCommitStart: (commits: ReadonlyArray<CommitOneLine>) => void
 
   /** Callback to fire to when has started being dragged  */
-  readonly onDragCommitEnd: () => void
+  readonly onDragCommitEnd: (clearCherryPickingState: boolean) => void
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -83,6 +83,9 @@ interface ICommitListProps {
 
   /** Whether a cherry pick is progress */
   readonly isCherryPickInProgress: boolean
+
+  /** Callback to open branch dropdown */
+  readonly openBranchDropdown: () => void
 }
 
 /** A component which displays the list of commits. */
@@ -146,6 +149,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDragStart={this.props.onDragCommitStart}
         onDragEnd={this.props.onDragCommitEnd}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
+        openBranchDropdown={this.props.openBranchDropdown}
       />
     )
   }

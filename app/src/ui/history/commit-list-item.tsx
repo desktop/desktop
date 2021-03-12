@@ -16,6 +16,7 @@ import {
   enableGitTagsCreation,
   enableCherryPicking,
 } from '../../lib/feature-flag'
+import classNames from 'classnames'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -29,7 +30,8 @@ interface ICommitProps {
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
-  readonly onDragEnd?: () => void
+  readonly onDragEnd?: (clearCherryPickingState: boolean) => void
+  readonly openBranchDropdown?: () => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -68,25 +70,22 @@ export class CommitListItem extends React.PureComponent<
   }
 
   public render() {
-    const commit = this.props.commit
+    const {
+      commit,
+      selectedCommits: { length: count },
+    } = this.props
     const {
       author: { date },
     } = commit
 
-    const isDraggable =
-      this.props.onDragStart !== undefined &&
-      this.canCherryPick() &&
-      enableCherryPicking()
-
+    const className = classNames('commit', { 'multiple-selected': count > 1 })
     return (
       <div
-        className="commit"
+        className={className}
         onContextMenu={this.onContextMenu}
-        draggable={isDraggable}
-        onDragStart={this.onDragStart}
-        onDragEnd={this.onDragEnd}
+        onMouseDown={this.onMouseDown}
       >
-        <div className="count">{this.props.selectedCommits.length}</div>
+        <div className="count">{count}</div>
         <div className="info">
           <RichText
             className="summary"
@@ -266,7 +265,11 @@ export class CommitListItem extends React.PureComponent<
 
   private canCherryPick(): boolean {
     const { onCherryPick, isCherryPickInProgress } = this.props
-    return onCherryPick !== undefined && isCherryPickInProgress === false
+    return (
+      onCherryPick !== undefined &&
+      isCherryPickInProgress === false &&
+      enableCherryPicking()
+    )
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {
@@ -305,34 +308,127 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private canDragCommit(event: React.MouseEvent<HTMLDivElement>): boolean {
+    // right clicks (context menu) or shift clicks (range selection)
+    const isSpecialClick =
+      event.button === 2 ||
+      (__DARWIN__ && event.button === 0 && event.ctrlKey) ||
+      event.shiftKey
+
+    const dragHandlerExists = this.props.onDragStart !== undefined
+    return !isSpecialClick && dragHandlerExists && this.canCherryPick()
+  }
+
   /**
-   * Note: For typing, event is required parameter.
-   **/
-  private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
-    if (this.props.onDragStart !== undefined) {
-      const ghostEle: HTMLDivElement = event.currentTarget.cloneNode(
-        true
-      ) as HTMLDivElement
-      ghostEle.classList.add('commit-ghost')
-      event.currentTarget.append(ghostEle)
-      event.dataTransfer.setDragImage(ghostEle, 0, 0)
-      event.dataTransfer.effectAllowed = 'move'
-      this.props.onDragStart(this.props.selectedCommits)
+   * Method to handle a commit being dragged.
+   *
+   * - Invokes the onDragStart Handler
+   * - Builds a commit ghost, makes it follow the mouse, and removes it
+   * - Tracks whether a commit is dropped over a branch or not to determine if a
+   *   drag cancel event should be called.
+   */
+  private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!this.canDragCommit(event)) {
+      return
+    }
+
+    const { onDragStart, openBranchDropdown } = this.props
+    if (onDragStart !== undefined) {
+      onDragStart(this.props.selectedCommits)
+    }
+
+    // Add ghost
+    const ghost = this.buildCommitDragGhost(event)
+    const desktopAppContainer = document.getElementById('desktop-app-contents')
+    if (desktopAppContainer === null) {
+      log.warn('[onCommitMouseDown] - Could not locate desktop container!')
+      return
+    }
+    desktopAppContainer.appendChild(ghost)
+    desktopAppContainer.classList.add('mouse-no-drop')
+
+    this.moveGhost(ghost, desktopAppContainer, openBranchDropdown)
+  }
+
+  /**
+   * Builds a commit drag ghost by cloning the existing commit
+   */
+  private buildCommitDragGhost(
+    event: React.MouseEvent<HTMLDivElement>
+  ): HTMLDivElement {
+    const ghost = event.currentTarget.cloneNode(true) as HTMLDivElement
+    ghost.style.width = event.currentTarget.clientWidth + 'px'
+    ghost.id = 'commit-ghost'
+    return ghost
+  }
+
+  /**
+   * Setups the adding and removing of the mouse move event handler in order to
+   * make the ghost follow the mouse and be removed from the dom when drag is
+   * over.
+   *
+   * It also tracks whether the commit is dragged over the branch dropdown in
+   * order to open it and whether the commit is over the branch when mouse up
+   * occurs in order to clear cherry picking state on drag end if it is not over
+   * a branch.
+   */
+  private moveGhost(
+    ghost: HTMLDivElement,
+    desktopAppContainer: HTMLElement,
+    openBranchDropdown: (() => void) | undefined
+  ) {
+    let branchDropdown: Element | null = null
+    let isOverBranchListItem: boolean = false
+
+    function onMouseMove(moveEvent: MouseEvent) {
+      // place ghost next to mouse
+      ghost.style.left = moveEvent.pageX + 0 + 'px'
+      ghost.style.top = moveEvent.pageY + 32 + 'px'
+
+      // inspect element mouse is is hovering over
+      const elemBelow = document.elementFromPoint(
+        moveEvent.clientX,
+        moveEvent.clientY
+      )
+
+      // mouse left the screen
+      if (elemBelow === null) {
+        return
+      }
+
+      const dropZoneBranchDropDown = elemBelow.closest('.branch-button')
+      isOverBranchListItem = elemBelow.closest('.branches-list-item') !== null
+
+      // We have either gone over or left the branch dropdown button.
+      if (branchDropdown !== dropZoneBranchDropDown) {
+        branchDropdown = dropZoneBranchDropDown
+
+        // We must be over the branch drop down button.
+        if (branchDropdown !== null) {
+          if (openBranchDropdown) {
+            openBranchDropdown()
+          }
+        }
+      }
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+
+    document.onmouseup = e => {
+      document.removeEventListener('mousemove', onMouseMove)
+      desktopAppContainer.classList.remove('mouse-no-drop')
+      document.onmouseup = null
+      // ghost.remove()
+      this.onDragEnd(!isOverBranchListItem)
     }
   }
 
   /**
    * Note: For typing, event is required parameter.
    **/
-  private onDragEnd = (event: React.DragEvent<HTMLDivElement>): void => {
-    // remove ghost
-    const commitGhosts = document.getElementsByClassName('commit-ghost')
-    for (let i = 0; i < commitGhosts.length; i++) {
-      commitGhosts.item(i)?.remove()
-    }
-
+  private onDragEnd = (clearCherryPickingState: boolean): void => {
     if (this.props.onDragEnd !== undefined) {
-      this.props.onDragEnd()
+      this.props.onDragEnd(clearCherryPickingState)
     }
   }
 }

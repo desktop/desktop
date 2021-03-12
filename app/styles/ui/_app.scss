@@ -27,3 +27,13 @@
     min-height: 0;
   }
 }
+
+#desktop-app-contents {
+  &.mouse-no-drop {
+    :not(input):not(textarea),
+    :not(input):not(textarea)::after,
+    :not(input):not(textarea)::before {
+      cursor: not-allowed;
+    }
+  }
+}
