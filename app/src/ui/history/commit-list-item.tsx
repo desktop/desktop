@@ -410,6 +410,8 @@ export class CommitListItem extends React.PureComponent<
         desktopAppContainer.appendChild(ghost)
         desktopAppContainer.classList.add('cherry-pick-mouse-over')
         dragStarted = true
+
+        // Removes active status from commit selection
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur()
         }
