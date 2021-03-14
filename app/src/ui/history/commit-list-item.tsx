@@ -338,12 +338,7 @@ export class CommitListItem extends React.PureComponent<
   }
 
   /**
-   * Method to handle a commit being dragged.
-   *
-   * - Invokes the onDragStart Handler
-   * - Builds a commit ghost, makes it follow the mouse, and removes it
-   * - Tracks whether a commit is dropped over a branch or not to determine if a
-   *   drag cancel event should be called.
+   * Method to handle invoking a commit being dragged.
    */
   private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!this.canDragCommit(event)) {
@@ -380,6 +375,10 @@ export class CommitListItem extends React.PureComponent<
    * component and currently depends on html elements (#desktop-app-contents,
    * .branch-button, .branches-list-item, .name) not in this component making it
    * susceptible to impact if those components were to change.
+   *
+   * Note: We attempted to use the more generic document.body as opposed to
+   * #desktop-app-contents, but something with electron/react makes it so
+   * anything appended outside the app is not accessible.
    */
   private trackCommitDrag(ghost: HTMLDivElement) {
     const desktopAppContainer = document.getElementById('desktop-app-contents')
@@ -395,8 +394,12 @@ export class CommitListItem extends React.PureComponent<
       '.copy-message-label .branch-name'
     )
 
-    // This is housed inside this method so we have its reference for remove the
-    // event listener.
+    // This is housed inside the trackCommitDrag method so we have its reference
+    // for removing the event listener. We could move it out but, then we would
+    // have move a lot of tracking out to the commit class and prefer to
+    // encapsulate all the non-react way of handling the drag event in one spot.
+    // If we make more things draggable, it may be prudent to refactor this into
+    // a draggable component.
     function onMouseMove(moveEvent: MouseEvent) {
       // Wait till user actually moves their mouse as opposed to clicking it.
       if (!dragStarted && desktopAppContainer !== null) {
@@ -467,9 +470,6 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
-  /**
-   * Note: For typing, event is required parameter.
-   **/
   private onDragEnd = (clearCherryPickingState: boolean): void => {
     if (this.props.onDragEnd !== undefined) {
       this.props.onDragEnd(clearCherryPickingState)
