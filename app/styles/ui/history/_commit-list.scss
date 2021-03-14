@@ -81,16 +81,20 @@
 
 #commit-ghost,
 #commit-list .commit {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   background-color: var(--background-color);
-
   border-bottom: var(--base-border);
 
-  // We need to give a bit more padding to the right to make place for the scrollbar
-  padding-right: calc(var(--spacing) + var(--spacing-half));
-  padding-left: var(--spacing);
+  .commit-box{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    // We need to give a bit more padding to the right to make place for the scrollbar
+    padding-right: calc(var(--spacing) + var(--spacing-half));
+    padding-left: var(--spacing);
+  }
 
   .info {
     display: flex;
@@ -160,14 +164,24 @@
       margin-left: var(--spacing-half);
     }
   }
+
+  .copy-message-label {
+    display: none;
+  }
 }
 
 #commit-ghost {
+  display: block;
   position: absolute;
   height: 50px;
   z-index: 1000;
   cursor: not-allowed;
-  border: 1px solid #eee;
+
+  padding: 0;
+
+  .commit-box{
+    box-shadow: 2px 1px 1px 2px var(--box-border-color);
+  }
 
   .count {
     background-image: linear-gradient(#d73a49, darken(#d73a49, 5%));
@@ -186,9 +200,29 @@
     border-radius: 100%;
   }
 
-  &.multiple-selected,
-  &.multiple-selected::before {
-    box-shadow: 2px 1px 1px rgba(0, 0, 0, 0.15);
+  &.over-branch {
+    .copy-message-label {
+      display: block;
+    }
+  }
+
+  .copy-message-label {
+    position: absolute;
+    bottom: -35px;
+    left: 0px;
+    background-color: var(--background-color);
+    border: 1px solid var(--box-border-color);
+    color: var(--link-button-color);
+    padding: var(--spacing-third) var(--spacing-half);
+    .branch-name {
+      color: var(--text-color);
+      margin-left: var(--spacing-third);
+    }
+    div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 
   &.multiple-selected::before {
@@ -197,9 +231,9 @@
     width: 100%;
     height: 100%;
     background-color: var(--background-color);
-    opacity: 50%;
     z-index: -1;
     left: 7px;
     top: 5px;
+    box-shadow: 2px 1px 1px var(--box-border-color);
   }
 }

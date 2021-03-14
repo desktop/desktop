@@ -85,26 +85,44 @@ export class CommitListItem extends React.PureComponent<
         onContextMenu={this.onContextMenu}
         onMouseDown={this.onMouseDown}
       >
-        <div className="count">{count}</div>
-        <div className="info">
-          <RichText
-            className="summary"
-            emoji={this.props.emoji}
-            text={commit.summary}
-            renderUrlsAsLinks={false}
-          />
-          <div className="description">
-            <AvatarStack users={this.state.avatarUsers} />
-            <div className="byline">
-              <CommitAttribution
-                gitHubRepository={this.props.gitHubRepository}
-                commit={commit}
-              />
-              {renderRelativeTime(date)}
+        <div className="commit-box">
+          <div className="count">{count}</div>
+          <div className="info">
+            <RichText
+              className="summary"
+              emoji={this.props.emoji}
+              text={commit.summary}
+              renderUrlsAsLinks={false}
+            />
+            <div className="description">
+              <AvatarStack users={this.state.avatarUsers} />
+              <div className="byline">
+                <CommitAttribution
+                  gitHubRepository={this.props.gitHubRepository}
+                  commit={commit}
+                />
+                {renderRelativeTime(date)}
+              </div>
             </div>
           </div>
+          {this.renderCommitIndicators()}
+          {this.renderDragCopyLabel(count)}
         </div>
-        {this.renderCommitIndicators()}
+      </div>
+    )
+  }
+
+  private renderDragCopyLabel(count: number) {
+    if (__DARWIN__) {
+      return
+    }
+
+    return (
+      <div className="copy-message-label">
+        <div>
+          <Octicon symbol={OcticonSymbol.plus} />
+          Copy to <span className="branch-name">branch</span>
+        </div>
       </div>
     )
   }
@@ -332,22 +350,8 @@ export class CommitListItem extends React.PureComponent<
       return
     }
 
-    const { onDragStart, openBranchDropdown } = this.props
-    if (onDragStart !== undefined) {
-      onDragStart(this.props.selectedCommits)
-    }
-
-    // Add ghost
     const ghost = this.buildCommitDragGhost(event)
-    const desktopAppContainer = document.getElementById('desktop-app-contents')
-    if (desktopAppContainer === null) {
-      log.warn('[onCommitMouseDown] - Could not locate desktop container!')
-      return
-    }
-    desktopAppContainer.appendChild(ghost)
-    desktopAppContainer.classList.add('mouse-no-drop')
-
-    this.moveGhost(ghost, desktopAppContainer, openBranchDropdown)
+    this.trackCommitDrag(ghost)
   }
 
   /**
@@ -371,19 +375,47 @@ export class CommitListItem extends React.PureComponent<
    * order to open it and whether the commit is over the branch when mouse up
    * occurs in order to clear cherry picking state on drag end if it is not over
    * a branch.
+   *
+   * Note: This has document event handlers and dom queries not scoped to this
+   * component and currently depends on html elements (#desktop-app-contents,
+   * .branch-button, .branches-list-item, .name) not in this component making it
+   * susceptible to impact if those components were to change.
    */
-  private moveGhost(
-    ghost: HTMLDivElement,
-    desktopAppContainer: HTMLElement,
-    openBranchDropdown: (() => void) | undefined
-  ) {
-    let branchDropdown: Element | null = null
-    let isOverBranchListItem: boolean = false
+  private trackCommitDrag(ghost: HTMLDivElement) {
+    const desktopAppContainer = document.getElementById('desktop-app-contents')
+    if (desktopAppContainer === null) {
+      log.warn('[onCommitMouseDown] - Could not locate desktop container!')
+      return
+    }
 
+    const { onDragStart, openBranchDropdown, selectedCommits } = this.props
+    let branchListItem: Element | null = null
+    let dragStarted = false
+    const copyMessageLabelElement = ghost.querySelector(
+      '.copy-message-label .branch-name'
+    )
+
+    // This is housed inside this method so we have its reference for remove the
+    // event listener.
     function onMouseMove(moveEvent: MouseEvent) {
+      // Wait till user actually moves their mouse as opposed to clicking it.
+      if (!dragStarted && desktopAppContainer !== null) {
+        if (onDragStart !== undefined) {
+          onDragStart(selectedCommits)
+        }
+
+        desktopAppContainer.appendChild(ghost)
+        desktopAppContainer.classList.add('cherry-pick-mouse-over')
+        dragStarted = true
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur()
+        }
+      }
+
       // place ghost next to mouse
+      const verticalOffset = __DARWIN__ ? 32 : 15
       ghost.style.left = moveEvent.pageX + 0 + 'px'
-      ghost.style.top = moveEvent.pageY + 32 + 'px'
+      ghost.style.top = moveEvent.pageY + verticalOffset + 'px'
 
       // inspect element mouse is is hovering over
       const elemBelow = document.elementFromPoint(
@@ -396,18 +428,29 @@ export class CommitListItem extends React.PureComponent<
         return
       }
 
-      const dropZoneBranchDropDown = elemBelow.closest('.branch-button')
-      isOverBranchListItem = elemBelow.closest('.branches-list-item') !== null
+      const branchDropdown = elemBelow.closest('.branch-button')
+      branchListItem = elemBelow.closest('.branches-list-item')
 
-      // We have either gone over or left the branch dropdown button.
-      if (branchDropdown !== dropZoneBranchDropDown) {
-        branchDropdown = dropZoneBranchDropDown
+      // We must be over the branch drop down button.
+      if (branchDropdown !== null) {
+        if (openBranchDropdown) {
+          openBranchDropdown()
+        }
+      }
 
-        // We must be over the branch drop down button.
-        if (branchDropdown !== null) {
-          if (openBranchDropdown) {
-            openBranchDropdown()
-          }
+      // We must be over a branch.
+      if (branchListItem !== null) {
+        ghost.classList.add('over-branch')
+        // Grabbing branch name for copy label on windows implementation
+        const branchNameElement = branchListItem.querySelector('.name')
+        if (branchNameElement !== null && copyMessageLabelElement) {
+          copyMessageLabelElement.innerHTML = branchNameElement.innerHTML
+        }
+      } else if (branchListItem == null) {
+        // We must have just left a branch.
+        ghost.classList.remove('over-branch')
+        if (copyMessageLabelElement) {
+          copyMessageLabelElement.innerHTML = 'branch'
         }
       }
     }
@@ -416,10 +459,11 @@ export class CommitListItem extends React.PureComponent<
 
     document.onmouseup = e => {
       document.removeEventListener('mousemove', onMouseMove)
-      desktopAppContainer.classList.remove('mouse-no-drop')
+      desktopAppContainer.classList.remove('cherry-pick-mouse-over')
       document.onmouseup = null
-      // ghost.remove()
-      this.onDragEnd(!isOverBranchListItem)
+      ghost.remove()
+      const clearCherryPickingState = branchListItem === null
+      this.onDragEnd(clearCherryPickingState)
     }
   }
 
