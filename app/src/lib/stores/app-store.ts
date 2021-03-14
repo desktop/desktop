@@ -342,6 +342,9 @@ const MaxInvalidFoldersToDisplay = 3
 
 const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
 
+const hideRecentRepositoriesKey = 'hide-recent-repositories'
+const hideRecentRepositoriesDefault = false
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -433,6 +436,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
   private automaticallySwitchTheme = false
+
+  private hideRecentRepositories = false
 
   private hasUserViewedStash = false
 
@@ -788,6 +793,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
       automaticallySwitchTheme: this.automaticallySwitchTheme,
+      hideRecentRepositories: this.hideRecentRepositories,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
@@ -1751,6 +1757,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.emitUpdate()
       }
     })
+
+    this.hideRecentRepositories = getBoolean(
+      hideRecentRepositoriesKey,
+      hideRecentRepositoriesDefault
+    )
 
     this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, false)
 
@@ -5497,6 +5508,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setAutomaticallySwitchTheme(automaticallySwitchTheme: boolean) {
     setAutoSwitchPersistedTheme(automaticallySwitchTheme)
     this.automaticallySwitchTheme = automaticallySwitchTheme
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the hide recent repositories flag
+   */
+  public _setHideRecentRepositories(hideRecentRepositories: boolean) {
+    this.hideRecentRepositories = hideRecentRepositories
+    setBoolean(hideRecentRepositoriesKey, hideRecentRepositories)
     this.emitUpdate()
 
     return Promise.resolve()

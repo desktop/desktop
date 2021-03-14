@@ -1395,6 +1395,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             automaticallySwitchTheme={this.state.automaticallySwitchTheme}
+            hideRecentRepositories={this.state.hideRecentRepositories}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
           />
         )
@@ -2266,6 +2267,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         externalEditorLabel={externalEditorLabel}
         shellLabel={shellLabel}
         dispatcher={this.props.dispatcher}
+        hideRecentRepositories={this.state.hideRecentRepositories}
       />
     )
   }

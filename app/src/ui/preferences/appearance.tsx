@@ -13,7 +13,9 @@ interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
   readonly automaticallySwitchTheme: boolean
+  readonly hideRecentRepositories: boolean
   readonly onAutomaticallySwitchThemeChanged: (checked: boolean) => void
+  readonly onHideRecentRepositoriesChanged: (checked: boolean) => void
 }
 
 const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
@@ -49,11 +51,21 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
     this.props.onAutomaticallySwitchThemeChanged(value)
   }
 
+  private onHideRecentRepositoriesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onHideRecentRepositoriesChanged(value)
+  }
+
   public render() {
     return (
       <DialogContent>
-        {this.renderThemeOptions()}
-        {this.renderAutoSwitcherOption()}
+        <h2>Theme</h2>
+          {this.renderThemeOptions()}
+          {this.renderAutoSwitcherOption()}
+        <h2>Interface</h2>
+        {this.renderhideRecentRepositoriesOption()}
       </DialogContent>
     )
   }
@@ -85,6 +97,22 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
               : CheckboxValue.Off
           }
           onChange={this.onAutomaticallySwitchThemeChanged}
+        />
+      </Row>
+    )
+  }
+
+  public renderhideRecentRepositoriesOption() {
+    return (
+      <Row>
+        <Checkbox
+          label="Hide recently accessed repositories."
+          value={
+              this.props.hideRecentRepositories
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+          onChange={this.onHideRecentRepositoriesChanged}
         />
       </Row>
     )

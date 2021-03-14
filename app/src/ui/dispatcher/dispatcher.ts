@@ -2225,6 +2225,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the hide recent repositories flag
+   */
+  public onHideRecentRepositoriesChanged(value: boolean) {
+    return this.appStore._setHideRecentRepositories(value)
+  }
+
+  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */

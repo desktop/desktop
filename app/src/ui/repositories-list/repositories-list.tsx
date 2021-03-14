@@ -67,6 +67,9 @@ interface IRepositoriesListProps {
   readonly filterText: string
 
   readonly dispatcher: Dispatcher
+
+  /** Flag to hide recent repositories */
+  readonly hideRecentRepositories: boolean
 }
 
 const RowHeight = 29
@@ -190,7 +193,7 @@ export class RepositoriesList extends React.Component<
     )
 
     const groups =
-      this.props.repositories.length > recentRepositoriesThreshold
+      this.props.repositories.length > recentRepositoriesThreshold && this.props.hideRecentRepositories === false
         ? [
             makeRecentRepositoriesGroup(
               this.props.recentRepositories,

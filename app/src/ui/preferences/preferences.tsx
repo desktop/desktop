@@ -56,6 +56,7 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
+  readonly hideRecentRepositories: boolean
   readonly repositoryIndicatorsEnabled: boolean
 }
 
@@ -302,9 +303,13 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            hideRecentRepositories={this.props.hideRecentRepositories}
             automaticallySwitchTheme={this.props.automaticallySwitchTheme}
             onAutomaticallySwitchThemeChanged={
               this.onAutomaticallySwitchThemeChanged
+            }
+            onHideRecentRepositoriesChanged={
+              this.onHideRecentRepositoriesChanged
             }
           />
         )
@@ -419,6 +424,12 @@ export class Preferences extends React.Component<
     this.props.dispatcher.onAutomaticallySwitchThemeChanged(
       automaticallySwitchTheme
     )
+  }
+
+  private onHideRecentRepositoriesChanged = (
+    value: boolean
+  ) => {
+    this.props.dispatcher.onHideRecentRepositoriesChanged(value)
   }
 
   private renderFooter() {
