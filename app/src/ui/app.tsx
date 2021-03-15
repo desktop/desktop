@@ -132,7 +132,7 @@ import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
 import { DragElementType } from '../models/dragElement'
-import { CommitListItem } from './history/commit-list-item'
+import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2197,16 +2197,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const { gitHubRepository, commit, selectedCommits } = currentDragElement
     switch (currentDragElement.type) {
       case DragElementType.CherryPickCommit:
         return (
-          <CommitListItem
-            gitHubRepository={currentDragElement.gitHubRepository}
-            commit={currentDragElement.commit}
-            selectedCommits={currentDragElement.selectedCommits}
+          <CherryPickCommit
+            gitHubRepository={gitHubRepository}
+            commit={commit}
+            selectedCommits={selectedCommits}
             emoji={emoji}
-            isLocal={false}
-            showUnpushedIndicator={false}
           />
         )
       default:

@@ -16,7 +16,6 @@ import {
   enableGitTagsCreation,
   enableCherryPicking,
 } from '../../lib/feature-flag'
-import classNames from 'classnames'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -71,59 +70,36 @@ export class CommitListItem extends React.PureComponent<
   }
 
   public render() {
-    const {
-      commit,
-      selectedCommits: { length: count },
-    } = this.props
+    const { commit } = this.props
     const {
       author: { date },
     } = commit
 
-    const className = classNames('commit', { 'multiple-selected': count > 1 })
     return (
       <div
-        className={className}
+        className="commit"
         onContextMenu={this.onContextMenu}
         onMouseDown={this.onMouseDown}
       >
-        <div className="commit-box">
-          <div className="count">{count}</div>
-          <div className="info">
-            <RichText
-              className="summary"
-              emoji={this.props.emoji}
-              text={commit.summary}
-              renderUrlsAsLinks={false}
-            />
-            <div className="description">
-              <AvatarStack users={this.state.avatarUsers} />
-              <div className="byline">
-                <CommitAttribution
-                  gitHubRepository={this.props.gitHubRepository}
-                  commit={commit}
-                />
-                {renderRelativeTime(date)}
-              </div>
+        <div className="info">
+          <RichText
+            className="summary"
+            emoji={this.props.emoji}
+            text={commit.summary}
+            renderUrlsAsLinks={false}
+          />
+          <div className="description">
+            <AvatarStack users={this.state.avatarUsers} />
+            <div className="byline">
+              <CommitAttribution
+                gitHubRepository={this.props.gitHubRepository}
+                commit={commit}
+              />
+              {renderRelativeTime(date)}
             </div>
           </div>
-          {this.renderCommitIndicators()}
-          {this.renderDragCopyLabel(count)}
         </div>
-      </div>
-    )
-  }
-
-  private renderDragCopyLabel(count: number) {
-    if (__DARWIN__) {
-      return
-    }
-
-    return (
-      <div className="copy-message-label">
-        <div>
-          <Octicon symbol={OcticonSymbol.plus} />
-          Copy to <span className="branch-name">branch</span>
-        </div>
+        {this.renderCommitIndicators()}
       </div>
     )
   }
