@@ -285,6 +285,7 @@ import {
   getCherryPickSnapshot,
   isCherryPickHeadFound,
 } from '../git/cherry-pick'
+import { DragElement } from '../../models/dragElement'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -446,6 +447,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Whether or not the user has been introduced to the cherry pick feature
    */
   private hasShownCherryPickIntro: boolean = false
+
+  private currentDragElement: DragElement | null = null
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -794,6 +797,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       hasShownCherryPickIntro: this.hasShownCherryPickIntro,
+      currentDragElement: this.currentDragElement,
     }
   }
 
@@ -6159,6 +6163,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         checkoutBranch(repository, account, sourceBranch)
       )
     })
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setDragElement(dragElement: DragElement): Promise<void> {
+    this.currentDragElement = dragElement
+    this.emitUpdate()
   }
 }
 

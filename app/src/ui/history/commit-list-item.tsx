@@ -32,6 +32,7 @@ interface ICommitProps {
   readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onDragEnd?: (clearCherryPickingState: boolean) => void
   readonly openBranchDropdown?: () => void
+  readonly renderCherryPickCommitDragElement?: (commit: Commit) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -393,6 +394,11 @@ export class CommitListItem extends React.PureComponent<
     const copyMessageLabelElement = ghost.querySelector(
       '.copy-message-label .branch-name'
     )
+    const dragElement = document.getElementById('dragElement')
+
+    if (this.props.renderCherryPickCommitDragElement !== undefined) {
+      this.props.renderCherryPickCommitDragElement(this.props.commit)
+    }
 
     // This is housed inside the trackCommitDrag method so we have its reference
     // for removing the event listener. We could move it out but, then we would
@@ -419,8 +425,15 @@ export class CommitListItem extends React.PureComponent<
 
       // place ghost next to mouse
       const verticalOffset = __DARWIN__ ? 32 : 15
-      ghost.style.left = moveEvent.pageX + 0 + 'px'
-      ghost.style.top = moveEvent.pageY + verticalOffset + 'px'
+
+      if (dragElement) {
+        dragElement.style.position = 'absolute'
+        dragElement.style.left = moveEvent.pageX + 0 + 'px'
+        dragElement.style.top = moveEvent.pageY + verticalOffset + 'px'
+      }
+
+      // ghost.style.left = moveEvent.pageX + 0 + 'px'
+      // ghost.style.top = moveEvent.pageY + verticalOffset + 'px'
 
       // inspect element mouse is is hovering over
       const elemBelow = document.elementFromPoint(

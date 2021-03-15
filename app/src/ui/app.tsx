@@ -131,6 +131,8 @@ import {
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
+import { DragElementType } from '../models/dragElement'
+import { CommitListItem } from './history/commit-list-item'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2185,6 +2187,36 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private renderDragElement() {
+    return <div id="dragElement">{this.currentDragElement()}</div>
+  }
+
+  private currentDragElement(): JSX.Element | null {
+    const { currentDragElement, emoji } = this.state
+    if (currentDragElement === null) {
+      return null
+    }
+
+    switch (currentDragElement.type) {
+      case DragElementType.CherryPickCommit:
+        return (
+          <CommitListItem
+            gitHubRepository={currentDragElement.gitHubRepository}
+            commit={currentDragElement.commit}
+            selectedCommits={currentDragElement.selectedCommits}
+            emoji={emoji}
+            isLocal={false}
+            showUnpushedIndicator={false}
+          />
+        )
+      default:
+        return assertNever(
+          currentDragElement.type,
+          `Unknown drag element type: ${currentDragElement}`
+        )
+    }
+  }
+
   private renderZoomInfo() {
     return <ZoomInfo windowZoomFactor={this.state.windowZoomFactor} />
   }
@@ -2226,6 +2258,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderRepository()}
         {this.renderPopup()}
         {this.renderAppError()}
+        {this.renderDragElement()}
       </div>
     )
   }

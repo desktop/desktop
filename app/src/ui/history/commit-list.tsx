@@ -86,6 +86,11 @@ interface ICommitListProps {
 
   /** Callback to open branch dropdown */
   readonly openBranchDropdown: () => void
+
+  readonly renderCherryPickCommitDragElement: (
+    commit: Commit,
+    selectedCommits: ReadonlyArray<Commit>
+  ) => void
 }
 
 /** A component which displays the list of commits. */
@@ -150,7 +155,17 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDragEnd={this.props.onDragCommitEnd}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         openBranchDropdown={this.props.openBranchDropdown}
+        renderCherryPickCommitDragElement={
+          this.renderCherryPickCommitDragElement
+        }
       />
+    )
+  }
+
+  private renderCherryPickCommitDragElement = (commit: Commit) => {
+    this.props.renderCherryPickCommitDragElement(
+      commit,
+      this.lookupCommits(this.props.selectedSHAs)
     )
   }
 

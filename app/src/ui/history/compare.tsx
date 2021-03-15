@@ -27,6 +27,7 @@ import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { CherryPickStepKind } from '../../models/cherry-pick'
+import { DragElementType } from '../../models/dragElement'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -250,8 +251,23 @@ export class CompareSidebar extends React.Component<
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         openBranchDropdown={this.openBranchDropdown}
+        renderCherryPickCommitDragElement={
+          this.renderCherryPickCommitDragElement
+        }
       />
     )
+  }
+
+  private renderCherryPickCommitDragElement = (
+    commit: Commit,
+    selectedCommits: ReadonlyArray<Commit>
+  ) => {
+    this.props.dispatcher.setDragElement({
+      type: DragElementType.CherryPickCommit,
+      commit,
+      selectedCommits,
+      gitHubRepository: this.props.repository.gitHubRepository,
+    })
   }
 
   private openBranchDropdown = () => {
