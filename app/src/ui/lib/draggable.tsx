@@ -11,7 +11,6 @@ interface IDraggableProps {
 
 /**
  * TODO: move setting global drag class to app
- * TODO: remove drag element
  */
 export class Draggable extends React.Component<IDraggableProps> {
   private dragStarted: boolean = false

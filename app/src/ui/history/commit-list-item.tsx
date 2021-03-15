@@ -31,8 +31,8 @@ interface ICommitProps {
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onDragEnd?: (clearCherryPickingState: boolean) => void
-  readonly openBranchDropdown?: () => void
-  readonly renderCherryPickCommitDragElement?: (commit: Commit) => void
+  readonly onRenderCherryPickCommitDragElement?: (commit: Commit) => void
+  readonly onRemoveCherryPickDragElement?: () => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -69,14 +69,6 @@ export class CommitListItem extends React.PureComponent<
       })
     }
   }
-
-  private onRenderCherryPickCommitDragElement = () => {
-    if (this.props.renderCherryPickCommitDragElement !== undefined) {
-      this.props.renderCherryPickCommitDragElement(this.props.commit)
-    }
-  }
-
-  private onRemoveDragElement = () => {}
 
   public render() {
     const { commit } = this.props
@@ -335,6 +327,18 @@ export class CommitListItem extends React.PureComponent<
   private onDragEnd = (isOverDragTarget: boolean): void => {
     if (this.props.onDragEnd !== undefined) {
       this.props.onDragEnd(!isOverDragTarget)
+    }
+  }
+
+  private onRenderCherryPickCommitDragElement = () => {
+    if (this.props.onRenderCherryPickCommitDragElement !== undefined) {
+      this.props.onRenderCherryPickCommitDragElement(this.props.commit)
+    }
+  }
+
+  private onRemoveDragElement = () => {
+    if (this.props.onRemoveCherryPickDragElement !== undefined) {
+      this.props.onRemoveCherryPickDragElement()
     }
   }
 }

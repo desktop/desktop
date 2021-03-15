@@ -6144,7 +6144,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setDragElement(dragElement: DragElement): Promise<void> {
+  public async _setDragElement(dragElement: DragElement | null): Promise<void> {
     this.currentDragElement = dragElement
     this.emitUpdate()
   }

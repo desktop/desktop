@@ -7,7 +7,6 @@ import {
   ICompareBranch,
   ComparisonMode,
   IDisplayHistory,
-  FoldoutType,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -250,15 +249,17 @@ export class CompareSidebar extends React.Component<
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
-        openBranchDropdown={this.openBranchDropdown}
-        renderCherryPickCommitDragElement={
-          this.renderCherryPickCommitDragElement
+        onRenderCherryPickCommitDragElement={
+          this.onRenderCherryPickCommitDragElement
+        }
+        onRemoveCherryPickCommitDragElement={
+          this.onRemoveCherryPickCommitDragElement
         }
       />
     )
   }
 
-  private renderCherryPickCommitDragElement = (
+  private onRenderCherryPickCommitDragElement = (
     commit: Commit,
     selectedCommits: ReadonlyArray<Commit>
   ) => {
@@ -270,8 +271,8 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-  private openBranchDropdown = () => {
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+  private onRemoveCherryPickCommitDragElement = () => {
+    this.props.dispatcher.clearDragElement()
   }
 
   private onDismissCherryPickIntro = () => {
