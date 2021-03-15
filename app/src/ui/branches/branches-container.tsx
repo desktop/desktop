@@ -43,10 +43,10 @@ interface IBranchesContainerProps {
   readonly isLoadingPullRequests: boolean
 
   /** When a drag element has landed on the current branch */
-  onDropOntoCurrentBranch?: () => void
+  readonly onDropOntoCurrentBranch?: () => void
 
   /** Whether a cherry pick is in progress */
-  isCherryPickInProgress?: boolean
+  readonly isCherryPickInProgress?: boolean
 }
 
 interface IBranchesContainerState {

@@ -34,10 +34,10 @@ interface IBranchListItemProps {
   readonly onDropOntoBranch?: (branchName: String) => void
 
   /** When a drag element has landed on the current branch */
-  onDropOntoCurrentBranch?: () => void
+  readonly onDropOntoCurrentBranch?: () => void
 
   /** Whether something is being dragged */
-  isSomethingBeingDragged?: boolean
+  readonly isSomethingBeingDragged?: boolean
 }
 
 interface IBranchListItemState {
