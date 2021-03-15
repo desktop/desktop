@@ -451,7 +451,7 @@ export class CommitListItem extends React.PureComponent<
         if (branchNameElement !== null && copyMessageLabelElement) {
           copyMessageLabelElement.innerHTML = branchNameElement.innerHTML
         }
-      } else if (branchListItem == null) {
+      } else {
         // We must have just left a branch.
         ghost.classList.remove('over-branch')
         if (copyMessageLabelElement) {
