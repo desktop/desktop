@@ -16,6 +16,7 @@ import {
   enableGitTagsCreation,
   enableCherryPicking,
 } from '../../lib/feature-flag'
+import { Draggable } from '../lib/draggable'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -69,38 +70,57 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private onRenderCherryPickCommitDragElement = () => {
+    if (this.props.renderCherryPickCommitDragElement !== undefined) {
+      this.props.renderCherryPickCommitDragElement(this.props.commit)
+    }
+  }
+
+  private onRemoveDragElement = () => {}
+
   public render() {
     const { commit } = this.props
     const {
       author: { date },
     } = commit
 
+    const dragHandlerExists = this.props.onDragStart !== undefined
+    const isDraggable = dragHandlerExists && this.canCherryPick()
+
     return (
-      <div
-        className="commit"
-        onContextMenu={this.onContextMenu}
-        onMouseDown={this.onMouseDown}
+      <Draggable
+        isEnabled={isDraggable}
+        onDragStart={this.onDragStart}
+        onDragEnd={this.onDragEnd}
+        onRenderDragElement={this.onRenderCherryPickCommitDragElement}
+        onRemoveDragElement={this.onRemoveDragElement}
       >
-        <div className="info">
-          <RichText
-            className="summary"
-            emoji={this.props.emoji}
-            text={commit.summary}
-            renderUrlsAsLinks={false}
-          />
-          <div className="description">
-            <AvatarStack users={this.state.avatarUsers} />
-            <div className="byline">
-              <CommitAttribution
-                gitHubRepository={this.props.gitHubRepository}
-                commit={commit}
-              />
-              {renderRelativeTime(date)}
+        <div
+          className="commit"
+          onContextMenu={this.onContextMenu}
+          onMouseDown={this.onMouseDown}
+        >
+          <div className="info">
+            <RichText
+              className="summary"
+              emoji={this.props.emoji}
+              text={commit.summary}
+              renderUrlsAsLinks={false}
+            />
+            <div className="description">
+              <AvatarStack users={this.state.avatarUsers} />
+              <div className="byline">
+                <CommitAttribution
+                  gitHubRepository={this.props.gitHubRepository}
+                  commit={commit}
+                />
+                {renderRelativeTime(date)}
+              </div>
             </div>
           </div>
+          {this.renderCommitIndicators()}
         </div>
-        {this.renderCommitIndicators()}
-      </div>
+      </Draggable>
     )
   }
 
@@ -314,6 +334,9 @@ export class CommitListItem extends React.PureComponent<
     return !isSpecialClick && dragHandlerExists && this.canCherryPick()
   }
 
+  private onDragStart = () => {
+    // start the drag!
+  }
   /**
    * Method to handle invoking a commit being dragged.
    */
