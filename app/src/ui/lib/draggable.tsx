@@ -11,9 +11,8 @@ interface IDraggableProps {
 
 /**
  * TODO: move setting global drag class to app
- * TODO: move updating + copy to {branch} to branch-list-item mouse over
+ * TODO: remove drag element
  */
-
 export class Draggable extends React.Component<IDraggableProps> {
   private dragStarted: boolean = false
   private dragElement: HTMLElement | null = null

@@ -2197,7 +2197,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const { gitHubRepository, commit, selectedCommits } = currentDragElement
+    const {
+      gitHubRepository,
+      commit,
+      selectedCommits,
+      branchName,
+    } = currentDragElement
     switch (currentDragElement.type) {
       case DragElementType.CherryPickCommit:
         return (
@@ -2206,6 +2211,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
+            branchNameDraggedOver={branchName}
           />
         )
       default:
@@ -2533,6 +2539,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+        onDragOverBranch={this.onDragOverBranch}
       />
     )
   }
@@ -2889,6 +2896,21 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
     return selectedState.state.changesState.workingDirectory
+  }
+
+  /**
+   * Method to handle when something is dragged over a branch item
+   *
+   * Note: We currently use this in conjunction with cherry picking and a cherry
+   * picking commit is the only type of drag element. Thus, below uses those
+   * assumptions to just update the currentDragElement.
+   */
+  private onDragOverBranch = (branchName: string): void => {
+    const { currentDragElement } = this.state
+    if (currentDragElement !== null) {
+      currentDragElement.branchName = branchName
+      this.props.dispatcher.setDragElement(currentDragElement)
+    }
   }
 }
 

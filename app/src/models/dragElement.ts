@@ -10,4 +10,5 @@ export type DragElement = {
   commit: Commit
   selectedCommits: ReadonlyArray<Commit>
   gitHubRepository: GitHubRepository | null
+  branchName?: string
 }

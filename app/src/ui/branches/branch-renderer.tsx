@@ -14,6 +14,7 @@ export function renderDefaultBranch(
   onDeleteBranch?: (branchName: string) => void,
   onDropOntoBranch?: (branchName: string) => void,
   onDropOntoCurrentBranch?: () => void,
+  onDragOverBranch?: (branchName: string) => void,
   isSomethingBeingDragged?: boolean
 ): JSX.Element {
   const branch = item.branch
@@ -31,6 +32,7 @@ export function renderDefaultBranch(
       onDropOntoBranch={onDropOntoBranch}
       onDropOntoCurrentBranch={onDropOntoCurrentBranch}
       isSomethingBeingDragged={isSomethingBeingDragged}
+      onDragOverBranch={onDragOverBranch}
     />
   )
 }

@@ -10,14 +10,15 @@ interface ICherryPickCommitProps {
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly gitHubRepository: GitHubRepository | null
   readonly emoji: Map<string, string>
+  readonly branchNameDraggedOver?: string
 }
-
 export class CherryPickCommit extends React.Component<
   ICherryPickCommitProps,
   {}
 > {
   private renderDragCopyLabel(count: number) {
-    if (__DARWIN__) {
+    const { branchNameDraggedOver: name } = this.props
+    if (__DARWIN__ || name === undefined) {
       return
     }
 
@@ -25,7 +26,7 @@ export class CherryPickCommit extends React.Component<
       <div className="copy-message-label">
         <div>
           <Octicon symbol={OcticonSymbol.plus} />
-          Copy to <span className="branch-name">branch</span>
+          Copy to <span className="branch-name">{name}</span>
         </div>
       </div>
     )

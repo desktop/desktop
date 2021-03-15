@@ -38,6 +38,9 @@ interface IBranchListItemProps {
 
   /** Whether something is being dragged */
   readonly isSomethingBeingDragged?: boolean
+
+  /** When a drag element has been dragged over a branch */
+  readonly onDragOverBranch?: (branchName: String) => void
 }
 
 interface IBranchListItemState {
@@ -91,6 +94,9 @@ export class BranchListItem extends React.Component<
 
   private onMouseEnter = () => {
     if (this.props.isSomethingBeingDragged) {
+      if (this.props.onDragOverBranch !== undefined) {
+        this.props.onDragOverBranch(this.props.name)
+      }
       this.setState({ isDraggedOver: true })
     }
   }
