@@ -160,7 +160,9 @@ export class RepositoryView extends React.Component<
   }
 
   private renderNewCallToActionBubble(): JSX.Element | null {
-    if (this.props.hasShownCherryPickIntro) {
+    const { hasShownCherryPickIntro, state } = this.props
+    const { compareState } = state
+    if (hasShownCherryPickIntro || compareState.commitSHAs.length === 0) {
       return null
     }
     return <span className="call-to-action-bubble">New</span>
