@@ -32,6 +32,11 @@ interface IChooseTargetBranchDialogProps {
   readonly recentBranches: ReadonlyArray<Branch>
 
   /**
+   * Number of commits to cherry pick
+   */
+  readonly commitCount: number
+
+  /**
    * A function that's called when the user selects a branch and hits start
    * cherry pick
    */
@@ -107,7 +112,8 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private renderOkButtonText() {
-    const okButtonText = 'Cherry pick commit'
+    const pluralize = this.props.commitCount > 1 ? 'commits' : 'commit'
+    const okButtonText = `Cherry pick ${this.props.commitCount} ${pluralize}`
 
     const { selectedBranch } = this.state
     if (selectedBranch !== null) {
@@ -126,13 +132,18 @@ export class ChooseTargetBranchDialog extends React.Component<
       ? 'You are not able to cherry pick from and to the same branch'
       : undefined
 
+    const pluralize = this.props.commitCount > 1 ? 'commits' : 'commit'
     return (
       <Dialog
         id="cherry-pick"
         onDismissed={this.props.onDismissed}
         onSubmit={this.startCherryPick}
         dismissable={true}
-        title={<strong>Cherry pick commit to a branch</strong>}
+        title={
+          <strong>
+            Cherry pick {this.props.commitCount} {pluralize} to a branch
+          </strong>
+        }
       >
         <DialogContent>
           <BranchList

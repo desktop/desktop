@@ -29,7 +29,7 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import { ApplicationTheme } from '../ui/lib/application-theme'
+import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
@@ -214,11 +214,11 @@ export interface IAppState {
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
 
-  /** The currently selected appearance (aka theme) */
+  /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
 
-  /** Whether we should automatically change the currently selected appearance (aka theme) */
-  readonly automaticallySwitchTheme: boolean
+  /** The currently applied appearance (aka theme) */
+  readonly currentTheme: ApplicableTheme
 
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)

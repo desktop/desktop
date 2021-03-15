@@ -321,7 +321,8 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private onDragStart = () => {
-    // Removes active status from commit selection
+    // Removes active status from commit selection so they do not appear
+    // highlighted in commit list.
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
