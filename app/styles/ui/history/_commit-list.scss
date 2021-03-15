@@ -1,5 +1,4 @@
 @import '../../mixins';
-
 /** A React component holding history's commit list */
 #commit-list {
   display: flex;
@@ -28,7 +27,8 @@
     }
   }
 
-  .draggable, .commit {
+  .draggable,
+  .commit {
     width: 100%;
     height: 100%;
   }
@@ -162,4 +162,3 @@
     display: none;
   }
 }
-
