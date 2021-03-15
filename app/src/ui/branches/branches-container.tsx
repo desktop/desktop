@@ -42,8 +42,11 @@ interface IBranchesContainerProps {
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
 
-  /** When a drag element has landed on a branch */
-  readonly onDropOntoBranch: () => void
+  /** When a drag element has landed on the current branch */
+  readonly onDropOntoCurrentBranch?: () => void
+
+  /** Whether a cherry pick is in progress */
+  readonly isCherryPickInProgress?: boolean
 }
 
 interface IBranchesContainerState {
@@ -155,7 +158,9 @@ export class BranchesContainer extends React.Component<
       this.props.currentBranch,
       this.onRenameBranch,
       this.onDeleteBranch,
-      this.onDropOntoBranch
+      this.onDropOntoBranch,
+      this.props.onDropOntoCurrentBranch,
+      this.props.isCherryPickInProgress
     )
   }
 
@@ -334,11 +339,11 @@ export class BranchesContainer extends React.Component<
       return
     }
 
-    this.props.dispatcher.startCherryPickWithBranch(
-      this.props.repository,
-      branch
-    )
-
-    this.props.onDropOntoBranch()
+    if (this.props.isCherryPickInProgress) {
+      this.props.dispatcher.startCherryPickWithBranch(
+        this.props.repository,
+        branch
+      )
+    }
   }
 }

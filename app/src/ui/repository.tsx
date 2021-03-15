@@ -564,7 +564,18 @@ export class RepositoryView extends React.Component<
    *
    * Currently only used for cherry picking, but this could be more generic.
    */
-  private onDragCommitEnd = async () => {
+  private onDragCommitEnd = async (clearCherryPickingState: boolean) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+
+    if (!clearCherryPickingState) {
+      return
+    }
+
+    const { state, repository } = this.props
+    const { cherryPickState } = state
+    if (cherryPickState !== null && cherryPickState.step !== null) {
+      this.props.dispatcher.endCherryPickFlow(repository)
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+    }
   }
 }

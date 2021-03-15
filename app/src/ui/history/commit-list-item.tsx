@@ -16,6 +16,7 @@ import {
   enableGitTagsCreation,
   enableCherryPicking,
 } from '../../lib/feature-flag'
+import classNames from 'classnames'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -29,7 +30,8 @@ interface ICommitProps {
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
-  readonly onDragEnd?: () => void
+  readonly onDragEnd?: (clearCherryPickingState: boolean) => void
+  readonly openBranchDropdown?: () => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -68,43 +70,59 @@ export class CommitListItem extends React.PureComponent<
   }
 
   public render() {
-    const commit = this.props.commit
+    const {
+      commit,
+      selectedCommits: { length: count },
+    } = this.props
     const {
       author: { date },
     } = commit
 
-    const isDraggable =
-      this.props.onDragStart !== undefined &&
-      this.canCherryPick() &&
-      enableCherryPicking()
-
+    const className = classNames('commit', { 'multiple-selected': count > 1 })
     return (
       <div
-        className="commit"
+        className={className}
         onContextMenu={this.onContextMenu}
-        draggable={isDraggable}
-        onDragStart={this.onDragStart}
-        onDragEnd={this.onDragEnd}
+        onMouseDown={this.onMouseDown}
       >
-        <div className="info">
-          <RichText
-            className="summary"
-            emoji={this.props.emoji}
-            text={commit.summary}
-            renderUrlsAsLinks={false}
-          />
-          <div className="description">
-            <AvatarStack users={this.state.avatarUsers} />
-            <div className="byline">
-              <CommitAttribution
-                gitHubRepository={this.props.gitHubRepository}
-                commit={commit}
-              />
-              {renderRelativeTime(date)}
+        <div className="commit-box">
+          <div className="count">{count}</div>
+          <div className="info">
+            <RichText
+              className="summary"
+              emoji={this.props.emoji}
+              text={commit.summary}
+              renderUrlsAsLinks={false}
+            />
+            <div className="description">
+              <AvatarStack users={this.state.avatarUsers} />
+              <div className="byline">
+                <CommitAttribution
+                  gitHubRepository={this.props.gitHubRepository}
+                  commit={commit}
+                />
+                {renderRelativeTime(date)}
+              </div>
             </div>
           </div>
+          {this.renderCommitIndicators()}
+          {this.renderDragCopyLabel(count)}
         </div>
-        {this.renderCommitIndicators()}
+      </div>
+    )
+  }
+
+  private renderDragCopyLabel(count: number) {
+    if (__DARWIN__) {
+      return
+    }
+
+    return (
+      <div className="copy-message-label">
+        <div>
+          <Octicon symbol={OcticonSymbol.plus} />
+          Copy to <span className="branch-name">branch</span>
+        </div>
       </div>
     )
   }
@@ -265,7 +283,11 @@ export class CommitListItem extends React.PureComponent<
 
   private canCherryPick(): boolean {
     const { onCherryPick, isCherryPickInProgress } = this.props
-    return onCherryPick !== undefined && isCherryPickInProgress === false
+    return (
+      onCherryPick !== undefined &&
+      isCherryPickInProgress === false &&
+      enableCherryPicking()
+    )
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {
@@ -304,21 +326,155 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
-  /**
-   * Note: For typing, event is required parameter.
-   **/
-  private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
-    if (this.props.onDragStart !== undefined) {
-      this.props.onDragStart(this.props.selectedCommits)
-    }
+  private canDragCommit(event: React.MouseEvent<HTMLDivElement>): boolean {
+    // right clicks (context menu) or shift clicks (range selection)
+    const isSpecialClick =
+      event.button === 2 ||
+      (__DARWIN__ && event.button === 0 && event.ctrlKey) ||
+      event.shiftKey
+
+    const dragHandlerExists = this.props.onDragStart !== undefined
+    return !isSpecialClick && dragHandlerExists && this.canCherryPick()
   }
 
   /**
-   * Note: For typing, event is required parameter.
-   **/
-  private onDragEnd = (event: React.DragEvent<HTMLDivElement>): void => {
+   * Method to handle invoking a commit being dragged.
+   */
+  private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!this.canDragCommit(event)) {
+      return
+    }
+
+    const ghost = this.buildCommitDragGhost(event)
+    this.trackCommitDrag(ghost)
+  }
+
+  /**
+   * Builds a commit drag ghost by cloning the existing commit
+   */
+  private buildCommitDragGhost(
+    event: React.MouseEvent<HTMLDivElement>
+  ): HTMLDivElement {
+    const ghost = event.currentTarget.cloneNode(true) as HTMLDivElement
+    ghost.style.width = event.currentTarget.clientWidth + 'px'
+    ghost.id = 'commit-ghost'
+    return ghost
+  }
+
+  /**
+   * Setups the adding and removing of the mouse move event handler in order to
+   * make the ghost follow the mouse and be removed from the dom when drag is
+   * over.
+   *
+   * It also tracks whether the commit is dragged over the branch dropdown in
+   * order to open it and whether the commit is over the branch when mouse up
+   * occurs in order to clear cherry picking state on drag end if it is not over
+   * a branch.
+   *
+   * Note: This has document event handlers and dom queries not scoped to this
+   * component and currently depends on html elements (#desktop-app-contents,
+   * .branch-button, .branches-list-item, .name) not in this component making it
+   * susceptible to impact if those components were to change.
+   *
+   * Note: We attempted to use the more generic document.body as opposed to
+   * #desktop-app-contents, but something with electron/react makes it so
+   * anything appended outside the app is not accessible.
+   */
+  private trackCommitDrag(ghost: HTMLDivElement) {
+    const desktopAppContainer = document.getElementById('desktop-app-contents')
+    if (desktopAppContainer === null) {
+      log.warn('[onCommitMouseDown] - Could not locate desktop container!')
+      return
+    }
+
+    const { onDragStart, openBranchDropdown, selectedCommits } = this.props
+    let branchListItem: Element | null = null
+    let dragStarted = false
+    const copyMessageLabelElement = ghost.querySelector(
+      '.copy-message-label .branch-name'
+    )
+
+    // This is housed inside the trackCommitDrag method so we have its reference
+    // for removing the event listener. We could move it out but, then we would
+    // have move a lot of tracking out to the commit class and prefer to
+    // encapsulate all the non-react way of handling the drag event in one spot.
+    // If we make more things draggable, it may be prudent to refactor this into
+    // a draggable component.
+    function onMouseMove(moveEvent: MouseEvent) {
+      // Wait till user actually moves their mouse as opposed to clicking it.
+      if (!dragStarted && desktopAppContainer !== null) {
+        if (onDragStart !== undefined) {
+          onDragStart(selectedCommits)
+        }
+
+        desktopAppContainer.appendChild(ghost)
+        desktopAppContainer.classList.add('cherry-pick-mouse-over')
+        dragStarted = true
+
+        // Removes active status from commit selection
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur()
+        }
+      }
+
+      // place ghost next to mouse
+      const verticalOffset = __DARWIN__ ? 32 : 15
+      ghost.style.left = moveEvent.pageX + 0 + 'px'
+      ghost.style.top = moveEvent.pageY + verticalOffset + 'px'
+
+      // inspect element mouse is is hovering over
+      const elemBelow = document.elementFromPoint(
+        moveEvent.clientX,
+        moveEvent.clientY
+      )
+
+      // mouse left the screen
+      if (elemBelow === null) {
+        return
+      }
+
+      const branchDropdown = elemBelow.closest('.branch-button')
+      branchListItem = elemBelow.closest('.branches-list-item')
+
+      // We must be over the branch drop down button.
+      if (branchDropdown !== null) {
+        if (openBranchDropdown) {
+          openBranchDropdown()
+        }
+      }
+
+      // We must be over a branch.
+      if (branchListItem !== null) {
+        ghost.classList.add('over-branch')
+        // Grabbing branch name for copy label on windows implementation
+        const branchNameElement = branchListItem.querySelector('.name')
+        if (branchNameElement !== null && copyMessageLabelElement) {
+          copyMessageLabelElement.innerHTML = branchNameElement.innerHTML
+        }
+      } else {
+        // We must have just left a branch.
+        ghost.classList.remove('over-branch')
+        if (copyMessageLabelElement) {
+          copyMessageLabelElement.innerHTML = 'branch'
+        }
+      }
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+
+    document.onmouseup = e => {
+      document.removeEventListener('mousemove', onMouseMove)
+      desktopAppContainer.classList.remove('cherry-pick-mouse-over')
+      document.onmouseup = null
+      ghost.remove()
+      const clearCherryPickingState = branchListItem === null
+      this.onDragEnd(clearCherryPickingState)
+    }
+  }
+
+  private onDragEnd = (clearCherryPickingState: boolean): void => {
     if (this.props.onDragEnd !== undefined) {
-      this.props.onDragEnd()
+      this.props.onDragEnd(clearCherryPickingState)
     }
   }
 }

@@ -7,6 +7,7 @@ import {
   ICompareBranch,
   ComparisonMode,
   IDisplayHistory,
+  FoldoutType,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -44,7 +45,7 @@ interface ICompareSidebarProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
-  readonly onDragCommitEnd: () => void
+  readonly onDragCommitEnd: (clearCherryPickingState: boolean) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
@@ -248,8 +249,13 @@ export class CompareSidebar extends React.Component<
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
+        openBranchDropdown={this.openBranchDropdown}
       />
     )
+  }
+
+  private openBranchDropdown = () => {
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private onDismissCherryPickIntro = () => {

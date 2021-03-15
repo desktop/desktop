@@ -30,7 +30,14 @@ interface IBranchListItemProps {
 
   readonly onDeleteBranch?: (branchName: string) => void
 
+  /** When a drag element has landed on a branch that is not current */
   readonly onDropOntoBranch?: (branchName: String) => void
+
+  /** When a drag element has landed on the current branch */
+  readonly onDropOntoCurrentBranch?: () => void
+
+  /** Whether something is being dragged */
+  readonly isSomethingBeingDragged?: boolean
 }
 
 interface IBranchListItemState {
@@ -82,19 +89,19 @@ export class BranchListItem extends React.Component<
     showContextualMenu(items)
   }
 
-  private onDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    this.setState({ isDraggedOver: true })
+  private onMouseEnter = () => {
+    if (this.props.isSomethingBeingDragged) {
+      this.setState({ isDraggedOver: true })
+    }
   }
 
-  private onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    this.setState({ isDraggedOver: false })
+  private onMouseLeave = () => {
+    if (this.props.isSomethingBeingDragged) {
+      this.setState({ isDraggedOver: false })
+    }
   }
 
-  private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-  }
-
-  private onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  private onMouseUp = () => {
     const { onDropOntoBranch, name, isCurrentBranch } = this.props
 
     if (onDropOntoBranch !== undefined && !isCurrentBranch) {
@@ -123,10 +130,9 @@ export class BranchListItem extends React.Component<
       <div
         onContextMenu={this.onContextMenu}
         className={className}
-        onDragLeave={this.onDragLeave}
-        onDragEnter={this.onDragEnter}
-        onDragOver={this.onDragOver}
-        onDrop={this.onDrop}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onMouseUp={this.onMouseUp}
       >
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
