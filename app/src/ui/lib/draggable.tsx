@@ -8,10 +8,6 @@ interface IDraggableProps {
   readonly isEnabled: boolean
   readonly dropZoneSelectors: ReadonlyArray<string>
 }
-
-/**
- * TODO: move setting global drag class to app
- */
 export class Draggable extends React.Component<IDraggableProps> {
   private dragStarted: boolean = false
   private dragElement: HTMLElement | null = null

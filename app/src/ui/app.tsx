@@ -133,6 +133,7 @@ import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
 import { DragElementType } from '../models/dragElement'
 import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
+import classNames from 'classnames'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2254,9 +2255,22 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup(popup)
   }
 
+  private getDesktopAppContentsClassNames = (): string => {
+    const { currentDragElement } = this.state
+    const isCherryPickCommitBeingDragged =
+      currentDragElement !== null &&
+      currentDragElement.type === DragElementType.CherryPickCommit
+    return classNames({
+      'cherry-pick-mouse-over': isCherryPickCommitBeingDragged,
+    })
+  }
+
   private renderApp() {
     return (
-      <div id="desktop-app-contents">
+      <div
+        id="desktop-app-contents"
+        className={this.getDesktopAppContentsClassNames()}
+      >
         {this.renderToolbar()}
         {this.renderBanner()}
         {this.renderRepository()}
