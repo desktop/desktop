@@ -12,7 +12,6 @@ interface IDraggableProps {
 /**
  * TODO: move setting global drag class to app
  * TODO: move updating + copy to {branch} to branch-list-item mouse over
- * TODO: move branch dropdown opening back to branch-button mouse over
  */
 
 export class Draggable extends React.Component<IDraggableProps> {

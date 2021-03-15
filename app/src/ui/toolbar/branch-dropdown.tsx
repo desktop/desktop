@@ -4,12 +4,17 @@ import { OcticonSymbol, syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
-import { IRepositoryState, isRebaseConflictState } from '../../lib/app-state'
+import {
+  FoldoutType,
+  IRepositoryState,
+  isRebaseConflictState,
+} from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
+import { CherryPickStepKind } from '../../models/cherry-pick'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -179,10 +184,30 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
         buttonClassName={buttonClassName}
+        onMouseEnter={this.onMouseEnter}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>
     )
+  }
+
+  /**
+   * Method to capture when the mouse is over the branch dropdown button.
+   *
+   * We currently only use this in conjunction with dragging cherry picks so
+   * that we can open the branch menu when dragging a commit over it.
+   */
+  private onMouseEnter = (): void => {
+    // If the cherry picking state is initiated with commits chosen, we assume
+    // the user is dragging commits. Therefore, we should open the branch
+    // menu.
+    const { cherryPickState } = this.props.repositoryState
+    if (
+      cherryPickState.step !== null &&
+      cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
+    ) {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    }
   }
 
   private renderPullRequestInfo() {
