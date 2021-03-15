@@ -1,9 +1,8 @@
 import { remote } from 'electron'
 import {
-  ApplicationTheme,
-  supportsSystemThemeChanges,
-  getCurrentlyAppliedTheme,
   ApplicableTheme,
+  getCurrentlyAppliedTheme,
+  supportsSystemThemeChanges,
 } from './application-theme'
 import { IDisposable, Disposable, Emitter } from 'event-kit'
 
@@ -28,9 +27,6 @@ class ThemeChangeMonitor implements IDisposable {
 
   private onThemeNotificationUpdated = (event: string, userInfo: any) => {
     const theme = getCurrentlyAppliedTheme()
-      ? ApplicationTheme.Dark
-      : ApplicationTheme.Light
-
     this.emitThemeChanged(theme)
   }
 
