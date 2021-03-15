@@ -153,10 +153,17 @@ export class RepositoryView extends React.Component<
         </span>
 
         <div className="with-indicator">
-          <span>History</span>
+          <span>History {this.renderNewCallToActionBubble()}</span>
         </div>
       </TabBar>
     )
+  }
+
+  private renderNewCallToActionBubble(): JSX.Element | null {
+    if (this.props.hasShownCherryPickIntro) {
+      return null
+    }
+    return <span className="call-to-action-bubble">New</span>
   }
 
   private renderChangesSidebar(): JSX.Element {
