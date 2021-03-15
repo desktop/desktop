@@ -78,6 +78,10 @@ import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import {
+  ApplicationTheme,
+  supportsSystemThemeChanges,
+} from './lib/application-theme'
 
 if (__DEV__) {
   installDevGlobals()
@@ -176,9 +180,10 @@ const sendErrorWithContext = (
         extra.windowState = currentState.windowState
         extra.accounts = `${currentState.accounts.length}`
 
-        if (__DARWIN__) {
-          extra.automaticallySwitchTheme = `${currentState.automaticallySwitchTheme}`
-        }
+        extra.automaticallySwitchTheme = `${
+          currentState.selectedTheme === ApplicationTheme.System &&
+          supportsSystemThemeChanges()
+        }`
       }
     } catch (err) {
       /* ignore */

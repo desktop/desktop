@@ -1386,7 +1386,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
-            automaticallySwitchTheme={this.state.automaticallySwitchTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
           />
         )
@@ -2678,7 +2677,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentTheme = this.state.showWelcomeFlow
       ? ApplicationTheme.Light
-      : this.state.selectedTheme
+      : this.state.currentTheme
 
     return (
       <div id="desktop-app-chrome" className={className}>
