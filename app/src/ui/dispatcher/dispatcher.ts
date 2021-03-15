@@ -2846,7 +2846,7 @@ export class Dispatcher {
     this.appStore._setDragElement(dragElement)
   }
 
-  /** Method to set the drag element */
+  /** Method to clear the drag element */
   public clearDragElement(): void {
     this.appStore._setDragElement(null)
   }

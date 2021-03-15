@@ -2191,6 +2191,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <div id="dragElement">{this.currentDragElement()}</div>
   }
 
+  /**
+   * Render the current drag element based on it's type. Used in conjunction
+   * with the `Draggable` component.
+   */
   private currentDragElement(): JSX.Element | null {
     const { currentDragElement, emoji } = this.state
     if (currentDragElement === null) {

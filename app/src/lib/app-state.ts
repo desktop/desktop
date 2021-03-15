@@ -111,7 +111,13 @@ export interface IAppState {
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
+
+  /**
+   * The shape of the drag element rendered in the `app.renderDragElement`. It
+   * is used in conjunction with the `Draggable` component.
+   */
   readonly currentDragElement: DragElement | null
+
   /**
    * A list of currently open menus with their selected items
    * in the application menu.
