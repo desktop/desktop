@@ -86,7 +86,7 @@ export class CommitListItem extends React.PureComponent<
         onDragEnd={this.onDragEnd}
         onRenderDragElement={this.onRenderCherryPickCommitDragElement}
         onRemoveDragElement={this.onRemoveDragElement}
-        dropZoneSelectors={['.branches-list-item']}
+        dropTargetSelectors={['.branches-list-item']}
       >
         <div className="commit" onContextMenu={this.onContextMenu}>
           <div className="info">

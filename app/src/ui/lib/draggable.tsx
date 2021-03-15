@@ -6,16 +6,15 @@ interface IDraggableProps {
   readonly onRenderDragElement: () => void
   readonly onRemoveDragElement: () => void
   readonly isEnabled: boolean
-  readonly dropZoneSelectors: ReadonlyArray<string>
+  readonly dropTargetSelectors: ReadonlyArray<string>
 }
 export class Draggable extends React.Component<IDraggableProps> {
   private dragStarted: boolean = false
   private dragElement: HTMLElement | null = null
   private verticalOffset: number = __DARWIN__ ? 32 : 15
-  private isOverDropTarget: boolean = false
+  private elemBelow: Element | null = null
 
   public componentDidMount() {
-    this.dragStarted = false
     this.dragElement = document.getElementById('dragElement')
   }
 
@@ -30,9 +29,8 @@ export class Draggable extends React.Component<IDraggableProps> {
   }
 
   private initializeDrag(): void {
-    // reset drag variables
     this.dragStarted = false
-    this.isOverDropTarget = false
+    this.elemBelow = null
   }
 
   private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -47,38 +45,42 @@ export class Draggable extends React.Component<IDraggableProps> {
       document.removeEventListener('mousemove', this.onMouseMove)
       document.onmouseup = null
       this.props.onRemoveDragElement()
-      this.props.onDragEnd(this.isOverDropTarget)
+
+      this.props.onDragEnd(this.isLastElemBelowDropTarget())
     }
   }
 
   private onMouseMove = (moveEvent: MouseEvent) => {
+    // start drag
     if (!this.dragStarted) {
       this.props.onRenderDragElement()
       this.props.onDragStart()
       this.dragStarted = true
     }
 
+    // move drag element where mouse is
     if (this.dragElement !== null) {
       this.dragElement.style.left = moveEvent.pageX + 0 + 'px'
       this.dragElement.style.top = moveEvent.pageY + this.verticalOffset + 'px'
     }
 
     // inspect element mouse is is hovering over
-    const elemBelow = document.elementFromPoint(
+    this.elemBelow = document.elementFromPoint(
       moveEvent.clientX,
       moveEvent.clientY
     )
+  }
 
-    // mouse left the screen
-    if (elemBelow === null) {
-      return
+  private isLastElemBelowDropTarget = (): boolean => {
+    if (this.elemBelow === null) {
+      return false
     }
 
-    this.isOverDropTarget =
-      this.props.dropZoneSelectors.find(dsz => {
-        const dzel = elemBelow.closest(dsz)
-        return dzel !== null
-      }) !== undefined
+    const foundDropTarget = this.props.dropTargetSelectors.find(dts => {
+      return this.elemBelow !== null && this.elemBelow.closest(dts) !== null
+    })
+
+    return foundDropTarget !== undefined
   }
 
   public render() {
