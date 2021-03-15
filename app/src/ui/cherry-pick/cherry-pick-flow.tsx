@@ -65,7 +65,9 @@ interface ICherryPickFlowProps {
 /** A component for initiating and performing a cherry pick. */
 export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   private onFlowEnded = () => {
-    this.props.onDismissed()
+    const { onDismissed, dispatcher, repository } = this.props
+    onDismissed()
+    dispatcher.endCherryPickFlow(repository)
   }
 
   private onCherryPick = (targetBranch: Branch) => {
@@ -161,6 +163,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             currentBranch={currentBranch}
             onCherryPick={this.onCherryPick}
             onDismissed={this.onFlowEnded}
+            commitCount={this.props.commits.length}
           />
         )
       }
@@ -197,7 +200,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             step={step}
             userHasResolvedConflicts={userHasResolvedConflicts}
             workingDirectory={workingDirectory}
-            onDismissed={this.onFlowEnded}
+            onDismissed={this.props.onDismissed}
             onContinueCherryPick={this.onContinueCherryPick}
             onAbortCherryPick={this.onAbortCherryPick}
             showCherryPickConflictsBanner={this.showCherryPickConflictsBanner}
