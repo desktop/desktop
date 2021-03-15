@@ -94,12 +94,9 @@ export class CommitListItem extends React.PureComponent<
         onDragEnd={this.onDragEnd}
         onRenderDragElement={this.onRenderCherryPickCommitDragElement}
         onRemoveDragElement={this.onRemoveDragElement}
+        dropZoneSelectors={['.branches-list-item']}
       >
-        <div
-          className="commit"
-          onContextMenu={this.onContextMenu}
-          onMouseDown={this.onMouseDown}
-        >
+        <div className="commit" onContextMenu={this.onContextMenu}>
           <div className="info">
             <RichText
               className="summary"
@@ -323,170 +320,20 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
-  private canDragCommit(event: React.MouseEvent<HTMLDivElement>): boolean {
-    // right clicks (context menu) or shift clicks (range selection)
-    const isSpecialClick =
-      event.button === 2 ||
-      (__DARWIN__ && event.button === 0 && event.ctrlKey) ||
-      event.shiftKey
-
-    const dragHandlerExists = this.props.onDragStart !== undefined
-    return !isSpecialClick && dragHandlerExists && this.canCherryPick()
-  }
-
   private onDragStart = () => {
-    // start the drag!
-  }
-  /**
-   * Method to handle invoking a commit being dragged.
-   */
-  private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!this.canDragCommit(event)) {
-      return
+    // Removes active status from commit selection
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
     }
 
-    const ghost = this.buildCommitDragGhost(event)
-    this.trackCommitDrag(ghost)
-  }
-
-  /**
-   * Builds a commit drag ghost by cloning the existing commit
-   */
-  private buildCommitDragGhost(
-    event: React.MouseEvent<HTMLDivElement>
-  ): HTMLDivElement {
-    const ghost = event.currentTarget.cloneNode(true) as HTMLDivElement
-    ghost.style.width = event.currentTarget.clientWidth + 'px'
-    ghost.id = 'commit-ghost'
-    return ghost
-  }
-
-  /**
-   * Setups the adding and removing of the mouse move event handler in order to
-   * make the ghost follow the mouse and be removed from the dom when drag is
-   * over.
-   *
-   * It also tracks whether the commit is dragged over the branch dropdown in
-   * order to open it and whether the commit is over the branch when mouse up
-   * occurs in order to clear cherry picking state on drag end if it is not over
-   * a branch.
-   *
-   * Note: This has document event handlers and dom queries not scoped to this
-   * component and currently depends on html elements (#desktop-app-contents,
-   * .branch-button, .branches-list-item, .name) not in this component making it
-   * susceptible to impact if those components were to change.
-   *
-   * Note: We attempted to use the more generic document.body as opposed to
-   * #desktop-app-contents, but something with electron/react makes it so
-   * anything appended outside the app is not accessible.
-   */
-  private trackCommitDrag(ghost: HTMLDivElement) {
-    const desktopAppContainer = document.getElementById('desktop-app-contents')
-    if (desktopAppContainer === null) {
-      log.warn('[onCommitMouseDown] - Could not locate desktop container!')
-      return
-    }
-
-    const { onDragStart, openBranchDropdown, selectedCommits } = this.props
-    let branchListItem: Element | null = null
-    let dragStarted = false
-    const copyMessageLabelElement = ghost.querySelector(
-      '.copy-message-label .branch-name'
-    )
-    const dragElement = document.getElementById('dragElement')
-
-    if (this.props.renderCherryPickCommitDragElement !== undefined) {
-      this.props.renderCherryPickCommitDragElement(this.props.commit)
-    }
-
-    // This is housed inside the trackCommitDrag method so we have its reference
-    // for removing the event listener. We could move it out but, then we would
-    // have move a lot of tracking out to the commit class and prefer to
-    // encapsulate all the non-react way of handling the drag event in one spot.
-    // If we make more things draggable, it may be prudent to refactor this into
-    // a draggable component.
-    function onMouseMove(moveEvent: MouseEvent) {
-      // Wait till user actually moves their mouse as opposed to clicking it.
-      if (!dragStarted && desktopAppContainer !== null) {
-        if (onDragStart !== undefined) {
-          onDragStart(selectedCommits)
-        }
-
-        desktopAppContainer.appendChild(ghost)
-        desktopAppContainer.classList.add('cherry-pick-mouse-over')
-        dragStarted = true
-
-        // Removes active status from commit selection
-        if (document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur()
-        }
-      }
-
-      // place ghost next to mouse
-      const verticalOffset = __DARWIN__ ? 32 : 15
-
-      if (dragElement) {
-        dragElement.style.position = 'absolute'
-        dragElement.style.left = moveEvent.pageX + 0 + 'px'
-        dragElement.style.top = moveEvent.pageY + verticalOffset + 'px'
-      }
-
-      // ghost.style.left = moveEvent.pageX + 0 + 'px'
-      // ghost.style.top = moveEvent.pageY + verticalOffset + 'px'
-
-      // inspect element mouse is is hovering over
-      const elemBelow = document.elementFromPoint(
-        moveEvent.clientX,
-        moveEvent.clientY
-      )
-
-      // mouse left the screen
-      if (elemBelow === null) {
-        return
-      }
-
-      const branchDropdown = elemBelow.closest('.branch-button')
-      branchListItem = elemBelow.closest('.branches-list-item')
-
-      // We must be over the branch drop down button.
-      if (branchDropdown !== null) {
-        if (openBranchDropdown) {
-          openBranchDropdown()
-        }
-      }
-
-      // We must be over a branch.
-      if (branchListItem !== null) {
-        ghost.classList.add('over-branch')
-        // Grabbing branch name for copy label on windows implementation
-        const branchNameElement = branchListItem.querySelector('.name')
-        if (branchNameElement !== null && copyMessageLabelElement) {
-          copyMessageLabelElement.innerHTML = branchNameElement.innerHTML
-        }
-      } else if (branchListItem == null) {
-        // We must have just left a branch.
-        ghost.classList.remove('over-branch')
-        if (copyMessageLabelElement) {
-          copyMessageLabelElement.innerHTML = 'branch'
-        }
-      }
-    }
-
-    document.addEventListener('mousemove', onMouseMove)
-
-    document.onmouseup = e => {
-      document.removeEventListener('mousemove', onMouseMove)
-      desktopAppContainer.classList.remove('cherry-pick-mouse-over')
-      document.onmouseup = null
-      ghost.remove()
-      const clearCherryPickingState = branchListItem === null
-      this.onDragEnd(clearCherryPickingState)
+    if (this.props.onDragStart !== undefined) {
+      this.props.onDragStart(this.props.selectedCommits)
     }
   }
 
-  private onDragEnd = (clearCherryPickingState: boolean): void => {
+  private onDragEnd = (isOverDragTarget: boolean): void => {
     if (this.props.onDragEnd !== undefined) {
-      this.props.onDragEnd(clearCherryPickingState)
+      this.props.onDragEnd(!isOverDragTarget)
     }
   }
 }
