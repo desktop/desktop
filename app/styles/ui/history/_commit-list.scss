@@ -1,5 +1,4 @@
 @import '../../mixins';
-
 /** A React component holding history's commit list */
 #commit-list {
   display: flex;
@@ -28,13 +27,10 @@
     }
   }
 
+  .draggable,
   .commit {
     width: 100%;
     height: 100%;
-
-    .count {
-      display: none;
-    }
   }
 
   .list-item.selected {
@@ -79,22 +75,18 @@
   }
 }
 
-#commit-ghost,
+#cherry-pick-commit-drag-element .commit,
 #commit-list .commit {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
   background-color: var(--background-color);
   border-bottom: var(--base-border);
 
-  .commit-box {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    // We need to give a bit more padding to the right to make place for the scrollbar
-    padding-right: calc(var(--spacing) + var(--spacing-half));
-    padding-left: var(--spacing);
-  }
+  // We need to give a bit more padding to the right to make place for the scrollbar
+  padding-right: calc(var(--spacing) + var(--spacing-half));
+  padding-left: var(--spacing);
 
   .info {
     display: flex;
@@ -168,75 +160,5 @@
 
   .copy-message-label {
     display: none;
-  }
-}
-
-#commit-ghost {
-  display: block;
-  position: absolute;
-  height: 50px;
-  z-index: 1000;
-  cursor: not-allowed;
-
-  padding: 0;
-
-  .commit-box {
-    box-shadow: 2px 1px 1px 0px var(--box-border-color);
-    border-top: 1px solid var(--box-border-color);
-    border-left: 1px solid var(--box-border-color);
-  }
-
-  .count {
-    background-image: linear-gradient(#d73a49, darken(#d73a49, 5%));
-    color: white;
-    width: 18px;
-    height: 18px;
-    font-weight: 500;
-    font-size: 11px;
-    position: absolute;
-    top: -22px;
-    left: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border-radius: 100%;
-  }
-
-  &.over-branch {
-    .copy-message-label {
-      display: block;
-    }
-  }
-
-  .copy-message-label {
-    position: absolute;
-    bottom: -35px;
-    left: 0px;
-    background-color: var(--background-color);
-    border: 1px solid var(--box-border-color);
-    color: var(--link-button-color);
-    padding: var(--spacing-third) var(--spacing-half);
-    .branch-name {
-      color: var(--text-color);
-      margin-left: var(--spacing-third);
-    }
-    div {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  &.multiple-selected::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: var(--background-color);
-    z-index: -1;
-    left: 7px;
-    top: 5px;
-    box-shadow: 1px 1px 1px 1px var(--box-border-color);
   }
 }

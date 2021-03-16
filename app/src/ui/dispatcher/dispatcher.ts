@@ -105,6 +105,7 @@ import {
 } from '../../models/cherry-pick'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
+import { DragElement } from '../../models/drag-element'
 
 /**
  * An error handler function.
@@ -2838,5 +2839,15 @@ export class Dispatcher {
   /** Method to reset cherry picking state. */
   public endCherryPickFlow(repository: Repository) {
     this.appStore._endCherryPickFlow(repository)
+  }
+
+  /** Method to set the drag element */
+  public setDragElement(dragElement: DragElement): void {
+    this.appStore._setDragElement(dragElement)
+  }
+
+  /** Method to clear the drag element */
+  public clearDragElement(): void {
+    this.appStore._setDragElement(null)
   }
 }

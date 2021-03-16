@@ -7,7 +7,6 @@ import {
   ICompareBranch,
   ComparisonMode,
   IDisplayHistory,
-  FoldoutType,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -27,6 +26,7 @@ import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { CherryPickStepKind } from '../../models/cherry-pick'
+import { DragElementType } from '../../models/drag-element'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -249,13 +249,30 @@ export class CompareSidebar extends React.Component<
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
-        openBranchDropdown={this.openBranchDropdown}
+        onRenderCherryPickCommitDragElement={
+          this.onRenderCherryPickCommitDragElement
+        }
+        onRemoveCherryPickCommitDragElement={
+          this.onRemoveCherryPickCommitDragElement
+        }
       />
     )
   }
 
-  private openBranchDropdown = () => {
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+  private onRenderCherryPickCommitDragElement = (
+    commit: Commit,
+    selectedCommits: ReadonlyArray<Commit>
+  ) => {
+    this.props.dispatcher.setDragElement({
+      type: DragElementType.CherryPickCommit,
+      commit,
+      selectedCommits,
+      gitHubRepository: this.props.repository.gitHubRepository,
+    })
+  }
+
+  private onRemoveCherryPickCommitDragElement = () => {
+    this.props.dispatcher.clearDragElement()
   }
 
   private onDismissCherryPickIntro = () => {

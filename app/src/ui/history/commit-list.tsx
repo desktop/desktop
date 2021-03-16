@@ -84,8 +84,14 @@ interface ICommitListProps {
   /** Whether a cherry pick is progress */
   readonly isCherryPickInProgress: boolean
 
-  /** Callback to open branch dropdown */
-  readonly openBranchDropdown: () => void
+  /** Callback to render cherry pick commit drag element */
+  readonly onRenderCherryPickCommitDragElement: (
+    commit: Commit,
+    selectedCommits: ReadonlyArray<Commit>
+  ) => void
+
+  /** Callback to remove cherry pick commit drag element */
+  readonly onRemoveCherryPickCommitDragElement: () => void
 }
 
 /** A component which displays the list of commits. */
@@ -149,8 +155,20 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDragStart={this.props.onDragCommitStart}
         onDragEnd={this.props.onDragCommitEnd}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
-        openBranchDropdown={this.props.openBranchDropdown}
+        onRenderCherryPickCommitDragElement={
+          this.onRenderCherryPickCommitDragElement
+        }
+        onRemoveCherryPickDragElement={
+          this.props.onRemoveCherryPickCommitDragElement
+        }
       />
+    )
+  }
+
+  private onRenderCherryPickCommitDragElement = (commit: Commit) => {
+    this.props.onRenderCherryPickCommitDragElement(
+      commit,
+      this.lookupCommits(this.props.selectedSHAs)
     )
   }
 

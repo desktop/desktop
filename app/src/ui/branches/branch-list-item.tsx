@@ -8,7 +8,6 @@ import { HighlightText } from '../lib/highlight-text'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { String } from 'aws-sdk/clients/apigateway'
-import classNames from 'classnames'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -38,23 +37,16 @@ interface IBranchListItemProps {
 
   /** Whether something is being dragged */
   readonly isSomethingBeingDragged?: boolean
-}
 
-interface IBranchListItemState {
-  readonly isDraggedOver: boolean
+  /** When a drag element enters a branch */
+  readonly onDragEnterBranch?: (branchName: String) => void
+
+  /** When a drag element leaves a branch */
+  readonly onDragLeaveBranch?: () => void
 }
 
 /** The branch component. */
-export class BranchListItem extends React.Component<
-  IBranchListItemProps,
-  IBranchListItemState
-> {
-  public constructor(props: IBranchListItemProps) {
-    super(props)
-
-    this.state = { isDraggedOver: false }
-  }
-
+export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
 
@@ -91,13 +83,17 @@ export class BranchListItem extends React.Component<
 
   private onMouseEnter = () => {
     if (this.props.isSomethingBeingDragged) {
-      this.setState({ isDraggedOver: true })
+      if (this.props.onDragEnterBranch !== undefined) {
+        this.props.onDragEnterBranch(this.props.name)
+      }
     }
   }
 
   private onMouseLeave = () => {
     if (this.props.isSomethingBeingDragged) {
-      this.setState({ isDraggedOver: false })
+      if (this.props.onDragLeaveBranch !== undefined) {
+        this.props.onDragLeaveBranch()
+      }
     }
   }
 
@@ -122,14 +118,10 @@ export class BranchListItem extends React.Component<
       ? lastCommitDate.toString()
       : ''
 
-    const className = classNames('branches-list-item', {
-      'dragged-over': this.state.isDraggedOver,
-    })
-
     return (
       <div
         onContextMenu={this.onContextMenu}
-        className={className}
+        className="branches-list-item"
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         onMouseUp={this.onMouseUp}

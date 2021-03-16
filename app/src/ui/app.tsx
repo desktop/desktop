@@ -131,6 +131,10 @@ import {
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
+import { DragElementType } from '../models/drag-element'
+import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
+import classNames from 'classnames'
+import { DragAndDropManager } from '../lib/drag-and-drop-manager'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -168,7 +172,6 @@ export const bannerTransitionTimeout = { enter: 500, exit: 400 }
  * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
-
 export class App extends React.Component<IAppProps, IAppState> {
   private loading = true
 
@@ -188,6 +191,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   private get isShowingModal() {
     return this.state.currentPopup !== null || this.state.errors.length > 0
   }
+
+  private dragAndDropManager: DragAndDropManager = new DragAndDropManager()
 
   /**
    * Returns a memoized instance of onPopupDismissed() bound to the
@@ -2184,6 +2189,40 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private renderDragElement() {
+    return <div id="dragElement">{this.renderCurrentDragElement()}</div>
+  }
+
+  /**
+   * Render the current drag element based on it's type. Used in conjunction
+   * with the `Draggable` component.
+   */
+  private renderCurrentDragElement(): JSX.Element | null {
+    const { currentDragElement, emoji } = this.state
+    if (currentDragElement === null) {
+      return null
+    }
+
+    const { gitHubRepository, commit, selectedCommits } = currentDragElement
+    switch (currentDragElement.type) {
+      case DragElementType.CherryPickCommit:
+        return (
+          <CherryPickCommit
+            gitHubRepository={gitHubRepository}
+            commit={commit}
+            selectedCommits={selectedCommits}
+            emoji={emoji}
+            dragAndDropManager={this.dragAndDropManager}
+          />
+        )
+      default:
+        return assertNever(
+          currentDragElement.type,
+          `Unknown drag element type: ${currentDragElement}`
+        )
+    }
+  }
+
   private renderZoomInfo() {
     return <ZoomInfo windowZoomFactor={this.state.windowZoomFactor} />
   }
@@ -2217,14 +2256,28 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup(popup)
   }
 
+  private getDesktopAppContentsClassNames = (): string => {
+    const { currentDragElement } = this.state
+    const isCherryPickCommitBeingDragged =
+      currentDragElement !== null &&
+      currentDragElement.type === DragElementType.CherryPickCommit
+    return classNames({
+      'cherry-pick-mouse-over': isCherryPickCommitBeingDragged,
+    })
+  }
+
   private renderApp() {
     return (
-      <div id="desktop-app-contents">
+      <div
+        id="desktop-app-contents"
+        className={this.getDesktopAppContentsClassNames()}
+      >
         {this.renderToolbar()}
         {this.renderBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
         {this.renderAppError()}
+        {this.renderDragElement()}
       </div>
     )
   }
@@ -2500,6 +2553,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+        onDragEnterBranch={this.onDragEnterBranch}
+        onDragLeaveBranch={this.onDragLeaveBranch}
       />
     )
   }
@@ -2856,6 +2911,28 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
     return selectedState.state.changesState.workingDirectory
+  }
+
+  /**
+   * Method to handle when something is dragged onto a branch item
+   *
+   * Note: We currently use this in conjunction with cherry picking and a cherry
+   * picking commit is the only type of drag element. Thus, below uses those
+   * assumptions to just update the currentDragElement.
+   */
+  private onDragEnterBranch = (branchName: string): void => {
+    this.dragAndDropManager.emitEnterDropTarget(branchName)
+  }
+
+  /**
+   * Method to handle when something is dragged out of a branch item
+   *
+   * Note: We currently use this in conjunction with cherry picking and a cherry
+   * picking commit is the only type of drag element. Thus, below uses those
+   * assumptions to just update the currentDragElement.
+   */
+  private onDragLeaveBranch = (): void => {
+    this.dragAndDropManager.emitLeaveDropTarget()
   }
 }
 

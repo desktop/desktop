@@ -39,6 +39,7 @@ import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { CherryPickFlowStep } from '../models/cherry-pick'
+import { DragElement } from '../models/drag-element'
 
 export enum SelectionType {
   Repository,
@@ -110,6 +111,12 @@ export interface IAppState {
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
+
+  /**
+   * The shape of the drag element rendered in the `app.renderDragElement`. It
+   * is used in conjunction with the `Draggable` component.
+   */
+  readonly currentDragElement: DragElement | null
 
   /**
    * A list of currently open menus with their selected items
