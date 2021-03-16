@@ -64,6 +64,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
   },
   {
+    name: 'RStudio',
+    bundleIdentifiers: ['org.rstudio.RStudio'],
+  },
+  {
     name: 'TextMate',
     bundleIdentifiers: ['com.macromates.TextMate'],
   },
