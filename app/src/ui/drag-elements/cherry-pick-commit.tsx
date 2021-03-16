@@ -1,6 +1,6 @@
 import classNames from 'classnames'
-import { Emitter } from 'event-kit'
 import * as React from 'react'
+import { DragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { Commit } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
@@ -11,11 +11,11 @@ interface ICherryPickCommitProps {
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly gitHubRepository: GitHubRepository | null
   readonly emoji: Map<string, string>
-  readonly branchNameEmitter?: Emitter
+  readonly dragAndDropManager: DragAndDropManager
 }
 
 interface ICherryPickCommitState {
-  branchName: string | null
+  readonly branchName: string | null
 }
 
 export class CherryPickCommit extends React.Component<
@@ -27,14 +27,23 @@ export class CherryPickCommit extends React.Component<
     this.state = {
       branchName: null,
     }
-    props.branchNameEmitter?.on('branch-name', (branchName: string | null) => {
-      this.setState({ branchName })
+
+    this.props.dragAndDropManager.onEnterDropTarget(targetDescription => {
+      this.setState({ branchName: targetDescription })
+    })
+
+    this.props.dragAndDropManager.onLeaveDropTarget(() => {
+      this.setState({ branchName: null })
     })
   }
 
+  /**
+   * The "copy to" label is a windows convention we are implementing to provide
+   * a more intuitive ux for windows users.
+   */
   private renderDragCopyLabel(count: number) {
     const { branchName } = this.state
-    if (branchName === null) {
+    if (branchName === null || __DARWIN__) {
       return
     }
 

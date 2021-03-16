@@ -1,4 +1,3 @@
-import { Emitter } from 'event-kit'
 import { Commit } from './commit'
 import { GitHubRepository } from './github-repository'
 
@@ -11,5 +10,4 @@ export type DragElement = {
   commit: Commit
   selectedCommits: ReadonlyArray<Commit>
   gitHubRepository: GitHubRepository | null
-  branchNameEmitter: Emitter
 }

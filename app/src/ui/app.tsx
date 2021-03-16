@@ -134,6 +134,7 @@ import { WorkingDirectoryStatus } from '../models/status'
 import { DragElementType } from '../models/drag-element'
 import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
 import classNames from 'classnames'
+import { DragAndDropManager } from '../lib/drag-and-drop-manager'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -190,6 +191,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   private get isShowingModal() {
     return this.state.currentPopup !== null || this.state.errors.length > 0
   }
+
+  private dragAndDropManager: DragAndDropManager = new DragAndDropManager()
 
   /**
    * Returns a memoized instance of onPopupDismissed() bound to the
@@ -2200,12 +2203,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const {
-      gitHubRepository,
-      commit,
-      selectedCommits,
-      branchNameEmitter,
-    } = currentDragElement
+    const { gitHubRepository, commit, selectedCommits } = currentDragElement
     switch (currentDragElement.type) {
       case DragElementType.CherryPickCommit:
         return (
@@ -2214,7 +2212,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
-            branchNameEmitter={branchNameEmitter}
+            dragAndDropManager={this.dragAndDropManager}
           />
         )
       default:
@@ -2923,10 +2921,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * assumptions to just update the currentDragElement.
    */
   private onDragEnterBranch = (branchName: string): void => {
-    const { currentDragElement } = this.state
-    if (currentDragElement !== null) {
-      currentDragElement.branchNameEmitter.emit('branch-name', branchName)
-    }
+    this.dragAndDropManager.emitEnterDropTarget(branchName)
   }
 
   /**
@@ -2937,10 +2932,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * assumptions to just update the currentDragElement.
    */
   private onDragLeaveBranch = (): void => {
-    const { currentDragElement } = this.state
-    if (currentDragElement !== null) {
-      currentDragElement.branchNameEmitter.emit('branch-name', null)
-    }
+    this.dragAndDropManager.emitLeaveDropTarget()
   }
 }
 
