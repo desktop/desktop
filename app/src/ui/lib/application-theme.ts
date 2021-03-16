@@ -53,6 +53,9 @@ export function getPersistedTheme(): ApplicationTheme {
 // The key under which the currently selected theme is persisted
 // in localStorage.
 const applicationThemeKey = 'theme'
+
+// The key under which the decision to automatically switch the theme is persisted
+// in localStorage.
 const automaticallySwitchApplicationThemeKey = 'autoSwitchTheme'
 
 /**
