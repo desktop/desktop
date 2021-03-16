@@ -3,7 +3,7 @@
     "2.7.0-beta3": [
       "[Improved] Add support for RStudio Editor on MacOS - #11690. Thanks @geophilusd!",
       "[Improved] Use system theme as default - #9959. Thanks @say25!",
-      "[Improved] Cherry picking drag of multiple commits UX improved - #11800"
+      "[Improved] Improve UX of cherry picking multiple commits with drag and drop - #11800"
     ],
     "2.7.0-beta2": [
       "[Fixed] Remote Git operations failed in some circumstances - #11696 #11701"
