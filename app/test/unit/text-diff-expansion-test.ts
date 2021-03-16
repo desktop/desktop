@@ -81,7 +81,7 @@ describe('text-diff-expansion', () => {
 
     const firstLine = lastHunk.lines[0]
     expect(firstLine.type).toBe(DiffLineType.Hunk)
-    expect(firstLine.text).toBe('')
+    expect(firstLine.text).toBe('@@ @@')
     expect(firstLine.newLineNumber).toBe(null)
     expect(firstLine.oldLineNumber).toBe(null)
   })

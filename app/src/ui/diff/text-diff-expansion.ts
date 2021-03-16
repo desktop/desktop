@@ -371,12 +371,19 @@ export function getTextDiffWithBottomDummyHunk(
     lastHunk.header.oldStartLine + lastHunk.header.oldLineCount
   const dummyNewStartLine =
     lastHunk.header.newStartLine + lastHunk.header.newLineCount
-  const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, null, false)
   const dummyHeader = new DiffHunkHeader(
     dummyOldStartLine,
     numberOfOldLines - dummyOldStartLine + 1,
     dummyNewStartLine,
     numberOfNewLines - dummyNewStartLine + 1
+  )
+  const dummyLine = new DiffLine(
+    '@@ @@',
+    DiffLineType.Hunk,
+    null,
+    null,
+    null,
+    false
   )
   const dummyHunk = new DiffHunk(
     dummyHeader,
