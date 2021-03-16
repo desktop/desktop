@@ -35,6 +35,7 @@ These editors are currently supported:
  - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [Notepad++](https://notepad-plus-plus.org/)
+ - [RStudio](https://rstudio.com/)
 
 These are defined in a list at the top of the file:
 
