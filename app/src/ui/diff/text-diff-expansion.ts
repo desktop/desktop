@@ -109,10 +109,10 @@ export function getHunkHeaderExpansionInfo(
     // The top hunk can only be expanded if there is any content above
     isExpandableUp =
       hunk.header.oldStartLine > 1 && hunk.header.newStartLine > 1
-  } else if (distanceToPrevious <= DiffExpansionDistance) {
-    isExpandableShort = true
   } else if (hunkIndex === hunks.length - 1 && hunk.lines.length === 1) {
     isExpandableDown = true
+  } else if (distanceToPrevious <= DiffExpansionDistance) {
+    isExpandableShort = true
   } else {
     isExpandableBoth = true
   }

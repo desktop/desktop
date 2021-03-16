@@ -2,6 +2,7 @@ import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
+import ReactDOM from 'react-dom'
 
 interface IOcticonProps {
   /**
@@ -75,4 +76,12 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
       </svg>
     )
   }
+}
+
+export function createOcticonElement(symbol: OcticonSymbol, id?: string) {
+  const wrapper = document.createElement('div')
+  wrapper.id = id ?? ''
+  const octicon = <Octicon symbol={symbol} />
+  ReactDOM.render(octicon, wrapper)
+  return wrapper
 }

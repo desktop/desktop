@@ -50,6 +50,7 @@ import {
   getHunkHeaderExpansionInfo,
   getTextDiffWithBottomDummyHunk,
 } from './text-diff-expansion'
+import { createOcticonElement } from '../octicons/octicon'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -1038,26 +1039,95 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const hunkExpandUpHandle = document.createElement('div')
     hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
+    hunkExpandUpHandle.title = 'Expand Up'
     hunkExpandUpHandle.addEventListener(
       'mousedown',
-      this.onHunkExpandHandleMouseDown.bind(this, hunks, hunk, 'up')
+      this.onHunkExpandHalfHandleMouseDown.bind(this, hunks, hunk, 'up')
     )
     marker.appendChild(hunkExpandUpHandle)
 
+    hunkExpandUpHandle.appendChild(createOcticonElement(OcticonSymbol.foldUp))
+
     const hunkExpandDownHandle = document.createElement('div')
     hunkExpandDownHandle.classList.add('hunk-expand-down-handle')
+    hunkExpandDownHandle.title = 'Expand Down'
     hunkExpandDownHandle.addEventListener(
       'mousedown',
-      this.onHunkExpandHandleMouseDown.bind(this, hunks, hunk, 'down')
+      this.onHunkExpandHalfHandleMouseDown.bind(this, hunks, hunk, 'down')
     )
     marker.appendChild(hunkExpandDownHandle)
+
+    hunkExpandDownHandle.appendChild(
+      createOcticonElement(OcticonSymbol.foldDown)
+    )
+
+    const hunkExpandWholeHandle = document.createElement('div')
+    hunkExpandWholeHandle.classList.add('hunk-expand-whole-handle')
+    hunkExpandWholeHandle.title = 'Expand whole'
+    hunkExpandWholeHandle.addEventListener(
+      'mousedown',
+      this.onHunkExpandWholeHandleMouseDown.bind(this, hunks, hunk)
+    )
+    marker.appendChild(hunkExpandWholeHandle)
+
+    hunkExpandWholeHandle.appendChild(
+      createOcticonElement(OcticonSymbol.foldDown, 'hunk-expand-down-icon')
+    )
+
+    hunkExpandWholeHandle.appendChild(
+      createOcticonElement(OcticonSymbol.foldUp, 'hunk-expand-up-icon')
+    )
+
+    hunkExpandWholeHandle.appendChild(
+      createOcticonElement(OcticonSymbol.fold, 'hunk-expand-short-icon')
+    )
 
     this.updateGutterMarker(marker, hunks, hunk, diffLine)
 
     return marker
   }
 
-  private onHunkExpandHandleMouseDown = (
+  private onHunkExpandWholeHandleMouseDown = (
+    hunks: ReadonlyArray<DiffHunk>,
+    hunk: DiffHunk,
+    ev: MouseEvent
+  ) => {
+    // If the event is prevented that means the hunk handle was
+    // clicked first and prevented the default action so we'll bail.
+    if (ev.defaultPrevented || this.codeMirror === null) {
+      return
+    }
+
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
+    if (ev.button !== 0) {
+      return
+    }
+
+    ev.preventDefault()
+
+    // This code is invoked when the user clicks a hunk line gutter that is
+    // not splitted in half, meaning it can only be expanded either up or down
+    // (or the distance between hunks is too short it doesn't matter). It
+    // won't be invoked when the user can choose to expand it up or down.
+    //
+    // With that in mind, in those situations, we'll ALWAYS expand the hunk
+    // up except when it's the last "dummy" hunk we placed to allow expanding
+    // the diff from the bottom. In that case, we'll expand the second-to-last
+    // hunk down.
+    if (
+      hunk.lines.length === 1 &&
+      hunks.length > 1 &&
+      hunk === hunks[hunks.length - 1]
+    ) {
+      const previousHunk = hunks[hunks.length - 2]
+      this.startExpansion(previousHunk, 'down')
+    } else {
+      this.startExpansion(hunk, 'up')
+    }
+  }
+
+  private onHunkExpandHalfHandleMouseDown = (
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     kind: ExpansionKind,
@@ -1108,6 +1178,19 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       }
     }
 
+    const hunkExpandWholeHandle = marker.getElementsByClassName(
+      'hunk-expand-whole-handle'
+    )[0]
+    if (classNameInfo['expandable-short'] === true) {
+      hunkExpandWholeHandle.setAttribute('title', 'Expand All')
+    } else if (classNameInfo['expandable-both'] !== true) {
+      if (classNameInfo['expandable-down']) {
+        hunkExpandWholeHandle.setAttribute('title', 'Expand Down')
+      } else {
+        hunkExpandWholeHandle.setAttribute('title', 'Expand Up')
+      }
+    }
+
     const isIncludeableLine =
       !this.props.readOnly && diffLine.isIncludeableLine()
 
@@ -1115,9 +1198,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       marker.setAttribute('role', 'button')
     } else {
       marker.removeAttribute('role')
-    }
-
-    if (isIncludeableLine) {
     }
 
     const oldLineNumber = marker.childNodes[0]
@@ -1187,31 +1267,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const { file, readOnly } = this.props
     const diff = this.state.diff
-
-    if (diffLine.type === DiffLineType.Hunk) {
-      ev.preventDefault()
-
-      // This code is invoked when the user clicks a hunk line gutter that is
-      // not splitted in half, meaning it can only be expanded either up or down
-      // (or the distance between hunks is too short it doesn't matter). It
-      // won't be invoked when the user can choose to expand it up or down.
-      //
-      // With that in mind, in those situations, we'll ALWAYS expand the hunk
-      // up except when it's the last "dummy" hunk we placed to allow expanding
-      // the diff from the bottom. In that case, we'll expand the second-to-last
-      // hunk down.
-      if (
-        hunk.lines.length === 1 &&
-        hunks.length > 1 &&
-        hunk === hunks[hunks.length - 1]
-      ) {
-        const previousHunk = hunks[hunks.length - 2]
-        this.startExpansion(previousHunk, 'down')
-      } else {
-        this.startExpansion(hunk, 'up')
-      }
-      return
-    }
 
     if (!canSelect(file) || readOnly) {
       return
