@@ -28,6 +28,7 @@ interface IDraggableProps {
   /** An array of css selectors for elements that are valid drop targets. */
   readonly dropTargetSelectors: ReadonlyArray<string>
 }
+
 export class Draggable extends React.Component<IDraggableProps> {
   private dragStarted: boolean = false
   private dragElement: HTMLElement | null = null

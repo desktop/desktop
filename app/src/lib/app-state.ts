@@ -39,7 +39,7 @@ import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { CherryPickFlowStep } from '../models/cherry-pick'
-import { DragElement } from '../models/dragElement'
+import { DragElement } from '../models/drag-element'
 
 export enum SelectionType {
   Repository,

@@ -26,7 +26,7 @@ import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { CherryPickStepKind } from '../../models/cherry-pick'
-import { DragElementType } from '../../models/dragElement'
+import { DragElementType } from '../../models/drag-element'
 
 interface ICompareSidebarProps {
   readonly repository: Repository

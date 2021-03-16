@@ -105,7 +105,7 @@ import {
 } from '../../models/cherry-pick'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
-import { DragElement } from '../../models/dragElement'
+import { DragElement } from '../../models/drag-element'
 
 /**
  * An error handler function.

@@ -131,7 +131,7 @@ import {
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
-import { DragElementType } from '../models/dragElement'
+import { DragElementType } from '../models/drag-element'
 import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
 import classNames from 'classnames'
 
@@ -2188,14 +2188,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderDragElement() {
-    return <div id="dragElement">{this.currentDragElement()}</div>
+    return <div id="dragElement">{this.renderCurrentDragElement()}</div>
   }
 
   /**
    * Render the current drag element based on it's type. Used in conjunction
    * with the `Draggable` component.
    */
-  private currentDragElement(): JSX.Element | null {
+  private renderCurrentDragElement(): JSX.Element | null {
     const { currentDragElement, emoji } = this.state
     if (currentDragElement === null) {
       return null

@@ -284,7 +284,7 @@ import {
   getCherryPickSnapshot,
   isCherryPickHeadFound,
 } from '../git/cherry-pick'
-import { DragElement } from '../../models/dragElement'
+import { DragElement } from '../../models/drag-element'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
