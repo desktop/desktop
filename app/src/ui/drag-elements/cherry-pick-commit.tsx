@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import { Emitter } from 'event-kit'
 import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
@@ -10,15 +11,30 @@ interface ICherryPickCommitProps {
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly gitHubRepository: GitHubRepository | null
   readonly emoji: Map<string, string>
-  readonly branchNameDraggedOver?: string
+  readonly branchNameEmitter?: Emitter
 }
+
+interface ICherryPickCommitState {
+  branchName: string | null
+}
+
 export class CherryPickCommit extends React.Component<
   ICherryPickCommitProps,
-  {}
+  ICherryPickCommitState
 > {
+  public constructor(props: ICherryPickCommitProps) {
+    super(props)
+    this.state = {
+      branchName: null,
+    }
+    props.branchNameEmitter?.on('branch-name', (branchName: string | null) => {
+      this.setState({ branchName })
+    })
+  }
+
   private renderDragCopyLabel(count: number) {
-    const { branchNameDraggedOver: name } = this.props
-    if (__DARWIN__ || name === undefined) {
+    const { branchName } = this.state
+    if (branchName === null) {
       return
     }
 
@@ -26,7 +42,7 @@ export class CherryPickCommit extends React.Component<
       <div className="copy-message-label">
         <div>
           <Octicon symbol={OcticonSymbol.plus} />
-          Copy to <span className="branch-name">{name}</span>
+          Copy to <span className="branch-name">{branchName}</span>
         </div>
       </div>
     )

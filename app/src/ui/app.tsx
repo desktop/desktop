@@ -171,7 +171,6 @@ export const bannerTransitionTimeout = { enter: 500, exit: 400 }
  * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
-
 export class App extends React.Component<IAppProps, IAppState> {
   private loading = true
 
@@ -2205,7 +2204,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       gitHubRepository,
       commit,
       selectedCommits,
-      branchName,
+      branchNameEmitter,
     } = currentDragElement
     switch (currentDragElement.type) {
       case DragElementType.CherryPickCommit:
@@ -2215,7 +2214,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
-            branchNameDraggedOver={branchName}
+            branchNameEmitter={branchNameEmitter}
           />
         )
       default:
@@ -2556,7 +2555,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
-        onDragOverBranch={this.onDragOverBranch}
+        onDragEnterBranch={this.onDragEnterBranch}
+        onDragLeaveBranch={this.onDragLeaveBranch}
       />
     )
   }
@@ -2916,17 +2916,30 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /**
-   * Method to handle when something is dragged over a branch item
+   * Method to handle when something is dragged onto a branch item
    *
    * Note: We currently use this in conjunction with cherry picking and a cherry
    * picking commit is the only type of drag element. Thus, below uses those
    * assumptions to just update the currentDragElement.
    */
-  private onDragOverBranch = (branchName: string): void => {
+  private onDragEnterBranch = (branchName: string): void => {
     const { currentDragElement } = this.state
     if (currentDragElement !== null) {
-      currentDragElement.branchName = branchName
-      this.props.dispatcher.setDragElement(currentDragElement)
+      currentDragElement.branchNameEmitter.emit('branch-name', branchName)
+    }
+  }
+
+  /**
+   * Method to handle when something is dragged out of a branch item
+   *
+   * Note: We currently use this in conjunction with cherry picking and a cherry
+   * picking commit is the only type of drag element. Thus, below uses those
+   * assumptions to just update the currentDragElement.
+   */
+  private onDragLeaveBranch = (): void => {
+    const { currentDragElement } = this.state
+    if (currentDragElement !== null) {
+      currentDragElement.branchNameEmitter.emit('branch-name', null)
     }
   }
 }

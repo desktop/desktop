@@ -48,8 +48,11 @@ interface IBranchesContainerProps {
   /** Whether a cherry pick is in progress */
   readonly isCherryPickInProgress?: boolean
 
-  /** When a drag element has been dragged over a branch */
-  readonly onDragOverBranch?: (branchName: string) => void
+  /** When a drag element enters a branch */
+  readonly onDragEnterBranch: (branchName: string) => void
+
+  //** When a drag element leave a branch */
+  readonly onDragLeaveBranch: () => void
 }
 
 interface IBranchesContainerState {
@@ -163,7 +166,8 @@ export class BranchesContainer extends React.Component<
       this.onDeleteBranch,
       this.onDropOntoBranch,
       this.props.onDropOntoCurrentBranch,
-      this.props.onDragOverBranch,
+      this.props.onDragEnterBranch,
+      this.props.onDragLeaveBranch,
       this.props.isCherryPickInProgress
     )
   }

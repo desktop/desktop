@@ -27,6 +27,7 @@ import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conf
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { CherryPickStepKind } from '../../models/cherry-pick'
 import { DragElementType } from '../../models/drag-element'
+import { Emitter } from 'event-kit'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -268,6 +269,7 @@ export class CompareSidebar extends React.Component<
       commit,
       selectedCommits,
       gitHubRepository: this.props.repository.gitHubRepository,
+      branchNameEmitter: new Emitter(),
     })
   }
 
