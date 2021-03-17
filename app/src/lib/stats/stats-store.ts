@@ -253,20 +253,6 @@ interface IOnboardingStats {
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
-/**
- * Returns the account id of the current user's GitHub.com account or null if the user
- * is not currently signed in to GitHub.com.
- *
- * @param accounts The active accounts stored in Desktop
- */
-function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
-  const gitHubAccount = accounts.find(
-    a => a.endpoint === getDotComAPIEndpoint()
-  )
-
-  return gitHubAccount !== undefined ? gitHubAccount.id : null
-}
-
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -414,10 +400,7 @@ export class StatsStore implements IStatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts, repositories)
-
-    const user_id = findDotComAccountId(accounts)
-    const payload = user_id === null ? stats : { ...stats, user_id }
+    const payload = await this.getDailyStats(accounts, repositories)
 
     try {
       const response = await this.post(payload)
