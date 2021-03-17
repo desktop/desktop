@@ -3,6 +3,7 @@ import {
   isMacOSMojaveOrLater,
   isWindows10And1809Preview17666OrLater,
 } from '../../lib/get-os'
+import { getBoolean } from '../../lib/local-storage'
 
 /**
  * A set of the user-selectable appearances (aka themes)
@@ -37,7 +38,7 @@ export function getThemeName(
  * Load the currently selected theme
  */
 export function getPersistedTheme(): ApplicationTheme {
-  const currentTheme = remote.nativeTheme.themeSource
+  const currentTheme = getPersistedThemeName()
 
   switch (currentTheme) {
     case 'light':
@@ -49,11 +50,62 @@ export function getPersistedTheme(): ApplicationTheme {
   }
 }
 
+// The key under which the currently selected theme is persisted
+// in localStorage.
+const applicationThemeKey = 'theme'
+
+// The key under which the decision to automatically switch the theme is persisted
+// in localStorage.
+const automaticallySwitchApplicationThemeKey = 'autoSwitchTheme'
+
+/**
+ * Function to preserve and convert legacy theme settings
+ * should be removable after most users have upgraded to 2.7.0+
+ */
+function checkLegacyThemeSetting(): string | null {
+  const automaticallySwitchApplicationTheme = getBoolean(
+    automaticallySwitchApplicationThemeKey,
+    false
+  )
+
+  localStorage.removeItem(automaticallySwitchApplicationThemeKey)
+
+  if (automaticallySwitchApplicationTheme) {
+    setPersistedTheme(ApplicationTheme.System)
+    localStorage.removeItem(applicationThemeKey)
+    return 'system'
+  }
+
+  const legacyValue = localStorage.getItem(applicationThemeKey)
+
+  if (legacyValue === null) {
+    return null
+  }
+
+  const shouldUseDark = legacyValue === 'dark'
+
+  if (shouldUseDark) {
+    setPersistedTheme(ApplicationTheme.Dark)
+  } else {
+    setPersistedTheme(ApplicationTheme.Light)
+  }
+
+  localStorage.removeItem(applicationThemeKey)
+
+  return shouldUseDark ? 'dark' : 'light'
+}
+
 /**
  * Load the name of the currently selected theme
  */
 export function getPersistedThemeName(): string {
-  return remote.nativeTheme.themeSource
+  const setting = checkLegacyThemeSetting()
+
+  if (setting === null) {
+    return remote.nativeTheme.themeSource
+  }
+
+  return setting
 }
 
 /**
@@ -80,7 +132,7 @@ export function supportsSystemThemeChanges(): boolean {
     return isMacOSMojaveOrLater()
   } else if (__WIN32__) {
     // Its technically possible this would still work on prior versions of Windows 10 but 1809
-    // was released October 2nd, 2018 that the feature can just be "attained" by upgrading
+    // was released October 2nd, 2018 and the feature can just be "attained" by upgrading
     // See https://github.com/desktop/desktop/issues/9015 for more
     return isWindows10And1809Preview17666OrLater()
   }
