@@ -185,12 +185,7 @@ import {
   parse as parseShell,
   Shell,
 } from '../shells'
-import {
-  ILaunchStats,
-  StatsStore,
-  markUsageStatsNoteSeen,
-  hasSeenUsageStatsNote,
-} from '../stats'
+import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import {
   getWindowState,
@@ -4574,10 +4569,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public markUsageStatsNoteSeen() {
-    markUsageStatsNoteSeen()
-  }
-
   public _setConfirmRepositoryRemovalSetting(
     confirmRepoRemoval: boolean
   ): Promise<void> {
@@ -4700,12 +4691,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _reportStats() {
-    // ensure the user has seen and acknowledged the current usage stats setting
-    if (!this.showWelcomeFlow && !hasSeenUsageStatsNote()) {
-      this._showPopup({ type: PopupType.UsageReportingChanges })
-      return Promise.resolve()
-    }
-
     return this.statsStore.reportStats(this.accounts, this.repositories)
   }
 

@@ -21,7 +21,7 @@ import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
-import { ILaunchStats, SamplesURL } from '../lib/stats'
+import { ILaunchStats } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
@@ -95,7 +95,6 @@ import { AbortMergeWarning } from './abort-merge'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
-import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
@@ -1760,15 +1759,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
-      case PopupType.UsageReportingChanges:
-        return (
-          <UsageStatsChange
-            key="usage-stats-change"
-            onOpenUsageDataUrl={this.openUsageDataUrl}
-            onSetStatsOptOut={this.onSetStatsOptOut}
-            onDismissed={onPopupDismissedFn}
-          />
-        )
       case PopupType.CommitConflictsWarning:
         return (
           <CommitConflictsWarning
@@ -2103,16 +2093,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onRebaseFlowEnded = (repository: Repository) => {
     this.props.dispatcher.endRebaseFlow(repository)
-  }
-
-  private onSetStatsOptOut = (optOut: boolean) => {
-    this.props.appStore.setStatsOptOut(optOut, true)
-    this.props.appStore.markUsageStatsNoteSeen()
-    this.props.appStore._reportStats()
-  }
-
-  private openUsageDataUrl = () => {
-    this.props.dispatcher.openInBrowser(SamplesURL)
   }
 
   private onUpdateExistingUpstreamRemote = (repository: Repository) => {
