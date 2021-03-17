@@ -135,7 +135,7 @@ export async function setConfigValue(
     HOME: string
   }
 ): Promise<void> {
-  setConfigValueInPath(name, value, repository.path, env)
+  await setConfigValueInPath(name, value, repository.path, env)
 }
 
 /** Set the global config value by name. */
@@ -146,7 +146,7 @@ export async function setGlobalConfigValue(
     HOME: string
   }
 ): Promise<void> {
-  setConfigValueInPath(name, value, null, env)
+  await setConfigValueInPath(name, value, null, env)
 }
 
 /**
@@ -186,7 +186,7 @@ export async function removeConfigValue(
     HOME: string
   }
 ): Promise<void> {
-  removeConfigValueInPath(name, repository.path, env)
+  await removeConfigValueInPath(name, repository.path, env)
 }
 
 /** Remove the global config value by name. */
@@ -196,7 +196,7 @@ export async function removeGlobalConfigValue(
     HOME: string
   }
 ): Promise<void> {
-  removeConfigValueInPath(name, null, env)
+  await removeConfigValueInPath(name, null, env)
 }
 
 /**
