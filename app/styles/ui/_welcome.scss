@@ -238,6 +238,16 @@
   }
 }
 
+.welcome-start-disclaimer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 var(--spacing-quad) var(--spacing-quad) var(--spacing-quad);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary-color);
+}
+
 .welcome-content {
   justify-content: center;
   max-width: 500px;
