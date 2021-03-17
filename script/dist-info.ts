@@ -38,8 +38,16 @@ export function getOSXZipName() {
   return `${productName}.zip`
 }
 
+export function getOSXDmgName() {
+  return `${productName}.dmg`
+}
+
 export function getOSXZipPath() {
   return Path.join(getDistPath(), '..', getOSXZipName())
+}
+
+export function getOSXDmgPath() {
+  return Path.join(getDistPath(), '..', getOSXDmgName())
 }
 
 export function getWindowsInstallerName() {

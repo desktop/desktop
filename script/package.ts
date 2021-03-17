@@ -14,8 +14,10 @@ import {
   shouldMakeDelta,
   getUpdatesURL,
   getIconFileName,
+  getOSXDmgPath,
 } from './dist-info'
 import { isAppveyor, isGitHubActions } from './build-platforms'
+import appdmg from 'appdmg'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -33,13 +35,54 @@ if (process.platform === 'darwin') {
 }
 
 function packageOSX() {
-  const dest = getOSXZipPath()
-  fs.removeSync(dest)
+  const zipDest = getOSXZipPath()
+  fs.removeSync(zipDest)
 
   console.log('Packaging for macOS…')
-  cp.execSync(
-    `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
-  )
+  // cp.execSync(
+  //   `ditto -ck --keepParent "${distPath}/${productName}.app" "${zipDest}"`
+  // )
+
+  const dmgDest = getOSXDmgPath()
+  fs.removeSync(dmgDest)
+
+  appdmg({
+    target: dmgDest,
+    specification: {
+      title: productName,
+      icon: path.join(
+        '..',
+        'app',
+        'static',
+        'logos',
+        `${getIconFileName()}.icns`
+      ),
+      background: path.join(
+        '..',
+        'app',
+        'static',
+        'darwin',
+        'dmg-background.png'
+      ),
+      format: 'UDZO',
+      contents: [
+        {
+          x: 190,
+          y: 220,
+          type: 'file',
+          path: `${distPath}/${productName}.app`,
+        },
+        {
+          x: 390,
+          y: 220,
+          type: 'link',
+          path: '/Applications',
+        },
+      ],
+      window: { size: { width: 576, height: 384 } },
+    },
+    basepath: __dirname,
+  })
 }
 
 function packageWindows() {
