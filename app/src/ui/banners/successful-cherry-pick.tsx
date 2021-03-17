@@ -26,7 +26,7 @@ export class SuccessfulCherryPick extends React.Component<
     return (
       <Banner
         id="successful-cherry-pick"
-        timeout={7500}
+        timeout={15000}
         onDismissed={onDismissed}
       >
         <div className="green-circle">
