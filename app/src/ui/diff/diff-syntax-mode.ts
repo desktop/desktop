@@ -37,6 +37,7 @@ const TokenNames: { [key: string]: string | null } = {
 
 interface IState {
   diffLineIndex: number
+  previousHunkOldEndLine: number | null
 }
 
 function skipLine(stream: CodeMirror.StringStream, state: IState) {
@@ -106,7 +107,7 @@ export class DiffSyntaxMode {
   }
 
   public startState(): IState {
-    return { diffLineIndex: 0 }
+    return { diffLineIndex: 0, previousHunkOldEndLine: null }
   }
 
   // Should never happen except for blank diffs but
@@ -130,7 +131,38 @@ export class DiffSyntaxMode {
 
       const token = index ? TokenNames[index] : null
 
-      return token ? `line-${token} line-background-${token}` : null
+      if (token === null) {
+        return null
+      }
+
+      let result = `line-${token} line-background-${token}`
+
+      // If it's a hunk header line, we want to make a few extra checks
+      // depending on the distance to the previous hunk.
+      if (index === '@') {
+        // First we grab the numbers in the hunk header
+        const matches = stream.match(/\@ -(\d+),(\d+) \+\d+,\d+ \@\@/)
+        if (matches !== null) {
+          const oldStartLine = parseInt(matches[1])
+          const oldLineCount = parseInt(matches[2])
+
+          // If there is a hunk above and the distance with this one is bigger
+          // than the expansion "step", return an additional class name that
+          // will be used to make that line taller to fit the expansion buttons.
+          if (
+            state.previousHunkOldEndLine !== null &&
+            oldStartLine - state.previousHunkOldEndLine > 20
+          ) {
+            result += ` line-${token}-expandable-both`
+          }
+
+          // Finally we update the state with the index of the last line of the
+          // current hunk.
+          state.previousHunkOldEndLine = oldStartLine + oldLineCount
+        }
+      }
+
+      return result
     }
 
     // This happens when the mode is running without tokens, in this

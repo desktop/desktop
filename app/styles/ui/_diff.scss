@@ -31,6 +31,16 @@
   pre.CodeMirror-line-like {
     padding: 2px 0 2px var(--spacing-half);
 
+    &.diff-hunk-expandable-both {
+      padding-top: 18px;
+      padding-bottom: 18px;
+    }
+
+    &.diff-hunk:not(.diff-hunk-expandable-both) {
+      padding-top: 5px;
+      padding-bottom: 5px;    
+    }
+
     svg.no-newline {
       height: 8px;
       fill: var(--error-color);
@@ -180,6 +190,13 @@
       background: var(--diff-hunk-gutter-background-color);
     }
 
+    .hunk-expand-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
      
     &:not(.expandable-up) {
       .hunk-expand-whole-handle #hunk-expand-up-icon {

@@ -78,9 +78,16 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
   }
 }
 
-export function createOcticonElement(symbol: OcticonSymbol, id?: string) {
+export function createOcticonElement(
+  symbol: OcticonSymbol,
+  className?: string,
+  id?: string
+) {
   const wrapper = document.createElement('div')
   wrapper.id = id ?? ''
+  if (className !== undefined) {
+    wrapper.classList.add(className)
+  }
   const octicon = <Octicon symbol={symbol} />
   ReactDOM.render(octicon, wrapper)
   return wrapper

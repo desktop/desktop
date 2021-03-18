@@ -1046,7 +1046,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     )
     marker.appendChild(hunkExpandUpHandle)
 
-    hunkExpandUpHandle.appendChild(createOcticonElement(OcticonSymbol.foldUp))
+    hunkExpandUpHandle.appendChild(
+      createOcticonElement(OcticonSymbol.foldUp, 'hunk-expand-icon')
+    )
 
     const hunkExpandDownHandle = document.createElement('div')
     hunkExpandDownHandle.classList.add('hunk-expand-down-handle')
@@ -1058,7 +1060,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     marker.appendChild(hunkExpandDownHandle)
 
     hunkExpandDownHandle.appendChild(
-      createOcticonElement(OcticonSymbol.foldDown)
+      createOcticonElement(OcticonSymbol.foldDown, 'hunk-expand-icon')
     )
 
     const hunkExpandWholeHandle = document.createElement('div')
@@ -1071,15 +1073,27 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     marker.appendChild(hunkExpandWholeHandle)
 
     hunkExpandWholeHandle.appendChild(
-      createOcticonElement(OcticonSymbol.foldDown, 'hunk-expand-down-icon')
+      createOcticonElement(
+        OcticonSymbol.foldDown,
+        'hunk-expand-icon',
+        'hunk-expand-down-icon'
+      )
     )
 
     hunkExpandWholeHandle.appendChild(
-      createOcticonElement(OcticonSymbol.foldUp, 'hunk-expand-up-icon')
+      createOcticonElement(
+        OcticonSymbol.foldUp,
+        'hunk-expand-icon',
+        'hunk-expand-up-icon'
+      )
     )
 
     hunkExpandWholeHandle.appendChild(
-      createOcticonElement(OcticonSymbol.fold, 'hunk-expand-short-icon')
+      createOcticonElement(
+        OcticonSymbol.fold,
+        'hunk-expand-icon',
+        'hunk-expand-short-icon'
+      )
     )
 
     this.updateGutterMarker(marker, hunks, hunk, diffLine)
