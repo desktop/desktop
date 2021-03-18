@@ -50,10 +50,6 @@ export function getPersistedTheme(): ApplicationTheme {
   }
 }
 
-// The key under which the currently selected theme is persisted
-// in localStorage.
-const applicationThemeKey = 'theme'
-
 // The key under which the decision to automatically switch the theme is persisted
 // in localStorage.
 const automaticallySwitchApplicationThemeKey = 'autoSwitchTheme'
@@ -62,7 +58,7 @@ const automaticallySwitchApplicationThemeKey = 'autoSwitchTheme'
  * Function to preserve and convert legacy theme settings
  * should be removable after most users have upgraded to 2.7.0+
  */
-function checkLegacyThemeSetting(): string | null {
+function migrateAutomaticallySwitchSetting(): string | null {
   const automaticallySwitchApplicationTheme = getBoolean(
     automaticallySwitchApplicationThemeKey,
     false
@@ -72,40 +68,33 @@ function checkLegacyThemeSetting(): string | null {
 
   if (automaticallySwitchApplicationTheme) {
     setPersistedTheme(ApplicationTheme.System)
-    localStorage.removeItem(applicationThemeKey)
     return 'system'
   }
 
-  const legacyValue = localStorage.getItem(applicationThemeKey)
-
-  if (legacyValue === null) {
-    return null
-  }
-
-  const shouldUseDark = legacyValue === 'dark'
-
-  if (shouldUseDark) {
-    setPersistedTheme(ApplicationTheme.Dark)
-  } else {
-    setPersistedTheme(ApplicationTheme.Light)
-  }
-
-  localStorage.removeItem(applicationThemeKey)
-
-  return shouldUseDark ? 'dark' : 'light'
+  return null
 }
+
+// The key under which the currently selected theme is persisted
+// in localStorage.
+const applicationThemeKey = 'theme'
 
 /**
  * Load the name of the currently selected theme
  */
 export function getPersistedThemeName(): string {
-  const setting = checkLegacyThemeSetting()
+  const setting = migrateAutomaticallySwitchSetting()
 
-  if (setting === null) {
+  if (setting !== null) {
+    return setting
+  }
+
+  const themeSetting = localStorage.getItem(applicationThemeKey)
+
+  if (themeSetting === null) {
     return remote.nativeTheme.themeSource
   }
 
-  return setting
+  return themeSetting
 }
 
 /**
@@ -117,11 +106,11 @@ export function getCurrentlyAppliedTheme(): ApplicableTheme {
 
 /**
  * Stores the given theme in the persistent store.
- *
- * @returns If currently set to ApplicationTheme.System
  */
 export function setPersistedTheme(theme: ApplicationTheme): void {
-  remote.nativeTheme.themeSource = getThemeName(theme)
+  const themeName = getThemeName(theme)
+  localStorage.setItem(applicationThemeKey, themeName)
+  remote.nativeTheme.themeSource = themeName
 }
 
 /**
