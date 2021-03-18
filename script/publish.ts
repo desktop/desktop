@@ -69,7 +69,10 @@ uploadPromise!
   })
 
 function uploadOSXAssets() {
-  const uploads = [upload(distInfo.getOSXZipName(), distInfo.getOSXZipPath())]
+  const uploads = [
+    upload(distInfo.getOSXZipName(), distInfo.getOSXZipPath()),
+    upload(distInfo.getOSXDmgName(), distInfo.getOSXDmgPath()),
+  ]
   return Promise.all(uploads)
 }
 
