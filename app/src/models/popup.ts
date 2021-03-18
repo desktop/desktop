@@ -68,6 +68,7 @@ export enum PopupType {
   ChooseForkSettings,
   ConfirmDiscardSelection,
   CherryPick,
+  MoveToApplicationsFolder,
 }
 
 export type Popup =
@@ -274,3 +275,4 @@ export type Popup =
       commits: ReadonlyArray<CommitOneLine>
       sourceBranch: Branch | null
     }
+  | { type: PopupType.MoveToApplicationsFolder }

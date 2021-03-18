@@ -134,6 +134,7 @@ import { DragElementType } from '../models/drag-element'
 import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
 import classNames from 'classnames'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
+import { MoveToApplicationsFolder } from './move-to-applications-folder'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -308,6 +309,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
     log.info(`execPath: '${process.execPath}'`)
+
+    if (__DEV__ === false && remote.app.isInApplicationsFolder?.() === false) {
+      this.showPopup({ type: PopupType.MoveToApplicationsFolder })
+    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -2031,6 +2036,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             onShowCherryPickConflictsBanner={
               this.onShowCherryPickConflictsBanner
             }
+          />
+        )
+      }
+      case PopupType.MoveToApplicationsFolder: {
+        return (
+          <MoveToApplicationsFolder
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
