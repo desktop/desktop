@@ -9,6 +9,8 @@ import { Disposable, Emitter } from 'event-kit'
  * drag event.
  */
 export class DragAndDropManager {
+  public isDragInProgress: boolean = false
+
   protected readonly emitter = new Emitter()
 
   public emitEnterDropTarget(targetDescription: string) {
@@ -28,4 +30,14 @@ export class DragAndDropManager {
   public onLeaveDropTarget(fn: () => void): Disposable {
     return this.emitter.on('leave-drop-target', fn)
   }
+
+  public dragStarted(): void {
+    this.isDragInProgress = true
+  }
+
+  public dragEnded() {
+    this.isDragInProgress = false
+  }
 }
+
+export const dragAndDropManager = new DragAndDropManager()
