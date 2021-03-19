@@ -29,3 +29,5 @@ export class DragAndDropManager {
     return this.emitter.on('leave-drop-target', fn)
   }
 }
+
+export const dragAndDropManager = new DragAndDropManager()
