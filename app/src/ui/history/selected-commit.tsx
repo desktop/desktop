@@ -276,7 +276,7 @@ export class SelectedCommit extends React.Component<
       return null
     }
 
-    return <DragOverlay dropZoneDescription="branch-button" />
+    return <DragOverlay dragZoneDescription="branch-button" />
   }
 
   private renderMultipleCommitsSelected(): JSX.Element {

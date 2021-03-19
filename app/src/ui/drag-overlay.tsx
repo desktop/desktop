@@ -2,8 +2,10 @@ import * as React from 'react'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { PopoverCaretPosition } from './lib/popover'
 
+// time till we prompt the user about where to drag in seconds
+const dragPromptWaitTime = 2500
 interface IDragOverlayProps {
-  readonly dropZoneDescription: string
+  readonly dragZoneDescription: string
 }
 
 interface IDragOverlayState {
@@ -31,8 +33,8 @@ export class DragOverlay extends React.Component<
   }
 
   /** If drop zone is entered, hide drag prompts */
-  private dropZoneEntered = (dropZoneDescription: string) => {
-    if (this.props.dropZoneDescription === dropZoneDescription) {
+  private dragZoneEntered = (dropZoneDescription: string) => {
+    if (this.props.dragZoneDescription === dropZoneDescription) {
       this.clearDragPromptTimeOut()
       this.setState({ showDragPrompt: false })
     }
@@ -42,8 +44,8 @@ export class DragOverlay extends React.Component<
     // sets timer to wait before prompting the user on where it drag
     this.timeoutId = window.setTimeout(() => {
       this.setState({ showDragPrompt: true })
-    }, 2500)
-    dragAndDropManager.onEnterDropZone(this.dropZoneEntered)
+    }, dragPromptWaitTime)
+    dragAndDropManager.onEnterDragZone(this.dragZoneEntered)
   }
 
   public componentWillUnmount = () => {
@@ -56,7 +58,7 @@ export class DragOverlay extends React.Component<
     }
 
     // This acts more as a tool tip as we don't want to use the focus trap as in
-    // the Popover component. However, we wanted to use the styles from popover.
+    // the Popover component. However, we wanted to use its styles.
     const className = `popover-component popover-caret-${PopoverCaretPosition.TopLeft}`
     return (
       <div className={className}>

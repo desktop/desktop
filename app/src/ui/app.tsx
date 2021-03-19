@@ -2210,7 +2210,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
-            dragAndDropManager={dragAndDropManager}
           />
         )
       default:

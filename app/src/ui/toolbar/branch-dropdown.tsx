@@ -215,7 +215,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       cherryPickState.step !== null &&
       cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
     ) {
-      dragAndDropManager.emitEnterDropZone('branch-button')
+      dragAndDropManager.emitEnterDragZone('branch-button')
       this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
     }
   }

@@ -29,11 +29,11 @@ export class DragAndDropManager {
     return this.emitter.on('leave-drop-target', fn)
   }
 
-  public emitEnterDropZone(dropZoneDescription: string) {
+  public emitEnterDragZone(dropZoneDescription: string) {
     this.emitter.emit('enter-drop-zone', dropZoneDescription)
   }
 
-  public onEnterDropZone(
+  public onEnterDragZone(
     fn: (dropZoneDescription: string) => void
   ): Disposable {
     return this.emitter.on('enter-drop-zone', fn)
