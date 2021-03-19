@@ -15,6 +15,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
 import { CherryPickStepKind } from '../../models/cherry-pick'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -214,6 +215,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       cherryPickState.step !== null &&
       cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
     ) {
+      dragAndDropManager.emitEnterDropZone('branch-button')
       this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
     }
   }
