@@ -52,7 +52,7 @@ export class DragOverlay extends React.Component<
     this.clearDragPromptTimeOut()
   }
 
-  private renderDragPrompt() {
+  private renderDragPrompt(): JSX.Element | null {
     if (!this.state.showDragPrompt) {
       return null
     }
@@ -62,7 +62,7 @@ export class DragOverlay extends React.Component<
     const className = `popover-component popover-caret-${PopoverCaretPosition.TopLeft}`
     return (
       <div className={className}>
-        Drag the commits to a branch in the branch menu to cherry pick them.
+        Drag to a branch in the branch menu to copy your commits
       </div>
     )
   }

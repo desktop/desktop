@@ -8,9 +8,10 @@
   z-index: var(--drag-overlay-z-index);
 
   .popover-component {
-    width: fit-content;
+    width: 300px;
     left: 70px;
     position: relative;
-    top: 8px;
+    top: 10px;
+    padding: var(--spacing);
   }
 }
