@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import * as React from 'react'
-import { DragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { Commit } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
@@ -11,7 +11,6 @@ interface ICherryPickCommitProps {
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly gitHubRepository: GitHubRepository | null
   readonly emoji: Map<string, string>
-  readonly dragAndDropManager: DragAndDropManager
 }
 
 interface ICherryPickCommitState {
@@ -28,11 +27,11 @@ export class CherryPickCommit extends React.Component<
       branchName: null,
     }
 
-    this.props.dragAndDropManager.onEnterDropTarget(targetDescription => {
+    dragAndDropManager.onEnterDropTarget(targetDescription => {
       this.setState({ branchName: targetDescription })
     })
 
-    this.props.dragAndDropManager.onLeaveDropTarget(() => {
+    dragAndDropManager.onLeaveDropTarget(() => {
       this.setState({ branchName: null })
     })
   }
