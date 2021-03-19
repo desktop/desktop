@@ -2574,7 +2574,7 @@ export class Dispatcher {
       repository,
       result,
       targetBranch.name,
-      commits.length,
+      commits,
       sourceBranch
     )
   }
@@ -2609,8 +2609,7 @@ export class Dispatcher {
     repository: Repository,
     targetBranchName: string,
     countCherryPicked: number,
-    sourceBranch: Branch | null,
-    commitsCount: number
+    sourceBranch: Branch | null
   ): Promise<void> {
     this.closePopup()
 
@@ -2623,7 +2622,7 @@ export class Dispatcher {
           repository,
           targetBranchName,
           sourceBranch,
-          commitsCount
+          countCherryPicked
         )
       },
     }
@@ -2675,7 +2674,7 @@ export class Dispatcher {
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     conflictsState: CherryPickConflictState,
-    commitsCount: number,
+    commits: ReadonlyArray<CommitOneLine>,
     sourceBranch: Branch | null
   ): Promise<void> {
     await this.switchCherryPickingFlowToShowProgress(repository)
@@ -2694,7 +2693,7 @@ export class Dispatcher {
       repository,
       result,
       conflictsState.targetBranchName,
-      commitsCount,
+      commits,
       sourceBranch
     )
   }
@@ -2709,7 +2708,7 @@ export class Dispatcher {
     repository: Repository,
     cherryPickResult: CherryPickResult,
     targetBranchName: string,
-    commitsCount: number,
+    commits: ReadonlyArray<CommitOneLine>,
     sourceBranch: Branch | null
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
@@ -2718,12 +2717,12 @@ export class Dispatcher {
 
     switch (cherryPickResult) {
       case CherryPickResult.CompletedWithoutError:
+        await this.changeCommitSelection(repository, [commits[0].sha])
         await this.completeCherryPick(
           repository,
           targetBranchName,
-          commitsCount,
-          sourceBranch,
-          commitsCount
+          commits.length,
+          sourceBranch
         )
         break
       case CherryPickResult.ConflictsEncountered:
