@@ -2539,10 +2539,10 @@ export class Dispatcher {
     const beforeSha = targetBranch.tip.sha
     this.appStore._setCherryPickTargetBranchUndoSha(repository, beforeSha)
     log.info(
-      `[cherryPick] starting cherry pick for ${targetBranch.name} at ${beforeSha}`
+      `[cherryPick] starting cherry-pick for ${targetBranch.name} at ${beforeSha}`
     )
     log.info(
-      `[cherryPick] to restore the previous state if this completed cherry pick is unsatisfactory:`
+      `[cherryPick] to restore the previous state if this completed cherry-pick is unsatisfactory:`
     )
     log.info(`[cherryPick] - git checkout ${targetBranch.name}`)
     log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
@@ -2588,7 +2588,7 @@ export class Dispatcher {
     const { conflictState } = stateAfter.changesState
     if (conflictState === null || !isCherryPickConflictState(conflictState)) {
       log.warn(
-        '[cherryPick] - conflict state was null or not in a cherry pick conflict state - unable to continue'
+        '[cherryPick] - conflict state was null or not in a cherry-pick conflict state - unable to continue'
       )
       return
     }
@@ -2774,7 +2774,7 @@ export class Dispatcher {
       cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
     ) {
       log.warn(
-        '[cherryPick] Invalid Cherry Picking State: Could not determine selected commits.'
+        '[cherryPick] Invalid Cherry-picking State: Could not determine selected commits.'
       )
       return
     }
@@ -2782,7 +2782,7 @@ export class Dispatcher {
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
       throw new Error(
-        'Tip is not in a valid state, which is required to start the cherry pick flow.'
+        'Tip is not in a valid state, which is required to start the cherry-pick flow.'
       )
     }
     const sourceBranch = tip.branch

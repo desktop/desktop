@@ -30,7 +30,7 @@ export async function createRepository(
 
   await switchTo(repository, featureBranchName)
   const featureBranchCommit = {
-    commitMessage: 'Cherry Picked Feature!',
+    commitMessage: 'Cherry-picked Feature!',
     entries: [
       {
         path: 'THING.md',

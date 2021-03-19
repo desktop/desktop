@@ -79,7 +79,7 @@ class GitCherryPickParser {
 
     return {
       kind: 'cherryPick',
-      title: `Cherry picking commit ${this.count} of ${this.commits.length} commits`,
+      title: `Cherry-picking commit ${this.count} of ${this.commits.length} commits`,
       value: round(this.count / this.commits.length, 2),
       cherryPickCommitCount: this.count,
       totalCommitCount: this.commits.length,
@@ -150,7 +150,7 @@ export async function cherryPick(
       // revision range, so we need to signal to the caller that this cherry
       // pick is not possible to perform
       log.warn(
-        `Unable to cherry pick these branches
+        `Unable to cherry-pick these branches
         because one or both of the refs do not exist in the repository`
       )
       return CherryPickResult.UnableToStart
@@ -170,7 +170,7 @@ export async function cherryPick(
   const result = await git(
     ['cherry-pick', revisionRange, '--keep-redundant-commits'],
     repository.path,
-    'cherry pick',
+    'cherry-pick',
     baseOptions
   )
 
@@ -287,7 +287,7 @@ export async function getCherryPickSnapshot(
   return {
     progress: {
       kind: 'cherryPick',
-      title: `Cherry picking commit ${count} of ${commits.length} commits`,
+      title: `Cherry-picking commit ${count} of ${commits.length} commits`,
       value: round(count / commits.length, 2),
       cherryPickCommitCount: count,
       totalCommitCount: commits.length,
@@ -365,7 +365,7 @@ export async function continueCherryPick(
     const snapshot = await getCherryPickSnapshot(repository)
     if (snapshot === null) {
       log.warn(
-        `[continueCherryPick] unable to get cherry pick status, skipping other steps`
+        `[continueCherryPick] unable to get cherry-pick status, skipping other steps`
       )
       return CherryPickResult.UnableToStart
     }
@@ -382,7 +382,7 @@ export async function continueCherryPick(
 
   if (trackedFilesAfter.length === 0) {
     log.warn(
-      `[cherryPick] no tracked changes to commit, continuing cherry pick but skipping this commit`
+      `[cherryPick] no tracked changes to commit, continuing cherry-pick but skipping this commit`
     )
 
     // This commits the empty commit so that the cherry picked commit still
@@ -432,7 +432,7 @@ export async function isCherryPickHeadFound(
   } catch (err) {
     log.warn(
       `[cherryPick] a problem was encountered reading .git/CHERRY_PICK_HEAD,
-       so it is unsafe to continue cherry picking`,
+       so it is unsafe to continue cherry-picking`,
       err
     )
     return false
