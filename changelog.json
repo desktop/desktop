@@ -1,5 +1,13 @@
 {
   "releases": {
+    "2.7.0-beta4": [
+      "[Improved] Add support for RStudio for Windows - #11386",
+      "[Improved] Give user more time to undo in the cherry-pick success banner - #11822",
+      "[Improved] Improved cherry-picking drop target discoverability - #11827",
+      "[Improved] Use Git language to describe cherry-pick - #11835",
+      "[Fixed] After cherry-picking complete, show latest cherry-picked commit as selected in history - #11833",
+      "[Fixed] Preserve and convert legacy theme setting - #11814. Thanks @say25!"
+    ],
     "2.7.0-beta3": [
       "[Improved] Add support for RStudio Editor on MacOS - #11690. Thanks @geophilusd!",
       "[Improved] Use system theme as default - #9959. Thanks @say25!",
