@@ -22,7 +22,7 @@ export class CherryPickUndone extends React.Component<
         </div>
         <div className="banner-message">
           <span>
-            Cherry pick undone. Successfully removed the {countCherryPicked}
+            Cherry-pick undone. Successfully removed the {countCherryPicked}
             {' copied '}
             {pluralized} from <strong>{targetBranchName}</strong>.
           </span>

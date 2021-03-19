@@ -5792,7 +5792,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (commits.length === 0) {
       // This shouldn't happen... but in case throw error.
       throw new Error(
-        'Unable to initialize cherry pick progress. No commits provided.'
+        'Unable to initialize cherry-pick progress. No commits provided.'
       )
     }
 
@@ -5800,7 +5800,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return {
         progress: {
           kind: 'cherryPick',
-          title: `Cherry picking commit 1 of ${commits.length} commits`,
+          title: `Cherry-picking commit 1 of ${commits.length} commits`,
           value: 0,
           cherryPickCommitCount: 1,
           totalCommitCount: commits.length,
@@ -5820,7 +5820,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     sourceBranch: Branch | null
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
-      log.warn('[_cherryPick] - Unable to cherry pick. No commits provided.')
+      log.warn('[_cherryPick] - Unable to cherry-pick. No commits provided.')
       return CherryPickResult.UnableToStart
     }
     let result: CherryPickResult | null | undefined
@@ -6043,7 +6043,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (snapshot === null) {
       log.warn(
-        `[showCherryPickConflictsDialog] unable to get cherry pick status from git, unable to continue`
+        `[showCherryPickConflictsDialog] unable to get cherry-pick status from git, unable to continue`
       )
       return
     }
@@ -6091,7 +6091,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
       log.warn(
-        '[undoCherryPick] - Could not undo cherry pick.  User no longer on target branch.'
+        '[undoCherryPick] - Could not undo cherry-pick.  User no longer on target branch.'
       )
       return false
     }

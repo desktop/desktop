@@ -2015,7 +2015,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         ) {
           log.warn(
             `[App] Invalid state encountered:
-            cherry pick flow should not be active when step is null,
+            cherry-pick flow should not be active when step is null,
             the selected app state is not a repository state,
             or cannot obtain the working directory.`
           )
@@ -2820,7 +2820,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentBranch = tip.branch
     } else {
       throw new Error(
-        'Tip is not in a valid state, which is required to start the cherry pick flow'
+        'Tip is not in a valid state, which is required to start the cherry-pick flow'
       )
     }
 
@@ -2880,7 +2880,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           !isCherryPickConflictState(conflictState)
         ) {
           log.debug(
-            `[App.onShowCherryPickConflictsBanner] no cherry pick conflict state found, ignoring...`
+            `[App.onShowCherryPickConflictsBanner] no cherry-pick conflict state found, ignoring...`
           )
           return
         }

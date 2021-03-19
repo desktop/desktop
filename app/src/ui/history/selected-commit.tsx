@@ -346,7 +346,7 @@ function MultipleCommitsSelected() {
         <div>You can:</div>
         <ul>
           <li>Select a single commit to view a diff.</li>
-          <li>Drag the commits to the branch menu to cherry pick them.</li>
+          <li>Drag the commits to the branch menu to cherry-pick them.</li>
           <li>Right click on multiple commits to see options.</li>
         </ul>
       </div>

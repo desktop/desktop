@@ -52,7 +52,7 @@ export class ConfirmCherryPickAbortDialog extends React.Component<
     const pluralize = commitCount > 1 ? 'commits' : 'commit'
     const confirm = (
       <p>
-        {`Are you sure you want to abort cherry picking ${commitCount} ${pluralize}`}
+        {`Are you sure you want to abort cherry-picking ${commitCount} ${pluralize}`}
         {' onto '}
         <Ref>{targetBranchName}</Ref>?
       </p>
@@ -85,7 +85,7 @@ export class ConfirmCherryPickAbortDialog extends React.Component<
       <Dialog
         id="abort-merge-warning"
         title={
-          __DARWIN__ ? 'Confirm Abort Cherry Pick' : 'Confirm abort cherry pick'
+          __DARWIN__ ? 'Confirm Abort Cherry-pick' : 'Confirm abort cherry-pick'
         }
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
@@ -97,7 +97,7 @@ export class ConfirmCherryPickAbortDialog extends React.Component<
           <OkCancelButtonGroup
             destructive={true}
             okButtonText={
-              __DARWIN__ ? 'Abort Cherry Pick' : 'Abort cherry pick'
+              __DARWIN__ ? 'Abort Cherry-pick' : 'Abort cherry-pick'
             }
           />
         </DialogFooter>
