@@ -1,0 +1,15 @@
+#drag-overlay {
+  position: absolute;
+  top: 72px;
+  background: var(--overlay-background-color);
+  height: 100%;
+  width: 100%;
+  cursor: not-allowed;
+
+  .popover-component {
+    width: fit-content;
+    left: 70px;
+    position: relative;
+    top: 8px;
+  }
+}
