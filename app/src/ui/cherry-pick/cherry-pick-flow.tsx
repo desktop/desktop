@@ -87,7 +87,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
       repository,
       workingDirectory.files,
       step.conflictState,
-      commits.length,
+      commits,
       sourceBranch
     )
   }
