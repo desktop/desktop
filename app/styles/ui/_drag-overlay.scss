@@ -5,6 +5,7 @@
   height: 100%;
   width: 100%;
   cursor: not-allowed;
+  z-index: var(--drag-overlay-z-index);
 
   .popover-component {
     width: fit-content;

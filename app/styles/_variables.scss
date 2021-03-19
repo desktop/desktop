@@ -292,6 +292,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
   --foldout-z-index: calc(var(--popup-z-index) - 2);
   --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
+  --drag-overlay-z-index: calc(var(--popup-z-index) - 3);
   /**
    * This is 7 to make sure it appears on top code mirror
    * but behind popups, overlays, and foldouts
