@@ -31,11 +31,13 @@ export class MoveToApplicationsFolder extends React.Component<
       >
         <DialogContent>
           <p>
-            It seems you're not running GitHub Desktop from the Applications
-            folder of your machine. That could cause some problems, for example
-            not being able to sign in.
+            We've detected that you're not running GitHub Desktop from the
+            Applications folder of your machine. This could cause problems with
+            the app, including impacting your ability to sign in.
+            <br />
             <br />
             Do you want to move GitHub Desktop to the Applications folder now?
+            This will also restart the app.
           </p>
         </DialogContent>
         {this.renderFooter()}
@@ -47,8 +49,8 @@ export class MoveToApplicationsFolder extends React.Component<
     return (
       <DialogFooter>
         <OkCancelButtonGroup
-          okButtonText={'Move'}
-          okButtonTitle="This will move GitHub Desktop to the Applications folder in your machine."
+          okButtonText={'Move and Restart'}
+          okButtonTitle="This will move GitHub Desktop to the Applications folder in your machine and restart the app."
           cancelButtonText="Cancel"
         />
       </DialogFooter>
