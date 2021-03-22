@@ -4,6 +4,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { rectEquals } from '../lib/rect'
 import classNames from 'classnames'
+import FocusTrap from 'focus-trap-react'
+import { Options as FocusTrapOptions } from 'focus-trap'
 
 export type DropdownState = 'open' | 'closed'
 
@@ -62,6 +64,12 @@ export interface IToolbarDropdownProps {
   readonly dropdownContentRenderer: () => JSX.Element | null
 
   /**
+   * A function that's called whenever something is dragged over the
+   * dropdown.
+   */
+  readonly onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void
+
+  /**
    * An optional classname that will be appended to the default
    * class name 'toolbar-button dropdown open|closed'
    */
@@ -72,6 +80,9 @@ export interface IToolbarDropdownProps {
 
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
+
+  /** Wether the dropdown will trap focus or not. Defaults to true. */
+  readonly enableFocusTrap?: boolean
 
   /**
    * Sets the styles for the dropdown's foldout. Useful for custom positioning
@@ -142,10 +153,20 @@ export class ToolbarDropdown extends React.Component<
   IToolbarDropdownState
 > {
   private innerButton: ToolbarButton | null = null
+  private focusTrapOptions: FocusTrapOptions
 
   public constructor(props: IToolbarDropdownProps) {
     super(props)
     this.state = { clientRect: null }
+
+    this.focusTrapOptions = {
+      allowOutsideClick: true,
+
+      // Explicitly disable deactivation from the FocusTrap, since in that case
+      // we would lose the "source" of the event (keyboard vs pointer).
+      clickOutsideDeactivates: false,
+      escapeDeactivates: false,
+    }
   }
 
   private get isOpen() {
@@ -273,21 +294,26 @@ export class ToolbarDropdown extends React.Component<
     // bar to instantly close before even receiving the onDropdownStateChanged
     // event from us.
     return (
-      <div id="foldout-container" style={this.getFoldoutContainerStyle()}>
-        <div
-          className="overlay"
-          tabIndex={-1}
-          onClick={this.handleOverlayClick}
-        />
-        <div
-          className="foldout"
-          style={this.getFoldoutStyle()}
-          tabIndex={-1}
-          onKeyDown={this.onFoldoutKeyDown}
-        >
-          {this.props.dropdownContentRenderer()}
+      <FocusTrap
+        active={this.props.enableFocusTrap ?? true}
+        focusTrapOptions={this.focusTrapOptions}
+      >
+        <div id="foldout-container" style={this.getFoldoutContainerStyle()}>
+          <div
+            className="overlay"
+            tabIndex={-1}
+            onClick={this.handleOverlayClick}
+          />
+          <div
+            className="foldout"
+            style={this.getFoldoutStyle()}
+            tabIndex={-1}
+            onKeyDown={this.onFoldoutKeyDown}
+          >
+            {this.props.dropdownContentRenderer()}
+          </div>
         </div>
-      </div>
+      </FocusTrap>
     )
   }
 
@@ -319,6 +345,7 @@ export class ToolbarDropdown extends React.Component<
         onKeyDown={this.props.onKeyDown}
         role={this.props.role}
         aria-expanded={ariaExpanded}
+        onDragOver={this.props.onDragOver}
       >
         {this.renderDropdownContents()}
         <ToolbarButton

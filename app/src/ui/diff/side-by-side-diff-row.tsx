@@ -104,7 +104,7 @@ export class SideBySideDiffRow extends React.Component<
   ISideBySideDiffRowProps
 > {
   public render() {
-    const row = this.props.row
+    const { row, showSideBySideDiff } = this.props
 
     switch (row.type) {
       case DiffRowType.Hunk:
@@ -115,15 +115,13 @@ export class SideBySideDiffRow extends React.Component<
           </div>
         )
       case DiffRowType.Context:
-        if (!this.props.showSideBySideDiff) {
+        const { beforeLineNumber, afterLineNumber } = row
+        if (!showSideBySideDiff) {
           return (
             <div className="row context">
               <div className="before">
-                {this.renderLineNumbers([
-                  row.beforeLineNumber,
-                  row.afterLineNumber,
-                ])}
-                {this.renderContentFromString(row.content, row.tokens)}
+                {this.renderLineNumbers([beforeLineNumber, afterLineNumber])}
+                {this.renderContentFromString(row.content, row.beforeTokens)}
               </div>
             </div>
           )
@@ -132,29 +130,26 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row context">
             <div className="before">
-              {this.renderLineNumber(row.beforeLineNumber)}
-              {this.renderContentFromString(row.content, row.tokens)}
+              {this.renderLineNumber(beforeLineNumber)}
+              {this.renderContentFromString(row.content, row.beforeTokens)}
             </div>
             <div className="after">
-              {this.renderLineNumber(row.afterLineNumber)}
-              {this.renderContentFromString(row.content, row.tokens)}
+              {this.renderLineNumber(afterLineNumber)}
+              {this.renderContentFromString(row.content, row.afterTokens)}
             </div>
           </div>
         )
 
       case DiffRowType.Added: {
-        if (!this.props.showSideBySideDiff) {
+        const { lineNumber, isSelected } = row.data
+        if (!showSideBySideDiff) {
           return (
             <div
               className="row added"
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className="after">
-                {this.renderLineNumbers(
-                  [undefined, row.data.lineNumber],
-                  row.data.isSelected
-                )}
-
+                {this.renderLineNumbers([undefined, lineNumber], isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
               </div>
@@ -170,24 +165,22 @@ export class SideBySideDiffRow extends React.Component<
             </div>
             {this.renderHunkHandle()}
             <div className="after">
-              {this.renderLineNumber(row.data.lineNumber, row.data.isSelected)}
+              {this.renderLineNumber(lineNumber, isSelected)}
               {this.renderContent(row.data)}
             </div>
           </div>
         )
       }
       case DiffRowType.Deleted: {
-        if (!this.props.showSideBySideDiff) {
+        const { lineNumber, isSelected } = row.data
+        if (!showSideBySideDiff) {
           return (
             <div
               className="row deleted"
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className="before">
-                {this.renderLineNumbers(
-                  [row.data.lineNumber, undefined],
-                  row.data.isSelected
-                )}
+                {this.renderLineNumbers([lineNumber, undefined], isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
               </div>
@@ -201,7 +194,7 @@ export class SideBySideDiffRow extends React.Component<
             onMouseEnter={this.onMouseEnterLineNumber}
           >
             <div className="before">
-              {this.renderLineNumber(row.data.lineNumber, row.data.isSelected)}
+              {this.renderLineNumber(lineNumber, isSelected)}
               {this.renderContent(row.data)}
             </div>
             {this.renderHunkHandle()}
@@ -213,22 +206,17 @@ export class SideBySideDiffRow extends React.Component<
         )
       }
       case DiffRowType.Modified: {
+        const { beforeData: before, afterData: after } = row
         return (
           <div className="row modified">
             <div className="before" onMouseEnter={this.onMouseEnterLineNumber}>
-              {this.renderLineNumber(
-                row.beforeData.lineNumber,
-                row.beforeData.isSelected
-              )}
-              {this.renderContent(row.beforeData)}
+              {this.renderLineNumber(before.lineNumber, before.isSelected)}
+              {this.renderContent(before)}
             </div>
             {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
-              {this.renderLineNumber(
-                row.afterData.lineNumber,
-                row.afterData.isSelected
-              )}
-              {this.renderContent(row.afterData)}
+              {this.renderLineNumber(after.lineNumber, after.isSelected)}
+              {this.renderContent(after)}
             </div>
           </div>
         )
@@ -248,14 +236,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderContentFromString(
-    line: string,
-    tokensArray: ReadonlyArray<ILineTokens> = []
+    content: string,
+    tokens: ReadonlyArray<ILineTokens> = []
   ) {
-    return this.renderContent({
-      content: line,
-      noNewLineIndicator: false,
-      tokens: tokensArray,
-    })
+    return this.renderContent({ content, tokens, noNewLineIndicator: false })
   }
 
   private renderContent(
@@ -314,14 +298,10 @@ export class SideBySideDiffRow extends React.Component<
 
     return (
       <div
-        className={classNames([
-          'line-number',
-          'selectable',
-          {
-            'line-selected': isSelected,
-            hover: this.props.isHunkHovered,
-          },
-        ])}
+        className={classNames('line-number', 'selectable', {
+          'line-selected': isSelected,
+          hover: this.props.isHunkHovered,
+        })}
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
@@ -345,26 +325,23 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private getDiffColumn(targetElement?: Element): DiffColumn | null {
-    const row = this.props.row
+    const { row, showSideBySideDiff } = this.props
 
     // On unified diffs we don't have columns so we always use "before" to not
     // mess up with line selections.
-    if (!this.props.showSideBySideDiff) {
+    if (!showSideBySideDiff) {
       return DiffColumn.Before
     }
 
-    if (row.type === DiffRowType.Added) {
-      return DiffColumn.After
-    }
-
-    if (row.type === DiffRowType.Deleted) {
-      return DiffColumn.Before
-    }
-
-    if (row.type === DiffRowType.Modified) {
-      return targetElement?.closest('.after')
-        ? DiffColumn.After
-        : DiffColumn.Before
+    switch (row.type) {
+      case DiffRowType.Added:
+        return DiffColumn.After
+      case DiffRowType.Deleted:
+        return DiffColumn.Before
+      case DiffRowType.Modified:
+        return targetElement?.closest('.after')
+          ? DiffColumn.After
+          : DiffColumn.Before
     }
 
     return null
@@ -383,17 +360,17 @@ export class SideBySideDiffRow extends React.Component<
    *                      on modified rows.
    */
   private getDiffData(targetElement?: Element): IDiffRowData | null {
-    const row = this.props.row
+    const { row } = this.props
 
-    if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
-      return row.data
+    switch (row.type) {
+      case DiffRowType.Added:
+      case DiffRowType.Deleted:
+        return row.data
+      case DiffRowType.Modified:
+        return targetElement?.closest('.after') ? row.afterData : row.beforeData
     }
 
-    if (row.type !== DiffRowType.Modified) {
-      return null
-    }
-
-    return targetElement?.closest('.after') ? row.afterData : row.beforeData
+    return null
   }
 
   private onMouseDownLineNumber = (evt: React.MouseEvent) => {
@@ -402,28 +379,20 @@ export class SideBySideDiffRow extends React.Component<
     }
 
     const data = this.getDiffData(evt.currentTarget)
-    if (data === null) {
-      return
-    }
     const column = this.getDiffColumn(evt.currentTarget)
-    if (column === null) {
-      return
-    }
 
-    this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
+    if (data !== null && column !== null) {
+      this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
+    }
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
     const data = this.getDiffData(evt.currentTarget)
-    if (data === null) {
-      return
-    }
     const column = this.getDiffColumn(evt.currentTarget)
-    if (column === null) {
-      return
-    }
 
-    this.props.onUpdateSelection(this.props.numRow, column)
+    if (data !== null && column !== null) {
+      this.props.onUpdateSelection(this.props.numRow, column)
+    }
   }
 
   private onMouseEnterHunk = () => {
@@ -446,22 +415,17 @@ export class SideBySideDiffRow extends React.Component<
     // To workaround this, we're relying on the logic of `getDiffData()` to have
     // a consistent behaviour (which will use the previous column state in this case).
     const data = this.getDiffData()
-    if (data === null) {
-      return
-    }
 
-    if ('hunkStartLine' in this.props.row) {
+    if (data !== null && 'hunkStartLine' in this.props.row) {
       this.props.onClickHunk(this.props.row.hunkStartLine, !data.isSelected)
     }
   }
 
   private onContextMenuLineNumber = (evt: React.MouseEvent) => {
     const data = this.getDiffData(evt.currentTarget)
-    if (data === null) {
-      return
+    if (data !== null) {
+      this.props.onContextMenuLine(data.diffLineNumber)
     }
-
-    this.props.onContextMenuLine(data.diffLineNumber)
   }
 
   private onContextMenuHunk = () => {

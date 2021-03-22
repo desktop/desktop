@@ -91,6 +91,9 @@ export interface ITextBoxProps {
    * Callback used when the user has cleared the search text.
    */
   readonly onSearchCleared?: () => void
+
+  /** Indicates if input field applies spellcheck */
+  readonly spellcheck?: boolean
 }
 
 interface ITextBoxState {
@@ -138,6 +141,15 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     if (this.inputElement !== null) {
       this.inputElement.select()
     }
+  }
+
+  /** Determines if the contained text input element is currently focused. */
+  public get isFocused() {
+    return (
+      this.inputElement !== null &&
+      document.activeElement !== null &&
+      this.inputElement === document.activeElement
+    )
   }
 
   /**
@@ -288,6 +300,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
           onContextMenu={this.onContextMenu}
+          spellCheck={this.props.spellcheck === true}
         />
       </div>
     )

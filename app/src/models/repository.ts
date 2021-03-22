@@ -6,7 +6,8 @@ import {
   WorkflowPreferences,
   ForkContributionTarget,
 } from './workflow-preferences'
-import { assertNever } from '../lib/fatal-error'
+import { assertNever, fatalError } from '../lib/fatal-error'
+import { createEqualityHash } from './equality-hash'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -35,6 +36,13 @@ export class Repository {
   private readonly mainWorkTree: WorkingTree
 
   /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public hash: string
+
+  /**
    * @param path The working directory of this repository
    * @param missing Was the repository missing on disk last we checked?
    */
@@ -44,37 +52,28 @@ export class Repository {
     public readonly gitHubRepository: GitHubRepository | null,
     public readonly missing: boolean,
     public readonly workflowPreferences: WorkflowPreferences = {},
-    private readonly _isTutorialRepository?: boolean
+    /**
+     * True if the repository is a tutorial repository created as part of the
+     * onboarding flow. Tutorial repositories trigger a tutorial user experience
+     * which introduces new users to some core concepts of Git and GitHub.
+     */
+    public readonly isTutorialRepository: boolean = false
   ) {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
+
+    this.hash = createEqualityHash(
+      path,
+      this.id,
+      gitHubRepository?.hash,
+      this.missing,
+      this.workflowPreferences.forkContributionTarget,
+      this.isTutorialRepository
+    )
   }
 
   public get path(): string {
     return this.mainWorkTree.path
-  }
-
-  /**
-   * A hash of the properties of the object.
-   *
-   * Objects with the same hash are guaranteed to be structurally equal.
-   */
-  public get hash(): string {
-    return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
-      this.path
-    }+${this.missing}+${this.name}+${this.isTutorialRepository}+${
-      this.workflowPreferences.forkContributionTarget
-    }`
-  }
-
-  /**
-   * True if the repository is a tutorial repository created as part
-   * of the onboarding flow. Tutorial repositories trigger a tutorial
-   * user experience which introduces new users to some core concepts
-   * of Git and GitHub.
-   */
-  public get isTutorialRepository() {
-    return this._isTutorialRepository === true
   }
 }
 
@@ -92,7 +91,7 @@ export type RepositoryWithGitHubRepository = Repository & {
 /**
  * Identical to `Repository`, except it **must** have a `gitHubRepository`
  * which in turn must have a parent. In other words this is a GitHub (.com
- * or Enterprise Server) fork.
+ * or Enterprise) fork.
  */
 export type RepositoryWithForkedGitHubRepository = Repository & {
   readonly gitHubRepository: ForkedGitHubRepository
@@ -108,6 +107,17 @@ export function isRepositoryWithGitHubRepository(
   repository: Repository
 ): repository is RepositoryWithGitHubRepository {
   return repository.gitHubRepository instanceof GitHubRepository
+}
+
+/**
+ * Asserts that the passed repository is a GitHub repository.
+ */
+export function assertIsRepositoryWithGitHubRepository(
+  repository: Repository
+): asserts repository is RepositoryWithGitHubRepository {
+  if (!isRepositoryWithGitHubRepository(repository)) {
+    return fatalError(`Repository must be GitHub repository`)
+  }
 }
 
 /**

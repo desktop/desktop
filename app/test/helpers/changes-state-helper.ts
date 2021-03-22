@@ -32,6 +32,7 @@ export function createStatus<K extends keyof IStatusResult>(
     exists: true,
     mergeHeadFound: false,
     rebaseInternalState: null,
+    isCherryPickingHeadFound: false,
     workingDirectory: WorkingDirectoryStatus.fromFiles([]),
   }
 

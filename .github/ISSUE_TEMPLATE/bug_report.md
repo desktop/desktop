@@ -1,6 +1,9 @@
 ---
 name: "\U0001F41B Bug report"
-about: Report a problem encountered while using GitHub Desktop
+about: Report a bug while using GitHub Desktop (full template required)
+title: ''
+labels: ''
+assignees: ''
 
 ---
 

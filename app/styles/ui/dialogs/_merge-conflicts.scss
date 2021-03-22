@@ -1,6 +1,7 @@
 @import '../../mixins';
 
 dialog#merge-conflicts-list,
+dialog#cherry-pick-conflicts-list,
 dialog#rebase-conflicts-list {
   width: 500px;
 

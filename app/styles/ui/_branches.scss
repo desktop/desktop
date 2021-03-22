@@ -14,6 +14,14 @@
     width: 365px;
     min-height: 0;
   }
+
+  .branches-list-item {
+    height: 100%;
+
+    div {
+      pointer-events: none;
+    }
+  }
 }
 
 .pull-request-tab {

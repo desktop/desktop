@@ -1,17 +1,20 @@
 import * as React from 'react'
-import { TextBox } from '../lib/text-box'
-import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { SuggestedBranchNames } from '../../lib/helpers/default-branch'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { RadioButton } from '../lib/radio-button'
 import { enableDefaultBranchSetting } from '../../lib/feature-flag'
+import { Account } from '../../models/account'
+import { GitConfigUserForm } from '../lib/git-config-user-form'
 
 interface IGitProps {
   readonly name: string
   readonly email: string
   readonly defaultBranch: string
+
+  readonly dotComAccount: Account | null
+  readonly enterpriseAccount: Account | null
 
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
@@ -59,24 +62,22 @@ export class Git extends React.Component<IGitProps, IGitState> {
   public render() {
     return (
       <DialogContent>
-        <Row>
-          <TextBox
-            label="Name"
-            value={this.props.name}
-            onValueChanged={this.props.onNameChanged}
-          />
-        </Row>
-        <Row>
-          <TextBox
-            type="email"
-            label="Email"
-            value={this.props.email}
-            onValueChanged={this.props.onEmailChanged}
-          />
-        </Row>
-
+        {this.renderGitConfigAuthorInfo()}
         {this.renderDefaultBranchSetting()}
       </DialogContent>
+    )
+  }
+
+  private renderGitConfigAuthorInfo() {
+    return (
+      <GitConfigUserForm
+        email={this.props.email}
+        name={this.props.name}
+        enterpriseAccount={this.props.enterpriseAccount}
+        dotComAccount={this.props.dotComAccount}
+        onEmailChanged={this.props.onEmailChanged}
+        onNameChanged={this.props.onNameChanged}
+      />
     )
   }
 
@@ -151,7 +152,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
    *
    * We don't want to call this handler on changes to the text box since that
    * will cause the text box to be hidden if the user types a branch name
-   * that starts with one of the suggested branch names (e.g `mastera`).
+   * that starts with one of the suggested branch names (e.g `mainXYZ`).
    *
    * @param defaultBranch string the selected default branch
    */

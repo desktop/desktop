@@ -16,7 +16,7 @@ import { setupEmptyDirectory } from '../../../helpers/repositories'
 import { getBranchOrError } from '../../../helpers/git'
 import { IRebaseProgress } from '../../../../src/models/progress'
 import { isConflictedFile } from '../../../../src/lib/status'
-import { ManualConflictResolutionKind } from '../../../../src/models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../../../../src/models/manual-conflict-resolution'
 import { Repository } from '../../../../src/models/repository'
 
 const baseBranchName = 'base-branch'
@@ -141,7 +141,7 @@ describe('git/rebase', () => {
     })
 
     it('reports progress after resolving conflicts', async () => {
-      const strategy = ManualConflictResolutionKind.theirs
+      const strategy = ManualConflictResolution.theirs
       const progressCb = (p: IRebaseProgress) => progress.push(p)
 
       while (result === RebaseResult.ConflictsEncountered) {
@@ -181,12 +181,12 @@ describe('git/rebase', () => {
 
 async function resolveAndContinue(
   repository: Repository,
-  strategy: ManualConflictResolutionKind,
+  strategy: ManualConflictResolution,
   progressCb: (progress: IRebaseProgress) => void
 ) {
   const status = await getStatus(repository)
   const files = status?.workingDirectory.files ?? []
-  const resolutions = new Map<string, ManualConflictResolutionKind>()
+  const resolutions = new Map<string, ManualConflictResolution>()
 
   for (const file of files) {
     if (isConflictedFile(file.status)) {

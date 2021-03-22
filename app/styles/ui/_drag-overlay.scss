@@ -1,0 +1,17 @@
+#drag-overlay {
+  position: absolute;
+  top: 72px;
+  background: var(--overlay-background-color);
+  height: 100%;
+  width: 100%;
+  cursor: not-allowed;
+  z-index: var(--drag-overlay-z-index);
+
+  .popover-component {
+    width: 300px;
+    left: 70px;
+    position: relative;
+    top: 10px;
+    padding: var(--spacing);
+  }
+}

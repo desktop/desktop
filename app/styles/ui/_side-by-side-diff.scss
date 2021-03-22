@@ -5,6 +5,7 @@
   overflow: hidden;
   flex-grow: 1;
   user-select: contain;
+  position: relative;
 
   &.selecting-before .after,
   &.selecting-after .before {
@@ -232,7 +233,7 @@
     .row {
       .before,
       .after {
-        width: 100%;
+        width: 100% !important;
         border: none;
         flex-direction: row;
       }
@@ -266,6 +267,51 @@
 
     &.editable .row .line-number {
       border-right-width: 4px;
+    }
+  }
+
+  .diff-search {
+    position: absolute;
+    top: 0;
+    right: var(--spacing);
+    border: var(--base-border);
+    border-top: 0;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--spacing-half) var(--spacing);
+    box-shadow: var(--base-box-shadow);
+    z-index: var(--popup-z-index);
+    background: var(--background-color);
+
+    .text-box-component {
+      input {
+        border: 0;
+        box-shadow: none;
+
+        background: var(--box-background-color);
+        color: var(--text-color);
+        font-size: var(--font-size);
+        font-family: var(--font-family-sans-serif);
+        height: var(--text-field-height);
+        padding: 0;
+        width: 180px;
+
+        &:focus {
+          border: none;
+          outline: 0;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+
+  .cm-search-result {
+    // match codemirror for now
+    // https://github.com/codemirror/CodeMirror/blob/264022ee4af4abca1c158944dc299a8faf8696d6/lib/codemirror.css#L333
+    background-color: rgba(255, 255, 0, 0.4);
+
+    &.cm-selected {
+      background: Highlight;
+      color: HighlightText;
     }
   }
 }

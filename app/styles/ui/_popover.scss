@@ -1,0 +1,116 @@
+.popover-component {
+  font-size: var(--font-size);
+  font-family: var(--font-family-sans-serif);
+
+  z-index: var(--foldout-z-index);
+
+  background: var(--background-color);
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  border: var(--base-border);
+
+  padding: var(--spacing-double);
+
+  box-shadow: var(--base-box-shadow);
+}
+
+// Carets
+.popover-component.popover-caret-top-right {
+  &::before,
+  &::after {
+    position: absolute;
+    right: 20px;
+    display: inline-block;
+    content: '';
+    pointer-events: none;
+  }
+
+  &::before {
+    top: -16px;
+    margin-right: -9px;
+    border: 8px solid transparent;
+    border-bottom-color: var(--box-border-color);
+  }
+
+  &::after {
+    top: -14px;
+    margin-right: -8px;
+    border: 7px solid transparent;
+    border-bottom-color: var(--background-color);
+  }
+}
+
+.popover-component.popover-caret-top-left {
+  &::before,
+  &::after {
+    position: absolute;
+    left: 20px;
+    display: inline-block;
+    content: '';
+    pointer-events: none;
+  }
+
+  &::before {
+    top: -16px;
+    margin-right: -9px;
+    border: 8px solid transparent;
+    border-bottom-color: var(--box-border-color);
+  }
+
+  &::after {
+    top: -14px;
+    margin-right: -8px;
+    border: 7px solid transparent;
+    border-bottom-color: var(--background-color);
+  }
+}
+
+.popover-component.popover-caret-left-top {
+  &::before,
+  &::after {
+    position: absolute;
+    top: 20px;
+    display: inline-block;
+    content: '';
+    pointer-events: none;
+  }
+
+  &::before {
+    left: -16px;
+    margin-top: -9px;
+    border: 8px solid transparent;
+    border-right-color: var(--box-border-color);
+  }
+
+  &::after {
+    left: -14px;
+    margin-top: -8px;
+    border: 7px solid transparent;
+    border-right-color: var(--background-color);
+  }
+}
+
+.popover-component.popover-caret-left-bottom {
+  &::before,
+  &::after {
+    position: absolute;
+    bottom: 20px;
+    display: inline-block;
+    content: '';
+    pointer-events: none;
+  }
+
+  &::before {
+    left: -16px;
+    margin-bottom: -9px;
+    border: 8px solid transparent;
+    border-right-color: var(--box-border-color);
+  }
+
+  &::after {
+    left: -14px;
+    margin-bottom: -8px;
+    border: 7px solid transparent;
+    border-right-color: var(--background-color);
+  }
+}

@@ -1,5 +1,9 @@
 import * as React from 'react'
-import { ApplicationTheme, getThemeName } from './lib/application-theme'
+import {
+  ApplicationTheme,
+  getThemeName,
+  getCurrentlyAppliedTheme,
+} from './lib/application-theme'
 
 interface IAppThemeProps {
   readonly theme: ApplicationTheme
@@ -31,7 +35,13 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
   }
 
   private ensureTheme() {
-    const newThemeClassName = `theme-${getThemeName(this.props.theme)}`
+    let themeToDisplay = this.props.theme
+
+    if (this.props.theme === ApplicationTheme.System) {
+      themeToDisplay = getCurrentlyAppliedTheme()
+    }
+
+    const newThemeClassName = `theme-${getThemeName(themeToDisplay)}`
     const body = document.body
 
     if (body.classList.contains(newThemeClassName)) {

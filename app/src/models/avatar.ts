@@ -19,7 +19,7 @@ export interface IAvatarUser {
    * The endpoint of the repository that this user is associated with.
    * This will be https://api.github.com for GitHub.com-hosted
    * repositories, something like `https://github.example.com/api/v3`
-   * for GitHub Enterprise Server and null for local repositories or
+   * for GitHub Enterprise and null for local repositories or
    * repositories hosted on non-GitHub services.
    */
   readonly endpoint: string | null

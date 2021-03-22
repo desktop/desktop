@@ -5,6 +5,11 @@
 // Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
 @import '~primer-support/lib/variables/color-system.scss';
 
+// This should be something like
+// @media (prefers-color-scheme: dark)
+// See https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
+// https://www.electronjs.org/docs/api/native-theme#nativethemethemesource
+
 body.theme-dark {
   --color-new: #{$green};
   --color-deleted: #{$red};
@@ -327,11 +332,6 @@ body.theme-dark {
   .blankslate-image {
     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
   }
-
-  /** Diverging notification banner colors */
-  --notification-banner-background: #{$gray-800};
-  --notification-banner-border-color: #{$gray-700};
-  --notification-ref-background: #{$gray-700};
 
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};

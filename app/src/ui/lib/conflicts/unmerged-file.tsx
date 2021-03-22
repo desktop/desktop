@@ -12,10 +12,7 @@ import { Dispatcher } from '../../dispatcher'
 import { showContextualMenu } from '../../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../../octicons'
 import { PathText } from '../path-text'
-import {
-  ManualConflictResolutionKind,
-  ManualConflictResolution,
-} from '../../../models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
@@ -51,9 +48,11 @@ export const renderUnmergedFile: React.FunctionComponent<{
    *
    *  - for a merge, this is the tip of the repository
    *  - for a rebase, this is the base branch that commits are being applied on top
+   *  - for a cherry pick, this is the source branch that the commits come from
    *
-   * If the rebase is started outside Desktop, the details about this branch may
-   * not be known - the rendered component will handle this fine.
+   * If the rebase or cherry pick is started outside Desktop, the details about
+   * this branch may not be known - the rendered component will handle this
+   * fine.
    */
   readonly ourBranch?: string
   /**
@@ -61,6 +60,8 @@ export const renderUnmergedFile: React.FunctionComponent<{
    *
    *  - for a merge, this is be the branch being merged into the tip of the repository
    *  - for a rebase, this is the target branch that is having it's history rewritten
+   *  - for a cherrypick, this is the target branch that the commits are being
+   *    applied to.
    *
    * If the merge is started outside Desktop, the details about this branch may
    * not be known - the rendered component will handle this fine.
@@ -339,7 +340,7 @@ function getManualResolutionMenuItems(
         dispatcher.updateManualConflictResolution(
           repository,
           relativeFilePath,
-          ManualConflictResolutionKind.ours
+          ManualConflictResolution.ours
         ),
     },
 
@@ -349,7 +350,7 @@ function getManualResolutionMenuItems(
         dispatcher.updateManualConflictResolution(
           repository,
           relativeFilePath,
-          ManualConflictResolutionKind.theirs
+          ManualConflictResolution.theirs
         ),
     },
   ]
@@ -360,10 +361,10 @@ function resolvedFileStatusString(
   manualResolution?: ManualConflictResolution,
   branch?: string
 ): string {
-  if (manualResolution === ManualConflictResolutionKind.ours) {
+  if (manualResolution === ManualConflictResolution.ours) {
     return getUnmergedStatusEntryDescription(status.entry.us, branch)
   }
-  if (manualResolution === ManualConflictResolutionKind.theirs) {
+  if (manualResolution === ManualConflictResolution.theirs) {
     return getUnmergedStatusEntryDescription(status.entry.them, branch)
   }
   return 'No conflicts remaining'
@@ -413,10 +414,10 @@ function getBranchForResolution(
   ourBranch?: string,
   theirBranch?: string
 ): string | undefined {
-  if (manualResolution === ManualConflictResolutionKind.ours) {
+  if (manualResolution === ManualConflictResolution.ours) {
     return ourBranch
   }
-  if (manualResolution === ManualConflictResolutionKind.theirs) {
+  if (manualResolution === ManualConflictResolution.theirs) {
     return theirBranch
   }
   return undefined

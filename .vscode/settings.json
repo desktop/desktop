@@ -5,7 +5,8 @@
     "**/dist": true,
     "**/node_modules": true,
     "**/out": true,
-    "app/test/fixtures": true
+    "app/test/fixtures": true,
+    "vendor": true
   },
   "files.exclude": {
     "**/.git": true,
@@ -19,6 +20,7 @@
     ".awcache": true,
     ".eslintcache": true
   },
+  "files.insertFinalNewline": true,
   "editor.tabSize": 2,
   "prettier.semi": false,
   "prettier.singleQuote": true,

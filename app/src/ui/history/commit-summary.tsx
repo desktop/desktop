@@ -47,6 +47,9 @@ interface ICommitSummaryProps {
 
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
+
+  /** Called when the user opens the diff options popover */
+  readonly onDiffOptionsOpened: () => void
 }
 
 interface ICommitSummaryState {
@@ -385,6 +388,7 @@ export class CommitSummary extends React.Component<
                     onShowSideBySideDiffChanged={
                       this.props.onShowSideBySideDiffChanged
                     }
+                    onDiffOptionsOpened={this.props.onDiffOptionsOpened}
                   />
                 </li>
               </>

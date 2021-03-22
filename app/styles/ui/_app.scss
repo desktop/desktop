@@ -27,3 +27,42 @@
     min-height: 0;
   }
 }
+
+#desktop-app-contents {
+  &.cherry-pick-mouse-over {
+    :not(input):not(textarea),
+    :not(input):not(textarea)::after,
+    :not(input):not(textarea)::before {
+      cursor: not-allowed;
+    }
+
+    #desktop-app-toolbar {
+      .toolbar-dropdown {
+        &.branch-button {
+          :not(input):not(textarea),
+          :not(input):not(textarea)::after,
+          :not(input):not(textarea)::before {
+            cursor: default;
+          }
+
+          .branches-list-item:hover {
+            --text-color: var(--box-selected-active-text-color);
+            --text-secondary-color: var(--box-selected-active-text-color);
+
+            color: var(--text-color);
+            background-color: var(--box-selected-active-background-color);
+            cursor: copy;
+          }
+        }
+      }
+    }
+
+    #commit-list {
+      :not(input):not(textarea),
+      :not(input):not(textarea)::after,
+      :not(input):not(textarea)::before {
+        cursor: default;
+      }
+    }
+  }
+}

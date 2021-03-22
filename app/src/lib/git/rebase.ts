@@ -30,7 +30,7 @@ import {
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
-import { getCommitsInRange } from './rev-list'
+import { getCommitsBetweenCommits } from './rev-list'
 import { Branch } from '../../models/branch'
 
 /** The app-specific results from attempting to rebase a repository */
@@ -218,7 +218,7 @@ export async function getRebaseSnapshot(
     const percentage = next / last
     const value = formatRebaseValue(percentage)
 
-    const commits = await getCommitsInRange(
+    const commits = await getCommitsBetweenCommits(
       repository,
       baseBranchTip,
       originalBranchTip
@@ -368,13 +368,19 @@ export async function rebase(
   let options = baseOptions
 
   if (progressCallback !== undefined) {
-    const commits = await getCommitsInRange(
+    const commits = await getCommitsBetweenCommits(
       repository,
       baseBranch.tip.sha,
       targetBranch.tip.sha
     )
 
     if (commits === null) {
+      // BadRevision can be raised here if git rev-list is unable to resolve a
+      // ref to a commit ID, so we need to signal to the caller that this rebase
+      // is not possible to perform
+      log.warn(
+        'Unable to rebase these branches because one or both of the refs do not exist in the repository'
+      )
       return RebaseResult.Error
     }
 

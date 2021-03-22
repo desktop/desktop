@@ -5,7 +5,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { Branch } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
 
@@ -25,11 +25,6 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
-import {
-  UncommittedChangesStrategyKind,
-  UncommittedChangesStrategy,
-  stashOnCurrentBranch,
-} from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -47,11 +42,17 @@ interface IBranchesContainerProps {
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
 
-  readonly currentBranchProtected: boolean
+  /** When a drag element has landed on the current branch */
+  readonly onDropOntoCurrentBranch?: () => void
 
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+  /** Whether a cherry pick is in progress */
+  readonly isCherryPickInProgress?: boolean
 
-  readonly couldOverwriteStash: boolean
+  /** When a drag element enters a branch */
+  readonly onDragEnterBranch: (branchName: string) => void
+
+  //** When a drag element leave a branch */
+  readonly onDragLeaveBranch: () => void
 }
 
 interface IBranchesContainerState {
@@ -96,34 +97,34 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private getBranchName = (): string => {
-    const { currentBranch, defaultBranch } = this.props
-    if (currentBranch != null) {
-      return currentBranch.name
-    }
-
-    if (defaultBranch != null) {
-      return defaultBranch.name
-    }
-
-    return 'master'
-  }
-
   public render() {
-    const branchName = this.getBranchName()
     return (
       <div className="branches-container">
         {this.renderTabBar()}
         {this.renderSelectedTab()}
-        <Row className="merge-button-row">
-          <Button className="merge-button" onClick={this.onMergeClick}>
-            <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-            <span title={`Merge a branch into ${branchName}`}>
-              Choose a branch to merge into <strong>{branchName}</strong>
-            </span>
-          </Button>
-        </Row>
+        {this.renderMergeButtonRow()}
       </div>
+    )
+  }
+
+  private renderMergeButtonRow() {
+    const { currentBranch } = this.props
+
+    // This could happen if HEAD is detached, in that
+    // case it's better to not render anything at all.
+    if (currentBranch === null) {
+      return null
+    }
+
+    return (
+      <Row className="merge-button-row">
+        <Button className="merge-button" onClick={this.onMergeClick}>
+          <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+          <span title={`Merge a branch into ${currentBranch.name}`}>
+            Choose a branch to merge into <strong>{currentBranch.name}</strong>
+          </span>
+        </Button>
+      </Row>
     )
   }
 
@@ -146,6 +147,7 @@ export class BranchesContainer extends React.Component<
       <TabBar
         onTabClicked={this.onTabClicked}
         selectedIndex={this.props.selectedTab}
+        allowDragOverSwitching={true}
       >
         <span>Branches</span>
         <span className="pull-request-tab">
@@ -157,7 +159,18 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
-    return renderDefaultBranch(item, matches, this.props.currentBranch)
+    return renderDefaultBranch(
+      item,
+      matches,
+      this.props.currentBranch,
+      this.onRenameBranch,
+      this.onDeleteBranch,
+      this.onDropOntoBranch,
+      this.props.onDropOntoCurrentBranch,
+      this.props.onDragEnterBranch,
+      this.props.onDragLeaveBranch,
+      this.props.isCherryPickInProgress
+    )
   }
 
   private renderSelectedTab() {
@@ -237,45 +250,11 @@ export class BranchesContainer extends React.Component<
   }
 
   private onBranchItemClick = (branch: Branch) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    const { repository, dispatcher } = this.props
+    dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const {
-      currentBranch,
-      repository,
-      currentBranchProtected,
-      dispatcher,
-      couldOverwriteStash,
-    } = this.props
-
-    if (currentBranch == null || currentBranch.name !== branch.name) {
-      if (
-        !currentBranchProtected &&
-        this.props.selectedUncommittedChangesStrategy.kind ===
-          stashOnCurrentBranch.kind &&
-        couldOverwriteStash
-      ) {
-        dispatcher.showPopup({
-          type: PopupType.ConfirmOverwriteStash,
-          repository,
-          branchToCheckout: branch,
-        })
-        return
-      }
-
-      const timer = startTimer('checkout branch from list', repository)
-
-      // Never prompt to stash changes if someone is switching away from a protected branch
-      const strategy: UncommittedChangesStrategy = currentBranchProtected
-        ? {
-            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-            transientStashEntry: null,
-          }
-        : this.props.selectedUncommittedChangesStrategy
-
-      this.props.dispatcher
-        .checkoutBranch(repository, branch, strategy)
-        .then(() => timer.done())
-    }
+    const timer = startTimer('checkout branch from list', repository)
+    dispatcher.checkoutBranch(repository, branch).then(() => timer.done())
   }
 
   private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
@@ -287,13 +266,12 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
-    const { repository, currentBranchProtected } = this.props
+    const { repository, dispatcher } = this.props
 
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.showPopup({
+    dispatcher.closeFoldout(FoldoutType.Branch)
+    dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      currentBranchProtected,
       initialName: name,
     })
   }
@@ -306,5 +284,75 @@ export class BranchesContainer extends React.Component<
     selectedPullRequest: PullRequest | null
   ) => {
     this.setState({ selectedPullRequest })
+  }
+
+  private getBranchWithName(branchName: string): Branch | undefined {
+    return this.props.allBranches.find(branch => branch.name === branchName)
+  }
+
+  private onRenameBranch = (branchName: string) => {
+    const branch = this.getBranchWithName(branchName)
+
+    if (branch === undefined) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.RenameBranch,
+      repository: this.props.repository,
+      branch: branch,
+    })
+  }
+
+  private onDeleteBranch = (branchName: string) => {
+    const branch = this.getBranchWithName(branchName)
+
+    if (branch === undefined) {
+      return
+    }
+
+    if (branch.type === BranchType.Remote) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.DeleteRemoteBranch,
+        repository: this.props.repository,
+        branch,
+      })
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.DeleteBranch,
+      repository: this.props.repository,
+      branch,
+      existsOnRemote: branch.upstreamRemoteName !== null,
+    })
+  }
+
+  /**
+   * Method is to handle when something is dragged and dropped onto a branch
+   * in the branch dropdown.
+   *
+   * Currently this is being implemented with cherry picking. But, this could be
+   * expanded if we ever dropped something else on a branch; in which case,
+   * we would likely have to check the app state to see what action is being
+   * performed. As this branch container is not being used anywhere except
+   * for the branch dropdown, we are not going to pass the repository state down
+   * during this implementation.
+   */
+  private onDropOntoBranch = (branchName: string) => {
+    const branch = this.props.allBranches.find(b => b.name === branchName)
+    if (branch === undefined) {
+      log.warn(
+        '[branches-container] - Branch name of branch dropped on does not exist.'
+      )
+      return
+    }
+
+    if (this.props.isCherryPickInProgress) {
+      this.props.dispatcher.startCherryPickWithBranch(
+        this.props.repository,
+        branch
+      )
+    }
   }
 }
