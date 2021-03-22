@@ -310,7 +310,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     log.info(`launching: ${getVersion()} (${getOS()})`)
     log.info(`execPath: '${process.execPath}'`)
 
-    // Only show the popup in beta/production releases
+    // Only show the popup in beta/production releases and mac machines
     if (__DEV__ === false && remote.app.isInApplicationsFolder?.() === false) {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
