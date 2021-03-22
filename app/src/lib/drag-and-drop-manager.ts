@@ -9,7 +9,13 @@ import { Disposable, Emitter } from 'event-kit'
  * drag event.
  */
 export class DragAndDropManager {
+  private _isDragInProgress: boolean = false
+
   protected readonly emitter = new Emitter()
+
+  public get isDragInProgress(): boolean {
+    return this._isDragInProgress
+  }
 
   public emitEnterDropTarget(targetDescription: string) {
     this.emitter.emit('enter-drop-target', targetDescription)
@@ -27,6 +33,14 @@ export class DragAndDropManager {
 
   public onLeaveDropTarget(fn: () => void): Disposable {
     return this.emitter.on('leave-drop-target', fn)
+  }
+
+  public dragStarted(): void {
+    this._isDragInProgress = true
+  }
+
+  public dragEnded() {
+    this._isDragInProgress = false
   }
 
   public emitEnterDragZone(dropZoneDescription: string) {
