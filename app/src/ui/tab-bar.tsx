@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 
 /** Time to wait for drag element hover before switching tabs */
-const dragTabSwitchWaitTime = 1500
+const dragTabSwitchWaitTime = 500
 
 /** The tab bar type. */
 export enum TabBarType {
