@@ -113,7 +113,7 @@ export class ChooseTargetBranchDialog extends React.Component<
 
   private renderOkButtonText() {
     const pluralize = this.props.commitCount > 1 ? 'commits' : 'commit'
-    const okButtonText = `Cherry pick ${this.props.commitCount} ${pluralize}`
+    const okButtonText = `Cherry-pick ${this.props.commitCount} ${pluralize}`
 
     const { selectedBranch } = this.state
     if (selectedBranch !== null) {
@@ -129,7 +129,7 @@ export class ChooseTargetBranchDialog extends React.Component<
 
   public render() {
     const tooltip = this.selectedBranchIsCurrentBranch()
-      ? 'You are not able to cherry pick from and to the same branch'
+      ? 'You are not able to cherry-pick from and to the same branch'
       : undefined
 
     const pluralize = this.props.commitCount > 1 ? 'commits' : 'commit'
@@ -141,7 +141,7 @@ export class ChooseTargetBranchDialog extends React.Component<
         dismissable={true}
         title={
           <strong>
-            Cherry pick {this.props.commitCount} {pluralize} to a branch
+            Cherry-pick {this.props.commitCount} {pluralize} to a branch
           </strong>
         }
       >

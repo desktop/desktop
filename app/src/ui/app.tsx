@@ -134,7 +134,7 @@ import { WorkingDirectoryStatus } from '../models/status'
 import { DragElementType } from '../models/drag-element'
 import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
 import classNames from 'classnames'
-import { DragAndDropManager } from '../lib/drag-and-drop-manager'
+import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -191,8 +191,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private get isShowingModal() {
     return this.state.currentPopup !== null || this.state.errors.length > 0
   }
-
-  private dragAndDropManager: DragAndDropManager = new DragAndDropManager()
 
   /**
    * Returns a memoized instance of onPopupDismissed() bound to the
@@ -2015,7 +2013,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         ) {
           log.warn(
             `[App] Invalid state encountered:
-            cherry pick flow should not be active when step is null,
+            cherry-pick flow should not be active when step is null,
             the selected app state is not a repository state,
             or cannot obtain the working directory.`
           )
@@ -2212,7 +2210,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
-            dragAndDropManager={this.dragAndDropManager}
           />
         )
       default:
@@ -2820,7 +2817,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentBranch = tip.branch
     } else {
       throw new Error(
-        'Tip is not in a valid state, which is required to start the cherry pick flow'
+        'Tip is not in a valid state, which is required to start the cherry-pick flow'
       )
     }
 
@@ -2880,7 +2877,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           !isCherryPickConflictState(conflictState)
         ) {
           log.debug(
-            `[App.onShowCherryPickConflictsBanner] no cherry pick conflict state found, ignoring...`
+            `[App.onShowCherryPickConflictsBanner] no cherry-pick conflict state found, ignoring...`
           )
           return
         }
@@ -2921,7 +2918,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * assumptions to just update the currentDragElement.
    */
   private onDragEnterBranch = (branchName: string): void => {
-    this.dragAndDropManager.emitEnterDropTarget(branchName)
+    dragAndDropManager.emitEnterDropTarget(branchName)
   }
 
   /**
@@ -2932,7 +2929,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * assumptions to just update the currentDragElement.
    */
   private onDragLeaveBranch = (): void => {
-    this.dragAndDropManager.emitLeaveDropTarget()
+    dragAndDropManager.emitLeaveDropTarget()
   }
 }
 

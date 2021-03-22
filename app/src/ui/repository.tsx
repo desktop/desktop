@@ -29,6 +29,7 @@ import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import { CherryPickStepKind } from '../models/cherry-pick'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -342,7 +343,7 @@ export class RepositoryView extends React.Component<
   }
 
   private renderContentForHistory(): JSX.Element {
-    const { commitSelection } = this.props.state
+    const { commitSelection, cherryPickState } = this.props.state
 
     const sha =
       commitSelection.shas.length === 1 ? commitSelection.shas[0] : null
@@ -351,6 +352,11 @@ export class RepositoryView extends React.Component<
       sha != null ? this.props.state.commitLookup.get(sha) || null : null
 
     const { changedFiles, file, diff } = commitSelection
+
+    const { step } = cherryPickState
+
+    const showDragOverlay =
+      step !== null && step.kind === CherryPickStepKind.CommitsChosen
 
     return (
       <SelectedCommit
@@ -371,6 +377,7 @@ export class RepositoryView extends React.Component<
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         areMultipleCommitsSelected={commitSelection.shas.length > 1}
+        showDragOverlay={showDragOverlay}
       />
     )
   }

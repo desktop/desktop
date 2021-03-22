@@ -185,14 +185,14 @@ export class CherryPickConflictsDialog extends React.Component<
         ? 'Resolve all conflicts before continuing'
         : undefined
 
-    const ok = __DARWIN__ ? 'Continue Cherry Pick' : 'Continue cherry pick'
-    const cancel = __DARWIN__ ? 'Abort Cherry Pick' : 'Abort cherry pick'
+    const ok = __DARWIN__ ? 'Continue Cherry-pick' : 'Continue cherry-pick'
+    const cancel = __DARWIN__ ? 'Abort Cherry-pick' : 'Abort cherry-pick'
 
     return (
       <Dialog
         id="cherry-pick-conflicts-list"
         onDismissed={this.onDismissed}
-        title="Resolve conflicts before cherry picking"
+        title="Resolve conflicts before cherry-picking"
         onSubmit={this.onSubmit}
       >
         <DialogContent>

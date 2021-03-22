@@ -228,7 +228,7 @@ export class CommitListItem extends React.PureComponent<
 
     if (enableCherryPicking()) {
       items.push({
-        label: __DARWIN__ ? 'Cherry Pick Commit…' : 'Cherry pick commit…',
+        label: __DARWIN__ ? 'Cherry-pick Commit…' : 'Cherry-pick commit…',
         action: this.onCherryPick,
         enabled: this.canCherryPick(),
       })
@@ -257,8 +257,8 @@ export class CommitListItem extends React.PureComponent<
     if (enableCherryPicking()) {
       items.push({
         label: __DARWIN__
-          ? `Cherry Pick ${count} Commits…`
-          : `Cherry pick ${count} commits…`,
+          ? `Cherry-pick ${count} Commits…`
+          : `Cherry-pick ${count} commits…`,
         action: this.onCherryPick,
         enabled: this.canCherryPick(),
       })

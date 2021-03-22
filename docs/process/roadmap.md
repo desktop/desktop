@@ -6,9 +6,9 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 
 - Warn and provide a way to ensure your commits will be attributed to you: [#610](https://github.com/desktop/desktop/issues/610)
 
-#### Cherry picking commits from one branch to another
+#### Cherry-picking commits from one branch to another
 
-- Cherry pick commits with a context menu and interactively: [#1685](https://github.com/desktop/desktop/issues/1685)
+- Cherry-pick commits with a context menu and interactively: [#1685](https://github.com/desktop/desktop/issues/1685)
 
 ## Shipped in previous releases
 

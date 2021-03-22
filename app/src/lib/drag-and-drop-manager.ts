@@ -38,6 +38,16 @@ export class DragAndDropManager {
   public dragEnded() {
     this.isDragInProgress = false
   }
+
+  public emitEnterDragZone(dropZoneDescription: string) {
+    this.emitter.emit('enter-drop-zone', dropZoneDescription)
+  }
+
+  public onEnterDragZone(
+    fn: (dropZoneDescription: string) => void
+  ): Disposable {
+    return this.emitter.on('enter-drop-zone', fn)
+  }
 }
 
 export const dragAndDropManager = new DragAndDropManager()

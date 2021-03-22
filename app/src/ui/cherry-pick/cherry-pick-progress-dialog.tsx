@@ -30,7 +30,7 @@ export class CherryPickProgressDialog extends React.Component<
         dismissable={false}
         onDismissed={this.onDismissed}
         id="cherry-pick-progress"
-        title="Cherry pick in progress"
+        title="Cherry-pick in progress"
       >
         <DialogContent>
           <div>

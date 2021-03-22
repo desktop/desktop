@@ -170,7 +170,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
       case CherryPickStepKind.ShowProgress:
         if (this.props.progress === null) {
           log.error(
-            `[CherryPickFlow] cherry pick progress should not be null
+            `[CherryPickFlow] cherry-pick progress should not be null
             when showing progress. Skipping rendering..`
           )
           return null
@@ -230,7 +230,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
         // no ui for this part of flow
         return null
       default:
-        return assertNever(step, 'Unknown cherry pick step found')
+        return assertNever(step, 'Unknown cherry-pick step found')
     }
   }
 }
