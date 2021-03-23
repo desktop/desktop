@@ -109,7 +109,7 @@ class MouseScroller {
 
     const inBounds = scrollable.scrollTop + scrollDistance < limit
     const scrollTo = inBounds ? scrollable.scrollTop + scrollDistance : limit
-    scrollable.scroll({ top: scrollTo, behavior: 'smooth' })
+    scrollable.scrollTo({ top: scrollTo })
     return true
   }
 
