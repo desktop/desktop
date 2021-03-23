@@ -1,4 +1,9 @@
 import * as React from 'react'
+import {
+  getScrollParent,
+  hasScrollableContent,
+  scrollVertically,
+} from '../../lib/scroll'
 
 interface IDraggableProps {
   /**
@@ -33,6 +38,7 @@ export class Draggable extends React.Component<IDraggableProps> {
   private dragStarted: boolean = false
   private dragElement: HTMLElement | null = null
   private elemBelow: Element | null = null
+  private scrollTimer: number | undefined
   // Default offset to place the cursor slightly above the top left corner of
   // the drag element. Note: if placed at (0,0) or cursor is inside the
   // dragElement then elemBelow will always return the dragElement and cannot
@@ -41,6 +47,10 @@ export class Draggable extends React.Component<IDraggableProps> {
 
   public componentDidMount() {
     this.dragElement = document.getElementById('dragElement')
+  }
+
+  public componentWillUnmount() {
+    window.clearTimeout(this.scrollTimer)
   }
 
   private canDragCommit(event: React.MouseEvent<HTMLDivElement>): boolean {
@@ -100,6 +110,29 @@ export class Draggable extends React.Component<IDraggableProps> {
       moveEvent.clientX,
       moveEvent.clientY
     )
+
+    if (this.elemBelow === null) {
+      window.clearTimeout(this.scrollTimer)
+      return
+    }
+
+    const scrollParent = getScrollParent(this.elemBelow)
+    if (scrollParent === null || !hasScrollableContent(scrollParent)) {
+      window.clearTimeout(this.scrollTimer)
+      return
+    }
+
+    this.checkForWindowScroll(scrollParent, moveEvent.clientY)
+  }
+
+  private checkForWindowScroll = (scrollable: Element, mouseY: number) => {
+    window.clearTimeout(this.scrollTimer)
+
+    if (scrollVertically(scrollable, mouseY)) {
+      this.scrollTimer = window.setTimeout(() => {
+        this.checkForWindowScroll(scrollable, mouseY)
+      }, 30)
+    }
   }
 
   /**
