@@ -50,7 +50,6 @@ export enum PopupType {
   MergeConflicts,
   AbortMerge,
   OversizedFiles,
-  UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
   RebaseFlow,
@@ -186,7 +185,6 @@ export type Popup =
       context: ICommitContext
       repository: Repository
     }
-  | { type: PopupType.UsageReportingChanges }
   | {
       type: PopupType.CommitConflictsWarning
       /** files that were selected for committing that are also conflicted */
