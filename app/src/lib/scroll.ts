@@ -13,15 +13,16 @@ const default_scroll_edge = 30
  * @param scrollable - The element to adjust the scroll position of
  * @param mouseY - where the mouse y coordinate position is
  */
-export function scrollVertically(scrollable: Element, mouseY: number): boolean {
-  const { top, bottom } = scrollable.getBoundingClientRect()
-  console.log('top: ', top, ' bottom: ', bottom, ' mouseY: ', mouseY)
-  const distanceFromBottom = bottom - mouseY
-  const distanceFromTop = mouseY - top
+export function scrollVerticallyOnMouseNearEdge(
+  scrollable: Element,
+  mouseY: number
+): boolean {
   // how far away from the edge of container to invoke scroll
   const edge = default_scroll_edge
+  const { top, bottom } = scrollable.getBoundingClientRect()
+  const distanceFromBottom = bottom - mouseY
+  const distanceFromTop = mouseY - top
 
-  console.log('distanceFromBottom: ', distanceFromBottom)
   if (distanceFromBottom > 0 && distanceFromBottom < edge) {
     return scrollDown(scrollable, edge - distanceFromBottom)
   }
@@ -48,8 +49,6 @@ function scrollUp(scrollable: Element, scrollDistance: number): boolean {
 
 function scrollDown(scrollable: Element, scrollDistance: number): boolean {
   const limit = scrollable.scrollHeight - scrollable.clientHeight
-  console.log('ScrollDownLimit: ', limit, scrollable.scrollTop)
-  console.log('scrollDistance: ', scrollDistance)
   if (scrollable.scrollTop === limit) {
     return false
   }
@@ -60,33 +59,38 @@ function scrollDown(scrollable: Element, scrollDistance: number): boolean {
   return true
 }
 
-// https://stackoverflow.com/questions/35939886/find-first-scrollable-parent
-export function getScrollParent(element: Element): Element | null {
-  let style = getComputedStyle(element)
-  const excludeStaticParent = style.position === 'absolute'
-  const overflowRegex = /(auto|scroll)/
+export function getClosestScrollElement(element: Element): Element | null {
+  const { position: elemPosition } = getComputedStyle(element)
 
-  if (style.position === 'fixed') {
+  if (elemPosition === 'fixed') {
     return null
   }
 
-  for (
-    let parent: Element | null = element;
-    (parent = parent.parentElement);
+  if (isScrollable(element)) {
+    return element
+  }
 
-  ) {
-    style = getComputedStyle(parent)
-    if (excludeStaticParent && style.position === 'static') {
+  let parent: Element | null
+  for (parent = element; (parent = parent.parentElement); ) {
+    const { position: parentPosition } = getComputedStyle(parent)
+
+    // exclude static parents
+    if (elemPosition === 'absolute' && parentPosition === 'static') {
       continue
     }
-    if (
-      overflowRegex.test(style.overflow + style.overflowY + style.overflowX)
-    ) {
+
+    if (isScrollable(parent)) {
       return parent
     }
   }
 
   return null
+}
+
+function isScrollable(element: Element): boolean {
+  const style = getComputedStyle(element)
+  const overflowRegex = /(auto|scroll)/
+  return overflowRegex.test(style.overflow + style.overflowY + style.overflowX)
 }
 
 export function hasScrollableContent(scrollable: Element): boolean {

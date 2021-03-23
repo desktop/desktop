@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {
-  getScrollParent,
+  getClosestScrollElement,
   hasScrollableContent,
-  scrollVertically,
+  scrollVerticallyOnMouseNearEdge,
 } from '../../lib/scroll'
 
 interface IDraggableProps {
@@ -42,7 +42,7 @@ export class Draggable extends React.Component<IDraggableProps> {
   // Default offset to place the cursor slightly above the top left corner of
   // the drag element. Note: if placed at (0,0) or cursor is inside the
   // dragElement then elemBelow will always return the dragElement and cannot
-  // detect drop targets.
+  // detect drop targets or scroll elements.
   private verticalOffset: number = __DARWIN__ ? 32 : 15
 
   public componentDidMount() {
@@ -50,6 +50,7 @@ export class Draggable extends React.Component<IDraggableProps> {
   }
 
   public componentWillUnmount() {
+    console.log('umount: timeout cleared')
     window.clearTimeout(this.scrollTimer)
   }
 
@@ -116,19 +117,19 @@ export class Draggable extends React.Component<IDraggableProps> {
       return
     }
 
-    const scrollParent = getScrollParent(this.elemBelow)
-    if (scrollParent === null || !hasScrollableContent(scrollParent)) {
+    const scrollable = getClosestScrollElement(this.elemBelow)
+    if (scrollable === null || !hasScrollableContent(scrollable)) {
       window.clearTimeout(this.scrollTimer)
       return
     }
 
-    this.checkForWindowScroll(scrollParent, moveEvent.clientY)
+    this.checkForWindowScroll(scrollable, moveEvent.clientY)
   }
 
   private checkForWindowScroll = (scrollable: Element, mouseY: number) => {
     window.clearTimeout(this.scrollTimer)
 
-    if (scrollVertically(scrollable, mouseY)) {
+    if (scrollVerticallyOnMouseNearEdge(scrollable, mouseY)) {
       this.scrollTimer = window.setTimeout(() => {
         this.checkForWindowScroll(scrollable, mouseY)
       }, 30)
@@ -140,6 +141,7 @@ export class Draggable extends React.Component<IDraggableProps> {
    */
   private onMouseUp = () => {
     document.removeEventListener('mousemove', this.onMouseMove)
+    window.clearTimeout(this.scrollTimer)
     document.onmouseup = null
     this.props.onRemoveDragElement()
     this.props.onDragEnd(this.isLastElemBelowDropTarget())
