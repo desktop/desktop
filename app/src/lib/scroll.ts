@@ -1,10 +1,12 @@
 const default_scroll_edge = 30
 
 /**
- * Method to scroll elements with scrollbars during a drag event. If the user
- * moves their mouse near to the edge of the scrollable container, then, we
- * want to invoke the scroll so they can access other parts of the scroll area
- * without stopping their drag.
+ * Method to scroll elements based on mouse position. If the user moves their
+ * mouse near to the edge of the scrollable container, then, we want to invoke
+ * the scroll.
+ *
+ * Returns false if mouse is not positioned near the edge of the scroll area or
+ * the the scroll position is already at end of scroll area.
  *
  * Note: This implementation only accounts for vertical scrolling, but
  * horizontal scrolling would just be a matter of the same logic for left and
@@ -34,19 +36,26 @@ export function scrollVerticallyOnMouseNearEdge(
   return false
 }
 
+/**
+ * Scrolls an element up by given scroll distance.
+ * Returns false if already at top limit else true.
+ */
 function scrollUp(scrollable: Element, scrollDistance: number): boolean {
   const limit = 0
   if (scrollable.scrollTop === limit) {
     return false
   }
 
-  console.log('Scroll Up')
   const inBounds = scrollable.scrollTop > scrollDistance
   const scrollTo = inBounds ? scrollable.scrollTop - scrollDistance : limit
   scrollable.scroll({ top: scrollTo, behavior: 'smooth' })
   return true
 }
 
+/**
+ * Scrolls an element up by given scroll distance.
+ * Returns false if already at bottom limit else true.
+ */
 function scrollDown(scrollable: Element, scrollDistance: number): boolean {
   const limit = scrollable.scrollHeight - scrollable.clientHeight
   if (scrollable.scrollTop === limit) {
@@ -59,6 +68,10 @@ function scrollDown(scrollable: Element, scrollDistance: number): boolean {
   return true
 }
 
+/**
+ * Method to determine if an element is scrollable if not finds the closest
+ * parent that is scrollable or returns null.
+ */
 export function getClosestScrollElement(element: Element): Element | null {
   const { position: elemPosition } = getComputedStyle(element)
 
@@ -79,7 +92,7 @@ export function getClosestScrollElement(element: Element): Element | null {
       continue
     }
 
-    if (isScrollable(parent)) {
+    if (isScrollable(parent) && hasScrollableContent(parent)) {
       return parent
     }
   }
@@ -93,6 +106,6 @@ function isScrollable(element: Element): boolean {
   return overflowRegex.test(style.overflow + style.overflowY + style.overflowX)
 }
 
-export function hasScrollableContent(scrollable: Element): boolean {
+function hasScrollableContent(scrollable: Element): boolean {
   return scrollable.clientHeight < scrollable.scrollHeight
 }

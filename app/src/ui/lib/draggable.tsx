@@ -118,20 +118,31 @@ export class Draggable extends React.Component<IDraggableProps> {
     }
 
     const scrollable = getClosestScrollElement(this.elemBelow)
-    if (scrollable === null || !hasScrollableContent(scrollable)) {
+    if (scrollable === null) {
       window.clearTimeout(this.scrollTimer)
       return
     }
 
-    this.checkForWindowScroll(scrollable, moveEvent.clientY)
+    this.initiateScroll(scrollable, moveEvent.clientY)
   }
 
-  private checkForWindowScroll = (scrollable: Element, mouseY: number) => {
+  /**
+   * The scrolling action is wrapped in a continual time out, so that if the
+   * user positions their mouse to edge of the scroll area to invoke the scroll,
+   * and holds their mouse still (mouseMove won't trigger anymore), it will
+   * continue to scroll until it reaches the bottom.
+   *
+   * Note: scrollVerticallyOnMouseNearEdge returns a boolean, true if it scrolls
+   * and false if it doesn't because either it has either reached the end of
+   * the scroll content or the mouse is not in the edge to invoke the scroll
+   * anymore.
+   */
+  private initiateScroll = (scrollable: Element, mouseY: number) => {
     window.clearTimeout(this.scrollTimer)
 
     if (scrollVerticallyOnMouseNearEdge(scrollable, mouseY)) {
       this.scrollTimer = window.setTimeout(() => {
-        this.checkForWindowScroll(scrollable, mouseY)
+        this.initiateScroll(scrollable, mouseY)
       }, 30)
     }
   }
