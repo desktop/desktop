@@ -1,9 +1,5 @@
 import * as React from 'react'
-import {
-  getClosestScrollElement,
-  hasScrollableContent,
-  scrollVerticallyOnMouseNearEdge,
-} from '../../lib/scroll'
+import { mouseScroller } from '../../lib/mouse-scroller'
 
 interface IDraggableProps {
   /**
@@ -38,7 +34,6 @@ export class Draggable extends React.Component<IDraggableProps> {
   private dragStarted: boolean = false
   private dragElement: HTMLElement | null = null
   private elemBelow: Element | null = null
-  private scrollTimer: number | undefined
   // Default offset to place the cursor slightly above the top left corner of
   // the drag element. Note: if placed at (0,0) or cursor is inside the
   // dragElement then elemBelow will always return the dragElement and cannot
@@ -51,7 +46,7 @@ export class Draggable extends React.Component<IDraggableProps> {
 
   public componentWillUnmount() {
     console.log('umount: timeout cleared')
-    window.clearTimeout(this.scrollTimer)
+    mouseScroller.clearScrollTimer()
   }
 
   private canDragCommit(event: React.MouseEvent<HTMLDivElement>): boolean {
@@ -113,38 +108,11 @@ export class Draggable extends React.Component<IDraggableProps> {
     )
 
     if (this.elemBelow === null) {
-      window.clearTimeout(this.scrollTimer)
+      mouseScroller.clearScrollTimer()
       return
     }
 
-    const scrollable = getClosestScrollElement(this.elemBelow)
-    if (scrollable === null) {
-      window.clearTimeout(this.scrollTimer)
-      return
-    }
-
-    this.initiateScroll(scrollable, moveEvent.clientY)
-  }
-
-  /**
-   * The scrolling action is wrapped in a continual time out, so that if the
-   * user positions their mouse to edge of the scroll area to invoke the scroll,
-   * and holds their mouse still (mouseMove won't trigger anymore), it will
-   * continue to scroll until it reaches the bottom.
-   *
-   * Note: scrollVerticallyOnMouseNearEdge returns a boolean, true if it scrolls
-   * and false if it doesn't because either it has either reached the end of
-   * the scroll content or the mouse is not in the edge to invoke the scroll
-   * anymore.
-   */
-  private initiateScroll = (scrollable: Element, mouseY: number) => {
-    window.clearTimeout(this.scrollTimer)
-
-    if (scrollVerticallyOnMouseNearEdge(scrollable, mouseY)) {
-      this.scrollTimer = window.setTimeout(() => {
-        this.initiateScroll(scrollable, mouseY)
-      }, 30)
-    }
+    mouseScroller.setupMouseScroll(this.elemBelow, moveEvent.clientY)
   }
 
   /**
@@ -152,7 +120,7 @@ export class Draggable extends React.Component<IDraggableProps> {
    */
   private onMouseUp = () => {
     document.removeEventListener('mousemove', this.onMouseMove)
-    window.clearTimeout(this.scrollTimer)
+    mouseScroller.clearScrollTimer()
     document.onmouseup = null
     this.props.onRemoveDragElement()
     this.props.onDragEnd(this.isLastElemBelowDropTarget())
