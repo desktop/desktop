@@ -14,6 +14,7 @@
 class MouseScroller {
   private scrollTimer: number | undefined
   private defaultScrollEdge = 30
+  private scrollSpeed = 5
 
   /**
    * If provided element or a parent of that element is scrollable, it starts
@@ -68,17 +69,26 @@ class MouseScroller {
     const distanceFromTop = mouseY - top
 
     if (distanceFromBottom > 0 && distanceFromBottom < this.defaultScrollEdge) {
-      return this.scrollDown(
-        scrollable,
-        this.defaultScrollEdge - distanceFromBottom
-      )
+      const scrollDistance = this.getScrollDistance(distanceFromBottom)
+      return this.scrollDown(scrollable, scrollDistance)
     }
 
     if (distanceFromTop > 0 && distanceFromTop < this.defaultScrollEdge) {
-      return this.scrollUp(scrollable, this.defaultScrollEdge - distanceFromTop)
+      const scrollDistance = this.getScrollDistance(distanceFromTop)
+      return this.scrollUp(scrollable, scrollDistance)
     }
 
     return false
+  }
+
+  /**
+   * Calculate the scroll amount (which in turn is scroll speed). It uses the
+   * distance from the scroll edge to get faster as the user moves their mouse
+   * closer to the edge.
+   */
+  private getScrollDistance(distanceFromScrollEdge: number) {
+    const intensity = this.defaultScrollEdge / distanceFromScrollEdge
+    return this.scrollSpeed * intensity
   }
 
   /**

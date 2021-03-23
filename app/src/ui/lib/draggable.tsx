@@ -44,11 +44,6 @@ export class Draggable extends React.Component<IDraggableProps> {
     this.dragElement = document.getElementById('dragElement')
   }
 
-  public componentWillUnmount() {
-    console.log('umount: timeout cleared')
-    mouseScroller.clearScrollTimer()
-  }
-
   private canDragCommit(event: React.MouseEvent<HTMLDivElement>): boolean {
     // right clicks or shift clicks
     const isSpecialClick =
