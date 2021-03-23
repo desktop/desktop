@@ -1302,8 +1302,8 @@ export class Dispatcher {
     return this.appStore.setStatsOptOut(optOut, userViewedPrompt)
   }
 
-  public markUsageStatsNoteSeen() {
-    this.appStore.markUsageStatsNoteSeen()
+  public moveToApplicationsFolder() {
+    remote.app.moveToApplicationsFolder?.()
   }
 
   /**

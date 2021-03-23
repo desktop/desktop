@@ -50,7 +50,6 @@ export enum PopupType {
   MergeConflicts,
   AbortMerge,
   OversizedFiles,
-  UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
   RebaseFlow,
@@ -69,6 +68,7 @@ export enum PopupType {
   ChooseForkSettings,
   ConfirmDiscardSelection,
   CherryPick,
+  MoveToApplicationsFolder,
 }
 
 export type Popup =
@@ -186,7 +186,6 @@ export type Popup =
       context: ICommitContext
       repository: Repository
     }
-  | { type: PopupType.UsageReportingChanges }
   | {
       type: PopupType.CommitConflictsWarning
       /** files that were selected for committing that are also conflicted */
@@ -276,3 +275,4 @@ export type Popup =
       commits: ReadonlyArray<CommitOneLine>
       sourceBranch: Branch | null
     }
+  | { type: PopupType.MoveToApplicationsFolder }

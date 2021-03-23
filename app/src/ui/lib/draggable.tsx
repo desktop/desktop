@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { mouseScroller } from '../../lib/mouse-scroller'
 
 interface IDraggableProps {
@@ -87,6 +88,7 @@ export class Draggable extends React.Component<IDraggableProps> {
     if (!this.dragStarted) {
       this.props.onRenderDragElement()
       this.props.onDragStart()
+      dragAndDropManager.dragStarted()
       this.dragStarted = true
     }
 
@@ -119,6 +121,7 @@ export class Draggable extends React.Component<IDraggableProps> {
     document.onmouseup = null
     this.props.onRemoveDragElement()
     this.props.onDragEnd(this.isLastElemBelowDropTarget())
+    dragAndDropManager.dragEnded()
   }
 
   /**

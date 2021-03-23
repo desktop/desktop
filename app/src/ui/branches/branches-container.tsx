@@ -147,6 +147,7 @@ export class BranchesContainer extends React.Component<
       <TabBar
         onTabClicked={this.onTabClicked}
         selectedIndex={this.props.selectedTab}
+        allowDragOverSwitching={true}
       >
         <span>Branches</span>
         <span className="pull-request-tab">
