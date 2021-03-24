@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { mouseScroller } from '../../lib/mouse-scroller'
 
 interface IDraggableProps {
   /**
@@ -37,7 +38,7 @@ export class Draggable extends React.Component<IDraggableProps> {
   // Default offset to place the cursor slightly above the top left corner of
   // the drag element. Note: if placed at (0,0) or cursor is inside the
   // dragElement then elemBelow will always return the dragElement and cannot
-  // detect drop targets.
+  // detect drop targets or scroll elements.
   private verticalOffset: number = __DARWIN__ ? 32 : 15
 
   public componentDidMount() {
@@ -102,6 +103,13 @@ export class Draggable extends React.Component<IDraggableProps> {
       moveEvent.clientX,
       moveEvent.clientY
     )
+
+    if (this.elemBelow === null) {
+      mouseScroller.clearScrollTimer()
+      return
+    }
+
+    mouseScroller.setupMouseScroll(this.elemBelow, moveEvent.clientY)
   }
 
   /**
@@ -109,6 +117,7 @@ export class Draggable extends React.Component<IDraggableProps> {
    */
   private onMouseUp = () => {
     document.removeEventListener('mousemove', this.onMouseMove)
+    mouseScroller.clearScrollTimer()
     document.onmouseup = null
     this.props.onRemoveDragElement()
     this.props.onDragEnd(this.isLastElemBelowDropTarget())
