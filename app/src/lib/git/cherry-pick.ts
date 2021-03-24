@@ -19,6 +19,10 @@ import byline from 'byline'
 import { ICherryPickSnapshot } from '../../models/cherry-pick'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import {
+  parseConflictModifyDeleteCommitSummary,
+  parseConflictModifyDeleteFiles,
+} from '../../ui/lib/parse-conflict-modify-delete-files'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -133,7 +137,10 @@ export async function cherryPick(
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
   let baseOptions: IGitExecutionOptions = {
-    expectedErrors: new Set([GitError.MergeConflicts]),
+    expectedErrors: new Set([
+      GitError.MergeConflicts,
+      GitError.ConflictModifyDeletedInBranch,
+    ]),
   }
 
   if (progressCallback !== undefined) {
@@ -187,9 +194,21 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
       return CherryPickResult.ConflictsEncountered
     case GitError.UnresolvedConflicts:
       return CherryPickResult.OutstandingFilesNotStaged
+    case GitError.ConflictModifyDeletedInBranch:
+      throw new Error(parseConflictModifyDeleteFilesError(result))
     default:
       throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
   }
+}
+
+function parseConflictModifyDeleteFilesError(result: IGitResult): string {
+  const files = parseConflictModifyDeleteFiles(result.stdout)
+  const commitSummary = parseConflictModifyDeleteCommitSummary(result.stdout)
+  let error = `Cherry-pick failed. The commit with summary '${commitSummary}' modifies one or more files that does not exist on the target branch.`
+  files.forEach(file => {
+    error = error + '\n' + file
+  })
+  return error
 }
 
 /**
@@ -354,6 +373,7 @@ export async function continueCherryPick(
     expectedErrors: new Set([
       GitError.MergeConflicts,
       GitError.UnresolvedConflicts,
+      GitError.ConflictModifyDeletedInBranch,
     ]),
     env: {
       // if we don't provide editor, we can't detect git errors
