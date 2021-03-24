@@ -1,6 +1,6 @@
 /**
  * The mouse scroller was built in conjunction with the drag functionality.
- * It purpose is to provide the ability to scroll a scrollable element when
+ * Its purpose is to provide the ability to scroll a scrollable element when
  * the mouse gets close to the scrollable elements edge.
  *
  * Thus, it is built on the premise that we are providing it a scrollable
