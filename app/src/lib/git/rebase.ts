@@ -234,7 +234,7 @@ export async function getRebaseSnapshot(
     const hasValidCommit =
       commits.length > 0 &&
       nextCommitIndex >= 0 &&
-      nextCommitIndex <= commits.length
+      nextCommitIndex < commits.length
 
     const currentCommitSummary = hasValidCommit
       ? commits[nextCommitIndex].summary
