@@ -113,7 +113,7 @@ class MouseScroller {
    */
   private scrollDown(scrollable: Element, scrollDistance: number): boolean {
     const limit = scrollable.scrollHeight - scrollable.clientHeight
-    if (scrollable.scrollTop === limit) {
+    if (scrollable.scrollTop >= limit) {
       return false
     }
 
