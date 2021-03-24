@@ -408,6 +408,8 @@ function getDescriptionForError(error: DugiteError): string | null {
       return 'A tag with that name already exists'
     case DugiteError.MergeWithLocalChanges:
     case DugiteError.RebaseWithLocalChanges:
+    case DugiteError.GPGFailedToSignData:
+    case DugiteError.ConflictModifyDeletedInBranch:
       return null
     case DugiteError.MergeCommitNoMainlineOption:
       // Note: This has been made specific to cherry pick, but this error can
