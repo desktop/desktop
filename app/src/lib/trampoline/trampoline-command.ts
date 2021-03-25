@@ -22,6 +22,17 @@ export interface ITrampolineCommand {
 
   /** Environment variables that were set when the command was invoked. */
   readonly environmentVariables: ReadonlyMap<string, string>
+
+  /**
+   * Data received from the standard input, if any. Otherwise, it's undefined.
+   */
+  readonly stdin: string | undefined
+}
+
+/** Represents the output of a command, with both stdout and stderr. */
+export type TrampolineCommandOutput = {
+  readonly stdout: string
+  readonly stderr: string
 }
 
 /**
@@ -34,4 +45,4 @@ export interface ITrampolineCommand {
  */
 export type TrampolineCommandHandler = (
   command: ITrampolineCommand
-) => Promise<string | undefined>
+) => Promise<TrampolineCommandOutput | undefined>

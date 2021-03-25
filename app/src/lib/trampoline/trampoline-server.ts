@@ -173,10 +173,22 @@ export class TrampolineServer {
     const result = await handler(command)
 
     if (result !== undefined) {
-      socket.end(result)
-    } else {
-      socket.end()
+      // We need 2 bytes to store a 16-bit integer
+      const lengthBuffer = Buffer.alloc(2, 0)
+
+      // This assumes the trampoline will be run only in little-endian machines.
+      // If we ever supported big-endian architectures (unlikely), we'd need to
+      // revisit this (or the trampoline).
+      lengthBuffer.writeUInt16LE(result.stdout.length, 0)
+      socket.write(lengthBuffer)
+      socket.write(result.stdout)
+
+      lengthBuffer.writeUInt16LE(result.stderr.length, 0)
+      socket.write(lengthBuffer)
+      socket.write(result.stderr)
     }
+
+    socket.end()
   }
 
   private onServerError = (error: Error) => {

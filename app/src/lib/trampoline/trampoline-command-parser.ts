@@ -9,6 +9,7 @@ enum TrampolineCommandParserState {
   Parameters,
   EnvironmentVariablesCount,
   EnvironmentVariables,
+  Stdin,
   Finished,
 }
 
@@ -21,6 +22,7 @@ export class TrampolineCommandParser {
   private readonly parameters: string[] = []
   private environmentVariablesCount: number = 0
   private readonly environmentVariables = new Map<string, string>()
+  private stdin: string | undefined = undefined
 
   private state: TrampolineCommandParserState =
     TrampolineCommandParserState.ParameterCount
@@ -62,7 +64,7 @@ export class TrampolineCommandParser {
         if (this.environmentVariablesCount > 0) {
           this.state = TrampolineCommandParserState.EnvironmentVariables
         } else {
-          this.state = TrampolineCommandParserState.Finished
+          this.state = TrampolineCommandParserState.Stdin
         }
 
         break
@@ -85,8 +87,15 @@ export class TrampolineCommandParser {
         this.environmentVariables.set(variableKey, variableValue)
 
         if (this.environmentVariables.size === this.environmentVariablesCount) {
-          this.state = TrampolineCommandParserState.Finished
+          this.state = TrampolineCommandParserState.Stdin
         }
+        break
+
+      case TrampolineCommandParserState.Stdin:
+        if (value.length > 0) {
+          this.stdin = value
+        }
+        this.state = TrampolineCommandParserState.Finished
         break
 
       default:
@@ -130,6 +139,7 @@ export class TrampolineCommandParser {
       identifier,
       parameters: this.parameters,
       environmentVariables: this.environmentVariables,
+      stdin: this.stdin,
     }
   }
 }

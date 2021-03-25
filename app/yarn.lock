@@ -311,9 +311,9 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-trampoline@desktop/desktop-trampoline#v0.9.4:
+desktop-trampoline@desktop/desktop-trampoline#e63974e72463401f2dc0708b564adcba7830e67d:
   version "0.9.4"
-  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/7eabea0f1a3f8432307719a1bd16d1ffde2bf6f6"
+  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/e63974e72463401f2dc0708b564adcba7830e67d"
 
 detect-libc@^1.0.3:
   version "1.0.3"

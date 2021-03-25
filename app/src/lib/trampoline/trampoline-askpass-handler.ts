@@ -13,7 +13,7 @@ export const askpassTrampolineHandler: TrampolineCommandHandler = async command 
   }
 
   if (command.parameters[0].startsWith('Username')) {
-    return username
+    return { stdout: username, stderr: '' }
   } else if (command.parameters[0].startsWith('Password')) {
     const endpoint = command.environmentVariables.get('DESKTOP_ENDPOINT')
     if (endpoint === undefined || endpoint.length === 0) {
@@ -22,7 +22,11 @@ export const askpassTrampolineHandler: TrampolineCommandHandler = async command 
 
     const key = getKeyForEndpoint(endpoint)
     const token = await TokenStore.getItem(key, username)
-    return token ?? undefined
+    if (token === null) {
+      return undefined
+    }
+
+    return { stdout: token, stderr: '' }
   }
 
   return undefined
