@@ -78,11 +78,14 @@ function migrateAutomaticallySwitchSetting(): string | null {
 // in localStorage.
 const applicationThemeKey = 'theme'
 
+/**
+ * Returns User's theme preference or 'system' if not set or parsable
+ */
 function getApplicationThemeSetting(): 'light' | 'dark' | 'system' {
   const themeSetting = localStorage.getItem(applicationThemeKey)
 
   if (themeSetting === null) {
-    return remote.nativeTheme.themeSource
+    return 'system'
   }
 
   if (
@@ -99,7 +102,7 @@ function getApplicationThemeSetting(): 'light' | 'dark' | 'system' {
 /**
  * Load the name of the currently selected theme
  */
- export function getCurrentlyAppliedTheme(): ApplicableTheme {
+export function getCurrentlyAppliedTheme(): ApplicableTheme {
   return isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
 }
 
@@ -110,14 +113,10 @@ export function getPersistedThemeName(): string {
   const setting = migrateAutomaticallySwitchSetting()
 
   if (setting === 'system') {
-    remote.nativeTheme.themeSource = setting
     return setting
   }
 
-  const themeSetting = getApplicationThemeSetting()
-  remote.nativeTheme.themeSource = themeSetting
-
-  return themeSetting
+  return getApplicationThemeSetting()
 }
 
 /**
