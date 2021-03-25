@@ -128,7 +128,7 @@ export class CherryPickConflictsDialog extends React.Component<
 
     const {
       manualResolutions,
-      targetBranchName: theirBranch,
+      targetBranchName: ourBranch,
     } = step.conflictState
 
     return (
@@ -143,9 +143,9 @@ export class CherryPickConflictsDialog extends React.Component<
                 repository,
                 dispatcher,
                 manualResolution: manualResolutions.get(f.path),
-                theirBranch,
-                ourBranch:
+                theirBranch:
                   sourceBranchName !== null ? sourceBranchName : undefined,
+                ourBranch,
               })
             : null
         )}

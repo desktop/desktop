@@ -5,6 +5,7 @@ import {
   ConflictedFileStatus,
   ConflictsWithMarkers,
   ManualConflict,
+  GitStatusEntry,
 } from '../../../models/status'
 import { join } from 'path'
 import { Repository } from '../../../models/repository'
@@ -163,11 +164,16 @@ const renderManualConflictedFile: React.FunctionComponent<{
     props.theirBranch
   )
 
+  const conflictTypeString =
+    props.status.entry.us === GitStatusEntry.Deleted
+      ? 'File does not exist in target branch.'
+      : manualConflictString
+
   const content = (
     <>
       <div className="column-left">
         <PathText path={props.path} />
-        <div className="file-conflicts-status">{manualConflictString}</div>
+        <div className="file-conflicts-status">{conflictTypeString}</div>
       </div>
       <div className="action-buttons">
         <Button
