@@ -71,19 +71,6 @@ export class DiffOptions extends React.Component<
     })
   }
 
-  public componentWillUnmount() {
-    document.removeEventListener('mousedown', this.onDocumentMouseDown)
-  }
-
-  private onDocumentMouseDown = (event: MouseEvent) => {
-    const { current: ref } = this.diffOptionsRef
-    const { target } = event
-
-    if (ref !== null && target instanceof Node && !ref.contains(target)) {
-      this.closePopover()
-    }
-  }
-
   private onHideWhitespaceChangesChanged = async (
     event: React.FormEvent<HTMLInputElement>
   ) => {
