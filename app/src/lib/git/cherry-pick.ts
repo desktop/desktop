@@ -183,6 +183,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
   }
 
   switch (result.gitError) {
+    case GitError.ConflictModifyDeletedInBranch:
     case GitError.MergeConflicts:
       return CherryPickResult.ConflictsEncountered
     case GitError.UnresolvedConflicts:
