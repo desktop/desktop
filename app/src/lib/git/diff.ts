@@ -144,7 +144,14 @@ export async function getWorkingDirectoryDiff(
 ): Promise<IDiff> {
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
-  const args = ['diff', ...(hideWhitespaceInDiff ? ['-w'] : []), '--no-ext-diff', '--patch-with-raw', '-z', '--no-color']
+  const args = [
+    'diff',
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--no-ext-diff',
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+  ]
   const successExitCodes = new Set([0])
 
   if (
