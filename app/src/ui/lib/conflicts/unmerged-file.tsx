@@ -165,7 +165,8 @@ const renderManualConflictedFile: React.FunctionComponent<{
   )
 
   const conflictTypeString =
-    props.status.entry.us === GitStatusEntry.Deleted
+    props.status.entry.us === GitStatusEntry.Deleted ||
+    props.status.entry.them === GitStatusEntry.Deleted
       ? 'File does not exist in target branch.'
       : manualConflictString
 

@@ -173,7 +173,6 @@ function parseUntrackedEntry(field: string): IStatusEntry {
  * Map the raw status text from Git to a structure we can work with in the app.
  */
 export function mapStatus(status: string): FileEntry {
-  console.log(status)
   if (status === '??') {
     return {
       kind: 'untracked',
