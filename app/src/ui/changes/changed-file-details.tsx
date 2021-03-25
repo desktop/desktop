@@ -6,6 +6,7 @@ import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
 import { mapStatus } from '../../lib/status'
 import { enableSideBySideDiffs } from '../../lib/feature-flag'
 import { DiffOptions } from '../diff/diff-options'
+import { RepositorySectionTab } from '../../lib/app-state'
 
 interface IChangedFileDetailsProps {
   readonly path: string
@@ -44,6 +45,7 @@ export class ChangedFileDetails extends React.Component<
 
         {enableSideBySideDiffs() && (
           <DiffOptions
+            sourceTab={RepositorySectionTab.Changes}
             onHideWhitespaceChangesChanged={
               this.props.onHideWhitespaceInDiffChanged
             }

@@ -17,6 +17,7 @@ import {
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
+import { RepositorySectionTab } from '../../lib/app-state'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -374,24 +375,23 @@ export class CommitSummary extends React.Component<
             )}
 
             {enableSideBySideDiffs() && (
-              <>
-                <li
-                  className="commit-summary-meta-item without-truncation"
-                  title="Split View"
-                >
-                  <DiffOptions
-                    onHideWhitespaceChangesChanged={
-                      this.props.onHideWhitespaceInDiffChanged
-                    }
-                    hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                    showSideBySideDiff={this.props.showSideBySideDiff}
-                    onShowSideBySideDiffChanged={
-                      this.props.onShowSideBySideDiffChanged
-                    }
-                    onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-                  />
-                </li>
-              </>
+              <li
+                className="commit-summary-meta-item without-truncation"
+                title="Diff Options"
+              >
+                <DiffOptions
+                  sourceTab={RepositorySectionTab.History}
+                  hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                  onHideWhitespaceChangesChanged={
+                    this.props.onHideWhitespaceInDiffChanged
+                  }
+                  showSideBySideDiff={this.props.showSideBySideDiff}
+                  onShowSideBySideDiffChanged={
+                    this.props.onShowSideBySideDiffChanged
+                  }
+                  onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+                />
+              </li>
             )}
           </ul>
         </div>
