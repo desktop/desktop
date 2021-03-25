@@ -1469,6 +1469,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="create-repository"
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
+            accounts={this.state.accounts}
+            commitSigningEnabled={this.state.commitSigningEnabled}
             initialPath={popup.path}
           />
         )

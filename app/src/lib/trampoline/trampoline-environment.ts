@@ -1,5 +1,8 @@
+import * as Path from 'path'
+import { getDesktopTrampolineFilename } from 'desktop-trampoline'
 import { IGitAccount } from '../../models/git-account'
 import { envForRemoteOperation } from '../git/environment'
+import { TrampolineCommandIdentifier } from './trampoline-command'
 import { trampolineServer } from './trampoline-server'
 import { withTrampolineToken } from './trampoline-tokens'
 
@@ -36,5 +39,36 @@ export async function withTrampolineEnvForRemoteOperation<T>(
       DESKTOP_PORT: await trampolineServer.getPort(),
       DESKTOP_TRAMPOLINE_TOKEN: token,
     })
+  )
+}
+
+export async function withTrampolineEnvForCommitSigning<T>(
+  account: IGitAccount | null,
+  fn: (
+    configArgs: ReadonlyArray<string>,
+    signArgs: ReadonlyArray<string>,
+    env: Object
+  ) => Promise<T>
+): Promise<T> {
+  if (account === null) {
+    return fn([], [], {})
+  }
+
+  return withTrampolineToken(async token =>
+    fn(['-c', `gpg.program=${getDesktopTrampolinePath()}`], ['--gpg-sign'], {
+      DESKTOP_USERNAME: account.login,
+      DESKTOP_ENDPOINT: account.endpoint,
+      DESKTOP_PORT: await trampolineServer.getPort(),
+      DESKTOP_TRAMPOLINE_TOKEN: token,
+      DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.GPG,
+    })
+  )
+}
+
+function getDesktopTrampolinePath(): string {
+  return Path.resolve(
+    __dirname,
+    'desktop-trampoline',
+    getDesktopTrampolineFilename()
   )
 }

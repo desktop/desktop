@@ -9,6 +9,8 @@ import { MergeTreeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
 import { parseMergeTreeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
+import { IGitAccount } from '../../models/git-account'
+import { withTrampolineEnvForCommitSigning } from '../trampoline/trampoline-environment'
 
 export enum MergeResult {
   /** The merge completed successfully */
@@ -27,15 +29,21 @@ export enum MergeResult {
 /** Merge the named branch into the current branch. */
 export async function merge(
   repository: Repository,
+  account: IGitAccount | null,
   branch: string
 ): Promise<MergeResult> {
-  const { exitCode, stdout } = await git(
-    ['merge', branch],
-    repository.path,
-    'merge',
-    {
-      expectedErrors: new Set([GitError.MergeConflicts]),
-    }
+  const { exitCode, stdout } = await withTrampolineEnvForCommitSigning(
+    account,
+    (configArgs, signArgs, env) =>
+      git(
+        [...configArgs, 'merge', ...signArgs, branch],
+        repository.path,
+        'merge',
+        {
+          expectedErrors: new Set([GitError.MergeConflicts]),
+          env,
+        }
+      )
   )
 
   if (exitCode !== 0) {

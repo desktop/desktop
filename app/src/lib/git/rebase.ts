@@ -32,6 +32,8 @@ import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsBetweenCommits } from './rev-list'
 import { Branch } from '../../models/branch'
+import { withTrampolineEnvForCommitSigning } from '../trampoline/trampoline-environment'
+import { IGitAccount } from '../../models/git-account'
 
 /** The app-specific results from attempting to rebase a repository */
 export enum RebaseResult {
@@ -357,6 +359,7 @@ function configureOptionsForRebase(
  */
 export async function rebase(
   repository: Repository,
+  account: IGitAccount | null,
   baseBranch: Branch,
   targetBranch: Branch,
   progressCallback?: (progress: IRebaseProgress) => void
@@ -390,11 +393,22 @@ export async function rebase(
     })
   }
 
-  const result = await git(
-    [...gitRebaseArguments(), 'rebase', baseBranch.name, targetBranch.name],
-    repository.path,
-    'rebase',
-    options
+  const result = await withTrampolineEnvForCommitSigning(
+    account,
+    (configArgs, signArgs, env) =>
+      git(
+        [
+          ...gitRebaseArguments(),
+          ...configArgs,
+          'rebase',
+          ...signArgs,
+          baseBranch.name,
+          targetBranch.name,
+        ],
+        repository.path,
+        'rebase',
+        { ...options, env: merge(options.env, env) }
+      )
   )
 
   return parseRebaseResult(result)
@@ -431,6 +445,7 @@ function parseRebaseResult(result: IGitResult): RebaseResult {
  */
 export async function continueRebase(
   repository: Repository,
+  account: IGitAccount | null,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
   progressCallback?: (progress: IRebaseProgress) => void
@@ -500,26 +515,37 @@ export async function continueRebase(
     })
   }
 
-  if (trackedFilesAfter.length === 0) {
-    log.warn(
-      `[rebase] no tracked changes to commit for ${rebaseCurrentCommit}, continuing rebase but skipping this commit`
-    )
+  const result = await withTrampolineEnvForCommitSigning(
+    account,
+    (configArgs, signArgs, env) => {
+      const commitSigningOptions = {
+        ...options,
+        env: merge(options.env, env),
+      }
 
-    const result = await git(
-      ['rebase', '--skip'],
-      repository.path,
-      'continueRebaseSkipCurrentCommit',
-      options
-    )
+      // The signing arguments are not used here on purpose, since they're only
+      // needed when the rebase is started.
 
-    return parseRebaseResult(result)
-  }
+      if (trackedFilesAfter.length === 0) {
+        log.warn(
+          `[rebase] no tracked changes to commit for ${rebaseCurrentCommit}, continuing rebase but skipping this commit`
+        )
 
-  const result = await git(
-    ['rebase', '--continue'],
-    repository.path,
-    'continueRebase',
-    options
+        return git(
+          [...configArgs, 'rebase', '--skip'],
+          repository.path,
+          'continueRebaseSkipCurrentCommit',
+          commitSigningOptions
+        )
+      }
+
+      return git(
+        [...configArgs, 'rebase', '--continue'],
+        repository.path,
+        'continueRebase',
+        commitSigningOptions
+      )
+    }
   )
 
   return parseRebaseResult(result)

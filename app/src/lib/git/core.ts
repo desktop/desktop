@@ -395,6 +395,8 @@ function getDescriptionForError(error: DugiteError): string | null {
       return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
     case DugiteError.UnresolvedConflicts:
       return 'There are unresolved conflicts in the working directory.'
+    case DugiteError.GPGFailedToSignData:
+      return 'Unable to sign the commit data.'
     case DugiteError.ConfigLockFileAlreadyExists:
       // Added in dugite 1.88.0 (https://github.com/desktop/dugite/pull/386)
       // in support of https://github.com/desktop/desktop/issues/8675 but we're
@@ -408,7 +410,6 @@ function getDescriptionForError(error: DugiteError): string | null {
       return 'A tag with that name already exists'
     case DugiteError.MergeWithLocalChanges:
     case DugiteError.RebaseWithLocalChanges:
-    case DugiteError.GPGFailedToSignData:
     case DugiteError.ConflictModifyDeletedInBranch:
       return null
     case DugiteError.MergeCommitNoMainlineOption:

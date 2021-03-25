@@ -30,6 +30,8 @@ import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
 import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { getAccountForRepository } from '../../lib/get-account-for-repository'
+import { Account } from '../../models/account'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -44,6 +46,8 @@ const NoLicenseValue: ILicense = {
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly accounts: ReadonlyArray<Account>
+  readonly commitSigningEnabled: boolean
   readonly onDismissed: () => void
 
   /** Prefills path input so user doesn't have to. */
@@ -331,7 +335,15 @@ export class CreateRepository extends React.Component<
       const wd = status.workingDirectory
       const files = wd.files
       if (files.length > 0) {
-        await createCommit(repository, 'Initial commit', files)
+        const committerAccount = this.props.commitSigningEnabled
+          ? getAccountForRepository(this.props.accounts, repository)
+          : null
+        await createCommit(
+          repository,
+          committerAccount,
+          'Initial commit',
+          files
+        )
       }
     } catch (e) {
       log.error(`createRepository: initial commit failed at ${fullPath}`, e)

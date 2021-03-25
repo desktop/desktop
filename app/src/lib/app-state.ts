@@ -208,6 +208,9 @@ export interface IAppState {
   /** Whether we should show side by side diffs */
   readonly showSideBySideDiff: boolean
 
+  /** Whether we should enable commit signing */
+  readonly commitSigningEnabled: boolean
+
   /** The user's preferred shell. */
   readonly selectedShell: Shell
 

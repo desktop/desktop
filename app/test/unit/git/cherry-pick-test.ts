@@ -55,7 +55,7 @@ describe('git/cherry-pick', () => {
   })
 
   it('successfully cherry-picked one commit without conflicts', async () => {
-    result = await cherryPick(repository, featureBranch.tip.sha)
+    result = await cherryPick(repository, null, featureBranch.tip.sha)
     const cherryPickedCommit = await getCommit(
       repository,
       featureBranch.tip.sha
@@ -88,7 +88,7 @@ describe('git/cherry-pick', () => {
     )
     expect(emptyMessageCommit?.summary).toBe('')
 
-    result = await cherryPick(repository, featureBranch.tip.sha)
+    result = await cherryPick(repository, null, featureBranch.tip.sha)
 
     const commits = await getCommits(repository, targetBranch.ref, 5)
     expect(commits.length).toBe(2)
@@ -97,13 +97,13 @@ describe('git/cherry-pick', () => {
   })
 
   it('successfully cherry-picks a redundant commit', async () => {
-    result = await cherryPick(repository, featureBranch.tip.sha)
+    result = await cherryPick(repository, null, featureBranch.tip.sha)
 
     const commits = await getCommits(repository, targetBranch.ref, 5)
     expect(commits.length).toBe(2)
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
 
-    result = await cherryPick(repository, featureBranch.tip.sha)
+    result = await cherryPick(repository, null, featureBranch.tip.sha)
 
     const commitsAfterRedundant = await getCommits(
       repository,
@@ -125,7 +125,7 @@ describe('git/cherry-pick', () => {
     featureBranch = await getBranchOrError(repository, featureBranchName)
     await switchTo(repository, targetBranchName)
 
-    result = await cherryPick(repository, featureBranch.tip.sha)
+    result = await cherryPick(repository, null, featureBranch.tip.sha)
 
     const commits = await getCommits(repository, targetBranch.ref, 5)
     expect(commits.length).toBe(2)
@@ -159,7 +159,7 @@ describe('git/cherry-pick', () => {
 
     // cherry picking 3 (on added in setup, empty, featureBranchCommitTwo)
     const commitRange = revRangeInclusive(firstCommitSha, featureBranch.tip.sha)
-    result = await cherryPick(repository, commitRange)
+    result = await cherryPick(repository, null, commitRange)
 
     const commits = await getCommits(repository, targetBranch.ref, 5)
     expect(commits.length).toBe(4) // original commit + 4 cherry picked
@@ -175,7 +175,7 @@ describe('git/cherry-pick', () => {
     await switchTo(repository, targetBranchName)
 
     const commitRange = revRangeInclusive(firstCommitSha, featureBranch.tip.sha)
-    result = await cherryPick(repository, commitRange)
+    result = await cherryPick(repository, null, commitRange)
 
     const commits = await getCommits(repository, targetBranch.ref, 5)
     expect(commits.length).toBe(5)
@@ -187,7 +187,7 @@ describe('git/cherry-pick', () => {
   it('fails to cherry-pick an invalid revision range', async () => {
     result = null
     try {
-      result = await cherryPick(repository, 'no such revision')
+      result = await cherryPick(repository, null, 'no such revision')
     } catch (error) {
       expect(error.toString()).toContain('Bad revision')
     }
@@ -207,7 +207,7 @@ describe('git/cherry-pick', () => {
     // No need to add dugite errors to handle it.
     result = null
     try {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
     } catch (error) {
       expect(error.toString()).toContain(
         'The following untracked working tree files would be overwritten by merge'
@@ -234,7 +234,9 @@ describe('git/cherry-pick', () => {
     await makeCommit(repository, mergeCommit)
     const mergeBranch = await getBranchOrError(repository, mergeBranchName)
     await switchTo(repository, featureBranchName)
-    expect(await merge(repository, mergeBranch.ref)).toBe(MergeResult.Success)
+    expect(await merge(repository, null, mergeBranch.ref)).toBe(
+      MergeResult.Success
+    )
 
     // top commit is a merge commit
     const commits = await getCommits(repository, featureBranch.ref, 7)
@@ -245,7 +247,7 @@ describe('git/cherry-pick', () => {
 
     result = null
     try {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
     } catch (error) {
       expect(error.toString()).toContain(
         'GitError: You cannot cherry-pick merge commits from GitHub Desktop.'
@@ -273,7 +275,7 @@ describe('git/cherry-pick', () => {
     })
 
     it('successfully detects cherry-pick with conflicts', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
       const status = await getStatusOrThrow(repository)
@@ -284,7 +286,7 @@ describe('git/cherry-pick', () => {
     })
 
     it('successfully continues cherry-picking with conflicts after resolving them by overwriting', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
       const statusAfterCherryPick = await getStatusOrThrow(repository)
@@ -311,13 +313,13 @@ describe('git/cherry-pick', () => {
       )
       expect(diffCheckAfter.exitCode).toEqual(0)
 
-      result = await continueCherryPick(repository, files)
+      result = await continueCherryPick(repository, null, files)
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
 
     it('successfully continues cherry-picking with conflicts after resolving them manually', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
       const statusAfterCherryPick = await getStatusOrThrow(repository)
@@ -339,13 +341,18 @@ describe('git/cherry-pick', () => {
         }
       }
 
-      result = await continueCherryPick(repository, files, manualResolutions)
+      result = await continueCherryPick(
+        repository,
+        null,
+        files,
+        manualResolutions
+      )
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
 
     it('successfully continues cherry-picking with conflicts after resolving them manually and no changes to commit', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
       const statusAfterCherryPick = await getStatusOrThrow(repository)
@@ -367,16 +374,21 @@ describe('git/cherry-pick', () => {
         }
       }
 
-      result = await continueCherryPick(repository, files, manualResolutions)
+      result = await continueCherryPick(
+        repository,
+        null,
+        files,
+        manualResolutions
+      )
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
 
     it('successfully detects cherry-picking with outstanding files not staged', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
-      result = await continueCherryPick(repository, [])
+      result = await continueCherryPick(repository, null, [])
       expect(result).toBe(CherryPickResult.OutstandingFilesNotStaged)
 
       const status = await getStatusOrThrow(repository)
@@ -387,7 +399,7 @@ describe('git/cherry-pick', () => {
     })
 
     it('successfully continues cherry-picking with additional changes to untracked files', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
       // resolve conflicts by writing files to disk
@@ -408,7 +420,7 @@ describe('git/cherry-pick', () => {
       // THING.MD and UNTRACKED_FILE.md should be in working directory
       expect(files.length).toBe(2)
 
-      result = await continueCherryPick(repository, files)
+      result = await continueCherryPick(repository, null, files)
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
 
       // Only UNTRACKED_FILE.md should be in working directory
@@ -418,7 +430,7 @@ describe('git/cherry-pick', () => {
     })
 
     it('successfully aborts cherry-pick after conflict', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha)
+      result = await cherryPick(repository, null, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
       // files from cherry pick exist in conflicted state
@@ -441,14 +453,14 @@ describe('git/cherry-pick', () => {
 
     it('errors when given invalid revision range', async () => {
       const progress = new Array<ICherryPickProgress>()
-      result = await cherryPick(repository, 'INVALID REF', p =>
+      result = await cherryPick(repository, null, 'INVALID REF', p =>
         progress.push(p)
       )
       expect(result).toBe(CherryPickResult.UnableToStart)
     })
 
     it('successfully parses progress for a single commit', async () => {
-      result = await cherryPick(repository, featureBranch.tip.sha, p =>
+      result = await cherryPick(repository, null, featureBranch.tip.sha, p =>
         progress.push(p)
       )
 
@@ -476,7 +488,9 @@ describe('git/cherry-pick', () => {
         firstCommitSha,
         featureBranch.tip.sha
       )
-      result = await cherryPick(repository, commitRange, p => progress.push(p))
+      result = await cherryPick(repository, null, commitRange, p =>
+        progress.push(p)
+      )
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
       expect(progress).toHaveLength(4)
@@ -506,7 +520,9 @@ describe('git/cherry-pick', () => {
         firstCommitSha,
         featureBranch.tip.sha
       )
-      result = await cherryPick(repository, commitRange, p => progress.push(p))
+      result = await cherryPick(repository, null, commitRange, p =>
+        progress.push(p)
+      )
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
       // First commit and second cherry picked and rest are waiting on conflict
       // resolution.
@@ -522,7 +538,7 @@ describe('git/cherry-pick', () => {
         Path.join(repository.path, 'THING_THREE.md'),
         '# Resolve conflicts!'
       )
-      result = await continueCherryPick(repository, files, new Map(), p =>
+      result = await continueCherryPick(repository, null, files, new Map(), p =>
         progress.push(p)
       )
       expect(result).toBe(CherryPickResult.CompletedWithoutError)

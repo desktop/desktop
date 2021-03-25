@@ -19,6 +19,8 @@ import byline from 'byline'
 import { ICherryPickSnapshot } from '../../models/cherry-pick'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { withTrampolineEnvForCommitSigning } from '../trampoline/trampoline-environment'
+import { IGitAccount } from '../../models/git-account'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -129,6 +131,7 @@ function configureOptionsWithCallBack(
  */
 export async function cherryPick(
   repository: Repository,
+  account: IGitAccount | null,
   revisionRange: string,
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
@@ -167,11 +170,24 @@ export async function cherryPick(
   // picked commit summaries appear in target branch history even tho they may
   // be empty. This flag also results in the ability to cherry pick empty
   // commits (thus, --allow-empty is not required.)
-  const result = await git(
-    ['cherry-pick', revisionRange, '--keep-redundant-commits'],
-    repository.path,
-    'cherry-pick',
-    baseOptions
+  const result = await withTrampolineEnvForCommitSigning(
+    account,
+    (configArgs, signArgs, env) =>
+      git(
+        [
+          ...configArgs,
+          'cherry-pick',
+          ...signArgs,
+          revisionRange,
+          '--keep-redundant-commits',
+        ],
+        repository.path,
+        'cherry-pick',
+        {
+          ...baseOptions,
+          env: merge(baseOptions.env, env),
+        }
+      )
   )
 
   return parseCherryPickResult(result)
@@ -312,6 +328,7 @@ export async function getCherryPickSnapshot(
  */
 export async function continueCherryPick(
   repository: Repository,
+  account: IGitAccount | null,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
   progressCallback?: (progress: ICherryPickProgress) => void
@@ -387,11 +404,18 @@ export async function continueCherryPick(
 
     // This commits the empty commit so that the cherry picked commit still
     // shows up in the target branches history.
-    const result = await git(
-      ['commit', '--allow-empty'],
-      repository.path,
-      'continueCherryPickSkipCurrentCommit',
-      options
+    const result = await withTrampolineEnvForCommitSigning(
+      account,
+      (configArgs, signArgs, env) =>
+        git(
+          [...configArgs, 'commit', ...signArgs, '--allow-empty'],
+          repository.path,
+          'continueCherryPickSkipCurrentCommit',
+          {
+            ...options,
+            env: merge(options.env, env),
+          }
+        )
     )
 
     return parseCherryPickResult(result)
@@ -401,11 +425,25 @@ export async function continueCherryPick(
   // picked commit summaries appear in target branch history even tho they may
   // be empty. This flag also results in the ability to cherry pick empty
   // commits (thus, --allow-empty is not required.)
-  const result = await git(
-    ['cherry-pick', '--continue', '--keep-redundant-commits'],
-    repository.path,
-    'continueCherryPick',
-    options
+  // The signing arguments are not used here on purpose, since they're only
+  // needed when the rebase is started.
+  const result = await withTrampolineEnvForCommitSigning(
+    account,
+    (configArgs, signArgs, env) =>
+      git(
+        [
+          ...configArgs,
+          'cherry-pick',
+          '--continue',
+          '--keep-redundant-commits',
+        ],
+        repository.path,
+        'continueCherryPick',
+        {
+          ...options,
+          env: merge(options.env, env),
+        }
+      )
   )
 
   return parseCherryPickResult(result)

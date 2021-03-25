@@ -165,7 +165,7 @@ describe('git/tag', () => {
       const files = status.workingDirectory.files
 
       await checkoutBranch(repository, account, branch!)
-      const commitSha = await createCommit(repository, 'a commit', files)
+      const commitSha = await createCommit(repository, null, 'a commit', files)
       await createTag(repository, 'my-new-tag', commitSha)
 
       expect(
@@ -182,7 +182,7 @@ describe('git/tag', () => {
       )
       const status = await getStatusOrThrow(remoteRepository)
       const files = status.workingDirectory.files
-      await createCommit(remoteRepository, 'a commit', files)
+      await createCommit(remoteRepository, null, 'a commit', files)
 
       await createTag(repository, 'my-new-tag', 'HEAD')
 

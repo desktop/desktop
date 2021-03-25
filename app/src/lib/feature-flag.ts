@@ -155,3 +155,8 @@ export function enableUnhandledRejectionReporting(): boolean {
 export function enableCherryPicking(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we allow automatic commit signing? */
+export function enableAutomaticCommitSigning(): boolean {
+  return enableDevelopmentFeatures()
+}

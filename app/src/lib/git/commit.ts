@@ -5,14 +5,18 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { withTrampolineEnvForCommitSigning } from '../trampoline/trampoline-environment'
+import { IGitAccount } from '../../models/git-account'
 
 /**
  * @param repository repository to execute merge in
+ * @param account account of the committer
  * @param message commit message
  * @param files files to commit
  */
 export async function createCommit(
   repository: Repository,
+  account: IGitAccount | null,
   message: string,
   files: ReadonlyArray<WorkingDirectoryFileChange>
 ): Promise<string> {
@@ -23,14 +27,21 @@ export async function createCommit(
 
   await stageFiles(repository, files)
 
-  const result = await git(
-    ['commit', '-F', '-'],
-    repository.path,
-    'createCommit',
-    {
-      stdin: message,
+  const result = await withTrampolineEnvForCommitSigning(
+    account,
+    (configArgs, signArgs, env) => {
+      return git(
+        [...configArgs, 'commit', ...signArgs, '-F', '-'],
+        repository.path,
+        'createCommit',
+        {
+          stdin: message,
+          env: env,
+        }
+      )
     }
   )
+
   return parseCommitSHA(result)
 }
 

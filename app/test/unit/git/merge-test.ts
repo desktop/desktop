@@ -22,7 +22,7 @@ describe('git/merge', () => {
         repository = new Repository(path, -1, null, false)
       })
       it('returns MergeResult.Success', async () => {
-        expect(await merge(repository, 'dev')).toBe(MergeResult.Success)
+        expect(await merge(repository, null, 'dev')).toBe(MergeResult.Success)
       })
     })
     describe('and is a noop', () => {
@@ -30,10 +30,12 @@ describe('git/merge', () => {
       beforeEach(async () => {
         const path = await setupFixtureRepository('merge-base-test')
         repository = new Repository(path, -1, null, false)
-        await merge(repository, 'dev')
+        await merge(repository, null, 'dev')
       })
       it('returns MergeResult.AlreadyUpToDate', async () => {
-        expect(await merge(repository, 'dev')).toBe(MergeResult.AlreadyUpToDate)
+        expect(await merge(repository, null, 'dev')).toBe(
+          MergeResult.AlreadyUpToDate
+        )
       })
     })
   })

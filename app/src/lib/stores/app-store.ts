@@ -219,7 +219,10 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableUpdateRemoteUrl } from '../feature-flag'
+import {
+  enableAutomaticCommitSigning,
+  enableUpdateRemoteUrl,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import moment from 'moment'
 import { ComputedAction } from '../../models/computed-action'
@@ -319,6 +322,9 @@ const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
+const commitSigningEnabledDefault = true
+const commitSigningEnabledKey = 'commit-signing-enabled'
+
 const shellKey = 'shell'
 
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
@@ -403,6 +409,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
+
+  private commitSigningEnabled: boolean = commitSigningEnabledDefault
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
@@ -778,6 +786,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
       showSideBySideDiff: this.showSideBySideDiff,
+      commitSigningEnabled: this.commitSigningEnabled,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
@@ -1731,6 +1740,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabledDefault
     )
     this.showSideBySideDiff = getShowSideBySideDiff()
+    this.commitSigningEnabled =
+      getBoolean(commitSigningEnabledKey, commitSigningEnabledDefault) &&
+      enableAutomaticCommitSigning()
 
     this.selectedTheme = getPersistedTheme()
     this.currentTheme = getCurrentlyAppliedTheme()
@@ -2439,10 +2451,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
+    const committerAccount = this.commitSigningEnabled
+      ? getAccountForRepository(this.accounts, repository)
+      : null
+
     return this.withIsCommitting(repository, async () => {
       const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
-        return createCommit(repository, message, selectedFiles)
+        return createCommit(
+          repository,
+          committerAccount,
+          message,
+          selectedFiles
+        )
       })
 
       if (result !== undefined) {
@@ -4291,7 +4312,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const mergeResult = await gitStore.merge(branch)
+    const committerAccount = this.commitSigningEnabled
+      ? getAccountForRepository(this.accounts, repository)
+      : null
+    const mergeResult = await gitStore.merge(committerAccount, branch)
     const { tip } = gitStore
 
     if (mergeResult === MergeResult.Success && tip.kind === TipState.Valid) {
@@ -4411,9 +4435,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
+    const committerAccount = this.commitSigningEnabled
+      ? getAccountForRepository(this.accounts, repository)
+      : null
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(
-      () => rebase(repository, baseBranch, targetBranch, progressCallback),
+      () =>
+        rebase(
+          repository,
+          committerAccount,
+          baseBranch,
+          targetBranch,
+          progressCallback
+        ),
       {
         retryAction: {
           type: RetryActionType.Rebase,
@@ -4449,10 +4483,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
+    const committerAccount = this.commitSigningEnabled
+      ? getAccountForRepository(this.accounts, repository)
+      : null
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
       continueRebase(
         repository,
+        committerAccount,
         workingDirectory.files,
         manualResolutions,
         progressCallback
@@ -5847,9 +5885,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       revisionRange = revRangeInclusive(earliestCommit.sha, commits[0].sha)
     }
 
+    const committerAccount = this.commitSigningEnabled
+      ? getAccountForRepository(this.accounts, repository)
+      : null
     const gitStore = this.gitStoreCache.get(repository)
     result = await gitStore.performFailableOperation(() =>
-      cherryPick(repository, revisionRange, progressCallback)
+      cherryPick(repository, committerAccount, revisionRange, progressCallback)
     )
 
     return result || CherryPickResult.Error
@@ -5973,9 +6014,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
+    const committerAccount = this.commitSigningEnabled
+      ? getAccountForRepository(this.accounts, repository)
+      : null
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
-      continueCherryPick(repository, files, manualResolutions, progressCallback)
+      continueCherryPick(
+        repository,
+        committerAccount,
+        files,
+        manualResolutions,
+        progressCallback
+      )
     )
 
     return result || CherryPickResult.Error

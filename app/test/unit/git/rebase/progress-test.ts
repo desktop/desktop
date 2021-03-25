@@ -53,7 +53,7 @@ describe('git/rebase', () => {
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       progress = new Array<IRebaseProgress>()
-      result = await rebase(repository, baseBranch, featureBranch, p =>
+      result = await rebase(repository, null, baseBranch, featureBranch, p =>
         progress.push(p)
       )
 
@@ -114,7 +114,7 @@ describe('git/rebase', () => {
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       progress = new Array<IRebaseProgress>()
-      result = await rebase(repository, baseBranch, featureBranch, p =>
+      result = await rebase(repository, null, baseBranch, featureBranch, p =>
         progress.push(p)
       )
 
@@ -194,5 +194,5 @@ async function resolveAndContinue(
     }
   }
 
-  return continueRebase(repository, files, resolutions, progressCb)
+  return continueRebase(repository, null, files, resolutions, progressCb)
 }
