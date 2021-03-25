@@ -142,6 +142,9 @@ interface ITextDiffProps {
    * Only applicable when readOnly is false.
    */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
+
+  readonly hideWhitespaceInDiff: boolean
+
   /**
    * Called when the user wants to discard a selection of the diff.
    * Only applicable when readOnly is false.
@@ -881,6 +884,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       } else {
         marker.classList.remove(className)
       }
+    }
+
+    if (this.props.hideWhitespaceInDiff) {
+      marker.title =
+        'Partial committing is not available while hiding whitespace changes'
     }
 
     if (!this.props.readOnly && diffLine.isIncludeableLine()) {

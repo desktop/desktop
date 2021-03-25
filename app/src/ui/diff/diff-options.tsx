@@ -4,12 +4,15 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { RadioButton } from '../lib/radio-button'
 import { getBoolean, setBoolean } from '../../lib/local-storage'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
+import { RepositorySectionTab } from '../../lib/app-state'
 
 interface IDiffOptionsProps {
-  readonly hideWhitespaceChanges?: boolean
-  readonly onHideWhitespaceChangesChanged?: (
+  readonly sourceTab: RepositorySectionTab
+  readonly hideWhitespaceChanges: boolean
+  readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
-  ) => void
+  ) => Promise<void>
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
@@ -71,12 +74,10 @@ export class DiffOptions extends React.Component<
     })
   }
 
-  private onHideWhitespaceChangesChanged = (
+  private onHideWhitespaceChangesChanged = async (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    if (this.props.onHideWhitespaceChangesChanged !== undefined) {
-      this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
-    }
+    await this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
   }
 
   public render() {
@@ -139,9 +140,13 @@ export class DiffOptions extends React.Component<
   }
 
   private renderHideWhitespaceChanges() {
-    if (this.props.hideWhitespaceChanges === undefined) {
-      return null
+    if (
+      this.props.sourceTab === RepositorySectionTab.Changes &&
+      !enableHideWhitespaceInDiffOption()
+    ) {
+      return
     }
+
     return (
       <section>
         <h3>Whitespace</h3>

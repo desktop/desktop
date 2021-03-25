@@ -30,6 +30,7 @@ import { BinaryFile } from './binary-file'
 import { TextDiff } from './text-diff'
 import { SideBySideDiff } from './side-by-side-diff'
 import {
+  enableHideWhitespaceInDiffOption,
   enableExperimentalDiffViewer,
   enableSideBySideDiffs,
 } from '../../lib/feature-flag'
@@ -265,11 +266,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       )
     }
 
+    const hideWhitespaceInDiff =
+      enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff
+
     return (
       <TextDiff
         repository={this.props.repository}
         file={this.props.file}
         readOnly={this.props.readOnly}
+        hideWhitespaceInDiff={hideWhitespaceInDiff}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.props.onDiscardChanges}
         diff={diff}

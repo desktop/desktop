@@ -47,6 +47,11 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should the app show hide whitespace in changes tab */
+export function enableHideWhitespaceInDiffOption(): boolean {
+  return enableBetaFeatures()
+}
+
 /** Should the app use the shiny new TCP-based trampoline? */
 export function enableDesktopTrampoline(): boolean {
   return enableBetaFeatures()

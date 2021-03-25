@@ -139,11 +139,19 @@ export async function getCommitDiff(
  */
 export async function getWorkingDirectoryDiff(
   repository: Repository,
-  file: WorkingDirectoryFileChange
+  file: WorkingDirectoryFileChange,
+  hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
-  const args = ['diff', '--no-ext-diff', '--patch-with-raw', '-z', '--no-color']
+  const args = [
+    'diff',
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--no-ext-diff',
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+  ]
   const successExitCodes = new Set([0])
 
   if (
@@ -153,7 +161,7 @@ export async function getWorkingDirectoryDiff(
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
-    // this is the behaviour:
+    // this is the behavior:
     // - 0 if no changes found
     // - 1 if changes found
     // -   and error otherwise
