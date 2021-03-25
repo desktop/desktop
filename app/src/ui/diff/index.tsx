@@ -249,7 +249,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderTextDiff(diff: ITextDiff) {
     if (
       enableExperimentalDiffViewer() ||
-      enableHideWhitespaceInDiffOption() ||
       (enableSideBySideDiffs() && this.props.showSideBySideDiff)
     ) {
       return (
