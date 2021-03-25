@@ -2156,6 +2156,10 @@ export class Dispatcher {
     return this.appStore._setConfirmForcePushSetting(value)
   }
 
+  public setConfirmCommitWithoutSigningSetting(value: boolean) {
+    this.appStore._setConfirmCommitWithoutSigningSetting(value)
+  }
+
   /**
    * Converts a local repository to use the given fork
    * as its default remote and associated `GitHubRepository`.

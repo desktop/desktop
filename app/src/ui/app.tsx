@@ -1386,6 +1386,9 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChanges
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
+            confirmCommitWithoutSigning={
+              this.state.askForConfirmationOnCommitWithoutSigning
+            }
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
@@ -1827,6 +1830,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             userHasResolvedConflicts={userHasResolvedConflicts}
             askForConfirmationOnForcePush={
               this.state.askForConfirmationOnForcePush
+            }
+            askForConfirmationOnCommitWithoutSigning={
+              this.state.askForConfirmationOnCommitWithoutSigning
             }
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}

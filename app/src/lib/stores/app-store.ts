@@ -305,9 +305,11 @@ const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
+const askForConfirmationOnCommitWithoutSigningDefault = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
+const confirmCommitWithoutSigningKey: string = 'confirmCommitWithoutSigning'
 
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
@@ -404,6 +406,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
+  private askForConfirmationOnCommitWithoutSigning = askForConfirmationOnCommitWithoutSigningDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
   /** Whether or not the spellchecker is enabled for commit summary and description */
@@ -781,6 +784,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      askForConfirmationOnCommitWithoutSigning: this
+        .askForConfirmationOnCommitWithoutSigning,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
@@ -1713,6 +1718,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnForcePush = getBoolean(
       confirmForcePushKey,
       askForConfirmationOnForcePushDefault
+    )
+
+    this.askForConfirmationOnCommitWithoutSigning = getBoolean(
+      confirmCommitWithoutSigningKey,
+      askForConfirmationOnCommitWithoutSigningDefault
     )
 
     this.uncommittedChangesStrategy =
@@ -4634,6 +4644,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(confirmForcePushKey, value)
 
     this.updateMenuLabelsForSelectedRepository()
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmCommitWithoutSigningSetting(value: boolean): Promise<void> {
+    this.askForConfirmationOnCommitWithoutSigning = value
+    setBoolean(confirmCommitWithoutSigningKey, value)
 
     this.emitUpdate()
 

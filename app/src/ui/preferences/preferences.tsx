@@ -51,6 +51,7 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly confirmCommitWithoutSigning: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
@@ -71,6 +72,7 @@ interface IPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly confirmCommitWithoutSigning: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
@@ -109,6 +111,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmForcePush: false,
+      confirmCommitWithoutSigning: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
@@ -161,6 +164,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
+      confirmCommitWithoutSigning: this.props.confirmCommitWithoutSigning,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
@@ -310,11 +314,15 @@ export class Preferences extends React.Component<
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
             confirmForcePush={this.state.confirmForcePush}
+            confirmCommitWithoutSigning={this.state.confirmCommitWithoutSigning}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
+            onConfirmCommitWithoutSigningChanged={
+              this.onConfirmCommitWithoutSigningChanged
+            }
           />
         )
         break
@@ -371,6 +379,10 @@ export class Preferences extends React.Component<
 
   private onConfirmForcePushChanged = (value: boolean) => {
     this.setState({ confirmForcePush: value })
+  }
+
+  private onConfirmCommitWithoutSigningChanged = (value: boolean) => {
+    this.setState({ confirmCommitWithoutSigning: value })
   }
 
   private onUncommittedChangesStrategyChanged = (
@@ -502,6 +514,10 @@ export class Preferences extends React.Component<
 
     await this.props.dispatcher.setConfirmForcePushSetting(
       this.state.confirmForcePush
+    )
+
+    await this.props.dispatcher.setConfirmCommitWithoutSigningSetting(
+      this.state.confirmCommitWithoutSigning
     )
 
     if (this.state.selectedExternalEditor) {
