@@ -17,6 +17,7 @@ import {
   isRebaseConflictState,
   isCherryPickConflictState,
   CherryPickConflictState,
+  SelectionType,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
@@ -975,9 +976,10 @@ export class Dispatcher {
    */
   public setRebaseFlowStep(
     repository: Repository,
-    step: RebaseFlowStep
+    step: RebaseFlowStep,
+    signCommits?: boolean
   ): Promise<void> {
-    return this.appStore._setRebaseFlowStep(repository, step)
+    return this.appStore._setRebaseFlowStep(repository, step, signCommits)
   }
 
   /** End the rebase flow and cleanup any related app state */
@@ -1043,6 +1045,13 @@ export class Dispatcher {
       }
 
       this.switchToConflicts(repository, conflictsWithBranches)
+    } else if (result === RebaseResult.FailedToSignCommit) {
+      this.promptContinueRebaseWithoutSigning(
+        repository,
+        targetBranch.name,
+        baseBranch.name,
+        beforeSha
+      )
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1078,21 +1087,72 @@ export class Dispatcher {
   }
 
   /**
+   * Continue with the rebase after the user has decided to make the commits
+   * without signing them.
+   */
+  public async continueRebaseWithoutSigning(
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus,
+    baseBranch: string | undefined,
+    targetBranch: string,
+    originalBranchTip: string
+  ): Promise<void> {
+    const continueRebaseAction = () => {
+      return this.continueRebase(
+        repository,
+        baseBranch,
+        targetBranch,
+        originalBranchTip,
+        workingDirectory,
+        new Map()
+      )
+    }
+
+    return this.setRebaseFlowStep(
+      repository,
+      {
+        kind: RebaseStep.ShowProgress,
+        rebaseAction: continueRebaseAction,
+      },
+      false
+    )
+  }
+
+  /**
    * Continue with the rebase after the user has resolved all conflicts with
    * tracked files in the working directory.
    */
-  public async continueRebase(
+  public async continueRebaseAfterResolvingConflicts(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     conflictsState: RebaseConflictState
   ): Promise<void> {
-    const stateBefore = this.repositoryStateManager.get(repository)
     const {
       targetBranch,
       baseBranch,
       originalBranchTip,
       manualResolutions,
     } = conflictsState
+
+    return this.continueRebase(
+      repository,
+      baseBranch,
+      targetBranch,
+      originalBranchTip,
+      workingDirectory,
+      manualResolutions
+    )
+  }
+
+  public async continueRebase(
+    repository: Repository,
+    baseBranch: string | undefined,
+    targetBranch: string,
+    originalBranchTip: string,
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+  ): Promise<void> {
+    const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
@@ -1137,6 +1197,13 @@ export class Dispatcher {
       }
 
       this.switchToConflicts(repository, conflictsWithBranches)
+    } else if (result === RebaseResult.FailedToSignCommit) {
+      this.promptContinueRebaseWithoutSigning(
+        repository,
+        targetBranch,
+        baseBranch,
+        originalBranchTip
+      )
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1169,6 +1236,46 @@ export class Dispatcher {
       kind: RebaseStep.ShowConflicts,
       conflictState,
     })
+  }
+
+  private promptContinueRebaseWithoutSigning = (
+    repository: Repository,
+    targetBranch: string,
+    baseBranch: string | undefined,
+    originalBranchTip: string
+  ): Promise<void> => {
+    const {
+      askForConfirmationOnCommitWithoutSigning,
+      selectedState,
+    } = this.appStore.getState()
+
+    if (askForConfirmationOnCommitWithoutSigning) {
+      return this.setRebaseFlowStep(repository, {
+        kind: RebaseStep.ShowSigningError,
+        targetBranch,
+        baseBranch,
+        originalBranchTip,
+      })
+    } else {
+      if (
+        selectedState === null ||
+        selectedState.type !== SelectionType.Repository
+      ) {
+        throw new Error(
+          'Unexpected selection state: a repository should be selected'
+        )
+      }
+
+      const { changesState } = selectedState.state
+      const { workingDirectory } = changesState
+      return this.continueRebaseWithoutSigning(
+        repository,
+        workingDirectory,
+        baseBranch,
+        targetBranch,
+        originalBranchTip
+      )
+    }
   }
 
   /** Tidy up the rebase flow after reaching the end */

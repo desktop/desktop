@@ -1089,7 +1089,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const initialStep = initializeNewRebaseFlow(repositoryState)
 
-    this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
+    this.props.dispatcher.setRebaseFlowStep(
+      repository,
+      initialStep,
+      this.state.commitSigningEnabled
+    )
 
     this.props.dispatcher.showPopup({
       type: PopupType.RebaseFlow,

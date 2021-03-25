@@ -20,7 +20,7 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
   private onSubmit = async () => {
     const { rebaseConflictState } = this.props
 
-    await this.props.dispatcher.continueRebase(
+    await this.props.dispatcher.continueRebaseAfterResolvingConflicts(
       this.props.repository,
       this.props.workingDirectory,
       rebaseConflictState

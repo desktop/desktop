@@ -545,6 +545,9 @@ export interface IRebaseState {
    * rebase and lose that work.
    */
   readonly userHasResolvedConflicts: boolean
+
+  /** Whether the commits rebased in this action will be signed or not. */
+  readonly signCommits: boolean
 }
 
 export interface ICommitSelection {

@@ -9,6 +9,7 @@ export type RebaseFlowStep =
   | ShowProgressStep
   | ShowConflictsStep
   | HideConflictsStep
+  | ShowSigningErrorStep
   | ConfirmAbortStep
   | CompletedStep
 
@@ -55,6 +56,11 @@ export const enum RebaseStep {
    * conflicted list.
    */
   HideConflicts = 'HideConflicts',
+  /**
+   * During rebase there might be a commit signing error, and the user will be
+   * asked to either continue without signing or abort the rebase.
+   */
+  ShowSigningError = 'ShowSigningError',
   /**
    * If the user wishes to abort the in-progress rebase, and the user has
    * resolved conflicts at any point of the rebase, the application should ask
@@ -111,6 +117,13 @@ export type ShowConflictsStep = {
 /** Shape of data to track when user hides conflicts dialog */
 export type HideConflictsStep = {
   readonly kind: RebaseStep.HideConflicts
+}
+
+export type ShowSigningErrorStep = {
+  readonly kind: RebaseStep.ShowSigningError
+  readonly targetBranch: string
+  readonly baseBranch: string | undefined
+  readonly originalBranchTip: string
 }
 
 /** Shape of data to use when confirming user should abort rebase */

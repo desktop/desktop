@@ -168,6 +168,7 @@ function getInitialRepositoryState(): IRepositoryState {
       progress: null,
       commits: null,
       userHasResolvedConflicts: false,
+      signCommits: false,
     },
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),

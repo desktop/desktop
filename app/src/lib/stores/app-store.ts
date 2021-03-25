@@ -4401,11 +4401,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _setRebaseFlowStep(
     repository: Repository,
-    step: RebaseFlowStep
+    step: RebaseFlowStep,
+    signCommits?: boolean
   ): Promise<void> {
-    this.repositoryStateCache.updateRebaseState(repository, () => ({
-      step,
-    }))
+    if (signCommits === undefined) {
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        step,
+      }))
+    } else {
+      this.repositoryStateCache.updateRebaseState(repository, () => ({
+        step,
+        signCommits,
+      }))
+    }
 
     this.emitUpdate()
 
@@ -4426,6 +4434,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commits: null,
       preview: null,
       userHasResolvedConflicts: false,
+      signCommits: false,
     }))
 
     this.emitUpdate()
@@ -4445,7 +4454,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
-    const committerAccount = this.commitSigningEnabled
+    const { rebaseState } = this.repositoryStateCache.get(repository)
+    const committerAccount = rebaseState.signCommits
       ? getAccountForRepository(this.accounts, repository)
       : null
     const gitStore = this.gitStoreCache.get(repository)
@@ -4493,7 +4503,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
-    const committerAccount = this.commitSigningEnabled
+    const { rebaseState } = this.repositoryStateCache.get(repository)
+    const committerAccount = rebaseState.signCommits
       ? getAccountForRepository(this.accounts, repository)
       : null
     const gitStore = this.gitStoreCache.get(repository)

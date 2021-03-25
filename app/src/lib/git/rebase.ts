@@ -53,6 +53,10 @@ export enum RebaseResult {
    */
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
   /**
+   * The rebase was not able to continue as git couldn't sign the commit.
+   */
+  FailedToSignCommit = 'FailedToSignCommit',
+  /**
    * The rebase was not attempted because it could not check the status of the
    * repository. The caller needs to confirm the repository is in a usable
    * state.
@@ -365,7 +369,10 @@ export async function rebase(
   progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
   const baseOptions: IGitExecutionOptions = {
-    expectedErrors: new Set([GitError.RebaseConflicts]),
+    expectedErrors: new Set([
+      GitError.RebaseConflicts,
+      GitError.GPGFailedToSignData,
+    ]),
   }
 
   let options = baseOptions
@@ -432,6 +439,10 @@ function parseRebaseResult(result: IGitResult): RebaseResult {
     return RebaseResult.OutstandingFilesNotStaged
   }
 
+  if (result.gitError === GitError.GPGFailedToSignData) {
+    return RebaseResult.FailedToSignCommit
+  }
+
   throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
 }
 
@@ -491,6 +502,7 @@ export async function continueRebase(
     expectedErrors: new Set([
       GitError.RebaseConflicts,
       GitError.UnresolvedConflicts,
+      GitError.GPGFailedToSignData,
     ]),
     env: {
       GIT_EDITOR: ':',
@@ -513,6 +525,25 @@ export async function continueRebase(
       commits: snapshot.commits,
       progressCallback,
     })
+  }
+
+  // HACK: This will allow us to continue an ongoing rebase without signing the
+  // remaining commits. Unfortunately this is coupled to how git works
+  // internally as of today: git will look for the file `gpg_sign_opt` located
+  // in the `.git/rebase-merge/` folder, and it will contain the gpg signing
+  // options to be used in the rest of the rebase process.
+  // Deleting this file will effectively disable commit signing for the
+  // remaining commits.
+  if (account === null) {
+    const signingOptionsPath = Path.join(
+      repository.path,
+      '.git',
+      'rebase-merge',
+      'gpg_sign_opt'
+    )
+    if (await FSE.pathExists(signingOptionsPath)) {
+      await FSE.remove(signingOptionsPath)
+    }
   }
 
   const result = await withTrampolineEnvForCommitSigning(

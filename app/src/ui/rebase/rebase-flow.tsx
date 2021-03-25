@@ -8,6 +8,7 @@ import {
   RebaseFlowStep,
   ShowConflictsStep,
   ConfirmAbortStep,
+  ShowSigningErrorStep,
 } from '../../models/rebase-flow-step'
 import { GitRebaseProgress } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
@@ -20,6 +21,7 @@ import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { getResolvedFiles } from '../../lib/status'
 import { WarnForcePushDialog } from './warn-force-push-dialog'
+import { RebaseCommitSigningErrorDialog } from './rebase-commit-signing-error-dialog'
 
 interface IRebaseFlowProps {
   readonly repository: Repository
@@ -46,6 +48,8 @@ interface IRebaseFlowProps {
   readonly userHasResolvedConflicts: boolean
 
   readonly askForConfirmationOnForcePush: boolean
+
+  readonly askForConfirmationOnCommitWithoutSigning: boolean
 
   /**
    * Callback to hide the rebase flow and show a banner about the current state
@@ -82,11 +86,27 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     })
   }
 
-  private onContinueRebase = async (step: ShowConflictsStep) => {
+  private onContinueRebaseWithoutSigning = async (
+    step: ShowSigningErrorStep
+  ) => {
+    const { baseBranch, targetBranch, originalBranchTip } = step
+
+    return this.props.dispatcher.continueRebaseWithoutSigning(
+      this.props.repository,
+      this.props.workingDirectory,
+      baseBranch,
+      targetBranch,
+      originalBranchTip
+    )
+  }
+
+  private onContinueRebaseAfterResolvingConflicts = async (
+    step: ShowConflictsStep
+  ) => {
     const { conflictState } = step
 
     const continueRebaseAction = () => {
-      return this.props.dispatcher.continueRebase(
+      return this.props.dispatcher.continueRebaseAfterResolvingConflicts(
         this.props.repository,
         this.props.workingDirectory,
         conflictState
@@ -212,7 +232,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             openRepositoryInShell={openRepositoryInShell}
             onAbortRebase={this.onConfirmAbortRebase}
             onDismissed={this.onFlowEnded}
-            onContinueRebase={this.onContinueRebase}
+            onContinueRebase={this.onContinueRebaseAfterResolvingConflicts}
           />
         )
       }
@@ -225,7 +245,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             onReturnToConflicts={this.moveToShowConflictedFileState}
           />
         )
-      case RebaseStep.WarnForcePush:
+      case RebaseStep.WarnForcePush: {
         const {
           repository,
           dispatcher,
@@ -241,6 +261,28 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             onDismissed={this.onFlowEnded}
           />
         )
+      }
+
+      case RebaseStep.ShowSigningError: {
+        const {
+          repository,
+          dispatcher,
+          askForConfirmationOnCommitWithoutSigning,
+        } = this.props
+
+        return (
+          <RebaseCommitSigningErrorDialog
+            step={step}
+            dispatcher={dispatcher}
+            repository={repository}
+            askForConfirmationOnSigningError={
+              askForConfirmationOnCommitWithoutSigning
+            }
+            onContinueRebase={this.onContinueRebaseWithoutSigning}
+            onAbortRebase={this.onAbortRebase}
+          />
+        )
+      }
 
       case RebaseStep.HideConflicts:
       case RebaseStep.Completed:
