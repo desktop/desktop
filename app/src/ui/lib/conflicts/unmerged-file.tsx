@@ -163,12 +163,22 @@ const renderManualConflictedFile: React.FunctionComponent<{
     props.ourBranch,
     props.theirBranch
   )
+  const { ourBranch, theirBranch } = props
+  const { entry } = props.status
 
-  const conflictTypeString =
-    props.status.entry.us === GitStatusEntry.Deleted ||
-    props.status.entry.them === GitStatusEntry.Deleted
-      ? 'File does not exist in target branch.'
-      : manualConflictString
+  let conflictTypeString = manualConflictString
+
+  if ([entry.us, entry.them].includes(GitStatusEntry.Deleted)) {
+    let targetBranch = 'target branch'
+    if (entry.us === GitStatusEntry.Deleted && ourBranch !== undefined) {
+      targetBranch = ourBranch
+    }
+
+    if (entry.them === GitStatusEntry.Deleted && theirBranch !== undefined) {
+      targetBranch = theirBranch
+    }
+    conflictTypeString = `File does not exist on ${targetBranch}.`
+  }
 
   const content = (
     <>
