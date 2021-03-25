@@ -1,5 +1,6 @@
 export enum TrampolineCommandIdentifier {
   AskPass = 'ASKPASS',
+  GPG = 'GPG',
 }
 
 /** Represents a command in our trampoline mechanism. */

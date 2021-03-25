@@ -1109,6 +1109,25 @@ export class API {
       throw e
     }
   }
+
+  public async commitSign(
+    message: string
+  ): Promise<{ signature: string } | null> {
+    try {
+      const response = await this.request('POST', 'desktop/commit/sign', {
+        message,
+      })
+
+      if (response.status === 404) {
+        return null
+      }
+
+      return await parsedResponse<{ signature: string }>(response)
+    } catch (e) {
+      log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
+      throw e
+    }
+  }
 }
 
 export enum AuthorizationResponseKind {
