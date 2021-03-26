@@ -47,6 +47,11 @@ interface IChooseTargetBranchDialogProps {
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
+
+  /**
+   * Call back to invoke create new branch dialog
+   */
+  readonly onCreateNewBranch: () => void
 }
 
 interface IChooseTargetBranchDialogState {
@@ -155,7 +160,8 @@ export class ChooseTargetBranchDialog extends React.Component<
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
-            canCreateNewBranch={false}
+            canCreateNewBranch={true}
+            onCreateNewBranch={this.props.onCreateNewBranch}
             renderBranch={this.renderBranch}
             onItemClick={this.onEnterPressed}
           />

@@ -74,6 +74,7 @@ import {
   isRepositoryWithGitHubRepository,
   getGitHubHtmlUrl,
   isRepositoryWithForkedGitHubRepository,
+  getNonForkGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -102,10 +103,12 @@ import { resolveWithin } from '../../lib/path'
 import {
   CherryPickFlowStep,
   CherryPickStepKind,
+  CreateBranchStep,
 } from '../../models/cherry-pick'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
 import { DragElement } from '../../models/drag-element'
+import { findDefaultUpstreamBranch } from '../../lib/branch'
 
 /**
  * An error handler function.
@@ -2848,5 +2851,41 @@ export class Dispatcher {
   /** Method to clear the drag element */
   public clearDragElement(): void {
     this.appStore._setDragElement(null)
+  }
+
+  /** Set Cherry Pick Flow Step For Create Branch */
+  public async setCherryPickCreateBranchFlowStep(
+    repository: Repository
+  ): Promise<void> {
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const { defaultBranch, allBranches, tip } = branchesState
+
+    if (tip.kind === TipState.Unknown) {
+      this.appStore._clearCherryPickingHead(repository, null)
+      this.appStore._endCherryPickFlow(repository)
+      log.error('Tip is in unknown state. Cherry-pick aborted.')
+      return
+    }
+
+    const isGHRepo = isRepositoryWithGitHubRepository(repository)
+    const upstreamGhRepo = isGHRepo
+      ? getNonForkGitHubRepository(repository as RepositoryWithGitHubRepository)
+      : null
+    const upstreamDefaultBranch = isGHRepo
+      ? findDefaultUpstreamBranch(
+          repository as RepositoryWithGitHubRepository,
+          allBranches
+        )
+      : null
+
+    const step: CreateBranchStep = {
+      kind: CherryPickStepKind.CreateBranch,
+      allBranches,
+      defaultBranch,
+      upstreamDefaultBranch,
+      upstreamGhRepo,
+      tip,
+    }
+    return this.appStore._setCherryPickFlowStep(repository, step)
   }
 }

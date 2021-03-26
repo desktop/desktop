@@ -19,6 +19,7 @@ import { CherryPickConflictsDialog } from './cherry-pick-conflicts-dialog'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { getResolvedFiles } from '../../lib/status'
 import { ConfirmCherryPickAbortDialog } from './confirm-cherry-pick-abort-dialog'
+import { CreateBranch } from '../create-branch'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
@@ -143,6 +144,11 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     })
   }
 
+  private onNewBranch = () => {
+    const { dispatcher, repository } = this.props
+    dispatcher.setCherryPickCreateBranchFlowStep(repository)
+  }
+
   public render() {
     const { step } = this.props
 
@@ -164,6 +170,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             onCherryPick={this.onCherryPick}
             onDismissed={this.onFlowEnded}
             commitCount={this.props.commits.length}
+            onCreateNewBranch={this.onNewBranch}
           />
         )
       }
@@ -223,6 +230,29 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             sourceBranchName={sourceBranchName}
             onReturnToConflicts={this.moveToShowConflictedFileState}
             onConfirmAbort={this.abortCherryPick}
+          />
+        )
+      case CherryPickStepKind.CreateBranch:
+        const {
+          allBranches,
+          defaultBranch,
+          upstreamDefaultBranch,
+          upstreamGhRepo,
+          tip,
+        } = step
+
+        return (
+          <CreateBranch
+            key="create-branch"
+            tip={tip}
+            defaultBranch={defaultBranch}
+            upstreamDefaultBranch={upstreamDefaultBranch}
+            upstreamGitHubRepository={upstreamGhRepo}
+            allBranches={allBranches}
+            repository={this.props.repository}
+            onDismissed={this.onFlowEnded}
+            dispatcher={this.props.dispatcher}
+            initialName={''}
           />
         )
       case CherryPickStepKind.CommitsChosen:

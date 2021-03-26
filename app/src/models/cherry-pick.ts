@@ -1,7 +1,9 @@
 import { CherryPickConflictState } from '../lib/app-state'
 import { Branch } from './branch'
 import { CommitOneLine } from './commit'
+import { GitHubRepository } from './github-repository'
 import { ICherryPickProgress } from './progress'
+import { IDetachedHead, IUnbornRepository, IValidBranch } from './tip'
 
 /** Represents a snapshot of the cherry pick state from the Git repository  */
 export interface ICherryPickSnapshot {
@@ -23,6 +25,7 @@ export type CherryPickFlowStep =
   | CommitsChosenStep
   | HideConflictsStep
   | ConfirmAbortStep
+  | CreateBranchStep
 
 export const enum CherryPickStepKind {
   /**
@@ -75,6 +78,12 @@ export const enum CherryPickStepKind {
    * they wish to abort.
    */
   ConfirmAbort = 'ConfirmAbort',
+
+  /**
+   * User can create a new branch through dialog or dropping on new branch drop
+   * zone.
+   */
+  CreateBranch = 'CreateBranch',
 }
 
 /** Shape of data needed to choose the base branch for a cherry pick  */
@@ -115,4 +124,14 @@ export type CommitsChosenStep = {
 export type ConfirmAbortStep = {
   readonly kind: CherryPickStepKind.ConfirmAbort
   readonly conflictState: CherryPickConflictState
+}
+
+/** Shape of data to track when user hides conflicts dialog */
+export type CreateBranchStep = {
+  readonly kind: CherryPickStepKind.CreateBranch
+  allBranches: ReadonlyArray<Branch>
+  defaultBranch: Branch | null
+  upstreamDefaultBranch: Branch | null
+  upstreamGhRepo: GitHubRepository | null
+  tip: IUnbornRepository | IDetachedHead | IValidBranch
 }
