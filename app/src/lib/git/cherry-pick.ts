@@ -171,7 +171,7 @@ export async function cherryPick(
   // be empty. This flag also results in the ability to cherry pick empty
   // commits (thus, --allow-empty is not required.)
   const result = await git(
-    ['cherry-pick', revisionRange, '--keep-redundant-commits'],
+    ['cherry-pick', revisionRange, '--keep-redundant-commits', '-m 1'],
     repository.path,
     'cherry-pick',
     baseOptions
@@ -407,7 +407,7 @@ export async function continueCherryPick(
   // be empty. This flag also results in the ability to cherry pick empty
   // commits (thus, --allow-empty is not required.)
   const result = await git(
-    ['cherry-pick', '--continue', '--keep-redundant-commits'],
+    ['cherry-pick', '--continue', '--keep-redundant-commits', '-m 1'],
     repository.path,
     'continueCherryPick',
     options
