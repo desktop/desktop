@@ -529,16 +529,14 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const isTextSelected = selectionRanges != null
 
     const action = () => {
-      if (this.onCopy !== null) {
-        this.onCopy(instance, event)
-      }
+      this.onCopy(instance, event)
     }
 
     const items: IMenuItem[] = [
       {
         label: 'Copy',
         action,
-        enabled: this.onCopy && isTextSelected,
+        enabled: isTextSelected,
       },
     ]
 
