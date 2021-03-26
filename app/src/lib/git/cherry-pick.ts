@@ -133,7 +133,10 @@ export async function cherryPick(
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
   let baseOptions: IGitExecutionOptions = {
-    expectedErrors: new Set([GitError.MergeConflicts]),
+    expectedErrors: new Set([
+      GitError.MergeConflicts,
+      GitError.ConflictModifyDeletedInBranch,
+    ]),
   }
 
   if (progressCallback !== undefined) {
@@ -183,6 +186,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
   }
 
   switch (result.gitError) {
+    case GitError.ConflictModifyDeletedInBranch:
     case GitError.MergeConflicts:
       return CherryPickResult.ConflictsEncountered
     case GitError.UnresolvedConflicts:
@@ -353,6 +357,7 @@ export async function continueCherryPick(
   let options: IGitExecutionOptions = {
     expectedErrors: new Set([
       GitError.MergeConflicts,
+      GitError.ConflictModifyDeletedInBranch,
       GitError.UnresolvedConflicts,
     ]),
     env: {
