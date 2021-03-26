@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.7.0-beta5": [
+      "[Improved] Add ability for users to navigate branch menu tabs during cherry-pick - #11834",
+      "[Improved] Add ability for scroll during a drag based on mouse position when over a scrollable element - #11849",
+      "[Improved] Use conflict dialog ot handle conflict for non-existent files during cherry-pick - #11866",
+      "[Fixed] Theme settings correctly persist user selection - #11814. Thanks @say25!"
+    ],
     "2.7.0-beta4": [
       "[Improved] Add support for RStudio for Windows - #11386",
       "[Improved] Give user more time to undo in the cherry-pick success banner - #11822",
