@@ -1736,6 +1736,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.selectedTheme = getPersistedTheme()
+    // Make sure the persisted theme is applied
+    setPersistedTheme(this.selectedTheme)
+
     this.currentTheme = getCurrentlyAppliedTheme()
 
     themeChangeMonitor.onThemeChanged(theme => {
