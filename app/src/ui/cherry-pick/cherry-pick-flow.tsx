@@ -154,6 +154,30 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     dispatcher.setCherryPickCreateBranchFlowStep(repository)
   }
 
+  private onCreateBranch = (
+    branchName: string,
+    startPoint: string | null,
+    noTrackOption: boolean
+  ) => {
+    if (this.props.step.kind !== CherryPickStepKind.CreateBranch) {
+      log.warn(
+        '[cherryPickFlow] - onBranchCreated should only be called during a create branch step.'
+      )
+      this.onFlowEnded()
+      return
+    }
+
+    const { dispatcher, repository, commits, sourceBranch } = this.props
+    dispatcher.createBranchAndCherryPick(
+      repository,
+      branchName,
+      commits,
+      sourceBranch,
+      startPoint,
+      noTrackOption
+    )
+  }
+
   public render() {
     const { step } = this.props
 
@@ -258,6 +282,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             onDismissed={this.onFlowEnded}
             dispatcher={this.props.dispatcher}
             initialName={''}
+            createBranch={this.onCreateBranch}
           />
         )
       case CherryPickStepKind.CommitsChosen:

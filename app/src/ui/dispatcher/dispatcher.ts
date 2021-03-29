@@ -2544,18 +2544,16 @@ export class Dispatcher {
   }
 
   private logHowToRevertCherryPick(
-    repository: Repository,
-    targetBranch: Branch
+    targetBranchName: string,
+    beforeSha: string | null
   ) {
-    const beforeSha = targetBranch.tip.sha
-    this.appStore._setCherryPickTargetBranchUndoSha(repository, beforeSha)
     log.info(
-      `[cherryPick] starting cherry-pick for ${targetBranch.name} at ${beforeSha}`
+      `[cherryPick] starting cherry-pick for ${targetBranchName} at ${beforeSha}`
     )
     log.info(
       `[cherryPick] to restore the previous state if this completed cherry-pick is unsatisfactory:`
     )
-    log.info(`[cherryPick] - git checkout ${targetBranch.name}`)
+    log.info(`[cherryPick] - git checkout ${targetBranchName}`)
     log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
   }
 
@@ -2568,7 +2566,8 @@ export class Dispatcher {
   ): Promise<void> {
     this.initializeCherryPickFlow(repository, commits)
     this.dismissCherryPickIntro()
-    this.logHowToRevertCherryPick(repository, targetBranch)
+    const { name, tip } = targetBranch
+    this.appStore._setCherryPickTargetBranchUndoSha(repository, tip.sha)
 
     if (commits.length > 1) {
       this.statsStore.recordCherryPickMultipleCommits()
@@ -2581,10 +2580,54 @@ export class Dispatcher {
       sourceBranch
     )
 
+    if (result !== CherryPickResult.UnableToStart) {
+      this.logHowToRevertCherryPick(name, tip.sha)
+    }
+
     this.processCherryPickResult(
       repository,
       result,
-      targetBranch.name,
+      name,
+      commits,
+      sourceBranch
+    )
+  }
+
+  /** Creates a target branch and starts a cherry pick of the given commits */
+  public async createBranchAndCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null,
+    startPoint: string | null,
+    noTrackOption: boolean
+  ): Promise<void> {
+    this.initializeCherryPickFlow(repository, commits)
+    this.dismissCherryPickIntro()
+
+    if (commits.length > 1) {
+      this.statsStore.recordCherryPickMultipleCommits()
+    }
+
+    const result = await this.appStore._createBranchAndCherryPick(
+      repository,
+      targetBranchName,
+      commits,
+      sourceBranch,
+      startPoint,
+      noTrackOption
+    )
+
+    if (result !== CherryPickResult.UnableToStart) {
+      const { cherryPickState } = this.repositoryStateManager.get(repository)
+      const { targetBranchUndoSha } = cherryPickState
+      this.logHowToRevertCherryPick(targetBranchName, targetBranchUndoSha)
+    }
+
+    this.processCherryPickResult(
+      repository,
+      result,
+      targetBranchName,
       commits,
       sourceBranch
     )

@@ -5977,6 +5977,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
   }
 
+  /**
+   * Attempts to create a target branch for cherry-pick operation
+   *
+   * If unable to create, return CherryPickResult.UnableToStart
+   * Otherwise, return null.
+   */
+  private async createTargetBranchForCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    startPoint: string | null,
+    noTrackOption: boolean = false
+  ): Promise<CherryPickResult | null> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const successful = await this.withAuthenticatingUser(
+      repository,
+      (r, account) => {
+        return gitStore.performFailableOperation(() =>
+          this._createBranch(
+            repository,
+            targetBranchName,
+            startPoint,
+            noTrackOption
+          )
+        )
+      }
+    )
+
+    return successful !== undefined ? null : CherryPickResult.UnableToStart
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortCherryPick(
     repository: Repository,

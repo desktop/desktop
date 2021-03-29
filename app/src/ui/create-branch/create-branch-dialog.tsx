@@ -30,11 +30,12 @@ interface ICreateBranchProps {
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
-  /**
-   * If provided, after branch created, it will use this callback instead of
-   * onDismissed
-   * */
-  readonly onCreated?: (name: string) => void
+  /** If provided, the branch creation is handled by the given method. */
+  readonly createBranch?: (
+    name: string,
+    startPoint: string | null,
+    noTrack: boolean
+  ) => void
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
   readonly defaultBranch: Branch | null
   readonly upstreamDefaultBranch: Branch | null
@@ -265,6 +266,14 @@ export class CreateBranch extends React.Component<
 
     if (name.length > 0) {
       this.setState({ isCreatingBranch: true })
+
+      // use custom create branch method to create the branch
+      if (this.props.createBranch !== undefined) {
+        this.props.createBranch(name, startPoint, noTrack)
+        this.props.onDismissed()
+        return
+      }
+
       const timer = startTimer('create branch', repository)
       await this.props.dispatcher.createBranch(
         repository,
@@ -273,12 +282,6 @@ export class CreateBranch extends React.Component<
         noTrack
       )
       timer.done()
-
-      if (this.props.onCreated !== undefined) {
-        this.props.onCreated(name)
-        return
-      }
-
       this.props.onDismissed()
     }
   }
