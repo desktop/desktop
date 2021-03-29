@@ -3007,13 +3007,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     name: string,
     startPoint: string | null,
     noTrackOption: boolean = false
-  ): Promise<void> {
+  ): Promise<Branch | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.createBranch(name, startPoint, noTrackOption)
 
     if (branch !== undefined) {
       await this._checkoutBranch(repository, branch)
     }
+
+    return branch
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5994,14 +5996,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const successful = await this.withAuthenticatingUser(
       repository,
       (r, account) => {
-        return gitStore.performFailableOperation(() =>
-          this._createBranch(
+        return gitStore.performFailableOperation(() => {
+          return this._createBranch(
             repository,
             targetBranchName,
             startPoint,
             noTrackOption
           )
-        )
+        })
       }
     )
 

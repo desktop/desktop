@@ -30,7 +30,11 @@ interface ICreateBranchProps {
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
-  /** If provided, the branch creation is handled by the given method. */
+  /**
+   * If provided, the branch creation is handled by the given method.
+   *
+   * It is also responsible for dismissing the popup.
+   */
   readonly createBranch?: (
     name: string,
     startPoint: string | null,
@@ -267,10 +271,9 @@ export class CreateBranch extends React.Component<
     if (name.length > 0) {
       this.setState({ isCreatingBranch: true })
 
-      // use custom create branch method to create the branch
+      // If createBranch is provided, use it instead of dispatcher
       if (this.props.createBranch !== undefined) {
         this.props.createBranch(name, startPoint, noTrack)
-        this.props.onDismissed()
         return
       }
 

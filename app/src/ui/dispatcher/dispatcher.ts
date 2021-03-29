@@ -500,7 +500,7 @@ export class Dispatcher {
     name: string,
     startPoint: string | null,
     noTrackOption: boolean = false
-  ): Promise<void> {
+  ): Promise<Branch | undefined> {
     return this.appStore._createBranch(
       repository,
       name,
