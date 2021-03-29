@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.7.0-beta6": [
+      "[Added] Add ability to cherry-pick merge commits - #11877",
+      "[Fixed] User can longer get into an bad persistent cherry-picking drag state - #11875"
+    ],
     "2.7.0-beta5": [
       "[Improved] Add ability for users to navigate branch menu tabs during cherry-pick - #11834",
       "[Improved] Add ability for scroll during a drag based on mouse position when over a scrollable element - #11849",
