@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { mouseScroller } from '../../lib/mouse-scroller'
+import { sleep } from '../../lib/promise'
 
 interface IDraggableProps {
   /**
@@ -40,6 +41,7 @@ export class Draggable extends React.Component<IDraggableProps> {
   // dragElement then elemBelow will always return the dragElement and cannot
   // detect drop targets or scroll elements.
   private verticalOffset: number = __DARWIN__ ? 32 : 15
+  private hasMouseUpOccurred = false
 
   public componentDidMount() {
     this.dragElement = document.getElementById('dragElement')
@@ -66,14 +68,19 @@ export class Draggable extends React.Component<IDraggableProps> {
    * - clears variables from last drag
    * - sets up mouse move and mouse up listeners
    */
-  private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+  private onMouseDown = async (event: React.MouseEvent<HTMLDivElement>) => {
     if (!this.canDragCommit(event)) {
       return
     }
-    this.initializeDrag()
-
-    document.addEventListener('mousemove', this.onMouseMove)
+    this.hasMouseUpOccurred = false
     document.onmouseup = this.onMouseUp
+    await sleep(100)
+    if (this.hasMouseUpOccurred) {
+      return
+    }
+
+    this.initializeDrag()
+    document.addEventListener('mousemove', this.onMouseMove)
   }
 
   /**
@@ -84,6 +91,10 @@ export class Draggable extends React.Component<IDraggableProps> {
    * just clicking a draggable element.
    */
   private onMouseMove = (moveEvent: MouseEvent) => {
+    if (this.hasMouseUpOccurred) {
+      this.onDragEnd()
+      return
+    }
     // start drag
     if (!this.dragStarted) {
       this.props.onRenderDragElement()
@@ -116,9 +127,16 @@ export class Draggable extends React.Component<IDraggableProps> {
    * End a drag event
    */
   private onMouseUp = () => {
+    this.hasMouseUpOccurred = true
+    if (this.dragStarted) {
+      this.onDragEnd()
+    }
+    document.onmouseup = null
+  }
+
+  private onDragEnd(): void {
     document.removeEventListener('mousemove', this.onMouseMove)
     mouseScroller.clearScrollTimer()
-    document.onmouseup = null
     this.props.onRemoveDragElement()
     this.props.onDragEnd(this.isLastElemBelowDropTarget())
     dragAndDropManager.dragEnded()
