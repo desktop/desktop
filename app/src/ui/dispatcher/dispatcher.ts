@@ -2560,7 +2560,7 @@ export class Dispatcher {
   }
 
   /** Starts a cherry pick of the given commits onto the target branch */
-  public async cherryPick(
+  public async checkOutBranchAndCherryPick(
     repository: Repository,
     targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>,
@@ -2574,7 +2574,7 @@ export class Dispatcher {
       this.statsStore.recordCherryPickMultipleCommits()
     }
 
-    const result = await this.appStore._cherryPick(
+    const result = await this.appStore._checkOutBranchAndCherryPick(
       repository,
       targetBranch,
       commits,
@@ -2807,7 +2807,12 @@ export class Dispatcher {
     })
 
     this.statsStore.recordCherryPickViaDragAndDrop()
-    this.cherryPick(repository, targetBranch, commits, sourceBranch)
+    this.checkOutBranchAndCherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
   }
 
   /** Method to dismiss cherry pick intro */

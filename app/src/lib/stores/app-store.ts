@@ -5809,7 +5809,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _cherryPick(
+  private async _cherryPick(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ): Promise<CherryPickResult> {
+    await this._refreshRepository(repository)
+
+    const progressCallback = (progress: ICherryPickProgress) => {
+      this.repositoryStateCache.updateCherryPickState(repository, () => ({
+        progress,
+      }))
+      this.emitUpdate()
+    }
+
+    let revisionRange: string
+    if (commits.length === 1) {
+      revisionRange = commits[0].sha
+    } else {
+      const earliestCommit = commits[commits.length - 1]
+      revisionRange = revRangeInclusive(earliestCommit.sha, commits[0].sha)
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      cherryPick(repository, revisionRange, progressCallback)
+    )
+
+    return result || CherryPickResult.Error
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _checkOutBranchAndCherryPick(
     repository: Repository,
     targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>,
@@ -5842,29 +5872,57 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return result
     }
 
-    await this._refreshRepository(repository)
+    return this._cherryPick(repository, commits)
+  }
 
-    const progressCallback = (progress: ICherryPickProgress) => {
-      this.repositoryStateCache.updateCherryPickState(repository, () => ({
-        progress,
-      }))
-      this.emitUpdate()
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _createBranchAndCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null,
+    startPoint: string | null,
+    noTrackOption: boolean = false
+  ): Promise<CherryPickResult> {
+    if (commits.length === 0) {
+      log.warn('[_cherryPick] - Unable to cherry-pick. No commits provided.')
+      return CherryPickResult.UnableToStart
+    }
+    let result: CherryPickResult | null | undefined
+
+    result = this.checkForUncommittedChangesBeforeCherryPick(repository, {
+      type: RetryActionType.CreateBranchAndCherryPick,
+      repository,
+      targetBranchName,
+      commits,
+      sourceBranch,
+      startPoint,
+      noTrackOption,
+    })
+
+    if (result !== null) {
+      return result
     }
 
-    let revisionRange: string
-    if (commits.length === 1) {
-      revisionRange = commits[0].sha
-    } else {
-      const earliestCommit = commits[commits.length - 1]
-      revisionRange = revRangeInclusive(earliestCommit.sha, commits[0].sha)
-    }
-
-    const gitStore = this.gitStoreCache.get(repository)
-    result = await gitStore.performFailableOperation(() =>
-      cherryPick(repository, revisionRange, progressCallback)
+    result = await this.createTargetBranchForCherryPick(
+      repository,
+      targetBranchName,
+      startPoint,
+      noTrackOption
     )
 
-    return result || CherryPickResult.Error
+    if (result !== null) {
+      return result
+    }
+
+    // Get the new branches tip and set the undo sha before cherry-pick
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    if (branchesState.tip.kind === TipState.Valid) {
+      const { sha } = branchesState.tip.branch.tip
+      this._setCherryPickTargetBranchUndoSha(repository, sha)
+    }
+
+    return this._cherryPick(repository, commits)
   }
 
   /**
