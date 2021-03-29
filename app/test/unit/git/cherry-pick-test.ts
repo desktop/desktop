@@ -216,7 +216,7 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(null)
   })
 
-  it('fails to cherry-pick a merge commit', async () => {
+  it('successfully cherry-picks a merge commit', async () => {
     //create new branch off of default to merge into feature branch
     await switchTo(repository, 'main')
     const mergeBranchName = 'branch-to-merge'
@@ -243,15 +243,70 @@ describe('git/cherry-pick', () => {
     featureBranch = await getBranchOrError(repository, featureBranchName)
     await switchTo(repository, targetBranchName)
 
-    result = null
-    try {
-      result = await cherryPick(repository, featureBranch.tip.sha)
-    } catch (error) {
-      expect(error.toString()).toContain(
-        'GitError: You cannot cherry-pick merge commits from GitHub Desktop.'
-      )
+    result = await cherryPick(repository, featureBranch.tip.sha)
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+  })
+
+  it('successfully cherry-picks a merge commit after a conflict', async () => {
+    const firstSha = featureBranch.tip.sha
+
+    // In the 'git/cherry-pick' `beforeEach`, we call `createRepository` which
+    // adds a commit to the feature branch with a file called THING.md. In
+    // order to make a conflict, we will add the same file to the target
+    // branch.
+    const conflictingCommit = {
+      commitMessage: 'Conflicting Commit!',
+      entries: [
+        {
+          path: 'THING.md',
+          contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
+        },
+      ],
     }
-    expect(result).toBe(null)
+    await makeCommit(repository, conflictingCommit)
+
+    //create new branch off of default to merge into feature branch
+    await switchTo(repository, 'main')
+    const mergeBranchName = 'branch-to-merge'
+    await createBranch(repository, mergeBranchName, 'HEAD')
+    await switchTo(repository, mergeBranchName)
+    const mergeCommit = {
+      commitMessage: 'Commit To Merge',
+      entries: [
+        {
+          path: 'merging.md',
+          contents: '# HELLO WORLD! \nMERGED THINGS GO HERE\n',
+        },
+      ],
+    }
+    await makeCommit(repository, mergeCommit)
+    const mergeBranch = await getBranchOrError(repository, mergeBranchName)
+    await switchTo(repository, featureBranchName)
+    expect(await merge(repository, mergeBranch.ref)).toBe(MergeResult.Success)
+
+    // top commit is a merge commit
+    const commits = await getCommits(repository, featureBranch.ref, 7)
+    expect(commits[0].summary).toContain('Merge')
+
+    featureBranch = await getBranchOrError(repository, featureBranchName)
+    await switchTo(repository, targetBranchName)
+
+    const commitRange = revRangeInclusive(firstSha, featureBranch.tip.sha)
+    result = await cherryPick(repository, commitRange)
+    expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+    // resolve conflicts by writing files to disk
+    await FSE.writeFile(
+      Path.join(repository.path, 'THING.md'),
+      '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+    )
+
+    const statusAfterCherryPick = await getStatusOrThrow(repository)
+    const { files } = statusAfterCherryPick.workingDirectory
+
+    result = await continueCherryPick(repository, files)
+
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
   describe('cherry-picking with conflicts', () => {
