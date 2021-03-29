@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.7.0": [
+      "[New] Cherry-picking! Copy commits from one branch to another - #1685",
+      "[Added] Add support for RStudio Editor - #11690 #11386. Thanks @geophilusd!",
+      "[Improved] Use system theme as default - #9959. Thanks @say25!"
+    ],
     "2.7.0-beta6": [
       "[Added] Add ability to cherry-pick merge commits - #11877",
       "[Fixed] User can no longer get into a bad persistent cherry-picking drag state - #11875"
