@@ -1915,14 +1915,22 @@ export class Dispatcher {
           retryAction.baseBranch,
           retryAction.targetBranch
         )
-      case RetryActionType.CherryPick:
-        return this.cherryPick(
+      case RetryActionType.CheckoutBranchAndCherryPick:
+        return this.checkOutBranchAndCherryPick(
           retryAction.repository,
           retryAction.targetBranch,
           retryAction.commits,
           retryAction.sourceBranch
         )
-
+      case RetryActionType.CreateBranchAndCherryPick:
+        return this.createBranchAndCherryPick(
+          retryAction.repository,
+          retryAction.targetBranchName,
+          retryAction.commits,
+          retryAction.sourceBranch,
+          retryAction.startPoint,
+          retryAction.noTrackOption
+        )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }

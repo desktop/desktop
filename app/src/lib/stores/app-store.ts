@@ -5821,12 +5821,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     let result: CherryPickResult | null | undefined
 
-    result = this.checkForUncommittedChangesBeforeCherryPick(
+    result = this.checkForUncommittedChangesBeforeCherryPick(repository, {
+      type: RetryActionType.CheckoutBranchAndCherryPick,
       repository,
       targetBranch,
       commits,
-      sourceBranch
-    )
+      sourceBranch,
+    })
 
     if (result !== null) {
       return result
@@ -5876,9 +5877,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private checkForUncommittedChangesBeforeCherryPick(
     repository: Repository,
-    targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>,
-    sourceBranch: Branch | null
+    retryAction: RetryAction
   ): CherryPickResult | null {
     const { changesState } = this.repositoryStateCache.get(repository)
     const hasChanges = changesState.workingDirectory.files.length > 0
@@ -5889,13 +5888,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._showPopup({
       type: PopupType.LocalChangesOverwritten,
       repository,
-      retryAction: {
-        type: RetryActionType.CherryPick,
-        repository,
-        targetBranch,
-        commits,
-        sourceBranch,
-      },
+      retryAction,
       files: changesState.workingDirectory.files.map(f => f.path),
     })
 
