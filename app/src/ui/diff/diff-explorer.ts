@@ -96,6 +96,52 @@ export function lineNumberForDiffLine(
 
 /**
  * For the given row in the diff, determine the range of elements that
+ * should be displayed as interactive, as a hunk is not granular enough.
+ * The values in the returned range are mapped to lines in the original diff,
+ * in case the current diff has been partially expanded.
+ */
+export function findInteractiveOriginalDiffRange(
+  hunks: ReadonlyArray<DiffHunk>,
+  index: number
+): IDiffRange | null {
+  const range = findInteractiveDiffRange(hunks, index)
+
+  if (range === null) {
+    return null
+  }
+
+  const from = getLineInOriginalDiff(hunks, range.from)
+  const to = getLineInOriginalDiff(hunks, range.to)
+
+  if (from === null || to === null) {
+    return null
+  }
+
+  return {
+    ...range,
+    from,
+    to,
+  }
+}
+
+/**
+ * Utility function to get the line number in the original line from a given
+ * line number in the current text diff (which might be expanded).
+ */
+export function getLineInOriginalDiff(
+  hunks: ReadonlyArray<DiffHunk>,
+  index: number
+) {
+  const diffLine = diffLineForIndex(hunks, index)
+  if (diffLine === null) {
+    return null
+  }
+
+  return diffLine.originalLineNumber
+}
+
+/**
+ * For the given row in the diff, determine the range of elements that
  * should be displayed as interactive, as a hunk is not granular enough
  */
 export function findInteractiveDiffRange(
