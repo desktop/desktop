@@ -106,13 +106,10 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private canCherryPickOntoSelectedBranch() {
-    const {
-      selectedBranch,
-      isCreateBranchState: isNoBranchesState,
-    } = this.state
+    const { selectedBranch, isCreateBranchState } = this.state
     return (
       (selectedBranch !== null && !this.selectedBranchIsCurrentBranch()) ||
-      isNoBranchesState
+      isCreateBranchState
     )
   }
 
@@ -127,12 +124,9 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private renderOkButtonText() {
-    const {
-      selectedBranch,
-      isCreateBranchState: isNoBranchesState,
-    } = this.state
+    const { selectedBranch, isCreateBranchState } = this.state
 
-    if (isNoBranchesState) {
+    if (isCreateBranchState) {
       return __DARWIN__
         ? 'Cherry-pick to New Branch'
         : 'Cherry-pick to new branch'
@@ -153,10 +147,10 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private onFilterListResultsChanged = (resultCount: number) => {
-    const { isCreateBranchState: isNoBranchesState } = this.state
-    if (resultCount === 0 && !isNoBranchesState) {
+    const { isCreateBranchState } = this.state
+    if (resultCount === 0 && !isCreateBranchState) {
       this.setState({ isCreateBranchState: true })
-    } else if (resultCount > 0 && isNoBranchesState) {
+    } else if (resultCount > 0 && isCreateBranchState) {
       this.setState({ isCreateBranchState: false })
     }
   }
@@ -209,8 +203,8 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private onSubmit = async () => {
-    const { isCreateBranchState: isNoBranchesState, filterText } = this.state
-    if (isNoBranchesState) {
+    const { isCreateBranchState, filterText } = this.state
+    if (isCreateBranchState) {
       this.props.onCreateNewBranch(filterText)
       return
     }

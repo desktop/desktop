@@ -51,7 +51,7 @@ interface ICreateBranchProps {
   readonly okButtonText?: string
 
   /**
-   * If provided use, as the header
+   * If provided, use as the header
    */
   readonly headerText?: string
 }

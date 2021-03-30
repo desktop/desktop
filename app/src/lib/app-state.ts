@@ -776,7 +776,7 @@ export interface ICherryPickState {
   readonly targetBranchUndoSha: string | null
 
   /**
-   * Whether branch was created during cherry-pick operation
+   * Whether the target branch was created during cherry-pick operation
    */
   readonly branchCreated: boolean
 }

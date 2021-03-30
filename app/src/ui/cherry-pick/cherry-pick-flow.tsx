@@ -159,7 +159,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     const { dispatcher, repository, commits, sourceBranch } = this.props
     if (this.props.step.kind !== CherryPickStepKind.CreateBranch) {
       log.warn(
-        '[cherryPickFlow] - onBranchCreated should only be called during a create branch step.'
+        '[cherryPickFlow] - Invalid cherry-picking state for creating a branch.'
       )
       this.onFlowEnded()
       return
