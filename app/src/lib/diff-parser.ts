@@ -288,15 +288,17 @@ export class DiffParser {
 
     const header = this.parseHunkHeader(headerLine)
     const lines = new Array<DiffLine>()
-    lines.push(new DiffLine(headerLine, DiffLineType.Hunk, null, null))
+    lines.push(new DiffLine(headerLine, DiffLineType.Hunk, 1, null, null))
 
     let c: DiffLinePrefix | null
 
     let rollingDiffBeforeCounter = header.oldStartLine
     let rollingDiffAfterCounter = header.newStartLine
 
+    let diffLineNumber = linesConsumed
     while ((c = this.parseLinePrefix(this.peek()))) {
       const line = this.readLine()
+      diffLineNumber++
 
       if (!line) {
         throw new Error('Expected unified diff line but reached end of diff')
@@ -329,6 +331,7 @@ export class DiffParser {
         diffLine = new DiffLine(
           line,
           DiffLineType.Add,
+          diffLineNumber,
           null,
           rollingDiffAfterCounter++
         )
@@ -336,6 +339,7 @@ export class DiffParser {
         diffLine = new DiffLine(
           line,
           DiffLineType.Delete,
+          diffLineNumber,
           rollingDiffBeforeCounter++,
           null
         )
@@ -343,6 +347,7 @@ export class DiffParser {
         diffLine = new DiffLine(
           line,
           DiffLineType.Context,
+          diffLineNumber,
           rollingDiffBeforeCounter++,
           rollingDiffAfterCounter++
         )
