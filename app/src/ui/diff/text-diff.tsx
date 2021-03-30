@@ -24,6 +24,7 @@ import {
   findInteractiveDiffRange,
   lineNumberForDiffLine,
   DiffRangeType,
+  diffLineInfoForIndex,
 } from './diff-explorer'
 
 import {
@@ -45,7 +46,12 @@ import {
   enableTextDiffExpansion,
 } from '../../lib/feature-flag'
 import { canSelect } from './diff-helpers'
-import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
+import {
+  ExpansionKind,
+  getHunkHeaderExpansionInfo,
+  getTextDiffWithBottomDummyHunk,
+} from './text-diff-expansion'
+import { createOcticonElement } from '../octicons/octicon'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -826,13 +832,16 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     this.swappedDocumentHasUpdatedViewport = true
 
+    const hunks = this.state.diff.hunks
+
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
 
       if (lineNumber !== null) {
-        const diffLine = diffLineForIndex(this.state.diff.hunks, lineNumber)
+        const diffLineInfo = diffLineInfoForIndex(hunks, lineNumber)
 
-        if (diffLine !== null) {
+        if (diffLineInfo !== null) {
+          const { hunk, line: diffLine } = diffLineInfo
           const lineInfo = cm.lineInfo(line)
 
           if (
@@ -841,11 +850,16 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           ) {
             const marker = lineInfo.gutterMarkers[diffGutterName]
             if (marker instanceof HTMLElement) {
-              this.updateGutterMarker(marker, lineNumber, diffLine)
+              this.updateGutterMarker(marker, hunks, hunk, diffLine)
             }
           } else {
             batchedOps.push(() => {
-              const marker = this.createGutterMarker(lineNumber, diffLine)
+              const marker = this.createGutterMarker(
+                lineNumber,
+                hunks,
+                hunk,
+                diffLine
+              )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
           }
@@ -876,12 +890,23 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private getGutterLineClassNameInfo(
-    index: number,
+    hunks: ReadonlyArray<DiffHunk>,
+    hunk: DiffHunk,
     diffLine: DiffLine
   ): { [className: string]: boolean } {
     const isIncludeable = diffLine.isIncludeableLine()
-    const isIncluded = isIncludeable && this.isIncluded(index)
-    const hover = isIncludeable && inSelection(this.hunkHighlightRange, index)
+    const isIncluded =
+      isIncludeable &&
+      diffLine.originalLineNumber !== null &&
+      this.isIncluded(diffLine.originalLineNumber)
+    const hover =
+      isIncludeable &&
+      diffLine.originalLineNumber !== null &&
+      inSelection(this.hunkHighlightRange, diffLine.originalLineNumber)
+    const hunkExpansionInfo =
+      enableTextDiffExpansion() && diffLine.type === DiffLineType.Hunk
+        ? getHunkHeaderExpansionInfo(hunks, hunk)
+        : undefined
 
     return {
       'diff-line-gutter': true,
@@ -892,15 +917,27 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       'read-only': this.props.readOnly,
       'diff-line-selected': isIncluded,
       'diff-line-hover': hover,
+      'expandable-down': hunkExpansionInfo?.isExpandableDown === true,
+      'expandable-up': hunkExpansionInfo?.isExpandableUp === true,
+      'expandable-both': hunkExpansionInfo?.isExpandableBoth === true,
+      'expandable-short': hunkExpansionInfo?.isExpandableShort === true,
       includeable: isIncludeable && !this.props.readOnly,
     }
   }
 
-  private createGutterMarker(index: number, diffLine: DiffLine) {
+  private createGutterMarker(
+    index: number,
+    hunks: ReadonlyArray<DiffHunk>,
+    hunk: DiffHunk,
+    diffLine: DiffLine
+  ) {
     const marker = document.createElement('div')
     marker.className = 'diff-line-gutter'
 
-    marker.addEventListener('mousedown', this.onDiffLineGutterMouseDown)
+    marker.addEventListener(
+      'mousedown',
+      this.onDiffLineGutterMouseDown.bind(this, index)
+    )
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.classList.add('diff-line-number', 'before')
@@ -917,17 +954,96 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunkHandle.classList.add('hunk-handle')
     marker.appendChild(hunkHandle)
 
-    this.updateGutterMarker(marker, index, diffLine)
+    if (enableTextDiffExpansion()) {
+      const hunkExpandUpHandle = document.createElement('div')
+      hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
+      hunkExpandUpHandle.title = 'Expand Up'
+      hunkExpandUpHandle.addEventListener(
+        'click',
+        this.onHunkExpandHalfHandleMouseDown.bind(this, hunks, hunk, 'up')
+      )
+      marker.appendChild(hunkExpandUpHandle)
+
+      hunkExpandUpHandle.appendChild(
+        createOcticonElement(OcticonSymbol.foldUp, 'hunk-expand-icon')
+      )
+
+      const hunkExpandDownHandle = document.createElement('div')
+      hunkExpandDownHandle.classList.add('hunk-expand-down-handle')
+      hunkExpandDownHandle.title = 'Expand Down'
+      hunkExpandDownHandle.addEventListener(
+        'click',
+        this.onHunkExpandHalfHandleMouseDown.bind(this, hunks, hunk, 'down')
+      )
+      marker.appendChild(hunkExpandDownHandle)
+
+      hunkExpandDownHandle.appendChild(
+        createOcticonElement(OcticonSymbol.foldDown, 'hunk-expand-icon')
+      )
+
+      const hunkExpandWholeHandle = document.createElement('div')
+      hunkExpandWholeHandle.classList.add('hunk-expand-whole-handle')
+      hunkExpandWholeHandle.title = 'Expand whole'
+      hunkExpandWholeHandle.addEventListener(
+        'click',
+        this.onHunkExpandWholeHandleMouseDown.bind(this, hunks, hunk)
+      )
+      marker.appendChild(hunkExpandWholeHandle)
+
+      hunkExpandWholeHandle.appendChild(
+        createOcticonElement(
+          OcticonSymbol.foldDown,
+          'hunk-expand-icon',
+          'hunk-expand-down-icon'
+        )
+      )
+
+      hunkExpandWholeHandle.appendChild(
+        createOcticonElement(
+          OcticonSymbol.foldUp,
+          'hunk-expand-icon',
+          'hunk-expand-up-icon'
+        )
+      )
+
+      hunkExpandWholeHandle.appendChild(
+        createOcticonElement(
+          OcticonSymbol.fold,
+          'hunk-expand-icon',
+          'hunk-expand-short-icon'
+        )
+      )
+    }
+
+    this.updateGutterMarker(marker, hunks, hunk, diffLine)
 
     return marker
   }
 
+  private onHunkExpandWholeHandleMouseDown = (
+    hunks: ReadonlyArray<DiffHunk>,
+    hunk: DiffHunk,
+    ev: MouseEvent
+  ) => {
+    // TODO: Implementation coming in a future PR…
+  }
+
+  private onHunkExpandHalfHandleMouseDown = (
+    hunks: ReadonlyArray<DiffHunk>,
+    hunk: DiffHunk,
+    kind: ExpansionKind,
+    ev: MouseEvent
+  ) => {
+    // TODO: Implementation coming in a future PR…
+  }
+
   private updateGutterMarker(
     marker: HTMLElement,
-    index: number,
+    hunks: ReadonlyArray<DiffHunk>,
+    hunk: DiffHunk,
     diffLine: DiffLine
   ) {
-    const classNameInfo = this.getGutterLineClassNameInfo(index, diffLine)
+    const classNameInfo = this.getGutterLineClassNameInfo(hunks, hunk, diffLine)
     for (const [className, include] of Object.entries(classNameInfo)) {
       if (include) {
         marker.classList.add(className)
@@ -941,7 +1057,25 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         'Partial committing is not available while hiding whitespace changes'
     }
 
-    if (!this.props.readOnly && diffLine.isIncludeableLine()) {
+    const hunkExpandWholeHandle = marker.getElementsByClassName(
+      'hunk-expand-whole-handle'
+    )[0]
+    if (hunkExpandWholeHandle !== undefined) {
+      if (classNameInfo['expandable-short'] === true) {
+        hunkExpandWholeHandle.setAttribute('title', 'Expand All')
+      } else if (classNameInfo['expandable-both'] !== true) {
+        if (classNameInfo['expandable-down']) {
+          hunkExpandWholeHandle.setAttribute('title', 'Expand Down')
+        } else {
+          hunkExpandWholeHandle.setAttribute('title', 'Expand Up')
+        }
+      }
+    }
+
+    const isIncludeableLine =
+      !this.props.readOnly && diffLine.isIncludeableLine()
+
+    if (diffLine.type === DiffLineType.Hunk || isIncludeableLine) {
       marker.setAttribute('role', 'button')
     } else {
       marker.removeAttribute('role')
@@ -992,7 +1126,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
   }
 
-  private onDiffLineGutterMouseDown = (ev: MouseEvent) => {
+  private onDiffLineGutterMouseDown = (index: number, ev: MouseEvent) => {
     // If the event is prevented that means the hunk handle was
     // clicked first and prevented the default action so we'll bail.
     if (ev.defaultPrevented || this.codeMirror === null) {
@@ -1014,8 +1148,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     ev.preventDefault()
 
-    const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(file, diff.hunks, lineNumber, 'range')
+    this.startSelection(file, diff.hunks, index, 'range')
   }
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
