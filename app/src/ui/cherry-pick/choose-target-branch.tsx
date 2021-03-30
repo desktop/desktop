@@ -51,7 +51,7 @@ interface IChooseTargetBranchDialogProps {
   /**
    * Call back to invoke create new branch dialog
    */
-  readonly onCreateNewBranch: () => void
+  readonly onCreateNewBranch: (targetBranchName: string) => void
 }
 
 interface IChooseTargetBranchDialogState {
@@ -60,6 +60,9 @@ interface IChooseTargetBranchDialogState {
 
   /** The filter text to use in the branch selector */
   readonly filterText: string
+
+  /** When there are no branches to show, prompt for create branch */
+  readonly isCreateBranchState: boolean
 }
 
 /** A component for initiating a rebase of the current branch. */
@@ -73,6 +76,7 @@ export class ChooseTargetBranchDialog extends React.Component<
     this.state = {
       selectedBranch: null,
       filterText: '',
+      isCreateBranchState: props.allBranches.length === 0,
     }
   }
 
@@ -102,8 +106,14 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private canCherryPickOntoSelectedBranch() {
-    const { selectedBranch } = this.state
-    return selectedBranch !== null && !this.selectedBranchIsCurrentBranch()
+    const {
+      selectedBranch,
+      isCreateBranchState: isNoBranchesState,
+    } = this.state
+    return (
+      (selectedBranch !== null && !this.selectedBranchIsCurrentBranch()) ||
+      isNoBranchesState
+    )
   }
 
   private selectedBranchIsCurrentBranch() {
@@ -117,10 +127,20 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private renderOkButtonText() {
+    const {
+      selectedBranch,
+      isCreateBranchState: isNoBranchesState,
+    } = this.state
+
+    if (isNoBranchesState) {
+      return __DARWIN__
+        ? 'Cherry-pick to New Branch'
+        : 'Cherry-pick to new branch'
+    }
+
     const pluralize = this.props.commitCount > 1 ? 'commits' : 'commit'
     const okButtonText = `Cherry-pick ${this.props.commitCount} ${pluralize}`
 
-    const { selectedBranch } = this.state
     if (selectedBranch !== null) {
       return (
         <>
@@ -130,6 +150,15 @@ export class ChooseTargetBranchDialog extends React.Component<
     }
 
     return okButtonText
+  }
+
+  private onFilterListResultsChanged = (resultCount: number) => {
+    const { isCreateBranchState: isNoBranchesState } = this.state
+    if (resultCount === 0 && !isNoBranchesState) {
+      this.setState({ isCreateBranchState: true })
+    } else if (resultCount > 0 && isNoBranchesState) {
+      this.setState({ isCreateBranchState: false })
+    }
   }
 
   public render() {
@@ -142,7 +171,7 @@ export class ChooseTargetBranchDialog extends React.Component<
       <Dialog
         id="cherry-pick"
         onDismissed={this.props.onDismissed}
-        onSubmit={this.startCherryPick}
+        onSubmit={this.onSubmit}
         dismissable={true}
         title={
           <strong>
@@ -158,6 +187,7 @@ export class ChooseTargetBranchDialog extends React.Component<
             recentBranches={this.props.recentBranches}
             filterText={this.state.filterText}
             onFilterTextChanged={this.onFilterTextChanged}
+            onFilterListResultsChanged={this.onFilterListResultsChanged}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={true}
@@ -176,6 +206,16 @@ export class ChooseTargetBranchDialog extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onSubmit = async () => {
+    const { isCreateBranchState: isNoBranchesState, filterText } = this.state
+    if (isNoBranchesState) {
+      this.props.onCreateNewBranch(filterText)
+      return
+    }
+
+    this.startCherryPick()
   }
 
   private startCherryPick = async () => {

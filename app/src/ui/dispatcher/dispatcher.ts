@@ -2919,7 +2919,8 @@ export class Dispatcher {
 
   /** Set Cherry Pick Flow Step For Create Branch */
   public async setCherryPickCreateBranchFlowStep(
-    repository: Repository
+    repository: Repository,
+    targetBranchName: string
   ): Promise<void> {
     const { branchesState } = this.repositoryStateManager.get(repository)
     const { defaultBranch, allBranches, tip } = branchesState
@@ -2949,6 +2950,7 @@ export class Dispatcher {
       upstreamDefaultBranch,
       upstreamGhRepo,
       tip,
+      targetBranchName,
     }
     return this.appStore._setCherryPickFlowStep(repository, step)
   }

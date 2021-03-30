@@ -45,6 +45,15 @@ interface ICreateBranchProps {
   readonly upstreamDefaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
+  /**
+   * If provided, use as the okButtonText
+   */
+  readonly okButtonText?: string
+
+  /**
+   * If provided use, as the header
+   */
+  readonly headerText?: string
 }
 
 interface ICreateBranchState {
@@ -183,7 +192,7 @@ export class CreateBranch extends React.Component<
     return (
       <Dialog
         id="create-branch"
-        title={__DARWIN__ ? 'Create a Branch' : 'Create a branch'}
+        title={this.getHeaderText()}
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
         loading={this.state.isCreatingBranch}
@@ -208,12 +217,28 @@ export class CreateBranch extends React.Component<
 
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Create Branch' : 'Create branch'}
+            okButtonText={this.getOkButtonText()}
             okButtonDisabled={disabled}
           />
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private getHeaderText = (): string => {
+    if (this.props.headerText !== undefined) {
+      return this.props.headerText
+    }
+
+    return __DARWIN__ ? 'Create a Branch' : 'Create a branch'
+  }
+
+  private getOkButtonText = (): string => {
+    if (this.props.okButtonText !== undefined) {
+      return this.props.okButtonText
+    }
+
+    return __DARWIN__ ? 'Create Branch' : 'Create branch'
   }
 
   private onBranchNameChange = (name: string) => {

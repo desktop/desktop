@@ -134,4 +134,5 @@ export type CreateBranchStep = {
   upstreamDefaultBranch: Branch | null
   upstreamGhRepo: GitHubRepository | null
   tip: IUnbornRepository | IDetachedHead | IValidBranch
+  targetBranchName: string
 }

@@ -20,6 +20,7 @@ import { WorkingDirectoryStatus } from '../../models/status'
 import { getResolvedFiles } from '../../lib/status'
 import { ConfirmCherryPickAbortDialog } from './confirm-cherry-pick-abort-dialog'
 import { CreateBranch } from '../create-branch'
+import { String } from 'aws-sdk/clients/acm'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
@@ -144,12 +145,12 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     })
   }
 
-  private onNewBranch = () => {
+  private onCreateNewBranch = (targetBranchName: String) => {
     const { dispatcher, repository } = this.props
-    dispatcher.setCherryPickCreateBranchFlowStep(repository)
+    dispatcher.setCherryPickCreateBranchFlowStep(repository, targetBranchName)
   }
 
-  private onCreateBranch = (
+  private onCreateBranchAndCherryPick = (
     branchName: string,
     startPoint: string | null,
     noTrackOption: boolean
@@ -194,7 +195,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             onCherryPick={this.onChooseBranch}
             onDismissed={this.onFlowEnded}
             commitCount={this.props.commits.length}
-            onCreateNewBranch={this.onNewBranch}
+            onCreateNewBranch={this.onCreateNewBranch}
           />
         )
       }
@@ -263,7 +264,16 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
           upstreamDefaultBranch,
           upstreamGhRepo,
           tip,
+          targetBranchName,
         } = step
+
+        const okButtonText = __DARWIN__
+          ? 'Create Branch and Cherry-pick'
+          : 'Create branch and cherry-pick'
+
+        const headerText = __DARWIN__
+          ? 'Cherry-pick to New Branch'
+          : 'Cherry-pick to new branch'
 
         return (
           <CreateBranch
@@ -276,8 +286,10 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             repository={this.props.repository}
             onDismissed={this.onFlowEnded}
             dispatcher={this.props.dispatcher}
-            initialName={''}
-            createBranch={this.onCreateBranch}
+            initialName={targetBranchName}
+            createBranch={this.onCreateBranchAndCherryPick}
+            okButtonText={okButtonText}
+            headerText={headerText}
           />
         )
       case CherryPickStepKind.CommitsChosen:

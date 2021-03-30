@@ -44,4 +44,10 @@ dialog#cherry-pick {
       padding: var(--spacing-half);
     }
   }
+  .no-branches {
+    .create-branch-button,
+    .protip {
+      display: none;
+    }
+  }
 }
