@@ -187,6 +187,7 @@ function getInitialRepositoryState(): IRepositoryState {
       progress: null,
       userHasResolvedConflicts: false,
       targetBranchUndoSha: null,
+      branchCreated: false,
     },
   }
 }

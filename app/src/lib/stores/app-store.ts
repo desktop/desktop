@@ -3415,7 +3415,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteBranch(
     repository: Repository,
     branch: Branch,
-    includeUpstream?: boolean
+    includeUpstream?: boolean,
+    toCheckout?: Branch | null
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
       const gitStore = this.gitStoreCache.get(r)
@@ -3445,7 +3446,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // If a local branch, user may have the branch to delete checked out and
       // we need to switch to a different branch (default or recent).
-      const branchToCheckout = this.getBranchToCheckoutAfterDelete(branch, r)
+      const branchToCheckout =
+        toCheckout || this.getBranchToCheckoutAfterDelete(branch, r)
 
       if (branchToCheckout !== null) {
         await gitStore.performFailableOperation(() =>
@@ -5956,6 +5958,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setCherryPickBranchCreated(
+    repository: Repository,
+    branchCreated: boolean
+  ): void {
+    // An update is not emitted here because there is no need
+    // to trigger a re-render at this point. (storing for later)
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      branchCreated,
+    }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setCherryPickConflictsResolved(repository: Repository) {
     // an update is not emitted here because there is no need
     // to trigger a re-render at this point
@@ -6087,13 +6101,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const {
-      cherryPickState: { targetBranchUndoSha },
+      cherryPickState: { targetBranchUndoSha, branchCreated },
     } = this.repositoryStateCache.get(repository)
+
+    // If a new branch is created as part of the cherry-pick,
+    // We just want to delete it, no need to reset it.
+    if (branchCreated) {
+      this._deleteBranch(repository, tip.branch, false, sourceBranch)
+      return true
+    }
 
     if (targetBranchUndoSha === null) {
       log.warn('[undoCherryPick] - Could not determine target branch undo sha')
       return false
     }
+
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
       reset(repository, GitResetMode.Hard, targetBranchUndoSha)

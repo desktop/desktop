@@ -2643,6 +2643,7 @@ export class Dispatcher {
       return
     }
 
+    this.appStore._setCherryPickBranchCreated(repository, true)
     return this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
@@ -2689,6 +2690,7 @@ export class Dispatcher {
     })
 
     this.statsStore.recordCherryPickViaDragAndDrop()
+    this.setCherryPickBranchCreated(repository, false)
     this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
@@ -2953,5 +2955,13 @@ export class Dispatcher {
       targetBranchName,
     }
     return this.appStore._setCherryPickFlowStep(repository, step)
+  }
+
+  /** Set cherry-pick branch created state */
+  public setCherryPickBranchCreated(
+    repository: Repository,
+    branchCreated: boolean
+  ): void {
+    this.appStore._setCherryPickBranchCreated(repository, branchCreated)
   }
 }

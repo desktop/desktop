@@ -74,6 +74,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
 
   private onChooseBranch = (targetBranch: Branch) => {
     const { dispatcher, repository, commits, sourceBranch } = this.props
+    dispatcher.setCherryPickBranchCreated(repository, false)
     dispatcher.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
