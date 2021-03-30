@@ -126,7 +126,7 @@ export type ConfirmAbortStep = {
   readonly conflictState: CherryPickConflictState
 }
 
-/** Shape of data to track when user hides conflicts dialog */
+/** Shape of data to track when user is creating branch during cherry-pick */
 export type CreateBranchStep = {
   readonly kind: CherryPickStepKind.CreateBranch
   allBranches: ReadonlyArray<Branch>

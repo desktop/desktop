@@ -5864,12 +5864,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Checks for uncommitted changes before cherry pick
+   * Checks for uncommitted changes
    *
-   * If uncommitted changes exist, ask user to stash and return
-   * CherryPickResult.UnableToStart.
+   * If uncommitted changes exist, ask user to stash, retry provided retry
+   * action and return true.
    *
-   * If no uncommitted changes, return null.
+   * If no uncommitted changes, return false.
    *
    * This shouldn't be called directly. See `Dispatcher`.
    */
