@@ -71,14 +71,9 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     dispatcher.endCherryPickFlow(repository)
   }
 
-  private onCherryPick = (targetBranch: Branch) => {
+  private onChooseBranch = (targetBranch: Branch) => {
     const { dispatcher, repository, commits, sourceBranch } = this.props
-    dispatcher.checkOutBranchAndCherryPick(
-      repository,
-      targetBranch,
-      commits,
-      sourceBranch
-    )
+    dispatcher.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
   private onContinueCherryPick = (step: ShowConflictsStep) => {
@@ -159,6 +154,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     startPoint: string | null,
     noTrackOption: boolean
   ) => {
+    const { dispatcher, repository, commits, sourceBranch } = this.props
     if (this.props.step.kind !== CherryPickStepKind.CreateBranch) {
       log.warn(
         '[cherryPickFlow] - onBranchCreated should only be called during a create branch step.'
@@ -167,14 +163,13 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
       return
     }
 
-    const { dispatcher, repository, commits, sourceBranch } = this.props
-    dispatcher.createBranchAndCherryPick(
+    dispatcher.startCherryPickWithBranchName(
       repository,
       branchName,
-      commits,
-      sourceBranch,
       startPoint,
-      noTrackOption
+      noTrackOption,
+      commits,
+      sourceBranch
     )
   }
 
@@ -196,7 +191,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             defaultBranch={defaultBranch}
             recentBranches={recentBranches}
             currentBranch={currentBranch}
-            onCherryPick={this.onCherryPick}
+            onCherryPick={this.onChooseBranch}
             onDismissed={this.onFlowEnded}
             commitCount={this.props.commits.length}
             onCreateNewBranch={this.onNewBranch}

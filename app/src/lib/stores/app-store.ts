@@ -3006,12 +3006,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    noTrackOption: boolean = false
+    noTrackOption: boolean = false,
+    checkoutBranch: boolean = false
   ): Promise<Branch | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.createBranch(name, startPoint, noTrackOption)
 
-    if (branch !== undefined) {
+    if (branch !== undefined && checkoutBranch) {
       await this._checkoutBranch(repository, branch)
     }
 
@@ -5810,11 +5811,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
   private async _cherryPick(
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
+    if (commits.length === 0) {
+      log.warn('[_cherryPick] - Unable to cherry-pick. No commits provided.')
+      return CherryPickResult.UnableToStart
+    }
+
     await this._refreshRepository(repository)
 
     const progressCallback = (progress: ICherryPickProgress) => {
@@ -5844,84 +5849,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkOutBranchAndCherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>,
-    sourceBranch: Branch | null
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
-    if (commits.length === 0) {
-      log.warn('[_cherryPick] - Unable to cherry-pick. No commits provided.')
-      return CherryPickResult.UnableToStart
-    }
-    let result: CherryPickResult | null | undefined
-
-    result = this.checkForUncommittedChangesBeforeCherryPick(repository, {
-      type: RetryActionType.CheckoutBranchAndCherryPick,
-      repository,
-      targetBranch,
-      commits,
-      sourceBranch,
-    })
-
-    if (result !== null) {
-      return result
-    }
-
-    result = await this.checkoutTargetBranchForCherryPick(
+    const result = await this.checkoutTargetBranchForCherryPick(
       repository,
       targetBranch
     )
 
     if (result !== null) {
       return result
-    }
-
-    return this._cherryPick(repository, commits)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createBranchAndCherryPick(
-    repository: Repository,
-    targetBranchName: string,
-    commits: ReadonlyArray<CommitOneLine>,
-    sourceBranch: Branch | null,
-    startPoint: string | null,
-    noTrackOption: boolean = false
-  ): Promise<CherryPickResult> {
-    if (commits.length === 0) {
-      log.warn('[_cherryPick] - Unable to cherry-pick. No commits provided.')
-      return CherryPickResult.UnableToStart
-    }
-    let result: CherryPickResult | null | undefined
-
-    result = this.checkForUncommittedChangesBeforeCherryPick(repository, {
-      type: RetryActionType.CreateBranchAndCherryPick,
-      repository,
-      targetBranchName,
-      commits,
-      sourceBranch,
-      startPoint,
-      noTrackOption,
-    })
-
-    if (result !== null) {
-      return result
-    }
-
-    result = await this.createTargetBranchForCherryPick(
-      repository,
-      targetBranchName,
-      startPoint,
-      noTrackOption
-    )
-
-    if (result !== null) {
-      return result
-    }
-
-    // Get the new branches tip and set the undo sha before cherry-pick
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    if (branchesState.tip.kind === TipState.Valid) {
-      const { sha } = branchesState.tip.branch.tip
-      this._setCherryPickTargetBranchUndoSha(repository, sha)
     }
 
     return this._cherryPick(repository, commits)
@@ -5934,15 +5870,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * CherryPickResult.UnableToStart.
    *
    * If no uncommitted changes, return null.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
    */
-  private checkForUncommittedChangesBeforeCherryPick(
+  public _checkForUncommittedChanges(
     repository: Repository,
     retryAction: RetryAction
-  ): CherryPickResult | null {
+  ): boolean {
     const { changesState } = this.repositoryStateCache.get(repository)
     const hasChanges = changesState.workingDirectory.files.length > 0
     if (!hasChanges) {
-      return null
+      return false
     }
 
     this._showPopup({
@@ -5952,7 +5890,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       files: changesState.workingDirectory.files.map(f => f.path),
     })
 
-    return CherryPickResult.UnableToStart
+    return true
   }
 
   /**
@@ -5977,37 +5915,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
-  }
-
-  /**
-   * Attempts to create a target branch for cherry-pick operation
-   *
-   * If unable to create, return CherryPickResult.UnableToStart
-   * Otherwise, return null.
-   */
-  private async createTargetBranchForCherryPick(
-    repository: Repository,
-    targetBranchName: string,
-    startPoint: string | null,
-    noTrackOption: boolean = false
-  ): Promise<CherryPickResult | null> {
-    const gitStore = this.gitStoreCache.get(repository)
-
-    const successful = await this.withAuthenticatingUser(
-      repository,
-      (r, account) => {
-        return gitStore.performFailableOperation(() => {
-          return this._createBranch(
-            repository,
-            targetBranchName,
-            startPoint,
-            noTrackOption
-          )
-        })
-      }
-    )
-
-    return successful !== undefined ? null : CherryPickResult.UnableToStart
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
