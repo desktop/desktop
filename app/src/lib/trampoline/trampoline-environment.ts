@@ -61,6 +61,8 @@ export async function withTrampolineEnvForCommitSigning<T>(
       DESKTOP_PORT: await trampolineServer.getPort(),
       DESKTOP_TRAMPOLINE_TOKEN: token,
       DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.GPG,
+      GIT_COMMITTER_NAME: 'GitHub',
+      GIT_COMMITTER_EMAIL: 'noreply@github.com',
     })
   )
 }
