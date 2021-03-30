@@ -1,7 +1,9 @@
 {
   "releases": {
+    "2.7.1": [
+      "[New] Cherry-picking is available! Copy commits from one branch to another using drag and drop or from a context menu - #1685"
+    ],
     "2.7.0": [
-      "[New] Cherry-picking is available! Copy commits from one branch to another using drag and drop or from a context menu - #1685",
       "[Added] Add support for RStudio Editor - #11690 #11386. Thanks @geophilusd!",
       "[Improved] Use system theme as default - #9959. Thanks @say25!"
     ],
