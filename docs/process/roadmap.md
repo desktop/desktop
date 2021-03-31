@@ -2,15 +2,23 @@
 
 The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-#### Commits are not always attributed to someone's GitHub user
+#### Native arm64 support for macOS and Windows
 
-- Warn and provide a way to ensure your commits will be attributed to you: [#610](https://github.com/desktop/desktop/issues/610)
+- Provide support for arm64 Windows machines and Apple Silicon (M1) machines: [#9691](https://github.com/desktop/desktop/pull/9691)
 
-#### Cherry-picking commits from one branch to another
+#### Expanding diffs
+
+- Allow users to expand diffs to get more context outside of the specific hunk where the change is: [#7014](https://github.com/desktop/desktop/issues/7014)
+
+## Shipped in previous releases
+
+#### Cherry-picking commits from one branch to another (2.7.1)
 
 - Cherry-pick commits with a context menu and interactively: [#1685](https://github.com/desktop/desktop/issues/1685)
 
-## Shipped in previous releases
+#### Commits are not always attributed to someone's GitHub user (2.6.4)
+
+- Warn and provide a way to ensure your commits will be attributed to you: [#610](https://github.com/desktop/desktop/issues/610)
 
 #### Split diffs (2.6)
 
