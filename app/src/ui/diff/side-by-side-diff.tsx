@@ -864,7 +864,11 @@ function getDiffRowsFromHunk(
     }
 
     if (line.type === DiffLineType.Hunk) {
-      rows.push({ type: DiffRowType.Hunk, content: line.content })
+      rows.push({
+        type: DiffRowType.Hunk,
+        content: line.content,
+        expansionType: hunk.expansionType,
+      })
       continue
     }
 
