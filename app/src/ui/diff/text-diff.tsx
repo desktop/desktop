@@ -47,6 +47,7 @@ import {
 } from '../../lib/feature-flag'
 import { canSelect } from './diff-helpers'
 import {
+  expandTextDiffHunk,
   ExpansionKind,
   getHunkHeaderExpansionInfo,
   getTextDiffWithBottomDummyHunk,
@@ -336,6 +337,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   /** The current, active, diff gutter selection if any */
   private selection: ISelection | null = null
 
+  private newContentLines: ReadonlyArray<string> | null = null
+
   /** Whether a particular range should be highlighted due to hover */
   private hunkHighlightRange: ISelection | null = null
 
@@ -418,6 +421,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           newContentLines.length
         )
       : null
+    this.newContentLines = newContentLines
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
@@ -574,6 +578,31 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   private isSelectionEnabled = () => {
     return this.selection === null
+  }
+
+  /** Expand a selected hunk. */
+  private expandHunk(hunk: DiffHunk, kind: ExpansionKind) {
+    const diff = this.state.diff
+
+    if (this.newContentLines === null || this.newContentLines.length === 0) {
+      return
+    }
+
+    const updatedDiff = expandTextDiffHunk(
+      diff,
+      hunk,
+      kind,
+      this.newContentLines
+    )
+
+    if (updatedDiff === undefined) {
+      return
+    }
+
+    this.setState({
+      diff: updatedDiff,
+    })
+    this.updateViewport()
   }
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
@@ -1025,7 +1054,39 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunk: DiffHunk,
     ev: MouseEvent
   ) => {
-    // TODO: Implementation coming in a future PR…
+    // If the event is prevented that means the hunk handle was
+    // clicked first and prevented the default action so we'll bail.
+    if (ev.defaultPrevented || this.codeMirror === null) {
+      return
+    }
+
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
+    if (ev.button !== 0) {
+      return
+    }
+
+    ev.preventDefault()
+
+    // This code is invoked when the user clicks a hunk line gutter that is
+    // not splitted in half, meaning it can only be expanded either up or down
+    // (or the distance between hunks is too short it doesn't matter). It
+    // won't be invoked when the user can choose to expand it up or down.
+    //
+    // With that in mind, in those situations, we'll ALWAYS expand the hunk
+    // up except when it's the last "dummy" hunk we placed to allow expanding
+    // the diff from the bottom. In that case, we'll expand the second-to-last
+    // hunk down.
+    if (
+      hunk.lines.length === 1 &&
+      hunks.length > 1 &&
+      hunk === hunks[hunks.length - 1]
+    ) {
+      const previousHunk = hunks[hunks.length - 2]
+      this.expandHunk(previousHunk, 'down')
+    } else {
+      this.expandHunk(hunk, 'up')
+    }
   }
 
   private onHunkExpandHalfHandleMouseDown = (
@@ -1034,7 +1095,34 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     kind: ExpansionKind,
     ev: MouseEvent
   ) => {
-    // TODO: Implementation coming in a future PR…
+    if (!this.codeMirror) {
+      return
+    }
+
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
+    if (ev.button !== 0) {
+      return
+    }
+
+    ev.preventDefault()
+
+    // This code is run when the user clicks on a hunk header line gutter that
+    // is split in two, meaning you can expand up or down the gap the line is
+    // located.
+    // Expanding it up will basically expand *up* the hunk to which that line
+    // belongs, as expected.
+    // Expanding that gap down, however, will expand *down* the hunk that is
+    // located right above this one.
+    if (kind === 'down') {
+      const hunkIndex = hunks.indexOf(hunk)
+      if (hunkIndex > 0) {
+        const previousHunk = hunks[hunkIndex - 1]
+        this.expandHunk(previousHunk, 'down')
+      }
+    } else {
+      this.expandHunk(hunk, 'up')
+    }
   }
 
   private updateGutterMarker(
