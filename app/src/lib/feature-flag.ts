@@ -54,7 +54,7 @@ export function enableHideWhitespaceInDiffOption(): boolean {
 
 /** Should the app use the shiny new TCP-based trampoline? */
 export function enableDesktopTrampoline(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
