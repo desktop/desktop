@@ -19,6 +19,8 @@ import { CherryPickConflictsDialog } from './cherry-pick-conflicts-dialog'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { getResolvedFiles } from '../../lib/status'
 import { ConfirmCherryPickAbortDialog } from './confirm-cherry-pick-abort-dialog'
+import { CreateBranch } from '../create-branch'
+import { String } from 'aws-sdk/clients/acm'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
@@ -70,8 +72,9 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     dispatcher.endCherryPickFlow(repository)
   }
 
-  private onCherryPick = (targetBranch: Branch) => {
+  private onChooseBranch = (targetBranch: Branch) => {
     const { dispatcher, repository, commits, sourceBranch } = this.props
+    dispatcher.setCherryPickBranchCreated(repository, false)
     dispatcher.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
@@ -143,6 +146,35 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     })
   }
 
+  private onCreateNewBranch = (targetBranchName: String) => {
+    const { dispatcher, repository } = this.props
+    dispatcher.setCherryPickCreateBranchFlowStep(repository, targetBranchName)
+  }
+
+  private onCreateBranchAndCherryPick = (
+    branchName: string,
+    startPoint: string | null,
+    noTrackOption: boolean
+  ) => {
+    const { dispatcher, repository, commits, sourceBranch } = this.props
+    if (this.props.step.kind !== CherryPickStepKind.CreateBranch) {
+      log.warn(
+        '[cherryPickFlow] - Invalid cherry-picking state for creating a branch.'
+      )
+      this.onFlowEnded()
+      return
+    }
+
+    dispatcher.startCherryPickWithBranchName(
+      repository,
+      branchName,
+      startPoint,
+      noTrackOption,
+      commits,
+      sourceBranch
+    )
+  }
+
   public render() {
     const { step } = this.props
 
@@ -161,9 +193,10 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             defaultBranch={defaultBranch}
             recentBranches={recentBranches}
             currentBranch={currentBranch}
-            onCherryPick={this.onCherryPick}
+            onCherryPick={this.onChooseBranch}
             onDismissed={this.onFlowEnded}
             commitCount={this.props.commits.length}
+            onCreateNewBranch={this.onCreateNewBranch}
           />
         )
       }
@@ -223,6 +256,41 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             sourceBranchName={sourceBranchName}
             onReturnToConflicts={this.moveToShowConflictedFileState}
             onConfirmAbort={this.abortCherryPick}
+          />
+        )
+      case CherryPickStepKind.CreateBranch:
+        const {
+          allBranches,
+          defaultBranch,
+          upstreamDefaultBranch,
+          upstreamGhRepo,
+          tip,
+          targetBranchName,
+        } = step
+
+        const okButtonText = __DARWIN__
+          ? 'Create Branch and Cherry-pick'
+          : 'Create branch and cherry-pick'
+
+        const headerText = __DARWIN__
+          ? 'Cherry-pick to New Branch'
+          : 'Cherry-pick to new branch'
+
+        return (
+          <CreateBranch
+            key="create-branch"
+            tip={tip}
+            defaultBranch={defaultBranch}
+            upstreamDefaultBranch={upstreamDefaultBranch}
+            upstreamGitHubRepository={upstreamGhRepo}
+            allBranches={allBranches}
+            repository={this.props.repository}
+            onDismissed={this.onFlowEnded}
+            dispatcher={this.props.dispatcher}
+            initialName={targetBranchName}
+            createBranch={this.onCreateBranchAndCherryPick}
+            okButtonText={okButtonText}
+            headerText={headerText}
           />
         )
       case CherryPickStepKind.CommitsChosen:

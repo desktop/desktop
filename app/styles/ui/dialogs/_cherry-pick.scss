@@ -24,11 +24,7 @@ dialog#cherry-pick {
     .filter-field-row {
       margin: 0;
       border-bottom: var(--base-border);
-
-      .filter-list-filter-field {
-        padding: 0 var(--spacing-double);
-        padding-bottom: var(--spacing);
-      }
+      padding: 0 var(--spacing-double) var(--spacing);
     }
 
     .list-item {
@@ -46,6 +42,12 @@ dialog#cherry-pick {
       height: auto;
       width: 100%;
       padding: var(--spacing-half);
+    }
+  }
+  .no-branches {
+    .create-branch-button,
+    .protip {
+      display: none;
     }
   }
 }
