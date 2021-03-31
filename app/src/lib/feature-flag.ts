@@ -160,3 +160,8 @@ export function enableUnhandledRejectionReporting(): boolean {
 export function enableCherryPicking(): boolean {
   return true
 }
+
+/** Should we allow expanding text diffs? */
+export function enableTextDiffExpansion(): boolean {
+  return enableDevelopmentFeatures()
+}

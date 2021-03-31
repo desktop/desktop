@@ -28,8 +28,8 @@ interface ILineFilters {
 
 interface IFileContents {
   readonly file: ChangedFile
-  readonly oldContents: Buffer
-  readonly newContents: Buffer
+  readonly oldContents: string
+  readonly newContents: string
 }
 
 interface IFileTokens {
@@ -120,7 +120,11 @@ export async function getFileContents(
     }),
   ])
 
-  return { file, oldContents, newContents }
+  return {
+    file,
+    oldContents: oldContents.toString('utf8'),
+    newContents: newContents.toString('utf8'),
+  }
 }
 
 /**
@@ -184,7 +188,7 @@ export async function highlightContents(
 
   const [oldTokens, newTokens] = await Promise.all([
     highlight(
-      oldContents.toString('utf8'),
+      oldContents,
       Path.basename(oldPath),
       Path.extname(oldPath),
       tabSize,
@@ -194,7 +198,7 @@ export async function highlightContents(
       return {}
     }),
     highlight(
-      newContents.toString('utf8'),
+      newContents,
       Path.basename(file.path),
       Path.extname(file.path),
       tabSize,
