@@ -2633,7 +2633,8 @@ export class Dispatcher {
       repository,
       targetBranchName,
       startPoint,
-      noTrackOption
+      noTrackOption,
+      false
     )
 
     if (targetBranch === undefined) {
