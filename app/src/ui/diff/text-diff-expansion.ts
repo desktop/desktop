@@ -7,7 +7,7 @@ import {
 } from '../../models/diff'
 
 /** How many new lines will be added to a diff hunk. */
-const DiffExpansionStep = 20
+export const DiffExpansionStep = 20
 
 /** Type of expansion: could be up or down. */
 export type ExpansionKind = 'up' | 'down'
