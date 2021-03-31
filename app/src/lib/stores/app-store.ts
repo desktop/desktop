@@ -3447,7 +3447,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If a local branch, user may have the branch to delete checked out and
       // we need to switch to a different branch (default or recent).
       const branchToCheckout =
-        toCheckout || this.getBranchToCheckoutAfterDelete(branch, r)
+        toCheckout ?? this.getBranchToCheckoutAfterDelete(branch, r)
 
       if (branchToCheckout !== null) {
         await gitStore.performFailableOperation(() =>
