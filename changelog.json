@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.7.2-beta1": [
+      "[Improved] Update how privacy and usage stats info are provided to the user - #11845",
+      "[Added] Create branch during cherry-picking via the context menu - #11903",
+      "[Added] Suggest macOS users to move the app to `/Applications` to prevent issues - #11846",
+      "[Fixed] Dragging commits onto current branch no longer results in a broken state - #11915",
+      "[Fixed] Fix bug getting commit summary info in rebase - #11853"
+    ],
     "2.7.1": [
       "[New] Cherry-picking is available! Copy commits from one branch to another using drag and drop or from a context menu - #1685"
     ],
