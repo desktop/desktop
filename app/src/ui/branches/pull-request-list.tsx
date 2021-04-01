@@ -63,6 +63,9 @@ interface IPullRequestListProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Whether a cherry pick is in progress */
+  readonly isCherryPickInProgress?: boolean
 }
 
 interface IPullRequestListState {
@@ -170,8 +173,40 @@ export class PullRequestList extends React.Component<
         matches={matches}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        onDropOntoPullRequest={this.onDropOntoPullRequest}
       />
     )
+  }
+
+  private onDropOntoPullRequest = (prNumber: number) => {
+    const {
+      isCherryPickInProgress,
+      repository,
+      selectedPullRequest,
+      dispatcher,
+      pullRequests,
+    } = this.props
+
+    if (!isCherryPickInProgress) {
+      return
+    }
+
+    if (
+      selectedPullRequest !== null &&
+      prNumber === selectedPullRequest.pullRequestNumber
+    ) {
+      dispatcher.endCherryPickFlow(repository)
+      dispatcher.recordCherryPickDragStartedAndCanceled()
+      return
+    }
+
+    const pr = pullRequests.find(pr => pr.pullRequestNumber === prNumber)
+    if (pr === undefined) {
+      log.error('[onDropOntoPullRequest] - Could not find pull request.')
+      return
+    }
+
+    dispatcher.startCherryPickWithPullRequest(repository, pr)
   }
 
   private onItemClick = (

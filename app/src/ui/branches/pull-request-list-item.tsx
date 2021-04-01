@@ -41,6 +41,9 @@ export interface IPullRequestListItemProps {
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+
+  /** When a drag element has landed on a pull request */
+  readonly onDropOntoPullRequest: (prNumber: number) => void
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -67,6 +70,12 @@ export class PullRequestListItem extends React.Component<
   private onMouseLeave = () => {
     if (dragAndDropManager.isDragInProgress) {
       dragAndDropManager.emitLeaveDropTarget()
+    }
+  }
+
+  private onMouseUp = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.props.onDropOntoPullRequest(this.props.number)
     }
   }
 
