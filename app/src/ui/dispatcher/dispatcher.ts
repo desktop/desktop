@@ -2641,6 +2641,7 @@ export class Dispatcher {
       log.error(
         '[startCherryPickWithBranchName] - Unable to create branch for cherry-pick operation'
       )
+      this.endCherryPickFlow(repository)
       return
     }
 
@@ -2672,11 +2673,13 @@ export class Dispatcher {
       log.warn(
         '[cherryPick] Invalid Cherry-picking State: Could not determine selected commits.'
       )
+      this.endCherryPickFlow(repository)
       return
     }
 
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
+      this.endCherryPickFlow(repository)
       throw new Error(
         'Tip is not in a valid state, which is required to start the cherry-pick flow.'
       )
@@ -2714,6 +2717,15 @@ export class Dispatcher {
       pullRequest
     )
 
+    if (targetBranch === undefined) {
+      log.warn(
+        '[cherryPick] Could not determine target branch for cherry-pick operation - aborting cherry-pick.'
+      )
+      this.endCherryPickFlow(repository)
+      return
+    }
+
+    return this.startCherryPickWithBranch(repository, targetBranch)
   }
 
   /**
