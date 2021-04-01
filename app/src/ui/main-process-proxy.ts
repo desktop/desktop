@@ -146,15 +146,18 @@ function getSpellCheckLanguageMenuItem(
 ): IMenuItem | null {
   const userLanguageCode = remote.app.getLocale()
   const englishLanguageCode = 'en-US'
-  if (userLanguageCode === englishLanguageCode) {
+  const spellcheckLanguageCodes = session.getSpellCheckerLanguages()
+
+  if (
+    userLanguageCode === englishLanguageCode &&
+    spellcheckLanguageCodes.includes(englishLanguageCode)
+  ) {
     return null
   }
 
-  const currentLanguageCodes = session.getSpellCheckerLanguages()
-
   const languageCode =
-    currentLanguageCodes.includes(englishLanguageCode) &&
-    !currentLanguageCodes.includes(userLanguageCode)
+    spellcheckLanguageCodes.includes(englishLanguageCode) &&
+    !spellcheckLanguageCodes.includes(userLanguageCode)
       ? userLanguageCode
       : englishLanguageCode
 
