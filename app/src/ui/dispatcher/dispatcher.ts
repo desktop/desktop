@@ -2645,6 +2645,7 @@ export class Dispatcher {
     }
 
     this.appStore._setCherryPickBranchCreated(repository, true)
+    this.statsStore.recordCherryPickBranchCreatedCount()
     return this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
@@ -2897,7 +2898,7 @@ export class Dispatcher {
 
   /** Method to record cherry pick initiated via the context menu. */
   public recordCherryPickViaContextMenu() {
-    this.statsStore.recordCherryPickViaDragAndDrop()
+    this.statsStore.recordCherryPickViaContextMenu()
   }
 
   /** Method to record cherry pick started via drag and drop and canceled. */
