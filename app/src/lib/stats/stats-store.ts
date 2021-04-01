@@ -148,6 +148,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   cherryPickSuccessfulWithConflictsCount: 0,
   cherryPickMultipleCommitsCount: 0,
   cherryPickUndoneCount: 0,
+  cherryPickBranchCreatedCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1426,6 +1427,12 @@ export class StatsStore implements IStatsStore {
   public recordCherryPickUndone(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
+    }))
+  }
+
+  public recordCherryPickBranchCreatedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
     }))
   }
 
