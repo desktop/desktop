@@ -7,6 +7,7 @@ import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -57,6 +58,18 @@ export class PullRequestListItem extends React.Component<
     return this.props.draft ? `${subtitle} • Draft` : subtitle
   }
 
+  private onMouseEnter = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      dragAndDropManager.emitEnterDragZone(this.props.title)
+    }
+  }
+
+  private onMouseLeave = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      dragAndDropManager.emitLeaveDropTarget()
+    }
+  }
+
   public render() {
     const title = this.props.loading === true ? undefined : this.props.title
     const subtitle = this.getSubtitle()
@@ -68,7 +81,12 @@ export class PullRequestListItem extends React.Component<
     })
 
     return (
-      <div className={className}>
+      <div
+        className={className}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onMouseUp={this.onMouseUp}
+      >
         <div>
           <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
         </div>
