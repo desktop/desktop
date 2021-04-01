@@ -2897,7 +2897,7 @@ export class Dispatcher {
 
   /** Method to record cherry pick initiated via the context menu. */
   public recordCherryPickViaContextMenu() {
-    this.statsStore.recordCherryPickViaDragAndDrop()
+    this.statsStore.recordCherryPickViaContextMenu()
   }
 
   /** Method to record cherry pick started via drag and drop and canceled. */

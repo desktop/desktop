@@ -379,6 +379,9 @@ export interface IDailyMeasures {
 
   /** The number of times a cherry pick was undone  */
   readonly cherryPickUndoneCount: number
+
+  /** The number of times a branch was created during a cherry-pick */
+  readonly cherryPickBranchCreatedCount: number
 }
 
 export class StatsDatabase extends Dexie {
