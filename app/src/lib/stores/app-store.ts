@@ -6093,7 +6093,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<boolean> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
-    if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
+    if (
+      tip.kind !== TipState.Valid ||
+      (tip.branch.name !== targetBranchName &&
+        tip.branch.upstream !== targetBranchName)
+    ) {
       log.warn(
         '[undoCherryPick] - Could not undo cherry-pick.  User no longer on target branch.'
       )
