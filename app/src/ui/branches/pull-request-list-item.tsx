@@ -69,7 +69,9 @@ export class PullRequestListItem extends React.Component<
 
     return (
       <div className={className}>
-        <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+        <div>
+          <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+        </div>
         <div className="info">
           <div className="title" title={title}>
             <HighlightText text={title || ''} highlight={matches.title} />
