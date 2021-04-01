@@ -150,11 +150,11 @@ function getSpellCheckLanguageMenuItem(
     return null
   }
 
-  const currentLanguageCodes = session.getSpellCheckerLanguages()
+  const spellcheckLanguageCodes = session.getSpellCheckerLanguages()
 
   const languageCode =
-    currentLanguageCodes.includes(englishLanguageCode) &&
-    !currentLanguageCodes.includes(userLanguageCode)
+    spellcheckLanguageCodes.includes(englishLanguageCode) &&
+    !spellcheckLanguageCodes.includes(userLanguageCode)
       ? userLanguageCode
       : englishLanguageCode
 
