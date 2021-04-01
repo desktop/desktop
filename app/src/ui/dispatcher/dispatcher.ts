@@ -2706,10 +2706,14 @@ export class Dispatcher {
    *  - invoke cherry pick
    */
   public async startCherryPickWithPullRequest(
-    repository: Repository,
+    repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest
   ) {
-    console.log("I'm Here")
+    const targetBranch = await this.appStore._findPullRequestBranch(
+      repository,
+      pullRequest
+    )
+
   }
 
   /**
