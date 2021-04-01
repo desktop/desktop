@@ -98,10 +98,19 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   private onMouseUp = () => {
-    const { onDropOntoBranch, name, isCurrentBranch } = this.props
+    const {
+      onDropOntoBranch,
+      onDropOntoCurrentBranch,
+      name,
+      isCurrentBranch,
+    } = this.props
 
     if (onDropOntoBranch !== undefined && !isCurrentBranch) {
       onDropOntoBranch(name)
+    }
+
+    if (onDropOntoCurrentBranch !== undefined && isCurrentBranch) {
+      onDropOntoCurrentBranch()
     }
   }
 
