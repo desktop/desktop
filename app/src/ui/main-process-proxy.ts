@@ -118,7 +118,55 @@ function mergeDeferredContextMenuItems(
     })
   }
 
+  if (!__DARWIN__) {
+    // NOTE: "On macOS as we use the native APIs there is no way to set the
+    // language that the spellchecker uses" -- electron docs Therefore, we are
+    // only allowing setting to English for non-mac machines.
+    const spellCheckLanguageItem = getSpellCheckLanguageMenuItem(
+      webContents.session
+    )
+    if (spellCheckLanguageItem !== null) {
+      items.push(spellCheckLanguageItem)
+    }
+  }
+
   showContextualMenu(items, false)
+}
+
+/**
+ * Method to get a menu item to give user the option to use English or their
+ * system language.
+ *
+ * If system language is english, it returns null. If spellchecker is not set to
+ * english, it returns item that can set it to English. If spellchecker is set
+ * to english, it returns the item that can set it to their system language.
+ */
+function getSpellCheckLanguageMenuItem(
+  session: Electron.session
+): IMenuItem | null {
+  const userLanguageCode = remote.app.getLocale()
+  const englishLanguageCode = 'en-US'
+  if (userLanguageCode === englishLanguageCode) {
+    return null
+  }
+
+  const currentLanguageCodes = session.getSpellCheckerLanguages()
+
+  const languageCode =
+    currentLanguageCodes.includes(englishLanguageCode) &&
+    !currentLanguageCodes.includes(userLanguageCode)
+      ? userLanguageCode
+      : englishLanguageCode
+
+  const label =
+    languageCode === englishLanguageCode
+      ? 'Set spellcheck to English'
+      : 'Set spellcheck to system language'
+
+  return {
+    label,
+    action: () => session.setSpellCheckerLanguages([languageCode]),
+  }
 }
 
 /** Show the given menu items in a contextual menu. */
