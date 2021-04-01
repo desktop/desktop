@@ -4,7 +4,7 @@
       "[Improved] Update how privacy and usage stats info are provided to the user - #11845",
       "[Added] Create branch during cherry-picking via the context menu - #11903",
       "[Added] Suggest macOS users to move the app to `/Applications` to prevent issues - #11846",
-      "[Fixed] Fix cherry-pick drag not ending on drop onto current branch - #11915",
+      "[Fixed] Dragging commits onto current branch no longer results in a broken state - #11915",
       "[Fixed] Fix bug getting commit summary info in rebase - #11853"
     ],
     "2.7.1": [
