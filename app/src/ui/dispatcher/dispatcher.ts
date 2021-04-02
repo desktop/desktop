@@ -1941,13 +1941,24 @@ export class Dispatcher {
     return this.appStore._changeImageDiffType(type)
   }
 
-  /** Change the hide whitespace in diff setting */
-  public onHideWhitespaceInDiffChanged(
+  /** Change the hide whitespace in changes diff setting */
+  public onHideWhitespaceInChangesDiffChanged(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository
+  ): Promise<void> {
+    return this.appStore._setHideWhitespaceInChangesDiff(
+      hideWhitespaceInDiff,
+      repository
+    )
+  }
+
+  /** Change the hide whitespace in history diff setting */
+  public onHideWhitespaceInHistoryDiffChanged(
     hideWhitespaceInDiff: boolean,
     repository: Repository,
     file: CommittedFileChange | null = null
   ): Promise<void> {
-    return this.appStore._setHideWhitespaceInDiff(
+    return this.appStore._setHideWhitespaceInHistoryDiff(
       hideWhitespaceInDiff,
       repository,
       file

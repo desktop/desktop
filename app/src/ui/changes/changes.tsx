@@ -130,7 +130,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
   private onHideWhitespaceInDiffChanged = async (
     hideWhitespaceInDiff: boolean
   ) => {
-    await this.props.dispatcher.onHideWhitespaceInDiffChanged(
+    await this.props.dispatcher.onHideWhitespaceInChangesDiffChanged(
       hideWhitespaceInDiff,
       this.props.repository
     )

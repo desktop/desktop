@@ -2663,7 +2663,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
-          hideWhitespaceInDiff={state.hideWhitespaceInDiff}
+          hideWhitespaceInChangesDiff={state.hideWhitespaceInChangesDiff}
+          hideWhitespaceInHistoryDiff={state.hideWhitespaceInHistoryDiff}
           showSideBySideDiff={state.showSideBySideDiff}
           focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={

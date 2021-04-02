@@ -193,7 +193,7 @@ export class SelectedCommit extends React.Component<
   private onHideWhitespaceInDiffChanged = async (
     hideWhitespaceInDiff: boolean
   ) => {
-    await this.props.dispatcher.onHideWhitespaceInDiffChanged(
+    await this.props.dispatcher.onHideWhitespaceInHistoryDiffChanged(
       hideWhitespaceInDiff,
       this.props.repository,
       this.props.selectedFile as CommittedFileChange
