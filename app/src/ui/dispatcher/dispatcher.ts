@@ -2700,13 +2700,7 @@ export class Dispatcher {
   }
 
   /**
-   * This method starts a cherry pick after drag and dropping onto a pull request.
-   * It needs to:
-   *  - get the branch of the pr
-   *  - get the current branch,
-   *  - get the commits dragged from cherry picking state
-   *  - invoke popup
-   *  - invoke cherry pick
+   * Method to start a cherry-pick after drag and dropping onto a pull request.
    */
   public async startCherryPickWithPullRequest(
     repository: RepositoryWithGitHubRepository,
