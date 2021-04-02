@@ -56,7 +56,7 @@ import { initializeRebaseFlowForConflictedRepository } from '../../lib/rebase'
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { IAuthor } from '../../models/author'
-import { Branch } from '../../models/branch'
+import { Branch, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -2965,5 +2965,13 @@ export class Dispatcher {
     branchCreated: boolean
   ): void {
     this.appStore._setCherryPickBranchCreated(repository, branchCreated)
+  }
+
+  /** Gets a branches ahead behind remote or null if doesn't exist on remote */
+  public async getBranchAheadBehind(
+    repository: Repository,
+    branch: Branch
+  ): Promise<IAheadBehind | null> {
+    return this.appStore._getBranchAheadBehind(repository, branch)
   }
 }
