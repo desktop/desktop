@@ -2670,7 +2670,7 @@ export class Dispatcher {
       cherryPickState.step == null ||
       cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
     ) {
-      log.warn(
+      log.error(
         '[cherryPick] Invalid Cherry-picking State: Could not determine selected commits.'
       )
       this.endCherryPickFlow(repository)
@@ -2712,7 +2712,7 @@ export class Dispatcher {
     )
 
     if (targetBranch === undefined) {
-      log.warn(
+      log.error(
         '[cherryPick] Could not determine target branch for cherry-pick operation - aborting cherry-pick.'
       )
       this.endCherryPickFlow(repository)
@@ -2762,9 +2762,10 @@ export class Dispatcher {
     const stateAfter = this.repositoryStateManager.get(repository)
     const { conflictState } = stateAfter.changesState
     if (conflictState === null || !isCherryPickConflictState(conflictState)) {
-      log.warn(
+      log.error(
         '[cherryPick] - conflict state was null or not in a cherry-pick conflict state - unable to continue'
       )
+      this.endCherryPickFlow(repository)
       return
     }
     this.setCherryPickFlowStep(repository, {

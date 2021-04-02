@@ -5917,7 +5917,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
-      log.warn('[_cherryPick] - Unable to cherry-pick. No commits provided.')
+      log.error('[_cherryPick] - Unable to cherry-pick. No commits provided.')
       return CherryPickResult.UnableToStart
     }
 
@@ -6142,7 +6142,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const snapshot = await getCherryPickSnapshot(repository)
 
     if (snapshot === null) {
-      log.warn(
+      log.error(
         `[showCherryPickConflictsDialog] unable to get cherry-pick status from git, unable to continue`
       )
       return
@@ -6151,7 +6151,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._showPopup({
       type: PopupType.CherryPick,
       repository,
-      commits: snapshot?.commits,
+      commits: snapshot.commits,
       sourceBranch: null,
     })
   }
@@ -6190,7 +6190,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
-      log.warn(
+      log.error(
         '[undoCherryPick] - Could not undo cherry-pick.  User no longer on target branch.'
       )
       return false
@@ -6208,7 +6208,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (targetBranchUndoSha === null) {
-      log.warn('[undoCherryPick] - Could not determine target branch undo sha')
+      log.error('[undoCherryPick] - Could not determine target branch undo sha')
       return false
     }
 
