@@ -191,6 +191,8 @@ export class PullRequestList extends React.Component<
       return
     }
 
+    // If dropped on currently checked out pull request, it is treated the same
+    // as dropping on non-pull-request.
     if (
       selectedPullRequest !== null &&
       prNumber === selectedPullRequest.pullRequestNumber
@@ -200,9 +202,12 @@ export class PullRequestList extends React.Component<
       return
     }
 
+    // If not the currently checked out pull request, find the full pull request
+    // object to start the cherry-pick
     const pr = pullRequests.find(pr => pr.pullRequestNumber === prNumber)
     if (pr === undefined) {
       log.error('[onDropOntoPullRequest] - Could not find pull request.')
+      dispatcher.endCherryPickFlow(repository)
       return
     }
 
