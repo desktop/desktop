@@ -5371,6 +5371,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     headCloneUrl: string,
     headRefName: string
   ): Promise<void> {
+    const prBranch = await this._findPullRequestBranch(
+      repository,
+      prNumber,
+      headRepoOwner,
+      headCloneUrl,
+      headRefName
+    )
+    if (prBranch !== undefined) {
+      await this._checkoutBranch(repository, prBranch)
+      this.statsStore.recordPRBranchCheckout()
+    }
+  }
+
+  public async _findPullRequestBranch(
+    repository: RepositoryWithGitHubRepository,
+    prNumber: number,
+    headRepoOwner: string,
+    headCloneUrl: string,
+    headRefName: string
+  ): Promise<Branch | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
     const remotes = await getRemotes(repository)
 
@@ -5385,7 +5405,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         remote = await addRemote(repository, forkRemoteName, headCloneUrl)
       } catch (e) {
         this.emitError(
-          new Error(`Couldn't checkout PR, adding remote failed: ${e.message}`)
+          new Error(
+            `Couldn't find PR branch, adding remote failed: ${e.message}`
+          )
         )
         return
       }
@@ -5400,9 +5422,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // If we found one, let's check it out and get out of here, quick
     if (existingBranch !== undefined) {
-      await this._checkoutBranch(repository, existingBranch)
-      this.statsStore.recordPRBranchCheckout()
-      return
+      return existingBranch
     }
 
     const findRemoteBranch = (name: string) =>
@@ -5413,7 +5433,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // No such luck, let's see if we can at least find the remote branch then
     existingBranch = findRemoteBranch(remoteRef)
 
-    // If quite possible that the PR was created after our last fetch of the
+    // It's quite possible that the PR was created after our last fetch of the
     // remote so let's fetch it and then try again.
     if (existingBranch === undefined) {
       try {
@@ -5443,12 +5463,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       remote.name !== gitStore.upstreamRemote?.name
 
     if (isForkRemote) {
-      await this._createBranch(repository, `pr/${prNumber}`, remoteRef)
-    } else {
-      await this._checkoutBranch(repository, existingBranch)
+      return await this._createBranch(
+        repository,
+        `pr/${prNumber}`,
+        remoteRef,
+        false
+      )
     }
 
-    this.statsStore.recordPRBranchCheckout()
+    return existingBranch
   }
 
   /**
@@ -5822,7 +5845,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
-      log.warn('[_cherryPick] - Unable to cherry-pick. No commits provided.')
+      log.error('[_cherryPick] - Unable to cherry-pick. No commits provided.')
       return CherryPickResult.UnableToStart
     }
 
@@ -6037,7 +6060,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const snapshot = await getCherryPickSnapshot(repository)
 
     if (snapshot === null) {
-      log.warn(
+      log.error(
         `[showCherryPickConflictsDialog] unable to get cherry-pick status from git, unable to continue`
       )
       return
@@ -6046,7 +6069,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._showPopup({
       type: PopupType.CherryPick,
       repository,
-      commits: snapshot?.commits,
+      commits: snapshot.commits,
       sourceBranch: null,
     })
   }
@@ -6085,7 +6108,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
-      log.warn(
+      log.error(
         '[undoCherryPick] - Could not undo cherry-pick.  User no longer on target branch.'
       )
       return false
@@ -6103,7 +6126,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (targetBranchUndoSha === null) {
-      log.warn('[undoCherryPick] - Could not determine target branch undo sha')
+      log.error('[undoCherryPick] - Could not determine target branch undo sha')
       return false
     }
 

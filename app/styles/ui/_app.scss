@@ -46,7 +46,8 @@
           }
 
           .list-item:not(.selected) {
-            .branches-list-item:hover {
+            .branches-list-item:hover,
+            .pull-request-item:hover {
               --text-color: var(--box-selected-active-text-color);
               --text-secondary-color: var(--box-selected-active-text-color);
 
