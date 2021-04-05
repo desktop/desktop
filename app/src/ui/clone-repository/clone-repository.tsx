@@ -503,27 +503,24 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseDirectory = async () => {
+    const tabState = this.getSelectedTabState()
     const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
-      properties: ['createDirectory', 'openDirectory'],
+
+    const { canceled, filePath } = await remote.dialog.showSaveDialog(window, {
+      buttonLabel: 'Select',
+      nameFieldLabel: 'Clone As:',
+      showsTagField: false,
+      defaultPath: tabState.path,
+      properties: ['createDirectory'],
     })
 
-    if (filePaths.length === 0) {
+    if (canceled || filePath == null) {
       return
     }
 
-    const tabState = this.getSelectedTabState()
-    const lastParsedIdentifier = tabState.lastParsedIdentifier
-    const directory = lastParsedIdentifier
-      ? Path.join(filePaths[0], lastParsedIdentifier.name)
-      : filePaths[0]
+    this.setSelectedTabState({ path: filePath, error: null }, this.validatePath)
 
-    this.setSelectedTabState(
-      { path: directory, error: null },
-      this.validatePath
-    )
-
-    return directory
+    return filePath
   }
 
   private updateUrl = async (url: string) => {
