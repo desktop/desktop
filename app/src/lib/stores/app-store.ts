@@ -5816,7 +5816,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async _cherryPick(
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _cherryPick(
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
@@ -5850,24 +5851,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return result || CherryPickResult.Error
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkOutBranchAndCherryPick(
-    repository: Repository,
-    targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
-  ): Promise<CherryPickResult> {
-    const result = await this.checkoutTargetBranchForCherryPick(
-      repository,
-      targetBranch
-    )
-
-    if (result !== null) {
-      return result
-    }
-
-    return this._cherryPick(repository, commits)
-  }
-
   /**
    * Checks for uncommitted changes
    *
@@ -5899,15 +5882,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Attempts to checkout target branch of cherry pick operation
+   * Attempts to checkout target branch and return it's name after checkout.
+   * This is useful if you want the local name when checking out a potentially
+   * remote branch during an operation.
    *
-   * If unable to checkout, return CherryPickResult.UnableToStart
-   * Otherwise, return null.
+   * Note: This does not do any existing changes checking like _checkout does.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
    */
-  private async checkoutTargetBranchForCherryPick(
+  public async _checkoutBranchReturnName(
     repository: Repository,
     targetBranch: Branch
-  ): Promise<CherryPickResult | null> {
+  ): Promise<string | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const checkoutSuccessful = await this.withAuthenticatingUser(
@@ -5919,7 +5905,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     )
 
-    return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
+    if (checkoutSuccessful !== true) {
+      return
+    }
+
+    const status = await gitStore.loadStatus()
+    return status?.currentBranch
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
