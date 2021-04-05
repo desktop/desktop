@@ -2587,17 +2587,30 @@ export class Dispatcher {
       this.statsStore.recordCherryPickMultipleCommits()
     }
 
-    const result = await this.appStore._checkOutBranchAndCherryPick(
+    const checkedOutTargetBranch = await this.appStore.checkoutTargetBranchForCherryPick(
       repository,
-      targetBranch,
-      commits
+      targetBranch
     )
+
+    if (checkedOutTargetBranch === undefined) {
+      log.error('[cherryPick] - Failed to check out the target branch.')
+      this.endCherryPickFlow(repository)
+      return
+    }
+
+    const result = await this.appStore._cherryPick(repository, commits)
 
     if (result !== CherryPickResult.UnableToStart) {
       this.logHowToRevertCherryPick(name, tip.sha)
     }
 
-    this.processCherryPickResult(repository, result, commits, sourceBranch)
+    this.processCherryPickResult(
+      repository,
+      result,
+      checkedOutTargetBranch.name,
+      commits,
+      sourceBranch
+    )
   }
 
   public async startCherryPickWithBranchName(
@@ -2713,7 +2726,13 @@ export class Dispatcher {
       this.statsStore.recordCherryPickSuccessfulWithConflicts()
     }
 
-    this.processCherryPickResult(repository, result, commits, sourceBranch)
+    this.processCherryPickResult(
+      repository,
+      result,
+      conflictsState.targetBranchName,
+      commits,
+      sourceBranch
+    )
   }
 
   /**
@@ -2744,15 +2763,11 @@ export class Dispatcher {
    */
   private async completeCherryPick(
     repository: Repository,
+    targetBranchName: string,
     countCherryPicked: number,
     sourceBranch: Branch | null
   ): Promise<void> {
     this.closePopup()
-
-    const { branchesState } = this.repositoryStateManager.get(repository)
-    const { tip } = branchesState
-    const targetBranchName =
-      tip.kind === TipState.Valid ? tip.branch.name : null
 
     const banner: Banner = {
       type: BannerType.SuccessfulCherryPick,
@@ -2816,6 +2831,7 @@ export class Dispatcher {
   private async processCherryPickResult(
     repository: Repository,
     cherryPickResult: CherryPickResult,
+    targetBranchName: string,
     commits: ReadonlyArray<CommitOneLine>,
     sourceBranch: Branch | null
   ): Promise<void> {
@@ -2826,7 +2842,12 @@ export class Dispatcher {
     switch (cherryPickResult) {
       case CherryPickResult.CompletedWithoutError:
         await this.changeCommitSelection(repository, [commits[0].sha])
-        await this.completeCherryPick(repository, commits.length, sourceBranch)
+        await this.completeCherryPick(
+          repository,
+          targetBranchName,
+          commits.length,
+          sourceBranch
+        )
         break
       case CherryPickResult.ConflictsEncountered:
         this.startConflictCherryPickFlow(repository)
@@ -2867,7 +2888,7 @@ export class Dispatcher {
    */
   private async undoCherryPick(
     repository: Repository,
-    targetBranchName: string | null,
+    targetBranchName: string,
     sourceBranch: Branch | null,
     commitsCount: number
   ): Promise<void> {

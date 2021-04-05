@@ -5816,7 +5816,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async _cherryPick(
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _cherryPick(
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
@@ -5848,24 +5849,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     return result || CherryPickResult.Error
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkOutBranchAndCherryPick(
-    repository: Repository,
-    targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
-  ): Promise<CherryPickResult> {
-    const result = await this.checkoutTargetBranchForCherryPick(
-      repository,
-      targetBranch
-    )
-
-    if (result !== null) {
-      return result
-    }
-
-    return this._cherryPick(repository, commits)
   }
 
   /**
@@ -5904,10 +5887,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * If unable to checkout, return CherryPickResult.UnableToStart
    * Otherwise, return null.
    */
-  private async checkoutTargetBranchForCherryPick(
+  public async checkoutTargetBranchForCherryPick(
     repository: Repository,
     targetBranch: Branch
-  ): Promise<CherryPickResult | null> {
+  ): Promise<Branch | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const checkoutSuccessful = await this.withAuthenticatingUser(
@@ -5919,7 +5902,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     )
 
-    return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
+    if (checkoutSuccessful !== true) {
+      return
+    }
+
+    await this._loadStatus(repository)
+
+    const { tip } = this.repositoryStateCache.get(repository).branchesState
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    return tip.branch
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6087,15 +6081,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _undoCherryPick(
     repository: Repository,
-    targetBranchName: string | null,
+    targetBranchName: string,
     sourceBranch: Branch | null,
     countCherryPicked: number
   ): Promise<boolean> {
-    if (targetBranchName === null) {
-      log.warn('[undoCherryPick] - Target branch name required.')
-      return false
-    }
-
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {

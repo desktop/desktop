@@ -50,7 +50,7 @@ export type Banner =
   | {
       readonly type: BannerType.SuccessfulCherryPick
       /** name of the branch that was cherry picked to */
-      readonly targetBranchName: string | null
+      readonly targetBranchName: string
       /** number of commits cherry picked */
       readonly countCherryPicked: number
       /** callback to run when user clicks undo link in banner */
