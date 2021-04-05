@@ -28,7 +28,10 @@ import {
 } from 'react-virtualized'
 import { SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
-import { findInteractiveDiffRange, DiffRangeType } from './diff-explorer'
+import {
+  findInteractiveOriginalDiffRange,
+  DiffRangeType,
+} from './diff-explorer'
 import {
   ChangedFile,
   DiffRow,
@@ -589,7 +592,7 @@ export class SideBySideDiff extends React.Component<
     const selection = this.getSelection()
 
     if (selection !== undefined) {
-      const range = findInteractiveDiffRange(diff.hunks, hunkStartLine)
+      const range = findInteractiveOriginalDiffRange(diff.hunks, hunkStartLine)
       if (range !== null) {
         const { from, to } = range
         const sel = selection.withRangeSelection(from, to - from + 1, select)
@@ -629,7 +632,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const range = findInteractiveDiffRange(diff.hunks, diffLineNumber)
+    const range = findInteractiveOriginalDiffRange(diff.hunks, diffLineNumber)
     if (range === null || range.type === null) {
       return
     }
@@ -656,7 +659,10 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
+    const range = findInteractiveOriginalDiffRange(
+      this.props.diff.hunks,
+      hunkStartLine
+    )
     if (range === null || range.type === null) {
       return
     }
