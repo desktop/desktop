@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.7.2-beta2": [
-      "[Added] User can expand diff hunks! - #11902",
+      "[Added] Expand diffs above and below the changes to get more context in other parts of files - #11902",
       "[Fixed] User could not undo cherry-pick onto a remote branch - #11921",
       "[Improved] User can end drag by pressing escape - #11925",
       "[Improved] User can cherry-pick onto a pull request - #11922",
