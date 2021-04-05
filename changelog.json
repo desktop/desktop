@@ -5,7 +5,7 @@
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
       "[Improved] User can end drag by pressing escape - #11925",
       "[Improved] Cherry-pick commits onto a pull request - #11922",
-      "[Improved] Windows users whose system language is not English can change spellcheck language to English - #11589"
+      "[Improved] Option to change the spellcheck language to English for Windows users whose system language is not English - #11589"
     ],
     "2.7.2-beta1": [
       "[Improved] Update how privacy and usage stats info are provided to the user - #11845",
