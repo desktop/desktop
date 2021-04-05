@@ -33,7 +33,8 @@ interface IDraggableProps {
 }
 
 export class Draggable extends React.Component<IDraggableProps> {
-  private dragStarted: boolean = false
+  private hasDragStarted: boolean = false
+  private hasDragEnded: boolean = false
   private dragElement: HTMLElement | null = null
   private elemBelow: Element | null = null
   // Default offset to place the cursor slightly above the top left corner of
@@ -41,7 +42,6 @@ export class Draggable extends React.Component<IDraggableProps> {
   // dragElement then elemBelow will always return the dragElement and cannot
   // detect drop targets or scroll elements.
   private verticalOffset: number = __DARWIN__ ? 32 : 15
-  private hasMouseUpOccurred = false
 
   public componentDidMount() {
     this.dragElement = document.getElementById('dragElement')
@@ -58,7 +58,7 @@ export class Draggable extends React.Component<IDraggableProps> {
   }
 
   private initializeDrag(): void {
-    this.dragStarted = false
+    this.hasDragStarted = false
     this.elemBelow = null
   }
 
@@ -72,10 +72,10 @@ export class Draggable extends React.Component<IDraggableProps> {
     if (!this.canDragCommit(event)) {
       return
     }
-    this.hasMouseUpOccurred = false
-    document.onmouseup = this.onMouseUp
+    this.hasDragEnded = false
+    document.onmouseup = this.handleDragEndEvent
     await sleep(100)
-    if (this.hasMouseUpOccurred) {
+    if (this.hasDragEnded) {
       return
     }
 
@@ -91,16 +91,17 @@ export class Draggable extends React.Component<IDraggableProps> {
    * just clicking a draggable element.
    */
   private onMouseMove = (moveEvent: MouseEvent) => {
-    if (this.hasMouseUpOccurred) {
+    if (this.hasDragEnded) {
       this.onDragEnd()
       return
     }
     // start drag
-    if (!this.dragStarted) {
+    if (!this.hasDragStarted) {
       this.props.onRenderDragElement()
       this.props.onDragStart()
       dragAndDropManager.dragStarted()
-      this.dragStarted = true
+      this.hasDragStarted = true
+      window.addEventListener('keyup', this.onKeyUp)
     }
 
     // move drag element where mouse is
@@ -126,12 +127,20 @@ export class Draggable extends React.Component<IDraggableProps> {
   /**
    * End a drag event
    */
-  private onMouseUp = () => {
-    this.hasMouseUpOccurred = true
-    if (this.dragStarted) {
+  private handleDragEndEvent = () => {
+    this.hasDragEnded = true
+    if (this.hasDragStarted) {
       this.onDragEnd()
     }
     document.onmouseup = null
+    window.removeEventListener('keyup', this.onKeyUp)
+  }
+
+  private onKeyUp = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape') {
+      return
+    }
+    this.handleDragEndEvent()
   }
 
   private onDragEnd(): void {
