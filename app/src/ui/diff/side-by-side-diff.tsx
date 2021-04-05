@@ -480,13 +480,15 @@ export class SideBySideDiff extends React.Component<
     return {
       ...data,
       tokens: finalTokens,
-      isSelected: isInSelection(
-        data.diffLineNumber,
-        row,
-        column,
-        this.getSelection(),
-        this.state.temporarySelection
-      ),
+      isSelected:
+        data.diffLineNumber !== null &&
+        isInSelection(
+          data.diffLineNumber,
+          row,
+          column,
+          this.getSelection(),
+          this.state.temporarySelection
+        ),
     }
   }
 
@@ -1127,7 +1129,7 @@ function getDataFromLine(
   return {
     content: line.content,
     lineNumber,
-    diffLineNumber,
+    diffLineNumber: line.originalLineNumber,
     noNewLineIndicator: line.noTrailingNewLine,
     tokens,
   }

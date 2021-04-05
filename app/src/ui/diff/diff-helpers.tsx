@@ -46,11 +46,10 @@ export interface IDiffRowData {
   readonly lineNumber: number
 
   /**
-   * The line number on the diff.
-   * This is used for discarding lines
-   * and for partial committing lines.
+   * The line number on the original diff (without expansion).
+   * This is used for discarding lines and for partial committing lines.
    */
-  readonly diffLineNumber: number
+  readonly diffLineNumber: number | null
 
   /**
    * Flag to display that this diff line lacks a new line.

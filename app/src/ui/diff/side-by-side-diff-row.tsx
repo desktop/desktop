@@ -517,7 +517,7 @@ export class SideBySideDiffRow extends React.Component<
 
   private onContextMenuLineNumber = (evt: React.MouseEvent) => {
     const data = this.getDiffData(evt.currentTarget)
-    if (data !== null) {
+    if (data !== null && data.diffLineNumber !== null) {
       this.props.onContextMenuLine(data.diffLineNumber)
     }
   }
