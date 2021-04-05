@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.7.2-beta2": [
+      "[Added] User can expand diff hunks! - #11902",
+      "[Fixed] User could not undo cherry-pick onto a remote branch - #11921",
+      "[Improved] User can end drag by pressing escape - #11925",
+      "[Improved] User can cherry-pick onto a pull request - #11922",
+      "[Improved] Windows users whose system language is not English can change spellcheck language to English - #11589"
+    ],
     "2.7.2-beta1": [
       "[Improved] Update how privacy and usage stats info are provided to the user - #11845",
       "[Added] Create branch during cherry-picking via the context menu - #11903",
