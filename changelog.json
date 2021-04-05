@@ -4,7 +4,7 @@
       "[Added] Expand diffs above and below the changes to get more context in other parts of files - #11902",
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
       "[Improved] User can end drag by pressing escape - #11925",
-      "[Improved] User can cherry-pick onto a pull request - #11922",
+      "[Improved] Cherry-pick commits onto a pull request - #11922",
       "[Improved] Windows users whose system language is not English can change spellcheck language to English - #11589"
     ],
     "2.7.2-beta1": [
