@@ -567,6 +567,13 @@ export class CloneRepository extends React.Component<
         )
       }
     } catch (error) {
+      if (error.code === 'ENOTDIR') {
+        // path refers to a file or other file system entry
+        return new Error(
+          'There is already a file with this name. Git can only clone to a folder.'
+        )
+      }
+
       if (error.code === 'ENOENT') {
         // Folder does not exist
         return null
