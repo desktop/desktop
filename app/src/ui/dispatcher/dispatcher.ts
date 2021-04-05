@@ -2580,19 +2580,19 @@ export class Dispatcher {
       return
     }
 
-    const { name, tip } = targetBranch
+    const { tip } = targetBranch
     this.appStore._setCherryPickTargetBranchUndoSha(repository, tip.sha)
 
     if (commits.length > 1) {
       this.statsStore.recordCherryPickMultipleCommits()
     }
 
-    const checkedOutTargetBranch = await this.appStore.checkoutTargetBranchForCherryPick(
+    const nameAfterCheckout = await this.appStore._checkoutBranchReturnName(
       repository,
       targetBranch
     )
 
-    if (checkedOutTargetBranch === undefined) {
+    if (nameAfterCheckout === undefined) {
       log.error('[cherryPick] - Failed to check out the target branch.')
       this.endCherryPickFlow(repository)
       return
@@ -2601,13 +2601,13 @@ export class Dispatcher {
     const result = await this.appStore._cherryPick(repository, commits)
 
     if (result !== CherryPickResult.UnableToStart) {
-      this.logHowToRevertCherryPick(name, tip.sha)
+      this.logHowToRevertCherryPick(nameAfterCheckout, tip.sha)
     }
 
     this.processCherryPickResult(
       repository,
       result,
-      checkedOutTargetBranch.name,
+      nameAfterCheckout,
       commits,
       sourceBranch
     )

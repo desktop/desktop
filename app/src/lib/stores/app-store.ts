@@ -5882,15 +5882,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Attempts to checkout target branch of cherry pick operation
+   * Attempts to checkout target branch and return it's name after checkout.
+   * This is useful if you want the local name when checking out a potentially
+   * remote branch during an operation.
    *
-   * If unable to checkout, return CherryPickResult.UnableToStart
-   * Otherwise, return null.
+   * Note: This does not do any existing changes checking like _checkout does.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
    */
-  public async checkoutTargetBranchForCherryPick(
+  public async _checkoutBranchReturnName(
     repository: Repository,
     targetBranch: Branch
-  ): Promise<Branch | undefined> {
+  ): Promise<string | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const checkoutSuccessful = await this.withAuthenticatingUser(
@@ -5906,14 +5909,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this._loadStatus(repository)
-
-    const { tip } = this.repositoryStateCache.get(repository).branchesState
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    return tip.branch
+    const status = await gitStore.loadStatus()
+    return status?.currentBranch
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
