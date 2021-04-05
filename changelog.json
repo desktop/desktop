@@ -3,7 +3,7 @@
     "2.7.2-beta2": [
       "[Added] Expand diffs above and below the changes to get more context in other parts of files - #11902",
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
-      "[Improved] User can end drag by pressing escape - #11925",
+      "[Improved] Cancel drag operation with escape key - #11925",
       "[Improved] Cherry-pick commits onto a pull request - #11922",
       "[Improved] Option to change the spellcheck language to English for Windows users whose system language is not English - #11589"
     ],
