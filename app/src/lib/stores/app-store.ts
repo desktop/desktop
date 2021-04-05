@@ -4670,12 +4670,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(hideWhitespaceInChangesDiffKey, hideWhitespaceInDiff)
     this.hideWhitespaceInChangesDiff = hideWhitespaceInDiff
 
-    if (enableHideWhitespaceInDiffOption()) {
-      await this.refreshChangesSection(repository, {
-        includingStatus: true,
-        clearPartialState: true,
-      })
-    }
+    await this.refreshChangesSection(repository, {
+      includingStatus: true,
+      clearPartialState: true,
+    })
   }
 
   public async _setHideWhitespaceInHistoryDiff(
@@ -4685,13 +4683,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     setBoolean(hideWhitespaceInHistoryDiffKey, hideWhitespaceInDiff)
     this.hideWhitespaceInHistoryDiff = hideWhitespaceInDiff
-
-    if (enableHideWhitespaceInDiffOption()) {
-      await this.refreshChangesSection(repository, {
-        includingStatus: true,
-        clearPartialState: true,
-      })
-    }
 
     if (file === null) {
       return this.updateChangesWorkingDirectoryDiff(repository)
