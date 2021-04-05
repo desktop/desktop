@@ -4,7 +4,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Banner } from './banner'
 
 interface ISuccessfulCherryPickBannerProps {
-  readonly targetBranchName: string
+  readonly targetBranchName: string | null
   readonly countCherryPicked: number
   readonly onDismissed: () => void
   readonly onUndoCherryPick: () => void
@@ -19,10 +19,24 @@ export class SuccessfulCherryPick extends React.Component<
     this.props.onUndoCherryPick()
   }
 
+  private renderUndo = () => {
+    const { targetBranchName } = this.props
+    if (targetBranchName === null) {
+      return
+    }
+
+    return (
+      <>
+        to <strong>{targetBranchName}</strong>.{' '}
+        <LinkButton onClick={this.undo}>Undo</LinkButton>
+      </>
+    )
+  }
   public render() {
-    const { countCherryPicked, onDismissed, targetBranchName } = this.props
+    const { countCherryPicked, onDismissed } = this.props
 
     const pluralized = countCherryPicked === 1 ? 'commit' : 'commits'
+
     return (
       <Banner
         id="successful-cherry-pick"
@@ -34,9 +48,8 @@ export class SuccessfulCherryPick extends React.Component<
         </div>
         <div className="banner-message">
           <span>
-            Successfully copied {countCherryPicked} {pluralized} to{' '}
-            <strong>{targetBranchName}</strong>.{' '}
-            <LinkButton onClick={this.undo}>Undo</LinkButton>
+            Successfully copied {countCherryPicked} {pluralized}{' '}
+            {this.renderUndo()}
           </span>
         </div>
       </Banner>
