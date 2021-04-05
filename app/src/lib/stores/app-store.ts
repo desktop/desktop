@@ -5371,97 +5371,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     headCloneUrl: string,
     headRefName: string
   ): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const remotes = await getRemotes(repository)
-
-    // Find an existing remote (regardless if set up by us or outside of
-    // Desktop).
-    let remote = remotes.find(r => urlMatchesRemote(headCloneUrl, r))
-
-    // If we can't find one we'll create a Desktop fork remote.
-    if (remote === undefined) {
-      try {
-        const forkRemoteName = forkPullRequestRemoteName(headRepoOwner)
-        remote = await addRemote(repository, forkRemoteName, headCloneUrl)
-      } catch (e) {
-        this.emitError(
-          new Error(`Couldn't checkout PR, adding remote failed: ${e.message}`)
-        )
-        return
-      }
-    }
-
-    const remoteRef = `${remote.name}/${headRefName}`
-
-    // Start by trying to find a local branch that is tracking the remote ref.
-    let existingBranch = gitStore.allBranches.find(
-      x => x.type === BranchType.Local && x.upstream === remoteRef
+    const prBranch = await this._findPullRequestBranch(
+      repository,
+      prNumber,
+      headRepoOwner,
+      headCloneUrl,
+      headRefName
     )
-
-    // If we found one, let's check it out and get out of here, quick
-    if (existingBranch !== undefined) {
-      await this._checkoutBranch(repository, existingBranch)
+    if (prBranch !== undefined) {
+      await this._checkoutBranch(repository, prBranch)
       this.statsStore.recordPRBranchCheckout()
-      return
     }
-
-    const findRemoteBranch = (name: string) =>
-      gitStore.allBranches.find(
-        x => x.type === BranchType.Remote && x.name === name
-      )
-
-    // No such luck, let's see if we can at least find the remote branch then
-    existingBranch = findRemoteBranch(remoteRef)
-
-    // If quite possible that the PR was created after our last fetch of the
-    // remote so let's fetch it and then try again.
-    if (existingBranch === undefined) {
-      try {
-        await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-        existingBranch = findRemoteBranch(remoteRef)
-      } catch (e) {
-        log.error(`Failed fetching remote ${remote?.name}`, e)
-      }
-    }
-
-    if (existingBranch === undefined) {
-      this.emitError(
-        new Error(
-          `Couldn't find branch '${headRefName}' in remote '${remote.name}'. ` +
-            `A common cause for this is if the PR author has deleted their ` +
-            `branch or their forked repository.`
-        )
-      )
-      return
-    }
-
-    // For fork remotes we checkout the ref as pr/[123] instead of using the
-    // head ref name since many PRs from forks are created from their default
-    // branch so we'll have a very high likelihood of a conflicting local branch
-    const isForkRemote =
-      remote.name !== gitStore.defaultRemote?.name &&
-      remote.name !== gitStore.upstreamRemote?.name
-
-    if (isForkRemote) {
-      await this._createBranch(repository, `pr/${prNumber}`, remoteRef)
-    } else {
-      await this._checkoutBranch(repository, existingBranch)
-    }
-
-    this.statsStore.recordPRBranchCheckout()
   }
 
   public async _findPullRequestBranch(
     repository: RepositoryWithGitHubRepository,
-    pullRequest: PullRequest
+    prNumber: number,
+    headRepoOwner: string,
+    headCloneUrl: string,
+    headRefName: string
   ): Promise<Branch | undefined> {
-    const { pullRequestNumber: prNumber, head } = pullRequest
-    const { ref: headRefName, gitHubRepository } = head
-    const {
-      cloneURL: headCloneUrl,
-      owner: { login: headRepoOwner },
-    } = gitHubRepository
-
     const gitStore = this.gitStoreCache.get(repository)
     const remotes = await getRemotes(repository)
 
@@ -5471,16 +5400,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // If we can't find one we'll create a Desktop fork remote.
     if (remote === undefined) {
-      if (headCloneUrl === null) {
-        new Error(`Couldn't checkout PR, unknown clone url.`)
-        return
-      }
       try {
         const forkRemoteName = forkPullRequestRemoteName(headRepoOwner)
         remote = await addRemote(repository, forkRemoteName, headCloneUrl)
       } catch (e) {
         this.emitError(
-          new Error(`Couldn't checkout PR, adding remote failed: ${e.message}`)
+          new Error(
+            `Couldn't find PR branch, adding remote failed: ${e.message}`
+          )
         )
         return
       }

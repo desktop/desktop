@@ -2706,10 +2706,23 @@ export class Dispatcher {
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest
   ) {
-    const targetBranch = await this.appStore._findPullRequestBranch(
-      repository,
-      pullRequest
-    )
+    const { pullRequestNumber, head } = pullRequest
+    const { ref, gitHubRepository } = head
+    const {
+      cloneURL,
+      owner: { login },
+    } = gitHubRepository
+
+    let targetBranch
+    if (cloneURL !== null) {
+      targetBranch = await this.appStore._findPullRequestBranch(
+        repository,
+        pullRequestNumber,
+        login,
+        cloneURL,
+        ref
+      )
+    }
 
     if (targetBranch === undefined) {
       log.error(
