@@ -157,7 +157,7 @@ export class CommitSummary extends React.Component<
     }
   }
 
-  private onHideWhitespaceInDiffChanged = async (
+  private onHideWhitespaceInDiffChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked

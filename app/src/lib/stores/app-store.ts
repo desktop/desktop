@@ -4663,14 +4663,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _setHideWhitespaceInChangesDiff(
+  public _setHideWhitespaceInChangesDiff(
     hideWhitespaceInDiff: boolean,
     repository: Repository
   ): Promise<void> {
     setBoolean(hideWhitespaceInChangesDiffKey, hideWhitespaceInDiff)
     this.hideWhitespaceInChangesDiff = hideWhitespaceInDiff
 
-    await this.refreshChangesSection(repository, {
+    return this.refreshChangesSection(repository, {
       includingStatus: true,
       clearPartialState: true,
     })
