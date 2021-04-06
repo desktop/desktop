@@ -4676,7 +4676,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  public async _setHideWhitespaceInHistoryDiff(
+  public _setHideWhitespaceInHistoryDiff(
     hideWhitespaceInDiff: boolean,
     repository: Repository,
     file: CommittedFileChange | null

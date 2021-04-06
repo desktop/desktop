@@ -161,7 +161,7 @@ export class CommitSummary extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
-    await this.props.onHideWhitespaceInDiffChanged(value)
+    return this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {
