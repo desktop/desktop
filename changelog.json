@@ -2,7 +2,7 @@
   "releases": {
     "2.7.2": [
       "[Added] Create branch during cherry-picking via the context menu - #11903",
-      "[Added] Suggest macOS users to move the app to `/Applications` to prevent issues - #11846",
+      "[Added] Suggest macOS users move the app to `/Applications` to prevent issues - #11846",
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
       "[Fixed] Dragging commits onto current branch no longer results in a broken state - #11915",
       "[Fixed] Fix bug getting commit summary info in rebase - #11853",
