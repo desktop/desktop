@@ -1,6 +1,5 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
-import * as os from 'os'
 
 import { getProductName, getVersion } from '../app/package-info'
 import { getReleaseBranchName } from './build-platforms'
