@@ -147,9 +147,12 @@ export function getArchitecture(): 'arm64' | 'x64' {
     return 'arm64'
   }
 
-  if (remote.app.runningUnderRosettaTranslation === true) {
-    return 'arm64'
-  }
+  // TODO: temporarily disable this to prevent upgrades from macOS users of the
+  // x64 version under Rosetta to the arm64 binary. This should be enabled again
+  // once we're confident about the arm64 build.
+  // if (remote.app.runningUnderRosettaTranslation === true) {
+  //   return 'arm64'
+  // }
 
   // TODO: Check if it's x64 running on an arm64 Windows with IsWow64Process2
   // More info: https://www.rudyhuyn.com/blog/2017/12/13/how-to-detect-that-your-x86-application-runs-on-windows-on-arm/
