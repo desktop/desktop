@@ -2580,27 +2580,34 @@ export class Dispatcher {
       return
     }
 
-    const { name, tip } = targetBranch
+    const { tip } = targetBranch
     this.appStore._setCherryPickTargetBranchUndoSha(repository, tip.sha)
 
     if (commits.length > 1) {
       this.statsStore.recordCherryPickMultipleCommits()
     }
 
-    const result = await this.appStore._checkOutBranchAndCherryPick(
+    const nameAfterCheckout = await this.appStore._checkoutBranchReturnName(
       repository,
-      targetBranch,
-      commits
+      targetBranch
     )
 
+    if (nameAfterCheckout === undefined) {
+      log.error('[cherryPick] - Failed to check out the target branch.')
+      this.endCherryPickFlow(repository)
+      return
+    }
+
+    const result = await this.appStore._cherryPick(repository, commits)
+
     if (result !== CherryPickResult.UnableToStart) {
-      this.logHowToRevertCherryPick(name, tip.sha)
+      this.logHowToRevertCherryPick(nameAfterCheckout, tip.sha)
     }
 
     this.processCherryPickResult(
       repository,
       result,
-      name,
+      nameAfterCheckout,
       commits,
       sourceBranch
     )
@@ -2641,6 +2648,7 @@ export class Dispatcher {
       log.error(
         '[startCherryPickWithBranchName] - Unable to create branch for cherry-pick operation'
       )
+      this.endCherryPickFlow(repository)
       return
     }
 
@@ -2669,14 +2677,16 @@ export class Dispatcher {
       cherryPickState.step == null ||
       cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
     ) {
-      log.warn(
+      log.error(
         '[cherryPick] Invalid Cherry-picking State: Could not determine selected commits.'
       )
+      this.endCherryPickFlow(repository)
       return
     }
 
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid) {
+      this.endCherryPickFlow(repository)
       throw new Error(
         'Tip is not in a valid state, which is required to start the cherry-pick flow.'
       )
@@ -2694,6 +2704,42 @@ export class Dispatcher {
     this.statsStore.recordCherryPickViaDragAndDrop()
     this.setCherryPickBranchCreated(repository, false)
     this.cherryPick(repository, targetBranch, commits, sourceBranch)
+  }
+
+  /**
+   * Method to start a cherry-pick after drag and dropping onto a pull request.
+   */
+  public async startCherryPickWithPullRequest(
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest
+  ) {
+    const { pullRequestNumber, head } = pullRequest
+    const { ref, gitHubRepository } = head
+    const {
+      cloneURL,
+      owner: { login },
+    } = gitHubRepository
+
+    let targetBranch
+    if (cloneURL !== null) {
+      targetBranch = await this.appStore._findPullRequestBranch(
+        repository,
+        pullRequestNumber,
+        login,
+        cloneURL,
+        ref
+      )
+    }
+
+    if (targetBranch === undefined) {
+      log.error(
+        '[cherryPick] Could not determine target branch for cherry-pick operation - aborting cherry-pick.'
+      )
+      this.endCherryPickFlow(repository)
+      return
+    }
+
+    return this.startCherryPickWithBranch(repository, targetBranch)
   }
 
   /**
@@ -2736,9 +2782,10 @@ export class Dispatcher {
     const stateAfter = this.repositoryStateManager.get(repository)
     const { conflictState } = stateAfter.changesState
     if (conflictState === null || !isCherryPickConflictState(conflictState)) {
-      log.warn(
+      log.error(
         '[cherryPick] - conflict state was null or not in a cherry-pick conflict state - unable to continue'
       )
+      this.endCherryPickFlow(repository)
       return
     }
     this.setCherryPickFlowStep(repository, {

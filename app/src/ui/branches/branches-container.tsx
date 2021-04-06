@@ -229,6 +229,7 @@ export class BranchesContainer extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        isCherryPickInProgress={this.props.isCherryPickInProgress}
       />
     )
   }
