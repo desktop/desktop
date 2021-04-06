@@ -311,9 +311,9 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-trampoline@desktop/desktop-trampoline#v0.9.3:
-  version "0.9.3"
-  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/31bc7170f634aae182de9eb54a01aa04dc124297"
+desktop-trampoline@desktop/desktop-trampoline#v0.9.4:
+  version "0.9.4"
+  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/7eabea0f1a3f8432307719a1bd16d1ffde2bf6f6"
 
 detect-libc@^1.0.3:
   version "1.0.3"
@@ -364,10 +364,10 @@ double-ended-queue@^2.1.0-0:
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
   integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
-dugite@^1.98.0:
-  version "1.98.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.98.0.tgz#26983df758a000dea8879b364e1596c08104f809"
-  integrity sha512-wI9cW41rVqyB8yQnaP2LP7P5eAUzz4vEMX0rPXDXRJ4pDGMoxkVcTjzWZ9ojdOIw2uF8OibplEHCIZ3FADIy/Q==
+dugite@^1.102.0:
+  version "1.102.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.102.0.tgz#15fde8ec6726f03dabcee06e7e5ee5492bf9bf74"
+  integrity sha512-z3eqQd0sCAt/6HgEDFDKw/VFp9LJG5v7MpR0wQAZh4Y/vz/pt5rdjJozVGVX9kGP3sHbIVz251Ooi8lrLupUeQ==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"

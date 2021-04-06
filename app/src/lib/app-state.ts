@@ -20,6 +20,7 @@ import {
   Progress,
   ICheckoutProgress,
   ICloneProgress,
+  ICherryPickProgress,
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
@@ -28,7 +29,7 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import { ApplicationTheme } from '../ui/lib/application-theme'
+import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
@@ -37,6 +38,8 @@ import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
+import { CherryPickFlowStep } from '../models/cherry-pick'
+import { DragElement } from '../models/drag-element'
 
 export enum SelectionType {
   Repository,
@@ -108,6 +111,12 @@ export interface IAppState {
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
+
+  /**
+   * The shape of the drag element rendered in the `app.renderDragElement`. It
+   * is used in conjunction with the `Draggable` component.
+   */
+  readonly currentDragElement: DragElement | null
 
   /**
    * A list of currently open menus with their selected items
@@ -211,11 +220,11 @@ export interface IAppState {
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
 
-  /** The currently selected appearance (aka theme) */
+  /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
 
-  /** Whether we should automatically change the currently selected appearance (aka theme) */
-  readonly automaticallySwitchTheme: boolean
+  /** The currently applied appearance (aka theme) */
+  readonly currentTheme: ApplicableTheme
 
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
@@ -249,6 +258,11 @@ export interface IAppState {
    * Whether or not the app should use spell check on commit summary and description
    */
   readonly commitSpellcheckEnabled: boolean
+
+  /**
+   * Whether or not the user has been introduced to the cherry pick feature
+   */
+  readonly hasShownCherryPickIntro: boolean
 }
 
 export enum FoldoutType {
@@ -351,13 +365,16 @@ export function isRebaseConflictState(
 }
 
 /**
- * Conflicts can occur during a rebase or a merge.
+ * Conflicts can occur during a rebase, merge, or cherry pick.
  *
  * Callers should inspect the `kind` field to determine the kind of conflict
  * that is occurring, as this will then provide additional information specific
  * to the conflict, to help with resolving the issue.
  */
-export type ConflictState = MergeConflictState | RebaseConflictState
+export type ConflictState =
+  | MergeConflictState
+  | RebaseConflictState
+  | CherryPickConflictState
 
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
@@ -430,6 +447,9 @@ export interface IRepositoryState {
   readonly revertProgress: IRevertProgress | null
 
   readonly localTags: Map<string, string> | null
+
+  /** State associated with a cherry pick being performed */
+  readonly cherryPickState: ICherryPickState
 }
 
 export interface IBranchesState {
@@ -522,8 +542,8 @@ export interface IRebaseState {
 }
 
 export interface ICommitSelection {
-  /** The commit currently selected in the app */
-  readonly sha: string | null
+  /** The commits currently selected in the app */
+  readonly shas: ReadonlyArray<string>
 
   /** The list of files associated with the current commit */
   readonly changedFiles: ReadonlyArray<CommittedFileChange>
@@ -724,3 +744,64 @@ export interface ICompareToBranch {
  * An action to send to the application store to update the compare state
  */
 export type CompareAction = IViewHistory | ICompareToBranch
+
+/** State associated with a cherry pick being performed on a repository */
+export interface ICherryPickState {
+  /**
+   * The current step of the flow the user should see.
+   *
+   * `null` indicates that there is no cherry pick underway.
+   */
+  readonly step: CherryPickFlowStep | null
+
+  /**
+   * The underlying Git information associated with the current cherry pick
+   *
+   * This will be set to `null` when no target branch has been selected to
+   * initiate the rebase.
+   */
+  readonly progress: ICherryPickProgress | null
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * cherry pick.
+   */
+  readonly userHasResolvedConflicts: boolean
+
+  /**
+   * The sha of the target branch tip before cherry pick initiated.
+   *
+   * This will be set to null if no cherry pick has been initiated.
+   */
+  readonly targetBranchUndoSha: string | null
+
+  /**
+   * Whether the target branch was created during cherry-pick operation
+   */
+  readonly branchCreated: boolean
+}
+
+/**
+ * Stores information about a cherry pick conflict when it occurs
+ */
+export type CherryPickConflictState = {
+  readonly kind: 'cherryPick'
+
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the cherry pick.
+   */
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+
+  /**
+   * The branch chosen by the user to copy the cherry picked commits to
+   */
+  readonly targetBranchName: string
+}
+
+/** Guard function for checking conflicts are from a rebase  */
+export function isCherryPickConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is CherryPickConflictState {
+  return conflictStatus.kind === 'cherryPick'
+}

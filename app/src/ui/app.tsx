@@ -8,6 +8,9 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
+  ICherryPickState,
+  isRebaseConflictState,
+  isCherryPickConflictState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -18,7 +21,7 @@ import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
-import { ILaunchStats, SamplesURL } from '../lib/stats'
+import { ILaunchStats } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
@@ -92,7 +95,6 @@ import { AbortMergeWarning } from './abort-merge'
 import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
-import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
@@ -120,7 +122,19 @@ import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import { CherryPickFlow } from './cherry-pick/cherry-pick-flow'
+import {
+  CherryPickStepKind,
+  ChooseTargetBranchesStep,
+} from '../models/cherry-pick'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
+import { CommitOneLine } from '../models/commit'
+import { WorkingDirectoryStatus } from '../models/status'
+import { DragElementType } from '../models/drag-element'
+import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
+import classNames from 'classnames'
+import { dragAndDropManager } from '../lib/drag-and-drop-manager'
+import { MoveToApplicationsFolder } from './move-to-applications-folder'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -158,7 +172,6 @@ export const bannerTransitionTimeout = { enter: 500, exit: 400 }
  * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
-
 export class App extends React.Component<IAppProps, IAppState> {
   private loading = true
 
@@ -296,6 +309,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
     log.info(`execPath: '${process.execPath}'`)
+
+    // Only show the popup in beta/production releases and mac machines
+    if (__DEV__ === false && remote.app.isInApplicationsFolder?.() === false) {
+      this.showPopup({ type: PopupType.MoveToApplicationsFolder })
+    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -1376,7 +1394,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
-            automaticallySwitchTheme={this.state.automaticallySwitchTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
           />
         )
@@ -1746,15 +1763,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
-      case PopupType.UsageReportingChanges:
-        return (
-          <UsageStatsChange
-            key="usage-stats-change"
-            onOpenUsageDataUrl={this.openUsageDataUrl}
-            onSetStatsOptOut={this.onSetStatsOptOut}
-            onDismissed={onPopupDismissedFn}
-          />
-        )
       case PopupType.CommitConflictsWarning:
         return (
           <CommitConflictsWarning
@@ -1991,9 +1999,55 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
           />
         )
-      case PopupType.CherryPick:
-        // TODO: Create Cherry Pick Branch Dialog
-        return null
+      case PopupType.CherryPick: {
+        const cherryPickState = this.getCherryPickState()
+        const workingDirectory = this.getWorkingDirectory()
+        if (
+          cherryPickState === null ||
+          cherryPickState.step == null ||
+          workingDirectory === null
+        ) {
+          log.warn(
+            `[App] Invalid state encountered:
+            cherry-pick flow should not be active when step is null,
+            the selected app state is not a repository state,
+            or cannot obtain the working directory.`
+          )
+          return null
+        }
+
+        const { step, progress, userHasResolvedConflicts } = cherryPickState
+
+        return (
+          <CherryPickFlow
+            key="cherry-pick-flow"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+            step={step}
+            emoji={this.state.emoji}
+            progress={progress}
+            commits={popup.commits}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            workingDirectory={workingDirectory}
+            userHasResolvedConflicts={userHasResolvedConflicts}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openCurrentRepositoryInShell}
+            sourceBranch={popup.sourceBranch}
+            onShowCherryPickConflictsBanner={
+              this.onShowCherryPickConflictsBanner
+            }
+          />
+        )
+      }
+      case PopupType.MoveToApplicationsFolder: {
+        return (
+          <MoveToApplicationsFolder
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2026,9 +2080,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
         const { conflictState } = changesState
 
-        if (conflictState === null || conflictState.kind === 'merge') {
+        if (conflictState === null || !isRebaseConflictState(conflictState)) {
           log.debug(
-            `[App.onShowRebaseConflictsBanner] no conflict state found, ignoring...`
+            `[App.onShowRebaseConflictsBanner] no rebase conflict state found, ignoring...`
           )
           return
         }
@@ -2051,16 +2105,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onRebaseFlowEnded = (repository: Repository) => {
     this.props.dispatcher.endRebaseFlow(repository)
-  }
-
-  private onSetStatsOptOut = (optOut: boolean) => {
-    this.props.appStore.setStatsOptOut(optOut, true)
-    this.props.appStore.markUsageStatsNoteSeen()
-    this.props.appStore._reportStats()
-  }
-
-  private openUsageDataUrl = () => {
-    this.props.dispatcher.openInBrowser(SamplesURL)
   }
 
   private onUpdateExistingUpstreamRemote = (repository: Repository) => {
@@ -2137,6 +2181,39 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private renderDragElement() {
+    return <div id="dragElement">{this.renderCurrentDragElement()}</div>
+  }
+
+  /**
+   * Render the current drag element based on it's type. Used in conjunction
+   * with the `Draggable` component.
+   */
+  private renderCurrentDragElement(): JSX.Element | null {
+    const { currentDragElement, emoji } = this.state
+    if (currentDragElement === null) {
+      return null
+    }
+
+    const { gitHubRepository, commit, selectedCommits } = currentDragElement
+    switch (currentDragElement.type) {
+      case DragElementType.CherryPickCommit:
+        return (
+          <CherryPickCommit
+            gitHubRepository={gitHubRepository}
+            commit={commit}
+            selectedCommits={selectedCommits}
+            emoji={emoji}
+          />
+        )
+      default:
+        return assertNever(
+          currentDragElement.type,
+          `Unknown drag element type: ${currentDragElement}`
+        )
+    }
+  }
+
   private renderZoomInfo() {
     return <ZoomInfo windowZoomFactor={this.state.windowZoomFactor} />
   }
@@ -2170,14 +2247,28 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup(popup)
   }
 
+  private getDesktopAppContentsClassNames = (): string => {
+    const { currentDragElement } = this.state
+    const isCherryPickCommitBeingDragged =
+      currentDragElement !== null &&
+      currentDragElement.type === DragElementType.CherryPickCommit
+    return classNames({
+      'cherry-pick-mouse-over': isCherryPickCommitBeingDragged,
+    })
+  }
+
   private renderApp() {
     return (
-      <div id="desktop-app-contents">
+      <div
+        id="desktop-app-contents"
+        className={this.getDesktopAppContentsClassNames()}
+      >
         {this.renderToolbar()}
         {this.renderBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
         {this.renderAppError()}
+        {this.renderDragElement()}
       </div>
     )
   }
@@ -2453,6 +2544,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+        onDragEnterBranch={this.onDragEnterBranch}
+        onDragLeaveBranch={this.onDragLeaveBranch}
       />
     )
   }
@@ -2587,6 +2680,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           isShowingFoldout={this.state.currentFoldout !== null}
           aheadBehindStore={this.props.aheadBehindStore}
           commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
+          onCherryPick={this.startCherryPickWithoutBranch}
+          hasShownCherryPickIntro={this.state.hasShownCherryPickIntro}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -2628,7 +2723,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentTheme = this.state.showWelcomeFlow
       ? ApplicationTheme.Light
-      : this.state.selectedTheme
+      : this.state.currentTheme
 
     return (
       <div id="desktop-app-chrome" className={className}>
@@ -2686,6 +2781,149 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private isTutorialPaused() {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
+  }
+
+  /**
+   * When starting cherry pick from context menu, we need to initialize the
+   * cherry pick state flow step with the ChooseTargetBranch as opposed
+   * to drag and drop which will start at the ShowProgress step.
+   *
+   * Step initialization must be done before and outside of the
+   * `currentPopupContent` method because it is a rendering method that is
+   * re-run on every update. It will just keep showing the step initialized
+   * there otherwise - not allowing for other flow steps.
+   */
+  private startCherryPickWithoutBranch = (
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => {
+    const repositoryState = this.props.repositoryStateManager.get(repository)
+
+    const {
+      defaultBranch,
+      allBranches,
+      recentBranches,
+      tip,
+    } = repositoryState.branchesState
+    let currentBranch: Branch | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentBranch = tip.branch
+    } else {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the cherry-pick flow'
+      )
+    }
+
+    const initialStep: ChooseTargetBranchesStep = {
+      kind: CherryPickStepKind.ChooseTargetBranch,
+      defaultBranch,
+      currentBranch,
+      allBranches,
+      recentBranches,
+    }
+
+    this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+    this.props.dispatcher.recordCherryPickViaContextMenu()
+
+    this.showPopup({
+      type: PopupType.CherryPick,
+      repository,
+      commits,
+      sourceBranch: currentBranch,
+    })
+  }
+
+  private getCherryPickState(): ICherryPickState | null {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+
+    const { cherryPickState } = selectedState.state
+    return cherryPickState
+  }
+
+  private onShowCherryPickConflictsBanner = (
+    repository: Repository,
+    targetBranchName: string,
+    sourceBranch: Branch | null,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => {
+    this.props.dispatcher.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.HideConflicts,
+    })
+
+    this.props.dispatcher.setBanner({
+      type: BannerType.CherryPickConflictsFound,
+      targetBranchName,
+      onOpenConflictsDialog: async () => {
+        const { changesState } = this.props.repositoryStateManager.get(
+          repository
+        )
+        const { conflictState } = changesState
+
+        if (
+          conflictState === null ||
+          !isCherryPickConflictState(conflictState)
+        ) {
+          log.debug(
+            `[App.onShowCherryPickConflictsBanner] no cherry-pick conflict state found, ignoring...`
+          )
+          return
+        }
+
+        await this.props.dispatcher.setCherryPickProgressFromState(repository)
+
+        this.props.dispatcher.setCherryPickFlowStep(repository, {
+          kind: CherryPickStepKind.ShowConflicts,
+          conflictState,
+        })
+
+        this.props.dispatcher.showPopup({
+          type: PopupType.CherryPick,
+          repository,
+          commits,
+          sourceBranch,
+        })
+      },
+    })
+  }
+
+  private getWorkingDirectory(): WorkingDirectoryStatus | null {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+    return selectedState.state.changesState.workingDirectory
+  }
+
+  /**
+   * Method to handle when something is dragged onto a branch item
+   *
+   * Note: We currently use this in conjunction with cherry picking and a cherry
+   * picking commit is the only type of drag element. Thus, below uses those
+   * assumptions to just update the currentDragElement.
+   */
+  private onDragEnterBranch = (branchName: string): void => {
+    dragAndDropManager.emitEnterDropTarget(branchName)
+  }
+
+  /**
+   * Method to handle when something is dragged out of a branch item
+   *
+   * Note: We currently use this in conjunction with cherry picking and a cherry
+   * picking commit is the only type of drag element. Thus, below uses those
+   * assumptions to just update the currentDragElement.
+   */
+  private onDragLeaveBranch = (): void => {
+    dragAndDropManager.emitLeaveDropTarget()
   }
 }
 

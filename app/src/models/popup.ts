@@ -10,7 +10,7 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { ICommitContext } from './commit'
+import { CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
@@ -50,7 +50,6 @@ export enum PopupType {
   MergeConflicts,
   AbortMerge,
   OversizedFiles,
-  UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
   RebaseFlow,
@@ -69,6 +68,7 @@ export enum PopupType {
   ChooseForkSettings,
   ConfirmDiscardSelection,
   CherryPick,
+  MoveToApplicationsFolder,
 }
 
 export type Popup =
@@ -186,7 +186,6 @@ export type Popup =
       context: ICommitContext
       repository: Repository
     }
-  | { type: PopupType.UsageReportingChanges }
   | {
       type: PopupType.CommitConflictsWarning
       /** files that were selected for committing that are also conflicted */
@@ -273,5 +272,7 @@ export type Popup =
   | {
       type: PopupType.CherryPick
       repository: Repository
-      commitSha: string
+      commits: ReadonlyArray<CommitOneLine>
+      sourceBranch: Branch | null
     }
+  | { type: PopupType.MoveToApplicationsFolder }

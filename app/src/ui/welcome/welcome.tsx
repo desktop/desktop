@@ -10,7 +10,6 @@ import { Start } from './start'
 import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 import { UiView } from '../ui-view'
-import { UsageOptOut } from './usage-opt-out'
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
@@ -18,7 +17,6 @@ export enum WelcomeStep {
   SignInToDotComWithBrowser = 'SignInToDotComWithBrowser',
   SignInToEnterprise = 'SignInToEnterprise',
   ConfigureGit = 'ConfigureGit',
-  UsageOptOut = 'UsageOptOut',
 }
 
 interface IWelcomeProps {
@@ -168,15 +166,6 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
           <ConfigureGit
             advance={this.advanceToStep}
             accounts={this.props.accounts}
-          />
-        )
-
-      case WelcomeStep.UsageOptOut:
-        return (
-          <UsageOptOut
-            dispatcher={this.props.dispatcher}
-            advance={this.advanceToStep}
-            optOut={this.props.optOut}
             done={this.done}
           />
         )

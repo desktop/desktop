@@ -47,9 +47,14 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should the app show hide whitespace in changes tab */
+export function enableHideWhitespaceInDiffOption(): boolean {
+  return enableDevelopmentFeatures()
+}
+
 /** Should the app use the shiny new TCP-based trampoline? */
 export function enableDesktopTrampoline(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -153,5 +158,10 @@ export function enableUnhandledRejectionReporting(): boolean {
  * Should we allow cherry picking
  */
 export function enableCherryPicking(): boolean {
-  return false // enableBetaFeatures()
+  return true
+}
+
+/** Should we allow expanding text diffs? */
+export function enableTextDiffExpansion(): boolean {
+  return enableDevelopmentFeatures()
 }

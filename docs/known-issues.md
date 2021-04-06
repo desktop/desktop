@@ -207,6 +207,8 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 
 Known causes and workarounds:
 
+**If you're experiencing this error, please download the [beta version](https://github.com/desktop/desktop#beta-channel) where it should hopefully be solved.**
+
 -  Modifying the `AutoRun` registry entry. To check if this entry has been modified open `Regedit.exe` and navigate to `HKEY_CURRENT_USER\Software\Microsoft\Command Processor\autorun` and `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\autorun` to see if there is anything set (sometimes applications will also modify this). See [#6789](https://github.com/desktop/desktop/issues/6879#issuecomment-471042891) and [#2623](https://github.com/desktop/desktop/issues/2623#issuecomment-334305916) for examples of this.
 
 - Special characters in your Windows username like a `&` or `-` can cause this error to be thrown. See [#7064](https://github.com/desktop/desktop/issues/7064) for an example of this. Try installing GitHub Desktop in a new user account to verify if this is the case.

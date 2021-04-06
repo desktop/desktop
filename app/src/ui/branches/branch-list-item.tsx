@@ -7,6 +7,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { String } from 'aws-sdk/clients/apigateway'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -27,6 +28,21 @@ interface IBranchListItemProps {
   readonly onRenameBranch?: (branchName: string) => void
 
   readonly onDeleteBranch?: (branchName: string) => void
+
+  /** When a drag element has landed on a branch that is not current */
+  readonly onDropOntoBranch?: (branchName: String) => void
+
+  /** When a drag element has landed on the current branch */
+  readonly onDropOntoCurrentBranch?: () => void
+
+  /** Whether something is being dragged */
+  readonly isSomethingBeingDragged?: boolean
+
+  /** When a drag element enters a branch */
+  readonly onDragEnterBranch?: (branchName: String) => void
+
+  /** When a drag element leaves a branch */
+  readonly onDragLeaveBranch?: () => void
 }
 
 /** The branch component. */
@@ -65,6 +81,39 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     showContextualMenu(items)
   }
 
+  private onMouseEnter = () => {
+    if (this.props.isSomethingBeingDragged) {
+      if (this.props.onDragEnterBranch !== undefined) {
+        this.props.onDragEnterBranch(this.props.name)
+      }
+    }
+  }
+
+  private onMouseLeave = () => {
+    if (this.props.isSomethingBeingDragged) {
+      if (this.props.onDragLeaveBranch !== undefined) {
+        this.props.onDragLeaveBranch()
+      }
+    }
+  }
+
+  private onMouseUp = () => {
+    const {
+      onDropOntoBranch,
+      onDropOntoCurrentBranch,
+      name,
+      isCurrentBranch,
+    } = this.props
+
+    if (onDropOntoBranch !== undefined && !isCurrentBranch) {
+      onDropOntoBranch(name)
+    }
+
+    if (onDropOntoCurrentBranch !== undefined && isCurrentBranch) {
+      onDropOntoCurrentBranch()
+    }
+  }
+
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
@@ -77,8 +126,15 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       : lastCommitDate
       ? lastCommitDate.toString()
       : ''
+
     return (
-      <div onContextMenu={this.onContextMenu} className="branches-list-item">
+      <div
+        onContextMenu={this.onContextMenu}
+        className="branches-list-item"
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onMouseUp={this.onMouseUp}
+      >
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches.title} />

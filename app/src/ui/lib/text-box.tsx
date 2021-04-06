@@ -143,6 +143,15 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
+  /** Determines if the contained text input element is currently focused. */
+  public get isFocused() {
+    return (
+      this.inputElement !== null &&
+      document.activeElement !== null &&
+      this.inputElement === document.activeElement
+    )
+  }
+
   /**
    * Programmatically moves keyboard focus to the inner text input element if it can be focused
    * (i.e. if it's not disabled explicitly or implicitly through for example a fieldset).

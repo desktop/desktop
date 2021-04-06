@@ -140,6 +140,15 @@ const DefaultDailyMeasures: IDailyMeasures = {
   diffOptionsViewedCount: 0,
   repositoryViewChangeCount: 0,
   unhandledRejectionCount: 0,
+  cherryPickSuccessfulCount: 0,
+  cherryPickViaDragAndDropCount: 0,
+  cherryPickViaContextMenuCount: 0,
+  cherryPickDragStartedAndCanceledCount: 0,
+  cherryPickConflictsEncounteredCount: 0,
+  cherryPickSuccessfulWithConflictsCount: 0,
+  cherryPickMultipleCommitsCount: 0,
+  cherryPickUndoneCount: 0,
+  cherryPickBranchCreatedCount: 0,
 }
 
 interface IOnboardingStats {
@@ -243,20 +252,6 @@ interface IOnboardingStats {
    * another account this will reflect the last one.
    */
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
-}
-
-/**
- * Returns the account id of the current user's GitHub.com account or null if the user
- * is not currently signed in to GitHub.com.
- *
- * @param accounts The active accounts stored in Desktop
- */
-function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
-  const gitHubAccount = accounts.find(
-    a => a.endpoint === getDotComAPIEndpoint()
-  )
-
-  return gitHubAccount !== undefined ? gitHubAccount.id : null
 }
 
 interface ICalculatedStats {
@@ -406,10 +401,7 @@ export class StatsStore implements IStatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts, repositories)
-
-    const user_id = findDotComAccountId(accounts)
-    const payload = user_id === null ? stats : { ...stats, user_id }
+    const payload = await this.getDailyStats(accounts, repositories)
 
     try {
       const response = await this.post(payload)
@@ -1384,6 +1376,63 @@ export class StatsStore implements IStatsStore {
   public recordUnhandledRejection() {
     return this.updateDailyMeasures(m => ({
       unhandledRejectionCount: m.unhandledRejectionCount + 1,
+    }))
+  }
+
+  public recordCherryPickSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
+    }))
+  }
+
+  public recordCherryPickViaDragAndDrop(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickViaDragAndDropCount: m.cherryPickViaDragAndDropCount + 1,
+    }))
+  }
+
+  public recordCherryPickViaContextMenu(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickViaContextMenuCount: m.cherryPickViaContextMenuCount + 1,
+    }))
+  }
+
+  public recordCherryPickDragStartedAndCanceled(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickDragStartedAndCanceledCount:
+        m.cherryPickDragStartedAndCanceledCount + 1,
+    }))
+  }
+
+  public recordCherryPickConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickConflictsEncounteredCount:
+        m.cherryPickConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordCherryPickSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickSuccessfulWithConflictsCount:
+        m.cherryPickSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordCherryPickMultipleCommits(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickMultipleCommitsCount: m.cherryPickMultipleCommitsCount + 1,
+    }))
+  }
+
+  public recordCherryPickUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
+    }))
+  }
+
+  public recordCherryPickBranchCreatedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
     }))
   }
 

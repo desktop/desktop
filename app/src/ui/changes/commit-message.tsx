@@ -34,6 +34,7 @@ import { lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
+import { isAccountEmail } from '../../lib/is-account-email'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -121,6 +122,8 @@ export class CommitMessage extends React.Component<
   private descriptionTextArea: HTMLTextAreaElement | null = null
   private descriptionTextAreaScrollDebounceId: number | null = null
 
+  private coAuthorInputRef = React.createRef<AuthorInput>()
+
   public constructor(props: ICommitMessageProps) {
     super(props)
     const { commitMessage } = this.props
@@ -180,6 +183,14 @@ export class CommitMessage extends React.Component<
 
     if (this.props.focusCommitMessage) {
       this.focusSummary()
+    } else if (
+      prevProps.showCoAuthoredBy === false &&
+      this.isCoAuthorInputVisible &&
+      // The co-author input could be also shown when switching between repos,
+      // but in that case we don't want to give the focus to the input.
+      prevProps.repository.id === this.props.repository.id
+    ) {
+      this.coAuthorInputRef.current?.focus()
     }
   }
 
@@ -283,7 +294,7 @@ export class CommitMessage extends React.Component<
     const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
-      accountEmails.includes(email) === false
+      isAccountEmail(accountEmails, email) === false
 
     return (
       <CommitMessageAvatar
@@ -344,6 +355,7 @@ export class CommitMessage extends React.Component<
 
     return (
       <AuthorInput
+        ref={this.coAuthorInputRef}
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
         autoCompleteProvider={autocompletionProvider}
