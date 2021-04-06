@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.7.2-test1": ["[Added] Some new stuff"],
     "2.7.2-beta2": [
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
       "[Improved] Cancel drag operation with escape key - #11925",
