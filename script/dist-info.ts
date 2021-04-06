@@ -3,7 +3,6 @@ import * as Fs from 'fs'
 
 import { getProductName, getVersion } from '../app/package-info'
 import { getReleaseBranchName } from './build-platforms'
-import { remote } from 'electron'
 
 const productName = getProductName()
 const version = getVersion()

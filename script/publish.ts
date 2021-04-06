@@ -166,7 +166,10 @@ function getContext() {
   )
 }
 
-function updateDeploy(artifacts: ReadonlyArray<IUploadResult>, secret: string) {
+function updateDeploy(
+  artifacts: ReadonlyArray<IUploadResult>,
+  secret: string
+): Promise<void> {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: getContext(),
