@@ -15,7 +15,7 @@ import {
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { IAuthor } from '../../models/author'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -157,6 +157,7 @@ import {
   revRangeInclusive,
   GitResetMode,
   reset,
+  getBranchAheadBehind,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -6173,6 +6174,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _setDragElement(dragElement: DragElement | null): Promise<void> {
     this.currentDragElement = dragElement
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _getBranchAheadBehind(
+    repository: Repository,
+    branch: Branch
+  ): Promise<IAheadBehind | null> {
+    return getBranchAheadBehind(repository, branch)
   }
 }
 

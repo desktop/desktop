@@ -305,7 +305,7 @@ export class BranchesContainer extends React.Component<
     })
   }
 
-  private onDeleteBranch = (branchName: string) => {
+  private onDeleteBranch = async (branchName: string) => {
     const branch = this.getBranchWithName(branchName)
 
     if (branch === undefined) {
@@ -321,11 +321,15 @@ export class BranchesContainer extends React.Component<
       return
     }
 
+    const aheadBehind = await this.props.dispatcher.getBranchAheadBehind(
+      this.props.repository,
+      branch
+    )
     this.props.dispatcher.showPopup({
       type: PopupType.DeleteBranch,
       repository: this.props.repository,
       branch,
-      existsOnRemote: branch.upstreamRemoteName !== null,
+      existsOnRemote: aheadBehind !== null,
     })
   }
 
