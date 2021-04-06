@@ -9,7 +9,7 @@
       "[Improved] Cancel drag operation with escape key - #11925",
       "[Improved] Cherry-pick commits onto a pull request with drag and drop - #11922",
       "[Improved] Option to change the spellcheck language to English for Windows users whose system language is not English - #11589",
-      "[Improved] Update how privacy and usage stats info are provided to the user - #11845"
+      "[Improved] Update how privacy and usage stats info is communicated - #11845"
     ],
     "2.7.2-beta2": [
       "[Added] Expand diffs above and below the changes to get more context in other parts of files - #11902",
