@@ -5,7 +5,7 @@
       "[Added] Suggest macOS users move the app to `/Applications` to prevent issues - #11846",
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
       "[Fixed] Dragging commits onto current branch no longer results in a broken state - #11915",
-      "[Fixed] Fix bug getting commit summary info in rebase - #11853",
+      "[Fixed] Get correct commit summary info in rebase - #11853",
       "[Improved] Cancel drag operation with escape key - #11925",
       "[Improved] Cherry-pick commits onto a pull request with drag and drop - #11922",
       "[Improved] Option to change the spellcheck language to English for Windows users whose system language is not English - #11589",
