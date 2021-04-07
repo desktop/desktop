@@ -15,6 +15,8 @@ export interface ICherryPickSnapshot {
   readonly progress: ICherryPickProgress
   /** The sha of the target branch tip before cherry pick initiated. */
   readonly targetBranchUndoSha: string
+  /** The number of commits already cherry-picked */
+  readonly countCherryPicked: number
 }
 
 /** Union type representing the possible states of the cherry pick flow */

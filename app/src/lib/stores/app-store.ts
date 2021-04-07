@@ -5849,7 +5849,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           value: 0,
           cherryPickCommitCount: 1,
           totalCommitCount: commits.length,
-          currentCommitSummary: commits[0].summary,
+          currentCommitSummary: commits[commits.length - 1].summary,
         },
       }
     })
