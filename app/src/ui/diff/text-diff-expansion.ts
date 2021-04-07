@@ -49,12 +49,17 @@ function mergeDiffHunks(hunk1: DiffHunk, hunk2: DiffHunk): DiffHunk {
     false
   )
 
+  const newHunkLines = [
+    newFirstHunkLine,
+    ...allHunk1LinesButFirst,
+    ...allHunk2LinesButFirst,
+  ]
+
   return new DiffHunk(
     newHunkHeader,
-    [newFirstHunkLine, ...allHunk1LinesButFirst, ...allHunk2LinesButFirst],
+    newHunkLines,
     hunk1.unifiedDiffStart,
-    // This -1 represents the header line of the second hunk that we removed
-    hunk2.unifiedDiffEnd - 1,
+    hunk1.unifiedDiffStart + newHunkLines.length,
     // The expansion type of the resulting hunk will match the expansion type
     // of the first hunk:
     // - If the first hunk can be expanded up, it means it's the very first
