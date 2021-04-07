@@ -8,6 +8,7 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
+import { DiffHunkExpansionType } from '../../models/diff/raw-diff'
 
 /**
  * DiffRowType defines the different types of
@@ -181,6 +182,9 @@ interface IDiffRowHunk {
    * The actual contents of the line.
    */
   readonly content: string
+
+  /** How the hunk can be expanded. */
+  readonly expansionType: DiffHunkExpansionType
 }
 
 export type DiffRow =
