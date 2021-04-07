@@ -13,7 +13,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
-import { ExpansionKind } from './text-diff-expansion'
+import { DiffExpansionKind } from './text-diff-expansion'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -74,7 +74,7 @@ interface ISideBySideDiffRowProps {
    */
   readonly onMouseLeaveHunk: (hunkStartLine: number) => void
 
-  readonly onExpandHunk: (hunkIndex: number, kind: ExpansionKind) => void
+  readonly onExpandHunk: (hunkIndex: number, kind: DiffExpansionKind) => void
 
   /**
    * Called when the user clicks on the hunk handle. Called with the start
@@ -497,7 +497,7 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private onExpandHunk = (hunkIndex: number, kind: ExpansionKind) => () => {
+  private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => () => {
     this.props.onExpandHunk(hunkIndex, kind)
   }
 
