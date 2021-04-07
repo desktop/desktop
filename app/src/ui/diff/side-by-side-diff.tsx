@@ -47,6 +47,8 @@ import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-search-input'
 import { escapeRegExp } from '../../lib/helpers/regex'
+import { enableTextDiffExpansion } from '../../lib/feature-flag'
+import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
 
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
@@ -354,7 +356,19 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
+    const newContentLines = contents.newContents.split('\n')
+    const oldContentLines = contents.oldContents.split('\n')
+    const currentDiff = this.state.diff
+    const newDiff = enableTextDiffExpansion()
+      ? getTextDiffWithBottomDummyHunk(
+          currentDiff,
+          currentDiff.hunks,
+          oldContentLines.length,
+          newContentLines.length
+        )
+      : null
     this.setState({
+      diff: newDiff ?? currentDiff,
       beforeTokens: tokens.oldTokens,
       afterTokens: tokens.newTokens,
     })
