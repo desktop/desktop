@@ -48,7 +48,10 @@ import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-search-input'
 import { escapeRegExp } from '../../lib/helpers/regex'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
+import {
+  ExpansionKind,
+  getTextDiffWithBottomDummyHunk,
+} from './text-diff-expansion'
 
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
@@ -299,6 +302,7 @@ export class SideBySideDiff extends React.Component<
             onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
             onMouseLeaveHunk={this.onMouseLeaveHunk}
+            onExpandHunk={this.onExpandHunk}
             onClickHunk={this.onClickHunk}
             onContextMenuLine={this.onContextMenuLine}
             onContextMenuHunk={this.onContextMenuHunk}
@@ -626,6 +630,10 @@ export class SideBySideDiff extends React.Component<
     this.setState({ hoveredHunk: undefined })
   }
 
+  private onExpandHunk = (hunkIndex: number, kind: ExpansionKind) => {
+    // TODO: Implement in future PRs...
+  }
+
   private onClickHunk = (hunkStartLine: number, select: boolean) => {
     if (this.props.onIncludeChanged === undefined) {
       return
@@ -864,11 +872,11 @@ const getDiffRows = memoize(function (
 ): ReadonlyArray<SimplifiedDiffRow> {
   const outputRows = new Array<SimplifiedDiffRow>()
 
-  for (const hunk of diff.hunks) {
-    for (const row of getDiffRowsFromHunk(hunk, showSideBySideDiff)) {
+  diff.hunks.forEach((hunk, index) => {
+    for (const row of getDiffRowsFromHunk(index, hunk, showSideBySideDiff)) {
       outputRows.push(row)
     }
-  }
+  })
 
   return outputRows
 })
@@ -885,6 +893,7 @@ const getDiffRows = memoize(function (
  * @param showSideBySideDiff  Whether or not show the diff in side by side mode.
  */
 function getDiffRowsFromHunk(
+  hunkIndex: number,
   hunk: DiffHunk,
   showSideBySideDiff: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
@@ -916,8 +925,9 @@ function getDiffRowsFromHunk(
     if (line.type === DiffLineType.Hunk) {
       rows.push({
         type: DiffRowType.Hunk,
-        content: line.content,
+        content: line.text,
         expansionType: hunk.expansionType,
+        hunkIndex,
       })
       continue
     }

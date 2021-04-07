@@ -185,6 +185,9 @@ interface IDiffRowHunk {
 
   /** How the hunk can be expanded. */
   readonly expansionType: DiffHunkExpansionType
+
+  /** Index of the hunk in the diff. */
+  readonly hunkIndex: number
 }
 
 export type DiffRow =
