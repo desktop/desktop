@@ -50,7 +50,7 @@ import { escapeRegExp } from '../../lib/helpers/regex'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   expandTextDiffHunk,
-  ExpansionKind,
+  DiffExpansionKind,
   getTextDiffWithBottomDummyHunk,
 } from './text-diff-expansion'
 
@@ -636,7 +636,7 @@ export class SideBySideDiff extends React.Component<
     this.setState({ hoveredHunk: undefined })
   }
 
-  private onExpandHunk = (hunkIndex: number, kind: ExpansionKind) => {
+  private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => {
     const { diff } = this.state
 
     if (hunkIndex === -1 || hunkIndex >= diff.hunks.length) {
@@ -850,7 +850,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   /** Expand a selected hunk. */
-  private expandHunk(hunk: DiffHunk, kind: ExpansionKind) {
+  private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
     const { diff } = this.state
 
     if (this.newContentLines === null || this.newContentLines.length === 0) {

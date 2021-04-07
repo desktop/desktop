@@ -8,11 +8,11 @@ import {
   ITextDiff,
 } from '../../models/diff'
 
-/** How many new lines will be added to a diff hunk. */
-export const DiffExpansionStep = 20
+/** How many new lines will be added to a diff hunk by default. */
+export const DefaultDiffExpansionStep = 20
 
 /** Type of expansion: could be up or down. */
-export type ExpansionKind = 'up' | 'down'
+export type DiffExpansionKind = 'up' | 'down'
 
 /** Builds the diff text string given a list of hunks. */
 function getDiffTextFromHunks(hunks: ReadonlyArray<DiffHunk>) {
@@ -108,11 +108,46 @@ export function getHunkHeaderExpansionType(
     } else {
       return DiffHunkExpansionType.None
     }
-  } else if (distanceToPrevious <= DiffExpansionStep) {
+  } else if (distanceToPrevious <= DefaultDiffExpansionStep) {
     return DiffHunkExpansionType.Short
   } else {
     return DiffHunkExpansionType.Both
   }
+}
+
+/**
+ * Expands a text diff completely.
+ *
+ * @param diff            Original text diff to expand.
+ * @param newContentLines Array with all the lines of the new content.
+ */
+export function expandWholeTextDiff(
+  diff: ITextDiff,
+  newContentLines: ReadonlyArray<string>
+): ITextDiff | undefined {
+  let result = diff
+
+  // The logic is to keep expanding the first hunk until it's the only one.
+  // First expand the first hunk up, and then down as many times as possible.
+  while (result.hunks.length > 1) {
+    const firstHunk = result.hunks[0]
+
+    const partialResult = expandTextDiffHunk(
+      result,
+      firstHunk,
+      firstHunk.expansionType === DiffHunkExpansionType.Up ? 'up' : 'down',
+      newContentLines,
+      newContentLines.length
+    )
+
+    if (partialResult === undefined) {
+      return
+    }
+
+    result = partialResult
+  }
+
+  return result
 }
 
 /**
@@ -123,12 +158,14 @@ export function getHunkHeaderExpansionType(
  * @param hunk            Specific hunk in the original diff to expand.
  * @param kind            Kind of expansion (up or down).
  * @param newContentLines Array with all the lines of the new content.
+ * @param step            How many lines it will be expanded.
  */
 export function expandTextDiffHunk(
   diff: ITextDiff,
   hunk: DiffHunk,
-  kind: ExpansionKind,
-  newContentLines: ReadonlyArray<string>
+  kind: DiffExpansionKind,
+  newContentLines: ReadonlyArray<string>,
+  step: number = DefaultDiffExpansionStep
 ): ITextDiff | undefined {
   const hunkIndex = diff.hunks.indexOf(hunk)
   if (hunkIndex === -1) {
@@ -163,10 +200,10 @@ export function expandTextDiffHunk(
   // Calculate the range of new lines to add to the diff. We could use new or
   // old line number indistinctly, so I chose the new lines.
   let [from, to] = isExpandingUp
-    ? [newLineNumber - DiffExpansionStep, newLineNumber]
+    ? [newLineNumber - step, newLineNumber]
     : [
         newLineNumber + hunk.header.newLineCount,
-        newLineNumber + hunk.header.newLineCount + DiffExpansionStep,
+        newLineNumber + hunk.header.newLineCount + step,
       ]
 
   // We will merge the current hunk with the adjacent only if the expansion
