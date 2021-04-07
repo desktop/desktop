@@ -319,7 +319,7 @@ export class SideBySideDiff extends React.Component<
     const { file, repository } = this.props
     const { diff } = this.state
 
-    // Store the current props and state to that we can see if anything
+    // Store the current props and state so that we can see if anything
     // changes from underneath us as we're making asynchronous
     // operations that makes our data stale or useless.
     const propsSnapshot = this.props
