@@ -49,6 +49,7 @@ import { DiffSearchInput } from './diff-search-input'
 import { escapeRegExp } from '../../lib/helpers/regex'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
+  expandTextDiffHunk,
   ExpansionKind,
   getTextDiffWithBottomDummyHunk,
 } from './text-diff-expansion'
@@ -177,6 +178,9 @@ export class SideBySideDiff extends React.Component<
   ISideBySideDiffState
 > {
   private virtualListRef = React.createRef<List>()
+
+  /** The content lines of the "new" file */
+  private newContentLines: ReadonlyArray<string> | null = null
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -371,6 +375,8 @@ export class SideBySideDiff extends React.Component<
           newContentLines.length
         )
       : null
+    this.newContentLines = newContentLines
+
     this.setState({
       diff: newDiff ?? currentDiff,
       beforeTokens: tokens.oldTokens,
@@ -631,7 +637,13 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onExpandHunk = (hunkIndex: number, kind: ExpansionKind) => {
-    // TODO: Implement in future PRs...
+    const { diff } = this.state
+
+    if (hunkIndex === -1 || hunkIndex >= diff.hunks.length) {
+      return
+    }
+
+    this.expandHunk(diff.hunks[hunkIndex], kind)
   }
 
   private onClickHunk = (hunkStartLine: number, select: boolean) => {
@@ -834,6 +846,30 @@ export class SideBySideDiff extends React.Component<
       searchQuery: undefined,
       searchResults: undefined,
       isSearching,
+    })
+  }
+
+  /** Expand a selected hunk. */
+  private expandHunk(hunk: DiffHunk, kind: ExpansionKind) {
+    const { diff } = this.state
+
+    if (this.newContentLines === null || this.newContentLines.length === 0) {
+      return
+    }
+
+    const updatedDiff = expandTextDiffHunk(
+      diff,
+      hunk,
+      kind,
+      this.newContentLines
+    )
+
+    if (updatedDiff === undefined) {
+      return
+    }
+
+    this.setState({
+      diff: updatedDiff,
     })
   }
 }
