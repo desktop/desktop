@@ -15,6 +15,7 @@ import {
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
 import { getOldPathOrDefault } from '../../../lib/get-old-path'
+import { enableTextDiffExpansion } from '../../../lib/feature-flag'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -101,13 +102,17 @@ export async function getFileContents(
   file: ChangedFile,
   lineFilters: ILineFilters
 ): Promise<IFileContents> {
-  const oldContentsPromise = lineFilters.oldLineFilter.length
-    ? getOldFileContent(repo, file)
-    : Promise.resolve(Buffer.alloc(0))
+  // If text-diff expansion is enabled, we'll always want to load both the old
+  // and the new contents, so that we can expand the diff as needed.
+  const oldContentsPromise =
+    enableTextDiffExpansion() || lineFilters.oldLineFilter.length
+      ? getOldFileContent(repo, file)
+      : Promise.resolve(Buffer.alloc(0))
 
-  const newContentsPromise = lineFilters.newLineFilter.length
-    ? getNewFileContent(repo, file)
-    : Promise.resolve(Buffer.alloc(0))
+  const newContentsPromise =
+    enableTextDiffExpansion() || lineFilters.newLineFilter.length
+      ? getNewFileContent(repo, file)
+      : Promise.resolve(Buffer.alloc(0))
 
   const [oldContents, newContents] = await Promise.all([
     oldContentsPromise.catch(e => {
@@ -153,7 +158,7 @@ export function getLineFilters(hunks: ReadonlyArray<DiffHunk>): ILineFilters {
     // to achieve here is if the diff contains only additions or
     // only deletions we'll source all the highlighted lines from
     // either the before or after file. That way we can completely
-    // disregard loading, and highlighting, the other version.
+    // disregard highlighting, the other version.
     if (line.oldLineNumber !== null && line.newLineNumber !== null) {
       if (anyAdded && !anyDeleted) {
         newLineFilter.push(line.newLineNumber - 1)
