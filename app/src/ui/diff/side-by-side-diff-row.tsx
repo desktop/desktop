@@ -99,6 +99,11 @@ interface ISideBySideDiffRowProps {
   readonly onContextMenuHunk: (hunkStartLine: number) => void
 
   /**
+   * Called when the user right-clicks a hunk expansion handle.
+   */
+  readonly onContextMenuExpandHunk: () => void
+
+  /**
    * Called when the user right-clicks text on the diff.
    */
   readonly onContextMenuText: () => void
@@ -305,7 +310,10 @@ export class SideBySideDiffRow extends React.Component<
   ) {
     if (expansionType === DiffHunkExpansionType.None) {
       return (
-        <div className="hunk-expansion-handle">
+        <div
+          className="hunk-expansion-handle"
+          onContextMenu={this.props.onContextMenuExpandHunk}
+        >
           <span></span>
         </div>
       )
@@ -321,6 +329,7 @@ export class SideBySideDiffRow extends React.Component<
         className="hunk-expansion-handle selectable"
         title={elementInfo.title}
         onClick={elementInfo.handler}
+        onContextMenu={this.props.onContextMenuExpandHunk}
       >
         <span>
           <Octicon symbol={elementInfo.icon} />
