@@ -225,6 +225,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     if (this.props.diff.text !== prevProps.diff.text) {
+      this.diffToRestore = null
       this.setState({ diff: this.props.diff })
     }
   }
