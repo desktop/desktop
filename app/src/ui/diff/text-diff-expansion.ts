@@ -134,7 +134,12 @@ export function expandWholeTextDiff(
 
   // The logic is to keep expanding the first hunk until it's the only one.
   // First expand the first hunk up, and then down as many times as possible.
-  while (result.hunks.length > 1) {
+  // If there is only one hunk, just expand it once up.
+  while (
+    result.hunks.length > 1 ||
+    (result.hunks.length === 1 &&
+      result.hunks[0].expansionType === DiffHunkExpansionType.Up)
+  ) {
     const firstHunk = result.hunks[0]
 
     const partialResult = expandTextDiffHunk(
