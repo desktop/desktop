@@ -237,8 +237,8 @@ export async function getCherryPickSnapshot(
   // branch before the cherry-pick operation occurred.
   let headSha: string = ''
 
-  // Each line of .git/sequencer/todo holds a sha of a commits to lined up to be
-  // cherry-picked. These sha are in historical order starting oldest commit as
+  // Each line of .git/sequencer/todo holds a sha of a commit lined up to be
+  // cherry-picked. These shas are in historical order starting oldest commit as
   // the first line and newest as the last line.
   const remainingCommits: CommitOneLine[] = []
 
@@ -319,13 +319,6 @@ export async function getCherryPickSnapshot(
   }
 
   const commits = [...commitsCherryPicked, ...remainingCommits]
-
-  if (commits === null) {
-    // This should only be possible with corrupt sequencer files resulting in a
-    // bad revision range.
-    return null
-  }
-
   const count = commitsCherryPicked.length + 1
 
   return {
