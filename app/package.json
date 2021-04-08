@@ -17,6 +17,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@dennisameling/keytar-temp": "^7.6.99-gh-desktop",
     "app-path": "^3.2.0",
     "byline": "^5.0.0",
     "chalk": "^2.3.0",
@@ -38,7 +39,6 @@
     "fs-admin": "^0.15.0",
     "fs-extra": "^9.0.1",
     "fuzzaldrin-plus": "^0.6.0",
-    "keytar": "^7.2.0",
     "mem": "^4.3.0",
     "memoize-one": "^4.0.3",
     "moment": "^2.24.0",
