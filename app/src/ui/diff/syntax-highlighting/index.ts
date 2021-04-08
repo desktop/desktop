@@ -29,8 +29,8 @@ interface ILineFilters {
 
 interface IFileContents {
   readonly file: ChangedFile
-  readonly oldContents: string
-  readonly newContents: string
+  readonly oldContents: string | null
+  readonly newContents: string | null
 }
 
 interface IFileTokens {
@@ -41,12 +41,12 @@ interface IFileTokens {
 async function getOldFileContent(
   repository: Repository,
   file: ChangedFile
-): Promise<Buffer> {
+): Promise<Buffer | null> {
   if (
     file.status.kind === AppFileStatusKind.New ||
     file.status.kind === AppFileStatusKind.Untracked
   ) {
-    return Buffer.alloc(0)
+    return null
   }
 
   let commitish
@@ -74,9 +74,9 @@ async function getOldFileContent(
 async function getNewFileContent(
   repository: Repository,
   file: ChangedFile
-): Promise<Buffer> {
+): Promise<Buffer | null> {
   if (file.status.kind === AppFileStatusKind.Deleted) {
-    return Buffer.alloc(0)
+    return null
   }
 
   if (file instanceof WorkingDirectoryFileChange) {
@@ -107,28 +107,28 @@ export async function getFileContents(
   const oldContentsPromise =
     enableTextDiffExpansion() || lineFilters.oldLineFilter.length
       ? getOldFileContent(repo, file)
-      : Promise.resolve(Buffer.alloc(0))
+      : Promise.resolve(null)
 
   const newContentsPromise =
     enableTextDiffExpansion() || lineFilters.newLineFilter.length
       ? getNewFileContent(repo, file)
-      : Promise.resolve(Buffer.alloc(0))
+      : Promise.resolve(null)
 
   const [oldContents, newContents] = await Promise.all([
     oldContentsPromise.catch(e => {
       log.error('Could not load old contents for syntax highlighting', e)
-      return Buffer.alloc(0)
+      return null
     }),
     newContentsPromise.catch(e => {
       log.error('Could not load new contents for syntax highlighting', e)
-      return Buffer.alloc(0)
+      return null
     }),
   ])
 
   return {
     file,
-    oldContents: oldContents.toString('utf8'),
-    newContents: newContents.toString('utf8'),
+    oldContents: oldContents === null ? null : oldContents.toString('utf8'),
+    newContents: newContents === null ? null : newContents.toString('utf8'),
   }
 }
 
@@ -192,26 +192,30 @@ export async function highlightContents(
   const oldPath = getOldPathOrDefault(file)
 
   const [oldTokens, newTokens] = await Promise.all([
-    highlight(
-      oldContents,
-      Path.basename(oldPath),
-      Path.extname(oldPath),
-      tabSize,
-      lineFilters.oldLineFilter
-    ).catch(e => {
-      log.error('Highlighter worked failed for old contents', e)
-      return {}
-    }),
-    highlight(
-      newContents,
-      Path.basename(file.path),
-      Path.extname(file.path),
-      tabSize,
-      lineFilters.newLineFilter
-    ).catch(e => {
-      log.error('Highlighter worked failed for new contents', e)
-      return {}
-    }),
+    oldContents === null
+      ? {}
+      : highlight(
+          oldContents,
+          Path.basename(oldPath),
+          Path.extname(oldPath),
+          tabSize,
+          lineFilters.oldLineFilter
+        ).catch(e => {
+          log.error('Highlighter worked failed for old contents', e)
+          return {}
+        }),
+    newContents === null
+      ? {}
+      : highlight(
+          newContents,
+          Path.basename(file.path),
+          Path.extname(file.path),
+          tabSize,
+          lineFilters.newLineFilter
+        ).catch(e => {
+          log.error('Highlighter worked failed for new contents', e)
+          return {}
+        }),
   ])
 
   return { oldTokens, newTokens }
