@@ -60,8 +60,11 @@ export function getWindowsStandalonePath() {
   return Path.join(getDistPath(), '..', 'installer', getWindowsStandaloneName())
 }
 
-export function getWindowsFullNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${version}-${getArchitecture()}-full.nupkg`
+export function getWindowsFullNugetPackageName(
+  includeArchitecture: boolean = false
+) {
+  const architectureInfix = includeArchitecture ? `-${getArchitecture()}` : ''
+  return `${getWindowsIdentifierName()}-${version}${architectureInfix}-full.nupkg`
 }
 
 export function getWindowsFullNugetPackagePath() {
@@ -73,8 +76,11 @@ export function getWindowsFullNugetPackagePath() {
   )
 }
 
-export function getWindowsDeltaNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${version}-${getArchitecture()}-delta.nupkg`
+export function getWindowsDeltaNugetPackageName(
+  includeArchitecture: boolean = false
+) {
+  const architectureInfix = includeArchitecture ? `-${getArchitecture()}` : ''
+  return `${getWindowsIdentifierName()}-${version}${architectureInfix}-delta.nupkg`
 }
 
 export function getWindowsDeltaNugetPackagePath() {
