@@ -10,6 +10,7 @@ import { Repository } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Dispatcher } from '../dispatcher'
 import { assertNever } from '../../lib/fatal-error'
+import { PathText } from '../lib/path-text'
 
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
@@ -26,6 +27,12 @@ interface ILocalChangesOverwrittenDialogProps {
    * Callback to use when the dialog gets closed.
    */
   readonly onDismissed: () => void
+
+  /**
+   * The files that prevented the operation from completing, i.e. the files
+   * that would be overwritten.
+   */
+  readonly files: ReadonlyArray<string>
 }
 interface ILocalChangesOverwrittenDialogState {
   readonly stashingAndRetrying: boolean
@@ -41,9 +48,15 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   public render() {
+    const overwrittenText =
+      this.props.files.length > 0
+        ? ' The following files would be overwritten:'
+        : null
+
     return (
       <Dialog
         title="Error"
+        id="local-changes-overwritten"
         loading={this.state.stashingAndRetrying}
         disabled={this.state.stashingAndRetrying}
         onDismissed={this.props.onDismissed}
@@ -53,12 +66,32 @@ export class LocalChangesOverwrittenDialog extends React.Component<
         <DialogContent>
           <p>
             Unable to {this.getRetryActionName()} when changes are present on
-            your branch.
+            your branch.{overwrittenText}
           </p>
+          {this.renderFiles()}
           {this.renderStashText()}
         </DialogContent>
         {this.renderFooter()}
       </Dialog>
+    )
+  }
+
+  private renderFiles() {
+    const { files } = this.props
+    if (files.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="files-list">
+        <ul>
+          {files.map(fileName => (
+            <li key={fileName}>
+              <PathText path={fileName} />
+            </li>
+          ))}
+        </ul>
+      </div>
     )
   }
 
@@ -91,21 +124,29 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   private onSubmit = async () => {
-    if (this.props.hasExistingStash) {
-      // When there's an existing stash we don't let the user stash the changes and we
-      // only show a "Close" button on the modal.
-      // In that case, the "Close" button submits the dialog and should only dismiss it.
+    const { hasExistingStash, repository, dispatcher, retryAction } = this.props
+
+    if (hasExistingStash) {
+      // When there's an existing stash we don't let the user stash the changes
+      // and we only show a "Close" button on the modal. In that case, the
+      // "Close" button submits the dialog and should only dismiss it.
       this.props.onDismissed()
       return
     }
 
     this.setState({ stashingAndRetrying: true })
 
-    await this.props.dispatcher.createStashForCurrentBranch(
-      this.props.repository,
-      true
+    // We know that there's no stash for the current branch so we can safely
+    // tell createStashForCurrentBranch not to show a confirmation dialog which
+    // would disrupt the async flow (since you can't await a dialog).
+    const createdStash = await dispatcher.createStashForCurrentBranch(
+      repository,
+      false
     )
-    await this.props.dispatcher.performRetry(this.props.retryAction)
+
+    if (createdStash) {
+      await dispatcher.performRetry(retryAction)
+    }
 
     this.props.onDismissed()
   }
@@ -129,6 +170,9 @@ export class LocalChangesOverwrittenDialog extends React.Component<
         return 'fetch'
       case RetryActionType.Push:
         return 'push'
+      case RetryActionType.CherryPick:
+      case RetryActionType.CreateBranchForCherryPick:
+        return 'cherry-pick'
       default:
         assertNever(
           this.props.retryAction,

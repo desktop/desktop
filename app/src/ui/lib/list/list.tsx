@@ -88,10 +88,10 @@ interface IListProps {
    * Consumers of this event do _not_ have to call event.preventDefault,
    * when this event is subscribed to the list will automatically call it.
    */
-  readonly onRowClick?: (row: number, soure: ClickSource) => void
+  readonly onRowClick?: (row: number, source: ClickSource) => void
 
   /**
-   * This prop defines the behaviour of the selection of items whithin this list.
+   * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
    * no effect. Use in combination with one of:
    *             onSelectedRowChanged(row: number)
@@ -239,10 +239,7 @@ function createSelectionBetween(
 }
 
 export class List extends React.Component<IListProps, IListState> {
-  private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
-
-  private scrollToRow = -1
   private focusRow = -1
 
   /**
@@ -263,18 +260,12 @@ export class List extends React.Component<IListProps, IListState> {
   private lastScroll: 'grid' | 'fake' | null = null
 
   private list: HTMLDivElement | null = null
-  private grid: React.Component<any, any> | null = null
+  private grid: Grid | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: NodeJS.Immediate | null = null
 
   public constructor(props: IListProps) {
     super(props)
-
-    // If we have a selected row when we're about to mount
-    // we'll scroll to it immediately.
-    if (props.selectedRows.length > 0) {
-      this.scrollToRow = props.selectedRows[0]
-    }
 
     this.state = {}
 
@@ -368,11 +359,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<any>) => {
-    this.props.selectedRows.forEach(row => {
-      if (this.props.onRowKeyDown) {
+    if (this.props.onRowKeyDown) {
+      for (const row of this.props.selectedRows) {
         this.props.onRowKeyDown(row, event)
       }
-    })
+    }
 
     // The consumer is given a change to prevent the default behavior for
     // keyboard navigation so that they can customize its behavior as needed.
@@ -382,7 +373,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     const source: SelectionSource = { kind: 'keyboard', event }
 
-    // Home is Cmd+ArowUp on macOS, end is Cmd+ArrowDown, see
+    // Home is Cmd+ArrowUp on macOS, end is Cmd+ArrowDown, see
     // https://github.com/desktop/desktop/pull/8644#issuecomment-645965884
     const isHomeKey = __DARWIN__
       ? event.metaKey && event.key === 'ArrowUp'
@@ -391,30 +382,25 @@ export class List extends React.Component<IListProps, IListState> {
       ? event.metaKey && event.key === 'ArrowDown'
       : event.key === 'End'
 
-    if (isHomeKey) {
-      this.moveSelectionToFirstSelectableRow(source)
-    } else if (isEndKey) {
-      this.moveSelectionToLastSelectableRow(source)
-    } else if (event.key === 'ArrowDown') {
-      if (
-        event.shiftKey &&
-        this.props.selectionMode &&
-        this.props.selectionMode !== 'single'
-      ) {
-        this.addSelection('down', source)
+    const isRangeSelection =
+      event.shiftKey &&
+      this.props.selectionMode !== undefined &&
+      this.props.selectionMode !== 'single'
+
+    if (isHomeKey || isEndKey) {
+      const direction = isHomeKey ? 'up' : 'down'
+      if (isRangeSelection) {
+        this.addSelectionToLastSelectableRow(direction, source)
       } else {
-        this.moveSelection('down', source)
+        this.moveSelectionToLastSelectableRow(direction, source)
       }
       event.preventDefault()
-    } else if (event.key === 'ArrowUp') {
-      if (
-        event.shiftKey &&
-        this.props.selectionMode &&
-        this.props.selectionMode !== 'single'
-      ) {
-        this.addSelection('up', source)
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      const direction = event.key === 'ArrowUp' ? 'up' : 'down'
+      if (isRangeSelection) {
+        this.addSelection(direction, source)
       } else {
-        this.moveSelection('up', source)
+        this.moveSelection(direction, source)
       }
       event.preventDefault()
     } else if (!__DARWIN__ && event.key === 'a' && event.ctrlKey) {
@@ -424,7 +410,96 @@ export class List extends React.Component<IListProps, IListState> {
       // on Windows. Clicking on the menu item still emits the
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
+    } else if (event.key === 'PageUp' || event.key === 'PageDown') {
+      const direction = event.key === 'PageUp' ? 'up' : 'down'
+      if (isRangeSelection) {
+        this.addSelectionByPage(direction, source)
+      } else {
+        this.moveSelectionByPage(direction, source)
+      }
+      event.preventDefault()
     }
+  }
+
+  private moveSelectionByPage(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
+    const newSelection = this.getNextPageRowIndex(direction)
+    this.moveSelectionTo(newSelection, source)
+  }
+
+  private addSelectionByPage(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
+    const { selectedRows } = this.props
+    const newSelection = this.getNextPageRowIndex(direction)
+    const firstSelection = selectedRows[0] ?? 0
+    const range = createSelectionBetween(firstSelection, newSelection)
+
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(range, source)
+    }
+
+    if (this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(
+        range[0],
+        range[range.length - 1],
+        source
+      )
+    }
+
+    this.scrollRowToVisible(newSelection)
+  }
+
+  private getNextPageRowIndex(direction: SelectionDirection) {
+    const { selectedRows } = this.props
+    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
+
+    return this.findNextPageSelectableRow(lastSelection, direction)
+  }
+
+  private getRowHeight(index: number) {
+    const { rowHeight } = this.props
+    return typeof rowHeight === 'number' ? rowHeight : rowHeight({ index })
+  }
+
+  private findNextPageSelectableRow(
+    fromRow: number,
+    direction: SelectionDirection
+  ) {
+    const { height: listHeight } = this.state
+    const { rowCount } = this.props
+
+    if (listHeight === undefined) {
+      return fromRow
+    }
+
+    let offset = 0
+    let newSelection = fromRow
+    const delta = direction === 'up' ? -1 : 1
+
+    // Starting from the last selected row, move up or down depending
+    // on the direction, keeping a sum of the height of all the rows
+    // we've seen until the accumulated height is about to exceed that
+    // of the list height. Once we've found the index of the item that
+    // just about exceeds the height we'll pick that one as the next
+    // selection.
+    for (let i = fromRow; i < rowCount && i >= 0; i += delta) {
+      const h = this.getRowHeight(i)
+
+      if (offset + h > listHeight) {
+        break
+      }
+      offset += h
+
+      if (this.canSelectRow(i)) {
+        newSelection = i
+      }
+    }
+
+    return newSelection
   }
 
   private onRowKeyDown = (
@@ -552,24 +627,45 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private moveSelectionToFirstSelectableRow(source: SelectionSource) {
+  private moveSelectionToLastSelectableRow(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
     const { canSelectRow, props } = this
     const { rowCount } = props
-    const row = findLastSelectableRow('up', rowCount, canSelectRow)
+    const row = findLastSelectableRow(direction, rowCount, canSelectRow)
 
     if (row !== null) {
       this.moveSelectionTo(row, source)
     }
   }
 
-  private moveSelectionToLastSelectableRow(source: SelectionSource) {
+  private addSelectionToLastSelectableRow(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
     const { canSelectRow, props } = this
-    const { rowCount } = props
-    const row = findLastSelectableRow('down', rowCount, canSelectRow)
+    const { rowCount, selectedRows } = props
+    const row = findLastSelectableRow(direction, rowCount, canSelectRow)
 
-    if (row !== null) {
-      this.moveSelectionTo(row, source)
+    if (row === null) {
+      return
     }
+
+    const firstSelection = selectedRows[0] ?? 0
+    const range = createSelectionBetween(firstSelection, row)
+
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(range, source)
+    }
+
+    if (this.props.onSelectedRangeChanged) {
+      const from = range[0] ?? 0
+      const to = range[range.length - 1] ?? 0
+      this.props.onSelectedRangeChanged(from, to, source)
+    }
+
+    this.scrollRowToVisible(row)
   }
 
   private moveSelectionTo(row: number, source: SelectionSource) {
@@ -594,26 +690,38 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private scrollRowToVisible(row: number) {
-    this.scrollToRow = row
-
-    if (this.props.focusOnHover !== false) {
+    if (this.grid !== null) {
+      this.grid.scrollToCell({ rowIndex: row, columnIndex: 0 })
       this.focusRow = row
     }
+  }
 
-    this.forceUpdate()
+  public componentDidMount() {
+    const { props, grid } = this
+    const { selectedRows, scrollToRow, setScrollTop } = props
+
+    // Prefer scrollTop position over scrollToRow
+    if (grid !== null && setScrollTop === undefined) {
+      if (scrollToRow !== undefined) {
+        grid.scrollToCell({ rowIndex: scrollToRow, columnIndex: 0 })
+      } else if (selectedRows.length > 0) {
+        // If we have a selected row when we're about to mount
+        // we'll scroll to it immediately.
+        grid.scrollToCell({ rowIndex: selectedRows[0], columnIndex: 0 })
+      }
+    }
   }
 
   public componentDidUpdate(prevProps: IListProps, prevState: IListState) {
-    // If this state is set it means that someone just used arrow keys (or pgup/down)
-    // to change the selected row. When this happens we need to explicitly shift
-    // keyboard focus to the newly selected item. If focusItem is null then
-    // we're probably just loading more items and we'll catch it on the next
-    // render pass.
-    if (this.focusRow >= 0 && this.focusItem) {
-      this.focusItem.focus()
-      this.focusRow = -1
-      this.forceUpdate()
-    } else if (this.grid) {
+    const { scrollToRow, setScrollTop } = this.props
+    if (scrollToRow !== undefined && prevProps.scrollToRow !== scrollToRow) {
+      // Prefer scrollTop position over scrollToRow
+      if (setScrollTop === undefined) {
+        this.scrollRowToVisible(scrollToRow)
+      }
+    }
+
+    if (this.grid) {
       // A non-exhaustive set of checks to see if our current update has already
       // triggered a re-render of the Grid. In order to do this perfectly we'd
       // have to do a shallow compare on all the props we pass to Grid but
@@ -666,7 +774,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onFocusedItemRef = (element: HTMLDivElement | null) => {
-    this.focusItem = element
+    if (this.props.focusOnHover !== false && element !== null) {
+      element.focus()
+    }
+
+    this.focusRow = -1
   }
 
   private renderRow = (params: IRowRendererParams) => {
@@ -702,6 +814,7 @@ export class List extends React.Component<IListProps, IListState> {
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
+        onRowMouseUp={this.onRowMouseUp}
         onRowMouseOver={this.onRowMouseOver}
         style={params.style}
         tabIndex={tabIndex}
@@ -715,10 +828,10 @@ export class List extends React.Component<IListProps, IListState> {
     let content: JSX.Element[] | JSX.Element | null
 
     if (this.resizeObserver) {
-      content =
-        this.state.width && this.state.height
-          ? this.renderContents(this.state.width, this.state.height)
-          : null
+      content = this.renderContents(
+        this.state.width ?? 0,
+        this.state.height ?? 0
+      )
     } else {
       // Legacy in the event that we don't have ResizeObserver
       content = (
@@ -775,7 +888,7 @@ export class List extends React.Component<IListProps, IListState> {
     return this.renderGrid(width, height)
   }
 
-  private onGridRef = (ref: React.Component<any, any> | null) => {
+  private onGridRef = (ref: Grid | null) => {
     this.grid = ref
   }
 
@@ -790,17 +903,6 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
-    let scrollToRow = this.props.scrollToRow
-    if (scrollToRow === undefined) {
-      scrollToRow = this.scrollToRow
-    }
-    this.scrollToRow = -1
-
-    // Prefer scrollTop position over scrollToRow
-    if (this.props.setScrollTop !== undefined) {
-      scrollToRow = -1
-    }
-
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -826,7 +928,6 @@ export class List extends React.Component<IListProps, IListState> {
           rowHeight={this.props.rowHeight}
           cellRenderer={this.renderRow}
           onScroll={this.onScroll}
-          scrollToRow={scrollToRow}
           scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
           style={this.gridStyle}
@@ -966,6 +1067,15 @@ export class List extends React.Component<IListProps, IListState> {
           })
         }
       } else if (
+        this.props.selectionMode === 'range' &&
+        this.props.selectedRows.length > 1 &&
+        this.props.selectedRows.includes(row)
+      ) {
+        // Do nothing. Multiple rows are already selected for a range. We assume
+        // the user is pressing down on multiple and may desire to start
+        // dragging. We will invoke the single selection `onRowMouseUp` if they
+        // let go here and no special keys are being pressed.
+      } else if (
         this.props.selectedRows.length !== 1 ||
         (this.props.selectedRows.length === 1 &&
           row !== this.props.selectedRows[0])
@@ -974,30 +1084,69 @@ export class List extends React.Component<IListProps, IListState> {
          * if no special key is pressed, and that the selection is different,
          * single selection occurs
          */
-        if (this.props.onSelectionChanged) {
-          this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
-        }
-
-        if (this.props.onSelectedRangeChanged) {
-          this.props.onSelectedRangeChanged(row, row, {
-            kind: 'mouseclick',
-            event,
-          })
-        }
-
-        if (this.props.onSelectedRowChanged) {
-          const { rowCount } = this.props
-
-          if (row < 0 || row >= rowCount) {
-            log.debug(
-              `[List.onRowMouseDown] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds of the array [0, ${rowCount}]`
-            )
-            return
-          }
-
-          this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
-        }
+        this.selectSingleRowAfterMouseEvent(row, event)
       }
+    }
+  }
+
+  private onRowMouseUp = (row: number, event: React.MouseEvent<any>) => {
+    if (!this.canSelectRow(row)) {
+      return
+    }
+
+    // macOS allow emulating a right click by holding down the ctrl key while
+    // performing a "normal" click.
+    const isRightClick =
+      event.button === 2 || (__DARWIN__ && event.button === 0 && event.ctrlKey)
+
+    // prevent the right-click event from changing the selection if not necessary
+    if (isRightClick && this.props.selectedRows.includes(row)) {
+      return
+    }
+
+    const multiSelectKey = __DARWIN__ ? event.metaKey : event.ctrlKey
+
+    if (
+      !event.shiftKey &&
+      !multiSelectKey &&
+      this.props.selectedRows.length > 1 &&
+      this.props.selectedRows.includes(row) &&
+      this.props.selectionMode === 'range'
+    ) {
+      // No special keys are depressed and multiple rows were selected in a
+      // range. The onRowMouseDown event was ignored for this scenario because
+      // the user may desire to started dragging multiple. However, if they let
+      // go, we want a new single selection to occur.
+      this.selectSingleRowAfterMouseEvent(row, event)
+    }
+  }
+
+  private selectSingleRowAfterMouseEvent(
+    row: number,
+    event: React.MouseEvent<any>
+  ): void {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
+    }
+
+    if (this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(row, row, {
+        kind: 'mouseclick',
+        event,
+      })
+    }
+
+    if (this.props.onSelectedRowChanged) {
+      const { rowCount } = this.props
+
+      if (row < 0 || row >= rowCount) {
+        log.debug(
+          `[List.selectSingleRowAfterMouseEvent] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds of the array [0, ${rowCount}]`
+        )
+        return
+      }
+
+      this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
     }
   }
 
@@ -1071,15 +1220,6 @@ export class List extends React.Component<IListProps, IListState> {
           element.focus()
         }
       }
-    }
-  }
-
-  public forceUpdate(callback?: () => any) {
-    super.forceUpdate(callback)
-
-    const grid = this.grid
-    if (grid) {
-      grid.forceUpdate()
     }
   }
 }

@@ -1,10 +1,10 @@
 # Configuration for no-response - https://github.com/probot/no-response
 
 # Number of days of inactivity before an Issue is closed for lack of response
-daysUntilClose: 14
+daysUntilClose: 7
 # Label requiring a response
 # TODO: also close `needs-reproduction` issues (blocked by https://github.com/probot/no-response/issues/11)
-responseRequiredLabel: more-information-needed
+responseRequiredLabel: more-info-needed
 # Comment to post when closing an issue due to lack of response.
 closeComment: >
   Thank you for your issue!

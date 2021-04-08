@@ -15,6 +15,9 @@ import * as Path from 'path'
 import { Repository } from '../../models/repository'
 import { getConfigValue, getGlobalConfigValue } from './config'
 import { isErrnoException } from '../errno-exception'
+import { ChildProcess } from 'child_process'
+import { Readable } from 'stream'
+import split2 from 'split2'
 
 /**
  * An extension of the execution options in dugite that
@@ -54,6 +57,9 @@ export interface IGitResult extends DugiteResult {
   /** The human-readable error description, based on `gitError`. */
   readonly gitErrorDescription: string | null
 
+  /** Both stdout and stderr combined. */
+  readonly combinedOutput: string
+
   /**
    * The path that the Git command was executed from, i.e. the
    * process working directory (not to be confused with the Git
@@ -61,22 +67,6 @@ export interface IGitResult extends DugiteResult {
    */
   readonly path: string
 }
-
-function getResultMessage(result: IGitResult) {
-  const description = result.gitErrorDescription
-  if (description) {
-    return description
-  }
-
-  if (result.stderr.length) {
-    return result.stderr
-  } else if (result.stdout.length) {
-    return result.stdout
-  } else {
-    return 'Unknown error'
-  }
-}
-
 export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
@@ -84,12 +74,35 @@ export class GitError extends Error {
   /** The args for the failed command. */
   public readonly args: ReadonlyArray<string>
 
+  /**
+   * Whether or not the error message is just the raw output of the git command.
+   */
+  public readonly isRawMessage: boolean
+
   public constructor(result: IGitResult, args: ReadonlyArray<string>) {
-    super(getResultMessage(result))
+    let rawMessage = true
+    let message
+
+    if (result.gitErrorDescription) {
+      message = result.gitErrorDescription
+      rawMessage = false
+    } else if (result.combinedOutput.length > 0) {
+      message = result.combinedOutput
+    } else if (result.stderr.length) {
+      message = result.stderr
+    } else if (result.stdout.length) {
+      message = result.stdout
+    } else {
+      message = 'Unknown error'
+      rawMessage = false
+    }
+
+    super(message)
 
     this.name = 'GitError'
     this.result = result
     this.args = args
+    this.isRawMessage = rawMessage
   }
 }
 
@@ -123,13 +136,29 @@ export async function git(
     expectedErrors: new Set(),
   }
 
+  let combinedOutput = ''
   const opts = { ...defaultOptions, ...options }
+
+  opts.processCallback = (process: ChildProcess) => {
+    options?.processCallback?.(process)
+
+    const combineOutput = (readable: Readable | null) => {
+      if (readable) {
+        readable.pipe(split2()).on('data', (line: string) => {
+          combinedOutput += line + '\n'
+        })
+      }
+    }
+
+    combineOutput(process.stderr)
+    combineOutput(process.stdout)
+  }
 
   // Explicitly set TERM to 'dumb' so that if Desktop was launched
   // from a terminal or if the system environment variables
   // have TERM set Git won't consider us as a smart terminal.
   // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
-  opts.env = { TERM: 'dumb', ...opts.env }
+  opts.env = { TERM: 'dumb', ...opts.env } as Object
 
   const commandName = `${name}: git ${args.join(' ')}`
 
@@ -160,7 +189,13 @@ export async function git(
   }
 
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
-  const gitResult = { ...result, gitError, gitErrorDescription, path }
+  const gitResult = {
+    ...result,
+    gitError,
+    gitErrorDescription,
+    combinedOutput,
+    path,
+  }
 
   let acceptableError = true
   if (gitError && opts.expectedErrors) {
@@ -235,7 +270,7 @@ const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
 
 /**
  * If the `result` is associated with an config lock file error (as determined
- * by `isConfigFileLockError`) this method will attempt to extract an absoluet
+ * by `isConfigFileLockError`) this method will attempt to extract an absolute
  * path (i.e. rooted) to the configuration lock file in question from the Git
  * output.
  */
@@ -335,7 +370,7 @@ function getDescriptionForError(error: DugiteError): string | null {
     case DugiteError.CannotMergeUnrelatedHistories:
       return 'Unable to merge unrelated histories in this repository.'
     case DugiteError.PushWithPrivateEmail:
-      return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
+      return 'Cannot push these commits as they contain an email address marked as private on GitHub. To push anyway, visit https://github.com/settings/emails, uncheck "Keep my email address private", then switch back to GitHub Desktop to push your commits. You can then enable the setting again.'
     case DugiteError.LFSAttributeDoesNotMatch:
       return 'Git LFS attribute found in global Git configuration does not match expected value.'
     case DugiteError.ProtectedBranchDeleteRejected:
@@ -373,6 +408,9 @@ function getDescriptionForError(error: DugiteError): string | null {
       return 'A tag with that name already exists'
     case DugiteError.MergeWithLocalChanges:
     case DugiteError.RebaseWithLocalChanges:
+    case DugiteError.GPGFailedToSignData:
+    case DugiteError.ConflictModifyDeletedInBranch:
+    case DugiteError.MergeCommitNoMainlineOption:
       return null
     default:
       return assertNever(error, `Unknown error: ${error}`)

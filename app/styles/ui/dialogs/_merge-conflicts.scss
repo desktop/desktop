@@ -1,6 +1,7 @@
 @import '../../mixins';
 
 dialog#merge-conflicts-list,
+dialog#cherry-pick-conflicts-list,
 dialog#rebase-conflicts-list {
   width: 500px;
 
@@ -73,11 +74,7 @@ dialog#rebase-conflicts-list {
         justify-content: center;
 
         .resolve-arrow-menu {
-          .octicon {
-            margin-left: var(--spacing-half);
-            width: 10px;
-            height: 14px;
-          }
+          line-height: 18px;
         }
       }
 

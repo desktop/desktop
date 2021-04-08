@@ -87,6 +87,7 @@ const imageFileExtensions = new Set([
   '.ico',
   '.webp',
   '.bmp',
+  '.avif',
 ])
 
 /**
@@ -138,13 +139,20 @@ export async function getCommitDiff(
  */
 export async function getWorkingDirectoryDiff(
   repository: Repository,
-  file: WorkingDirectoryFileChange
+  file: WorkingDirectoryFileChange,
+  hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
-  let successExitCodes: Set<number> | undefined
-  let args: Array<string>
-
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
+  const args = [
+    'diff',
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--no-ext-diff',
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+  ]
+  const successExitCodes = new Set([0])
 
   if (
     file.status.kind === AppFileStatusKind.New ||
@@ -153,25 +161,15 @@ export async function getWorkingDirectoryDiff(
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
-    // this is the behaviour:
+    // this is the behavior:
     // - 0 if no changes found
     // - 1 if changes found
     // -   and error otherwise
     //
     // citation in source:
     // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
-    successExitCodes = new Set([0, 1])
-    args = [
-      'diff',
-      '--no-ext-diff',
-      '--no-index',
-      '--patch-with-raw',
-      '-z',
-      '--no-color',
-      '--',
-      '/dev/null',
-      file.path,
-    ]
+    successExitCodes.add(1)
+    args.push('--no-index', '--', '/dev/null', file.path)
   } else if (file.status.kind === AppFileStatusKind.Renamed) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
@@ -180,26 +178,9 @@ export async function getWorkingDirectoryDiff(
     // already staged to the renamed file which differs from our other diffs.
     // The closest I got to that was running hash-object and then using
     // git diff <blob> <blob> but that seems a bit excessive.
-    args = [
-      'diff',
-      '--no-ext-diff',
-      '--patch-with-raw',
-      '-z',
-      '--no-color',
-      '--',
-      file.path,
-    ]
+    args.push('--', file.path)
   } else {
-    args = [
-      'diff',
-      'HEAD',
-      '--no-ext-diff',
-      '--patch-with-raw',
-      '-z',
-      '--no-color',
-      '--',
-      file.path,
-    ]
+    args.push('HEAD', '--', file.path)
   }
 
   const { output, error } = await spawnAndComplete(
@@ -326,6 +307,9 @@ function getMediaType(extension: string) {
   }
   if (extension === '.bmp') {
     return 'image/bmp'
+  }
+  if (extension === '.avif') {
+    return 'image/avif'
   }
 
   // fallback value as per the spec

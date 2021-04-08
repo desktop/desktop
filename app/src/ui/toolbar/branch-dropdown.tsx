@@ -4,13 +4,18 @@ import { OcticonSymbol, syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
-import { IRepositoryState, isRebaseConflictState } from '../../lib/app-state'
+import {
+  FoldoutType,
+  IRepositoryState,
+  isRebaseConflictState,
+} from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { CherryPickStepKind } from '../../models/cherry-pick'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -47,9 +52,11 @@ interface IBranchDropdownProps {
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
 
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+  /** When a drag element enters a branch */
+  readonly onDragEnterBranch: (branchName: string) => void
 
-  readonly couldOverwriteStash: boolean
+  //** When a drag element leave a branch */
+  readonly onDragLeaveBranch: () => void
 }
 
 /**
@@ -59,8 +66,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
-    const currentBranchProtected =
-      repositoryState.changesState.currentBranchProtected
 
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -77,13 +82,21 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        currentBranchProtected={currentBranchProtected}
-        selectedUncommittedChangesStrategy={
-          this.props.selectedUncommittedChangesStrategy
-        }
-        couldOverwriteStash={this.props.couldOverwriteStash}
+        onDropOntoCurrentBranch={this.onDropOntoCurrentBranch}
+        onDragEnterBranch={this.props.onDragEnterBranch}
+        onDragLeaveBranch={this.props.onDragLeaveBranch}
+        isCherryPickInProgress={repositoryState.cherryPickState.step !== null}
       />
     )
+  }
+
+  private onDropOntoCurrentBranch = () => {
+    const { repositoryState, repository } = this.props
+    const { cherryPickState } = repositoryState
+    if (cherryPickState !== null && cherryPickState.step !== null) {
+      this.props.dispatcher.endCherryPickFlow(repository)
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+    }
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
@@ -121,7 +134,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     } else if (tip.kind === TipState.Unborn) {
       title = tip.ref
       tooltip = `Current branch is ${tip.ref}`
-      canOpen = branchesState.allBranches.length > 0
+      canOpen = branchesState.allBranches.some(
+        b => !b.isDesktopForkRemoteBranch
+      )
     } else if (tip.kind === TipState.Detached) {
       title = `On ${tip.currentSha.substr(0, 7)}`
       tooltip = 'Currently on a detached HEAD'
@@ -178,10 +193,31 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
         buttonClassName={buttonClassName}
+        onMouseEnter={this.onMouseEnter}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>
     )
+  }
+
+  /**
+   * Method to capture when the mouse is over the branch dropdown button.
+   *
+   * We currently only use this in conjunction with dragging cherry picks so
+   * that we can open the branch menu when dragging a commit over it.
+   */
+  private onMouseEnter = (): void => {
+    // If the cherry picking state is initiated with commits chosen, we assume
+    // the user is dragging commits. Therefore, we should open the branch
+    // menu.
+    const { cherryPickState } = this.props.repositoryState
+    if (
+      cherryPickState.step !== null &&
+      cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
+    ) {
+      dragAndDropManager.emitEnterDragZone('branch-button')
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    }
   }
 
   private renderPullRequestInfo() {

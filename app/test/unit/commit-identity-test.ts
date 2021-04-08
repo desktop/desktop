@@ -6,33 +6,29 @@ describe('CommitIdentity', () => {
       const identity = CommitIdentity.parseIdentity(
         'Markus Olsson <markus@github.com> 1475670580 +0200'
       )
-      expect(identity).not.toBeNull()
-
-      expect(identity!.name).toBe('Markus Olsson')
-      expect(identity!.email).toBe('markus@github.com')
-      expect(identity!.date).toEqual(new Date('2016-10-05T12:29:40.000Z'))
+      expect(identity.name).toBe('Markus Olsson')
+      expect(identity.email).toBe('markus@github.com')
+      expect(identity.date).toEqual(new Date('2016-10-05T12:29:40.000Z'))
     })
 
     it('parses timezone information', () => {
       const identity1 = CommitIdentity.parseIdentity(
         'Markus Olsson <markus@github.com> 1475670580 +0130'
       )
-      expect(identity1!.tzOffset).toBe(90)
+      expect(identity1.tzOffset).toBe(90)
 
       const identity2 = CommitIdentity.parseIdentity(
         'Markus Olsson <markus@github.com> 1475670580 -0245'
       )
-      expect(identity2!.tzOffset).toBe(-165)
+      expect(identity2.tzOffset).toBe(-165)
     })
 
     it("parses even if the email address isn't a normal email", () => {
       const identity = CommitIdentity.parseIdentity(
         'Markus Olsson <Markus Olsson> 1475670580 +0200'
       )
-      expect(identity).not.toBeNull()
-
-      expect(identity!.name).toBe('Markus Olsson')
-      expect(identity!.email).toBe('Markus Olsson')
+      expect(identity.name).toBe('Markus Olsson')
+      expect(identity.email).toBe('Markus Olsson')
     })
 
     it('parses even if the email address is broken', () => {
@@ -40,10 +36,8 @@ describe('CommitIdentity', () => {
       const identity = CommitIdentity.parseIdentity(
         'Markus Olsson <Markus >Olsson> 1475670580 +0200'
       )
-      expect(identity).not.toBeNull()
-
-      expect(identity!.name).toBe('Markus Olsson')
-      expect(identity!.email).toBe('Markus >Olsson')
+      expect(identity.name).toBe('Markus Olsson')
+      expect(identity.email).toBe('Markus >Olsson')
     })
   })
 })

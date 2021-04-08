@@ -44,7 +44,7 @@ export interface IDailyMeasures {
   /** The number of times a branch is compared to an arbitrary branch */
   readonly branchComparisons: number
 
-  /** The number of times a branch is compared to `master` */
+  /** The number of times a branch is compared to the default branch */
   readonly defaultBranchComparisons: number
 
   /** The number of times a merge is initiated in the `compare` sidebar */
@@ -65,34 +65,16 @@ export interface IDailyMeasures {
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
 
-  /** The number of times the user dismisses the diverged branch notification */
-  readonly divergingBranchBannerDismissal: number
-
-  /** The number of times the user merges from the diverged branch notification merge CTA button */
-  readonly divergingBranchBannerInitatedMerge: number
-
-  /** The number of times the user compares from the diverged branch notification compare CTA button */
-  readonly divergingBranchBannerInitiatedCompare: number
-
-  /**
-   * The number of times the user merges from the compare view after getting to that state
-   * from the diverged branch notification compare CTA button
-   */
-  readonly divergingBranchBannerInfluencedMerge: number
-
-  /** The number of times the diverged branch notification is displayed */
-  readonly divergingBranchBannerDisplayed: number
-
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
 
   /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
   readonly dotcomForcePushCount: number
 
-  /** The number of times the user pushed to a GitHub Enterprise Server instance */
+  /** The number of times the user pushed to a GitHub Enterprise instance */
   readonly enterprisePushCount: number
 
-  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise Server instance */
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
   readonly enterpriseForcePushCount: number
 
   /** The number of times the users pushes to a generic remote */
@@ -130,14 +112,14 @@ export interface IDailyMeasures {
 
   /**
    * The number of times the user made a commit to a repo hosted on
-   * a GitHub Enterprise Server instance
+   * a GitHub Enterprise instance
    */
   readonly enterpriseCommits: number
 
   /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 
-  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
+  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise repository */
   readonly commitsToProtectedBranch: number
 
   /** The number of times the user made a commit to a repository with branch protections enabled */
@@ -313,7 +295,7 @@ export interface IDailyMeasures {
 
   /**
    * _[Onboarding tutorial]_
-   * Has the user compeleted the create a PR step?
+   * Has the user completed the create a PR step?
    */
   readonly tutorialPrCreated: boolean
 
@@ -361,6 +343,45 @@ export interface IDailyMeasures {
    * How many tags have been deleted.
    */
   readonly tagsDeleted: number
+
+  /** Number of times the user has changed between unified and split diffs */
+  readonly diffModeChangeCount: number
+
+  /** Number of times the user has opened the diff options popover */
+  readonly diffOptionsViewedCount: number
+
+  /** Number of times the user has switched to or from History/Changes */
+  readonly repositoryViewChangeCount: number
+
+  /** Number of times the user has encountered an unhandled rejection */
+  readonly unhandledRejectionCount: number
+
+  /** The number of times a successful cherry pick occurs */
+  readonly cherryPickSuccessfulCount: number
+
+  /** The number of times a cherry pick is initiated through drag and drop */
+  readonly cherryPickViaDragAndDropCount: number
+
+  /** The number of times a cherry pick is initiated through the context menu */
+  readonly cherryPickViaContextMenuCount: number
+
+  /** The number of times a cherry pick drag was started and canceled */
+  readonly cherryPickDragStartedAndCanceledCount: number
+
+  /** The number of times conflicts encountered during a cherry pick  */
+  readonly cherryPickConflictsEncounteredCount: number
+
+  /** The number of times cherry pick ended successfully after conflicts  */
+  readonly cherryPickSuccessfulWithConflictsCount: number
+
+  /** The number of times cherry pick of multiple commits initiated  */
+  readonly cherryPickMultipleCommitsCount: number
+
+  /** The number of times a cherry pick was undone  */
+  readonly cherryPickUndoneCount: number
+
+  /** The number of times a branch was created during a cherry-pick */
+  readonly cherryPickBranchCreatedCount: number
 }
 
 export class StatsDatabase extends Dexie {

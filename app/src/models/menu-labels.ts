@@ -1,5 +1,4 @@
 import { Shell } from '../lib/shells'
-import { ExternalEditor } from '../lib/editors'
 
 export type MenuLabelsEvent = {
   /**
@@ -16,7 +15,7 @@ export type MenuLabelsEvent = {
    * Specify `null` to indicate that it is not known currently, which will
    * default to a placeholder based on the current platform.
    */
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly selectedExternalEditor: string | null
 
   /**
    * Has the use enabled "Show confirmation dialog before force pushing"?

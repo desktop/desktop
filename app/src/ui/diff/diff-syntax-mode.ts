@@ -4,6 +4,8 @@ import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
 
 import 'codemirror/mode/javascript/javascript'
+import { enableTextDiffExpansion } from '../../lib/feature-flag'
+import { DefaultDiffExpansionStep } from './text-diff-expansion'
 
 export interface IDiffSyntaxModeOptions {
   /**
@@ -37,6 +39,7 @@ const TokenNames: { [key: string]: string | null } = {
 
 interface IState {
   diffLineIndex: number
+  previousHunkOldEndLine: number | null
 }
 
 function skipLine(stream: CodeMirror.StringStream, state: IState) {
@@ -51,27 +54,38 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
  * important because for context lines we might only have tokens in
  * one version and we need to be resilient about that.
  */
-function getTokensForDiffLine(
+export function getTokensForDiffLine(
   diffLine: DiffLine,
   oldTokens: ITokens | undefined,
   newTokens: ITokens | undefined
 ) {
+  const oldTokensResult = getTokens(diffLine.oldLineNumber, oldTokens)
+
+  if (oldTokensResult !== null) {
+    return oldTokensResult
+  }
+
+  return getTokens(diffLine.newLineNumber, newTokens)
+}
+
+/**
+ * Attempt to get tokens for a particular diff line. This will attempt
+ * to look up tokens in both the old tokens and the new which is
+ * important because for context lines we might only have tokens in
+ * one version and we need to be resilient about that.
+ */
+export function getTokens(
+  lineNumber: number | null,
+  tokens: ITokens | undefined
+) {
   // Note: Diff lines numbers start at one so we adjust this in order
   // to get the line _index_ in the before or after file contents.
   if (
-    oldTokens &&
-    diffLine.oldLineNumber &&
-    oldTokens[diffLine.oldLineNumber - 1]
+    tokens !== undefined &&
+    lineNumber !== null &&
+    tokens[lineNumber - 1] !== undefined
   ) {
-    return oldTokens[diffLine.oldLineNumber - 1]
-  }
-
-  if (
-    newTokens &&
-    diffLine.newLineNumber &&
-    newTokens[diffLine.newLineNumber - 1]
-  ) {
-    return newTokens[diffLine.newLineNumber - 1]
+    return tokens[lineNumber - 1]
   }
 
   return null
@@ -95,7 +109,7 @@ export class DiffSyntaxMode {
   }
 
   public startState(): IState {
-    return { diffLineIndex: 0 }
+    return { diffLineIndex: 0, previousHunkOldEndLine: null }
   }
 
   // Should never happen except for blank diffs but
@@ -119,7 +133,44 @@ export class DiffSyntaxMode {
 
       const token = index ? TokenNames[index] : null
 
-      return token ? `line-${token} line-background-${token}` : null
+      if (token === null) {
+        return null
+      }
+
+      let result = `line-${token} line-background-${token}`
+
+      // If it's a hunk header line, we want to make a few extra checks
+      // depending on the distance to the previous hunk.
+      if (index === '@' && enableTextDiffExpansion()) {
+        // First we grab the numbers in the hunk header
+        const matches = stream.match(/\@ -(\d+),(\d+) \+\d+,\d+ \@\@/)
+        if (matches !== null) {
+          const oldStartLine = parseInt(matches[1])
+          const oldLineCount = parseInt(matches[2])
+
+          // If there is a hunk above and the distance with this one is bigger
+          // than the expansion "step", return an additional class name that
+          // will be used to make that line taller to fit the expansion buttons.
+          if (
+            state.previousHunkOldEndLine !== null &&
+            oldStartLine - state.previousHunkOldEndLine >
+              DefaultDiffExpansionStep
+          ) {
+            result += ` line-${token}-expandable-both`
+          }
+
+          // Finally we update the state with the index of the last line of the
+          // current hunk.
+          state.previousHunkOldEndLine = oldStartLine + oldLineCount
+        }
+
+        // Check again if we reached the EOL after matching the regex
+        if (stream.eol()) {
+          state.diffLineIndex++
+        }
+      }
+
+      return result
     }
 
     // This happens when the mode is running without tokens, in this

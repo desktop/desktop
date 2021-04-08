@@ -22,10 +22,6 @@ import { renderBranchNameExistsOnRemoteWarning } from '../lib/branch-name-warnin
 import { getStartPoint } from '../../lib/create-branch'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
-import {
-  UncommittedChangesStrategy,
-  UncommittedChangesStrategyKind,
-} from '../../models/uncommitted-changes-strategy'
 import { GitHubRepository } from '../../models/github-repository'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 
@@ -34,13 +30,30 @@ interface ICreateBranchProps {
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+  /**
+   * If provided, the branch creation is handled by the given method.
+   *
+   * It is also responsible for dismissing the popup.
+   */
+  readonly createBranch?: (
+    name: string,
+    startPoint: string | null,
+    noTrack: boolean
+  ) => void
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
   readonly defaultBranch: Branch | null
   readonly upstreamDefaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
-  readonly currentBranchProtected: boolean
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+  /**
+   * If provided, use as the okButtonText
+   */
+  readonly okButtonText?: string
+
+  /**
+   * If provided, use as the header
+   */
+  readonly headerText?: string
 }
 
 interface ICreateBranchState {
@@ -179,7 +192,7 @@ export class CreateBranch extends React.Component<
     return (
       <Dialog
         id="create-branch"
-        title={__DARWIN__ ? 'Create a Branch' : 'Create a branch'}
+        title={this.getHeaderText()}
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
         loading={this.state.isCreatingBranch}
@@ -204,12 +217,28 @@ export class CreateBranch extends React.Component<
 
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Create Branch' : 'Create branch'}
+            okButtonText={this.getOkButtonText()}
             okButtonDisabled={disabled}
           />
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private getHeaderText = (): string => {
+    if (this.props.headerText !== undefined) {
+      return this.props.headerText
+    }
+
+    return __DARWIN__ ? 'Create a Branch' : 'Create a branch'
+  }
+
+  private getOkButtonText = (): string => {
+    if (this.props.okButtonText !== undefined) {
+      return this.props.okButtonText
+    }
+
+    return __DARWIN__ ? 'Create Branch' : 'Create branch'
   }
 
   private onBranchNameChange = (name: string) => {
@@ -236,12 +265,7 @@ export class CreateBranch extends React.Component<
     let startPoint: string | null = null
     let noTrack = false
 
-    const {
-      defaultBranch,
-      upstreamDefaultBranch,
-      currentBranchProtected,
-      repository,
-    } = this.props
+    const { defaultBranch, upstreamDefaultBranch, repository } = this.props
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
@@ -270,24 +294,23 @@ export class CreateBranch extends React.Component<
     }
 
     if (name.length > 0) {
-      // never prompt to stash changes if someone is switching away from a protected branch
-      const strategy: UncommittedChangesStrategy = currentBranchProtected
-        ? {
-            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-            transientStashEntry: null,
-          }
-        : this.props.selectedUncommittedChangesStrategy
-
       this.setState({ isCreatingBranch: true })
+
+      // If createBranch is provided, use it instead of dispatcher
+      if (this.props.createBranch !== undefined) {
+        this.props.createBranch(name, startPoint, noTrack)
+        return
+      }
+
       const timer = startTimer('create branch', repository)
       await this.props.dispatcher.createBranch(
         repository,
         name,
         startPoint,
-        strategy,
         noTrack
       )
       timer.done()
+      this.props.onDismissed()
     }
   }
 

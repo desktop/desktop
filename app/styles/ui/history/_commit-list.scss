@@ -1,5 +1,4 @@
 @import '../../mixins';
-
 /** A React component holding history's commit list */
 #commit-list {
   display: flex;
@@ -7,87 +6,31 @@
   flex: 1;
   min-height: 0;
 
+  .popover-component {
+    position: absolute;
+    left: 100%;
+    top: 73px;
+    width: 282px;
+
+    .call-to-action-bubble {
+      font-weight: var(--font-weight-semibold);
+      display: inline-block;
+      font-size: var(--font-size-xs);
+      border: 1px solid var(--call-to-action-bubble-border-color);
+      color: var(--call-to-action-bubble-color);
+      padding: 1px 5px;
+      border-radius: var(--border-radius);
+      margin-left: var(--spacing-third);
+    }
+    img {
+      width: 100%;
+    }
+  }
+
+  .draggable,
   .commit {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
     width: 100%;
     height: 100%;
-
-    border-bottom: var(--base-border);
-
-    // We need to give a bit more padding to the right to make place for the scrollbar
-    padding-right: calc(var(--spacing) + var(--spacing-half));
-    padding-left: var(--spacing);
-
-    .info {
-      display: flex;
-      flex: 1 1 auto;
-      flex-direction: column;
-      margin-top: -4px;
-      overflow: hidden;
-      min-width: 50px;
-
-      .description {
-        display: flex;
-        flex-direction: row;
-        margin-top: 3px;
-      }
-
-      .summary {
-        font-weight: var(--font-weight-semibold);
-      }
-
-      .summary,
-      .byline {
-        @include ellipsis;
-      }
-    }
-
-    .commit-indicators {
-      display: flex;
-      flex-flow: nowrap row;
-      flex: 1 1 auto;
-      justify-content: flex-end;
-      margin-left: var(--spacing);
-      color: var(--list-item-badge-color);
-      height: 16px;
-      line-height: 16px;
-      max-width: 50%;
-
-      .tag-indicator {
-        display: flex;
-        flex: 0 1 auto;
-        height: 100%;
-        min-width: 0;
-
-        .tag-name {
-          flex: 1 1 auto;
-          padding: 0 var(--spacing-half);
-          border-radius: var(--border-radius);
-          background: var(--list-item-badge-background-color);
-          box-shadow: 1px 0 0 var(--background-color);
-          z-index: 3;
-          @include ellipsis;
-        }
-        .tag-indicator-more {
-          flex: 0 0 auto;
-          width: var(--spacing);
-          margin-left: -5px;
-          border-radius: 0 var(--border-radius) var(--border-radius) 0;
-          background: var(--list-item-badge-background-color);
-        }
-      }
-
-      .unpushed-indicator {
-        flex: 0 0 auto;
-        height: 100%;
-        border-radius: 8px;
-        padding: 0 var(--spacing-half);
-        background: var(--list-item-badge-background-color);
-        margin-left: var(--spacing-half);
-      }
-    }
   }
 
   .list-item.selected {
@@ -104,6 +47,8 @@
       .tag-indicator-more {
         background: var(--list-item-selected-badge-background-color);
       }
+
+      background-color: var(--box-selected-background-color);
     }
   }
 
@@ -123,7 +68,97 @@
           background: var(--list-item-selected-active-badge-background-color);
           color: var(--list-item-selected-active-badge-color);
         }
+
+        background-color: var(--box-selected-active-background-color);
       }
     }
+  }
+}
+
+#cherry-pick-commit-drag-element .commit,
+#commit-list .commit {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  background-color: var(--background-color);
+  border-bottom: var(--base-border);
+
+  // We need to give a bit more padding to the right to make place for the scrollbar
+  padding-right: calc(var(--spacing) + var(--spacing-half));
+  padding-left: var(--spacing);
+
+  .info {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    margin-top: -4px;
+    overflow: hidden;
+    min-width: 50px;
+
+    .description {
+      display: flex;
+      flex-direction: row;
+      margin-top: 3px;
+    }
+
+    .summary {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .summary,
+    .byline {
+      @include ellipsis;
+    }
+  }
+
+  .commit-indicators {
+    display: flex;
+    flex-flow: nowrap row;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    margin-left: var(--spacing);
+    color: var(--list-item-badge-color);
+    height: 16px;
+    line-height: 16px;
+    max-width: 50%;
+
+    .tag-indicator {
+      display: flex;
+      flex: 0 1 auto;
+      height: 100%;
+      min-width: 0;
+
+      .tag-name {
+        flex: 1 1 auto;
+        padding: 0 var(--spacing-half);
+        border-radius: var(--border-radius);
+        background: var(--list-item-badge-background-color);
+        box-shadow: 1px 0 0 var(--background-color);
+        z-index: 3;
+        @include ellipsis;
+      }
+
+      .tag-indicator-more {
+        flex: 0 0 auto;
+        width: var(--spacing);
+        margin-left: -5px;
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        background: var(--list-item-badge-background-color);
+      }
+    }
+
+    .unpushed-indicator {
+      flex: 0 0 auto;
+      height: 100%;
+      border-radius: 8px;
+      padding: 0 var(--spacing-half);
+      background: var(--list-item-badge-background-color);
+      margin-left: var(--spacing-half);
+    }
+  }
+
+  .copy-message-label {
+    display: none;
   }
 }

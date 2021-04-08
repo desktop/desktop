@@ -14,6 +14,7 @@ import {
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
+import { createLogParser } from './git-delimiter-parser'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -66,22 +67,20 @@ export async function getCommits(
   limit: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
-  const delimiter = '1F'
-  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
-  const prettyFormat = [
-    '%H', // SHA
-    '%h', // short SHA
-    '%s', // summary
-    '%b', // body
+  const { formatArgs, parse } = createLogParser({
+    sha: '%H', // SHA
+    shortSha: '%h', // short SHA
+    summary: '%s', // summary
+    body: '%b', // body
     // author identity string, matching format of GIT_AUTHOR_IDENT.
     //   author name <author email> <author date>
     // author date format dependent on --date arg, should be raw
-    '%an <%ae> %ad',
-    '%cn <%ce> %cd',
-    '%P', // parent SHAs,
-    '%(trailers:unfold,only)',
-    '%D', // refs
-  ].join(`%x${delimiter}`)
+    author: '%an <%ae> %ad',
+    committer: '%cn <%ce> %cd',
+    parents: '%P', // parent SHAs,
+    trailers: '%(trailers:unfold,only)',
+    refs: '%D',
+  })
 
   const result = await git(
     [
@@ -89,8 +88,7 @@ export async function getCommits(
       revisionRange,
       `--date=raw`,
       `--max-count=${limit}`,
-      `--pretty=${prettyFormat}`,
-      '-z',
+      ...formatArgs,
       '--no-show-signature',
       '--no-color',
       ...additionalArgs,
@@ -106,58 +104,26 @@ export async function getCommits(
     return new Array<Commit>()
   }
 
-  const out = result.stdout
-  const lines = out.split('\0')
-  // Remove the trailing empty line
-  lines.splice(-1, 1)
-
-  if (lines.length === 0) {
-    return []
-  }
-
   const trailerSeparators = await getTrailerSeparatorCharacters(repository)
+  const parsed = parse(result.stdout)
 
-  const commits = lines.map(line => {
-    const pieces = line.split(delimiterString)
-    const sha = pieces[0]
-    const shortSha = pieces[1]
-    const summary = pieces[2]
-    const body = pieces[3]
-    const authorIdentity = pieces[4]
-    const committerIdentity = pieces[5]
-    const shaList = pieces[6]
-
-    const parentSHAs = shaList.length ? shaList.split(' ') : []
-    const trailers = parseRawUnfoldedTrailers(pieces[7], trailerSeparators)
-    const tags = getCaptures(pieces[8], /tag: ([^\s,]+)/g)
+  return parsed.map(commit => {
+    const tags = getCaptures(commit.refs, /tag: ([^\s,]+)/g)
       .filter(i => i[0] !== undefined)
       .map(i => i[0])
-    const author = CommitIdentity.parseIdentity(authorIdentity)
-
-    if (!author) {
-      throw new Error(`Couldn't parse author identity for '${shortSha}'`)
-    }
-
-    const committer = CommitIdentity.parseIdentity(committerIdentity)
-
-    if (!committer) {
-      throw new Error(`Couldn't parse committer identity for '${shortSha}'`)
-    }
 
     return new Commit(
-      sha,
-      shortSha,
-      summary,
-      body,
-      author,
-      committer,
-      parentSHAs,
-      trailers,
+      commit.sha,
+      commit.shortSha,
+      commit.summary,
+      commit.body,
+      CommitIdentity.parseIdentity(commit.author),
+      CommitIdentity.parseIdentity(commit.committer),
+      commit.parents.length > 0 ? commit.parents.split(' ') : [],
+      parseRawUnfoldedTrailers(commit.trailers, trailerSeparators),
       tags
     )
   })
-
-  return commits
 }
 
 /** Get the files that were changed in the given commit. */
@@ -191,7 +157,7 @@ export async function getChangedFiles(
  * Parses git `log` or `diff` output into a list of changed files
  * (see `getChangedFiles` for an example of use)
  *
- * @param stdout raw ouput from a git `-z` and `--name-status` flags
+ * @param stdout raw output from a git `-z` and `--name-status` flags
  * @param committish commitish command was run against
  */
 export function parseChangedFiles(

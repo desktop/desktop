@@ -7,6 +7,7 @@ import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { enableWSLDetection } from '../feature-flag'
 import { findGitOnPath } from '../is-git-on-path'
+import { parseEnumValue } from '../enum'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -23,43 +24,7 @@ export enum Shell {
 export const Default = Shell.Cmd
 
 export function parse(label: string): Shell {
-  if (label === Shell.Cmd) {
-    return Shell.Cmd
-  }
-
-  if (label === Shell.PowerShell) {
-    return Shell.PowerShell
-  }
-
-  if (label === Shell.PowerShellCore) {
-    return Shell.PowerShellCore
-  }
-
-  if (label === Shell.Hyper) {
-    return Shell.Hyper
-  }
-
-  if (label === Shell.GitBash) {
-    return Shell.GitBash
-  }
-
-  if (label === Shell.Cygwin) {
-    return Shell.Cygwin
-  }
-
-  if (label === Shell.WSL) {
-    return Shell.WSL
-  }
-
-  if (label === Shell.WindowTerminal) {
-    return Shell.WindowTerminal
-  }
-
-  if (label === Shell.Alacritty) {
-    return Shell.Alacritty
-  }
-
-  return Default
+  return parseEnumValue(Shell, label) ?? Default
 }
 
 export async function getAvailableShells(): Promise<
@@ -404,31 +369,18 @@ export function launch(
 
   switch (shell) {
     case Shell.PowerShell:
-      const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn(
-        'START',
-        [
-          '"PowerShell"',
-          `"${foundShell.path}"`,
-          '-NoExit',
-          '-Command',
-          psCommand,
-        ],
-        {
-          shell: true,
-          cwd: path,
-        }
-      )
+      return spawn('START', ['"PowerShell"', `"${foundShell.path}"`], {
+        shell: true,
+        cwd: path,
+      })
     case Shell.PowerShellCore:
-      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
       return spawn(
         'START',
         [
           '"PowerShell Core"',
           `"${foundShell.path}"`,
-          '-NoExit',
-          '-Command',
-          psCoreCommand,
+          '-WorkingDirectory',
+          `"${path}"`,
         ],
         {
           shell: true,

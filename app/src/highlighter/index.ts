@@ -397,6 +397,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.pas': 'text/x-pascal',
     },
   },
+  {
+    install: () => import('codemirror/mode/toml/toml'),
+    mappings: {
+      '.toml': 'text/x-toml',
+    },
+  },
 ]
 
 /**

@@ -21,6 +21,8 @@ import {
   setNumberArray,
 } from '../local-storage'
 import { PushOptions } from '../git'
+import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
+import { remote } from 'electron'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -67,11 +69,6 @@ const DefaultDailyMeasures: IDailyMeasures = {
   prBranchCheckouts: 0,
   repoWithIndicatorClicked: 0,
   repoWithoutIndicatorClicked: 0,
-  divergingBranchBannerDismissal: 0,
-  divergingBranchBannerInitatedMerge: 0,
-  divergingBranchBannerInitiatedCompare: 0,
-  divergingBranchBannerInfluencedMerge: 0,
-  divergingBranchBannerDisplayed: 0,
   dotcomPushCount: 0,
   dotcomForcePushCount: 0,
   enterprisePushCount: 0,
@@ -139,6 +136,19 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tagsCreatedInDesktop: 0,
   tagsCreated: 0,
   tagsDeleted: 0,
+  diffModeChangeCount: 0,
+  diffOptionsViewedCount: 0,
+  repositoryViewChangeCount: 0,
+  unhandledRejectionCount: 0,
+  cherryPickSuccessfulCount: 0,
+  cherryPickViaDragAndDropCount: 0,
+  cherryPickViaContextMenuCount: 0,
+  cherryPickDragStartedAndCanceledCount: 0,
+  cherryPickConflictsEncounteredCount: 0,
+  cherryPickSuccessfulWithConflictsCount: 0,
+  cherryPickMultipleCommitsCount: 0,
+  cherryPickUndoneCount: 0,
+  cherryPickBranchCreatedCount: 0,
 }
 
 interface IOnboardingStats {
@@ -149,7 +159,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -162,7 +172,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -175,7 +185,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -188,7 +198,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -198,7 +208,7 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user performed their first push of a repository
-   * to GitHub.com or GitHub Enterprise Server. This metric
+   * to GitHub.com or GitHub Enterprise. This metric
    * does not track pushes to non-GitHub remotes.
    */
   readonly timeToFirstGitHubPush?: number
@@ -215,7 +225,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -228,7 +238,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -236,26 +246,12 @@ interface IOnboardingStats {
 
   /**
    * The method that was used when authenticating a
-   * user in the welcome flow. If multiple succesful
+   * user in the welcome flow. If multiple successful
    * authentications happened during the welcome flow
    * due to the user stepping back and signing in to
    * another account this will reflect the last one.
    */
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
-}
-
-/**
- * Returns the account id of the current user's GitHub.com account or null if the user
- * is not currently signed in to GitHub.com.
- *
- * @param accounts The active accounts stored in Desktop
- */
-function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
-  const gitHubAccount = accounts.find(
-    a => a.endpoint === getDotComAPIEndpoint()
-  )
-
-  return gitHubAccount !== undefined ? gitHubAccount.id : null
 }
 
 interface ICalculatedStats {
@@ -280,7 +276,7 @@ interface ICalculatedStats {
   /** Is the user logged in with a GitHub.com account? */
   readonly dotComAccount: boolean
 
-  /** Is the user logged in with an Enterprise Server account? */
+  /** Is the user logged in with an Enterprise account? */
   readonly enterpriseAccount: boolean
 
   /**
@@ -306,6 +302,18 @@ interface ICalculatedStats {
    * them into their own interface
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
+
+  /**
+   * whether not to the user has chosent to view diffs in split, or unified (the
+   * default) diff view mode
+   */
+  readonly diffMode: 'split' | 'unified'
+
+  /**
+   * Whether the app was launched from the Applications folder or not. This is
+   * only relevant on macOS, null will be sent otherwise.
+   */
+  readonly launchedFromApplicationsFolder: boolean | null
 }
 
 type DailyStats = ICalculatedStats &
@@ -340,7 +348,7 @@ export class StatsStore implements IStatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    const storedValue = getBoolean(StatsOptOutKey)
+    const storedValue = getHasOptedOutOfStats()
 
     this.optOut = storedValue || false
 
@@ -351,6 +359,14 @@ export class StatsStore implements IStatsStore {
     }
 
     this.enableUiActivityMonitoring()
+
+    window.addEventListener('unhandledrejection', async () => {
+      try {
+        this.recordUnhandledRejection()
+      } catch (err) {
+        log.error(`Failed recording unhandled rejection`, err)
+      }
+    })
   }
 
   /** Should the app report its daily stats? */
@@ -385,10 +401,7 @@ export class StatsStore implements IStatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts, repositories)
-
-    const user_id = findDotComAccountId(accounts)
-    const payload = user_id === null ? stats : { ...stats, user_id }
+    const payload = await this.getDailyStats(accounts, repositories)
 
     try {
       const response = await this.post(payload)
@@ -465,6 +478,11 @@ export class StatsStore implements IStatsStore {
     const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
+    const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
+
+    // isInApplicationsFolder is undefined when not running on Darwin
+    const launchedFromApplicationsFolder =
+      remote.app.isInApplicationsFolder?.() ?? null
 
     return {
       eventType: 'usage',
@@ -481,6 +499,8 @@ export class StatsStore implements IStatsStore {
       guid: getGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
+      diffMode,
+      launchedFromApplicationsFolder,
     }
   }
 
@@ -644,7 +664,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record that a branch comparison has been made to the `master` branch */
+  /** Record that a branch comparison has been made to the default branch */
   public recordDefaultBranchComparison(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       defaultBranchComparisons: m.defaultBranchComparisons + 1,
@@ -714,7 +734,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Records that the user made a commit using an email address that
    * was not associated with the user's account on GitHub.com or GitHub
-   * Enterprise Server, meaning that the commit will not be attributed to the
+   * Enterprise, meaning that the commit will not be attributed to the
    * user's account.
    */
   public recordUnattributedCommit(): Promise<void> {
@@ -725,7 +745,7 @@ export class StatsStore implements IStatsStore {
 
   /**
    * Records that the user made a commit to a repository hosted on
-   * a GitHub Enterprise Server instance
+   * a GitHub Enterprise instance
    */
   public recordCommitToEnterprise(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -740,7 +760,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
   public recordCommitToProtectedBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
@@ -778,47 +798,6 @@ export class StatsStore implements IStatsStore {
     return this.optOut
   }
 
-  /** Record that user dismissed diverging branch notification */
-  public recordDivergingBranchBannerDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerDismissal: m.divergingBranchBannerDismissal + 1,
-    }))
-  }
-
-  /** Record that user initiated a merge from within the notification banner */
-  public recordDivergingBranchBannerInitatedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInitatedMerge:
-        m.divergingBranchBannerInitatedMerge + 1,
-    }))
-  }
-
-  /** Record that user initiated a compare from within the notification banner */
-  public recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInitiatedCompare:
-        m.divergingBranchBannerInitiatedCompare + 1,
-    }))
-  }
-
-  /**
-   * Record that user initiated a merge after getting to compare view
-   * from within notification banner
-   */
-  public recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInfluencedMerge:
-        m.divergingBranchBannerInfluencedMerge + 1,
-    }))
-  }
-
-  /** Record that the user was shown the notification banner */
-  public recordDivergingBranchBannerDisplayed(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
-    }))
-  }
-
   public async recordPush(
     githubAccount: Account | null,
     options?: PushOptions
@@ -847,7 +826,7 @@ export class StatsStore implements IStatsStore {
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
-  /** Record that the user pushed to a GitHub Enterprise Server instance */
+  /** Record that the user pushed to a GitHub Enterprise instance */
   private async recordPushToGitHubEnterprise(
     options?: PushOptions
   ): Promise<void> {
@@ -862,7 +841,7 @@ export class StatsStore implements IStatsStore {
     }))
 
     // Note, this is not a typo. We track both GitHub.com and
-    // GitHub Enteprise under the same key
+    // GitHub Enterprise under the same key
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
@@ -1376,6 +1355,87 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordDiffOptionsViewed() {
+    return this.updateDailyMeasures(m => ({
+      diffOptionsViewedCount: m.diffOptionsViewedCount + 1,
+    }))
+  }
+
+  public recordRepositoryViewChanged() {
+    return this.updateDailyMeasures(m => ({
+      repositoryViewChangeCount: m.repositoryViewChangeCount + 1,
+    }))
+  }
+
+  public recordDiffModeChanged() {
+    return this.updateDailyMeasures(m => ({
+      diffModeChangeCount: m.diffModeChangeCount + 1,
+    }))
+  }
+
+  public recordUnhandledRejection() {
+    return this.updateDailyMeasures(m => ({
+      unhandledRejectionCount: m.unhandledRejectionCount + 1,
+    }))
+  }
+
+  public recordCherryPickSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
+    }))
+  }
+
+  public recordCherryPickViaDragAndDrop(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickViaDragAndDropCount: m.cherryPickViaDragAndDropCount + 1,
+    }))
+  }
+
+  public recordCherryPickViaContextMenu(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickViaContextMenuCount: m.cherryPickViaContextMenuCount + 1,
+    }))
+  }
+
+  public recordCherryPickDragStartedAndCanceled(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickDragStartedAndCanceledCount:
+        m.cherryPickDragStartedAndCanceledCount + 1,
+    }))
+  }
+
+  public recordCherryPickConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickConflictsEncounteredCount:
+        m.cherryPickConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordCherryPickSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickSuccessfulWithConflictsCount:
+        m.cherryPickSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordCherryPickMultipleCommits(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickMultipleCommitsCount: m.cherryPickMultipleCommitsCount + 1,
+    }))
+  }
+
+  public recordCherryPickUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
+    }))
+  }
+
+  public recordCherryPickBranchCreatedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
+    }))
+  }
+
   /** Post some data to our stats endpoint. */
   private post(body: object): Promise<Response> {
     const options: RequestInit = {
@@ -1437,11 +1497,9 @@ export class StatsStore implements IStatsStore {
  * overwritten.
  */
 function createLocalStorageTimestamp(key: string) {
-  if (localStorage.getItem(key) !== null) {
-    return
+  if (localStorage.getItem(key) === null) {
+    setNumber(key, Date.now())
   }
-
-  setNumber(key, Date.now())
 }
 
 /**
@@ -1506,4 +1564,12 @@ function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
     log.error(`Could not parse welcome wizard sign in method`, ex)
     return undefined
   }
+}
+
+/**
+ * Return a value indicating whether the user has opted out of stats reporting
+ * or not.
+ */
+export function getHasOptedOutOfStats() {
+  return getBoolean(StatsOptOutKey)
 }

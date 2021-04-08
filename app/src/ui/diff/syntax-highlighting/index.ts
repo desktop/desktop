@@ -15,6 +15,7 @@ import {
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
 import { getOldPathOrDefault } from '../../../lib/get-old-path'
+import { enableTextDiffExpansion } from '../../../lib/feature-flag'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -28,8 +29,8 @@ interface ILineFilters {
 
 interface IFileContents {
   readonly file: ChangedFile
-  readonly oldContents: Buffer
-  readonly newContents: Buffer
+  readonly oldContents: string | null
+  readonly newContents: string | null
 }
 
 interface IFileTokens {
@@ -40,12 +41,12 @@ interface IFileTokens {
 async function getOldFileContent(
   repository: Repository,
   file: ChangedFile
-): Promise<Buffer> {
+): Promise<Buffer | null> {
   if (
     file.status.kind === AppFileStatusKind.New ||
     file.status.kind === AppFileStatusKind.Untracked
   ) {
-    return Buffer.alloc(0)
+    return null
   }
 
   let commitish
@@ -73,9 +74,9 @@ async function getOldFileContent(
 async function getNewFileContent(
   repository: Repository,
   file: ChangedFile
-): Promise<Buffer> {
+): Promise<Buffer | null> {
   if (file.status.kind === AppFileStatusKind.Deleted) {
-    return Buffer.alloc(0)
+    return null
   }
 
   if (file instanceof WorkingDirectoryFileChange) {
@@ -101,26 +102,34 @@ export async function getFileContents(
   file: ChangedFile,
   lineFilters: ILineFilters
 ): Promise<IFileContents> {
-  const oldContentsPromise = lineFilters.oldLineFilter.length
-    ? getOldFileContent(repo, file)
-    : Promise.resolve(Buffer.alloc(0))
+  // If text-diff expansion is enabled, we'll always want to load both the old
+  // and the new contents, so that we can expand the diff as needed.
+  const oldContentsPromise =
+    enableTextDiffExpansion() || lineFilters.oldLineFilter.length
+      ? getOldFileContent(repo, file)
+      : Promise.resolve(null)
 
-  const newContentsPromise = lineFilters.newLineFilter.length
-    ? getNewFileContent(repo, file)
-    : Promise.resolve(Buffer.alloc(0))
+  const newContentsPromise =
+    enableTextDiffExpansion() || lineFilters.newLineFilter.length
+      ? getNewFileContent(repo, file)
+      : Promise.resolve(null)
 
   const [oldContents, newContents] = await Promise.all([
     oldContentsPromise.catch(e => {
       log.error('Could not load old contents for syntax highlighting', e)
-      return Buffer.alloc(0)
+      return null
     }),
     newContentsPromise.catch(e => {
       log.error('Could not load new contents for syntax highlighting', e)
-      return Buffer.alloc(0)
+      return null
     }),
   ])
 
-  return { file, oldContents, newContents }
+  return {
+    file,
+    oldContents: oldContents === null ? null : oldContents.toString('utf8'),
+    newContents: newContents === null ? null : newContents.toString('utf8'),
+  }
 }
 
 /**
@@ -149,7 +158,7 @@ export function getLineFilters(hunks: ReadonlyArray<DiffHunk>): ILineFilters {
     // to achieve here is if the diff contains only additions or
     // only deletions we'll source all the highlighted lines from
     // either the before or after file. That way we can completely
-    // disregard loading, and highlighting, the other version.
+    // disregard highlighting, the other version.
     if (line.oldLineNumber !== null && line.newLineNumber !== null) {
       if (anyAdded && !anyDeleted) {
         newLineFilter.push(line.newLineNumber - 1)
@@ -183,26 +192,30 @@ export async function highlightContents(
   const oldPath = getOldPathOrDefault(file)
 
   const [oldTokens, newTokens] = await Promise.all([
-    highlight(
-      oldContents.toString('utf8'),
-      Path.basename(oldPath),
-      Path.extname(oldPath),
-      tabSize,
-      lineFilters.oldLineFilter
-    ).catch(e => {
-      log.error('Highlighter worked failed for old contents', e)
-      return {}
-    }),
-    highlight(
-      newContents.toString('utf8'),
-      Path.basename(file.path),
-      Path.extname(file.path),
-      tabSize,
-      lineFilters.newLineFilter
-    ).catch(e => {
-      log.error('Highlighter worked failed for new contents', e)
-      return {}
-    }),
+    oldContents === null
+      ? {}
+      : highlight(
+          oldContents,
+          Path.basename(oldPath),
+          Path.extname(oldPath),
+          tabSize,
+          lineFilters.oldLineFilter
+        ).catch(e => {
+          log.error('Highlighter worked failed for old contents', e)
+          return {}
+        }),
+    newContents === null
+      ? {}
+      : highlight(
+          newContents,
+          Path.basename(file.path),
+          Path.extname(file.path),
+          tabSize,
+          lineFilters.newLineFilter
+        ).catch(e => {
+          log.error('Highlighter worked failed for new contents', e)
+          return {}
+        }),
   ])
 
   return { oldTokens, newTokens }

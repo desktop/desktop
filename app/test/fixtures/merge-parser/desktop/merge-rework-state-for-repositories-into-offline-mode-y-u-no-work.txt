@@ -553,7 +553,7 @@ merged
 -import { IFilterListGroup } from '../lib/filter-list'
 -import { IMatches } from '../../lib/fuzzy-find'
  import {
-   IClonableRepositoryListItem,
+   ICloneableRepositoryListItem,
    groupRepositories,
 merged
   result 100644 409a64070c8e30188cda16fff34d038ffb51b8af app/src/ui/clone-repository/group-repositories.ts

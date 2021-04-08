@@ -18,8 +18,8 @@ import {
   ICommitSelection,
   IRebaseState,
   ChangesSelectionKind,
+  ICherryPickState,
 } from '../app-state'
-import { ComparisonCache } from '../comparison-cache'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
 
@@ -102,12 +102,23 @@ export class RepositoryStateCache {
       return { rebaseState: newState }
     })
   }
+
+  public updateCherryPickState<K extends keyof ICherryPickState>(
+    repository: Repository,
+    fn: (state: ICherryPickState) => Pick<ICherryPickState, K>
+  ) {
+    this.update(repository, state => {
+      const { cherryPickState } = state
+      const newState = merge(cherryPickState, fn(cherryPickState))
+      return { cherryPickState: newState }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
   return {
     commitSelection: {
-      sha: null,
+      shas: [],
       file: null,
       changedFiles: new Array<CommittedFileChange>(),
       diff: null,
@@ -140,11 +151,6 @@ function getInitialRepositoryState(): IRepositoryState {
       rebasedBranches: new Map<string, string>(),
     },
     compareState: {
-      divergingBranchBannerState: {
-        isPromptVisible: false,
-        isPromptDismissed: false,
-        isNudgeVisible: false,
-      },
       formState: {
         kind: HistoryTabMode.History,
       },
@@ -153,11 +159,9 @@ function getInitialRepositoryState(): IRepositoryState {
       showBranchList: false,
       filterText: '',
       commitSHAs: [],
-      aheadBehindCache: new ComparisonCache(),
-      allBranches: new Array<Branch>(),
+      branches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
-      inferredComparisonBranch: { branch: null, aheadBehind: null },
     },
     rebaseState: {
       step: null,
@@ -178,5 +182,12 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
+    cherryPickState: {
+      step: null,
+      progress: null,
+      userHasResolvedConflicts: false,
+      targetBranchUndoSha: null,
+      branchCreated: false,
+    },
   }
 }

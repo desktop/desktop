@@ -20,6 +20,7 @@ import { ComputedAction } from '../../models/computed-action'
 import { ActionStatusIcon } from '../lib/action-status-icon'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+import { ClickSource } from '../lib/list'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -101,6 +102,19 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
   private onFilterTextChanged = (filterText: string) => {
     this.setState({ filterText })
+  }
+
+  private onItemClick = (branch: Branch, source: ClickSource) => {
+    if (source.kind !== 'keyboard' || source.event.key !== 'Enter') {
+      return
+    }
+
+    source.event.preventDefault()
+    const { selectedBranch } = this.state
+
+    if (selectedBranch !== null && selectedBranch.name === branch.name) {
+      this.merge()
+    }
   }
 
   private onSelectionChanged = async (selectedBranch: Branch | null) => {
@@ -234,23 +248,34 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
-  public render() {
+  private canMergeSelectedBranch() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
 
-    const selectedBranchIsNotCurrentBranch =
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
+    const selectedBranchIsCurrentBranch =
+      selectedBranch !== null &&
+      currentBranch !== null &&
+      selectedBranch.name === currentBranch.name
 
-    const invalidBranchState =
-      selectedBranchIsNotCurrentBranch || this.state.commitCount === 0
+    const isBehind =
+      this.state.commitCount !== undefined && this.state.commitCount > 0
 
-    const cannotMergeBranch =
-      this.state.mergeStatus != null &&
-      this.state.mergeStatus.kind === ComputedAction.Invalid
+    const canMergeBranch =
+      this.state.mergeStatus === null ||
+      this.state.mergeStatus.kind !== ComputedAction.Invalid
 
-    const disabled = invalidBranchState || cannotMergeBranch
+    return (
+      selectedBranch !== null &&
+      !selectedBranchIsCurrentBranch &&
+      isBehind &&
+      canMergeBranch
+    )
+  }
+
+  public render() {
+    const selectedBranch = this.state.selectedBranch
+    const currentBranch = this.props.currentBranch
+    const disabled = !this.canMergeSelectedBranch()
 
     // the amount of characters to allow before we truncate was chosen arbitrarily
     const currentBranchName = truncateWithEllipsis(
@@ -280,6 +305,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
             renderBranch={this.renderBranch}
+            onItemClick={this.onItemClick}
           />
         </DialogContent>
         <DialogFooter>
@@ -327,6 +353,10 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private merge = () => {
+    if (!this.canMergeSelectedBranch()) {
+      return
+    }
+
     const branch = this.state.selectedBranch
     if (!branch) {
       return

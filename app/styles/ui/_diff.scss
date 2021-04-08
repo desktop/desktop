@@ -31,6 +31,16 @@
   pre.CodeMirror-line-like {
     padding: 2px 0 2px var(--spacing-half);
 
+    &.diff-hunk-expandable-both {
+      padding-top: 14px;
+      padding-bottom: 14px;
+    }
+
+    &.diff-hunk:not(.diff-hunk-expandable-both) {
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+
     svg.no-newline {
       height: 8px;
       fill: var(--error-color);
@@ -113,9 +123,53 @@
     width: 20px;
     right: -8px;
     top: 0;
+  }
 
-    &.includeable {
-      cursor: pointer;
+  .hunk-expand-up-handle {
+    position: absolute;
+    height: 50%;
+    width: 100%;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+  }
+
+  .hunk-expand-down-handle {
+    position: absolute;
+    height: 50%;
+    width: 100%;
+    right: 0;
+    top: 0;
+    text-align: center;
+  }
+
+  .hunk-expand-whole-handle {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+  }
+
+  &:not(.includeable) {
+    .hunk-handle {
+      display: none;
+    }
+  }
+
+  &.expandable-both,
+  &:not(.diff-hunk) {
+    .hunk-expand-whole-handle {
+      display: none;
+    }
+  }
+
+  &:not(.expandable-both),
+  &:not(.diff-hunk) {
+    .hunk-expand-up-handle,
+    .hunk-expand-down-handle {
+      display: none;
     }
   }
 
@@ -129,6 +183,56 @@
 
   &.diff-hunk {
     background: var(--diff-hunk-gutter-background-color);
+
+    .hunk-expand-up-handle,
+    .hunk-expand-down-handle,
+    .hunk-expand-whole-handle {
+      background: var(--diff-hunk-gutter-background-color);
+    }
+
+    .hunk-expand-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:not(.expandable-up) {
+      .hunk-expand-whole-handle #hunk-expand-up-icon {
+        display: none;
+      }
+    }
+
+    &:not(.expandable-down) {
+      .hunk-expand-whole-handle #hunk-expand-down-icon {
+        display: none;
+      }
+    }
+
+    &:not(.expandable-short) {
+      .hunk-expand-whole-handle #hunk-expand-short-icon {
+        display: none;
+      }
+    }
+
+    // Allow hover effect when it's expandable in any way
+    &.expandable-up,
+    &.expandable-down,
+    &.expandable-short,
+    &.expandable-both {
+      :hover {
+        cursor: pointer;
+
+        background: var(--diff-hover-background-color);
+        border-color: var(--diff-hover-border-color);
+        color: var(--diff-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-hover-gutter-color);
+        }
+      }
+    }
   }
 
   .before {
@@ -250,6 +354,20 @@
       border-color: var(--diff-hunk-gutter-color);
     }
   }
+
+  &.expandable-up:hover,
+  &.expandable-down:hover,
+  &.expandable-short:hover {
+    cursor: pointer;
+
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--diff-hover-text-color);
+
+    &:last-child {
+      border-color: var(--diff-hover-gutter-color);
+    }
+  }
 }
 
 .CodeMirror .diff-line-gutter.diff-line-selected {
@@ -326,17 +444,20 @@
 .panel.image {
   display: flex;
   flex: 1;
-  padding-top: 10px;
-  // Workaround so images stay within diff view until
-  // root issue with DPI scaling is addressed, see https://github.com/desktop/desktop/issues/2480
-  overflow: hidden;
+  padding: var(--spacing);
+  min-width: 0;
+  min-height: 0;
 
   .tab-bar {
     width: 350px;
-    margin: 10px auto 0;
-    // Workaround to allow toggling between different modes until
-    // root issue with DPI scaling is addressed, see https://github.com/desktop/desktop/issues/2480
-    z-index: 0;
+    margin: var(--spacing) auto 0;
+  }
+
+  // https://stackoverflow.com/a/30792956/2114
+  .image-wrapper {
+    min-width: 0;
+    min-height: 0;
+    text-align: center;
   }
 
   .image-diff-previous {
@@ -348,7 +469,12 @@
 
   .image-diff-previous,
   .image-diff-current {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    min-width: 0;
 
     img {
       @include checkboard-background;
@@ -376,10 +502,14 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  min-height: 0;
+  min-width: 0;
 
   .image-diff-two-up {
     display: flex;
     max-height: 100%;
+    min-height: 0;
+    min-width: 0;
     padding: 0 var(--spacing-double);
 
     .image-diff-previous {
@@ -408,12 +538,16 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
 
   .sizing-container {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 0;
+    min-width: 0;
 
     .image-container {
       position: relative;
@@ -421,9 +555,10 @@
       .image-diff-previous,
       .image-diff-current {
         position: absolute;
-        top: 0;
-        left: 0;
-        img : {
+        height: 100%;
+        width: 100%;
+
+        img {
           border: 0;
           background: transparent;
         }
@@ -436,6 +571,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
 
   .slider {
     align-self: center;
@@ -448,24 +585,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 0;
+    min-width: 0;
 
     .image-diff-previous,
     .image-diff-current {
       position: absolute;
-      margin: 0;
-      overflow: hidden;
+      width: 100%;
+      height: 100%;
 
       img {
-        border: 0;
         background: transparent;
       }
-    }
-
-    .image-diff-previous {
-      border: 1px solid var(--color-deleted);
-    }
-    .image-diff-current {
-      border: 1px solid var(--color-new);
     }
 
     .image-container {
@@ -479,6 +610,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
 
   .slider {
     align-self: center;
@@ -491,33 +624,23 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 0;
+    min-width: 0;
 
     .image-container {
       position: relative;
+      @include checkboard-background;
 
       .image-diff-previous,
       .image-diff-current {
-        @include checkboard-background;
         position: absolute;
-        margin: 0;
-        overflow: hidden;
 
         img {
-          border: 0;
           background: transparent;
         }
       }
 
-      .image-diff-previous {
-        border: 1px solid var(--color-deleted);
-        right: 0;
-      }
-      .image-diff-current {
-        border: 1px solid var(--color-new);
-      }
-
       .swiper {
-        border-left: 1px solid var(--text-secondary-color);
         margin: 0;
         overflow: hidden;
         position: absolute;
@@ -594,15 +717,6 @@
     color: var(--syntax-header-color);
   }
 
-  // Intra line markings takes precedence over syntax highlighting.
-  .cm-diff-delete-inner {
-    color: var(--diff-delete-text-color);
-  }
-
-  .cm-diff-add-inner {
-    color: var(--diff-add-text-color);
-  }
-
   .cm-m-css {
     &.cm-property {
       color: var(--syntax-atom-color);
@@ -619,6 +733,15 @@
     &.cm-type {
       color: var(--syntax-variable-color);
     }
+  }
+
+  // Intra line markings takes precedence over syntax highlighting.
+  .cm-diff-delete-inner {
+    color: var(--diff-delete-text-color) !important;
+  }
+
+  .cm-diff-add-inner {
+    color: var(--diff-add-text-color) !important;
   }
 }
 

@@ -26,24 +26,10 @@ import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
-import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 
 app.setAppLogsPath()
-
-/**
- * While testing Electron 9 on Windows we were seeing fairly
- * consistent hangs that seem similar to the following issues
- *
- * https://github.com/electron/electron/issues/24173
- * https://github.com/electron/electron/issues/23910
- * https://github.com/electron/electron/issues/24338
- *
- * TODO: Try removing when upgrading to Electron vNext
- */
-app.allowRendererProcessReuse = false
-
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
@@ -633,17 +619,13 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, url) => {
     // Prevent links or window.open from opening new windows
     event.preventDefault()
-    const errMsg = `Prevented new window to: ${url}`
-    log.warn(errMsg)
-    sendNonFatalException('newWindowPrevented', Error(errMsg))
+    log.warn(`Prevented new window to: ${url}`)
   })
   // prevent link navigation within our windows
   // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
   contents.on('will-navigate', (event, url) => {
     event.preventDefault()
-    const errMsg = `Prevented navigation to: ${url}`
-    log.warn(errMsg)
-    sendNonFatalException('willNavigatePrevented', Error(errMsg))
+    log.warn(`Prevented navigation to: ${url}`)
   })
 })
 

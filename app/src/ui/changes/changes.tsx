@@ -9,6 +9,7 @@ import {
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
+import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
 
@@ -40,6 +41,14 @@ interface IChangesProps {
    * discards changes
    */
   readonly askForConfirmationOnDiscardChanges: boolean
+
+  /**
+   * Whether we should display side by side diffs.
+   */
+  readonly showSideBySideDiff: boolean
+
+  /** Called when the user opens the diff options popover */
+  readonly onDiffOptionsOpened: () => void
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -77,19 +86,33 @@ export class Changes extends React.Component<IChangesProps, {}> {
   public render() {
     const diff = this.props.diff
     const file = this.props.file
-    const isCommitting = this.props.isCommitting
+    const isReadonly =
+      this.props.isCommitting ||
+      (enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff)
+
     return (
       <div className="changed-file">
-        <ChangedFileDetails path={file.path} status={file.status} diff={diff} />
+        <ChangedFileDetails
+          path={file.path}
+          status={file.status}
+          diff={diff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+        />
+
         <SeamlessDiffSwitcher
           repository={this.props.repository}
           imageDiffType={this.props.imageDiffType}
           file={file}
-          readOnly={isCommitting}
+          readOnly={isReadonly}
           onIncludeChanged={this.onDiffLineIncludeChanged}
           onDiscardChanges={this.onDiscardChanges}
           diff={diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
@@ -97,6 +120,17 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onChangeImageDiffType={this.props.onChangeImageDiffType}
         />
       </div>
+    )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
+  }
+
+  private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {
+    return this.props.dispatcher.onHideWhitespaceInChangesDiffChanged(
+      hideWhitespaceInDiff,
+      this.props.repository
     )
   }
 }

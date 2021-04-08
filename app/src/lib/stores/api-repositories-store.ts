@@ -69,7 +69,7 @@ function resolveAccount(
  * An interface describing the current state of
  * repositories that a particular account has explicit
  * permissions to access and whether or not the list of
- * repositores is being loaded or refreshed.
+ * repositories is being loaded or refreshed.
  *
  * This main purpose of this interface is to describe
  * the state necessary to render a list of cloneable

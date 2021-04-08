@@ -66,7 +66,7 @@ export class MissingRepository extends React.Component<
   }
 
   private remove = () => {
-    this.props.dispatcher.removeRepositories([this.props.repository], false)
+    this.props.dispatcher.removeRepository(this.props.repository, false)
   }
 
   private locate = () => {

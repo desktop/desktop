@@ -67,7 +67,6 @@
 @import 'ui/avatar-stack';
 @import 'ui/commit-attribution';
 @import 'ui/fancy-text-box';
-@import 'ui/notification-banner';
 @import 'ui/merge-status';
 @import 'ui/rebase-status';
 @import 'ui/cloneable-repository-filter-list';
@@ -80,3 +79,10 @@
 @import 'ui/suggested-actions/suggested-action';
 @import 'ui/suggested-actions/suggested-action-group';
 @import 'ui/config-lock-file-exists';
+@import 'ui/local-changes-overwritten';
+@import 'ui/side-by-side-diff';
+@import 'ui/diff-options';
+@import 'ui/commit-message-avatar';
+@import 'ui/popover';
+@import 'ui/drag-elements';
+@import 'ui/drag-overlay';
