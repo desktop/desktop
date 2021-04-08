@@ -320,8 +320,9 @@ export async function getCherryPickSnapshot(
   }
 
   const commits = [...commitsCherryPicked, ...remainingCommits]
+  const { length } = commitsCherryPicked
+  const count = length > 0 ? length : length + 1
 
-  const count = commitsCherryPicked.length + 1
   return {
     progress: {
       kind: 'cherryPick',
@@ -329,7 +330,10 @@ export async function getCherryPickSnapshot(
       value: round(count / commits.length, 2),
       cherryPickCommitCount: count,
       totalCommitCount: commits.length,
-      currentCommitSummary: remainingCommits[0].summary ?? '',
+      currentCommitSummary:
+        length > 0
+          ? commitsCherryPicked[length - 1].summary
+          : remainingCommits[0].summary,
     },
     remainingCommits: commits.slice(count, commits.length),
     commits,
