@@ -415,8 +415,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
-    const newContentLines = contents.newContents.split('\n')
-    const oldContentLines = contents.oldContents.split('\n')
+    const newContentLines =
+      contents.newContents === null ? [] : contents.newContents.split('\n')
+    const oldContentLines =
+      contents.oldContents === null ? [] : contents.oldContents.split('\n')
 
     const currentDiff = this.state.diff
     const newDiff = enableTextDiffExpansion()
