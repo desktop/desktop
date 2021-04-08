@@ -202,8 +202,11 @@ export interface IAppState {
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
 
-  /** Whether we should hide white space changes in diff */
-  readonly hideWhitespaceInDiff: boolean
+  /** Whether we should hide white space changes in changes diff */
+  readonly hideWhitespaceInChangesDiff: boolean
+
+  /** Whether we should hide white space changes in history diff */
+  readonly hideWhitespaceInHistoryDiff: boolean
 
   /** Whether we should show side by side diffs */
   readonly showSideBySideDiff: boolean

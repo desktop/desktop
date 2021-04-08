@@ -1,5 +1,31 @@
 import { DiffLine } from './diff-line'
 
+export enum DiffHunkExpansionType {
+  /** The hunk header cannot be expanded at all. */
+  None = 'None',
+
+  /**
+   * The hunk header can be expanded up exclusively. Only the first hunk can be
+   * expanded up exclusively.
+   */
+  Up = 'Up',
+
+  /**
+   * The hunk header can be expanded down exclusively. Only the last hunk (if
+   * it's the dummy hunk with only one line) can be expanded down exclusively.
+   */
+  Down = 'Down',
+
+  /** The hunk header can be expanded both up and down. */
+  Both = 'Both',
+
+  /**
+   * The hunk header represents a short gap that, when expanded, will
+   * result in merging this hunk and the hunk above.
+   */
+  Short = 'Short',
+}
+
 /** each diff is made up of a number of hunks */
 export class DiffHunk {
   /**
@@ -12,7 +38,8 @@ export class DiffHunk {
     public readonly header: DiffHunkHeader,
     public readonly lines: ReadonlyArray<DiffLine>,
     public readonly unifiedDiffStart: number,
-    public readonly unifiedDiffEnd: number
+    public readonly unifiedDiffEnd: number,
+    public readonly expansionType: DiffHunkExpansionType
   ) {}
 }
 

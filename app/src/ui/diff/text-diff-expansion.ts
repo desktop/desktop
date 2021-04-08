@@ -1,5 +1,7 @@
+import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   DiffHunk,
+  DiffHunkExpansionType,
   DiffHunkHeader,
   DiffLine,
   DiffLineType,
@@ -11,24 +13,6 @@ export const DiffExpansionStep = 20
 
 /** Type of expansion: could be up or down. */
 export type ExpansionKind = 'up' | 'down'
-
-/** Interface to represent the expansion capabilities of a hunk header. */
-interface IHunkHeaderExpansionInfo {
-  /** True if the hunk header can be expanded down. */
-  readonly isExpandableDown: boolean
-
-  /** True if the hunk header can be expanded up. */
-  readonly isExpandableUp: boolean
-
-  /** True if the hunk header can be expanded both up and down. */
-  readonly isExpandableBoth: boolean
-
-  /**
-   * True if the hunk header represents a short gap that, when expanded, will
-   * result in merging this hunk and the hunk above.
-   */
-  readonly isExpandableShort: boolean
-}
 
 /** Builds the diff text string given a list of hunks. */
 function getDiffTextFromHunks(hunks: ReadonlyArray<DiffHunk>) {
@@ -65,12 +49,28 @@ function mergeDiffHunks(hunk1: DiffHunk, hunk2: DiffHunk): DiffHunk {
     false
   )
 
+  const newHunkLines = [
+    newFirstHunkLine,
+    ...allHunk1LinesButFirst,
+    ...allHunk2LinesButFirst,
+  ]
+
   return new DiffHunk(
     newHunkHeader,
-    [newFirstHunkLine, ...allHunk1LinesButFirst, ...allHunk2LinesButFirst],
+    newHunkLines,
     hunk1.unifiedDiffStart,
-    // This -1 represents the header line of the second hunk that we removed
-    hunk2.unifiedDiffEnd - 1
+    hunk1.unifiedDiffStart + newHunkLines.length,
+    // The expansion type of the resulting hunk will match the expansion type
+    // of the first hunk:
+    // - If the first hunk can be expanded up, it means it's the very first
+    //   hunk, so the resulting hunk will be the first too.
+    // - If the first hunk can be expanded but short, that doesn't change after
+    //   merging it with the second one.
+    // - If it can be expanded up and down (meaning it's a long gap), that
+    //   doesn't change after merging it with the second one.
+    // - It can never be expanded down exclusively, because only the last dummy
+    //   hunk can do that, and that will never be the first hunk in a merge.
+    hunk1.expansionType
   )
 }
 
@@ -79,24 +79,24 @@ function mergeDiffHunks(hunk1: DiffHunk, hunk2: DiffHunk): DiffHunk {
  * the space represented by the hunk header is short and expansion there would
  * mean merging with the hunk above.
  *
- * @param hunks All hunks in the diff.
- * @param hunk  The specific hunk for which we want to know the expansion info.
+ * @param hunkIndex     Index of the hunk to evaluate within the whole diff.
+ * @param hunkHeader    Header of the hunk to evaluate.
+ * @param previousHunk  Hunk previous to the one to evaluate. Null if the
+ *                      evaluated hunk is the first one.
  */
-export function getHunkHeaderExpansionInfo(
-  hunks: ReadonlyArray<DiffHunk>,
-  hunk: DiffHunk
-): IHunkHeaderExpansionInfo {
-  let isExpandableDown = false
-  let isExpandableUp = false
-  let isExpandableBoth = false
-  let isExpandableShort = false
+export function getHunkHeaderExpansionType(
+  hunkIndex: number,
+  hunkHeader: DiffHunkHeader,
+  previousHunk: DiffHunk | null
+): DiffHunkExpansionType {
+  if (!enableTextDiffExpansion()) {
+    return DiffHunkExpansionType.None
+  }
 
-  const hunkIndex = hunks.indexOf(hunk)
-  const previousHunk = hunks[hunkIndex - 1]
   const distanceToPrevious =
-    previousHunk === undefined
+    previousHunk === null
       ? Infinity
-      : hunk.header.oldStartLine -
+      : hunkHeader.oldStartLine -
         previousHunk.header.oldStartLine -
         previousHunk.header.oldLineCount
 
@@ -108,21 +108,15 @@ export function getHunkHeaderExpansionInfo(
   // short and therefore the direction of expansion doesn't matter.
   if (hunkIndex === 0) {
     // The top hunk can only be expanded if there is content above it
-    isExpandableUp =
-      hunk.header.oldStartLine > 1 && hunk.header.newStartLine > 1
-  } else if (hunkIndex === hunks.length - 1 && hunk.lines.length === 1) {
-    isExpandableDown = true
+    if (hunkHeader.oldStartLine > 1 && hunkHeader.newStartLine > 1) {
+      return DiffHunkExpansionType.Up
+    } else {
+      return DiffHunkExpansionType.None
+    }
   } else if (distanceToPrevious <= DiffExpansionStep) {
-    isExpandableShort = true
+    return DiffHunkExpansionType.Short
   } else {
-    isExpandableBoth = true
-  }
-
-  return {
-    isExpandableDown,
-    isExpandableUp,
-    isExpandableBoth,
-    isExpandableShort,
+    return DiffHunkExpansionType.Both
   }
 }
 
@@ -270,12 +264,20 @@ export function expandTextDiffHunk(
 
   let numberOfNewDiffLines = updatedHunkLines.length - hunk.lines.length
 
+  const previousHunk = hunkIndex === 0 ? null : diff.hunks[hunkIndex - 1]
+  const expansionType = getHunkHeaderExpansionType(
+    hunkIndex,
+    newHunkHeader,
+    previousHunk
+  )
+
   // Update the hunk with all the new info (header, lines, start/end...)
   let updatedHunk = new DiffHunk(
     newHunkHeader,
     updatedHunkLines,
     hunk.unifiedDiffStart,
-    hunk.unifiedDiffEnd + numberOfNewDiffLines
+    hunk.unifiedDiffEnd + numberOfNewDiffLines,
+    expansionType
   )
 
   let previousHunksEndIndex = 0 // Exclusive
@@ -312,17 +314,33 @@ export function expandTextDiffHunk(
   const followingHunks =
     newHunkLastLine >= newContentLines.length
       ? []
-      : diff.hunks
-          .slice(followingHunksStartIndex)
-          .map(
-            hunk =>
-              new DiffHunk(
-                hunk.header,
-                hunk.lines,
-                hunk.unifiedDiffStart + numberOfNewDiffLines,
-                hunk.unifiedDiffEnd + numberOfNewDiffLines
-              )
+      : diff.hunks.slice(followingHunksStartIndex).map((hunk, hunkIndex) => {
+          const isLastDummyHunk =
+            hunkIndex + followingHunksStartIndex === diff.hunks.length - 1 &&
+            hunk.lines.length === 1 &&
+            hunk.lines[0].type === DiffLineType.Hunk
+
+          // Only compute the new expansion type if the hunk is the first one
+          // (of the remaining hunks) and it's not the last dummy hunk.
+          const shouldComputeNewExpansionType =
+            hunkIndex === 0 && !isLastDummyHunk
+
+          return new DiffHunk(
+            hunk.header,
+            hunk.lines,
+            hunk.unifiedDiffStart + numberOfNewDiffLines,
+            hunk.unifiedDiffEnd + numberOfNewDiffLines,
+            // If it's the first hunk after the one we expanded, recalculate
+            // its expansion type.
+            shouldComputeNewExpansionType
+              ? getHunkHeaderExpansionType(
+                  followingHunksStartIndex,
+                  hunk.header,
+                  updatedHunk
+                )
+              : hunk.expansionType
           )
+        })
 
   // Create the new list of hunks of the diff, and the new diff text
   const newHunks = [...previousHunks, updatedHunk, ...followingHunks]
@@ -386,7 +404,8 @@ export function getTextDiffWithBottomDummyHunk(
     dummyHeader,
     [dummyLine],
     lastHunk.unifiedDiffEnd + 1,
-    lastHunk.unifiedDiffEnd + 1
+    lastHunk.unifiedDiffEnd + 1,
+    DiffHunkExpansionType.Down
   )
 
   const newHunks = [...hunks, dummyHunk]

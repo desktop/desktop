@@ -6,6 +6,7 @@ import {
   DiffLineType,
 } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
+import { getHunkHeaderExpansionType } from '../ui/diff/text-diff-expansion'
 
 // https://en.wikipedia.org/wiki/Diff_utility
 //
@@ -280,7 +281,11 @@ export class DiffParser {
    *                      have no real meaning in the context of a diff and
    *                      are only used to aid the app in line-selections.
    */
-  private parseHunk(linesConsumed: number): DiffHunk {
+  private parseHunk(
+    linesConsumed: number,
+    hunkIndex: number,
+    previousHunk: DiffHunk | null
+  ): DiffHunk {
     const headerLine = this.readLine()
     if (!headerLine) {
       throw new Error('Expected hunk header but reached end of diff')
@@ -366,7 +371,8 @@ export class DiffParser {
       header,
       lines,
       linesConsumed,
-      linesConsumed + lines.length - 1
+      linesConsumed + lines.length - 1,
+      getHunkHeaderExpansionType(hunkIndex, header, previousHunk)
     )
   }
 
@@ -397,10 +403,12 @@ export class DiffParser {
 
       const hunks = new Array<DiffHunk>()
       let linesConsumed = 0
+      let previousHunk: DiffHunk | null = null
 
       do {
-        const hunk = this.parseHunk(linesConsumed)
+        const hunk = this.parseHunk(linesConsumed, hunks.length, previousHunk)
         hunks.push(hunk)
+        previousHunk = hunk
         linesConsumed += hunk.lines.length
       } while (this.peek())
 
