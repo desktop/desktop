@@ -74,6 +74,8 @@ function uploadOSXAssets() {
 }
 
 function uploadWindowsAssets() {
+  // For the nuget packages, include the architecture infix in the asset name
+  // when they're uploaded.
   const uploads = [
     upload(
       distInfo.getWindowsInstallerName(),
@@ -84,7 +86,7 @@ function uploadWindowsAssets() {
       distInfo.getWindowsStandalonePath()
     ),
     upload(
-      distInfo.getWindowsFullNugetPackageName(),
+      distInfo.getWindowsFullNugetPackageName(true),
       distInfo.getWindowsFullNugetPackagePath()
     ),
   ]
@@ -92,7 +94,7 @@ function uploadWindowsAssets() {
   if (distInfo.shouldMakeDelta()) {
     uploads.push(
       upload(
-        distInfo.getWindowsDeltaNugetPackageName(),
+        distInfo.getWindowsDeltaNugetPackageName(true),
         distInfo.getWindowsDeltaNugetPackagePath()
       )
     )
@@ -160,10 +162,19 @@ function createSignature(body: any, secret: string) {
   return `sha1=${hmac.digest('hex')}`
 }
 
-function updateDeploy(artifacts: ReadonlyArray<IUploadResult>, secret: string) {
+function getContext() {
+  return (
+    process.platform + (distInfo.getArchitecture() === 'arm64' ? '-arm64' : '')
+  )
+}
+
+function updateDeploy(
+  artifacts: ReadonlyArray<IUploadResult>,
+  secret: string
+): Promise<void> {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
-    context: process.platform,
+    context: getContext(),
     branch_name: platforms.getReleaseBranchName(),
     artifacts,
     stats: {

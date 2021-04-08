@@ -93,6 +93,7 @@ jobs:
       - name: Publish production app
         run: yarn run publish
         env:
+          npm_config_arch: ${{ matrix.arch }}
           DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}

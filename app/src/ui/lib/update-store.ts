@@ -14,6 +14,7 @@ import { parseError } from '../../lib/squirrel-error-parser'
 import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
+import { enableUpdateFromRosettaToARM64 } from '../../lib/feature-flag'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -160,10 +161,24 @@ class UpdateStore {
       return
     }
 
+    let updatesURL = __UPDATES_URL__
+
+    // If the app is running under Rosetta (i.e. it's a macOS x64 binary running
+    // on an arm64 machine), we need to tweak the update URL here to point at
+    // the arm64 binary.
+    if (
+      enableUpdateFromRosettaToARM64() &&
+      remote.app.runningUnderRosettaTranslation === true
+    ) {
+      const url = new URL(updatesURL)
+      url.searchParams.set('architecture', 'arm64')
+      updatesURL = url.toString()
+    }
+
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL({ url: __UPDATES_URL__ })
+      autoUpdater.setFeedURL({ url: updatesURL })
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)

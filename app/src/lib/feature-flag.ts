@@ -165,3 +165,8 @@ export function enableCherryPicking(): boolean {
 export function enableTextDiffExpansion(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we allow apps running from Rosetta to auto-update to ARM64 builds? */
+export function enableUpdateFromRosettaToARM64(): boolean {
+  return false
+}
