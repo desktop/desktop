@@ -74,10 +74,12 @@ export class DiffOptions extends React.Component<
     })
   }
 
-  private onHideWhitespaceChangesChanged = async (
+  private onHideWhitespaceChangesChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    await this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
+    return this.props.onHideWhitespaceChangesChanged(
+      event.currentTarget.checked
+    )
   }
 
   public render() {

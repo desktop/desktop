@@ -317,8 +317,10 @@ const externalEditorKey: string = 'externalEditor'
 const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey = 'image-diff-type'
 
-const hideWhitespaceInDiffDefault = false
-const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
+const hideWhitespaceInChangesDiffDefault = false
+const hideWhitespaceInChangesDiffKey = 'hide-whitespace-in-changes-diff'
+const hideWhitespaceInHistoryDiffDefault = false
+const hideWhitespaceInHistoryDiffKey = 'hide-whitespace-in-diff'
 
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
@@ -403,7 +405,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
-  private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
+  private hideWhitespaceInChangesDiff: boolean = hideWhitespaceInChangesDiffDefault
+  private hideWhitespaceInHistoryDiff: boolean = hideWhitespaceInHistoryDiffDefault
   /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
@@ -780,7 +783,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
-      hideWhitespaceInDiff: this.hideWhitespaceInDiff,
+      hideWhitespaceInChangesDiff: this.hideWhitespaceInChangesDiff,
+      hideWhitespaceInHistoryDiff: this.hideWhitespaceInHistoryDiff,
       showSideBySideDiff: this.showSideBySideDiff,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
@@ -1357,7 +1361,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       file,
       shas[0],
-      this.hideWhitespaceInDiff
+      this.hideWhitespaceInHistoryDiff
     )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
@@ -1729,7 +1733,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
 
-    this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
+    this.hideWhitespaceInChangesDiff = getBoolean(
+      hideWhitespaceInChangesDiffKey,
+      false
+    )
+    this.hideWhitespaceInHistoryDiff = getBoolean(
+      hideWhitespaceInHistoryDiffKey,
+      false
+    )
     this.commitSpellcheckEnabled = getBoolean(
       commitSpellcheckEnabledKey,
       commitSpellcheckEnabledDefault
@@ -2199,7 +2210,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const diff = await getWorkingDirectoryDiff(
       repository,
       selectedFileBeforeLoad,
-      enableHideWhitespaceInDiffOption() && this.hideWhitespaceInDiff
+      enableHideWhitespaceInDiffOption() && this.hideWhitespaceInChangesDiff
     )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
@@ -4653,20 +4664,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _setHideWhitespaceInDiff(
+  public _setHideWhitespaceInChangesDiff(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository
+  ): Promise<void> {
+    setBoolean(hideWhitespaceInChangesDiffKey, hideWhitespaceInDiff)
+    this.hideWhitespaceInChangesDiff = hideWhitespaceInDiff
+
+    return this.refreshChangesSection(repository, {
+      includingStatus: true,
+      clearPartialState: true,
+    })
+  }
+
+  public _setHideWhitespaceInHistoryDiff(
     hideWhitespaceInDiff: boolean,
     repository: Repository,
     file: CommittedFileChange | null
   ): Promise<void> {
-    setBoolean(hideWhitespaceInDiffKey, hideWhitespaceInDiff)
-    this.hideWhitespaceInDiff = hideWhitespaceInDiff
-
-    if (enableHideWhitespaceInDiffOption()) {
-      await this.refreshChangesSection(repository, {
-        includingStatus: true,
-        clearPartialState: true,
-      })
-    }
+    setBoolean(hideWhitespaceInHistoryDiffKey, hideWhitespaceInDiff)
+    this.hideWhitespaceInHistoryDiff = hideWhitespaceInDiff
 
     if (file === null) {
       return this.updateChangesWorkingDirectoryDiff(repository)

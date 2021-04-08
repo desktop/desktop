@@ -8,6 +8,7 @@ import {
   DiffSelection,
   DiffLine,
   ITextDiff,
+  DiffHunkExpansionType,
 } from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
@@ -50,7 +51,6 @@ import { canSelect } from './diff-helpers'
 import {
   expandTextDiffHunk,
   ExpansionKind,
-  getHunkHeaderExpansionInfo,
   getTextDiffWithBottomDummyHunk,
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
@@ -338,6 +338,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   /** The current, active, diff gutter selection if any */
   private selection: ISelection | null = null
 
+  /** The content lines of the "new" file */
   private newContentLines: ReadonlyArray<string> | null = null
 
   /** Whether a particular range should be highlighted due to hover */
@@ -909,7 +910,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           ) {
             const marker = lineInfo.gutterMarkers[diffGutterName]
             if (marker instanceof HTMLElement) {
-              this.updateGutterMarker(marker, hunks, hunk, diffLine)
+              this.updateGutterMarker(marker, hunk, diffLine)
             }
           } else {
             batchedOps.push(() => {
@@ -949,7 +950,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private getGutterLineClassNameInfo(
-    hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     diffLine: DiffLine
   ): { [className: string]: boolean } {
@@ -962,10 +962,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       isIncludeable &&
       diffLine.originalLineNumber !== null &&
       inSelection(this.hunkHighlightRange, diffLine.originalLineNumber)
-    const hunkExpansionInfo =
-      enableTextDiffExpansion() && diffLine.type === DiffLineType.Hunk
-        ? getHunkHeaderExpansionInfo(hunks, hunk)
-        : undefined
 
     return {
       'diff-line-gutter': true,
@@ -976,10 +972,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       'read-only': this.props.readOnly,
       'diff-line-selected': isIncluded,
       'diff-line-hover': hover,
-      'expandable-down': hunkExpansionInfo?.isExpandableDown === true,
-      'expandable-up': hunkExpansionInfo?.isExpandableUp === true,
-      'expandable-both': hunkExpansionInfo?.isExpandableBoth === true,
-      'expandable-short': hunkExpansionInfo?.isExpandableShort === true,
+      'expandable-down': hunk.expansionType === DiffHunkExpansionType.Down,
+      'expandable-up': hunk.expansionType === DiffHunkExpansionType.Up,
+      'expandable-both': hunk.expansionType === DiffHunkExpansionType.Both,
+      'expandable-short': hunk.expansionType === DiffHunkExpansionType.Short,
       includeable: isIncludeable && !this.props.readOnly,
     }
   }
@@ -1074,7 +1070,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       )
     }
 
-    this.updateGutterMarker(marker, hunks, hunk, diffLine)
+    this.updateGutterMarker(marker, hunk, diffLine)
 
     return marker
   }
@@ -1157,11 +1153,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   private updateGutterMarker(
     marker: HTMLElement,
-    hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     diffLine: DiffLine
   ) {
-    const classNameInfo = this.getGutterLineClassNameInfo(hunks, hunk, diffLine)
+    const classNameInfo = this.getGutterLineClassNameInfo(hunk, diffLine)
     for (const [className, include] of Object.entries(classNameInfo)) {
       if (include) {
         marker.classList.add(className)
