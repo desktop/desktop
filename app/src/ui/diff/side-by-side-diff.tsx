@@ -6,6 +6,7 @@ import {
   DiffHunk,
   DiffLine,
   DiffSelection,
+  DiffHunkExpansionType,
 } from '../../models/diff'
 import {
   getLineFilters,
@@ -731,10 +732,16 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
+    const diff = this.state.diff
+
     return this.diffToRestore === null
       ? {
           label: __DARWIN__ ? 'Expand Whole File' : 'Expand whole file',
           action: this.onExpandWholeFile,
+          // If there is only one hunk that can't be expanded, disable this item
+          enabled:
+            diff.hunks.length !== 1 ||
+            diff.hunks[0].expansionType !== DiffHunkExpansionType.None,
         }
       : {
           label: __DARWIN__
