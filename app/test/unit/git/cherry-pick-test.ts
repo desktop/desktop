@@ -567,8 +567,12 @@ describe('git/cherry-pick', () => {
       // resolution.
       expect(progress).toHaveLength(2)
 
+      // snapshot prepares the progress for the commit after what has
+      // already happened.
       const snapshot = await getCherryPickSnapshot(repository)
-      expect(snapshot?.progress).toEqual(progress[1])
+      expect(snapshot?.progress.cherryPickCommitCount).toEqual(
+        progress[1].cherryPickCommitCount + 1
+      )
 
       // resolve conflicts and continue
       const statusAfterConflictedCherryPick = await getStatusOrThrow(repository)

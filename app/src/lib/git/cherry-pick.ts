@@ -240,7 +240,7 @@ export async function getCherryPickSnapshot(
   // Each line of .git/sequencer/todo holds a sha of a commits to lined up to be
   // cherry-picked. These sha are in historical order starting oldest commit as
   // the first line and newest as the last line.
-  const remainingShas: string[] = []
+  const remainingCommits: CommitOneLine[] = []
 
   // Try block included as files may throw an error if it cannot locate
   // the sequencer files. This is possible if cherry pick is continued
@@ -287,13 +287,18 @@ export async function getCherryPickSnapshot(
 
     // Each line is of the format: `pick shortSha commitSummary`
     remainingPicks.split('\n').forEach(line => {
-      const linePieces = line.split(' ')
-      if (linePieces.length > 2) {
-        remainingShas.push(linePieces[1])
+      line = line.replace(/^pick /, '')
+      if (line.trim().includes(' ')) {
+        const sha = line.substr(0, line.indexOf(' '))
+        const commit: CommitOneLine = {
+          sha,
+          summary: line.substr(sha.length + 1),
+        }
+        remainingCommits.push(commit)
       }
     })
 
-    if (remainingShas.length === 0) {
+    if (remainingCommits.length === 0) {
       // This should only be possible with corrupt sequencer files.
       return null
     }
@@ -307,21 +312,21 @@ export async function getCherryPickSnapshot(
       ? await getCommitsInRange(repository, revRange(headSha, abortSafetySha))
       : []
 
-  // get remaining commits
-  const remainingCommits = await getCommitsInRange(
-    repository,
-    revRangeInclusive(remainingShas[0], remainingShas[remainingShas.length - 1])
-  )
-
-  if (commitsCherryPicked === null || remainingCommits === null) {
+  if (commitsCherryPicked === null) {
     // This should only be possible with corrupt sequencer files resulting in a
     // bad revision range.
     return null
   }
 
   const commits = [...commitsCherryPicked, ...remainingCommits]
-  const { length } = commitsCherryPicked
-  const count = length > 0 ? length : length + 1
+
+  if (commits === null) {
+    // This should only be possible with corrupt sequencer files resulting in a
+    // bad revision range.
+    return null
+  }
+
+  const count = commitsCherryPicked.length + 1
 
   return {
     progress: {
@@ -330,12 +335,9 @@ export async function getCherryPickSnapshot(
       value: round(count / commits.length, 2),
       cherryPickCommitCount: count,
       totalCommitCount: commits.length,
-      currentCommitSummary:
-        length > 0
-          ? commitsCherryPicked[length - 1].summary
-          : remainingCommits[0].summary,
+      currentCommitSummary: remainingCommits[0].summary ?? '',
     },
-    remainingCommits: commits.slice(count, commits.length),
+    remainingCommits,
     commits,
     targetBranchUndoSha: headSha,
     countCherryPicked: commitsCherryPicked.length,
@@ -413,6 +415,7 @@ export async function continueCherryPick(
       )
       return CherryPickResult.UnableToStart
     }
+
     options = configureOptionsWithCallBack(
       options,
       snapshot.commits,
