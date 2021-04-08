@@ -35,7 +35,7 @@ export function getExecutableName() {
 }
 
 export function getOSXZipName() {
-  return `${productName}.zip`
+  return `${productName}-${getArchitecture()}.zip`
 }
 
 export function getOSXZipPath() {
@@ -44,7 +44,7 @@ export function getOSXZipPath() {
 
 export function getWindowsInstallerName() {
   const productName = getExecutableName()
-  return `${productName}Setup.msi`
+  return `${productName}Setup-${getArchitecture()}.msi`
 }
 
 export function getWindowsInstallerPath() {
@@ -53,7 +53,7 @@ export function getWindowsInstallerPath() {
 
 export function getWindowsStandaloneName() {
   const productName = getExecutableName()
-  return `${productName}Setup.exe`
+  return `${productName}Setup-${getArchitecture()}.exe`
 }
 
 export function getWindowsStandalonePath() {
@@ -61,7 +61,7 @@ export function getWindowsStandalonePath() {
 }
 
 export function getWindowsFullNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${version}-full.nupkg`
+  return `${getWindowsIdentifierName()}-${version}-${getArchitecture()}-full.nupkg`
 }
 
 export function getWindowsFullNugetPackagePath() {
@@ -74,7 +74,7 @@ export function getWindowsFullNugetPackagePath() {
 }
 
 export function getWindowsDeltaNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${version}-delta.nupkg`
+  return `${getWindowsIdentifierName()}-${version}-${getArchitecture()}-delta.nupkg`
 }
 
 export function getWindowsDeltaNugetPackagePath() {

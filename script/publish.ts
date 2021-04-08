@@ -116,7 +116,7 @@ function upload(assetName: string, assetPath: string) {
   const s3 = new AWS.S3(s3Info)
 
   const bucket = process.env.S3_BUCKET || ''
-  const key = `releases/${packageInfo.getVersion()}-${sha}/${distInfo.getArchitecture()}/${assetName.replace(
+  const key = `releases/${packageInfo.getVersion()}-${sha}/${assetName.replace(
     / /g,
     ''
   )}`
