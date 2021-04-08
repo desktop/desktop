@@ -74,6 +74,8 @@ function uploadOSXAssets() {
 }
 
 function uploadWindowsAssets() {
+  // For the nuget packages, include the architecture infix in the asset name
+  // when they're uploaded.
   const uploads = [
     upload(
       distInfo.getWindowsInstallerName(),
@@ -84,7 +86,7 @@ function uploadWindowsAssets() {
       distInfo.getWindowsStandalonePath()
     ),
     upload(
-      distInfo.getWindowsFullNugetPackageName(),
+      distInfo.getWindowsFullNugetPackageName(true),
       distInfo.getWindowsFullNugetPackagePath()
     ),
   ]
@@ -92,7 +94,7 @@ function uploadWindowsAssets() {
   if (distInfo.shouldMakeDelta()) {
     uploads.push(
       upload(
-        distInfo.getWindowsDeltaNugetPackageName(),
+        distInfo.getWindowsDeltaNugetPackageName(true),
         distInfo.getWindowsDeltaNugetPackagePath()
       )
     )
