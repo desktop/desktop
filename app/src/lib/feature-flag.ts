@@ -163,7 +163,7 @@ export function enableCherryPicking(): boolean {
 
 /** Should we allow expanding text diffs? */
 export function enableTextDiffExpansion(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /** Should we allow apps running from Rosetta to auto-update to ARM64 builds? */
