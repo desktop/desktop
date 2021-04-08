@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.7.3-beta1": [
+      "[New] Expand diffs to get more context about your changes - #11965",
+      "[New] Preliminary support for Windows ARM64 and Apple Silicon - #9034. Thanks @dennisameling!",
+      "[Added] Add a Hide Whitespace setting to both the Changes and History tabs - #6818. Thanks @say25!",
+      "[Fixed] Delete branch on branches dropdown context menu incorrectly detected the branch as existing on the remote after being deleted remotely and fetch had occurred - #11923"
+    ],
     "2.7.2": [
       "[Added] Create branch during cherry-picking via the context menu - #11903",
       "[Added] Suggest macOS users move the app to `/Applications` to prevent issues - #11846",
