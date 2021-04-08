@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.7.3-test1": ["[Added] Initial arm64 support???"],
     "2.7.2": [
       "[Added] Create branch during cherry-picking via the context menu - #11903",
       "[Added] Suggest macOS users move the app to `/Applications` to prevent issues - #11846",
