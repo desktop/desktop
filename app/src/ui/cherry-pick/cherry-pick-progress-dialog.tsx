@@ -19,7 +19,7 @@ export class CherryPickProgressDialog extends React.Component<
 
   public render() {
     const {
-      cherryPickCommitCount,
+      position,
       totalCommitCount,
       value,
       currentCommitSummary,
@@ -42,7 +42,7 @@ export class CherryPickProgressDialog extends React.Component<
               </div>
               <div className="summary">
                 <div className="message">
-                  Commit {cherryPickCommitCount} of {totalCommitCount}
+                  Commit {position} of {totalCommitCount}
                 </div>
                 <div className="detail">
                   <RichText

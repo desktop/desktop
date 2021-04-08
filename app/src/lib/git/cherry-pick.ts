@@ -83,7 +83,7 @@ class GitCherryPickParser {
       kind: 'cherryPick',
       title: `Cherry-picking commit ${this.count} of ${this.commits.length} commits`,
       value: round(this.count / this.commits.length, 2),
-      cherryPickCommitCount: this.count,
+      position: this.count,
       totalCommitCount: this.commits.length,
       currentCommitSummary: this.commits[this.count - 1]?.summary ?? '',
     }
@@ -319,21 +319,21 @@ export async function getCherryPickSnapshot(
   }
 
   const commits = [...commitsCherryPicked, ...remainingCommits]
-  const count = commitsCherryPicked.length + 1
+  const position = commitsCherryPicked.length + 1
 
   return {
     progress: {
       kind: 'cherryPick',
-      title: `Cherry-picking commit ${count} of ${commits.length} commits`,
-      value: round(count / commits.length, 2),
-      cherryPickCommitCount: count,
+      title: `Cherry-picking commit ${position} of ${commits.length} commits`,
+      value: round(position / commits.length, 2),
+      position,
       totalCommitCount: commits.length,
       currentCommitSummary: remainingCommits[0].summary ?? '',
     },
     remainingCommits,
     commits,
     targetBranchUndoSha: headSha,
-    countCherryPicked: commitsCherryPicked.length,
+    cherryPickedCount: commitsCherryPicked.length,
   }
 }
 
@@ -413,7 +413,7 @@ export async function continueCherryPick(
       options,
       snapshot.commits,
       progressCallback,
-      snapshot.countCherryPicked
+      snapshot.cherryPickedCount
     )
   }
 

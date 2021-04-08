@@ -512,7 +512,7 @@ describe('git/cherry-pick', () => {
         {
           currentCommitSummary: 'Cherry-picked Feature!',
           kind: 'cherryPick',
-          cherryPickCommitCount: 1,
+          position: 1,
           title: 'Cherry-picking commit 1 of 1 commits',
           totalCommitCount: 1,
           value: 1,
@@ -570,9 +570,7 @@ describe('git/cherry-pick', () => {
       // snapshot prepares the progress for the commit after what has
       // already happened.
       const snapshot = await getCherryPickSnapshot(repository)
-      expect(snapshot?.progress.cherryPickCommitCount).toEqual(
-        progress[1].cherryPickCommitCount + 1
-      )
+      expect(snapshot?.progress.position).toEqual(progress[1].position + 1)
 
       // resolve conflicts and continue
       const statusAfterConflictedCherryPick = await getStatusOrThrow(repository)
