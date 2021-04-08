@@ -5847,9 +5847,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           kind: 'cherryPick',
           title: `Cherry-picking commit 1 of ${commits.length} commits`,
           value: 0,
-          cherryPickCommitCount: 1,
+          position: 1,
           totalCommitCount: commits.length,
-          currentCommitSummary: commits[0].summary,
+          currentCommitSummary: commits[commits.length - 1].summary,
         },
       }
     })

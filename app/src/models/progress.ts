@@ -115,8 +115,9 @@ export interface ICherryPickProgress extends IProgress {
   readonly kind: 'cherryPick'
   /** The summary of the commit applied to the base branch */
   readonly currentCommitSummary: string
-  /** The number of commits currently cherry picked onto the base branch */
-  readonly cherryPickCommitCount: number
+  /** The number to signify which commit in a selection is being cherry-picked
+   **/
+  readonly position: number
   /** The total number of commits to cherry pick on top of the current branch */
   readonly totalCommitCount: number
 }
