@@ -6,6 +6,7 @@ import {
   DiffHunk,
   DiffLine,
   DiffSelection,
+  DiffHunkExpansionType,
 } from '../../models/diff'
 import {
   getLineFilters,
@@ -50,9 +51,11 @@ import { escapeRegExp } from '../../lib/helpers/regex'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   expandTextDiffHunk,
-  ExpansionKind,
+  DiffExpansionKind,
   getTextDiffWithBottomDummyHunk,
+  expandWholeTextDiff,
 } from './text-diff-expansion'
+import { IMenuItem } from '../../lib/menu-item'
 
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
@@ -182,6 +185,9 @@ export class SideBySideDiff extends React.Component<
   /** The content lines of the "new" file */
   private newContentLines: ReadonlyArray<string> | null = null
 
+  /** Diff to restore when "Collapse all expanded lines" option is used */
+  private diffToRestore: ITextDiff | null = null
+
   public constructor(props: ISideBySideDiffProps) {
     super(props)
 
@@ -220,6 +226,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     if (this.props.diff.text !== prevProps.diff.text) {
+      this.diffToRestore = null
       this.setState({ diff: this.props.diff })
     }
   }
@@ -310,6 +317,7 @@ export class SideBySideDiff extends React.Component<
             onClickHunk={this.onClickHunk}
             onContextMenuLine={this.onContextMenuLine}
             onContextMenuHunk={this.onContextMenuHunk}
+            onContextMenuExpandHunk={this.onContextMenuExpandHunk}
             onContextMenuText={this.onContextMenuText}
           />
         </div>
@@ -364,8 +372,11 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const newContentLines = contents.newContents.split('\n')
-    const oldContentLines = contents.oldContents.split('\n')
+    const newContentLines =
+      contents.newContents === null ? [] : contents.newContents.split('\n')
+    const oldContentLines =
+      contents.oldContents === null ? [] : contents.oldContents.split('\n')
+
     const currentDiff = this.state.diff
     const newDiff = enableTextDiffExpansion()
       ? getTextDiffWithBottomDummyHunk(
@@ -638,7 +649,7 @@ export class SideBySideDiff extends React.Component<
     this.setState({ hoveredHunk: undefined })
   }
 
-  private onExpandHunk = (hunkIndex: number, kind: ExpansionKind) => {
+  private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => {
     const { diff } = this.state
 
     if (hunkIndex === -1 || hunkIndex >= diff.hunks.length) {
@@ -672,14 +683,21 @@ export class SideBySideDiff extends React.Component<
   private onContextMenuText = () => {
     const selectionLength = window.getSelection()?.toString().length ?? 0
 
-    showContextualMenu([
+    const items: IMenuItem[] = [
       {
         label: 'Copy',
         // When using role="copy", the enabled attribute is not taken into account.
         role: selectionLength > 0 ? 'copy' : undefined,
         enabled: selectionLength > 0,
       },
-    ])
+    ]
+
+    const expandMenuItem = this.buildExpandMenuItem()
+    if (expandMenuItem !== null) {
+      items.push({ type: 'separator' }, expandMenuItem)
+    }
+
+    showContextualMenu(items)
   }
 
   /**
@@ -712,6 +730,63 @@ export class SideBySideDiff extends React.Component<
     ])
   }
 
+  private buildExpandMenuItem(): IMenuItem | null {
+    if (!enableTextDiffExpansion()) {
+      return null
+    }
+
+    const diff = this.state.diff
+
+    return this.diffToRestore === null
+      ? {
+          label: __DARWIN__ ? 'Expand Whole File' : 'Expand whole file',
+          action: this.onExpandWholeFile,
+          // If there is only one hunk that can't be expanded, disable this item
+          enabled:
+            diff.hunks.length !== 1 ||
+            diff.hunks[0].expansionType !== DiffHunkExpansionType.None,
+        }
+      : {
+          label: __DARWIN__
+            ? 'Collapse Expanded Lines'
+            : 'Collapse expanded lines',
+          action: this.onCollapseExpandedLines,
+        }
+  }
+
+  private onExpandWholeFile = () => {
+    if (this.newContentLines === null || this.newContentLines.length === 0) {
+      return
+    }
+
+    const updatedDiff = expandWholeTextDiff(
+      this.state.diff,
+      this.newContentLines
+    )
+
+    if (updatedDiff === undefined) {
+      return
+    }
+
+    this.diffToRestore = this.state.diff
+
+    this.setState({
+      diff: updatedDiff,
+    })
+  }
+
+  private onCollapseExpandedLines = () => {
+    if (this.diffToRestore === null) {
+      return
+    }
+
+    this.setState({
+      diff: this.diffToRestore,
+    })
+
+    this.diffToRestore = null
+  }
+
   /**
    * Handler to show a context menu when the user right-clicks on the gutter hunk handler.
    *
@@ -740,6 +815,15 @@ export class SideBySideDiff extends React.Component<
         action: () => this.onDiscardChanges(range.from, range.to),
       },
     ])
+  }
+
+  private onContextMenuExpandHunk = () => {
+    const expandMenuItem = this.buildExpandMenuItem()
+    if (expandMenuItem === null) {
+      return
+    }
+
+    showContextualMenu([expandMenuItem])
   }
 
   private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
@@ -852,7 +936,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   /** Expand a selected hunk. */
-  private expandHunk(hunk: DiffHunk, kind: ExpansionKind) {
+  private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
     const { diff } = this.state
 
     if (this.newContentLines === null || this.newContentLines.length === 0) {

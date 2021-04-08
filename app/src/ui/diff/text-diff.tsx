@@ -50,8 +50,9 @@ import {
 import { canSelect } from './diff-helpers'
 import {
   expandTextDiffHunk,
-  ExpansionKind,
+  DiffExpansionKind,
   getTextDiffWithBottomDummyHunk,
+  expandWholeTextDiff,
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
 
@@ -341,6 +342,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   /** The content lines of the "new" file */
   private newContentLines: ReadonlyArray<string> | null = null
 
+  /** Diff to restore when "Collapse all expanded lines" option is used */
+  private diffToRestore: ITextDiff | null = null
+
   /** Whether a particular range should be highlighted due to hover */
   private hunkHighlightRange: ISelection | null = null
 
@@ -411,8 +415,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
-    const newContentLines = contents.newContents.split('\n')
-    const oldContentLines = contents.oldContents.split('\n')
+    const newContentLines =
+      contents.newContents === null ? [] : contents.newContents.split('\n')
+    const oldContentLines =
+      contents.oldContents === null ? [] : contents.oldContents.split('\n')
 
     const currentDiff = this.state.diff
     const newDiff = enableTextDiffExpansion()
@@ -609,15 +615,13 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   /** Expand a selected hunk. */
-  private expandHunk(hunk: DiffHunk, kind: ExpansionKind) {
-    const diff = this.state.diff
-
+  private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
     if (this.newContentLines === null || this.newContentLines.length === 0) {
       return
     }
 
     const updatedDiff = expandTextDiffHunk(
-      diff,
+      this.state.diff,
       hunk,
       kind,
       this.newContentLines
@@ -653,12 +657,47 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       },
     ]
 
+    const expandMenuItem = this.buildExpandMenuItem(event)
+    if (expandMenuItem !== null) {
+      items.push({ type: 'separator' }, expandMenuItem)
+    }
+
     const discardMenuItems = this.buildDiscardMenuItems(instance, event)
     if (discardMenuItems !== null) {
       items.push({ type: 'separator' }, ...discardMenuItems)
     }
 
     showContextualMenu(items)
+  }
+
+  private buildExpandMenuItem(event: Event): IMenuItem | null {
+    if (!enableTextDiffExpansion()) {
+      return null
+    }
+
+    if (!(event instanceof MouseEvent)) {
+      // We can only infer which line was clicked when the context menu is opened
+      // via a mouse event.
+      return null
+    }
+
+    const diff = this.state.diff
+
+    return this.diffToRestore === null
+      ? {
+          label: __DARWIN__ ? 'Expand Whole File' : 'Expand whole file',
+          action: this.onExpandWholeFile,
+          // If there is only one hunk that can't be expanded, disable this item
+          enabled:
+            diff.hunks.length !== 1 ||
+            diff.hunks[0].expansionType !== DiffHunkExpansionType.None,
+        }
+      : {
+          label: __DARWIN__
+            ? 'Collapse Expanded Lines'
+            : 'Collapse expanded lines',
+          action: this.onCollapseExpandedLines,
+        }
   }
 
   private buildDiscardMenuItems(
@@ -751,6 +790,41 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // Pass the original diff (from props) instead of the (potentially)
     // expanded one.
     this.props.onDiscardChanges(this.props.diff, selection)
+  }
+
+  private onExpandWholeFile = () => {
+    if (this.newContentLines === null || this.newContentLines.length === 0) {
+      return
+    }
+
+    const updatedDiff = expandWholeTextDiff(
+      this.state.diff,
+      this.newContentLines
+    )
+
+    if (updatedDiff === undefined) {
+      return
+    }
+
+    this.diffToRestore = this.state.diff
+
+    this.setState({
+      diff: updatedDiff,
+    })
+    this.updateViewport()
+  }
+
+  private onCollapseExpandedLines = () => {
+    if (this.diffToRestore === null) {
+      return
+    }
+
+    this.setState({
+      diff: this.diffToRestore,
+    })
+    this.updateViewport()
+
+    this.diffToRestore = null
   }
 
   private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
@@ -1118,7 +1192,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   private onHunkExpandHalfHandleMouseDown = (
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
-    kind: ExpansionKind,
+    kind: DiffExpansionKind,
     ev: MouseEvent
   ) => {
     if (!this.codeMirror) {
@@ -1327,6 +1401,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     if (this.props.diff.text !== prevProps.diff.text) {
+      this.diffToRestore = null
       this.setState({ diff: this.props.diff })
     }
 

@@ -5,7 +5,7 @@ import { ITokens } from '../../lib/highlighter/types'
 
 import 'codemirror/mode/javascript/javascript'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { DiffExpansionStep } from './text-diff-expansion'
+import { DefaultDiffExpansionStep } from './text-diff-expansion'
 
 export interface IDiffSyntaxModeOptions {
   /**
@@ -153,7 +153,8 @@ export class DiffSyntaxMode {
           // will be used to make that line taller to fit the expansion buttons.
           if (
             state.previousHunkOldEndLine !== null &&
-            oldStartLine - state.previousHunkOldEndLine > DiffExpansionStep
+            oldStartLine - state.previousHunkOldEndLine >
+              DefaultDiffExpansionStep
           ) {
             result += ` line-${token}-expandable-both`
           }

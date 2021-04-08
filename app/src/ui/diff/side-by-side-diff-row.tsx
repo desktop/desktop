@@ -13,7 +13,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
-import { ExpansionKind } from './text-diff-expansion'
+import { DiffExpansionKind } from './text-diff-expansion'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -74,7 +74,7 @@ interface ISideBySideDiffRowProps {
    */
   readonly onMouseLeaveHunk: (hunkStartLine: number) => void
 
-  readonly onExpandHunk: (hunkIndex: number, kind: ExpansionKind) => void
+  readonly onExpandHunk: (hunkIndex: number, kind: DiffExpansionKind) => void
 
   /**
    * Called when the user clicks on the hunk handle. Called with the start
@@ -97,6 +97,11 @@ interface ISideBySideDiffRowProps {
    * (only relevant when isDiffSelectable is true)
    */
   readonly onContextMenuHunk: (hunkStartLine: number) => void
+
+  /**
+   * Called when the user right-clicks a hunk expansion handle.
+   */
+  readonly onContextMenuExpandHunk: () => void
 
   /**
    * Called when the user right-clicks text on the diff.
@@ -305,7 +310,10 @@ export class SideBySideDiffRow extends React.Component<
   ) {
     if (expansionType === DiffHunkExpansionType.None) {
       return (
-        <div className="hunk-expansion-handle">
+        <div
+          className="hunk-expansion-handle"
+          onContextMenu={this.props.onContextMenuExpandHunk}
+        >
           <span></span>
         </div>
       )
@@ -321,6 +329,7 @@ export class SideBySideDiffRow extends React.Component<
         className="hunk-expansion-handle selectable"
         title={elementInfo.title}
         onClick={elementInfo.handler}
+        onContextMenu={this.props.onContextMenuExpandHunk}
       >
         <span>
           <Octicon symbol={elementInfo.icon} />
@@ -497,7 +506,7 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private onExpandHunk = (hunkIndex: number, kind: ExpansionKind) => () => {
+  private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => () => {
     this.props.onExpandHunk(hunkIndex, kind)
   }
 
