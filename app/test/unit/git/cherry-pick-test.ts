@@ -530,12 +530,6 @@ describe('git/cherry-pick', () => {
       progress = []
     })
 
-    it('errors when given no commits', async () => {
-      const progress = new Array<ICherryPickProgress>()
-      result = await cherryPick(repository, [], p => progress.push(p))
-      expect(result).toBe(CherryPickResult.UnableToStart)
-    })
-
     it('successfully parses progress for a single commit', async () => {
       const featureTip = await getCommitOneLine(
         repository,
