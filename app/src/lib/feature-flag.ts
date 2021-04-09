@@ -165,3 +165,8 @@ export function enableCherryPicking(): boolean {
 export function enableTextDiffExpansion(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we allow using the save dialog when choosing where to clone a repo */
+export function enableSaveDialogOnCloneRepository(): boolean {
+  return enableBetaFeatures()
+}

@@ -24,6 +24,7 @@ import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
 import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { enableSaveDialogOnCloneRepository } from '../../lib/feature-flag'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -503,8 +504,40 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseDirectory = async () => {
-    const tabState = this.getSelectedTabState()
+    if (enableSaveDialogOnCloneRepository()) {
+      return this.onChooseWithSaveDialog()
+    }
+
+    return this.onChooseWithOpenDialog()
+  }
+
+  private onChooseWithOpenDialog = async (): Promise<string | undefined> => {
     const window = remote.getCurrentWindow()
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+      properties: ['createDirectory', 'openDirectory'],
+    })
+
+    if (filePaths.length === 0) {
+      return
+    }
+
+    const tabState = this.getSelectedTabState()
+    const lastParsedIdentifier = tabState.lastParsedIdentifier
+    const directory = lastParsedIdentifier
+      ? Path.join(filePaths[0], lastParsedIdentifier.name)
+      : filePaths[0]
+
+    this.setSelectedTabState(
+      { path: directory, error: null },
+      this.validatePath
+    )
+
+    return directory
+  }
+
+  private onChooseWithSaveDialog = async (): Promise<string | undefined> => {
+    const window = remote.getCurrentWindow()
+    const tabState = this.getSelectedTabState()
 
     const { canceled, filePath } = await remote.dialog.showSaveDialog(window, {
       buttonLabel: 'Select',
