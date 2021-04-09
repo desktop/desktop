@@ -59,7 +59,7 @@ function mergeDiffHunks(hunk1: DiffHunk, hunk2: DiffHunk): DiffHunk {
     newHunkHeader,
     newHunkLines,
     hunk1.unifiedDiffStart,
-    hunk1.unifiedDiffStart + newHunkLines.length,
+    hunk1.unifiedDiffStart + newHunkLines.length - 1,
     // The expansion type of the resulting hunk will match the expansion type
     // of the first hunk:
     // - If the first hunk can be expanded up, it means it's the very first
