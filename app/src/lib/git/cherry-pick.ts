@@ -19,6 +19,7 @@ import byline from 'byline'
 import { ICherryPickSnapshot } from '../../models/cherry-pick'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { getCommit } from '.'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -302,7 +303,43 @@ export async function getCherryPickSnapshot(
       // This should only be possible with corrupt sequencer files.
       return null
     }
-  } catch {}
+  } catch {
+    // could not parse sequencer files
+
+    if (!isCherryPickHeadFound(repository)) {
+      // We redo this check just because a user technically could end the
+      // cherry-pick by the time we got here.
+      return null
+    }
+
+    // If cherry-pick is in progress, then there was only one commit cherry-picked
+    // thus sequencer files were not used.
+    const cherryPickHeadSha = (
+      await FSE.readFile(
+        Path.join(repository.path, '.git', 'CHERRY_PICK_HEAD'),
+        'utf8'
+      )
+    ).trim()
+    const commit = await getCommit(repository, cherryPickHeadSha)
+    if (commit === null) {
+      return null
+    }
+
+    return {
+      progress: {
+        kind: 'cherryPick',
+        title: `Cherry-picking commit 1 of 1 commits`,
+        value: 1,
+        position: 1,
+        totalCommitCount: 1,
+        currentCommitSummary: commit.summary,
+      },
+      remainingCommits: [],
+      commits: [{ sha: commit.sha, summary: commit.summary }],
+      targetBranchUndoSha: headSha,
+      cherryPickedCount: 0,
+    }
+  }
 
   // To get all the commits for the cherry-pick operation, we need to get the
   // ones already cherry-picked. If abortSafetySha is headSha; none have been
