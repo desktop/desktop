@@ -154,7 +154,6 @@ import {
   deleteLocalBranch,
   deleteRemoteBranch,
   fastForwardBranches,
-  revRangeInclusive,
   GitResetMode,
   reset,
   getBranchAheadBehind,
@@ -5876,17 +5875,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
 
-    let revisionRange: string
-    if (commits.length === 1) {
-      revisionRange = commits[0].sha
-    } else {
-      const earliestCommit = commits[commits.length - 1]
-      revisionRange = revRangeInclusive(earliestCommit.sha, commits[0].sha)
-    }
-
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
-      cherryPick(repository, revisionRange, progressCallback)
+      cherryPick(repository, commits, progressCallback)
     )
 
     return result || CherryPickResult.Error

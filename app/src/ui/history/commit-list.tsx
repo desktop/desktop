@@ -199,7 +199,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     // .slice is exclusive of last range end, thus + 1
     const rangeStart = start < end ? start : end
     const rangeEnd = start < end ? end + 1 : start + 1
-    const commitSHARange = this.props.commitSHAs.slice(rangeStart, rangeEnd)
+    // We reverse because we want the commits to be in ascending order.
+    // First commit in history -> first on array
+    const commitSHARange = this.props.commitSHAs
+      .slice(rangeStart, rangeEnd)
+      .reverse()
     const selectedCommits = this.lookupCommits(commitSHARange)
     this.props.onCommitsSelected(selectedCommits)
   }

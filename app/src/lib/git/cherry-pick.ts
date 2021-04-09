@@ -10,7 +10,7 @@ import { git, IGitExecutionOptions, IGitResult } from './core'
 import { getStatus } from './status'
 import { stageFiles } from './update-index'
 import { ICherryPickProgress } from '../../models/progress'
-import { getCommitsInRange, revRange, revRangeInclusive } from './rev-list'
+import { getCommitsInRange, revRange } from './rev-list'
 import { CommitOneLine } from '../../models/commit'
 import { merge } from '../merge'
 import { ChildProcess } from 'child_process'
@@ -126,16 +126,22 @@ function configureOptionsWithCallBack(
 }
 
 /**
- * A stub function to initiate cherry picking in the app.
+ * A function to initiate cherry picking in the app.
  *
- * @param revisionRange - this could be a single commit sha or could be a range
- * of commits like sha1..sha2 or inclusively sha1^..sha2
+ * @param commits - array of commits to cherry-pick
+ * For a cherry-pick operation, it does not matter what order the commits
+ * appear. But, it is best practice to send them in ascending order to prevent
+ * conflicts. First one on the array is first to be cherry-picked.
  */
 export async function cherryPick(
   repository: Repository,
-  revisionRange: string,
+  commits: ReadonlyArray<CommitOneLine>,
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
+  if (commits.length === 0) {
+    return CherryPickResult.UnableToStart
+  }
+
   let baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([
       GitError.MergeConflicts,
@@ -144,25 +150,6 @@ export async function cherryPick(
   }
 
   if (progressCallback !== undefined) {
-    // If it is a single commit sha, format it as tho it is a range
-    // so getCommitsInRange only pulls back single commit.
-    if (revisionRange.includes('..') === false) {
-      revisionRange = revRangeInclusive(revisionRange, revisionRange)
-    }
-
-    const commits = await getCommitsInRange(repository, revisionRange)
-
-    if (commits === null) {
-      // BadRevision can be raised here if git rev-list is unable to resolve a
-      // revision range, so we need to signal to the caller that this cherry
-      // pick is not possible to perform
-      log.warn(
-        `Unable to cherry-pick these branches
-        because one or both of the refs do not exist in the repository`
-      )
-      return CherryPickResult.UnableToStart
-    }
-
     baseOptions = await configureOptionsWithCallBack(
       baseOptions,
       commits,
@@ -180,7 +167,12 @@ export async function cherryPick(
   //  there could be multiple empty commits. I.E. If user does a range that
   //  includes commits from that merge.
   const result = await git(
-    ['cherry-pick', revisionRange, '--keep-redundant-commits', '-m 1'],
+    [
+      'cherry-pick',
+      ...commits.map(c => c.sha),
+      '--keep-redundant-commits',
+      '-m 1',
+    ],
     repository.path,
     'cherry-pick',
     baseOptions
