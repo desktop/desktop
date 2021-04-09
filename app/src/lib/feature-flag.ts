@@ -170,3 +170,8 @@ export function enableTextDiffExpansion(): boolean {
 export function enableUpdateFromRosettaToARM64(): boolean {
   return false
 }
+
+/** Should we allow using the save dialog when choosing where to clone a repo */
+export function enableSaveDialogOnCloneRepository(): boolean {
+  return enableBetaFeatures()
+}
