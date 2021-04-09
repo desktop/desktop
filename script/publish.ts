@@ -1,3 +1,4 @@
+/* eslint-disable no-sync */
 import * as distInfo from './dist-info'
 import * as gitInfo from '../app/git-info'
 import * as packageInfo from '../app/package-info'
@@ -91,7 +92,13 @@ function uploadWindowsAssets() {
     ),
   ]
 
-  if (distInfo.shouldMakeDelta()) {
+  // Even if we should make a delta, it might not exist (if it's the first time
+  // we publish a nuget package of the app... for example, when we added support
+  // for ARM64).
+  if (
+    distInfo.shouldMakeDelta() &&
+    Fs.existsSync(distInfo.getWindowsDeltaNugetPackagePath())
+  ) {
     uploads.push(
       upload(
         distInfo.getWindowsDeltaNugetPackageName(true),
