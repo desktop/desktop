@@ -421,7 +421,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       contents.oldContents === null ? [] : contents.oldContents.split('\n')
 
     const currentDiff = this.state.diff
-    const newDiff = enableTextDiffExpansion()
+    const shouldEnableDiffExpansion =
+      enableTextDiffExpansion() && contents.canBeExpanded
+    const newDiff = shouldEnableDiffExpansion
       ? getTextDiffWithBottomDummyHunk(
           currentDiff,
           currentDiff.hunks,
@@ -429,7 +431,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           newContentLines.length
         )
       : null
-    this.newContentLines = newContentLines
+    this.newContentLines = shouldEnableDiffExpansion ? newContentLines : null
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
@@ -671,7 +673,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private buildExpandMenuItem(event: Event): IMenuItem | null {
-    if (!enableTextDiffExpansion()) {
+    if (!enableTextDiffExpansion() || this.newContentLines === null) {
       return null
     }
 
@@ -1037,6 +1039,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       diffLine.originalLineNumber !== null &&
       inSelection(this.hunkHighlightRange, diffLine.originalLineNumber)
 
+    const shouldEnableDiffExpansion =
+      enableTextDiffExpansion() && this.newContentLines !== null
+
     return {
       'diff-line-gutter': true,
       'diff-add': diffLine.type === DiffLineType.Add,
@@ -1046,10 +1051,18 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       'read-only': this.props.readOnly,
       'diff-line-selected': isIncluded,
       'diff-line-hover': hover,
-      'expandable-down': hunk.expansionType === DiffHunkExpansionType.Down,
-      'expandable-up': hunk.expansionType === DiffHunkExpansionType.Up,
-      'expandable-both': hunk.expansionType === DiffHunkExpansionType.Both,
-      'expandable-short': hunk.expansionType === DiffHunkExpansionType.Short,
+      'expandable-down':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Down,
+      'expandable-up':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Up,
+      'expandable-both':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Both,
+      'expandable-short':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Short,
       includeable: isIncludeable && !this.props.readOnly,
     }
   }
@@ -1083,7 +1096,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunkHandle.classList.add('hunk-handle')
     marker.appendChild(hunkHandle)
 
-    if (enableTextDiffExpansion()) {
+    if (enableTextDiffExpansion() && this.newContentLines !== null) {
       const hunkExpandUpHandle = document.createElement('div')
       hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
       hunkExpandUpHandle.title = 'Expand Up'

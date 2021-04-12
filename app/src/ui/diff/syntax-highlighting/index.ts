@@ -20,6 +20,13 @@ import { enableTextDiffExpansion } from '../../../lib/feature-flag'
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
 
+// There is no good way to get the actual length of the old/new contents,
+// since we're directly truncating the git output to up to MaxHighlightContentLength
+// characters. Therefore, when we try to limit diff expansion, we can't know if
+// a file is exactly MaxHighlightContentLength characters long or longer, so
+// we'll look for exactly that amount of characters minus 1.
+const MaxDiffExpansionNewContentLength = MaxHighlightContentLength - 1
+
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 interface ILineFilters {
@@ -31,6 +38,7 @@ interface IFileContents {
   readonly file: ChangedFile
   readonly oldContents: string | null
   readonly newContents: string | null
+  readonly canBeExpanded: boolean
 }
 
 interface IFileTokens {
@@ -129,6 +137,9 @@ export async function getFileContents(
     file,
     oldContents: oldContents === null ? null : oldContents.toString('utf8'),
     newContents: newContents === null ? null : newContents.toString('utf8'),
+    canBeExpanded:
+      newContents !== null &&
+      newContents.length <= MaxDiffExpansionNewContentLength,
   }
 }
 
