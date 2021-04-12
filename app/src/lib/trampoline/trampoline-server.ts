@@ -185,7 +185,7 @@ export class TrampolineServer {
   }
 
   private onClientError = (error: Error) => {
-    sendNonFatalException('trampolineClient', error)
+    console.error('Trampoline client error', error)
   }
 }
 
