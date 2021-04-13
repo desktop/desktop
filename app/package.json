@@ -38,7 +38,7 @@
     "fs-admin": "^0.15.0",
     "fs-extra": "^9.0.1",
     "fuzzaldrin-plus": "^0.6.0",
-    "keytar": "^7.2.0",
+    "keytar": "dennisameling/node-keytar#switch-to-napi",
     "mem": "^4.3.0",
     "memoize-one": "^4.0.3",
     "moment": "^2.24.0",
