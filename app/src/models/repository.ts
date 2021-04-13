@@ -51,6 +51,7 @@ export class Repository {
     public readonly id: number,
     public readonly gitHubRepository: GitHubRepository | null,
     public readonly missing: boolean,
+    public readonly alias: string | null = null,
     public readonly workflowPreferences: WorkflowPreferences = {},
     /**
      * True if the repository is a tutorial repository created as part of the

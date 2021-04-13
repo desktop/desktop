@@ -30,6 +30,9 @@ interface IRepositoryListItemProps {
   /** Called when the repository should be opened in an external editor */
   readonly onOpenInExternalEditor: (repository: Repositoryish) => void
 
+  /** Called when the repository alias should be changed */
+  readonly onChangeRepositoryAlias: (repository: Repository) => void
+
   /** The current external editor selected by the user */
   readonly externalEditorLabel?: string
 
@@ -70,6 +73,9 @@ export class RepositoryListItem extends React.Component<
       prefix = `${gitHubRepo.owner.login}/`
     }
 
+    const alias: string | null =
+      repository instanceof Repository ? repository.alias : null
+
     return (
       <div
         onContextMenu={this.onContextMenu}
@@ -80,19 +86,44 @@ export class RepositoryListItem extends React.Component<
           className="icon-for-repository"
           symbol={iconForRepository(repository)}
         />
-        <div className="name">
-          {prefix ? <span className="prefix">{prefix}</span> : null}
-          <HighlightText
-            text={repository.name}
-            highlight={this.props.matches.title}
-          />
-        </div>
+
+        {this.renderRepositoryTitle(repository, alias, prefix)}
 
         {repository instanceof Repository &&
           renderRepoIndicators({
             aheadBehind: this.props.aheadBehind,
             hasChanges: hasChanges,
           })}
+      </div>
+    )
+  }
+
+  private renderRepositoryTitle(
+    repository: Repositoryish,
+    alias: string | null,
+    prefix: string | null
+  ) {
+    if (alias !== null) {
+      return (
+        <div className="alias">
+          <HighlightText text={alias} highlight={this.props.matches.title} />
+          <span className="originalName">
+            {prefix ? <span className="prefix">{prefix}</span> : null}
+            <HighlightText
+              text={repository.name}
+              highlight={this.props.matches.title}
+            />
+          </span>
+        </div>
+      )
+    }
+    return (
+      <div className="name">
+        {prefix ? <span className="prefix">{prefix}</span> : null}
+        <HighlightText
+          text={repository.name}
+          highlight={this.props.matches.title}
+        />
       </div>
     )
   }
@@ -120,7 +151,7 @@ export class RepositoryListItem extends React.Component<
       ? `Open in ${this.props.externalEditorLabel}`
       : DefaultEditorLabel
 
-    const items: ReadonlyArray<IMenuItem> = [
+    const items: Array<IMenuItem> = [
       {
         label: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
@@ -144,6 +175,16 @@ export class RepositoryListItem extends React.Component<
         action: this.removeRepository,
       },
     ]
+
+    // If this is not a cloning repository, insert at the beginning an item to
+    // change the repository alias.
+    if (this.props.repository instanceof Repository) {
+      items.splice(0, 0, {
+        label: __DARWIN__ ? 'Change Alias' : 'Change alias…',
+        action: this.changeAlias,
+      })
+    }
+
     showContextualMenu(items)
   }
 
@@ -161,6 +202,12 @@ export class RepositoryListItem extends React.Component<
 
   private openInExternalEditor = () => {
     this.props.onOpenInExternalEditor(this.props.repository)
+  }
+
+  private changeAlias = () => {
+    if (this.props.repository instanceof Repository) {
+      this.props.onChangeRepositoryAlias(this.props.repository)
+    }
   }
 }
 
