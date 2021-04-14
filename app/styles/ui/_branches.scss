@@ -23,6 +23,7 @@
     }
 
     &.new-branch-drop {
+      margin-top: var(--spacing-half);
       height: 30px;
       flex-grow: revert;
     }
