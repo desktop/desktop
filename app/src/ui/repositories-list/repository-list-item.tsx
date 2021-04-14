@@ -68,13 +68,13 @@ export class RepositoryListItem extends React.Component<
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
 
-    let prefix: string | null = null
-    if (this.props.needsDisambiguation && gitHubRepo) {
-      prefix = `${gitHubRepo.owner.login}/`
-    }
-
     const alias: string | null =
       repository instanceof Repository ? repository.alias : null
+
+    let prefix: string | null = null
+    if (this.props.needsDisambiguation && gitHubRepo && alias === null) {
+      prefix = `${gitHubRepo.owner.login}/`
+    }
 
     return (
       <div
@@ -87,43 +87,19 @@ export class RepositoryListItem extends React.Component<
           symbol={iconForRepository(repository)}
         />
 
-        {this.renderRepositoryTitle(repository, alias, prefix)}
+        <div className="name">
+          {prefix ? <span className="prefix">{prefix}</span> : null}
+          <HighlightText
+            text={alias ?? repository.name}
+            highlight={this.props.matches.title}
+          />
+        </div>
 
         {repository instanceof Repository &&
           renderRepoIndicators({
             aheadBehind: this.props.aheadBehind,
             hasChanges: hasChanges,
           })}
-      </div>
-    )
-  }
-
-  private renderRepositoryTitle(
-    repository: Repositoryish,
-    alias: string | null,
-    prefix: string | null
-  ) {
-    if (alias !== null) {
-      return (
-        <div className="alias">
-          <HighlightText text={alias} highlight={this.props.matches.title} />
-          <span className="originalName">
-            {prefix ? <span className="prefix">{prefix}</span> : null}
-            <HighlightText
-              text={repository.name}
-              highlight={this.props.matches.title}
-            />
-          </span>
-        </div>
-      )
-    }
-    return (
-      <div className="name">
-        {prefix ? <span className="prefix">{prefix}</span> : null}
-        <HighlightText
-          text={repository.name}
-          highlight={this.props.matches.title}
-        />
       </div>
     )
   }
@@ -179,8 +155,10 @@ export class RepositoryListItem extends React.Component<
     // If this is not a cloning repository, insert at the beginning an item to
     // change the repository alias.
     if (this.props.repository instanceof Repository) {
+      const verb = this.props.repository.alias == null ? 'Create' : 'Change'
+
       items.splice(0, 0, {
-        label: __DARWIN__ ? 'Change Alias' : 'Change alias…',
+        label: __DARWIN__ ? `${verb} Alias` : `${verb} alias`,
         action: this.changeAlias,
       })
     }

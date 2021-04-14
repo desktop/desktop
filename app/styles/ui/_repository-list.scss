@@ -45,29 +45,11 @@
       width: 16px;
     }
 
-    .name,
-    .alias {
+    .name {
       // Long repository names truncate and ellipse
       @include ellipsis;
 
       .prefix {
-        color: var(--text-secondary-color);
-      }
-
-      &.alias {
-        display: flex;
-        // flex: auto;
-        width: 100%;
-        justify-content: space-between;
-        // flex-direction: row;
-        // flex-grow: 1;
-      }
-
-      // :not(.originalName) {
-      //   flex-grow: 1;
-      // }
-
-      .originalName {
         color: var(--text-secondary-color);
       }
 
