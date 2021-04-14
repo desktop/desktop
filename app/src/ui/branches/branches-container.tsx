@@ -225,6 +225,9 @@ export class BranchesContainer extends React.Component<
     return (
       <div
         className="branches-list-item new-branch-drop"
+        onMouseEnter={this.onMouseEnterNewBranchDrop}
+        onMouseLeave={this.onMouseLeaveNewBranchDrop}
+        onMouseUp={this.onMouseUpNewBranchDrop}
       >
         <Octicon className="icon" symbol={OcticonSymbol.plus} />
         <div className="name" title={label}>
@@ -233,6 +236,28 @@ export class BranchesContainer extends React.Component<
       </div>
     )
   }
+
+  private onMouseUpNewBranchDrop = () => {
+    if (!this.props.isCherryPickInProgress) {
+      return
+    }
+
+    this.props.dispatcher.setCherryPickCreateBranchFlowStep(
+      this.props.repository,
+      ''
+    )
+  }
+
+  private onMouseEnterNewBranchDrop = () => {
+    // This is just used for displaying on windows drag ghost.
+    // Thus, it doesn't have to be an actual branch name.
+    this.props.onDragEnterBranch('Create new branch')
+  }
+
+  private onMouseLeaveNewBranchDrop = () => {
+    this.props.onDragLeaveBranch()
+  }
+
   private renderPullRequests() {
     const repository = this.props.repository
     if (!isRepositoryWithGitHubRepository(repository)) {
