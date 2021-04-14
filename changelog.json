@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.7.3-beta2": [
+      "[Fixed] Disable diff expansion for big files - #11988",
+      "[Fixed] Expanding diffs now works as expected in unified view - #11972",
+      "[Improved] Show an alert when the app fails to move itself to the Applications folder on macOS - #11958",
+      "[Improved] Use a save dialog when choosing where to clone a repo - #11949. Thanks @j-f1!"
+    ],
     "2.7.3-beta1": [
       "[New] Expand diffs to get more context about your changes - #11965",
       "[New] Preliminary support for Windows ARM64 - #9034. Thanks @dennisameling!",
