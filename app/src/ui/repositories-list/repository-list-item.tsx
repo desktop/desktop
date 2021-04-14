@@ -11,6 +11,7 @@ import {
   RevealInFileManagerLabel,
   DefaultEditorLabel,
 } from '../lib/context-menu'
+import { enableRepositoryAliases } from '../../lib/feature-flag'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -162,7 +163,7 @@ export class RepositoryListItem extends React.Component<
   private buildAliasMenuItems(): ReadonlyArray<IMenuItem> {
     const repository = this.props.repository
 
-    if (!(repository instanceof Repository)) {
+    if (!(repository instanceof Repository) || !enableRepositoryAliases()) {
       return []
     }
 

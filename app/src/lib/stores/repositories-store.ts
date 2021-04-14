@@ -22,6 +22,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
+import { enableRepositoryAliases } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -132,7 +133,7 @@ export class RepositoriesStore extends TypedBaseStore<
         ? await this.findGitHubRepositoryByID(repo.gitHubRepositoryID)
         : await Promise.resolve(null), // Dexie gets confused if we return null
       repo.missing,
-      repo.alias,
+      enableRepositoryAliases() ? repo.alias : null,
       repo.workflowPreferences,
       repo.isTutorialRepository
     )

@@ -175,3 +175,8 @@ export function enableUpdateFromRosettaToARM64(): boolean {
 export function enableSaveDialogOnCloneRepository(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we allow setting repository aliases? */
+export function enableRepositoryAliases(): boolean {
+  return enableBetaFeatures()
+}
