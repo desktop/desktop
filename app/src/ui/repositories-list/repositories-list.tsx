@@ -139,6 +139,7 @@ export class RepositoriesList extends React.Component<
         onOpenInShell={this.props.onOpenInShell}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangeRepositoryAlias={this.onChangeRepositoryAlias}
+        onRemoveRepositoryAlias={this.onRemoveRepositoryAlias}
         externalEditorLabel={this.props.externalEditorLabel}
         shellLabel={this.props.shellLabel}
         matches={matches}
@@ -327,5 +328,9 @@ export class RepositoriesList extends React.Component<
       type: PopupType.ChangeRepositoryAlias,
       repository,
     })
+  }
+
+  private onRemoveRepositoryAlias = (repository: Repository) => {
+    this.props.dispatcher.changeRepositoryAlias(repository, null)
   }
 }

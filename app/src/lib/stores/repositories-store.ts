@@ -278,7 +278,7 @@ export class RepositoriesStore extends TypedBaseStore<
    */
   public async updateRepositoryAlias(
     repository: Repository,
-    alias: string
+    alias: string | null
   ): Promise<void> {
     await this.db.repositories.update(repository.id, { alias })
 
