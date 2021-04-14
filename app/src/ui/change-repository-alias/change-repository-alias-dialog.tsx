@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Dispatcher } from '../dispatcher'
-import { Repository } from '../../models/repository'
+import { nameOf, Repository } from '../../models/repository'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { TextBox } from '../lib/text-box'
@@ -27,11 +27,12 @@ export class ChangeRepositoryAlias extends React.Component<
   }
 
   public render() {
-    const verb = this.props.repository.alias === null ? 'Create' : 'Change'
+    const repository = this.props.repository
+    const verb = repository.alias === null ? 'Create' : 'Change'
 
     return (
       <Dialog
-        id="rename-branch"
+        id="change-repository-alias"
         title={
           __DARWIN__ ? `${verb} Repository Alias` : `${verb} repository alias`
         }
@@ -39,11 +40,18 @@ export class ChangeRepositoryAlias extends React.Component<
         onSubmit={this.changeAlias}
       >
         <DialogContent>
-          <TextBox
-            label="Name"
-            value={this.state.newAlias}
-            onValueChanged={this.onNameChanged}
-          />
+          <p>Choose a new alias for the repository "{nameOf(repository)}". </p>
+          <p>
+            <TextBox
+              value={this.state.newAlias}
+              onValueChanged={this.onNameChanged}
+            />
+          </p>
+          {repository.gitHubRepository !== null && (
+            <p className="description">
+              This will not affect the original repository name on GitHub.
+            </p>
+          )}
         </DialogContent>
 
         <DialogFooter>
