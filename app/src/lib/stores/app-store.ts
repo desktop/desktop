@@ -1451,6 +1451,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
+    // No need to update the recent repositories if the selected repository is
+    // the same as the old one (this could happen when the alias of the selected
+    // repository is changed).
+    if (previousRepositoryId === currentRepositoryId) {
+      return
+    }
+
     const recentRepositories = getNumberArray(RecentRepositoriesKey).filter(
       el => el !== currentRepositoryId && el !== previousRepositoryId
     )
@@ -3411,7 +3418,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositoryAlias(
     repository: Repository,
-    newAlias: string
+    newAlias: string | null
   ): Promise<void> {
     return this.repositoriesStore.updateRepositoryAlias(repository, newAlias)
   }

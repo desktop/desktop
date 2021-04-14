@@ -68,6 +68,7 @@ export class Repository {
       this.id,
       gitHubRepository?.hash,
       this.missing,
+      this.alias,
       this.workflowPreferences.forkContributionTarget,
       this.isTutorialRepository
     )
