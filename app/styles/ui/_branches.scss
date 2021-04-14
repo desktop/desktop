@@ -21,6 +21,11 @@
     div {
       pointer-events: none;
     }
+
+    &.new-branch-drop {
+      height: 30px;
+      flex-grow: revert;
+    }
   }
 }
 

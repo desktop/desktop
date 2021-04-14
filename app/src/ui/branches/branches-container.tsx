@@ -25,6 +25,7 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -195,6 +196,11 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            hideFilterRow={
+              this.props.isCherryPickInProgress &&
+              dragAndDropManager.isDragInProgress
+            }
+            renderPreList={this.renderPreList}
           />
         )
 
@@ -206,6 +212,27 @@ export class BranchesContainer extends React.Component<
     }
   }
 
+  private renderPreList = () => {
+    if (
+      !this.props.isCherryPickInProgress ||
+      !dragAndDropManager.isDragInProgress
+    ) {
+      return null
+    }
+
+    const label = __DARWIN__ ? 'New Branch' : 'New branch'
+
+    return (
+      <div
+        className="branches-list-item new-branch-drop"
+      >
+        <Octicon className="icon" symbol={OcticonSymbol.plus} />
+        <div className="name" title={label}>
+          {label}
+        </div>
+      </div>
+    )
+  }
   private renderPullRequests() {
     const repository = this.props.repository
     if (!isRepositoryWithGitHubRepository(repository)) {
