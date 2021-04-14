@@ -251,7 +251,7 @@ export class BranchesContainer extends React.Component<
   private onMouseEnterNewBranchDrop = () => {
     // This is just used for displaying on windows drag ghost.
     // Thus, it doesn't have to be an actual branch name.
-    this.props.onDragEnterBranch('Create new branch')
+    this.props.onDragEnterBranch('a new branch')
   }
 
   private onMouseLeaveNewBranchDrop = () => {
