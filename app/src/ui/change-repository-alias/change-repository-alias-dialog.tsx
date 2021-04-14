@@ -27,11 +27,13 @@ export class ChangeRepositoryAlias extends React.Component<
   }
 
   public render() {
+    const verb = this.props.repository.alias === null ? 'Create' : 'Change'
+
     return (
       <Dialog
         id="rename-branch"
         title={
-          __DARWIN__ ? 'Change Repository Alias' : 'Change repository alias'
+          __DARWIN__ ? `${verb} Repository Alias` : `${verb} repository alias`
         }
         onDismissed={this.props.onDismissed}
         onSubmit={this.changeAlias}
@@ -46,7 +48,7 @@ export class ChangeRepositoryAlias extends React.Component<
 
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? `Change Alias` : `Change alias`}
+            okButtonText={__DARWIN__ ? `${verb} Alias` : `${verb} alias`}
             okButtonDisabled={this.state.newAlias.length === 0}
           />
         </DialogFooter>
