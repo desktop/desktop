@@ -74,9 +74,9 @@ export class MoveToApplicationsFolder extends React.Component<
     return (
       <DialogFooter>
         <OkCancelButtonGroup
-          okButtonText={'Move and Restart'}
+          okButtonText="Move and Restart"
           okButtonTitle="This will move GitHub Desktop to the Applications folder in your machine and restart the app."
-          cancelButtonText={__DARWIN__ ? 'Not Now' : 'Not now'}
+          cancelButtonText="Not Now"
           onCancelButtonClick={this.onNotNow}
         />
       </DialogFooter>
