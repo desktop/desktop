@@ -172,6 +172,9 @@ export interface IAppState {
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
 
+  /** Whether we should ask the user to move the app to /Applications */
+  readonly askToMoveToApplicationsFolderSetting: boolean
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 

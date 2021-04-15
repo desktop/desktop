@@ -7,6 +7,7 @@ import {
   OkCancelButtonGroup,
 } from './dialog'
 import { Dispatcher } from './dispatcher'
+import { Checkbox, CheckboxValue } from './lib/checkbox'
 
 interface IMoveToApplicationsFolderProps {
   readonly dispatcher: Dispatcher
@@ -17,14 +18,27 @@ interface IMoveToApplicationsFolderProps {
   readonly onDismissed: () => void
 }
 
+interface IMoveToApplicationsFolderState {
+  readonly askToMoveToApplicationsFolder: boolean
+}
+
 export class MoveToApplicationsFolder extends React.Component<
-  IMoveToApplicationsFolderProps
+  IMoveToApplicationsFolderProps,
+  IMoveToApplicationsFolderState
 > {
+  public constructor(props: IMoveToApplicationsFolderProps) {
+    super(props)
+    this.state = {
+      askToMoveToApplicationsFolder: true,
+    }
+  }
+
   public render() {
     return (
       <Dialog
         title="Move GitHub Desktop to the Applications folder?"
         id="move-to-applications-folder"
+        dismissable={false}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
         type="warning"
@@ -39,6 +53,17 @@ export class MoveToApplicationsFolder extends React.Component<
             Do you want to move GitHub Desktop to the Applications folder now?
             This will also restart the app.
           </p>
+          <div>
+            <Checkbox
+              label="Do not show this message again"
+              value={
+                this.state.askToMoveToApplicationsFolder
+                  ? CheckboxValue.Off
+                  : CheckboxValue.On
+              }
+              onChange={this.onAskToMoveToApplicationsFolderChanged}
+            />
+          </div>
         </DialogContent>
         {this.renderFooter()}
       </Dialog>
@@ -49,11 +74,27 @@ export class MoveToApplicationsFolder extends React.Component<
     return (
       <DialogFooter>
         <OkCancelButtonGroup
-          okButtonText={'Move and Restart'}
+          okButtonText="Move and Restart"
           okButtonTitle="This will move GitHub Desktop to the Applications folder in your machine and restart the app."
-          cancelButtonText="Cancel"
+          cancelButtonText="Not Now"
+          onCancelButtonClick={this.onNotNow}
         />
       </DialogFooter>
+    )
+  }
+
+  private onAskToMoveToApplicationsFolderChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = !event.currentTarget.checked
+
+    this.setState({ askToMoveToApplicationsFolder: value })
+  }
+
+  private onNotNow = () => {
+    this.props.onDismissed()
+    this.props.dispatcher.setAskToMoveToApplicationsFolderSetting(
+      this.state.askToMoveToApplicationsFolder
     )
   }
 

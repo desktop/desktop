@@ -302,9 +302,11 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const defaultStashedFilesWidth: number = 250
 const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 
+const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
+const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
@@ -400,6 +402,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
+  private askToMoveToApplicationsFolderSetting: boolean = askToMoveToApplicationsFolderDefault
   private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
@@ -775,6 +778,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       currentBanner: this.currentBanner,
+      askToMoveToApplicationsFolderSetting: this
+        .askToMoveToApplicationsFolderSetting,
       askForConfirmationOnRepositoryRemoval: this
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
@@ -1703,6 +1708,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stashedFilesWidth = getNumber(
       stashedFilesWidthConfigKey,
       defaultStashedFilesWidth
+    )
+
+    this.askToMoveToApplicationsFolderSetting = getBoolean(
+      askToMoveToApplicationsFolderKey,
+      askToMoveToApplicationsFolderDefault
     )
 
     this.askForConfirmationOnRepositoryRemoval = getBoolean(
@@ -4605,6 +4615,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.statsStore.setOptOut(optOut, userViewedPrompt)
 
     this.emitUpdate()
+  }
+
+  public _setAskToMoveToApplicationsFolderSetting(
+    value: boolean
+  ): Promise<void> {
+    this.askToMoveToApplicationsFolderSetting = value
+
+    setBoolean(askToMoveToApplicationsFolderKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 
   public _setConfirmRepositoryRemovalSetting(
