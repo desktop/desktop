@@ -148,6 +148,9 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Placeholder text for text box. Default is "Filter". */
   readonly placeholderText?: string
+
+  /** If true, we do not render the filter. */
+  readonly hideFilterRow?: boolean
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -254,15 +257,25 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
+  public renderFilterRow() {
+    if (this.props.hideFilterRow === true) {
+      return null
+    }
+
+    return (
+      <Row className="filter-field-row">
+        {this.props.filterTextBox === undefined ? this.renderTextBox() : null}
+        {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
+      </Row>
+    )
+  }
+
   public render() {
     return (
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
-        <Row className="filter-field-row">
-          {this.props.filterTextBox === undefined ? this.renderTextBox() : null}
-          {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
-        </Row>
+        {this.renderFilterRow()}
 
         <div className="filter-list-container">{this.renderContent()}</div>
       </div>

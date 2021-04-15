@@ -2992,7 +2992,9 @@ export class Dispatcher {
     repository: Repository,
     targetBranchName: string
   ): Promise<void> {
-    const { branchesState } = this.repositoryStateManager.get(repository)
+    const { branchesState, cherryPickState } = this.repositoryStateManager.get(
+      repository
+    )
     const { defaultBranch, allBranches, tip } = branchesState
 
     if (tip.kind === TipState.Unknown) {
@@ -3022,7 +3024,26 @@ export class Dispatcher {
       tip,
       targetBranchName,
     }
-    return this.appStore._setCherryPickFlowStep(repository, step)
+
+    await this.appStore._setCherryPickFlowStep(repository, step)
+
+    if (
+      cherryPickState.step == null ||
+      cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
+    ) {
+      // Started from context menu, cherry pick flow popup already open
+      return
+    }
+
+    const sourceBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    // If invoked from drag/drop, we need to show the cherry pick flow popup
+    this.showPopup({
+      type: PopupType.CherryPick,
+      repository,
+      commits: cherryPickState.step.commits,
+      sourceBranch,
+    })
   }
 
   /** Set cherry-pick branch created state */

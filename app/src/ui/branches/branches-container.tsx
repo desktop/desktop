@@ -25,6 +25,7 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -195,6 +196,11 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            hideFilterRow={
+              this.props.isCherryPickInProgress &&
+              dragAndDropManager.isDragInProgress
+            }
+            renderPreList={this.renderPreList}
           />
         )
 
@@ -204,6 +210,52 @@ export class BranchesContainer extends React.Component<
       default:
         return assertNever(tab, `Unknown Branches tab: ${tab}`)
     }
+  }
+
+  private renderPreList = () => {
+    if (
+      !this.props.isCherryPickInProgress ||
+      !dragAndDropManager.isDragInProgress
+    ) {
+      return null
+    }
+
+    const label = __DARWIN__ ? 'New Branch' : 'New branch'
+
+    return (
+      <div
+        className="branches-list-item new-branch-drop"
+        onMouseEnter={this.onMouseEnterNewBranchDrop}
+        onMouseLeave={this.onMouseLeaveNewBranchDrop}
+        onMouseUp={this.onMouseUpNewBranchDrop}
+      >
+        <Octicon className="icon" symbol={OcticonSymbol.plus} />
+        <div className="name" title={label}>
+          {label}
+        </div>
+      </div>
+    )
+  }
+
+  private onMouseUpNewBranchDrop = () => {
+    if (!this.props.isCherryPickInProgress) {
+      return
+    }
+
+    this.props.dispatcher.setCherryPickCreateBranchFlowStep(
+      this.props.repository,
+      ''
+    )
+  }
+
+  private onMouseEnterNewBranchDrop = () => {
+    // This is just used for displaying on windows drag ghost.
+    // Thus, it doesn't have to be an actual branch name.
+    this.props.onDragEnterBranch('a new branch')
+  }
+
+  private onMouseLeaveNewBranchDrop = () => {
+    this.props.onDragLeaveBranch()
   }
 
   private renderPullRequests() {
