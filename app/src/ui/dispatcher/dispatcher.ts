@@ -695,6 +695,14 @@ export class Dispatcher {
     })
   }
 
+  /** Changes the repository alias to a new name. */
+  public changeRepositoryAlias(
+    repository: Repository,
+    newAlias: string | null
+  ): Promise<void> {
+    return this.appStore._changeRepositoryAlias(repository, newAlias)
+  }
+
   /** Rename the branch to a new name. */
   public renameBranch(
     repository: Repository,

@@ -69,6 +69,7 @@ export enum PopupType {
   ConfirmDiscardSelection,
   CherryPick,
   MoveToApplicationsFolder,
+  ChangeRepositoryAlias,
 }
 
 export type Popup =
@@ -276,3 +277,4 @@ export type Popup =
       sourceBranch: Branch | null
     }
   | { type: PopupType.MoveToApplicationsFolder }
+  | { type: PopupType.ChangeRepositoryAlias; repository: Repository }

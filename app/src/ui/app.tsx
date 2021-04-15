@@ -135,6 +135,7 @@ import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
 import classNames from 'classnames'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
+import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2048,6 +2049,15 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ChangeRepositoryAlias: {
+        return (
+          <ChangeRepositoryAlias
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2367,8 +2377,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     let icon: OcticonSymbol
     let title: string
     if (repository) {
+      const alias = repository instanceof Repository ? repository.alias : null
       icon = iconForRepository(repository)
-      title = repository.name
+      title = alias ?? repository.name
     } else if (this.state.repositories.length > 0) {
       icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'

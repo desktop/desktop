@@ -375,7 +375,8 @@ dialog {
     width: 400px;
   }
 
-  &#confirm-remove-repository {
+  &#confirm-remove-repository,
+  &#change-repository-alias {
     width: 450px;
 
     .description {

@@ -11,6 +11,7 @@ import {
   RevealInFileManagerLabel,
   DefaultEditorLabel,
 } from '../lib/context-menu'
+import { enableRepositoryAliases } from '../../lib/feature-flag'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -29,6 +30,12 @@ interface IRepositoryListItemProps {
 
   /** Called when the repository should be opened in an external editor */
   readonly onOpenInExternalEditor: (repository: Repositoryish) => void
+
+  /** Called when the repository alias should be changed */
+  readonly onChangeRepositoryAlias: (repository: Repository) => void
+
+  /** Called when the repository alias should be removed */
+  readonly onRemoveRepositoryAlias: (repository: Repository) => void
 
   /** The current external editor selected by the user */
   readonly externalEditorLabel?: string
@@ -65,6 +72,9 @@ export class RepositoryListItem extends React.Component<
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
 
+    const alias: string | null =
+      repository instanceof Repository ? repository.alias : null
+
     let prefix: string | null = null
     if (this.props.needsDisambiguation && gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
@@ -80,10 +90,11 @@ export class RepositoryListItem extends React.Component<
           className="icon-for-repository"
           symbol={iconForRepository(repository)}
         />
+
         <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
-            text={repository.name}
+            text={alias ?? repository.name}
             highlight={this.props.matches.title}
           />
         </div>
@@ -121,6 +132,7 @@ export class RepositoryListItem extends React.Component<
       : DefaultEditorLabel
 
     const items: ReadonlyArray<IMenuItem> = [
+      ...this.buildAliasMenuItems(),
       {
         label: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
@@ -144,7 +156,35 @@ export class RepositoryListItem extends React.Component<
         action: this.removeRepository,
       },
     ]
+
     showContextualMenu(items)
+  }
+
+  private buildAliasMenuItems(): ReadonlyArray<IMenuItem> {
+    const repository = this.props.repository
+
+    if (!(repository instanceof Repository) || !enableRepositoryAliases()) {
+      return []
+    }
+
+    const verb = repository.alias == null ? 'Create' : 'Change'
+    const items: Array<IMenuItem> = [
+      {
+        label: __DARWIN__ ? `${verb} Alias` : `${verb} alias`,
+        action: this.changeAlias,
+      },
+    ]
+
+    if (repository.alias !== null) {
+      items.push({
+        label: __DARWIN__ ? 'Remove Alias' : 'Remove alias',
+        action: this.removeAlias,
+      })
+    }
+
+    items.push({ type: 'separator' })
+
+    return items
   }
 
   private removeRepository = () => {
@@ -161,6 +201,18 @@ export class RepositoryListItem extends React.Component<
 
   private openInExternalEditor = () => {
     this.props.onOpenInExternalEditor(this.props.repository)
+  }
+
+  private changeAlias = () => {
+    if (this.props.repository instanceof Repository) {
+      this.props.onChangeRepositoryAlias(this.props.repository)
+    }
+  }
+
+  private removeAlias = () => {
+    if (this.props.repository instanceof Repository) {
+      this.props.onRemoveRepositoryAlias(this.props.repository)
+    }
   }
 }
 

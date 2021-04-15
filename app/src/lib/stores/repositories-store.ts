@@ -22,6 +22,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
+import { enableRepositoryAliases } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -132,6 +133,7 @@ export class RepositoriesStore extends TypedBaseStore<
         ? await this.findGitHubRepositoryByID(repo.gitHubRepositoryID)
         : await Promise.resolve(null), // Dexie gets confused if we return null
       repo.missing,
+      enableRepositoryAliases() ? repo.alias : null,
       repo.workflowPreferences,
       repo.isTutorialRepository
     )
@@ -194,6 +196,7 @@ export class RepositoriesStore extends TypedBaseStore<
         return await this.db.repositories.put({
           ...(existingRepo?.id !== undefined && { id: existingRepo.id }),
           path,
+          alias: null,
           gitHubRepositoryID: ghRepo.dbID,
           missing: false,
           lastStashCheckDate: null,
@@ -228,6 +231,7 @@ export class RepositoriesStore extends TypedBaseStore<
           gitHubRepositoryID: null,
           missing: false,
           lastStashCheckDate: null,
+          alias: null,
         }
         const id = await this.db.repositories.add(dbRepo)
         return this.toRepository({ id, ...dbRepo })
@@ -261,9 +265,25 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       missing,
+      repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository
     )
+  }
+
+  /**
+   * Update the alias for the specified repository.
+   *
+   * @param repository  The repository to update.
+   * @param alias       The new alias to use.
+   */
+  public async updateRepositoryAlias(
+    repository: Repository,
+    alias: string | null
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, { alias })
+
+    this.emitUpdatedRepositories()
   }
 
   /**
@@ -295,6 +315,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       false,
+      repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository
     )
@@ -421,6 +442,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.id,
       ghRepo,
       repo.missing,
+      repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository
     )
