@@ -1,0 +1,27 @@
+{
+  "extends": [
+    "stylelint-config-twbs-bootstrap/scss"
+  ],
+  "rules": {
+    "at-rule-no-vendor-prefix": null,
+    "declaration-no-important": null,
+    "order/properties-order": null,
+    "property-no-vendor-prefix": null,
+    "scss/at-mixin-argumentless-call-parentheses": null,
+    "selector-class-pattern": null,
+    "selector-max-class": null,
+    "selector-max-combinators": null,
+    "selector-max-compound-selectors": null,
+    "selector-max-id": null,
+    "selector-max-specificity": null,
+    "selector-max-type": null,
+    "selector-no-qualifying-type": null,
+    "selector-no-vendor-prefix": null,
+    "custom-property-empty-line-before": null,
+    "color-hex-length": null,
+    "color-named": null,
+    "font-weight-notation": null,
+    "string-quotes": "single",
+    "value-no-vendor-prefix": null
+  }
+}
