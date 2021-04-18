@@ -13,10 +13,6 @@
 //
 // Credit: https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
 
-html {
-  box-sizing: border-box;
-}
-
 *,
 *::before,
 *::after {
@@ -39,6 +35,8 @@ body {
 }
 
 html {
+  box-sizing: border-box;
+
   // Sets a specific default `font-size` for user with `rem` type scales.
   font-size: var(--font-size);
 
@@ -97,7 +95,7 @@ h4,
 h5,
 h6 {
   margin-top: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: .5rem;
 }
 
 // Regardless of platform behavior we never want buttons to be

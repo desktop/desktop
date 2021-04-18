@@ -52,7 +52,7 @@ dialog {
   &.modal {
     &-enter {
       opacity: 1;
-      transform: scale(0.75);
+      transform: scale(.75);
       pointer-events: none;
 
       &::backdrop {
@@ -82,12 +82,12 @@ dialog {
     }
 
     &-exit-active {
-      opacity: 0.01;
-      transform: scale(0.25);
+      opacity: .01;
+      transform: scale(.25);
       transition: opacity 100ms ease-in, transform 100ms var(--easing-ease-in-back);
 
       &::backdrop {
-        opacity: 0.01;
+        opacity: .01;
         transition: opacity 100ms ease-in;
       }
     }
@@ -101,7 +101,7 @@ dialog {
   // The dialog embeds a fieldset as the first child of the form element
   // in order to be able to disable all form elements and buttons in one
   // swoop. This resets all styles for that fieldset.
-  & > form > fieldset {
+  > form > fieldset {
     border: 0;
     margin: 0;
     padding: 0;
@@ -196,6 +196,7 @@ dialog {
         left: 0;
         height: 24px;
         width: 24px;
+        mask-repeat: no-repeat;
         -webkit-mask-repeat: no-repeat;
       }
     }
@@ -204,6 +205,7 @@ dialog {
   &.warning {
     .dialog-content::before {
       background-color: var(--dialog-warning-color);
+      mask: var(--dialog-icon-alert);
       -webkit-mask: var(--dialog-icon-alert);
     }
   }
@@ -211,6 +213,7 @@ dialog {
   &.error {
     .dialog-content::before {
       background-color: var(--dialog-error-color);
+      mask: var(--dialog-icon-stop);
       -webkit-mask: var(--dialog-icon-stop);
     }
   }

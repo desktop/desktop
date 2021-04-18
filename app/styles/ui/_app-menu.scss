@@ -68,7 +68,7 @@
     min-width: 0;
 
     &.disabled {
-      opacity: 0.3;
+      opacity: .3;
     }
 
     .label {
@@ -80,7 +80,7 @@
 
     .submenu-arrow {
       flex-shrink: 0;
-      opacity: 0.7;
+      opacity: .7;
       // TODO: Draw a custom path here instead of resizing the existing arrow
       height: 12px;
       margin-right: var(--spacing);

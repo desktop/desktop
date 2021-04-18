@@ -12,7 +12,7 @@ fieldset.vertical-segmented-control {
 
   legend {
     margin-bottom: var(--spacing-third);
-    padding: 0 0 5px 0;
+    padding: 0 0 5px;
     @include ellipsis;
   }
 
@@ -53,7 +53,7 @@ fieldset.vertical-segmented-control {
         // should have its top border be the same color as the background
         // of the selected one. This makes for crisp division between
         // selected and non-selected without a gray border to interfere.
-        & + li {
+        + li {
           border-top-color: var(--box-selected-active-background-color);
         }
       }

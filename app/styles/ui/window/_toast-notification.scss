@@ -34,8 +34,8 @@
 
 .toast-animation {
   &-appear {
-    transform: scale(0.25);
-    opacity: 0.1;
+    transform: scale(.25);
+    opacity: .1;
   }
   &-appear-active {
     transform: scale(1);

@@ -25,17 +25,15 @@
     &-item {
       padding: 0 var(--spacing-double);
 
-      .name {
-        @include ellipsis;
-      }
-    }
-
-    &-item {
       display: flex;
       flex-direction: row;
       min-width: 0;
       flex-grow: 1;
       align-items: center;
+
+      .name {
+        @include ellipsis;
+      }
 
       .icon {
         fill: var(--text-secondary-color);

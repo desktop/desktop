@@ -26,14 +26,8 @@
     flex-direction: row;
     flex-shrink: 0;
 
-    & > :last-child {
+    > :last-child {
       flex-grow: 1;
-    }
-  }
-
-  .toolbar-button {
-    &.push-pull-button {
-      width: 230px;
     }
   }
 
@@ -44,6 +38,9 @@
   }
 
   .toolbar-button {
+    &.push-pull-button {
+      width: 230px;
+    }
     &.revert-progress {
       width: 230px;
     }

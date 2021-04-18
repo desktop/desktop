@@ -16,7 +16,7 @@
   // explicitly use > here to only target the direct descendant button since
   // there might be buttons in foldouts which would otherwise be affected
   // as well.
-  & > button {
+  > button {
     // Reset styles from global buttons
     -webkit-appearance: none;
     border: none;
@@ -24,8 +24,6 @@
     background: transparent;
     border-radius: 0;
     text-align: left;
-    margin: 0;
-    padding: 0;
 
     &:active {
       box-shadow: none;
@@ -73,9 +71,7 @@
 
     height: 100%;
     width: 100%;
-  }
 
-  & > button {
     position: relative;
 
     display: flex;
@@ -129,14 +125,14 @@
 
     .progress {
       position: absolute;
-      top: 0px;
-      left: 0px;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       background: var(--toolbar-button-progress-color);
       transform-origin: left;
       pointer-events: none;
-      transition: transform 0.3s var(--easing-ease-out-quint);
+      transition: transform .3s var(--easing-ease-out-quint);
     }
   }
 

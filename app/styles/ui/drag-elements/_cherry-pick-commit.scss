@@ -7,7 +7,7 @@
   padding: 0;
 
   .commit-box {
-    box-shadow: 2px 1px 1px 0px var(--box-border-color);
+    box-shadow: 2px 1px 1px 0 var(--box-border-color);
     border-top: 1px solid var(--box-border-color);
     border-left: 1px solid var(--box-border-color);
     width: 100%;
@@ -42,7 +42,7 @@
   .copy-message-label {
     position: absolute;
     bottom: -35px;
-    left: 0px;
+    left: 0;
     background-color: var(--background-color);
     border: 1px solid var(--box-border-color);
     color: var(--link-button-color);

@@ -30,7 +30,7 @@
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: .6;
   }
 
   .octicon {
@@ -73,7 +73,7 @@
   }
 
   &[disabled] {
-    opacity: 0.6;
+    opacity: .6;
     cursor: default;
     text-decoration: none;
   }
@@ -114,9 +114,7 @@
       border-left-width: 0;
     }
   }
-}
 
-.button-group-item {
   &:focus,
   &:active {
     z-index: 1;

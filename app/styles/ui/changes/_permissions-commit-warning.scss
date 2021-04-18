@@ -37,13 +37,12 @@
       z-index: 1;
     }
 
-    &:after {
+    &::after {
       display: block;
       border-bottom: var(--base-border);
       content: '';
       position: absolute;
       z-index: 0;
-      display: block;
       width: 100%;
       top: var(--spacing);
     }

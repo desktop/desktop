@@ -11,7 +11,7 @@
   top: 0;
   left: 0;
 
-  & > div {
+  > div {
     padding: var(--spacing);
     min-width: 100px;
     background: var(--toast-notification-background-color);
@@ -28,7 +28,7 @@
 
   .zoom-in {
     &-appear {
-      transform: scale(0.25);
+      transform: scale(.25);
       opacity: 0;
     }
   }

@@ -59,7 +59,7 @@
 
   background-color: var(--background-color);
 
-  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 8px rgba(0, 0, 0, .3);
 
   .list-item,
   li {
@@ -78,8 +78,8 @@
       background-color: var(--box-selected-active-background-color);
       border-top-color: var(--box-selected-active-background-color);
 
-      & + .list-item,
-      & + .CodeMirror-hint-active {
+      + .list-item,
+      + .CodeMirror-hint-active {
         border-top-color: var(--box-selected-active-background-color);
       }
     }
@@ -95,6 +95,7 @@
   /* Used to highlight substring matches in autocompletion texts */
   mark {
     font-weight: bold;
+
     /* Reset browser defaults */
     background-color: inherit;
     color: currentColor;

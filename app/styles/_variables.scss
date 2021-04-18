@@ -3,13 +3,13 @@
 // This files contains CSS variables accessible to all selectors
 
 // Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
-@import '~primer-support/lib/variables/color-system.scss';
+@import '~primer-support/lib/variables/color-system';
 
 // Extracted as a SCSS variable so that we can define the --overlay-background-color
 // on both the :root and the ::backdrop scope. The ::backdrop pseudo-element
 // doesn't inherit :root, see
 // https://bugs.chromium.org/p/chromium/issues/detail?id=594096
-$overlay-background-color: rgba(0, 0, 0, 0.4);
+$overlay-background-color: rgba(0, 0, 0, .4);
 
 :root {
   --color-new: #{$green};
@@ -36,7 +36,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --secondary-button-background: #{$gray-000};
   --secondary-button-hover-background: #{$white};
   --secondary-button-text-color: var(--text-color);
-  --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
+  --secondary-button-focus-shadow-color: #{rgba($gray-200, .75)};
   --secondary-button-focus-border-color: #{$gray-300};
 
   /**
@@ -48,9 +48,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
-  $emoji_fallback_fonts: 'Apple Color Emoji', 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  --font-family-sans-serif: system-ui, sans-serif, #{$emoji_fallback_fonts};
-  --font-family-monospace: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace, #{$emoji_fallback_fonts};
+  $emoji-fallback-fonts: 'Apple Color Emoji', 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-sans-serif: system-ui, sans-serif, #{$emoji-fallback-fonts};
+  --font-family-monospace: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace, #{$emoji-fallback-fonts};
 
   /**
    * Font weight to use for semibold text
@@ -80,7 +80,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    *
    * Note: Only applies to win32 platforms
    */
-  --scroll-bar-thumb-background-color: rgba(0, 0, 0, 0.2);
+  --scroll-bar-thumb-background-color: rgba(0, 0, 0, .2);
 
   /**
    * Background color for custom scroll bars in their active state.
@@ -88,7 +88,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    *
    * Note: Only applies to win32 platforms
    */
-  --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
+  --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, .5);
 
   // Box
   //
@@ -104,7 +104,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for skeleton or "loading" boxes
    */
   --box-skeleton-background-color: #{$gray-200};
-  --skeleton-background-gradient: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
+  --skeleton-background-gradient: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, 0) 100%);
 
   /**
    * Border color for boxes.
@@ -203,7 +203,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --outlined-border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
 
-  --shadow-color: rgba(71, 83, 95, 0.19);
+  --shadow-color: rgba(71, 83, 95, .19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
   --toolbar-height: 50px;
@@ -293,6 +293,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --foldout-z-index: calc(var(--popup-z-index) - 2);
   --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
   --drag-overlay-z-index: calc(var(--popup-z-index) - 3);
+
   /**
    * This is 7 to make sure it appears on top code mirror
    * but behind popups, overlays, and foldouts
@@ -305,9 +306,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * window mode.
    */
   --toast-notification-color: #{$gray-000};
-  --toast-notification-background-color: #{rgba($gray-900, 0.6)};
+  --toast-notification-background-color: #{rgba($gray-900, .6)};
 
-  --tip-box-background-color: #{rgba($blue-500, 0.06)};
+  --tip-box-background-color: #{rgba($blue-500, .06)};
   --tip-box-border-color: #{$blue-200};
 
   /** The highlight color used for focus rings and focus box shadows */
@@ -323,7 +324,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Variables for form elements
    */
   --text-field-height: 25px;
-  --text-field-focus-shadow-color: #{rgba($blue, 0.25)};
+  --text-field-focus-shadow-color: #{rgba($blue, .25)};
 
   /**
    * Blankslate actions, see `BlankslateAction` component.
@@ -425,13 +426,13 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --path-segment-padding: var(--spacing-third);
 
   // http://easings.net/#easeOutBack
-  --easing-ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --easing-ease-out-back: cubic-bezier(.175, .885, .32, 1.275);
 
   // http://easings.net/#easeInBack
-  --easing-ease-in-back: cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  --easing-ease-in-back: cubic-bezier(.6, -.28, .735, .045);
 
   // http://easings.net/#easeOutQuint
-  --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --easing-ease-out-quint: cubic-bezier(.23, 1, .32, 1);
 
   /** rebase progress bar */
   --dialog-progress-background: #{$green};

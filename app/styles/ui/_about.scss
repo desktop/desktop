@@ -19,10 +19,10 @@ dialog#about {
     .version-text {
       cursor: pointer;
       .octicon {
-        color: transparentize(black, 0.5);
+        color: transparentize(black, .5);
         height: 12px;
         margin-bottom: -1px;
-        transition: color 0.4s;
+        transition: color .4s;
         cursor: pointer;
       }
       &:hover .octicon {

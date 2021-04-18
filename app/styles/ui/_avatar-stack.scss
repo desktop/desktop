@@ -77,7 +77,7 @@
     background-color: inherit;
     box-shadow: 1px 0 0 var(--background-color);
     border-radius: 50%;
-    transition: margin 0.1s ease-in-out;
+    transition: margin .1s ease-in-out;
 
     &:first-child {
       z-index: 3;

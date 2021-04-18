@@ -78,13 +78,13 @@
     .description-field.with-overflow {
       position: relative;
 
-      &:after {
+      &::after {
         content: '';
         position: absolute;
         width: 100%;
-        bottom: 0px;
+        bottom: 0;
         height: 5px;
-        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .1) 100%);
         border-bottom: var(--base-border);
       }
     }
@@ -139,7 +139,7 @@
       width: 18px;
       cursor: pointer;
 
-      &:after {
+      &::after {
         content: attr(aria-label);
         position: absolute;
         margin-left: 3px;
@@ -156,7 +156,7 @@
       }
 
       &:hover {
-        &:after {
+        &::after {
           opacity: 1;
         }
       }

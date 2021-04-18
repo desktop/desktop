@@ -104,7 +104,6 @@
     span {
       width: 100%;
       height: 100%;
-      padding: 0 var(--spacing-half);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -146,7 +145,7 @@
       user-select: text;
     }
 
-    &:before {
+    &::before {
       content: ' ';
       padding-right: var(--spacing);
     }
@@ -237,14 +236,14 @@
 
     &.added,
     &.modified {
-      .after .content:before {
+      .after .content::before {
         content: '+';
       }
     }
 
     &.deleted,
     &.modified {
-      .before .content:before {
+      .before .content::before {
         content: '-';
       }
     }
@@ -339,7 +338,7 @@
   .cm-search-result {
     // match codemirror for now
     // https://github.com/codemirror/CodeMirror/blob/264022ee4af4abca1c158944dc299a8faf8696d6/lib/codemirror.css#L333
-    background-color: rgba(255, 255, 0, 0.4);
+    background-color: rgba(255, 255, 0, .4);
 
     &.cm-selected {
       background: Highlight;

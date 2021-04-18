@@ -28,7 +28,7 @@
       max-height: none;
       overflow: auto;
 
-      &:before {
+      &::before {
         content: none;
       }
     }
@@ -49,12 +49,12 @@
     // we'll add a small shadow towards the bottom to hint that
     // there's more content available.
     &:not(.expanded) {
-      .commit-summary-description:before {
+      .commit-summary-description::before {
         content: '';
         background: var(--box-overflow-shadow-background);
         position: absolute;
         height: 30px;
-        bottom: 0px;
+        bottom: 0;
         width: 100%;
         pointer-events: none;
       }

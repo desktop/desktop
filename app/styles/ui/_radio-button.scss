@@ -2,15 +2,15 @@
   display: flex;
   align-items: center;
 
-  & + .radio-button-component {
+  + .radio-button-component {
     margin-top: var(--spacing-half);
   }
 
-  & > input {
+  > input {
     margin: 0;
   }
 
-  & > label {
+  > label {
     margin: 0;
     margin-left: var(--spacing-half);
   }

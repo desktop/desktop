@@ -25,7 +25,7 @@
     flex-shrink: 0;
     flex-grow: 1;
 
-    & > .content-pane {
+    > .content-pane {
       display: flex;
       flex-direction: column;
       align-self: stretch;

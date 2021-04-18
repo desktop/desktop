@@ -57,7 +57,7 @@
     font-weight: var(--font-weight-semibold);
 
     .summary-text {
-      opacity: 0.5;
+      opacity: .5;
     }
     .hang-right {
       margin-left: auto;
@@ -78,7 +78,7 @@
       @extend %circle;
       background-color: transparent;
       border-color: var(--text-color);
-      opacity: 0.5;
+      opacity: .5;
       color: var(--text-color);
     }
   }

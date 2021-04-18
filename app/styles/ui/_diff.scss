@@ -764,7 +764,7 @@
   // When loading a diff
   &.loading {
     // Get ready to fade out the diff if it takes too long to load it
-    & > * {
+    > * {
       transition: opacity 100ms ease-in;
     }
 
@@ -787,14 +787,14 @@
     // we hit that threshold we...
     &.has-diff.slow {
       // ...fade in the loading indicator...
-      & > .loading-indicator {
+      > .loading-indicator {
         display: block;
         opacity: 1;
       }
 
       // ...and fade everything else out
-      & > :not(.loading-indicator) {
-        opacity: 0.2;
+      > :not(.loading-indicator) {
+        opacity: .2;
       }
     }
   }

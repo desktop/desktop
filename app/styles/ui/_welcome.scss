@@ -14,10 +14,6 @@
     flex-direction: column;
   }
 
-  .actions {
-    display: flex;
-  }
-
   #sign-in-dot-com {
     display: flex;
     flex-direction: column;
@@ -94,6 +90,7 @@
   }
 
   .actions {
+    display: flex;
     margin-top: var(--spacing);
   }
 
@@ -160,14 +157,7 @@
 .welcome-left {
   flex-grow: 1;
   width: 60%;
-}
 
-.welcome-right {
-  flex-grow: 1;
-  width: 40%;
-}
-
-.welcome-left {
   display: flex;
   align-items: center;
   padding: var(--spacing-quad);
@@ -215,6 +205,9 @@
 }
 
 .welcome-right {
+  flex-grow: 1;
+  width: 40%;
+
   background-color: #28373b;
   justify-content: center;
   align-items: center;

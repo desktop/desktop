@@ -4,7 +4,7 @@
 
   margin: var(--spacing-half) 0;
 
-  & > *:not(:last-child) {
+  > *:not(:last-child) {
     margin-bottom: var(--spacing);
   }
 

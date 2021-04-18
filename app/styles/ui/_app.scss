@@ -28,6 +28,7 @@
   }
 }
 
+// stylelint-disable-next-line no-duplicate-selectors
 #desktop-app-contents {
   &.cherry-pick-mouse-over {
     :not(input):not(textarea),

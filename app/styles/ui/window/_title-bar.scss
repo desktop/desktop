@@ -29,8 +29,8 @@
 
   .resize-handle {
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 0;
+    left: 0;
     -webkit-app-region: no-drag;
 
     &.top {
@@ -73,7 +73,7 @@
 
       color: #a0a0a0;
       background-color: transparent;
-      transition: background-color 0.25s ease;
+      transition: background-color .25s ease;
 
       // Explicitly setting the line height to the height
       // of the SVG illustrations helps with vertical alignment.

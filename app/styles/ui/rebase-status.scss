@@ -57,7 +57,7 @@ dialog#rebase {
   }
 
   .rebase-status-icon-container {
-    &:after {
+    &::after {
       border-bottom: 0;
     }
   }

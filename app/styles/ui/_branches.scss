@@ -6,7 +6,7 @@
   flex-direction: column;
   width: 365px;
 
-  & > .tab-bar {
+  > .tab-bar {
     border-top: var(--base-border);
   }
 
@@ -148,9 +148,7 @@
 .branches-list {
   &-item {
     padding: 0 var(--spacing);
-  }
 
-  &-item {
     display: flex;
     flex-direction: row;
     min-width: 0;
@@ -172,6 +170,7 @@
       /* Used to highlight substring matches in filtered lists */
       mark {
         font-weight: bold;
+
         /* Reset browser defaults */
         background-color: inherit;
         color: currentColor;

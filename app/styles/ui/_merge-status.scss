@@ -59,7 +59,7 @@ dialog#merge {
   }
 
   .merge-status-icon-container {
-    &:after {
+    &::after {
       border-bottom: 0;
     }
   }
