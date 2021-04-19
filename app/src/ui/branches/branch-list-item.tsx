@@ -134,7 +134,6 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         onMouseUp={this.onMouseUp}
-        title={name}
       >
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>

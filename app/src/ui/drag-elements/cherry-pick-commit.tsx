@@ -42,15 +42,21 @@ export class CherryPickCommit extends React.Component<
    */
   private renderDragCopyLabel(count: number) {
     const { branchName } = this.state
-    if (branchName === null || __DARWIN__) {
+    if (branchName === null) {
       return
     }
+
+    const copyToPlus = __DARWIN__ ? null : (
+      <Octicon symbol={OcticonSymbol.plus} />
+    )
 
     return (
       <div className="copy-message-label">
         <div>
-          <Octicon symbol={OcticonSymbol.plus} />
-          Copy to <span className="branch-name">{branchName}</span>
+          {copyToPlus}
+          <span>
+            Copy to <span className="branch-name">{branchName}</span>
+          </span>
         </div>
       </div>
     )
