@@ -45,6 +45,12 @@
             cursor: default;
           }
 
+          .branches-list-item {
+            div {
+              pointer-events: none;
+            }
+          }
+
           .list-item:not(.selected) {
             .branches-list-item:hover,
             .pull-request-item:hover {

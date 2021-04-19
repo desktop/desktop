@@ -18,10 +18,6 @@
   .branches-list-item {
     height: 100%;
 
-    div {
-      pointer-events: none;
-    }
-
     &.new-branch-drop {
       margin-top: var(--spacing-half);
       height: 30px;
