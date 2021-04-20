@@ -1,8 +1,8 @@
 {
   "releases": {
     "2.7.3-beta3": [
-      "[New] Add an alias to your repos and name them however you want! - #12000",
-      "[Improved] Create a branch during cherry-picking via drag and drop! - #12001"
+      "[New] Create aliases for repositories you want to be displayed differently in the repository list - #7856",
+      "[Improved] Create a branch during cherry-picking via drag and drop - #12001"
     ],
     "2.7.3-beta2": [
       "[Fixed] Disable diff expansion for big files - #11988",
