@@ -68,12 +68,18 @@ export class RepositoryListItem extends React.Component<
       repository instanceof Repository ? repository.gitHubRepository : null
     const hasChanges = this.props.changedFilesCount > 0
 
-    const repoTooltip = gitHubRepo
-      ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
-      : path
-
     const alias: string | null =
       repository instanceof Repository ? repository.alias : null
+
+    const repoTooltipComponents = gitHubRepo
+      ? [gitHubRepo.fullName, gitHubRepo.htmlURL, path]
+      : [path]
+
+    if (alias !== null) {
+      repoTooltipComponents.unshift(alias)
+    }
+
+    const repoTooltip = repoTooltipComponents.join('\n')
 
     let prefix: string | null = null
     if (this.props.needsDisambiguation && gitHubRepo) {
