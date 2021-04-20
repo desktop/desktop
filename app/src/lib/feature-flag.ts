@@ -58,13 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we allow users to create git tags from the app?
- */
-export function enableGitTagsCreation(): boolean {
-  return true
-}
-
-/**
  * Should we show the dialogs to allow users customize which is the
  * main repository when opening a fork?
  */

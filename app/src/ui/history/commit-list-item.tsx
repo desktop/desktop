@@ -11,10 +11,7 @@ import { CommitAttribution } from '../lib/commit-attribution'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
-import {
-  enableGitTagsCreation,
-  enableCherryPicking,
-} from '../../lib/feature-flag'
+import { enableCherryPicking } from '../../lib/feature-flag'
 import { Draggable } from '../lib/draggable'
 
 interface ICommitProps {
@@ -203,23 +200,21 @@ export class CommitListItem extends React.PureComponent<
       },
     ]
 
-    if (enableGitTagsCreation()) {
-      items.push({
-        label: 'Create Tag…',
-        action: this.onCreateTag,
-        enabled: this.props.onCreateTag !== undefined,
-      })
+    items.push({
+      label: 'Create Tag…',
+      action: this.onCreateTag,
+      enabled: this.props.onCreateTag !== undefined,
+    })
 
-      const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
+    const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
 
-      if (deleteTagsMenuItem !== null) {
-        items.push(
-          {
-            type: 'separator',
-          },
-          deleteTagsMenuItem
-        )
-      }
+    if (deleteTagsMenuItem !== null) {
+      items.push(
+        {
+          type: 'separator',
+        },
+        deleteTagsMenuItem
+      )
     }
 
     if (enableCherryPicking()) {
