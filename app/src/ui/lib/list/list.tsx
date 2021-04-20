@@ -1067,14 +1067,15 @@ export class List extends React.Component<IListProps, IListState> {
           })
         }
       } else if (
-        this.props.selectionMode === 'range' &&
+        (this.props.selectionMode === 'range' ||
+          this.props.selectionMode === 'multi') &&
         this.props.selectedRows.length > 1 &&
         this.props.selectedRows.includes(row)
       ) {
-        // Do nothing. Multiple rows are already selected for a range. We assume
-        // the user is pressing down on multiple and may desire to start
-        // dragging. We will invoke the single selection `onRowMouseUp` if they
-        // let go here and no special keys are being pressed.
+        // Do nothing. Multiple rows are already selected. We assume the user is
+        // pressing down on multiple and may desire to start dragging. We will
+        // invoke the single selection `onRowMouseUp` if they let go here and no
+        // special keys are being pressed.
       } else if (
         this.props.selectedRows.length !== 1 ||
         (this.props.selectedRows.length === 1 &&
@@ -1111,12 +1112,13 @@ export class List extends React.Component<IListProps, IListState> {
       !multiSelectKey &&
       this.props.selectedRows.length > 1 &&
       this.props.selectedRows.includes(row) &&
-      this.props.selectionMode === 'range'
+      (this.props.selectionMode === 'range' ||
+        this.props.selectionMode === 'multi')
     ) {
-      // No special keys are depressed and multiple rows were selected in a
-      // range. The onRowMouseDown event was ignored for this scenario because
-      // the user may desire to started dragging multiple. However, if they let
-      // go, we want a new single selection to occur.
+      // No special keys are depressed and multiple rows were selected. The
+      // onRowMouseDown event was ignored for this scenario because the user may
+      // desire to started dragging multiple. However, if they let go, we want a
+      // new single selection to occur.
       this.selectSingleRowAfterMouseEvent(row, event)
     }
   }
