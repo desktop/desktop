@@ -58,14 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we show the dialogs to allow users customize which is the
- * main repository when opening a fork?
- */
-export function enableForkSettings(): boolean {
-  return true
-}
-
-/**
  * Should we show the discard lines/hunks context menu item?
  */
 export function enableDiscardLines(): boolean {
