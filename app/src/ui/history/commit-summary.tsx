@@ -10,10 +10,7 @@ import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import {
-  enableGitTagsDisplay,
-  enableSideBySideDiffs,
-} from '../../lib/feature-flag'
+import { enableSideBySideDiffs } from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
@@ -402,10 +399,6 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
-    if (!enableGitTagsDisplay()) {
-      return null
-    }
-
     const tags = this.props.commit.tags || []
 
     if (tags.length === 0) {

@@ -12,7 +12,6 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
 import {
-  enableGitTagsDisplay,
   enableGitTagsCreation,
   enableCherryPicking,
 } from '../../lib/feature-flag'
@@ -114,10 +113,7 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private renderCommitIndicators() {
-    const tagIndicator = enableGitTagsDisplay()
-      ? renderCommitListItemTags(this.props.commit.tags)
-      : null
-
+    const tagIndicator = renderCommitListItemTags(this.props.commit.tags)
     const unpushedIndicator = this.renderUnpushedIndicator()
 
     if (tagIndicator || unpushedIndicator) {
