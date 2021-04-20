@@ -5,7 +5,6 @@ import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
-import { enableCreateGitHubIssueFromMenu } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
@@ -328,7 +327,6 @@ export function buildDefaultMenu({
           : 'Create &issue on GitHub',
         accelerator: 'CmdOrCtrl+I',
         click: emit('create-issue-in-repository-on-github'),
-        visible: enableCreateGitHubIssueFromMenu(),
       },
       separator,
       {

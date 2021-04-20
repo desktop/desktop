@@ -58,14 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we show the "Create Issue on GitHub" item under
- * "Repository" in the app menu?
- */
-export function enableCreateGitHubIssueFromMenu(): boolean {
-  return true
-}
-
-/**
  * Should we update remote url if it has changed?
  */
 export function enableUpdateRemoteUrl(): boolean {
