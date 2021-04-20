@@ -71,13 +71,6 @@ export function enableUnhandledRejectionReporting(): boolean {
   return enableBetaFeatures()
 }
 
-/**
- * Should we allow cherry picking
- */
-export function enableCherryPicking(): boolean {
-  return true
-}
-
 /** Should we allow expanding text diffs? */
 export function enableTextDiffExpansion(): boolean {
   return enableBetaFeatures()
