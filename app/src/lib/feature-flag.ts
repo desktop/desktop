@@ -58,13 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we update remote url if it has changed?
- */
-export function enableUpdateRemoteUrl(): boolean {
-  return true
-}
-
-/**
  * Should we show the fork-specific, "branch from the upstream
  * default branch" version of the create branch dialog?
  */
