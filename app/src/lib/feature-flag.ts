@@ -58,15 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we show the checkbox to enable side by side diffs?
- *
- * Note: side by side diffs will use the new diff viewer.
- */
-export function enableSideBySideDiffs(): boolean {
-  return true
-}
-
-/**
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
