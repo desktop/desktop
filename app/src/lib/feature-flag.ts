@@ -58,14 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we show the fork-specific, "branch from the upstream
- * default branch" version of the create branch dialog?
- */
-export function enableForkyCreateBranchUI(): boolean {
-  return true
-}
-
-/**
  * Should we show the git tag information in the app UI?
  */
 export function enableGitTagsDisplay(): boolean {
