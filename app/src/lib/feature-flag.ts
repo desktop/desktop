@@ -65,13 +65,6 @@ export function enableExperimentalDiffViewer(): boolean {
 }
 
 /**
- * Should we allow to change the default branch when creating new repositories?
- */
-export function enableDefaultBranchSetting(): boolean {
-  return true
-}
-
-/**
  * Should we allow reporting unhandled rejections as if they were crashes?
  */
 export function enableUnhandledRejectionReporting(): boolean {

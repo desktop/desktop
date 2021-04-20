@@ -1,5 +1,4 @@
 import { getGlobalConfigValue, setGlobalConfigValue } from '../git'
-import { enableDefaultBranchSetting } from '../feature-flag'
 
 /**
  * The default branch name that GitHub Desktop will use when
@@ -23,10 +22,6 @@ export const SuggestedBranchNames: ReadonlyArray<string> = ['main', 'master']
  * Returns the configured default branch when creating new repositories
  */
 async function getConfiguredDefaultBranch(): Promise<string | null> {
-  if (!enableDefaultBranchSetting()) {
-    return null
-  }
-
   return getGlobalConfigValue(DefaultBranchSettingName)
 }
 
