@@ -58,13 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we show the create fork dialog flow?
- */
-export function enableCreateForkFlow(): boolean {
-  return true
-}
-
-/**
  * Whether or not to enable support for automatically resolving the
  * system-configured proxy url and passing that to Git.
  */
