@@ -58,13 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Should we show the discard lines/hunks context menu item?
- */
-export function enableDiscardLines(): boolean {
-  return true
-}
-
-/**
  * Should we show the checkbox to enable side by side diffs?
  *
  * Note: side by side diffs will use the new diff viewer.
