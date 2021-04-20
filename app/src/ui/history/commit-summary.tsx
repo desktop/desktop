@@ -9,11 +9,6 @@ import { Commit } from '../../models/commit'
 import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import {
-  enableGitTagsDisplay,
-  enableSideBySideDiffs,
-} from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
@@ -155,13 +150,6 @@ export class CommitSummary extends React.Component<
         }
       })
     }
-  }
-
-  private onHideWhitespaceInDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    return this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {
@@ -357,42 +345,23 @@ export class CommitSummary extends React.Component<
             </li>
             {this.renderTags()}
 
-            {enableSideBySideDiffs() || (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title="Hide Whitespace"
-              >
-                <Checkbox
-                  label="Hide Whitespace"
-                  value={
-                    this.props.hideWhitespaceInDiff
-                      ? CheckboxValue.On
-                      : CheckboxValue.Off
-                  }
-                  onChange={this.onHideWhitespaceInDiffChanged}
-                />
-              </li>
-            )}
-
-            {enableSideBySideDiffs() && (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title="Diff Options"
-              >
-                <DiffOptions
-                  sourceTab={RepositorySectionTab.History}
-                  hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                  onHideWhitespaceChangesChanged={
-                    this.props.onHideWhitespaceInDiffChanged
-                  }
-                  showSideBySideDiff={this.props.showSideBySideDiff}
-                  onShowSideBySideDiffChanged={
-                    this.props.onShowSideBySideDiffChanged
-                  }
-                  onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-                />
-              </li>
-            )}
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title="Diff Options"
+            >
+              <DiffOptions
+                sourceTab={RepositorySectionTab.History}
+                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                onHideWhitespaceChangesChanged={
+                  this.props.onHideWhitespaceInDiffChanged
+                }
+                showSideBySideDiff={this.props.showSideBySideDiff}
+                onShowSideBySideDiffChanged={
+                  this.props.onShowSideBySideDiffChanged
+                }
+                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+              />
+            </li>
           </ul>
         </div>
 
@@ -402,10 +371,6 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
-    if (!enableGitTagsDisplay()) {
-      return null
-    }
-
     const tags = this.props.commit.tags || []
 
     if (tags.length === 0) {

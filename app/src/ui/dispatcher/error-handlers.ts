@@ -18,7 +18,6 @@ import {
 } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
-import { enableCreateForkFlow } from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
 import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
 
@@ -533,12 +532,6 @@ export async function insufficientGitHubRepoPermissions(
   error: Error,
   dispatcher: Dispatcher
 ) {
-  // no need to do anything here if we don't want to show
-  // the new `CreateForkDialog` UI
-  if (!enableCreateForkFlow()) {
-    return error
-  }
-
   const e = asErrorWithMetadata(error)
   if (!e) {
     return error

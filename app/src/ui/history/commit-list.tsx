@@ -7,7 +7,6 @@ import { List, SelectionSource } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { Button } from '../lib/button'
-import { enableCherryPicking } from '../../lib/feature-flag'
 import { encodePathAsUrl } from '../../lib/path'
 
 const RowHeight = 50
@@ -257,7 +256,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private renderCherryPickIntroPopover() {
-    if (this.props.hasShownCherryPickIntro || !enableCherryPicking()) {
+    if (this.props.hasShownCherryPickIntro) {
       return null
     }
 
@@ -302,7 +301,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           rowRenderer={this.renderCommit}
           onSelectedRangeChanged={this.onSelectedRangeChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
-          selectionMode={enableCherryPicking() ? 'range' : 'single'}
+          selectionMode="range"
           onScroll={this.onScroll}
           invalidationProps={{
             commits: this.props.commitSHAs,

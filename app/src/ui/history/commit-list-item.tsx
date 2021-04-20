@@ -11,11 +11,6 @@ import { CommitAttribution } from '../lib/commit-attribution'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
-import {
-  enableGitTagsDisplay,
-  enableGitTagsCreation,
-  enableCherryPicking,
-} from '../../lib/feature-flag'
 import { Draggable } from '../lib/draggable'
 
 interface ICommitProps {
@@ -114,10 +109,7 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private renderCommitIndicators() {
-    const tagIndicator = enableGitTagsDisplay()
-      ? renderCommitListItemTags(this.props.commit.tags)
-      : null
-
+    const tagIndicator = renderCommitListItemTags(this.props.commit.tags)
     const unpushedIndicator = this.renderUnpushedIndicator()
 
     if (tagIndicator || unpushedIndicator) {
@@ -207,32 +199,28 @@ export class CommitListItem extends React.PureComponent<
       },
     ]
 
-    if (enableGitTagsCreation()) {
-      items.push({
-        label: 'Create Tag…',
-        action: this.onCreateTag,
-        enabled: this.props.onCreateTag !== undefined,
-      })
+    items.push({
+      label: 'Create Tag…',
+      action: this.onCreateTag,
+      enabled: this.props.onCreateTag !== undefined,
+    })
 
-      const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
+    const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
 
-      if (deleteTagsMenuItem !== null) {
-        items.push(
-          {
-            type: 'separator',
-          },
-          deleteTagsMenuItem
-        )
-      }
+    if (deleteTagsMenuItem !== null) {
+      items.push(
+        {
+          type: 'separator',
+        },
+        deleteTagsMenuItem
+      )
     }
 
-    if (enableCherryPicking()) {
-      items.push({
-        label: __DARWIN__ ? 'Cherry-pick Commit…' : 'Cherry-pick commit…',
-        action: this.onCherryPick,
-        enabled: this.canCherryPick(),
-      })
-    }
+    items.push({
+      label: __DARWIN__ ? 'Cherry-pick Commit…' : 'Cherry-pick commit…',
+      action: this.onCherryPick,
+      enabled: this.canCherryPick(),
+    })
 
     items.push(
       { type: 'separator' },
@@ -254,26 +242,20 @@ export class CommitListItem extends React.PureComponent<
     const items: IMenuItem[] = []
 
     const count = this.props.selectedCommits.length
-    if (enableCherryPicking()) {
-      items.push({
-        label: __DARWIN__
-          ? `Cherry-pick ${count} Commits…`
-          : `Cherry-pick ${count} commits…`,
-        action: this.onCherryPick,
-        enabled: this.canCherryPick(),
-      })
-    }
+    items.push({
+      label: __DARWIN__
+        ? `Cherry-pick ${count} Commits…`
+        : `Cherry-pick ${count} commits…`,
+      action: this.onCherryPick,
+      enabled: this.canCherryPick(),
+    })
 
     return items
   }
 
   private canCherryPick(): boolean {
     const { onCherryPick, isCherryPickInProgress } = this.props
-    return (
-      onCherryPick !== undefined &&
-      isCherryPickInProgress === false &&
-      enableCherryPicking()
-    )
+    return onCherryPick !== undefined && isCherryPickInProgress === false
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {

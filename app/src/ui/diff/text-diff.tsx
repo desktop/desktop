@@ -43,10 +43,7 @@ import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
-import {
-  enableDiscardLines,
-  enableTextDiffExpansion,
-} from '../../lib/feature-flag'
+import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import { canSelect } from './diff-helpers'
 import {
   expandTextDiffHunk,
@@ -706,10 +703,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     editor: CodeMirror.Editor,
     event: Event
   ): ReadonlyArray<IMenuItem> | null {
-    if (!enableDiscardLines()) {
-      return null
-    }
-
     const file = this.props.file
 
     if (this.props.readOnly || !canSelect(file)) {

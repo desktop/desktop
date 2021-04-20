@@ -219,10 +219,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import {
-  enableHideWhitespaceInDiffOption,
-  enableUpdateRemoteUrl,
-} from '../feature-flag'
+import { enableHideWhitespaceInDiffOption } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import moment from 'moment'
 import { ComputedAction } from '../../models/computed-action'
@@ -3354,7 +3351,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    if (enableUpdateRemoteUrl() && repository.gitHubRepository) {
+    if (repository.gitHubRepository) {
       const gitStore = this.gitStoreCache.get(repository)
       await updateRemoteUrl(gitStore, repository.gitHubRepository, apiRepo)
     }
