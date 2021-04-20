@@ -58,14 +58,6 @@ export function enableDesktopTrampoline(): boolean {
 }
 
 /**
- * Whether or not to enable support for automatically resolving the
- * system-configured proxy url and passing that to Git.
- */
-export function enableAutomaticGitProxyConfiguration(): boolean {
-  return true
-}
-
-/**
  * Should we show the "Create Issue on GitHub" item under
  * "Repository" in the app menu?
  */
