@@ -194,7 +194,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     // cherry-picking results. If user wants to use cherry-picking for
     // reordering, they will need to do multiple cherry-picks.
     // Goal: first commit in history -> first on array
-    const sorted = rows.map(r => r).sort((a, b) => (a - b) * -1)
+    const sorted = rows.map(r => r).sort((a, b) => b - a)
 
     const selectedShas = sorted.map(r => this.props.commitSHAs[r])
     const selectedCommits = this.lookupCommits(selectedShas)
