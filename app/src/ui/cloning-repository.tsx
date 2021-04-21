@@ -27,7 +27,9 @@ export class CloningRepositoryView extends React.Component<
           <div className="title">Cloning {this.props.repository.name}</div>
         </div>
         <progress value={progressValue} />
-        <div className="details">{this.props.progress.description}</div>
+        <div title={this.props.progress.description} className="details">
+          {this.props.progress.description}
+        </div>
       </UiView>
     )
   }
