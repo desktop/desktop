@@ -3,7 +3,7 @@ import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List, SelectionSource } from '../lib/list'
+import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { Button } from '../lib/button'
@@ -188,22 +188,16 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return undefined
   }
 
-  private onSelectedRangeChanged = (
-    start: number,
-    end: number,
-    source: SelectionSource
-  ) => {
-    // if user selects a range top down, start < end.
-    // if user selects a range down to up, start > end and need to be inverted.
-    // .slice is exclusive of last range end, thus + 1
-    const rangeStart = start < end ? start : end
-    const rangeEnd = start < end ? end + 1 : start + 1
-    // We reverse because we want the commits to be in ascending order.
-    // First commit in history -> first on array
-    const commitSHARange = this.props.commitSHAs
-      .slice(rangeStart, rangeEnd)
-      .reverse()
-    const selectedCommits = this.lookupCommits(commitSHARange)
+  private onSelectionChanged = (rows: ReadonlyArray<number>) => {
+    // Multi select can give something like 1, 5, 3 depending on order that user
+    // selects. We want to ensure they are in chronological order for best
+    // cherry-picking results. If user wants to use cherry-picking for
+    // reordering, they will need to do multiple cherry-picks.
+    // Goal: first commit in history -> first on array
+    const sorted = [...rows].sort((a, b) => b - a)
+
+    const selectedShas = sorted.map(r => this.props.commitSHAs[r])
+    const selectedCommits = this.lookupCommits(selectedShas)
     this.props.onCommitsSelected(selectedCommits)
   }
 
@@ -299,9 +293,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           rowHeight={RowHeight}
           selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
-          onSelectedRangeChanged={this.onSelectedRangeChanged}
+          onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
-          selectionMode="range"
+          selectionMode="multi"
           onScroll={this.onScroll}
           invalidationProps={{
             commits: this.props.commitSHAs,
