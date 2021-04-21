@@ -1,7 +1,7 @@
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
-import * as fsAdmin from 'fs-admin'
+import * as fsAdmin from '@sergiou87/fs-admin-temp'
 
 /** The path for the installed command line tool. */
 export const InstalledCLIPath = '/usr/local/bin/github'
