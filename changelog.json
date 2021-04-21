@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.7.3-test4": ["[Added] macOS arm64 support"],
     "2.7.3-beta2": [
       "[Fixed] Disable diff expansion for big files - #11988",
       "[Fixed] Expanding diffs now works as expected in unified view - #11972",
