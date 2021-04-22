@@ -127,7 +127,7 @@ export function getLabelForManualResolutionOption(
     case GitStatusEntry.UpdatedButUnmerged:
       return `Use the modified file${suffix}`
     case GitStatusEntry.Deleted:
-      const deleteSuffix = branch ? ` on ${branch}` : ''
+      const deleteSuffix = branch ? ` as on ${branch}` : ''
       return `Do not include this file${deleteSuffix}`
     default:
       return assertNever(entry, 'Unknown status entry to format')
