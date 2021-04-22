@@ -3,7 +3,8 @@ import moment from 'moment'
 
 import { IMatches } from '../../lib/fuzzy-find'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'

@@ -4,7 +4,8 @@ import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import {
   ValidTutorialStep,
   TutorialStep,

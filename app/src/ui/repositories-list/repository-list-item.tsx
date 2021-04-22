@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { Octicon, iconForRepository, OcticonSymbol } from '../octicons'
+import { Octicon, iconForRepository } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
 import { IMenuItem } from '../../lib/menu-item'
