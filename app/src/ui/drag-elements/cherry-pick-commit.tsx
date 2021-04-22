@@ -40,6 +40,9 @@ export class CherryPickCommit extends React.Component<
 
   private setBranchName(branchName: string) {
     if (__DARWIN__) {
+      // For macOs, we styled the copy to message to look like a native tool tip
+      // that appears when hovering over a element with the title attribute. We
+      // also are implementing this timeout to have similar hover-to-see feel.
       this.setState({ branchName: null })
 
       if (this.timeoutId !== null) {
