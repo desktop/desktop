@@ -21,19 +21,38 @@ export class CherryPickCommit extends React.Component<
   ICherryPickCommitProps,
   ICherryPickCommitState
 > {
+  private timeoutId: number | null = null
+
   public constructor(props: ICherryPickCommitProps) {
     super(props)
     this.state = {
       branchName: null,
     }
 
-    dragAndDropManager.onEnterDropTarget(targetDescription => {
-      this.setState({ branchName: targetDescription })
+    dragAndDropManager.onEnterDropTarget(branchName => {
+      this.setBranchName(branchName)
     })
 
     dragAndDropManager.onLeaveDropTarget(() => {
       this.setState({ branchName: null })
     })
+  }
+
+  private setBranchName(branchName: string) {
+    if (__DARWIN__) {
+      this.setState({ branchName: null })
+
+      if (this.timeoutId !== null) {
+        window.clearTimeout(this.timeoutId)
+      }
+
+      this.timeoutId = window.setTimeout(
+        () => this.setState({ branchName }),
+        1500
+      )
+    } else {
+      this.setState({ branchName })
+    }
   }
 
   /**

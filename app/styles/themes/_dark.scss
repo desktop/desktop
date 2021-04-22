@@ -344,6 +344,9 @@ body.theme-dark {
 
   --call-to-action-bubble-background-color: #{$blue};
   --call-to-action-bubble-color: #{$white};
+
+  --title-tool-tip-background-color: rgb(56, 58, 62);
+  --title-tool-tip-shadow: none;
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly
