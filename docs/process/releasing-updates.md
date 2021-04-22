@@ -192,6 +192,16 @@ Once your app updates and you see the visible changes in your app and there are 
 
 Also it might make sense to continue to monitor Haystack in the background for the next 24 hours.
 
+## Retrying a Failed Release
+
+Sometimes deployments will fail for any reason: one of the CI jobs times out, uploading the builds fails…
+
+When that happens, we should never just re-run the CI jobs, because that could cause problems with the updates of the Windows app.
+
+Instead, we have two options:
+1. Delete the failed release from Central (and its `release-${version}-${channel}` tag, if it exists), and then create a new release from the same branch as usual.
+2. Just create a new version (bumping the version number) and release it instead.
+
 ## Stopping a Release Mid-flight
 
 So let's say you kicked off a release with chatops on accident. Here's how you fix that.
