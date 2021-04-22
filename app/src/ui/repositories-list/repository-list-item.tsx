@@ -12,6 +12,7 @@ import {
   DefaultEditorLabel,
 } from '../lib/context-menu'
 import { enableRepositoryAliases } from '../../lib/feature-flag'
+import classNames from 'classnames'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -68,17 +69,27 @@ export class RepositoryListItem extends React.Component<
       repository instanceof Repository ? repository.gitHubRepository : null
     const hasChanges = this.props.changedFilesCount > 0
 
-    const repoTooltip = gitHubRepo
-      ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
-      : path
-
     const alias: string | null =
       repository instanceof Repository ? repository.alias : null
+
+    const repoTooltipComponents = gitHubRepo
+      ? [gitHubRepo.fullName, gitHubRepo.htmlURL, path]
+      : [path]
+
+    if (alias !== null) {
+      repoTooltipComponents.unshift(alias)
+    }
+
+    const repoTooltip = repoTooltipComponents.join('\n')
 
     let prefix: string | null = null
     if (this.props.needsDisambiguation && gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
     }
+
+    const classNameList = classNames('name', {
+      alias: alias !== null,
+    })
 
     return (
       <div
@@ -91,7 +102,7 @@ export class RepositoryListItem extends React.Component<
           symbol={iconForRepository(repository)}
         />
 
-        <div className="name">
+        <div className={classNames(classNameList)}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={alias ?? repository.name}

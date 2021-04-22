@@ -98,7 +98,6 @@ import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-str
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
-import { enableForkSettings } from '../../lib/feature-flag'
 import { resolveWithin } from '../../lib/path'
 import {
   CherryPickFlowStep,
@@ -681,10 +680,7 @@ export class Dispatcher {
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
 
-      if (
-        enableForkSettings() &&
-        isRepositoryWithForkedGitHubRepository(addedRepository)
-      ) {
+      if (isRepositoryWithForkedGitHubRepository(addedRepository)) {
         this.showPopup({
           type: PopupType.ChooseForkSettings,
           repository: addedRepository,

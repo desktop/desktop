@@ -32,7 +32,6 @@ import { SideBySideDiff } from './side-by-side-diff'
 import {
   enableHideWhitespaceInDiffOption,
   enableExperimentalDiffViewer,
-  enableSideBySideDiffs,
 } from '../../lib/feature-flag'
 
 // image used when no diff is displayed
@@ -247,10 +246,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
-    if (
-      enableExperimentalDiffViewer() ||
-      (enableSideBySideDiffs() && this.props.showSideBySideDiff)
-    ) {
+    if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
       return (
         <SideBySideDiff
           repository={this.props.repository}
