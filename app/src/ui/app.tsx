@@ -42,7 +42,7 @@ import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { RenameBranch } from './rename-branch'
-import { DeleteBranch } from './delete-branch'
+import { DeleteBranch, DeleteRemoteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import {
   Toolbar,
@@ -119,6 +119,7 @@ import { ChooseForkSettings } from './choose-fork-settings'
 import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -139,6 +140,7 @@ interface IAppProps {
   readonly appStore: AppStore
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly aheadBehindStore: AheadBehindStore
   readonly startTime: number
 }
 
@@ -989,14 +991,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async handleDragAndDrop(fileList: FileList) {
     const paths = [...fileList].map(x => x.path)
+    const { dispatcher } = this.props
 
     // If they're bulk adding repositories then just blindly try to add them.
     // But if they just dragged one, use the dialog so that they can initialize
     // it if needed.
     if (paths.length > 1) {
-      const addedRepositories = await this.addRepositories(paths)
+      const addedRepositories = await dispatcher.addRepositories(paths)
+
       if (addedRepositories.length > 0) {
-        this.props.dispatcher.recordAddExistingRepository()
+        dispatcher.recordAddExistingRepository()
+        await dispatcher.selectRepository(addedRepositories[0])
       }
     } else if (paths.length === 1) {
       // user may accidentally provide a folder within the repository
@@ -1009,7 +1014,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const existingRepository = matchExistingRepository(repositories, path)
 
       if (existingRepository) {
-        await this.props.dispatcher.selectRepository(existingRepository)
+        await dispatcher.selectRepository(existingRepository)
       } else {
         await this.showPopup({ type: PopupType.AddRepository, path })
       }
@@ -1052,15 +1057,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     return state.repository
-  }
-
-  private async addRepositories(paths: ReadonlyArray<string>) {
-    const repositories = await this.props.dispatcher.addRepositories(paths)
-    if (repositories.length > 0) {
-      this.props.dispatcher.selectRepository(repositories[0])
-    }
-
-    return repositories
   }
 
   private showRebaseDialog() {
@@ -1299,6 +1295,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             existsOnRemote={popup.existsOnRemote}
+            onDismissed={onPopupDismissedFn}
+            onDeleted={this.onBranchDeleted}
+          />
+        )
+      case PopupType.DeleteRemoteBranch:
+        return (
+          <DeleteRemoteBranch
+            key="delete-remote-branch"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            branch={popup.branch}
             onDismissed={onPopupDismissedFn}
             onDeleted={this.onBranchDeleted}
           />
@@ -1583,7 +1590,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.ExternalEditorFailed:
         const openPreferences = popup.openPreferences
-        const suggestAtom = popup.suggestAtom
+        const suggestDefaultEditor = popup.suggestDefaultEditor
 
         return (
           <EditorError
@@ -1592,7 +1599,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             showPreferencesDialog={this.onShowAdvancedPreferences}
             viewPreferences={openPreferences}
-            suggestAtom={suggestAtom}
+            suggestDefaultEditor={suggestDefaultEditor}
           />
         )
       case PopupType.OpenShellFailed:
@@ -2316,8 +2323,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     const { aheadBehind, branchesState } = state
     const { pullWithRebase, tip } = branchesState
 
-    if (tip.kind === TipState.Valid && tip.branch.remote !== null) {
-      remoteName = tip.branch.remote
+    if (tip.kind === TipState.Valid && tip.branch.upstreamRemoteName !== null) {
+      remoteName = tip.branch.upstreamRemoteName
     }
 
     const isForcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
@@ -2561,6 +2568,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           onExitTutorial={this.onExitTutorial}
           isShowingModal={this.isShowingModal}
           isShowingFoldout={this.state.currentFoldout !== null}
+          aheadBehindStore={this.props.aheadBehindStore}
+          commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

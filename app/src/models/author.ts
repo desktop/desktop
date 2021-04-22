@@ -19,7 +19,7 @@ export interface IAuthor {
   readonly email: string
 
   /**
-   * The GitHub.com or GitHub Enterprise Server login for
+   * The GitHub.com or GitHub Enterprise login for
    * this author or null if that information is not
    * available.
    */
