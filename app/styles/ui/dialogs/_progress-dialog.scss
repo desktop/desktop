@@ -1,3 +1,4 @@
+dialog#cherry-pick-progress,
 dialog#rebase-progress {
   progress {
     -webkit-appearance: none;
@@ -8,7 +9,7 @@ dialog#rebase-progress {
     }
 
     &::-webkit-progress-value {
-      background-color: var(--dialog-rebase-progress-background);
+      background-color: var(--dialog-progress-background);
       // ensure a smooth transition if the rebase goes immediately from 0 to 100%
       transition: width 1s ease;
     }

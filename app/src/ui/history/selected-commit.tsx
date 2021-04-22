@@ -28,6 +28,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
+import { DragOverlay } from '../drag-overlay'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
@@ -67,6 +68,12 @@ interface ISelectedCommitProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  /** Whether multiple commits are selected. */
+  readonly areMultipleCommitsSelected: boolean
+
+  /** Whether or not to show the drag overlay */
+  readonly showDragOverlay: boolean
 }
 
 interface ISelectedCommitState {
@@ -183,8 +190,10 @@ export class SelectedCommit extends React.Component<
     }
   }
 
-  private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {
-    this.props.dispatcher.onHideWhitespaceInDiffChanged(
+  private onHideWhitespaceInDiffChanged = async (
+    hideWhitespaceInDiff: boolean
+  ) => {
+    await this.props.dispatcher.onHideWhitespaceInDiffChanged(
       hideWhitespaceInDiff,
       this.props.repository,
       this.props.selectedFile as CommittedFileChange
@@ -236,6 +245,10 @@ export class SelectedCommit extends React.Component<
   public render() {
     const commit = this.props.selectedCommit
 
+    if (this.props.areMultipleCommitsSelected) {
+      return this.renderMultipleCommitsSelected()
+    }
+
     if (commit == null) {
       return <NoCommitSelected />
     }
@@ -255,6 +268,40 @@ export class SelectedCommit extends React.Component<
           </Resizable>
           {this.renderDiff()}
         </div>
+        {this.renderDragOverlay()}
+      </div>
+    )
+  }
+
+  private renderDragOverlay(): JSX.Element | null {
+    if (!this.props.showDragOverlay) {
+      return null
+    }
+
+    return <DragOverlay dragZoneDescription="branch-button" />
+  }
+
+  private renderMultipleCommitsSelected(): JSX.Element {
+    const BlankSlateImage = encodePathAsUrl(
+      __dirname,
+      'static/empty-no-commit.svg'
+    )
+
+    return (
+      <div id="multiple-commits-selected" className="blankslate">
+        <div className="panel blankslate">
+          <img src={BlankSlateImage} className="blankslate-image" />
+          <div>
+            <p>Unable to display diff when multiple commits are selected.</p>
+            <div>You can:</div>
+            <ul>
+              <li>Select a single commit to view a diff.</li>
+              <li>Drag the commits to the branch menu to cherry-pick them.</li>
+              <li>Right click on multiple commits to see options.</li>
+            </ul>
+          </div>
+        </div>
+        {this.renderDragOverlay()}
       </div>
     )
   }

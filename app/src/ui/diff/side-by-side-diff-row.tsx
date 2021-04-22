@@ -9,9 +9,11 @@ import {
 } from './diff-helpers'
 import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
-import { Octicon } from '../octicons'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
+import { DiffHunkExpansionType } from '../../models/diff'
+import { DiffExpansionKind } from './text-diff-expansion'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -72,6 +74,8 @@ interface ISideBySideDiffRowProps {
    */
   readonly onMouseLeaveHunk: (hunkStartLine: number) => void
 
+  readonly onExpandHunk: (hunkIndex: number, kind: DiffExpansionKind) => void
+
   /**
    * Called when the user clicks on the hunk handle. Called with the start
    * line of the hunk and a flag indicating whether to select or unselect
@@ -95,6 +99,11 @@ interface ISideBySideDiffRowProps {
   readonly onContextMenuHunk: (hunkStartLine: number) => void
 
   /**
+   * Called when the user right-clicks a hunk expansion handle.
+   */
+  readonly onContextMenuExpandHunk: () => void
+
+  /**
    * Called when the user right-clicks text on the diff.
    */
   readonly onContextMenuText: () => void
@@ -107,13 +116,19 @@ export class SideBySideDiffRow extends React.Component<
     const { row, showSideBySideDiff } = this.props
 
     switch (row.type) {
-      case DiffRowType.Hunk:
+      case DiffRowType.Hunk: {
+        const className = ['row', 'hunk-info']
+        if (row.expansionType === DiffHunkExpansionType.Both) {
+          className.push('expandable-both')
+        }
+
         return (
-          <div className="row hunk-info">
-            {this.renderLineNumber()}
+          <div className={classNames(className)}>
+            {this.renderHunkHeaderGutter(row.hunkIndex, row.expansionType)}
             {this.renderContentFromString(row.content)}
           </div>
         )
+      }
       case DiffRowType.Context:
         const { beforeLineNumber, afterLineNumber } = row
         if (!showSideBySideDiff) {
@@ -256,6 +271,90 @@ export class SideBySideDiffRow extends React.Component<
         )}
       </div>
     )
+  }
+
+  private getHunkExpansionElementInfo(
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType
+  ) {
+    switch (expansionType) {
+      // This can only be the first hunk
+      case DiffHunkExpansionType.Up:
+        return {
+          icon: OcticonSymbol.foldUp,
+          title: 'Expand Up',
+          handler: this.onExpandHunk(hunkIndex, 'up'),
+        }
+      // This can only be the last dummy hunk. In this case, we expand the
+      // second to last hunk down.
+      case DiffHunkExpansionType.Down:
+        return {
+          icon: OcticonSymbol.foldDown,
+          title: 'Expand Down',
+          handler: this.onExpandHunk(hunkIndex - 1, 'down'),
+        }
+      case DiffHunkExpansionType.Short:
+        return {
+          icon: OcticonSymbol.fold,
+          title: 'Expand All',
+          handler: this.onExpandHunk(hunkIndex, 'up'),
+        }
+    }
+
+    throw new Error(`Unexpected expansion type ${expansionType}`)
+  }
+
+  private renderHunkExpansionHandle(
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType
+  ) {
+    if (expansionType === DiffHunkExpansionType.None) {
+      return (
+        <div
+          className="hunk-expansion-handle"
+          onContextMenu={this.props.onContextMenuExpandHunk}
+        >
+          <span></span>
+        </div>
+      )
+    }
+
+    const elementInfo = this.getHunkExpansionElementInfo(
+      hunkIndex,
+      expansionType
+    )
+
+    return (
+      <div
+        className="hunk-expansion-handle selectable"
+        title={elementInfo.title}
+        onClick={elementInfo.handler}
+        onContextMenu={this.props.onContextMenuExpandHunk}
+      >
+        <span>
+          <Octicon symbol={elementInfo.icon} />
+        </span>
+      </div>
+    )
+  }
+
+  private renderHunkHeaderGutter(
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType
+  ) {
+    if (expansionType === DiffHunkExpansionType.Both) {
+      return (
+        <div>
+          {this.renderHunkExpansionHandle(
+            hunkIndex,
+            DiffHunkExpansionType.Down
+          )}
+          {this.renderHunkExpansionHandle(hunkIndex, DiffHunkExpansionType.Up)}
+        </div>
+      )
+    }
+
+    return this.renderHunkExpansionHandle(hunkIndex, expansionType)
   }
 
   private renderHunkHandle() {
@@ -407,6 +506,10 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
+  private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => () => {
+    this.props.onExpandHunk(hunkIndex, kind)
+  }
+
   private onClickHunk = () => {
     // Since the hunk handler lies between the previous and the next columns,
     // when clicking on it on modified lines we cannot know if we should
@@ -423,7 +526,7 @@ export class SideBySideDiffRow extends React.Component<
 
   private onContextMenuLineNumber = (evt: React.MouseEvent) => {
     const data = this.getDiffData(evt.currentTarget)
-    if (data !== null) {
+    if (data !== null && data.diffLineNumber !== null) {
       this.props.onContextMenuLine(data.diffLineNumber)
     }
   }

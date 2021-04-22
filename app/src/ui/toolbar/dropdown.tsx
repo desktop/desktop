@@ -65,6 +65,12 @@ export interface IToolbarDropdownProps {
   readonly dropdownContentRenderer: () => JSX.Element | null
 
   /**
+   * A function that's called whenever something is dragged over the
+   * dropdown.
+   */
+  readonly onDragOver?: (event: React.DragEvent<HTMLDivElement>) => void
+
+  /**
    * An optional classname that will be appended to the default
    * class name 'toolbar-button dropdown open|closed'
    */
@@ -340,6 +346,7 @@ export class ToolbarDropdown extends React.Component<
         onKeyDown={this.props.onKeyDown}
         role={this.props.role}
         aria-expanded={ariaExpanded}
+        onDragOver={this.props.onDragOver}
       >
         {this.renderDropdownContents()}
         <ToolbarButton

@@ -10,11 +10,12 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { ICommitContext } from './commit'
+import { CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
 import { ITextDiff, DiffSelection } from './diff'
+import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -49,7 +50,6 @@ export enum PopupType {
   MergeConflicts,
   AbortMerge,
   OversizedFiles,
-  UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
   RebaseFlow,
@@ -67,6 +67,8 @@ export enum PopupType {
   LocalChangesOverwritten,
   ChooseForkSettings,
   ConfirmDiscardSelection,
+  CherryPick,
+  MoveToApplicationsFolder,
 }
 
 export type Popup =
@@ -102,7 +104,11 @@ export type Popup =
       repository: Repository
       branch?: Branch
     }
-  | { type: PopupType.RepositorySettings; repository: Repository }
+  | {
+      type: PopupType.RepositorySettings
+      repository: Repository
+      initialSelectedTab?: RepositorySettingsTab
+    }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
   | {
@@ -180,7 +186,6 @@ export type Popup =
       context: ICommitContext
       repository: Repository
     }
-  | { type: PopupType.UsageReportingChanges }
   | {
       type: PopupType.CommitConflictsWarning
       /** files that were selected for committing that are also conflicted */
@@ -264,3 +269,10 @@ export type Popup =
       retryAction: RetryAction
       files: ReadonlyArray<string>
     }
+  | {
+      type: PopupType.CherryPick
+      repository: Repository
+      commits: ReadonlyArray<CommitOneLine>
+      sourceBranch: Branch | null
+    }
+  | { type: PopupType.MoveToApplicationsFolder }

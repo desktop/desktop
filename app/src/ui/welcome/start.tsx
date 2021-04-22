@@ -7,6 +7,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { BrowserRedirectMessage } from '../lib/authentication-form'
+import { SamplesURL } from '../../lib/stats'
 
 /**
  * The URL to the sign-up page on GitHub.com. Used in conjunction
@@ -71,6 +72,21 @@ export class Start extends React.Component<IStartProps, {}> {
           <LinkButton className="skip-button" onClick={this.skip}>
             Skip this step
           </LinkButton>
+        </div>
+        <div className="welcome-start-disclaimer-container">
+          By creating an account, you agree to the{' '}
+          <LinkButton uri={'https://github.com/site/terms'}>
+            Terms of Service
+          </LinkButton>
+          . For more information about GitHub's privacy practices, see the{' '}
+          <LinkButton uri={'https://github.com/site/privacy'}>
+            GitHub Privacy Statement
+          </LinkButton>
+          .<br />
+          <br />
+          GitHub Desktop sends usage metrics to improve the product and inform
+          feature decisions. Read more about what metrics are sent and how we
+          use them <LinkButton uri={SamplesURL}>here</LinkButton>.
         </div>
       </div>
     )

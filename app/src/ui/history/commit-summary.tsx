@@ -18,6 +18,7 @@ import {
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
+import { RepositorySectionTab } from '../../lib/app-state'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -44,7 +45,7 @@ interface ICommitSummaryProps {
 
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
-  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
 
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
@@ -157,11 +158,11 @@ export class CommitSummary extends React.Component<
     }
   }
 
-  private onHideWhitespaceInDiffChanged = (
+  private onHideWhitespaceInDiffChanged = async (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
-    this.props.onHideWhitespaceInDiffChanged(value)
+    await this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {
@@ -375,24 +376,23 @@ export class CommitSummary extends React.Component<
             )}
 
             {enableSideBySideDiffs() && (
-              <>
-                <li
-                  className="commit-summary-meta-item without-truncation"
-                  title="Split View"
-                >
-                  <DiffOptions
-                    onHideWhitespaceChangesChanged={
-                      this.props.onHideWhitespaceInDiffChanged
-                    }
-                    hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                    showSideBySideDiff={this.props.showSideBySideDiff}
-                    onShowSideBySideDiffChanged={
-                      this.props.onShowSideBySideDiffChanged
-                    }
-                    onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-                  />
-                </li>
-              </>
+              <li
+                className="commit-summary-meta-item without-truncation"
+                title="Diff Options"
+              >
+                <DiffOptions
+                  sourceTab={RepositorySectionTab.History}
+                  hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                  onHideWhitespaceChangesChanged={
+                    this.props.onHideWhitespaceInDiffChanged
+                  }
+                  showSideBySideDiff={this.props.showSideBySideDiff}
+                  onShowSideBySideDiffChanged={
+                    this.props.onShowSideBySideDiffChanged
+                  }
+                  onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+                />
+              </li>
             )}
           </ul>
         </div>

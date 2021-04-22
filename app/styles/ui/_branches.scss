@@ -14,6 +14,14 @@
     width: 365px;
     min-height: 0;
   }
+
+  .branches-list-item {
+    height: 100%;
+
+    div {
+      pointer-events: none;
+    }
+  }
 }
 
 .pull-request-tab {
@@ -73,6 +81,11 @@
     align-items: center;
     min-width: 0;
     flex-grow: 1;
+    height: 100%;
+
+    div {
+      pointer-events: none;
+    }
 
     .icon {
       margin-left: var(--spacing-half);

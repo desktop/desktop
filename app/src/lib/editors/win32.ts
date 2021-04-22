@@ -270,6 +270,14 @@ const editors: IWindowsExternalEditor[] = [
       displayName.startsWith('JetBrains Rider') &&
       publisher === 'JetBrains s.r.o.',
   },
+  {
+    name: 'RStudio',
+    registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
+    executableShimPath: [],
+    installLocationRegistryKey: 'DisplayIcon',
+    expectedInstallationChecker: (displayName, publisher) =>
+      displayName === 'RStudio' && publisher === 'RStudio',
+  },
 ]
 
 function getKeyOrEmpty(

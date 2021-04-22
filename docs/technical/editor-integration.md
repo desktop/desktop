@@ -35,6 +35,7 @@ These editors are currently supported:
  - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [Notepad++](https://notepad-plus-plus.org/)
+ - [RStudio](https://rstudio.com/)
 
 These are defined in a list at the top of the file:
 
@@ -210,6 +211,7 @@ These editors are currently supported:
  - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
+ - [RStudio](https://rstudio.com/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
      - To use Brackets the Command Line shortcut must be installed.

@@ -5,8 +5,9 @@ import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
-import { envForRemoteOperation } from './environment'
 import { ITrackingBranch } from '../../models/branch'
+import { merge } from '../merge'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 
 async function getFetchArgs(
   repository: Repository,
@@ -63,7 +64,6 @@ export async function fetch(
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: await envForRemoteOperation(account, remote.url),
   }
 
   if (progressCallback) {
@@ -108,7 +108,13 @@ export async function fetch(
     account,
     progressCallback
   )
-  await git(args, repository.path, 'fetch', opts)
+
+  await withTrampolineEnvForRemoteOperation(account, remote.url, env => {
+    return git(args, repository.path, 'fetch', {
+      ...opts,
+      env: merge(opts.env, env),
+    })
+  })
 }
 
 /** Fetch a given refspec from the given remote. */
@@ -120,14 +126,18 @@ export async function fetchRefspec(
 ): Promise<void> {
   const options = {
     successExitCodes: new Set([0, 128]),
-    env: await envForRemoteOperation(account, remote.url),
   }
 
   const networkArguments = await gitNetworkArguments(repository, account)
 
   const args = [...networkArguments, 'fetch', remote.name, refspec]
 
-  await git(args, repository.path, 'fetchRefspec', options)
+  await withTrampolineEnvForRemoteOperation(account, remote.url, env => {
+    return git(args, repository.path, 'fetchRefspec', {
+      ...options,
+      env,
+    })
+  })
 }
 
 export async function fastForwardBranches(

@@ -93,6 +93,37 @@
     }
   }
 
+  .row .hunk-expansion-handle {
+    width: var(--width-line-number);
+    flex-shrink: 0;
+    background: var(--diff-hunk-background-color);
+    color: var(--diff-hunk-text-color);
+    display: flex;
+    box-sizing: content-box;
+
+    span {
+      width: 100%;
+      height: 100%;
+      padding: 0 var(--spacing-half);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+    }
+
+    &.selectable {
+      * {
+        cursor: pointer;
+      }
+
+      &:hover {
+        background: var(--diff-hover-background-color);
+        border-color: var(--diff-hover-border-color);
+        color: var(--diff-hover-text-color);
+      }
+    }
+  }
+
   .hunk-handle {
     position: absolute;
     height: 100%;
@@ -180,6 +211,7 @@
     &.hunk-info {
       background: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
+      align-items: center;
 
       div,
       span {

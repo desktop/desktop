@@ -42,6 +42,18 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** When a drag element has landed on the current branch */
+  readonly onDropOntoCurrentBranch?: () => void
+
+  /** Whether a cherry pick is in progress */
+  readonly isCherryPickInProgress?: boolean
+
+  /** When a drag element enters a branch */
+  readonly onDragEnterBranch: (branchName: string) => void
+
+  //** When a drag element leave a branch */
+  readonly onDragLeaveBranch: () => void
 }
 
 interface IBranchesContainerState {
@@ -136,6 +148,7 @@ export class BranchesContainer extends React.Component<
       <TabBar
         onTabClicked={this.onTabClicked}
         selectedIndex={this.props.selectedTab}
+        allowDragOverSwitching={true}
       >
         <span>Branches</span>
         <span className="pull-request-tab">
@@ -152,7 +165,12 @@ export class BranchesContainer extends React.Component<
       matches,
       this.props.currentBranch,
       this.onRenameBranch,
-      this.onDeleteBranch
+      this.onDeleteBranch,
+      this.onDropOntoBranch,
+      this.props.onDropOntoCurrentBranch,
+      this.props.onDragEnterBranch,
+      this.props.onDragLeaveBranch,
+      this.props.isCherryPickInProgress
     )
   }
 
@@ -212,6 +230,7 @@ export class BranchesContainer extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        isCherryPickInProgress={this.props.isCherryPickInProgress}
       />
     )
   }
@@ -309,5 +328,33 @@ export class BranchesContainer extends React.Component<
       branch,
       existsOnRemote: branch.upstreamRemoteName !== null,
     })
+  }
+
+  /**
+   * Method is to handle when something is dragged and dropped onto a branch
+   * in the branch dropdown.
+   *
+   * Currently this is being implemented with cherry picking. But, this could be
+   * expanded if we ever dropped something else on a branch; in which case,
+   * we would likely have to check the app state to see what action is being
+   * performed. As this branch container is not being used anywhere except
+   * for the branch dropdown, we are not going to pass the repository state down
+   * during this implementation.
+   */
+  private onDropOntoBranch = (branchName: string) => {
+    const branch = this.props.allBranches.find(b => b.name === branchName)
+    if (branch === undefined) {
+      log.warn(
+        '[branches-container] - Branch name of branch dropped on does not exist.'
+      )
+      return
+    }
+
+    if (this.props.isCherryPickInProgress) {
+      this.props.dispatcher.startCherryPickWithBranch(
+        this.props.repository,
+        branch
+      )
+    }
   }
 }

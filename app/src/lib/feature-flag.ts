@@ -47,6 +47,16 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should the app show hide whitespace in changes tab */
+export function enableHideWhitespaceInDiffOption(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+/** Should the app use the shiny new TCP-based trampoline? */
+export function enableDesktopTrampoline(): boolean {
+  return true
+}
+
 /**
  * Should we show the create fork dialog flow?
  */
@@ -142,4 +152,16 @@ export function enableDefaultBranchSetting(): boolean {
  */
 export function enableUnhandledRejectionReporting(): boolean {
   return enableBetaFeatures()
+}
+
+/**
+ * Should we allow cherry picking
+ */
+export function enableCherryPicking(): boolean {
+  return true
+}
+
+/** Should we allow expanding text diffs? */
+export function enableTextDiffExpansion(): boolean {
+  return enableDevelopmentFeatures()
 }

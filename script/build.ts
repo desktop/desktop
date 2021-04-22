@@ -4,6 +4,7 @@
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as fs from 'fs-extra'
+import * as os from 'os'
 import packager, {
   OfficialArch,
   OsxNotarizeOptions,
@@ -141,7 +142,7 @@ function packageApp() {
 
   const toPackageArch = (targetArch: string | undefined): OfficialArch => {
     if (targetArch === undefined) {
-      return 'x64'
+      targetArch = os.arch()
     }
 
     if (targetArch === 'arm64' || targetArch === 'x64') {
@@ -149,7 +150,7 @@ function packageApp() {
     }
 
     throw new Error(
-      `Building Desktop for architecture '${targetArch}'  is not supported`
+      `Building Desktop for architecture '${targetArch}' is not supported`
     )
   }
 
@@ -325,6 +326,23 @@ function copyDependencies() {
     console.log('  Installing dependencies via yarn…')
     cp.execSync('yarn install', { cwd: outRoot, env: process.env })
   }
+
+  console.log('  Copying desktop-trampoline…')
+  const desktopTrampolineDir = path.resolve(outRoot, 'desktop-trampoline')
+  const desktopTrampolineFile =
+    process.platform === 'win32'
+      ? 'desktop-trampoline.exe'
+      : 'desktop-trampoline'
+  fs.removeSync(desktopTrampolineDir)
+  fs.mkdirSync(desktopTrampolineDir)
+  fs.copySync(
+    path.resolve(
+      projectRoot,
+      'app/node_modules/desktop-trampoline/build/Release',
+      desktopTrampolineFile
+    ),
+    path.resolve(desktopTrampolineDir, desktopTrampolineFile)
+  )
 
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')

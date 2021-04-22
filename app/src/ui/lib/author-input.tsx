@@ -468,6 +468,10 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     this.state = {}
   }
 
+  public focus() {
+    this.editor?.focus()
+  }
+
   public componentWillUnmount() {
     // Sometimes the completion box seems to fail to register
     // the blur event and close. It's hard to reproduce so

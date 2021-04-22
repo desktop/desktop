@@ -4,14 +4,16 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import { getBoolean, setBoolean } from '../../lib/local-storage'
-import FocusTrap from 'focus-trap-react'
-import { Options as FocusTrapOptions } from 'focus-trap'
+import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
+import { RepositorySectionTab } from '../../lib/app-state'
 
 interface IDiffOptionsProps {
-  readonly hideWhitespaceChanges?: boolean
-  readonly onHideWhitespaceChangesChanged?: (
+  readonly sourceTab: RepositorySectionTab
+  readonly hideWhitespaceChanges: boolean
+  readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
-  ) => void
+  ) => Promise<void>
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
@@ -21,7 +23,7 @@ interface IDiffOptionsProps {
 }
 
 interface IDiffOptionsState {
-  readonly isOpen: boolean
+  readonly isPopoverOpen: boolean
   readonly showNewCallout: boolean
 }
 
@@ -31,26 +33,19 @@ export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
-  private focusTrapOptions: FocusTrapOptions
   private diffOptionsRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IDiffOptionsProps) {
     super(props)
     this.state = {
-      isOpen: false,
+      isPopoverOpen: false,
       showNewCallout: getBoolean(HasSeenSplitDiffKey) !== true,
-    }
-
-    this.focusTrapOptions = {
-      allowOutsideClick: true,
-      escapeDeactivates: true,
-      onDeactivate: this.closePopover,
     }
   }
 
-  private onTogglePopover = (event: React.FormEvent<HTMLButtonElement>) => {
+  private onButtonClick = (event: React.FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    if (this.state.isOpen) {
+    if (this.state.isPopoverOpen) {
       this.closePopover()
     } else {
       this.openPopover()
@@ -59,10 +54,9 @@ export class DiffOptions extends React.Component<
 
   private openPopover = () => {
     this.setState(prevState => {
-      if (!prevState.isOpen) {
-        document.addEventListener('mousedown', this.onDocumentMouseDown)
+      if (!prevState.isPopoverOpen) {
         this.props.onDiffOptionsOpened()
-        return { isOpen: true }
+        return { isPopoverOpen: true }
       }
       return null
     })
@@ -70,62 +64,47 @@ export class DiffOptions extends React.Component<
 
   private closePopover = () => {
     this.setState(prevState => {
-      if (prevState.isOpen) {
+      if (prevState.isPopoverOpen) {
         if (this.state.showNewCallout) {
           setBoolean(HasSeenSplitDiffKey, true)
         }
-        document.removeEventListener('mousedown', this.onDocumentMouseDown)
-        return { isOpen: false, showNewCallout: false }
+        return { isPopoverOpen: false, showNewCallout: false }
       }
 
       return null
     })
   }
 
-  public componentWillUnmount() {
-    document.removeEventListener('mousedown', this.onDocumentMouseDown)
-  }
-
-  private onDocumentMouseDown = (event: MouseEvent) => {
-    const { current: ref } = this.diffOptionsRef
-    const { target } = event
-
-    if (ref !== null && target instanceof Node && !ref.contains(target)) {
-      this.closePopover()
-    }
-  }
-
-  private onHideWhitespaceChangesChanged = (
+  private onHideWhitespaceChangesChanged = async (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    if (this.props.onHideWhitespaceChangesChanged !== undefined) {
-      this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
-    }
+    await this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
   }
 
   public render() {
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
-        <button onClick={this.onTogglePopover}>
+        <button onClick={this.onButtonClick}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
           {this.state.showNewCallout && (
             <div className="call-to-action-bubble">New</div>
           )}
         </button>
-        {this.state.isOpen && this.renderPopover()}
+        {this.state.isPopoverOpen && this.renderPopover()}
       </div>
     )
   }
 
   private renderPopover() {
     return (
-      <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div className="popover">
-          {this.renderHideWhitespaceChanges()}
-          {this.renderShowSideBySide()}
-        </div>
-      </FocusTrap>
+      <Popover
+        caretPosition={PopoverCaretPosition.TopRight}
+        onClickOutside={this.closePopover}
+      >
+        {this.renderHideWhitespaceChanges()}
+        {this.renderShowSideBySide()}
+      </Popover>
     )
   }
 
@@ -162,9 +141,13 @@ export class DiffOptions extends React.Component<
   }
 
   private renderHideWhitespaceChanges() {
-    if (this.props.hideWhitespaceChanges === undefined) {
-      return null
+    if (
+      this.props.sourceTab === RepositorySectionTab.Changes &&
+      !enableHideWhitespaceInDiffOption()
+    ) {
+      return
     }
+
     return (
       <section>
         <h3>Whitespace</h3>
