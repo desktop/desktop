@@ -1,6 +1,7 @@
 import { Branch } from './branch'
 import { RebaseConflictState } from '../lib/app-state'
 import { CommitOneLine } from './commit'
+import { RebasePreview } from './rebase'
 
 /** Union type representing the possible states of the rebase flow */
 export type RebaseFlowStep =
@@ -79,6 +80,7 @@ export type ChooseBranchesStep = {
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
   readonly initialBranch?: Branch
+  readonly rebasePreview?: RebasePreview
 }
 
 export type WarnForcePushStep = {

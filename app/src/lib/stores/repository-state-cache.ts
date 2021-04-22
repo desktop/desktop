@@ -94,7 +94,7 @@ export class RepositoryStateCache {
 
   public updateRebaseState<K extends keyof IRebaseState>(
     repository: Repository,
-    fn: (branchesState: IRebaseState) => Pick<IRebaseState, K>
+    fn: (rebaseState: IRebaseState) => Pick<IRebaseState, K>
   ) {
     this.update(repository, state => {
       const { rebaseState } = state

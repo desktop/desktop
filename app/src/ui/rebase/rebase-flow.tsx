@@ -161,6 +161,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
           currentBranch,
           recentBranches,
           initialBranch,
+          rebasePreview,
         } = step
         return (
           <ChooseBranchDialog
@@ -172,6 +173,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             recentBranches={recentBranches}
             currentBranch={currentBranch}
             initialBranch={initialBranch}
+            rebasePreview={rebasePreview}
             onDismissed={this.onFlowEnded}
           />
         )
