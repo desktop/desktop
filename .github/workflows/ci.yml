@@ -22,7 +22,7 @@ jobs:
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       # Needed for macOS arm64 until hosted macos-11.0 runners become available
       SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
