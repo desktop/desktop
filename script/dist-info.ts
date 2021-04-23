@@ -162,7 +162,12 @@ export function getArchitecture(): 'arm64' | 'x64' {
 }
 
 export function getUpdatesURL() {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getChannel()}&architecture=${getArchitecture()}`
+  // It is also possible to use a `x64/` path, but for now we'll leave the
+  // original URL without architecture in it (which will still work for
+  // compatibility reasons) in case anything goes wrong until we have everything
+  // sorted out.
+  const architecturePath = getArchitecture() === 'arm64' ? 'arm64/' : ''
+  return `https://central.github.com/api/deployments/desktop/desktop/${architecturePath}latest?version=${version}&env=${getChannel()}`
 }
 
 export function shouldMakeDelta() {
