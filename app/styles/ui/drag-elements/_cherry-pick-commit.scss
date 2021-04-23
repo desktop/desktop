@@ -16,9 +16,11 @@
     flex-direction: row;
     align-items: center;
     background-color: var(--background-color);
+    overflow: hidden;
 
     .commit {
       border-bottom: none;
+      max-width: 300px;
     }
 
     .count {
@@ -47,14 +49,27 @@
     border: 1px solid var(--box-border-color);
     color: var(--link-button-color);
     padding: var(--spacing-third) var(--spacing-half);
+
+    @include darwin {
+      padding: 1px var(--spacing-third);
+      font-size: 11px;
+      bottom: -25px;
+      color: var(--text-color);
+      background-color: var(--title-tool-tip-background-color);
+      border-radius: 1px;
+      box-shadow: var(--title-tool-tip-shadow);
+    }
+
     .branch-name {
       color: var(--text-color);
       margin-left: var(--spacing-third);
     }
+
     div {
       display: flex;
       align-items: center;
       justify-content: center;
+      white-space: nowrap;
     }
   }
 

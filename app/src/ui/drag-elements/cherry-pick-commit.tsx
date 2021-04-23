@@ -21,19 +21,41 @@ export class CherryPickCommit extends React.Component<
   ICherryPickCommitProps,
   ICherryPickCommitState
 > {
+  private timeoutId: number | null = null
+
   public constructor(props: ICherryPickCommitProps) {
     super(props)
     this.state = {
       branchName: null,
     }
 
-    dragAndDropManager.onEnterDropTarget(targetDescription => {
-      this.setState({ branchName: targetDescription })
+    dragAndDropManager.onEnterDropTarget(branchName => {
+      this.setBranchName(branchName)
     })
 
     dragAndDropManager.onLeaveDropTarget(() => {
       this.setState({ branchName: null })
     })
+  }
+
+  private setBranchName(branchName: string) {
+    if (__DARWIN__) {
+      // For macOs, we styled the copy to message to look like a native tool tip
+      // that appears when hovering over a element with the title attribute. We
+      // also are implementing this timeout to have similar hover-to-see feel.
+      this.setState({ branchName: null })
+
+      if (this.timeoutId !== null) {
+        window.clearTimeout(this.timeoutId)
+      }
+
+      this.timeoutId = window.setTimeout(
+        () => this.setState({ branchName }),
+        1500
+      )
+    } else {
+      this.setState({ branchName })
+    }
   }
 
   /**
@@ -42,15 +64,21 @@ export class CherryPickCommit extends React.Component<
    */
   private renderDragCopyLabel(count: number) {
     const { branchName } = this.state
-    if (branchName === null || __DARWIN__) {
+    if (branchName === null) {
       return
     }
+
+    const copyToPlus = __DARWIN__ ? null : (
+      <Octicon symbol={OcticonSymbol.plus} />
+    )
 
     return (
       <div className="copy-message-label">
         <div>
-          <Octicon symbol={OcticonSymbol.plus} />
-          Copy to <span className="branch-name">{branchName}</span>
+          {copyToPlus}
+          <span>
+            Copy to <span className="branch-name">{branchName}</span>
+          </span>
         </div>
       </div>
     )

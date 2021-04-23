@@ -447,6 +447,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --call-to-action-bubble-border-color: #{$green};
   --call-to-action-bubble-color: #{$green};
+
+  --title-tool-tip-background-color: rgb(236, 236, 236);
+  --title-tool-tip-shadow: 1px 2px 5px 0px rgb(125, 125, 125, 0.5);
 }
 
 ::backdrop {
