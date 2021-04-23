@@ -171,7 +171,10 @@ class UpdateStore {
       remote.app.runningUnderRosettaTranslation === true
     ) {
       const url = new URL(updatesURL)
-      url.searchParams.set('architecture', 'arm64')
+      url.pathname = url.pathname.replace(
+        /\/desktop\/desktop\/(x64\/)?latest/,
+        '/desktop/desktop/arm64/latest'
+      )
       updatesURL = url.toString()
     }
 
