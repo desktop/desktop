@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.7.3-beta4": [
+      "[Fixed] On hover, show the full branch name in tooltip - #12008",
+      "[Improved] During cloning progress and on hover, show full progress description - #11375. Thanks @maifeeulasad!",
+      "[Improved] Cherry-pick multiple non sequential commits - #12030"
+    ],
     "2.7.3-beta3": [
       "[New] Create aliases for repositories you want to be displayed differently in the repository list - #7856",
       "[Improved] Create a branch during cherry-picking via drag and drop - #12001"
