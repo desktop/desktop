@@ -13,6 +13,7 @@
   font-family: var(--font-family-sans-serif);
   height: var(--text-field-height);
   padding: 0 var(--spacing-half);
+  resize: none;
 
   &:focus {
     @include textboxish-focus-styles;

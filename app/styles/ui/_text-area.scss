@@ -10,7 +10,10 @@
     @include textboxish-disabled;
 
     height: auto;
-    resize: none;
+    resize: both;
+    overflow: scroll;
+    max-width: 370px;
+    max-height: 80%;
     min-height: 100px;
   }
 }
