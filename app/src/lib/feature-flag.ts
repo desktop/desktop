@@ -88,5 +88,5 @@ export function enableSaveDialogOnCloneRepository(): boolean {
 
 /** Should we allow setting repository aliases? */
 export function enableRepositoryAliases(): boolean {
-  return enableBetaFeatures()
+  return true
 }
