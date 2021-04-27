@@ -1,5 +1,4 @@
 import { remote } from 'electron'
-import { getDistArchitecture } from '../../../script/dist-info'
 
 export type Architecture = 'x64' | 'arm64' | 'x64-emulated'
 
@@ -19,5 +18,5 @@ export function getArchitecture(): Architecture {
     return 'x64-emulated'
   }
 
-  return getDistArchitecture()
+  return process.arch === 'arm64' ? 'arm64' : 'x64'
 }
