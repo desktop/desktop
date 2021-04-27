@@ -962,6 +962,19 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     this.swappedDocumentHasUpdatedViewport = true
 
     const hunks = this.state.diff.hunks
+    const maxLines = Math.max(...hunks.map(function(o) { return o.lines.length }))
+    const maxLinesDigitAmount = maxLines.toString().length;
+    let diffSize : string = "50px";
+
+    if(maxLinesDigitAmount <= 1) {
+      diffSize = "20px";
+    } else if (maxLinesDigitAmount === 2) {
+      diffSize = "25px";
+    } else if(maxLinesDigitAmount === 3) {
+      diffSize = "35px";
+    } else {
+      diffSize = "55px";
+    }
 
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
@@ -987,7 +1000,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 lineNumber,
                 hunks,
                 hunk,
-                diffLine
+                diffLine,
+                diffSize
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
@@ -1064,7 +1078,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     index: number,
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
-    diffLine: DiffLine
+    diffLine: DiffLine,
+    diffSize: string
   ) {
     const marker = document.createElement('div')
     marker.className = 'diff-line-gutter'
@@ -1076,10 +1091,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.classList.add('diff-line-number', 'before')
+    oldLineNumber.style.width = diffSize;
     marker.appendChild(oldLineNumber)
 
     const newLineNumber = document.createElement('div')
     newLineNumber.classList.add('diff-line-number', 'after')
+    newLineNumber.style.width = diffSize;
     marker.appendChild(newLineNumber)
 
     const hunkHandle = document.createElement('div')
