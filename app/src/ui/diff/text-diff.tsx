@@ -962,18 +962,22 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     this.swappedDocumentHasUpdatedViewport = true
 
     const hunks = this.state.diff.hunks
-    const maxLines = Math.max(...hunks.map(function(o) { return o.lines.length }))
-    const maxLinesDigitAmount = maxLines.toString().length;
-    let diffSize : string = "50px";
+    const maxLines = Math.max(
+      ...hunks.map(function (o) {
+        return o.lines.length
+      })
+    )
+    const maxLinesDigitAmount = maxLines.toString().length
+    let diffSize: string = '50px'
 
-    if(maxLinesDigitAmount <= 1) {
-      diffSize = "20px";
+    if (maxLinesDigitAmount <= 1) {
+      diffSize = '20px'
     } else if (maxLinesDigitAmount === 2) {
-      diffSize = "25px";
-    } else if(maxLinesDigitAmount === 3) {
-      diffSize = "35px";
+      diffSize = '25px'
+    } else if (maxLinesDigitAmount === 3) {
+      diffSize = '35px'
     } else {
-      diffSize = "55px";
+      diffSize = '55px'
     }
 
     doc.eachLine(from, to, line => {
@@ -1091,12 +1095,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.classList.add('diff-line-number', 'before')
-    oldLineNumber.style.width = diffSize;
+    oldLineNumber.style.width = diffSize
     marker.appendChild(oldLineNumber)
 
     const newLineNumber = document.createElement('div')
     newLineNumber.classList.add('diff-line-number', 'after')
-    newLineNumber.style.width = diffSize;
+    newLineNumber.style.width = diffSize
     marker.appendChild(newLineNumber)
 
     const hunkHandle = document.createElement('div')
