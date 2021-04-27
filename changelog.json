@@ -6,7 +6,7 @@
       "[Added] Hide whitespace in diffs on Changes tab - #6818. Thanks @say25!",
       "[Fixed] Show correct state of remote branch when deleting local branches - #11923",
       "[Fixed] Display the full branch name in a tooltip when hovering over a branch in the branches list - #12008",
-      "[Improved] During cloning progress and on hover, show full progress description - #11375. Thanks @maifeeulasad!",
+      "[Improved] Display full progress description when cloning a repository - #11375. Thanks @maifeeulasad!",
       "[Improved] Cherry-pick multiple non sequential commits - #12030",
       "[Improved] Create a branch during cherry-picking via drag and drop - #12001",
       "[Improved] Show an alert when the app fails to move itself to the Applications folder on macOS - #11958",
