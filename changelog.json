@@ -1,6 +1,6 @@
 {
   "releases": {
-    "2.7.3": [
+    "2.8.0": [
       "[New] Expand diffs to view more context around your changes - #7014",
       "[New] Create aliases for repositories you want to be displayed differently in the repository list - #7856",
       "[Added] Hide whitespace in diffs on Changes tab - #6818. Thanks @say25!",
