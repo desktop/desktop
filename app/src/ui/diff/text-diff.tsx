@@ -962,23 +962,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     this.swappedDocumentHasUpdatedViewport = true
 
     const hunks = this.state.diff.hunks
-    const maxLines = Math.max(
-      ...hunks.map(function (o) {
-        return o.lines.length
-      })
-    )
-    const maxLinesDigitAmount = maxLines.toString().length
-    let diffSize: string = '50px'
 
-    if (maxLinesDigitAmount <= 1) {
-      diffSize = '20px'
-    } else if (maxLinesDigitAmount === 2) {
-      diffSize = '25px'
-    } else if (maxLinesDigitAmount === 3) {
-      diffSize = '35px'
-    } else {
-      diffSize = '55px'
-    }
+    const diffSizeString = this.getGutterLineWidth(hunks)
 
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
@@ -1005,7 +990,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 hunks,
                 hunk,
                 diffLine,
-                diffSize
+                diffSizeString
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
@@ -1034,6 +1019,29 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     return inSelection(this.selection, index)
       ? this.selection.isSelected
       : canSelect(file) && file.selection.isSelected(index)
+  }
+
+  /**
+   * Returns a string with the pixel size for the gutter width.
+   * 1 = 20
+   * >1 = (10 * digit amount) + 5
+   */
+  private getGutterLineWidth(totalHunks: readonly DiffHunk[]): string {
+    const maxLines = Math.max(
+      ...totalHunks.map(function (o) {
+        return o.lines.length
+      })
+    )
+    const maxLinesDigitAmount = maxLines.toString().length
+    let diffSize: number
+
+    if (maxLinesDigitAmount <= 1) {
+      diffSize = 20
+    } else {
+      diffSize = 10 * maxLinesDigitAmount + 5
+    }
+
+    return `${diffSize}px`
   }
 
   private getGutterLineClassNameInfo(
