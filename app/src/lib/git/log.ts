@@ -64,7 +64,7 @@ function mapStatus(
 export async function getCommits(
   repository: Repository,
   revisionRange: string,
-  limit: number,
+  limit?: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
   const { formatArgs, parse } = createLogParser({
@@ -82,22 +82,22 @@ export async function getCommits(
     refs: '%D',
   })
 
-  const result = await git(
-    [
-      'log',
-      revisionRange,
-      `--date=raw`,
-      `--max-count=${limit}`,
-      ...formatArgs,
-      '--no-show-signature',
-      '--no-color',
-      ...additionalArgs,
-      '--',
-    ],
-    repository.path,
-    'getCommits',
-    { successExitCodes: new Set([0, 128]) }
+  const args = ['log', revisionRange, `--date=raw`]
+
+  if (limit !== undefined) {
+    args.push(`--max-count=${limit}`)
+  }
+
+  args.push(
+    ...formatArgs,
+    '--no-show-signature',
+    '--no-color',
+    ...additionalArgs,
+    '--'
   )
+  const result = await git(args, repository.path, 'getCommits', {
+    successExitCodes: new Set([0, 128]),
+  })
 
   // if the repository has an unborn HEAD, return an empty history of commits
   if (result.exitCode === 128) {
