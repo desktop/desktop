@@ -9,11 +9,10 @@ import { rebaseInteractive, RebaseResult } from './rebase'
  * Squashes provided commits by calling interactive rebase
  *
  * @param toSquash - commits to squash onto another commit
- * @param squashOnto  - commit to squash the `squash` commits onto
- * @param previousCommit -  sha of commit before all commits in squash operation
+ * @param squashOnto  - commit to squash the `toSquash` commits onto
+ * @param lastRetainedCommitRef -  sha of commit before all commits in squash operation
  * @param commitSummary - summary of new commit made by squash
  * @param commitDescription - description of new commit made by squash
- * @returns - true if successful, false if failed
  */
 export async function squash(
   repository: Repository,
