@@ -493,7 +493,7 @@ export class StatsStore implements IStatsStore {
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
-      architecture: getArchitecture(),
+      architecture: getArchitecture(remote.app),
       theme: getPersistedThemeName(),
       selectedTerminalEmulator,
       selectedTextEditor,
