@@ -1,10 +1,9 @@
-import * as Path from 'path'
-import * as FSE from 'fs-extra'
-import { getCommit, getCommits, git } from '../../../src/lib/git'
+import { getCommit, getCommits, RebaseResult } from '../../../src/lib/git'
 import { CommitOneLine } from '../../../src/models/commit'
 import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepositoryDefaultMain } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
+import { squash } from '../../../src/lib/git/squash'
 
 describe('git/cherry-pick', () => {
   let repository: Repository
@@ -17,36 +16,23 @@ describe('git/cherry-pick', () => {
 
   it('squashes one commit onto the next (non-conflicting)', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
-    const firstShortSha = firstCommit.sha.slice(0, 7)
     const secondCommit = await makeSquashCommit(repository, 'second')
-    const secondShortSha = secondCommit.sha.slice(0, 7)
-    const thirdCommit = await makeSquashCommit(repository, 'third')
-    const thirdShortSha = thirdCommit.sha.slice(0, 7)
 
-    const path = Path.join(repository.path, 'test')
-    await FSE.writeFile(
-      Path.join(repository.path, 'test'),
-      `pick ${firstShortSha} 1\nsquash ${secondShortSha} 2\nsquash ${thirdShortSha} 3\n`
+    const result = await squash(
+      repository,
+      [secondCommit],
+      firstCommit,
+      initialCommit.sha,
+      'Test Summary',
+      'Test Body'
     )
 
-    await git(
-      [
-        '-c',
-        `sequence.editor=cat "${path}" >`,
-        'rebase',
-        '-i',
-        initialCommit.sha,
-      ],
-      repository.path,
-      'squash',
-      {
-        env: {
-          GIT_EDITOR: ':',
-        },
-      }
-    )
+    expect(result).toBe(RebaseResult.CompletedWithoutError)
 
     const log = await getCommits(repository, 'HEAD', 5)
+    const squashed = log[0]
+    expect(squashed.summary).toBe('Test Summary')
+    expect(squashed.body).toBe('Test Body\n')
     expect(log.length).toBe(2)
   })
 })
