@@ -1,4 +1,7 @@
+import * as FSE from 'fs-extra'
+import * as Path from 'path'
 import {
+  continueRebase,
   getChangedFiles,
   getCommit,
   getCommits,
@@ -9,6 +12,8 @@ import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepositoryDefaultMain } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
 import { squash } from '../../../src/lib/git/squash'
+import { GitProcess } from 'dugite'
+import { getStatusOrThrow } from '../../helpers/status'
 
 describe('git/cherry-pick', () => {
   let repository: Repository
@@ -124,18 +129,82 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths.includes('fourth.md')).toBeTrue()
     expect(squashedFilePaths.includes('third.md')).toBeFalse()
   })
+
+  fit('squashes conflicting commit', async () => {
+    const firstCommit = await makeSquashCommit(repository, 'first')
+
+    // make a commit with a commit message 'second' and adding file 'second.md'
+    await makeSquashCommit(repository, 'second')
+
+    // make a third commit modifying 'second.md' from secondCommit
+    const thirdCommit = await makeSquashCommit(repository, 'third', 'second')
+
+    // squash third commit onto first commit
+    // Will cause a conflict due to modifications to 'second.md'  - a file that
+    // does not exist in the first commit.
+    const result = await squash(
+      repository,
+      [thirdCommit],
+      firstCommit,
+      initialCommit.sha,
+      'Test Summary',
+      'Test Body'
+    )
+
+    expect(result).toBe(RebaseResult.ConflictsEncountered)
+
+    let status = await getStatusOrThrow(repository)
+    let { files } = status.workingDirectory
+
+    // resolve conflicts by adding the conflicting file
+    await GitProcess.exec(
+      ['add', Path.join(repository.path, 'second.md')],
+      repository.path
+    )
+
+    // continue rebase
+    let continueResult = await continueRebase(repository, files)
+
+    // This will now conflict with the 'second' commit
+    expect(continueResult).toBe(RebaseResult.ConflictsEncountered)
+
+    status = await getStatusOrThrow(repository)
+    files = status.workingDirectory.files
+
+    await FSE.writeFile(
+      Path.join(repository.path, 'second.md'),
+      '# resolve conflict from adding add after resolving squash'
+    )
+
+    continueResult = await continueRebase(repository, files)
+    expect(continueResult).toBe(RebaseResult.CompletedWithoutError)
+
+    const log = await getCommits(repository, 'HEAD', 5)
+    expect(log.length).toBe(3)
+    const squashed = log[1]
+    // TODO: Be able to pass commit message into continue for gitEditor
+    // expect(squashed.summary).toBe('Test Summary')
+    // expect(squashed.body).toBe('Test Body\n')
+
+    // verify squashed commit contains changes from squashed commits
+    const squashedFiles = await getChangedFiles(repository, squashed.sha)
+    const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
+    expect(squashedFilePaths.includes('first.md')).toBeTrue()
+    expect(squashedFilePaths.includes('second.md')).toBeTrue()
   })
 })
 
 async function makeSquashCommit(
   repository: Repository,
-  desc: string
+  desc: string,
+  file?: string
 ): Promise<CommitOneLine> {
+  file = file || desc
   const commitTree = {
     commitMessage: desc,
     entries: [
       {
-        path: desc + '.md',
+        path: file + '.md',
         contents: '# ' + desc + ' \n',
       },
     ],
