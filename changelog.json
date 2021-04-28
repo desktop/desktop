@@ -1,5 +1,17 @@
 {
   "releases": {
+    "2.8.0": [
+      "[New] Expand diffs to view more context around your changes - #7014",
+      "[New] Create aliases for repositories you want to be displayed differently in the repository list - #7856",
+      "[Added] Hide whitespace in diffs on Changes tab - #6818. Thanks @say25!",
+      "[Fixed] Show correct state of remote branch when deleting local branches - #11923",
+      "[Fixed] Display the full branch name in a tooltip when hovering over a branch in the branches list - #12008",
+      "[Improved] Display full progress description when cloning a repository - #11375. Thanks @maifeeulasad!",
+      "[Improved] Cherry-pick multiple non-sequential commits - #12030",
+      "[Improved] Create a branch during cherry-picking via drag and drop - #12001",
+      "[Improved] Show an alert when the app fails to move itself to the Applications folder on macOS - #11958",
+      "[Improved] Use a save dialog when choosing where to clone a repo - #11949. Thanks @j-f1!"
+    ],
     "2.7.3-beta4": [
       "[Fixed] On hover, show the full branch name in tooltip - #12008",
       "[Improved] During cloning progress and on hover, show full progress description - #11375. Thanks @maifeeulasad!",
