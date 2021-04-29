@@ -18,7 +18,7 @@ export function getDistRoot() {
 export function getDistPath() {
   return Path.join(
     getDistRoot(),
-    `${getExecutableName()}-${process.platform}-${getArchitecture()}`
+    `${getExecutableName()}-${process.platform}-${getDistArchitecture()}`
   )
 }
 
@@ -35,7 +35,7 @@ export function getExecutableName() {
 }
 
 export function getOSXZipName() {
-  return `${productName}-${getArchitecture()}.zip`
+  return `${productName}-${getDistArchitecture()}.zip`
 }
 
 export function getOSXZipPath() {
@@ -44,7 +44,7 @@ export function getOSXZipPath() {
 
 export function getWindowsInstallerName() {
   const productName = getExecutableName()
-  return `${productName}Setup-${getArchitecture()}.msi`
+  return `${productName}Setup-${getDistArchitecture()}.msi`
 }
 
 export function getWindowsInstallerPath() {
@@ -53,7 +53,7 @@ export function getWindowsInstallerPath() {
 
 export function getWindowsStandaloneName() {
   const productName = getExecutableName()
-  return `${productName}Setup-${getArchitecture()}.exe`
+  return `${productName}Setup-${getDistArchitecture()}.exe`
 }
 
 export function getWindowsStandalonePath() {
@@ -63,7 +63,9 @@ export function getWindowsStandalonePath() {
 export function getWindowsFullNugetPackageName(
   includeArchitecture: boolean = false
 ) {
-  const architectureInfix = includeArchitecture ? `-${getArchitecture()}` : ''
+  const architectureInfix = includeArchitecture
+    ? `-${getDistArchitecture()}`
+    : ''
   return `${getWindowsIdentifierName()}-${version}${architectureInfix}-full.nupkg`
 }
 
@@ -79,7 +81,9 @@ export function getWindowsFullNugetPackagePath() {
 export function getWindowsDeltaNugetPackageName(
   includeArchitecture: boolean = false
 ) {
-  const architectureInfix = includeArchitecture ? `-${getArchitecture()}` : ''
+  const architectureInfix = includeArchitecture
+    ? `-${getDistArchitecture()}`
+    : ''
   return `${getWindowsIdentifierName()}-${version}${architectureInfix}-delta.nupkg`
 }
 
@@ -139,7 +143,7 @@ export function getReleaseSHA() {
   return pieces[2]
 }
 
-export function getArchitecture(): 'arm64' | 'x64' {
+export function getDistArchitecture(): 'arm64' | 'x64' {
   // If a specific npm_config_arch is set, we use that one instead of the OS arch (to support cross compilation)
   if (
     process.env.npm_config_arch === 'arm64' ||
@@ -166,7 +170,7 @@ export function getUpdatesURL() {
   // original URL without architecture in it (which will still work for
   // compatibility reasons) in case anything goes wrong until we have everything
   // sorted out.
-  const architecturePath = getArchitecture() === 'arm64' ? 'arm64/' : ''
+  const architecturePath = getDistArchitecture() === 'arm64' ? 'arm64/' : ''
   return `https://central.github.com/api/deployments/desktop/desktop/${architecturePath}latest?version=${version}&env=${getChannel()}`
 }
 

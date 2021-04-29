@@ -49,7 +49,7 @@ export function enableWSLDetection(): boolean {
 
 /** Should the app show hide whitespace in changes tab */
 export function enableHideWhitespaceInDiffOption(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the app use the shiny new TCP-based trampoline? */
@@ -73,7 +73,7 @@ export function enableUnhandledRejectionReporting(): boolean {
 
 /** Should we allow expanding text diffs? */
 export function enableTextDiffExpansion(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow apps running from Rosetta to auto-update to ARM64 builds? */
@@ -83,10 +83,10 @@ export function enableUpdateFromRosettaToARM64(): boolean {
 
 /** Should we allow using the save dialog when choosing where to clone a repo */
 export function enableSaveDialogOnCloneRepository(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow setting repository aliases? */
 export function enableRepositoryAliases(): boolean {
-  return enableBetaFeatures()
+  return true
 }

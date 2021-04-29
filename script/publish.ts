@@ -171,7 +171,8 @@ function createSignature(body: any, secret: string) {
 
 function getContext() {
   return (
-    process.platform + (distInfo.getArchitecture() === 'arm64' ? '-arm64' : '')
+    process.platform +
+    (distInfo.getDistArchitecture() === 'arm64' ? '-arm64' : '')
   )
 }
 
