@@ -14,6 +14,7 @@ import { makeCommit } from '../../helpers/repository-scaffolding'
 import { squash } from '../../../src/lib/git/squash'
 import { GitProcess } from 'dugite'
 import { getStatusOrThrow } from '../../helpers/status'
+import { getTempFilePath } from '../../../src/lib/file-system'
 
 describe('git/cherry-pick', () => {
   let repository: Repository
@@ -162,8 +163,19 @@ describe('git/cherry-pick', () => {
       repository.path
     )
 
+    // If there are conflicts, we need to resend in git editor for changing the
+    // git message on continue
+    const messagePath = await getTempFilePath('squashCommitMessage')
+    await FSE.writeFile(messagePath, 'Test Summary\n\nTest Body')
+
     // continue rebase
-    let continueResult = await continueRebase(repository, files)
+    let continueResult = await continueRebase(
+      repository,
+      files,
+      undefined,
+      undefined,
+      `cat "${messagePath}" >`
+    )
 
     // This will now conflict with the 'second' commit
     expect(continueResult).toBe(RebaseResult.ConflictsEncountered)
@@ -182,9 +194,8 @@ describe('git/cherry-pick', () => {
     const log = await getCommits(repository, 'HEAD', 5)
     expect(log.length).toBe(3)
     const squashed = log[1]
-    // TODO: Be able to pass commit message into continue for gitEditor
-    // expect(squashed.summary).toBe('Test Summary')
-    // expect(squashed.body).toBe('Test Body\n')
+    expect(squashed.summary).toBe('Test Summary')
+    expect(squashed.body).toBe('Test Body\n')
 
     // verify squashed commit contains changes from squashed commits
     const squashedFiles = await getChangedFiles(repository, squashed.sha)
