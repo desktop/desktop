@@ -113,13 +113,13 @@ describe('git/cherry-pick', () => {
 
     // From oldest to newest, log should look like:
     // - initial commit - log[2]
-    // - 'third' commit - log[1]
-    // - The squashed commit 'Test Summary' - log[0]
+    // - the squashed commit 'Test Summary' - log[1]
+    // - 'third' commit - log[0]
     const log = await getCommits(repository, 'HEAD', 5)
-    const squashed = log[0]
+    const squashed = log[1]
     expect(squashed.summary).toBe('Test Summary')
     expect(squashed.body).toBe('Test Body\n')
-    expect(log[1].summary).toBe('third')
+    expect(log[0].summary).toBe('third')
     expect(log.length).toBe(3)
 
     // verify squashed commit contains changes from squashed commits
@@ -131,7 +131,7 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths.includes('third.md')).toBeFalse()
   })
 
-  fit('squashes conflicting commit', async () => {
+  it('squashes conflicting commit', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
 
     // make a commit with a commit message 'second' and adding file 'second.md'
