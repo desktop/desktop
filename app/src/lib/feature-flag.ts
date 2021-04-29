@@ -49,7 +49,7 @@ export function enableWSLDetection(): boolean {
 
 /** Should the app show hide whitespace in changes tab */
 export function enableHideWhitespaceInDiffOption(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the app use the shiny new TCP-based trampoline? */
@@ -83,7 +83,7 @@ export function enableUpdateFromRosettaToARM64(): boolean {
 
 /** Should we allow using the save dialog when choosing where to clone a repo */
 export function enableSaveDialogOnCloneRepository(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow setting repository aliases? */

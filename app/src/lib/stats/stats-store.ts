@@ -23,6 +23,7 @@ import {
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 import { remote } from 'electron'
+import { Architecture, getArchitecture } from '../get-architecture'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -264,6 +265,9 @@ interface ICalculatedStats {
   /** The platform. */
   readonly platform: string
 
+  /** The architecture. */
+  readonly architecture: Architecture
+
   /** The number of total repositories. */
   readonly repositoryCount: number
 
@@ -489,6 +493,7 @@ export class StatsStore implements IStatsStore {
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
+      architecture: getArchitecture(remote.app),
       theme: getPersistedThemeName(),
       selectedTerminalEmulator,
       selectedTextEditor,
