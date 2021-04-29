@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.8.1": [
+      "[Fixed] The app will send error reports when it crashes - #12089"
+    ],
     "2.8.0": [
       "[New] Expand diffs to view more context around your changes - #7014",
       "[New] Create aliases for repositories you want to be displayed differently in the repository list - #7856",
