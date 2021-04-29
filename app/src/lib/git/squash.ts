@@ -10,29 +10,38 @@ import { rebaseInteractive, RebaseResult } from './rebase'
  *
  * @param toSquash - commits to squash onto another commit
  * @param squashOnto  - commit to squash the `toSquash` commits onto
- * @param lastRetainedCommitRef -  sha of commit before all commits in squash operation
- * @param commitSummary - summary of new commit made by squash
- * @param commitDescription - description of new commit made by squash
+ * @param lastRetainedCommitRef - sha of commit before commits in squash
+ * @param commitMessage - the first line of the string provided will be the
+ * summary and rest the body (similar to commit implementation)
  */
 export async function squash(
   repository: Repository,
   toSquash: ReadonlyArray<CommitOneLine>,
   squashOnto: CommitOneLine,
   lastRetainedCommitRef: string,
-  commitSummary: string,
-  commitDescription: string
+  commitMessage: string
 ): Promise<RebaseResult> {
   let messagePath, todoPath
   let result: RebaseResult
 
   try {
+    if (toSquash.length === 0) {
+      throw new Error('[squash] No commits provided to squash.')
+    }
+
     const commits = await getCommits(
       repository,
       revRange(lastRetainedCommitRef, 'HEAD')
     )
 
-    todoPath = await getTempFilePath('squashTodo')
+    if (commits.length === 0) {
+      throw new Error(
+        '[squash] Could not find commits in log for last retained commit ref.'
+      )
+    }
 
+    todoPath = await getTempFilePath('squashTodo')
+    let foundSquashOntoCommitInLog = false
     // need to traverse in reverse so we do oldest to newest (replay commits)
     for (let i = commits.length - 1; i >= 0; i--) {
       // Ignore commits to squash because those are written right next to the target commit
@@ -47,6 +56,7 @@ export async function squash(
 
       // If it's the target commit, write a `squash` line for every commit to squash
       if (commits[i].sha === squashOnto.sha) {
+        foundSquashOntoCommitInLog = true
         for (let j = 0; j < toSquash.length; j++) {
           await FSE.appendFile(
             todoPath,
@@ -56,22 +66,31 @@ export async function squash(
       }
     }
 
-    messagePath = await getTempFilePath('squashCommitMessage')
-    const message =
-      commitDescription !== ''
-        ? `${commitSummary}\n\n${commitDescription}`
-        : commitSummary
-    await FSE.writeFile(messagePath, message)
+    if (!foundSquashOntoCommitInLog) {
+      throw new Error(
+        '[squash] The commit to squash onto was not in the log. Continuing would result in dropping the commits in the toSquash array.'
+      )
+    }
+
+    if (commitMessage.trim() !== '') {
+      messagePath = await getTempFilePath('squashCommitMessage')
+      await FSE.writeFile(messagePath, commitMessage)
+    }
+
+    // if no commit message provided, accept default editor
+    const gitEditor =
+      messagePath !== undefined ? `cat "${messagePath}" >` : undefined
 
     result = await rebaseInteractive(
       repository,
       todoPath,
       lastRetainedCommitRef,
       'squash',
-      `cat "${messagePath}" >`
+      gitEditor
       // TODO: add progress
     )
   } catch (e) {
+    log.error(e)
     return RebaseResult.Error
   } finally {
     if (todoPath !== undefined) {
