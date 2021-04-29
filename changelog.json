@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.8.1-beta2": [
+      "[Improved] Add complete support for macOS on Apple Silicon devices - #12091",
+      "[Improved] From now on, macOS x64 builds running on Apple Silicon devices will auto update to arm64 builds"
+    ],
     "2.8.1-beta1": [
       "[New] Preliminary support for macOS on Apple Silicon devices - #9691. Thanks @dennisameling!"
     ],
