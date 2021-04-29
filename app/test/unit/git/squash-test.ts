@@ -129,7 +129,7 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths.includes('third.md')).toBeFalse()
   })
 
-  it('squashes conflicting commit', async () => {
+  it('handles squashing a conflicting commit', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
 
     // make a commit with a commit message 'second' and adding file 'second.md'
@@ -174,7 +174,9 @@ describe('git/cherry-pick', () => {
       `cat "${messagePath}" >`
     )
 
-    // This will now conflict with the 'second' commit
+    // This will now conflict with the 'second' commit since it is going to now
+    // apply the second commit which now modifies the same lines in the
+    // 'second.md' that the squashed first commit does.
     expect(continueResult).toBe(RebaseResult.ConflictsEncountered)
 
     status = await getStatusOrThrow(repository)
@@ -185,7 +187,18 @@ describe('git/cherry-pick', () => {
       '# resolve conflict from adding add after resolving squash'
     )
 
-    continueResult = await continueRebase(repository, files)
+    continueResult = await continueRebase(
+      repository,
+      files,
+      undefined,
+      undefined,
+      // Only reason I did this here is to show it does not cause harm.
+      // In case of multiple commits being squashed/reordered before the squash
+      // completes, we may not be able to tell which conflict the squash
+      // message will need to go after so we will be sending it on all
+      // continues.
+      `cat "${messagePath}" >`
+    )
     expect(continueResult).toBe(RebaseResult.CompletedWithoutError)
 
     const log = await getCommits(repository, 'HEAD', 5)
