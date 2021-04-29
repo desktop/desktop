@@ -5,6 +5,7 @@ import {
   getChangedFiles,
   getCommit,
   getCommits,
+  getRebaseInternalState,
   RebaseResult,
 } from '../../../src/lib/git'
 import { CommitOneLine } from '../../../src/models/commit'
@@ -34,8 +35,7 @@ describe('git/cherry-pick', () => {
       [secondCommit],
       firstCommit,
       initialCommit.sha,
-      'Test Summary',
-      'Test Body'
+      'Test Summary\n\nTest Body'
     )
 
     expect(result).toBe(RebaseResult.CompletedWithoutError)
@@ -64,8 +64,7 @@ describe('git/cherry-pick', () => {
       [secondCommit, thirdCommit, fourthCommit],
       firstCommit,
       initialCommit.sha,
-      'Test Summary',
-      'Test Body'
+      'Test Summary\n\nTest Body'
     )
 
     expect(result).toBe(RebaseResult.CompletedWithoutError)
@@ -105,8 +104,7 @@ describe('git/cherry-pick', () => {
       [secondCommit, fourthCommit],
       firstCommit,
       initialCommit.sha,
-      'Test Summary',
-      'Test Body'
+      'Test Summary\n\nTest Body'
     )
 
     expect(result).toBe(RebaseResult.CompletedWithoutError)
@@ -148,8 +146,7 @@ describe('git/cherry-pick', () => {
       [thirdCommit],
       firstCommit,
       initialCommit.sha,
-      'Test Summary',
-      'Test Body'
+      'Test Summary\n\nTest Body'
     )
 
     expect(result).toBe(RebaseResult.ConflictsEncountered)
@@ -202,6 +199,88 @@ describe('git/cherry-pick', () => {
     const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
     expect(squashedFilePaths.includes('first.md')).toBeTrue()
     expect(squashedFilePaths.includes('second.md')).toBeTrue()
+  })
+
+  it('squashes with default merged commit message/description if commit message not provided', async () => {
+    const firstCommit = await makeSquashCommit(repository, 'first')
+    const secondCommit = await makeSquashCommit(repository, 'second')
+
+    const result = await squash(
+      repository,
+      [secondCommit],
+      firstCommit,
+      initialCommit.sha,
+      ''
+    )
+    expect(result).toBe(RebaseResult.CompletedWithoutError)
+
+    const log = await getCommits(repository, 'HEAD', 5)
+    const squashed = log[0]
+    expect(squashed.summary).toBe('first')
+    expect(squashed.body).toBe('second\n')
+    expect(log.length).toBe(2)
+  })
+
+  it('returns error on invalid lastRetainedCommitRef', async () => {
+    const firstCommit = await makeSquashCommit(repository, 'first')
+    const secondCommit = await makeSquashCommit(repository, 'second')
+
+    const result = await squash(
+      repository,
+      [secondCommit],
+      firstCommit,
+      'INVALID INVALID',
+      'Test Summary\n\nTest Body'
+    )
+
+    expect(result).toBe(RebaseResult.Error)
+
+    // Rebase will not start - As it won't be able retrieve a commits to build a
+    // todo and then interactive rebase would fail for bad revision. Added logic
+    // to short circuit to prevent unnecessary attempt at an interactive rebase.
+    const isRebaseStillOngoing = await getRebaseInternalState(repository)
+    expect(isRebaseStillOngoing !== null).toBeFalse()
+  })
+
+  it('returns error on invalid commit to squashOnto', async () => {
+    await makeSquashCommit(repository, 'first')
+    const secondCommit = await makeSquashCommit(repository, 'second')
+
+    const result = await squash(
+      repository,
+      [secondCommit],
+      { sha: 'INVALID', summary: 'INVALID' },
+      initialCommit.sha,
+      'Test Summary\n\nTest Body'
+    )
+
+    expect(result).toBe(RebaseResult.Error)
+
+    // Rebase should not start - if we did attempt this, it could result in
+    // dropping commits.
+    const isRebaseStillOngoing = await getRebaseInternalState(repository)
+    expect(isRebaseStillOngoing !== null).toBeFalse()
+  })
+
+  it('returns error on empty toSquash', async () => {
+    const first = await makeSquashCommit(repository, 'first')
+    await makeSquashCommit(repository, 'second')
+
+    const result = await squash(
+      repository,
+      [],
+      first,
+      initialCommit.sha,
+      'Test Summary\n\nTest Body'
+    )
+
+    expect(result).toBe(RebaseResult.Error)
+
+    // Rebase should not start - technically there would be no harm in this
+    // rebase as it would just replay history, but we should not use squash to
+    // replay history.
+    const isRebaseStillOngoing = await getRebaseInternalState(repository)
+    expect(isRebaseStillOngoing !== null).toBeFalse()
   })
 })
 
