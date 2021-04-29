@@ -79,6 +79,7 @@
     "eslint-plugin-json": "^2.1.1",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.20.3",
+    "eslint-plugin-unicorn": "^31.0.0",
     "express": "^4.15.0",
     "fake-indexeddb": "^2.0.4",
     "file-loader": "^2.0.0",
