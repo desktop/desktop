@@ -55,10 +55,10 @@ ansi-styles@^3.1.0:
   dependencies:
     color-convert "^1.9.0"
 
-app-path@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/app-path/-/app-path-3.2.0.tgz#06d426e0c988885264e0aa0a766dfa2723491633"
-  integrity sha512-PQPaKXi64FZuofJkrtaO3I5RZESm9Yjv7tkeJaDz4EZMeBBfGtr5MyQ3m5AC7F0HVrISBLatPxAAAgvbe418fQ==
+app-path@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/app-path/-/app-path-3.3.0.tgz#0342a909db37079c593979c720f99e872475eba3"
+  integrity sha512-EAgEXkdcxH1cgEePOSsmUtw9ItPl0KTxnh/pj9ZbhvbKbij9x0oX6PWpGnorDr0DS5AosLgoa5n3T/hZmKQpYA==
   dependencies:
     execa "^1.0.0"
 
@@ -311,9 +311,9 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-trampoline@desktop/desktop-trampoline#v0.9.6:
-  version "0.9.6"
-  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/0f81f6ec9aa9adb691be7ee64ad98e791c4a07bc"
+desktop-trampoline@desktop/desktop-trampoline#v0.9.7:
+  version "0.9.7"
+  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/38c590851f84e1dc856b6fd7e49920ef360c2ca0"
   dependencies:
     node-addon-api "^3.1.0"
     prebuild-install "^6.0.0"
@@ -367,10 +367,10 @@ double-ended-queue@^2.1.0-0:
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
   integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
-dugite@^1.102.0:
-  version "1.102.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.102.0.tgz#15fde8ec6726f03dabcee06e7e5ee5492bf9bf74"
-  integrity sha512-z3eqQd0sCAt/6HgEDFDKw/VFp9LJG5v7MpR0wQAZh4Y/vz/pt5rdjJozVGVX9kGP3sHbIVz251Ooi8lrLupUeQ==
+dugite@^1.103.0:
+  version "1.103.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.103.0.tgz#2229c83790782116f96b87763d9ea1a0f2a55842"
+  integrity sha512-8rKO/jQX2HKfSd5wNG/l3HnUfQPKqyC3+D+3CR5Go4+BJOyCPScQwiAVW+eeKLqHFOvjq/w67+ymMyPGxUqhIA==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"
