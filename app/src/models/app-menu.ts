@@ -271,8 +271,7 @@ export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
     const seenAccessKeys = new Set<string>()
 
     for (const item of items) {
-      if (item.visible) {
-        if (itemMayHaveAccessKey(item) && item.accessKey) {
+      if (item.visible && itemMayHaveAccessKey(item) && item.accessKey) {
           if (seenAccessKeys.has(item.accessKey.toLowerCase())) {
             throw new Error(
               `Duplicate access key '${item.accessKey}' for item ${item.label}`
@@ -281,7 +280,6 @@ export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
             seenAccessKeys.add(item.accessKey.toLowerCase())
           }
         }
-      }
     }
   }
 
@@ -342,14 +340,12 @@ export function findItemByAccessKey(
   const lowerCaseAccessKey = accessKey.toLowerCase()
 
   for (const item of items) {
-    if (itemMayHaveAccessKey(item)) {
-      if (
+    if (itemMayHaveAccessKey(item) && 
         item.accessKey &&
         item.accessKey.toLowerCase() === lowerCaseAccessKey
       ) {
         return item
       }
-    }
   }
 
   return null

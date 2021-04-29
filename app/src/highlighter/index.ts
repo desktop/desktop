@@ -602,11 +602,9 @@ onmessage = async (ev: MessageEvent) => {
 
     // For stateless modes we can optimize by only running
     // the tokenizer over lines we care about.
-    if (lineFilter && !state) {
-      if (!lineFilter.has(ix)) {
+    if (lineFilter && !state && !lineFilter.has(ix)) {
         continue
       }
-    }
 
     if (!line.length) {
       if (mode.blankLine) {

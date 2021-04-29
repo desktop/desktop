@@ -931,15 +931,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         if (
           this.state.currentFoldout &&
           this.state.currentFoldout.type === FoldoutType.AppMenu
-        ) {
-          // Only close it the menu when the key is pressed if there's an open
+         && // Only close it the menu when the key is pressed if there's an open
           // menu. If there isn't we should close it when the key is released
           // instead and that's taken care of in the onWindowKeyUp function.
-          if (this.state.appMenuState.length > 1) {
+          this.state.appMenuState.length > 1) {
             this.props.dispatcher.setAppMenuState(menu => menu.withReset())
             this.props.dispatcher.closeFoldout(FoldoutType.AppMenu)
           }
-        }
 
         this.props.dispatcher.setAccessKeyHighlightState(true)
       } else if (event.altKey && !event.ctrlKey && !event.metaKey) {
@@ -989,8 +987,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    if (shouldRenderApplicationMenu()) {
-      if (event.key === 'Alt') {
+    if (shouldRenderApplicationMenu() && event.key === 'Alt') {
         this.props.dispatcher.setAccessKeyHighlightState(false)
 
         if (this.lastKeyPressed === 'Alt') {
@@ -1009,7 +1006,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
         }
       }
-    }
   }
 
   private async handleDragAndDrop(fileList: FileList) {
@@ -1231,11 +1227,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     // When we're in full-screen mode on Windows we only need to render
     // the title bar when the menu bar is active. On other platforms we
     // never render the title bar while in full-screen mode.
-    if (inFullScreen) {
-      if (!__WIN32__ || !menuBarActive) {
+    if (inFullScreen && (!__WIN32__ || !menuBarActive)) {
         return null
       }
-    }
 
     const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
     const inWelcomeFlow = this.state.showWelcomeFlow

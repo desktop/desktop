@@ -217,8 +217,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   }
 
   private beforeSelectionChanged = (cm: Editor, changeObj: any) => {
-    if (this.props.isSelectionEnabled) {
-      if (!this.props.isSelectionEnabled()) {
+    if (this.props.isSelectionEnabled && !this.props.isSelectionEnabled()) {
         // ignore whatever the user has currently selected, pass in a
         // "nothing selected" value
         // NOTE:
@@ -228,7 +227,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
           { head: { line: 0, ch: 0 }, anchor: { line: 0, ch: 0 } },
         ])
       }
-    }
   }
 
   private onChanges = (cm: Editor, changes: EditorChangeLinkedList[]) => {

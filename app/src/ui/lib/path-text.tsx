@@ -203,11 +203,9 @@ function createPathDisplayState(
         const nextTruncatedIx = i + 1
 
         // Do we have one more character to read? Is is a path separator?
-        if (truncatedPath.length > nextTruncatedIx) {
-          if (truncatedPath[nextTruncatedIx] === Path.sep) {
+        if (truncatedPath.length > nextTruncatedIx && truncatedPath[nextTruncatedIx] === Path.sep) {
             directoryLength++
           }
-        }
       }
       break
     }

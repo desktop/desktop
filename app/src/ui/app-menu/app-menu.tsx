@@ -119,17 +119,15 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     currentProps: IAppMenuProps | null,
     nextProps: IAppMenuProps
   ) {
-    if (nextProps.openedWithAccessKey) {
-      // We only want to react to the openedWithAccessKey prop once, either
+    if (nextProps.openedWithAccessKey && // We only want to react to the openedWithAccessKey prop once, either
       // when it goes from false to true or when we receive it as our first
       // prop. By doing it this way we save ourselves having to go through
       // the dispatcher and updating the value once we've received it.
-      if (!currentProps || !currentProps.openedWithAccessKey) {
+      (!currentProps || !currentProps.openedWithAccessKey)) {
         // Since we were opened with an access key we auto set focus to the
         // last pane opened.
         this.focusPane = nextProps.state.length - 1
       }
-    }
   }
 
   private onItemClicked = (

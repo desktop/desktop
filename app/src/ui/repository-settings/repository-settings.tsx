@@ -287,8 +287,7 @@ export class RepositorySettings extends React.Component<
     this.setState({ disabled: true, errors: undefined })
     const errors = new Array<JSX.Element | string>()
 
-    if (this.state.remote && this.props.remote) {
-      if (this.state.remote.url !== this.props.remote.url) {
+    if (this.state.remote && this.props.remote && this.state.remote.url !== this.props.remote.url) {
         try {
           await this.props.dispatcher.setRemoteURL(
             this.props.repository,
@@ -303,7 +302,6 @@ export class RepositorySettings extends React.Component<
           errors.push(`Failed setting the remote URL: ${e}`)
         }
       }
-    }
 
     if (this.state.ignoreTextHasChanged && this.state.ignoreText !== null) {
       try {

@@ -573,14 +573,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       // original gutter element (i.e. if you mouse down on a gutter
       // element and move the mouse out of the gutter it should not
       // count as a click when you mouse up)
-      if (this.selection.from === this.selection.to) {
-        if (
+      if (this.selection.from === this.selection.to && 
           !targetHasClass(ev.target, 'diff-line-number') &&
           !targetHasClass(ev.target, 'diff-line-gutter')
         ) {
           return this.cancelSelection()
         }
-      }
     } else {
       return assertNever(
         this.selection.kind,
@@ -1392,19 +1390,15 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
-    if (canSelect(this.props.file)) {
-      if (
+    if (canSelect(this.props.file) && (
         !canSelect(prevProps.file) ||
         this.props.file.selection !== prevProps.file.selection
-      ) {
-        // If the text has changed the gutters will be recreated
+      ) && // If the text has changed the gutters will be recreated
         // regardless but if it hasn't then we'll need to update
         // the viewport.
-        if (this.props.diff.text === prevProps.diff.text) {
+        this.props.diff.text === prevProps.diff.text) {
           this.updateViewport()
         }
-      }
-    }
 
     if (this.props.diff.text !== prevProps.diff.text) {
       this.diffToRestore = null

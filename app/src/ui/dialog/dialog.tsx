@@ -546,11 +546,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onDismiss = () => {
-    if (this.isDismissable() && !this.state.isAppearing) {
-      if (this.props.onDismissed) {
+    if (this.isDismissable() && !this.state.isAppearing && this.props.onDismissed) {
         this.props.onDismissed()
       }
-    }
   }
 
   private onSubmit = (e: React.FormEvent<HTMLFormElement>) => {

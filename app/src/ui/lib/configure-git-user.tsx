@@ -133,8 +133,7 @@ export class ConfigureGitUser extends React.Component<
       this.loadInitialDataPromise !== null &&
       this.props.accounts !== prevProps.accounts &&
       this.props.accounts.length > 0
-    ) {
-      if (this.props.accounts[0] !== prevProps.accounts[0]) {
+     && this.props.accounts[0] !== prevProps.accounts[0]) {
         // Wait for the initial data load to finish before updating the state
         // with the new account info.
         // The problem is we might get the account info before we retrieved the
@@ -146,7 +145,6 @@ export class ConfigureGitUser extends React.Component<
         const account = this.props.accounts[0]
         this.setDefaultValuesFromAccount(account)
       }
-    }
   }
 
   private setDefaultValuesFromAccount(account: Account) {

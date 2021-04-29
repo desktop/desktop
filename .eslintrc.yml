@@ -6,6 +6,7 @@ plugins:
   - react
   - json
   - jsdoc
+  - unicorn
 
 settings:
   react:
@@ -119,6 +120,9 @@ rules:
   jsdoc/newline-after-description: error
   jsdoc/no-undefined-types: error
   jsdoc/valid-types: error
+
+  #unicorn
+  unicorn/no-lonely-if: error
 
   # Would love to enable these at some point but
   # they cause way to many issues now.

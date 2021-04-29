@@ -38,9 +38,7 @@ async function createAPIRepository(account: Account, name: string) {
       err instanceof APIError &&
       err.responseStatus === 422 &&
       err.apiError !== null
-    ) {
-      if (err.apiError.message === 'Repository creation failed.') {
-        if (
+     && err.apiError.message === 'Repository creation failed.' && 
           err.apiError.errors &&
           err.apiError.errors.some(
             x => x.message === 'name already exists on this account'
@@ -54,8 +52,6 @@ async function createAPIRepository(account: Account, name: string) {
               'Please delete the repository and try again.'
           )
         }
-      }
-    }
 
     throw err
   }

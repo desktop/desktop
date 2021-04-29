@@ -115,11 +115,9 @@ export class SelectedCommit extends React.Component<
       ? nextProps.selectedCommit.sha
       : undefined
 
-    if ((currentValue || nextValue) && currentValue !== nextValue) {
-      if (this.state.isExpanded) {
+    if ((currentValue || nextValue) && currentValue !== nextValue && this.state.isExpanded) {
         this.setState({ isExpanded: false })
       }
-    }
   }
 
   public componentWillUnmount() {

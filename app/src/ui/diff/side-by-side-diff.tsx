@@ -529,15 +529,13 @@ export class SideBySideDiff extends React.Component<
     if (lineTokens !== undefined && selectedSearchResult !== undefined) {
       const selected = searchTokens.get(selectedSearchResult)
 
-      if (row === selected?.row && column === selected.column) {
-        if (lineTokens[selected.offset] !== undefined) {
+      if (row === selected?.row && column === selected.column && lineTokens[selected.offset] !== undefined) {
           const selectedToken = {
             [selected.offset]: { length: selected.length, token: 'selected' },
           }
 
           return [lineTokens, selectedToken]
         }
-      }
     }
 
     return [lineTokens]

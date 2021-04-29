@@ -15,8 +15,6 @@ if (process.platform === 'darwin') {
   reviewLogs()
 }
 
-if (process.platform === 'win32') {
-  if (process.env.APPVEYOR_TEST_RESULT !== '0') {
-    reviewLogs()
-  }
+if (process.platform === 'win32' && process.env.APPVEYOR_TEST_RESULT !== '0') {
+  reviewLogs()
 }

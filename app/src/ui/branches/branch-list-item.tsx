@@ -82,19 +82,15 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   private onMouseEnter = () => {
-    if (this.props.isSomethingBeingDragged) {
-      if (this.props.onDragEnterBranch !== undefined) {
+    if (this.props.isSomethingBeingDragged && this.props.onDragEnterBranch !== undefined) {
         this.props.onDragEnterBranch(this.props.name)
       }
-    }
   }
 
   private onMouseLeave = () => {
-    if (this.props.isSomethingBeingDragged) {
-      if (this.props.onDragLeaveBranch !== undefined) {
+    if (this.props.isSomethingBeingDragged && this.props.onDragLeaveBranch !== undefined) {
         this.props.onDragLeaveBranch()
       }
-    }
   }
 
   private onMouseUp = () => {

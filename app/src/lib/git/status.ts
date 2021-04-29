@@ -262,17 +262,15 @@ function buildStatusMap(
 ): Map<string, WorkingDirectoryFileChange> {
   const status = mapStatus(entry.statusCode)
 
-  if (status.kind === 'ordinary') {
-    // when a file is added in the index but then removed in the working
+  if (status.kind === 'ordinary' && // when a file is added in the index but then removed in the working
     // directory, the file won't be part of the commit, so we can skip
     // displaying this entry in the changes list
-    if (
+    
       status.index === GitStatusEntry.Added &&
       status.workingTree === GitStatusEntry.Deleted
     ) {
       return files
     }
-  }
 
   if (status.kind === 'untracked') {
     // when a delete has been staged, but an untracked file exists with the

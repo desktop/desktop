@@ -418,11 +418,9 @@ export class CompareSidebar extends React.Component<
       if (this.branchList !== null) {
         this.branchList.selectNextItem(true, 'down')
       }
-    } else if (key === 'ArrowUp') {
-      if (this.branchList !== null) {
+    } else if (key === 'ArrowUp' && this.branchList !== null) {
         this.branchList.selectNextItem(true, 'up')
       }
-    }
   }
 
   private handleEscape = () => {

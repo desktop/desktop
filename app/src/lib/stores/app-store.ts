@@ -871,8 +871,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // Figure out what selection changes we need to make as a result of this
       // change.
-      if (state.selection.kind === ChangesSelectionKind.Stash) {
-        if (state.stashEntry !== null) {
+      if (state.selection.kind === ChangesSelectionKind.Stash && state.stashEntry !== null) {
           if (stashEntry === null) {
             // We're showing a stash now and the stash entry has just disappeared
             // so we need to switch back over to the working directory.
@@ -883,7 +882,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
             selectStashEntry = true
           }
         }
-      }
 
       return {
         commitMessage: gitStore.commitMessage,
@@ -2414,13 +2412,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let file = selectionBeforeLoad.selectedStashedFile
 
-    if (file === null) {
-      if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
-        if (stashEntry.files.files.length > 0) {
+    if (file === null && stashEntry.files.kind === StashedChangesLoadStates.Loaded && stashEntry.files.files.length > 0) {
           file = stashEntry.files.files[0]
         }
-      }
-    }
 
     if (file === null) {
       this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -3111,17 +3105,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let strategy = explicitStrategy ?? this.uncommittedChangesStrategy
 
     // The user hasn't been presented with an explicit choice
-    if (explicitStrategy === undefined) {
-      // Even if the user has chosen to "always stash on current branch" in
+    if (explicitStrategy === undefined && // Even if the user has chosen to "always stash on current branch" in
       // preferences we still want to let them know changes might be lost
-      if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
-        if (hasChanges && stashEntry !== null) {
+      strategy === UncommittedChangesStrategy.StashOnCurrentBranch && hasChanges && stashEntry !== null) {
           const type = PopupType.ConfirmOverwriteStash
           this._showPopup({ type, repository, branchToCheckout: branch })
           return repository
         }
-      }
-    }
 
     // Always move changes to new branch if we're on a detached head, unborn
     // branch, or a protected branch.
@@ -3129,13 +3119,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       strategy = UncommittedChangesStrategy.MoveToNewBranch
     }
 
-    if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
-      if (hasChanges) {
+    if (strategy === UncommittedChangesStrategy.AskForConfirmation && hasChanges) {
         const type = PopupType.StashAndSwitchBranch
         this._showPopup({ type, branchToCheckout: branch, repository })
         return repository
       }
-    }
 
     return this.withAuthenticatingUser(repository, (repository, account) => {
       // We always want to end with refreshing the repository regardless of
@@ -4211,11 +4199,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       } finally {
         this.updatePushPullFetchProgress(repository, null)
 
-        if (fetchType === FetchType.UserInitiatedTask) {
-          if (repository.gitHubRepository != null) {
+        if (fetchType === FetchType.UserInitiatedTask && repository.gitHubRepository != null) {
             this._refreshIssues(repository.gitHubRepository)
           }
-        }
       }
     })
   }
@@ -5324,11 +5310,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // Update menu labels if the currently selected repository is the
     // repository for which we received an update.
-    if (selectedState && selectedState.type === SelectionType.Repository) {
-      if (selectedState.repository.id === repository.id) {
+    if (selectedState && selectedState.type === SelectionType.Repository && selectedState.repository.id === repository.id) {
         this.updateMenuLabelsForSelectedRepository()
       }
-    }
     this.emitUpdate()
   }
 
@@ -5569,11 +5553,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // Make sure we let the tutorial assessor know that we have a new editor
       // in case it's stuck waiting for one to be selected.
-      if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
-        if (this.selectedRepository instanceof Repository) {
+      if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor && this.selectedRepository instanceof Repository) {
           this.updateCurrentTutorialStep(this.selectedRepository)
         }
-      }
 
       this.emitUpdate()
     }
@@ -5783,9 +5765,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { endpoint } = repository.gitHubRepository
 
     // make sure there is a default remote (there should be)
-    if (defaultRemoteName !== undefined && remoteUrl !== undefined) {
-      // update default remote
-      if (await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
+    if (defaultRemoteName !== undefined && remoteUrl !== undefined && // update default remote
+      await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
         await gitStore.ensureUpstreamRemoteURL(remoteUrl)
         // update associated github repo
         return this.repositoriesStore.setGitHubRepository(
@@ -5793,7 +5774,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           await this.repositoriesStore.upsertGitHubRepository(endpoint, fork)
         )
       }
-    }
     return repository
   }
 

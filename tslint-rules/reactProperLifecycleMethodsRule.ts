@@ -29,15 +29,13 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
           for (const type of heritageClause.types) {
             const inheritedName = type.expression.getText()
 
-            if (inheritedName === 'React.Component') {
-              if (type.typeArguments && type.typeArguments.length === 2) {
+            if (inheritedName === 'React.Component' && type.typeArguments && type.typeArguments.length === 2) {
                 this.propsTypeName = type.typeArguments[0].getText()
                 this.stateTypeName = type.typeArguments[1].getText()
 
                 super.visitClassDeclaration(node)
                 return
               }
-            }
           }
         }
       }

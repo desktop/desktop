@@ -44,14 +44,12 @@ export function updateChangedFiles(
     .map(file => {
       const existingFile = filesByID.get(file.id)
       if (existingFile) {
-        if (clearPartialState) {
-          if (
+        if (clearPartialState && 
             existingFile.selection.getSelectionType() ===
             DiffSelectionType.Partial
           ) {
             return file.withIncludeAll(false)
           }
-        }
 
         return file.withSelection(existingFile.selection)
       } else {

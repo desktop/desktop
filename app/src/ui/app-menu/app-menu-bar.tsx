@@ -139,11 +139,9 @@ export class AppMenuBar extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.props.foldoutState) {
-      if (this.props.appMenu.length === 1) {
+    if (this.props.foldoutState && this.props.appMenu.length === 1) {
         this.focusFirstMenuItem()
       }
-    }
   }
 
   public componentWillUnmount() {

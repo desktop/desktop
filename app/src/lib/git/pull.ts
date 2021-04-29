@@ -73,11 +73,9 @@ export async function pull(
         // git itself, the stderr output from pull contains information
         // about ref updates. We don't need to bring those into the progress
         // stream so we'll just punt on anything we don't know about for now.
-        if (progress.kind === 'context') {
-          if (!progress.text.startsWith('remote: Counting objects')) {
+        if (progress.kind === 'context' && !progress.text.startsWith('remote: Counting objects')) {
             return
           }
-        }
 
         const description =
           progress.kind === 'progress' ? progress.details.text : progress.text

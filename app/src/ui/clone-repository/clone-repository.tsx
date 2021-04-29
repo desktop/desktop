@@ -652,11 +652,9 @@ export class CloneRepository extends React.Component<
   }
 
   private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
-    if (source.kind === 'keyboard' && source.event.key === 'Enter') {
-      if (this.checkIfCloningDisabled() === false) {
+    if (source.kind === 'keyboard' && source.event.key === 'Enter' && this.checkIfCloningDisabled() === false) {
         this.clone()
       }
-    }
   }
 
   private clone = async () => {

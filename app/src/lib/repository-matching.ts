@@ -37,11 +37,9 @@ export function matchGitHubRepository(
     const { hostname } = URL.parse(htmlURL)
     const parsedRemote = parseRemote(remote)
 
-    if (parsedRemote !== null && hostname !== null) {
-      if (parsedRemote.hostname.toLowerCase() === hostname.toLowerCase()) {
+    if (parsedRemote !== null && hostname !== null && parsedRemote.hostname.toLowerCase() === hostname.toLowerCase()) {
         return { name: parsedRemote.name, owner: parsedRemote.owner, account }
       }
-    }
   }
 
   return null

@@ -32,11 +32,9 @@ export function getFallbackUrlForProxyResolve(
       : account.endpoint
   }
 
-  if (repository.gitHubRepository !== null) {
-    if (repository.gitHubRepository.cloneURL !== null) {
+  if (repository.gitHubRepository !== null && repository.gitHubRepository.cloneURL !== null) {
       return repository.gitHubRepository.cloneURL
     }
-  }
 
   // If all else fails let's assume that whatever network resource
   // Git is gonna hit it's gonna be using the same proxy as it would

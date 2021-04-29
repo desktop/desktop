@@ -229,12 +229,10 @@ export class AppMenuBarButton extends React.Component<
 
     this.props.onKeyDown(this.props.menuItem, event)
 
-    if (!this.isMenuOpen && !event.defaultPrevented) {
-      if (event.key === 'ArrowDown') {
+    if (!this.isMenuOpen && !event.defaultPrevented && event.key === 'ArrowDown') {
         this.props.onOpen(this.props.menuItem, true)
         event.preventDefault()
       }
-    }
   }
 
   private onMenuClose = (closeSource: CloseSource) => {

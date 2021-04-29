@@ -51,14 +51,12 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   public componentWillReceiveProps(nextProps: ISignInProps) {
-    if (nextProps.signInState !== this.props.signInState) {
-      if (
+    if (nextProps.signInState !== this.props.signInState && 
         nextProps.signInState &&
         nextProps.signInState.kind === SignInStep.Success
       ) {
         this.onDismissed()
       }
-    }
   }
 
   private onSubmit = () => {

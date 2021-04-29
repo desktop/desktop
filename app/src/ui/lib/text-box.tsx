@@ -264,14 +264,12 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       this.props.type === 'search' &&
       event.key === 'Escape' &&
       value === ''
-    ) {
-      if (this.props.onBlur) {
+     && this.props.onBlur) {
         this.props.onBlur(value)
         if (this.inputElement !== null) {
           this.inputElement.blur()
         }
       }
-    }
 
     if (this.props.onKeyDown !== undefined) {
       this.props.onKeyDown(event)

@@ -426,11 +426,9 @@ export class RepositoriesStore extends TypedBaseStore<
     // If nothing has changed we can skip writing to the database and (more
     // importantly) avoid telling store consumers that the repo store has
     // changed and just return the repo that was given to us.
-    if (isRepositoryWithGitHubRepository(repo)) {
-      if (repo.gitHubRepository.hash === ghRepo.hash) {
+    if (isRepositoryWithGitHubRepository(repo) && repo.gitHubRepository.hash === ghRepo.hash) {
         return repo
       }
-    }
 
     await this.db.transaction('rw', this.db.repositories, () =>
       this.db.repositories.update(repo.id, { gitHubRepositoryID: ghRepo.dbID })
@@ -524,14 +522,12 @@ export class RepositoriesStore extends TypedBaseStore<
       permissions,
     }
 
-    if (existingRepo !== undefined) {
-      // If nothing has changed since the last time we persisted the API info
+    if (existingRepo !== undefined && // If nothing has changed since the last time we persisted the API info
       // we can skip writing to the database and (more importantly) avoid
       // telling store consumers that the repo store has changed.
-      if (shallowEquals(existingRepo, updatedGitHubRepo)) {
+      shallowEquals(existingRepo, updatedGitHubRepo)) {
         return this.toGitHubRepository(existingRepo, owner, parent)
       }
-    }
 
     const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
     this.emitUpdatedRepositories()

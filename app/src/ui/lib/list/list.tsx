@@ -552,8 +552,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
-    if (this.props.selectOnHover && this.canSelectRow(row)) {
-      if (
+    if (this.props.selectOnHover && this.canSelectRow(row) && 
         this.props.selectedRows.includes(row) &&
         this.props.onSelectionChanged
       ) {
@@ -565,7 +564,6 @@ export class List extends React.Component<IListProps, IListState> {
         // even though we could theoretically live without scrolling
         this.scrollRowToVisible(row)
       }
-    }
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
@@ -714,12 +712,10 @@ export class List extends React.Component<IListProps, IListState> {
 
   public componentDidUpdate(prevProps: IListProps, prevState: IListState) {
     const { scrollToRow, setScrollTop } = this.props
-    if (scrollToRow !== undefined && prevProps.scrollToRow !== scrollToRow) {
-      // Prefer scrollTop position over scrollToRow
-      if (setScrollTop === undefined) {
+    if (scrollToRow !== undefined && prevProps.scrollToRow !== scrollToRow && // Prefer scrollTop position over scrollToRow
+      setScrollTop === undefined) {
         this.scrollRowToVisible(scrollToRow)
       }
-    }
 
     if (this.grid) {
       // A non-exhaustive set of checks to see if our current update has already

@@ -34,13 +34,11 @@ function sanitizeId(id: string): string {
  *                 a value exist. See TextBox for a good example).
  */
 export function createUniqueId(prefix: string): string {
-  if (__DEV__) {
-    if (activeIds.size > 50) {
+  if (__DEV__ && activeIds.size > 50) {
       console.warn(
         `Id pool contains ${activeIds.size} entries, it's possible that id's aren't being released properly.`
       )
     }
-  }
 
   const safePrefix = sanitizeId(`${poolPrefix}${prefix}`)
 
