@@ -49,8 +49,8 @@ describe('git/cherry-pick', () => {
     // verify squashed commit contains changes from squashed commits
     const squashedFiles = await getChangedFiles(repository, squashed.sha)
     const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
-    expect(squashedFilePaths.includes('first.md')).toBeTrue()
-    expect(squashedFilePaths.includes('second.md')).toBeTrue()
+    expect(squashedFilePaths).toContain('first.md')
+    expect(squashedFilePaths).toContain('second.md')
   })
 
   it('squashes multiple commit onto one (non-conflicting)', async () => {
@@ -78,10 +78,10 @@ describe('git/cherry-pick', () => {
     // verify squashed commit contains changes from squashed commits
     const squashedFiles = await getChangedFiles(repository, squashed.sha)
     const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
-    expect(squashedFilePaths.includes('first.md')).toBeTrue()
-    expect(squashedFilePaths.includes('second.md')).toBeTrue()
-    expect(squashedFilePaths.includes('third.md')).toBeTrue()
-    expect(squashedFilePaths.includes('fourth.md')).toBeTrue()
+    expect(squashedFilePaths).toContain('first.md')
+    expect(squashedFilePaths).toContain('second.md')
+    expect(squashedFilePaths).toContain('third.md')
+    expect(squashedFilePaths).toContain('fourth.md')
   })
 
   it('squashes multiple commit non-sequential commits (reorders, non-conflicting)', async () => {
@@ -123,10 +123,10 @@ describe('git/cherry-pick', () => {
     // verify squashed commit contains changes from squashed commits
     const squashedFiles = await getChangedFiles(repository, squashed.sha)
     const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
-    expect(squashedFilePaths.includes('first.md')).toBeTrue()
-    expect(squashedFilePaths.includes('second.md')).toBeTrue()
-    expect(squashedFilePaths.includes('fourth.md')).toBeTrue()
-    expect(squashedFilePaths.includes('third.md')).toBeFalse()
+    expect(squashedFilePaths).toContain('first.md')
+    expect(squashedFilePaths).toContain('second.md')
+    expect(squashedFilePaths).toContain('fourth.md')
+    expect(squashedFilePaths).not.toContain('third.md')
   })
 
   it('handles squashing a conflicting commit', async () => {
@@ -210,8 +210,8 @@ describe('git/cherry-pick', () => {
     // verify squashed commit contains changes from squashed commits
     const squashedFiles = await getChangedFiles(repository, squashed.sha)
     const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
-    expect(squashedFilePaths.includes('first.md')).toBeTrue()
-    expect(squashedFilePaths.includes('second.md')).toBeTrue()
+    expect(squashedFilePaths).toContain('first.md')
+    expect(squashedFilePaths).toContain('second.md')
   })
 
   it('squashes with default merged commit message/description if commit message not provided', async () => {
