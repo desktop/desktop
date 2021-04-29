@@ -23,6 +23,7 @@ export async function squash(
   commitDescription: string
 ): Promise<RebaseResult> {
   let messagePath, todoPath
+  let result: RebaseResult
 
   try {
     const commits = await getCommits(
@@ -62,7 +63,7 @@ export async function squash(
         : commitSummary
     await FSE.writeFile(messagePath, message)
 
-    const result = await rebaseInteractive(
+    result = await rebaseInteractive(
       repository,
       todoPath,
       lastRetainedCommitRef,
@@ -70,8 +71,9 @@ export async function squash(
       `cat "${messagePath}" >`
       // TODO: add progress
     )
-    return result
   } catch (e) {
+    return RebaseResult.Error
+  } finally {
     if (todoPath !== undefined) {
       FSE.remove(todoPath)
     }
@@ -81,5 +83,5 @@ export async function squash(
     }
   }
 
-  return RebaseResult.Error
+  return result
 }
