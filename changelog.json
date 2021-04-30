@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.8.1-test3": ["Test crashes"],
     "2.8.1-beta1": [
       "[New] Preliminary support for macOS on Apple Silicon devices - #9691. Thanks @dennisameling!"
     ],
