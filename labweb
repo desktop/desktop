@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="style.css">
+   </head>
+<body>
+<div class="container">
+    <header>
+        <ul>
+            <li>Home</li>
+            <li>Photoapp</li>
+            <li>Design</li>
+            <li>Download</li>
+        </ul>
+    </header>
+    <main>
+        <div class="slider">
+            <img src = "2.jpg" alt = "topimage">
+        </div>
+        <div class="main-block">
+            <h1 class="maintext">Rappresent your life with a simple photo</h1>
+            <div class="subtext">
+                <p>
+                    Another kind of attraction is situated to the left of the first one. It looks smaller and at first sight you can suppose that it is a merry-go-round, too. 
+                    But if you look closer, you can see that it might be a kiosk with some food or souvenirs because people are standing around probably looking for something to buy.
+                </p>
+            </div>
+            <div class="subtext">
+                <p>In the foreground, we see a pond.
+                     There are some reeds and water lilies on the pond, but the water is still clean and clear, so we can see trees and clouds on the pond’s surface. 
+                     In the middle of the picture, we see ordinary green and yellow trees: pines, aspens, oaks. The artist very carefully and accurately painted the landscape, it seems that we are standing on the edge of the pond.Proin imperdiet. 
+                     Aliquam ornare, metus vitae gravida dignissim, nisi nisl ultricies felis, ac tristique enim pede eget elit. Integer non erat nec turpis sollicitudin malesuada. Vestibulum dapibus. Nulla facilisi. 
+                     Nulla iaculis, leo sit amet mollis luctus, sapien eros consectetur dolor, eu faucibus elit nibh eu nibh. Maecenas lacus pede, lobortis non, rhoncus id, tristique a, mi. Cras auctor libero vitae sem vestibulum euismod. Nunc fermentum. </p>
+            </div>
+            <button class = "mainbutton">Get Start</button>
+        </div>
+    </main>
+    <footer><p  = "right"></p>Copyright by phototime - all right reserved </p></footer>
+</div>
+</body>
+</html>
