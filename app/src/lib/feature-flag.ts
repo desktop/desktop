@@ -78,7 +78,7 @@ export function enableTextDiffExpansion(): boolean {
 
 /** Should we allow apps running from Rosetta to auto-update to ARM64 builds? */
 export function enableUpdateFromRosettaToARM64(): boolean {
-  return false
+  return enableBetaFeatures()
 }
 
 /** Should we allow using the save dialog when choosing where to clone a repo */
