@@ -73,7 +73,7 @@ export function enableUnhandledRejectionReporting(): boolean {
 
 /** Should we allow expanding text diffs? */
 export function enableTextDiffExpansion(): boolean {
-  return true
+  return enableBetaFeatures()
 }
 
 /** Should we allow apps running from Rosetta to auto-update to ARM64 builds? */
