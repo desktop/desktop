@@ -2988,7 +2988,6 @@ export class App extends React.Component<IAppProps, IAppState> {
    * be able to be detected.
    */
   private async checkIfThankYouIsInOrder(): Promise<void> {
-    const { versionAndUsersOfLastThankYou: lastThankYou } = this.state
     // There should only be one dotcom account possible at a time.
     const dotComAccount = this.getDotComAccount()
 
@@ -2997,6 +2996,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    const { versionAndUsersOfLastThankYou: lastThankYou } = this.state
     const { login } = dotComAccount
     if (hasUserAlreadyBeenCheckedOrThanked(lastThankYou, login, getVersion())) {
       return

@@ -85,7 +85,10 @@ export function getReleaseSummary(
 async function getChangeLog(): Promise<ReadonlyArray<ReleaseMetadata>> {
   const changelog =
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
-  const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
+  const query =
+    __RELEASE_CHANNEL__ === 'beta' || __RELEASE_CHANNEL__ === 'development'
+      ? '?env=beta'
+      : ''
 
   const response = await fetch(`${changelog}${query}`)
   if (response.ok) {
@@ -105,12 +108,10 @@ export async function generateReleaseSummary(): Promise<ReleaseSummary> {
 export async function getThankYouByUser(): Promise<
   Map<string, ReadonlyArray<ReleaseNote>>
 > {
-  let releaseMetaData = await getChangeLog()
-  if (__RELEASE_CHANNEL__ === 'beta' || __RELEASE_CHANNEL__ === 'development') {
-    releaseMetaData = [...releaseMetaData, ...(await getChangeLog(''))]
-  }
+  const releaseMetaData = await getChangeLog()
   const summaries = releaseMetaData.map(getReleaseSummary)
   const thankYousByUser = new Map<string, Array<ReleaseNote>>()
+
   summaries.forEach(s => {
     if (s.thankYous.length === 0) {
       return
@@ -122,6 +123,7 @@ export async function getThankYouByUser(): Promise<
       if (match === null) {
         return
       }
+
       const userHandle = match[0].slice(10, -1)
       let usersThanksYous = thankYousByUser.get(userHandle)
       if (usersThanksYous === undefined) {
