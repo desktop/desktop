@@ -339,37 +339,40 @@ export class SideBySideDiff extends React.Component<
   private getRowWidth = (rows: readonly SimplifiedDiffRow[]): string => {
     const largestBeforeLineNum = Math.max(
       ...rows.map(function (o) {
-          if(o.type === DiffRowType.Modified) {
-            return o.beforeData.lineNumber
-          }
+        if (o.type === DiffRowType.Modified) {
+          return o.beforeData.lineNumber
+        }
 
-          if(o.type === DiffRowType.Context) {
-            return o.beforeLineNumber
-          }
+        if (o.type === DiffRowType.Context) {
+          return o.beforeLineNumber
+        }
 
-          return 0
+        return 0
       })
     )
 
     const largestAfterLineNum = Math.max(
       ...rows.map(function (o) {
-          if(o.type === DiffRowType.Added || o.type === DiffRowType.Deleted) {
-            return o.data.lineNumber
-          }
-          
-          if(o.type === DiffRowType.Modified) {
-            return o.afterData.lineNumber
-          }
+        if (o.type === DiffRowType.Added || o.type === DiffRowType.Deleted) {
+          return o.data.lineNumber
+        }
 
-          if(o.type === DiffRowType.Context) {
-            return o.afterLineNumber
-          }
+        if (o.type === DiffRowType.Modified) {
+          return o.afterData.lineNumber
+        }
 
-          return 0
+        if (o.type === DiffRowType.Context) {
+          return o.afterLineNumber
+        }
+
+        return 0
       })
     )
 
-    const maxLinesDigitAmount = largestBeforeLineNum > largestAfterLineNum ? largestBeforeLineNum.toString().length : largestAfterLineNum.toString().length
+    const maxLinesDigitAmount =
+      largestBeforeLineNum > largestAfterLineNum
+        ? largestBeforeLineNum.toString().length
+        : largestAfterLineNum.toString().length
     let diffSize: number
 
     if (maxLinesDigitAmount <= 1) {
