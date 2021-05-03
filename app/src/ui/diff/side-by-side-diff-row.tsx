@@ -14,6 +14,7 @@ import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
+import { String } from 'aws-sdk/clients/xray'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -35,6 +36,11 @@ interface ISideBySideDiffRowProps {
    * Whether to display the rows side by side.
    */
   readonly showSideBySideDiff: boolean
+
+  /**
+   * Whether to display the rows side by side.
+   */
+  readonly lineNumberWidth: string
 
   /**
    * The index of the row in the displayed diff.
@@ -113,7 +119,7 @@ export class SideBySideDiffRow extends React.Component<
   ISideBySideDiffRowProps
 > {
   public render() {
-    const { row, showSideBySideDiff } = this.props
+    const { row, showSideBySideDiff, lineNumberWidth } = this.props
 
     switch (row.type) {
       case DiffRowType.Hunk: {
@@ -135,7 +141,7 @@ export class SideBySideDiffRow extends React.Component<
           return (
             <div className="row context">
               <div className="before">
-                {this.renderLineNumbers([beforeLineNumber, afterLineNumber])}
+                {this.renderLineNumbers([beforeLineNumber, afterLineNumber], lineNumberWidth)}
                 {this.renderContentFromString(row.content, row.beforeTokens)}
               </div>
             </div>
@@ -145,11 +151,11 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row context">
             <div className="before">
-              {this.renderLineNumber(beforeLineNumber)}
+              {this.renderLineNumber(lineNumberWidth, beforeLineNumber)}
               {this.renderContentFromString(row.content, row.beforeTokens)}
             </div>
             <div className="after">
-              {this.renderLineNumber(afterLineNumber)}
+              {this.renderLineNumber(lineNumberWidth, afterLineNumber)}
               {this.renderContentFromString(row.content, row.afterTokens)}
             </div>
           </div>
@@ -164,7 +170,7 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className="after">
-                {this.renderLineNumbers([undefined, lineNumber], isSelected)}
+                {this.renderLineNumbers([undefined, lineNumber], lineNumberWidth, isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
               </div>
@@ -175,12 +181,12 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row added" onMouseEnter={this.onMouseEnterLineNumber}>
             <div className="before">
-              {this.renderLineNumber()}
+              {this.renderLineNumber(lineNumberWidth)}
               {this.renderContentFromString('')}
             </div>
             {this.renderHunkHandle()}
             <div className="after">
-              {this.renderLineNumber(lineNumber, isSelected)}
+              {this.renderLineNumber(lineNumberWidth, lineNumber, isSelected)}
               {this.renderContent(row.data)}
             </div>
           </div>
@@ -195,7 +201,7 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className="before">
-                {this.renderLineNumbers([lineNumber, undefined], isSelected)}
+                {this.renderLineNumbers([lineNumber, undefined], lineNumberWidth, isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
               </div>
@@ -209,12 +215,12 @@ export class SideBySideDiffRow extends React.Component<
             onMouseEnter={this.onMouseEnterLineNumber}
           >
             <div className="before">
-              {this.renderLineNumber(lineNumber, isSelected)}
+              {this.renderLineNumber(lineNumberWidth, lineNumber, isSelected)}
               {this.renderContent(row.data)}
             </div>
             {this.renderHunkHandle()}
             <div className="after">
-              {this.renderLineNumber()}
+              {this.renderLineNumber(lineNumberWidth)}
               {this.renderContentFromString('')}
             </div>
           </div>
@@ -225,12 +231,12 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row modified">
             <div className="before" onMouseEnter={this.onMouseEnterLineNumber}>
-              {this.renderLineNumber(before.lineNumber, before.isSelected)}
+              {this.renderLineNumber(lineNumberWidth, before.lineNumber, before.isSelected)}
               {this.renderContent(before)}
             </div>
             {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
-              {this.renderLineNumber(after.lineNumber, after.isSelected)}
+              {this.renderLineNumber(lineNumberWidth, after.lineNumber, after.isSelected)}
               {this.renderContent(after)}
             </div>
           </div>
@@ -376,6 +382,7 @@ export class SideBySideDiffRow extends React.Component<
   /**
    * Renders the line number box.
    *
+   * @param divWidth The width the line number component should be.
    * @param lineNumbers Array with line numbers to display.
    * @param isSelected  Whether the line has been selected.
    *                    If undefined is passed, the line is treated
@@ -383,11 +390,12 @@ export class SideBySideDiffRow extends React.Component<
    */
   private renderLineNumbers(
     lineNumbers: Array<number | undefined>,
-    isSelected?: boolean
+    divWidth: String,
+    isSelected?: boolean,
   ) {
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
-        <div className="line-number">
+        <div className="line-number" style={{ width: divWidth }}>
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
@@ -401,6 +409,7 @@ export class SideBySideDiffRow extends React.Component<
           'line-selected': isSelected,
           hover: this.props.isHunkHovered,
         })}
+        style={{ width: divWidth }}
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
@@ -415,12 +424,13 @@ export class SideBySideDiffRow extends React.Component<
    * Renders the line number box.
    *
    * @param lineNumber  Line number to display.
+   * @param divWidth The width the line number component should be.
    * @param isSelected  Whether the line has been selected.
    *                    If undefined is passed, the line is treated
    *                    as non-selectable.
    */
-  private renderLineNumber(lineNumber?: number, isSelected?: boolean) {
-    return this.renderLineNumbers([lineNumber], isSelected)
+  private renderLineNumber(divWidth: string, lineNumber?: number,  isSelected?: boolean) {
+    return this.renderLineNumbers([lineNumber], divWidth, isSelected)
   }
 
   private getDiffColumn(targetElement?: Element): DiffColumn | null {

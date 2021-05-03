@@ -297,6 +297,8 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
+    const lineNumberWidth = this.getRowWidth(rows)
+
     const rowWithTokens = this.createFullRow(row, index)
 
     const isHunkHovered =
@@ -313,6 +315,7 @@ export class SideBySideDiff extends React.Component<
         <div key={key} style={style}>
           <SideBySideDiffRow
             row={rowWithTokens}
+            lineNumberWidth={lineNumberWidth}
             numRow={index}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
@@ -331,6 +334,51 @@ export class SideBySideDiff extends React.Component<
         </div>
       </CellMeasurer>
     )
+  }
+
+  private getRowWidth = (rows: readonly SimplifiedDiffRow[]): string => {
+    const largestBeforeLineNum = Math.max(
+      ...rows.map(function (o) {
+          if(o.type === DiffRowType.Modified) {
+            return o.beforeData.lineNumber
+          }
+
+          if(o.type === DiffRowType.Context) {
+            return o.beforeLineNumber
+          }
+
+          return 0
+      })
+    )
+
+    const largestAfterLineNum = Math.max(
+      ...rows.map(function (o) {
+          if(o.type === DiffRowType.Added || o.type === DiffRowType.Deleted) {
+            return o.data.lineNumber
+          }
+          
+          if(o.type === DiffRowType.Modified) {
+            return o.afterData.lineNumber
+          }
+
+          if(o.type === DiffRowType.Context) {
+            return o.afterLineNumber
+          }
+
+          return 0
+      })
+    )
+
+    const maxLinesDigitAmount = largestBeforeLineNum > largestAfterLineNum ? largestBeforeLineNum.toString().length : largestAfterLineNum.toString().length
+    let diffSize: number
+
+    if (maxLinesDigitAmount <= 1) {
+      diffSize = 20
+    } else {
+      diffSize = 10 * maxLinesDigitAmount + 5
+    }
+
+    return `${diffSize}px`
   }
 
   private getRowHeight = (row: { index: number }) => {
