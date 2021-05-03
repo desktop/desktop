@@ -1027,12 +1027,25 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
    * >1 = (10 * digit amount) + 5
    */
   private getGutterLineWidth(totalHunks: readonly DiffHunk[]): string {
-    const maxLines = Math.max(
+
+    // Get the largest old line number and the largest new line, of these two we can find the highest amount of digits in the hunks
+    const largestOldLineNum = Math.max(
       ...totalHunks.map(function (o) {
-        return o.lines.length
+        return Math.max(...o.lines.map(function(val) {
+          return val.oldLineNumber ?? 0
+        }))
       })
     )
-    const maxLinesDigitAmount = maxLines.toString().length
+
+    const largestNewLineNum = Math.max(
+      ...totalHunks.map(function (o) {
+        return Math.max(...o.lines.map(function(val) {
+          return val.newLineNumber ?? 0
+        }))
+      })
+    )
+
+    const maxLinesDigitAmount = largestOldLineNum > largestNewLineNum ? largestOldLineNum.toString().length : largestNewLineNum.toString().length
     let diffSize: number
 
     if (maxLinesDigitAmount <= 1) {
