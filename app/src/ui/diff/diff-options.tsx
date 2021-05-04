@@ -163,6 +163,12 @@ export class DiffOptions extends React.Component<
             __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
           }
         />
+        {this.props.sourceTab === RepositorySectionTab.Changes && (
+          <p className="secondary-text">
+            Interacting with individual lines or hunks will be disabled while
+            hiding whitespace.
+          </p>
+        )}
       </section>
     )
   }
