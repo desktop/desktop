@@ -463,6 +463,12 @@ export class App extends React.Component<IAppProps, IAppState> {
               message: 'In other news...',
             },
           ],
+          thankYous: [
+            {
+              kind: 'other',
+              message: 'In other news... . Thanks @some-body-to-thank!',
+            },
+          ],
         },
       })
     }

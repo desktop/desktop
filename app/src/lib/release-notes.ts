@@ -66,6 +66,7 @@ export function getReleaseSummary(
   )
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
+  const thankYous = entries.filter(e => e.message.includes(' Thanks @'))
 
   const datePublished = moment(latestRelease.pub_date).format('MMMM Do YYYY')
 
@@ -77,6 +78,7 @@ export function getReleaseSummary(
     enhancements,
     bugfixes,
     other,
+    thankYous,
   }
 }
 
