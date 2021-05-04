@@ -165,3 +165,8 @@ export function enableCherryPicking(): boolean {
 export function enableTextDiffExpansion(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Feature flag for git worktree based conflict detection for rebasing */
+export function enableRebaseConflictDetection(): boolean {
+  return enableBetaFeatures()
+}
