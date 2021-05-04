@@ -759,6 +759,14 @@ export class Dispatcher {
     return this.appStore._undoCommit(repository, commit)
   }
 
+  /** Undo the given commit. */
+  public stashAndUndoCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    return this.appStore._stashAndUndoCommit(repository, commit)
+  }
+
   /** Revert the commit with the given SHA */
   public revertCommit(repository: Repository, commit: Commit): Promise<void> {
     return this.appStore._revertCommit(repository, commit)
