@@ -3000,9 +3000,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    // If this is the first time user has seen the card, we want to thank them
+    // for all previous versions. Thus, only specify current version if they
+    // have been thanked before.
+    const shouldSendVersion =
+      lastThankYou.length > 1 && lastThankYou.slice(1).includes(login)
+    const displayVersion = shouldSendVersion ? getVersion() : null
+
     const banner: Banner = {
       type: BannerType.OpenThankYouCard,
-      onOpenCard: () => this.openThankYouCard(userContributions, getVersion()),
+      onOpenCard: () =>
+        this.openThankYouCard(userContributions, displayVersion),
       onThrewCardAway: () => {
         updateLastThankYou(
           this.props.dispatcher,
