@@ -76,7 +76,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
   private renderConfetti(): JSX.Element | null {
     const confetti = new Array<JSX.Element>()
 
-    const howMuchConfetti = 1500
+    const howMuchConfetti = 750
     for (let i = 0; i < howMuchConfetti; i++) {
       confetti.push(<div key={i} className="confetti"></div>)
     }
