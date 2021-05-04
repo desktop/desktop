@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.8.1-test4": ["[New] Test for 2.8.1"],
     "2.8.1": [
       "[Fixed] Disable partial change selection in split view while whitespace changes are hidden."
     ],
