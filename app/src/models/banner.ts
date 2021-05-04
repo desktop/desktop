@@ -9,6 +9,7 @@ export enum BannerType {
   SuccessfulCherryPick = 'SuccessfulCherryPick',
   CherryPickConflictsFound = 'CherryPickConflictsFound',
   CherryPickUndone = 'CherryPickUndone',
+  OpenThankYouCard = 'OpenThankYouCard',
 }
 
 export type Banner =
@@ -69,4 +70,9 @@ export type Banner =
       readonly targetBranchName: string
       /** number of commits cherry picked */
       readonly countCherryPicked: number
+    }
+  | {
+      readonly type: BannerType.OpenThankYouCard
+      readonly onOpenCard: () => void
+      readonly onThrewCardAway: () => void
     }
