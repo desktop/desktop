@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.8.1": [
-      "[Fixed] Disable partial change selection in split view while whitespace changes are hidden."
+      "[Fixed] Disable partial change selection in split view while whitespace changes are hidden - #12129"
     ],
     "2.8.0": [
       "[New] Expand diffs to view more context around your changes - #7014",
