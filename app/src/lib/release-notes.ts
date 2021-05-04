@@ -83,7 +83,7 @@ export function getReleaseSummary(
   }
 }
 
-async function getChangeLog(): Promise<ReadonlyArray<ReleaseMetadata>> {
+export async function getChangeLog(): Promise<ReadonlyArray<ReleaseMetadata>> {
   const changelog =
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
   const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
