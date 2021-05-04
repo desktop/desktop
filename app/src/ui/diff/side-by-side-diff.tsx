@@ -97,6 +97,9 @@ interface ISideBySideDiffProps {
     diffSelection: DiffSelection
   ) => void
 
+  /** Whether or not whitespace changes are hidden. */
+  readonly hideWhitespaceInDiff: boolean
+
   /**
    * Whether we'll show a confirmation dialog when the user
    * discards changes.
@@ -320,6 +323,7 @@ export class SideBySideDiff extends React.Component<
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
             showSideBySideDiff={this.props.showSideBySideDiff}
+            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
@@ -771,10 +775,14 @@ export class SideBySideDiff extends React.Component<
    * @param diffLineNumber the line number the diff where the user clicked
    */
   private onContextMenuLine = (diffLineNumber: number) => {
-    const { file } = this.props
+    const { file, hideWhitespaceInDiff } = this.props
     const { diff } = this.state
 
     if (!canSelect(file)) {
+      return
+    }
+
+    if (hideWhitespaceInDiff) {
       return
     }
 
