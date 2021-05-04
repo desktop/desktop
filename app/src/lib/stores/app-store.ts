@@ -4127,11 +4127,59 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public async _stashAndUndoCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { changesState } = repositoryState
+
+    // Stash the current changes if there are file changes in the working directory.
+    if (
+      changesState.workingDirectory.files.length > 0 &&
+      gitStore.tip.kind === TipState.Valid
+    ) {
+      await this.createStashAndDropPreviousEntry(
+        repository,
+        gitStore.tip.branch
+      )
+      // We need to refresh the repository right after the stash to ensure that
+      // the working directory changes are now empty and we can undo the commit.
+      await this._refreshRepository(repository)
+    }
+
+    return this._undoCommit(repository, commit)
+  }
+
   public async _undoCommit(
     repository: Repository,
     commit: Commit
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { changesState } = repositoryState
+
+    // Compare file paths in working directory and in the commit that will be undone
+    const workingDirectoryFiles = changesState.workingDirectory.files.map(
+      f => f.path
+    )
+    const commitFiles = (await getChangedFiles(repository, commit.sha)).map(
+      f => f.path
+    )
+
+    // Ask to stash changes if there is any overlap between commit files and
+    // working directory files
+    if (workingDirectoryFiles.some(f => commitFiles.includes(f))) {
+      const hasExistingStash = repositoryState.changesState.stashEntry !== null
+
+      return this._showPopup({
+        type: PopupType.ConfirmStashBeforeUndo,
+        repository,
+        commit,
+        overwrite: hasExistingStash,
+      })
+    }
 
     const currentState = this.repositoryStateCache.get(repository)
     const { changesState } = currentState
@@ -5793,7 +5841,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { workingDirectory } = changesState
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
-    return await createDesktopStashEntry(repository, branch, untrackedFiles)
+    return createDesktopStashEntry(repository, branch, untrackedFiles)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
