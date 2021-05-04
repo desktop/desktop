@@ -52,6 +52,7 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
+import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -1246,8 +1247,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     if (this.props.hideWhitespaceInDiff) {
-      marker.title =
-        'Partial committing is not available while hiding whitespace changes'
+      marker.title = HideWhitespaceWarning
     }
 
     const hunkExpandWholeHandle = marker.getElementsByClassName(

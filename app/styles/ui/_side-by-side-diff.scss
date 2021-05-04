@@ -74,7 +74,7 @@
     }
 
     &.selectable {
-      span {
+      &.hoverable span {
         cursor: pointer;
       }
 
@@ -83,7 +83,7 @@
         color: var(--diff-selected-text-color);
         border-color: var(--diff-selected-border-color);
 
-        &:hover,
+        &.hoverable:hover,
         &.hover {
           background: var(--diff-hover-background-color);
           color: var(--diff-hover-text-color);
@@ -111,7 +111,7 @@
       padding: 4px 0;
     }
 
-    &.selectable {
+    &.selectable.hoverable {
       * {
         cursor: pointer;
       }
@@ -130,7 +130,10 @@
     width: 20px;
     left: calc(50% - 10px);
     top: 0;
-    cursor: pointer;
+
+    &.hoverable {
+      cursor: pointer;
+    }
   }
 
   .content {
@@ -177,7 +180,7 @@
       border-color: var(--diff-delete-border-color);
     }
 
-    .selectable:hover,
+    .selectable.hoverable:hover,
     .selectable.hover {
       background: var(--diff-delete-hover-background-color);
       color: var(--diff-delete-hover-text-color);
@@ -194,7 +197,7 @@
       border-color: var(--diff-add-border-color);
     }
 
-    .selectable:hover,
+    .selectable.hoverable:hover,
     .selectable.hover {
       background: var(--diff-add-hover-background-color);
       color: var(--diff-add-hover-text-color);
