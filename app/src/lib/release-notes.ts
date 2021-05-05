@@ -83,10 +83,23 @@ export function getReleaseSummary(
   }
 }
 
-export async function getChangeLog(): Promise<ReadonlyArray<ReleaseMetadata>> {
+export async function getChangeLog(
+  limit?: number
+): Promise<ReadonlyArray<ReleaseMetadata>> {
   const changelog =
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
-  const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
+  const params = []
+  if (__RELEASE_CHANNEL__ === 'beta') {
+    params.push('env=beta')
+  }
+  if (limit !== undefined) {
+    params.push(`limit=${limit}`)
+  }
+  let query = ''
+  params.forEach(param => {
+    const prefix = query === '' ? '?' : '&'
+    query += `${prefix}${param}`
+  })
 
   const response = await fetch(`${changelog}${query}`)
   if (response.ok) {
