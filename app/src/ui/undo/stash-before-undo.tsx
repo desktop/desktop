@@ -4,7 +4,6 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { Commit } from '../../models/commit'
 
 interface IStashBeforeUndoProps {
@@ -60,9 +59,8 @@ export class StashBeforeUndo extends React.Component<
           </Row>
           {this.props.overwrite && (
             <Row>
-              <Octicon symbol={OcticonSymbol.alert} /> You also have stashed
-              changes on this branch. If you continue, your current stash will
-              be overwritten by creating a new stash
+              You also have stashed changes on this branch. If you continue,
+              your current stash will be overwritten by creating a new stash
             </Row>
           )}
         </DialogContent>
