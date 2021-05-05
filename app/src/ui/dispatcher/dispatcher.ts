@@ -108,6 +108,7 @@ import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
 import { DragElement } from '../../models/drag-element'
 import { findDefaultUpstreamBranch } from '../../lib/branch'
+import { ILastThankYou } from '../../models/last-thank-you'
 
 /**
  * An error handler function.
@@ -3065,5 +3066,10 @@ export class Dispatcher {
     branch: Branch
   ): Promise<IAheadBehind | null> {
     return this.appStore._getBranchAheadBehind(repository, branch)
+  }
+
+  /** Set whether thank you is in order for external contributions */
+  public setLastThankYou(lastThankYou: ILastThankYou) {
+    this.appStore._setLastThankYou(lastThankYou)
   }
 }

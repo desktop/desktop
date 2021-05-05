@@ -209,6 +209,8 @@ import {
   getNumberArray,
   setNumberArray,
   getEnum,
+  getObject,
+  setObject,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -280,6 +282,7 @@ import {
   isCherryPickHeadFound,
 } from '../git/cherry-pick'
 import { DragElement } from '../../models/drag-element'
+import { ILastThankYou } from '../../models/last-thank-you'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -340,6 +343,7 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
+const lastThankYouKey = 'version-and-users-of-last-thank-you'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -449,6 +453,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private hasShownCherryPickIntro: boolean = false
 
   private currentDragElement: DragElement | null = null
+  private lastThankYou: ILastThankYou | undefined
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -801,6 +806,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       hasShownCherryPickIntro: this.hasShownCherryPickIntro,
       currentDragElement: this.currentDragElement,
+      lastThankYou: this.lastThankYou,
     }
   }
 
@@ -1772,6 +1778,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, false)
+    this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
     this.emitUpdateNow()
 
@@ -6223,6 +6230,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch
   ): Promise<IAheadBehind | null> {
     return getBranchAheadBehind(repository, branch)
+  }
+
+  public _setLastThankYou(lastThankYou: ILastThankYou) {
+    // don't update if same length and same version (assumption
+    // is that update will be either adding a user or updating version)
+    const sameVersion =
+      this.lastThankYou !== undefined &&
+      this.lastThankYou.version === lastThankYou.version
+
+    const sameNumCheckedUsers =
+      this.lastThankYou !== undefined &&
+      this.lastThankYou.checkedUsers.length === lastThankYou.checkedUsers.length
+
+    if (sameVersion && sameNumCheckedUsers) {
+      return
+    }
+
+    setObject(lastThankYouKey, lastThankYou)
+    this.lastThankYou = lastThankYou
+
+    this.emitUpdate()
   }
 }
 
