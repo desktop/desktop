@@ -330,7 +330,7 @@ export class SideBySideDiffRow extends React.Component<
 
     return (
       <div
-        className="hunk-expansion-handle selectable"
+        className="hunk-expansion-handle selectable hoverable"
         title={elementInfo.title}
         onClick={elementInfo.handler}
         onContextMenu={this.props.onContextMenuExpandHunk}
