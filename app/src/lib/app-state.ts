@@ -40,6 +40,7 @@ import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { CherryPickFlowStep } from '../models/cherry-pick'
 import { DragElement } from '../models/drag-element'
+import { ILastThankYou } from '../models/last-thank-you'
 
 export enum SelectionType {
   Repository,
@@ -273,11 +274,8 @@ export interface IAppState {
   /**
    * Record of what logged in users have been checked to see if thank you is in
    * order for external contributions in latest release.
-   *
-   * String of the form [version-number, user-login, user-login, user-login].
-   * This will be reset for each new version.
    */
-  readonly versionAndUsersOfLastThankYou: ReadonlyArray<string>
+  readonly lastThankYou: ILastThankYou | undefined
 }
 
 export enum FoldoutType {
