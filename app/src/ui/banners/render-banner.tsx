@@ -103,7 +103,7 @@ export function renderBanner(
           key="open-thank-you-card"
           onDismissed={onDismissed}
           onOpenCard={banner.onOpenCard}
-          onThrewCardAway={banner.onThrewCardAway}
+          onThrowCardAway={banner.onThrowCardAway}
         />
       )
     default:

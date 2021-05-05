@@ -6,7 +6,7 @@ import { Banner } from './banner'
 interface IOpenThankYouCardProps {
   readonly onDismissed: () => void
   readonly onOpenCard: () => void
-  readonly onThrewCardAway: () => void
+  readonly onThrowCardAway: () => void
 }
 
 /**
@@ -28,7 +28,7 @@ export class OpenThankYouCard extends React.Component<
             Open Your Card
           </LinkButton>{' '}
           or{' '}
-          <LinkButton onClick={this.onThrewCardAway}>Throw It Away</LinkButton>.{' '}
+          <LinkButton onClick={this.onThrewCardAway}>Throw It Away</LinkButton>.
         </span>
       </Banner>
     )
@@ -36,6 +36,6 @@ export class OpenThankYouCard extends React.Component<
 
   private onThrewCardAway = () => {
     this.props.onDismissed()
-    this.props.onThrewCardAway()
+    this.props.onThrowCardAway()
   }
 }

@@ -74,5 +74,5 @@ export type Banner =
   | {
       readonly type: BannerType.OpenThankYouCard
       readonly onOpenCard: () => void
-      readonly onThrewCardAway: () => void
+      readonly onThrowCardAway: () => void
     }
