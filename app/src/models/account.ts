@@ -43,4 +43,14 @@ export class Account {
       this.name
     )
   }
+
+  /**
+   * Get a name to display
+   *
+   * This will by default return the 'name' as it is the friendly name.
+   * However, if not defined, we return the login
+   */
+  public get friendlyName(): string {
+    return this.name !== '' ? this.name : this.login
+  }
 }

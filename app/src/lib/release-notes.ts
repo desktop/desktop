@@ -5,6 +5,7 @@ import {
   ReleaseNote,
   ReleaseSummary,
 } from '../models/release-notes'
+import { encodePathAsUrl } from './path'
 
 // expects a release note entry to contain a header and then some text
 // example:
@@ -101,3 +102,12 @@ export async function generateReleaseSummary(): Promise<ReleaseSummary> {
   const latestRelease = releases[0]
   return getReleaseSummary(latestRelease)
 }
+
+export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
+  __dirname,
+  'static/release-note-header-left.svg'
+)
+export const ReleaseNoteHeaderRightUri = encodePathAsUrl(
+  __dirname,
+  'static/release-note-header-right.svg'
+)
