@@ -88,18 +88,14 @@ export async function getChangeLog(
 ): Promise<ReadonlyArray<ReleaseMetadata>> {
   const changelog =
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
-  const params = []
+  const params = new URLSearchParams()
   if (__RELEASE_CHANNEL__ === 'beta') {
-    params.push('env=beta')
+    params.append('env', 'beta')
   }
   if (limit !== undefined) {
-    params.push(`limit=${limit}`)
+    params.append('limit', limit.toString())
   }
-  let query = ''
-  params.forEach(param => {
-    const prefix = query === '' ? '?' : '&'
-    query += `${prefix}${param}`
-  })
+  const query = params.toString() !== '' ? `?${params.toString()}` : ''
 
   const response = await fetch(`${changelog}${query}`)
   if (response.ok) {
