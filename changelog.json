@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.8.2-beta1": [
+      "[Added] Thank external contributors for their work - #12137",
+      "[Fixed] Disable partial change selection in split view while whitespace changes are hidden - #12129",
+      "[Improved] Show the build architecture in the About dialog - #12140",
+      "[Improved] Upgrade to Electron 11.4.4 - #12139"
+    ],
     "2.8.1": [
       "[Fixed] Disable partial change selection in split view while whitespace changes are hidden - #12129"
     ],
