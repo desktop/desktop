@@ -1,11 +1,7 @@
 import { ILastThankYou } from '../models/last-thank-you'
 import { ReleaseNote } from '../models/release-notes'
 import { Dispatcher } from '../ui/dispatcher'
-import {
-  generateReleaseSummary,
-  getChangeLog,
-  getReleaseSummary,
-} from './release-notes'
+import { getChangeLog, getReleaseSummary } from './release-notes'
 
 /**
  * Compares locally stored version and user of last thank you to currently
@@ -48,10 +44,13 @@ export function updateLastThankYou(
   dispatcher.setLastThankYou(updatedLastThankYou)
 }
 
-export async function getThankYouByUser(): Promise<
-  Map<string, ReadonlyArray<ReleaseNote>>
-> {
-  const releaseMetaData = await getChangeLog()
+export async function getThankYouByUser(
+  isOnlyLastRelease: boolean
+): Promise<Map<string, ReadonlyArray<ReleaseNote>>> {
+  let releaseMetaData = await getChangeLog()
+  if (isOnlyLastRelease) {
+    releaseMetaData = releaseMetaData.slice(0, 1)
+  }
   const summaries = releaseMetaData.map(getReleaseSummary)
   const thankYousByUser = new Map<string, Array<ReleaseNote>>()
 
@@ -60,6 +59,12 @@ export async function getThankYouByUser(): Promise<
       return
     }
 
+    // This assumes the thank you is of the form that the draft-release notes generates:
+    // [type] some release note. Thanks @user_handle!
+    // Tho not sure if even allowed, if a user had a `!` in their user name,
+    // we would not get the thank them also we could erroneously thank someone if
+    // the `. Thanks @someusername!` was elsewhere in the message. Both,
+    // those scenarios are low risk tho enough to not try to mitigate.
     const thanksRE = /\.\sThanks\s@.+!/i
     s.thankYous.forEach(ty => {
       const match = thanksRE.exec(ty.message)
@@ -82,20 +87,10 @@ export async function getThankYouByUser(): Promise<
 }
 
 export async function getUserContributions(
-  lastThankYou: ILastThankYou | undefined,
+  isOnlyLastRelease: boolean,
   login: string
 ): Promise<ReadonlyArray<ReleaseNote> | null> {
-  if (
-    lastThankYou === undefined ||
-    !lastThankYou.checkedUsers.includes(login)
-  ) {
-    const allThankYous = await getThankYouByUser()
-    const byLogin = allThankYous.get(login)
-    return byLogin !== undefined ? byLogin : null
-  }
-
-  const { thankYous } = await generateReleaseSummary()
-  const userContributions = thankYous.filter(ty => ty.message.includes(login))
-
-  return userContributions.length > 0 ? userContributions : null
+  const allThankYous = await getThankYouByUser(isOnlyLastRelease)
+  const byLogin = allThankYous.get(login)
+  return byLogin !== undefined ? byLogin : null
 }

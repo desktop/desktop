@@ -2987,7 +2987,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const userContributions = await getUserContributions(lastThankYou, login)
+    const isOnlyLastRelease =
+      lastThankYou !== undefined && lastThankYou.checkedUsers.includes(login)
+    const userContributions = await getUserContributions(
+      isOnlyLastRelease,
+      login
+    )
     if (userContributions === null) {
       // This will prevent unnecessary release note retrieval on every time the
       // app is opened for a non-contributor.
@@ -3003,10 +3008,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // If this is the first time user has seen the card, we want to thank them
     // for all previous versions. Thus, only specify current version if they
     // have been thanked before.
-    const shouldSendVersion =
-      lastThankYou !== undefined && lastThankYou.checkedUsers.includes(login)
-    const displayVersion = shouldSendVersion ? getVersion() : null
-
+    const displayVersion = isOnlyLastRelease ? getVersion() : null
     const banner: Banner = {
       type: BannerType.OpenThankYouCard,
       // Grab emoji's by reference because we could still be loading emoji's
