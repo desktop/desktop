@@ -123,7 +123,7 @@
 
   $colors: (#e7001b, #ffe600, #0ebd25, #0f2679, #e21bd2);
 
-  @for $i from 0 through 1500 {
+  @for $i from 0 through 750 {
     $w: random(8);
     $l: random(100);
 
