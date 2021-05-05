@@ -209,8 +209,8 @@ import {
   getNumberArray,
   setNumberArray,
   getEnum,
-  getStringArray,
-  setStringArray,
+  getObject,
+  setObject,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -282,6 +282,7 @@ import {
   isCherryPickHeadFound,
 } from '../git/cherry-pick'
 import { DragElement } from '../../models/drag-element'
+import { ILastThankYou } from '../../models/last-thank-you'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -342,7 +343,7 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
-const versionAndUsersOfLastThankYouKey = 'version-and-users-of-last-thank-you'
+const lastThankYouKey = 'version-and-users-of-last-thank-you'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -452,7 +453,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private hasShownCherryPickIntro: boolean = false
 
   private currentDragElement: DragElement | null = null
-  private versionAndUsersOfLastThankYou: ReadonlyArray<string> = []
+  private lastThankYou: ILastThankYou | undefined
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -805,7 +806,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       hasShownCherryPickIntro: this.hasShownCherryPickIntro,
       currentDragElement: this.currentDragElement,
-      versionAndUsersOfLastThankYou: this.versionAndUsersOfLastThankYou,
+      lastThankYou: this.lastThankYou,
     }
   }
 
@@ -1777,9 +1778,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, false)
-    this.versionAndUsersOfLastThankYou = getStringArray(
-      versionAndUsersOfLastThankYouKey
-    )
+    this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
     this.emitUpdateNow()
 
@@ -6233,28 +6232,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return getBranchAheadBehind(repository, branch)
   }
 
-  public _setVersionAndUsersOfLastThankYou(
-    versionAndUsersOfLastThankYou: ReadonlyArray<string>
-  ) {
-    // don't update if both empty (equal)
+  public _setLastThankYou(lastThankYou: ILastThankYou) {
     // don't update if same length and same version (assumption
     // is that update will be either adding a user or updating version)
-    if (
-      (this.versionAndUsersOfLastThankYou.length === 0 &&
-        versionAndUsersOfLastThankYou.length === 0) ||
-      (this.versionAndUsersOfLastThankYou.length ===
-        versionAndUsersOfLastThankYou.length &&
-        this.versionAndUsersOfLastThankYou[0] ===
-          versionAndUsersOfLastThankYou[0])
-    ) {
+    const sameVersion =
+      this.lastThankYou !== undefined &&
+      this.lastThankYou.version === lastThankYou.version
+
+    const sameNumCheckedUsers =
+      this.lastThankYou !== undefined &&
+      this.lastThankYou.checkedUsers.length === lastThankYou.checkedUsers.length
+
+    if (sameVersion && sameNumCheckedUsers) {
       return
     }
 
-    setStringArray(
-      versionAndUsersOfLastThankYouKey,
-      versionAndUsersOfLastThankYou
-    )
-    this.versionAndUsersOfLastThankYou = versionAndUsersOfLastThankYou
+    setObject(lastThankYouKey, lastThankYou)
+    this.lastThankYou = lastThankYou
 
     this.emitUpdate()
   }
