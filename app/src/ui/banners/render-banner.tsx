@@ -101,6 +101,7 @@ export function renderBanner(
       return (
         <OpenThankYouCard
           key="open-thank-you-card"
+          emoji={banner.emoji}
           onDismissed={onDismissed}
           onOpenCard={banner.onOpenCard}
           onThrowCardAway={banner.onThrowCardAway}

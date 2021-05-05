@@ -73,6 +73,7 @@ export type Banner =
     }
   | {
       readonly type: BannerType.OpenThankYouCard
+      readonly emoji: Map<string, string>
       readonly onOpenCard: () => void
       readonly onThrowCardAway: () => void
     }

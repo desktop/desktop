@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { RichText } from '../lib/rich-text'
 import { Banner } from './banner'
 
 interface IOpenThankYouCardProps {
+  readonly emoji: Map<string, string>
   readonly onDismissed: () => void
   readonly onOpenCard: () => void
   readonly onThrowCardAway: () => void
@@ -19,22 +20,32 @@ export class OpenThankYouCard extends React.Component<
   public render() {
     return (
       <Banner id="open-thank-you-card" onDismissed={this.props.onDismissed}>
-        <Octicon className="smiley-icon" symbol={OcticonSymbol.smiley} />
-
         <span onSubmit={this.props.onOpenCard}>
           The Desktop team would like to thank you for your recent
           contributions.{' '}
           <LinkButton onClick={this.props.onOpenCard}>
             Open Your Card
           </LinkButton>{' '}
+          <RichText
+            className="thank-you-banner-emoji"
+            text={':tada:'}
+            emoji={this.props.emoji}
+            renderUrlsAsLinks={true}
+          />
           or{' '}
-          <LinkButton onClick={this.onThrewCardAway}>Throw It Away</LinkButton>.
+          <LinkButton onClick={this.onThrowCardAway}>Throw It Away</LinkButton>{' '}
+          <RichText
+            className="thank-you-banner-emoji"
+            text={':sob:'}
+            emoji={this.props.emoji}
+            renderUrlsAsLinks={true}
+          />
         </span>
       </Banner>
     )
   }
 
-  private onThrewCardAway = () => {
+  private onThrowCardAway = () => {
     this.props.onDismissed()
     this.props.onThrowCardAway()
   }
