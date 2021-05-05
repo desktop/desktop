@@ -1,3 +1,4 @@
+import { ILastThankYou } from '../models/last-thank-you'
 import { ReleaseNote } from '../models/release-notes'
 import { Dispatcher } from '../ui/dispatcher'
 import {
@@ -11,17 +12,16 @@ import {
  * login in user and version
  */
 export function hasUserAlreadyBeenCheckedOrThanked(
-  lastThankYou: ReadonlyArray<string>,
+  lastThankYou: ILastThankYou | undefined,
   login: string,
   currentVersion: string
 ): boolean {
-  if (lastThankYou.length === 0) {
+  if (lastThankYou === undefined) {
     return false
   }
 
-  const lastVersion = lastThankYou[0]
-  const checkedUsers = lastThankYou.slice(1)
-  return checkedUsers.includes(login) && lastVersion === currentVersion
+  const { version, checkedUsers } = lastThankYou
+  return checkedUsers.includes(login) && version === currentVersion
 }
 
 /** Updates the local storage of version and users that have been checked for
@@ -29,17 +29,23 @@ export function hasUserAlreadyBeenCheckedOrThanked(
  * we don't keep pinging for release notes. */
 export function updateLastThankYou(
   dispatcher: Dispatcher,
-  lastThankYou: ReadonlyArray<string>,
-  dotComLogin: string,
+  lastThankYou: ILastThankYou | undefined,
+  login: string,
   currentVersion: string
 ): void {
-  const lastVersion = lastThankYou[0]
-  // If new version, clear out last version users.
-  const checkedUsers =
-    lastVersion !== currentVersion ? [] : lastThankYou.slice(1)
-  checkedUsers.push(dotComLogin)
-  const updatedLastThankYou = [currentVersion, ...checkedUsers]
-  dispatcher.setVersionAndUsersOfLastThankYou(updatedLastThankYou)
+  const newCheckedUsers = [login]
+  // If new version, clear out last versions checked users.
+  const lastCheckedUsers =
+    lastThankYou === undefined || lastThankYou.version !== currentVersion
+      ? []
+      : lastThankYou.checkedUsers
+
+  const updatedLastThankYou = {
+    version: currentVersion,
+    checkedUsers: [...lastCheckedUsers, ...newCheckedUsers],
+  }
+
+  dispatcher.setLastThankYou(updatedLastThankYou)
 }
 
 export async function getThankYouByUser(): Promise<
@@ -76,10 +82,13 @@ export async function getThankYouByUser(): Promise<
 }
 
 export async function getUserContributions(
-  lastThankYou: ReadonlyArray<string>,
+  lastThankYou: ILastThankYou | undefined,
   login: string
 ): Promise<ReadonlyArray<ReleaseNote> | null> {
-  if (lastThankYou.length === 0 || !lastThankYou.slice(1).includes(login)) {
+  if (
+    lastThankYou === undefined ||
+    !lastThankYou.checkedUsers.includes(login)
+  ) {
     const allThankYous = await getThankYouByUser()
     const byLogin = allThankYous.get(login)
     return byLogin !== undefined ? byLogin : null

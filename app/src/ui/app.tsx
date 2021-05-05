@@ -2981,7 +2981,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const { versionAndUsersOfLastThankYou: lastThankYou } = this.state
+    const { lastThankYou } = this.state
     const { login } = dotComAccount
     if (hasUserAlreadyBeenCheckedOrThanked(lastThankYou, login, getVersion())) {
       return
@@ -3004,11 +3004,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     // for all previous versions. Thus, only specify current version if they
     // have been thanked before.
     const shouldSendVersion =
-      lastThankYou.length > 1 && lastThankYou.slice(1).includes(login)
+      lastThankYou !== undefined && lastThankYou.checkedUsers.includes(login)
     const displayVersion = shouldSendVersion ? getVersion() : null
 
     const banner: Banner = {
       type: BannerType.OpenThankYouCard,
+      // Grab emoji's by reference because we could still be loading emoji's
       emoji: this.state.emoji,
       onOpenCard: () =>
         this.openThankYouCard(userContributions, displayVersion),
