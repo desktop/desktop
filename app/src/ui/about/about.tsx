@@ -39,6 +39,11 @@ interface IAboutProps {
    */
   readonly applicationVersion: string
 
+  /**
+   * The currently installed (and running) architecture of the app.
+   */
+  readonly applicationArchitecture: string
+
   /** A function to call to kick off an update check. */
   readonly onCheckForUpdates: () => void
 
@@ -258,8 +263,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </Row>
           <h2>{name}</h2>
           <p className="no-padding">
-            <span className="selectable-text">{versionText}</span> (
-            {releaseNotesLink})
+            <span className="selectable-text">
+              {versionText} ({this.props.applicationArchitecture})
+            </span>{' '}
+            ({releaseNotesLink})
           </p>
           <p className="no-padding">
             <LinkButton onClick={this.props.onShowTermsAndConditions}>
