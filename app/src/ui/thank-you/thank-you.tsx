@@ -1,12 +1,12 @@
 import * as React from 'react'
-import { desktopRepository } from '../../lib/desktop-repo'
-import { ReleaseNote } from '../../models/release-notes'
-import { Dialog, DialogContent } from '../dialog'
-import { RichText } from '../lib/rich-text'
+import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
 import {
   ReleaseNoteHeaderLeftUri,
   ReleaseNoteHeaderRightUri,
-} from '../release-notes/release-notes-dialog'
+} from '../../lib/release-notes'
+import { ReleaseNote } from '../../models/release-notes'
+import { Dialog, DialogContent } from '../dialog'
+import { RichText } from '../lib/rich-text'
 
 interface IThankYouProps {
   readonly onDismissed: () => void
@@ -33,7 +33,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
             text={entry.message}
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
-            repository={desktopRepository}
+            repository={DesktopFakeRepository}
           />
         </li>
       )
@@ -78,7 +78,6 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
               text={':tada:'}
               emoji={this.props.emoji}
               renderUrlsAsLinks={true}
-              repository={desktopRepository}
             />
           </div>
           <div className="thank-you-note">

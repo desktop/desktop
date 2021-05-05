@@ -1,28 +1,17 @@
 import * as React from 'react'
-
-import { encodePathAsUrl } from '../../lib/path'
-
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
-
 import { updateStore } from '../lib/update-store'
 import { LinkButton } from '../lib/link-button'
-
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-
 import { RichText } from '../lib/rich-text'
 import { shell } from '../../lib/app-shell'
 import { ReleaseNotesUri } from '../lib/releases'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { desktopRepository } from '../../lib/desktop-repo'
-
-export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
-  __dirname,
-  'static/release-note-header-left.svg'
-)
-export const ReleaseNoteHeaderRightUri = encodePathAsUrl(
-  __dirname,
-  'static/release-note-header-right.svg'
-)
+import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
+import {
+  ReleaseNoteHeaderLeftUri,
+  ReleaseNoteHeaderRightUri,
+} from '../../lib/release-notes'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -51,7 +40,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
             text={entry.message}
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
-            repository={desktopRepository}
+            repository={DesktopFakeRepository}
           />
         </li>
       )
