@@ -85,13 +85,12 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
     )
 
     const version =
-      this.props.latestVersion !== null
-        ? ` version ${this.props.latestVersion}`
-        : ''
+      this.props.latestVersion !== null ? ` ${this.props.latestVersion}` : ''
     const thankYouNote = (
       <>
         Thanks so much for all your hard work on GitHub Desktop{version}. We're
-        so grateful for you helping to make the app better for everyone!
+        so grateful for your willingness to contribute and make the app better
+        for everyone!
       </>
     )
 
@@ -114,6 +113,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
             >
               {this.renderConfetti()}
             </div>
+            <div className="footer"></div>
           </div>
         </DialogContent>
       </Dialog>

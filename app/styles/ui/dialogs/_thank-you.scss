@@ -7,6 +7,7 @@
   .dialog-content {
     // we'll own the layout inside here
     padding: 0;
+    overflow: hidden;
   }
 
   .dialog-header {
@@ -79,12 +80,25 @@
 
   .container {
     width: 600px;
-    padding-left: 80px;
-    padding-right: 80px;
+    padding-left: 72px;
+    padding-right: 72px;
     padding-top: var(--spacing-triple);
     padding-bottom: var(--spacing-triple);
     overflow-x: hidden;
     overflow-y: auto;
+
+    .footer {
+      position: fixed;
+      height: var(--spacing-triple);
+      width: 95%;
+      bottom: 0;
+      left: 0;
+      background-color: var(--background-color);
+    }
+
+    .section {
+      padding-bottom: var(--spacing-triple);
+    }
 
     .thank-you-note {
       padding-bottom: var(--spacing-triple);
