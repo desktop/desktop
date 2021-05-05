@@ -3,6 +3,13 @@
     "2.8.1": [
       "[Fixed] Disable partial change selection in split view while whitespace changes are hidden - #12129"
     ],
+    "2.8.1-beta2": [
+      "[Improved] Add complete support for macOS on Apple Silicon devices - #12091",
+      "[Improved] From now on, macOS x64 builds running on Apple Silicon devices will auto update to arm64 builds"
+    ],
+    "2.8.1-beta1": [
+      "[New] Preliminary support for macOS on Apple Silicon devices - #9691. Thanks @dennisameling!"
+    ],
     "2.8.0": [
       "[New] Expand diffs to view more context around your changes - #7014",
       "[New] Create aliases for repositories you want to be displayed differently in the repository list - #7856",
