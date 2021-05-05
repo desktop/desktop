@@ -3009,9 +3009,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const banner: Banner = {
       type: BannerType.OpenThankYouCard,
+      emoji: this.state.emoji,
       onOpenCard: () =>
         this.openThankYouCard(userContributions, displayVersion),
-      onThrewCardAway: () => {
+      onThrowCardAway: () => {
         updateLastThankYou(
           this.props.dispatcher,
           lastThankYou,
