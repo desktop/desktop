@@ -104,7 +104,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
       >
         <DialogContent>
           <div className="container">
-            <div className="thank-you-note">{thankYouNote}.</div>
+            <div className="thank-you-note">{thankYouNote}</div>
             <div className="contributions-heading">You contributed:</div>
             <div className="contributions">
               {this.renderList(this.props.userContributions)}
