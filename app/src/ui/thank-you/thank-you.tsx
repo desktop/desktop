@@ -80,9 +80,6 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
               renderUrlsAsLinks={true}
             />
           </div>
-          <div className="thank-you-note">
-            The Desktop team wants to thank you personally.
-          </div>
         </div>
       </div>
     )
