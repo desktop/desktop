@@ -2,6 +2,7 @@
 
 #thank-you-notes {
   max-height: 450px;
+  padding-top: var(--spacing-half);
 
   .dialog-content {
     // we'll own the layout inside here
@@ -73,6 +74,7 @@
   a.close {
     align-self: flex-start;
     z-index: 1;
+    margin-top: calc(var(--spacing) * -1);
   }
 
   .container {

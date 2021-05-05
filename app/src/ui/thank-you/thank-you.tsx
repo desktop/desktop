@@ -84,17 +84,16 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
       </div>
     )
 
-    const thankYou = "Thanks so much for all your hard work on GitHub Desktop. We're so grateful for you helping to make the app better for everyone!"
-    let thankYouNote
-    if (this.props.latestVersion === null) {
-      thankYouNote = <>{thankYou}</>
-    } else {
-      thankYouNote = (
-        <>
-          {thankYou} version {this.props.latestVersion}
-        </>
-      )
-    }
+    const version =
+      this.props.latestVersion !== null
+        ? ` version ${this.props.latestVersion}`
+        : ''
+    const thankYouNote = (
+      <>
+        Thanks so much for all your hard work on GitHub Desktop{version}. We're
+        so grateful for you helping to make the app better for everyone!
+      </>
+    )
 
     return (
       <Dialog
