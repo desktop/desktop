@@ -191,6 +191,7 @@ export class BranchesContainer extends React.Component<
             onItemClick={this.onBranchItemClick}
             filterText={this.state.branchFilterText}
             onFilterTextChanged={this.onBranchFilterTextChanged}
+            onEnterClicked={this.onCreateBranchWithName}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
