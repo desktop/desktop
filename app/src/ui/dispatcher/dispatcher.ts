@@ -2449,6 +2449,14 @@ export class Dispatcher {
   }
 
   /**
+   * Increment the number of times the user has opened their repository in
+   * the shell
+   */
+  public recordSuggestedStepOpenInShell(): Promise<void> {
+    return this.statsStore.recordOpenShell()
+  }
+
+  /**
    * Increment the number of times the user has used the publish repository
    * action from the suggested next steps view
    */

@@ -272,6 +272,26 @@ export class NoChanges extends React.Component<
 
   private onViewOnGitHubClicked = () =>
     this.props.dispatcher.recordSuggestedStepViewOnGitHub()
+  
+  private renderShowInShell() {
+    const description = (
+      <>
+        Select your preferred shell in{' '}
+        <LinkButton onClick={this.openPreferences}>
+          {__DARWIN__ ? 'Preferences' : 'Options'}
+        </LinkButton>
+      </>
+    )
+    return this.renderMenuBackedAction(
+      'open-in-shell',
+      'Open the repository in your shell',
+      description,
+      this.onOpenInShell
+    )
+  }
+
+  private onOpenInShell = () =>
+    this.props.dispatcher.recordSuggestedStepOpenInShell()
 
   private openPreferences = () => {
     executeMenuItemById('preferences')
@@ -684,6 +704,7 @@ export class NoChanges extends React.Component<
           {this.renderOpenInExternalEditor()}
           {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
+          {this.renderShowInShell()}
         </SuggestedActionGroup>
       </>
     )
