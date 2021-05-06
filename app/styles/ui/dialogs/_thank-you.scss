@@ -2,14 +2,16 @@
 
 #thank-you-notes {
   max-height: 450px;
+  padding-top: var(--spacing-half);
 
   .dialog-content {
     // we'll own the layout inside here
     padding: 0;
+    overflow: hidden;
   }
 
   .dialog-header {
-    height: 100px;
+    height: 88px;
     position: relative;
 
     .release-notes-header {
@@ -73,19 +75,32 @@
   a.close {
     align-self: flex-start;
     z-index: 1;
+    margin-top: calc(var(--spacing) * -1);
   }
 
   .container {
     width: 600px;
-    padding-left: 80px;
-    padding-right: 80px;
+    padding-left: 72px;
+    padding-right: 72px;
     padding-top: var(--spacing-triple);
     padding-bottom: var(--spacing-triple);
     overflow-x: hidden;
     overflow-y: auto;
 
+    .footer {
+      position: fixed;
+      height: var(--spacing-triple);
+      width: 95%;
+      bottom: 0;
+      left: 0;
+      background-color: var(--background-color);
+    }
+
+    .section {
+      padding-bottom: var(--spacing-triple);
+    }
+
     .thank-you-note {
-      font-weight: var(--font-weight-semibold);
       padding-bottom: var(--spacing-triple);
     }
 
