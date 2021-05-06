@@ -27,6 +27,7 @@ import { RefNameTextBox } from '../lib/ref-name-text-box'
 
 interface ICreateBranchProps {
   readonly repository: Repository
+  readonly targetCommitSha?: string
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
@@ -138,7 +139,14 @@ export class CreateBranch extends React.Component<
 
     const tipKind = tip.kind
 
-    if (tip.kind === TipState.Detached) {
+    if (this.props.targetCommitSha !== undefined) {
+      return (
+        <p>
+          Your new branch will be based on the commit{' '}
+          {this.props.targetCommitSha.substr(0, 7)} from your repository.
+        </p>
+      )
+    } else if (tip.kind === TipState.Detached) {
       return (
         <p>
           You do not currently have any branch checked out (your HEAD reference
@@ -267,7 +275,9 @@ export class CreateBranch extends React.Component<
 
     const { defaultBranch, upstreamDefaultBranch, repository } = this.props
 
-    if (this.state.startPoint === StartPoint.DefaultBranch) {
+    if (this.props.targetCommitSha !== undefined) {
+      startPoint = this.props.targetCommitSha
+    } else if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
       if (!defaultBranch) {
@@ -278,8 +288,7 @@ export class CreateBranch extends React.Component<
       }
 
       startPoint = defaultBranch.name
-    }
-    if (this.state.startPoint === StartPoint.UpstreamDefaultBranch) {
+    } else if (this.state.startPoint === StartPoint.UpstreamDefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
       if (!upstreamDefaultBranch) {
