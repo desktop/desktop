@@ -10,6 +10,12 @@ assignees: ''
 ### Describe the bug
 Write a clear and concise description of what the bug is.
 
+
+<!-- Important: Read First -->
+
+<!-- If you are using the appimage/deb/rpm from the release page make sure you have the very latest version that is available. Check the releases page to see if there are new updates available: https://github.com/shiftkey/desktop/releases -->
+
+
 ### Version & OS
 
 Open the 'About GitHub Desktop' menu to see the GitHub Desktop version. Also include what operating system you are using.
