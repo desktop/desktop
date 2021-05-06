@@ -3,6 +3,10 @@
   flex-direction: row;
   height: var(--tab-bar-height);
 
+  .tab-container {
+    overflow: hidden;
+  }
+
   &.vertical {
     flex-direction: column;
     align-items: stretch;
