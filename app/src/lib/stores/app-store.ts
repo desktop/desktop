@@ -4107,6 +4107,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commit: Commit
   ): Promise<void> {
+
+    return this._showPopup({
+      type: PopupType.AmendCommit,
+      repository,
+      commit,
+    })
+    /*
     const gitStore = this.gitStoreCache.get(repository)
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState } = repositoryState
@@ -4143,7 +4150,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.clearSelectedCommit(repository)
     }
 
-    return this._refreshRepository(repository)
+    return this._refreshRepository(repository)*/
   }
 
   /**

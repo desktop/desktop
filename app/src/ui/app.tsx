@@ -143,6 +143,7 @@ import {
 } from '../lib/thank-you'
 import { ReleaseNote } from '../models/release-notes'
 import { StashBeforeUndo } from './undo/stash-before-undo'
+import { AmendCommit } from './amend-commit'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2096,6 +2097,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             commit={commit}
             overwrite={overwrite}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.AmendCommit: {
+        const { repository, commit } = popup
+        return (
+          <AmendCommit
+            key="amend-commit"
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            commit={commit}
             onDismissed={onPopupDismissedFn}
           />
         )

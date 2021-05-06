@@ -72,6 +72,7 @@ export enum PopupType {
   ChangeRepositoryAlias,
   ThankYou,
   ConfirmStashBeforeUndo,
+  AmendCommit,
 }
 
 export type Popup =
@@ -292,4 +293,9 @@ export type Popup =
       repository: Repository
       commit: Commit
       overwrite: boolean
+    }
+  | {
+      type: PopupType.AmendCommit
+      repository: Repository
+      commit: Commit
     }

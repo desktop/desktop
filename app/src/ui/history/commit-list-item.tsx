@@ -212,6 +212,11 @@ export class CommitListItem extends React.PureComponent<
     })
 
     items.push({
+      label: 'Reset to Commit',
+      enabled: this.props.isLocal,
+    })
+
+    items.push({
       label: 'Create Tag…',
       action: this.onCreateTag,
       enabled: this.props.onCreateTag !== undefined,
