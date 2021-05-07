@@ -21,7 +21,7 @@ interface ICommitProps {
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
-  readonly onCreateBranch?: (targetCommitSha: string) => void
+  readonly onCreateBranch?: (commit: CommitOneLine) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
@@ -206,7 +206,7 @@ export class CommitListItem extends React.PureComponent<
         : 'Create branch from commit',
       action: () => {
         if (this.props.onCreateBranch) {
-          this.props.onCreateBranch(this.props.commit.sha)
+          this.props.onCreateBranch(this.props.commit)
         }
       },
     })

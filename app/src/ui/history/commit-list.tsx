@@ -49,7 +49,7 @@ interface ICommitListProps {
    * Callback to fire to create a branch from a given commit in the current
    * repository
    */
-  readonly onCreateBranch: (targetCommitSha: string) => void
+  readonly onCreateBranch: (commit: CommitOneLine) => void
 
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag: (targetCommitSha: string) => void

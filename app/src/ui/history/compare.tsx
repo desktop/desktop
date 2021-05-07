@@ -544,13 +544,13 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private onCreateBranch = (targetCommitSha: string) => {
+  private onCreateBranch = (commit: CommitOneLine) => {
     const { repository, dispatcher } = this.props
 
     dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      targetCommitSha,
+      targetCommit: commit,
     })
   }
 

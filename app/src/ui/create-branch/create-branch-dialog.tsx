@@ -24,10 +24,11 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
 import { GitHubRepository } from '../../models/github-repository'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
+import { CommitOneLine } from '../../models/commit'
 
 interface ICreateBranchProps {
   readonly repository: Repository
-  readonly targetCommitSha?: string
+  readonly targetCommit?: CommitOneLine
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
@@ -138,12 +139,13 @@ export class CreateBranch extends React.Component<
       : this.props.tip
 
     const tipKind = tip.kind
+    const targetCommit = this.props.targetCommit
 
-    if (this.props.targetCommitSha !== undefined) {
+    if (targetCommit !== undefined) {
       return (
         <p>
-          Your new branch will be based on the commit{' '}
-          {this.props.targetCommitSha.substr(0, 7)} from your repository.
+          Your new branch will be based on the commit '{targetCommit.summary}' (
+          {targetCommit.sha.substr(0, 7)}) from your repository.
         </p>
       )
     } else if (tip.kind === TipState.Detached) {
@@ -275,8 +277,8 @@ export class CreateBranch extends React.Component<
 
     const { defaultBranch, upstreamDefaultBranch, repository } = this.props
 
-    if (this.props.targetCommitSha !== undefined) {
-      startPoint = this.props.targetCommitSha
+    if (this.props.targetCommit !== undefined) {
+      startPoint = this.props.targetCommit.sha
     } else if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.

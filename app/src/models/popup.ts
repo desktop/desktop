@@ -121,7 +121,7 @@ export type Popup =
       type: PopupType.CreateBranch
       repository: Repository
       initialName?: string
-      targetCommitSha?: string
+      targetCommit?: CommitOneLine
     }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }

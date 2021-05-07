@@ -1535,7 +1535,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             upstreamDefaultBranch={upstreamDefaultBranch}
             allBranches={branchesState.allBranches}
             repository={repository}
-            targetCommitSha={popup.targetCommitSha}
+            targetCommit={popup.targetCommit}
             upstreamGitHubRepository={upstreamGhRepo}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
