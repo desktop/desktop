@@ -20,7 +20,7 @@ import { FocusContainer } from '../lib/focus-container'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
-import { ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { LinkButton } from '../lib/link-button'
@@ -59,6 +59,7 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+  readonly commitToAmend: Commit | null
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
   readonly showBranchProtected: boolean
@@ -158,16 +159,36 @@ export class CommitMessage extends React.Component<
    */
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
     const { commitMessage } = nextProps
+
+    // If we switch from not amending to amending, we want to populate the
+    // textfields with the commit message from the commit.
+    if (this.props.commitToAmend === null && nextProps.commitToAmend !== null) {
+      this.fillWithCommitMessage({
+        summary: nextProps.commitToAmend.summary,
+        description: nextProps.commitToAmend.body,
+      })
+    } else if (
+      this.props.commitToAmend !== null &&
+      nextProps.commitToAmend === null &&
+      commitMessage !== null
+    ) {
+      this.fillWithCommitMessage(commitMessage)
+    }
+
     if (!commitMessage || commitMessage === this.props.commitMessage) {
       return
     }
 
     if (this.state.summary === '' && !this.state.description) {
-      this.setState({
-        summary: commitMessage.summary,
-        description: commitMessage.description,
-      })
+      this.fillWithCommitMessage(commitMessage)
     }
+  }
+
+  private fillWithCommitMessage(commitMessage: ICommitMessage) {
+    this.setState({
+      summary: commitMessage.summary,
+      description: commitMessage.description,
+    })
   }
 
   public componentDidUpdate(prevProps: ICommitMessageProps) {
@@ -231,7 +252,7 @@ export class CommitMessage extends React.Component<
   private async createCommit() {
     const { summary, description } = this.state
 
-    if (!this.canCommit()) {
+    if (!this.canCommit() && !this.canAmend()) {
       return
     }
 
@@ -246,6 +267,7 @@ export class CommitMessage extends React.Component<
       summary: summaryOrPlaceholder,
       description,
       trailers,
+      amend: this.props.commitToAmend !== null,
     }
 
     const timer = startTimer('create commit', this.props.repository)
@@ -261,6 +283,13 @@ export class CommitMessage extends React.Component<
     return (
       (this.props.anyFilesSelected && this.state.summary.length > 0) ||
       this.props.prepopulateCommitSummary
+    )
+  }
+
+  private canAmend(): boolean {
+    return (
+      this.props.commitToAmend !== null &&
+      (this.state.summary.length > 0 || this.props.prepopulateCommitSummary)
     )
   }
 
@@ -575,7 +604,9 @@ export class CommitMessage extends React.Component<
   public render() {
     const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
     const buttonEnabled =
-      this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
+      (this.canCommit() || this.canAmend()) &&
+      !this.props.isCommitting &&
+      !isSummaryWhiteSpace
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
     const className = classNames({
@@ -591,18 +622,26 @@ export class CommitMessage extends React.Component<
       'nudge-arrow-left': this.props.shouldNudge,
     })
 
+    const isAmending = this.props.commitToAmend !== null
     const branchName = this.props.branch
-    const commitVerb = loading ? 'Committing' : 'Commit'
+    const commitVerb = isAmending
+      ? loading
+        ? 'Amending'
+        : 'Amend'
+      : loading
+      ? 'Committing'
+      : 'Commit'
     const commitTitle =
       branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
-    const commitButtonContents =
-      branchName !== null ? (
-        <>
-          {commitVerb} to <strong>{branchName}</strong>
-        </>
-      ) : (
-        commitVerb
-      )
+    const commitButtonContents = isAmending ? (
+      <>{commitVerb} last commit</>
+    ) : branchName !== null ? (
+      <>
+        {commitVerb} to <strong>{branchName}</strong>
+      </>
+    ) : (
+      commitVerb
+    )
 
     return (
       <div

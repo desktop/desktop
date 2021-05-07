@@ -168,7 +168,8 @@ describe('AppStore', () => {
       let state = getAppState(appStore)
       expect(state.localCommitSHAs).toHaveLength(1)
 
-      await appStore._undoCommit(repository, firstCommit!)
+      // FIXME: this test doesn't make sense anymore??
+      await appStore._resetToCommit(repository, firstCommit!)
 
       state = getAppState(appStore)
       expect(state.localCommitSHAs).toHaveLength(0)

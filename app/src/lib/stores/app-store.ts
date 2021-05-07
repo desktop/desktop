@@ -2481,7 +2481,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withIsCommitting(repository, async () => {
       const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
-        return createCommit(repository, message, selectedFiles)
+        return createCommit(repository, message, selectedFiles, context.amend)
       })
 
       if (result !== undefined) {
@@ -2492,6 +2492,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           context,
           files
         )
+
+        this.repositoryStateCache.update(repository, () => {
+          return {
+            isAmending: false,
+          }
+        })
 
         await this._refreshRepository(repository)
         await this.refreshChangesSection(repository, {
@@ -4078,6 +4084,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public async _toggleAmendingCommit(repository: Repository): Promise<void> {
+    const { isAmending } = await this.repositoryStateCache.get(repository)
+
+    this.repositoryStateCache.update(repository, () => {
+      return {
+        isAmending: !isAmending,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
   public async _stashAndUndoCommit(
     repository: Repository,
     commit: Commit
@@ -4100,20 +4118,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     }
 
-    return this._undoCommit(repository, commit)
+    return this._resetToCommit(repository, commit)
   }
 
-  public async _undoCommit(
+  public async _resetToCommit(
     repository: Repository,
     commit: Commit
   ): Promise<void> {
-
-    return this._showPopup({
-      type: PopupType.AmendCommit,
-      repository,
-      commit,
-    })
-    /*
     const gitStore = this.gitStoreCache.get(repository)
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState } = repositoryState
@@ -4150,7 +4161,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.clearSelectedCommit(repository)
     }
 
-    return this._refreshRepository(repository)*/
+    return this._refreshRepository(repository)
   }
 
   /**

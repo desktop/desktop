@@ -55,6 +55,7 @@ interface IChangesSidebarProps {
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly isAmending: boolean
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly focusCommitMessage: boolean
@@ -320,7 +321,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const commit = this.props.mostRecentLocalCommit
 
     if (commit && commit.tags.length === 0) {
-      this.props.dispatcher.undoCommit(this.props.repository, commit)
+      this.props.dispatcher.toggleAmendingCommit(this.props.repository)
     }
   }
 
@@ -339,6 +340,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         >
           <UndoCommit
             isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
+            isAmending={this.props.isAmending}
             commit={commit}
             onUndo={this.onUndo}
             emoji={this.props.emoji}
@@ -397,6 +399,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           repositoryAccount={repositoryAccount}
           workingDirectory={workingDirectory}
           conflictState={conflictState}
+          mostRecentLocalCommit={this.props.mostRecentLocalCommit}
           rebaseConflictState={rebaseConflictState}
           selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}
@@ -418,6 +421,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
+          isAmending={this.props.isAmending}
           showCoAuthoredBy={showCoAuthoredBy}
           coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}

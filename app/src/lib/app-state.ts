@@ -431,6 +431,9 @@ export interface IRepositoryState {
   /** Is a commit in progress? */
   readonly isCommitting: boolean
 
+  /** Is an amend in progress? */
+  readonly isAmending: boolean
+
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
 

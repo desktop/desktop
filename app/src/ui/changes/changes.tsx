@@ -22,6 +22,7 @@ interface IChangesProps {
 
   /** Whether a commit is in progress */
   readonly isCommitting: boolean
+
   readonly hideWhitespaceInDiff: boolean
 
   /**

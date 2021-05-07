@@ -754,9 +754,9 @@ export class Dispatcher {
     )
   }
 
-  /** Undo the given commit. */
-  public undoCommit(repository: Repository, commit: Commit): Promise<void> {
-    return this.appStore._undoCommit(repository, commit)
+  /** Switch between amending the most recent commit and not. */
+  public toggleAmendingCommit(repository: Repository): Promise<void> {
+    return this.appStore._toggleAmendingCommit(repository)
   }
 
   /** Undo the given commit. */

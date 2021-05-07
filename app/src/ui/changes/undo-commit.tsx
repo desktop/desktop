@@ -9,6 +9,9 @@ interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
   readonly onUndo: () => void
 
+  /** Whether there is an amend in progress. */
+  readonly isAmending: boolean
+
   /** The commit to undo. */
   readonly commit: Commit
 
@@ -28,7 +31,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
     const disabled =
       this.props.isPushPullFetchInProgress || this.props.isCommitting
     const title = disabled
-      ? 'Undo is disabled while the repository is being updated'
+      ? 'Amend is disabled while the repository is being updated'
       : undefined
 
     const authorDate = this.props.commit.author.date
@@ -47,7 +50,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
         </div>
         <div className="actions" title={title}>
           <Button size="small" disabled={disabled} onClick={this.props.onUndo}>
-            Amend
+            {this.props.isAmending ? 'Stop amending' : 'Amend'}
           </Button>
         </div>
       </div>
