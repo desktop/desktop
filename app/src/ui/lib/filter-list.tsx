@@ -113,7 +113,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   ) => void
 
   /** Called when the Enter key is pressed in field of type search */
-  readonly onEnterClicked?: (text: string) => void
+  readonly onEnterPressedWithoutFilteredItems?: (text: string) => void
 
   /** The current filter text to use in the form */
   readonly filterText?: string
@@ -253,7 +253,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"
         onValueChanged={this.onFilterValueChanged}
-        onEnterClicked={this.onEnterClicked}
+        onEnterPressed ={this.onEnterPressed}
         onKeyDown={this.onKeyDown}
         value={this.props.filterText}
         disabled={this.props.disabled}
@@ -376,10 +376,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
-  private onEnterClicked = (text: string) => {
+  private onEnterPressed = (text: string) => {
     const rows = this.state.rows.length
-    if (rows === 0 && this.props.onEnterClicked) {
-      this.props.onEnterClicked(text)
+    if (
+      rows === 0 &&
+      text.trim().length > 0 &&
+      this.props.onEnterPressedWithoutFilteredItems !== undefined
+    ) {
+      this.props.onEnterPressedWithoutFilteredItems(text)
     }
   }
 

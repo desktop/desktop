@@ -81,9 +81,6 @@ interface IBranchListProps {
   /** Callback to fire when the filter text is changed */
   readonly onFilterTextChanged: (filterText: string) => void
 
-  /** Callback to fire when the filter text is changed */
-  readonly onEnterClicked?: (text: string) => void
-
   /** Can users create a new branch? */
   readonly canCreateNewBranch: boolean
 
@@ -191,7 +188,7 @@ export class BranchList extends React.Component<
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
-        onEnterClicked={this.props.onEnterClicked}
+        onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
         renderPostFilter={this.onRenderNewButton}
