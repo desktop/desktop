@@ -53,7 +53,7 @@
     "source-map-support": "^0.4.15",
     "strip-ansi": "^4.0.0",
     "textarea-caret": "^3.0.2",
-    "ua-parser-js": "^0.7.12",
+    "ua-parser-js": "^0.7.24",
     "untildify": "^3.0.2",
     "username": "^2.3.0",
     "uuid": "^3.0.1",
