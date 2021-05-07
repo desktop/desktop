@@ -47,7 +47,9 @@ export function updateLastThankYou(
 export async function getThankYouByUser(
   isOnlyLastRelease: boolean
 ): Promise<Map<string, ReadonlyArray<ReleaseNote>>> {
-  let releaseMetaData = await getChangeLog()
+  // 250 is more than total number beta release to date (5/5/2021) and the
+  // purpose of getting more is to retroactively thank contributors to date.
+  let releaseMetaData = await getChangeLog(250)
   if (isOnlyLastRelease) {
     releaseMetaData = releaseMetaData.slice(0, 1)
   }
