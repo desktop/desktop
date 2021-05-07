@@ -86,18 +86,19 @@ export function getReleaseSummary(
 export async function getChangeLog(
   limit?: number
 ): Promise<ReadonlyArray<ReleaseMetadata>> {
-  const changelog =
+  const changelogURL = new URL(
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
-  const params = new URLSearchParams()
-  if (__RELEASE_CHANNEL__ === 'beta') {
-    params.append('env', 'beta')
-  }
-  if (limit !== undefined) {
-    params.append('limit', limit.toString())
-  }
-  const query = params.toString() !== '' ? `?${params.toString()}` : ''
+  )
 
-  const response = await fetch(`${changelog}${query}`)
+  if (__RELEASE_CHANNEL__ === 'beta') {
+    changelogURL.searchParams.set('env', 'beta')
+  }
+
+  if (limit !== undefined) {
+    changelogURL.searchParams.set('limit', limit.toString())
+  }
+
+  const response = await fetch(changelogURL.toString())
   if (response.ok) {
     const releases: ReadonlyArray<ReleaseMetadata> = await response.json()
     return releases
