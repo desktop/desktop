@@ -202,8 +202,8 @@ export class CommitListItem extends React.PureComponent<
 
     items.push({
       label: __DARWIN__
-        ? 'Create Branch From This Commit'
-        : 'Create branch from this commit',
+        ? 'Create Branch from Commit'
+        : 'Create branch from commit',
       action: () => {
         if (this.props.onCreateBranch) {
           this.props.onCreateBranch(this.props.commit.sha)
