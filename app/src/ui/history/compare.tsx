@@ -27,6 +27,7 @@ import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conf
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { CherryPickStepKind } from '../../models/cherry-pick'
 import { DragElementType } from '../../models/drag-element'
+import { PopupType } from '../../models/popup'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -237,6 +238,7 @@ export class CompareSidebar extends React.Component<
         }
         onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
+        onCreateBranch={this.onCreateBranch}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
@@ -540,6 +542,16 @@ export class CompareSidebar extends React.Component<
       targetCommitSha,
       this.props.localTags
     )
+  }
+
+  private onCreateBranch = (commit: CommitOneLine) => {
+    const { repository, dispatcher } = this.props
+
+    dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository,
+      targetCommit: commit,
+    })
   }
 
   private onDeleteTag = (tagName: string) => {

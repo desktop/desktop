@@ -45,6 +45,12 @@ interface ICommitListProps {
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 
+  /**
+   * Callback to fire to create a branch from a given commit in the current
+   * repository
+   */
+  readonly onCreateBranch: (commit: CommitOneLine) => void
+
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag: (targetCommitSha: string) => void
 
@@ -145,6 +151,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         unpushedTags={unpushedTags}
         commit={commit}
         emoji={this.props.emoji}
+        onCreateBranch={this.props.onCreateBranch}
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
