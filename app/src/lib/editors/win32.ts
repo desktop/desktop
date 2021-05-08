@@ -161,11 +161,23 @@ const editors: IWindowsExternalEditor[] = [
   },
   {
     name: 'Sublime Text',
-    registryKeys: [LocalMachineUninstallKey('Sublime Text 3_is1')],
+    registryKeys: [
+      // Sublime Text version 3
+      LocalMachineUninstallKey('Sublime Text 3_is1'),
+      // Sublime Text version 4 (private beta)
+      LocalMachineUninstallKey('Sublime Text_is1')
+    ],
     executableShimPath: ['subl.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Sublime Text') &&
       publisher === 'Sublime HQ Pty Ltd',
+  },
+  {
+    name: 'Sublime Text 2',
+    registryKeys: [LocalMachineUninstallKey('Sublime Text 2_is1')],
+    executableShimPath: ['sublime_text.exe'],
+    expectedInstallationChecker: (displayName, _) =>
+      displayName.startsWith('Sublime Text')
   },
   {
     name: 'ColdFusion Builder',
