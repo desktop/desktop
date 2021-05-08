@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { clipboard } from 'electron'
+
 import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
@@ -161,6 +163,10 @@ export class RepositoryListItem extends React.Component<
       },
       { type: 'separator' },
       {
+        label: __DARWIN__ ? 'Copy to Clipboard' : 'Copy to clipboard',
+        action: this.copyToClipboard,
+      },
+      {
         label: this.props.askForConfirmationOnRemoveRepository
           ? 'Remove…'
           : 'Remove',
@@ -224,6 +230,10 @@ export class RepositoryListItem extends React.Component<
     if (this.props.repository instanceof Repository) {
       this.props.onRemoveRepositoryAlias(this.props.repository)
     }
+  }
+
+  private copyToClipboard = () => {
+    clipboard.writeText(this.props.repository.name);
   }
 }
 

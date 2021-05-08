@@ -1,3 +1,4 @@
+import { clipboard } from 'electron'
 import * as React from 'react'
 import moment from 'moment'
 
@@ -62,6 +63,13 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     }
 
     const items: Array<IMenuItem> = []
+
+    items.push({
+      label: __DARWIN__ ? 'Copy to Clipboard' : 'Copy to clipboard',
+      action: () => clipboard.writeText(name), 
+    })
+
+    items.push({ type: 'separator' })
 
     if (onRenameBranch !== undefined) {
       items.push({
