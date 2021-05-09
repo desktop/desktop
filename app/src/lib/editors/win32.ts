@@ -117,7 +117,7 @@ const editors: IWindowsExternalEditor[] = [
       Wow64LocalMachineUninstallKey(
         '{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1'
       ),
-      // ARM64 version fo VSCode (system)
+      // ARM64 version of VSCode (system)
       LocalMachineUninstallKey('{A5270FC5-65AD-483E-AC30-2C276B63D0AC}_is1'),
     ],
     executableShimPath: ['bin', 'code.cmd'],
