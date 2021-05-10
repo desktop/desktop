@@ -233,7 +233,7 @@ export class RepositoryListItem extends React.Component<
   }
 
   private copyToClipboard = () => {
-    clipboard.writeText(this.props.repository.name);
+    clipboard.writeText(this.props.repository.name)
   }
 }
 

@@ -66,7 +66,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
 
     items.push({
       label: __DARWIN__ ? 'Copy to Clipboard' : 'Copy to clipboard',
-      action: () => clipboard.writeText(name), 
+      action: () => clipboard.writeText(name),
     })
 
     items.push({ type: 'separator' })
