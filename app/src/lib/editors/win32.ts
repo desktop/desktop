@@ -165,7 +165,7 @@ const editors: IWindowsExternalEditor[] = [
       // Sublime Text version 3
       LocalMachineUninstallKey('Sublime Text 3_is1'),
       // Sublime Text version 4 (private beta)
-      LocalMachineUninstallKey('Sublime Text_is1')
+      LocalMachineUninstallKey('Sublime Text_is1'),
     ],
     executableShimPath: ['subl.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -177,7 +177,7 @@ const editors: IWindowsExternalEditor[] = [
     registryKeys: [LocalMachineUninstallKey('Sublime Text 2_is1')],
     executableShimPath: ['sublime_text.exe'],
     expectedInstallationChecker: (displayName, _) =>
-      displayName.startsWith('Sublime Text')
+      displayName.startsWith('Sublime Text'),
   },
   {
     name: 'ColdFusion Builder',
