@@ -146,6 +146,7 @@ import {
 } from '../lib/thank-you'
 import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
+import { buildAutocompletionProviders } from '../lib/autocompletion-providers'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2103,11 +2104,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           popup.repository.gitHubRepository === null ||
           hasWritePermission(popup.repository.gitHubRepository)
 
+        const autocompletionProviders = buildAutocompletionProviders(
+          popup.repository,
+          this.props.dispatcher,
+          this.state.emoji,
+          this.props.issuesStore,
+          this.props.gitHubUserStore,
+          this.state.accounts
+        )
+
         return (
           <CommitMessageDialog
             key="commit-message"
-            // TODO: see sidebar for creating these - for issues autocompletion
-            autocompletionProviders={[]}
+            autocompletionProviders={autocompletionProviders}
             branch={currentBranchName}
             coAuthors={popup.coAuthors}
             commitAuthor={repositoryState.commitAuthor}
