@@ -96,7 +96,7 @@ export class CommitMessageDialog extends React.Component<
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
             commitMessage={this.props.commitMessage}
-            focusCommitMessage={true}
+            focusCommitMessage={false}
             autocompletionProviders={this.props.autocompletionProviders}
             showCoAuthoredBy={this.props.showCoAuthoredBy}
             coAuthors={this.props.coAuthors}
