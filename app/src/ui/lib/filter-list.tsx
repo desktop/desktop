@@ -253,7 +253,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"
         onValueChanged={this.onFilterValueChanged}
-        onEnterPressed ={this.onEnterPressed}
+        onEnterPressed={this.onEnterPressed}
         onKeyDown={this.onKeyDown}
         value={this.props.filterText}
         disabled={this.props.disabled}
