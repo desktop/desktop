@@ -188,6 +188,7 @@ export class BranchList extends React.Component<
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
+        onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
         renderPostFilter={this.onRenderNewButton}
