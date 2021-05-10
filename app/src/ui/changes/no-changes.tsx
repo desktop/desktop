@@ -272,7 +272,7 @@ export class NoChanges extends React.Component<
 
   private onViewOnGitHubClicked = () =>
     this.props.dispatcher.recordSuggestedStepViewOnGitHub()
-  
+
   private renderShowInShell() {
     const description = (
       <>
