@@ -147,6 +147,11 @@ export class RepositoryListItem extends React.Component<
     const items: ReadonlyArray<IMenuItem> = [
       ...this.buildAliasMenuItems(),
       {
+        label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
+        action: this.copyToClipboard,
+      },
+      { type: 'separator' },
+      {
         label: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
         enabled: !missing,
@@ -162,10 +167,6 @@ export class RepositoryListItem extends React.Component<
         enabled: !missing,
       },
       { type: 'separator' },
-      {
-        label: __DARWIN__ ? 'Copy to Clipboard' : 'Copy to clipboard',
-        action: this.copyToClipboard,
-      },
       {
         label: this.props.askForConfirmationOnRemoveRepository
           ? 'Remove…'
@@ -198,8 +199,6 @@ export class RepositoryListItem extends React.Component<
         action: this.removeAlias,
       })
     }
-
-    items.push({ type: 'separator' })
 
     return items
   }
