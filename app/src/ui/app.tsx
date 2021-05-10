@@ -2130,7 +2130,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showBranchProtected={
               repositoryState.changesState.currentBranchProtected
             }
-            showCoAuthoredBy={repositoryState.changesState.showCoAuthoredBy}
+            showCoAuthoredBy={popup.showCoAuthoredBy}
             showNoWriteAccess={!hasWritePermissionForRepository}
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}

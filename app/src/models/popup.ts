@@ -292,6 +292,7 @@ export type Popup =
   | {
       type: PopupType.CommitMessage
       coAuthors: ReadonlyArray<IAuthor>
+      showCoAuthoredBy: boolean
       commitMessage: ICommitMessage | null
       dialogTitle: string
       dialogButtonText: string
