@@ -48,7 +48,6 @@ const addAuthorIcon = new OcticonSymbol(
 )
 
 interface ICommitMessageProps {
-  // If not provided, don't show button (just using inputs)
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
