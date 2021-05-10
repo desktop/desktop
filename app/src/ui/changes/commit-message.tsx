@@ -48,17 +48,18 @@ const addAuthorIcon = new OcticonSymbol(
 )
 
 interface ICommitMessageProps {
+  // If not provided, don't show button (just using inputs)
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly anyFilesSelected: boolean
+  readonly anyFilesSelected?: boolean
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
-  readonly repositoryAccount: Account | null
+  readonly repositoryAccount?: Account | null
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
-  readonly isCommitting: boolean
+  readonly isCommitting?: boolean
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
   readonly showBranchProtected: boolean
@@ -80,9 +81,12 @@ interface ICommitMessageProps {
   readonly coAuthors: ReadonlyArray<IAuthor>
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
-  readonly shouldNudge: boolean
+  readonly shouldNudge?: boolean
 
   readonly commitSpellcheckEnabled: boolean
+
+  /** Optional text to override default commit button text */
+  readonly commitButtonText?: string
 }
 
 interface ICommitMessageState {
@@ -259,7 +263,7 @@ export class CommitMessage extends React.Component<
 
   private canCommit(): boolean {
     return (
-      (this.props.anyFilesSelected && this.state.summary.length > 0) ||
+      (this.props.anyFilesSelected === true && this.state.summary.length > 0) ||
       this.props.prepopulateCommitSummary
     )
   }
@@ -294,6 +298,7 @@ export class CommitMessage extends React.Component<
     const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
+      repositoryAccount !== undefined &&
       isAccountEmail(accountEmails, email) === false
 
     return (
@@ -307,7 +312,7 @@ export class CommitMessage extends React.Component<
         warningBadgeVisible={warningBadgeVisible}
         accountEmails={accountEmails}
         preferredAccountEmail={
-          repositoryAccount !== null
+          repositoryAccount !== null && repositoryAccount !== undefined
             ? lookupPreferredEmail(repositoryAccount)
             : ''
         }
@@ -359,7 +364,7 @@ export class CommitMessage extends React.Component<
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
         autoCompleteProvider={autocompletionProvider}
-        disabled={this.props.isCommitting}
+        disabled={this.props.isCommitting === true}
       />
     )
   }
@@ -387,7 +392,7 @@ export class CommitMessage extends React.Component<
       action: this.onToggleCoAuthors,
       enabled:
         this.props.repository.gitHubRepository !== null &&
-        !this.props.isCommitting,
+        this.props.isCommitting === false,
     }
   }
 
@@ -451,7 +456,7 @@ export class CommitMessage extends React.Component<
         onClick={this.onCoAuthorToggleButtonClick}
         tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
-        disabled={this.props.isCommitting}
+        disabled={this.props.isCommitting === true}
       >
         <Octicon symbol={addAuthorIcon} />
       </button>
@@ -517,7 +522,7 @@ export class CommitMessage extends React.Component<
     }
 
     const className = classNames('action-bar', {
-      disabled: this.props.isCommitting,
+      disabled: this.props.isCommitting === true,
     })
 
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
@@ -572,12 +577,50 @@ export class CommitMessage extends React.Component<
     }
   }
 
-  public render() {
+  private renderSubmitButton() {
+    const { isCommitting } = this.props
     const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
     const buttonEnabled =
-      this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
+      this.canCommit() && isCommitting === false && !isSummaryWhiteSpace
 
-    const loading = this.props.isCommitting ? <Loading /> : undefined
+    return (
+      <Button
+        type="submit"
+        className="commit-button"
+        onClick={this.onSubmit}
+        disabled={!buttonEnabled}
+      >
+        {this.renderButtonContents()}
+      </Button>
+    )
+  }
+
+  private renderButtonContents(): JSX.Element {
+    const { isCommitting, branch: branchName, commitButtonText } = this.props
+
+    const loading = isCommitting === true ? <Loading /> : undefined
+    const commitVerb = loading ? 'Committing' : 'Commit'
+    const commitTitle =
+      branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
+    const commitButtonContents = commitButtonText ? (
+      commitButtonText
+    ) : branchName !== null ? (
+      <>
+        {commitVerb} to <strong>{branchName}</strong>
+      </>
+    ) : (
+      commitVerb
+    )
+
+    return (
+      <>
+        {loading}
+        <span title={commitTitle}>{commitButtonContents}</span>
+      </>
+    )
+  }
+
+  public render() {
     const className = classNames({
       'with-action-bar': this.isActionBarEnabled,
       'with-co-authors': this.isCoAuthorInputVisible,
@@ -588,21 +631,8 @@ export class CommitMessage extends React.Component<
     })
 
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
-      'nudge-arrow-left': this.props.shouldNudge,
+      'nudge-arrow-left': this.props.shouldNudge === true,
     })
-
-    const branchName = this.props.branch
-    const commitVerb = loading ? 'Committing' : 'Commit'
-    const commitTitle =
-      branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
-    const commitButtonContents =
-      branchName !== null ? (
-        <>
-          {commitVerb} to <strong>{branchName}</strong>
-        </>
-      ) : (
-        commitVerb
-      )
 
     return (
       <div
@@ -625,7 +655,7 @@ export class CommitMessage extends React.Component<
             onElementRef={this.onSummaryInputRef}
             autocompletionProviders={this.props.autocompletionProviders}
             onContextMenu={this.onAutocompletingInputContextMenu}
-            disabled={this.props.isCommitting}
+            disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
           />
         </div>
@@ -643,7 +673,7 @@ export class CommitMessage extends React.Component<
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}
-            disabled={this.props.isCommitting}
+            disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
           />
           {this.renderActionBar()}
@@ -653,15 +683,7 @@ export class CommitMessage extends React.Component<
 
         {this.renderPermissionsCommitWarning()}
 
-        <Button
-          type="submit"
-          className="commit-button"
-          onClick={this.onSubmit}
-          disabled={!buttonEnabled}
-        >
-          {loading}
-          <span title={commitTitle}>{commitButtonContents}</span>
-        </Button>
+        {this.renderSubmitButton()}
       </div>
     )
   }
