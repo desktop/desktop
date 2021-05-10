@@ -279,7 +279,7 @@ export class Tokenizer {
             this.scanForHyperlink(text, i)
           )
           break
-        
+
         case '\n':
           this.append(element)
           this.append(' ')
@@ -326,7 +326,7 @@ export class Tokenizer {
             this.scanForHyperlink(text, i, repository)
           )
           break
-        
+
         case '\n':
           this.append(element)
           this.append(' ')
