@@ -130,7 +130,7 @@ import {
   ChooseTargetBranchesStep,
 } from '../models/cherry-pick'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
-import { CommitOneLine, ICommitContext } from '../models/commit'
+import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
 import { DragElementType } from '../models/drag-element'
 import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
