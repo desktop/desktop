@@ -601,20 +601,21 @@ export class CommitMessage extends React.Component<
     const commitVerb = loading ? 'Committing' : 'Commit'
     const commitTitle =
       branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
-    const commitButtonContents = commitButtonText ? (
-      commitButtonText
-    ) : branchName !== null ? (
-      <>
-        {commitVerb} to <strong>{branchName}</strong>
-      </>
-    ) : (
-      commitVerb
-    )
+    const defaultContents =
+      branchName !== null ? (
+        <>
+          {commitVerb} to <strong>{branchName}</strong>
+        </>
+      ) : (
+        commitVerb
+      )
+
+    const commitButton = commitButtonText ? commitButtonText : defaultContents
 
     return (
       <>
         {loading}
-        <span title={commitTitle}>{commitButtonContents}</span>
+        <span title={commitTitle}>{commitButton}</span>
       </>
     )
   }
