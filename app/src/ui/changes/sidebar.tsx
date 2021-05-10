@@ -331,7 +331,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     // We don't allow undoing commits that have tags associated to them, since then
     // the commit won't be completely deleted because the tag will still point to it.
-    if (commit && commit.tags.length === 0) {
+    if (commit && commit.tags.length === 0 && !this.props.isAmending) {
       child = (
         <CSSTransition
           classNames="undo"

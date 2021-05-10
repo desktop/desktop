@@ -7,7 +7,7 @@ export const PermissionsCommitWarning: React.FunctionComponent = props => {
   return (
     <div id="permissions-commit-warning" onContextMenu={ignoreContextMenu}>
       <div className="warning-icon-container">
-        <Octicon className="warning-icon" symbol={OcticonSymbol.alert} />
+        <Octicon className="warning-icon" symbol={OcticonSymbol.info} />
       </div>
       <div className="warning-message">{props.children}</div>
     </div>

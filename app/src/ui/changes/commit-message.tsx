@@ -554,13 +554,23 @@ export class CommitMessage extends React.Component<
 
   private renderPermissionsCommitWarning() {
     const {
+      commitToAmend,
       showBranchProtected,
       showNoWriteAccess,
       repository,
       branch,
     } = this.props
 
-    if (showNoWriteAccess) {
+    if (commitToAmend !== null) {
+      return (
+        <PermissionsCommitWarning>
+          Your changes will be applied to your{' '}
+          <strong>most recent commit</strong>.{' '}
+          <LinkButton onClick={this.onStopAmending}>Stop amending</LinkButton>{' '}
+          to go back to normal.
+        </PermissionsCommitWarning>
+      )
+    } else if (showNoWriteAccess) {
       return (
         <PermissionsCommitWarning>
           You don't have write access to <strong>{repository.name}</strong>.
@@ -599,6 +609,10 @@ export class CommitMessage extends React.Component<
     if (isRepositoryWithGitHubRepository(this.props.repository)) {
       this.props.dispatcher.showCreateForkDialog(this.props.repository)
     }
+  }
+
+  private onStopAmending = () => {
+    this.props.dispatcher.toggleAmendingCommit(this.props.repository)
   }
 
   public render() {
