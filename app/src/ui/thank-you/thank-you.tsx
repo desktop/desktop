@@ -80,19 +80,24 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
               renderUrlsAsLinks={true}
             />
           </div>
+          <div className="thank-you-note">
+            The Desktop team wants to thank you personally.
+          </div>
         </div>
       </div>
     )
 
-    const version =
-      this.props.latestVersion !== null ? ` ${this.props.latestVersion}` : ''
-    const thankYouNote = (
-      <>
-        Thanks so much for all your hard work on GitHub Desktop{version}. We're
-        so grateful for your willingness to contribute and make the app better
-        for everyone!
-      </>
-    )
+    const thankYou = 'Thank you for all your hard work on GitHub Desktop'
+    let thankYouNote
+    if (this.props.latestVersion === null) {
+      thankYouNote = <>{thankYou}</>
+    } else {
+      thankYouNote = (
+        <>
+          {thankYou} version {this.props.latestVersion}
+        </>
+      )
+    }
 
     return (
       <Dialog
@@ -102,7 +107,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
       >
         <DialogContent>
           <div className="container">
-            <div className="thank-you-note">{thankYouNote}</div>
+            <div className="thank-you-note">{thankYouNote}.</div>
             <div className="contributions-heading">You contributed:</div>
             <div className="contributions">
               {this.renderList(this.props.userContributions)}
@@ -113,7 +118,6 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
             >
               {this.renderConfetti()}
             </div>
-            <div className="footer"></div>
           </div>
         </DialogContent>
       </Dialog>

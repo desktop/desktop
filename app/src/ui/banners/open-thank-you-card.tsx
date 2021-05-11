@@ -21,7 +21,8 @@ export class OpenThankYouCard extends React.Component<
     return (
       <Banner id="open-thank-you-card" onDismissed={this.props.onDismissed}>
         <span onSubmit={this.props.onOpenCard}>
-          The Desktop team would like to thank you for your contributions.{' '}
+          The Desktop team would like to thank you for your recent
+          contributions.{' '}
           <LinkButton onClick={this.props.onOpenCard}>
             Open Your Card
           </LinkButton>{' '}
