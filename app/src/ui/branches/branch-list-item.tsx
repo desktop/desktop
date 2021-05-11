@@ -1,3 +1,4 @@
+import { clipboard } from 'electron'
 import * as React from 'react'
 import moment from 'moment'
 
@@ -70,6 +71,13 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         enabled: isLocal,
       })
     }
+
+    items.push({
+      label: __DARWIN__ ? 'Copy Branch Name' : 'Copy branch name',
+      action: () => clipboard.writeText(name),
+    })
+
+    items.push({ type: 'separator' })
 
     if (onDeleteBranch !== undefined) {
       items.push({
