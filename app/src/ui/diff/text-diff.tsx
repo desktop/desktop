@@ -44,7 +44,7 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { canSelect } from './diff-helpers'
+import { canSelect, getLineWidthFromLineNumbers } from './diff-helpers'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -1031,37 +1031,17 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // Get the largest old line number and the largest new line, of these two we can find the highest amount of digits in the hunks
     const largestOldLineNum = Math.max(
       ...totalHunks.map(function (o) {
-        return Math.max(
-          ...o.lines.map(function (val) {
-            return val.oldLineNumber ?? 0
-          })
-        )
+        return o.lines[o.lines.length - 1].oldLineNumber ?? 0
       })
     )
 
     const largestNewLineNum = Math.max(
       ...totalHunks.map(function (o) {
-        return Math.max(
-          ...o.lines.map(function (val) {
-            return val.newLineNumber ?? 0
-          })
-        )
+        return o.lines[o.lines.length - 1].newLineNumber ?? 0
       })
     )
 
-    const maxLinesDigitAmount =
-      largestOldLineNum > largestNewLineNum
-        ? largestOldLineNum.toString().length
-        : largestNewLineNum.toString().length
-    let diffSize: number
-
-    if (maxLinesDigitAmount <= 1) {
-      diffSize = 20
-    } else {
-      diffSize = 10 * maxLinesDigitAmount + 5
-    }
-
-    return `${diffSize}px`
+    return getLineWidthFromLineNumbers(largestOldLineNum, largestNewLineNum)
   }
 
   private getGutterLineClassNameInfo(

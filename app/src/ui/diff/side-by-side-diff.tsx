@@ -43,6 +43,7 @@ import {
   SimplifiedDiffRow,
   IDiffRowData,
   DiffColumn,
+  getLineWidthFromLineNumbers,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
@@ -373,19 +374,10 @@ export class SideBySideDiff extends React.Component<
       })
     )
 
-    const maxLinesDigitAmount =
-      largestBeforeLineNum > largestAfterLineNum
-        ? largestBeforeLineNum.toString().length
-        : largestAfterLineNum.toString().length
-    let diffSize: number
-
-    if (maxLinesDigitAmount <= 1) {
-      diffSize = 20
-    } else {
-      diffSize = 10 * maxLinesDigitAmount + 5
-    }
-
-    return `${diffSize}px`
+    return getLineWidthFromLineNumbers(
+      largestBeforeLineNum,
+      largestAfterLineNum
+    )
   }
 
   private getRowHeight = (row: { index: number }) => {

@@ -352,3 +352,16 @@ export function canSelect(
 ): file is WorkingDirectoryFileChange {
   return file instanceof WorkingDirectoryFileChange
 }
+
+export function getLineWidthFromLineNumbers(...args: number[]): string {
+  const maxLinesDigitAmount = Math.max(...args).toString().length
+  let diffSize: number
+
+  if (maxLinesDigitAmount <= 3) {
+    diffSize = 35
+  } else {
+    diffSize = 10 * maxLinesDigitAmount + 5
+  }
+
+  return `${diffSize}px`
+}
