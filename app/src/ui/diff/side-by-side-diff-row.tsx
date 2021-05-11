@@ -144,9 +144,7 @@ export class SideBySideDiffRow extends React.Component<
           return (
             <div className="row context">
               <div className="before">
-                {this.renderLineNumbers(
-                  [beforeLineNumber, afterLineNumber]
-                )}
+                {this.renderLineNumbers([beforeLineNumber, afterLineNumber])}
                 {this.renderContentFromString(row.content, row.beforeTokens)}
               </div>
             </div>
@@ -175,10 +173,7 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className="after">
-                {this.renderLineNumbers(
-                  [undefined, lineNumber],
-                  isSelected
-                )}
+                {this.renderLineNumbers([undefined, lineNumber], isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
               </div>
@@ -209,10 +204,7 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className="before">
-                {this.renderLineNumbers(
-                  [lineNumber, undefined],
-                  isSelected
-                )}
+                {this.renderLineNumbers([lineNumber, undefined], isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
               </div>
@@ -242,18 +234,12 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row modified">
             <div className="before" onMouseEnter={this.onMouseEnterLineNumber}>
-              {this.renderLineNumber(
-                before.lineNumber,
-                before.isSelected
-              )}
+              {this.renderLineNumber(before.lineNumber, before.isSelected)}
               {this.renderContent(before)}
             </div>
             {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
-              {this.renderLineNumber(
-                after.lineNumber,
-                after.isSelected
-              )}
+              {this.renderLineNumber(after.lineNumber, after.isSelected)}
               {this.renderContent(after)}
             </div>
           </div>
@@ -414,7 +400,10 @@ export class SideBySideDiffRow extends React.Component<
   ) {
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
-        <div className="line-number" style={{ width: this.props.lineNumberWidth }}>
+        <div
+          className="line-number"
+          style={{ width: this.props.lineNumberWidth }}
+        >
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
@@ -451,10 +440,7 @@ export class SideBySideDiffRow extends React.Component<
    *                    If undefined is passed, the line is treated
    *                    as non-selectable.
    */
-  private renderLineNumber(
-    lineNumber?: number,
-    isSelected?: boolean
-  ) {
+  private renderLineNumber(lineNumber?: number, isSelected?: boolean) {
     return this.renderLineNumbers([lineNumber], isSelected)
   }
 
