@@ -12,6 +12,7 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
+import { enableBranchFromCommit } from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -200,16 +201,18 @@ export class CommitListItem extends React.PureComponent<
       },
     ]
 
-    items.push({
-      label: __DARWIN__
-        ? 'Create Branch from Commit'
-        : 'Create branch from commit',
-      action: () => {
-        if (this.props.onCreateBranch) {
-          this.props.onCreateBranch(this.props.commit)
-        }
-      },
-    })
+    if (enableBranchFromCommit()) {
+      items.push({
+        label: __DARWIN__
+          ? 'Create Branch from Commit'
+          : 'Create branch from commit',
+        action: () => {
+          if (this.props.onCreateBranch) {
+            this.props.onCreateBranch(this.props.commit)
+          }
+        },
+      })
+    }
 
     items.push({
       label: 'Create Tag…',
