@@ -90,3 +90,8 @@ export function enableSaveDialogOnCloneRepository(): boolean {
 export function enableRepositoryAliases(): boolean {
   return true
 }
+
+/** Should we allow to create branches from a commit? */
+export function enableBranchFromCommit(): boolean {
+  return enableBetaFeatures()
+}
