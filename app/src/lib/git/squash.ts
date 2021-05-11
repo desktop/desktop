@@ -45,7 +45,11 @@ export async function squash(
     // need to traverse in reverse so we do oldest to newest (replay commits)
     for (let i = commits.length - 1; i >= 0; i--) {
       // Ignore commits to squash because those are written right next to the target commit
-      if (toSquash.map(sq => sq.sha).includes(commits[i].sha)) {
+      if (
+        toSquash.map(sq => sq.sha).includes(commits[i].sha) &&
+        // unless it is the squashOnto commit (this happens when squashing via the context menu)
+        commits[i].sha !== squashOnto.sha
+      ) {
         continue
       }
 
