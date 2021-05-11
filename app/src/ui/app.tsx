@@ -113,7 +113,10 @@ import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-pu
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { findDefaultUpstreamBranch } from '../lib/branch'
-import { GitHubRepository } from '../models/github-repository'
+import {
+  GitHubRepository,
+  hasWritePermission,
+} from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { DeleteTag } from './delete-tag'
 import { ChooseForkSettings } from './choose-fork-settings'
@@ -142,6 +145,8 @@ import {
   updateLastThankYou,
 } from '../lib/thank-you'
 import { ReleaseNote } from '../models/release-notes'
+import { CommitMessageDialog } from './commit-message/commit-message-dialog'
+import { buildAutocompletionProviders } from './autocompletion'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2084,6 +2089,51 @@ export class App extends React.Component<IAppProps, IAppState> {
             friendlyName={popup.friendlyName}
             latestVersion={popup.latestVersion}
             onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.CommitMessage:
+        const repositoryState = this.props.repositoryStateManager.get(
+          popup.repository
+        )
+
+        const { tip } = repositoryState.branchesState
+        const currentBranchName: string | null =
+          tip.kind === TipState.Valid ? tip.branch.name : null
+
+        const hasWritePermissionForRepository =
+          popup.repository.gitHubRepository === null ||
+          hasWritePermission(popup.repository.gitHubRepository)
+
+        const autocompletionProviders = buildAutocompletionProviders(
+          popup.repository,
+          this.props.dispatcher,
+          this.state.emoji,
+          this.props.issuesStore,
+          this.props.gitHubUserStore,
+          this.state.accounts
+        )
+
+        return (
+          <CommitMessageDialog
+            key="commit-message"
+            autocompletionProviders={autocompletionProviders}
+            branch={currentBranchName}
+            coAuthors={popup.coAuthors}
+            commitAuthor={repositoryState.commitAuthor}
+            commitMessage={popup.commitMessage}
+            commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
+            dialogButtonText={popup.dialogButtonText}
+            dialogTitle={popup.dialogTitle}
+            dispatcher={this.props.dispatcher}
+            prepopulateCommitSummary={popup.prepopulateCommitSummary}
+            repository={popup.repository}
+            showBranchProtected={
+              repositoryState.changesState.currentBranchProtected
+            }
+            showCoAuthoredBy={popup.showCoAuthoredBy}
+            showNoWriteAccess={!hasWritePermissionForRepository}
+            onDismissed={onPopupDismissedFn}
+            onSubmitCommitMessage={popup.onSubmitCommitMessage}
           />
         )
       default:

@@ -16,6 +16,8 @@ import { Account } from '../models/account'
 import { Progress } from './progress'
 import { ITextDiff, DiffSelection } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
+import { ICommitMessage } from './commit-message'
+import { IAuthor } from './author'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -71,6 +73,7 @@ export enum PopupType {
   MoveToApplicationsFolder,
   ChangeRepositoryAlias,
   ThankYou,
+  CommitMessage,
 }
 
 export type Popup =
@@ -285,4 +288,15 @@ export type Popup =
       userContributions: ReadonlyArray<ReleaseNote>
       friendlyName: string
       latestVersion: string | null
+    }
+  | {
+      type: PopupType.CommitMessage
+      coAuthors: ReadonlyArray<IAuthor>
+      showCoAuthoredBy: boolean
+      commitMessage: ICommitMessage | null
+      dialogTitle: string
+      dialogButtonText: string
+      prepopulateCommitSummary: boolean
+      repository: Repository
+      onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
     }

@@ -9,21 +9,15 @@ import {
   isRebaseConflictState,
   ChangesSelectionKind,
 } from '../../lib/app-state'
-import {
-  Repository,
-  getNonForkGitHubRepository,
-  isRepositoryWithGitHubRepository,
-} from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit, ICommitContext } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
 import {
+  buildAutocompletionProviders,
   IAutocompletionProvider,
-  EmojiAutocompletionProvider,
-  IssuesAutocompletionProvider,
-  UserAutocompletionProvider,
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -103,39 +97,14 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       props.repository.hash !== this.props.repository.hash ||
       props.accounts !== this.props.accounts
     ) {
-      const autocompletionProviders: IAutocompletionProvider<any>[] = [
-        new EmojiAutocompletionProvider(props.emoji),
-      ]
-
-      // Issues autocompletion is only available for GitHub repositories.
-      const { repository } = props
-      const gitHubRepository = isRepositoryWithGitHubRepository(repository)
-        ? getNonForkGitHubRepository(repository)
-        : null
-
-      if (gitHubRepository !== null) {
-        autocompletionProviders.push(
-          new IssuesAutocompletionProvider(
-            props.issuesStore,
-            gitHubRepository,
-            props.dispatcher
-          )
-        )
-
-        const account = this.props.accounts.find(
-          a => a.endpoint === gitHubRepository.endpoint
-        )
-
-        autocompletionProviders.push(
-          new UserAutocompletionProvider(
-            props.gitHubUserStore,
-            gitHubRepository,
-            account
-          )
-        )
-      }
-
-      this.autocompletionProviders = autocompletionProviders
+      this.autocompletionProviders = buildAutocompletionProviders(
+        props.repository,
+        props.dispatcher,
+        props.emoji,
+        props.issuesStore,
+        props.gitHubUserStore,
+        props.accounts
+      )
     }
   }
 
