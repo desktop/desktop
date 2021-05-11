@@ -2,16 +2,16 @@ import {
   getNonForkGitHubRepository,
   isRepositoryWithGitHubRepository,
   Repository,
-} from '../models/repository'
+} from '../../models/repository'
 import {
   EmojiAutocompletionProvider,
   IAutocompletionProvider,
   IssuesAutocompletionProvider,
   UserAutocompletionProvider,
-} from '../ui/autocompletion'
-import { Dispatcher } from '../ui/dispatcher'
-import { GitHubUserStore, IssuesStore } from './stores'
-import { Account } from '../models/account'
+} from '.'
+import { Dispatcher } from '../dispatcher'
+import { GitHubUserStore, IssuesStore } from '../../lib/stores'
+import { Account } from '../../models/account'
 
 export function buildAutocompletionProviders(
   repository: Repository,

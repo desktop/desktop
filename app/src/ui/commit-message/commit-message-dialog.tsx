@@ -8,6 +8,7 @@ import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
+
 interface ICommitMessageDialogProps {
   /**
    * A list of autocompletion providers that should be enabled for this input.

@@ -391,7 +391,7 @@ export class CommitMessage extends React.Component<
       action: this.onToggleCoAuthors,
       enabled:
         this.props.repository.gitHubRepository !== null &&
-        !(this.props.isCommitting === true),
+        this.props.isCommitting !== true,
     }
   }
 
@@ -580,7 +580,7 @@ export class CommitMessage extends React.Component<
     const { isCommitting } = this.props
     const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
     const buttonEnabled =
-      this.canCommit() && !(isCommitting === true) && !isSummaryWhiteSpace
+      this.canCommit() && isCommitting !== true && !isSummaryWhiteSpace
 
     return (
       <Button

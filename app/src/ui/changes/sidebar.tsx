@@ -15,7 +15,10 @@ import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit, ICommitContext } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
-import { IAutocompletionProvider } from '../autocompletion'
+import {
+  buildAutocompletionProviders,
+  IAutocompletionProvider,
+} from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
@@ -26,7 +29,6 @@ import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
-import { buildAutocompletionProviders } from '../../lib/autocompletion-providers'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.

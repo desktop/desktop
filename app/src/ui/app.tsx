@@ -146,7 +146,7 @@ import {
 } from '../lib/thank-you'
 import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
-import { buildAutocompletionProviders } from '../lib/autocompletion-providers'
+import { buildAutocompletionProviders } from './autocompletion'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
