@@ -3073,7 +3073,14 @@ export class Dispatcher {
     this.appStore._setLastThankYou(lastThankYou)
   }
 
-  /** Starts a cherry pick of the given commits onto the target branch */
+  /**
+   * Starts a squash
+   *
+   * @param toSquash - commits to squash onto another commit
+   * @param squashOnto  - commit to squash the `toSquash` commits onto
+   * @param lastRetainedCommitRef - commit ref of commit before commits in squash
+   * @param commitContext - to build the commit message from
+   */
   public async squash(
     repository: Repository,
     toSquash: ReadonlyArray<Commit>,
@@ -3154,8 +3161,8 @@ export class Dispatcher {
   }
 
   /**
-   * Obtains the current app conflict state and switches cherry pick flow to
-   * show conflicts step
+   * Obtains the current app conflict state and switches squash flow to show
+   * conflicts step
    */
   private startConflictSquashFlow(repository: Repository): void {
     const stateAfter = this.repositoryStateManager.get(repository)
