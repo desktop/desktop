@@ -13,6 +13,7 @@ import {
 import { parseChangedFiles } from './log'
 import { stageFiles } from './update-index'
 import { Branch } from '../../models/branch'
+import { IGitAccount } from '../../models/git-account'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -117,6 +118,7 @@ export function createDesktopStashMessage(branchName: string) {
  */
 export async function createDesktopStashEntry(
   repository: Repository,
+  account: IGitAccount | null,
   branch: Branch | string,
   untrackedFilesToStage: ReadonlyArray<WorkingDirectoryFileChange>
 ): Promise<boolean> {
@@ -127,7 +129,7 @@ export async function createDesktopStashEntry(
   const fullySelectedUntrackedFiles = untrackedFilesToStage.map(x =>
     x.withIncludeAll(true)
   )
-  await stageFiles(repository, fullySelectedUntrackedFiles)
+  await stageFiles(repository, account, fullySelectedUntrackedFiles)
 
   const branchName = typeof branch === 'string' ? branch : branch.name
   const message = createDesktopStashMessage(branchName)
