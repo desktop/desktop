@@ -44,6 +44,10 @@ export async function clone(
     '--recursive',
   ]
 
+  if (options.blobless) {
+    args.push('--filter=blob:none')
+  }
+
   let opts: IGitExecutionOptions = {}
 
   if (progressCallback) {
