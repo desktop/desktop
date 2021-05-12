@@ -8,7 +8,7 @@ import { rebaseInteractive, RebaseResult } from './rebase'
 /**
  * Squashes provided commits by calling interactive rebase
  *
- * @param toSquash - commits to squash onto another commit
+ * @param toSquash - commits to squash onto another commit and does not contain the squashOnto commit
  * @param squashOnto  - commit to squash the `toSquash` commits onto
  * @param lastRetainedCommitRef - sha of commit before commits in squash
  * @param commitMessage - the first line of the string provided will be the
@@ -29,6 +29,12 @@ export async function squash(
       throw new Error('[squash] No commits provided to squash.')
     }
 
+    if (toSquash.find(c => c.sha === squashOnto.sha) !== undefined) {
+      throw new Error(
+        '[squash] The commits to squash cannot contain the commit to squash onto.'
+      )
+    }
+
     const commits = await getCommits(
       repository,
       revRange(lastRetainedCommitRef, 'HEAD')
@@ -43,13 +49,10 @@ export async function squash(
     todoPath = await getTempFilePath('squashTodo')
     let foundSquashOntoCommitInLog = false
     // need to traverse in reverse so we do oldest to newest (replay commits)
+    const toSquashShas = new Set(toSquash.map(c => c.sha))
     for (let i = commits.length - 1; i >= 0; i--) {
-      // Ignore commits to squash because those are written right next to the target commit
-      if (
-        toSquash.map(sq => sq.sha).includes(commits[i].sha) &&
-        // unless it is the squashOnto commit (this happens when squashing via the context menu)
-        commits[i].sha !== squashOnto.sha
-      ) {
+      // Ignore commits toSquash because those are written right after the squashOnto commit
+      if (toSquashShas.has(commits[i].sha)) {
         continue
       }
 
@@ -58,7 +61,7 @@ export async function squash(
         `pick ${commits[i].sha} ${commits[i].summary}\n`
       )
 
-      // If it's the target commit, write a `squash` line for every commit to squash
+      // If it's the squashOnto commit, write a `squash` line for every commit to squash
       if (commits[i].sha === squashOnto.sha) {
         foundSquashOntoCommitInLog = true
         for (let j = 0; j < toSquash.length; j++) {

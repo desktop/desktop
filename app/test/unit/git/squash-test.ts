@@ -53,7 +53,7 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths).toContain('second.md')
   })
 
-  it('squashes one commit onto the next (non-conflicting, squashOnto in toSquash array)', async () => {
+  it('returns error when squashOnto is in the toSquash array', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
     const secondCommit = await makeSquashCommit(repository, 'second')
 
@@ -65,19 +65,7 @@ describe('git/cherry-pick', () => {
       'Test Summary\n\nTest Body'
     )
 
-    expect(result).toBe(RebaseResult.CompletedWithoutError)
-
-    const log = await getCommits(repository, 'HEAD', 5)
-    const squashed = log[0]
-    expect(squashed.summary).toBe('Test Summary')
-    expect(squashed.body).toBe('Test Body\n')
-    expect(log.length).toBe(2)
-
-    // verify squashed commit contains changes from squashed commits
-    const squashedFiles = await getChangedFiles(repository, squashed.sha)
-    const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
-    expect(squashedFilePaths).toContain('first.md')
-    expect(squashedFilePaths).toContain('second.md')
+    expect(result).toBe(RebaseResult.Error)
   })
 
   it('squashes multiple commit onto one (non-conflicting)', async () => {
