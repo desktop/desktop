@@ -29,14 +29,15 @@ export function spawnAndComplete(
   path: string,
   name: string,
   successExitCodes?: Set<number>,
-  stdOutMaxLength?: number
+  stdOutMaxLength?: number,
+  env?: Object
 ): Promise<ProcessOutput> {
   const commandName = `${name}: git ${args.join(' ')}`
   return GitPerf.measure(
     commandName,
     () =>
       new Promise<ProcessOutput>((resolve, reject) => {
-        const process = GitProcess.spawn(args, path)
+        const process = GitProcess.spawn(args, path, { env })
 
         process.on('error', err => {
           // If this is an exception thrown by Node.js while attempting to
