@@ -4038,6 +4038,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const promise = this.cloningRepositoriesStore.clone(url, path, {
       ...options,
       account,
+      blobless: true, // FIXME: Add a setting, don't hardcode this!!!
     })
     const repository = this.cloningRepositoriesStore.repositories.find(
       r => r.url === url && r.path === path

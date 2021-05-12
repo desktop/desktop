@@ -8,4 +8,6 @@ export type CloneOptions = {
   readonly branch?: string
   /** The default branch name in case we're cloning an empty repository. */
   readonly defaultBranch?: string
+  /** Whether or not is blobless clone. */
+  readonly blobless: boolean
 }
