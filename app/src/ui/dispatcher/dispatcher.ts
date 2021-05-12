@@ -3072,4 +3072,126 @@ export class Dispatcher {
   public setLastThankYou(lastThankYou: ILastThankYou) {
     this.appStore._setLastThankYou(lastThankYou)
   }
+
+  /**
+   * Starts a squash
+   *
+   * @param toSquash - commits to squash onto another commit
+   * @param squashOnto  - commit to squash the `toSquash` commits onto
+   * @param lastRetainedCommitRef - commit ref of commit before commits in squash
+   * @param commitContext - to build the commit message from
+   */
+  public async squash(
+    repository: Repository,
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string,
+    commitContext: ICommitContext
+  ): Promise<void> {
+    // TODO: initialize squash flow for progress dialog
+    // TODO: set undo sha in state (combine with initialize?)
+    // TODO: handle uncommitted changes
+
+    const result = await this.appStore._squash(
+      repository,
+      toSquash,
+      squashOnto,
+      lastRetainedCommitRef,
+      commitContext
+    )
+
+    this.logHowToRevertSquash(repository)
+
+    this.processSquashRebaseResult(repository, result, toSquash)
+  }
+
+  private logHowToRevertSquash(repository: Repository): void {
+    const stateBefore = this.repositoryStateManager.get(repository)
+    const { tip } = stateBefore.branchesState
+    const beforeSha = getTipSha(tip)
+
+    if (tip.kind !== TipState.Valid) {
+      log.info(
+        `[squash] - could not determine branch for ${beforeSha}. No revert instructions provided.`
+      )
+      return
+    }
+
+    log.info(`[squash] starting rebase for ${tip.branch.name} at ${beforeSha}`)
+    log.info(
+      `[squash] to restore the previous state if this completed rebase is unsatisfactory:`
+    )
+    log.info(`[squash] - git checkout ${tip.branch.name}`)
+    log.info(`[squash] - git reset ${beforeSha} --hard`)
+  }
+
+  /**
+   * Processes the squash result
+   *  1. Completes the squash with banner if successful.
+   *  2. Moves squash flow to conflicts handler.
+   *  3. Handles errors.
+   */
+  private async processSquashRebaseResult(
+    repository: Repository,
+    cherryPickResult: RebaseResult,
+    toSquash: ReadonlyArray<CommitOneLine>
+  ): Promise<void> {
+    // This will update the conflict state of the app. This is needed to start
+    // conflict flow if squash results in conflict.
+    const status = await this.appStore._loadStatus(repository)
+    switch (cherryPickResult) {
+      case RebaseResult.CompletedWithoutError:
+        if (status !== null && status.currentTip !== undefined) {
+          // This sets the history to the current tip
+          // TODO: Look at history back to last retained commit and search for
+          // squashed commit based on new commit message ... if there is more
+          // than one, just take the most recent. (not likely?)
+          await this.changeCommitSelection(repository, [status.currentTip])
+        }
+
+        await this.completeSquash(repository, toSquash.length)
+        break
+      case RebaseResult.ConflictsEncountered:
+        this.startConflictSquashFlow(repository)
+        break
+      default:
+        // TODO: clear state
+        this.appStore._closePopup()
+    }
+  }
+
+  /**
+   * Obtains the current app conflict state and switches squash flow to show
+   * conflicts step
+   */
+  private startConflictSquashFlow(repository: Repository): void {
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { conflictState } = stateAfter.changesState
+    if (conflictState === null || !isRebaseConflictState(conflictState)) {
+      log.error(
+        '[squash] - conflict state was null or not in a rebase conflict state - unable to continue'
+      )
+
+      // TODO: clear state
+      return
+    }
+    // TODO: switch state to show conflict dialog
+    // TODO: record conflict encountered during squash
+  }
+
+  /**
+   * Wrap squash actions
+   * - closes popups
+   * - refreshes repo (so changes appear in history)
+   * TODO: Displays success banner
+   * TODO: state resetting
+   * TODO: record successful squash stats
+   */
+  private async completeSquash(
+    repository: Repository,
+    countSquashed: number
+  ): Promise<void> {
+    this.closePopup()
+    await this.refreshRepository(repository)
+  }
 }

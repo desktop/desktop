@@ -283,6 +283,7 @@ import {
 } from '../git/cherry-pick'
 import { DragElement } from '../../models/drag-element'
 import { ILastThankYou } from '../../models/last-thank-you'
+import { squash } from '../git/squash'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -6251,6 +6252,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.lastThankYou = lastThankYou
 
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _squash(
+    repository: Repository,
+    toSquash: ReadonlyArray<CommitOneLine>,
+    squashOnto: CommitOneLine,
+    lastRetainedCommitRef: string,
+    commitContext: ICommitContext
+  ): Promise<RebaseResult> {
+    if (toSquash.length === 0) {
+      log.error('[_squash] - Unable to squash. No commits provided.')
+      return RebaseResult.Error
+    }
+
+    // TODO: Add progress callback
+
+    const commitMessage = await formatCommitMessage(repository, commitContext)
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      squash(
+        repository,
+        toSquash,
+        squashOnto,
+        lastRetainedCommitRef,
+        commitMessage
+      )
+    )
+
+    return result || RebaseResult.Error
   }
 }
 
