@@ -29,7 +29,8 @@ export async function squash(
       throw new Error('[squash] No commits provided to squash.')
     }
 
-    if (toSquash.find(c => c.sha === squashOnto.sha) !== undefined) {
+    const toSquashShas = new Set(toSquash.map(c => c.sha))
+    if (toSquashShas.has(squashOnto.sha)) {
       throw new Error(
         '[squash] The commits to squash cannot contain the commit to squash onto.'
       )
@@ -49,7 +50,7 @@ export async function squash(
     todoPath = await getTempFilePath('squashTodo')
     let foundSquashOntoCommitInLog = false
     // need to traverse in reverse so we do oldest to newest (replay commits)
-    const toSquashShas = new Set(toSquash.map(c => c.sha))
+
     for (let i = commits.length - 1; i >= 0; i--) {
       // Ignore commits toSquash because those are written right after the squashOnto commit
       if (toSquashShas.has(commits[i].sha)) {
