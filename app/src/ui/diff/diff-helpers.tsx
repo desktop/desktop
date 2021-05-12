@@ -353,7 +353,7 @@ export function canSelect(
   return file instanceof WorkingDirectoryFileChange
 }
 
-export function getLineWidthFromLineNumbers(...args: number[]): string {
+export function getLineWidthFromLineNumbers(...args: number[]): number {
   const maxLinesDigitAmount = Math.max(...args).toString().length
   let diffSize: number
 
@@ -363,5 +363,5 @@ export function getLineWidthFromLineNumbers(...args: number[]): string {
     diffSize = 10 * maxLinesDigitAmount + 5
   }
 
-  return `${diffSize}px`
+  return diffSize
 }

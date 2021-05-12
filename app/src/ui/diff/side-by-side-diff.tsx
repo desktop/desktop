@@ -374,10 +374,10 @@ export class SideBySideDiff extends React.Component<
       })
     )
 
-    return getLineWidthFromLineNumbers(
+    return `${getLineWidthFromLineNumbers(
       largestBeforeLineNum,
       largestAfterLineNum
-    )
+    )}px`
   }
 
   private getRowHeight = (row: { index: number }) => {
