@@ -135,7 +135,7 @@ describe('git/rebase', () => {
       // the second parameter here represents files that the UI indicates have
       // no conflict markers, so can be safely staged before continuing the
       // rebase
-      result = await continueRebase(repository, [])
+      result = await continueRebase(repository, null, [])
 
       status = await getStatusOrThrow(repository)
     })
@@ -211,7 +211,7 @@ describe('git/rebase', () => {
 
       expect(diffCheckAfter.exitCode).toEqual(0)
 
-      result = await continueRebase(repository, files)
+      result = await continueRebase(repository, null, files)
 
       status = await getStatusOrThrow(repository)
     })
@@ -286,7 +286,7 @@ describe('git/rebase', () => {
 
       const { files } = afterRebase.workingDirectory
 
-      result = await continueRebase(repository, files)
+      result = await continueRebase(repository, null, files)
 
       status = await getStatusOrThrow(repository)
 
@@ -362,7 +362,7 @@ describe('git/rebase', () => {
       // all tracked changes to be staged as a prerequisite for rebasing
       const onlyConflictedFiles = files.filter(f => f.path !== 'THIRD.md')
 
-      result = await continueRebase(repository, onlyConflictedFiles)
+      result = await continueRebase(repository, null, onlyConflictedFiles)
     })
 
     it('returns error code indicating that required files were missing', () => {

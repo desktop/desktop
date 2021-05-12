@@ -5,6 +5,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { IGitAccount } from '../../models/git-account'
 
 /**
  * @param repository repository to execute merge in
@@ -13,6 +14,7 @@ import { stageManualConflictResolution } from './stage'
  */
 export async function createCommit(
   repository: Repository,
+  account: IGitAccount | null,
   message: string,
   files: ReadonlyArray<WorkingDirectoryFileChange>
 ): Promise<string> {
@@ -21,7 +23,7 @@ export async function createCommit(
   // do the same thing.
   await unstageAll(repository)
 
-  await stageFiles(repository, files)
+  await stageFiles(repository, account, files)
 
   const result = await git(
     ['commit', '-F', '-'],
@@ -44,6 +46,7 @@ export async function createCommit(
  */
 export async function createMergeCommit(
   repository: Repository,
+  account: IGitAccount | null,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
 ): Promise<string> {
@@ -61,7 +64,7 @@ export async function createMergeCommit(
 
   const otherFiles = files.filter(f => !manualResolutions.has(f.path))
 
-  await stageFiles(repository, otherFiles)
+  await stageFiles(repository, account, otherFiles)
   const result = await git(
     [
       'commit',

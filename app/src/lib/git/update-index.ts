@@ -6,6 +6,7 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
+import { IGitAccount } from '../../models/git-account'
 
 interface IUpdateIndexOptions {
   /**
@@ -108,6 +109,7 @@ async function updateIndex(
  */
 export async function stageFiles(
   repository: Repository,
+  account: IGitAccount | null,
   files: ReadonlyArray<WorkingDirectoryFileChange>
 ): Promise<void> {
   const normal = []
@@ -164,6 +166,6 @@ export async function stageFiles(
   // We don't care about renamed or not here since applyPatchToIndex
   // has logic to support that scenario.
   for (const file of partial) {
-    await applyPatchToIndex(repository, file)
+    await applyPatchToIndex(repository, account, file)
   }
 }

@@ -32,7 +32,7 @@ async function getTextDiff(
   repo: Repository,
   file: WorkingDirectoryFileChange
 ): Promise<ITextDiff> {
-  const diff = await getWorkingDirectoryDiff(repo, file)
+  const diff = await getWorkingDirectoryDiff(repo, null, file)
   expect(diff.kind === DiffType.Text)
   return diff as ITextDiff
 }
@@ -122,7 +122,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.Modified },
         diffSelection
       )
-      const diff = await getWorkingDirectoryDiff(repository, file)
+      const diff = await getWorkingDirectoryDiff(repository, null, file)
 
       expect(diff.kind === DiffType.Image)
 
@@ -249,7 +249,7 @@ describe('git/diff', () => {
 
       expect(files).toHaveLength(1)
 
-      const diff = await getWorkingDirectoryDiff(repo, files[0])
+      const diff = await getWorkingDirectoryDiff(repo, null, files[0])
 
       expect(diff.kind).toBe(DiffType.Binary)
     })

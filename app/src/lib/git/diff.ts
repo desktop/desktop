@@ -26,6 +26,9 @@ import { spawnAndComplete } from './spawn'
 import { DiffParser } from '../diff-parser'
 import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
+import { IGitAccount } from '../../models/git-account'
+import { getFallbackUrlForProxyResolve } from './environment'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -98,6 +101,7 @@ const imageFileExtensions = new Set([
  */
 export async function getCommitDiff(
   repository: Repository,
+  account: IGitAccount | null,
   file: FileChange,
   commitish: string,
   hideWhitespaceInDiff: boolean = false
@@ -123,10 +127,18 @@ export async function getCommitDiff(
     args.push(file.status.oldPath)
   }
 
-  const { output } = await spawnAndComplete(
-    args,
-    repository.path,
-    'getCommitDiff'
+  const { output } = await withTrampolineEnvForRemoteOperation(
+    account,
+    getFallbackUrlForProxyResolve(account, repository),
+    env =>
+      spawnAndComplete(
+        args,
+        repository.path,
+        'getCommitDiff',
+        undefined,
+        undefined,
+        env
+      )
   )
 
   return buildDiff(output, repository, file, commitish)
@@ -139,6 +151,7 @@ export async function getCommitDiff(
  */
 export async function getWorkingDirectoryDiff(
   repository: Repository,
+  account: IGitAccount | null,
   file: WorkingDirectoryFileChange,
   hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
@@ -183,11 +196,18 @@ export async function getWorkingDirectoryDiff(
     args.push('HEAD', '--', file.path)
   }
 
-  const { output, error } = await spawnAndComplete(
-    args,
-    repository.path,
-    'getWorkingDirectoryDiff',
-    successExitCodes
+  const { output, error } = await withTrampolineEnvForRemoteOperation(
+    account,
+    getFallbackUrlForProxyResolve(account, repository),
+    env =>
+      spawnAndComplete(
+        args,
+        repository.path,
+        'getWorkingDirectoryDiff',
+        successExitCodes,
+        undefined,
+        env
+      )
   )
   const lineEndingsChange = parseLineEndingsWarning(error)
 

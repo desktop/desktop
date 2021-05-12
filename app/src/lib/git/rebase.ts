@@ -28,6 +28,7 @@ import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsBetweenCommits } from './rev-list'
 import { Branch } from '../../models/branch'
+import { IGitAccount } from '../../models/git-account'
 
 /** The app-specific results from attempting to rebase a repository */
 export enum RebaseResult {
@@ -427,6 +428,7 @@ function parseRebaseResult(result: IGitResult): RebaseResult {
  */
 export async function continueRebase(
   repository: Repository,
+  account: IGitAccount | null,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
   progressCallback?: (progress: IMultiCommitOperationProgress) => void,
@@ -450,7 +452,7 @@ export async function continueRebase(
 
   const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
 
-  await stageFiles(repository, otherFiles)
+  await stageFiles(repository, account, otherFiles)
 
   const status = await getStatus(repository)
   if (status == null) {

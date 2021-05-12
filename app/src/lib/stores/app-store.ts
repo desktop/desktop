@@ -1373,6 +1373,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const diff = await getCommitDiff(
       repository,
+      getAccountForRepository(this.accounts, repository),
       file,
       shas[0],
       this.hideWhitespaceInHistoryDiff
@@ -2285,6 +2286,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const diff = await getWorkingDirectoryDiff(
       repository,
+      getAccountForRepository(this.accounts, repository),
       selectedFileBeforeLoad,
       enableHideWhitespaceInDiffOption() && this.hideWhitespaceInChangesDiff
     )
@@ -2497,7 +2499,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const diff = await getCommitDiff(repository, file, file.commitish)
+    const diff = await getCommitDiff(
+      repository,
+      getAccountForRepository(this.accounts, repository),
+      file,
+      file.commitish
+    )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const changesStateAfterLoad = stateAfterLoad.changesState
@@ -2537,7 +2544,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withIsCommitting(repository, async () => {
       const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
-        return createCommit(repository, message, selectedFiles)
+        return createCommit(
+          repository,
+          getAccountForRepository(this.accounts, repository),
+          message,
+          selectedFiles
+        )
       })
 
       if (result !== undefined) {
@@ -4564,6 +4576,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const result = await gitStore.performFailableOperation(() =>
       continueRebase(
         repository,
+        getAccountForRepository(this.accounts, repository),
         workingDirectory.files,
         manualResolutions,
         progressCallback
@@ -4608,7 +4621,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
-      createMergeCommit(repository, conflictedFiles, manualResolutions)
+      createMergeCommit(
+        repository,
+        getAccountForRepository(this.accounts, repository),
+        conflictedFiles,
+        manualResolutions
+      )
     )
   }
 
@@ -5794,7 +5812,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { workingDirectory } = changesState
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
-    return await createDesktopStashEntry(repository, branch, untrackedFiles)
+    return await createDesktopStashEntry(
+      repository,
+      getAccountForRepository(this.accounts, repository),
+      branch,
+      untrackedFiles
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6147,7 +6170,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
-      continueCherryPick(repository, files, manualResolutions, progressCallback)
+      continueCherryPick(
+        repository,
+        getAccountForRepository(this.accounts, repository),
+        files,
+        manualResolutions,
+        progressCallback
+      )
     )
 
     return result || CherryPickResult.Error

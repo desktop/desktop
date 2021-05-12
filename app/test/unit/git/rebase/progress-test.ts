@@ -191,5 +191,5 @@ async function resolveAndContinue(
     }
   }
 
-  return continueRebase(repository, files, resolutions, progressCb)
+  return continueRebase(repository, null, files, resolutions, progressCb)
 }

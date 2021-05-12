@@ -20,6 +20,7 @@ import { ICherryPickSnapshot } from '../../models/cherry-pick'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
 import { getCommit } from '.'
+import { IGitAccount } from '../../models/git-account'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -376,6 +377,7 @@ export async function getCherryPickSnapshot(
  */
 export async function continueCherryPick(
   repository: Repository,
+  account: IGitAccount | null,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
   progressCallback?: (progress: ICherryPickProgress) => void
@@ -398,7 +400,7 @@ export async function continueCherryPick(
   }
 
   const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
-  await stageFiles(repository, otherFiles)
+  await stageFiles(repository, account, otherFiles)
 
   const status = await getStatus(repository)
   if (status == null) {

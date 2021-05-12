@@ -312,7 +312,7 @@ describe('git/cherry-pick', () => {
     const statusAfterCherryPick = await getStatusOrThrow(repository)
     const { files } = statusAfterCherryPick.workingDirectory
 
-    result = await continueCherryPick(repository, files)
+    result = await continueCherryPick(repository, null, files)
 
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
@@ -382,7 +382,7 @@ describe('git/cherry-pick', () => {
       )
       expect(diffCheckAfter.exitCode).toEqual(0)
 
-      result = await continueCherryPick(repository, files)
+      result = await continueCherryPick(repository, null, files)
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
@@ -414,7 +414,12 @@ describe('git/cherry-pick', () => {
         }
       }
 
-      result = await continueCherryPick(repository, files, manualResolutions)
+      result = await continueCherryPick(
+        repository,
+        null,
+        files,
+        manualResolutions
+      )
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
@@ -446,7 +451,12 @@ describe('git/cherry-pick', () => {
         }
       }
 
-      result = await continueCherryPick(repository, files, manualResolutions)
+      result = await continueCherryPick(
+        repository,
+        null,
+        files,
+        manualResolutions
+      )
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
@@ -459,7 +469,7 @@ describe('git/cherry-pick', () => {
       result = await cherryPick(repository, [featureTip])
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
-      result = await continueCherryPick(repository, [])
+      result = await continueCherryPick(repository, null, [])
       expect(result).toBe(CherryPickResult.OutstandingFilesNotStaged)
 
       const status = await getStatusOrThrow(repository)
@@ -495,7 +505,7 @@ describe('git/cherry-pick', () => {
       // THING.MD and UNTRACKED_FILE.md should be in working directory
       expect(files.length).toBe(2)
 
-      result = await continueCherryPick(repository, files)
+      result = await continueCherryPick(repository, null, files)
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
 
       // Only UNTRACKED_FILE.md should be in working directory
@@ -614,7 +624,7 @@ describe('git/cherry-pick', () => {
         Path.join(repository.path, 'THING_THREE.md'),
         '# Resolve conflicts!'
       )
-      result = await continueCherryPick(repository, files, new Map(), p =>
+      result = await continueCherryPick(repository, null, files, new Map(), p =>
         progress.push(p)
       )
       expect(result).toBe(CherryPickResult.CompletedWithoutError)

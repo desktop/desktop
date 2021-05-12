@@ -79,7 +79,11 @@ describe('git/apply', () => {
         { kind: AppFileStatusKind.Modified },
         DiffSelection.fromInitialSelection(DiffSelectionType.None)
       )
-      return (await getWorkingDirectoryDiff(repository, file)) as ITextDiff
+      return (await getWorkingDirectoryDiff(
+        repository,
+        null,
+        file
+      )) as ITextDiff
     }
 
     beforeEach(async () => {

@@ -9,9 +9,11 @@ import { Repository, WorkingTree } from '../../models/repository'
 import { getWorkingDirectoryDiff } from './diff'
 import { formatPatch, formatPatchToDiscardChanges } from '../patch-formatter'
 import { assertNever } from '../fatal-error'
+import { IGitAccount } from '../../models/git-account'
 
 export async function applyPatchToIndex(
   repository: Repository,
+  account: IGitAccount | null,
   file: WorkingDirectoryFileChange
 ): Promise<void> {
   // If the file was a rename we have to recreate that rename since we've
@@ -58,7 +60,7 @@ export async function applyPatchToIndex(
     '-',
   ]
 
-  const diff = await getWorkingDirectoryDiff(repository, file)
+  const diff = await getWorkingDirectoryDiff(repository, account, file)
 
   if (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) {
     const { kind } = diff

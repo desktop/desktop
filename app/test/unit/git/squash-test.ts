@@ -217,6 +217,7 @@ describe('git/cherry-pick', () => {
     // continue rebase
     let continueResult = await continueRebase(
       repository,
+      null,
       files,
       undefined,
       undefined,
@@ -238,6 +239,7 @@ describe('git/cherry-pick', () => {
 
     continueResult = await continueRebase(
       repository,
+      null,
       files,
       undefined,
       undefined,
