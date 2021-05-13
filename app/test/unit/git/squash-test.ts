@@ -99,7 +99,7 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths).toContain('fourth.md')
   })
 
-  fit('squashes multiple commit non-sequential commits (reorders, non-conflicting)', async () => {
+  it('squashes multiple commit non-sequential commits (reorders, non-conflicting)', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
     await makeSquashCommit(repository, 'second')
     const thirdCommit = await makeSquashCommit(repository, 'third')
