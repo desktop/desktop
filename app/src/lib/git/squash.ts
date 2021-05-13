@@ -66,20 +66,21 @@ export async function squash(
     const toReplayAfterSquash = []
     // Traversed in reverse so we do oldest to newest (replay commits)
     for (let i = commits.length - 1; i >= 0; i--) {
-      if (toSquashShas.has(commits[i].sha)) {
-        // If it is a toSquash commit and we have not found the squashOnto
-        // commit yet we want to keep track of them in the order of the log.
-        // Thus, we use a new `toReplayAtSquash` array and not trust that what
-        // was sent is in the order of the log.
+      const commit = commits[i]
+      if (toSquashShas.has(commit.sha)) {
+        // If it is toSquash commit and we have found the squashOnto commit, we
+        // can go ahead and squash them (as we will hold any picks till after)
         if (foundSquashOntoCommitInLog) {
           await FSE.appendFile(
             todoPath,
-            `squash ${commits[i].sha} ${commits[i].summary}\n`
+            `squash ${commit.sha} ${commit.summary}\n`
           )
         } else {
-          // However, if we have found the squashOnto commit, we can go ahead
-          // and squash them (as we will hold any picks till after)
-          toReplayAtSquash.push(commits[i])
+          // However, if we have not found the squashOnto commit yet we want to
+          // keep track of them in the order of the log. Thus, we use a new
+          // `toReplayAtSquash` array and not trust that what was sent is in the
+          // order of the log.
+          toReplayAtSquash.push(commit)
         }
 
         continue
@@ -87,9 +88,9 @@ export async function squash(
 
       // If it's the squashOnto commit, replay to the toSquash in the order they
       // appeared on the log to reduce potential conflicts.
-      if (commits[i].sha === squashOnto.sha) {
+      if (commit.sha === squashOnto.sha) {
         foundSquashOntoCommitInLog = true
-        toReplayAtSquash.push(commits[i])
+        toReplayAtSquash.push(commit)
 
         for (let j = 0; j < toReplayAtSquash.length; j++) {
           const action = j === 0 ? 'pick' : 'squash'
@@ -107,17 +108,14 @@ export async function squash(
       // squashes. Thus, we will keep track of these and replay after traversing
       // the remainder of the log.
       if (foundSquashOntoCommitInLog) {
-        toReplayAfterSquash.push(commits[i])
+        toReplayAfterSquash.push(commit)
         continue
       }
 
       // If it is not one toSquash nor the squashOnto and have not found the
       // squashOnto commit, we simply record it is an unchanged pick (before the
       // squash)
-      await FSE.appendFile(
-        todoPath,
-        `pick ${commits[i].sha} ${commits[i].summary}\n`
-      )
+      await FSE.appendFile(todoPath, `pick ${commit.sha} ${commit.summary}\n`)
     }
 
     if (toReplayAfterSquash.length > 0) {
