@@ -1010,8 +1010,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     // We have to set the size of the gutter, and because it might have changed we should refresh to fit the editor.
     const gutterElement = document.getElementsByClassName('diff-gutter')[0]
-    gutterElement.setAttribute('style', `width: ${diffSize*2}px;`)
-    cm.refresh();
+    gutterElement.setAttribute('style', `width: ${diffSize * 2}px;`)
+    cm.refresh()
   }
 
   /**
@@ -1099,7 +1099,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     diffSize: number
   ) {
     const marker = document.createElement('div')
-    marker.style.width = `${diffSize*2}px`
+    marker.style.width = `${diffSize * 2}px`
     marker.style.margin = '0px'
     marker.className = 'diff-line-gutter'
 
