@@ -294,6 +294,15 @@ export class CommitMessage extends React.Component<
     const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
     const email = commitAuthor?.email
 
+    const accountNames = new Set<string>();
+    if(repositoryAccount !== null && repositoryAccount !== undefined) {
+      if(repositoryAccount.name !== '') {
+        accountNames.add(repositoryAccount.name)
+      }
+      
+      accountNames.add(repositoryAccount.login)
+    }
+
     const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
@@ -305,6 +314,7 @@ export class CommitMessage extends React.Component<
         user={avatarUser}
         title={avatarTitle}
         email={commitAuthor?.email}
+        userName={commitAuthor?.name}
         isEnterpriseAccount={
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
         }
@@ -315,14 +325,27 @@ export class CommitMessage extends React.Component<
             ? lookupPreferredEmail(repositoryAccount)
             : ''
         }
-        onUpdateEmail={this.onUpdateUserEmail}
+        accountNames={accountNames}
+        preferredAccountName={
+          repositoryAccount !== null && repositoryAccount !== undefined
+            ? repositoryAccount.friendlyName
+            : ''
+        }
+        onUpdate={this.onUpdate}
         onOpenRepositorySettings={this.onOpenRepositorySettings}
       />
     )
   }
 
-  private onUpdateUserEmail = async (email: string) => {
-    await setGlobalConfigValue('user.email', email)
+  private onUpdate = async (email: string | undefined, userName: string | undefined) => {
+    if(email !== undefined) {
+      await setGlobalConfigValue('user.email', email)
+    }
+
+    if(userName !== undefined) {
+      await setGlobalConfigValue('user.name', userName)
+    }
+
     this.props.dispatcher.refreshAuthor(this.props.repository)
   }
 

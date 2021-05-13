@@ -7,12 +7,18 @@ import { IAvatarUser } from '../../models/avatar'
 import { Avatar } from '../lib/avatar'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
 
+  readonly updateGitUsername: boolean;
+
   /** Currently selected account email address. */
   readonly accountEmail: string
+
+  /** Currently selected account name. */
+  readonly accountName: string;
 }
 
 interface ICommitMessageAvatarProps {
@@ -29,6 +35,9 @@ interface ICommitMessageAvatarProps {
   /** Current email address configured by the user. */
   readonly email?: string
 
+  /** Current name configured by the user. */
+  readonly userName?: string
+
   /** Whether or not the warning badge on the avatar should be visible. */
   readonly warningBadgeVisible: boolean
 
@@ -41,7 +50,13 @@ interface ICommitMessageAvatarProps {
   /** Preferred email address from the user's account. */
   readonly preferredAccountEmail: string
 
-  readonly onUpdateEmail: (email: string) => void
+  /** Accountnames of the GitHub (Enterprise) account */
+  readonly accountNames: ReadonlySet<string>
+
+  /** Preferred name of the user's account. */
+  readonly preferredAccountName: string
+
+  readonly onUpdate: (email: string | undefined, userName: string | undefined) => void
 
   readonly onOpenRepositorySettings: () => void
 }
@@ -59,7 +74,9 @@ export class CommitMessageAvatar extends React.Component<
 
     this.state = {
       isPopoverOpen: false,
+      updateGitUsername: false,
       accountEmail: this.props.preferredAccountEmail,
+      accountName: this.props.preferredAccountName
     }
   }
 
@@ -118,9 +135,6 @@ export class CommitMessageAvatar extends React.Component<
     const accountTypeSuffix = this.props.isEnterpriseAccount
       ? ' Enterprise'
       : ''
-
-    const updateEmailTitle = __DARWIN__ ? 'Update Email' : 'Update email'
-
     return (
       <Popover
         caretPosition={PopoverCaretPosition.LeftBottom}
@@ -157,16 +171,39 @@ export class CommitMessageAvatar extends React.Component<
             .
           </div>
         </Row>
+        <Row>
+          <Checkbox 
+            value={this.state.updateGitUsername ? CheckboxValue.On : CheckboxValue.Off} 
+            onChange={this.onShouldUpdateGitUsernameChange}
+          >
+          </Checkbox>
+          <div>
+            Also update the global Git username ({this.props.userName}) to
+          </div>
+        </Row>
+        <Row>
+          <Select
+            disabled={!this.state.updateGitUsername}
+            value={this.state.accountName}
+            onChange={this.onSelectedGitHubNameChange}
+          >
+            {[...this.props.accountNames].map(n => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </Select>
+        </Row>
         <Row className="button-row">
           <Button onClick={this.onIgnoreClick} tooltip="Ignore" type="button">
             Ignore
           </Button>
           <Button
-            onClick={this.onUpdateEmailClick}
-            tooltip={updateEmailTitle}
+            onClick={this.onUpdateClick}
+            tooltip="Update"
             type="submit"
           >
-            {updateEmailTitle}
+            Update
           </Button>
         </Row>
       </Popover>
@@ -183,14 +220,24 @@ export class CommitMessageAvatar extends React.Component<
     this.closePopover()
   }
 
-  private onUpdateEmailClick = async (
+  private onUpdateClick = async (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     event.preventDefault()
     this.closePopover()
 
-    if (this.props.email !== this.state.accountEmail) {
-      this.props.onUpdateEmail(this.state.accountEmail)
+    const newMail =
+      this.props.email !== this.state.accountEmail
+        ? this.state.accountEmail
+        : undefined
+
+    const newName =
+      this.state.updateGitUsername
+        ? this.state.accountName
+        : undefined
+
+    if(newMail !== undefined || newName !== undefined) {
+      this.props.onUpdate(newMail, newName)
     }
   }
 
@@ -200,6 +247,21 @@ export class CommitMessageAvatar extends React.Component<
     const email = event.currentTarget.value
     if (email) {
       this.setState({ accountEmail: email })
+    }
+  }
+
+  private onShouldUpdateGitUsernameChange = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.setState({ updateGitUsername: event.currentTarget.checked })
+  }
+
+  private onSelectedGitHubNameChange = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    const email = event.currentTarget.value
+    if (email) {
+      this.setState({ accountName: email })
     }
   }
 }
