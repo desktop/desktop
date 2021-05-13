@@ -12,13 +12,13 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
 
-  readonly updateGitUsername: boolean;
+  readonly updateGitUsername: boolean
 
   /** Currently selected account email address. */
   readonly accountEmail: string
 
   /** Currently selected account name. */
-  readonly accountName: string;
+  readonly accountName: string
 }
 
 interface ICommitMessageAvatarProps {
@@ -56,7 +56,10 @@ interface ICommitMessageAvatarProps {
   /** Preferred name of the user's account. */
   readonly preferredAccountName: string
 
-  readonly onUpdate: (email: string | undefined, userName: string | undefined) => void
+  readonly onUpdate: (
+    email: string | undefined,
+    userName: string | undefined
+  ) => void
 
   readonly onOpenRepositorySettings: () => void
 }
@@ -76,7 +79,7 @@ export class CommitMessageAvatar extends React.Component<
       isPopoverOpen: false,
       updateGitUsername: false,
       accountEmail: this.props.preferredAccountEmail,
-      accountName: this.props.preferredAccountName
+      accountName: this.props.preferredAccountName,
     }
   }
 
@@ -172,11 +175,14 @@ export class CommitMessageAvatar extends React.Component<
           </div>
         </Row>
         <Row>
-          <Checkbox 
-            value={this.state.updateGitUsername ? CheckboxValue.On : CheckboxValue.Off} 
+          <Checkbox
+            value={
+              this.state.updateGitUsername
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
             onChange={this.onShouldUpdateGitUsernameChange}
-          >
-          </Checkbox>
+          />
           <div>
             Also update the global Git username ({this.props.userName}) to
           </div>
@@ -198,11 +204,7 @@ export class CommitMessageAvatar extends React.Component<
           <Button onClick={this.onIgnoreClick} tooltip="Ignore" type="button">
             Ignore
           </Button>
-          <Button
-            onClick={this.onUpdateClick}
-            tooltip="Update"
-            type="submit"
-          >
+          <Button onClick={this.onUpdateClick} tooltip="Update" type="submit">
             Update
           </Button>
         </Row>
@@ -231,12 +233,11 @@ export class CommitMessageAvatar extends React.Component<
         ? this.state.accountEmail
         : undefined
 
-    const newName =
-      this.state.updateGitUsername
-        ? this.state.accountName
-        : undefined
+    const newName = this.state.updateGitUsername
+      ? this.state.accountName
+      : undefined
 
-    if(newMail !== undefined || newName !== undefined) {
+    if (newMail !== undefined || newName !== undefined) {
       this.props.onUpdate(newMail, newName)
     }
   }

@@ -294,12 +294,12 @@ export class CommitMessage extends React.Component<
     const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
     const email = commitAuthor?.email
 
-    const accountNames = new Set<string>();
-    if(repositoryAccount !== null && repositoryAccount !== undefined) {
-      if(repositoryAccount.name !== '') {
+    const accountNames = new Set<string>()
+    if (repositoryAccount !== null && repositoryAccount !== undefined) {
+      if (repositoryAccount.name !== '') {
         accountNames.add(repositoryAccount.name)
       }
-      
+
       accountNames.add(repositoryAccount.login)
     }
 
@@ -337,12 +337,15 @@ export class CommitMessage extends React.Component<
     )
   }
 
-  private onUpdate = async (email: string | undefined, userName: string | undefined) => {
-    if(email !== undefined) {
+  private onUpdate = async (
+    email: string | undefined,
+    userName: string | undefined
+  ) => {
+    if (email !== undefined) {
       await setGlobalConfigValue('user.email', email)
     }
 
-    if(userName !== undefined) {
+    if (userName !== undefined) {
       await setGlobalConfigValue('user.name', userName)
     }
 
