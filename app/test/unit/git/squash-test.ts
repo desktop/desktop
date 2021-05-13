@@ -118,7 +118,7 @@ describe('git/cherry-pick', () => {
     // Thus, reordering to 'second', 'first - third - fifth', 'fourth'
     const result = await squash(
       repository,
-      [firstCommit, fifthCommit],
+      [fifthCommit, firstCommit], // provided in opposite log order
       thirdCommit,
       initialCommit.sha,
       ''
