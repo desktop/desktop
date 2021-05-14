@@ -82,8 +82,6 @@ export type Banner =
       readonly type: BannerType.SuccessfulSquash
       /** number of commits squashed */
       readonly count: number
-      /**  name of branch commits are squashed on*/
-      readonly branchName: string
       /** callback to run when user clicks undo link in banner */
       readonly onUndo: () => void
     }

@@ -112,7 +112,6 @@ export function renderBanner(
       return (
         <SuccessfulSquash
           key="successful-squash"
-          branchName={banner.branchName}
           count={banner.count}
           onDismissed={onDismissed}
           onUndo={banner.onUndo}
