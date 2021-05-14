@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { Banner } from './banner'
+import { SuccessBanner } from './success-banner'
 
 export function SuccessfulRebase({
   baseBranch,
@@ -27,11 +26,8 @@ export function SuccessfulRebase({
     )
 
   return (
-    <Banner id="successful-rebase" timeout={5000} onDismissed={onDismissed}>
-      <div className="green-circle">
-        <Octicon className="check-icon" symbol={OcticonSymbol.check} />
-      </div>
+    <SuccessBanner timeout={5000} onDismissed={onDismissed}>
       <div className="banner-message">{message}</div>
-    </Banner>
+    </SuccessBanner>
   )
 }
