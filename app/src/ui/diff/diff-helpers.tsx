@@ -353,6 +353,7 @@ export function canSelect(
   return file instanceof WorkingDirectoryFileChange
 }
 
+/** Gets the width in pixels of the diff line number gutter based on the number of digits in the number */
 export function getLineWidthFromDigitCount(digitAmount: number): number {
   let diffSize: number
 
@@ -365,11 +366,13 @@ export function getLineWidthFromDigitCount(digitAmount: number): number {
   return diffSize
 }
 
+/** Utility function for getting the digit count of the largest line number in an array of diff hunks */
 export function getLargestLineNumberDigitCount(
   hunks: DiffHunk[],
   fromExpansion: boolean = false
 ): number {
-  const finalHunkIndex = fromExpansion ? hunks.length - 2 : hunks.length - 1
+  const finalHunkIndex =
+    fromExpansion && hunks.length > 2 ? hunks.length - 2 : hunks.length - 1
   const lastLine =
     hunks[finalHunkIndex].lines[hunks[finalHunkIndex].lines.length - 1]
   const largestLine =
