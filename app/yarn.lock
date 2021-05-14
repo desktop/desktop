@@ -318,6 +318,13 @@ desktop-trampoline@desktop/desktop-trampoline#v0.9.7:
     node-addon-api "^3.1.0"
     prebuild-install "^6.0.0"
 
+"detect-arm64-translation@https://github.com/desktop/node-detect-arm64-translation#v1.0.4":
+  version "1.0.3"
+  resolved "https://github.com/desktop/node-detect-arm64-translation#d03110738f94fa684fc20cdfa412e83cd7984c89"
+  dependencies:
+    node-addon-api "^3.1.0"
+    prebuild-install "^5.3.5"
+
 detect-libc@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-1.0.3.tgz#fa137c4bd698edf55cd5cd02ac559f91a4c4ba9b"
