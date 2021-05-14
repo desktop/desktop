@@ -3149,7 +3149,7 @@ export class Dispatcher {
           await this.changeCommitSelection(repository, [status.currentTip])
         }
 
-        await this.completeSquash(repository, toSquash.length)
+        await this.completeSquash(repository, toSquash.length + 1)
         break
       case RebaseResult.ConflictsEncountered:
         this.startConflictSquashFlow(repository)
@@ -3189,9 +3189,19 @@ export class Dispatcher {
    */
   private async completeSquash(
     repository: Repository,
-    countSquashed: number
+    count: number
   ): Promise<void> {
     this.closePopup()
+
+    const banner: Banner = {
+      type: BannerType.SuccessfulSquash,
+      count,
+      onUndo: () => {
+        // TODO: call undo squash
+      },
+    }
+    this.setBanner(banner)
+
     await this.refreshRepository(repository)
   }
 }
