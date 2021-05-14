@@ -60,6 +60,13 @@ interface ICommitListProps {
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick: (commits: ReadonlyArray<CommitOneLine>) => void
 
+  /** Callback to fire to squashing commits  */
+  readonly onSquash: (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string
+  ) => void
+
   /** Callback to fire to when has started being dragged  */
   readonly onDragCommitStart: (commits: ReadonlyArray<CommitOneLine>) => void
 
@@ -155,6 +162,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
+        onSquash={this.onSquash}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
@@ -169,6 +177,19 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         }
       />
     )
+  }
+
+  private onSquash = (toSquash: ReadonlyArray<Commit>, squashOnto: Commit) => {
+    const indexes = [...toSquash, squashOnto].map(v =>
+      this.props.commitSHAs.findIndex(sha => sha === v.sha)
+    )
+    const maxIndex = Math.max(...indexes)
+    const lastIndex = this.props.commitSHAs.length - 1
+    /* If the commit is the first commit in the branch, you cannot reference it
+    using the sha, you must use the --root flag */
+    const lastRetainedCommitRef =
+      maxIndex === lastIndex ? '--root' : `${this.props.commitSHAs[maxIndex]}^`
+    this.props.onSquash(toSquash, squashOnto, lastRetainedCommitRef)
   }
 
   private onRenderCherryPickCommitDragElement = (commit: Commit) => {

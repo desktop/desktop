@@ -30,6 +30,10 @@ interface ICommitProps {
   readonly onDragEnd?: (clearCherryPickingState: boolean) => void
   readonly onRenderCherryPickCommitDragElement?: (commit: Commit) => void
   readonly onRemoveCherryPickDragElement?: () => void
+  readonly onSquash?: (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit
+  ) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -163,6 +167,12 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private onSquash = () => {
+    if (this.props.onSquash !== undefined) {
+      this.props.onSquash(this.props.selectedCommits, this.props.commit)
+    }
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
@@ -263,6 +273,13 @@ export class CommitListItem extends React.PureComponent<
         : `Cherry-pick ${count} commits…`,
       action: this.onCherryPick,
       enabled: this.canCherryPick(),
+    })
+
+    items.push({
+      label: __DARWIN__
+        ? `Squash ${count} Commits…`
+        : `Squash ${count} commits…`,
+      action: this.onSquash,
     })
 
     return items
