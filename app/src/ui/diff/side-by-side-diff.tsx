@@ -43,7 +43,7 @@ import {
   SimplifiedDiffRow,
   IDiffRowData,
   DiffColumn,
-  getLineWidthFromLineNumbers,
+  getLineWidthFromDigitCount,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
@@ -301,7 +301,9 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
-    const lineNumberWidth = this.getRowWidth(rows)
+    const lineNumberWidth = `${getLineWidthFromDigitCount(
+      this.state.diff.maxLineNumberDigitCount
+    )}px`
 
     const rowWithTokens = this.createFullRow(row, index)
 
@@ -339,45 +341,6 @@ export class SideBySideDiff extends React.Component<
         </div>
       </CellMeasurer>
     )
-  }
-
-  private getRowWidth = (rows: readonly SimplifiedDiffRow[]): string => {
-    const largestBeforeLineNum = Math.max(
-      ...rows.map(function (o) {
-        if (o.type === DiffRowType.Modified) {
-          return o.beforeData.lineNumber
-        }
-
-        if (o.type === DiffRowType.Context) {
-          return o.beforeLineNumber
-        }
-
-        return 0
-      })
-    )
-
-    const largestAfterLineNum = Math.max(
-      ...rows.map(function (o) {
-        if (o.type === DiffRowType.Added || o.type === DiffRowType.Deleted) {
-          return o.data.lineNumber
-        }
-
-        if (o.type === DiffRowType.Modified) {
-          return o.afterData.lineNumber
-        }
-
-        if (o.type === DiffRowType.Context) {
-          return o.afterLineNumber
-        }
-
-        return 0
-      })
-    )
-
-    return `${getLineWidthFromLineNumbers(
-      largestBeforeLineNum,
-      largestAfterLineNum
-    )}px`
   }
 
   private getRowHeight = (row: { index: number }) => {

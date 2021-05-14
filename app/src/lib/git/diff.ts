@@ -283,6 +283,7 @@ export async function convertDiff(
     text: diff.contents,
     hunks: diff.hunks,
     lineEndingsChange,
+    maxLineNumberDigitCount: diff.maxLineNumberDigitCount,
   }
 }
 
@@ -385,6 +386,7 @@ function buildDiff(
       text: diff.contents,
       hunks: diff.hunks,
       lineEndingsChange,
+      maxLineNumberDigitCount: diff.maxLineNumberDigitCount,
     }
 
     return Promise.resolve(largeTextDiff)

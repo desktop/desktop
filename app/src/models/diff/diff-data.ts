@@ -53,6 +53,8 @@ interface ITextDiffData {
   readonly hunks: ReadonlyArray<DiffHunk>
   /** A warning from Git that the line endings have changed in this file and will affect the commit */
   readonly lineEndingsChange?: LineEndingsChange
+  /** The number of digits in the largest line number of the diff  */
+  readonly maxLineNumberDigitCount: number
 }
 
 export interface ITextDiff extends ITextDiffData {

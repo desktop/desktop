@@ -95,4 +95,7 @@ export interface IRawDiff {
    * could not be diffed due to one of the versions being binary.
    */
   readonly isBinary: boolean
+
+  /** The number of digits in the largest line number of the diff  */
+  readonly maxLineNumberDigitCount: number
 }

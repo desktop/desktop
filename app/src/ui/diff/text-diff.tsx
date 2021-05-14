@@ -44,7 +44,7 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { canSelect, getLineWidthFromLineNumbers } from './diff-helpers'
+import { canSelect, getLineWidthFromDigitCount } from './diff-helpers'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -964,8 +964,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const hunks = this.state.diff.hunks
 
-    const diffSize = this.getGutterLineWidth(hunks)
-
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
 
@@ -991,7 +989,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 hunks,
                 hunk,
                 diffLine,
-                diffSize
+                this.state.diff.maxLineNumberDigitCount
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
@@ -1008,7 +1006,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       cm.operation(() => batchedOps.forEach(x => x()))
     }
 
-    // We have to set the size of the gutter, and because it might have changed we should refresh to fit the editor.
+    const diffSize = getLineWidthFromDigitCount(
+      this.state.diff.maxLineNumberDigitCount
+    )
     const gutterElement = document.getElementsByClassName('diff-gutter')[0]
     gutterElement.setAttribute('style', `width: ${diffSize * 2}px;`)
     cm.refresh()
@@ -1025,28 +1025,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     return inSelection(this.selection, index)
       ? this.selection.isSelected
       : canSelect(file) && file.selection.isSelected(index)
-  }
-
-  /**
-   * Returns a string with the pixel size for the gutter width.
-   * 1 = 20
-   * >1 = (10 * digit amount) + 5
-   */
-  private getGutterLineWidth(totalHunks: readonly DiffHunk[]): number {
-    // Get the largest old line number and the largest new line, of these two we can find the highest amount of digits in the hunks
-    const largestOldLineNum = Math.max(
-      ...totalHunks.map(function (o) {
-        return o.lines[o.lines.length - 1].oldLineNumber ?? 0
-      })
-    )
-
-    const largestNewLineNum = Math.max(
-      ...totalHunks.map(function (o) {
-        return o.lines[o.lines.length - 1].newLineNumber ?? 0
-      })
-    )
-
-    return getLineWidthFromLineNumbers(largestOldLineNum, largestNewLineNum)
   }
 
   private getGutterLineClassNameInfo(
@@ -1096,8 +1074,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     diffLine: DiffLine,
-    diffSize: number
+    digitCount: number
   ) {
+    const diffSize = getLineWidthFromDigitCount(digitCount)
+
     const marker = document.createElement('div')
     marker.style.width = `${diffSize * 2}px`
     marker.style.margin = '0px'

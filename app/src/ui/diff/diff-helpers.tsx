@@ -8,7 +8,7 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
-import { DiffHunkExpansionType } from '../../models/diff/raw-diff'
+import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
 
 /**
  * DiffRowType defines the different types of
@@ -353,15 +353,28 @@ export function canSelect(
   return file instanceof WorkingDirectoryFileChange
 }
 
-export function getLineWidthFromLineNumbers(...args: number[]): number {
-  const maxLinesDigitAmount = Math.max(...args).toString().length
+export function getLineWidthFromDigitCount(digitAmount: number): number {
   let diffSize: number
 
-  if (maxLinesDigitAmount <= 3) {
+  if (digitAmount <= 3) {
     diffSize = 35
   } else {
-    diffSize = 10 * maxLinesDigitAmount + 5
+    diffSize = 10 * digitAmount + 5
   }
 
   return diffSize
+}
+
+export function getLargestLineNumberDigitCount(
+  hunks: DiffHunk[],
+  fromExpansion: boolean = false
+): number {
+  const finalHunkIndex = fromExpansion ? hunks.length - 2 : hunks.length - 1
+  const lastLine =
+    hunks[finalHunkIndex].lines[hunks[finalHunkIndex].lines.length - 1]
+  const largestLine =
+    ((lastLine.newLineNumber ?? 0) > (lastLine.oldLineNumber ?? 0)
+      ? lastLine.newLineNumber
+      : lastLine.oldLineNumber) ?? 0
+  return largestLine.toString().length
 }

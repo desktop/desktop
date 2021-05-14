@@ -7,6 +7,7 @@ import {
 } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
 import { getHunkHeaderExpansionType } from '../ui/diff/text-diff-expansion'
+import { getLargestLineNumberDigitCount } from '../ui/diff/diff-helpers'
 
 // https://en.wikipedia.org/wiki/Diff_utility
 //
@@ -394,11 +395,23 @@ export class DiffParser {
 
       // empty diff
       if (!headerInfo) {
-        return { header, contents: '', hunks: [], isBinary: false }
+        return {
+          header,
+          contents: '',
+          hunks: [],
+          isBinary: false,
+          maxLineNumberDigitCount: 0,
+        }
       }
 
       if (headerInfo.isBinary) {
-        return { header, contents: '', hunks: [], isBinary: true }
+        return {
+          header,
+          contents: '',
+          hunks: [],
+          isBinary: true,
+          maxLineNumberDigitCount: 0,
+        }
       }
 
       const hunks = new Array<DiffHunk>()
@@ -419,7 +432,13 @@ export class DiffParser {
         // a new string instance.
         .replace(/\n\\ No newline at end of file/g, '')
 
-      return { header, contents, hunks, isBinary: headerInfo.isBinary }
+      return {
+        header,
+        contents,
+        hunks,
+        isBinary: headerInfo.isBinary,
+        maxLineNumberDigitCount: getLargestLineNumberDigitCount(hunks),
+      }
     } finally {
       this.reset()
     }
