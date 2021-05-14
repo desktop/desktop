@@ -107,6 +107,8 @@ export class CommitMessageDialog extends React.Component<
             showBranchProtected={this.props.showBranchProtected}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+            persistCoAuthors={false}
+            persistCommitMessage={false}
             onCreateCommit={this.props.onSubmitCommitMessage}
           />
         </DialogContent>
