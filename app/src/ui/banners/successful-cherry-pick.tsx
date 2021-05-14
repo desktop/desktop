@@ -30,7 +30,7 @@ export class SuccessfulCherryPick extends React.Component<
       >
         <span>
           Successfully copied {countCherryPicked} {pluralized} to{' '}
-          <strong>{targetBranchName}</strong>.{' '}
+          <strong>{targetBranchName}</strong>.
         </span>
       </SuccessBanner>
     )

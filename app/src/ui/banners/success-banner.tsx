@@ -30,7 +30,7 @@ export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
   public render() {
     return (
       <Banner
-        id="successful-cherry-pick"
+        id="successful"
         timeout={this.props.timeout}
         onDismissed={this.props.onDismissed}
       >
@@ -38,10 +38,8 @@ export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
           <Octicon className="check-icon" symbol={OcticonSymbol.check} />
         </div>
         <div className="banner-message">
-          <span>
-            {this.props.children}
-            {this.renderUndo()}
-          </span>
+          <span className="success-contents">{this.props.children}</span>
+          {this.renderUndo()}
         </div>
       </Banner>
     )
