@@ -12,7 +12,7 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
-import { enableBranchFromCommit } from '../../lib/feature-flag'
+import { enableBranchFromCommit, enableSquashing } from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -275,12 +275,14 @@ export class CommitListItem extends React.PureComponent<
       enabled: this.canCherryPick(),
     })
 
-    items.push({
-      label: __DARWIN__
-        ? `Squash ${count} Commits…`
-        : `Squash ${count} commits…`,
-      action: this.onSquash,
-    })
+    if (enableSquashing()) {
+      items.push({
+        label: __DARWIN__
+          ? `Squash ${count} Commits…`
+          : `Squash ${count} commits…`,
+        action: this.onSquash,
+      })
+    }
 
     return items
   }
