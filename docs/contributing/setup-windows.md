@@ -84,7 +84,7 @@ don't have Python installed. You can install Python 3.9 from the
 
  - Let Python install into the default suggested path (`c:\Python39`), otherwise
    you'll have to configure `node-gyp` manually to look at a different path.
- - In the case you already have or need to have Python on a different path, set the `PYTHON` environment variable or the npm's `python` config key to your Python's executable path:
+ - In case you already have or need to have Python on a different path, set the `PYTHON` environment variable or npm's `python` config key to your Python's executable path:
 
          npm config set python "c:\path\to\python3\python.exe"
  - Ensure the **Add python.exe to Path** option is selected.
