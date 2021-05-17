@@ -536,13 +536,16 @@ export async function continueRebase(
  * interactive todo list with the contents of our generated one.
  *
  * @param pathOfGeneratedTodo path to generated todo list for interactive rebase
- * @param lastRetainedCommitRef the commit before the earliest commit to be changed during the interactive rebase
- * @param action a description of the action to be displayed in the progress dialog - i.e. Squash, Amend, etc..
+ * @param lastRetainedCommitRef the commit before the earliest commit to be
+ * changed during the interactive rebase or null if commit is root (first commit
+ * in history) of branch
+ * @param action a description of the action to be displayed in the progress
+ * dialog - i.e. Squash, Amend, etc..
  */
 export async function rebaseInteractive(
   repository: Repository,
   pathOfGeneratedTodo: string,
-  lastRetainedCommitRef: string,
+  lastRetainedCommitRef: string | null,
   action: string = 'interactive rebase',
   gitEditor: string = ':',
   progressCallback?: (progress: IRebaseProgress) => void
@@ -557,7 +560,9 @@ export async function rebaseInteractive(
   let options = baseOptions
 
   if (progressCallback !== undefined) {
-    const commits = await getCommits(repository, lastRetainedCommitRef)
+    const ref =
+      lastRetainedCommitRef == null ? undefined : lastRetainedCommitRef
+    const commits = await getCommits(repository, ref)
 
     if (commits === null) {
       log.warn(`Unable to interactively rebase if no commits in revision`)
@@ -571,6 +576,10 @@ export async function rebaseInteractive(
     })
   }
 
+  /* If the commit is the first commit in the branch, we cannot reference it
+  using the sha thus if lastRetainedCommitRef is null (we couldn't define it),
+  we must use the --root flag */
+  const ref = lastRetainedCommitRef == null ? '--root' : lastRetainedCommitRef
   const result = await git(
     [
       '-c',
@@ -578,7 +587,7 @@ export async function rebaseInteractive(
       `sequence.editor=cat "${pathOfGeneratedTodo}" >`,
       'rebase',
       '-i',
-      lastRetainedCommitRef,
+      ref,
     ],
     repository.path,
     action,

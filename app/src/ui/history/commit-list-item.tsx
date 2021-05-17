@@ -12,7 +12,7 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
-import { enableBranchFromCommit } from '../../lib/feature-flag'
+import { enableBranchFromCommit, enableSquashing } from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -30,6 +30,10 @@ interface ICommitProps {
   readonly onDragEnd?: (clearCherryPickingState: boolean) => void
   readonly onRenderCherryPickCommitDragElement?: (commit: Commit) => void
   readonly onRemoveCherryPickDragElement?: () => void
+  readonly onSquash?: (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit
+  ) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -163,6 +167,12 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private onSquash = () => {
+    if (this.props.onSquash !== undefined) {
+      this.props.onSquash(this.props.selectedCommits, this.props.commit)
+    }
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
@@ -264,6 +274,15 @@ export class CommitListItem extends React.PureComponent<
       action: this.onCherryPick,
       enabled: this.canCherryPick(),
     })
+
+    if (enableSquashing()) {
+      items.push({
+        label: __DARWIN__
+          ? `Squash ${count} Commits…`
+          : `Squash ${count} commits…`,
+        action: this.onSquash,
+      })
+    }
 
     return items
   }

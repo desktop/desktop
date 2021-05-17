@@ -95,3 +95,8 @@ export function enableRepositoryAliases(): boolean {
 export function enableBranchFromCommit(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we allow squashing? */
+export function enableSquashing(): boolean {
+  return enableDevelopmentFeatures()
+}

@@ -86,6 +86,12 @@ interface ICommitMessageProps {
 
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
+
+  /** Whether or not to remember the commit message in the changes state */
+  readonly persistCommitMessage: boolean
+
+  /** Whether or not to remember the coauthors in the changes state */
+  readonly persistCoAuthors: boolean
 }
 
 interface ICommitMessageState {
@@ -100,6 +106,12 @@ interface ICommitMessageState {
    * false when there's no action bar.
    */
   readonly descriptionObscured: boolean
+
+  /** when not persisting, we need to store locally */
+  readonly showCoAuthoredBy: boolean
+
+  /** when not persisting, we need to store locally */
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 function findUserAutoCompleteProvider(
@@ -138,10 +150,15 @@ export class CommitMessage extends React.Component<
         props.autocompletionProviders
       ),
       descriptionObscured: false,
+      showCoAuthoredBy: props.showCoAuthoredBy,
+      coAuthors: props.coAuthors,
     }
   }
 
   public componentWillUnmount() {
+    if (!this.props.persistCommitMessage) {
+      return
+    }
     // We're unmounting, likely due to the user switching to the history tab.
     // Let's persist our commit message in the dispatcher.
     this.props.dispatcher.setCommitMessage(this.props.repository, {
@@ -225,7 +242,7 @@ export class CommitMessage extends React.Component<
       return []
     }
 
-    return this.props.coAuthors.map(a => ({
+    return this.state.coAuthors.map(a => ({
       token: 'Co-Authored-By',
       value: `${a.name} <${a.email}>`,
     }))
@@ -339,10 +356,15 @@ export class CommitMessage extends React.Component<
   }
 
   private get isCoAuthorInputVisible() {
-    return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
+    return this.state.showCoAuthoredBy && this.isCoAuthorInputEnabled
   }
 
   private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
+    if (!this.props.persistCoAuthors) {
+      this.setState({ coAuthors })
+      return
+    }
+
     this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
   }
 
@@ -369,6 +391,14 @@ export class CommitMessage extends React.Component<
   }
 
   private onToggleCoAuthors = () => {
+    this.setState({
+      showCoAuthoredBy: !this.state.showCoAuthoredBy,
+    })
+
+    if (!this.props.persistCoAuthors) {
+      return
+    }
+
     this.props.dispatcher.setShowCoAuthoredBy(
       this.props.repository,
       !this.props.showCoAuthoredBy
@@ -376,7 +406,7 @@ export class CommitMessage extends React.Component<
   }
 
   private get toggleCoAuthorsText(): string {
-    return this.props.showCoAuthoredBy
+    return this.state.showCoAuthoredBy
       ? __DARWIN__
         ? 'Remove Co-Authors'
         : 'Remove co-authors'

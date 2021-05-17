@@ -99,6 +99,37 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths).toContain('fourth.md')
   })
 
+  it('squashes using the root of the branch if last retained commit is null', async () => {
+    const firstCommit = await makeSquashCommit(repository, 'first')
+    const secondCommit = await makeSquashCommit(repository, 'second')
+
+    let log = await getCommits(repository, 'HEAD', 5)
+    expect(log.length).toBe(3)
+
+    const result = await squash(
+      repository,
+      [firstCommit, secondCommit],
+      initialCommit, // first in branch (root) commit.
+      null,
+      'Test Summary\n\nTest Body'
+    )
+
+    expect(result).toBe(RebaseResult.CompletedWithoutError)
+
+    log = await getCommits(repository, 'HEAD', 5)
+    const squashed = log[0]
+    expect(squashed.summary).toBe('Test Summary')
+    expect(squashed.body).toBe('Test Body\n')
+    expect(log.length).toBe(1)
+
+    // verify squashed commit contains changes from squashed commits
+    const squashedFiles = await getChangedFiles(repository, squashed.sha)
+    const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
+    expect(squashedFilePaths).toContain('initialize')
+    expect(squashedFilePaths).toContain('first.md')
+    expect(squashedFilePaths).toContain('second.md')
+  })
+
   it('squashes multiple commit non-sequential commits (reorders, non-conflicting)', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
     await makeSquashCommit(repository, 'second')
