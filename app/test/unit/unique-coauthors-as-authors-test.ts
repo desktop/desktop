@@ -50,6 +50,39 @@ describe('getUniqueCoauthorsAsAuthors', () => {
     expect(coAuthor.name).toBe(name)
   })
 
+  it('does not return duplicate authors when name is different and email is the same', async () => {
+    const email = 'tidy-dev@github.com'
+    const name = 'tidy-dev'
+    const trailers = [buildTestCoAuthorTrailer(email, name)]
+    const trailersDiffName = [buildTestCoAuthorTrailer(email, name + 'hello')]
+
+    const commits: Commit[] = [
+      buildTestCommit(trailers),
+      buildTestCommit(trailers),
+      buildTestCommit(trailersDiffName),
+    ]
+
+    const coAuthors = getUniqueCoauthorsAsAuthors(commits)
+    expect(coAuthors).toBeArrayOfSize(2)
+  })
+
+  it('does not return duplicate authors when email is different and name is the same', async () => {
+    const email = 'tidy-dev@github.com'
+    const otherEmail = 'sergiou87@github.com'
+    const name = 'tidy-dev'
+    const trailers = [buildTestCoAuthorTrailer(email, name)]
+    const trailersDiffEmail = [buildTestCoAuthorTrailer(otherEmail, name)]
+
+    const commits: Commit[] = [
+      buildTestCommit(trailers),
+      buildTestCommit(trailers),
+      buildTestCommit(trailersDiffEmail),
+    ]
+
+    const coAuthors = getUniqueCoauthorsAsAuthors(commits)
+    expect(coAuthors).toBeArrayOfSize(2)
+  })
+
   it('can get multiple coauthors on multiple commits', async () => {
     const first_email = 'tidy-dev@github.com'
     const first_name = 'tidy-dev'

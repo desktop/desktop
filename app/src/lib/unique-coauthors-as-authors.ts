@@ -10,7 +10,10 @@ export function getUniqueCoauthorsAsAuthors(
     commits.map(c => c.coAuthors)
   )
 
-  const uniqueCoAuthors = _.uniqBy(allCommitsCoAuthors, a => a.email && a.name)
+  const uniqueCoAuthors = _.uniqWith(
+    allCommitsCoAuthors,
+    (a, b) => a.email === b.email && a.name === b.name
+  )
 
   return uniqueCoAuthors.map(ca => {
     return { name: ca.name, email: ca.email, username: null }
