@@ -48,12 +48,6 @@ interface IBranchesContainerProps {
 
   /** Whether a cherry pick is in progress */
   readonly isCherryPickInProgress?: boolean
-
-  /** When a drag element enters a branch */
-  readonly onDragEnterBranch: (branchName: string) => void
-
-  //** When a drag element leave a branch */
-  readonly onDragLeaveBranch: () => void
 }
 
 interface IBranchesContainerState {
@@ -168,8 +162,6 @@ export class BranchesContainer extends React.Component<
       this.onDeleteBranch,
       this.onDropOntoBranch,
       this.props.onDropOntoCurrentBranch,
-      this.props.onDragEnterBranch,
-      this.props.onDragLeaveBranch,
       this.props.isCherryPickInProgress
     )
   }
@@ -251,11 +243,11 @@ export class BranchesContainer extends React.Component<
   private onMouseEnterNewBranchDrop = () => {
     // This is just used for displaying on windows drag ghost.
     // Thus, it doesn't have to be an actual branch name.
-    this.props.onDragEnterBranch('a new branch')
+    dragAndDropManager.emitEnterDropTarget('a new branch')
   }
 
   private onMouseLeaveNewBranchDrop = () => {
-    this.props.onDragLeaveBranch()
+    dragAndDropManager.emitLeaveDropTarget()
   }
 
   private renderPullRequests() {

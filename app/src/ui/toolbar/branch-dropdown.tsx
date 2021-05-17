@@ -51,12 +51,6 @@ interface IBranchDropdownProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
-
-  /** When a drag element enters a branch */
-  readonly onDragEnterBranch: (branchName: string) => void
-
-  //** When a drag element leave a branch */
-  readonly onDragLeaveBranch: () => void
 }
 
 /**
@@ -83,8 +77,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
         onDropOntoCurrentBranch={this.onDropOntoCurrentBranch}
-        onDragEnterBranch={this.props.onDragEnterBranch}
-        onDragLeaveBranch={this.props.onDragLeaveBranch}
         isCherryPickInProgress={repositoryState.cherryPickState.step !== null}
       />
     )

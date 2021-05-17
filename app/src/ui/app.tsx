@@ -135,7 +135,6 @@ import { WorkingDirectoryStatus } from '../models/status'
 import { DragElementType } from '../models/drag-element'
 import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
 import classNames from 'classnames'
-import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
 import { ThankYou } from './thank-you'
@@ -2633,8 +2632,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
-        onDragEnterBranch={this.onDragEnterBranch}
-        onDragLeaveBranch={this.onDragLeaveBranch}
       />
     )
   }
@@ -2992,28 +2989,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
     return selectedState.state.changesState.workingDirectory
-  }
-
-  /**
-   * Method to handle when something is dragged onto a branch item
-   *
-   * Note: We currently use this in conjunction with cherry picking and a cherry
-   * picking commit is the only type of drag element. Thus, below uses those
-   * assumptions to just update the currentDragElement.
-   */
-  private onDragEnterBranch = (branchName: string): void => {
-    dragAndDropManager.emitEnterDropTarget(branchName)
-  }
-
-  /**
-   * Method to handle when something is dragged out of a branch item
-   *
-   * Note: We currently use this in conjunction with cherry picking and a cherry
-   * picking commit is the only type of drag element. Thus, below uses those
-   * assumptions to just update the currentDragElement.
-   */
-  private onDragLeaveBranch = (): void => {
-    dragAndDropManager.emitLeaveDropTarget()
   }
 
   /**
