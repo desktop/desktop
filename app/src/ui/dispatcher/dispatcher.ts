@@ -3094,6 +3094,16 @@ export class Dispatcher {
     // TODO: set undo sha in state (combine with initialize?)
     // TODO: handle uncommitted changes
 
+    const stateBefore = this.repositoryStateManager.get(repository)
+    const { tip } = stateBefore.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      log.info(`[squash] - invalid tip state - could not perform squash.`)
+      return
+    }
+
+    this.appStore._setSquashUndoState(repository, tip)
+
     const result = await this.appStore._squash(
       repository,
       toSquash,
@@ -3102,23 +3112,13 @@ export class Dispatcher {
       commitContext
     )
 
-    this.logHowToRevertSquash(repository)
+    this.logHowToRevertSquash(tip)
 
     this.processSquashRebaseResult(repository, result, toSquash)
   }
 
-  private logHowToRevertSquash(repository: Repository): void {
-    const stateBefore = this.repositoryStateManager.get(repository)
-    const { tip } = stateBefore.branchesState
+  private logHowToRevertSquash(tip: IValidBranch): void {
     const beforeSha = getTipSha(tip)
-
-    if (tip.kind !== TipState.Valid) {
-      log.info(
-        `[squash] - could not determine branch for ${beforeSha}. No revert instructions provided.`
-      )
-      return
-    }
-
     log.info(`[squash] starting rebase for ${tip.branch.name} at ${beforeSha}`)
     log.info(
       `[squash] to restore the previous state if this completed rebase is unsatisfactory:`
@@ -3185,7 +3185,7 @@ export class Dispatcher {
    * Wrap squash actions
    * - closes popups
    * - refreshes repo (so changes appear in history)
-   * TODO: Displays success banner
+   * - sets success banner
    * TODO: state resetting
    * TODO: record successful squash stats
    */
@@ -3199,11 +3199,22 @@ export class Dispatcher {
       type: BannerType.SuccessfulSquash,
       count,
       onUndo: () => {
-        // TODO: call undo squash
+        this.undoSquash(repository, count)
       },
     }
     this.setBanner(banner)
 
     await this.refreshRepository(repository)
+  }
+
+  /**
+   * This method will perform a hard reset back to the tip of the branch before
+   * the squash happened.
+   */
+  private async undoSquash(
+    repository: Repository,
+    commitsCount: number
+  ): Promise<boolean> {
+    return this.appStore._undoSquash(repository, commitsCount)
   }
 }

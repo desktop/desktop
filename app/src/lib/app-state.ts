@@ -463,6 +463,9 @@ export interface IRepositoryState {
 
   /** State associated with a cherry pick being performed */
   readonly cherryPickState: ICherryPickState
+
+  /** State associated with a squash operation */
+  readonly squashState: ISquashState
 }
 
 export interface IBranchesState {
@@ -792,6 +795,23 @@ export interface ICherryPickState {
    * Whether the target branch was created during cherry-pick operation
    */
   readonly branchCreated: boolean
+}
+
+/** State associated with a cherry pick being performed on a repository */
+export interface ISquashState {
+  /**
+   * The sha of the tip before squash was initiated.
+   *
+   * This will be set to null if no squash has been initiated.
+   */
+  readonly undoSha: string | null
+
+  /**
+   * The name of the branch the squash operation applied to
+   *
+   * This will be set to null if no squash has been initiated.
+   */
+  readonly squashBranchName: string | null
 }
 
 /**

@@ -19,6 +19,7 @@ import {
   IRebaseState,
   ChangesSelectionKind,
   ICherryPickState,
+  ISquashState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -113,6 +114,17 @@ export class RepositoryStateCache {
       return { cherryPickState: newState }
     })
   }
+
+  public updateSquashState<K extends keyof ISquashState>(
+    repository: Repository,
+    fn: (state: ISquashState) => Pick<ISquashState, K>
+  ) {
+    this.update(repository, state => {
+      const { squashState } = state
+      const newState = merge(squashState, fn(squashState))
+      return { squashState: newState }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
@@ -188,6 +200,10 @@ function getInitialRepositoryState(): IRepositoryState {
       userHasResolvedConflicts: false,
       targetBranchUndoSha: null,
       branchCreated: false,
+    },
+    squashState: {
+      undoSha: null,
+      squashBranchName: null,
     },
   }
 }
