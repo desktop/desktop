@@ -6316,15 +6316,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
-    /**
-     * TODO: make undo banner
     const banner: Banner = {
-      type: BannerType.CherryPickUndone,
-      targetBranchName,
-      countCherryPicked,
+      type: BannerType.SquashUndone,
+      commitsCount,
     }
     this._setBanner(banner)
-    */
 
     await this._refreshRepository(repository)
 
