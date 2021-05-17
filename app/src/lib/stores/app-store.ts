@@ -6259,7 +6259,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     toSquash: ReadonlyArray<CommitOneLine>,
     squashOnto: CommitOneLine,
-    lastRetainedCommitRef: string,
+    lastRetainedCommitRef: string | null,
     commitContext: ICommitContext
   ): Promise<RebaseResult> {
     if (toSquash.length === 0) {

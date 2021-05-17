@@ -567,7 +567,7 @@ export class CompareSidebar extends React.Component<
   private onSquash = (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
-    lastRetainedCommitRef: string
+    lastRetainedCommitRef: string | null
   ) => {
     const toSquashSansSquashOnto = toSquash.filter(
       c => c.sha !== squashOnto.sha

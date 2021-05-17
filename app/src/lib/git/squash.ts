@@ -23,7 +23,8 @@ import { rebaseInteractive, RebaseResult } from './rebase'
  *
  * @param toSquash - commits to squash onto another commit and does not contain the squashOnto commit
  * @param squashOnto  - commit to squash the `toSquash` commits onto
- * @param lastRetainedCommitRef - sha of commit before commits in squash
+ * @param lastRetainedCommitRef - sha of commit before commits in squash or null
+ * if commit to be squash is the root (first in history) of the branch
  * @param commitMessage - the first line of the string provided will be the
  * summary and rest the body (similar to commit implementation)
  */
@@ -31,7 +32,7 @@ export async function squash(
   repository: Repository,
   toSquash: ReadonlyArray<CommitOneLine>,
   squashOnto: CommitOneLine,
-  lastRetainedCommitRef: string,
+  lastRetainedCommitRef: string | null,
   commitMessage: string
 ): Promise<RebaseResult> {
   let messagePath, todoPath
@@ -51,7 +52,7 @@ export async function squash(
 
     const commits = await getCommits(
       repository,
-      lastRetainedCommitRef === '--root'
+      lastRetainedCommitRef === null
         ? undefined
         : revRange(lastRetainedCommitRef, 'HEAD')
     )

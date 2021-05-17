@@ -3078,14 +3078,16 @@ export class Dispatcher {
    *
    * @param toSquash - commits to squash onto another commit
    * @param squashOnto  - commit to squash the `toSquash` commits onto
-   * @param lastRetainedCommitRef - commit ref of commit before commits in squash
+   * @param lastRetainedCommitRef - commit ref of commit before commits in
+   * squash or null if a commit to squash is root (first in history) of the
+   * branch
    * @param commitContext - to build the commit message from
    */
   public async squash(
     repository: Repository,
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
-    lastRetainedCommitRef: string,
+    lastRetainedCommitRef: string | null,
     commitContext: ICommitContext
   ): Promise<void> {
     // TODO: initialize squash flow for progress dialog

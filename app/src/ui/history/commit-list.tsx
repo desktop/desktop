@@ -64,7 +64,7 @@ interface ICommitListProps {
   readonly onSquash: (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
-    lastRetainedCommitRef: string
+    lastRetainedCommitRef: string | null
   ) => void
 
   /** Callback to fire to when has started being dragged  */
@@ -186,9 +186,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const maxIndex = Math.max(...indexes)
     const lastIndex = this.props.commitSHAs.length - 1
     /* If the commit is the first commit in the branch, you cannot reference it
-    using the sha, you must use the --root flag */
+    using the sha */
     const lastRetainedCommitRef =
-      maxIndex === lastIndex ? '--root' : `${this.props.commitSHAs[maxIndex]}^`
+      maxIndex !== lastIndex ? `${this.props.commitSHAs[maxIndex]}^` : null
     this.props.onSquash(toSquash, squashOnto, lastRetainedCommitRef)
   }
 
