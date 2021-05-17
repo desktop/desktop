@@ -15,6 +15,7 @@ import { SuccessfulCherryPick } from './successful-cherry-pick'
 import { CherryPickConflictsBanner } from './cherry-pick-conflicts-banner'
 import { CherryPickUndone } from './cherry-pick-undone'
 import { OpenThankYouCard } from './open-thank-you-card'
+import { SuccessfulSquash } from './successful-squash'
 
 export function renderBanner(
   banner: Banner,
@@ -105,6 +106,15 @@ export function renderBanner(
           onDismissed={onDismissed}
           onOpenCard={banner.onOpenCard}
           onThrowCardAway={banner.onThrowCardAway}
+        />
+      )
+    case BannerType.SuccessfulSquash:
+      return (
+        <SuccessfulSquash
+          key="successful-squash"
+          count={banner.count}
+          onDismissed={onDismissed}
+          onUndo={banner.onUndo}
         />
       )
     default:
