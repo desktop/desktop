@@ -6,24 +6,24 @@ import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
 import { Octicon, OcticonSymbol } from '../octicons'
 
-interface ICherryPickCommitProps {
+interface ICommitDragElementProps {
   readonly commit: Commit
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly gitHubRepository: GitHubRepository | null
   readonly emoji: Map<string, string>
 }
 
-interface ICherryPickCommitState {
+interface ICommitDragElementState {
   readonly branchName: string | null
 }
 
-export class CherryPickCommit extends React.Component<
-  ICherryPickCommitProps,
-  ICherryPickCommitState
+export class CommitDragElement extends React.Component<
+  ICommitDragElementProps,
+  ICommitDragElementState
 > {
   private timeoutId: number | null = null
 
-  public constructor(props: ICherryPickCommitProps) {
+  public constructor(props: ICommitDragElementProps) {
     super(props)
     this.state = {
       branchName: null,

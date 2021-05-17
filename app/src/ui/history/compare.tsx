@@ -26,7 +26,7 @@ import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { CherryPickStepKind } from '../../models/cherry-pick'
-import { DragElementType } from '../../models/drag-element'
+import { DragElementType } from '../../models/drag-drop'
 import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
@@ -268,7 +268,7 @@ export class CompareSidebar extends React.Component<
     selectedCommits: ReadonlyArray<Commit>
   ) => {
     this.props.dispatcher.setDragElement({
-      type: DragElementType.CherryPickCommit,
+      type: DragElementType.Commit,
       commit,
       selectedCommits,
       gitHubRepository: this.props.repository.gitHubRepository,

@@ -106,7 +106,7 @@ import {
 } from '../../models/cherry-pick'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
-import { DragElement } from '../../models/drag-element'
+import { DragElement } from '../../models/drag-drop'
 import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 
