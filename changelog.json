@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.1-test99": ["[Improved] Some fake release note - #12137"],
     "2.9.0": [
       "[New] Reorder commits with drag and drop in your commit history - #2507",
       "[New] Create a branch from any commit in your history - #3474",
