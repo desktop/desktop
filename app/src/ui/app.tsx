@@ -2336,10 +2336,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private getDesktopAppContentsClassNames = (): string => {
     const { currentDragElement } = this.state
-    const isCherryPickCommitBeingDragged =
+    const isCommitBeingDragged =
       currentDragElement !== null && currentDragElement.type === DragType.Commit
     return classNames({
-      'commit-being-dragged': isCherryPickCommitBeingDragged,
+      'commit-being-dragged': isCommitBeingDragged,
     })
   }
 
