@@ -132,8 +132,7 @@ import {
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { WorkingDirectoryStatus } from '../models/status'
-import { DragElementType } from '../models/drag-element'
-import { CherryPickCommit } from './drag-elements/cherry-pick-commit'
+import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
@@ -146,6 +145,7 @@ import {
 import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
+import { DragElementType } from '../models/drag-drop'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2284,9 +2284,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const { gitHubRepository, commit, selectedCommits } = currentDragElement
     switch (currentDragElement.type) {
-      case DragElementType.CherryPickCommit:
+      case DragElementType.Commit:
         return (
-          <CherryPickCommit
+          <CommitDragElement
             gitHubRepository={gitHubRepository}
             commit={commit}
             selectedCommits={selectedCommits}
@@ -2338,9 +2338,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     const { currentDragElement } = this.state
     const isCherryPickCommitBeingDragged =
       currentDragElement !== null &&
-      currentDragElement.type === DragElementType.CherryPickCommit
+      currentDragElement.type === DragElementType.Commit
     return classNames({
-      'cherry-pick-mouse-over': isCherryPickCommitBeingDragged,
+      'commit-being-dragged': isCherryPickCommitBeingDragged,
     })
   }
 

@@ -29,7 +29,7 @@
 }
 
 #desktop-app-contents {
-  &.cherry-pick-mouse-over {
+  &.commit-being-dragged {
     :not(input):not(textarea),
     :not(input):not(textarea)::after,
     :not(input):not(textarea)::before {

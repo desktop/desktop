@@ -281,7 +281,7 @@ import {
   getCherryPickSnapshot,
   isCherryPickHeadFound,
 } from '../git/cherry-pick'
-import { DragElement } from '../../models/drag-element'
+import { DragElement } from '../../models/drag-drop'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { squash } from '../git/squash'
 import { getTipSha } from '../tip'
