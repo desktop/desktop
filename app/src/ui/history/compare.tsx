@@ -25,8 +25,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
-import { CherryPickStepKind } from '../../models/cherry-pick'
-import { DragElementType } from '../../models/drag-drop'
+import { DragType } from '../../models/drag-drop'
 import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
@@ -248,34 +247,29 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
-        onDragCommitStart={this.onDragCommitStart}
         onDragCommitEnd={this.props.onDragCommitEnd}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
-        onRenderCherryPickCommitDragElement={
-          this.onRenderCherryPickCommitDragElement
-        }
-        onRemoveCherryPickCommitDragElement={
-          this.onRemoveCherryPickCommitDragElement
-        }
+        onRenderCommitDragElement={this.onRenderCommitDragElement}
+        onRemoveCommitDragElement={this.onRemoveCommitDragElement}
       />
     )
   }
 
-  private onRenderCherryPickCommitDragElement = (
+  private onRenderCommitDragElement = (
     commit: Commit,
     selectedCommits: ReadonlyArray<Commit>
   ) => {
     this.props.dispatcher.setDragElement({
-      type: DragElementType.Commit,
+      type: DragType.Commit,
       commit,
       selectedCommits,
       gitHubRepository: this.props.repository.gitHubRepository,
     })
   }
 
-  private onRemoveCherryPickCommitDragElement = () => {
+  private onRemoveCommitDragElement = () => {
     this.props.dispatcher.clearDragElement()
   }
 
@@ -572,6 +566,7 @@ export class CompareSidebar extends React.Component<
     const toSquashSansSquashOnto = toSquash.filter(
       c => c.sha !== squashOnto.sha
     )
+
     const allCommitsInSquash = [...toSquashSansSquashOnto, squashOnto]
     const coAuthors = getUniqueCoauthorsAsAuthors(allCommitsInSquash)
 
@@ -602,19 +597,6 @@ export class CompareSidebar extends React.Component<
         )
         return true
       },
-    })
-  }
-
-  /**
-   * This method is a generic event handler for when a commit has started being
-   * dragged.
-   *
-   * Currently only used for cherry picking, but this could be more generic.
-   */
-  private onDragCommitStart = (commits: ReadonlyArray<CommitOneLine>) => {
-    this.props.dispatcher.setCherryPickFlowStep(this.props.repository, {
-      kind: CherryPickStepKind.CommitsChosen,
-      commits,
     })
   }
 }

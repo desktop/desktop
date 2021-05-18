@@ -145,7 +145,7 @@ import {
 import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
-import { DragElementType } from '../models/drag-drop'
+import { DragType } from '../models/drag-drop'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2284,7 +2284,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const { gitHubRepository, commit, selectedCommits } = currentDragElement
     switch (currentDragElement.type) {
-      case DragElementType.Commit:
+      case DragType.Commit:
         return (
           <CommitDragElement
             gitHubRepository={gitHubRepository}
@@ -2336,11 +2336,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private getDesktopAppContentsClassNames = (): string => {
     const { currentDragElement } = this.state
-    const isCherryPickCommitBeingDragged =
-      currentDragElement !== null &&
-      currentDragElement.type === DragElementType.Commit
+    const isCommitBeingDragged =
+      currentDragElement !== null && currentDragElement.type === DragType.Commit
     return classNames({
-      'commit-being-dragged': isCherryPickCommitBeingDragged,
+      'commit-being-dragged': isCommitBeingDragged,
     })
   }
 

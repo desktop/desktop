@@ -13,6 +13,8 @@ import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
 import { enableBranchFromCommit, enableSquashing } from '../../lib/feature-flag'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType } from '../../models/drag-drop'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -26,10 +28,9 @@ interface ICommitProps {
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
-  readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onDragEnd?: (clearCherryPickingState: boolean) => void
-  readonly onRenderCherryPickCommitDragElement?: (commit: Commit) => void
-  readonly onRemoveCherryPickDragElement?: () => void
+  readonly onRenderCommitDragElement?: (commit: Commit) => void
+  readonly onRemoveDragElement?: () => void
   readonly onSquash?: (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit
@@ -77,15 +78,14 @@ export class CommitListItem extends React.PureComponent<
       author: { date },
     } = commit
 
-    const dragHandlerExists = this.props.onDragStart !== undefined
-    const isDraggable = dragHandlerExists && this.canCherryPick()
+    const isDraggable = this.canCherryPick()
 
     return (
       <Draggable
         isEnabled={isDraggable}
         onDragStart={this.onDragStart}
         onDragEnd={this.onDragEnd}
-        onRenderDragElement={this.onRenderCherryPickCommitDragElement}
+        onRenderDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.onRemoveDragElement}
         dropTargetSelectors={['.branches-list-item', '.pull-request-item']}
       >
@@ -289,7 +289,12 @@ export class CommitListItem extends React.PureComponent<
 
   private canCherryPick(): boolean {
     const { onCherryPick, isCherryPickInProgress } = this.props
-    return onCherryPick !== undefined && isCherryPickInProgress === false
+    return (
+      onCherryPick !== undefined &&
+      this.onSquash !== undefined &&
+      isCherryPickInProgress === false
+      // TODO: isSquashInProgress === false
+    )
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {
@@ -334,10 +339,10 @@ export class CommitListItem extends React.PureComponent<
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
-
-    if (this.props.onDragStart !== undefined) {
-      this.props.onDragStart(this.props.selectedCommits)
-    }
+    dragAndDropManager.setDragData({
+      type: DragType.Commit,
+      commits: this.props.selectedCommits,
+    })
   }
 
   private onDragEnd = (isOverDragTarget: boolean): void => {
@@ -346,15 +351,15 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
-  private onRenderCherryPickCommitDragElement = () => {
-    if (this.props.onRenderCherryPickCommitDragElement !== undefined) {
-      this.props.onRenderCherryPickCommitDragElement(this.props.commit)
+  private onRenderCommitDragElement = () => {
+    if (this.props.onRenderCommitDragElement !== undefined) {
+      this.props.onRenderCommitDragElement(this.props.commit)
     }
   }
 
   private onRemoveDragElement = () => {
-    if (this.props.onRemoveCherryPickDragElement !== undefined) {
-      this.props.onRemoveCherryPickDragElement()
+    if (this.props.onRemoveDragElement !== undefined) {
+      this.props.onRemoveDragElement()
     }
   }
 }

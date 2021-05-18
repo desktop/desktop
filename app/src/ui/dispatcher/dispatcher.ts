@@ -106,9 +106,10 @@ import {
 } from '../../models/cherry-pick'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
-import { DragElement } from '../../models/drag-drop'
+import { DragElement, DragType } from '../../models/drag-drop'
 import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 /**
  * An error handler function.
@@ -2694,14 +2695,10 @@ export class Dispatcher {
     repository: Repository,
     targetBranch: Branch
   ): Promise<void> {
-    const { branchesState, cherryPickState } = this.repositoryStateManager.get(
-      repository
-    )
+    const { branchesState } = this.repositoryStateManager.get(repository)
 
-    if (
-      cherryPickState.step == null ||
-      cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
-    ) {
+    const { dragData } = dragAndDropManager
+    if (dragData == null || dragData.type !== DragType.Commit) {
       log.error(
         '[cherryPick] Invalid Cherry-picking State: Could not determine selected commits.'
       )
@@ -2717,7 +2714,7 @@ export class Dispatcher {
       )
     }
     const sourceBranch = tip.branch
-    const commits = cherryPickState.step.commits
+    const { commits } = dragData
 
     this.showPopup({
       type: PopupType.CherryPick,
@@ -2998,9 +2995,7 @@ export class Dispatcher {
     repository: Repository,
     targetBranchName: string
   ): Promise<void> {
-    const { branchesState, cherryPickState } = this.repositoryStateManager.get(
-      repository
-    )
+    const { branchesState } = this.repositoryStateManager.get(repository)
     const { defaultBranch, allBranches, tip } = branchesState
 
     if (tip.kind === TipState.Unknown) {
@@ -3031,25 +3026,7 @@ export class Dispatcher {
       targetBranchName,
     }
 
-    await this.appStore._setCherryPickFlowStep(repository, step)
-
-    if (
-      cherryPickState.step == null ||
-      cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
-    ) {
-      // Started from context menu, cherry pick flow popup already open
-      return
-    }
-
-    const sourceBranch = tip.kind === TipState.Valid ? tip.branch : null
-
-    // If invoked from drag/drop, we need to show the cherry pick flow popup
-    this.showPopup({
-      type: PopupType.CherryPick,
-      repository,
-      commits: cherryPickState.step.commits,
-      sourceBranch,
-    })
+    return this.appStore._setCherryPickFlowStep(repository, step)
   }
 
   /** Set cherry-pick branch created state */
