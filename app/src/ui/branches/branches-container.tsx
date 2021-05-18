@@ -404,7 +404,6 @@ export class BranchesContainer extends React.Component<
 
   private onDropOntoCurrentBranch = () => {
     if (dragAndDropManager.isDragOfType(DragType.Commit)) {
-      this.props.dispatcher.endCherryPickFlow(this.props.repository)
       this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
     }
   }
