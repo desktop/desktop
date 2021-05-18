@@ -52,7 +52,7 @@ import {
   WorkingDirectoryStatus,
   AppFileStatusKind,
 } from '../../models/status'
-import { TipState, tipEquals } from '../../models/tip'
+import { TipState, tipEquals, IValidBranch } from '../../models/tip'
 import { ICommitMessage } from '../../models/commit-message'
 import {
   Progress,
@@ -284,6 +284,7 @@ import {
 import { DragElement } from '../../models/drag-element'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { squash } from '../git/squash'
+import { getTipSha } from '../tip'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -6282,6 +6283,58 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     return result || RebaseResult.Error
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _undoSquash(
+    repository: Repository,
+    commitsCount: number
+  ): Promise<boolean> {
+    const {
+      branchesState,
+      squashState: { undoSha, squashBranchName },
+    } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid || tip.branch.name !== squashBranchName) {
+      log.error(
+        '[undoSquash] - Could not undo squash.  User no longer on branch the squash occurred on.'
+      )
+      return false
+    }
+
+    if (undoSha === null) {
+      log.error('[undoSquash] - Could not determine undo sha')
+      return false
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      reset(repository, GitResetMode.Hard, undoSha)
+    )
+
+    if (result !== true) {
+      return false
+    }
+
+    const banner: Banner = {
+      type: BannerType.SquashUndone,
+      commitsCount,
+    }
+    this._setBanner(banner)
+
+    await this._refreshRepository(repository)
+
+    return true
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setSquashUndoState(repository: Repository, tip: IValidBranch): void {
+    // An update is not emitted here because there is no need
+    // to trigger a re-render at this point. (storing for later)
+    this.repositoryStateCache.updateSquashState(repository, () => ({
+      undoSha: getTipSha(tip),
+      squashBranchName: tip.branch.name,
+    }))
   }
 }
 
