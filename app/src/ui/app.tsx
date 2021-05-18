@@ -146,6 +146,7 @@ import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
 import { DragType } from '../models/drag-drop'
+import { enableSquashing } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2340,6 +2341,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentDragElement !== null && currentDragElement.type === DragType.Commit
     return classNames({
       'commit-being-dragged': isCommitBeingDragged,
+      // 'squashing-enabled' is due to feature flagging. If feature flag is
+      // removed, we can just delete this line with adjustment to the css file
+      'squashing-enabled': isCommitBeingDragged && enableSquashing(),
     })
   }
 

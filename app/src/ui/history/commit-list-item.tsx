@@ -75,6 +75,7 @@ export class CommitListItem extends React.PureComponent<
   private onMouseUp = () => {
     const { onSquash, selectedCommits, commit } = this.props
     if (
+      enableSquashing() &&
       dragAndDropManager.isDragInProgress &&
       onSquash !== undefined &&
       // don't squash if dragging one commit and dropping onto itself
