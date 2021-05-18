@@ -29,7 +29,8 @@ import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
-import { CherryPickStepKind } from '../models/cherry-pick'
+import { dragAndDropManager } from '../lib/drag-and-drop-manager'
+import { DragType } from '../models/drag-drop'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -344,7 +345,7 @@ export class RepositoryView extends React.Component<
   }
 
   private renderContentForHistory(): JSX.Element {
-    const { commitSelection, cherryPickState } = this.props.state
+    const { commitSelection } = this.props.state
 
     const sha =
       commitSelection.shas.length === 1 ? commitSelection.shas[0] : null
@@ -354,10 +355,9 @@ export class RepositoryView extends React.Component<
 
     const { changedFiles, file, diff } = commitSelection
 
-    const { step } = cherryPickState
-
-    const showDragOverlay =
-      step !== null && step.kind === CherryPickStepKind.CommitsChosen
+    const showDragOverlay = dragAndDropManager.isDragOfTypeInProgress(
+      DragType.Commit
+    )
 
     return (
       <SelectedCommit

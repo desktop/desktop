@@ -10,6 +10,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { String } from 'aws-sdk/clients/apigateway'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType } from '../../models/drag-drop'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -36,9 +37,6 @@ interface IBranchListItemProps {
 
   /** When a drag element has landed on the current branch */
   readonly onDropOntoCurrentBranch?: () => void
-
-  /** Whether something is being dragged */
-  readonly isSomethingBeingDragged?: boolean
 }
 
 /** The branch component. */
@@ -85,13 +83,13 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   private onMouseEnter = () => {
-    if (this.props.isSomethingBeingDragged) {
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitEnterDropTarget(this.props.name)
     }
   }
 
   private onMouseLeave = () => {
-    if (this.props.isSomethingBeingDragged) {
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitLeaveDropTarget()
     }
   }

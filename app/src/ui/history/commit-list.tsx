@@ -68,9 +68,6 @@ interface ICommitListProps {
   ) => void
 
   /** Callback to fire to when has started being dragged  */
-  readonly onDragCommitStart: (commits: ReadonlyArray<CommitOneLine>) => void
-
-  /** Callback to fire to when has started being dragged  */
   readonly onDragCommitEnd: (clearCherryPickingState: boolean) => void
   /**
    * Optional callback that fires on page scroll in order to allow passing
@@ -96,14 +93,14 @@ interface ICommitListProps {
   /** Whether a cherry pick is progress */
   readonly isCherryPickInProgress: boolean
 
-  /** Callback to render cherry pick commit drag element */
-  readonly onRenderCherryPickCommitDragElement: (
+  /** Callback to render commit drag element */
+  readonly onRenderCommitDragElement: (
     commit: Commit,
     selectedCommits: ReadonlyArray<Commit>
   ) => void
 
-  /** Callback to remove cherry pick commit drag element */
-  readonly onRemoveCherryPickCommitDragElement: () => void
+  /** Callback to remove commit drag element */
+  readonly onRemoveCommitDragElement: () => void
 }
 
 /** A component which displays the list of commits. */
@@ -166,15 +163,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
-        onDragStart={this.props.onDragCommitStart}
         onDragEnd={this.props.onDragCommitEnd}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
-        onRenderCherryPickCommitDragElement={
-          this.onRenderCherryPickCommitDragElement
-        }
-        onRemoveCherryPickDragElement={
-          this.props.onRemoveCherryPickCommitDragElement
-        }
+        onRenderCommitDragElement={this.onRenderCommitDragElement}
+        onRemoveDragElement={this.props.onRemoveCommitDragElement}
       />
     )
   }
@@ -192,8 +184,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     this.props.onSquash(toSquash, squashOnto, lastRetainedCommitRef)
   }
 
-  private onRenderCherryPickCommitDragElement = (commit: Commit) => {
-    this.props.onRenderCherryPickCommitDragElement(
+  private onRenderCommitDragElement = (commit: Commit) => {
+    this.props.onRenderCommitDragElement(
       commit,
       this.lookupCommits(this.props.selectedSHAs)
     )

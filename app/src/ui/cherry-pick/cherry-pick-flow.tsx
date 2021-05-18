@@ -293,7 +293,6 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             headerText={headerText}
           />
         )
-      case CherryPickStepKind.CommitsChosen:
       case CherryPickStepKind.HideConflicts:
         // no ui for this part of flow
         return null
