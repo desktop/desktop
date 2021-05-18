@@ -72,11 +72,6 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
-    ) {
-      onSquash(selectedCommits, commit)
-    }
-  }
-
   public render() {
     const { commit } = this.props
     const {
@@ -90,15 +85,11 @@ export class CommitListItem extends React.PureComponent<
         isEnabled={isDraggable}
         onDragStart={this.onDragStart}
         onDragEnd={this.onDragEnd}
-        onRenderDragElement={this.onRenderCherryPickCommitDragElement}
+        onRenderDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.onRemoveDragElement}
         dropTargetSelectors={['.branches-list-item', '.pull-request-item']}
       >
-        <div
-          className="commit"
-          onContextMenu={this.onContextMenu}
-          onMouseUp={this.onMouseUp}
-        >
+        <div className="commit" onContextMenu={this.onContextMenu}>
           <div className="info">
             <RichText
               className="summary"
