@@ -72,6 +72,18 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private onMouseUp = () => {
+    const { onSquash, selectedCommits, commit } = this.props
+    if (
+      dragAndDropManager.isDragInProgress &&
+      onSquash !== undefined &&
+      // don't squash if dragging one commit and dropping onto itself
+      selectedCommits.filter(c => c.sha !== commit.sha).length > 0
+    ) {
+      onSquash(selectedCommits, commit)
+    }
+  }
+
   public render() {
     const { commit } = this.props
     const {
@@ -87,9 +99,17 @@ export class CommitListItem extends React.PureComponent<
         onDragEnd={this.onDragEnd}
         onRenderDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.onRemoveDragElement}
-        dropTargetSelectors={['.branches-list-item', '.pull-request-item']}
+        dropTargetSelectors={[
+          '.branches-list-item',
+          '.pull-request-item',
+          '.commit',
+        ]}
       >
-        <div className="commit" onContextMenu={this.onContextMenu}>
+        <div
+          className="commit"
+          onContextMenu={this.onContextMenu}
+          onMouseUp={this.onMouseUp}
+        >
           <div className="info">
             <RichText
               className="summary"
