@@ -302,7 +302,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     const lineNumberWidth = `${getLineWidthFromDigitCount(
-      this.state.diff.maxLineNumberDigitCount
+      this.state.diff.maxLineNumber.toString().length
     )}px`
 
     const rowWithTokens = this.createFullRow(row, index)

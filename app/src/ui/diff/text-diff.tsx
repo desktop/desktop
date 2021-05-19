@@ -989,7 +989,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 hunks,
                 hunk,
                 diffLine,
-                this.state.diff.maxLineNumberDigitCount
+                this.state.diff.maxLineNumber.toString().length
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
@@ -1007,9 +1007,13 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const diffSize = getLineWidthFromDigitCount(
-      this.state.diff.maxLineNumberDigitCount
+      this.state.diff.maxLineNumber.toString().length
     )
-    const gutterElement = document.getElementsByClassName('diff-gutter')[0]
+
+    const gutterParentElement = cm.getGutterElement()
+    const gutterElement = gutterParentElement.getElementsByClassName(
+      'diff-gutter'
+    )[0]
     gutterElement.setAttribute('style', `width: ${diffSize * 2}px;`)
     cm.refresh()
   }

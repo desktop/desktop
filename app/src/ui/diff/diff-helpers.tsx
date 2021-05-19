@@ -9,6 +9,7 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
+import { DiffLineType } from '../../models/diff'
 
 /**
  * DiffRowType defines the different types of
@@ -367,17 +368,37 @@ export function getLineWidthFromDigitCount(digitAmount: number): number {
 }
 
 /** Utility function for getting the digit count of the largest line number in an array of diff hunks */
-export function getLargestLineNumberDigitCount(
-  hunks: DiffHunk[],
-  fromExpansion: boolean = false
-): number {
-  const finalHunkIndex =
-    fromExpansion && hunks.length > 2 ? hunks.length - 2 : hunks.length - 1
-  const lastLine =
-    hunks[finalHunkIndex].lines[hunks[finalHunkIndex].lines.length - 1]
-  const largestLine =
-    ((lastLine.newLineNumber ?? 0) > (lastLine.oldLineNumber ?? 0)
-      ? lastLine.newLineNumber
-      : lastLine.oldLineNumber) ?? 0
-  return largestLine.toString().length
+export function getLargestLineNumber(hunks: DiffHunk[]): number {
+  let isValidLine = false
+  let currentHunkIndex = hunks.length - 1
+  let currentLineIndex = hunks[currentHunkIndex].lines.length - 1
+  let largestLineNumber = 0
+
+  while (!isValidLine) {
+    const line = hunks[currentHunkIndex].lines[currentLineIndex]
+    isValidLine = line.type !== DiffLineType.Hunk
+
+    if (isValidLine) {
+      const oldNumber = line.oldLineNumber ?? 0
+      const newNumber = line.newLineNumber ?? 0
+      largestLineNumber = newNumber > oldNumber ? newNumber : oldNumber
+      break
+    }
+
+    currentLineIndex--
+
+    // We've reached the end of the lines so move to the next hunk, and reset our line index
+    if (currentLineIndex === -1) {
+      currentHunkIndex--
+
+      // We've managed to go through all the hunks and there are no valid lines
+      // I don't think this could ever happen, but just in case let's return
+      if (currentHunkIndex === -1) {
+        return 0
+      }
+
+      currentLineIndex = hunks[currentHunkIndex].lines.length - 1
+    }
+  }
+  return largestLineNumber
 }
