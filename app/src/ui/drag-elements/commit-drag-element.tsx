@@ -37,10 +37,8 @@ export class CommitDragElement extends React.Component<
       this.setState({ currentDropTarget: dropTarget })
       switch (dropTarget.type) {
         case DropTargetType.Branch:
-          this.setToolTipTimer(1500)
-          break
         case DropTargetType.Commit:
-          this.setState({ showTooltip: true })
+          this.setToolTipTimer(1500)
           break
         default:
           assertNever(dropTarget, `Unknown drop target type: ${dropTarget}`)
