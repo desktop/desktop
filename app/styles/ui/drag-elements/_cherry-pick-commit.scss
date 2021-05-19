@@ -47,7 +47,7 @@
     left: 0px;
     background-color: var(--background-color);
     border: 1px solid var(--box-border-color);
-    color: var(--link-button-color);
+    color: var(--text-color);
     padding: var(--spacing-third) var(--spacing-half);
 
     @include darwin {
@@ -61,8 +61,12 @@
     }
 
     .branch-name {
-      color: var(--text-color);
       margin-left: var(--spacing-third);
+    }
+
+    .copy-to,
+    .copy-to-icon {
+      color: var(--link-button-color);
     }
 
     div {

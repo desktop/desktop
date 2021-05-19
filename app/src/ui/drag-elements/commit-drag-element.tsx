@@ -82,13 +82,15 @@ export class CommitDragElement extends React.Component<
     switch (currentDropTarget.type) {
       case DropTargetType.Branch:
         const copyToPlus = __DARWIN__ ? null : (
-          <Octicon symbol={OcticonSymbol.plus} />
+          <Octicon className="copy-to-icon" symbol={OcticonSymbol.plus} />
         )
         toolTipContents = (
           <>
             {copyToPlus}
             <span>
+              <span className="copy-to">
               Copy to{' '}
+              </span>
               <span className="branch-name">
                 {currentDropTarget.branchName}
               </span>
