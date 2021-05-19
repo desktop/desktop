@@ -39,12 +39,12 @@ interface IConflictsDialogProps {
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     ourBranch: string,
-    theirBranch: string
-  ) => void
+    theirBranch?: string
+  ) => Promise<void>
   readonly onAbort: (
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: Map<string, ManualConflictResolution>
-  ) => void
+  ) => Promise<void>
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
   readonly openRepositoryInShell: (repository: Repository) => void
@@ -116,7 +116,13 @@ export class ConflictsDialog extends React.Component<
       onDismissed,
     } = this.props
 
-    onSubmit(dispatcher, repository, workingDirectory, ourBranch, theirBranch)
+    await onSubmit(
+      dispatcher,
+      repository,
+      workingDirectory,
+      ourBranch,
+      theirBranch
+    )
     onDismissed()
   }
 
@@ -128,7 +134,7 @@ export class ConflictsDialog extends React.Component<
 
     const { workingDirectory, manualResolutions } = this.props
     this.setState({ isAborting: true })
-    this.props.onAbort(workingDirectory, manualResolutions)
+    await this.props.onAbort(workingDirectory, manualResolutions)
     this.setState({ isAborting: false })
     this.props.onDismissed()
   }
