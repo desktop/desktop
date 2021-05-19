@@ -87,12 +87,16 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
-import { MergeConflictsDialog, CommitConflictsWarning } from './merge-conflicts'
+import { CommitConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { AbortMergeWarning } from './abort-merge'
-import { isConflictedFile } from '../lib/status'
+import {
+  getConflictedFiles,
+  getResolvedFiles,
+  isConflictedFile,
+} from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
@@ -147,6 +151,9 @@ import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
 import { DragType } from '../models/drag-drop'
 import { enableSquashing } from '../lib/feature-flag'
+import { ConflictsDialog } from './multi-commit-operation/conflicts-dialog'
+import { DefaultCommitMessage } from '../models/commit-message'
+import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1731,19 +1738,53 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
+        const { repository, ourBranch, theirBranch } = popup
+        const submit = __DARWIN__ ? 'Commit Merge' : 'Commit merge'
+        const abort = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
+        const headerTitle = (
+          <span>
+            {`Resolve conflicts before merging `}
+            {theirBranch !== undefined && <strong>{theirBranch}</strong>}
+            {` into `}
+            <strong>{ourBranch}</strong>
+          </span>
+        )
         return (
-          <MergeConflictsDialog
+          <ConflictsDialog
             key="merge-conflicts-dialog"
             dispatcher={this.props.dispatcher}
-            repository={popup.repository}
+            repository={repository}
             workingDirectory={workingDirectory}
-            onDismissed={onPopupDismissedFn}
-            openFileInExternalEditor={this.openFileInExternalEditor}
+            userHasResolvedConflicts={false}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
-            openRepositoryInShell={this.openInShell}
-            ourBranch={popup.ourBranch}
-            theirBranch={popup.theirBranch}
+            ourBranch={ourBranch}
+            theirBranch={theirBranch}
             manualResolutions={conflictState.manualResolutions}
+            headerTitle={headerTitle}
+            submitButton={submit}
+            abortButton={abort}
+            onSubmit={this.onMergeConflictsSubmit(
+              repository,
+              workingDirectory,
+              ourBranch,
+              theirBranch
+            )}
+            onAbort={this.onMergeConflictsCancel(
+              repository,
+              workingDirectory,
+              conflictState.manualResolutions,
+              ourBranch,
+              theirBranch
+            )}
+            onDismissed={this.onMergeConflictsDismissed(
+              repository,
+              workingDirectory,
+              conflictState.manualResolutions,
+              ourBranch,
+              theirBranch
+            )}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            openRepositoryInShell={this.openInShell}
           />
         )
       }
@@ -3075,6 +3116,89 @@ export class App extends React.Component<IAppProps, IAppState> {
       friendlyName,
       latestVersion,
     })
+  }
+
+  private onMergeConflictsDismissed = (
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: Map<string, ManualConflictResolution>,
+    ourBranch: string,
+    theirBranch?: string
+  ) => {
+    return async () => {
+      this.props.dispatcher.closePopup()
+      this.props.dispatcher.setBanner({
+        type: BannerType.MergeConflictsFound,
+        ourBranch,
+        popup: {
+          type: PopupType.MergeConflicts,
+          ourBranch,
+          theirBranch,
+          repository,
+        },
+      })
+      this.props.dispatcher.recordMergeConflictsDialogDismissal()
+      const anyConflictedFiles =
+        getConflictedFiles(workingDirectory, manualResolutions).length > 0
+      if (anyConflictedFiles) {
+        this.props.dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+      }
+    }
+  }
+
+  private onMergeConflictsCancel = (
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: Map<string, ManualConflictResolution>,
+    ourBranch: string,
+    theirBranch?: string
+  ) => {
+    return async () => {
+      const anyResolvedFiles =
+        getResolvedFiles(workingDirectory, manualResolutions).length > 0
+
+      if (anyResolvedFiles) {
+        this.props.dispatcher.showPopup({
+          type: PopupType.AbortMerge,
+          repository,
+          ourBranch,
+          theirBranch,
+        })
+        return
+      }
+
+      await this.props.dispatcher.abortMerge(repository)
+      this.props.dispatcher.closePopup()
+    }
+  }
+
+  private onMergeConflictsSubmit = (
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus,
+    ourBranch: string,
+    theirBranch?: string
+  ) => {
+    return async () => {
+      await this.props.dispatcher.finishConflictedMerge(
+        repository,
+        workingDirectory,
+        {
+          type: BannerType.SuccessfulMerge,
+          ourBranch,
+          theirBranch,
+        }
+      )
+      await this.props.dispatcher.setCommitMessage(
+        repository,
+        DefaultCommitMessage
+      )
+      await this.props.dispatcher.changeRepositorySection(
+        repository,
+        RepositorySectionTab.Changes
+      )
+      this.props.dispatcher.closePopup()
+      this.props.dispatcher.recordGuidedConflictedMergeCompletion()
+    }
   }
 }
 
