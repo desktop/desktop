@@ -26,7 +26,7 @@ import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
-import { DragType } from '../../models/drag-drop'
+import { DragType, DropTargetType } from '../../models/drag-drop'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -241,7 +241,10 @@ export class BranchesContainer extends React.Component<
   private onMouseEnterNewBranchDrop = () => {
     // This is just used for displaying on windows drag ghost.
     // Thus, it doesn't have to be an actual branch name.
-    dragAndDropManager.emitEnterDropTarget('a new branch')
+    dragAndDropManager.emitEnterDropTarget({
+      type: DropTargetType.Branch,
+      branchName: 'a new branch',
+    })
   }
 
   private onMouseLeaveNewBranchDrop = () => {

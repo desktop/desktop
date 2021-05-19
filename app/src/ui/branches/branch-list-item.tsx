@@ -10,7 +10,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { String } from 'aws-sdk/clients/apigateway'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
-import { DragType } from '../../models/drag-drop'
+import { DragType, DropTargetType } from '../../models/drag-drop'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -84,7 +84,10 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
 
   private onMouseEnter = () => {
     if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
-      dragAndDropManager.emitEnterDropTarget(this.props.name)
+      dragAndDropManager.emitEnterDropTarget({
+        type: DropTargetType.Branch,
+        branchName: this.props.name,
+      })
     }
   }
 
