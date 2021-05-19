@@ -34,21 +34,12 @@ interface IConflictsDialogProps {
   readonly headerTitle: string
   readonly submitButton: string
   readonly abortButton: string
-  readonly onSubmit: (
-    dispatcher: Dispatcher,
-    repository: Repository,
-    workingDirectory: WorkingDirectoryStatus,
-    ourBranch: string,
-    theirBranch?: string
-  ) => Promise<void>
-  readonly onAbort: (
-    workingDirectory: WorkingDirectoryStatus,
-    manualResolutions: Map<string, ManualConflictResolution>
-  ) => Promise<void>
+  readonly onSubmit: () => Promise<void>
+  readonly onAbort: () => Promise<void>
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
   readonly openRepositoryInShell: (repository: Repository) => void
-  readonly someConflictsHaveBeenResolved: () => void
+  readonly someConflictsHaveBeenResolved?: () => void
 }
 
 interface IConflictsDialogState {
@@ -86,7 +77,10 @@ export class ConflictsDialog extends React.Component<
     } = this.props
 
     // skip this work once we know conflicts have been resolved
-    if (userHasResolvedConflicts) {
+    if (
+      userHasResolvedConflicts ||
+      someConflictsHaveBeenResolved === undefined
+    ) {
       return
     }
 
@@ -105,25 +99,7 @@ export class ConflictsDialog extends React.Component<
    */
   private onSubmit = async () => {
     this.setState({ isCommitting: true })
-
-    const {
-      dispatcher,
-      repository,
-      workingDirectory,
-      ourBranch,
-      theirBranch,
-      onSubmit,
-      onDismissed,
-    } = this.props
-
-    await onSubmit(
-      dispatcher,
-      repository,
-      workingDirectory,
-      ourBranch,
-      theirBranch
-    )
-    onDismissed()
+    await this.props.onSubmit()
   }
 
   /**
@@ -132,11 +108,9 @@ export class ConflictsDialog extends React.Component<
   private onAbort = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
-    const { workingDirectory, manualResolutions } = this.props
     this.setState({ isAborting: true })
-    await this.props.onAbort(workingDirectory, manualResolutions)
+    await this.props.onAbort()
     this.setState({ isAborting: false })
-    this.props.onDismissed()
   }
 
   private openThisRepositoryInShell = () =>
