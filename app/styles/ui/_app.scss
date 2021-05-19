@@ -82,5 +82,21 @@
         cursor: default;
       }
     }
+
+    // 'squashing-enabled' class is due to feature flagging. If feature flag is
+    // removed, we could move .list-item block up under the #commit-list above
+    &.squashing-enabled {
+      #commit-list {
+        .list-item:not(.selected) {
+          .commit:hover {
+            --text-color: var(--box-selected-active-text-color);
+            --text-secondary-color: var(--box-selected-active-text-color);
+
+            color: var(--text-color);
+            background-color: var(--box-selected-active-background-color);
+          }
+        }
+      }
+    }
   }
 }
