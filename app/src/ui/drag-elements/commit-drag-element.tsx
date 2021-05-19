@@ -86,9 +86,7 @@ export class CommitDragElement extends React.Component<
           <>
             {copyToPlus}
             <span>
-              <span className="copy-to">
-              Copy to{' '}
-              </span>
+              <span className="copy-to">Copy to </span>
               <span className="branch-name">
                 {currentDropTarget.branchName}
               </span>
