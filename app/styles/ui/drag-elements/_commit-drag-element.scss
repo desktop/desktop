@@ -54,7 +54,6 @@
       padding: 1px var(--spacing-third);
       font-size: 11px;
       bottom: -25px;
-      color: var(--text-color);
       background-color: var(--title-tool-tip-background-color);
       border-radius: 1px;
       box-shadow: var(--title-tool-tip-shadow);
@@ -64,9 +63,11 @@
       margin-left: var(--spacing-third);
     }
 
-    .copy-to,
-    .copy-to-icon {
-      color: var(--link-button-color);
+    @include win32 {
+      .copy-to,
+      .copy-to-icon {
+        color: var(--link-button-color);
+      }
     }
 
     div {
