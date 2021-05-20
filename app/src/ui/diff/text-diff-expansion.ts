@@ -232,7 +232,7 @@ export function expandTextDiffHunk(
       // which is effectively taking all the undiscovered file contents and
       // would prevent us from expanding down the diff.
       if (isAdjacentDummyHunk === false) {
-        const downLimit = adjacentHunk.header.newStartLine - 1
+        const downLimit = adjacentHunk.header.newStartLine
         to = Math.min(to, downLimit)
         shouldMergeWithAdjacent = to === downLimit
       }
