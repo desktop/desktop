@@ -1,5 +1,5 @@
 import { Disposable, Emitter } from 'event-kit'
-import { DragData, DragType } from '../models/drag-drop'
+import { DragData, DragType, DropTarget } from '../models/drag-drop'
 
 /**
  * The drag and drop manager is implemented to manage drag and drop events
@@ -19,17 +19,15 @@ export class DragAndDropManager {
     return this._isDragInProgress
   }
 
-  public emitEnterDropTarget(targetDescription: string) {
-    this.emitter.emit('enter-drop-target', targetDescription)
+  public emitEnterDropTarget(target: DropTarget) {
+    this.emitter.emit('enter-drop-target', target)
   }
 
   public emitLeaveDropTarget() {
     this.emitter.emit('leave-drop-target', {})
   }
 
-  public onEnterDropTarget(
-    fn: (targetDescription: string) => void
-  ): Disposable {
+  public onEnterDropTarget(fn: (target: DropTarget) => void): Disposable {
     return this.emitter.on('enter-drop-target', fn)
   }
 

@@ -14,7 +14,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
 import { enableBranchFromCommit, enableSquashing } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
-import { DragType } from '../../models/drag-drop'
+import { DragType, DropTargetType } from '../../models/drag-drop'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -76,12 +76,33 @@ export class CommitListItem extends React.PureComponent<
     const { onSquash, selectedCommits, commit } = this.props
     if (
       enableSquashing() &&
-      dragAndDropManager.isDragInProgress &&
+      dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
       onSquash !== undefined &&
       // don't squash if dragging one commit and dropping onto itself
       selectedCommits.filter(c => c.sha !== commit.sha).length > 0
     ) {
       onSquash(selectedCommits, commit)
+    }
+  }
+
+  private onMouseEnter = () => {
+    const { selectedCommits, commit } = this.props
+    const isSelected =
+      selectedCommits.find(c => c.sha === commit.sha) !== undefined
+    if (
+      dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
+      enableSquashing() &&
+      !isSelected
+    ) {
+      dragAndDropManager.emitEnterDropTarget({
+        type: DropTargetType.Commit,
+      })
+    }
+  }
+
+  private onMouseLeave = () => {
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      dragAndDropManager.emitLeaveDropTarget()
     }
   }
 
@@ -109,6 +130,8 @@ export class CommitListItem extends React.PureComponent<
         <div
           className="commit"
           onContextMenu={this.onContextMenu}
+          onMouseEnter={this.onMouseEnter}
+          onMouseLeave={this.onMouseLeave}
           onMouseUp={this.onMouseUp}
         >
           <div className="info">

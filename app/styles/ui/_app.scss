@@ -95,6 +95,12 @@
             color: var(--text-color);
             background-color: var(--box-selected-active-background-color);
           }
+
+          .commit {
+            div {
+              pointer-events: none;
+            }
+          }
         }
       }
     }
