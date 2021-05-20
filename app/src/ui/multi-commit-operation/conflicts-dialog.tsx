@@ -27,11 +27,11 @@ interface IConflictsDialogProps {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly userHasResolvedConflicts?: boolean
   readonly resolvedExternalEditor: string | null
-  readonly ourBranch: string
-  /* `undefined` when we didn't know the branch at the beginning of this flow */
+  /* Depending on the operation, we may only know one our or their branch */
+  readonly ourBranch?: string
   readonly theirBranch?: string
   readonly manualResolutions: Map<string, ManualConflictResolution>
-  readonly headerTitle: string
+  readonly headerTitle: string | JSX.Element
   readonly submitButton: string
   readonly abortButton: string
   readonly onSubmit: () => Promise<void>
