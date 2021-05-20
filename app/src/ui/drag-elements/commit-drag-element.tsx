@@ -95,9 +95,11 @@ export class CommitDragElement extends React.Component<
         )
         break
       case DropTargetType.Commit:
+        // Selected commits (being dragged) + the one commit it is squashed (dropped) on.
+        const commitsBeingSquashedCount = this.props.selectedCommits.length + 1
         toolTipContents = (
           <>
-            <span>Squash {this.props.selectedCommits.length + 1} commits</span>
+            <span>Squash {commitsBeingSquashedCount} commits</span>
           </>
         )
         break
