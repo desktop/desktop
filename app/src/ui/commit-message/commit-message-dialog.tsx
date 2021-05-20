@@ -85,7 +85,7 @@ export class CommitMessageDialog extends React.Component<
   public render() {
     return (
       <Dialog
-        id="commit-message"
+        id="commit-message-dialog"
         title={this.props.dialogTitle}
         onDismissed={this.props.onDismissed}
       >

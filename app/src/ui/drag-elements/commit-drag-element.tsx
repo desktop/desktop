@@ -1,7 +1,9 @@
 import classNames from 'classnames'
 import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { assertNever } from '../../lib/fatal-error'
 import { Commit } from '../../models/commit'
+import { DropTarget, DropTargetType } from '../../models/drag-drop'
 import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -14,7 +16,8 @@ interface ICommitDragElementProps {
 }
 
 interface ICommitDragElementState {
-  readonly branchName: string | null
+  readonly showTooltip: boolean
+  readonly currentDropTarget: DropTarget | null
 }
 
 export class CommitDragElement extends React.Component<
@@ -26,60 +29,90 @@ export class CommitDragElement extends React.Component<
   public constructor(props: ICommitDragElementProps) {
     super(props)
     this.state = {
-      branchName: null,
+      showTooltip: false,
+      currentDropTarget: null,
     }
 
-    dragAndDropManager.onEnterDropTarget(branchName => {
-      this.setBranchName(branchName)
+    dragAndDropManager.onEnterDropTarget(dropTarget => {
+      this.setState({ currentDropTarget: dropTarget })
+      switch (dropTarget.type) {
+        case DropTargetType.Branch:
+        case DropTargetType.Commit:
+          this.setToolTipTimer(1500)
+          break
+        default:
+          assertNever(dropTarget, `Unknown drop target type: ${dropTarget}`)
+      }
     })
 
     dragAndDropManager.onLeaveDropTarget(() => {
-      this.setState({ branchName: null })
+      this.setState({ currentDropTarget: null, showTooltip: false })
     })
   }
 
-  private setBranchName(branchName: string) {
+  private setToolTipTimer(time: number) {
     if (__DARWIN__) {
       // For macOs, we styled the copy to message to look like a native tool tip
       // that appears when hovering over a element with the title attribute. We
       // also are implementing this timeout to have similar hover-to-see feel.
-      this.setState({ branchName: null })
+      this.setState({ showTooltip: false })
 
       if (this.timeoutId !== null) {
         window.clearTimeout(this.timeoutId)
       }
 
       this.timeoutId = window.setTimeout(
-        () => this.setState({ branchName }),
-        1500
+        () => this.setState({ showTooltip: true }),
+        time
       )
     } else {
-      this.setState({ branchName })
+      this.setState({ showTooltip: true })
     }
   }
 
-  /**
-   * The "copy to" label is a windows convention we are implementing to provide
-   * a more intuitive ux for windows users.
-   */
-  private renderDragCopyLabel(count: number) {
-    const { branchName } = this.state
-    if (branchName === null) {
+  private renderDragToolTip() {
+    const { showTooltip, currentDropTarget } = this.state
+    if (!showTooltip || currentDropTarget === null) {
       return
     }
 
-    const copyToPlus = __DARWIN__ ? null : (
-      <Octicon symbol={OcticonSymbol.plus} />
-    )
+    let toolTipContents
+    switch (currentDropTarget.type) {
+      case DropTargetType.Branch:
+        const copyToPlus = __DARWIN__ ? null : (
+          <Octicon className="copy-to-icon" symbol={OcticonSymbol.plus} />
+        )
+        toolTipContents = (
+          <>
+            {copyToPlus}
+            <span>
+              <span className="copy-to">Copy to </span>
+              <span className="branch-name">
+                {currentDropTarget.branchName}
+              </span>
+            </span>
+          </>
+        )
+        break
+      case DropTargetType.Commit:
+        // Selected commits (being dragged) + the one commit it is squashed (dropped) on.
+        const commitsBeingSquashedCount = this.props.selectedCommits.length + 1
+        toolTipContents = (
+          <>
+            <span>Squash {commitsBeingSquashedCount} commits</span>
+          </>
+        )
+        break
+      default:
+        assertNever(
+          currentDropTarget,
+          `Unknown drop target type: ${currentDropTarget}`
+        )
+    }
 
     return (
-      <div className="copy-message-label">
-        <div>
-          {copyToPlus}
-          <span>
-            Copy to <span className="branch-name">{branchName}</span>
-          </span>
-        </div>
+      <div className="tool-tip-contents">
+        <div>{toolTipContents}</div>
       </div>
     )
   }
@@ -90,7 +123,7 @@ export class CommitDragElement extends React.Component<
 
     const className = classNames({ 'multiple-selected': count > 1 })
     return (
-      <div id="cherry-pick-commit-drag-element" className={className}>
+      <div id="commit-drag-element" className={className}>
         <div className="commit-box">
           <div className="count">{count}</div>
           <CommitListItem
@@ -102,7 +135,7 @@ export class CommitDragElement extends React.Component<
             showUnpushedIndicator={false}
           />
         </div>
-        {this.renderDragCopyLabel(count)}
+        {this.renderDragToolTip()}
       </div>
     )
   }

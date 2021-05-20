@@ -8,6 +8,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DropTargetType } from '../../models/drag-drop'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -63,7 +64,10 @@ export class PullRequestListItem extends React.Component<
 
   private onMouseEnter = () => {
     if (dragAndDropManager.isDragInProgress) {
-      dragAndDropManager.emitEnterDragZone(this.props.title)
+      dragAndDropManager.emitEnterDropTarget({
+        type: DropTargetType.Branch,
+        branchName: this.props.title,
+      })
     }
   }
 

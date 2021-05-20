@@ -25,3 +25,23 @@ export type DragElement = {
   selectedCommits: ReadonlyArray<Commit>
   gitHubRepository: GitHubRepository | null
 }
+
+export enum DropTargetType {
+  Branch,
+  Commit,
+}
+
+export type BranchTarget = {
+  type: DropTargetType.Branch
+  branchName: string
+}
+
+export type CommitTarget = {
+  type: DropTargetType.Commit
+}
+
+/**
+ * This is a type is used in conjunction with the drag and drop manager to
+ * pass information about a drop target.
+ */
+export type DropTarget = BranchTarget | CommitTarget
