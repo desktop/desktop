@@ -36,7 +36,7 @@ export class ConflictsFoundBanner extends React.Component<
   public render() {
     return (
       <Banner
-        id="conflicts-banner"
+        id="conflicts-found-banner"
         dismissable={false}
         onDismissed={this.onDismissed}
       >
