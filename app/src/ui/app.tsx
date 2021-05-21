@@ -1743,8 +1743,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         const abort = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
         const headerTitle = (
           <span>
-            {`Resolve conflicts before merging `}
-            {theirBranch !== undefined && <strong>{theirBranch}</strong>}
+            {`Resolve conflicts before merging`}
+            {theirBranch !== undefined && <strong> {theirBranch}</strong>}
             {` into `}
             <strong>{ourBranch}</strong>
           </span>
