@@ -17,6 +17,7 @@ import { CherryPickUndone } from './cherry-pick-undone'
 import { OpenThankYouCard } from './open-thank-you-card'
 import { SuccessfulSquash } from './successful-squash'
 import { SuccessBanner } from './success-banner'
+import { ConflictsFoundBanner } from './conflicts-found-banner'
 
 export function renderBanner(
   banner: Banner,
@@ -124,6 +125,15 @@ export function renderBanner(
         <SuccessBanner timeout={5000} onDismissed={onDismissed}>
           Squash of {banner.commitsCount} {pluralized} undone.
         </SuccessBanner>
+      )
+    case BannerType.ConflictsFound:
+      return (
+        <ConflictsFoundBanner
+          operationDescription={banner.operationDescription}
+          onOpenConflictsDialog={banner.onOpenConflictsDialog}
+          onDismissed={onDismissed}
+          key={'conflicts-found'}
+        ></ConflictsFoundBanner>
       )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
