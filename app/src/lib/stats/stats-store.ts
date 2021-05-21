@@ -62,6 +62,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   coAuthoredCommits: 0,
+  commitsUndone: 0,
   branchComparisons: 0,
   defaultBranchComparisons: 0,
   mergesInitiatedFromComparison: 0,
@@ -652,6 +653,13 @@ export class StatsStore implements IStatsStore {
   public recordCoAuthoredCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       coAuthoredCommits: m.coAuthoredCommits + 1,
+    }))
+  }
+
+  /** Record that a commit was undone. */
+  public recordCommitUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitsUndone: m.commitsUndone + 1,
     }))
   }
 

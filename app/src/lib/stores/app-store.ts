@@ -4088,6 +4088,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await gitStore.undoCommit(commit)
 
+    this.statsStore.recordCommitUndone()
+
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
     if (
