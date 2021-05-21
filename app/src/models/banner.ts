@@ -12,6 +12,7 @@ export enum BannerType {
   SquashUndone = 'SquashUndone',
   OpenThankYouCard = 'OpenThankYouCard',
   SuccessfulSquash = 'SuccessfulSquash',
+  ConflictsFound = 'ConflictsFound',
 }
 
 export type Banner =
@@ -90,4 +91,17 @@ export type Banner =
       readonly type: BannerType.SquashUndone
       /** number of commits squashed */
       readonly commitsCount: number
+    }
+  | {
+      readonly type: BannerType.ConflictsFound
+      /**
+       * Description of the operation to continue
+       * Examples:
+       *  - rebasing <strong>target-branch-name</strong>
+       *  - cherry-picking onto <strong>target-branch-name</strong>
+       *  - squashing commits on <strong>target-branch-name</strong>
+       */
+      readonly operationDescription: string | JSX.Element
+      /** callback to run when user clicks on link in banner text */
+      readonly onOpenConflictsDialog: () => void
     }
