@@ -1,10 +1,9 @@
 import * as React from 'react'
-
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+
 interface IConfirmAbortDialogProps {
   readonly operation: string
-
   readonly onReturnToConflicts: () => void
   readonly onConfirmAbort: () => Promise<void>
 }
@@ -37,7 +36,7 @@ export class ConfirmAbortDialog extends React.Component<
   }
 
   private onCancel = async () => {
-    await this.props.onReturnToConflicts()
+    return this.props.onReturnToConflicts()
   }
 
   public render() {
@@ -57,7 +56,9 @@ export class ConfirmAbortDialog extends React.Component<
       >
         <DialogContent>
           <div className="column-left">
-            <p>Are you sure you want to abort {operation.toLowerCase()}?</p>
+            <p>
+              Are you sure you want to abort this {operation.toLowerCase()}?
+            </p>
             <p>
               This will take you back to the original branch state and the
               conflicts you have already resolved will be discarded.
