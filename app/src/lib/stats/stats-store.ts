@@ -62,7 +62,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   coAuthoredCommits: 0,
-  commitsUndone: 0,
+  commitsUndoneWithChanges: 0,
+  commitsUndoneWithoutChanges: 0,
   branchComparisons: 0,
   defaultBranchComparisons: 0,
   mergesInitiatedFromComparison: 0,
@@ -656,10 +657,19 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record that a commit was undone. */
-  public recordCommitUndone(): Promise<void> {
+  /**
+   * Record that a commit was undone.
+   *
+   * @param cleanWorkingDirectory Whether the working directory is clean.
+   */
+  public recordCommitUndone(cleanWorkingDirectory: boolean): Promise<void> {
+    if (cleanWorkingDirectory) {
+      return this.updateDailyMeasures(m => ({
+        commitsUndoneWithoutChanges: m.commitsUndoneWithoutChanges + 1,
+      }))
+    }
     return this.updateDailyMeasures(m => ({
-      commitsUndone: m.commitsUndone + 1,
+      commitsUndoneWithChanges: m.commitsUndoneWithChanges + 1,
     }))
   }
 
