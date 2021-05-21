@@ -3,6 +3,14 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IConfirmAbortDialogProps {
+  /**
+   * This is expected to be capitalized for correct output on windows and macOs.
+   *
+   * Examples:
+   *  - Rebase
+   *  - Cherry-pick
+   *  - Squash
+   */
   readonly operation: string
   readonly onReturnToConflicts: () => void
   readonly onConfirmAbort: () => Promise<void>
