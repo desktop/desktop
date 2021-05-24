@@ -149,11 +149,12 @@ import {
 import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
-import { DragType } from '../models/drag-drop'
+import { DragType, DropTargetSelector } from '../models/drag-drop'
 import { enableSquashing } from '../lib/feature-flag'
 import { ConflictsDialog } from './multi-commit-operation/conflicts-dialog'
 import { DefaultCommitMessage } from '../models/commit-message'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
+import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -307,6 +308,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+
+    dragAndDropManager.onDragEnded(this.onDragEnd)
   }
 
   public componentWillUnmount() {
@@ -3198,6 +3201,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
       this.props.dispatcher.closePopup()
       this.props.dispatcher.recordGuidedConflictedMergeCompletion()
+    }
+  }
+
+  private onDragEnd = (dropTargetSelector: DropTargetSelector | undefined) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    if (dropTargetSelector === undefined) {
+      // TODO: refactor to "DragStartedAndCanceled" as not specific to
+      // cherry-picking anymore
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
     }
   }
 }
