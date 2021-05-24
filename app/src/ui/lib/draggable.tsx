@@ -152,9 +152,9 @@ export class Draggable extends React.Component<IDraggableProps> {
     mouseScroller.clearScrollTimer()
     this.props.onRemoveDragElement()
     if (this.props.onDragEnd !== undefined) {
-      this.props.onDragEnd(this.isLastElemBelowDropTarget())
+      this.props.onDragEnd(this.getLastElemBelowDropTarget())
     }
-    dragAndDropManager.dragEnded(this.isLastElemBelowDropTarget())
+    dragAndDropManager.dragEnded(this.getLastElemBelowDropTarget())
   }
 
   /**
@@ -162,7 +162,7 @@ export class Draggable extends React.Component<IDraggableProps> {
    * css selectors provided in dropTargetSelectors to determine if the drag
    * ended on target or not.
    */
-  private isLastElemBelowDropTarget = (): DropTargetSelector | undefined => {
+  private getLastElemBelowDropTarget = (): DropTargetSelector | undefined => {
     if (this.elemBelow === null) {
       return
     }
