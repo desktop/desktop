@@ -1,7 +1,6 @@
 @import '../../mixins';
 
-dialog#conflicts-dialog,
-dialog#merge-conflicts-list {
+dialog#conflicts-dialog {
   width: 500px;
 
   .summary {
