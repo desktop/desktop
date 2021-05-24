@@ -14,7 +14,11 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
 import { enableBranchFromCommit, enableSquashing } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
-import { DragType, DropTargetType } from '../../models/drag-drop'
+import {
+  DragType,
+  DropTargetSelector,
+  DropTargetType,
+} from '../../models/drag-drop'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -122,9 +126,9 @@ export class CommitListItem extends React.PureComponent<
         onRenderDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.onRemoveDragElement}
         dropTargetSelectors={[
-          '.branches-list-item',
-          '.pull-request-item',
-          '.commit',
+          DropTargetSelector.Branch,
+          DropTargetSelector.PullRequest,
+          DropTargetSelector.Commit,
         ]}
       >
         <div

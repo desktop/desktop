@@ -31,6 +31,12 @@ export enum DropTargetType {
   Commit,
 }
 
+export enum DropTargetSelector {
+  Branch = '.branches-list-item',
+  PullRequest = '.pull-request-item',
+  Commit = '.commit',
+}
+
 export type BranchTarget = {
   type: DropTargetType.Branch
   branchName: string

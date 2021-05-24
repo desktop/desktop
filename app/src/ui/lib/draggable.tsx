@@ -2,6 +2,7 @@ import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { mouseScroller } from '../../lib/mouse-scroller'
 import { sleep } from '../../lib/promise'
+import { DropTargetSelector } from '../../models/drag-drop'
 
 interface IDraggableProps {
   /**
@@ -29,7 +30,7 @@ interface IDraggableProps {
   readonly isEnabled: boolean
 
   /** An array of css selectors for elements that are valid drop targets. */
-  readonly dropTargetSelectors: ReadonlyArray<string>
+  readonly dropTargetSelectors: ReadonlyArray<DropTargetSelector>
 }
 
 export class Draggable extends React.Component<IDraggableProps> {
