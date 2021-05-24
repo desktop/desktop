@@ -122,6 +122,16 @@ export interface ICherryPickProgress extends IProgress {
   readonly totalCommitCount: number
 }
 
+export interface IMultiCommitOperationProgress extends IProgress {
+  readonly kind: 'multiCommitOperation'
+  /** The summary of the commit applied */
+  readonly currentCommitSummary: string
+  /** The number to signify which commit in a selection is being applied */
+  readonly position: number
+  /** The total number of commits in the operation */
+  readonly totalCommitCount: number
+}
+
 export type Progress =
   | IGenericProgress
   | ICheckoutProgress
@@ -131,3 +141,4 @@ export type Progress =
   | IRevertProgress
   | IRebaseProgress
   | ICherryPickProgress
+  | IMultiCommitOperationProgress
