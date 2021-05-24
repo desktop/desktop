@@ -73,9 +73,9 @@ export class WarnForcePushDialog extends React.Component<
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText={
-              __DARWIN__ ? `Begin ${operation}` : `Begin ${operation}`
-            }
+            okButtonText={`Begin ${
+              __DARWIN__ ? operation : operation.toLowerCase()
+            }`}
             onCancelButtonClick={this.props.onDismissed}
           />
         </DialogFooter>
