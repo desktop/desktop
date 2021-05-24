@@ -105,6 +105,10 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       isCurrentBranch,
     } = this.props
 
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      return
+    }
+
     if (onDropOntoBranch !== undefined && !isCurrentBranch) {
       onDropOntoBranch(name)
     }
