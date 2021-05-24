@@ -14,7 +14,11 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
 import { enableBranchFromCommit, enableSquashing } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
-import { DragType, DropTargetType } from '../../models/drag-drop'
+import {
+  DragType,
+  DropTargetSelector,
+  DropTargetType,
+} from '../../models/drag-drop'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -28,7 +32,6 @@ interface ICommitProps {
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
-  readonly onDragEnd?: (clearCherryPickingState: boolean) => void
   readonly onRenderCommitDragElement?: (commit: Commit) => void
   readonly onRemoveDragElement?: () => void
   readonly onSquash?: (
@@ -118,13 +121,12 @@ export class CommitListItem extends React.PureComponent<
       <Draggable
         isEnabled={isDraggable}
         onDragStart={this.onDragStart}
-        onDragEnd={this.onDragEnd}
         onRenderDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.onRemoveDragElement}
         dropTargetSelectors={[
-          '.branches-list-item',
-          '.pull-request-item',
-          '.commit',
+          DropTargetSelector.Branch,
+          DropTargetSelector.PullRequest,
+          DropTargetSelector.Commit,
         ]}
       >
         <div
@@ -387,12 +389,6 @@ export class CommitListItem extends React.PureComponent<
       type: DragType.Commit,
       commits: this.props.selectedCommits,
     })
-  }
-
-  private onDragEnd = (isOverDragTarget: boolean): void => {
-    if (this.props.onDragEnd !== undefined) {
-      this.props.onDragEnd(!isOverDragTarget)
-    }
   }
 
   private onRenderCommitDragElement = () => {

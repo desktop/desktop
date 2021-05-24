@@ -67,8 +67,6 @@ interface ICommitListProps {
     lastRetainedCommitRef: string | null
   ) => void
 
-  /** Callback to fire to when has started being dragged  */
-  readonly onDragCommitEnd: (clearCherryPickingState: boolean) => void
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -163,7 +161,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
-        onDragEnd={this.props.onDragCommitEnd}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.props.onRemoveCommitDragElement}
