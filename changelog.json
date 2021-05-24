@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.8.2-beta2": [
+      "[Fixed] Lists of commits, repositories or changes don't disappear after switching between apps",
+      "[Improved] Thank you note language improved and retrieves all past release notes to retroactively thank all contributors"
+    ],
     "2.8.2-beta1": [
       "[Added] Thank external contributors for their work - #12137",
       "[Fixed] Disable partial change selection in split view while whitespace changes are hidden - #12129",
