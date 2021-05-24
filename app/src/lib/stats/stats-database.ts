@@ -41,6 +41,12 @@ export interface IDailyMeasures {
   /** The number of commits created with one or more co-authors. */
   readonly coAuthoredCommits: number
 
+  /** The number of commits undone by the user with a dirty working directory. */
+  readonly commitsUndoneWithChanges: number
+
+  /** The number of commits undone by the user with a clean working directory. */
+  readonly commitsUndoneWithoutChanges: number
+
   /** The number of times a branch is compared to an arbitrary branch */
   readonly branchComparisons: number
 

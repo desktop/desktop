@@ -4086,7 +4086,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
+    const currentState = this.repositoryStateCache.get(repository)
+    const { changesState } = currentState
+    const isWorkingDirectoryClean =
+      changesState.workingDirectory.files.length === 0
+
     await gitStore.undoCommit(commit)
+
+    this.statsStore.recordCommitUndone(isWorkingDirectoryClean)
 
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
