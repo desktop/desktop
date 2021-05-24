@@ -14,7 +14,6 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ChangesSelectionKind,
-  FoldoutType,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
@@ -260,7 +259,6 @@ export class RepositoryView extends React.Component<
         tagsToPush={this.props.state.tagsToPush}
         aheadBehindStore={this.props.aheadBehindStore}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
-        onDragCommitEnd={this.onDragCommitEnd}
         isCherryPickInProgress={this.props.state.cherryPickState.step !== null}
       />
     )
@@ -564,26 +562,5 @@ export class RepositoryView extends React.Component<
       )
     }
     return null
-  }
-
-  /**
-   * This method is a generic event handler for when a commit has ended being
-   * dragged.
-   *
-   * Currently only used for cherry picking, but this could be more generic.
-   */
-  private onDragCommitEnd = async (clearCherryPickingState: boolean) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-
-    if (!clearCherryPickingState) {
-      return
-    }
-
-    const { state, repository } = this.props
-    const { cherryPickState } = state
-    if (cherryPickState !== null && cherryPickState.step !== null) {
-      this.props.dispatcher.endCherryPickFlow(repository)
-      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
-    }
   }
 }

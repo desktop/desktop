@@ -46,7 +46,6 @@ interface ICompareSidebarProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
-  readonly onDragCommitEnd: (clearCherryPickingState: boolean) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
@@ -247,7 +246,6 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
-        onDragCommitEnd={this.props.onDragCommitEnd}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
