@@ -1,5 +1,6 @@
+import { MultiCommitOperationConflictState } from '../lib/app-state'
 import { Branch } from './branch'
-import { CommitOneLine } from './commit'
+import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { GitHubRepository } from './github-repository'
 import { ManualConflictResolution } from './manual-conflict-resolution'
 import { IDetachedHead, IUnbornRepository, IValidBranch } from './tip'
@@ -133,50 +134,12 @@ export type ShowConflictsStep = {
 
 export type HideConflictsStep = {
   readonly kind: MultiCommitOperationStepKind.HideConflicts
-  readonly manualResolutions: Map<string, ManualConflictResolution>
-  /**
-   * Depending on the operation, this may be either source branch or the
-   * target branch.
-   *
-   * Also, we may not know what it is. This usually happens if Desktop is closed
-   * during an operation and the reopened and we lose some context that is
-   * stored in state.
-   */
-  readonly ourBranch?: string
-
-  /**
-   * Depending on the operation, this may be either source branch or the
-   * target branch
-   *
-   * Also, we may not know what it is. This usually happens if Desktop is closed
-   * during an operation and the reopened and we lose some context that is
-   * stored in state.
-   */
-  readonly theirBranch?: string
+  readonly conflictState: MultiCommitOperationConflictState
 }
 
 export type ConfirmAbortStep = {
   readonly kind: MultiCommitOperationStepKind.ConfirmAbort
-  /**
-   * Depending on the operation, this may be either source branch or the
-   * target branch.
-   *
-   * Also, we may not know what it is. This usually happens if Desktop is closed
-   * during an operation and the reopened and we lose some context that is
-   * stored in state.
-   */
-  readonly ourBranch?: string
-
-  /**
-   * Depending on the operation, this may be either source branch or the
-   * target branch
-   *
-   * Also, we may not know what it is. This usually happens if Desktop is closed
-   * during an operation and the reopened and we lose some context that is
-   * stored in state.
-   */
-  readonly theirBranch?: string
-  readonly manualResolutions: Map<string, ManualConflictResolution>
+  readonly conflictState: MultiCommitOperationConflictState
 }
 
 export type CreateBranchStep = {
@@ -188,3 +151,53 @@ export type CreateBranchStep = {
   tip: IUnbornRepository | IDetachedHead | IValidBranch
   targetBranchName: string
 }
+
+interface IInteractiveRebaseDetails {
+  /**
+   * A commit that the interactive rebase takes place around.
+   *
+   * Example: Squashing all the 'commits' array onto the 'targetCommit'.
+   */
+  readonly targetCommit: Commit
+
+  /**
+   * The reference to the last retained commit on the branch during an
+   * interactive rebase or null if rebasing to the root.
+   */
+  readonly lastRetainedCommitRef: string | null
+}
+interface ISourceBranchDetails {
+  /**
+   * The branch that are the source of the commits for the operation.
+   *
+   * Cherry-pick = the branch the user started on.
+   * Rebase = the branch the user picks in the choose branch dialog
+   */
+  readonly sourceBranch: ICommitContext
+}
+interface ISquashDetails extends IInteractiveRebaseDetails {
+  readonly operationKind: MultiCommitOperationKind.Squash
+  /**
+   * The commit context of the commit squashed.
+   */
+  readonly commitContext: ICommitContext
+}
+
+interface ICherryPickDetails extends ISourceBranchDetails {
+  readonly operationKind: MultiCommitOperationKind.CherryPick
+  /**
+   * Whether a branch was created during operation.
+   *
+   * Example: can create a new branch to copy commits to during cherry-pick
+   */
+  readonly branchCreated: boolean
+}
+
+interface IRebaseDetails extends ISourceBranchDetails {
+  readonly operationKind: MultiCommitOperationKind.Rebase
+}
+
+export type MultiCommitOperationDetail =
+  | ISquashDetails
+  | ICherryPickDetails
+  | IRebaseDetails
