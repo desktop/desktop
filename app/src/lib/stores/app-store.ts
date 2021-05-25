@@ -288,7 +288,6 @@ import { getTipSha } from '../tip'
 import {
   MultiCommitOperationKind,
   MultiCommitOperationStep,
-  MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
