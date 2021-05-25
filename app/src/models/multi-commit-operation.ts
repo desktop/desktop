@@ -152,7 +152,7 @@ export type CreateBranchStep = {
   targetBranchName: string
 }
 
-export interface IInteractiveRebaseDetails {
+interface IInteractiveRebaseDetails {
   /**
    * A commit that the interactive rebase takes place around.
    *
@@ -166,15 +166,7 @@ export interface IInteractiveRebaseDetails {
    */
   readonly lastRetainedCommitRef: string | null
 }
-export interface ISquashDetails extends IInteractiveRebaseDetails {
-  readonly operationKind: MultiCommitOperationKind.Squash
-  /**
-   * The commit context of the commit squashed.
-   */
-  readonly commitContext: ICommitContext
-}
-
-export interface ISourceBranchDetails {
+interface ISourceBranchDetails {
   /**
    * The branch that are the source of the commits for the operation.
    *
@@ -183,7 +175,15 @@ export interface ISourceBranchDetails {
    */
   readonly sourceBranch: ICommitContext
 }
-export interface ICherryPickDetails extends ISourceBranchDetails {
+interface ISquashDetails extends IInteractiveRebaseDetails {
+  readonly operationKind: MultiCommitOperationKind.Squash
+  /**
+   * The commit context of the commit squashed.
+   */
+  readonly commitContext: ICommitContext
+}
+
+interface ICherryPickDetails extends ISourceBranchDetails {
   readonly operationKind: MultiCommitOperationKind.CherryPick
   /**
    * Whether a branch was created during operation.
@@ -193,7 +193,7 @@ export interface ICherryPickDetails extends ISourceBranchDetails {
   readonly branchCreated: boolean
 }
 
-export interface IRebaseDetails extends ISourceBranchDetails {
+interface IRebaseDetails extends ISourceBranchDetails {
   readonly operationKind: MultiCommitOperationKind.Rebase
 }
 
