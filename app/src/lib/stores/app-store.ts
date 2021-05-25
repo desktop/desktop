@@ -59,8 +59,8 @@ import {
   ICheckoutProgress,
   IFetchProgress,
   IRevertProgress,
-  IRebaseProgress,
   ICherryPickProgress,
+  IMultiCommitOperationProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
@@ -4407,9 +4407,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return {
         progress: {
+          kind: 'multiCommitOperation',
           value: formatRebaseValue(0),
-          rebasedCommitCount: 0,
-          currentCommitSummary: firstCommitSummary,
+          position: 0,
+          currentCommitSummary:
+            firstCommitSummary !== null ? firstCommitSummary : '',
           totalCommitCount: commits.length,
         },
         commits,
@@ -4468,7 +4470,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<RebaseResult> {
-    const progressCallback = (progress: IRebaseProgress) => {
+    const progressCallback = (progress: IMultiCommitOperationProgress) => {
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress,
       }))
@@ -4506,7 +4508,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<RebaseResult> {
-    const progressCallback = (progress: IRebaseProgress) => {
+    const progressCallback = (progress: IMultiCommitOperationProgress) => {
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress,
       }))
@@ -5897,7 +5899,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return {
         progress: {
           kind: 'cherryPick',
-          title: `Cherry-picking commit 1 of ${commits.length} commits`,
           value: 0,
           position: 1,
           totalCommitCount: commits.length,
@@ -6279,7 +6280,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return RebaseResult.Error
     }
 
-    // TODO: Add progress callback
+    const progressCallback = (progress: IMultiCommitOperationProgress) => {
+      this.repositoryStateCache.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          progress,
+        })
+      )
+
+      this.emitUpdate()
+    }
 
     const commitMessage = await formatCommitMessage(repository, commitContext)
     const gitStore = this.gitStoreCache.get(repository)
@@ -6289,7 +6299,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         toSquash,
         squashOnto,
         lastRetainedCommitRef,
-        commitMessage
+        commitMessage,
+        progressCallback
       )
     )
 

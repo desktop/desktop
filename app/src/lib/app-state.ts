@@ -34,7 +34,6 @@ import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
@@ -549,7 +548,7 @@ export interface IRebaseState {
    * This will be set to `null` when no base branch has been selected to
    * initiate the rebase.
    */
-  readonly progress: GitRebaseProgress | null
+  readonly progress: IMultiCommitOperationProgress | null
 
   /**
    * The known range of commits that will be applied to the repository

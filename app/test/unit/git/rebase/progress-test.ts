@@ -14,7 +14,7 @@ import { getStatusOrThrow } from '../../../helpers/status'
 import { GitRebaseSnapshot } from '../../../../src/models/rebase'
 import { setupEmptyDirectory } from '../../../helpers/repositories'
 import { getBranchOrError } from '../../../helpers/git'
-import { IRebaseProgress } from '../../../../src/models/progress'
+import { IMultiCommitOperationProgress } from '../../../../src/models/progress'
 import { isConflictedFile } from '../../../../src/lib/status'
 import { ManualConflictResolution } from '../../../../src/models/manual-conflict-resolution'
 import { Repository } from '../../../../src/models/repository'
@@ -37,7 +37,7 @@ describe('git/rebase', () => {
     let result: RebaseResult
     let snapshot: GitRebaseSnapshot | null
     let status: IStatusResult
-    let progress = new Array<IRebaseProgress>()
+    let progress = new Array<IMultiCommitOperationProgress>()
 
     beforeEach(async () => {
       repository = await createShortRebaseTest(
@@ -52,7 +52,7 @@ describe('git/rebase', () => {
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
-      progress = new Array<IRebaseProgress>()
+      progress = new Array<IMultiCommitOperationProgress>()
       result = await rebase(repository, baseBranch, featureBranch, p =>
         progress.push(p)
       )
@@ -70,9 +70,8 @@ describe('git/rebase', () => {
       expect(progress).toEqual([
         {
           currentCommitSummary: 'Feature Branch!',
-          kind: 'rebase',
-          rebasedCommitCount: 1,
-          title: 'Rebasing commit 1 of 1 commits',
+          kind: 'multiCommitOperation',
+          position: 1,
           totalCommitCount: 1,
           value: 1,
         },
@@ -85,7 +84,7 @@ describe('git/rebase', () => {
       expect(s.commits.length).toEqual(1)
       expect(s.commits[0].summary).toEqual('Feature Branch!')
 
-      expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.position).toEqual(1)
       expect(s.progress.totalCommitCount).toEqual(1)
       expect(s.progress.currentCommitSummary).toEqual('Feature Branch!')
       expect(s.progress.value).toEqual(1)
@@ -101,7 +100,7 @@ describe('git/rebase', () => {
     let result: RebaseResult
     let snapshot: GitRebaseSnapshot | null
     let status: IStatusResult
-    let progress = new Array<IRebaseProgress>()
+    let progress = new Array<IMultiCommitOperationProgress>()
 
     beforeEach(async () => {
       repository = await createLongRebaseTest(baseBranchName, featureBranchName)
@@ -113,7 +112,7 @@ describe('git/rebase', () => {
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
-      progress = new Array<IRebaseProgress>()
+      progress = new Array<IMultiCommitOperationProgress>()
       result = await rebase(repository, baseBranch, featureBranch, p =>
         progress.push(p)
       )
@@ -131,9 +130,8 @@ describe('git/rebase', () => {
       expect(progress).toEqual([
         {
           currentCommitSummary: 'Feature Branch First Commit!',
-          kind: 'rebase',
-          rebasedCommitCount: 1,
-          title: 'Rebasing commit 1 of 10 commits',
+          kind: 'multiCommitOperation',
+          position: 1,
           totalCommitCount: 10,
           value: 0.1,
         },
@@ -142,7 +140,7 @@ describe('git/rebase', () => {
 
     it('reports progress after resolving conflicts', async () => {
       const strategy = ManualConflictResolution.theirs
-      const progressCb = (p: IRebaseProgress) => progress.push(p)
+      const progressCb = (p: IMultiCommitOperationProgress) => progress.push(p)
 
       while (result === RebaseResult.ConflictsEncountered) {
         result = await resolveAndContinue(repository!, strategy, progressCb)
@@ -151,9 +149,8 @@ describe('git/rebase', () => {
       expect(progress.length).toEqual(10)
       expect(progress[9]).toEqual({
         currentCommitSummary: 'Feature Branch Tenth Commit!',
-        kind: 'rebase',
-        rebasedCommitCount: 10,
-        title: 'Rebasing commit 10 of 10 commits',
+        kind: 'multiCommitOperation',
+        position: 10,
         totalCommitCount: 10,
         value: 1,
       })
@@ -165,7 +162,7 @@ describe('git/rebase', () => {
       expect(s.commits.length).toEqual(10)
       expect(s.commits[0].summary).toEqual('Feature Branch First Commit!')
 
-      expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.position).toEqual(1)
       expect(s.progress.totalCommitCount).toEqual(10)
       expect(s.progress.currentCommitSummary).toEqual(
         'Feature Branch First Commit!'
@@ -182,7 +179,7 @@ describe('git/rebase', () => {
 async function resolveAndContinue(
   repository: Repository,
   strategy: ManualConflictResolution,
-  progressCb: (progress: IRebaseProgress) => void
+  progressCb: (progress: IMultiCommitOperationProgress) => void
 ) {
   const status = await getStatus(repository)
   const files = status?.workingDirectory.files ?? []
