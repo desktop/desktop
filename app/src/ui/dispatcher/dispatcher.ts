@@ -110,6 +110,7 @@ import { DragElement, DragType } from '../../models/drag-drop'
 import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { MultiCommitOperationStep } from '../../models/multi-commit-operation'
 
 /**
  * An error handler function.
@@ -3210,5 +3211,4 @@ export class Dispatcher {
   public endMultiCommitOperation(repository: Repository) {
     this.appStore._endMultiCommitOperation(repository)
   }
-
 }
