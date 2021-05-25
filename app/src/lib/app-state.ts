@@ -4,7 +4,7 @@ import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
-import { Commit, CommitOneLine, ICommitContext } from '../models/commit'
+import { Commit, CommitOneLine } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -43,6 +43,7 @@ import { CherryPickFlowStep } from '../models/cherry-pick'
 import { DragElement } from '../models/drag-drop'
 import { ILastThankYou } from '../models/last-thank-you'
 import {
+  MultiCommitOperationDetail,
   MultiCommitOperationKind,
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
@@ -474,7 +475,7 @@ export interface IRepositoryState {
 
   /** State associated with a multi commit operation such as rebase,
    * cherry-pick, squash, reorder... */
-  readonly multiCommitOperationState: IMultiCommitOperationState
+  readonly multiCommitOperationState: IMultiCommitOperationState | null
 }
 
 export interface IBranchesState {
@@ -851,22 +852,24 @@ export function isCherryPickConflictState(
 /**
  * Tracks the state of the app during a multi commit operation such as rebase,
  * cherry-picking, and interactive rebase (squashing, reordering).
- *
- * Depending on the operation or state of the operation, properties may be null.
  */
 export interface IMultiCommitOperationState {
   /**
    * The current step of the operation the user is at.
    * Examples: ChooseBranchStep, ChooseBranchStep, ShowConflictsStep, etc.
    */
-  readonly step: MultiCommitOperationStep | null
+  readonly step: MultiCommitOperationStep
 
   /**
    * The kind of operation it is.
    * Examples: Rebase, Cherry-pick, Squash, etc.
    */
-  readonly operationKind: MultiCommitOperationKind | null // rebase, cherry-pick, squash
+  readonly operationKind: MultiCommitOperationKind // rebase, cherry-pick, squash
 
+  /**
+   * This hold properties specific to the operation.
+   */
+  readonly operationDetail: MultiCommitOperationDetail
   /**
    * The underlying parsed Git information associated with the progress of the
    * current operation.
@@ -874,7 +877,7 @@ export interface IMultiCommitOperationState {
    * Example: During cherry-picking, after each commit this progress will be
    * updated to reflect the next commit in the list to cherry-pick.
    */
-  readonly progress: IMultiCommitOperationProgress | null
+  readonly progress: IMultiCommitOperationProgress
 
   /**
    * Whether the user has done work to resolve any conflicts as part of this
@@ -885,32 +888,13 @@ export interface IMultiCommitOperationState {
   /**
    * Array of commits used during the operation.
    */
-  readonly commits: ReadonlyArray<Commit> | null
+  readonly commits: ReadonlyArray<Commit>
 
   /**
-   * If operation specifies a commit that it takes place around
-   *
-   * Example: Squashing all the 'commits' array onto the 'targetCommit'
-   */
-  readonly targetCommit: Commit | null
-
-  /**
-   * If an operation needs can specify a commit message
-   *
-   * Example: Squashing - proving a new commit message/description
-   */
-  readonly commitContext: ICommitContext | null
-
-  /**
-   * For use with interaction rebase operations
-   */
-  readonly lastRetainedCommitRef: string | null
-
-  /**
-   * This is the commit ID of the HEAD of the in-flight operation used to compare
+   * This is the commit sha of the HEAD of the in-flight operation used to compare
    * the state of the after an operation to a previous state.
    */
-  readonly currentTip: string | null
+  readonly currentTip: string
 
   /**
    * The commit id of the tip of the branch user is modifying in the operation.
@@ -920,31 +904,16 @@ export interface IMultiCommitOperationState {
    *  - Rebasing = tip of current branch before rebase, used enable force pushing after rebase complete.
    *  - Interactive Rebasing (Squash, Reorder) = tip of current branch, used for force pushing and undoing
    */
-  readonly originalBranchTip: string | null
-
-  /**
-   * The branch that are the source of the commits for an operation
-   *
-   * Cherry-pick = the branch the user started on.
-   * Rebase = the branch the user picks in the choose branch dialog
-   * Squashing - not applicable
-   */
-  readonly sourceBranch: Branch | null
+  readonly originalBranchTip: string
 
   /**
    * The branch that is being modified during the operation.
    *
    * - Cherry-pick = the branch chosen to copy commits to.
    * - Rebase = the current branch the user is on.
+   * - Squash = the current branch the user is on.
    */
-  readonly targetBranch: Branch | null
-
-  /**
-   * Whether a branch was created during operation.
-   *
-   * Example: can create a new branch to copy commits to during cherry-pick
-   */
-  readonly branchCreated: boolean
+  readonly targetBranch: Branch
 }
 
 export type MultiCommitOperationConflictState = {
@@ -955,4 +924,24 @@ export type MultiCommitOperationConflictState = {
    * before continuing the operation
    */
   readonly manualResolutions: Map<string, ManualConflictResolution>
+
+  /**
+   * Depending on the operation, this may be either source branch or the
+   * target branch.
+   *
+   * Also, we may not know what it is. This usually happens if Desktop is closed
+   * during an operation and the reopened and we lose some context that is
+   * stored in state.
+   */
+  readonly ourBranch?: string
+
+  /**
+   * Depending on the operation, this may be either source branch or the
+   * target branch
+   *
+   * Also, we may not know what it is. This usually happens if Desktop is closed
+   * during an operation and the reopened and we lose some context that is
+   * stored in state.
+   */
+  readonly theirBranch?: string
 }
