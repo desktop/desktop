@@ -1,4 +1,4 @@
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'

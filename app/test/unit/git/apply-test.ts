@@ -1,4 +1,4 @@
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import {
   setupTwoCommitRepo,
   setupFixtureRepository,

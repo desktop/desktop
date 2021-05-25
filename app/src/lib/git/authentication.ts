@@ -1,4 +1,4 @@
-import { GitError as DugiteError } from 'dugite'
+import { GitError as DugiteError } from '@shiftkey/dugite'
 import { IGitAccount } from '../../models/git-account'
 
 /** Get the environment for authenticating remote operations. */

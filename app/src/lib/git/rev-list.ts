@@ -1,4 +1,4 @@
-import { GitError } from 'dugite'
+import { GitError } from '@shiftkey/dugite'
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType, IAheadBehind } from '../../models/branch'

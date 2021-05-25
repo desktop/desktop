@@ -13,7 +13,7 @@ import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepositoryDefaultMain } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
 import { squash } from '../../../src/lib/git/squash'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import { getStatusOrThrow } from '../../helpers/status'
 import { getTempFilePath } from '../../../src/lib/file-system'
 

@@ -31,7 +31,7 @@
     "dexie": "^2.0.0",
     "dompurify": "^2.3.3",
     "double-ended-queue": "^2.1.0-0",
-    "dugite": "^1.104.0",
+    "@shiftkey/dugite": "^1.104.99",
     "electron-window-state": "^5.0.3",
     "event-kit": "^2.0.0",
     "file-metadata": "^1.0.0",

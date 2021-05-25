@@ -3,7 +3,7 @@ import { writeFile } from 'fs-extra'
 import { join } from 'path'
 import { git } from '../../src/lib/git'
 import { cloneLocalRepository } from '../helpers/repository-scaffolding'
-import { GitError as DugiteError } from 'dugite'
+import { GitError as DugiteError } from '@shiftkey/dugite'
 import { parseFilesToBeOverwritten } from '../../src/ui/lib/parse-files-to-be-overwritten'
 
 describe('parseFilesToBeOverwritten', () => {

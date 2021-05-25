@@ -1,7 +1,7 @@
 import * as Path from 'path'
 
 import { git } from './core'
-import { RepositoryDoesNotExistErrorCode } from 'dugite'
+import { RepositoryDoesNotExistErrorCode } from '@shiftkey/dugite'
 
 /**
  * Get the absolute path to the top level working directory.

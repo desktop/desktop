@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as os from 'os'
 import * as FSE from 'fs-extra'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import { DiffParser } from '../../src/lib/diff-parser'
 import {
   expandTextDiffHunk,

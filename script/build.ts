@@ -330,7 +330,10 @@ function copyDependencies() {
   const gitDir = path.resolve(outRoot, 'git')
   fs.removeSync(gitDir)
   fs.mkdirpSync(gitDir)
-  fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
+  fs.copySync(
+    path.resolve(projectRoot, 'app/node_modules/@shiftkey/dugite/git'),
+    gitDir
+  )
 
   if (process.platform === 'win32') {
     console.log('  Cleaning unneeded Git components…')

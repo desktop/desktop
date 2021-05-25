@@ -4,7 +4,7 @@ import { Repository } from '../../../src/models/repository'
 import { reset, resetPaths, GitResetMode } from '../../../src/lib/git/reset'
 import { getStatusOrThrow } from '../../helpers/status'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 
 import * as FSE from 'fs-extra'
 

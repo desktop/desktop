@@ -1,6 +1,6 @@
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
-import { GitError } from 'dugite'
+import { GitError } from '@shiftkey/dugite'
 import { Repository } from '../../models/repository'
 import {
   AppFileStatusKind,

@@ -69,7 +69,7 @@ import {
   createBranch,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
-import { GitError } from 'dugite'
+import { GitError } from '@shiftkey/dugite'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'

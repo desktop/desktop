@@ -3,7 +3,7 @@ import {
   IGitResult as DugiteResult,
   GitError as DugiteError,
   IGitExecutionOptions as DugiteExecutionOptions,
-} from 'dugite'
+} from '@shiftkey/dugite'
 
 import { assertNever } from '../fatal-error'
 import { getDotComAPIEndpoint } from '../api'

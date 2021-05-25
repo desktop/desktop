@@ -7,7 +7,7 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import {
   createRepository as createPrunedRepository,
   setupRepository,

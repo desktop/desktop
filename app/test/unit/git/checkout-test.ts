@@ -10,7 +10,7 @@ import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { Branch, BranchType } from '../../../src/models/branch'
 import { getStatusOrThrow } from '../../helpers/status'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import { StatsStore, StatsDatabase } from '../../../src/lib/stats'
 import { UiActivityMonitor } from '../../../src/ui/lib/ui-activity-monitor'
 
