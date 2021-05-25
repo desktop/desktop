@@ -205,5 +205,20 @@ function getInitialRepositoryState(): IRepositoryState {
       undoSha: null,
       squashBranchName: null,
     },
+    multiCommitOperationState: {
+      step: null,
+      operationKind: null,
+      progress: null,
+      userHasResolvedConflicts: false,
+      commits: null,
+      targetCommit: null,
+      commitContext: null,
+      lastRetainedCommitRef: null,
+      currentTip: null,
+      originalBranchTip: null,
+      sourceBranch: null,
+      targetBranch: null,
+      branchCreated: false,
+    },
   }
 }
