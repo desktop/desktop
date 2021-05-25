@@ -17,6 +17,7 @@ import {
   isRebaseConflictState,
   isCherryPickConflictState,
   CherryPickConflictState,
+  MultiCommitOperationConflictState,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
@@ -110,7 +111,10 @@ import { DragElement, DragType } from '../../models/drag-drop'
 import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
-import { MultiCommitOperationStep } from '../../models/multi-commit-operation'
+import {
+  MultiCommitOperationStep,
+  MultiCommitOperationStepKind,
+} from '../../models/multi-commit-operation'
 
 /**
  * An error handler function.
@@ -3210,5 +3214,48 @@ export class Dispatcher {
   /** Method to clear multi commit operation state. */
   public endMultiCommitOperation(repository: Repository) {
     this.appStore._endMultiCommitOperation(repository)
+  }
+
+  /** Opens conflicts found banner for part of multi commit operation */
+  public onConflictsFoundBanner = (
+    repository: Repository,
+    operationDescription: string | JSX.Element,
+    multiCommitOperationConflictState: MultiCommitOperationConflictState
+  ) => {
+    this.setBanner({
+      type: BannerType.ConflictsFound,
+      operationDescription,
+      onOpenConflictsDialog: async () => {
+        const { changesState } = this.repositoryStateManager.get(repository)
+        const { conflictState } = changesState
+
+        if (conflictState == null) {
+          log.error(
+            '[onConflictsFoundBanner] App is in invalid state to so conflicts dialog.'
+          )
+          return
+        }
+
+        // TODO: make this multi commit friendly -> await this.setCherryPickProgressFromState(repository)
+
+        const { manualResolutions } = conflictState
+
+        this.setMultiCommitOperationStep(repository, {
+          kind: MultiCommitOperationStepKind.ShowConflicts,
+          conflictState: {
+            ...multiCommitOperationConflictState,
+            manualResolutions,
+          },
+        })
+
+        /*
+        TODO: uncomment on another PR
+        this.showPopup({
+          type: PopupType.MultiCommitOperation,
+          repository,
+        })
+        */
+      },
+    })
   }
 }
