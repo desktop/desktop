@@ -285,6 +285,11 @@ import { DragElement } from '../../models/drag-drop'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { squash } from '../git/squash'
 import { getTipSha } from '../tip'
+import {
+  MultiCommitOperationKind,
+  MultiCommitOperationStep,
+  MultiCommitOperationStepKind,
+} from '../../models/multi-commit-operation'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -6342,6 +6347,71 @@ export class AppStore extends TypedBaseStore<IAppState> {
       undoSha: getTipSha(tip),
       squashBranchName: tip.branch.name,
     }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setMultiCommitOperationStep(
+    repository: Repository,
+    step: MultiCommitOperationStep
+  ): Promise<void> {
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        step,
+      })
+    )
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _endMultiCommitOperation(repository: Repository): void {
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        step: null,
+        operationKind: null,
+        progress: null,
+        userHasResolvedConflicts: false,
+        commits: null,
+        currentTip: null,
+        originalBranchTip: null,
+        sourceBranch: null,
+        targetBranch: null,
+        branchCreated: false,
+      })
+    )
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _initializeMultiCommitOperation(
+    repository: Repository,
+    operationKind: MultiCommitOperationKind,
+    targetBranch: Branch,
+    commits: ReadonlyArray<Commit>
+  ): void {
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        operationKind,
+        targetBranch,
+        currentTip: targetBranch.tip.sha,
+        originalBranchTip: targetBranch.tip.sha,
+        commits,
+        progress: {
+          kind: 'multiCommitOperation',
+          currentCommitSummary: commits[0].summary,
+          position: 1,
+          totalCommitCount: commits.length,
+          value: 0,
+          title: `${operationKind}: commit 1 of ${commits.length} commits`,
+        },
+      })
+    )
+
+    this.emitUpdate()
   }
 }
 

@@ -20,6 +20,7 @@ import {
   ChangesSelectionKind,
   ICherryPickState,
   ISquashState,
+  IMultiCommitOperationState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -123,6 +124,24 @@ export class RepositoryStateCache {
       const { squashState } = state
       const newState = merge(squashState, fn(squashState))
       return { squashState: newState }
+    })
+  }
+
+  public updateMultiCommitOperationState<
+    K extends keyof IMultiCommitOperationState
+  >(
+    repository: Repository,
+    fn: (
+      state: IMultiCommitOperationState
+    ) => Pick<IMultiCommitOperationState, K>
+  ) {
+    this.update(repository, state => {
+      const { multiCommitOperationState } = state
+      const newState = merge(
+        multiCommitOperationState,
+        fn(multiCommitOperationState)
+      )
+      return { multiCommitOperationState: newState }
     })
   }
 }
