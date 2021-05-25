@@ -132,15 +132,15 @@ export class RepositoryStateCache {
   >(
     repository: Repository,
     fn: (
-      state: IMultiCommitOperationState
+      state: IMultiCommitOperationState | null
     ) => Pick<IMultiCommitOperationState, K>
   ) {
     this.update(repository, state => {
       const { multiCommitOperationState } = state
-      const newState = merge(
-        multiCommitOperationState,
-        fn(multiCommitOperationState)
-      )
+      const newState =
+        fn !== null
+          ? merge(multiCommitOperationState, fn(multiCommitOperationState))
+          : null
       return { multiCommitOperationState: newState }
     })
   }

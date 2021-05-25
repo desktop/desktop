@@ -6367,18 +6367,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _endMultiCommitOperation(repository: Repository): void {
     this.repositoryStateCache.updateMultiCommitOperationState(
       repository,
-      () => ({
-        step: null,
-        operationKind: null,
-        progress: null,
-        userHasResolvedConflicts: false,
-        commits: null,
-        currentTip: null,
-        originalBranchTip: null,
-        sourceBranch: null,
-        targetBranch: null,
-        branchCreated: false,
-      })
+      null
     )
 
     this.emitUpdate()
