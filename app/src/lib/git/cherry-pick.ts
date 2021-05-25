@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { GitError } from 'dugite'
+import { GitError } from '@shiftkey/dugite'
 import { Repository } from '../../models/repository'
 import {
   AppFileStatusKind,

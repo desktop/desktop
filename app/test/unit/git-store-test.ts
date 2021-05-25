@@ -1,6 +1,6 @@
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 
 import { shell } from '../helpers/test-app-shell'
 import {

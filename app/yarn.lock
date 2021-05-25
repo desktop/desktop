@@ -53,6 +53,18 @@
   resolved "https://registry.yarnpkg.com/@icons/material/-/material-0.2.4.tgz#e90c9f71768b3736e76d7dd6783fc6c2afa88bc8"
   integrity sha512-QPcGmICAPbGLGb6F/yNf/KzKqvFx8z5qx3D1yFqVAjoFmXK35EgyW+cJ57Te3CNsmzblwtzakLGFqHPqrfb4Tw==
 
+"@shiftkey/dugite@^1.104.99":
+  version "1.104.99"
+  resolved "https://registry.yarnpkg.com/@shiftkey/dugite/-/dugite-1.104.99.tgz#bd873d29841a62671551f79702b875b5d0a55193"
+  integrity sha512-vhL1Gm93thmIvr3rCe2dPvcKtmgi7PXxGGxblF8cHoiC84fd/mn0GhfpDKCIEhPpWrAVRi7LfG/t9jPTRN4RXA==
+  dependencies:
+    checksum "^0.1.1"
+    got "^9.6.0"
+    mkdirp "^0.5.1"
+    progress "^2.0.3"
+    rimraf "^2.5.4"
+    tar "^4.4.7"
+
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
@@ -434,17 +446,10 @@ dompurify@^2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
-dugite@^1.104.0:
-  version "1.104.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.104.0.tgz#378ab4b86a875bf9173fb915d178c994ae528499"
-  integrity sha512-7fLSbie3OD3wDlCtauG082A8Ox7V0qG4065tFsBiNNP4yBWtKM28xY6u68ujpdjCPsSXCVmASNb8X4diKCqTDA==
-  dependencies:
-    checksum "^0.1.1"
-    got "^9.6.0"
-    mkdirp "^0.5.1"
-    progress "^2.0.3"
-    rimraf "^2.5.4"
-    tar "^4.4.7"
+double-ended-queue@^2.1.0-0:
+  version "2.1.0-0"
+  resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
+  integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
 duplexer3@^0.1.4:
   version "0.1.4"

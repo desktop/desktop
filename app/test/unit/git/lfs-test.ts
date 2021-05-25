@@ -6,7 +6,7 @@ import {
   setupEmptyRepository,
 } from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import {
   isUsingLFS,
   isTrackedByLFS,

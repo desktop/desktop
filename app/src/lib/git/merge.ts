@@ -1,7 +1,7 @@
 import * as Path from 'path'
 
 import { git } from './core'
-import { GitError } from 'dugite'
+import { GitError } from '@shiftkey/dugite'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { MergeTreeResult } from '../../models/merge'

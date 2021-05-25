@@ -8,7 +8,7 @@ import {
   cloneLocalRepository,
   makeCommit,
 } from '../../helpers/repository-scaffolding'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 
 describe('formatPatch', () => {
   describe('in a repo with commits', () => {

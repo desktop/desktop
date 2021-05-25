@@ -1,6 +1,6 @@
 import { setupEmptyRepository } from './repositories'
 import { makeCommit, switchTo } from './repository-scaffolding'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import { RepositoriesStore, GitStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import {

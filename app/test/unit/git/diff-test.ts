@@ -26,7 +26,7 @@ import {
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 
 async function getTextDiff(
   repo: Repository,

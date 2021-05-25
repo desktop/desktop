@@ -10,7 +10,7 @@ import {
   setupFixtureRepository,
   setupConflictedRepo,
 } from '../../helpers/repositories'
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import { Repository } from '../../../src/models/repository'
 
 describe('git/merge', () => {

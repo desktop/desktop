@@ -1,6 +1,6 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
-import { GitError } from 'dugite'
+import { GitError } from '@shiftkey/dugite'
 import byline from 'byline'
 
 import { Repository } from '../../models/repository'

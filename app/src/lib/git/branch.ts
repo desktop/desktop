@@ -4,7 +4,7 @@ import { Branch } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { formatAsLocalRef } from './refs'
 import { deleteRef } from './update-ref'
-import { GitError as DugiteError } from 'dugite'
+import { GitError as DugiteError } from '@shiftkey/dugite'
 import { getRemoteURL } from './remote'
 import {
   envForRemoteOperation,

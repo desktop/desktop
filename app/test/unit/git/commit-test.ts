@@ -18,7 +18,7 @@ import {
   setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
 
-import { GitProcess } from 'dugite'
+import { GitProcess } from '@shiftkey/dugite'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
