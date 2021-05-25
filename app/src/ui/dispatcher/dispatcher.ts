@@ -1099,14 +1099,9 @@ export class Dispatcher {
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     conflictsState: RebaseConflictState
-  ): Promise<void> {
+  ): Promise<RebaseResult> {
     const stateBefore = this.repositoryStateManager.get(repository)
-    const {
-      targetBranch,
-      baseBranch,
-      originalBranchTip,
-      manualResolutions,
-    } = conflictsState
+    const { manualResolutions } = conflictsState
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
@@ -1126,6 +1121,18 @@ export class Dispatcher {
     log.info(
       `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${tip.kind}`
     )
+
+    return result
+  }
+
+  public processContinueRebaseResult(
+    result: RebaseResult,
+    conflictsState: RebaseConflictState,
+    repository: Repository
+  ) {
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { tip } = stateAfter.branchesState
+    const { targetBranch, baseBranch, originalBranchTip } = conflictsState
 
     if (result === RebaseResult.ConflictsEncountered) {
       const { conflictState } = stateAfter.changesState
@@ -1161,7 +1168,7 @@ export class Dispatcher {
 
       this.statsStore.recordRebaseSuccessAfterConflicts()
 
-      await this.completeRebase(
+      this.completeRebase(
         repository,
         {
           type: BannerType.SuccessfulRebase,
@@ -1172,6 +1179,7 @@ export class Dispatcher {
         originalBranchTip
       )
     }
+    return
   }
 
   /** Switch the rebase flow to show the latest conflicts */

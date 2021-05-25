@@ -93,11 +93,16 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
     }
     const { conflictState } = step
 
-    const continueRebaseAction = () => {
-      return dispatcher.continueRebase(
+    const continueRebaseAction = async () => {
+      const rebaseResult = await dispatcher.continueRebase(
         repository,
         workingDirectory,
         conflictState
+      )
+      return dispatcher.processContinueRebaseResult(
+        rebaseResult,
+        conflictState,
+        repository
       )
     }
 
