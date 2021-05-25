@@ -6365,11 +6365,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _endMultiCommitOperation(repository: Repository): void {
-    this.repositoryStateCache.updateMultiCommitOperationState(
-      repository,
-      null
-    )
-
+    this.repositoryStateCache.clearMultiCommitOperationState(repository)
     this.emitUpdate()
   }
 
