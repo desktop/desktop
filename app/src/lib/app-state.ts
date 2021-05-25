@@ -44,7 +44,6 @@ import { DragElement } from '../models/drag-drop'
 import { ILastThankYou } from '../models/last-thank-you'
 import {
   MultiCommitOperationDetail,
-  MultiCommitOperationKind,
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
 
@@ -859,12 +858,6 @@ export interface IMultiCommitOperationState {
    * Examples: ChooseBranchStep, ChooseBranchStep, ShowConflictsStep, etc.
    */
   readonly step: MultiCommitOperationStep
-
-  /**
-   * The kind of operation it is.
-   * Examples: Rebase, Cherry-pick, Squash, etc.
-   */
-  readonly operationKind: MultiCommitOperationKind // rebase, cherry-pick, squash
 
   /**
    * This hold properties specific to the operation.
