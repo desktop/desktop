@@ -110,6 +110,7 @@ import { DragElement, DragType } from '../../models/drag-drop'
 import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { MultiCommitOperationStep } from '../../models/multi-commit-operation'
 
 /**
  * An error handler function.
@@ -3193,5 +3194,21 @@ export class Dispatcher {
     commitsCount: number
   ): Promise<boolean> {
     return this.appStore._undoSquash(repository, commitsCount)
+  }
+
+  /**
+   * This method is to update the multi operation state to move it along in
+   * steps.
+   */
+  public setMultiCommitOperationStep(
+    repository: Repository,
+    step: MultiCommitOperationStep
+  ): Promise<void> {
+    return this.appStore._setMultiCommitOperationStep(repository, step)
+  }
+
+  /** Method to clear multi commit operation state. */
+  public endMultiCommitOperation(repository: Repository) {
+    this.appStore._endMultiCommitOperation(repository)
   }
 }
