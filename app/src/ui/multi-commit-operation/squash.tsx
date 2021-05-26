@@ -27,7 +27,7 @@ export abstract class Squash extends MultiCommitOperation {
     )
   }
 
-  public onContinueAfterConflicts = async (): Promise<void> => {
+  protected onContinueAfterConflicts = async (): Promise<void> => {
     const {
       repository,
       dispatcher,
