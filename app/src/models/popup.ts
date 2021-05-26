@@ -74,6 +74,7 @@ export enum PopupType {
   ChangeRepositoryAlias,
   ThankYou,
   CommitMessage,
+  MultiCommitOperation,
 }
 
 export type Popup =
@@ -299,4 +300,8 @@ export type Popup =
       prepopulateCommitSummary: boolean
       repository: Repository
       onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
+    }
+  | {
+      type: PopupType.MultiCommitOperation
+      repository: Repository
     }

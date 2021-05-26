@@ -1,8 +1,8 @@
 import { RebaseConflictState } from '../../lib/app-state'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
-import { MultiCommitOperation } from './multi-commit-operation'
+import { BaseMultiCommitOperation } from './base-multi-commit-operation'
 
-export abstract class Squash extends MultiCommitOperation {
+export abstract class Squash extends BaseMultiCommitOperation {
   protected onBeginOperation = () => {
     const { repository, dispatcher, state } = this.props
     const { commits, operationDetail } = state
