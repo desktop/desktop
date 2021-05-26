@@ -44,21 +44,21 @@ export interface IMultiCommitOperationProps {
 export abstract class MultiCommitOperation extends React.Component<
   IMultiCommitOperationProps
 > {
-  abstract onBeginOperation = () => {}
+  protected abstract onBeginOperation = () => {}
 
-  abstract onChooseBranch = (targetBranch: Branch) => {}
+  protected abstract onChooseBranch = (targetBranch: Branch) => {}
 
-  abstract onContinueAfterConflicts = async (): Promise<void> => {}
+  protected abstract onContinueAfterConflicts = async (): Promise<void> => {}
 
-  abstract onAbort = async (): Promise<void> => {}
+  protected abstract onAbort = async (): Promise<void> => {}
 
-  abstract onConflictsDialogDismissed = () => {}
+  protected abstract onConflictsDialogDismissed = () => {}
 
-  abstract renderChooseBranch = (): JSX.Element | null => {
+  protected abstract renderChooseBranch = (): JSX.Element | null => {
     return null
   }
 
-  abstract renderCreateBranch = (): JSX.Element | null => {
+  protected abstract renderCreateBranch = (): JSX.Element | null => {
     return null
   }
 

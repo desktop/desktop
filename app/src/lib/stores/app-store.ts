@@ -248,7 +248,6 @@ import {
 } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
-import { enableProgressBarOnIcon } from '../feature-flag'
 import { isBranchPushable } from '../helpers/push-control'
 import {
   findAssociatedPullRequest,
@@ -3626,13 +3625,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       pushPullFetchProgress,
     }))
-    if (enableProgressBarOnIcon()) {
-      if (pushPullFetchProgress !== null) {
-        remote.getCurrentWindow().setProgressBar(pushPullFetchProgress.value)
-      } else {
-        remote.getCurrentWindow().setProgressBar(-1)
-      }
-    }
     if (this.selectedRepository === repository) {
       this.emitUpdate()
     }
