@@ -288,6 +288,7 @@ import { getTipSha } from '../tip'
 import {
   MultiCommitOperationKind,
   MultiCommitOperationStep,
+  MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -1956,6 +1957,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRebaseFlowConflictsIfFound(repository)
     this.updateCherryPickFlowConflictsIfFound(repository)
+    this.updateMultiCommitOperationConflictsIfFound(repository)
 
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository)
@@ -2030,9 +2032,50 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /**
+   * Push changes from latest conflicts into current multi step operation step, if needed
+   *  - i.e. - multiple instance of running in to conflicts
+   */
+  private updateMultiCommitOperationConflictsIfFound(repository: Repository) {
+    const {
+      changesState,
+      multiCommitOperationState,
+    } = this.repositoryStateCache.get(repository)
+    const { conflictState } = changesState
+
+    if (conflictState === null || multiCommitOperationState === null) {
+      return
+    }
+
+    const { step } = multiCommitOperationState
+    if (step.kind !== MultiCommitOperationStepKind.ShowConflicts) {
+      return
+    }
+
+    const { manualResolutions } = conflictState
+
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        step: { ...step, manualResolutions },
+      })
+    )
+
+    if (isRebaseConflictState(conflictState)) {
+      const { currentTip } = conflictState
+      this.repositoryStateCache.updateMultiCommitOperationState(
+        repository,
+        () => ({ currentTip })
+      )
+    }
+  }
+
   private async _triggerConflictsFlow(repository: Repository) {
     const state = this.repositoryStateCache.get(repository)
-    const { conflictState } = state.changesState
+    const {
+      changesState: { conflictState },
+      multiCommitOperationState,
+    } = state
 
     if (conflictState === null) {
       this.clearConflictsFlowVisuals(state)
@@ -2042,7 +2085,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (isMergeConflictState(conflictState)) {
       await this.showMergeConflictsDialog(repository, conflictState)
     } else if (isRebaseConflictState(conflictState)) {
-      await this.showRebaseConflictsDialog(repository, conflictState)
+      // TODO: This will likely get refactored to a showConflictsDialog method
+      if (
+        multiCommitOperationState === null ||
+        multiCommitOperationState.operationDetail.kind !==
+          MultiCommitOperationKind.Squash
+      ) {
+        await this.showRebaseConflictsDialog(repository, conflictState)
+      }
     } else if (isCherryPickConflictState(conflictState)) {
       await this.showCherryPickConflictsDialog(repository, conflictState)
     } else {
@@ -5637,6 +5687,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRebaseStateAfterManualResolution(repository)
     this.updateCherryPickStateAfterManualResolution(repository)
+    this.updateMultiCommitOperationStateAfterManualResolution(repository)
 
     this.emitUpdate()
   }
@@ -5689,6 +5740,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       step: { ...step, conflictState },
     }))
+  }
+
+  /**
+   * Updates the cherry pick flow conflict step state as the manual resolutions
+   * have been changed.
+   */
+  private updateMultiCommitOperationStateAfterManualResolution(
+    repository: Repository
+  ): void {
+    const currentState = this.repositoryStateCache.get(repository)
+
+    const { changesState, multiCommitOperationState } = currentState
+    const { conflictState } = changesState
+
+    if (
+      conflictState === null ||
+      multiCommitOperationState === null ||
+      multiCommitOperationState.step.kind !==
+        MultiCommitOperationStepKind.ShowConflicts
+    ) {
+      return
+    }
+    const { step } = multiCommitOperationState
+
+    const { manualResolutions } = conflictState
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        step: { ...step, manualResolutions },
+      })
+    )
   }
 
   private async createStashAndDropPreviousEntry(
