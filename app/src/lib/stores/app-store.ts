@@ -6376,25 +6376,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     targetBranch: Branch,
     commits: ReadonlyArray<Commit>
   ): void {
-    this.repositoryStateCache.updateMultiCommitOperationState(
-      repository,
-      () => ({
-        operationKind,
-        targetBranch,
-        currentTip: targetBranch.tip.sha,
-        originalBranchTip: targetBranch.tip.sha,
-        commits,
-        progress: {
-          kind: 'multiCommitOperation',
-          currentCommitSummary: commits[0].summary,
-          position: 1,
-          totalCommitCount: commits.length,
-          value: 0,
-          title: `${operationKind}: commit 1 of ${commits.length} commits`,
-        },
-      })
-    )
-
     this.emitUpdate()
   }
 }

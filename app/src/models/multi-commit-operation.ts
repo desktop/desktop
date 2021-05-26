@@ -2,7 +2,6 @@ import { MultiCommitOperationConflictState } from '../lib/app-state'
 import { Branch } from './branch'
 import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { GitHubRepository } from './github-repository'
-import { ManualConflictResolution } from './manual-conflict-resolution'
 import { IDetachedHead, IUnbornRepository, IValidBranch } from './tip'
 
 /**
@@ -110,26 +109,7 @@ export type ShowProgressStep = {
 
 export type ShowConflictsStep = {
   readonly kind: MultiCommitOperationStepKind.ShowConflicts
-  readonly manualResolutions: Map<string, ManualConflictResolution>
-  /**
-   * Depending on the operation, this may be either source branch or the
-   * target branch.
-   *
-   * Also, we may not know what it is. This usually happens if Desktop is closed
-   * during an operation and the reopened and we lose some context that is
-   * stored in state.
-   */
-  readonly ourBranch?: string
-
-  /**
-   * Depending on the operation, this may be either source branch or the
-   * target branch
-   *
-   * Also, we may not know what it is. This usually happens if Desktop is closed
-   * during an operation and the reopened and we lose some context that is
-   * stored in state.
-   */
-  readonly theirBranch?: string
+  readonly conflictState: MultiCommitOperationConflictState
 }
 
 export type HideConflictsStep = {
@@ -176,7 +156,7 @@ interface ISourceBranchDetails {
   readonly sourceBranch: ICommitContext
 }
 interface ISquashDetails extends IInteractiveRebaseDetails {
-  readonly operationKind: MultiCommitOperationKind.Squash
+  readonly kind: MultiCommitOperationKind.Squash
   /**
    * The commit context of the commit squashed.
    */
@@ -184,7 +164,7 @@ interface ISquashDetails extends IInteractiveRebaseDetails {
 }
 
 interface ICherryPickDetails extends ISourceBranchDetails {
-  readonly operationKind: MultiCommitOperationKind.CherryPick
+  readonly kind: MultiCommitOperationKind.CherryPick
   /**
    * Whether a branch was created during operation.
    *
@@ -194,7 +174,7 @@ interface ICherryPickDetails extends ISourceBranchDetails {
 }
 
 interface IRebaseDetails extends ISourceBranchDetails {
-  readonly operationKind: MultiCommitOperationKind.Rebase
+  readonly kind: MultiCommitOperationKind.Rebase
 }
 
 export type MultiCommitOperationDetail =
