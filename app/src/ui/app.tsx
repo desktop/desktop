@@ -155,6 +155,7 @@ import { ConflictsDialog } from './multi-commit-operation/conflicts-dialog'
 import { DefaultCommitMessage } from '../models/commit-message'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
+import { MultiCommitOperationManager } from './multi-commit-operation/multi-commit-operation-manager'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2180,6 +2181,43 @@ export class App extends React.Component<IAppProps, IAppState> {
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
           />
         )
+      case PopupType.MultiCommitOperation: {
+        const { selectedState, emoji } = this.state
+
+        if (
+          selectedState === null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const { changesState, multiCommitOperationState } = selectedState.state
+        const { workingDirectory, conflictState } = changesState
+        if (multiCommitOperationState === null) {
+          log.warn(
+            '[App] invalid state encountered - multi commit flow should not be active when step is null'
+          )
+          return null
+        }
+
+        return (
+          <MultiCommitOperationManager
+            key="multi-commit-operation"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            state={multiCommitOperationState}
+            conflictState={conflictState}
+            emoji={emoji}
+            workingDirectory={workingDirectory}
+            askForConfirmationOnForcePush={
+              this.state.askForConfirmationOnForcePush
+            }
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openCurrentRepositoryInShell}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
