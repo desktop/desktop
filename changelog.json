@@ -1,10 +1,10 @@
 {
   "releases": {
     "2.8.3-beta1": [
-      "[New] Create branches from any commit in your repository - #3474",
+      "[New] Create a branch from any commit in your history - #3474",
       "[Added] Add VS Code, VS Code Insiders and VSCodium to supported Windows ARM64 editors - #12174. Thanks @dennisameling!",
       "[Fixed] Long emails are truncated in the Git config - #12159",
-      "[Fixed] Expanding files doesn't show duplicated lines anymore - #12237",
+      "[Fixed] Expanding files no longer shows duplicated lines - #12237",
       "[Improved] Upgrade to Electron 11.3.0 - #12279",
       "[Improved] Allow copying branch and repository names to clipboard - #12141. Thanks @tsvetilian-ty!",
       "[Improved] Allow creating a new branch from filtering by just hitting Enter - #12154. Thanks @tsvetilian-ty!"
