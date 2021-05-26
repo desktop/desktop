@@ -1,45 +1,12 @@
 import * as React from 'react'
 import { assertNever } from '../../lib/fatal-error'
-import { Repository } from '../../models/repository'
-import { WorkingDirectoryStatus } from '../../models/status'
-import { Dispatcher } from '../dispatcher'
-import { ConflictState, IMultiCommitOperationState } from '../../lib/app-state'
-
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
-
 import { Squash } from './squash'
-
-interface IMultiCommitOperationManagerProps {
-  readonly repository: Repository
-  readonly dispatcher: Dispatcher
-
-  /** The current state of the multi commit operation */
-  readonly state: IMultiCommitOperationState
-
-  /** The current state of conflicts in the app */
-  readonly conflictState: ConflictState | null
-
-  /** The emoji map for showing commit emoji's */
-  readonly emoji: Map<string, string>
-
-  /** The current state of the working directory */
-  readonly workingDirectory: WorkingDirectoryStatus
-
-  /** Whether user should be warned about force pushing */
-  readonly askForConfirmationOnForcePush: boolean
-
-  /**
-   * Callbacks for the conflict selection components to let the user jump out
-   * to their preferred editor.
-   */
-  readonly openFileInExternalEditor: (path: string) => void
-  readonly resolvedExternalEditor: string | null
-  readonly openRepositoryInShell: (repository: Repository) => void
-}
+import { IMultiCommitOperationProps } from './multi-commit-operation'
 
 /** A component for initiating and performing a rebase of the current branch. */
 export class MultiCommitOperationManager extends React.Component<
-  IMultiCommitOperationManagerProps
+  IMultiCommitOperationProps
 > {
   public render() {
     const { kind } = this.props.state.operationDetail
