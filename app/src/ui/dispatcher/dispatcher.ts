@@ -1157,7 +1157,7 @@ export class Dispatcher {
         targetBranch,
       }
 
-      this.switchToConflicts(repository, conflictsWithBranches)
+      return this.switchToConflicts(repository, conflictsWithBranches)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1168,7 +1168,7 @@ export class Dispatcher {
 
       this.statsStore.recordRebaseSuccessAfterConflicts()
 
-      this.completeRebase(
+      return this.completeRebase(
         repository,
         {
           type: BannerType.SuccessfulRebase,
@@ -1179,7 +1179,6 @@ export class Dispatcher {
         originalBranchTip
       )
     }
-    return
   }
 
   /** Switch the rebase flow to show the latest conflicts */
