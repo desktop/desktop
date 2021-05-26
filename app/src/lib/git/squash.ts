@@ -1,6 +1,6 @@
 import * as FSE from 'fs-extra'
 import { getCommits, revRange } from '.'
-import { CommitOneLine } from '../../models/commit'
+import { Commit } from '../../models/commit'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { IMultiCommitOperationProgress } from '../../models/progress'
 import { Repository } from '../../models/repository'
@@ -32,8 +32,8 @@ import { rebaseInteractive, RebaseResult } from './rebase'
  */
 export async function squash(
   repository: Repository,
-  toSquash: ReadonlyArray<CommitOneLine>,
-  squashOnto: CommitOneLine,
+  toSquash: ReadonlyArray<Commit>,
+  squashOnto: Commit,
   lastRetainedCommitRef: string | null,
   commitMessage: string,
   progressCallback?: (progress: IMultiCommitOperationProgress) => void
@@ -155,7 +155,7 @@ export async function squash(
       MultiCommitOperationKind.Squash,
       gitEditor,
       progressCallback,
-      commits
+      [...toSquash, squashOnto]
     )
   } catch (e) {
     log.error(e)
