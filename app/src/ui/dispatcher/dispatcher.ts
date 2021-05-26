@@ -2897,6 +2897,20 @@ export class Dispatcher {
   }
 
   /**
+   * Moves multi commit operation step to progress and defers to allow user to
+   * see the  progress dialog instead of suddenly appearing
+   * and disappearing again.
+   */
+  public async switchMultiCommitOperationToShowProgress(
+    repository: Repository
+  ) {
+    this.setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ShowProgress,
+    })
+    await sleep(500)
+  }
+
+  /**
    * Processes the cherry pick result.
    *  1. Completes the cherry pick with banner if successful.
    *  2. Moves cherry pick flow if conflicts.
@@ -3122,7 +3136,7 @@ export class Dispatcher {
    *  2. Moves squash flow to conflicts handler.
    *  3. Handles errors.
    */
-  private async processSquashRebaseResult(
+  public async processSquashRebaseResult(
     repository: Repository,
     cherryPickResult: RebaseResult,
     toSquash: ReadonlyArray<CommitOneLine>
