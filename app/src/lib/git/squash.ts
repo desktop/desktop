@@ -1,6 +1,8 @@
 import * as FSE from 'fs-extra'
 import { getCommits, revRange } from '.'
 import { CommitOneLine } from '../../models/commit'
+import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
+import { IMultiCommitOperationProgress } from '../../models/progress'
 import { Repository } from '../../models/repository'
 import { getTempFilePath } from '../file-system'
 import { rebaseInteractive, RebaseResult } from './rebase'
@@ -33,7 +35,8 @@ export async function squash(
   toSquash: ReadonlyArray<CommitOneLine>,
   squashOnto: CommitOneLine,
   lastRetainedCommitRef: string | null,
-  commitMessage: string
+  commitMessage: string,
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void
 ): Promise<RebaseResult> {
   let messagePath, todoPath
   let result: RebaseResult
@@ -149,9 +152,10 @@ export async function squash(
       repository,
       todoPath,
       lastRetainedCommitRef,
-      'squash',
-      gitEditor
-      // TODO: add progress
+      MultiCommitOperationKind.Squash,
+      gitEditor,
+      progressCallback,
+      commits
     )
   } catch (e) {
     log.error(e)

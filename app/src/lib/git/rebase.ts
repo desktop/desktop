@@ -5,18 +5,14 @@ import { GitError } from 'dugite'
 import byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import {
-  RebaseInternalState,
-  RebaseProgressOptions,
-  GitRebaseProgress,
-} from '../../models/rebase'
-import { IRebaseProgress } from '../../models/progress'
+import { RebaseInternalState, RebaseProgressOptions } from '../../models/rebase'
+import { IMultiCommitOperationProgress } from '../../models/progress'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { CommitOneLine } from '../../models/commit'
+import { Commit, CommitOneLine } from '../../models/commit'
 
 import { merge } from '../merge'
 import { formatRebaseValue } from '../rebase'
@@ -32,7 +28,6 @@ import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsBetweenCommits } from './rev-list'
 import { Branch } from '../../models/branch'
-import { getCommits } from './log'
 
 /** The app-specific results from attempting to rebase a repository */
 export enum RebaseResult {
@@ -147,7 +142,7 @@ export async function getRebaseInternalState(
 export async function getRebaseSnapshot(
   repository: Repository
 ): Promise<{
-  progress: GitRebaseProgress
+  progress: IMultiCommitOperationProgress
   commits: ReadonlyArray<CommitOneLine>
 } | null> {
   const rebaseHead = await isRebaseHeadSet(repository)
@@ -239,12 +234,13 @@ export async function getRebaseSnapshot(
 
     const currentCommitSummary = hasValidCommit
       ? commits[nextCommitIndex].summary
-      : null
+      : ''
 
     return {
       progress: {
+        kind: 'multiCommitOperation',
         value,
-        rebasedCommitCount: next,
+        position: next,
         totalCommitCount: last,
         currentCommitSummary,
       },
@@ -282,7 +278,7 @@ const rebasingRe = /^Rebasing \((\d+)\/(\d+)\)$/
 class GitRebaseParser {
   public constructor(private readonly commits: ReadonlyArray<CommitOneLine>) {}
 
-  public parse(line: string): IRebaseProgress | null {
+  public parse(line: string): IMultiCommitOperationProgress | null {
     const match = rebasingRe.exec(line)
     if (match === null || match.length !== 3) {
       // Git will sometimes emit other output (for example, when it tries to
@@ -304,10 +300,9 @@ class GitRebaseParser {
     const value = formatRebaseValue(progress)
 
     return {
-      kind: 'rebase',
-      title: `Rebasing commit ${rebasedCommitCount} of ${totalCommitCount} commits`,
+      kind: 'multiCommitOperation',
       value,
-      rebasedCommitCount: rebasedCommitCount,
+      position: rebasedCommitCount,
       totalCommitCount: totalCommitCount,
       currentCommitSummary,
     }
@@ -360,7 +355,7 @@ export async function rebase(
   repository: Repository,
   baseBranch: Branch,
   targetBranch: Branch,
-  progressCallback?: (progress: IRebaseProgress) => void
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void
 ): Promise<RebaseResult> {
   const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([GitError.RebaseConflicts]),
@@ -434,7 +429,7 @@ export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
-  progressCallback?: (progress: IRebaseProgress) => void,
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void,
   gitEditor: string = ':'
 ): Promise<RebaseResult> {
   const trackedFiles = files.filter(f => {
@@ -546,9 +541,10 @@ export async function rebaseInteractive(
   repository: Repository,
   pathOfGeneratedTodo: string,
   lastRetainedCommitRef: string | null,
-  action: string = 'interactive rebase',
+  action: string = 'Interactive rebase',
   gitEditor: string = ':',
-  progressCallback?: (progress: IRebaseProgress) => void
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void,
+  commits?: ReadonlyArray<Commit>
 ): Promise<RebaseResult> {
   const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([GitError.RebaseConflicts]),
@@ -560,12 +556,8 @@ export async function rebaseInteractive(
   let options = baseOptions
 
   if (progressCallback !== undefined) {
-    const ref =
-      lastRetainedCommitRef == null ? undefined : lastRetainedCommitRef
-    const commits = await getCommits(repository, ref)
-
-    if (commits === null) {
-      log.warn(`Unable to interactively rebase if no commits in revision`)
+    if (commits === undefined) {
+      log.warn(`Unable to interactively rebase if no commits`)
       return RebaseResult.Error
     }
 

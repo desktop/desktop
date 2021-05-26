@@ -8,7 +8,6 @@ import {
   RebaseFlowStep,
   ConfirmAbortStep,
 } from '../../models/rebase-flow-step'
-import { GitRebaseProgress } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
 
 import { Dispatcher } from '../dispatcher'
@@ -19,6 +18,7 @@ import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { getResolvedFiles } from '../../lib/status'
 import { WarnForcePushDialog } from './warn-force-push-dialog'
 import { ConflictsDialog } from '../multi-commit-operation/conflicts-dialog'
+import { IMultiCommitOperationProgress } from '../../models/progress'
 
 interface IRebaseFlowProps {
   readonly repository: Repository
@@ -35,7 +35,7 @@ interface IRebaseFlowProps {
   readonly step: RebaseFlowStep
 
   /** Git progress information about the current rebase */
-  readonly progress: GitRebaseProgress | null
+  readonly progress: IMultiCommitOperationProgress | null
 
   /**
    * Track whether the user has done work to resolve conflicts as part of this
