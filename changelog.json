@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.8.2": [
+      "[New] Add support for macOS on Apple silicon devices - #9691. Thanks @dennisameling!",
+      "[Added] Thank external contributors for their work - #12137",
+      "[Fixed] Disable partial change selection in split view while whitespace changes are hidden - #12129"
+    ],
     "2.8.2-beta3": [],
     "2.8.2-beta2": [
       "[Fixed] Lists of commits, repositories or changes don't disappear after switching between apps",
