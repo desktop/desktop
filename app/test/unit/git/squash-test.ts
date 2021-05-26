@@ -8,7 +8,7 @@ import {
   getRebaseInternalState,
   RebaseResult,
 } from '../../../src/lib/git'
-import { CommitOneLine } from '../../../src/models/commit'
+import { Commit } from '../../../src/models/commit'
 import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepositoryDefaultMain } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
@@ -19,7 +19,7 @@ import { getTempFilePath } from '../../../src/lib/file-system'
 
 describe('git/cherry-pick', () => {
   let repository: Repository
-  let initialCommit: CommitOneLine
+  let initialCommit: Commit
 
   beforeEach(async () => {
     repository = await setupEmptyRepositoryDefaultMain()
@@ -308,10 +308,11 @@ describe('git/cherry-pick', () => {
     await makeSquashCommit(repository, 'first')
     const secondCommit = await makeSquashCommit(repository, 'second')
 
+    const badCommit = { ...secondCommit, sha: 'INVALID', summary: 'INVALID' }
     const result = await squash(
       repository,
       [secondCommit],
-      { sha: 'INVALID', summary: 'INVALID' },
+      badCommit,
       initialCommit.sha,
       'Test Summary\n\nTest Body'
     )
@@ -350,7 +351,7 @@ async function makeSquashCommit(
   repository: Repository,
   desc: string,
   file?: string
-): Promise<CommitOneLine> {
+): Promise<Commit> {
   file = file || desc
   const commitTree = {
     commitMessage: desc,

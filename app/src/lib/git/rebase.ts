@@ -561,7 +561,6 @@ export async function rebaseInteractive(
       return RebaseResult.Error
     }
 
-    // TODO: pass in a rebase action for parser - Rebase, Squash, etc..
     options = configureOptionsForRebase(baseOptions, {
       commits,
       progressCallback,
