@@ -63,8 +63,7 @@ export abstract class Squash extends BaseMultiCommitOperation {
     return dispatcher.processSquashRebaseResult(
       repository,
       rebaseResult,
-      commits,
-      targetBranch.name
+      commits
     )
   }
 

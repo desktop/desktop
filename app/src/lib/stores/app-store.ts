@@ -285,7 +285,6 @@ import { ILastThankYou } from '../../models/last-thank-you'
 import { squash } from '../git/squash'
 import { getTipSha } from '../tip'
 import {
-  MultiCommitOperationDetail,
   MultiCommitOperationKind,
   MultiCommitOperationStep,
   MultiCommitOperationStepKind,
@@ -5736,8 +5735,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Updates the multi commit operation conflict step state as the manual
-   * resolutions have been changed.
+   * Updates the cherry pick flow conflict step state as the manual resolutions
+   * have been changed.
    */
   private updateMultiCommitOperationStateAfterManualResolution(
     repository: Repository
@@ -5745,9 +5744,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentState = this.repositoryStateCache.get(repository)
 
     const { changesState, multiCommitOperationState } = currentState
+    const { conflictState } = changesState
 
     if (
-      changesState.conflictState === null ||
+      conflictState === null ||
       multiCommitOperationState === null ||
       multiCommitOperationState.step.kind !==
         MultiCommitOperationStepKind.ShowConflicts
@@ -5756,12 +5756,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     const { step } = multiCommitOperationState
 
-    const { manualResolutions } = changesState.conflictState
-    const conflictState = { ...step.conflictState, manualResolutions }
+    const { manualResolutions } = conflictState
     this.repositoryStateCache.updateMultiCommitOperationState(
       repository,
       () => ({
-        step: { ...step, conflictState },
+        step: { ...step, manualResolutions },
       })
     )
   }
@@ -6345,8 +6344,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _squash(
     repository: Repository,
-    toSquash: ReadonlyArray<Commit>,
-    squashOnto: Commit,
+    toSquash: ReadonlyArray<CommitOneLine>,
+    squashOnto: CommitOneLine,
     lastRetainedCommitRef: string | null,
     commitContext: ICommitContext
   ): Promise<RebaseResult> {
@@ -6419,45 +6418,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     this._setBanner(banner)
 
-    await this._loadStatus(repository)
-    const stateAfter = this.repositoryStateCache.get(repository)
-    if (stateAfter.branchesState.tip.kind === TipState.Valid) {
-      this._addRebasedBranchToForcePushList(
-        repository,
-        stateAfter.branchesState.tip,
-        tip.branch.tip.sha
-      )
-    }
-
     await this._refreshRepository(repository)
 
     return true
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _addRebasedBranchToForcePushList = (
-    repository: Repository,
-    tipWithBranch: IValidBranch,
-    beforeRebaseSha: string
-  ) => {
-    // if the commit id of the branch is unchanged, it can be excluded from
-    // this list
-    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
-      return
-    }
-
-    const currentState = this.repositoryStateCache.get(repository)
-    const { rebasedBranches } = currentState.branchesState
-
-    const updatedMap = new Map<string, string>(rebasedBranches)
-    updatedMap.set(
-      tipWithBranch.branch.nameWithoutRemote,
-      tipWithBranch.branch.tip.sha
-    )
-
-    this.repositoryStateCache.updateBranchesState(repository, () => ({
-      rebasedBranches: updatedMap,
-    }))
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6494,29 +6457,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _initializeMultiCommitOperation(
     repository: Repository,
-    operationDetail: MultiCommitOperationDetail,
+    operationKind: MultiCommitOperationKind,
     targetBranch: Branch,
     commits: ReadonlyArray<Commit>
   ): void {
-    this.repositoryStateCache.initializeMultiCommitOperationState(repository, {
-      step: {
-        kind: MultiCommitOperationStepKind.ShowProgress,
-      },
-      operationDetail,
-      progress: {
-        kind: 'multiCommitOperation',
-        currentCommitSummary: commits[0].summary,
-        position: 1,
-        totalCommitCount: commits.length,
-        value: 0,
-      },
-      userHasResolvedConflicts: false,
-      commits,
-      currentTip: targetBranch.tip.sha,
-      originalBranchTip: targetBranch.tip.sha,
-      targetBranch,
-    })
-
     this.emitUpdate()
   }
 }
