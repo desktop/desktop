@@ -14,6 +14,7 @@ import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
+import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -35,6 +36,9 @@ interface ISideBySideDiffRowProps {
    * Whether to display the rows side by side.
    */
   readonly showSideBySideDiff: boolean
+
+  /** Whether or not whitespace changes are hidden. */
+  readonly hideWhitespaceInDiff: boolean
 
   /**
    * The index of the row in the displayed diff.
@@ -326,7 +330,7 @@ export class SideBySideDiffRow extends React.Component<
 
     return (
       <div
-        className="hunk-expansion-handle selectable"
+        className="hunk-expansion-handle selectable hoverable"
         title={elementInfo.title}
         onClick={elementInfo.handler}
         onContextMenu={this.props.onContextMenuExpandHunk}
@@ -362,9 +366,13 @@ export class SideBySideDiffRow extends React.Component<
       return null
     }
 
+    const classes = classNames('hunk-handle', {
+      hoverable: !this.props.hideWhitespaceInDiff,
+    })
+
     return (
       <div
-        className="hunk-handle"
+        className={classes}
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
@@ -399,8 +407,12 @@ export class SideBySideDiffRow extends React.Component<
       <div
         className={classNames('line-number', 'selectable', {
           'line-selected': isSelected,
+          hoverable: !this.props.hideWhitespaceInDiff,
           hover: this.props.isHunkHovered,
         })}
+        title={
+          this.props.hideWhitespaceInDiff ? HideWhitespaceWarning : undefined
+        }
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
@@ -473,7 +485,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseDownLineNumber = (evt: React.MouseEvent) => {
-    if (evt.buttons === 2) {
+    if (evt.buttons === 2 || this.props.hideWhitespaceInDiff) {
       return
     }
 
@@ -486,6 +498,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     const data = this.getDiffData(evt.currentTarget)
     const column = this.getDiffColumn(evt.currentTarget)
 
@@ -495,12 +511,20 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
     }
   }
 
   private onMouseLeaveHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
@@ -511,6 +535,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onClickHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     // Since the hunk handler lies between the previous and the next columns,
     // when clicking on it on modified lines we cannot know if we should
     // use the state of the previous or the next line to know whether we should
@@ -525,6 +553,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onContextMenuLineNumber = (evt: React.MouseEvent) => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     const data = this.getDiffData(evt.currentTarget)
     if (data !== null && data.diffLineNumber !== null) {
       this.props.onContextMenuLine(data.diffLineNumber)
@@ -532,6 +564,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onContextMenuHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     if ('hunkStartLine' in this.props.row) {
       this.props.onContextMenuHunk(this.props.row.hunkStartLine)
     }

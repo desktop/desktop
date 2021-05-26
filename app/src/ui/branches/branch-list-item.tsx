@@ -1,3 +1,4 @@
+import { clipboard } from 'electron'
 import * as React from 'react'
 import moment from 'moment'
 
@@ -8,6 +9,8 @@ import { HighlightText } from '../lib/highlight-text'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { String } from 'aws-sdk/clients/apigateway'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType, DropTargetType } from '../../models/drag-drop'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -34,15 +37,6 @@ interface IBranchListItemProps {
 
   /** When a drag element has landed on the current branch */
   readonly onDropOntoCurrentBranch?: () => void
-
-  /** Whether something is being dragged */
-  readonly isSomethingBeingDragged?: boolean
-
-  /** When a drag element enters a branch */
-  readonly onDragEnterBranch?: (branchName: String) => void
-
-  /** When a drag element leaves a branch */
-  readonly onDragLeaveBranch?: () => void
 }
 
 /** The branch component. */
@@ -71,6 +65,13 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       })
     }
 
+    items.push({
+      label: __DARWIN__ ? 'Copy Branch Name' : 'Copy branch name',
+      action: () => clipboard.writeText(name),
+    })
+
+    items.push({ type: 'separator' })
+
     if (onDeleteBranch !== undefined) {
       items.push({
         label: 'Delete…',
@@ -82,18 +83,17 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   private onMouseEnter = () => {
-    if (this.props.isSomethingBeingDragged) {
-      if (this.props.onDragEnterBranch !== undefined) {
-        this.props.onDragEnterBranch(this.props.name)
-      }
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      dragAndDropManager.emitEnterDropTarget({
+        type: DropTargetType.Branch,
+        branchName: this.props.name,
+      })
     }
   }
 
   private onMouseLeave = () => {
-    if (this.props.isSomethingBeingDragged) {
-      if (this.props.onDragLeaveBranch !== undefined) {
-        this.props.onDragLeaveBranch()
-      }
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      dragAndDropManager.emitLeaveDropTarget()
     }
   }
 
@@ -104,6 +104,10 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       name,
       isCurrentBranch,
     } = this.props
+
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      return
+    }
 
     if (onDropOntoBranch !== undefined && !isCurrentBranch) {
       onDropOntoBranch(name)

@@ -52,15 +52,15 @@ import {
   WorkingDirectoryStatus,
   AppFileStatusKind,
 } from '../../models/status'
-import { TipState, tipEquals } from '../../models/tip'
+import { TipState, tipEquals, IValidBranch } from '../../models/tip'
 import { ICommitMessage } from '../../models/commit-message'
 import {
   Progress,
   ICheckoutProgress,
   IFetchProgress,
   IRevertProgress,
-  IRebaseProgress,
   ICherryPickProgress,
+  IMultiCommitOperationProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
@@ -209,6 +209,8 @@ import {
   getNumberArray,
   setNumberArray,
   getEnum,
+  getObject,
+  setObject,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -246,7 +248,6 @@ import {
 } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
-import { enableProgressBarOnIcon } from '../feature-flag'
 import { isBranchPushable } from '../helpers/push-control'
 import {
   findAssociatedPullRequest,
@@ -279,7 +280,16 @@ import {
   getCherryPickSnapshot,
   isCherryPickHeadFound,
 } from '../git/cherry-pick'
-import { DragElement } from '../../models/drag-element'
+import { DragElement } from '../../models/drag-drop'
+import { ILastThankYou } from '../../models/last-thank-you'
+import { squash } from '../git/squash'
+import { getTipSha } from '../tip'
+import {
+  MultiCommitOperationDetail,
+  MultiCommitOperationKind,
+  MultiCommitOperationStep,
+  MultiCommitOperationStepKind,
+} from '../../models/multi-commit-operation'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -340,6 +350,7 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
+const lastThankYouKey = 'version-and-users-of-last-thank-you'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -449,6 +460,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private hasShownCherryPickIntro: boolean = false
 
   private currentDragElement: DragElement | null = null
+  private lastThankYou: ILastThankYou | undefined
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -801,6 +813,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       hasShownCherryPickIntro: this.hasShownCherryPickIntro,
       currentDragElement: this.currentDragElement,
+      lastThankYou: this.lastThankYou,
     }
   }
 
@@ -1772,6 +1785,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, false)
+    this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
     this.emitUpdateNow()
 
@@ -1943,6 +1957,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRebaseFlowConflictsIfFound(repository)
     this.updateCherryPickFlowConflictsIfFound(repository)
+    this.updateMultiCommitOperationConflictsIfFound(repository)
 
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository)
@@ -2017,9 +2032,50 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /**
+   * Push changes from latest conflicts into current multi step operation step, if needed
+   *  - i.e. - multiple instance of running in to conflicts
+   */
+  private updateMultiCommitOperationConflictsIfFound(repository: Repository) {
+    const {
+      changesState,
+      multiCommitOperationState,
+    } = this.repositoryStateCache.get(repository)
+    const { conflictState } = changesState
+
+    if (conflictState === null || multiCommitOperationState === null) {
+      return
+    }
+
+    const { step } = multiCommitOperationState
+    if (step.kind !== MultiCommitOperationStepKind.ShowConflicts) {
+      return
+    }
+
+    const { manualResolutions } = conflictState
+
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        step: { ...step, manualResolutions },
+      })
+    )
+
+    if (isRebaseConflictState(conflictState)) {
+      const { currentTip } = conflictState
+      this.repositoryStateCache.updateMultiCommitOperationState(
+        repository,
+        () => ({ currentTip })
+      )
+    }
+  }
+
   private async _triggerConflictsFlow(repository: Repository) {
     const state = this.repositoryStateCache.get(repository)
-    const { conflictState } = state.changesState
+    const {
+      changesState: { conflictState },
+      multiCommitOperationState,
+    } = state
 
     if (conflictState === null) {
       this.clearConflictsFlowVisuals(state)
@@ -2029,7 +2085,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (isMergeConflictState(conflictState)) {
       await this.showMergeConflictsDialog(repository, conflictState)
     } else if (isRebaseConflictState(conflictState)) {
-      await this.showRebaseConflictsDialog(repository, conflictState)
+      // TODO: This will likely get refactored to a showConflictsDialog method
+      if (
+        multiCommitOperationState === null ||
+        multiCommitOperationState.operationDetail.kind !==
+          MultiCommitOperationKind.Squash
+      ) {
+        await this.showRebaseConflictsDialog(repository, conflictState)
+      }
     } else if (isCherryPickConflictState(conflictState)) {
       await this.showCherryPickConflictsDialog(repository, conflictState)
     } else {
@@ -3563,13 +3626,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       pushPullFetchProgress,
     }))
-    if (enableProgressBarOnIcon()) {
-      if (pushPullFetchProgress !== null) {
-        remote.getCurrentWindow().setProgressBar(pushPullFetchProgress.value)
-      } else {
-        remote.getCurrentWindow().setProgressBar(-1)
-      }
-    }
     if (this.selectedRepository === repository) {
       this.emitUpdate()
     }
@@ -4077,7 +4133,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
+    const currentState = this.repositoryStateCache.get(repository)
+    const { changesState } = currentState
+    const isWorkingDirectoryClean =
+      changesState.workingDirectory.files.length === 0
+
     await gitStore.undoCommit(commit)
+
+    this.statsStore.recordCommitUndone(isWorkingDirectoryClean)
 
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
@@ -4387,9 +4450,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return {
         progress: {
+          kind: 'multiCommitOperation',
           value: formatRebaseValue(0),
-          rebasedCommitCount: 0,
-          currentCommitSummary: firstCommitSummary,
+          position: 0,
+          currentCommitSummary:
+            firstCommitSummary !== null ? firstCommitSummary : '',
           totalCommitCount: commits.length,
         },
         commits,
@@ -4448,7 +4513,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<RebaseResult> {
-    const progressCallback = (progress: IRebaseProgress) => {
+    const progressCallback = (progress: IMultiCommitOperationProgress) => {
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress,
       }))
@@ -4486,7 +4551,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<RebaseResult> {
-    const progressCallback = (progress: IRebaseProgress) => {
+    const progressCallback = (progress: IMultiCommitOperationProgress) => {
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress,
       }))
@@ -5615,6 +5680,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRebaseStateAfterManualResolution(repository)
     this.updateCherryPickStateAfterManualResolution(repository)
+    this.updateMultiCommitOperationStateAfterManualResolution(repository)
 
     this.emitUpdate()
   }
@@ -5667,6 +5733,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       step: { ...step, conflictState },
     }))
+  }
+
+  /**
+   * Updates the multi commit operation conflict step state as the manual
+   * resolutions have been changed.
+   */
+  private updateMultiCommitOperationStateAfterManualResolution(
+    repository: Repository
+  ): void {
+    const currentState = this.repositoryStateCache.get(repository)
+
+    const { changesState, multiCommitOperationState } = currentState
+
+    if (
+      changesState.conflictState === null ||
+      multiCommitOperationState === null ||
+      multiCommitOperationState.step.kind !==
+        MultiCommitOperationStepKind.ShowConflicts
+    ) {
+      return
+    }
+    const { step } = multiCommitOperationState
+
+    const { manualResolutions } = changesState.conflictState
+    const conflictState = { ...step.conflictState, manualResolutions }
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        step: { ...step, conflictState },
+      })
+    )
   }
 
   private async createStashAndDropPreviousEntry(
@@ -5877,7 +5974,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return {
         progress: {
           kind: 'cherryPick',
-          title: `Cherry-picking commit 1 of ${commits.length} commits`,
           value: 0,
           position: 1,
           totalCommitCount: commits.length,
@@ -6223,6 +6319,205 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch
   ): Promise<IAheadBehind | null> {
     return getBranchAheadBehind(repository, branch)
+  }
+
+  public _setLastThankYou(lastThankYou: ILastThankYou) {
+    // don't update if same length and same version (assumption
+    // is that update will be either adding a user or updating version)
+    const sameVersion =
+      this.lastThankYou !== undefined &&
+      this.lastThankYou.version === lastThankYou.version
+
+    const sameNumCheckedUsers =
+      this.lastThankYou !== undefined &&
+      this.lastThankYou.checkedUsers.length === lastThankYou.checkedUsers.length
+
+    if (sameVersion && sameNumCheckedUsers) {
+      return
+    }
+
+    setObject(lastThankYouKey, lastThankYou)
+    this.lastThankYou = lastThankYou
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _squash(
+    repository: Repository,
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string | null,
+    commitContext: ICommitContext
+  ): Promise<RebaseResult> {
+    if (toSquash.length === 0) {
+      log.error('[_squash] - Unable to squash. No commits provided.')
+      return RebaseResult.Error
+    }
+
+    const progressCallback = (progress: IMultiCommitOperationProgress) => {
+      this.repositoryStateCache.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          progress,
+        })
+      )
+
+      this.emitUpdate()
+    }
+
+    const commitMessage = await formatCommitMessage(repository, commitContext)
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      squash(
+        repository,
+        toSquash,
+        squashOnto,
+        lastRetainedCommitRef,
+        commitMessage,
+        progressCallback
+      )
+    )
+
+    return result || RebaseResult.Error
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _undoSquash(
+    repository: Repository,
+    commitsCount: number
+  ): Promise<boolean> {
+    const {
+      branchesState,
+      squashState: { undoSha, squashBranchName },
+    } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid || tip.branch.name !== squashBranchName) {
+      log.error(
+        '[undoSquash] - Could not undo squash.  User no longer on branch the squash occurred on.'
+      )
+      return false
+    }
+
+    if (undoSha === null) {
+      log.error('[undoSquash] - Could not determine undo sha')
+      return false
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      reset(repository, GitResetMode.Hard, undoSha)
+    )
+
+    if (result !== true) {
+      return false
+    }
+
+    const banner: Banner = {
+      type: BannerType.SquashUndone,
+      commitsCount,
+    }
+    this._setBanner(banner)
+
+    await this._loadStatus(repository)
+    const stateAfter = this.repositoryStateCache.get(repository)
+    if (stateAfter.branchesState.tip.kind === TipState.Valid) {
+      this._addRebasedBranchToForcePushList(
+        repository,
+        stateAfter.branchesState.tip,
+        tip.branch.tip.sha
+      )
+    }
+
+    await this._refreshRepository(repository)
+
+    return true
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _addRebasedBranchToForcePushList = (
+    repository: Repository,
+    tipWithBranch: IValidBranch,
+    beforeRebaseSha: string
+  ) => {
+    // if the commit id of the branch is unchanged, it can be excluded from
+    // this list
+    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
+      return
+    }
+
+    const currentState = this.repositoryStateCache.get(repository)
+    const { rebasedBranches } = currentState.branchesState
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.set(
+      tipWithBranch.branch.nameWithoutRemote,
+      tipWithBranch.branch.tip.sha
+    )
+
+    this.repositoryStateCache.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setSquashUndoState(repository: Repository, tip: IValidBranch): void {
+    // An update is not emitted here because there is no need
+    // to trigger a re-render at this point. (storing for later)
+    this.repositoryStateCache.updateSquashState(repository, () => ({
+      undoSha: getTipSha(tip),
+      squashBranchName: tip.branch.name,
+    }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setMultiCommitOperationStep(
+    repository: Repository,
+    step: MultiCommitOperationStep
+  ): Promise<void> {
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        step,
+      })
+    )
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _endMultiCommitOperation(repository: Repository): void {
+    this.repositoryStateCache.clearMultiCommitOperationState(repository)
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _initializeMultiCommitOperation(
+    repository: Repository,
+    operationDetail: MultiCommitOperationDetail,
+    targetBranch: Branch,
+    commits: ReadonlyArray<Commit>
+  ): void {
+    this.repositoryStateCache.initializeMultiCommitOperationState(repository, {
+      step: {
+        kind: MultiCommitOperationStepKind.ShowProgress,
+      },
+      operationDetail,
+      progress: {
+        kind: 'multiCommitOperation',
+        currentCommitSummary: commits[0].summary,
+        position: 1,
+        totalCommitCount: commits.length,
+        value: 0,
+      },
+      userHasResolvedConflicts: false,
+      commits,
+      currentTip: targetBranch.tip.sha,
+      originalBranchTip: targetBranch.tip.sha,
+      targetBranch,
+    })
+
+    this.emitUpdate()
   }
 }
 

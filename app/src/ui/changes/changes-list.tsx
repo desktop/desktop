@@ -682,6 +682,8 @@ export class ChangesList extends React.Component<
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+        persistCoAuthors={true}
+        persistCommitMessage={true}
       />
     )
   }

@@ -21,6 +21,7 @@ import {
   ICheckoutProgress,
   ICloneProgress,
   ICherryPickProgress,
+  IMultiCommitOperationProgress,
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
@@ -33,13 +34,17 @@ import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { CherryPickFlowStep } from '../models/cherry-pick'
-import { DragElement } from '../models/drag-element'
+import { DragElement } from '../models/drag-drop'
+import { ILastThankYou } from '../models/last-thank-you'
+import {
+  MultiCommitOperationDetail,
+  MultiCommitOperationStep,
+} from '../models/multi-commit-operation'
 
 export enum SelectionType {
   Repository,
@@ -269,6 +274,12 @@ export interface IAppState {
    * Whether or not the user has been introduced to the cherry pick feature
    */
   readonly hasShownCherryPickIntro: boolean
+
+  /**
+   * Record of what logged in users have been checked to see if thank you is in
+   * order for external contributions in latest release.
+   */
+  readonly lastThankYou: ILastThankYou | undefined
 }
 
 export enum FoldoutType {
@@ -456,6 +467,13 @@ export interface IRepositoryState {
 
   /** State associated with a cherry pick being performed */
   readonly cherryPickState: ICherryPickState
+
+  /** State associated with a squash operation */
+  readonly squashState: ISquashState
+
+  /** State associated with a multi commit operation such as rebase,
+   * cherry-pick, squash, reorder... */
+  readonly multiCommitOperationState: IMultiCommitOperationState | null
 }
 
 export interface IBranchesState {
@@ -529,7 +547,7 @@ export interface IRebaseState {
    * This will be set to `null` when no base branch has been selected to
    * initiate the rebase.
    */
-  readonly progress: GitRebaseProgress | null
+  readonly progress: IMultiCommitOperationProgress | null
 
   /**
    * The known range of commits that will be applied to the repository
@@ -787,6 +805,23 @@ export interface ICherryPickState {
   readonly branchCreated: boolean
 }
 
+/** State associated with a cherry pick being performed on a repository */
+export interface ISquashState {
+  /**
+   * The sha of the tip before squash was initiated.
+   *
+   * This will be set to null if no squash has been initiated.
+   */
+  readonly undoSha: string | null
+
+  /**
+   * The name of the branch the squash operation applied to
+   *
+   * This will be set to null if no squash has been initiated.
+   */
+  readonly squashBranchName: string | null
+}
+
 /**
  * Stores information about a cherry pick conflict when it occurs
  */
@@ -810,4 +845,95 @@ export function isCherryPickConflictState(
   conflictStatus: ConflictState
 ): conflictStatus is CherryPickConflictState {
   return conflictStatus.kind === 'cherryPick'
+}
+
+/**
+ * Tracks the state of the app during a multi commit operation such as rebase,
+ * cherry-picking, and interactive rebase (squashing, reordering).
+ */
+export interface IMultiCommitOperationState {
+  /**
+   * The current step of the operation the user is at.
+   * Examples: ChooseBranchStep, ChooseBranchStep, ShowConflictsStep, etc.
+   */
+  readonly step: MultiCommitOperationStep
+
+  /**
+   * This hold properties specific to the operation.
+   */
+  readonly operationDetail: MultiCommitOperationDetail
+  /**
+   * The underlying parsed Git information associated with the progress of the
+   * current operation.
+   *
+   * Example: During cherry-picking, after each commit this progress will be
+   * updated to reflect the next commit in the list to cherry-pick.
+   */
+  readonly progress: IMultiCommitOperationProgress
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * operation, and therefore, should be warned on aborting the operation.
+   */
+  readonly userHasResolvedConflicts: boolean
+
+  /**
+   * Array of commits used during the operation.
+   */
+  readonly commits: ReadonlyArray<Commit>
+
+  /**
+   * This is the commit sha of the HEAD of the in-flight operation used to compare
+   * the state of the after an operation to a previous state.
+   */
+  readonly currentTip: string
+
+  /**
+   * The commit id of the tip of the branch user is modifying in the operation.
+   *
+   * Uses:
+   *  - Cherry-picking = tip of target branch before cherry-pick, used to undo cherry-pick
+   *  - Rebasing = tip of current branch before rebase, used enable force pushing after rebase complete.
+   *  - Interactive Rebasing (Squash, Reorder) = tip of current branch, used for force pushing and undoing
+   */
+  readonly originalBranchTip: string
+
+  /**
+   * The branch that is being modified during the operation.
+   *
+   * - Cherry-pick = the branch chosen to copy commits to.
+   * - Rebase = the current branch the user is on.
+   * - Squash = the current branch the user is on.
+   */
+  readonly targetBranch: Branch
+}
+
+export type MultiCommitOperationConflictState = {
+  readonly kind: 'multiCommitOperation'
+
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the operation
+   */
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+
+  /**
+   * Depending on the operation, this may be either source branch or the
+   * target branch.
+   *
+   * Also, we may not know what it is. This usually happens if Desktop is closed
+   * during an operation and the reopened and we lose some context that is
+   * stored in state.
+   */
+  readonly ourBranch?: string
+
+  /**
+   * Depending on the operation, this may be either source branch or the
+   * target branch
+   *
+   * Also, we may not know what it is. This usually happens if Desktop is closed
+   * during an operation and the reopened and we lose some context that is
+   * stored in state.
+   */
+  readonly theirBranch?: string
 }

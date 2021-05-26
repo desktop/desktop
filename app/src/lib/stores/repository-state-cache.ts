@@ -19,6 +19,8 @@ import {
   IRebaseState,
   ChangesSelectionKind,
   ICherryPickState,
+  ISquashState,
+  IMultiCommitOperationState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -113,6 +115,54 @@ export class RepositoryStateCache {
       return { cherryPickState: newState }
     })
   }
+
+  public updateSquashState<K extends keyof ISquashState>(
+    repository: Repository,
+    fn: (state: ISquashState) => Pick<ISquashState, K>
+  ) {
+    this.update(repository, state => {
+      const { squashState } = state
+      const newState = merge(squashState, fn(squashState))
+      return { squashState: newState }
+    })
+  }
+
+  public updateMultiCommitOperationState<
+    K extends keyof IMultiCommitOperationState
+  >(
+    repository: Repository,
+    fn: (
+      state: IMultiCommitOperationState
+    ) => Pick<IMultiCommitOperationState, K>
+  ) {
+    this.update(repository, state => {
+      const { multiCommitOperationState } = state
+      if (multiCommitOperationState === null) {
+        throw new Error('Cannot update a null state.')
+      }
+
+      const newState = merge(
+        multiCommitOperationState,
+        fn(multiCommitOperationState)
+      )
+      return { multiCommitOperationState: newState }
+    })
+  }
+
+  public initializeMultiCommitOperationState(
+    repository: Repository,
+    multiCommitOperationState: IMultiCommitOperationState
+  ) {
+    this.update(repository, () => {
+      return { multiCommitOperationState }
+    })
+  }
+
+  public clearMultiCommitOperationState(repository: Repository) {
+    this.update(repository, () => {
+      return { multiCommitOperationState: null }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
@@ -189,5 +239,10 @@ function getInitialRepositoryState(): IRepositoryState {
       targetBranchUndoSha: null,
       branchCreated: false,
     },
+    squashState: {
+      undoSha: null,
+      squashBranchName: null,
+    },
+    multiCommitOperationState: null,
   }
 }

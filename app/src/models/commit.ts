@@ -37,6 +37,19 @@ function extractCoAuthors(trailers: ReadonlyArray<ITrailer>) {
   return coAuthors
 }
 
+function trimCoAuthorsTrailers(
+  trailers: ReadonlyArray<ITrailer>,
+  body: string
+) {
+  let trimmedCoAuthors = body
+
+  trailers.filter(isCoAuthoredByTrailer).forEach(({ token, value }) => {
+    trimmedCoAuthors = trimmedCoAuthors.replace(`${token}: ${value}`, '')
+  })
+
+  return trimmedCoAuthors
+}
+
 /**
  * A minimal shape of data to represent a commit, for situations where the
  * application does not require the full commit metadata.
@@ -58,6 +71,11 @@ export class Commit {
    * trailers.
    */
   public readonly coAuthors: ReadonlyArray<GitAuthor>
+
+  /**
+   * The commit body after removing coauthors
+   */
+  public readonly bodyNoCoAuthors: string
 
   /**
    * A value indicating whether the author and the committer
@@ -95,5 +113,7 @@ export class Commit {
     this.authoredByCommitter =
       this.author.name === this.committer.name &&
       this.author.email === this.committer.email
+
+    this.bodyNoCoAuthors = trimCoAuthorsTrailers(trailers, body)
   }
 }

@@ -14,8 +14,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
-import { CherryPickStepKind } from '../../models/cherry-pick'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType } from '../../models/drag-drop'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -51,12 +51,6 @@ interface IBranchDropdownProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
-
-  /** When a drag element enters a branch */
-  readonly onDragEnterBranch: (branchName: string) => void
-
-  //** When a drag element leave a branch */
-  readonly onDragLeaveBranch: () => void
 }
 
 /**
@@ -82,21 +76,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        onDropOntoCurrentBranch={this.onDropOntoCurrentBranch}
-        onDragEnterBranch={this.props.onDragEnterBranch}
-        onDragLeaveBranch={this.props.onDragLeaveBranch}
-        isCherryPickInProgress={repositoryState.cherryPickState.step !== null}
       />
     )
-  }
-
-  private onDropOntoCurrentBranch = () => {
-    const { repositoryState, repository } = this.props
-    const { cherryPickState } = repositoryState
-    if (cherryPickState !== null && cherryPickState.step !== null) {
-      this.props.dispatcher.endCherryPickFlow(repository)
-      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
-    }
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
@@ -207,14 +188,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
    * that we can open the branch menu when dragging a commit over it.
    */
   private onMouseEnter = (): void => {
-    // If the cherry picking state is initiated with commits chosen, we assume
-    // the user is dragging commits. Therefore, we should open the branch
-    // menu.
-    const { cherryPickState } = this.props.repositoryState
-    if (
-      cherryPickState.step !== null &&
-      cherryPickState.step.kind === CherryPickStepKind.CommitsChosen
-    ) {
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitEnterDragZone('branch-button')
       this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
     }
