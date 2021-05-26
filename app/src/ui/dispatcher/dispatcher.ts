@@ -2898,7 +2898,7 @@ export class Dispatcher {
 
   /**
    * Moves multi commit operation step to progress and defers to allow user to
-   * see the  progress dialog instead of suddenly appearing
+   * see the progress dialog instead of suddenly appearing
    * and disappearing again.
    */
   public async switchMultiCommitOperationToShowProgress(
