@@ -155,7 +155,7 @@ import { ConflictsDialog } from './multi-commit-operation/conflicts-dialog'
 import { DefaultCommitMessage } from '../models/commit-message'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
-import { MultiCommitOperationManager } from './multi-commit-operation/multi-commit-operation-manager'
+import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2208,7 +2208,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         return (
-          <MultiCommitOperationManager
+          <MultiCommitOperation
             key="multi-commit-operation"
             repository={popup.repository}
             dispatcher={this.props.dispatcher}
