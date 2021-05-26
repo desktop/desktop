@@ -1861,11 +1861,18 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const { changesState, rebaseState } = selectedState.state
+        const {
+          changesState,
+          rebaseState,
+          multiCommitOperationState,
+        } = selectedState.state
         const { workingDirectory, conflictState } = changesState
         const { progress, step, userHasResolvedConflicts } = rebaseState
 
-        if (conflictState !== null && conflictState.kind === 'merge') {
+        if (
+          (conflictState !== null && conflictState.kind !== 'rebase') ||
+          multiCommitOperationState !== null
+        ) {
           log.warn(
             '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
           )
