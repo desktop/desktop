@@ -10,8 +10,10 @@ uses [React](https://reactjs.org/).
 
 Download the official installer for your operating system:
 
- - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) 
+ - [macOS (Apple Silicon)](https://central.github.com/deployments/desktop/desktop/latest/darwin-arm64)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
+ - [Windows (ARM64)](https://central.github.com/deployments/desktop/desktop/latest/win32-arm64)
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
