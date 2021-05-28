@@ -6,6 +6,7 @@ import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
+import { IStashEntry } from '../../models/stash-entry'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
@@ -40,6 +41,7 @@ export function buildDefaultMenu({
   isForcePushForCurrentRepository = false,
   isStashedChangesVisible = false,
   askForConfirmationWhenStashingAllChanges = true,
+  stashes = [],
 }: MenuLabelsEvent): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
 
@@ -162,6 +164,15 @@ export function buildDefaultMenu({
     ],
   })
 
+  const stashPopMenu = stashes.map(stash => {
+    return {
+      label: `On ${stash.branchName} - ${stash.name}`,
+      id: `pop-stash-${stash.stashSha}`,
+      accelerator: '',
+      click: emitStash(stash),
+    }
+  })
+
   template.push({
     label: __DARWIN__ ? 'View' : '&View',
     submenu: [
@@ -203,6 +214,14 @@ export function buildDefaultMenu({
         click: isStashedChangesVisible
           ? emit('hide-stashed-changes')
           : emit('show-stashed-changes'),
+      },
+      {
+        label: __DARWIN__ ? 'View Stash' : 'View stash',
+        id: 'view-stash',
+        accelerator: 'CmdOrCtrl+Shift+S',
+        click: emit('stash-all-changes'),
+        submenu: stashPopMenu,
+        enabled: stashes.length > 0,
       },
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
@@ -595,6 +614,16 @@ function emit(name: MenuEvent): ClickHandler {
       window.webContents.send('menu-event', { name })
     } else {
       ipcMain.emit('menu-event', { name })
+    }
+  }
+}
+
+function emitStash(stash: IStashEntry): ClickHandler {
+  return (_menuItem, window) => {
+    if (window) {
+      window.webContents.send('view-stash-menu-event', { stash })
+    } else {
+      ipcMain.emit('view-stash-menu-event', { stash })
     }
   }
 }

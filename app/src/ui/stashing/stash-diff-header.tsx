@@ -5,6 +5,8 @@ import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface IStashDiffHeaderProps {
   readonly stashEntry: IStashEntry
@@ -42,7 +44,11 @@ export class StashDiffHeader extends React.Component<
         <h3>Stashed changes</h3>
         <div className="row">
           <OkCancelButtonGroup
-            okButtonText="Restore"
+            okButtonText={
+              <>
+                Restore <Octicon symbol={OcticonSymbol.triangleDown} />{' '}
+              </>
+            }
             okButtonDisabled={isRestoring || !isWorkingTreeClean}
             onOkButtonClick={this.onRestoreClick}
             cancelButtonText="Discard"
@@ -88,11 +94,26 @@ export class StashDiffHeader extends React.Component<
     })
   }
 
-  private onRestoreClick = async () => {
+  private onRestore = async (isPop: boolean = true) => {
     const { dispatcher, repository, stashEntry } = this.props
 
     this.setState({ isRestoring: true }, () => {
-      dispatcher.popStash(repository, stashEntry)
+      dispatcher.popStash(repository, stashEntry, isPop)
     })
+  }
+
+  private onRestoreClick = () => {
+    const items: IMenuItem[] = [
+      {
+        label: 'Pop (Discard Stash After)',
+        action: () => this.onRestore(true),
+      },
+      {
+        label: 'Apply (Keep Stash After)',
+        action: () => this.onRestore(false),
+      },
+    ]
+
+    showContextualMenu(items)
   }
 }

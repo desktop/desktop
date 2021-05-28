@@ -24,7 +24,7 @@ export const DesktopStashEntryMarker = '!!GitHub_Desktop'
  */
 const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
-type StashResult = {
+export type StashResult = {
   /** The stash entries created by Desktop */
   readonly desktopEntries: ReadonlyArray<IStashEntry>
 
@@ -195,7 +195,8 @@ export async function dropDesktopStashEntry(
  */
 export async function popStashEntry(
   repository: Repository,
-  stashSha: string
+  stashSha: string,
+  isPop: boolean = true
 ): Promise<void> {
   // ignoring these git errors for now, this will change when we start
   // implementing the stash conflict flow
@@ -204,7 +205,12 @@ export async function popStashEntry(
   const stashToPop = await getStashEntryMatchingSha(repository, stashSha)
 
   if (stashToPop !== null) {
-    const args = ['stash', 'pop', '--quiet', `${stashToPop.name}`]
+    const args = [
+      'stash',
+      isPop ? 'pop' : 'apply',
+      '--quiet',
+      `${stashToPop.name}`,
+    ]
     const result = await git(args, repository.path, 'popStashEntry', {
       expectedErrors,
       successExitCodes,

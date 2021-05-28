@@ -33,3 +33,4 @@ export type MenuIDs =
   | 'compare-to-branch'
   | 'toggle-stashed-changes'
   | 'create-issue-in-repository-on-github'
+  | 'view-stash'

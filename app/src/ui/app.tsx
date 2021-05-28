@@ -156,6 +156,7 @@ import { DefaultCommitMessage } from '../models/commit-message'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
+import { IStashEntry, StashedChangesLoadStates } from '../models/stash-entry'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -258,6 +259,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
     )
 
+    ipcRenderer.on(
+      'view-stash-menu-event',
+      (event: Electron.IpcRendererEvent, { stash }: { stash: IStashEntry }) => {
+        this.showMenuStash(stash)
+      }
+    )
+
     updateStore.onDidChange(state => {
       const status = state.status
 
@@ -311,6 +319,37 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
 
     dragAndDropManager.onDragEnded(this.onDragEnd)
+  }
+
+  private async showMenuStash(stash: IStashEntry) {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return
+    }
+
+    const { repository } = selectedState
+
+    if (stash.files.kind !== StashedChangesLoadStates.Loaded) {
+      const loadedStash = await this.props.dispatcher.loadFilesForStashEntry(
+        repository,
+        stash
+      )
+      if (loadedStash == null) {
+        log.error(`Could not load stash ${stash.branchName} - ${stash.name}`)
+        return
+      }
+      stash = loadedStash
+    }
+
+    this.props.dispatcher.updateChangesStateStash(
+      selectedState.repository,
+      stash
+    )
+
+    this.showStashedChanges()
   }
 
   public componentWillUnmount() {

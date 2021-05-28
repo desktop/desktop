@@ -474,6 +474,13 @@ export interface IRepositoryState {
   /** State associated with a multi commit operation such as rebase,
    * cherry-pick, squash, reorder... */
   readonly multiCommitOperationState: IMultiCommitOperationState | null
+
+  /**
+   * Get the list of stash entries created by Desktop in the current repository
+   * using the default ordering of refs (which is LIFO ordering),
+   * as well as the total amount of stash entries.
+   */
+  readonly stashesState: Map<string, IStashEntry> | null
 }
 
 export interface IBranchesState {

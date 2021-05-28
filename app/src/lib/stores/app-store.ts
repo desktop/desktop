@@ -914,6 +914,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       tagsToPush: gitStore.tagsToPush,
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
+      stashesState: gitStore.desktopStashEntries,
     }))
 
     // _selectWorkingDirectoryFiles and _selectStashedFile will
@@ -1867,7 +1868,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const { changesState, branchesState, aheadBehind } = state
+    const { changesState, branchesState, aheadBehind, stashesState } = state
     const { defaultBranch, currentPullRequest } = branchesState
 
     const defaultBranchName =
@@ -1893,6 +1894,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       isStashedChangesVisible,
       hasCurrentPullRequest: currentPullRequest !== null,
       askForConfirmationWhenStashingAllChanges,
+      stashes: stashesState !== null ? [...stashesState.values()] : [],
     })
   }
 
@@ -2519,6 +2521,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
     this.emitUpdate()
+  }
+
+  public _updateChangesStateStash(
+    repository: Repository,
+    stashEntry: IStashEntry
+  ) {
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      stashEntry,
+    }))
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5797,10 +5808,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
+  public async _popStashEntry(
+    repository: Repository,
+    stashEntry: IStashEntry,
+    isPop: boolean
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => {
-      return popStashEntry(repository, stashEntry.stashSha)
+      return popStashEntry(repository, stashEntry.stashSha, isPop)
     })
     log.info(
       `[AppStore. _popStashEntry] popped stash with commit id ${stashEntry.stashSha}`
@@ -6518,6 +6533,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+  }
+
+  public async _loadFilesForStashEntry(
+    repository: Repository,
+    stashEntry: IStashEntry
+  ): Promise<IStashEntry | null> {
+    await this.gitStoreCache.get(repository).loadFilesForStashEntry(stashEntry)
+    const { desktopStashEntries } = this.gitStoreCache.get(repository)
+    if (desktopStashEntries === null) {
+      return null
+    }
+    await this.repositoryStateCache.update(repository, () => ({
+      stashesState: desktopStashEntries,
+    }))
+    const loadedStash = desktopStashEntries.get(stashEntry.branchName)
+    return loadedStash !== undefined ? loadedStash : null
   }
 }
 

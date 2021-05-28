@@ -244,5 +244,6 @@ function getInitialRepositoryState(): IRepositoryState {
       squashBranchName: null,
     },
     multiCommitOperationState: null,
+    stashesState: null,
   }
 }

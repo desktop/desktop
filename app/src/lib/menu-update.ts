@@ -133,6 +133,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'clone-repository',
   'about',
   'create-pull-request',
+  'view-stash',
 ]
 
 function getAllMenusDisabledBuilder(): MenuStateBuilder {
@@ -164,6 +165,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let branchIsUnborn = false
   let rebaseInProgress = false
   let branchHasStashEntry = false
+  let stashes = []
 
   // check that its a github repo and if so, that is has issues enabled
   const repoIssuesEnabled =
@@ -174,7 +176,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
 
-    const { branchesState, changesState } = selectedState.state
+    const { branchesState, changesState, stashesState } = selectedState.state
     const tip = branchesState.tip
     const defaultBranch = branchesState.defaultBranch
 
@@ -212,6 +214,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       changesState.conflictState !== null ||
       hasConflictedFiles(workingDirectory)
     hasChangedFiles = workingDirectory.files.length > 0
+    stashes = stashesState !== null ? [...stashesState.values()] : []
   }
 
   // These are IDs for menu items that are entirely _and only_
@@ -296,6 +299,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       hasChangedFiles && onBranch && !rebaseInProgress && !hasConflicts
     )
 
+    menuStateBuilder.setEnabled('view-stash', stashes.length > 0)
+
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
     menuStateBuilder.setEnabled('toggle-stashed-changes', branchHasStashEntry)
 
@@ -337,6 +342,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('compare-to-branch')
     menuStateBuilder.disable('compare-on-github')
     menuStateBuilder.disable('toggle-stashed-changes')
+    menuStateBuilder.disable('view-stash')
   }
 
   return menuStateBuilder

@@ -1,4 +1,5 @@
 import { Shell } from '../lib/shells'
+import { IStashEntry } from './stash-entry'
 
 export type MenuLabelsEvent = {
   /**
@@ -55,4 +56,9 @@ export type MenuLabelsEvent = {
    * their existing stash or not.
    */
   readonly askForConfirmationWhenStashingAllChanges?: boolean
+
+  /**
+   * List of stash entries created by Desktop in current repository
+   */
+  readonly stashes?: ReadonlyArray<IStashEntry>
 }
