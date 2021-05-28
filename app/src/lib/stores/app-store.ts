@@ -4090,7 +4090,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _clone(
     url: string,
     path: string,
-    options?: { branch?: string; defaultBranch?: string }
+    options?: { blobless?: boolean; branch?: string; defaultBranch?: string }
   ): {
     promise: Promise<boolean>
     repository: CloningRepository
@@ -4099,7 +4099,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const promise = this.cloningRepositoriesStore.clone(url, path, {
       ...options,
       account,
-      blobless: true, // FIXME: Add a setting, don't hardcode this!!!
     })
     const repository = this.cloningRepositoriesStore.repositories.find(
       r => r.url === url && r.path === path

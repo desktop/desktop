@@ -50,10 +50,21 @@
 .dialog-content {
   &.clone-github-repository-content {
     padding: 0;
+
+    .fast-clone-row {
+      padding-top: var(--spacing);
+      padding-left: var(--spacing-double);
+      padding-right: var(--spacing-double);
+      padding-bottom: var(--spacing-double);
+    }
   }
 
   &.clone-generic-repository-content {
     padding: var(--spacing-double);
+
+    .fast-clone-row {
+      padding-top: var(--spacing);
+    }
   }
 }
 
@@ -63,5 +74,6 @@
   .local-path-field {
     border-top: var(--base-border);
     padding: var(--spacing-double);
+    padding-bottom: 0;
   }
 }

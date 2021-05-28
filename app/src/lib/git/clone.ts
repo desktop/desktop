@@ -44,7 +44,7 @@ export async function clone(
     '--recursive',
   ]
 
-  if (options.blobless) {
+  if (options.blobless === true) {
     args.push('--filter=blob:none')
   }
 

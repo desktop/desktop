@@ -8,6 +8,8 @@ import { Button } from '../lib/button'
 import { IAPIRepository } from '../../lib/api'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
 import { ClickSource } from '../lib/list'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { LinkButton } from '../lib/link-button'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -16,8 +18,14 @@ interface ICloneGithubRepositoryProps {
   /** The path to clone to. */
   readonly path: string
 
+  /** Whether or not the user wants to perform a fast clone. */
+  readonly fastClone: boolean
+
   /** Called when the destination path changes. */
   readonly onPathChanged: (path: string) => void
+
+  /** Called when the fast clone checkbox changes. */
+  readonly onFastCloneChanged: (fastClone: boolean) => void
 
   /**
    * Called when the user should be prompted to choose a destination directory.
@@ -109,7 +117,31 @@ export class CloneGithubRepository extends React.PureComponent<
           />
           <Button onClick={this.props.onChooseDirectory}>Choose…</Button>
         </Row>
+        <Row className="fast-clone-row">
+          <Checkbox
+            value={this.props.fastClone ? CheckboxValue.On : CheckboxValue.Off}
+            onChange={this.onFastCloneChange}
+            label={this.renderFastCloneLabel()}
+          />
+        </Row>
       </DialogContent>
     )
+  }
+
+  private renderFastCloneLabel() {
+    return (
+      <span>
+        {__DARWIN__ ? 'Blobless Clone' : 'Blobless clone'}
+        {' (faster, '}
+        <LinkButton uri="https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/">
+          learn more
+        </LinkButton>
+        {')'}
+      </span>
+    )
+  }
+
+  private onFastCloneChange = (event: React.FormEvent<HTMLInputElement>) => {
+    this.props.onFastCloneChanged(event.currentTarget.checked)
   }
 }

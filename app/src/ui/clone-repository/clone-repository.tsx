@@ -119,6 +119,9 @@ interface IBaseTabState {
 
   /** The user-entered URL or `owner/name` shortcut. */
   readonly url: string
+
+  /** Whether or not the user wants to perform a fast clone. */
+  readonly fastClone: boolean
 }
 
 interface IUrlTabState extends IBaseTabState {
@@ -159,6 +162,7 @@ export class CloneRepository extends React.Component<
       lastParsedIdentifier: null,
       path: defaultDirectory,
       url: this.props.initialURL || '',
+      fastClone: false,
     }
 
     this.state = {
@@ -267,6 +271,10 @@ export class CloneRepository extends React.Component<
     this.setSelectedTabState({ path }, this.validatePath)
   }
 
+  private onFastCloneChanged = (fastClone: boolean) => {
+    this.setSelectedTabState({ fastClone })
+  }
+
   private renderActiveTab() {
     const tab = this.props.selectedTab
 
@@ -277,9 +285,11 @@ export class CloneRepository extends React.Component<
           <CloneGenericRepository
             path={tabState.path}
             url={tabState.url}
+            fastClone={tabState.fastClone}
             onPathChanged={this.onPathChanged}
             onUrlChanged={this.updateUrl}
             onChooseDirectory={this.onChooseDirectory}
+            onFastCloneChanged={this.onFastCloneChanged}
           />
         )
 
@@ -299,10 +309,12 @@ export class CloneRepository extends React.Component<
           return (
             <CloneGithubRepository
               path={tabState.path}
+              fastClone={tabState.fastClone}
               account={account}
               selectedItem={tabState.selectedItem}
               onSelectionChanged={this.onSelectionChanged}
               onPathChanged={this.onPathChanged}
+              onFastCloneChanged={this.onFastCloneChanged}
               onChooseDirectory={this.onChooseDirectory}
               repositories={repositories}
               loading={loading}
@@ -663,7 +675,7 @@ export class CloneRepository extends React.Component<
     this.setState({ loading: true })
 
     const cloneInfo = await this.resolveCloneInfo()
-    const { path } = this.getSelectedTabState()
+    const { path, fastClone } = this.getSelectedTabState()
 
     if (!cloneInfo) {
       const error = new Error(
@@ -677,7 +689,7 @@ export class CloneRepository extends React.Component<
     const { url, defaultBranch } = cloneInfo
 
     try {
-      this.cloneImpl(url.trim(), path, defaultBranch)
+      this.cloneImpl(url.trim(), path, fastClone, defaultBranch)
     } catch (e) {
       log.error(`CloneRepository: clone failed to complete to ${path}`, e)
       this.setState({ loading: false })
@@ -685,8 +697,13 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private cloneImpl(url: string, path: string, defaultBranch?: string) {
-    this.props.dispatcher.clone(url, path, { defaultBranch })
+  private cloneImpl(
+    url: string,
+    path: string,
+    blobless: boolean,
+    defaultBranch?: string
+  ) {
+    this.props.dispatcher.clone(url, path, { defaultBranch, blobless })
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))

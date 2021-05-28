@@ -4,6 +4,8 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { Ref } from '../lib/ref'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { LinkButton } from '../lib/link-button'
 
 interface ICloneGenericRepositoryProps {
   /** The URL to clone. */
@@ -12,11 +14,17 @@ interface ICloneGenericRepositoryProps {
   /** The path to which the repository should be cloned. */
   readonly path: string
 
+  /** Whether or not the user wants to perform a fast clone. */
+  readonly fastClone: boolean
+
   /** Called when the destination path changes. */
   readonly onPathChanged: (path: string) => void
 
   /** Called when the URL to clone changes. */
   readonly onUrlChanged: (url: string) => void
+
+  /** Called when the fast clone checkbox changes. */
+  readonly onFastCloneChanged: (fastClone: boolean) => void
 
   /**
    * Called when the user should be prompted to choose a directory to clone to.
@@ -56,8 +64,32 @@ export class CloneGenericRepository extends React.Component<
           />
           <Button onClick={this.props.onChooseDirectory}>Choose…</Button>
         </Row>
+        <Row className="fast-clone-row">
+          <Checkbox
+            value={this.props.fastClone ? CheckboxValue.On : CheckboxValue.Off}
+            onChange={this.onFastCloneChange}
+            label={this.renderFastCloneLabel()}
+          />
+        </Row>
       </DialogContent>
     )
+  }
+
+  private renderFastCloneLabel() {
+    return (
+      <span>
+        {__DARWIN__ ? 'Blobless Clone' : 'Blobless clone'}
+        {' (faster, '}
+        <LinkButton uri="https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/">
+          learn more
+        </LinkButton>
+        {')'}
+      </span>
+    )
+  }
+
+  private onFastCloneChange = (event: React.FormEvent<HTMLInputElement>) => {
+    this.props.onFastCloneChanged(event.currentTarget.checked)
   }
 
   private onUrlChanged = (url: string) => {
