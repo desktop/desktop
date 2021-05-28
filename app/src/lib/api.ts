@@ -633,7 +633,10 @@ export class API {
     name: string,
     protocol: GitProtocol | undefined
   ): Promise<IAPIRepositoryCloneInfo | null> {
-    const response = await this.request('GET', `repos/${owner}/${name}`)
+    const response = await this.requestReloadCache(
+      'GET',
+      `repos/${owner}/${name}`
+    )
 
     if (response.status === HttpStatusCode.NotFound) {
       return null
@@ -1025,6 +1028,25 @@ export class API {
     customHeaders?: Object
   ): Promise<Response> {
     return request(this.endpoint, this.token, method, path, body, customHeaders)
+  }
+
+  /** Make an authenticated request to the client's endpoint with its token but
+   * skip checking cache while also updating cache. */
+  private requestReloadCache(
+    method: HTTPMethod,
+    path: string,
+    body?: Object,
+    customHeaders?: Object
+  ): Promise<Response> {
+    return request(
+      this.endpoint,
+      this.token,
+      method,
+      path,
+      body,
+      customHeaders,
+      true
+    )
   }
 
   /**
