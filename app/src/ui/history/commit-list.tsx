@@ -42,6 +42,8 @@ interface ICommitListProps {
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
 
+  readonly onAmendCommit?: (commit: Commit) => void
+
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 
@@ -159,6 +161,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onCherryPick={this.props.onCherryPick}
         onSquash={this.onSquash}
         onRevertCommit={this.props.onRevertCommit}
+        onAmendCommit={this.props.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
         isCherryPickInProgress={this.props.isCherryPickInProgress}

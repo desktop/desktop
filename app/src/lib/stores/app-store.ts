@@ -4199,8 +4199,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
-    const currentState = this.repositoryStateCache.get(repository)
-    const { changesState } = currentState
     const isWorkingDirectoryClean =
       changesState.workingDirectory.files.length === 0
 

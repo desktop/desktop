@@ -31,6 +31,7 @@ interface ICommitProps {
   readonly onCreateBranch?: (commit: CommitOneLine) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
+  readonly onAmendCommit?: (commit: Commit) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onRenderCommitDragElement?: (commit: Commit) => void
   readonly onRemoveDragElement?: () => void
@@ -191,6 +192,12 @@ export class CommitListItem extends React.PureComponent<
     )
   }
 
+  private onAmendCommit = () => {
+    if (this.props.onAmendCommit !== undefined) {
+      this.props.onAmendCommit(this.props.commit)
+    }
+  }
+
   private onCopySHA = () => {
     clipboard.writeText(this.props.commit.sha)
   }
@@ -273,6 +280,12 @@ export class CommitListItem extends React.PureComponent<
     items.push({
       label: 'Reset to Commit',
       enabled: this.props.isLocal,
+    })
+
+    items.push({
+      label: 'Amend Commit',
+      enabled: this.props.isLocal,
+      action: this.onAmendCommit,
     })
 
     items.push({

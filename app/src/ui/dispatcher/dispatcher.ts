@@ -762,7 +762,9 @@ export class Dispatcher {
   }
 
   /** Switch between amending the most recent commit and not. */
-  public toggleAmendingCommit(repository: Repository): Promise<void> {
+  public async toggleAmendingCommit(repository: Repository): Promise<void> {
+    await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
+
     return this.appStore._toggleAmendingCommit(repository)
   }
 

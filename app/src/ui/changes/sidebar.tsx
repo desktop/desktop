@@ -290,7 +290,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const commit = this.props.mostRecentLocalCommit
 
     if (commit && commit.tags.length === 0) {
-      this.props.dispatcher.toggleAmendingCommit(this.props.repository)
+      this.props.dispatcher.stashAndUndoCommit(this.props.repository, commit)
+      //this.props.dispatcher.toggleAmendingCommit(this.props.repository)
     }
   }
 
@@ -309,7 +310,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         >
           <UndoCommit
             isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
-            isAmending={this.props.isAmending}
             commit={commit}
             onUndo={this.onUndo}
             emoji={this.props.emoji}

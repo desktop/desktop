@@ -9,9 +9,6 @@ interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
   readonly onUndo: () => void
 
-  /** Whether there is an amend in progress. */
-  readonly isAmending: boolean
-
   /** The commit to undo. */
   readonly commit: Commit
 
@@ -50,7 +47,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
         </div>
         <div className="actions" title={title}>
           <Button size="small" disabled={disabled} onClick={this.props.onUndo}>
-            {this.props.isAmending ? 'Stop amending' : 'Amend'}
+            Undo
           </Button>
         </div>
       </div>
