@@ -82,7 +82,6 @@ class GitCherryPickParser {
 
     return {
       kind: 'cherryPick',
-      title: `Cherry-picking commit ${this.count} of ${this.commits.length} commits`,
       value: round(this.count / this.commits.length, 2),
       position: this.count,
       totalCommitCount: this.commits.length,
@@ -320,7 +319,6 @@ export async function getCherryPickSnapshot(
     return {
       progress: {
         kind: 'cherryPick',
-        title: `Cherry-picking commit 1 of 1 commits`,
         value: 1,
         position: 1,
         totalCommitCount: 1,
@@ -353,7 +351,6 @@ export async function getCherryPickSnapshot(
   return {
     progress: {
       kind: 'cherryPick',
-      title: `Cherry-picking commit ${position} of ${commits.length} commits`,
       value: round(position / commits.length, 2),
       position,
       totalCommitCount: commits.length,

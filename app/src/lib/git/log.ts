@@ -63,7 +63,7 @@ function mapStatus(
  */
 export async function getCommits(
   repository: Repository,
-  revisionRange: string,
+  revisionRange?: string,
   limit?: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
@@ -82,7 +82,13 @@ export async function getCommits(
     refs: '%D',
   })
 
-  const args = ['log', revisionRange, `--date=raw`]
+  const args = ['log']
+
+  if (revisionRange !== undefined) {
+    args.push(revisionRange)
+  }
+
+  args.push('--date=raw')
 
   if (limit !== undefined) {
     args.push(`--max-count=${limit}`)

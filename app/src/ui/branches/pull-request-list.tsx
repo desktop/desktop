@@ -19,6 +19,8 @@ import { Button } from '../lib/button'
 import { Octicon, syncClockwise } from '../octicons'
 import { FoldoutType } from '../../lib/app-state'
 import { startTimer } from '../lib/timing'
+import { DragType } from '../../models/drag-drop'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -63,9 +65,6 @@ interface IPullRequestListProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
-
-  /** Whether a cherry pick is in progress */
-  readonly isCherryPickInProgress?: boolean
 }
 
 interface IPullRequestListState {
@@ -180,14 +179,13 @@ export class PullRequestList extends React.Component<
 
   private onDropOntoPullRequest = (prNumber: number) => {
     const {
-      isCherryPickInProgress,
       repository,
       selectedPullRequest,
       dispatcher,
       pullRequests,
     } = this.props
 
-    if (!isCherryPickInProgress) {
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       return
     }
 

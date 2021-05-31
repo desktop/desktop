@@ -1,6 +1,6 @@
 @import '../mixins';
 @import 'dialogs/merge';
-@import 'dialogs/merge-conflicts';
+@import 'dialogs/conflicts';
 @import 'dialogs/rebase';
 @import 'dialogs/progress-dialog';
 @import 'dialogs/abort-merge';
@@ -16,6 +16,7 @@
 @import 'dialogs/fork-settings';
 @import 'dialogs/cherry-pick';
 @import 'dialogs/thank-you';
+@import 'dialogs/commit-message';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to

@@ -4,7 +4,7 @@ You will need to install these tools on your machine:
 
  - Node.js
  - Yarn
- - Python 2
+ - Python 3
  - Visual C++ Build Tools
 
 ## Node.js
@@ -74,16 +74,19 @@ Open a shell and run this command:
 $ python --version
 ```
 
-If you see the output `Python 2.7.x`, you're good to go!
+If you see the output `Python 3.9.x`, you're good to go!
 
 If you see an error about being unable to find `python`, that probably means you
-don't have Python installed. You can install Python 2.7 from the
+don't have Python installed. You can install Python 3.9 from the
 [Python website](https://www.python.org/downloads/windows/).
 
 **Python installation notes:**
 
- - Let Python install into the default suggested path (`c:\Python27`), otherwise
+ - Let Python install into the default suggested path (`c:\Python39`), otherwise
    you'll have to configure `node-gyp` manually to look at a different path.
+ - In case you already have or need to have Python on a different path, set the `PYTHON` environment variable or npm's `python` config key to your Python's executable path:
+
+         npm config set python "c:\path\to\python3\python.exe"
  - Ensure the **Add python.exe to Path** option is selected.
 
 ## Visual C++ Build Tools

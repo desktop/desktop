@@ -75,7 +75,7 @@
   }
 }
 
-#cherry-pick-commit-drag-element .commit,
+#commit-drag-element .commit,
 #commit-list .commit {
   display: flex;
   flex-direction: row;
@@ -158,7 +158,7 @@
     }
   }
 
-  .copy-message-label {
+  .tool-tip-contents {
     display: none;
   }
 }

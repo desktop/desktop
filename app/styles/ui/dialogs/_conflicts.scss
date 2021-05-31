@@ -1,6 +1,6 @@
 @import '../../mixins';
 
-dialog#rebase-conflicts-list {
+dialog#conflicts-dialog {
   width: 500px;
 
   .summary {
@@ -70,6 +70,10 @@ dialog#rebase-conflicts-list {
         display: flex;
         align-items: center;
         justify-content: center;
+
+        .resolve-arrow-menu {
+          line-height: 18px;
+        }
       }
 
       .green-circle:last-child {

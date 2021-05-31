@@ -16,7 +16,7 @@ interface IProgress {
    * events. For more detailed information about the progress see
    * the description field
    */
-  readonly title: string
+  readonly title?: string
 
   /**
    * An informative text for user consumption. In the case of git progress this
@@ -99,17 +99,6 @@ export interface IRevertProgress extends IProgress {
   kind: 'revert'
 }
 
-/** An object describing the progress of a rebase operation */
-export interface IRebaseProgress extends IProgress {
-  readonly kind: 'rebase'
-  /** The summary of the commit applied to the base branch */
-  readonly currentCommitSummary: string
-  /** The number of commits currently rebased onto the base branch */
-  readonly rebasedCommitCount: number
-  /** The total number of commits to rebase on top of the current branch */
-  readonly totalCommitCount: number
-}
-
 /** An object describing the progress of a cherry pick operation */
 export interface ICherryPickProgress extends IProgress {
   readonly kind: 'cherryPick'
@@ -122,6 +111,16 @@ export interface ICherryPickProgress extends IProgress {
   readonly totalCommitCount: number
 }
 
+export interface IMultiCommitOperationProgress extends IProgress {
+  readonly kind: 'multiCommitOperation'
+  /** The summary of the commit applied */
+  readonly currentCommitSummary: string
+  /** The number to signify which commit in a selection is being applied */
+  readonly position: number
+  /** The total number of commits in the operation */
+  readonly totalCommitCount: number
+}
+
 export type Progress =
   | IGenericProgress
   | ICheckoutProgress
@@ -129,5 +128,5 @@ export type Progress =
   | IPullProgress
   | IPushProgress
   | IRevertProgress
-  | IRebaseProgress
   | ICherryPickProgress
+  | IMultiCommitOperationProgress

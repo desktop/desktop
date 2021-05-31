@@ -109,12 +109,16 @@ const editors: IWindowsExternalEditor[] = [
       CurrentUserUninstallKey('{771FD6B0-FA20-440A-A002-3B3BAC16DC50}_is1'),
       // 32-bit version of VSCode (user)
       CurrentUserUninstallKey('{D628A17A-9713-46BF-8D57-E671B46A741E}_is1'),
+      // ARM64 version of VSCode (user)
+      CurrentUserUninstallKey('{D9E514E7-1A56-452D-9337-2990C0DC4310}_is1'),
       // 64-bit version of VSCode (system) - was default before user scope installation
       LocalMachineUninstallKey('{EA457B21-F73E-494C-ACAB-524FDE069978}_is1'),
       // 32-bit version of VSCode (system)
       Wow64LocalMachineUninstallKey(
         '{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1'
       ),
+      // ARM64 version of VSCode (system)
+      LocalMachineUninstallKey('{A5270FC5-65AD-483E-AC30-2C276B63D0AC}_is1'),
     ],
     executableShimPath: ['bin', 'code.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -128,12 +132,16 @@ const editors: IWindowsExternalEditor[] = [
       CurrentUserUninstallKey('{217B4C08-948D-4276-BFBB-BEE930AE5A2C}_is1'),
       // 32-bit version of VSCode (user)
       CurrentUserUninstallKey('{26F4A15E-E392-4887-8C09-7BC55712FD5B}_is1'),
+      // ARM64 version of VSCode (user)
+      CurrentUserUninstallKey('{69BD8F7B-65EB-4C6F-A14E-44CFA83712C0}_is1'),
       // 64-bit version of VSCode (system) - was default before user scope installation
       LocalMachineUninstallKey('{1287CAD5-7C8D-410D-88B9-0D1EE4A83FF2}_is1'),
       // 32-bit version of VSCode (system)
       Wow64LocalMachineUninstallKey(
         '{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1'
       ),
+      // ARM64 version of VSCode (system)
+      LocalMachineUninstallKey('{0AEDB616-9614-463B-97D7-119DD86CCA64}_is1'),
     ],
     executableShimPath: ['bin', 'code-insiders.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -147,12 +155,16 @@ const editors: IWindowsExternalEditor[] = [
       CurrentUserUninstallKey('{2E1F05D1-C245-4562-81EE-28188DB6FD17}_is1'),
       // 32-bit version of VSCodium (user)
       CurrentUserUninstallKey('{C6065F05-9603-4FC4-8101-B9781A25D88E}}_is1'),
+      // ARM64 version of VSCodium (user)
+      CurrentUserUninstallKey('{3AEBF0C8-F733-4AD4-BADE-FDB816D53D7B}_is1'),
       // 64-bit version of VSCodium (system)
       LocalMachineUninstallKey('{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}_is1'),
       // 32-bit version of VSCodium (system)
       Wow64LocalMachineUninstallKey(
         '{E34003BB-9E10-4501-8C11-BE3FAA83F23F}_is1'
       ),
+      // ARM64 version of VSCodium (system)
+      LocalMachineUninstallKey('{D1ACE434-89C5-48D1-88D3-E2991DF85475}_is1'),
     ],
     executableShimPath: ['bin', 'codium.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>

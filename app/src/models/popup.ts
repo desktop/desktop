@@ -16,6 +16,8 @@ import { Account } from '../models/account'
 import { Progress } from './progress'
 import { ITextDiff, DiffSelection } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
+import { ICommitMessage } from './commit-message'
+import { IAuthor } from './author'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -72,6 +74,8 @@ export enum PopupType {
   ChangeRepositoryAlias,
   ThankYou,
   ConfirmStashBeforeUndo,
+  CommitMessage,
+  MultiCommitOperation,
 }
 
 export type Popup =
@@ -292,4 +296,19 @@ export type Popup =
       repository: Repository
       commit: Commit
       overwrite: boolean
+    }
+  | {
+      type: PopupType.CommitMessage
+      coAuthors: ReadonlyArray<IAuthor>
+      showCoAuthoredBy: boolean
+      commitMessage: ICommitMessage | null
+      dialogTitle: string
+      dialogButtonText: string
+      prepopulateCommitSummary: boolean
+      repository: Repository
+      onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
+    }
+  | {
+      type: PopupType.MultiCommitOperation
+      repository: Repository
     }
