@@ -582,7 +582,7 @@ export class CompareSidebar extends React.Component<
     ) {
       defaultErrorHandler(
         new Error(
-          `Squashing replays all commits up to the last one required for the squash. A merge commit cannot exists among those commits.`
+          `Unable to squash. Squashing replays all commits up to the last one required for the squash. A merge commit cannot exist among those commits.`
         ),
         this.props.dispatcher
       )
