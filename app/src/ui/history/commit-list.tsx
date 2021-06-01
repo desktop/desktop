@@ -99,6 +99,9 @@ interface ICommitListProps {
 
   /** Callback to remove commit drag element */
   readonly onRemoveCommitDragElement: () => void
+
+  /** Whether squashing should be enabled on the commit list */
+  readonly disableSquashing?: boolean
 }
 
 /** A component which displays the list of commits. */
@@ -164,6 +167,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.props.onRemoveCommitDragElement}
+        disableSquashing={this.props.disableSquashing}
       />
     )
   }
