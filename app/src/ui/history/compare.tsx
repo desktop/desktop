@@ -582,7 +582,7 @@ export class CompareSidebar extends React.Component<
     ) {
       defaultErrorHandler(
         new Error(
-          `Cannot Squash: merge commit found. Squashing is an interactive rebase replaying all commits up to the last one required for the squash.`
+          `Squashing replays all commits up to the last one required for the quash. A merge commit cannot exists among those commits.`
         ),
         this.props.dispatcher
       )
