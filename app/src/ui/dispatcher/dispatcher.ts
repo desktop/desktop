@@ -1947,6 +1947,14 @@ export class Dispatcher {
           retryAction.commits,
           retryAction.sourceBranch
         )
+      case RetryActionType.Squash:
+        return this.squash(
+          retryAction.repository,
+          retryAction.toSquash,
+          retryAction.squashOnto,
+          retryAction.lastRetainedCommitRef,
+          retryAction.commitContext
+        )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -3082,7 +3090,18 @@ export class Dispatcher {
     lastRetainedCommitRef: string | null,
     commitContext: ICommitContext
   ): Promise<void> {
-    // TODO: handle uncommitted changes
+    const retry: RetryAction = {
+      type: RetryActionType.Squash,
+      repository,
+      toSquash,
+      squashOnto,
+      lastRetainedCommitRef,
+      commitContext,
+    }
+
+    if (this.appStore._checkForUncommittedChanges(repository, retry)) {
+      return
+    }
 
     const stateBefore = this.repositoryStateManager.get(repository)
     const { tip } = stateBefore.branchesState
