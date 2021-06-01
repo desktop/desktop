@@ -11,7 +11,7 @@ import {
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../dispatcher'
+import { defaultErrorHandler, Dispatcher } from '../dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
@@ -29,6 +29,7 @@ import { DragType } from '../../models/drag-drop'
 import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
+import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
@@ -556,7 +557,7 @@ export class CompareSidebar extends React.Component<
     this.props.onCherryPick(this.props.repository, commits)
   }
 
-  private onSquash = (
+  private onSquash = async (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
     lastRetainedCommitRef: string | null
@@ -572,6 +573,21 @@ export class CompareSidebar extends React.Component<
       toSquashSansSquashOnto,
       squashOnto
     )
+
+    if (
+      await doMergeCommitsExistAfterCommit(
+        this.props.repository,
+        lastRetainedCommitRef
+      )
+    ) {
+      defaultErrorHandler(
+        new Error(
+          `Cannot Squash: merge commit found. Squashing is an interactive rebase replaying all commits up to the last one required for the squash.`
+        ),
+        this.props.dispatcher
+      )
+      return
+    }
 
     this.props.dispatcher.showPopup({
       type: PopupType.CommitMessage,
