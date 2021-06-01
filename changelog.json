@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.8.3": [
+      "[Fixed] Rename a repo and then create and clone a repo with that repo's previous name now points to a new repo not the renamed one - #3855",
+      "[Fixed] Expanding files no longer shows duplicated lines - #12237",
+      "[Fixed] Long emails are truncated in the Git config - #12159",
+      "[Improved] Allow copying branch and repository names to clipboard - #12141. Thanks @tsvetilian-ty!",
+      "[Improved] Allow creating a new branch from filtering by just hitting Enter - #12154. Thanks @tsvetilian-ty!"
+    ],
     "2.8.2": [
       "[New] Add support for macOS on Apple silicon devices - #9691. Thanks @dennisameling!",
       "[Added] Thank external contributors for their work - #12137",
