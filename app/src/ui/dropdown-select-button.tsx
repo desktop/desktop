@@ -35,10 +35,11 @@ interface IDropdownSelectButtonState {
   /** The currently selected option */
   readonly selectedOption: IDropdownSelectButtonOption | null
 
-  /** The  max height of options container - calculated based on the height of
-   * the app window so that we don't get clipping and the options scroll if
-   * needed */
-  readonly optionsMaxHeight?: string
+  /**
+   * The adjusted top position of the options popover. This is calculated based
+   * on if there is enough room to show the options below the dropdown button.
+   */
+  readonly optionsPositionTop?: string
 }
 
 export class DropdownSelectButton extends React.Component<
@@ -47,6 +48,7 @@ export class DropdownSelectButton extends React.Component<
 > {
   private invokeButtonRef: HTMLButtonElement | null = null
   private optionsContainerRef: HTMLDivElement | null = null
+  private optionsOffset: number = 10
 
   public constructor(props: IDropdownSelectButtonProps) {
     super(props)
@@ -65,13 +67,13 @@ export class DropdownSelectButton extends React.Component<
     const windowHeight = window.innerHeight
     const bottomOfButton = this.invokeButtonRef.getBoundingClientRect().bottom
     const calcMaxHeight = windowHeight - bottomOfButton - 15
-    const scrollHeight = this.optionsContainerRef.scrollHeight
-    const optionsMaxHeight =
-      calcMaxHeight < scrollHeight
-        ? `${windowHeight - bottomOfButton - 15}px`
+    const heightOfOptions = this.optionsContainerRef.clientHeight
+    const optionsPositionTop =
+      calcMaxHeight < heightOfOptions
+        ? `${(heightOfOptions + this.optionsOffset) * -1}px`
         : undefined
-    if (optionsMaxHeight !== this.state.optionsMaxHeight) {
-      this.setState({ optionsMaxHeight })
+    if (optionsPositionTop !== this.state.optionsPositionTop) {
+      this.setState({ optionsPositionTop })
     }
   }
 
@@ -133,14 +135,11 @@ export class DropdownSelectButton extends React.Component<
     }
 
     const { options } = this.props
-    const { optionsMaxHeight: maxHeight } = this.state
+    const { optionsPositionTop: top } = this.state
     return (
       <div
         className="split-button-options"
-        style={{
-          maxHeight,
-          overflowY: maxHeight !== undefined ? 'scroll' : undefined,
-        }}
+        style={{ top }}
         ref={this.onOptionsContainerRef}
       >
         <ul>
