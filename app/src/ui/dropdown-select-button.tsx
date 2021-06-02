@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import React from 'react'
 import { Button } from './lib/button'
 import { Octicon, OcticonSymbol } from './octicons'
@@ -37,10 +38,10 @@ interface IDropdownSelectButtonState {
   readonly selectedOption: IDropdownSelectButtonOption | null
 
   /**
-   * The adjusted top position of the options popover. This is calculated based
+   * The adjusting position of the options popover. This is calculated based
    * on if there is enough room to show the options below the dropdown button.
    */
-  readonly optionsPositionTop?: string
+  readonly optionsPositionBottom?: string
 }
 
 export class DropdownSelectButton extends React.Component<
@@ -49,7 +50,6 @@ export class DropdownSelectButton extends React.Component<
 > {
   private invokeButtonRef: HTMLButtonElement | null = null
   private optionsContainerRef: HTMLDivElement | null = null
-  private optionsOffset: number = 10
 
   public constructor(props: IDropdownSelectButtonProps) {
     super(props)
@@ -67,14 +67,15 @@ export class DropdownSelectButton extends React.Component<
 
     const windowHeight = window.innerHeight
     const bottomOfButton = this.invokeButtonRef.getBoundingClientRect().bottom
+    const invokeButtonHeight = this.invokeButtonRef.getBoundingClientRect()
+      .height
+    // 15 pixels is just to give some padding room below it
     const calcMaxHeight = windowHeight - bottomOfButton - 15
     const heightOfOptions = this.optionsContainerRef.clientHeight
-    const optionsPositionTop =
-      calcMaxHeight < heightOfOptions
-        ? `${(heightOfOptions + this.optionsOffset) * -1}px`
-        : undefined
-    if (optionsPositionTop !== this.state.optionsPositionTop) {
-      this.setState({ optionsPositionTop })
+    const optionsPositionBottom =
+      calcMaxHeight < heightOfOptions ? `${invokeButtonHeight}px` : undefined
+    if (optionsPositionBottom !== this.state.optionsPositionBottom) {
+      this.setState({ optionsPositionBottom })
     }
   }
 
@@ -136,11 +137,13 @@ export class DropdownSelectButton extends React.Component<
     }
 
     const { options } = this.props
-    const { optionsPositionTop: top } = this.state
+    const { optionsPositionBottom: bottom } = this.state
+    const openClass = bottom !== undefined ? 'open-top' : 'open-bottom'
+    const classes = classNames('dropdown-select-button-options', openClass)
     return (
       <div
-        className="split-button-options"
-        style={{ top }}
+        className={classes}
+        style={{ bottom }}
         ref={this.onOptionsContainerRef}
       >
         <ul>
@@ -158,15 +161,25 @@ export class DropdownSelectButton extends React.Component<
 
   public render() {
     const { options, disabled } = this.props
-    const { selectedOption } = this.state
+    const {
+      selectedOption,
+      optionsPositionBottom,
+      showButtonOptions,
+    } = this.state
     if (options.length === 0 || selectedOption === null) {
       return
     }
 
+    const openClass =
+      optionsPositionBottom !== undefined ? 'open-top' : 'open-bottom'
+    const classes = classNames(
+      'dropdown-select-button',
+      showButtonOptions ? openClass : null
+    )
     // The button is type of submit so that it will trigger a form's onSubmit
     // method.
     return (
-      <div className="split-button">
+      <div className={classes}>
         <Button
           className="invoke-button"
           disabled={disabled}
