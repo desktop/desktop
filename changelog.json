@@ -3,9 +3,7 @@
     "2.8.4-beta1": [
       "[New] Squash commits in the history tab - #2507",
       "[Fixed] Remove extra space in drag & drop tooltips - #12327",
-      "[Fixed] Remove taskbar progress indicator - #9489",
-      "[Improved] Add Links to Official Apple Silicon Installers - #12306. Thanks @say25!",
-      "[Improved] Upgrade Python dependency to version 3.x - #12203. Thanks @ferenczy!"
+      "[Removed] Remove taskbar progress indicator - #9489"
     ],
     "2.8.3": [
       "[Fixed] Renamed repositories no longer clash with new repositories of the same name - #3855",
