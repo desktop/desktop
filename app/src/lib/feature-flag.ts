@@ -100,5 +100,5 @@ export function enableBranchFromCommit(): boolean {
 
 /** Should we allow squashing? */
 export function enableSquashing(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
