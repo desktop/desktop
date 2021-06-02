@@ -6390,7 +6390,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const {
       branchesState,
       squashState: { undoSha, squashBranchName },
+      changesState: { workingDirectory },
     } = this.repositoryStateCache.get(repository)
+
+    if (workingDirectory.files.length > 0) {
+      log.error(
+        '[undoSquash] - Could not undo squash. This would delete the local changes that exist on the branch.'
+      )
+      return false
+    }
+
     const { tip } = branchesState
     if (tip.kind !== TipState.Valid || tip.branch.name !== squashBranchName) {
       log.error(
