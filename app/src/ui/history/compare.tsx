@@ -251,6 +251,7 @@ export class CompareSidebar extends React.Component<
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
+        disableSquashing={formState.kind === HistoryTabMode.Compare}
       />
     )
   }

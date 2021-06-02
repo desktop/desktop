@@ -42,6 +42,7 @@ interface ICommitProps {
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
   readonly isCherryPickInProgress?: boolean
+  readonly disableSquashing?: boolean
 }
 
 interface ICommitListItemState {
@@ -76,9 +77,10 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private onMouseUp = () => {
-    const { onSquash, selectedCommits, commit } = this.props
+    const { onSquash, selectedCommits, commit, disableSquashing } = this.props
     if (
       enableSquashing() &&
+      disableSquashing !== true &&
       dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
       onSquash !== undefined &&
       // don't squash if dragging one commit and dropping onto itself
@@ -89,10 +91,11 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private onMouseEnter = () => {
-    const { selectedCommits, commit } = this.props
+    const { selectedCommits, commit, disableSquashing } = this.props
     const isSelected =
       selectedCommits.find(c => c.sha === commit.sha) !== undefined
     if (
+      disableSquashing !== true &&
       dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
       enableSquashing() &&
       !isSelected
