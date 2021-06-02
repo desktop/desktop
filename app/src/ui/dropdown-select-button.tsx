@@ -14,7 +14,8 @@ export interface IDropdownSelectButtonOption {
 }
 
 interface IDropdownSelectButtonProps {
-  readonly options: IDropdownSelectButtonOption[]
+  /** The selection button options */
+  readonly options: ReadonlyArray<IDropdownSelectButtonOption>
 
   /** The selection option value */
   readonly selectedValue?: string
