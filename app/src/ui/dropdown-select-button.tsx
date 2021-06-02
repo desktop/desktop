@@ -1,0 +1,140 @@
+import React from 'react'
+import { Button } from './lib/button'
+import { Octicon, OcticonSymbol } from './octicons'
+
+export interface IDropdownSelectButtonOption {
+  /** The select option header label. */
+  readonly label?: string | JSX.Element
+
+  /** The select option description */
+  readonly description?: string | JSX.Element
+
+  /** The select option's value */
+  readonly value?: string
+}
+
+interface IDropdownSelectButtonProps {
+  readonly options: IDropdownSelectButtonOption[]
+
+  /** The selection option value */
+  readonly selectedValue?: string
+
+  /** Whether or not the button is enabled */
+  readonly disabled?: boolean
+
+  /** callback for when the button selection changes*/
+  readonly onSelectChange?: (
+    selectedOption: IDropdownSelectButtonOption
+  ) => void
+}
+
+interface IDropdownSelectButtonState {
+  readonly showButtonOptions: boolean
+  readonly selectedOption: IDropdownSelectButtonOption | null
+}
+
+export class DropdownSelectButton extends React.Component<
+  IDropdownSelectButtonProps,
+  IDropdownSelectButtonState
+> {
+  public constructor(props: IDropdownSelectButtonProps) {
+    super(props)
+
+    this.state = {
+      showButtonOptions: false,
+      selectedOption: this.getSelectedOption(props.selectedValue),
+    }
+  }
+
+  private getSelectedOption(
+    selectedValue: string | undefined
+  ): IDropdownSelectButtonOption | null {
+    const { options } = this.props
+    if (options.length === 0) {
+      return null
+    }
+
+    const selectedOption = options.find(o => o.value === selectedValue)
+    if (selectedOption === undefined) {
+      return options[0]
+    }
+    return selectedOption
+  }
+
+  private onSelectionChange = (selectedOption: IDropdownSelectButtonOption) => {
+    return (_event: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
+      this.setState({ selectedOption })
+
+      const { onSelectChange } = this.props
+      if (onSelectChange !== undefined) {
+        onSelectChange(selectedOption)
+      }
+    }
+  }
+
+  private openSplitButtonDropdown = () => {
+    this.setState({ showButtonOptions: !this.state.showButtonOptions })
+  }
+
+  private renderSelectedIcon(option: IDropdownSelectButtonOption) {
+    const { selectedOption } = this.state
+    if (selectedOption === null || option.value !== selectedOption.value) {
+      return
+    }
+
+    return (
+      <Octicon
+        className="selected-option-indicator"
+        symbol={OcticonSymbol.check}
+      />
+    )
+  }
+
+  private renderSplitButtonOptions() {
+    if (!this.state.showButtonOptions) {
+      return
+    }
+
+    const { options } = this.props
+    return (
+      <div className="split-button-options">
+        <ul>
+          {options.map(o => (
+            <li key={o.value} onClick={this.onSelectionChange(o)}>
+              {this.renderSelectedIcon(o)}
+              <div className="option-title">{o.label}</div>
+              <div className="option-description">{o.description}</div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  public render() {
+    const { options, disabled } = this.props
+    const { selectedOption } = this.state
+    if (options.length === 0 || selectedOption === null) {
+      return
+    }
+
+    // The button is type of submit so that it will trigger a form's onSubmit
+    // method.
+    return (
+      <div className="split-button">
+        <Button className="invoke-button" disabled={disabled} type="submit">
+          {selectedOption.label}
+        </Button>
+        <Button
+          disabled={disabled}
+          className="dropdown-button"
+          onClick={this.openSplitButtonDropdown}
+          type="button"
+        >
+          <Octicon symbol={OcticonSymbol.triangleDown} />
+        </Button>
+        {this.renderSplitButtonOptions()}
+      </div>
+    )
+  }
+}
