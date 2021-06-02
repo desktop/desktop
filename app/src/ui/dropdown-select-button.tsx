@@ -22,27 +22,56 @@ interface IDropdownSelectButtonProps {
   /** Whether or not the button is enabled */
   readonly disabled?: boolean
 
-  /** callback for when the button selection changes*/
+  /** Callback for when the button selection changes*/
   readonly onSelectChange?: (
     selectedOption: IDropdownSelectButtonOption
   ) => void
 }
 
 interface IDropdownSelectButtonState {
+  /** Whether the options are rendered */
   readonly showButtonOptions: boolean
+
+  /** The currently selected option */
   readonly selectedOption: IDropdownSelectButtonOption | null
+
+  /** The  max height of options container - calculated based on the height of
+   * the app window so that we don't get clipping and the options scroll if
+   * needed */
+  readonly optionsMaxHeight?: string
 }
 
 export class DropdownSelectButton extends React.Component<
   IDropdownSelectButtonProps,
   IDropdownSelectButtonState
 > {
+  private invokeButtonRef: HTMLButtonElement | null = null
+  private optionsContainerRef: HTMLDivElement | null = null
+
   public constructor(props: IDropdownSelectButtonProps) {
     super(props)
 
     this.state = {
       showButtonOptions: false,
       selectedOption: this.getSelectedOption(props.selectedValue),
+    }
+  }
+
+  public componentDidUpdate() {
+    if (this.invokeButtonRef === null || this.optionsContainerRef === null) {
+      return
+    }
+
+    const windowHeight = window.innerHeight
+    const bottomOfButton = this.invokeButtonRef.getBoundingClientRect().bottom
+    const calcMaxHeight = windowHeight - bottomOfButton - 15
+    const scrollHeight = this.optionsContainerRef.scrollHeight
+    const optionsMaxHeight =
+      calcMaxHeight < scrollHeight
+        ? `${windowHeight - bottomOfButton - 15}px`
+        : undefined
+    if (optionsMaxHeight !== this.state.optionsMaxHeight) {
+      this.setState({ optionsMaxHeight })
     }
   }
 
@@ -76,6 +105,14 @@ export class DropdownSelectButton extends React.Component<
     this.setState({ showButtonOptions: !this.state.showButtonOptions })
   }
 
+  private onInvokeButtonRef = (buttonRef: HTMLButtonElement | null) => {
+    this.invokeButtonRef = buttonRef
+  }
+
+  private onOptionsContainerRef = (ref: HTMLDivElement | null) => {
+    this.optionsContainerRef = ref
+  }
+
   private renderSelectedIcon(option: IDropdownSelectButtonOption) {
     const { selectedOption } = this.state
     if (selectedOption === null || option.value !== selectedOption.value) {
@@ -96,8 +133,16 @@ export class DropdownSelectButton extends React.Component<
     }
 
     const { options } = this.props
+    const { optionsMaxHeight: maxHeight } = this.state
     return (
-      <div className="split-button-options">
+      <div
+        className="split-button-options"
+        style={{
+          maxHeight,
+          overflowY: maxHeight !== undefined ? 'scroll' : undefined,
+        }}
+        ref={this.onOptionsContainerRef}
+      >
         <ul>
           {options.map(o => (
             <li key={o.value} onClick={this.onSelectionChange(o)}>
@@ -122,7 +167,12 @@ export class DropdownSelectButton extends React.Component<
     // method.
     return (
       <div className="split-button">
-        <Button className="invoke-button" disabled={disabled} type="submit">
+        <Button
+          className="invoke-button"
+          disabled={disabled}
+          type="submit"
+          onButtonRef={this.onInvokeButtonRef}
+        >
           {selectedOption.label}
         </Button>
         <Button
