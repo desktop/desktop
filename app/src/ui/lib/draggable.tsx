@@ -2,6 +2,7 @@ import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { mouseScroller } from '../../lib/mouse-scroller'
 import { sleep } from '../../lib/promise'
+import { DropTargetSelector } from '../../models/drag-drop'
 
 interface IDraggableProps {
   /**
@@ -14,10 +15,13 @@ interface IDraggableProps {
    * Callback for when the drag ends - user releases mouse (mouse up event) or
    * mouse goes out of screen
    *
-   * @param isOverDropTarget - whether the last element the mouse was over
-   * before the mouse up event matches one of the dropTargetSelectors provided
+   * @param dropTargetSelector - if the last element the mouse was over
+   * before the mouse up event matches one of the dropTargetSelectors provided,
+   * it is that selector enum
    */
-  readonly onDragEnd: (isOverDropTarget: boolean) => void
+  readonly onDragEnd?: (
+    dropTargetSelector: DropTargetSelector | undefined
+  ) => void
 
   /** Callback to render a drag element inside the #dragElement */
   readonly onRenderDragElement: () => void
@@ -29,7 +33,7 @@ interface IDraggableProps {
   readonly isEnabled: boolean
 
   /** An array of css selectors for elements that are valid drop targets. */
-  readonly dropTargetSelectors: ReadonlyArray<string>
+  readonly dropTargetSelectors: ReadonlyArray<DropTargetSelector>
 }
 
 export class Draggable extends React.Component<IDraggableProps> {
@@ -147,8 +151,10 @@ export class Draggable extends React.Component<IDraggableProps> {
     document.removeEventListener('mousemove', this.onMouseMove)
     mouseScroller.clearScrollTimer()
     this.props.onRemoveDragElement()
-    this.props.onDragEnd(this.isLastElemBelowDropTarget())
-    dragAndDropManager.dragEnded()
+    if (this.props.onDragEnd !== undefined) {
+      this.props.onDragEnd(this.getLastElemBelowDropTarget())
+    }
+    dragAndDropManager.dragEnded(this.getLastElemBelowDropTarget())
   }
 
   /**
@@ -156,16 +162,14 @@ export class Draggable extends React.Component<IDraggableProps> {
    * css selectors provided in dropTargetSelectors to determine if the drag
    * ended on target or not.
    */
-  private isLastElemBelowDropTarget = (): boolean => {
+  private getLastElemBelowDropTarget = (): DropTargetSelector | undefined => {
     if (this.elemBelow === null) {
-      return false
+      return
     }
 
-    const foundDropTarget = this.props.dropTargetSelectors.find(dts => {
+    return this.props.dropTargetSelectors.find(dts => {
       return this.elemBelow !== null && this.elemBelow.closest(dts) !== null
     })
-
-    return foundDropTarget !== undefined
   }
 
   public render() {

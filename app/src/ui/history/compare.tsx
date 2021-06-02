@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Commit, CommitOneLine } from '../../models/commit'
+import { Commit, CommitOneLine, ICommitContext } from '../../models/commit'
 import {
   HistoryTabMode,
   ICompareState,
@@ -25,9 +25,10 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
-import { CherryPickStepKind } from '../../models/cherry-pick'
-import { DragElementType } from '../../models/drag-element'
-
+import { DragType } from '../../models/drag-drop'
+import { PopupType } from '../../models/popup'
+import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
+import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
@@ -45,7 +46,6 @@ interface ICompareSidebarProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
-  readonly onDragCommitEnd: (clearCherryPickingState: boolean) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
@@ -237,41 +237,37 @@ export class CompareSidebar extends React.Component<
         }
         onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
+        onCreateBranch={this.onCreateBranch}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
+        onSquash={this.onSquash}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
-        onDragCommitStart={this.onDragCommitStart}
-        onDragCommitEnd={this.props.onDragCommitEnd}
         hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
         onDismissCherryPickIntro={this.onDismissCherryPickIntro}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
-        onRenderCherryPickCommitDragElement={
-          this.onRenderCherryPickCommitDragElement
-        }
-        onRemoveCherryPickCommitDragElement={
-          this.onRemoveCherryPickCommitDragElement
-        }
+        onRenderCommitDragElement={this.onRenderCommitDragElement}
+        onRemoveCommitDragElement={this.onRemoveCommitDragElement}
       />
     )
   }
 
-  private onRenderCherryPickCommitDragElement = (
+  private onRenderCommitDragElement = (
     commit: Commit,
     selectedCommits: ReadonlyArray<Commit>
   ) => {
     this.props.dispatcher.setDragElement({
-      type: DragElementType.CherryPickCommit,
+      type: DragType.Commit,
       commit,
       selectedCommits,
       gitHubRepository: this.props.repository.gitHubRepository,
     })
   }
 
-  private onRemoveCherryPickCommitDragElement = () => {
+  private onRemoveCommitDragElement = () => {
     this.props.dispatcher.clearDragElement()
   }
 
@@ -542,6 +538,16 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private onCreateBranch = (commit: CommitOneLine) => {
+    const { repository, dispatcher } = this.props
+
+    dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository,
+      targetCommit: commit,
+    })
+  }
+
   private onDeleteTag = (tagName: string) => {
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
   }
@@ -550,16 +556,45 @@ export class CompareSidebar extends React.Component<
     this.props.onCherryPick(this.props.repository, commits)
   }
 
-  /**
-   * This method is a generic event handler for when a commit has started being
-   * dragged.
-   *
-   * Currently only used for cherry picking, but this could be more generic.
-   */
-  private onDragCommitStart = (commits: ReadonlyArray<CommitOneLine>) => {
-    this.props.dispatcher.setCherryPickFlowStep(this.props.repository, {
-      kind: CherryPickStepKind.CommitsChosen,
-      commits,
+  private onSquash = (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string | null
+  ) => {
+    const toSquashSansSquashOnto = toSquash.filter(
+      c => c.sha !== squashOnto.sha
+    )
+
+    const allCommitsInSquash = [...toSquashSansSquashOnto, squashOnto]
+    const coAuthors = getUniqueCoauthorsAsAuthors(allCommitsInSquash)
+
+    const squashedDescription = getSquashedCommitDescription(
+      toSquashSansSquashOnto,
+      squashOnto
+    )
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.CommitMessage,
+      repository: this.props.repository,
+      coAuthors,
+      showCoAuthoredBy: coAuthors.length > 0,
+      commitMessage: {
+        summary: squashOnto.summary,
+        description: squashedDescription,
+      },
+      dialogTitle: `Squash ${allCommitsInSquash.length} Commits`,
+      dialogButtonText: `Squash ${allCommitsInSquash.length} Commits`,
+      prepopulateCommitSummary: true,
+      onSubmitCommitMessage: async (context: ICommitContext) => {
+        this.props.dispatcher.squash(
+          this.props.repository,
+          toSquashSansSquashOnto,
+          squashOnto,
+          lastRetainedCommitRef,
+          context
+        )
+        return true
+      },
     })
   }
 }

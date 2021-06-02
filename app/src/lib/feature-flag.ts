@@ -21,11 +21,6 @@ function enableDevelopmentFeatures(): boolean {
   return false
 }
 
-/** Should we show progress bars on the Windows app taskbar icon? */
-export function enableProgressBarOnIcon(): boolean {
-  return enableBetaFeatures()
-}
-
 /** Should the app enable beta features? */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore: this will be used again in the future
@@ -96,4 +91,14 @@ export function enableSaveDialogOnCloneRepository(): boolean {
 /** Should we allow setting repository aliases? */
 export function enableRepositoryAliases(): boolean {
   return true
+}
+
+/** Should we allow to create branches from a commit? */
+export function enableBranchFromCommit(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we allow squashing? */
+export function enableSquashing(): boolean {
+  return enableDevelopmentFeatures()
 }

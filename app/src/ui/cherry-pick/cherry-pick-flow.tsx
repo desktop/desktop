@@ -6,7 +6,6 @@ import {
   CherryPickFlowStep,
   CherryPickStepKind,
   ConfirmAbortStep,
-  ShowConflictsStep,
 } from '../../models/cherry-pick'
 import { ICherryPickProgress } from '../../models/progress'
 
@@ -15,12 +14,12 @@ import { Dispatcher } from '../dispatcher'
 import { ChooseTargetBranchDialog } from './choose-target-branch'
 import { CherryPickProgressDialog } from './cherry-pick-progress-dialog'
 import { CommitOneLine } from '../../models/commit'
-import { CherryPickConflictsDialog } from './cherry-pick-conflicts-dialog'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { getResolvedFiles } from '../../lib/status'
 import { ConfirmCherryPickAbortDialog } from './confirm-cherry-pick-abort-dialog'
 import { CreateBranch } from '../create-branch'
 import { String } from 'aws-sdk/clients/acm'
+import { ConflictsDialog } from '../multi-commit-operation/conflicts-dialog'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
@@ -78,15 +77,26 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     dispatcher.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
-  private onContinueCherryPick = (step: ShowConflictsStep) => {
+  private onContinueCherryPick = async () => {
     const {
       dispatcher,
       repository,
       workingDirectory,
       commits,
       sourceBranch,
+      step,
     } = this.props
-    dispatcher.continueCherryPick(
+
+    if (step.kind !== CherryPickStepKind.ShowConflicts) {
+      // This shouldn't happen, but needed the type checking.
+      log.error(
+        '[Cherry-pick] Invoked continue of cherry-pick without being in a conflict step.'
+      )
+      this.onFlowEnded()
+      return
+    }
+
+    await dispatcher.continueCherryPick(
       repository,
       workingDirectory.files,
       step.conflictState,
@@ -95,13 +105,24 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     )
   }
 
-  private onAbortCherryPick = (step: ShowConflictsStep) => {
+  private onAbortCherryPick = async () => {
     const {
       dispatcher,
       repository,
       workingDirectory,
       userHasResolvedConflicts,
+      step,
     } = this.props
+
+    if (step.kind !== CherryPickStepKind.ShowConflicts) {
+      // This shouldn't happen, but needed the type checking.
+      log.error(
+        '[Cherry-pick] Invoked abort of cherry-pick without being in a conflict step.'
+      )
+      this.onFlowEnded()
+      return
+    }
+
     const { conflictState } = step
     const { manualResolutions } = conflictState
     const { length: countResolvedConflicts } = getResolvedFiles(
@@ -117,7 +138,11 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
       return
     }
 
-    this.abortCherryPick()
+    return this.abortCherryPick()
+  }
+
+  private setConflictsHaveBeenResolved = () => {
+    this.props.dispatcher.setCherryPickConflictsResolved(this.props.repository)
   }
 
   private abortCherryPick = async () => {
@@ -125,16 +150,6 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
 
     await dispatcher.abortCherryPick(repository, sourceBranch)
     dispatcher.closePopup()
-  }
-
-  private showCherryPickConflictsBanner = (step: ShowConflictsStep) => {
-    const { repository, sourceBranch, commits } = this.props
-    this.props.onShowCherryPickConflictsBanner(
-      repository,
-      step.conflictState.targetBranchName,
-      sourceBranch,
-      commits
-    )
   }
 
   private moveToShowConflictedFileState = (step: ConfirmAbortStep) => {
@@ -173,6 +188,26 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
       commits,
       sourceBranch
     )
+  }
+
+  private onConflictsDialogDismissed = () => {
+    const { repository, sourceBranch, commits, step } = this.props
+    if (step.kind !== CherryPickStepKind.ShowConflicts) {
+      // This shouldn't happen, but needed the type checking.
+      log.error(
+        '[Cherry-pick] Cannot show conflicts banner without being in a conflict step.'
+      )
+      this.onFlowEnded()
+      return
+    }
+
+    this.props.onShowCherryPickConflictsBanner(
+      repository,
+      step.conflictState.targetBranchName,
+      sourceBranch,
+      commits
+    )
+    this.props.onDismissed()
   }
 
   public render() {
@@ -226,21 +261,33 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
           sourceBranch,
         } = this.props
 
+        const { conflictState } = step
+        const { manualResolutions, targetBranchName: ourBranch } = conflictState
+
+        const submit = __DARWIN__
+          ? 'Continue Cherry-pick'
+          : 'Continue cherry-pick'
+        const abort = __DARWIN__ ? 'Abort Cherry-pick' : 'Abort cherry-pick'
+
         return (
-          <CherryPickConflictsDialog
+          <ConflictsDialog
             dispatcher={dispatcher}
             repository={repository}
-            step={step}
-            userHasResolvedConflicts={userHasResolvedConflicts}
             workingDirectory={workingDirectory}
-            onDismissed={this.props.onDismissed}
-            onContinueCherryPick={this.onContinueCherryPick}
-            onAbortCherryPick={this.onAbortCherryPick}
-            showCherryPickConflictsBanner={this.showCherryPickConflictsBanner}
-            openFileInExternalEditor={openFileInExternalEditor}
+            userHasResolvedConflicts={userHasResolvedConflicts}
             resolvedExternalEditor={resolvedExternalEditor}
+            ourBranch={ourBranch}
+            theirBranch={sourceBranch !== null ? sourceBranch.name : undefined}
+            manualResolutions={manualResolutions}
+            headerTitle="Resolve conflicts before cherry-picking"
+            submitButton={submit}
+            abortButton={abort}
+            onSubmit={this.onContinueCherryPick}
+            onAbort={this.onAbortCherryPick}
+            onDismissed={this.onConflictsDialogDismissed}
+            openFileInExternalEditor={openFileInExternalEditor}
             openRepositoryInShell={openRepositoryInShell}
-            sourceBranchName={sourceBranch !== null ? sourceBranch.name : null}
+            someConflictsHaveBeenResolved={this.setConflictsHaveBeenResolved}
           />
         )
       case CherryPickStepKind.ConfirmAbort:
@@ -293,7 +340,6 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             headerText={headerText}
           />
         )
-      case CherryPickStepKind.CommitsChosen:
       case CherryPickStepKind.HideConflicts:
         // no ui for this part of flow
         return null

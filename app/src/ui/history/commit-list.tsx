@@ -45,6 +45,12 @@ interface ICommitListProps {
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 
+  /**
+   * Callback to fire to create a branch from a given commit in the current
+   * repository
+   */
+  readonly onCreateBranch: (commit: CommitOneLine) => void
+
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag: (targetCommitSha: string) => void
 
@@ -54,11 +60,13 @@ interface ICommitListProps {
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick: (commits: ReadonlyArray<CommitOneLine>) => void
 
-  /** Callback to fire to when has started being dragged  */
-  readonly onDragCommitStart: (commits: ReadonlyArray<CommitOneLine>) => void
+  /** Callback to fire to squashing commits  */
+  readonly onSquash: (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string | null
+  ) => void
 
-  /** Callback to fire to when has started being dragged  */
-  readonly onDragCommitEnd: (clearCherryPickingState: boolean) => void
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -83,14 +91,14 @@ interface ICommitListProps {
   /** Whether a cherry pick is progress */
   readonly isCherryPickInProgress: boolean
 
-  /** Callback to render cherry pick commit drag element */
-  readonly onRenderCherryPickCommitDragElement: (
+  /** Callback to render commit drag element */
+  readonly onRenderCommitDragElement: (
     commit: Commit,
     selectedCommits: ReadonlyArray<Commit>
   ) => void
 
-  /** Callback to remove cherry pick commit drag element */
-  readonly onRemoveCherryPickCommitDragElement: () => void
+  /** Callback to remove commit drag element */
+  readonly onRemoveCommitDragElement: () => void
 }
 
 /** A component which displays the list of commits. */
@@ -145,27 +153,36 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         unpushedTags={unpushedTags}
         commit={commit}
         emoji={this.props.emoji}
+        onCreateBranch={this.props.onCreateBranch}
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
+        onSquash={this.onSquash}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
-        onDragStart={this.props.onDragCommitStart}
-        onDragEnd={this.props.onDragCommitEnd}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
-        onRenderCherryPickCommitDragElement={
-          this.onRenderCherryPickCommitDragElement
-        }
-        onRemoveCherryPickDragElement={
-          this.props.onRemoveCherryPickCommitDragElement
-        }
+        onRenderCommitDragElement={this.onRenderCommitDragElement}
+        onRemoveDragElement={this.props.onRemoveCommitDragElement}
       />
     )
   }
 
-  private onRenderCherryPickCommitDragElement = (commit: Commit) => {
-    this.props.onRenderCherryPickCommitDragElement(
+  private onSquash = (toSquash: ReadonlyArray<Commit>, squashOnto: Commit) => {
+    const indexes = [...toSquash, squashOnto].map(v =>
+      this.props.commitSHAs.findIndex(sha => sha === v.sha)
+    )
+    const maxIndex = Math.max(...indexes)
+    const lastIndex = this.props.commitSHAs.length - 1
+    /* If the commit is the first commit in the branch, you cannot reference it
+    using the sha */
+    const lastRetainedCommitRef =
+      maxIndex !== lastIndex ? `${this.props.commitSHAs[maxIndex]}^` : null
+    this.props.onSquash(toSquash, squashOnto, lastRetainedCommitRef)
+  }
+
+  private onRenderCommitDragElement = (commit: Commit) => {
+    this.props.onRenderCommitDragElement(
       commit,
       this.lookupCommits(this.props.selectedSHAs)
     )

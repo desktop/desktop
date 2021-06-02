@@ -543,7 +543,6 @@ describe('git/cherry-pick', () => {
           currentCommitSummary: featureTip.summary,
           kind: 'cherryPick',
           position: 1,
-          title: 'Cherry-picking commit 1 of 1 commits',
           totalCommitCount: 1,
           value: 1,
         },

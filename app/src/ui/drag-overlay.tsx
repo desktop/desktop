@@ -1,3 +1,4 @@
+import { Disposable } from 'event-kit'
 import * as React from 'react'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { PopoverCaretPosition } from './lib/popover'
@@ -17,6 +18,7 @@ export class DragOverlay extends React.Component<
   IDragOverlayState
 > {
   private timeoutId: number | null = null
+  private onEnterDragZoneDisposable: Disposable | null = null
 
   public constructor(props: IDragOverlayProps) {
     super(props)
@@ -45,11 +47,18 @@ export class DragOverlay extends React.Component<
     this.timeoutId = window.setTimeout(() => {
       this.setState({ showDragPrompt: true })
     }, dragPromptWaitTime)
-    dragAndDropManager.onEnterDragZone(this.dragZoneEntered)
+    this.onEnterDragZoneDisposable = dragAndDropManager.onEnterDragZone(
+      this.dragZoneEntered
+    )
   }
 
   public componentWillUnmount = () => {
     this.clearDragPromptTimeOut()
+
+    if (this.onEnterDragZoneDisposable !== null) {
+      this.onEnterDragZoneDisposable.dispose()
+      this.onEnterDragZoneDisposable = null
+    }
   }
 
   private renderDragPrompt(): JSX.Element | null {

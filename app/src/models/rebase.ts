@@ -1,4 +1,4 @@
-import { IRebaseProgress } from './progress'
+import { IMultiCommitOperationProgress } from './progress'
 import { ComputedAction } from './computed-action'
 import { CommitOneLine } from './commit'
 
@@ -27,7 +27,7 @@ export type RebaseInternalState = {
 export type RebaseProgressOptions = {
   commits: ReadonlyArray<CommitOneLine>
   /** The callback to fire when rebase progress is reported */
-  progressCallback: (progress: IRebaseProgress) => void
+  progressCallback: (progress: IMultiCommitOperationProgress) => void
 }
 
 export type CleanRebase = {
@@ -53,22 +53,10 @@ export type RebasePreview =
   | RebaseNotSupported
   | RebaseLoading
 
-/** Represents the progress of a Git rebase operation to be shown to the user */
-export type GitRebaseProgress = {
-  /** A numeric value between 0 and 1 representing the percent completed */
-  readonly value: number
-  /** The current number of commits rebased as part of this operation */
-  readonly rebasedCommitCount: number
-  /** The commit summary associated with the current commit (if found) */
-  readonly currentCommitSummary: string | null
-  /** The count of known commits that will be rebased onto the base branch */
-  readonly totalCommitCount: number
-}
-
 /** Represents a snapshot of the rebase state from the Git repository  */
 export type GitRebaseSnapshot = {
   /** The sequence of commits that are used in the rebase */
   readonly commits: ReadonlyArray<CommitOneLine>
   /** The progress of the operation */
-  readonly progress: GitRebaseProgress
+  readonly progress: IMultiCommitOperationProgress
 }

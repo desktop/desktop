@@ -8,7 +8,7 @@ import {
   getRebaseInternalState,
   RebaseResult,
 } from '../../../src/lib/git'
-import { CommitOneLine } from '../../../src/models/commit'
+import { Commit } from '../../../src/models/commit'
 import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepositoryDefaultMain } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
@@ -19,7 +19,7 @@ import { getTempFilePath } from '../../../src/lib/file-system'
 
 describe('git/cherry-pick', () => {
   let repository: Repository
-  let initialCommit: CommitOneLine
+  let initialCommit: Commit
 
   beforeEach(async () => {
     repository = await setupEmptyRepositoryDefaultMain()
@@ -53,6 +53,21 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths).toContain('second.md')
   })
 
+  it('returns error when squashOnto is in the toSquash array', async () => {
+    const firstCommit = await makeSquashCommit(repository, 'first')
+    const secondCommit = await makeSquashCommit(repository, 'second')
+
+    const result = await squash(
+      repository,
+      [firstCommit, secondCommit],
+      firstCommit,
+      initialCommit.sha,
+      'Test Summary\n\nTest Body'
+    )
+
+    expect(result).toBe(RebaseResult.Error)
+  })
+
   it('squashes multiple commit onto one (non-conflicting)', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
     const secondCommit = await makeSquashCommit(repository, 'second')
@@ -84,11 +99,43 @@ describe('git/cherry-pick', () => {
     expect(squashedFilePaths).toContain('fourth.md')
   })
 
-  it('squashes multiple commit non-sequential commits (reorders, non-conflicting)', async () => {
+  it('squashes using the root of the branch if last retained commit is null', async () => {
     const firstCommit = await makeSquashCommit(repository, 'first')
     const secondCommit = await makeSquashCommit(repository, 'second')
-    await makeSquashCommit(repository, 'third')
-    const fourthCommit = await makeSquashCommit(repository, 'fourth')
+
+    let log = await getCommits(repository, 'HEAD', 5)
+    expect(log.length).toBe(3)
+
+    const result = await squash(
+      repository,
+      [firstCommit, secondCommit],
+      initialCommit, // first in branch (root) commit.
+      null,
+      'Test Summary\n\nTest Body'
+    )
+
+    expect(result).toBe(RebaseResult.CompletedWithoutError)
+
+    log = await getCommits(repository, 'HEAD', 5)
+    const squashed = log[0]
+    expect(squashed.summary).toBe('Test Summary')
+    expect(squashed.body).toBe('Test Body\n')
+    expect(log.length).toBe(1)
+
+    // verify squashed commit contains changes from squashed commits
+    const squashedFiles = await getChangedFiles(repository, squashed.sha)
+    const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
+    expect(squashedFilePaths).toContain('initialize')
+    expect(squashedFilePaths).toContain('first.md')
+    expect(squashedFilePaths).toContain('second.md')
+  })
+
+  it('squashes multiple commit non-sequential commits (reorders, non-conflicting)', async () => {
+    const firstCommit = await makeSquashCommit(repository, 'first')
+    await makeSquashCommit(repository, 'second')
+    const thirdCommit = await makeSquashCommit(repository, 'third')
+    await makeSquashCommit(repository, 'fourth')
+    const fifthCommit = await makeSquashCommit(repository, 'fifth')
 
     // From oldest to newest, log looks like:
     // - initial commit
@@ -96,37 +143,39 @@ describe('git/cherry-pick', () => {
     // - 'second' commit
     // - 'third' commit
     // - 'fourth' commit
+    // - 'fifth' commit
 
-    // Squashing 'second' and 'fourth' onto 'first'
-    // Thus, reordering 'fourth' to be before 'third'
+    // Squashing 'first' and 'fifth' onto 'third'
+    // Thus, reordering to 'second', 'first - third - fifth', 'fourth'
     const result = await squash(
       repository,
-      [secondCommit, fourthCommit],
-      firstCommit,
+      [fifthCommit, firstCommit], // provided in opposite log order
+      thirdCommit,
       initialCommit.sha,
-      'Test Summary\n\nTest Body'
+      ''
     )
 
     expect(result).toBe(RebaseResult.CompletedWithoutError)
 
     // From oldest to newest, log should look like:
     // - initial commit - log[2]
-    // - the squashed commit 'Test Summary' - log[1]
-    // - 'third' commit - log[0]
+    // - the squashed commit 'first third fifth` - order by log history
+    // - 'fourth' commit - log[0]
     const log = await getCommits(repository, 'HEAD', 5)
     const squashed = log[1]
-    expect(squashed.summary).toBe('Test Summary')
-    expect(squashed.body).toBe('Test Body\n')
-    expect(log[0].summary).toBe('third')
-    expect(log.length).toBe(3)
+    expect(squashed.summary).toBe('first')
+    expect(squashed.body).toBe('third\n\nfifth\n')
+    expect(log[0].summary).toBe('fourth')
+    expect(log.length).toBe(4)
 
     // verify squashed commit contains changes from squashed commits
     const squashedFiles = await getChangedFiles(repository, squashed.sha)
     const squashedFilePaths = squashedFiles.map(f => f.path).join(' ')
     expect(squashedFilePaths).toContain('first.md')
-    expect(squashedFilePaths).toContain('second.md')
-    expect(squashedFilePaths).toContain('fourth.md')
-    expect(squashedFilePaths).not.toContain('third.md')
+    expect(squashedFilePaths).toContain('third.md')
+    expect(squashedFilePaths).toContain('fifth.md')
+    expect(squashedFilePaths).not.toContain('second.md')
+    expect(squashedFilePaths).not.toContain('fourth.md')
   })
 
   it('handles squashing a conflicting commit', async () => {
@@ -259,10 +308,11 @@ describe('git/cherry-pick', () => {
     await makeSquashCommit(repository, 'first')
     const secondCommit = await makeSquashCommit(repository, 'second')
 
+    const badCommit = { ...secondCommit, sha: 'INVALID', summary: 'INVALID' }
     const result = await squash(
       repository,
       [secondCommit],
-      { sha: 'INVALID', summary: 'INVALID' },
+      badCommit,
       initialCommit.sha,
       'Test Summary\n\nTest Body'
     )
@@ -301,7 +351,7 @@ async function makeSquashCommit(
   repository: Repository,
   desc: string,
   file?: string
-): Promise<CommitOneLine> {
+): Promise<Commit> {
   file = file || desc
   const commitTree = {
     commitMessage: desc,

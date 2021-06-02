@@ -26,6 +26,7 @@ import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType, DropTargetType } from '../../models/drag-drop'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -42,18 +43,6 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
-
-  /** When a drag element has landed on the current branch */
-  readonly onDropOntoCurrentBranch?: () => void
-
-  /** Whether a cherry pick is in progress */
-  readonly isCherryPickInProgress?: boolean
-
-  /** When a drag element enters a branch */
-  readonly onDragEnterBranch: (branchName: string) => void
-
-  //** When a drag element leave a branch */
-  readonly onDragLeaveBranch: () => void
 }
 
 interface IBranchesContainerState {
@@ -167,10 +156,7 @@ export class BranchesContainer extends React.Component<
       this.onRenameBranch,
       this.onDeleteBranch,
       this.onDropOntoBranch,
-      this.props.onDropOntoCurrentBranch,
-      this.props.onDragEnterBranch,
-      this.props.onDragLeaveBranch,
-      this.props.isCherryPickInProgress
+      this.onDropOntoCurrentBranch
     )
   }
 
@@ -196,10 +182,9 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
-            hideFilterRow={
-              this.props.isCherryPickInProgress &&
-              dragAndDropManager.isDragInProgress
-            }
+            hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
+              DragType.Commit
+            )}
             renderPreList={this.renderPreList}
           />
         )
@@ -213,10 +198,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderPreList = () => {
-    if (
-      !this.props.isCherryPickInProgress ||
-      !dragAndDropManager.isDragInProgress
-    ) {
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       return null
     }
 
@@ -237,25 +219,36 @@ export class BranchesContainer extends React.Component<
     )
   }
 
-  private onMouseUpNewBranchDrop = () => {
-    if (!this.props.isCherryPickInProgress) {
+  private onMouseUpNewBranchDrop = async () => {
+    const { dragData } = dragAndDropManager
+    if (dragData === null || dragData.type !== DragType.Commit) {
       return
     }
 
-    this.props.dispatcher.setCherryPickCreateBranchFlowStep(
+    await this.props.dispatcher.setCherryPickCreateBranchFlowStep(
       this.props.repository,
       ''
     )
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.CherryPick,
+      repository: this.props.repository,
+      commits: dragData.commits,
+      sourceBranch: this.props.currentBranch,
+    })
   }
 
   private onMouseEnterNewBranchDrop = () => {
     // This is just used for displaying on windows drag ghost.
     // Thus, it doesn't have to be an actual branch name.
-    this.props.onDragEnterBranch('a new branch')
+    dragAndDropManager.emitEnterDropTarget({
+      type: DropTargetType.Branch,
+      branchName: 'a new branch',
+    })
   }
 
   private onMouseLeaveNewBranchDrop = () => {
-    this.props.onDragLeaveBranch()
+    dragAndDropManager.emitLeaveDropTarget()
   }
 
   private renderPullRequests() {
@@ -281,7 +274,6 @@ export class BranchesContainer extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        isCherryPickInProgress={this.props.isCherryPickInProgress}
       />
     )
   }
@@ -405,11 +397,17 @@ export class BranchesContainer extends React.Component<
       return
     }
 
-    if (this.props.isCherryPickInProgress) {
+    if (dragAndDropManager.isDragOfType(DragType.Commit)) {
       this.props.dispatcher.startCherryPickWithBranch(
         this.props.repository,
         branch
       )
+    }
+  }
+
+  private onDropOntoCurrentBranch = () => {
+    if (dragAndDropManager.isDragOfType(DragType.Commit)) {
+      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
     }
   }
 }
