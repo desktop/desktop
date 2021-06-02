@@ -2,21 +2,21 @@ import * as React from 'react'
 import { assertNever } from '../../lib/fatal-error'
 import { Octicon, OcticonSymbol } from '../octicons'
 
-export enum PermissionsCommitWarningIcon {
+export enum CommitWarningIcon {
   Warning,
   Information,
 }
 
-const renderIcon = (icon: PermissionsCommitWarningIcon) => {
+const renderIcon = (icon: CommitWarningIcon) => {
   let className = ''
   let symbol = OcticonSymbol.alert
 
   switch (icon) {
-    case PermissionsCommitWarningIcon.Warning:
+    case CommitWarningIcon.Warning:
       className = 'warning-icon'
       symbol = OcticonSymbol.alert
       break
-    case PermissionsCommitWarningIcon.Information:
+    case CommitWarningIcon.Information:
       className = 'information-icon'
       symbol = OcticonSymbol.info
       break
@@ -29,11 +29,11 @@ const renderIcon = (icon: PermissionsCommitWarningIcon) => {
 
 /** A warning displayed above the commit button
  */
-export const PermissionsCommitWarning: React.FunctionComponent<{
-  readonly icon: PermissionsCommitWarningIcon
+export const CommitWarning: React.FunctionComponent<{
+  readonly icon: CommitWarningIcon
 }> = props => {
   return (
-    <div id="permissions-commit-warning" onContextMenu={ignoreContextMenu}>
+    <div id="commit-warning" onContextMenu={ignoreContextMenu}>
       <div className="warning-icon-container">{renderIcon(props.icon)}</div>
       <div className="warning-message">{props.children}</div>
     </div>

@@ -22,10 +22,7 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
-import {
-  PermissionsCommitWarning,
-  PermissionsCommitWarningIcon,
-} from './permissions-commit-warning'
+import { CommitWarning, CommitWarningIcon } from './commit-warning'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
@@ -610,22 +607,20 @@ export class CommitMessage extends React.Component<
 
     if (commitToAmend !== null) {
       return (
-        <PermissionsCommitWarning
-          icon={PermissionsCommitWarningIcon.Information}
-        >
+        <CommitWarning icon={CommitWarningIcon.Information}>
           Your changes will be applied to your{' '}
           <strong>most recent commit</strong>.{' '}
           <LinkButton onClick={this.onStopAmending}>Stop amending</LinkButton>{' '}
           to go back to normal.
-        </PermissionsCommitWarning>
+        </CommitWarning>
       )
     } else if (showNoWriteAccess) {
       return (
-        <PermissionsCommitWarning icon={PermissionsCommitWarningIcon.Warning}>
+        <CommitWarning icon={CommitWarningIcon.Warning}>
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
           <LinkButton onClick={this.onMakeFork}>create a fork</LinkButton>?
-        </PermissionsCommitWarning>
+        </CommitWarning>
       )
     } else if (showBranchProtected) {
       if (branch === null) {
@@ -637,11 +632,11 @@ export class CommitMessage extends React.Component<
       }
 
       return (
-        <PermissionsCommitWarning icon={PermissionsCommitWarningIcon.Warning}>
+        <CommitWarning icon={CommitWarningIcon.Warning}>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
-        </PermissionsCommitWarning>
+        </CommitWarning>
       )
     } else {
       return null
