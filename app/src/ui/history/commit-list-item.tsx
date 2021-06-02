@@ -27,12 +27,14 @@ interface ICommitProps {
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly canBeUndone: boolean
+  readonly canBeAmended: boolean
   readonly onUndoCommit?: (commit: Commit) => void
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateBranch?: (commit: CommitOneLine) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
+  readonly onAmendCommit?: () => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onRenderCommitDragElement?: (commit: Commit) => void
   readonly onRemoveDragElement?: () => void
@@ -196,6 +198,12 @@ export class CommitListItem extends React.PureComponent<
     )
   }
 
+  private onAmendCommit = () => {
+    if (this.props.onAmendCommit !== undefined) {
+      this.props.onAmendCommit()
+    }
+  }
+
   private onCopySHA = () => {
     clipboard.writeText(this.props.commit.sha)
   }
@@ -249,6 +257,14 @@ export class CommitListItem extends React.PureComponent<
     }
 
     const items: IMenuItem[] = []
+
+    if (this.props.canBeAmended) {
+      items.push({
+        label: __DARWIN__ ? 'Amend Commit…' : 'Amend commit…',
+        enabled: this.props.isLocal,
+        action: this.onAmendCommit,
+      })
+    }
 
     if (this.props.canBeUndone) {
       items.push({

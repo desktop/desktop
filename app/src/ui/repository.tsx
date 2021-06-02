@@ -253,6 +253,7 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onUndoCommit={this.onUndoCommit}
         onRevertCommit={this.onRevertCommit}
+        onAmendCommit={this.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
         onCherryPick={this.props.onCherryPick}
@@ -497,6 +498,10 @@ export class RepositoryView extends React.Component<
 
   private onRevertCommit = (commit: Commit) => {
     this.props.dispatcher.revertCommit(this.props.repository, commit)
+  }
+
+  private onAmendCommit = () => {
+    this.props.dispatcher.setAmendingRepository(this.props.repository, true)
   }
 
   public componentDidMount() {
