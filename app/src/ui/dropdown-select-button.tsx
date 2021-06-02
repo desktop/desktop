@@ -96,7 +96,7 @@ export class DropdownSelectButton extends React.Component<
 
   private onSelectionChange = (selectedOption: IDropdownSelectButtonOption) => {
     return (_event: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
-      this.setState({ selectedOption })
+      this.setState({ selectedOption, showButtonOptions: false })
 
       const { onSelectChange } = this.props
       if (onSelectChange !== undefined) {
