@@ -4129,12 +4129,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _undoCommit(
     repository: Repository,
-    commit: Commit
+    commit: Commit,
+    showConfirmationDialog: boolean
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { changesState } = repositoryState
 
-    const currentState = this.repositoryStateCache.get(repository)
-    const { changesState } = currentState
+    if (showConfirmationDialog) {
+      // Compare file paths in working directory and in the commit that will be undone
+      const workingDirectoryFiles = changesState.workingDirectory.files.map(
+        f => f.path
+      )
+      const commitFiles = (await getChangedFiles(repository, commit.sha)).map(
+        f => f.path
+      )
+
+      // Warn the user if there is any overlap between commit files and working
+      // directory files
+      if (workingDirectoryFiles.some(f => commitFiles.includes(f))) {
+        return this._showPopup({
+          type: PopupType.WarnLocalChangesBeforeUndo,
+          repository,
+          commit,
+        })
+      }
+    }
+
     const isWorkingDirectoryClean =
       changesState.workingDirectory.files.length === 0
 
@@ -5793,7 +5814,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { workingDirectory } = changesState
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
-    return await createDesktopStashEntry(repository, branch, untrackedFiles)
+    return createDesktopStashEntry(repository, branch, untrackedFiles)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

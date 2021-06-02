@@ -156,6 +156,7 @@ import { DefaultCommitMessage } from '../models/commit-message'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
+import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2222,6 +2223,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             openFileInExternalEditor={this.openFileInExternalEditor}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
+          />
+        )
+      }
+      case PopupType.WarnLocalChangesBeforeUndo: {
+        const { repository, commit } = popup
+        return (
+          <WarnLocalChangesBeforeUndo
+            key="warn-local-changes-before-undo"
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            commit={commit}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
