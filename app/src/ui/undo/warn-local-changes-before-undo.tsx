@@ -65,7 +65,7 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
           some of these changes being lost.
           <br />
           <br />
-          Besides, undoing a merge commit will apply the changes from the merge
+          Also, undoing a merge commit will apply the changes from the merge
           into your working directory, and committing again will create an
           entirely new commit. This means you will lose the merge commit and, as
           a result, commits from the merged branch could disappear from this
@@ -78,12 +78,13 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
     } else if (this.props.commit.isMergeCommit) {
       return (
         <>
-          You are about to undo a merge commit. Undoing a merge commit will
-          apply the changes from the merge into your working directory, and
-          committing again will create an entirely new commit. This means you
-          will lose the merge commit and, as a result, commits from the merged
-          branch could disappear from this branch. Do you want to continue
-          anyway?
+          Undoing a merge commit will apply the changes from the merge into your
+          working directory, and committing again will create an entirely new
+          commit. This means you will lose the merge commit and, as a result,
+          commits from the merged branch could disappear from this branch.
+          <br />
+          <br />
+          Do you want to continue anyway?
         </>
       )
     } else {
