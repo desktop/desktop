@@ -685,31 +685,37 @@ export class CommitMessage extends React.Component<
     const loading = isCommitting === true ? <Loading /> : undefined
 
     const isAmending = this.props.commitToAmend !== null
-    const commitVerb = isAmending
-      ? loading
-        ? 'Amending'
-        : 'Amend'
-      : loading
-      ? 'Committing'
-      : 'Commit'
+
+    const amendVerb = loading ? 'Amending' : 'Amend'
+    const commitVerb = loading ? 'Committing' : 'Commit'
+
+    const amendTitle = `${amendVerb} last commit`
     const commitTitle =
       branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
-    const defaultContents = isAmending ? (
-      <>{commitVerb} last commit</>
-    ) : branchName !== null ? (
-      <>
-        {commitVerb} to <strong>{branchName}</strong>
-      </>
-    ) : (
-      commitVerb
-    )
+
+    const defaultCommitContents =
+      branchName !== null ? (
+        <>
+          {commitVerb} to <strong>{branchName}</strong>
+        </>
+      ) : (
+        commitVerb
+      )
+
+    const defaultAmendContents = <>{amendVerb} last commit</>
+
+    const defaultContents = isAmending
+      ? defaultAmendContents
+      : defaultCommitContents
 
     const commitButton = commitButtonText ? commitButtonText : defaultContents
 
     return (
       <>
         {loading}
-        <span title={commitTitle}>{commitButton}</span>
+        <span title={isAmending ? amendTitle : commitTitle}>
+          {commitButton}
+        </span>
       </>
     )
   }
