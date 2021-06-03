@@ -242,7 +242,11 @@ export class CommitMessage extends React.Component<
       return []
     }
 
-    return this.state.coAuthors.map(a => ({
+    const coAuthors = this.props.persistCoAuthors
+      ? this.props.coAuthors
+      : this.state.coAuthors
+
+    return coAuthors.map(a => ({
       token: 'Co-Authored-By',
       value: `${a.name} <${a.email}>`,
     }))
