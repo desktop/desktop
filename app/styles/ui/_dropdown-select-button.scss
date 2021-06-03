@@ -1,0 +1,118 @@
+.dropdown-select-button {
+  position: relative;
+
+  &.open-bottom {
+    .invoke-button {
+      border-bottom-left-radius: 0;
+    }
+
+    .dropdown-button {
+      border-bottom-right-radius: 0;
+    }
+
+    .dropdown-select-button-options {
+      border-top-right-radius: 0;
+      border-top-left-radius: 0;
+      border-top: none;
+    }
+  }
+
+  &.open-top {
+    .invoke-button {
+      border-top-left-radius: 0;
+    }
+
+    .dropdown-button {
+      border-top-right-radius: 0;
+    }
+
+    .dropdown-select-button-options {
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+      border-bottom: none;
+    }
+  }
+
+  .invoke-button {
+    width: 88%;
+    display: inline;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    margin-right: 0;
+    float: left;
+    height: 30px;
+    // counter balances center for the 12% dropdown button
+    padding-left: 12% !important;
+  }
+
+  .dropdown-button {
+    width: 12%;
+    padding: var(--spacing-half);
+    margin: 0;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    min-width: auto;
+    height: 30px;
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+    border: 1px solid var(--button-background);
+
+    &:focus {
+      border-color: var(--button-background);
+      background-color: var(--button-hover-background);
+    }
+
+    &:not(:disabled):hover {
+      border-color: var(--button-background);
+      background-color: var(--button-hover-background);
+    }
+  }
+
+  .dropdown-select-button-options {
+    position: absolute;
+    overflow: hidden;
+    font-size: var(--font-size);
+    color: var(--text-color);
+    background-color: var(--box-alt-background-color);
+    background-clip: padding-box;
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    z-index: 100;
+    box-shadow: var(--base-box-shadow);
+    width: 99.9%;
+
+    ul {
+      padding: 0;
+      margin: 0;
+
+      li {
+        list-style-type: none;
+        padding: var(--spacing) var(--spacing-double);
+        padding-left: var(--spacing-triple);
+        border-bottom: 1px solid var(--box-border-color);
+
+        .option-description {
+          color: var(--text-secondary-color);
+          font-size: var(--font-size-sm);
+        }
+
+        .selected-option-indicator {
+          position: absolute;
+          left: var(--spacing);
+        }
+      }
+
+      li:hover {
+        background-color: var(--box-selected-background-color);
+      }
+    }
+  }
+}
+
+body.theme-dark {
+  .dropdown-select-button-options {
+    box-shadow: none;
+    margin-top: 1px;
+    width: 100%;
+  }
+}
