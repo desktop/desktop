@@ -59,14 +59,40 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
       this.props.commit.isMergeCommit &&
       !this.props.isWorkingDirectoryClean
     ) {
-      return `You have changes in progress. Undoing the merge commit might
-      result in some of these changes being lost. Do you want to continue anyway?`
+      return (
+        <>
+          You have changes in progress. Undoing the merge commit might result in
+          some of these changes being lost.
+          <br />
+          <br />
+          Besides, undoing a merge commit will apply the changes from the merge
+          into your working directory, and committing again will create an
+          entirely new commit. This means you will lose the merge commit and, as
+          a result, commits from the merged branch could disappear from this
+          branch.
+          <br />
+          <br />
+          Do you want to continue anyway?
+        </>
+      )
     } else if (this.props.commit.isMergeCommit) {
-      return `You are about to undo a merge commit. Undoing a merge commit might
-      result in a confusing set of changes. Do you want to continue anyway?`
+      return (
+        <>
+          You are about to undo a merge commit. Undoing a merge commit will
+          apply the changes from the merge into your working directory, and
+          committing again will create an entirely new commit. This means you
+          will lose the merge commit and, as a result, commits from the merged
+          branch could disappear from this branch. Do you want to continue
+          anyway?
+        </>
+      )
     } else {
-      return `You have changes in progress. Undoing the commit might result in
-      some of these changes being lost. Do you want to continue anyway?`
+      return (
+        <>
+          You have changes in progress. Undoing the commit might result in some
+          of these changes being lost. Do you want to continue anyway?
+        </>
+      )
     }
   }
 
