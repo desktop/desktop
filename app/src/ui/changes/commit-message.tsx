@@ -242,6 +242,12 @@ export class CommitMessage extends React.Component<
       return []
     }
 
+    /**
+     * When we persist coauthors in the app's changes state or outside this
+     * component, they will be sent in via the props. When we do not want to
+     * persist (like when used in modal), we will be storing and using from the
+     * component's state.
+     */
     const coAuthors = this.props.persistCoAuthors
       ? this.props.coAuthors
       : this.state.coAuthors
