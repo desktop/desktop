@@ -6528,6 +6528,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
+
+  public _updateMergeOperationKind(repository: Repository, isSquash: boolean) {
+    const { multiCommitOperationState } = this.repositoryStateCache.get(
+      repository
+    )
+
+    if (multiCommitOperationState === null) {
+      return
+    }
+
+    const { operationDetail } = multiCommitOperationState
+
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        operationDetail: { ...operationDetail, isSquash },
+      })
+    )
+
+    this.emitUpdate()
+  }
 }
 
 /**
