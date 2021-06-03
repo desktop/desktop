@@ -45,8 +45,8 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
       >
         <DialogContent>
           <Row>
-            You have changes on this branch. Undoing the commit might lose some
-            of these changes. Do you want to continue anyway?
+            You have changes in progress. Undoing the commit might result in
+            some of these changes being lost. Do you want to continue anyway?
           </Row>
         </DialogContent>
         <DialogFooter>
