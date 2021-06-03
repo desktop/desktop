@@ -46,7 +46,24 @@ export class RepositoryStateCache {
   ) {
     const currentState = this.get(repository)
     const newValues = fn(currentState)
-    this.repositoryState.set(repository.hash, merge(currentState, newValues))
+    const newState = merge(currentState, newValues)
+
+    const isSameLastLocalCommit =
+      currentState.localCommitSHAs.length > 0 &&
+      newState.localCommitSHAs.length > 0 &&
+      currentState.localCommitSHAs[0] === newState.localCommitSHAs[0]
+
+    // Only keep the "is amending" state if the last local commit hasn't changed
+    // and there is no "fixing conflicts" state.
+    const newIsAmending =
+      newState.isAmending &&
+      isSameLastLocalCommit &&
+      newState.changesState.conflictState === null
+
+    this.repositoryState.set(repository.hash, {
+      ...newState,
+      isAmending: newIsAmending,
+    })
   }
 
   public updateCompareState<K extends keyof ICompareState>(
