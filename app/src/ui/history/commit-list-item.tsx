@@ -12,7 +12,11 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Draggable } from '../lib/draggable'
-import { enableBranchFromCommit, enableSquashing } from '../../lib/feature-flag'
+import {
+  enableAmendingCommits,
+  enableBranchFromCommit,
+  enableSquashing,
+} from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
   DragType,
@@ -258,7 +262,7 @@ export class CommitListItem extends React.PureComponent<
 
     const items: IMenuItem[] = []
 
-    if (this.props.canBeAmended) {
+    if (this.props.canBeAmended && enableAmendingCommits()) {
       items.push({
         label: __DARWIN__ ? 'Amend Commit…' : 'Amend commit…',
         enabled: this.props.isLocal,

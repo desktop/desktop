@@ -102,3 +102,8 @@ export function enableBranchFromCommit(): boolean {
 export function enableSquashing(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we allow amending commits? */
+export function enableAmendingCommits(): boolean {
+  return enableBetaFeatures()
+}
