@@ -4139,11 +4139,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changesState.workingDirectory.files.length === 0
 
     // Warn the user if there are changes in the working directory
-    if (showConfirmationDialog && !isWorkingDirectoryClean) {
+    if (
+      showConfirmationDialog &&
+      (!isWorkingDirectoryClean || commit.isMergeCommit)
+    ) {
       return this._showPopup({
         type: PopupType.WarnLocalChangesBeforeUndo,
         repository,
         commit,
+        isWorkingDirectoryClean,
       })
     }
 

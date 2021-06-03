@@ -310,4 +310,5 @@ export type Popup =
       type: PopupType.WarnLocalChangesBeforeUndo
       repository: Repository
       commit: Commit
+      isWorkingDirectoryClean: boolean
     }

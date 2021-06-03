@@ -10,6 +10,7 @@ interface IWarnLocalChangesBeforeUndoProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly commit: Commit
+  readonly isWorkingDirectoryClean: boolean
   readonly onDismissed: () => void
 }
 
@@ -44,16 +45,29 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <Row>
-            You have changes in progress. Undoing the commit might result in
-            some of these changes being lost. Do you want to continue anyway?
-          </Row>
+          <Row>{this.getWarningText()}</Row>
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup destructive={true} okButtonText="Continue" />
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private getWarningText() {
+    if (
+      this.props.commit.isMergeCommit &&
+      !this.props.isWorkingDirectoryClean
+    ) {
+      return `You have changes in progress. Undoing the merge commit might
+      result in some of these changes being lost. Do you want to continue anyway?`
+    } else if (this.props.commit.isMergeCommit) {
+      return `You are about to undo a merge commit. Undoing a merge commit might
+      result in a confusing set of changes. Do you want to continue anyway?`
+    } else {
+      return `You have changes in progress. Undoing the commit might result in
+      some of these changes being lost. Do you want to continue anyway?`
+    }
   }
 
   private onSubmit = async () => {

@@ -2227,13 +2227,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.WarnLocalChangesBeforeUndo: {
-        const { repository, commit } = popup
+        const { repository, commit, isWorkingDirectoryClean } = popup
         return (
           <WarnLocalChangesBeforeUndo
             key="warn-local-changes-before-undo"
             dispatcher={this.props.dispatcher}
             repository={repository}
             commit={commit}
+            isWorkingDirectoryClean={isWorkingDirectoryClean}
             onDismissed={onPopupDismissedFn}
           />
         )
