@@ -16,6 +16,9 @@ import { getDefaultEmail } from './email'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 
+// This is http reqeust for this app
+// all reqeusts are defined here
+
 /**
  * Optional set of configurable settings for the fetchAll method
  */
