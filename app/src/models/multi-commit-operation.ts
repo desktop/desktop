@@ -152,9 +152,9 @@ interface ISourceBranchDetails {
    * The branch that are the source of the commits for the operation.
    *
    * Cherry-pick = the branch the user started on.
-   * Rebase = the branch the user picks in the choose branch dialog
+   * Rebase, Merge = the branch the user picks in the choose branch dialog (thus will be null to start)
    */
-  readonly sourceBranch: ICommitContext
+  readonly sourceBranch: Branch | null
 }
 interface ISquashDetails extends IInteractiveRebaseDetails {
   readonly kind: MultiCommitOperationKind.Squash
@@ -178,7 +178,13 @@ interface IRebaseDetails extends ISourceBranchDetails {
   readonly kind: MultiCommitOperationKind.Rebase
 }
 
+interface IMergeDetails extends ISourceBranchDetails {
+  readonly kind: MultiCommitOperationKind.Merge
+  readonly isSquash: boolean
+}
+
 export type MultiCommitOperationDetail =
   | ISquashDetails
   | ICherryPickDetails
   | IRebaseDetails
+  | IMergeDetails

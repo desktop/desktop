@@ -6514,7 +6514,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       operationDetail,
       progress: {
         kind: 'multiCommitOperation',
-        currentCommitSummary: commits[0].summary,
+        currentCommitSummary: commits.length > 0 ? commits[0].summary : '',
         position: 1,
         totalCommitCount: commits.length,
         value: 0,

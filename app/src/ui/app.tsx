@@ -156,6 +156,10 @@ import { DefaultCommitMessage } from '../models/commit-message'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
+import {
+  MultiCommitOperationKind,
+  MultiCommitOperationStepKind,
+} from '../models/multi-commit-operation'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -613,15 +617,49 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private mergeBranch() {
-    const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
+  private mergeBranch(isSquash: boolean = false) {
+    const selectedState = this.state.selectedState
+    if (
+      selectedState == null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
       return
     }
+    const { repository, state } = selectedState
+    const { branchesState } = state
+    const { defaultBranch, allBranches, recentBranches, tip } = branchesState
+    let currentBranch: Branch | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentBranch = tip.branch
+    } else {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the rebase flow'
+      )
+    }
+
+    this.props.dispatcher.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Merge,
+        isSquash,
+        sourceBranch: null,
+      },
+      currentBranch,
+      []
+    )
+
+    this.props.dispatcher.setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ChooseBranch,
+      defaultBranch,
+      currentBranch,
+      allBranches,
+      recentBranches,
+    })
 
     this.props.dispatcher.showPopup({
-      type: PopupType.MergeBranch,
-      repository: state.repository,
+      type: PopupType.MultiCommitOperation,
+      repository,
     })
   }
 
