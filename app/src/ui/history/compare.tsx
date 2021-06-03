@@ -40,7 +40,6 @@ interface ICompareSidebarProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly selectedCommitShas: ReadonlyArray<string>
-  readonly onUndoCommit: (commit: Commit) => void
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
@@ -233,7 +232,7 @@ export class CompareSidebar extends React.Component<
         canUndoCommits={formState.kind === HistoryTabMode.History}
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        onUndoCommit={this.props.onUndoCommit}
+        onUndoCommit={this.onUndoCommit}
         onRevertCommit={
           ableToRevertCommit(this.props.compareState.formState)
             ? this.props.onRevertCommit
@@ -541,6 +540,10 @@ export class CompareSidebar extends React.Component<
       targetCommitSha,
       this.props.localTags
     )
+  }
+
+  private onUndoCommit = (commit: Commit) => {
+    this.props.dispatcher.undoCommit(this.props.repository, commit)
   }
 
   private onCreateBranch = (commit: CommitOneLine) => {
