@@ -3166,8 +3166,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     explicitStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState, branchesState } = repositoryState
     const { currentBranchProtected, stashEntry } = changesState
@@ -3522,8 +3520,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     includeUpstream?: boolean,
     toCheckout?: Branch | null
   ): Promise<void> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     return this.withAuthenticatingUser(repository, async (r, account) => {
       const gitStore = this.gitStoreCache.get(r)
 
@@ -3655,8 +3651,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     account: IGitAccount | null,
     options?: PushOptions
   ): Promise<void> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     const state = this.repositoryStateCache.get(repository)
     const { remote } = state
     if (remote === null) {
@@ -3892,8 +3886,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     return this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
@@ -4151,21 +4143,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async stopAmendingRepositoryIfNeeded(repository: Repository) {
-    const repositoryState = await this.repositoryStateCache.get(repository)
-
-    if (repositoryState.isAmending) {
-      this._setAmendingRepository(repository, false)
-    }
-  }
-
   public async _undoCommit(
     repository: Repository,
     commit: Commit,
     showConfirmationDialog: boolean
   ): Promise<void> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     const gitStore = this.gitStoreCache.get(repository)
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState } = repositoryState
@@ -4425,8 +4407,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: string,
     mergeStatus: MergeTreeResult | null
   ): Promise<void> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     const gitStore = this.gitStoreCache.get(repository)
 
     if (mergeStatus !== null) {
@@ -4553,8 +4533,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<RebaseResult> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     const progressCallback = (progress: IMultiCommitOperationProgress) => {
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         progress,
@@ -5243,8 +5221,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commit: Commit
   ): Promise<void> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     return this.withAuthenticatingUser(repository, async (repo, account) => {
       const gitStore = this.gitStoreCache.get(repo)
 
@@ -6034,8 +6010,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     if (commits.length === 0) {
       log.error('[_cherryPick] - Unable to cherry-pick. No commits provided.')
       return CherryPickResult.UnableToStart
@@ -6396,8 +6370,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     lastRetainedCommitRef: string | null,
     commitContext: ICommitContext
   ): Promise<RebaseResult> {
-    await this.stopAmendingRepositoryIfNeeded(repository)
-
     if (toSquash.length === 0) {
       log.error('[_squash] - Unable to squash. No commits provided.')
       return RebaseResult.Error
