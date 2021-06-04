@@ -8,6 +8,7 @@ import { arrayEquals } from '../../lib/equality'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { Button } from '../lib/button'
 import { encodePathAsUrl } from '../../lib/path'
+import { DragData, DragType } from '../../models/drag-drop'
 
 const RowHeight = 50
 
@@ -24,6 +25,12 @@ interface ICommitListProps {
   /** The SHAs of the selected commits */
   readonly selectedSHAs: ReadonlyArray<string>
 
+  /** Whether or not commits in this list can be undone. */
+  readonly canUndoCommits: boolean
+
+  /** Whether or not commits in this list can be amended. */
+  readonly canAmendCommits: boolean
+
   /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
 
@@ -39,8 +46,13 @@ interface ICommitListProps {
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
 
+  /** Callback to fire to undo a given commit in the current repository */
+  readonly onUndoCommit: ((commit: Commit) => void) | undefined
+
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
+
+  readonly onAmendCommit?: () => void
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
@@ -56,6 +68,20 @@ interface ICommitListProps {
 
   /** Callback to fire to delete an unpushed tag */
   readonly onDeleteTag: (tagName: string) => void
+
+  /**
+   * A handler called whenever the user drops commits on the list to be inserted.
+   *
+   * @param baseCommit - The commit before the selected commits will be inserted.
+   *                     This will be null when commits must be inserted at the
+   *                     end of the list.
+   * @param commitsToInsert -  The commits dropped by the user.
+   */
+  readonly onDropCommitInsertion?: (
+    baseCommit: Commit | null,
+    commitsToInsert: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ) => void
 
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick: (commits: ReadonlyArray<CommitOneLine>) => void
@@ -81,6 +107,9 @@ interface ICommitListProps {
 
   /* Tags that haven't been pushed yet. This is used to show the unpushed indicator */
   readonly tagsToPush: ReadonlyArray<string> | null
+
+  /** Whether or not commits in this list can be reordered. */
+  readonly reorderingEnabled: boolean
 
   /* Whether or not the user has been introduced to cherry picking feature */
   readonly hasShownCherryPickIntro: boolean
@@ -148,6 +177,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
+        canBeUndone={this.props.canUndoCommits && isLocal && row === 0}
+        canBeAmended={this.props.canAmendCommits && isLocal && row === 0}
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,
@@ -161,7 +192,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
         onSquash={this.onSquash}
+        onUndoCommit={this.props.onUndoCommit}
         onRevertCommit={this.props.onRevertCommit}
+        onAmendCommit={this.props.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
@@ -172,17 +205,25 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     )
   }
 
-  private onSquash = (toSquash: ReadonlyArray<Commit>, squashOnto: Commit) => {
-    const indexes = [...toSquash, squashOnto].map(v =>
-      this.props.commitSHAs.findIndex(sha => sha === v.sha)
-    )
+  private getLastRetainedCommitRef(indexes: ReadonlyArray<number>) {
     const maxIndex = Math.max(...indexes)
     const lastIndex = this.props.commitSHAs.length - 1
     /* If the commit is the first commit in the branch, you cannot reference it
     using the sha */
     const lastRetainedCommitRef =
       maxIndex !== lastIndex ? `${this.props.commitSHAs[maxIndex]}^` : null
-    this.props.onSquash(toSquash, squashOnto, lastRetainedCommitRef)
+    return lastRetainedCommitRef
+  }
+
+  private onSquash = (toSquash: ReadonlyArray<Commit>, squashOnto: Commit) => {
+    const indexes = [...toSquash, squashOnto].map(v =>
+      this.props.commitSHAs.findIndex(sha => sha === v.sha)
+    )
+    this.props.onSquash(
+      toSquash,
+      squashOnto,
+      this.getLastRetainedCommitRef(indexes)
+    )
   }
 
   private onRenderCommitDragElement = (commit: Commit) => {
@@ -314,10 +355,14 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           rowHeight={RowHeight}
           selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
+          onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
           selectionMode="multi"
           onScroll={this.onScroll}
+          insertionDragType={
+            this.props.reorderingEnabled ? DragType.Commit : undefined
+          }
           invalidationProps={{
             commits: this.props.commitSHAs,
             localCommitSHAs: this.props.localCommitSHAs,
@@ -328,6 +373,29 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         />
         {this.renderCherryPickIntroPopover()}
       </div>
+    )
+  }
+
+  private onDropDataInsertion = (row: number, data: DragData) => {
+    if (
+      this.props.onDropCommitInsertion === undefined ||
+      data.type !== DragType.Commit
+    ) {
+      return
+    }
+
+    const baseCommitSHA =
+      row < this.props.commitSHAs.length ? this.props.commitSHAs[row] : null
+    const baseCommit =
+      baseCommitSHA !== null ? this.props.commitLookup.get(baseCommitSHA) : null
+    const indexes = [...data.commits, baseCommit]
+      .filter((v): v is Commit => v !== null && v !== undefined)
+      .map(v => this.props.commitSHAs.findIndex(sha => sha === v.sha))
+
+    this.props.onDropCommitInsertion(
+      baseCommit ?? null,
+      data.commits,
+      this.getLastRetainedCommitRef(indexes)
     )
   }
 }

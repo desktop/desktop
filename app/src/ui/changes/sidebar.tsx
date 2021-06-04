@@ -49,6 +49,7 @@ interface IChangesSidebarProps {
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly isAmending: boolean
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly focusCommitMessage: boolean
@@ -299,7 +300,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     // We don't allow undoing commits that have tags associated to them, since then
     // the commit won't be completely deleted because the tag will still point to it.
-    if (commit && commit.tags.length === 0) {
+    // Also, don't allow undoing commits while the user is amending the last one.
+    if (commit && commit.tags.length === 0 && !this.props.isAmending) {
       child = (
         <CSSTransition
           classNames="undo"
@@ -366,6 +368,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           repositoryAccount={repositoryAccount}
           workingDirectory={workingDirectory}
           conflictState={conflictState}
+          mostRecentLocalCommit={this.props.mostRecentLocalCommit}
           rebaseConflictState={rebaseConflictState}
           selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}
@@ -387,6 +390,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
+          isAmending={this.props.isAmending}
           showCoAuthoredBy={showCoAuthoredBy}
           coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
