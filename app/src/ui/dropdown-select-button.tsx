@@ -24,6 +24,9 @@ interface IDropdownSelectButtonProps {
   /** Whether or not the button is enabled */
   readonly disabled?: boolean
 
+  /** tooltip for the button */
+  readonly tooltip?: string
+
   /** Callback for when the button selection changes*/
   readonly onSelectChange?: (
     selectedOption: IDropdownSelectButtonOption
@@ -184,6 +187,7 @@ export class DropdownSelectButton extends React.Component<
           className="invoke-button"
           disabled={disabled}
           type="submit"
+          tooltip={this.props.tooltip}
           onButtonRef={this.onInvokeButtonRef}
         >
           {selectedOption.label}

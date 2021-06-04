@@ -3368,4 +3368,8 @@ export class Dispatcher {
       },
     })
   }
+
+  public updateMergeOperation(repository: Repository, isSquash: boolean) {
+    this.appStore._updateMergeOperationKind(repository, isSquash)
+  }
 }

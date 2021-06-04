@@ -14,6 +14,7 @@ export const enum MultiCommitOperationKind {
   Rebase = 'Rebase',
   CherryPick = 'Cherry-pick',
   Squash = 'Squash',
+  Merge = 'Merge',
   Reorder = 'Reorder',
 }
 
