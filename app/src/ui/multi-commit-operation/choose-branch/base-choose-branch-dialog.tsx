@@ -17,6 +17,7 @@ import {
 } from '../../dropdown-select-button'
 import { MultiCommitOperationKind } from '../../../models/multi-commit-operation'
 import { assertNever } from '../../../lib/fatal-error'
+import { enableSquashMerging } from '../../../lib/feature-flag'
 
 interface IBaseChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -186,29 +187,32 @@ export abstract class BaseChooseBranchDialog extends React.Component<
   }
 
   private getMergeOptions = (): IDropdownSelectButtonOption[] => {
-    return [
+    const mergeOptions = [
       {
         label: 'Create a merge commit',
         description:
           'The commits from the selected branch will be added to the current branch via a merge commit.',
         value: MultiCommitOperationKind.Merge,
       },
-      /*
-      {
+    ]
+    if (enableSquashMerging()) {
+      mergeOptions.push({
         label: 'Squash and merge',
         description:
           'The commits in the selected branch will be combined into one commit in the current branch.',
         value: MultiCommitOperationKind.Squash,
-      },
-      /* TODO: Add in when refactor rebase to multi commit operation
-      {
+      })
+    }
+
+    /* TODO: Add in when refactor rebase to multi commit operation
+      mergeOptions.push({
         label: 'Rebase and merge',
         description:
           'The commits from the selected branch will be rebased and added to the current branch.',
         value: MultiCommitOperationKind.Rebase,
-      },
+      })
       */
-    ]
+    return mergeOptions
   }
 
   private renderStatusPreview() {
