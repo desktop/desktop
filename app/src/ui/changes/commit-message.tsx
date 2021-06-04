@@ -608,10 +608,10 @@ export class CommitMessage extends React.Component<
     if (commitToAmend !== null) {
       return (
         <CommitWarning icon={CommitWarningIcon.Information}>
-          Your changes will be applied to your{' '}
+          Your changes will modify your{' '}
           <strong>most recent commit</strong>.{' '}
           <LinkButton onClick={this.onStopAmending}>Stop amending</LinkButton>{' '}
-          to go back to normal.
+          to make these changes as a new commit.
         </CommitWarning>
       )
     } else if (showNoWriteAccess) {
