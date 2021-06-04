@@ -86,10 +86,6 @@ export abstract class BaseChooseBranchDialog extends React.Component<
 
   protected abstract updateStatus = async (branch: Branch) => {}
 
-  protected abstract getSubmitButtonToolTip = (): string | undefined => {
-    return undefined
-  }
-
   protected abstract getDialogTitle = (
     branchName: string
   ): string | JSX.Element | undefined => {
@@ -117,6 +113,10 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     if (selectedBranch !== null) {
       this.updateStatus(selectedBranch)
     }
+  }
+
+  protected getSubmitButtonToolTip = (): string | undefined => {
+    return undefined
   }
 
   private onFilterTextChanged = (filterText: string) => {
