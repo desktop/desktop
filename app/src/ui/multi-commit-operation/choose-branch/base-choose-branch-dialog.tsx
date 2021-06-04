@@ -178,6 +178,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
       case MultiCommitOperationKind.Rebase:
       // TODO: dispatcher to switch multi commit operation to a rebase
       case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Reorder:
         break
       default:
         assertNever(value, `Unknown operation value: ${option.value}`)
