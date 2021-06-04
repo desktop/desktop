@@ -91,12 +91,6 @@ import { CommitConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
-import { AbortMergeWarning } from './abort-merge'
-import {
-  getConflictedFiles,
-  getResolvedFiles,
-  isConflictedFile,
-} from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
@@ -151,9 +145,6 @@ import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
 import { DragType, DropTargetSelector } from '../models/drag-drop'
 import { enableSquashing } from '../lib/feature-flag'
-import { ConflictsDialog } from './multi-commit-operation/conflicts-dialog'
-import { DefaultCommitMessage } from '../models/commit-message'
-import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 import {
@@ -1762,74 +1753,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
           />
         )
-      case PopupType.MergeConflicts: {
-        const { selectedState } = this.state
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const {
-          workingDirectory,
-          conflictState,
-        } = selectedState.state.changesState
-
-        if (conflictState === null || conflictState.kind === 'rebase') {
-          return null
-        }
-
-        const { repository, ourBranch, theirBranch } = popup
-        const submit = __DARWIN__ ? 'Commit Merge' : 'Commit merge'
-        const abort = __DARWIN__ ? 'Abort Merge' : 'Abort merge'
-        const headerTitle = (
-          <span>
-            {`Resolve conflicts before merging`}
-            {theirBranch !== undefined && <strong> {theirBranch}</strong>}
-            {` into `}
-            <strong>{ourBranch}</strong>
-          </span>
-        )
-        return (
-          <ConflictsDialog
-            key="merge-conflicts-dialog"
-            dispatcher={this.props.dispatcher}
-            repository={repository}
-            workingDirectory={workingDirectory}
-            userHasResolvedConflicts={false}
-            resolvedExternalEditor={this.state.resolvedExternalEditor}
-            ourBranch={ourBranch}
-            theirBranch={theirBranch}
-            manualResolutions={conflictState.manualResolutions}
-            headerTitle={headerTitle}
-            submitButton={submit}
-            abortButton={abort}
-            onSubmit={this.onMergeConflictsSubmit(
-              repository,
-              workingDirectory,
-              ourBranch,
-              theirBranch
-            )}
-            onAbort={this.onMergeConflictsCancel(
-              repository,
-              workingDirectory,
-              conflictState.manualResolutions,
-              ourBranch,
-              theirBranch
-            )}
-            onDismissed={this.onMergeConflictsDismissed(
-              repository,
-              workingDirectory,
-              conflictState.manualResolutions,
-              ourBranch,
-              theirBranch
-            )}
-            openFileInExternalEditor={this.openFileInExternalEditor}
-            openRepositoryInShell={this.openInShell}
-          />
-        )
-      }
       case PopupType.OversizedFiles:
         return (
           <OversizedFiles
@@ -1841,34 +1764,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
           />
         )
-      case PopupType.AbortMerge: {
-        const { selectedState } = this.state
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-        const { workingDirectory } = selectedState.state.changesState
-        // double check that this repository is actually in merge
-        const isInConflictedMerge = workingDirectory.files.some(file =>
-          isConflictedFile(file.status)
-        )
-        if (!isInConflictedMerge) {
-          return null
-        }
-
-        return (
-          <AbortMergeWarning
-            key="abort-merge-warning"
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            onDismissed={onPopupDismissedFn}
-            ourBranch={popup.ourBranch}
-            theirBranch={popup.theirBranch}
-          />
-        )
-      }
       case PopupType.CommitConflictsWarning:
         return (
           <CommitConflictsWarning
@@ -3202,89 +3097,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       friendlyName,
       latestVersion,
     })
-  }
-
-  private onMergeConflictsDismissed = (
-    repository: Repository,
-    workingDirectory: WorkingDirectoryStatus,
-    manualResolutions: Map<string, ManualConflictResolution>,
-    ourBranch: string,
-    theirBranch?: string
-  ) => {
-    return async () => {
-      this.props.dispatcher.closePopup()
-      this.props.dispatcher.setBanner({
-        type: BannerType.MergeConflictsFound,
-        ourBranch,
-        popup: {
-          type: PopupType.MergeConflicts,
-          ourBranch,
-          theirBranch,
-          repository,
-        },
-      })
-      this.props.dispatcher.recordMergeConflictsDialogDismissal()
-      const anyConflictedFiles =
-        getConflictedFiles(workingDirectory, manualResolutions).length > 0
-      if (anyConflictedFiles) {
-        this.props.dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
-      }
-    }
-  }
-
-  private onMergeConflictsCancel = (
-    repository: Repository,
-    workingDirectory: WorkingDirectoryStatus,
-    manualResolutions: Map<string, ManualConflictResolution>,
-    ourBranch: string,
-    theirBranch?: string
-  ) => {
-    return async () => {
-      const anyResolvedFiles =
-        getResolvedFiles(workingDirectory, manualResolutions).length > 0
-
-      if (anyResolvedFiles) {
-        this.props.dispatcher.showPopup({
-          type: PopupType.AbortMerge,
-          repository,
-          ourBranch,
-          theirBranch,
-        })
-        return
-      }
-
-      await this.props.dispatcher.abortMerge(repository)
-      this.props.dispatcher.closePopup()
-    }
-  }
-
-  private onMergeConflictsSubmit = (
-    repository: Repository,
-    workingDirectory: WorkingDirectoryStatus,
-    ourBranch: string,
-    theirBranch?: string
-  ) => {
-    return async () => {
-      await this.props.dispatcher.finishConflictedMerge(
-        repository,
-        workingDirectory,
-        {
-          type: BannerType.SuccessfulMerge,
-          ourBranch,
-          theirBranch,
-        }
-      )
-      await this.props.dispatcher.setCommitMessage(
-        repository,
-        DefaultCommitMessage
-      )
-      await this.props.dispatcher.changeRepositorySection(
-        repository,
-        RepositorySectionTab.Changes
-      )
-      this.props.dispatcher.closePopup()
-      this.props.dispatcher.recordGuidedConflictedMergeCompletion()
-    }
   }
 
   private onDragEnd = (dropTargetSelector: DropTargetSelector | undefined) => {
