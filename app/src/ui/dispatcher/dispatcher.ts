@@ -3073,6 +3073,15 @@ export class Dispatcher {
     this.appStore._setLastThankYou(lastThankYou)
   }
 
+  public async reorderCommits(
+    repository: Repository,
+    commitsToReorder: ReadonlyArray<Commit>,
+    beforeCommit: Commit | null,
+    lastRetainedCommitRef: string | null
+  ) {
+    // TODO: Implement!!
+  }
+
   /**
    * Starts a squash
    *

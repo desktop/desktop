@@ -102,3 +102,8 @@ export function enableBranchFromCommit(): boolean {
 export function enableSquashing(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we allow reordering commits? */
+export function enableCommitReordering(): boolean {
+  return enableDevelopmentFeatures()
+}
