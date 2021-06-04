@@ -252,7 +252,7 @@ export class CommitListItem extends React.PureComponent<
 
     if (this.props.canBeUndone) {
       items.push({
-        label: __DARWIN__ ? 'Undo Commit' : 'Undo commit',
+        label: __DARWIN__ ? 'Undo Commit…' : 'Undo commit…',
         action: () => {
           if (this.props.onUndoCommit) {
             this.props.onUndoCommit(this.props.commit)
