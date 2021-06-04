@@ -49,8 +49,6 @@ export enum PopupType {
   UpstreamAlreadyExists,
   ReleaseNotes,
   DeletePullRequest,
-  MergeConflicts,
-  AbortMerge,
   OversizedFiles,
   CommitConflictsWarning,
   PushNeedsPull,
@@ -175,18 +173,6 @@ export type Popup =
       repository: Repository
       branch: Branch
       pullRequest: PullRequest
-    }
-  | {
-      type: PopupType.MergeConflicts
-      repository: Repository
-      ourBranch: string
-      theirBranch?: string
-    }
-  | {
-      type: PopupType.AbortMerge
-      repository: Repository
-      ourBranch: string
-      theirBranch?: string
     }
   | {
       type: PopupType.OversizedFiles

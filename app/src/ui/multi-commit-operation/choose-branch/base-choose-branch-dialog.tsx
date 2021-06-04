@@ -193,6 +193,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
           'The commits from the selected branch will be added to the current branch via a merge commit.',
         value: MultiCommitOperationKind.Merge,
       },
+      /*
       {
         label: 'Squash and merge',
         description:

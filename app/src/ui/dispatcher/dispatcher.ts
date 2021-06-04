@@ -112,6 +112,7 @@ import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
+  MultiCommitOperationDetail,
   MultiCommitOperationKind,
   MultiCommitOperationStep,
   MultiCommitOperationStepKind,
@@ -3134,7 +3135,7 @@ export class Dispatcher {
       return
     }
 
-    this.appStore._initializeMultiCommitOperation(
+    this.initializeMultiCommitOperation(
       repository,
       {
         kind: MultiCommitOperationKind.Squash,
@@ -3168,6 +3169,20 @@ export class Dispatcher {
       result,
       toSquash,
       tip.branch.name
+    )
+  }
+
+  public initializeMultiCommitOperation(
+    repository: Repository,
+    operationDetail: MultiCommitOperationDetail,
+    targetBranch: Branch,
+    commits: ReadonlyArray<Commit>
+  ) {
+    this.appStore._initializeMultiCommitOperation(
+      repository,
+      operationDetail,
+      targetBranch,
+      commits
     )
   }
 

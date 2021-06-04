@@ -52,7 +52,7 @@ import {
   WorkingDirectoryStatus,
   AppFileStatusKind,
 } from '../../models/status'
-import { TipState, tipEquals, IValidBranch } from '../../models/tip'
+import { TipState, tipEquals, IValidBranch, Tip } from '../../models/tip'
 import { ICommitMessage } from '../../models/commit-message'
 import {
   Progress,
@@ -109,6 +109,7 @@ import {
   isCherryPickConflictState,
   isMergeConflictState,
   CherryPickConflictState,
+  IMultiCommitOperationState,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -2075,6 +2076,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const {
       changesState: { conflictState },
       multiCommitOperationState,
+      branchesState,
     } = state
 
     if (conflictState === null) {
@@ -2083,7 +2085,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (isMergeConflictState(conflictState)) {
-      await this.showMergeConflictsDialog(repository, conflictState)
+      await this.showMergeConflictsDialog(
+        repository,
+        conflictState,
+        multiCommitOperationState,
+        branchesState.tip
+      )
     } else if (isRebaseConflictState(conflictState)) {
       // TODO: This will likely get refactored to a showConflictsDialog method
       if (
@@ -2108,8 +2115,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this._closePopup(PopupType.MergeConflicts)
-    this._closePopup(PopupType.AbortMerge)
+    this._closePopup(PopupType.MultiCommitOperation)
     this._clearBanner(BannerType.MergeConflictsFound)
 
     this._closePopup(PopupType.RebaseFlow)
@@ -2154,18 +2160,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** starts the conflict resolution flow, if appropriate */
   private async showMergeConflictsDialog(
     repository: Repository,
-    conflictState: MergeConflictState
+    conflictState: MergeConflictState,
+    multiCommitOperationState: IMultiCommitOperationState | null,
+    tip: Tip
   ) {
+    if (multiCommitOperationState === null && tip.kind === TipState.Valid) {
+      this._initializeMultiCommitOperation(
+        repository,
+        {
+          kind: MultiCommitOperationKind.Merge,
+          isSquash: false,
+          sourceBranch: null,
+        },
+        tip.branch,
+        []
+      )
+    }
+
     // are we already in the merge conflicts flow?
     const alreadyInFlow =
       this.currentPopup !== null &&
-      (this.currentPopup.type === PopupType.MergeConflicts ||
-        this.currentPopup.type === PopupType.AbortMerge)
+      this.currentPopup.type === PopupType.MultiCommitOperation &&
+      multiCommitOperationState !== null &&
+      (multiCommitOperationState.step.kind ===
+        MultiCommitOperationStepKind.ShowConflicts ||
+        multiCommitOperationState.step.kind ===
+          MultiCommitOperationStepKind.ConfirmAbort)
 
     // have we already been shown the merge conflicts flow *and closed it*?
     const alreadyExitedFlow =
       this.currentBanner !== null &&
-      this.currentBanner.type === BannerType.MergeConflictsFound
+      this.currentBanner.type === BannerType.ConflictsFound
 
     if (alreadyInFlow || alreadyExitedFlow) {
       return
@@ -2184,12 +2209,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? possibleTheirsBranches[0]
         : undefined
 
-    const ourBranch = conflictState.currentBranch
+    const { manualResolutions, currentBranch: ourBranch } = conflictState
+    this._setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ShowConflicts,
+      conflictState: {
+        kind: 'multiCommitOperation',
+        manualResolutions,
+        ourBranch,
+        theirBranch,
+      },
+    })
+
     this._showPopup({
-      type: PopupType.MergeConflicts,
+      type: PopupType.MultiCommitOperation,
       repository,
-      ourBranch,
-      theirBranch,
     })
   }
 
@@ -6540,7 +6573,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       operationDetail,
       progress: {
         kind: 'multiCommitOperation',
-        currentCommitSummary: commits[0].summary,
+        currentCommitSummary: commits.length > 0 ? commits[0].summary : '',
         position: 1,
         totalCommitCount: commits.length,
         value: 0,
