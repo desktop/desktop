@@ -103,6 +103,11 @@ export function enableSquashing(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should we allow amending commits? */
+export function enableAmendingCommits(): boolean {
+  return enableBetaFeatures()
+}
+
 /** Should we allow reordering commits? */
 export function enableCommitReordering(): boolean {
   return enableDevelopmentFeatures()

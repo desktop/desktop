@@ -761,6 +761,16 @@ export class Dispatcher {
     )
   }
 
+  /** Switch between amending the most recent commit and not. */
+  public async setAmendingRepository(
+    repository: Repository,
+    amending: boolean
+  ) {
+    await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
+
+    this.appStore._setAmendingRepository(repository, amending)
+  }
+
   /** Undo the given commit. */
   public undoCommit(
     repository: Repository,

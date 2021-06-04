@@ -2537,7 +2537,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withIsCommitting(repository, async () => {
       const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
-        return createCommit(repository, message, selectedFiles)
+        return createCommit(repository, message, selectedFiles, context.amend)
       })
 
       if (result !== undefined) {
@@ -2548,6 +2548,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           context,
           files
         )
+
+        this.repositoryStateCache.update(repository, () => {
+          return {
+            isAmending: false,
+          }
+        })
 
         await this._refreshRepository(repository)
         await this.refreshChangesSection(repository, {
@@ -4125,6 +4131,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.discardChangesFromSelection(filePath, diff, selection)
 
     return this._refreshRepository(repository)
+  }
+
+  public _setAmendingRepository(repository: Repository, amending: boolean) {
+    this.repositoryStateCache.update(repository, () => {
+      return {
+        isAmending: amending,
+      }
+    })
+
+    this.emitUpdate()
   }
 
   public async _undoCommit(

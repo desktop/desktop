@@ -28,6 +28,9 @@ interface ICommitListProps {
   /** Whether or not commits in this list can be undone. */
   readonly canUndoCommits: boolean
 
+  /** Whether or not commits in this list can be amended. */
+  readonly canAmendCommits: boolean
+
   /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
 
@@ -48,6 +51,8 @@ interface ICommitListProps {
 
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
+
+  readonly onAmendCommit?: () => void
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
@@ -173,6 +178,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
         canBeUndone={this.props.canUndoCommits && isLocal && row === 0}
+        canBeAmended={this.props.canAmendCommits && isLocal && row === 0}
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,
@@ -188,6 +194,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onSquash={this.onSquash}
         onUndoCommit={this.props.onUndoCommit}
         onRevertCommit={this.props.onRevertCommit}
+        onAmendCommit={this.props.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
