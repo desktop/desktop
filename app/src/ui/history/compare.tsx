@@ -30,6 +30,7 @@ import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
+import { enableCommitReordering } from '../../lib/feature-flag'
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
@@ -230,6 +231,9 @@ export class CompareSidebar extends React.Component<
         selectedSHAs={this.props.selectedCommitShas}
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
+        reorderingEnabled={
+          enableCommitReordering() && formState.kind === HistoryTabMode.History
+        }
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onRevertCommit={
           ableToRevertCommit(this.props.compareState.formState)
@@ -242,6 +246,7 @@ export class CompareSidebar extends React.Component<
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
+        onDropCommitInsertion={this.onDropCommitInsertion}
         onSquash={this.onSquash}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
@@ -254,6 +259,19 @@ export class CompareSidebar extends React.Component<
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
         disableSquashing={formState.kind === HistoryTabMode.Compare}
       />
+    )
+  }
+
+  private onDropCommitInsertion = (
+    baseCommit: Commit | null,
+    commitsToInsert: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ) => {
+    this.props.dispatcher.reorderCommits(
+      this.props.repository,
+      commitsToInsert,
+      baseCommit,
+      lastRetainedCommitRef
     )
   }
 
