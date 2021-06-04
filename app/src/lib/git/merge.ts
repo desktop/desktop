@@ -27,19 +27,34 @@ export enum MergeResult {
 /** Merge the named branch into the current branch. */
 export async function merge(
   repository: Repository,
-  branch: string
+  branch: string,
+  isSquash: boolean = false
 ): Promise<MergeResult> {
-  const { exitCode, stdout } = await git(
-    ['merge', branch],
-    repository.path,
-    'merge',
-    {
-      expectedErrors: new Set([GitError.MergeConflicts]),
-    }
-  )
+  const args = ['merge']
+
+  if (isSquash) {
+    args.push('--squash')
+  }
+
+  args.push(branch)
+
+  const { exitCode, stdout } = await git(args, repository.path, 'merge', {
+    expectedErrors: new Set([GitError.MergeConflicts]),
+  })
 
   if (exitCode !== 0) {
     return MergeResult.Failed
+  }
+
+  if (isSquash) {
+    const { exitCode } = await git(
+      ['commit', '--no-edit'],
+      repository.path,
+      'createSquashMergeCommit'
+    )
+    if (exitCode !== 0) {
+      return MergeResult.Failed
+    }
   }
 
   return stdout === noopMergeMessage

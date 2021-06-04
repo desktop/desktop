@@ -4444,7 +4444,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeTreeResult | null
+    mergeStatus: MergeTreeResult | null,
+    isSquash: boolean = false
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
@@ -4458,7 +4459,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const mergeResult = await gitStore.merge(branch)
+    const mergeResult = await gitStore.merge(branch, isSquash)
     const { tip } = gitStore
 
     if (mergeResult === MergeResult.Success && tip.kind === TipState.Valid) {
