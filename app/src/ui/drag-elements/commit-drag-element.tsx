@@ -4,7 +4,7 @@ import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { assertNever } from '../../lib/fatal-error'
 import { Commit } from '../../models/commit'
-import { DropTarget, DropTargetType } from '../../models/drag-drop'
+import { DragType, DropTarget, DropTargetType } from '../../models/drag-drop'
 import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -94,6 +94,24 @@ export class CommitDragElement extends React.Component<
           </>
         )
         break
+      case DropTargetType.ListInsertionPoint:
+        if (currentDropTarget.data.type !== DragType.Commit) {
+          toolTipContents = (
+            <>
+              <span>'Insert here'</span>
+            </>
+          )
+          break
+        }
+
+        const pluralized =
+          currentDropTarget.data.commits.length === 1 ? 'commit' : 'commits'
+        toolTipContents = (
+          <>
+            <span>{`Move ${pluralized} here`}</span>
+          </>
+        )
+        break
       default:
         assertNever(
           currentDropTarget,
@@ -115,6 +133,7 @@ export class CommitDragElement extends React.Component<
         switch (dropTarget.type) {
           case DropTargetType.Branch:
           case DropTargetType.Commit:
+          case DropTargetType.ListInsertionPoint:
             this.setToolTipTimer(1500)
             break
           default:

@@ -4167,6 +4167,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
+    // Make sure we show the changes after undoing the commit
+    await this._changeRepositorySection(
+      repository,
+      RepositorySectionTab.Changes
+    )
+
     await gitStore.undoCommit(commit)
 
     this.statsStore.recordCommitUndone(isWorkingDirectoryClean)

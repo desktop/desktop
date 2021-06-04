@@ -252,7 +252,6 @@ export class RepositoryView extends React.Component<
         localCommitSHAs={this.props.state.localCommitSHAs}
         localTags={this.props.state.localTags}
         dispatcher={this.props.dispatcher}
-        onUndoCommit={this.onUndoCommit}
         onRevertCommit={this.onRevertCommit}
         onAmendCommit={this.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
@@ -491,10 +490,6 @@ export class RepositoryView extends React.Component<
         {this.maybeRenderTutorialPanel()}
       </UiView>
     )
-  }
-
-  private onUndoCommit = (commit: Commit) => {
-    this.props.dispatcher.undoCommit(this.props.repository, commit)
   }
 
   private onRevertCommit = (commit: Commit) => {

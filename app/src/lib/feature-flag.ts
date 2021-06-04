@@ -107,3 +107,8 @@ export function enableSquashing(): boolean {
 export function enableAmendingCommits(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we allow reordering commits? */
+export function enableCommitReordering(): boolean {
+  return enableDevelopmentFeatures()
+}

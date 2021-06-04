@@ -32,6 +32,8 @@ export class MultiCommitOperation extends React.Component<
             openRepositoryInShell={this.props.openRepositoryInShell}
           />
         )
+      case MultiCommitOperationKind.Reorder:
+        return null
       default:
         return assertNever(
           kind,
