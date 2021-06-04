@@ -26,6 +26,8 @@ interface ICommitProps {
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
+  readonly canBeUndone: boolean
+  readonly onUndoCommit?: (commit: Commit) => void
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateBranch?: (commit: CommitOneLine) => void
@@ -247,19 +249,31 @@ export class CommitListItem extends React.PureComponent<
       viewOnGitHubLabel = 'View on GitHub Enterprise'
     }
 
-    const items: IMenuItem[] = [
-      {
-        label: __DARWIN__
-          ? 'Revert Changes in Commit'
-          : 'Revert changes in commit',
+    const items: IMenuItem[] = []
+
+    if (this.props.canBeUndone) {
+      items.push({
+        label: __DARWIN__ ? 'Undo Commit…' : 'Undo commit…',
         action: () => {
-          if (this.props.onRevertCommit) {
-            this.props.onRevertCommit(this.props.commit)
+          if (this.props.onUndoCommit) {
+            this.props.onUndoCommit(this.props.commit)
           }
         },
-        enabled: this.props.onRevertCommit !== undefined,
+        enabled: this.props.onUndoCommit !== undefined,
+      })
+    }
+
+    items.push({
+      label: __DARWIN__
+        ? 'Revert Changes in Commit'
+        : 'Revert changes in commit',
+      action: () => {
+        if (this.props.onRevertCommit) {
+          this.props.onRevertCommit(this.props.commit)
+        }
       },
-    ]
+      enabled: this.props.onRevertCommit !== undefined,
+    })
 
     if (enableBranchFromCommit()) {
       items.push({

@@ -25,6 +25,9 @@ interface ICommitListProps {
   /** The SHAs of the selected commits */
   readonly selectedSHAs: ReadonlyArray<string>
 
+  /** Whether or not commits in this list can be undone. */
+  readonly canUndoCommits: boolean
+
   /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
 
@@ -39,6 +42,9 @@ interface ICommitListProps {
 
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
+
+  /** Callback to fire to undo a given commit in the current repository */
+  readonly onUndoCommit: ((commit: Commit) => void) | undefined
 
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
@@ -166,6 +172,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
+        canBeUndone={this.props.canUndoCommits && isLocal && row === 0}
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,
@@ -179,6 +186,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
         onSquash={this.onSquash}
+        onUndoCommit={this.props.onUndoCommit}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
