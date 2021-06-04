@@ -1,6 +1,6 @@
 @import '../../mixins';
 
-#permissions-commit-warning {
+#commit-warning {
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
@@ -26,8 +26,13 @@
     position: relative;
     text-align: center;
 
-    .warning-icon {
+    .warning-icon,
+    .information-icon {
       color: var(--dialog-warning-color);
+
+      &.information-icon {
+        color: var(--dialog-information-color);
+      }
 
       background: var(--box-alt-background-color);
       border-width: 0 var(--spacing-half);

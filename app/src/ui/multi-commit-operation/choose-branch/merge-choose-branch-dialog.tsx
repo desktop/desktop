@@ -12,7 +12,7 @@ import { MultiCommitOperationKind } from '../../../models/multi-commit-operation
 import { ActionStatusIcon } from '../../lib/action-status-icon'
 import { BaseChooseBranchDialog } from './base-choose-branch-dialog'
 
-export abstract class MergeChooseBranchDialog extends BaseChooseBranchDialog {
+export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
   private commitCount: number = 0
   private mergeStatus: MergeTreeResult | null = null
 

@@ -2570,7 +2570,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withIsCommitting(repository, async () => {
       const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
-        return createCommit(repository, message, selectedFiles)
+        return createCommit(repository, message, selectedFiles, context.amend)
       })
 
       if (result !== undefined) {
@@ -2581,6 +2581,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           context,
           files
         )
+
+        this.repositoryStateCache.update(repository, () => {
+          return {
+            isAmending: false,
+          }
+        })
 
         await this._refreshRepository(repository)
         await this.refreshChangesSection(repository, {
@@ -4160,29 +4166,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public _setAmendingRepository(repository: Repository, amending: boolean) {
+    this.repositoryStateCache.update(repository, () => {
+      return {
+        isAmending: amending,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
   public async _undoCommit(
     repository: Repository,
-    commit: Commit
+    commit: Commit,
+    showConfirmationDialog: boolean
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-
-    const currentState = this.repositoryStateCache.get(repository)
-    const { changesState } = currentState
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { changesState } = repositoryState
     const isWorkingDirectoryClean =
       changesState.workingDirectory.files.length === 0
+
+    // Warn the user if there are changes in the working directory
+    if (
+      showConfirmationDialog &&
+      (!isWorkingDirectoryClean || commit.isMergeCommit)
+    ) {
+      return this._showPopup({
+        type: PopupType.WarnLocalChangesBeforeUndo,
+        repository,
+        commit,
+        isWorkingDirectoryClean,
+      })
+    }
+
+    // Make sure we show the changes after undoing the commit
+    await this._changeRepositorySection(
+      repository,
+      RepositorySectionTab.Changes
+    )
 
     await gitStore.undoCommit(commit)
 
     this.statsStore.recordCommitUndone(isWorkingDirectoryClean)
-
-    const { commitSelection } = this.repositoryStateCache.get(repository)
-
-    if (
-      commitSelection.shas.length > 0 &&
-      commitSelection.shas.find(sha => sha === commit.sha) !== undefined
-    ) {
-      this.clearSelectedCommit(repository)
-    }
 
     return this._refreshRepository(repository)
   }
@@ -5826,7 +5852,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { workingDirectory } = changesState
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
-    return await createDesktopStashEntry(repository, branch, untrackedFiles)
+    return createDesktopStashEntry(repository, branch, untrackedFiles)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

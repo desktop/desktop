@@ -10,7 +10,7 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { CommitOneLine, ICommitContext } from './commit'
+import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
@@ -73,6 +73,7 @@ export enum PopupType {
   ThankYou,
   CommitMessage,
   MultiCommitOperation,
+  WarnLocalChangesBeforeUndo,
 }
 
 export type Popup =
@@ -290,4 +291,10 @@ export type Popup =
   | {
       type: PopupType.MultiCommitOperation
       repository: Repository
+    }
+  | {
+      type: PopupType.WarnLocalChangesBeforeUndo
+      repository: Repository
+      commit: Commit
+      isWorkingDirectoryClean: boolean
     }

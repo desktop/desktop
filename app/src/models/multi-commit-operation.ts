@@ -15,6 +15,7 @@ export const enum MultiCommitOperationKind {
   CherryPick = 'Cherry-pick',
   Squash = 'Squash',
   Merge = 'Merge',
+  Reorder = 'Reorder',
 }
 
 /**
@@ -135,13 +136,6 @@ export type CreateBranchStep = {
 
 interface IInteractiveRebaseDetails {
   /**
-   * A commit that the interactive rebase takes place around.
-   *
-   * Example: Squashing all the 'commits' array onto the 'targetCommit'.
-   */
-  readonly targetCommit: Commit
-
-  /**
    * The reference to the last retained commit on the branch during an
    * interactive rebase or null if rebasing to the root.
    */
@@ -158,10 +152,25 @@ interface ISourceBranchDetails {
 }
 interface ISquashDetails extends IInteractiveRebaseDetails {
   readonly kind: MultiCommitOperationKind.Squash
+
+  /**
+   * A commit that the interactive rebase takes place around.
+   *
+   * Example: Squashing all the 'commits' array onto the 'targetCommit'.
+   */
+  readonly targetCommit: Commit
+
   /**
    * The commit context of the commit squashed.
    */
   readonly commitContext: ICommitContext
+}
+
+interface IReorderDetails extends IInteractiveRebaseDetails {
+  readonly kind: MultiCommitOperationKind.Reorder
+
+  /** The commit before which the commits to reorder will be placed. */
+  readonly beforeCommit: Commit | null
 }
 
 interface ICherryPickDetails extends ISourceBranchDetails {
@@ -185,6 +194,7 @@ interface IMergeDetails extends ISourceBranchDetails {
 
 export type MultiCommitOperationDetail =
   | ISquashDetails
+  | IReorderDetails
   | ICherryPickDetails
   | IRebaseDetails
   | IMergeDetails
