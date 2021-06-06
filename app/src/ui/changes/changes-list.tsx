@@ -507,8 +507,7 @@ export class ChangesList extends React.Component<
         })
       })
 
-    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
-
+    const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(
       { type: 'separator' },
       this.getCopyPathMenuItem(file),
@@ -517,7 +516,7 @@ export class ChangesList extends React.Component<
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled,
+        enabled: enabled && isSafeExtension,
       }
     )
 
@@ -540,7 +539,7 @@ export class ChangesList extends React.Component<
       })
     }
 
-    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
+    const enabled = status.kind !== AppFileStatusKind.Deleted
 
     items.push(
       this.getCopyPathMenuItem(file),
@@ -549,7 +548,7 @@ export class ChangesList extends React.Component<
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled,
+        enabled: enabled && isSafeExtension,
       }
     )
 
