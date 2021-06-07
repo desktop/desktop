@@ -21,15 +21,17 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
       return
     }
 
-    const branch = this.state.selectedBranch
-    if (!branch) {
+    const { selectedBranch } = this.state
+    const { operation, dispatcher, repository } = this.props
+    if (!selectedBranch) {
       return
     }
 
-    this.props.dispatcher.mergeBranch(
-      this.props.repository,
-      branch.name,
-      this.mergeStatus
+    dispatcher.mergeBranch(
+      repository,
+      selectedBranch.name,
+      this.mergeStatus,
+      operation === MultiCommitOperationKind.Squash
     )
     this.props.onDismissed()
   }
