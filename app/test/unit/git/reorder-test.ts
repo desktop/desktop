@@ -44,17 +44,17 @@ describe('git/reorder', () => {
     expect(log[1].summary).toBe('second')
     expect(log[0].summary).toBe('first')
   })
-  /*
+
   it('moves first and fourth commits after the second one respecting their order in the log', async () => {
     const firstCommit = await makeSampleCommit(repository, 'first')
-    const secondCommit = await makeSampleCommit(repository, 'second')
-    await makeSampleCommit(repository, 'third')
+    await makeSampleCommit(repository, 'second')
+    const thirdCommit = await makeSampleCommit(repository, 'third')
     const fourthCommit = await makeSampleCommit(repository, 'fourth')
 
     const result = await reorder(
       repository,
       [fourthCommit, firstCommit], // provided in opposite log order
-      secondCommit,
+      thirdCommit,
       initialCommit.sha
     )
 
@@ -72,7 +72,7 @@ describe('git/reorder', () => {
       'initialize',
     ])
   })
-*/
+
   it('moves first commit after the last one', async () => {
     const firstCommit = await makeSampleCommit(repository, 'first')
     await makeSampleCommit(repository, 'second')
