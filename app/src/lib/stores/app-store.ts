@@ -2111,7 +2111,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Cleanup any related UI related to conflicts if still in use.
    */
   private clearConflictsFlowVisuals(state: IRepositoryState) {
-    if (userIsStartingRebaseFlow(this.currentPopup, state.rebaseState)) {
+    const { multiCommitOperationState, rebaseState } = state
+    if (
+      userIsStartingRebaseFlow(this.currentPopup, rebaseState) ||
+      userIsStartingMultiCommitOperation(
+        this.currentPopup,
+        multiCommitOperationState
+      )
+    ) {
       return
     }
 
@@ -6660,6 +6667,29 @@ function userIsStartingRebaseFlow(
     state.step.kind === RebaseStep.ChooseBranch ||
     state.step.kind === RebaseStep.WarnForcePush ||
     state.step.kind === RebaseStep.ShowProgress
+  ) {
+    return true
+  }
+
+  return false
+}
+
+function userIsStartingMultiCommitOperation(
+  currentPopup: Popup | null,
+  state: IMultiCommitOperationState | null
+) {
+  if (currentPopup === null || state === null) {
+    return false
+  }
+
+  if (currentPopup.type !== PopupType.MultiCommitOperation) {
+    return false
+  }
+
+  if (
+    state.step.kind === MultiCommitOperationStepKind.ChooseBranch ||
+    state.step.kind === MultiCommitOperationStepKind.WarnForcePush ||
+    state.step.kind === MultiCommitOperationStepKind.ShowProgress
   ) {
     return true
   }
