@@ -3286,7 +3286,11 @@ export class Dispatcher {
           await this.changeCommitSelection(repository, [status.currentTip])
         }
 
-        await this.completeSquash(repository, toSquash.length + 1)
+        await this.completeMultiCommitOperation(
+          MultiCommitOperationKind.Squash,
+          repository,
+          toSquash.length + 1
+        )
         break
       case RebaseResult.ConflictsEncountered:
         await this.refreshRepository(repository)
@@ -3324,7 +3328,11 @@ export class Dispatcher {
           await this.changeCommitSelection(repository, [status.currentTip])
         }
 
-        await this.completeReorder(repository, commitsToReorder.length)
+        await this.completeMultiCommitOperation(
+          MultiCommitOperationKind.Reorder,
+          repository,
+          commitsToReorder.length
+        )
         break
       case RebaseResult.ConflictsEncountered:
         await this.refreshRepository(repository)
@@ -3381,70 +3389,44 @@ export class Dispatcher {
   }
 
   /**
-   * Wrap squash actions
+   * Wrap multi commit operation actions
    * - closes popups
    * - refreshes repo (so changes appear in history)
    * - sets success banner
    * - end operation state
    * TODO: record successful squash stats
    */
-  private async completeSquash(
+  private async completeMultiCommitOperation(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     count: number
   ): Promise<void> {
     this.closePopup()
 
-    const banner: Banner = {
-      type: BannerType.SuccessfulSquash,
-      count,
-      onUndo: () => {
-        this.undoMultiCommitOperation(
-          MultiCommitOperationKind.Squash,
-          repository,
-          count
+    let bannerType: BannerType
+
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        bannerType = BannerType.SuccessfulSquash
+        break
+      case MultiCommitOperationKind.Reorder:
+        bannerType = BannerType.SuccessfulReorder
+        break
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(
+          `Unexpected multi commit operation kind to undo ${kind}`
         )
-      },
-    }
-    this.setBanner(banner)
-
-    const {
-      branchesState,
-      multiCommitOperationState,
-    } = this.repositoryStateManager.get(repository)
-    const { tip } = branchesState
-
-    if (tip.kind === TipState.Valid && multiCommitOperationState !== null) {
-      const { originalBranchTip } = multiCommitOperationState
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+      default:
+        assertNever(kind, `Unsupported multi operation kind to undo ${kind}`)
     }
 
-    this.endMultiCommitOperation(repository)
-    await this.refreshRepository(repository)
-  }
-
-  /**
-   * Wrap reorder actions
-   * - closes popups
-   * - refreshes repo (so changes appear in history)
-   * - sets success banner
-   * - end operation state
-   * TODO: record successful reorder stats
-   */
-  private async completeReorder(
-    repository: Repository,
-    count: number
-  ): Promise<void> {
-    this.closePopup()
-
     const banner: Banner = {
-      type: BannerType.SuccessfulReorder,
+      type: bannerType,
       count,
       onUndo: () => {
-        this.undoMultiCommitOperation(
-          MultiCommitOperationKind.Reorder,
-          repository,
-          count
-        )
+        this.undoMultiCommitOperation(kind, repository, count)
       },
     }
     this.setBanner(banner)
