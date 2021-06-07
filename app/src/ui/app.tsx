@@ -62,7 +62,6 @@ import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
 import { UpdateAvailable, renderBanner } from './banners'
 import { Preferences } from './preferences'
-import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
@@ -147,10 +146,6 @@ import { DragType, DropTargetSelector } from '../models/drag-drop'
 import { enableSquashing } from '../lib/feature-flag'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
-import {
-  MultiCommitOperationKind,
-  MultiCommitOperationStepKind,
-} from '../models/multi-commit-operation'
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -617,42 +612,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     ) {
       return
     }
-    const { repository, state } = selectedState
-    const { branchesState } = state
-    const { defaultBranch, allBranches, recentBranches, tip } = branchesState
-    let currentBranch: Branch | null = null
-
-    if (tip.kind === TipState.Valid) {
-      currentBranch = tip.branch
-    } else {
-      throw new Error(
-        'Tip is not in a valid state, which is required to start the rebase flow'
-      )
-    }
-
-    this.props.dispatcher.initializeMultiCommitOperation(
-      repository,
-      {
-        kind: MultiCommitOperationKind.Merge,
-        isSquash,
-        sourceBranch: null,
-      },
-      currentBranch,
-      []
-    )
-
-    this.props.dispatcher.setMultiCommitOperationStep(repository, {
-      kind: MultiCommitOperationStepKind.ChooseBranch,
-      defaultBranch,
-      currentBranch,
-      allBranches,
-      recentBranches,
-    })
-
-    this.props.dispatcher.showPopup({
-      type: PopupType.MultiCommitOperation,
-      repository,
-    })
+    const { repository } = selectedState
+    this.props.dispatcher.startMergeBranchOperation(repository, isSquash)
   }
 
   private compareBranchOnDotcom() {
@@ -1462,34 +1423,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
           />
         )
-      case PopupType.MergeBranch: {
-        const { repository, branch } = popup
-        const state = this.props.repositoryStateManager.get(repository)
-
-        const tip = state.branchesState.tip
-
-        // we should never get in this state since we disable the menu
-        // item in a detached HEAD state, this check is so TSC is happy
-        if (tip.kind !== TipState.Valid) {
-          return null
-        }
-
-        const currentBranch = tip.branch
-
-        return (
-          <Merge
-            key="merge-branch"
-            dispatcher={this.props.dispatcher}
-            repository={repository}
-            allBranches={state.branchesState.allBranches}
-            defaultBranch={state.branchesState.defaultBranch}
-            recentBranches={state.branchesState.recentBranches}
-            currentBranch={currentBranch}
-            initialBranch={branch}
-            onDismissed={onPopupDismissedFn}
-          />
-        )
-      }
       case PopupType.RepositorySettings: {
         const repository = popup.repository
         const state = this.props.repositoryStateManager.get(repository)

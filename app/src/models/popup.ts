@@ -25,7 +25,6 @@ export enum PopupType {
   DeleteRemoteBranch,
   ConfirmDiscardChanges,
   Preferences,
-  MergeBranch,
   RepositorySettings,
   AddRepository,
   CreateRepository,
@@ -104,11 +103,6 @@ export type Popup =
       selection: DiffSelection
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
-  | {
-      type: PopupType.MergeBranch
-      repository: Repository
-      branch?: Branch
-    }
   | {
       type: PopupType.RepositorySettings
       repository: Repository
