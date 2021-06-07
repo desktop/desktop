@@ -2196,13 +2196,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const possibleTheirsBranches = await getBranchesPointedAt(
+    let possibleTheirsBranches = await getBranchesPointedAt(
       repository,
       'MERGE_HEAD'
     )
     // null means we encountered an error
     if (possibleTheirsBranches === null) {
-      return
+      possibleTheirsBranches = []
+      // return
     }
     const theirBranch =
       possibleTheirsBranches.length === 1

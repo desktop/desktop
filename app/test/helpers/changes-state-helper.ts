@@ -31,6 +31,7 @@ export function createStatus<K extends keyof IStatusResult>(
   const baseStatus: IStatusResult = {
     exists: true,
     mergeHeadFound: false,
+    squashMsgFound: false,
     rebaseInternalState: null,
     isCherryPickingHeadFound: false,
     workingDirectory: WorkingDirectoryStatus.fromFiles([]),

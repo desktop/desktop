@@ -147,5 +147,18 @@ export async function abortMerge(repository: Repository): Promise<void> {
  */
 export async function isMergeHeadSet(repository: Repository): Promise<boolean> {
   const path = Path.join(repository.path, '.git', 'MERGE_HEAD')
-  return FSE.pathExists(path)
+  return await FSE.pathExists(path)
+}
+
+/**
+ * Check the `.git/SQUASH_MSG` file exists in a repository
+ * This would indicate we did a merge --squash and have not committed.. indicating
+ * we have detected a conflict.
+ *
+ * Note: If we abort the merge, this doesn't get cleared automatically which
+ * could lead to this being erroneously available in a non merge --squashing scenario.
+ */
+export async function isSquashMsgSet(repository: Repository): Promise<boolean> {
+  const path = Path.join(repository.path, '.git', 'SQUASH_MSG')
+  return await FSE.pathExists(path)
 }
