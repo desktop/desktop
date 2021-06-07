@@ -5,14 +5,6 @@ import {
 } from '../../../helpers/changes-state-helper'
 import { ManualConflictResolution } from '../../../../src/models/manual-conflict-resolution'
 import { IStatsStore } from '../../../../src/lib/stats'
-import {
-  AppFileStatusKind,
-  GitStatusEntry,
-  UnmergedEntrySummary,
-  WorkingDirectoryFileChange,
-  WorkingDirectoryStatus,
-} from '../../../../src/models/status'
-import { DiffSelection, DiffSelectionType } from '../../../../src/models/diff'
 
 describe('updateConflictState', () => {
   let statsStore: IStatsStore
@@ -52,12 +44,12 @@ describe('updateConflictState', () => {
           currentTip: 'old-sha',
           manualResolutions,
         },
-        workingDirectory: getWorkingDirectoryWithConflictedFile(),
       })
       const status = createStatus({
         mergeHeadFound: true,
         currentBranch: 'master',
         currentTip: 'first-sha',
+        doConflictedFilesExist: true,
       })
 
       const conflictState = updateConflictState(prevState, status, statsStore)
@@ -92,12 +84,12 @@ describe('updateConflictState', () => {
     it('returns a value when status has MERGE_HEAD set and in conflicted state', () => {
       const prevState = createState({
         conflictState: null,
-        workingDirectory: getWorkingDirectoryWithConflictedFile(),
       })
       const status = createStatus({
         mergeHeadFound: true,
         currentBranch: 'master',
         currentTip: 'first-sha',
+        doConflictedFilesExist: true,
       })
 
       const conflictState = updateConflictState(prevState, status, statsStore)
@@ -118,12 +110,12 @@ describe('updateConflictState', () => {
           currentTip: 'old-sha',
           manualResolutions: new Map<string, ManualConflictResolution>(),
         },
-        workingDirectory: getWorkingDirectoryWithConflictedFile(),
       })
       const status = createStatus({
         mergeHeadFound: true,
         currentBranch: 'master',
         currentTip: 'first-sha',
+        doConflictedFilesExist: true,
       })
 
       updateConflictState(prevState, status, statsStore)
@@ -192,7 +184,6 @@ describe('updateConflictState', () => {
     it('returns a value when status has REBASE_HEAD set and conflict present', () => {
       const prevState = createState({
         conflictState: null,
-        workingDirectory: getWorkingDirectoryWithConflictedFile(),
       })
       const status = createStatus({
         rebaseInternalState: {
@@ -202,6 +193,7 @@ describe('updateConflictState', () => {
         },
         currentBranch: 'master',
         currentTip: 'first-sha',
+        doConflictedFilesExist: true,
       })
 
       const conflictState = updateConflictState(prevState, status, statsStore)
@@ -226,7 +218,6 @@ describe('updateConflictState', () => {
           baseBranchTip: 'another-sha',
           originalBranchTip: 'some-other-sha',
         },
-        workingDirectory: getWorkingDirectoryWithConflictedFile(),
       })
       const status = createStatus({
         rebaseInternalState: {
@@ -236,6 +227,7 @@ describe('updateConflictState', () => {
         },
         currentBranch: 'master',
         currentTip: 'first-sha',
+        doConflictedFilesExist: true,
       })
 
       const conflictState = updateConflictState(prevState, status, statsStore)
@@ -260,7 +252,6 @@ describe('updateConflictState', () => {
           baseBranchTip: 'another-sha',
           originalBranchTip: 'old-sha',
         },
-        workingDirectory: getWorkingDirectoryWithConflictedFile(),
       })
       const status = createStatus({
         rebaseInternalState: {
@@ -269,6 +260,7 @@ describe('updateConflictState', () => {
           baseBranchTip: 'an-even-older-sha',
         },
         currentTip: 'current-sha',
+        doConflictedFilesExist: true,
       })
 
       updateConflictState(prevState, status, statsStore)
@@ -323,23 +315,3 @@ describe('updateConflictState', () => {
     })
   })
 })
-
-function getWorkingDirectoryWithConflictedFile(): WorkingDirectoryStatus {
-  const files: ReadonlyArray<WorkingDirectoryFileChange> = [
-    new WorkingDirectoryFileChange(
-      'test',
-      {
-        kind: AppFileStatusKind.Conflicted,
-        entry: {
-          kind: 'conflicted',
-          action: UnmergedEntrySummary.BothAdded,
-          us: GitStatusEntry.Added,
-          them: GitStatusEntry.Added,
-        },
-        conflictMarkerCount: 1,
-      },
-      DiffSelection.fromInitialSelection(DiffSelectionType.All)
-    ),
-  ]
-  return WorkingDirectoryStatus.fromFiles(files)
-}
