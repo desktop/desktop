@@ -30,6 +30,7 @@ import {
   PushOptions,
   getCommitsBetweenCommits,
   getBranches,
+  dropRootCommitIfEmpty,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -3158,12 +3159,13 @@ export class Dispatcher {
       tip
     )
 
-    return this.processMultiCommitOperationRebaseResult(
+    await this.processMultiCommitOperationRebaseResult(
       MultiCommitOperationKind.Reorder,
       repository,
       result,
       commitsToReorder.length,
-      tip.branch.name
+      tip.branch.name,
+      lastRetainedCommitRef === null
     )
   }
 
@@ -3242,7 +3244,8 @@ export class Dispatcher {
       repository,
       result,
       toSquash.length + 1,
-      tip.branch.name
+      tip.branch.name,
+      lastRetainedCommitRef === null
     )
   }
 
@@ -3292,7 +3295,8 @@ export class Dispatcher {
     repository: Repository,
     result: RebaseResult,
     totalNumberOfCommits: number,
-    targetBranchName: string
+    targetBranchName: string,
+    fromRoot: boolean
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
     // conflict flow if squash results in conflict.
@@ -3310,7 +3314,8 @@ export class Dispatcher {
         await this.completeMultiCommitOperation(
           kind,
           repository,
-          totalNumberOfCommits
+          totalNumberOfCommits,
+          fromRoot
         )
         break
       case RebaseResult.ConflictsEncountered:
@@ -3378,7 +3383,8 @@ export class Dispatcher {
   private async completeMultiCommitOperation(
     kind: MultiCommitOperationKind,
     repository: Repository,
-    count: number
+    count: number,
+    fromRoot: boolean
   ): Promise<void> {
     this.closePopup()
 
@@ -3417,6 +3423,12 @@ export class Dispatcher {
     if (tip.kind === TipState.Valid && multiCommitOperationState !== null) {
       const { originalBranchTip } = multiCommitOperationState
       this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+    }
+
+    // If it was an operation from the root of the branch, check if the oldest
+    // commit is an empty commit and remove it.
+    if (fromRoot) {
+      await dropRootCommitIfEmpty(repository)
     }
 
     this.endMultiCommitOperation(repository)

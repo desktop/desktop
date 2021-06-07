@@ -30,7 +30,18 @@ export abstract class Reorder extends BaseMultiCommitOperation {
       state,
       conflictState,
     } = this.props
-    const { commits, currentTip, targetBranch, originalBranchTip } = state
+    const {
+      commits,
+      currentTip,
+      targetBranch,
+      originalBranchTip,
+      operationDetail,
+    } = state
+
+    if (operationDetail.kind !== MultiCommitOperationKind.Reorder) {
+      this.endFlowInvalidState()
+      return
+    }
 
     if (conflictState === null) {
       this.endFlowInvalidState()
@@ -60,7 +71,8 @@ export abstract class Reorder extends BaseMultiCommitOperation {
       repository,
       rebaseResult,
       commits.length,
-      targetBranch.name
+      targetBranch.name,
+      operationDetail.lastRetainedCommitRef === null
     )
   }
 

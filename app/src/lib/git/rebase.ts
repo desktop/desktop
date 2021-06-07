@@ -28,6 +28,8 @@ import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsBetweenCommits } from './rev-list'
 import { Branch } from '../../models/branch'
+import { getCommits } from '.'
+import { getTempFilePath } from '../file-system'
 
 /** The app-specific results from attempting to rebase a repository */
 export enum RebaseResult {
@@ -586,4 +588,54 @@ export async function rebaseInteractive(
   )
 
   return parseRebaseResult(result)
+}
+
+export async function dropRootCommitIfEmpty(
+  repository: Repository
+): Promise<RebaseResult> {
+  let todoPath
+  let result: RebaseResult
+
+  try {
+    const commits = await getCommits(repository, undefined)
+
+    // We need at least 1 commit (the one we want to drop)
+    if (commits.length <= 1) {
+      throw new Error(
+        '[dropRootCommitIfEmpty] Could not find enough commits in log'
+      )
+    }
+
+    const oldestCommit = commits[commits.length - 1]
+    if (oldestCommit.summary !== '' || oldestCommit.body !== '') {
+      return RebaseResult.CompletedWithoutError
+    }
+
+    todoPath = await getTempFilePath('tempTodo')
+
+    // Traversed in reverse so we do oldest to newest (replay commits)
+    for (let i = commits.length - 2; i >= 0; i--) {
+      const commit = commits[i]
+      await FSE.appendFile(todoPath, `pick ${commit.sha} ${commit.summary}\n`)
+    }
+
+    result = await rebaseInteractive(
+      repository,
+      todoPath,
+      null,
+      'drop empty root commit',
+      undefined,
+      undefined,
+      commits
+    )
+  } catch (e) {
+    log.error(e)
+    return RebaseResult.Error
+  } finally {
+    if (todoPath !== undefined) {
+      FSE.remove(todoPath)
+    }
+  }
+
+  return result
 }
