@@ -3147,12 +3147,16 @@ export class Dispatcher {
       lastRetainedCommitRef
     )
 
-    this.logHowToRevertMultiCommitOperation('reorder', tip)
+    this.logHowToRevertMultiCommitOperation(
+      MultiCommitOperationKind.Reorder,
+      tip
+    )
 
-    return this.processReorderRebaseResult(
+    return this.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Reorder,
       repository,
       result,
-      commitsToReorder,
+      commitsToReorder.length,
       tip.branch.name
     )
   }
@@ -3222,12 +3226,16 @@ export class Dispatcher {
       commitContext
     )
 
-    this.logHowToRevertMultiCommitOperation('squash', tip)
+    this.logHowToRevertMultiCommitOperation(
+      MultiCommitOperationKind.Squash,
+      tip
+    )
 
-    this.processSquashRebaseResult(
+    this.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Squash,
       repository,
       result,
-      toSquash,
+      toSquash.length + 1,
       tip.branch.name
     )
   }
@@ -3247,9 +3255,10 @@ export class Dispatcher {
   }
 
   private logHowToRevertMultiCommitOperation(
-    operation: string,
+    kind: MultiCommitOperationKind,
     tip: IValidBranch
   ) {
+    const operation = kind.toLocaleLowerCase()
     const beforeSha = getTipSha(tip)
     log.info(
       `[${operation}] starting rebase for ${tip.branch.name} at ${beforeSha}`
@@ -3262,15 +3271,21 @@ export class Dispatcher {
   }
 
   /**
-   * Processes the squash result
-   *  1. Completes the squash with banner if successful.
-   *  2. Moves squash flow to conflicts handler.
+   * Processes the multi commit operation result
+   *  1. Completes the operation with banner if successful.
+   *  2. Moves operation flow to conflicts handler.
    *  3. Handles errors.
+   *
+   * @param totalNumberOfCommits  Total number of commits involved in the
+   *                              operation. For example, if you squash one
+   *                              commit onto another, there are 2 commits
+   *                              involved.
    */
-  public async processSquashRebaseResult(
+  public async processMultiCommitOperationRebaseResult(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     result: RebaseResult,
-    toSquash: ReadonlyArray<CommitOneLine>,
+    totalNumberOfCommits: number,
     targetBranchName: string
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
@@ -3287,9 +3302,9 @@ export class Dispatcher {
         }
 
         await this.completeMultiCommitOperation(
-          MultiCommitOperationKind.Squash,
+          kind,
           repository,
-          toSquash.length + 1
+          totalNumberOfCommits
         )
         break
       case RebaseResult.ConflictsEncountered:
@@ -3297,49 +3312,7 @@ export class Dispatcher {
         this.startMultiCommitOperationConflictFlow(
           repository,
           targetBranchName,
-          'squash commit'
-        )
-        break
-      default:
-        // TODO: clear state
-        this.appStore._closePopup()
-    }
-  }
-
-  /**
-   * Processes the reorder result
-   *  1. Completes the reorder with banner if successful.
-   *  2. Moves reorder flow to conflicts handler.
-   *  3. Handles errors.
-   */
-  public async processReorderRebaseResult(
-    repository: Repository,
-    result: RebaseResult,
-    commitsToReorder: ReadonlyArray<CommitOneLine>,
-    targetBranchName: string
-  ): Promise<void> {
-    // This will update the conflict state of the app. This is needed to start
-    // conflict flow if reorder results in conflict.
-    const status = await this.appStore._loadStatus(repository)
-    switch (result) {
-      case RebaseResult.CompletedWithoutError:
-        if (status !== null && status.currentTip !== undefined) {
-          // This sets the history to the current tip
-          await this.changeCommitSelection(repository, [status.currentTip])
-        }
-
-        await this.completeMultiCommitOperation(
-          MultiCommitOperationKind.Reorder,
-          repository,
-          commitsToReorder.length
-        )
-        break
-      case RebaseResult.ConflictsEncountered:
-        await this.refreshRepository(repository)
-        this.startMultiCommitOperationConflictFlow(
-          repository,
-          targetBranchName,
-          'reorder commit'
+          `${kind.toLowerCase()} commit`
         )
         break
       default:

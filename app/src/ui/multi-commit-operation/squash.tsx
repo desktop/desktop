@@ -60,10 +60,11 @@ export abstract class Squash extends BaseMultiCommitOperation {
       rebaseConflictState
     )
 
-    return dispatcher.processSquashRebaseResult(
+    return dispatcher.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Squash,
       repository,
       rebaseResult,
-      commits,
+      commits.length + 1,
       targetBranch.name
     )
   }

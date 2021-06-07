@@ -55,10 +55,11 @@ export abstract class Reorder extends BaseMultiCommitOperation {
       rebaseConflictState
     )
 
-    return dispatcher.processReorderRebaseResult(
+    return dispatcher.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Reorder,
       repository,
       rebaseResult,
-      commits,
+      commits.length,
       targetBranch.name
     )
   }
