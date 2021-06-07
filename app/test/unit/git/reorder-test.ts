@@ -25,14 +25,14 @@ describe('git/reorder', () => {
     initialCommit = await makeSampleCommit(repository, 'initialize')
   })
 
-  it('moves first commit after the second one', async () => {
+  it('moves second commit before the first one', async () => {
     const firstCommit = await makeSampleCommit(repository, 'first')
     const secondCommit = await makeSampleCommit(repository, 'second')
 
     const result = await reorder(
       repository,
-      [firstCommit],
-      secondCommit,
+      [secondCommit],
+      firstCommit,
       initialCommit.sha
     )
 
@@ -47,14 +47,14 @@ describe('git/reorder', () => {
 
   it('moves first and fourth commits after the second one respecting their order in the log', async () => {
     const firstCommit = await makeSampleCommit(repository, 'first')
-    const secondCommit = await makeSampleCommit(repository, 'second')
-    await makeSampleCommit(repository, 'third')
+    await makeSampleCommit(repository, 'second')
+    const thirdCommit = await makeSampleCommit(repository, 'third')
     const fourthCommit = await makeSampleCommit(repository, 'fourth')
 
     const result = await reorder(
       repository,
       [fourthCommit, firstCommit], // provided in opposite log order
-      secondCommit,
+      thirdCommit,
       initialCommit.sha
     )
 
@@ -111,25 +111,25 @@ describe('git/reorder', () => {
     expect(log.length).toBe(3)
 
     const summaries = log.map(c => c.summary)
-    expect(summaries).toStrictEqual(['second', 'first', 'initialize'])
+    expect(summaries).toStrictEqual(['second', 'initialize', 'first'])
   })
 
   it('handles reordering a conflicting commit', async () => {
-    const firstCommit = await makeSampleCommit(repository, 'first')
+    await makeSampleCommit(repository, 'first')
 
     // make a commit with a commit message 'second' and adding file 'second.md'
-    await makeSampleCommit(repository, 'second')
+    const secondCommit = await makeSampleCommit(repository, 'second')
 
     // make a third commit modifying 'second.md' from secondCommit
     const thirdCommit = await makeSampleCommit(repository, 'third', 'second')
 
-    // move third commit after first commit
+    // move third commit before second commit
     // Will cause a conflict due to modifications to 'second.md'  - a file that
     // does not exist in the first commit.
     const result = await reorder(
       repository,
       [thirdCommit],
-      firstCommit,
+      secondCommit,
       initialCommit.sha
     )
 

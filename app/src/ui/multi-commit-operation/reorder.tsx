@@ -2,28 +2,23 @@ import { RebaseConflictState } from '../../lib/app-state'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { BaseMultiCommitOperation } from './base-multi-commit-operation'
 
-export abstract class Squash extends BaseMultiCommitOperation {
+export abstract class Reorder extends BaseMultiCommitOperation {
   protected onBeginOperation = () => {
     const { repository, dispatcher, state } = this.props
     const { commits, operationDetail } = state
 
-    if (operationDetail.kind !== MultiCommitOperationKind.Squash) {
+    if (operationDetail.kind !== MultiCommitOperationKind.Reorder) {
       this.endFlowInvalidState()
       return
     }
 
-    const {
-      targetCommit,
-      lastRetainedCommitRef,
-      commitContext,
-    } = operationDetail
+    const { beforeCommit, lastRetainedCommitRef } = operationDetail
 
-    return dispatcher.squash(
+    return dispatcher.reorderCommits(
       repository,
       commits,
-      targetCommit,
-      lastRetainedCommitRef,
-      commitContext
+      beforeCommit,
+      lastRetainedCommitRef
     )
   }
 
@@ -61,10 +56,10 @@ export abstract class Squash extends BaseMultiCommitOperation {
     )
 
     return dispatcher.processMultiCommitOperationRebaseResult(
-      MultiCommitOperationKind.Squash,
+      MultiCommitOperationKind.Reorder,
       repository,
       rebaseResult,
-      commits.length + 1,
+      commits.length,
       targetBranch.name
     )
   }
@@ -76,6 +71,6 @@ export abstract class Squash extends BaseMultiCommitOperation {
   }
 
   protected onConflictsDialogDismissed = () => {
-    this.onInvokeConflictsDialogDismissed('squashing commits on')
+    this.onInvokeConflictsDialogDismissed('reordering commits on')
   }
 }

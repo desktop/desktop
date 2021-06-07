@@ -19,7 +19,7 @@ import {
   IRebaseState,
   ChangesSelectionKind,
   ICherryPickState,
-  ISquashState,
+  IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
 } from '../app-state'
 import { merge } from '../merge'
@@ -133,14 +133,21 @@ export class RepositoryStateCache {
     })
   }
 
-  public updateSquashState<K extends keyof ISquashState>(
+  public updateMultiCommitOperationUndoState<
+    K extends keyof IMultiCommitOperationUndoState
+  >(
     repository: Repository,
-    fn: (state: ISquashState) => Pick<ISquashState, K>
+    fn: (
+      state: IMultiCommitOperationUndoState
+    ) => Pick<IMultiCommitOperationUndoState, K>
   ) {
     this.update(repository, state => {
-      const { squashState } = state
-      const newState = merge(squashState, fn(squashState))
-      return { squashState: newState }
+      const { multiCommitOperationUndoState } = state
+      const newState = merge(
+        multiCommitOperationUndoState,
+        fn(multiCommitOperationUndoState)
+      )
+      return { multiCommitOperationUndoState: newState }
     })
   }
 
@@ -257,9 +264,9 @@ function getInitialRepositoryState(): IRepositoryState {
       targetBranchUndoSha: null,
       branchCreated: false,
     },
-    squashState: {
+    multiCommitOperationUndoState: {
       undoSha: null,
-      squashBranchName: null,
+      branchName: null,
     },
     multiCommitOperationState: null,
   }

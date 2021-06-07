@@ -15,6 +15,7 @@ export enum RetryActionType {
   CherryPick,
   CreateBranchForCherryPick,
   Squash,
+  Reorder,
 }
 
 /** The retriable actions and their associated data. */
@@ -69,4 +70,11 @@ export type RetryAction =
       squashOnto: Commit
       lastRetainedCommitRef: string | null
       commitContext: ICommitContext
+    }
+  | {
+      type: RetryActionType.Reorder
+      repository: Repository
+      commitsToReorder: ReadonlyArray<Commit>
+      beforeCommit: Commit | null
+      lastRetainedCommitRef: string | null
     }

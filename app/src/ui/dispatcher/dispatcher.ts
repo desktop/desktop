@@ -1971,6 +1971,13 @@ export class Dispatcher {
           retryAction.lastRetainedCommitRef,
           retryAction.commitContext
         )
+      case RetryActionType.Reorder:
+        return this.reorderCommits(
+          retryAction.repository,
+          retryAction.commitsToReorder,
+          retryAction.beforeCommit,
+          retryAction.lastRetainedCommitRef
+        )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -3095,7 +3102,63 @@ export class Dispatcher {
     beforeCommit: Commit | null,
     lastRetainedCommitRef: string | null
   ) {
-    // TODO: Implement!!
+    const retry: RetryAction = {
+      type: RetryActionType.Reorder,
+      repository,
+      commitsToReorder,
+      beforeCommit,
+      lastRetainedCommitRef,
+    }
+
+    if (this.appStore._checkForUncommittedChanges(repository, retry)) {
+      return
+    }
+
+    const stateBefore = this.repositoryStateManager.get(repository)
+    const { tip } = stateBefore.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      log.info(`[reorder] - invalid tip state - could not perform reorder.`)
+      return
+    }
+
+    this.appStore._initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Reorder,
+        lastRetainedCommitRef,
+        beforeCommit,
+      },
+      tip.branch,
+      commitsToReorder
+    )
+
+    this.showPopup({
+      type: PopupType.MultiCommitOperation,
+      repository,
+    })
+
+    this.appStore._setMultiCommitOperationUndoState(repository, tip)
+
+    const result = await this.appStore._reorderCommits(
+      repository,
+      commitsToReorder,
+      beforeCommit,
+      lastRetainedCommitRef
+    )
+
+    this.logHowToRevertMultiCommitOperation(
+      MultiCommitOperationKind.Reorder,
+      tip
+    )
+
+    return this.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Reorder,
+      repository,
+      result,
+      commitsToReorder.length,
+      tip.branch.name
+    )
   }
 
   /**
@@ -3153,7 +3216,7 @@ export class Dispatcher {
       repository,
     })
 
-    this.appStore._setSquashUndoState(repository, tip)
+    this.appStore._setMultiCommitOperationUndoState(repository, tip)
 
     const result = await this.appStore._squash(
       repository,
@@ -3163,12 +3226,16 @@ export class Dispatcher {
       commitContext
     )
 
-    this.logHowToRevertSquash(tip)
+    this.logHowToRevertMultiCommitOperation(
+      MultiCommitOperationKind.Squash,
+      tip
+    )
 
-    this.processSquashRebaseResult(
+    this.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Squash,
       repository,
       result,
-      toSquash,
+      toSquash.length + 1,
       tip.branch.name
     )
   }
@@ -3187,26 +3254,38 @@ export class Dispatcher {
     )
   }
 
-  private logHowToRevertSquash(tip: IValidBranch): void {
+  private logHowToRevertMultiCommitOperation(
+    kind: MultiCommitOperationKind,
+    tip: IValidBranch
+  ) {
+    const operation = kind.toLocaleLowerCase()
     const beforeSha = getTipSha(tip)
-    log.info(`[squash] starting rebase for ${tip.branch.name} at ${beforeSha}`)
     log.info(
-      `[squash] to restore the previous state if this completed rebase is unsatisfactory:`
+      `[${operation}] starting rebase for ${tip.branch.name} at ${beforeSha}`
     )
-    log.info(`[squash] - git checkout ${tip.branch.name}`)
-    log.info(`[squash] - git reset ${beforeSha} --hard`)
+    log.info(
+      `[${operation}] to restore the previous state if this completed rebase is unsatisfactory:`
+    )
+    log.info(`[${operation}] - git checkout ${tip.branch.name}`)
+    log.info(`[${operation}] - git reset ${beforeSha} --hard`)
   }
 
   /**
-   * Processes the squash result
-   *  1. Completes the squash with banner if successful.
-   *  2. Moves squash flow to conflicts handler.
+   * Processes the multi commit operation result
+   *  1. Completes the operation with banner if successful.
+   *  2. Moves operation flow to conflicts handler.
    *  3. Handles errors.
+   *
+   * @param totalNumberOfCommits  Total number of commits involved in the
+   *                              operation. For example, if you squash one
+   *                              commit onto another, there are 2 commits
+   *                              involved.
    */
-  public async processSquashRebaseResult(
+  public async processMultiCommitOperationRebaseResult(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     result: RebaseResult,
-    toSquash: ReadonlyArray<CommitOneLine>,
+    totalNumberOfCommits: number,
     targetBranchName: string
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
@@ -3222,14 +3301,18 @@ export class Dispatcher {
           await this.changeCommitSelection(repository, [status.currentTip])
         }
 
-        await this.completeSquash(repository, toSquash.length + 1)
+        await this.completeMultiCommitOperation(
+          kind,
+          repository,
+          totalNumberOfCommits
+        )
         break
       case RebaseResult.ConflictsEncountered:
         await this.refreshRepository(repository)
         this.startMultiCommitOperationConflictFlow(
           repository,
           targetBranchName,
-          'squash commit'
+          `${kind.toLowerCase()} commit`
         )
         break
       default:
@@ -3279,24 +3362,42 @@ export class Dispatcher {
   }
 
   /**
-   * Wrap squash actions
+   * Wrap multi commit operation actions
    * - closes popups
    * - refreshes repo (so changes appear in history)
    * - sets success banner
    * - end operation state
    * TODO: record successful squash stats
    */
-  private async completeSquash(
+  private async completeMultiCommitOperation(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     count: number
   ): Promise<void> {
     this.closePopup()
 
+    let bannerType: BannerType
+
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        bannerType = BannerType.SuccessfulSquash
+        break
+      case MultiCommitOperationKind.Reorder:
+        bannerType = BannerType.SuccessfulReorder
+        break
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(`Unexpected multi commit operation kind ${kind}`)
+      default:
+        assertNever(kind, `Unsupported multi operation kind ${kind}`)
+    }
+
     const banner: Banner = {
-      type: BannerType.SuccessfulSquash,
+      type: bannerType,
       count,
       onUndo: () => {
-        this.undoSquash(repository, count)
+        this.undoMultiCommitOperation(kind, repository, count)
       },
     }
     this.setBanner(banner)
@@ -3318,13 +3419,18 @@ export class Dispatcher {
 
   /**
    * This method will perform a hard reset back to the tip of the branch before
-   * the squash happened.
+   * the multi commit operation happened.
    */
-  private async undoSquash(
+  private async undoMultiCommitOperation(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     commitsCount: number
   ): Promise<boolean> {
-    return this.appStore._undoSquash(repository, commitsCount)
+    return this.appStore._undoMultiCommitOperation(
+      kind,
+      repository,
+      commitsCount
+    )
   }
 
   /**
