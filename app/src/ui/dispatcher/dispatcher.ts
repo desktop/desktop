@@ -920,9 +920,10 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeTreeResult | null
+    mergeStatus: MergeTreeResult | null,
+    isSquash: boolean = false
   ): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch, mergeStatus)
+    return this.appStore._mergeBranch(repository, branch, mergeStatus, isSquash)
   }
 
   /**
