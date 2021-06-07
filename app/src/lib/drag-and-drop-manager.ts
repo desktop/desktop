@@ -40,6 +40,10 @@ export class DragAndDropManager {
     return this.emitter.on('leave-drop-target', fn)
   }
 
+  public onDragStarted(fn: () => void): Disposable {
+    return this.emitter.on('drag-started', fn)
+  }
+
   public onDragEnded(
     fn: (dropTargetSelector: DropTargetSelector | undefined) => void
   ): Disposable {
@@ -48,11 +52,12 @@ export class DragAndDropManager {
 
   public dragStarted(): void {
     this._isDragInProgress = true
+    this.emitter.emit('drag-started', {})
   }
 
   public dragEnded(dropTargetSelector: DropTargetSelector | undefined) {
-    this.emitter.emit('drag-ended', dropTargetSelector)
     this._isDragInProgress = false
+    this.emitter.emit('drag-ended', dropTargetSelector)
   }
 
   public emitEnterDragZone(dropZoneDescription: string) {

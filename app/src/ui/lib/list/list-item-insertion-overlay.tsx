@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import { Disposable } from 'event-kit'
 import * as React from 'react'
 import { dragAndDropManager } from '../../../lib/drag-and-drop-manager'
 import { DragData, DragType, DropTargetType } from '../../../models/drag-drop'
@@ -20,6 +21,7 @@ interface IListItemInsertionOverlayProps {
 }
 
 interface IListItemInsertionOverlayState {
+  readonly isDragInProgress: boolean
   readonly feedbackType: InsertionFeedbackType
 }
 
@@ -28,12 +30,47 @@ export class ListItemInsertionOverlay extends React.PureComponent<
   IListItemInsertionOverlayProps,
   IListItemInsertionOverlayState
 > {
+  private onDragStartedDisposable: Disposable | null = null
+  private onDragEndedDisposable: Disposable | null = null
+
   public constructor(props: IListItemInsertionOverlayProps) {
     super(props)
 
     this.state = {
+      isDragInProgress: this.isDragInProgress(),
       feedbackType: InsertionFeedbackType.None,
     }
+  }
+
+  public componentDidMount() {
+    this.onDragStartedDisposable = dragAndDropManager.onDragStarted(
+      this.updateDragInProgressState
+    )
+    this.onDragEndedDisposable = dragAndDropManager.onDragEnded(dropTarget => {
+      this.updateDragInProgressState()
+    })
+  }
+
+  public componentWillUnmount() {
+    if (this.onDragStartedDisposable !== null) {
+      this.onDragStartedDisposable.dispose()
+      this.onDragStartedDisposable = null
+    }
+
+    if (this.onDragEndedDisposable !== null) {
+      this.onDragEndedDisposable.dispose()
+      this.onDragEndedDisposable = null
+    }
+  }
+
+  public updateDragInProgressState = () => {
+    const isDragInProgress = this.isDragInProgress()
+    this.setState({
+      isDragInProgress,
+      feedbackType: isDragInProgress
+        ? this.state.feedbackType
+        : InsertionFeedbackType.None,
+    })
   }
 
   public renderInsertionIndicator(feedbackType: InsertionFeedbackType) {
@@ -53,8 +90,21 @@ export class ListItemInsertionOverlay extends React.PureComponent<
   }
 
   public render() {
+    // Only render top and bottom elements while dragging, otherwise those
+    // elements will prevent clicks on them (and therefore starting dragging
+    // from them).
     return (
       <div className="list-item-insertion-overlay">
+        {this.state.isDragInProgress && this.renderTopElements()}
+        {this.props.children}
+        {this.state.isDragInProgress && this.renderBottomElements()}
+      </div>
+    )
+  }
+
+  private renderTopElements() {
+    return (
+      <>
         <div
           className="list-insertion-point top"
           onMouseEnter={this.getOnInsertionAreaMouseEnter(
@@ -65,7 +115,13 @@ export class ListItemInsertionOverlay extends React.PureComponent<
         />
         {this.state.feedbackType === InsertionFeedbackType.Top &&
           this.renderInsertionIndicator(InsertionFeedbackType.Top)}
-        {this.props.children}
+      </>
+    )
+  }
+
+  private renderBottomElements() {
+    return (
+      <>
         {this.state.feedbackType === InsertionFeedbackType.Bottom &&
           this.renderInsertionIndicator(InsertionFeedbackType.Bottom)}
         <div
@@ -76,7 +132,7 @@ export class ListItemInsertionOverlay extends React.PureComponent<
           onMouseLeave={this.onInsertionAreaMouseLeave}
           onMouseUp={this.onInsertionAreaMouseUp}
         />
-      </div>
+      </>
     )
   }
 
@@ -97,7 +153,7 @@ export class ListItemInsertionOverlay extends React.PureComponent<
   private switchToInsertionFeedbackType(feedbackType: InsertionFeedbackType) {
     if (
       feedbackType !== InsertionFeedbackType.None &&
-      !this.isDragInProgress()
+      !this.state.isDragInProgress
     ) {
       return
     }
@@ -107,7 +163,7 @@ export class ListItemInsertionOverlay extends React.PureComponent<
     if (feedbackType === InsertionFeedbackType.None) {
       dragAndDropManager.emitLeaveDropTarget()
     } else if (
-      this.isDragInProgress() &&
+      this.state.isDragInProgress &&
       dragAndDropManager.dragData !== null
     ) {
       dragAndDropManager.emitEnterDropTarget({
@@ -120,7 +176,7 @@ export class ListItemInsertionOverlay extends React.PureComponent<
 
   private onInsertionAreaMouseUp = () => {
     if (
-      !this.isDragInProgress() ||
+      !this.state.isDragInProgress ||
       this.state.feedbackType === InsertionFeedbackType.None ||
       dragAndDropManager.dragData === null
     ) {
