@@ -385,6 +385,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'merge-branch':
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
+      case 'squash-and-merge-branch':
+        return this.mergeBranch(true)
       case 'rebase-branch':
         this.props.dispatcher.recordMenuInitiatedRebase()
         return this.showRebaseDialog()
