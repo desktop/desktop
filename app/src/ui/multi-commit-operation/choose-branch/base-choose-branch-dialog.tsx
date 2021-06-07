@@ -169,15 +169,21 @@ export abstract class BaseChooseBranchDialog extends React.Component<
 
   private onOperationChange = (option: IDropdownSelectButtonOption) => {
     const value = option.value as MultiCommitOperationKind
+    const { dispatcher, repository } = this.props
+    const { selectedBranch } = this.state
     switch (value) {
       case MultiCommitOperationKind.Merge:
-        this.props.dispatcher.updateMergeOperation(this.props.repository, false)
+        dispatcher.endRebaseFlow(repository)
+        dispatcher.startMergeBranchOperation(repository, false, selectedBranch)
         break
       case MultiCommitOperationKind.Squash:
-        this.props.dispatcher.updateMergeOperation(this.props.repository, true)
+        dispatcher.endRebaseFlow(repository)
+        dispatcher.startMergeBranchOperation(repository, true, selectedBranch)
         break
       case MultiCommitOperationKind.Rebase:
-      // TODO: dispatcher to switch multi commit operation to a rebase
+        dispatcher.endMultiCommitOperation(repository)
+        dispatcher.showRebaseDialog(repository, selectedBranch)
+        break
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Reorder:
         break
@@ -203,15 +209,12 @@ export abstract class BaseChooseBranchDialog extends React.Component<
         value: MultiCommitOperationKind.Squash,
       })
     }
-
-    /* TODO: Add in when refactor rebase to multi commit operation
-      mergeOptions.push({
-        label: 'Rebase and merge',
-        description:
-          'The commits from the selected branch will be rebased and added to the current branch.',
-        value: MultiCommitOperationKind.Rebase,
-      })
-      */
+    mergeOptions.push({
+      label: 'Rebase',
+      description:
+        'The commits from the selected branch will be rebased and added to the current branch.',
+      value: MultiCommitOperationKind.Rebase,
+    })
     return mergeOptions
   }
 
@@ -273,7 +276,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
           <DropdownSelectButton
             selectedValue={operation}
             options={this.getMergeOptions()}
-            disabled={!this.canStart}
+            disabled={!this.canStart()}
             tooltip={this.getSubmitButtonToolTip()}
             onSelectChange={this.onOperationChange}
           />

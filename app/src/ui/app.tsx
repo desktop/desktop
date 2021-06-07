@@ -95,7 +95,6 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
-  initializeNewRebaseFlow,
   initializeRebaseFlowForConflictedRepository,
   isCurrentBranchForcePush,
 } from '../lib/rebase'
@@ -1112,17 +1111,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!repository || repository instanceof CloningRepository) {
       return
     }
-
-    const repositoryState = this.props.repositoryStateManager.get(repository)
-
-    const initialStep = initializeNewRebaseFlow(repositoryState)
-
-    this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
-
-    this.props.dispatcher.showPopup({
-      type: PopupType.RebaseFlow,
-      repository,
-    })
+    this.props.dispatcher.showRebaseDialog(repository)
   }
 
   private showRepositorySettings() {
