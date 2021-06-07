@@ -781,6 +781,19 @@ export class Dispatcher {
     return this.appStore._undoCommit(repository, commit, showConfirmationDialog)
   }
 
+  /** Reset to a given commit. */
+  public resetToCommit(
+    repository: Repository,
+    commit: Commit,
+    showConfirmationDialog: boolean = true
+  ): Promise<void> {
+    return this.appStore._resetToCommit(
+      repository,
+      commit,
+      showConfirmationDialog
+    )
+  }
+
   /** Revert the commit with the given SHA */
   public revertCommit(repository: Repository, commit: Commit): Promise<void> {
     return this.appStore._revertCommit(repository, commit)
