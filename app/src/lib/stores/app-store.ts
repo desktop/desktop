@@ -291,6 +291,7 @@ import {
   MultiCommitOperationStep,
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
+import { reorder } from '../git/reorder'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2093,10 +2094,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     } else if (isRebaseConflictState(conflictState)) {
       // TODO: This will likely get refactored to a showConflictsDialog method
+      const invalidOperationKinds = new Set([
+        MultiCommitOperationKind.Squash,
+        MultiCommitOperationKind.Reorder,
+      ])
       if (
         multiCommitOperationState === null ||
-        multiCommitOperationState.operationDetail.kind !==
-          MultiCommitOperationKind.Squash
+        !invalidOperationKinds.has(
+          multiCommitOperationState.operationDetail.kind
+        )
       ) {
         await this.showRebaseConflictsDialog(repository, conflictState)
       }
@@ -6403,6 +6409,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _reorderCommits(
+    repository: Repository,
+    commitsToReorder: ReadonlyArray<Commit>,
+    beforeCommit: Commit | null,
+    lastRetainedCommitRef: string | null
+  ): Promise<RebaseResult> {
+    if (commitsToReorder.length === 0) {
+      log.error('[_reorder] - Unable to reorder. No commits provided.')
+      return RebaseResult.Error
+    }
+
+    const progressCallback = (progress: IMultiCommitOperationProgress) => {
+      this.repositoryStateCache.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          progress,
+        })
+      )
+
+      this.emitUpdate()
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      reorder(
+        repository,
+        commitsToReorder,
+        beforeCommit,
+        lastRetainedCommitRef,
+        progressCallback
+      )
+    )
+
+    return result || RebaseResult.Error
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _squash(
     repository: Repository,
     toSquash: ReadonlyArray<Commit>,
@@ -6443,33 +6486,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _undoSquash(
+  public async _undoMultiCommitOperation(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     commitsCount: number
   ): Promise<boolean> {
     const {
       branchesState,
-      squashState: { undoSha, squashBranchName },
+      multiCommitOperationUndoState: { undoSha, branchName },
       changesState: { workingDirectory },
     } = this.repositoryStateCache.get(repository)
 
     if (workingDirectory.files.length > 0) {
       log.error(
-        '[undoSquash] - Could not undo squash. This would delete the local changes that exist on the branch.'
+        `[_undoMultiCommitOperation] - Could not undo ${kind}. This would delete the local changes that exist on the branch.`
       )
       return false
     }
 
     const { tip } = branchesState
-    if (tip.kind !== TipState.Valid || tip.branch.name !== squashBranchName) {
+    if (tip.kind !== TipState.Valid || tip.branch.name !== branchName) {
       log.error(
-        '[undoSquash] - Could not undo squash.  User no longer on branch the squash occurred on.'
+        `[_undoMultiCommitOperation] - Could not undo ${kind}.  User no longer on branch the squash occurred on.`
       )
       return false
     }
 
     if (undoSha === null) {
-      log.error('[undoSquash] - Could not determine undo sha')
+      log.error('[_undoMultiCommitOperation] - Could not determine undo sha')
       return false
     }
 
@@ -6482,8 +6526,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
+    let bannerType: BannerType
+
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        bannerType = BannerType.SquashUndone
+        break
+      case MultiCommitOperationKind.Reorder:
+        bannerType = BannerType.ReorderUndone
+        break
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(
+          `Unexpected multi commit operation kind to undo ${kind}`
+        )
+      default:
+        assertNever(kind, `Unsupported multi operation kind to undo ${kind}`)
+    }
+
     const banner: Banner = {
-      type: BannerType.SquashUndone,
+      type: bannerType,
       commitsCount,
     }
     this._setBanner(banner)
@@ -6530,13 +6593,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setSquashUndoState(repository: Repository, tip: IValidBranch): void {
+  public _setMultiCommitOperationUndoState(
+    repository: Repository,
+    tip: IValidBranch
+  ): void {
     // An update is not emitted here because there is no need
     // to trigger a re-render at this point. (storing for later)
-    this.repositoryStateCache.updateSquashState(repository, () => ({
-      undoSha: getTipSha(tip),
-      squashBranchName: tip.branch.name,
-    }))
+    this.repositoryStateCache.updateMultiCommitOperationUndoState(
+      repository,
+      () => ({
+        undoSha: getTipSha(tip),
+        branchName: tip.branch.name,
+      })
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

@@ -86,7 +86,7 @@ export async function reorder(
       // appeared on the log to reduce potential conflicts.
       if (beforeCommit !== null && commit.sha === beforeCommit.sha) {
         foundBaseCommitInLog = true
-        toReplayBeforeBaseCommit.unshift(commit)
+        toReplayAfterReorder.push(commit)
 
         for (let j = 0; j < toReplayBeforeBaseCommit.length; j++) {
           await FSE.appendFile(

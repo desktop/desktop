@@ -384,8 +384,21 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       return
     }
 
+    // The base commit index will be in row - 1, because row is the position
+    // where the new item should be inserted, and commits have a reverse order
+    // (newer commits are in lower row values) in the list.
+    const baseCommitIndex = row === 0 ? null : row - 1
+
+    if (
+      this.props.commitSHAs.length === 0 ||
+      (baseCommitIndex !== null &&
+        baseCommitIndex > this.props.commitSHAs.length)
+    ) {
+      return
+    }
+
     const baseCommitSHA =
-      row < this.props.commitSHAs.length ? this.props.commitSHAs[row] : null
+      baseCommitIndex === null ? null : this.props.commitSHAs[baseCommitIndex]
     const baseCommit =
       baseCommitSHA !== null ? this.props.commitLookup.get(baseCommitSHA) : null
     const indexes = [...data.commits, baseCommit]

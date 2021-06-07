@@ -10,8 +10,10 @@ export enum BannerType {
   CherryPickConflictsFound = 'CherryPickConflictsFound',
   CherryPickUndone = 'CherryPickUndone',
   SquashUndone = 'SquashUndone',
+  ReorderUndone = 'ReorderUndone',
   OpenThankYouCard = 'OpenThankYouCard',
   SuccessfulSquash = 'SuccessfulSquash',
+  SuccessfulReorder = 'SuccessfulReorder',
   ConflictsFound = 'ConflictsFound',
 }
 
@@ -90,6 +92,18 @@ export type Banner =
   | {
       readonly type: BannerType.SquashUndone
       /** number of commits squashed */
+      readonly commitsCount: number
+    }
+  | {
+      readonly type: BannerType.SuccessfulReorder
+      /** number of commits reordered */
+      readonly count: number
+      /** callback to run when user clicks undo link in banner */
+      readonly onUndo: () => void
+    }
+  | {
+      readonly type: BannerType.ReorderUndone
+      /** number of commits reordered */
       readonly commitsCount: number
     }
   | {
