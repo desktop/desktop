@@ -3388,11 +3388,9 @@ export class Dispatcher {
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Merge:
-        throw new Error(
-          `Unexpected multi commit operation kind to undo ${kind}`
-        )
+        throw new Error(`Unexpected multi commit operation kind ${kind}`)
       default:
-        assertNever(kind, `Unsupported multi operation kind to undo ${kind}`)
+        assertNever(kind, `Unsupported multi operation kind ${kind}`)
     }
 
     const banner: Banner = {
