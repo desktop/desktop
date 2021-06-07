@@ -70,6 +70,9 @@ export interface IStatusResult {
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
+
+  /** whether conflicting files present on repository */
+  readonly doConflictedFilesExist: boolean
 }
 
 interface IStatusHeadersData {
@@ -251,6 +254,7 @@ export async function getStatus(
     workingDirectory,
     isCherryPickingHeadFound,
     squashMsgFound,
+    doConflictedFilesExist: conflictedFilesInIndex,
   }
 }
 

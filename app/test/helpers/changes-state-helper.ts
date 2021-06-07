@@ -35,6 +35,7 @@ export function createStatus<K extends keyof IStatusResult>(
     rebaseInternalState: null,
     isCherryPickingHeadFound: false,
     workingDirectory: WorkingDirectoryStatus.fromFiles([]),
+    doConflictedFilesExist: false,
   }
 
   return merge(baseStatus, pick)

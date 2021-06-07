@@ -1,7 +1,6 @@
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-  isConflictedFileStatus,
 } from '../../../models/status'
 import { IStatusResult } from '../../git'
 import {
@@ -121,15 +120,14 @@ export function updateChangedFiles(
  */
 function getConflictState(
   status: IStatusResult,
-  manualResolutions: Map<string, ManualConflictResolution>,
-  files: ReadonlyArray<WorkingDirectoryFileChange>
+  manualResolutions: Map<string, ManualConflictResolution>
 ): ConflictState | null {
   // If there are no conflicts found in working directory, conflict state should
   // be null this is important when checking for a conflict after a --squash
   // merge which will not have a MERGE_HEAD but would have SQUASH_MSG which also
   // can be present when no conflicts. You shouldn't be able to have
   // any form of the other conflicts without conflicted files anyways.
-  if (!files.some(f => isConflictedFileStatus(f.status))) {
+  if (!status.doConflictedFilesExist) {
     return null
   }
 
@@ -281,11 +279,7 @@ export function updateConflictState(
       ? prevConflictState.manualResolutions
       : new Map<string, ManualConflictResolution>()
 
-  const newConflictState = getConflictState(
-    status,
-    manualResolutions,
-    state.workingDirectory.files
-  )
+  const newConflictState = getConflictState(status, manualResolutions)
 
   if (prevConflictState == null && newConflictState == null) {
     return null
