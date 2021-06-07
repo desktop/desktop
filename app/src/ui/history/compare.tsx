@@ -267,12 +267,27 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private onDropCommitInsertion = (
+  private onDropCommitInsertion = async (
     baseCommit: Commit | null,
     commitsToInsert: ReadonlyArray<Commit>,
     lastRetainedCommitRef: string | null
   ) => {
-    this.props.dispatcher.reorderCommits(
+    if (
+      await doMergeCommitsExistAfterCommit(
+        this.props.repository,
+        lastRetainedCommitRef
+      )
+    ) {
+      defaultErrorHandler(
+        new Error(
+          `Unable to reorder. Reordering replays all commits up to the last one required for the reorder. A merge commit cannot exist among those commits.`
+        ),
+        this.props.dispatcher
+      )
+      return
+    }
+
+    return this.props.dispatcher.reorderCommits(
       this.props.repository,
       commitsToInsert,
       baseCommit,
