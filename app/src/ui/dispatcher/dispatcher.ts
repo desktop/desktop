@@ -1223,6 +1223,12 @@ export class Dispatcher {
     await this.appStore._loadStatus(repository)
   }
 
+  /** aborts an in-flight merge and refreshes the repository's status */
+  public async abortSquashMerge(repository: Repository) {
+    await this.appStore._abortSquashMerge(repository)
+    return this.appStore._refreshRepository(repository)
+  }
+
   /**
    * commits an in-flight merge and shows a banner if successful
    *

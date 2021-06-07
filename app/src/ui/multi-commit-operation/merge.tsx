@@ -47,8 +47,18 @@ export abstract class Merge extends BaseMultiCommitOperation {
   }
 
   protected onAbort = async (): Promise<void> => {
-    const { repository, dispatcher } = this.props
+    const {
+      repository,
+      dispatcher,
+      state: { operationDetail },
+    } = this.props
     this.onFlowEnded()
+    if (
+      operationDetail.kind === MultiCommitOperationKind.Merge &&
+      operationDetail.isSquash
+    ) {
+      return dispatcher.abortSquashMerge(repository)
+    }
     return dispatcher.abortMerge(repository)
   }
 

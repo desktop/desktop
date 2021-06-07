@@ -1962,7 +1962,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMultiCommitOperationConflictsIfFound(repository)
 
     if (this.selectedRepository === repository) {
-      this._triggerConflictsFlow(repository)
+      this._triggerConflictsFlow(repository, status)
     }
 
     this.emitUpdate()
@@ -2072,7 +2072,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private async _triggerConflictsFlow(repository: Repository) {
+  private async _triggerConflictsFlow(
+    repository: Repository,
+    status: IStatusResult
+  ) {
     const state = this.repositoryStateCache.get(repository)
     const {
       changesState: { conflictState },
@@ -2090,7 +2093,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         conflictState,
         multiCommitOperationState,
-        branchesState.tip
+        branchesState.tip,
+        status.squashMsgFound
       )
     } else if (isRebaseConflictState(conflictState)) {
       // TODO: This will likely get refactored to a showConflictsDialog method
@@ -2175,14 +2179,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     conflictState: MergeConflictState,
     multiCommitOperationState: IMultiCommitOperationState | null,
-    tip: Tip
+    tip: Tip,
+    isSquash: boolean
   ) {
     if (multiCommitOperationState === null && tip.kind === TipState.Valid) {
       this._initializeMultiCommitOperation(
         repository,
         {
           kind: MultiCommitOperationKind.Merge,
-          isSquash: false,
+          isSquash,
           sourceBranch: null,
         },
         tip.branch,
@@ -4650,6 +4655,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _abortMerge(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() => abortMerge(repository))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _abortSquashMerge(repository: Repository): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const {
+      branchesState,
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
+
+    const commitResult = await this._finishConflictedMerge(
+      repository,
+      workingDirectory,
+      new Map<string, ManualConflictResolution>()
+    )
+
+    // By committing, we clear out the SQUASH_MSG (and anything else git would
+    // choose to store for the --squash merge operation)
+    if (commitResult === undefined) {
+      log.error(
+        `[_abortSquashMerge] - Could not abort squash merge - commiting squash msg failed`
+      )
+      return
+    }
+
+    // Since we have not reloaded the status, this tip is the tip before the
+    // squash commit above.
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid) {
+      log.error(
+        `[_abortSquashMerge] - Could not abort squash merge - tip was invalid`
+      )
+      return
+    }
+
+    await gitStore.performFailableOperation(() =>
+      reset(repository, GitResetMode.Hard, tip.branch.tip.sha)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`.
