@@ -138,15 +138,16 @@ export class RepositoryStateCache {
   >(
     repository: Repository,
     fn: (
-      state: IMultiCommitOperationUndoState
-    ) => Pick<IMultiCommitOperationUndoState, K>
+      state: IMultiCommitOperationUndoState | null
+    ) => Pick<IMultiCommitOperationUndoState, K> | null
   ) {
     this.update(repository, state => {
       const { multiCommitOperationUndoState } = state
-      const newState = merge(
-        multiCommitOperationUndoState,
-        fn(multiCommitOperationUndoState)
-      )
+      const computedState = fn(multiCommitOperationUndoState)
+      const newState =
+        computedState === null
+          ? null
+          : merge(multiCommitOperationUndoState, computedState)
       return { multiCommitOperationUndoState: newState }
     })
   }
@@ -264,10 +265,7 @@ function getInitialRepositoryState(): IRepositoryState {
       targetBranchUndoSha: null,
       branchCreated: false,
     },
-    multiCommitOperationUndoState: {
-      undoSha: null,
-      branchName: null,
-    },
+    multiCommitOperationUndoState: null,
     multiCommitOperationState: null,
   }
 }

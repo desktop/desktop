@@ -472,7 +472,7 @@ export interface IRepositoryState {
   readonly cherryPickState: ICherryPickState
 
   /** Undo state associated with a multi commit operation operation */
-  readonly multiCommitOperationUndoState: IMultiCommitOperationUndoState
+  readonly multiCommitOperationUndoState: IMultiCommitOperationUndoState | null
 
   /** State associated with a multi commit operation such as rebase,
    * cherry-pick, squash, reorder... */
@@ -813,19 +813,11 @@ export interface ICherryPickState {
  * repository.
  */
 export interface IMultiCommitOperationUndoState {
-  /**
-   * The sha of the tip before operation was initiated.
-   *
-   * This will be set to null if no multi commit operation has been initiated.
-   */
-  readonly undoSha: string | null
+  /** The sha of the tip before operation was initiated. */
+  readonly undoSha: string
 
-  /**
-   * The name of the branch the operation applied to
-   *
-   * This will be set to null if no multi-commit operation has been initiated.
-   */
-  readonly branchName: string | null
+  /** The name of the branch the operation applied to */
+  readonly branchName: string
 }
 
 /**

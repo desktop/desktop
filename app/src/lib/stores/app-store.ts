@@ -6544,9 +6544,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<boolean> {
     const {
       branchesState,
-      multiCommitOperationUndoState: { undoSha, branchName },
+      multiCommitOperationUndoState,
       changesState: { workingDirectory },
     } = this.repositoryStateCache.get(repository)
+
+    if (multiCommitOperationUndoState === null) {
+      log.error(
+        `[_undoMultiCommitOperation] - Could not undo ${kind}. There is no undo info available.`
+      )
+      return false
+    }
+
+    const { undoSha, branchName } = multiCommitOperationUndoState
 
     if (workingDirectory.files.length > 0) {
       log.error(
