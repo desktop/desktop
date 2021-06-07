@@ -79,6 +79,11 @@
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+
+    &.empty-summary {
+      font-weight: var(--font-weight-light);
+      font-style: italic;
+    }
   }
 
   &-description-container {

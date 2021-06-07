@@ -104,6 +104,11 @@
 
     .summary {
       font-weight: var(--font-weight-semibold);
+
+      &.empty-summary {
+        font-weight: var(--font-weight-light);
+        font-style: italic;
+      }
     }
 
     .summary,
