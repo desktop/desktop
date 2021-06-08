@@ -1105,6 +1105,7 @@ export class Dispatcher {
    * tracked files in the working directory.
    */
   public async continueRebase(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     conflictsState: RebaseConflictState
@@ -1121,6 +1122,13 @@ export class Dispatcher {
       workingDirectory,
       manualResolutions
     )
+
+    if (result === RebaseResult.CompletedWithoutError) {
+      if (kind === MultiCommitOperationKind.Reorder) {
+        this.statsStore.recordReorderSuccessfulWithConflicts()
+      }
+    }
+
     await this.appStore._loadStatus(repository)
 
     const stateAfter = this.repositoryStateManager.get(repository)
@@ -3132,6 +3140,8 @@ export class Dispatcher {
       return
     }
 
+    this.statsStore.recordReorderStarted()
+
     if (commitsToReorder.length > 1) {
       this.statsStore.recordReorderMultipleCommits()
     }
@@ -3425,6 +3435,10 @@ export class Dispatcher {
     if (tip.kind === TipState.Valid && multiCommitOperationState !== null) {
       const { originalBranchTip } = multiCommitOperationState
       this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+    }
+
+    if (kind === MultiCommitOperationKind.Reorder) {
+      this.statsStore.recordReorderSuccessful()
     }
 
     this.endMultiCommitOperation(repository)

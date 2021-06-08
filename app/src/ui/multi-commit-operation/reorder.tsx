@@ -50,6 +50,7 @@ export abstract class Reorder extends BaseMultiCommitOperation {
     }
 
     const rebaseResult = await dispatcher.continueRebase(
+      MultiCommitOperationKind.Reorder,
       repository,
       workingDirectory,
       rebaseConflictState

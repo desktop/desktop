@@ -19,6 +19,7 @@ import { getResolvedFiles } from '../../lib/status'
 import { WarnForcePushDialog } from './warn-force-push-dialog'
 import { ConflictsDialog } from '../multi-commit-operation/conflicts-dialog'
 import { IMultiCommitOperationProgress } from '../../models/progress'
+import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 
 interface IRebaseFlowProps {
   readonly repository: Repository
@@ -95,6 +96,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
 
     const continueRebaseAction = async () => {
       const rebaseResult = await dispatcher.continueRebase(
+        MultiCommitOperationKind.Rebase,
         repository,
         workingDirectory,
         conflictState

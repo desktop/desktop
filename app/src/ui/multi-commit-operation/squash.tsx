@@ -55,6 +55,7 @@ export abstract class Squash extends BaseMultiCommitOperation {
     }
 
     const rebaseResult = await dispatcher.continueRebase(
+      MultiCommitOperationKind.Squash,
       repository,
       workingDirectory,
       rebaseConflictState
