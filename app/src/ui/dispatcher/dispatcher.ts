@@ -3247,7 +3247,8 @@ export class Dispatcher {
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
     lastRetainedCommitRef: string | null,
-    commitContext: ICommitContext
+    commitContext: ICommitContext,
+    continueWithForcePush: boolean = false
   ): Promise<void> {
     const retry: RetryAction = {
       type: RetryActionType.Squash,
@@ -3288,6 +3289,26 @@ export class Dispatcher {
     })
 
     this.appStore._setMultiCommitOperationUndoState(repository, tip)
+
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    if (askForConfirmationOnForcePush && !continueWithForcePush) {
+      const showWarning = await this.warnAboutRemoteCommitsWithinBranch(
+        repository,
+        tip.branch,
+        lastRetainedCommitRef
+      )
+
+      if (showWarning) {
+        this.setMultiCommitOperationStep(repository, {
+          kind: MultiCommitOperationStepKind.WarnForcePush,
+          targetBranch: tip.branch,
+          baseBranch: tip.branch,
+          commits: toSquash,
+        })
+        return
+      }
+    }
 
     const result = await this.appStore._squash(
       repository,
