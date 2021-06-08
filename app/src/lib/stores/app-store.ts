@@ -2598,7 +2598,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
           state,
           context,
-          files
+          selectedFiles,
+          context.amend === true
         )
 
         this.repositoryStateCache.update(repository, () => {
@@ -2623,15 +2624,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     repositoryState: IRepositoryState,
     context: ICommitContext,
-    files: readonly WorkingDirectoryFileChange[]
+    selectedFiles: readonly WorkingDirectoryFileChange[],
+    isAmend: boolean
   ) {
     this.statsStore.recordCommit()
 
-    const includedPartialSelections = files.some(
+    const includedPartialSelections = selectedFiles.some(
       file => file.selection.getSelectionType() === DiffSelectionType.Partial
     )
     if (includedPartialSelections) {
       this.statsStore.recordPartialCommit()
+    }
+
+    if (isAmend) {
+      this.statsStore.recordAmendCommitSuccessful(selectedFiles.length > 0)
     }
 
     const { trailers } = context

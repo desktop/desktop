@@ -770,6 +770,10 @@ export class Dispatcher {
     await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
 
     this.appStore._setAmendingRepository(repository, amending)
+
+    if (amending) {
+      this.statsStore.recordAmendCommitStarted()
+    }
   }
 
   /** Undo the given commit. */

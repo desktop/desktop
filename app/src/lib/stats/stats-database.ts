@@ -388,6 +388,15 @@ export interface IDailyMeasures {
 
   /** The number of times a branch was created during a cherry-pick */
   readonly cherryPickBranchCreatedCount: number
+
+  /** The number of times the user started amending a commit */
+  readonly amendCommitStartedCount: number
+
+  /** The number of times the user amended a commit with file changes */
+  readonly amendCommitSuccessfulWithFileChangesCount: number
+
+  /** The number of times the user amended a commit without file changes */
+  readonly amendCommitSuccessfulWithoutFileChangesCount: number
 }
 
 export class StatsDatabase extends Dexie {

@@ -152,6 +152,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   cherryPickMultipleCommitsCount: 0,
   cherryPickUndoneCount: 0,
   cherryPickBranchCreatedCount: 0,
+  amendCommitStartedCount: 0,
+  amendCommitSuccessfulWithFileChangesCount: 0,
+  amendCommitSuccessfulWithoutFileChangesCount: 0,
 }
 
 interface IOnboardingStats {
@@ -670,6 +673,32 @@ export class StatsStore implements IStatsStore {
     }
     return this.updateDailyMeasures(m => ({
       commitsUndoneWithChanges: m.commitsUndoneWithChanges + 1,
+    }))
+  }
+
+  /** Record that the user started amending a commit */
+  public recordAmendCommitStarted(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      amendCommitStartedCount: m.amendCommitStartedCount + 1,
+    }))
+  }
+
+  /**
+   * Record that the user amended a commit.
+   *
+   * @param withFileChanges Whether the amendment included file changes or not.
+   */
+  public recordAmendCommitSuccessful(withFileChanges: boolean): Promise<void> {
+    if (withFileChanges) {
+      return this.updateDailyMeasures(m => ({
+        amendCommitSuccessfulWithFileChangesCount:
+          m.amendCommitSuccessfulWithFileChangesCount + 1,
+      }))
+    }
+
+    return this.updateDailyMeasures(m => ({
+      amendCommitSuccessfulWithoutFileChangesCount:
+        m.amendCommitSuccessfulWithoutFileChangesCount + 1,
     }))
   }
 
