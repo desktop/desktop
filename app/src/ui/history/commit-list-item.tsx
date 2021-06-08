@@ -285,17 +285,16 @@ export class CommitListItem extends React.PureComponent<
       })
     }
 
-    if (this.props.canBeResetTo) {
-      items.push({
-        label: __DARWIN__ ? 'Reset to Commit…' : 'Reset to commit…',
-        action: () => {
-          if (this.props.onResetToCommit) {
-            this.props.onResetToCommit(this.props.commit)
-          }
-        },
-        enabled: this.props.onResetToCommit !== undefined,
-      })
-    }
+    items.push({
+      label: __DARWIN__ ? 'Reset to Commit…' : 'Reset to commit…',
+      action: () => {
+        if (this.props.onResetToCommit) {
+          this.props.onResetToCommit(this.props.commit)
+        }
+      },
+      enabled:
+        this.props.canBeResetTo && this.props.onResetToCommit !== undefined,
+    })
 
     items.push({
       label: __DARWIN__
