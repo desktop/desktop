@@ -161,6 +161,16 @@ const DefaultDailyMeasures: IDailyMeasures = {
   reorderSuccessfulWithConflictsCount: 0,
   reorderMultipleCommitsCount: 0,
   reorderUndoneCount: 0,
+  squashConflictsEncounteredCount: 0,
+  squashMultipleCommitsInvokedCount: 0,
+  squashSuccessfulCount: 0,
+  squashSuccessfulWithConflictsCount: 0,
+  squashViaContextMenuInvokedCount: 0,
+  squashViaDragAndDropInvokedCount: 0,
+  squashUndoneCount: 0,
+  squashMergeIntoCurrentBranchMenuCount: 0,
+  squashMergeSuccessfulWithConflictsCount: 0,
+  squashMergeSuccessfulCount: 0,
 }
 
 interface IOnboardingStats {
