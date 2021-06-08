@@ -397,6 +397,27 @@ export interface IDailyMeasures {
 
   /** The number of times the user amended a commit without file changes */
   readonly amendCommitSuccessfulWithoutFileChangesCount: number
+
+  /** The number of times a successful reorder occurs */
+  readonly reorderSuccessfulCount: number
+
+  /** The number of times a reorder is initiated */
+  readonly reorderStartedCount: number
+
+  /** The number of times a reorder drag was started and canceled */
+  readonly reorderDragStartedAndCanceledCount: number
+
+  /** The number of times conflicts encountered during a reorder  */
+  readonly reorderConflictsEncounteredCount: number
+
+  /** The number of times reorder ended successfully after conflicts  */
+  readonly reorderSuccessfulWithConflictsCount: number
+
+  /** The number of times reorder of multiple commits initiated  */
+  readonly reorderMultipleCommitsCount: number
+
+  /** The number of times a reorder was undone  */
+  readonly reorderUndoneCount: number
 }
 
 export class StatsDatabase extends Dexie {

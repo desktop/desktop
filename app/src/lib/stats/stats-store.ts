@@ -155,6 +155,13 @@ const DefaultDailyMeasures: IDailyMeasures = {
   amendCommitStartedCount: 0,
   amendCommitSuccessfulWithFileChangesCount: 0,
   amendCommitSuccessfulWithoutFileChangesCount: 0,
+  reorderSuccessfulCount: 0,
+  reorderStartedCount: 0,
+  reorderDragStartedAndCanceledCount: 0,
+  reorderConflictsEncounteredCount: 0,
+  reorderSuccessfulWithConflictsCount: 0,
+  reorderMultipleCommitsCount: 0,
+  reorderUndoneCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1485,6 +1492,50 @@ export class StatsStore implements IStatsStore {
   public recordCherryPickBranchCreatedCount(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
+    }))
+  }
+
+  public recordReorderSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderSuccessfulCount: m.reorderSuccessfulCount + 1,
+    }))
+  }
+
+  public recordReorderStarted(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderStartedCount: m.reorderStartedCount + 1,
+    }))
+  }
+
+  public recordReorderDragStartedAndCanceled(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderDragStartedAndCanceledCount:
+        m.reorderDragStartedAndCanceledCount + 1,
+    }))
+  }
+
+  public recordReorderConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderConflictsEncounteredCount: m.reorderConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordReorderSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderSuccessfulWithConflictsCount:
+        m.reorderSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordReorderMultipleCommits(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderMultipleCommitsCount: m.reorderMultipleCommitsCount + 1,
+    }))
+  }
+
+  public recordReorderUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderUndoneCount: m.reorderUndoneCount + 1,
     }))
   }
 
