@@ -3132,6 +3132,10 @@ export class Dispatcher {
       return
     }
 
+    if (commitsToReorder.length > 1) {
+      this.statsStore.recordReorderMultipleCommits()
+    }
+
     this.appStore._initializeMultiCommitOperation(
       repository,
       {
@@ -3436,11 +3440,19 @@ export class Dispatcher {
     repository: Repository,
     commitsCount: number
   ): Promise<boolean> {
-    return this.appStore._undoMultiCommitOperation(
+    const result = await this.appStore._undoMultiCommitOperation(
       kind,
       repository,
       commitsCount
     )
+
+    if (result) {
+      if (kind === MultiCommitOperationKind.Reorder) {
+        this.statsStore.recordReorderUndone()
+      }
+    }
+
+    return result
   }
 
   /**
