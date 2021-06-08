@@ -1,5 +1,17 @@
 {
   "releases": {
+    "2.8.4-beta2": [
+      "[New] Reorder commits with drag and drop in the history tab - #2507",
+      "[New] Reset your branch to a previous commit up to the most recent pushed commit in your history - #12393",
+      "[New] Amend the most recent commit on your branch - #1644",
+      "[Add] Allow rebase, squashing, or merging when choosing how to update your current branch - #12396, #12382, 12362",
+      "[Add] Add \"Undo Commit\" action to the context menu - #12344",
+      "[Fixed] Show warning before undoing commit if it potentially conflicts with changes in working directory - #4596 #9286 #5874 #6043",
+      "[Fixed] Fix coauthor styling in commit message dialog for squashing - #12356",
+      "[Fixed] Selecting a coauthor and committing adds coauthor trailer - #12355",
+      "[Fixed] Lists of commits, repositories or changes don't disappear after switching between apps",
+      "[Improved] Add force-push warning to squash and reorder operations - #12403"
+    ],
     "2.8.4-beta1": [
       "[New] Squash commits in the history tab - #2507",
       "[Fixed] Remove extra space in drag & drop tooltips - #12327",
