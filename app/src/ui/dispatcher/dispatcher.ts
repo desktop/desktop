@@ -3334,6 +3334,7 @@ export class Dispatcher {
       case RebaseResult.ConflictsEncountered:
         await this.refreshRepository(repository)
         this.startMultiCommitOperationConflictFlow(
+          kind,
           repository,
           targetBranchName,
           `${kind.toLowerCase()} commit`
@@ -3350,6 +3351,7 @@ export class Dispatcher {
    * to show conflicts step
    */
   private startMultiCommitOperationConflictFlow(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     ourBranch: string,
     theirBranch: string
@@ -3377,7 +3379,9 @@ export class Dispatcher {
       },
     })
 
-    // TODO: record conflict encountered during operation
+    if (kind === MultiCommitOperationKind.Reorder) {
+      this.statsStore.recordReorderConflictsEncountered()
+    }
 
     this.showPopup({
       type: PopupType.MultiCommitOperation,
