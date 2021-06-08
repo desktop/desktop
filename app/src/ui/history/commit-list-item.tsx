@@ -311,6 +311,8 @@ export class CommitListItem extends React.PureComponent<
       enabled: this.props.onRevertCommit !== undefined,
     })
 
+    items.push({ type: 'separator' })
+
     if (enableBranchFromCommit()) {
       items.push({
         label: __DARWIN__
