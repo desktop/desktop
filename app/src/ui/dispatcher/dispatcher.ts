@@ -52,7 +52,10 @@ import { AppStore } from '../../lib/stores/app-store'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
-import { initializeRebaseFlowForConflictedRepository } from '../../lib/rebase'
+import {
+  initializeNewRebaseFlow,
+  initializeRebaseFlowForConflictedRepository,
+} from '../../lib/rebase'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
@@ -431,6 +434,22 @@ export class Dispatcher {
     )
 
     return remoteCommits !== null && remoteCommits.length > 0
+  }
+
+  /** Initialize rebase flow to choose branch step **/
+  public async showRebaseDialog(
+    repository: Repository,
+    initialBranch?: Branch | null
+  ) {
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const initialStep = initializeNewRebaseFlow(repositoryState, initialBranch)
+
+    this.setRebaseFlowStep(repository, initialStep)
+
+    this.showPopup({
+      type: PopupType.RebaseFlow,
+      repository,
+    })
   }
 
   /** Initialize and start the rebase operation */
@@ -3567,13 +3586,10 @@ export class Dispatcher {
     })
   }
 
-  public updateMergeOperation(repository: Repository, isSquash: boolean) {
-    this.appStore._updateMergeOperationKind(repository, isSquash)
-  }
-
   public startMergeBranchOperation(
     repository: Repository,
-    isSquash: boolean = false
+    isSquash: boolean = false,
+    initialBranch?: Branch | null
   ) {
     const { branchesState } = this.repositoryStateManager.get(repository)
     const { defaultBranch, allBranches, recentBranches, tip } = branchesState
@@ -3604,6 +3620,7 @@ export class Dispatcher {
       currentBranch,
       allBranches,
       recentBranches,
+      initialBranch: initialBranch !== null ? initialBranch : undefined,
     })
 
     this.showPopup({
