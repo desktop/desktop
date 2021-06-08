@@ -173,7 +173,7 @@ export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
   }
 
   private renderLoadingRebaseMessage() {
-    return <>Checking for ability to rebase automatically...</>
+    return <>Checking for ability to rebase automatically…</>
   }
 
   private renderInvalidRebaseMessage() {
