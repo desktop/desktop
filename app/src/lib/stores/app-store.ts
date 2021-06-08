@@ -4493,6 +4493,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ourBranch: tip.branch.name,
         theirBranch: branch,
       })
+      if (isSquash) {
+        // This code will only run when there are no conflicts.
+        // Thus recordSquashMergeSuccessful is done here and when merge finishes
+        // successfully after conflicts in `dispatcher.finishConflictedMerge`.
+        this.statsStore.recordSquashMergeSuccessful()
+      }
     } else if (
       mergeResult === MergeResult.AlreadyUpToDate &&
       tip.kind === TipState.Valid

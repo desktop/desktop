@@ -24,6 +24,7 @@ import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 import { remote } from 'electron'
 import { Architecture, getArchitecture } from '../get-architecture'
+import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -769,7 +770,14 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
-  public recordMenuInitiatedMerge(): Promise<void> {
+  public recordMenuInitiatedMerge(isSquash: boolean = false): Promise<void> {
+    if (isSquash) {
+      return this.updateDailyMeasures(m => ({
+        squashMergeIntoCurrentBranchMenuCount:
+          m.squashMergeIntoCurrentBranchMenuCount + 1,
+      }))
+    }
+
     return this.updateDailyMeasures(m => ({
       mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
     }))
@@ -1503,7 +1511,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordReorderSuccessful(): Promise<void> {
+  private recordReorderSuccessful(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       reorderSuccessfulCount: m.reorderSuccessfulCount + 1,
     }))
@@ -1515,13 +1523,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordReorderConflictsEncountered(): Promise<void> {
+  private recordReorderConflictsEncountered(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       reorderConflictsEncounteredCount: m.reorderConflictsEncounteredCount + 1,
     }))
   }
 
-  public recordReorderSuccessfulWithConflicts(): Promise<void> {
+  private recordReorderSuccessfulWithConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       reorderSuccessfulWithConflictsCount:
         m.reorderSuccessfulWithConflictsCount + 1,
@@ -1534,9 +1542,140 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordReorderUndone(): Promise<void> {
+  private recordReorderUndone(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       reorderUndoneCount: m.reorderUndoneCount + 1,
+    }))
+  }
+
+  private recordSquashConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashConflictsEncounteredCount: m.squashConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordSquashMultipleCommitsInvoked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMultipleCommitsInvokedCount:
+        m.squashMultipleCommitsInvokedCount + 1,
+    }))
+  }
+
+  private recordSquashSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashSuccessfulCount: m.squashSuccessfulCount + 1,
+    }))
+  }
+
+  private recordSquashSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashSuccessfulWithConflictsCount:
+        m.squashSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordSquashViaContextMenuInvoked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashViaContextMenuInvokedCount: m.squashViaContextMenuInvokedCount + 1,
+    }))
+  }
+
+  public recordSquashViaDragAndDropInvokedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashViaDragAndDropInvokedCount: m.squashViaDragAndDropInvokedCount + 1,
+    }))
+  }
+
+  private recordSquashUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashUndoneCount: m.squashUndoneCount + 1,
+    }))
+  }
+
+  public recordOperationConflictsEncounteredCount(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashConflictsEncountered()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderConflictsEncountered()
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(
+          `[recordOperationConflictsEncounteredCount] - Operation not supported: ${kind}`
+        )
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public recordOperationSuccessful(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashSuccessful()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderSuccessful()
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(
+          `[recordOperationSuccessful] - Operation not supported: ${kind}`
+        )
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public recordOperationSuccessfulWithConflicts(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashSuccessfulWithConflicts()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderSuccessfulWithConflicts()
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(
+          `[recordOperationSuccessfulWithConflicts] - Operation not supported: ${kind}`
+        )
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public recordOperationUndone(kind: MultiCommitOperationKind): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashUndone()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderUndone()
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(
+          `[recordOperationUndone] - Operation not supported: ${kind}`
+        )
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public recordSquashMergeSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeSuccessfulWithConflictsCount:
+        m.squashMergeSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordSquashMergeSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeSuccessfulCount: m.squashMergeSuccessfulCount + 1,
     }))
   }
 
