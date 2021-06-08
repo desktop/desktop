@@ -39,7 +39,7 @@ export type RetryAction =
       type: RetryActionType.Merge
       repository: Repository
       currentBranch: string
-      theirBranch: string
+      theirBranch: Branch
     }
   | {
       type: RetryActionType.Rebase

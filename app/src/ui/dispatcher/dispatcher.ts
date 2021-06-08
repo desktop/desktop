@@ -947,7 +947,7 @@ export class Dispatcher {
   /** Merge the named branch into the current branch. */
   public mergeBranch(
     repository: Repository,
-    branch: string,
+    branch: Branch,
     mergeStatus: MergeTreeResult | null,
     isSquash: boolean = false
   ): Promise<void> {

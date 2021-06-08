@@ -2214,19 +2214,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    let possibleTheirsBranches = await getBranchesPointedAt(
-      repository,
-      'MERGE_HEAD'
-    )
-    // null means we encountered an error
-    if (possibleTheirsBranches === null) {
-      possibleTheirsBranches = []
-      // return
+    let theirBranch: string | undefined
+    if (
+      multiCommitOperationState !== null &&
+      multiCommitOperationState.operationDetail.kind ===
+        MultiCommitOperationKind.Merge &&
+      multiCommitOperationState.operationDetail.sourceBranch !== null
+    ) {
+      theirBranch = multiCommitOperationState.operationDetail.sourceBranch.name
     }
-    const theirBranch =
-      possibleTheirsBranches.length === 1
-        ? possibleTheirsBranches[0]
-        : undefined
+
+    if (theirBranch === undefined && !isSquash) {
+      const possibleTheirsBranches = await getBranchesPointedAt(
+        repository,
+        'MERGE_HEAD'
+      )
+
+      // null means we encountered an error
+      if (possibleTheirsBranches === null) {
+        return
+      }
+
+      theirBranch =
+        possibleTheirsBranches.length === 1
+          ? possibleTheirsBranches[0]
+          : undefined
+    }
 
     const { manualResolutions, currentBranch: ourBranch } = conflictState
     this._setMultiCommitOperationStep(repository, {
@@ -4497,10 +4510,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _mergeBranch(
     repository: Repository,
-    branch: string,
+    sourceBranch: Branch,
     mergeStatus: MergeTreeResult | null,
     isSquash: boolean = false
   ): Promise<void> {
+    const {
+      multiCommitOperationState: opState,
+    } = this.repositoryStateCache.get(repository)
+
+    if (
+      opState === null ||
+      opState.operationDetail.kind !== MultiCommitOperationKind.Merge
+    ) {
+      log.error('[mergeBranch] - Not in merge oerpation state')
+      return
+    }
+
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        operationDetail: { ...opState.operationDetail, sourceBranch },
+      })
+    )
+
     const gitStore = this.gitStoreCache.get(repository)
 
     if (mergeStatus !== null) {
@@ -4513,14 +4545,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const mergeResult = await gitStore.merge(branch, isSquash)
+    const mergeResult = await gitStore.merge(sourceBranch, isSquash)
     const { tip } = gitStore
 
     if (mergeResult === MergeResult.Success && tip.kind === TipState.Valid) {
       this._setBanner({
         type: BannerType.SuccessfulMerge,
         ourBranch: tip.branch.name,
-        theirBranch: branch,
+        theirBranch: sourceBranch.name,
       })
     } else if (
       mergeResult === MergeResult.AlreadyUpToDate &&
@@ -4529,7 +4561,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._setBanner({
         type: BannerType.BranchAlreadyUpToDate,
         ourBranch: tip.branch.name,
-        theirBranch: branch,
+        theirBranch: sourceBranch.name,
       })
     }
 
