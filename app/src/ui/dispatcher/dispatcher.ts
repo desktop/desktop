@@ -388,36 +388,6 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
-  /** Check for remote commits that could affect the rebase operation */
-  private async warnAboutRemoteCommitsBetweenBranches(
-    repository: Repository,
-    baseBranch: Branch,
-    targetBranch: Branch
-  ): Promise<boolean> {
-    if (targetBranch.upstream === null) {
-      return false
-    }
-
-    // if the branch is tracking a remote branch
-    const upstreamBranchesMatching = await getBranches(
-      repository,
-      `refs/remotes/${targetBranch.upstream}`
-    )
-
-    if (upstreamBranchesMatching.length === 0) {
-      return false
-    }
-
-    // and the remote branch has commits that don't exist on the base branch
-    const remoteCommits = await getCommitsBetweenCommits(
-      repository,
-      baseBranch.tip.sha,
-      targetBranch.upstream
-    )
-
-    return remoteCommits !== null && remoteCommits.length > 0
-  }
-
   /**
    * Check for remote commits that could affect an interactive rebase operation.
    *
@@ -426,7 +396,7 @@ export class Dispatcher {
    *                        rebase. If it's null, the root of the branch will be
    *                        considered.
    */
-  private async warnAboutRemoteCommitsWithinBranch(
+  private async warnAboutRemoteCommits(
     repository: Repository,
     targetBranch: Branch,
     oldestCommitRef: string | null
@@ -476,10 +446,10 @@ export class Dispatcher {
       options !== undefined && options.continueWithForcePush
 
     if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
-      const showWarning = await this.warnAboutRemoteCommitsBetweenBranches(
+      const showWarning = await this.warnAboutRemoteCommits(
         repository,
         baseBranch,
-        targetBranch
+        targetBranch.tip.sha
       )
 
       if (showWarning) {
@@ -3194,7 +3164,7 @@ export class Dispatcher {
     const { askForConfirmationOnForcePush } = this.appStore.getState()
 
     if (askForConfirmationOnForcePush && !continueWithForcePush) {
-      const showWarning = await this.warnAboutRemoteCommitsWithinBranch(
+      const showWarning = await this.warnAboutRemoteCommits(
         repository,
         tip.branch,
         lastRetainedCommitRef
@@ -3293,7 +3263,7 @@ export class Dispatcher {
     const { askForConfirmationOnForcePush } = this.appStore.getState()
 
     if (askForConfirmationOnForcePush && !continueWithForcePush) {
-      const showWarning = await this.warnAboutRemoteCommitsWithinBranch(
+      const showWarning = await this.warnAboutRemoteCommits(
         repository,
         tip.branch,
         lastRetainedCommitRef
