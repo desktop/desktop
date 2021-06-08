@@ -115,10 +115,10 @@ export function enableAmendingCommits(): boolean {
 
 /** Should we allow reordering commits? */
 export function enableCommitReordering(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
