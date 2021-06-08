@@ -158,7 +158,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     await this.props.dispatcher.mergeBranch(
       repository,
-      comparisonBranch.name,
+      comparisonBranch,
       mergeStatus
     )
 

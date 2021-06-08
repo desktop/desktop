@@ -601,7 +601,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const { mergeStatus } = state.compareState
     this.props.dispatcher.mergeBranch(
       selectedState.repository,
-      defaultBranch.name,
+      defaultBranch,
       mergeStatus
     )
   }
