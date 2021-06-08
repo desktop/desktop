@@ -389,10 +389,11 @@ export class Dispatcher {
   }
 
   /**
-   * Check for remote commits that could affect an interactive rebase operation.
+   * Check for remote commits that could affect an rebase operation.
    *
-   * @param targetBranch    The branch where the interactive rebase takes place.
+   * @param targetBranch    The branch where the rebase takes place.
    * @param oldestCommitRef Ref of the oldest commit involved in the interactive
+   *                        rebase, or tip of the base branch in a regular
    *                        rebase. If it's null, the root of the branch will be
    *                        considered.
    */
@@ -416,8 +417,8 @@ export class Dispatcher {
     }
 
     // At this point, the target branch has an upstream. Therefore, if the
-    // interactive rebase goes up to the root commit of the branch, remote
-    // commits that will require a force push after the rebase do exist.
+    // rebase goes up to the root commit of the branch, remote commits that will
+    // require a force push after the rebase do exist.
     if (oldestCommitRef === null) {
       return true
     }
