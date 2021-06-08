@@ -445,6 +445,9 @@ export interface IDailyMeasures {
 
   /** The number of times a successful squash merge occurs */
   readonly squashMergeSuccessfulCount: number
+
+  /** The number of times a squash merge is initiated */
+  readonly squashMergeInvokedCount: number
 }
 
 export class StatsDatabase extends Dexie {

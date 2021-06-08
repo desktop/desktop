@@ -172,6 +172,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   squashMergeIntoCurrentBranchMenuCount: 0,
   squashMergeSuccessfulWithConflictsCount: 0,
   squashMergeSuccessfulCount: 0,
+  squashMergeInvokedCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1676,6 +1677,12 @@ export class StatsStore implements IStatsStore {
   public recordSquashMergeSuccessful(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       squashMergeSuccessfulCount: m.squashMergeSuccessfulCount + 1,
+    }))
+  }
+
+  public recordSquashMergeInvokedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeInvokedCount: m.squashMergeInvokedCount + 1,
     }))
   }
 

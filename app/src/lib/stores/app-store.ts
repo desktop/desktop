@@ -4474,6 +4474,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
+    if (isSquash) {
+      this.statsStore.recordSquashMergeInvokedCount()
+    }
+
     if (mergeStatus !== null) {
       if (mergeStatus.kind === ComputedAction.Clean) {
         this.statsStore.recordMergeHintSuccessAndUserProceeded()
