@@ -4238,25 +4238,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     showConfirmationDialog: boolean
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    // const repositoryState = this.repositoryStateCache.get(repository)
-    // const { changesState } = repositoryState
-    // const isWorkingDirectoryClean =
-    //   changesState.workingDirectory.files.length === 0
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { changesState } = repositoryState
+    const isWorkingDirectoryClean =
+      changesState.workingDirectory.files.length === 0
 
     // Warn the user if there are changes in the working directory
-    // if (
-    //   showConfirmationDialog &&
-    //   (!isWorkingDirectoryClean || commit.isMergeCommit)
-    // ) {
-    //   return this._showPopup({
-    //     type: PopupType.WarnLocalChangesBeforeUndo,
-    //     repository,
-    //     commit,
-    //     isWorkingDirectoryClean,
-    //   })
-    // }
+    if (showConfirmationDialog && !isWorkingDirectoryClean) {
+      return this._showPopup({
+        type: PopupType.WarningBeforeReset,
+        repository,
+        commit,
+      })
+    }
 
-    // Make sure we show the changes after undoing the commit
+    // Make sure we show the changes after resetting to the commit
     await this._changeRepositorySection(
       repository,
       RepositorySectionTab.Changes
