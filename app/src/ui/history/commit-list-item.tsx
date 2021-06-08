@@ -15,6 +15,7 @@ import { Draggable } from '../lib/draggable'
 import {
   enableAmendingCommits,
   enableBranchFromCommit,
+  enableResetToCommit,
   enableSquashing,
 } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
@@ -32,6 +33,8 @@ interface ICommitProps {
   readonly isLocal: boolean
   readonly canBeUndone: boolean
   readonly canBeAmended: boolean
+  readonly canBeResetTo: boolean
+  readonly onResetToCommit?: (commit: Commit) => void
   readonly onUndoCommit?: (commit: Commit) => void
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
@@ -283,6 +286,19 @@ export class CommitListItem extends React.PureComponent<
       })
     }
 
+    if (enableResetToCommit()) {
+      items.push({
+        label: __DARWIN__ ? 'Reset to Commit…' : 'Reset to commit…',
+        action: () => {
+          if (this.props.onResetToCommit) {
+            this.props.onResetToCommit(this.props.commit)
+          }
+        },
+        enabled:
+          this.props.canBeResetTo && this.props.onResetToCommit !== undefined,
+      })
+    }
+
     items.push({
       label: __DARWIN__
         ? 'Revert Changes in Commit'
@@ -294,6 +310,8 @@ export class CommitListItem extends React.PureComponent<
       },
       enabled: this.props.onRevertCommit !== undefined,
     })
+
+    items.push({ type: 'separator' })
 
     if (enableBranchFromCommit()) {
       items.push({

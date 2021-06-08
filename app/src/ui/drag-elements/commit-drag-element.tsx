@@ -179,6 +179,7 @@ export class CommitDragElement extends React.Component<
             emoji={emoji}
             canBeUndone={false}
             canBeAmended={false}
+            canBeResetTo={false}
             isLocal={false}
             showUnpushedIndicator={false}
           />

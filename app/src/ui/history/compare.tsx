@@ -231,6 +231,7 @@ export class CompareSidebar extends React.Component<
         commitSHAs={commitSHAs}
         selectedSHAs={this.props.selectedCommitShas}
         localCommitSHAs={this.props.localCommitSHAs}
+        canResetToCommits={formState.kind === HistoryTabMode.History}
         canUndoCommits={formState.kind === HistoryTabMode.History}
         canAmendCommits={formState.kind === HistoryTabMode.History}
         emoji={this.props.emoji}
@@ -239,6 +240,7 @@ export class CompareSidebar extends React.Component<
         }
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onUndoCommit={this.onUndoCommit}
+        onResetToCommit={this.onResetToCommit}
         onRevertCommit={
           ableToRevertCommit(this.props.compareState.formState)
             ? this.props.onRevertCommit
@@ -580,6 +582,10 @@ export class CompareSidebar extends React.Component<
 
   private onUndoCommit = (commit: Commit) => {
     this.props.dispatcher.undoCommit(this.props.repository, commit)
+  }
+
+  private onResetToCommit = (commit: Commit) => {
+    this.props.dispatcher.resetToCommit(this.props.repository, commit)
   }
 
   private onCreateBranch = (commit: CommitOneLine) => {

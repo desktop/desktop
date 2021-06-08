@@ -147,6 +147,7 @@ import { enableSquashing } from '../lib/feature-flag'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
+import { WarningBeforeReset } from './reset/warning-before-reset'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2103,6 +2104,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             commit={commit}
             isWorkingDirectoryClean={isWorkingDirectoryClean}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.WarningBeforeReset: {
+        const { repository, commit } = popup
+        return (
+          <WarningBeforeReset
+            key="warning-before-reset"
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            commit={commit}
             onDismissed={onPopupDismissedFn}
           />
         )
