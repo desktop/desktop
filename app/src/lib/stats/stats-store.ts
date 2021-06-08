@@ -146,7 +146,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   cherryPickSuccessfulCount: 0,
   cherryPickViaDragAndDropCount: 0,
   cherryPickViaContextMenuCount: 0,
-  cherryPickDragStartedAndCanceledCount: 0,
+  dragStartedAndCanceledCount: 0,
   cherryPickConflictsEncounteredCount: 0,
   cherryPickSuccessfulWithConflictsCount: 0,
   cherryPickMultipleCommitsCount: 0,
@@ -1455,10 +1455,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickDragStartedAndCanceled(): Promise<void> {
+  public recordDragStartedAndCanceled(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      cherryPickDragStartedAndCanceledCount:
-        m.cherryPickDragStartedAndCanceledCount + 1,
+      dragStartedAndCanceledCount: m.dragStartedAndCanceledCount + 1,
     }))
   }
 

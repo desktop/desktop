@@ -371,8 +371,8 @@ export interface IDailyMeasures {
   /** The number of times a cherry pick is initiated through the context menu */
   readonly cherryPickViaContextMenuCount: number
 
-  /** The number of times a cherry pick drag was started and canceled */
-  readonly cherryPickDragStartedAndCanceledCount: number
+  /** The number of times a drag operation was started and canceled */
+  readonly dragStartedAndCanceledCount: number
 
   /** The number of times conflicts encountered during a cherry pick  */
   readonly cherryPickConflictsEncounteredCount: number

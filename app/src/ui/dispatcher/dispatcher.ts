@@ -3034,9 +3034,9 @@ export class Dispatcher {
     this.statsStore.recordCherryPickViaContextMenu()
   }
 
-  /** Method to record cherry pick started via drag and drop and canceled. */
-  public recordCherryPickDragStartedAndCanceled() {
-    this.statsStore.recordCherryPickDragStartedAndCanceled()
+  /** Method to record an operation started via drag and drop and canceled. */
+  public recordDragStartedAndCanceled() {
+    this.statsStore.recordDragStartedAndCanceled()
   }
 
   /** Method to reset cherry picking state. */

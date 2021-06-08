@@ -3051,9 +3051,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDragEnd = (dropTargetSelector: DropTargetSelector | undefined) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     if (dropTargetSelector === undefined) {
-      // TODO: refactor to "DragStartedAndCanceled" as not specific to
-      // cherry-picking anymore
-      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+      this.props.dispatcher.recordDragStartedAndCanceled()
     }
   }
 }
