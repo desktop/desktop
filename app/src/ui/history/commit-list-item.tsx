@@ -15,6 +15,7 @@ import { Draggable } from '../lib/draggable'
 import {
   enableAmendingCommits,
   enableBranchFromCommit,
+  enableResetToCommit,
   enableSquashing,
 } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
@@ -285,16 +286,18 @@ export class CommitListItem extends React.PureComponent<
       })
     }
 
-    items.push({
-      label: __DARWIN__ ? 'Reset to Commit…' : 'Reset to commit…',
-      action: () => {
-        if (this.props.onResetToCommit) {
-          this.props.onResetToCommit(this.props.commit)
-        }
-      },
-      enabled:
-        this.props.canBeResetTo && this.props.onResetToCommit !== undefined,
-    })
+    if (enableResetToCommit()) {
+      items.push({
+        label: __DARWIN__ ? 'Reset to Commit…' : 'Reset to commit…',
+        action: () => {
+          if (this.props.onResetToCommit) {
+            this.props.onResetToCommit(this.props.commit)
+          }
+        },
+        enabled:
+          this.props.canBeResetTo && this.props.onResetToCommit !== undefined,
+      })
+    }
 
     items.push({
       label: __DARWIN__
