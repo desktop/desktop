@@ -389,7 +389,7 @@ export class Dispatcher {
   }
 
   /** Check for remote commits that could affect the rebase operation */
-  private async warnAboutRemoteCommits(
+  private async warnAboutRemoteCommitsBetweenBranches(
     repository: Repository,
     baseBranch: Branch,
     targetBranch: Branch
@@ -418,6 +418,50 @@ export class Dispatcher {
     return remoteCommits !== null && remoteCommits.length > 0
   }
 
+  /**
+   * Check for remote commits that could affect an interactive rebase operation.
+   *
+   * @param targetBranch    The branch where the interactive rebase takes place.
+   * @param oldestCommitRef Ref of the oldest commit involved in the interactive
+   *                        rebase. If it's null, the root of the branch will be
+   *                        considered.
+   */
+  private async warnAboutRemoteCommitsWithinBranch(
+    repository: Repository,
+    targetBranch: Branch,
+    oldestCommitRef: string | null
+  ): Promise<boolean> {
+    if (targetBranch.upstream === null) {
+      return false
+    }
+
+    // if the branch is tracking a remote branch
+    const upstreamBranchesMatching = await getBranches(
+      repository,
+      `refs/remotes/${targetBranch.upstream}`
+    )
+
+    if (upstreamBranchesMatching.length === 0) {
+      return false
+    }
+
+    // At this point, the target branch has an upstream. Therefore, if the
+    // interactive rebase goes up to the root commit of the branch, remote
+    // commits that will require a force push after the rebase do exist.
+    if (oldestCommitRef === null) {
+      return true
+    }
+
+    // and the remote branch has commits that don't exist on the base branch
+    const remoteCommits = await getCommitsBetweenCommits(
+      repository,
+      oldestCommitRef,
+      targetBranch.upstream
+    )
+
+    return remoteCommits !== null && remoteCommits.length > 0
+  }
+
   /** Initialize and start the rebase operation */
   public async startRebase(
     repository: Repository,
@@ -432,7 +476,7 @@ export class Dispatcher {
       options !== undefined && options.continueWithForcePush
 
     if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
-      const showWarning = await this.warnAboutRemoteCommits(
+      const showWarning = await this.warnAboutRemoteCommitsBetweenBranches(
         repository,
         baseBranch,
         targetBranch
@@ -3106,7 +3150,8 @@ export class Dispatcher {
     repository: Repository,
     commitsToReorder: ReadonlyArray<Commit>,
     beforeCommit: Commit | null,
-    lastRetainedCommitRef: string | null
+    lastRetainedCommitRef: string | null,
+    continueWithForcePush: boolean = false
   ) {
     const retry: RetryAction = {
       type: RetryActionType.Reorder,
@@ -3145,6 +3190,26 @@ export class Dispatcher {
     })
 
     this.appStore._setMultiCommitOperationUndoState(repository, tip)
+
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    if (askForConfirmationOnForcePush && !continueWithForcePush) {
+      const showWarning = await this.warnAboutRemoteCommitsWithinBranch(
+        repository,
+        tip.branch,
+        lastRetainedCommitRef
+      )
+
+      if (showWarning) {
+        this.setMultiCommitOperationStep(repository, {
+          kind: MultiCommitOperationStepKind.WarnForcePush,
+          targetBranch: tip.branch,
+          baseBranch: tip.branch,
+          commits: commitsToReorder,
+        })
+        return
+      }
+    }
 
     const result = await this.appStore._reorderCommits(
       repository,
