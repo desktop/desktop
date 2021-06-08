@@ -157,7 +157,6 @@ const DefaultDailyMeasures: IDailyMeasures = {
   amendCommitSuccessfulWithoutFileChangesCount: 0,
   reorderSuccessfulCount: 0,
   reorderStartedCount: 0,
-  reorderDragStartedAndCanceledCount: 0,
   reorderConflictsEncounteredCount: 0,
   reorderSuccessfulWithConflictsCount: 0,
   reorderMultipleCommitsCount: 0,
@@ -1504,13 +1503,6 @@ export class StatsStore implements IStatsStore {
   public recordReorderStarted(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       reorderStartedCount: m.reorderStartedCount + 1,
-    }))
-  }
-
-  public recordReorderDragStartedAndCanceled(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderDragStartedAndCanceledCount:
-        m.reorderDragStartedAndCanceledCount + 1,
     }))
   }
 
