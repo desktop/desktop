@@ -448,6 +448,9 @@ export interface IDailyMeasures {
 
   /** The number of times a squash merge is initiated */
   readonly squashMergeInvokedCount: number
+
+  /** The number of times the user reset to a previous commit. */
+  readonly resetToCommitCount: number
 }
 
 export class StatsDatabase extends Dexie {

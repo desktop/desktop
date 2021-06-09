@@ -825,6 +825,7 @@ export class Dispatcher {
     commit: Commit,
     showConfirmationDialog: boolean = true
   ): Promise<void> {
+    this.statsStore.recordResetToCommitCount()
     return this.appStore._resetToCommit(
       repository,
       commit,
