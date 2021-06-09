@@ -151,11 +151,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
       )
     }
 
+    const isSquash = operation === MultiCommitOperationKind.Squash
     dispatcher.initializeMultiCommitOperation(
       repository,
       {
         kind: MultiCommitOperationKind.Merge,
-        isSquash: operation === MultiCommitOperationKind.Squash,
+        isSquash,
         sourceBranch: comparisonBranch,
       },
       currentBranch,
@@ -163,7 +164,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
     )
     dispatcher.recordCompareInitiatedMerge()
 
-    return dispatcher.mergeBranch(repository, comparisonBranch, mergeStatus)
+    return dispatcher.mergeBranch(
+      repository,
+      comparisonBranch,
+      mergeStatus,
+      isSquash
+    )
   }
 
   public render() {
