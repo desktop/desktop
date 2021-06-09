@@ -275,7 +275,7 @@ export class SelectedCommit extends React.Component<
       return null
     }
 
-    return <div id="drag-overlay"></div>
+    return <div id="drag-overlay-background"></div>
   }
 
   private renderMultipleCommitsSelected(): JSX.Element {
