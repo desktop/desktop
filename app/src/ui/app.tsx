@@ -95,7 +95,6 @@ import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
-  initializeNewRebaseFlow,
   initializeRebaseFlowForConflictedRepository,
   isCurrentBranchForcePush,
 } from '../lib/rebase'
@@ -147,6 +146,7 @@ import { enableSquashing } from '../lib/feature-flag'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
+import { WarningBeforeReset } from './reset/warning-before-reset'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -601,7 +601,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const { mergeStatus } = state.compareState
     this.props.dispatcher.mergeBranch(
       selectedState.repository,
-      defaultBranch.name,
+      defaultBranch,
       mergeStatus
     )
   }
@@ -1112,17 +1112,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!repository || repository instanceof CloningRepository) {
       return
     }
-
-    const repositoryState = this.props.repositoryStateManager.get(repository)
-
-    const initialStep = initializeNewRebaseFlow(repositoryState)
-
-    this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
-
-    this.props.dispatcher.showPopup({
-      type: PopupType.RebaseFlow,
-      repository,
-    })
+    this.props.dispatcher.showRebaseDialog(repository)
   }
 
   private showRepositorySettings() {
@@ -2103,6 +2093,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             commit={commit}
             isWorkingDirectoryClean={isWorkingDirectoryClean}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.WarningBeforeReset: {
+        const { repository, commit } = popup
+        return (
+          <WarningBeforeReset
+            key="warning-before-reset"
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            commit={commit}
             onDismissed={onPopupDismissedFn}
           />
         )

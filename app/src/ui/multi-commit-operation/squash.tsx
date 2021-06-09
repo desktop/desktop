@@ -23,7 +23,8 @@ export abstract class Squash extends BaseMultiCommitOperation {
       commits,
       targetCommit,
       lastRetainedCommitRef,
-      commitContext
+      commitContext,
+      true
     )
   }
 

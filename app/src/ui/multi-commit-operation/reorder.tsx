@@ -18,7 +18,8 @@ export abstract class Reorder extends BaseMultiCommitOperation {
       repository,
       commits,
       beforeCommit,
-      lastRetainedCommitRef
+      lastRetainedCommitRef,
+      true
     )
   }
 

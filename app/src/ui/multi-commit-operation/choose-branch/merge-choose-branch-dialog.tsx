@@ -9,6 +9,7 @@ import { Branch } from '../../../models/branch'
 import { ComputedAction } from '../../../models/computed-action'
 import { MergeTreeResult } from '../../../models/merge'
 import { MultiCommitOperationKind } from '../../../models/multi-commit-operation'
+import { PopupType } from '../../../models/popup'
 import { ActionStatusIcon } from '../../lib/action-status-icon'
 import { BaseChooseBranchDialog } from './base-choose-branch-dialog'
 
@@ -29,11 +30,11 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
 
     dispatcher.mergeBranch(
       repository,
-      selectedBranch.name,
+      selectedBranch,
       this.mergeStatus,
       operation === MultiCommitOperationKind.Squash
     )
-    this.props.onDismissed()
+    this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
   }
 
   protected canStart = (): boolean => {

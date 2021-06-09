@@ -1438,7 +1438,7 @@ export class GitStore extends BaseStore {
 
   /** Merge the named branch into the current branch. */
   public merge(
-    branch: string,
+    branch: Branch,
     isSquash: boolean = false
   ): Promise<MergeResult | undefined> {
     if (this.tip.kind !== TipState.Valid) {
@@ -1450,12 +1450,12 @@ export class GitStore extends BaseStore {
     const currentBranch = this.tip.branch.name
 
     return this.performFailableOperation(
-      () => merge(this.repository, branch, isSquash),
+      () => merge(this.repository, branch.name, isSquash),
       {
         gitContext: {
           kind: 'merge',
           currentBranch,
-          theirBranch: branch,
+          theirBranch: branch.name,
         },
         retryAction: {
           type: RetryActionType.Merge,

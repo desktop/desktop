@@ -117,3 +117,8 @@ export function enableAmendingCommits(): boolean {
 export function enableCommitReordering(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we allow resetting to a previous commit? */
+export function enableResetToCommit(): boolean {
+  return enableDevelopmentFeatures()
+}

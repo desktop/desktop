@@ -73,6 +73,7 @@ export enum PopupType {
   CommitMessage,
   MultiCommitOperation,
   WarnLocalChangesBeforeUndo,
+  WarningBeforeReset,
 }
 
 export type Popup =
@@ -291,4 +292,9 @@ export type Popup =
       repository: Repository
       commit: Commit
       isWorkingDirectoryClean: boolean
+    }
+  | {
+      type: PopupType.WarningBeforeReset
+      repository: Repository
+      commit: Commit
     }
