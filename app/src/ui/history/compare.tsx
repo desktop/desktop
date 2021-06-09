@@ -609,7 +609,8 @@ export class CompareSidebar extends React.Component<
   private onSquash = async (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
-    lastRetainedCommitRef: string | null
+    lastRetainedCommitRef: string | null,
+    isInvokedByContextMenu: boolean
   ) => {
     const toSquashSansSquashOnto = toSquash.filter(
       c => c.sha !== squashOnto.sha
@@ -637,6 +638,8 @@ export class CompareSidebar extends React.Component<
       )
       return
     }
+
+    this.props.dispatcher.recordSquashInvoked(isInvokedByContextMenu)
 
     this.props.dispatcher.showPopup({
       type: PopupType.CommitMessage,

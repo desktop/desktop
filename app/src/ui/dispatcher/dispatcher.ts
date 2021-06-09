@@ -1171,9 +1171,7 @@ export class Dispatcher {
     )
 
     if (result === RebaseResult.CompletedWithoutError) {
-      if (kind === MultiCommitOperationKind.Reorder) {
-        this.statsStore.recordReorderSuccessfulWithConflicts()
-      }
+      this.statsStore.recordOperationSuccessfulWithConflicts(kind)
     }
 
     await this.appStore._loadStatus(repository)
@@ -1298,7 +1296,8 @@ export class Dispatcher {
   public async finishConflictedMerge(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    successfulMergeBanner: Banner
+    successfulMergeBanner: Banner,
+    isSquash: boolean
   ) {
     // get manual resolutions in case there are manual conflicts
     const repositoryState = this.repositoryStateManager.get(repository)
@@ -1317,6 +1316,14 @@ export class Dispatcher {
     )
     if (result !== undefined) {
       this.setBanner(successfulMergeBanner)
+      if (isSquash) {
+        // Squash merge will not hit the normal recording of successful merge in
+        // app-store._mergeBranch because it only records there when there are
+        // no conflicts. Thus, recordSquashMergeSuccessful is done here in order
+        // to capture all successful squash merges under this metric.
+        this.statsStore.recordSquashMergeSuccessful()
+        this.statsStore.recordSquashMergeSuccessfulWithConflicts()
+      }
     }
   }
 
@@ -2320,8 +2327,8 @@ export class Dispatcher {
   /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
-  public recordMenuInitiatedMerge() {
-    return this.statsStore.recordMenuInitiatedMerge()
+  public recordMenuInitiatedMerge(isSquash: boolean = true) {
+    return this.statsStore.recordMenuInitiatedMerge(isSquash)
   }
 
   /**
@@ -3081,9 +3088,9 @@ export class Dispatcher {
     this.statsStore.recordCherryPickViaContextMenu()
   }
 
-  /** Method to record cherry pick started via drag and drop and canceled. */
-  public recordCherryPickDragStartedAndCanceled() {
-    this.statsStore.recordCherryPickDragStartedAndCanceled()
+  /** Method to record an operation started via drag and drop and canceled. */
+  public recordDragStartedAndCanceled() {
+    this.statsStore.recordDragStartedAndCanceled()
   }
 
   /** Method to reset cherry picking state. */
@@ -3292,6 +3299,10 @@ export class Dispatcher {
       return
     }
 
+    if (toSquash.length > 1) {
+      this.statsStore.recordSquashMultipleCommitsInvoked()
+    }
+
     this.initializeMultiCommitOperation(
       repository,
       {
@@ -3468,9 +3479,7 @@ export class Dispatcher {
       },
     })
 
-    if (kind === MultiCommitOperationKind.Reorder) {
-      this.statsStore.recordReorderConflictsEncountered()
-    }
+    this.statsStore.recordOperationConflictsEncounteredCount(kind)
 
     this.showPopup({
       type: PopupType.MultiCommitOperation,
@@ -3530,9 +3539,7 @@ export class Dispatcher {
       this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
     }
 
-    if (kind === MultiCommitOperationKind.Reorder) {
-      this.statsStore.recordReorderSuccessful()
-    }
+    this.statsStore.recordOperationSuccessful(kind)
 
     this.endMultiCommitOperation(repository)
     await this.refreshRepository(repository)
@@ -3554,9 +3561,7 @@ export class Dispatcher {
     )
 
     if (result) {
-      if (kind === MultiCommitOperationKind.Reorder) {
-        this.statsStore.recordReorderUndone()
-      }
+      this.statsStore.recordOperationUndone(kind)
     }
 
     return result
@@ -3661,5 +3666,14 @@ export class Dispatcher {
       type: PopupType.MultiCommitOperation,
       repository,
     })
+  }
+
+  /** Records the squash that a squash has been invoked by either drag and drop or context menu */
+  public recordSquashInvoked(isInvokedByContextMenu: boolean): void {
+    if (isInvokedByContextMenu) {
+      this.statsStore.recordSquashViaContextMenuInvoked()
+    } else {
+      this.statsStore.recordSquashViaDragAndDropInvokedCount()
+    }
   }
 }

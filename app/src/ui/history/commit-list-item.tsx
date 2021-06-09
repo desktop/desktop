@@ -47,7 +47,8 @@ interface ICommitProps {
   readonly onRemoveDragElement?: () => void
   readonly onSquash?: (
     toSquash: ReadonlyArray<Commit>,
-    squashOnto: Commit
+    squashOnto: Commit,
+    isInvokedByContextMenu: boolean
   ) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
@@ -97,7 +98,7 @@ export class CommitListItem extends React.PureComponent<
       // don't squash if dragging one commit and dropping onto itself
       selectedCommits.filter(c => c.sha !== commit.sha).length > 0
     ) {
-      onSquash(selectedCommits, commit)
+      onSquash(selectedCommits, commit, false)
     }
   }
 
@@ -236,7 +237,7 @@ export class CommitListItem extends React.PureComponent<
 
   private onSquash = () => {
     if (this.props.onSquash !== undefined) {
-      this.props.onSquash(this.props.selectedCommits, this.props.commit)
+      this.props.onSquash(this.props.selectedCommits, this.props.commit, true)
     }
   }
 

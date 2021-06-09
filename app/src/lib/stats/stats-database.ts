@@ -371,8 +371,8 @@ export interface IDailyMeasures {
   /** The number of times a cherry pick is initiated through the context menu */
   readonly cherryPickViaContextMenuCount: number
 
-  /** The number of times a cherry pick drag was started and canceled */
-  readonly cherryPickDragStartedAndCanceledCount: number
+  /** The number of times a drag operation was started and canceled */
+  readonly dragStartedAndCanceledCount: number
 
   /** The number of times conflicts encountered during a cherry pick  */
   readonly cherryPickConflictsEncounteredCount: number
@@ -415,6 +415,39 @@ export interface IDailyMeasures {
 
   /** The number of times a reorder was undone  */
   readonly reorderUndoneCount: number
+
+  /** The number of times conflicts encountered during a squash */
+  readonly squashConflictsEncounteredCount: number
+
+  /** The number of times squash of multiple commits invoked  */
+  readonly squashMultipleCommitsInvokedCount: number
+
+  /** The number of times a successful squash occurs */
+  readonly squashSuccessfulCount: number
+
+  /** The number of times squash ended successfully after conflicts  */
+  readonly squashSuccessfulWithConflictsCount: number
+
+  /** The number of times a squash is initiated through the context menu */
+  readonly squashViaContextMenuInvokedCount: number
+
+  /** The number of times a squash is initiated through drag and drop */
+  readonly squashViaDragAndDropInvokedCount: number
+
+  /** The number of times a squash was undone  */
+  readonly squashUndoneCount: number
+
+  /** The number of times the `Branch -> Squash and Merge Into Current Branch` menu item is used */
+  readonly squashMergeIntoCurrentBranchMenuCount: number
+
+  /** The number of times squash merge ended successfully after conflicts  */
+  readonly squashMergeSuccessfulWithConflictsCount: number
+
+  /** The number of times a successful squash merge occurs */
+  readonly squashMergeSuccessfulCount: number
+
+  /** The number of times a squash merge is initiated */
+  readonly squashMergeInvokedCount: number
 }
 
 export class StatsDatabase extends Dexie {

@@ -386,6 +386,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
       case 'squash-and-merge-branch':
+        this.props.dispatcher.recordMenuInitiatedMerge(true)
         return this.mergeBranch(true)
       case 'rebase-branch':
         this.props.dispatcher.recordMenuInitiatedRebase()
@@ -3053,9 +3054,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDragEnd = (dropTargetSelector: DropTargetSelector | undefined) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     if (dropTargetSelector === undefined) {
-      // TODO: refactor to "DragStartedAndCanceled" as not specific to
-      // cherry-picking anymore
-      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+      this.props.dispatcher.recordDragStartedAndCanceled()
     }
   }
 }

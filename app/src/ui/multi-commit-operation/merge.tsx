@@ -18,12 +18,14 @@ export abstract class Merge extends BaseMultiCommitOperation {
       workingDirectory,
       state,
       conflictState,
+      state: { operationDetail },
     } = this.props
 
     if (
       state.step.kind !== MultiCommitOperationStepKind.ShowConflicts ||
       conflictState === null ||
-      !isMergeConflictState(conflictState)
+      !isMergeConflictState(conflictState) ||
+      operationDetail.kind !== MultiCommitOperationKind.Merge
     ) {
       this.endFlowInvalidState()
       return
@@ -31,11 +33,16 @@ export abstract class Merge extends BaseMultiCommitOperation {
 
     const { theirBranch } = state.step.conflictState
     const { currentBranch: ourBranch } = conflictState
-    await dispatcher.finishConflictedMerge(repository, workingDirectory, {
-      type: BannerType.SuccessfulMerge,
-      ourBranch,
-      theirBranch,
-    })
+    await dispatcher.finishConflictedMerge(
+      repository,
+      workingDirectory,
+      {
+        type: BannerType.SuccessfulMerge,
+        ourBranch,
+        theirBranch,
+      },
+      operationDetail.isSquash
+    )
 
     await dispatcher.setCommitMessage(repository, DefaultCommitMessage)
     await this.props.dispatcher.changeRepositorySection(
@@ -43,7 +50,7 @@ export abstract class Merge extends BaseMultiCommitOperation {
       RepositorySectionTab.Changes
     )
     this.onFlowEnded()
-    this.props.dispatcher.recordGuidedConflictedMergeCompletion()
+    dispatcher.recordGuidedConflictedMergeCompletion()
   }
 
   protected onAbort = async (): Promise<void> => {

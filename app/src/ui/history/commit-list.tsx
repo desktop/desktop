@@ -96,7 +96,8 @@ interface ICommitListProps {
   readonly onSquash: (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
-    lastRetainedCommitRef: string | null
+    lastRetainedCommitRef: string | null,
+    isInvokedByContextMenu: boolean
   ) => void
 
   /**
@@ -229,14 +230,19 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return lastRetainedCommitRef
   }
 
-  private onSquash = (toSquash: ReadonlyArray<Commit>, squashOnto: Commit) => {
+  private onSquash = (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    isInvokedByContextMenu: boolean
+  ) => {
     const indexes = [...toSquash, squashOnto].map(v =>
       this.props.commitSHAs.findIndex(sha => sha === v.sha)
     )
     this.props.onSquash(
       toSquash,
       squashOnto,
-      this.getLastRetainedCommitRef(indexes)
+      this.getLastRetainedCommitRef(indexes),
+      isInvokedByContextMenu
     )
   }
 

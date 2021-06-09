@@ -4541,6 +4541,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
+    if (isSquash) {
+      this.statsStore.recordSquashMergeInvokedCount()
+    }
+
     if (mergeStatus !== null) {
       if (mergeStatus.kind === ComputedAction.Clean) {
         this.statsStore.recordMergeHintSuccessAndUserProceeded()
@@ -4560,6 +4564,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ourBranch: tip.branch.name,
         theirBranch: sourceBranch.name,
       })
+      if (isSquash) {
+        // This code will only run when there are no conflicts.
+        // Thus recordSquashMergeSuccessful is done here and when merge finishes
+        // successfully after conflicts in `dispatcher.finishConflictedMerge`.
+        this.statsStore.recordSquashMergeSuccessful()
+      }
     } else if (
       mergeResult === MergeResult.AlreadyUpToDate &&
       tip.kind === TipState.Valid
