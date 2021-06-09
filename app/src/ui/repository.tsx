@@ -169,8 +169,10 @@ export class RepositoryView extends React.Component<
   private renderNewCallToActionBubble(): JSX.Element | null {
     const { dragAndDropIntroTypesShown, state } = this.props
     const { compareState } = state
-    const hasSeenAllDragAndDropIntros =
-      dragAndDropIntroTypesShown.size >= AvailableDragAndDropIntroKeys.length
+    const remainingDragAndDropIntros = AvailableDragAndDropIntroKeys.filter(
+      intro => !dragAndDropIntroTypesShown.has(intro)
+    )
+    const hasSeenAllDragAndDropIntros = remainingDragAndDropIntros.length === 0
 
     if (hasSeenAllDragAndDropIntros || compareState.commitSHAs.length === 0) {
       return null
