@@ -1593,7 +1593,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordOperationConflictsEncounteredCount(
+  public async recordOperationConflictsEncounteredCount(
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
@@ -1604,15 +1604,16 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
-        throw new Error(
+        log.error(
           `[recordOperationConflictsEncounteredCount] - Operation not supported: ${kind}`
         )
+        return
       default:
         return assertNever(kind, `Unknown operation kind of ${kind}.`)
     }
   }
 
-  public recordOperationSuccessful(
+  public async recordOperationSuccessful(
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
@@ -1623,15 +1624,16 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
-        throw new Error(
+        log.error(
           `[recordOperationSuccessful] - Operation not supported: ${kind}`
         )
+        return
       default:
         return assertNever(kind, `Unknown operation kind of ${kind}.`)
     }
   }
 
-  public recordOperationSuccessfulWithConflicts(
+  public async recordOperationSuccessfulWithConflicts(
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
@@ -1642,15 +1644,18 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
-        throw new Error(
+        log.error(
           `[recordOperationSuccessfulWithConflicts] - Operation not supported: ${kind}`
         )
+        return
       default:
         return assertNever(kind, `Unknown operation kind of ${kind}.`)
     }
   }
 
-  public recordOperationUndone(kind: MultiCommitOperationKind): Promise<void> {
+  public async recordOperationUndone(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
     switch (kind) {
       case MultiCommitOperationKind.Squash:
         return this.recordSquashUndone()
@@ -1659,9 +1664,8 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
-        throw new Error(
-          `[recordOperationUndone] - Operation not supported: ${kind}`
-        )
+        log.error(`[recordOperationUndone] - Operation not supported: ${kind}`)
+        return
       default:
         return assertNever(kind, `Unknown operation kind of ${kind}.`)
     }
