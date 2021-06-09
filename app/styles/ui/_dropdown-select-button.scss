@@ -66,6 +66,10 @@
       border-color: var(--button-background);
       background-color: var(--button-hover-background);
     }
+
+    &.disabled {
+      opacity: 0.6;
+    }
   }
 
   .dropdown-select-button-options {

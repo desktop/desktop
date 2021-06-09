@@ -31,6 +31,12 @@ interface IDropdownSelectButtonProps {
   readonly onSelectChange?: (
     selectedOption: IDropdownSelectButtonOption
   ) => void
+
+  /** Callback for when button is selected option button is clicked */
+  readonly onSubmit?: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    selectedOption: IDropdownSelectButtonOption
+  ) => void
 }
 
 interface IDropdownSelectButtonState {
@@ -162,6 +168,15 @@ export class DropdownSelectButton extends React.Component<
     )
   }
 
+  private onSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      this.props.onSubmit !== undefined &&
+      this.state.selectedOption !== null
+    ) {
+      this.props.onSubmit(event, this.state.selectedOption)
+    }
+  }
+
   public render() {
     const { options, disabled } = this.props
     const {
@@ -175,26 +190,28 @@ export class DropdownSelectButton extends React.Component<
 
     const openClass =
       optionsPositionBottom !== undefined ? 'open-top' : 'open-bottom'
-    const classes = classNames(
+    const containerClasses = classNames(
       'dropdown-select-button',
       showButtonOptions ? openClass : null
     )
+
+    const dropdownClasses = classNames('dropdown-button', { disabled })
     // The button is type of submit so that it will trigger a form's onSubmit
     // method.
     return (
-      <div className={classes}>
+      <div className={containerClasses}>
         <Button
           className="invoke-button"
           disabled={disabled}
           type="submit"
           tooltip={this.props.tooltip}
           onButtonRef={this.onInvokeButtonRef}
+          onClick={this.onSubmit}
         >
           {selectedOption.label}
         </Button>
         <Button
-          disabled={disabled}
-          className="dropdown-button"
+          className={dropdownClasses}
           onClick={this.openSplitButtonDropdown}
           type="button"
         >
