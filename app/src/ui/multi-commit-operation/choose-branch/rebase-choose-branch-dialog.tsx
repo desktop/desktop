@@ -1,10 +1,9 @@
 import React from 'react'
-import { getCommitsBetweenCommits, getMergeBase } from '../../../lib/git'
-import { promiseWithMinimumTimeout } from '../../../lib/promise'
 import { Branch } from '../../../models/branch'
 import { ComputedAction } from '../../../models/computed-action'
 import { RebasePreview } from '../../../models/rebase'
 import { ActionStatusIcon } from '../../lib/action-status-icon'
+import { updateRebasePreview } from '../../lib/update-branch'
 import { BaseChooseBranchDialog } from './base-choose-branch-dialog'
 
 export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
@@ -88,59 +87,10 @@ export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
 
   protected updateStatus = async (baseBranch: Branch) => {
     const { currentBranch: targetBranch, repository } = this.props
-    const computingRebaseForBranch = baseBranch.name
-
-    this.rebasePreview = {
-      kind: ComputedAction.Loading,
-    }
-    this.updateRebaseStatusPreview(baseBranch)
-
-    const { commits, base } = await promiseWithMinimumTimeout(async () => {
-      const commits = await getCommitsBetweenCommits(
-        repository,
-        baseBranch.tip.sha,
-        targetBranch.tip.sha
-      )
-
-      const base = await getMergeBase(
-        repository,
-        baseBranch.tip.sha,
-        targetBranch.tip.sha
-      )
-
-      return { commits, base }
-    }, 500)
-
-    // if the branch being track has changed since we started this work, abandon
-    // any further state updates (this function is re-entrant if the user is
-    // using the keyboard to quickly switch branches)
-    if (computingRebaseForBranch !== baseBranch.name) {
-      this.rebasePreview = null
+    updateRebasePreview(baseBranch, targetBranch, repository, rebasePreview => {
+      this.rebasePreview = rebasePreview
       this.updateRebaseStatusPreview(baseBranch)
-      return
-    }
-
-    // if we are unable to find any commits to rebase, indicate that we're
-    // unable to proceed with the rebase
-    if (commits === null) {
-      this.rebasePreview = {
-        kind: ComputedAction.Invalid,
-      }
-      this.updateRebaseStatusPreview(baseBranch)
-      return
-    }
-
-    // the target branch is a direct descendant of the base branch
-    // which means the target branch is already up to date and the commits
-    // do not need to be applied
-    const isDirectDescendant = base === baseBranch.tip.sha
-    const commitsOrIgnore = isDirectDescendant ? [] : commits
-
-    this.rebasePreview = {
-      kind: ComputedAction.Clean,
-      commits: commitsOrIgnore,
-    }
-    this.updateRebaseStatusPreview(baseBranch)
+    })
   }
 
   private updateRebaseStatusPreview(baseBranch: Branch) {
