@@ -258,7 +258,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
         <div className="merge-message">
           This will update <strong>{currentBranch.name}</strong>
           {` by applying its `}
-          <strong>{` ${this.commitCount} ${pluralized}`}</strong>
+          <strong>{`${this.commitCount} ${pluralized}`}</strong>
           {` on top of `}
           <strong>{branch.name}</strong>
         </div>
