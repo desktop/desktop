@@ -974,6 +974,38 @@ export class Dispatcher {
     mergeStatus: MergeTreeResult | null,
     isSquash: boolean = false
   ): Promise<void> {
+    const {
+      multiCommitOperationState,
+      branchesState: { tip },
+    } = this.repositoryStateManager.get(repository)
+
+    if (
+      multiCommitOperationState === null ||
+      multiCommitOperationState.operationDetail.kind !==
+        MultiCommitOperationKind.Merge
+    ) {
+      let currentBranch: Branch | null = null
+
+      if (tip.kind === TipState.Valid) {
+        currentBranch = tip.branch
+      } else {
+        throw new Error(
+          'Tip is not in a valid state, which is required to start the merge operation'
+        )
+      }
+
+      this.initializeMultiCommitOperation(
+        repository,
+        {
+          kind: MultiCommitOperationKind.Merge,
+          isSquash,
+          sourceBranch: branch,
+        },
+        currentBranch,
+        []
+      )
+    }
+
     return this.appStore._mergeBranch(repository, branch, mergeStatus, isSquash)
   }
 
@@ -3638,7 +3670,7 @@ export class Dispatcher {
       currentBranch = tip.branch
     } else {
       throw new Error(
-        'Tip is not in a valid state, which is required to start the rebase flow'
+        'Tip is not in a valid state, which is required to start the merge operation'
       )
     }
 

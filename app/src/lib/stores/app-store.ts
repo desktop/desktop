@@ -4528,7 +4528,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       opState === null ||
       opState.operationDetail.kind !== MultiCommitOperationKind.Merge
     ) {
-      log.error('[mergeBranch] - Not in merge oerpation state')
+      log.error('[mergeBranch] - Not in merge operation state')
       return
     }
 
