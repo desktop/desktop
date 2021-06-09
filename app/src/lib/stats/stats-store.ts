@@ -173,6 +173,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   squashMergeSuccessfulWithConflictsCount: 0,
   squashMergeSuccessfulCount: 0,
   squashMergeInvokedCount: 0,
+  resetToCommitCount: 0,
 }
 
 interface IOnboardingStats {
@@ -717,6 +718,13 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       amendCommitSuccessfulWithoutFileChangesCount:
         m.amendCommitSuccessfulWithoutFileChangesCount + 1,
+    }))
+  }
+
+  /** Record that the user reset to a previous commit */
+  public recordResetToCommitCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      resetToCommitCount: m.resetToCommitCount + 1,
     }))
   }
 
