@@ -241,7 +241,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     return (
       <div className="merge-message merge-message-loading">
         Checking for ability to {this.state.selectedOperation.toLowerCase()}{' '}
-        automatically...
+        automatically…
       </div>
     )
   }
