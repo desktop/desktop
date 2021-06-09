@@ -593,18 +593,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const { state } = selectedState
+    const { state, repository } = selectedState
     const defaultBranch = state.branchesState.defaultBranch
     if (!defaultBranch) {
       return
     }
 
-    const { mergeStatus } = state.compareState
-    this.props.dispatcher.mergeBranch(
-      selectedState.repository,
-      defaultBranch,
-      mergeStatus
+    this.props.dispatcher.initializeMergeOperation(
+      repository,
+      false,
+      defaultBranch
     )
+
+    const { mergeStatus } = state.compareState
+    this.props.dispatcher.mergeBranch(repository, defaultBranch, mergeStatus)
   }
 
   private mergeBranch(isSquash: boolean = false) {

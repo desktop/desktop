@@ -156,6 +156,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     this.props.dispatcher.recordCompareInitiatedMerge()
 
+    this.props.dispatcher.initializeMergeOperation(
+      repository,
+      false,
+      comparisonBranch
+    )
+
     await this.props.dispatcher.mergeBranch(
       repository,
       comparisonBranch,
