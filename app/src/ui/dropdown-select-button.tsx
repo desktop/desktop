@@ -175,14 +175,16 @@ export class DropdownSelectButton extends React.Component<
 
     const openClass =
       optionsPositionBottom !== undefined ? 'open-top' : 'open-bottom'
-    const classes = classNames(
+    const containerClasses = classNames(
       'dropdown-select-button',
       showButtonOptions ? openClass : null
     )
+
+    const dropdownClasses = classNames('dropdown-button', { disabled })
     // The button is type of submit so that it will trigger a form's onSubmit
     // method.
     return (
-      <div className={classes}>
+      <div className={containerClasses}>
         <Button
           className="invoke-button"
           disabled={disabled}
@@ -193,8 +195,7 @@ export class DropdownSelectButton extends React.Component<
           {selectedOption.label}
         </Button>
         <Button
-          disabled={disabled}
-          className="dropdown-button"
+          className={dropdownClasses}
           onClick={this.openSplitButtonDropdown}
           type="button"
         >
