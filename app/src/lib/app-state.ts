@@ -45,6 +45,7 @@ import {
   MultiCommitOperationDetail,
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
+import { DragAndDropIntroType } from '../ui/history/drag-and-drop-intro'
 
 export enum SelectionType {
   Repository,
@@ -271,9 +272,9 @@ export interface IAppState {
   readonly commitSpellcheckEnabled: boolean
 
   /**
-   * Whether or not the user has been introduced to the cherry pick feature
+   * List of drag & drop intro types that have been shown to the user.
    */
-  readonly hasShownCherryPickIntro: boolean
+  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
 
   /**
    * Record of what logged in users have been checked to see if thank you is in

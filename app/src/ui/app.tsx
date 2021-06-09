@@ -2747,7 +2747,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           aheadBehindStore={this.props.aheadBehindStore}
           commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
           onCherryPick={this.startCherryPickWithoutBranch}
-          hasShownCherryPickIntro={this.state.hasShownCherryPickIntro}
+          dragAndDropIntroTypesShown={this.state.dragAndDropIntroTypesShown}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
