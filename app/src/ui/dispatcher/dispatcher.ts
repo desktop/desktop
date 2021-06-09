@@ -120,6 +120,7 @@ import {
   MultiCommitOperationStep,
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
+import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 
 /**
  * An error handler function.
@@ -2696,7 +2697,7 @@ export class Dispatcher {
     sourceBranch: Branch | null
   ): Promise<void> {
     this.initializeCherryPickFlow(repository, commits)
-    this.dismissCherryPickIntro()
+    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.CherryPick)
 
     const retry: RetryAction = {
       type: RetryActionType.CherryPick,
@@ -3058,9 +3059,9 @@ export class Dispatcher {
     return this.appStore._setCherryPickProgressFromState(repository)
   }
 
-  /** Method to dismiss cherry pick intro */
-  public dismissCherryPickIntro(): void {
-    this.appStore._dismissCherryPickIntro()
+  /** Method to mark a drag & drop intro as seen */
+  public markDragAndDropIntroAsSeen(intro: DragAndDropIntroType): void {
+    this.appStore._markDragAndDropIntroAsSeen(intro)
   }
 
   /**
@@ -3188,6 +3189,8 @@ export class Dispatcher {
       return
     }
 
+    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.Reorder)
+
     const stateBefore = this.repositoryStateManager.get(repository)
     const { tip } = stateBefore.branchesState
 
@@ -3291,6 +3294,8 @@ export class Dispatcher {
     if (this.appStore._checkForUncommittedChanges(repository, retry)) {
       return
     }
+
+    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.Squash)
 
     const stateBefore = this.repositoryStateManager.get(repository)
     const { tip } = stateBefore.branchesState

@@ -292,6 +292,7 @@ import {
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
+import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -352,6 +353,7 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
+const dragAndDropIntroTypesShownKey = 'drag-and-drop-intro-types-shown'
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 
 export class AppStore extends TypedBaseStore<IAppState> {
@@ -457,9 +459,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly tutorialAssessor: OnboardingTutorialAssessor
 
   /**
-   * Whether or not the user has been introduced to the cherry pick feature
+   * List of drag & drop intro types shown to the user.
    */
-  private hasShownCherryPickIntro: boolean = false
+  private dragAndDropIntroTypesShown: ReadonlySet<
+    DragAndDropIntroType
+  > = new Set()
 
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
@@ -813,7 +817,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
-      hasShownCherryPickIntro: this.hasShownCherryPickIntro,
+      dragAndDropIntroTypesShown: this.dragAndDropIntroTypesShown,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
     }
@@ -1786,7 +1790,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
 
-    this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, false)
+    const hasShownCherryPickIntro = getBoolean(
+      hasShownCherryPickIntroKey,
+      false
+    )
+    const dragAndDropIntroTypesShown =
+      getObject<Array<DragAndDropIntroType>>(dragAndDropIntroTypesShownKey) ??
+      []
+
+    // Compatibility fallback for old persisted value
+    if (hasShownCherryPickIntro) {
+      dragAndDropIntroTypesShown.push(DragAndDropIntroType.CherryPick)
+    }
+
+    this.dragAndDropIntroTypesShown = new Set(dragAndDropIntroTypesShown)
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
     this.emitUpdateNow()
@@ -6413,9 +6430,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _dismissCherryPickIntro() {
-    setBoolean(hasShownCherryPickIntroKey, true)
-    this.hasShownCherryPickIntro = true
+  public _markDragAndDropIntroAsSeen(intro: DragAndDropIntroType) {
+    if (this.dragAndDropIntroTypesShown.has(intro)) {
+      return
+    }
+
+    const newIntros = [...this.dragAndDropIntroTypesShown, intro]
+    this.dragAndDropIntroTypesShown = new Set(newIntros)
+
+    setObject(dragAndDropIntroTypesShownKey, newIntros)
     this.emitUpdate()
   }
 

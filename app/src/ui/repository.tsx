@@ -30,6 +30,10 @@ import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
+import {
+  DragAndDropIntroType,
+  AvailableDragAndDropIntroKeys,
+} from './history/drag-and-drop-intro'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -92,8 +96,9 @@ interface IRepositoryViewProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
-  /* Whether or not the user has been introduced to cherry picking feature */
-  readonly hasShownCherryPickIntro: boolean
+
+  /* Types of drag and drop intros already seen by the user */
+  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
 }
 
 interface IRepositoryViewState {
@@ -162,9 +167,12 @@ export class RepositoryView extends React.Component<
   }
 
   private renderNewCallToActionBubble(): JSX.Element | null {
-    const { hasShownCherryPickIntro, state } = this.props
+    const { dragAndDropIntroTypesShown, state } = this.props
     const { compareState } = state
-    if (hasShownCherryPickIntro || compareState.commitSHAs.length === 0) {
+    const hasSeenAllDragAndDropIntros =
+      dragAndDropIntroTypesShown.size >= AvailableDragAndDropIntroKeys.length
+
+    if (hasSeenAllDragAndDropIntros || compareState.commitSHAs.length === 0) {
       return null
     }
     return <span className="call-to-action-bubble">New</span>
@@ -260,7 +268,7 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}
         aheadBehindStore={this.props.aheadBehindStore}
-        hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
+        dragAndDropIntroTypesShown={this.props.dragAndDropIntroTypesShown}
         isCherryPickInProgress={this.props.state.cherryPickState.step !== null}
       />
     )
