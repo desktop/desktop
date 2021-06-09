@@ -249,13 +249,13 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
       return (
-        <>
+        <div className="merge-message">
           This will update <strong>{currentBranch.name}</strong>
           {` by applying its `}
           <strong>{` ${this.commitCount} ${pluralized}`}</strong>
           {` on top of `}
           <strong>{branch.name}</strong>
-        </>
+        </div>
       )
     }
 
@@ -273,7 +273,11 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
   private renderInvalidMessage() {
     if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
-      return <>Unable to start rebase. Check you have chosen a valid branch.</>
+      return (
+        <div className="merge-message">
+          Unable to start rebase. Check you have chosen a valid branch.
+        </div>
+      )
     }
 
     return (

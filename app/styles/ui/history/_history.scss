@@ -69,6 +69,9 @@
     flex-direction: column;
     font-size: var(--font-size-sm);
     padding: var(--spacing);
+    .merge-status-component {
+      text-align: center;
+    }
   }
 
   .no-branches {
