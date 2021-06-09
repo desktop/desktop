@@ -31,6 +31,12 @@ interface IDropdownSelectButtonProps {
   readonly onSelectChange?: (
     selectedOption: IDropdownSelectButtonOption
   ) => void
+
+  /** Callback for when button is selected option button is clicked */
+  readonly onSubmit?: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    selectedOption: IDropdownSelectButtonOption
+  ) => void
 }
 
 interface IDropdownSelectButtonState {
@@ -162,6 +168,15 @@ export class DropdownSelectButton extends React.Component<
     )
   }
 
+  private onSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      this.props.onSubmit !== undefined &&
+      this.state.selectedOption !== null
+    ) {
+      this.props.onSubmit(event, this.state.selectedOption)
+    }
+  }
+
   public render() {
     const { options, disabled } = this.props
     const {
@@ -191,6 +206,7 @@ export class DropdownSelectButton extends React.Component<
           type="submit"
           tooltip={this.props.tooltip}
           onButtonRef={this.onInvokeButtonRef}
+          onClick={this.onSubmit}
         >
           {selectedOption.label}
         </Button>
