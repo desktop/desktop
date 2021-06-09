@@ -1152,6 +1152,7 @@ export class Dispatcher {
    * tracked files in the working directory.
    */
   public async continueRebase(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     conflictsState: RebaseConflictState
@@ -1168,6 +1169,13 @@ export class Dispatcher {
       workingDirectory,
       manualResolutions
     )
+
+    if (result === RebaseResult.CompletedWithoutError) {
+      if (kind === MultiCommitOperationKind.Reorder) {
+        this.statsStore.recordReorderSuccessfulWithConflicts()
+      }
+    }
+
     await this.appStore._loadStatus(repository)
 
     const stateAfter = this.repositoryStateManager.get(repository)
@@ -3180,6 +3188,12 @@ export class Dispatcher {
       return
     }
 
+    this.statsStore.recordReorderStarted()
+
+    if (commitsToReorder.length > 1) {
+      this.statsStore.recordReorderMultipleCommits()
+    }
+
     this.appStore._initializeMultiCommitOperation(
       repository,
       {
@@ -3409,6 +3423,7 @@ export class Dispatcher {
       case RebaseResult.ConflictsEncountered:
         await this.refreshRepository(repository)
         this.startMultiCommitOperationConflictFlow(
+          kind,
           repository,
           targetBranchName,
           `${kind.toLowerCase()} commit`
@@ -3425,6 +3440,7 @@ export class Dispatcher {
    * to show conflicts step
    */
   private startMultiCommitOperationConflictFlow(
+    kind: MultiCommitOperationKind,
     repository: Repository,
     ourBranch: string,
     theirBranch: string
@@ -3452,7 +3468,9 @@ export class Dispatcher {
       },
     })
 
-    // TODO: record conflict encountered during operation
+    if (kind === MultiCommitOperationKind.Reorder) {
+      this.statsStore.recordReorderConflictsEncountered()
+    }
 
     this.showPopup({
       type: PopupType.MultiCommitOperation,
@@ -3512,6 +3530,10 @@ export class Dispatcher {
       this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
     }
 
+    if (kind === MultiCommitOperationKind.Reorder) {
+      this.statsStore.recordReorderSuccessful()
+    }
+
     this.endMultiCommitOperation(repository)
     await this.refreshRepository(repository)
   }
@@ -3525,11 +3547,19 @@ export class Dispatcher {
     repository: Repository,
     commitsCount: number
   ): Promise<boolean> {
-    return this.appStore._undoMultiCommitOperation(
+    const result = await this.appStore._undoMultiCommitOperation(
       kind,
       repository,
       commitsCount
     )
+
+    if (result) {
+      if (kind === MultiCommitOperationKind.Reorder) {
+        this.statsStore.recordReorderUndone()
+      }
+    }
+
+    return result
   }
 
   /**
