@@ -466,14 +466,52 @@ export class CommitList extends React.Component<
       baseCommitIndex === null ? null : this.props.commitSHAs[baseCommitIndex]
     const baseCommit =
       baseCommitSHA !== null ? this.props.commitLookup.get(baseCommitSHA) : null
-    const indexes = [...data.commits, baseCommit]
+
+    const commitIndexes = data.commits
       .filter((v): v is Commit => v !== null && v !== undefined)
       .map(v => this.props.commitSHAs.findIndex(sha => sha === v.sha))
+      .sort() // Required to check if they're contiguous
+
+    // Check if values in commit indexes are contiguous
+    const commitsAreContiguous = commitIndexes.every((value, i, array) => {
+      return i === array.length - 1 || value === array[i + 1] - 1
+    })
+
+    // If commits are contiguous and they are dropped in a position contained
+    // among those indexes, ignore the drop.
+    if (commitsAreContiguous) {
+      const firstDroppedCommitIndex = commitIndexes[0]
+
+      // Commits are dropped right above themselves if
+      // 1. The base commit index is null (meaning, it was dropped at the top
+      //    of the commit list) and the index of the first dropped commit is 0.
+      // 2. The base commit index is the index right above the first dropped.
+      const commitsDroppedRightAboveThemselves =
+        (baseCommitIndex === null && firstDroppedCommitIndex === 0) ||
+        baseCommitIndex === firstDroppedCommitIndex - 1
+
+      // Commits are dropped within themselves if there is a base commit index
+      // and it's in the list of commit indexes.
+      const commitsDroppedWithinThemselves =
+        baseCommitIndex !== null &&
+        commitIndexes.indexOf(baseCommitIndex) !== -1
+
+      if (
+        commitsDroppedRightAboveThemselves ||
+        commitsDroppedWithinThemselves
+      ) {
+        return
+      }
+    }
+
+    const allIndexes = commitIndexes.concat(
+      baseCommitIndex !== null ? [baseCommitIndex] : []
+    )
 
     this.props.onDropCommitInsertion(
       baseCommit ?? null,
       data.commits,
-      this.getLastRetainedCommitRef(indexes)
+      this.getLastRetainedCommitRef(allIndexes)
     )
   }
 }
