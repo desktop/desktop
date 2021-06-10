@@ -173,7 +173,12 @@ const editors: IWindowsExternalEditor[] = [
   },
   {
     name: 'Sublime Text',
-    registryKeys: [LocalMachineUninstallKey('Sublime Text 3_is1')],
+    registryKeys: [
+      // Sublime Text 4 (and newer?)
+      LocalMachineUninstallKey('Sublime Text_is1'),
+      // Sublime Text 3
+      LocalMachineUninstallKey('Sublime Text 3_is1'),
+    ],
     executableShimPath: ['subl.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Sublime Text') &&
