@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.8.4-beta3": [
+      "[Fixed] Update from default branch now merges as expected - #12412",
+      "[Improved] Create intros for the new drag and drop features :tada: - #12419",
+      "[Improved] Squash merge and rebase options are available in comparison view - #12416",
+      "[Removed] Remove cherry-picking drag prompt - #12410",
+      "[Removed] Remove reset to a commit"
+    ],
     "2.8.4-beta2": [
       "[New] Reorder commits with drag and drop in the history tab - #2507",
       "[New] Reset your branch to a previous commit up to the most recent pushed commit in your history - #12393",

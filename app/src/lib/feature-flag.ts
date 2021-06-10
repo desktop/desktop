@@ -120,5 +120,5 @@ export function enableCommitReordering(): boolean {
 
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
-  return enableBetaFeatures()
+  return enableDevelopmentFeatures()
 }
