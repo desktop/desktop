@@ -4587,6 +4587,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // successfully after conflicts in `dispatcher.finishConflictedMerge`.
         this.statsStore.recordSquashMergeSuccessful()
       }
+      this._endMultiCommitOperation(repository)
     } else if (
       mergeResult === MergeResult.AlreadyUpToDate &&
       tip.kind === TipState.Valid
@@ -4596,6 +4597,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ourBranch: tip.branch.name,
         theirBranch: sourceBranch.name,
       })
+      this._endMultiCommitOperation(repository)
     }
 
     return this._refreshRepository(repository)
