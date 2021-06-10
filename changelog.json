@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.8.4-beta4": [
+      "[Added] Add support for Sublime Text 4 on Windows - #12124",
+      "[Fixed] Fix rebase after a successful merge - #12429",
+      "[Fixed] Only attempt to reorder commits when it's necessary - #12422"
+    ],
     "2.8.4-beta3": [
       "[Fixed] Update from default branch now merges as expected - #12412",
       "[Improved] Create intros for the new drag and drop features :tada: - #12419",
