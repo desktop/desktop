@@ -31,6 +31,7 @@ interface ICreateBranchProps {
   readonly targetCommit?: CommitOneLine
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
+  readonly onBranchCreatedFromCommit?: () => void
   readonly onDismissed: () => void
   /**
    * If provided, the branch creation is handled by the given method.
@@ -314,7 +315,7 @@ export class CreateBranch extends React.Component<
       }
 
       const timer = startTimer('create branch', repository)
-      await this.props.dispatcher.createBranch(
+      const branch = await this.props.dispatcher.createBranch(
         repository,
         name,
         startPoint,
@@ -322,6 +323,16 @@ export class CreateBranch extends React.Component<
       )
       timer.done()
       this.props.onDismissed()
+
+      // If the operation was successful and the branch was created from a
+      // commit, invoke the callback.
+      if (
+        branch !== undefined &&
+        this.props.targetCommit !== undefined &&
+        this.props.onBranchCreatedFromCommit !== undefined
+      ) {
+        this.props.onBranchCreatedFromCommit()
+      }
     }
   }
 
