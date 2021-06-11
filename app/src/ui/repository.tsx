@@ -118,6 +118,10 @@ export class RepositoryView extends React.Component<
   private previousSection: RepositorySectionTab = this.props.state
     .selectedSection
 
+  // Flag to force the app to use the scroll position in the state the next time
+  // the Compare list is rendered.
+  private forceCompareListScrollTop: boolean = false
+
   public constructor(props: IRepositoryViewProps) {
     super(props)
 
@@ -125,6 +129,14 @@ export class RepositoryView extends React.Component<
       changesListScrollTop: 0,
       compareListScrollTop: 0,
     }
+  }
+
+  public scrollCompareListToTop(): void {
+    this.forceCompareListScrollTop = true
+
+    this.setState({
+      compareListScrollTop: 0,
+    })
   }
 
   private onChangesListScrolled = (scrollTop: number) => {
@@ -245,10 +257,12 @@ export class RepositoryView extends React.Component<
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
     const scrollTop =
+      this.forceCompareListScrollTop ||
       this.previousSection === RepositorySectionTab.Changes
         ? this.state.compareListScrollTop
         : undefined
     this.previousSection = RepositorySectionTab.History
+    this.forceCompareListScrollTop = false
 
     return (
       <CompareSidebar
