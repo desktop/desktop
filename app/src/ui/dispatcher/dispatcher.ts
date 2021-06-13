@@ -3361,7 +3361,7 @@ export class Dispatcher {
       tip
     )
 
-    this.processMultiCommitOperationRebaseResult(
+    return this.processMultiCommitOperationRebaseResult(
       MultiCommitOperationKind.Squash,
       repository,
       result,

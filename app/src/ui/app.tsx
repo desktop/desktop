@@ -196,6 +196,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateIntervalHandle?: number
 
+  private repositoryViewRef = React.createRef<RepositoryView>()
+
   /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
@@ -1511,6 +1513,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             targetCommit={popup.targetCommit}
             upstreamGitHubRepository={upstreamGhRepo}
+            onBranchCreatedFromCommit={this.onBranchCreatedFromCommit}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
@@ -2202,6 +2205,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private onBranchCreatedFromCommit = () => {
+    const repositoryView = this.repositoryViewRef.current
+    if (repositoryView !== null) {
+      repositoryView.scrollCompareListToTop()
+    }
+  }
+
   private onOpenShellIgnoreWarning = (path: string) => {
     this.props.dispatcher.openShell(path, true)
   }
@@ -2714,6 +2724,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       return (
         <RepositoryView
+          ref={this.repositoryViewRef}
           // When switching repositories we want to remount the RepositoryView
           // component to reset the scroll positions.
           key={selectedState.repository.hash}
