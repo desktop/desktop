@@ -6787,7 +6787,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     if (multiCommitOperationState === null) {
-      return
+      const gitStore = this.gitStoreCache.get(repository)
+
+      const sourceBranch = gitStore.allBranches.find(
+        branch => branch.name === theirBranch
+      )
+
+      const targetBranch = gitStore.allBranches.find(
+        branch => branch.name === currentBranch
+      )
+
+      if (targetBranch === undefined) {
+        return
+      }
+
+      this._initializeMultiCommitOperation(
+        repository,
+        {
+          kind: MultiCommitOperationKind.Merge,
+          isSquash: false,
+          sourceBranch: sourceBranch ?? null,
+        },
+        targetBranch,
+        []
+      )
     }
 
     this._setMultiCommitOperationStep(repository, {
