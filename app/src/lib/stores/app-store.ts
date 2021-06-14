@@ -6789,10 +6789,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (multiCommitOperationState === null) {
       const gitStore = this.gitStoreCache.get(repository)
 
-      const sourceBranch = gitStore.allBranches.find(
-        branch => branch.name === theirBranch
-      )
-
       const targetBranch = gitStore.allBranches.find(
         branch => branch.name === currentBranch
       )
@@ -6800,6 +6796,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (targetBranch === undefined) {
         return
       }
+
+      const sourceBranch = gitStore.allBranches.find(
+        branch => branch.name === theirBranch
+      )
 
       this._initializeMultiCommitOperation(
         repository,
