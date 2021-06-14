@@ -6777,6 +6777,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _handleConflictsDetectedOnError(
+    repository: Repository,
+    currentBranch: string,
+    theirBranch: string
+  ): Promise<void> {
+    const { multiCommitOperationState } = this.repositoryStateCache.get(
+      repository
+    )
+
+    if (multiCommitOperationState === null) {
+      return
+    }
+
+    this._setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ShowConflicts,
+      conflictState: {
+        kind: 'multiCommitOperation',
+        manualResolutions: new Map<string, ManualConflictResolution>(),
+        ourBranch: currentBranch,
+        theirBranch,
+      },
+    })
+
+    return this._showPopup({
+      type: PopupType.MultiCommitOperation,
+      repository,
+    })
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _setMultiCommitOperationStep(
     repository: Repository,
     step: MultiCommitOperationStep
