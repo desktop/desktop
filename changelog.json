@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.8.4-beta5": [
+      "[Improved] Scroll history to top after creating a branch from a commit - #12432"
+    ],
     "2.8.4-beta4": [
       "[Added] Add support for Sublime Text 4 on Windows - #12124",
       "[Fixed] Fix rebase after a successful merge - #12429",
