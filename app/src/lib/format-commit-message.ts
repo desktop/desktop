@@ -21,6 +21,13 @@ export async function formatCommitMessage(
 ) {
   const { summary, description, trailers } = context
 
+  // Apply word wrap and limit the lines of the description
+  // to 72 characters
+  const formattedDescription = description?.replace(
+    /(?![^\n]{1,72}$)([^\n]{1,72})\s/g,
+    '$1\n'
+  )
+
   // Git always trim whitespace at the end of commit messages
   // so we concatenate the summary with the description, ensuring
   // that they're separated by two newlines. If we don't have a
@@ -28,7 +35,10 @@ export async function formatCommitMessage(
   // all get trimmed away and replaced with a single newline (since
   // all commit messages needs to end with a newline for git
   // interpret-trailers to work)
-  const message = `${summary}\n\n${description || ''}\n`.replace(/\s+$/, '\n')
+  const message = `${summary}\n\n${formattedDescription || ''}\n`.replace(
+    /\s+$/,
+    '\n'
+  )
 
   return trailers !== undefined && trailers.length > 0
     ? mergeTrailers(repository, message, trailers)
