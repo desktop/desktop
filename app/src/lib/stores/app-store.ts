@@ -303,7 +303,7 @@ const RecentRepositoriesKey = 'recently-selected-repositories'
  */
 const RecentRepositoriesLength = 3
 
-const defaultSidebarWidth: number = 250
+const defaultSidebarWidth: number = 275
 const sidebarWidthConfigKey: string = 'sidebar-width'
 
 const defaultCommitSummaryWidth: number = 250
