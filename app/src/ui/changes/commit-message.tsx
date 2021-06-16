@@ -35,6 +35,10 @@ import { setGlobalConfigValue } from '../../lib/git/config'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isAccountEmail } from '../../lib/is-account-email'
+import {
+  IdealSummaryLength,
+  MaxSummaryLength,
+} from '../../lib/wrap-rich-text-commit-message'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -731,6 +735,8 @@ export class CommitMessage extends React.Component<
 
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge === true,
+      'near-limit': this.state.summary.length > IdealSummaryLength,
+      'over-limit': this.state.summary.length > MaxSummaryLength,
     })
 
     return (
