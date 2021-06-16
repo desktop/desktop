@@ -9,6 +9,9 @@ interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
   readonly onUndo: () => void
 
+  /** The function to call when the Amend button is clicked. */
+  readonly onAmend: () => void
+
   /** The commit to undo. */
   readonly commit: Commit
 
@@ -28,12 +31,12 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
     const disabled =
       this.props.isPushPullFetchInProgress || this.props.isCommitting
     const title = disabled
-      ? 'Undo is disabled while the repository is being updated'
+      ? 'Undo and amend are disabled while the repository is being updated'
       : undefined
 
     const authorDate = this.props.commit.author.date
     return (
-      <div id="undo-commit" role="group" aria-label="Undo commit">
+      <div id="undo-amend-commit" role="group" aria-label="Undo or amend commit">
         <div className="commit-info">
           <div className="ago">
             Committed <RelativeTime date={authorDate} />
@@ -46,6 +49,9 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
           />
         </div>
         <div className="actions" title={title}>
+          <Button size="small" disabled={disabled} onClick={this.props.onAmend}>
+            Amend
+          </Button>
           <Button size="small" disabled={disabled} onClick={this.props.onUndo}>
             Undo
           </Button>

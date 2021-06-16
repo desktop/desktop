@@ -14,7 +14,7 @@ import { Dispatcher } from '../dispatcher'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit, ICommitContext } from '../../models/commit'
-import { UndoCommit } from './undo-commit'
+import { UndoCommit } from './undo-amend-commit'
 import {
   buildAutocompletionProviders,
   IAutocompletionProvider,
@@ -294,6 +294,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
+  private onAmend = () => {
+    this.props.dispatcher.setAmendingRepository(this.props.repository, true)
+  }
+
   private renderMostRecentLocalCommit() {
     const commit = this.props.mostRecentLocalCommit
     let child: JSX.Element | null = null
@@ -312,6 +316,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
             isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
             commit={commit}
             onUndo={this.onUndo}
+            onAmend={this.onAmend}
             emoji={this.props.emoji}
             isCommitting={this.props.isCommitting}
           />
