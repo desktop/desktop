@@ -24,12 +24,12 @@ export const AvailableDragAndDropIntros: Record<
   [DragAndDropIntroType.CherryPick]: {
     title: 'Drag and drop to cherry-pick!',
     body:
-      'Copy commits to another branch by dragging and dropping them onto a branch in the branch menu, or by right clicking on a commit.',
+      'Copy commits to another branch by dragging and dropping them onto a branch in the branch menu, or by right-clicking on a commit.',
   },
   [DragAndDropIntroType.Squash]: {
     title: 'Drag and drop to squash!',
     body:
-      'Squash commits by dragging and dropping them onto another commit, or by right clicking on multiple commits.',
+      'Squash commits by dragging and dropping them onto another commit, or by right-clicking on multiple commits.',
   },
   [DragAndDropIntroType.Reorder]: {
     title: 'Drag and drop to reorder!',
