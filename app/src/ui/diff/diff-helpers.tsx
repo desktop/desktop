@@ -369,36 +369,29 @@ export function getLineWidthFromDigitCount(digitAmount: number): number {
 
 /** Utility function for getting the digit count of the largest line number in an array of diff hunks */
 export function getLargestLineNumber(hunks: DiffHunk[]): number {
-  let isValidLine = false
-  let currentHunkIndex = hunks.length - 1
-  let currentLineIndex = hunks[currentHunkIndex].lines.length - 1
-  let largestLineNumber = 0
+  if(hunks.length === 0) {
+    return 0;
+  }
 
-  while (!isValidLine) {
-    const line = hunks[currentHunkIndex].lines[currentLineIndex]
-    isValidLine = line.type !== DiffLineType.Hunk
+  for (let i = hunks.length -1; i >= 0; i--) {
+    const hunk = hunks[i]
 
-    if (isValidLine) {
-      const oldNumber = line.oldLineNumber ?? 0
-      const newNumber = line.newLineNumber ?? 0
-      largestLineNumber = newNumber > oldNumber ? newNumber : oldNumber
-      break
-    }
+    for (let j = hunk.lines.length - 1; j >= 0; j--) {
+      const line = hunk.lines[j]
 
-    currentLineIndex--
-
-    // We've reached the end of the lines so move to the next hunk, and reset our line index
-    if (currentLineIndex === -1) {
-      currentHunkIndex--
-
-      // We've managed to go through all the hunks and there are no valid lines
-      // I don't think this could ever happen, but just in case let's return
-      if (currentHunkIndex === -1) {
-        return 0
+      if (line.type === DiffLineType.Hunk) {
+        continue
       }
 
-      currentLineIndex = hunks[currentHunkIndex].lines.length - 1
+      const newLineNumber = line.newLineNumber ?? 0
+      const oldLineNumber = line.oldLineNumber ?? 0
+      return newLineNumber > oldLineNumber ? newLineNumber : oldLineNumber
     }
   }
-  return largestLineNumber
+
+  return 0
+}
+
+export function getNumberOfDigits(val: number): number {
+  return Math.log(val) * Math.LOG10E + 1 | 0;
 }

@@ -44,7 +44,7 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { canSelect, getLineWidthFromDigitCount } from './diff-helpers'
+import { canSelect, getLineWidthFromDigitCount, getNumberOfDigits } from './diff-helpers'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -989,7 +989,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 hunks,
                 hunk,
                 diffLine,
-                this.state.diff.maxLineNumber.toString().length
+                getNumberOfDigits(this.state.diff.maxLineNumber)
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })

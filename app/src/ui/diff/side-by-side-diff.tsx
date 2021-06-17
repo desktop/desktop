@@ -44,6 +44,7 @@ import {
   IDiffRowData,
   DiffColumn,
   getLineWidthFromDigitCount,
+  getNumberOfDigits,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
@@ -302,7 +303,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     const lineNumberWidth = `${getLineWidthFromDigitCount(
-      this.state.diff.maxLineNumber.toString().length
+      getNumberOfDigits(this.state.diff.maxLineNumber)
     )}px`
 
     const rowWithTokens = this.createFullRow(row, index)
