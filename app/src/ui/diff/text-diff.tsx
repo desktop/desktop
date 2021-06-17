@@ -44,7 +44,11 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { canSelect, getLineWidthFromDigitCount, getNumberOfDigits } from './diff-helpers'
+import {
+  canSelect,
+  getLineWidthFromDigitCount,
+  getNumberOfDigits,
+} from './diff-helpers'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,

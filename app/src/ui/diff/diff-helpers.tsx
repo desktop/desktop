@@ -369,11 +369,11 @@ export function getLineWidthFromDigitCount(digitAmount: number): number {
 
 /** Utility function for getting the digit count of the largest line number in an array of diff hunks */
 export function getLargestLineNumber(hunks: DiffHunk[]): number {
-  if(hunks.length === 0) {
-    return 0;
+  if (hunks.length === 0) {
+    return 0
   }
 
-  for (let i = hunks.length -1; i >= 0; i--) {
+  for (let i = hunks.length - 1; i >= 0; i--) {
     const hunk = hunks[i]
 
     for (let j = hunk.lines.length - 1; j >= 0; j--) {
@@ -393,5 +393,5 @@ export function getLargestLineNumber(hunks: DiffHunk[]): number {
 }
 
 export function getNumberOfDigits(val: number): number {
-  return Math.log(val) * Math.LOG10E + 1 | 0;
+  return (Math.log(val) * Math.LOG10E + 1) | 0
 }
