@@ -304,12 +304,18 @@ export class CommitSummary extends React.Component<
     return (
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
-          <RichText
-            className="commit-summary-title"
-            emoji={this.props.emoji}
-            repository={this.props.repository}
-            text={this.state.summary}
-          />
+          {this.state.summary.length > 0 ? (
+            <RichText
+              className="commit-summary-title"
+              emoji={this.props.emoji}
+              repository={this.props.repository}
+              text={this.state.summary}
+            />
+          ) : (
+            <div className="commit-summary-title empty-summary">
+              Empty commit message
+            </div>
+          )}
 
           <ul className="commit-summary-meta">
             <li

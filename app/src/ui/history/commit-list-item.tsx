@@ -153,12 +153,16 @@ export class CommitListItem extends React.PureComponent<
           onMouseUp={this.onMouseUp}
         >
           <div className="info">
-            <RichText
-              className="summary"
-              emoji={this.props.emoji}
-              text={commit.summary}
-              renderUrlsAsLinks={false}
-            />
+            {commit.summary.length > 0 ? (
+              <RichText
+                className="summary"
+                emoji={this.props.emoji}
+                text={commit.summary}
+                renderUrlsAsLinks={false}
+              />
+            ) : (
+              <div className="summary empty-summary">Empty commit message</div>
+            )}
             <div className="description">
               <AvatarStack users={this.state.avatarUsers} />
               <div className="byline">
