@@ -79,6 +79,10 @@
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
   }
 
   &-description-container {

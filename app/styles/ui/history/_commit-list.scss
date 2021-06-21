@@ -104,6 +104,10 @@
 
     .summary {
       font-weight: var(--font-weight-semibold);
+
+      &.empty-summary {
+        color: var(--text-secondary-color);
+      }
     }
 
     .summary,
