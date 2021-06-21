@@ -301,21 +301,24 @@ export class CommitSummary extends React.Component<
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
+    const hasEmptySummary = this.state.summary.length === 0
+    const commitSummary = hasEmptySummary
+      ? 'Empty commit message'
+      : this.state.summary
+
+    const summaryClassNames = classNames('commit-summary-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
     return (
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
-          {this.state.summary.length > 0 ? (
-            <RichText
-              className="commit-summary-title"
-              emoji={this.props.emoji}
-              repository={this.props.repository}
-              text={this.state.summary}
-            />
-          ) : (
-            <div className="commit-summary-title empty-summary">
-              Empty commit message
-            </div>
-          )}
+          <RichText
+            className={summaryClassNames}
+            emoji={this.props.emoji}
+            repository={this.props.repository}
+            text={commitSummary}
+          />
 
           <ul className="commit-summary-meta">
             <li

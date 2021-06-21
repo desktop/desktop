@@ -24,6 +24,7 @@ import {
   DropTargetSelector,
   DropTargetType,
 } from '../../models/drag-drop'
+import classNames from 'classnames'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -131,6 +132,14 @@ export class CommitListItem extends React.PureComponent<
     } = commit
 
     const isDraggable = this.canCherryPick()
+    const hasEmptySummary = commit.summary.length === 0
+    const commitSummary = hasEmptySummary
+      ? 'Empty commit message'
+      : commit.summary
+
+    const summaryClassNames = classNames('summary', {
+      'empty-summary': hasEmptySummary,
+    })
 
     return (
       <Draggable
@@ -153,16 +162,12 @@ export class CommitListItem extends React.PureComponent<
           onMouseUp={this.onMouseUp}
         >
           <div className="info">
-            {commit.summary.length > 0 ? (
-              <RichText
-                className="summary"
-                emoji={this.props.emoji}
-                text={commit.summary}
-                renderUrlsAsLinks={false}
-              />
-            ) : (
-              <div className="summary empty-summary">Empty commit message</div>
-            )}
+            <RichText
+              className={summaryClassNames}
+              emoji={this.props.emoji}
+              text={commitSummary}
+              renderUrlsAsLinks={false}
+            />
             <div className="description">
               <AvatarStack users={this.state.avatarUsers} />
               <div className="byline">
