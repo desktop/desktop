@@ -81,7 +81,7 @@ export class AppWindow {
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
-          Menu.sendActionToFirstResponder('hide:')
+          app.hide()
         }
       })
     }
