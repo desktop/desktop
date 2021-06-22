@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as crypto from 'crypto'
 import { ipcRenderer, remote } from 'electron'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
@@ -2824,7 +2825,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
-  private onViewCommitOnGitHub = async (SHA: string) => {
+  private onViewCommitOnGitHub = async (SHA: string, filePath?: string) => {
     const repository = this.getRepository()
 
     if (
@@ -2837,8 +2838,19 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const baseURL = repository.gitHubRepository.htmlURL
 
+    let fileSuffix = ''
+    if (filePath != null) {
+      const fileHash = crypto
+        .createHash('sha256')
+        .update(filePath)
+        .digest('hex')
+      fileSuffix = '#diff-' + fileHash
+    }
+
     if (baseURL) {
-      this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
+      this.props.dispatcher.openInBrowser(
+        `${baseURL}/commit/${SHA}${fileSuffix}`
+      )
     }
   }
 

@@ -28,9 +28,12 @@ import { showContextualMenu } from '../main-process-proxy'
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
+  readonly isLocalRepository: boolean
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommit: Commit | null
@@ -48,6 +51,7 @@ interface ISelectedCommitProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenInExternalEditor: (path: string) => void
+  readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
   readonly hideWhitespaceInDiff: boolean
 
   /** Whether we should display side by side diffs. */
@@ -330,11 +334,7 @@ export class SelectedCommit extends React.Component<
       ? `Open in ${this.props.externalEditorLabel}`
       : DefaultEditorLabel
 
-    const items = [
-      {
-        label: CopyFilePathLabel,
-        action: () => clipboard.writeText(fullPath),
-      },
+    const items: IMenuItem[] = [
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, file.path),
@@ -350,8 +350,39 @@ export class SelectedCommit extends React.Component<
         action: () => this.onOpenItem(file.path),
         enabled: isSafeExtension && fileExistsOnDisk,
       },
+      { type: 'separator' },
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
     ]
+
+    let viewOnGitHubLabel = 'View on GitHub'
+    const gitHubRepository = this.props.repository.gitHubRepository
+
+    if (
+      gitHubRepository &&
+      gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      viewOnGitHubLabel = 'View on GitHub Enterprise'
+    }
+
+    items.push({
+      label: viewOnGitHubLabel,
+      action: () => this.onViewOnGitHub(file),
+      enabled:
+        !this.props.isLocalRepository &&
+        !!gitHubRepository &&
+        !!this.props.selectedCommit,
+    })
+
     showContextualMenu(items)
+  }
+
+  private onViewOnGitHub = (file: CommittedFileChange) => {
+    if (this.props.selectedCommit && this.props.onViewCommitOnGitHub) {
+      this.props.onViewCommitOnGitHub(this.props.selectedCommit.sha, file.path)
+    }
   }
 }
 
