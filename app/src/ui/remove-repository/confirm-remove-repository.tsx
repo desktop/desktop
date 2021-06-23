@@ -71,6 +71,8 @@ export class ConfirmRemoveRepository extends React.Component<
             " from GitHub Desktop?
           </p>
           <p className="description">
+            The repository will be removed from GitHub Desktop:
+            <br />
             <Ref>{this.props.repository.path}</Ref>
           </p>
 
