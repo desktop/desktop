@@ -356,15 +356,7 @@ export function canSelect(
 
 /** Gets the width in pixels of the diff line number gutter based on the number of digits in the number */
 export function getLineWidthFromDigitCount(digitAmount: number): number {
-  let diffSize: number
-
-  if (digitAmount <= 3) {
-    diffSize = 35
-  } else {
-    diffSize = 10 * digitAmount + 5
-  }
-
-  return diffSize
+  return Math.max(digitAmount, 3) * 10 + 5
 }
 
 /** Utility function for getting the digit count of the largest line number in an array of diff hunks */
