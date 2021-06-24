@@ -1011,7 +1011,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const diffSize = getLineWidthFromDigitCount(
-      this.state.diff.maxLineNumber.toString().length
+      getNumberOfDigits(this.state.diff.maxLineNumber)
     )
 
     const gutterParentElement = cm.getGutterElement()
