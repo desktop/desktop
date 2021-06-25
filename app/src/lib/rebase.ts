@@ -16,7 +16,10 @@ import { clamp } from './clamp'
  * Setup the rebase flow state when the user needs to select a branch as the
  * base for the operation.
  */
-export function initializeNewRebaseFlow(state: IRepositoryState) {
+export function initializeNewRebaseFlow(
+  state: IRepositoryState,
+  initialBranch?: Branch | null
+) {
   const {
     defaultBranch,
     allBranches,
@@ -39,6 +42,7 @@ export function initializeNewRebaseFlow(state: IRepositoryState) {
     currentBranch,
     allBranches,
     recentBranches,
+    initialBranch: initialBranch !== null ? initialBranch : undefined,
   }
 
   return initialState

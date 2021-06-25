@@ -31,7 +31,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
-import { ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -100,6 +100,7 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly repositoryAccount: Account | null
   readonly workingDirectory: WorkingDirectoryStatus
+  readonly mostRecentLocalCommit: Commit | null
   /**
    * An object containing the conflicts in the working directory.
    * When null it means that there are no conflicts.
@@ -139,6 +140,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly isAmending: boolean
   readonly currentBranchProtected: boolean
 
   /**
@@ -505,8 +507,7 @@ export class ChangesList extends React.Component<
         })
       })
 
-    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
-
+    const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(
       { type: 'separator' },
       this.getCopyPathMenuItem(file),
@@ -515,7 +516,7 @@ export class ChangesList extends React.Component<
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled,
+        enabled: enabled && isSafeExtension,
       }
     )
 
@@ -538,7 +539,7 @@ export class ChangesList extends React.Component<
       })
     }
 
-    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
+    const enabled = status.kind !== AppFileStatusKind.Deleted
 
     items.push(
       this.getCopyPathMenuItem(file),
@@ -547,7 +548,7 @@ export class ChangesList extends React.Component<
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled,
+        enabled: enabled && isSafeExtension,
       }
     )
 
@@ -610,6 +611,7 @@ export class ChangesList extends React.Component<
       repositoryAccount,
       dispatcher,
       isCommitting,
+      isAmending,
       currentBranchProtected,
     } = this.props
 
@@ -670,6 +672,7 @@ export class ChangesList extends React.Component<
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
+        commitToAmend={isAmending ? this.props.mostRecentLocalCommit : null}
         showCoAuthoredBy={this.props.showCoAuthoredBy}
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(

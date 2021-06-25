@@ -23,7 +23,8 @@ export abstract class Squash extends BaseMultiCommitOperation {
       commits,
       targetCommit,
       lastRetainedCommitRef,
-      commitContext
+      commitContext,
+      true
     )
   }
 
@@ -55,15 +56,17 @@ export abstract class Squash extends BaseMultiCommitOperation {
     }
 
     const rebaseResult = await dispatcher.continueRebase(
+      MultiCommitOperationKind.Squash,
       repository,
       workingDirectory,
       rebaseConflictState
     )
 
-    return dispatcher.processSquashRebaseResult(
+    return dispatcher.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Squash,
       repository,
       rebaseResult,
-      commits,
+      commits.length + 1,
       targetBranch.name
     )
   }

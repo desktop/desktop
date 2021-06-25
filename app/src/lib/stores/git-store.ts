@@ -1439,7 +1439,10 @@ export class GitStore extends BaseStore {
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<MergeResult | undefined> {
+  public merge(
+    branch: Branch,
+    isSquash: boolean = false
+  ): Promise<MergeResult | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
         `unable to merge as tip state is '${this.tip.kind}' and the application expects the repository to be on a branch currently`
@@ -1448,19 +1451,22 @@ export class GitStore extends BaseStore {
 
     const currentBranch = this.tip.branch.name
 
-    return this.performFailableOperation(() => merge(this.repository, branch), {
-      gitContext: {
-        kind: 'merge',
-        currentBranch,
-        theirBranch: branch,
-      },
-      retryAction: {
-        type: RetryActionType.Merge,
-        currentBranch,
-        theirBranch: branch,
-        repository: this.repository,
-      },
-    })
+    return this.performFailableOperation(
+      () => merge(this.repository, branch.name, isSquash),
+      {
+        gitContext: {
+          kind: 'merge',
+          currentBranch,
+          theirBranch: branch.name,
+        },
+        retryAction: {
+          type: RetryActionType.Merge,
+          currentBranch,
+          theirBranch: branch,
+          repository: this.repository,
+        },
+      }
+    )
   }
 
   /** Changes the URL for the remote that matches the given name  */

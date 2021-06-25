@@ -1,5 +1,54 @@
 {
   "releases": {
+    "2.9.0": [
+      "[New] Reorder commits with drag and drop in your commit history - #2507",
+      "[New] Create a branch from any commit in your history - #3474",
+      "[New] Amend the most recent commit on your branch - #1644",
+      "[New] Squash commits in the history tab with drag and drop and a context menu - #2507",
+      "[New] Squash and merge option available when merging branches - #2507",
+      "[Added] Add support for Sublime Text 4 on Windows - #12124",
+      "[Improved] Show warning before undoing commit if it potentially conflicts with changes in working directory - #4596 #9286 #5874 #6043",
+      "[Fixed] Remove extra space in drag & drop tooltips - #12327"
+    ],
+    "2.8.4-beta5": [
+      "[Improved] Scroll history to top after creating a branch from a commit - #12432"
+    ],
+    "2.8.4-beta4": [
+      "[Added] Add support for Sublime Text 4 on Windows - #12124",
+      "[Fixed] Fix rebase after a successful merge - #12429",
+      "[Fixed] Only attempt to reorder commits when it's necessary - #12422"
+    ],
+    "2.8.4-beta3": [
+      "[Fixed] Update from default branch now merges as expected - #12412",
+      "[Improved] Create intros for the new drag and drop features :tada: - #12419",
+      "[Improved] Squash merge and rebase options are available in comparison view - #12416",
+      "[Removed] Remove cherry-picking drag prompt - #12410",
+      "[Removed] Remove reset to a commit"
+    ],
+    "2.8.4-beta2": [
+      "[New] Reorder commits with drag and drop in the history tab - #2507",
+      "[New] Reset your branch to a previous commit up to the most recent pushed commit in your history - #12393",
+      "[New] Amend the most recent commit on your branch - #1644",
+      "[Add] Allow rebase, squashing, or merging when choosing how to update your current branch - #12396, #12382, 12362",
+      "[Add] Add \"Undo Commit\" action to the context menu - #12344",
+      "[Fixed] Show warning before undoing commit if it potentially conflicts with changes in working directory - #4596 #9286 #5874 #6043",
+      "[Fixed] Fix coauthor styling in commit message dialog for squashing - #12356",
+      "[Fixed] Selecting a coauthor and committing adds coauthor trailer - #12355",
+      "[Fixed] Lists of commits, repositories or changes don't disappear after switching between apps",
+      "[Improved] Add force-push warning to squash and reorder operations - #12403"
+    ],
+    "2.8.4-beta1": [
+      "[New] Squash commits in the history tab - #2507",
+      "[Fixed] Remove extra space in drag & drop tooltips - #12327",
+      "[Removed] Remove taskbar progress indicator - #9489"
+    ],
+    "2.8.3": [
+      "[Fixed] Renamed repositories no longer clash with new repositories of the same name - #3855",
+      "[Fixed] Expanding files no longer shows duplicated lines - #12237",
+      "[Fixed] Long emails are truncated in the Git config - #12159",
+      "[Improved] Allow copying branch and repository names to clipboard - #12141. Thanks @tsvetilian-ty!",
+      "[Improved] Allow creating a new branch from filtering by just hitting Enter - #12154. Thanks @tsvetilian-ty!"
+    ],
     "2.8.3-beta1": [
       "[New] Create a branch from any commit in your history - #3474",
       "[Added] Add VS Code, VS Code Insiders and VSCodium to supported Windows ARM64 editors - #12174. Thanks @dennisameling!",

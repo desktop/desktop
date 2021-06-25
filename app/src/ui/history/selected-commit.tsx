@@ -28,7 +28,6 @@ import { showContextualMenu } from '../main-process-proxy'
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
-import { DragOverlay } from '../drag-overlay'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
@@ -276,7 +275,7 @@ export class SelectedCommit extends React.Component<
       return null
     }
 
-    return <DragOverlay dragZoneDescription="branch-button" />
+    return <div id="drag-overlay-background"></div>
   }
 
   private renderMultipleCommitsSelected(): JSX.Element {
@@ -344,7 +343,7 @@ export class SelectedCommit extends React.Component<
       {
         label: openInExternalEditor,
         action: () => this.props.onOpenInExternalEditor(fullPath),
-        enabled: isSafeExtension && fileExistsOnDisk,
+        enabled: fileExistsOnDisk,
       },
       {
         label: OpenWithDefaultProgramLabel,

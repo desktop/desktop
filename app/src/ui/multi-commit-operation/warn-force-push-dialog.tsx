@@ -52,7 +52,7 @@ export class WarnForcePushDialog extends React.Component<
         type="warning"
       >
         <DialogContent>
-          <p>Are you sure you want to {operation}?</p>
+          <p>Are you sure you want to {operation.toLowerCase()}?</p>
           <p>
             At the end of the {operation.toLowerCase()} flow, GitHub Desktop
             will enable you to force push the branch to update the upstream
