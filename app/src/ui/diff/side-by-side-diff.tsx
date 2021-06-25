@@ -43,6 +43,8 @@ import {
   SimplifiedDiffRow,
   IDiffRowData,
   DiffColumn,
+  getLineWidthFromDigitCount,
+  getNumberOfDigits,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
@@ -300,6 +302,10 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
+    const lineNumberWidth = `${getLineWidthFromDigitCount(
+      getNumberOfDigits(this.state.diff.maxLineNumber)
+    )}px`
+
     const rowWithTokens = this.createFullRow(row, index)
 
     const isHunkHovered =
@@ -316,6 +322,7 @@ export class SideBySideDiff extends React.Component<
         <div key={key} style={style}>
           <SideBySideDiffRow
             row={rowWithTokens}
+            lineNumberWidth={lineNumberWidth}
             numRow={index}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
