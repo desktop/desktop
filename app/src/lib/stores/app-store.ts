@@ -2638,11 +2638,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         })
 
-        await this._refreshRepository(repository)
         await this.refreshChangesSection(repository, {
           includingStatus: true,
           clearPartialState: true,
         })
+
+        // Do not await for refreshing the repository, otherwise this will block
+        // the commit button unnecessarily for a long time in big repos.
+        this._refreshRepository(repository)
       }
 
       return result !== undefined
