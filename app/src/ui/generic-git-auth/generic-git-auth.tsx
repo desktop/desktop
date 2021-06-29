@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { RetryAction } from '../../models/retry-actions'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
+import { LinkButton } from '../lib/link-button'
 
 interface IGenericGitAuthenticationProps {
   /** The hostname with which the user tried to authenticate. */
@@ -73,6 +74,18 @@ export class GenericGitAuthentication extends React.Component<
               value={this.state.password}
               onValueChanged={this.onPasswordChange}
             />
+          </Row>
+
+          <Row>
+            <div>
+              Depending on the hosting service of your repository, you might
+              need to use a Personal Access Token (PAT) instead of a password.
+              Take a look at the{' '}
+              <LinkButton uri="https://github.com/desktop/desktop/tree/development/docs/integrations">
+                integration instructions
+              </LinkButton>{' '}
+              for different hosting services to learn how to create a PAT.
+            </div>
           </Row>
         </DialogContent>
 
