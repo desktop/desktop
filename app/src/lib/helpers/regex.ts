@@ -52,18 +52,32 @@ export function escapeRegExp(expression: string) {
   return expression.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')
 }
 
-export function getFileFromExceedsError(error: string): string | null {
+export function getFileFromExceedsError(error: string): string[] {
   const endRegex = /(\sis\s\d+.\d+ [a-zA-Z]+;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm
   const beginRegex = /(^remote:\serror:\sFile\s)/gm
-  const beginMatch = beginRegex.exec(error)
-  const endMatch = endRegex.exec(error)
+  const beginMatches = Array.from(error.matchAll(beginRegex))
+  const endMatches = Array.from(error.matchAll(endRegex))
 
-  if (beginMatch && beginMatch.index && endMatch && endMatch.index) {
-    return (
-      '\n\nFile: ' +
-      error.slice(beginMatch.index + beginMatch[0].length, endMatch.index)
-    )
+  // Something went wrong and we didn't find the same amount of endings as we did beginnings
+  // Just return an empty array as the output we'd give would look weird anyway
+  if (beginMatches.length !== endMatches.length) {
+    return []
   }
 
-  return null
+  const files: string[] = []
+
+  for (let index = 0; index < beginMatches.length; index++) {
+    const beginMatch = beginMatches[index]
+    const endMatch = endMatches[index]
+
+    if (beginMatch.index === undefined || endMatch.index === undefined) {
+      continue
+    }
+
+    const from = beginMatch.index + beginMatch[0].length
+    const to = endMatch.index
+    files.push(error.slice(from, to))
+  }
+
+  return files
 }
