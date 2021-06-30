@@ -288,75 +288,63 @@ export class NoChanges extends React.Component<
       return null
     }
 
-    const itemId: MenuIDs = 'open-external-editor'
-    const menuItem = this.getMenuItemInfo(itemId)
-
-    if (menuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    const preferencesMenuItem = this.getMenuItemInfo('preferences')
-
-    if (preferencesMenuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    const title = `Open the repository in your external editor`
-
-    const description = (
-      <>
-        Select your editor in{' '}
-        <LinkButton onClick={this.openPreferences}>
-          {__DARWIN__ ? 'Preferences' : 'Options'}
-        </LinkButton>
-      </>
-    )
-
     return (
       <MenuBackedSuggestedAction
         actions={[
-          {
-            title,
-            description,
-            discoverabilityContent: this.renderDiscoverabilityElements(
-              menuItem
-            ),
-            menuItemId: itemId,
-            buttonText: formatMenuItemLabel(menuItem.label),
-            onClick: this.onOpenInExternalEditorClicked,
-          },
-          {
-            title: 'Open the repository in your terminal',
-            description: (
-              <>
-                Select your terminal in{' '}
-                <LinkButton onClick={this.openPreferences}>
-                  {__DARWIN__ ? 'Preferences' : 'Options'}
-                </LinkButton>
-              </>
-            ),
-            discoverabilityContent: this.renderDiscoverabilityElements(
-              menuItem
-            ),
-            menuItemId: itemId,
-            buttonText: 'Open in iTerm 2',
-            onClick: this.onOpenInExternalEditorClicked,
-          },
-          {
-            title: 'View the files of your repository in Finder',
-            discoverabilityContent: this.renderDiscoverabilityElements(
-              menuItem
-            ),
-            menuItemId: itemId,
-            buttonText: 'Show in Finder',
-            onClick: this.onOpenInExternalEditorClicked,
-          },
+          this.getMenuBackedSuggestedAction(
+            'open-external-editor',
+            'Open the repository in your external editor',
+            <>
+              Select your editor in{' '}
+              <LinkButton onClick={this.openPreferences}>
+                {__DARWIN__ ? 'Preferences' : 'Options'}
+              </LinkButton>
+            </>,
+            this.onOpenInExternalEditorClicked
+          ),
+          this.getMenuBackedSuggestedAction(
+            'open-in-shell',
+            `Open the repository in a shell`,
+            <>
+              Select your terminal in{' '}
+              <LinkButton onClick={this.openPreferences}>
+                {__DARWIN__ ? 'Preferences' : 'Options'}
+              </LinkButton>
+            </>,
+            this.onOpenInExternalEditorClicked
+          ),
+          this.getMenuBackedSuggestedAction(
+            'open-working-directory',
+            'View the files of your repository in Finder',
+            undefined,
+            this.onOpenInExternalEditorClicked
+          ),
         ]}
-        disabled={!menuItem.enabled}
+        disabled={false} //!menuItem.enabled}
       />
     )
+  }
+
+  private getMenuBackedSuggestedAction(
+    itemId: MenuIDs,
+    title: string,
+    description: string | JSX.Element | undefined,
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
+  ) {
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      throw new Error(`Could not find matching menu item for ${itemId}`)
+    }
+
+    return {
+      title,
+      description,
+      discoverabilityContent: this.renderDiscoverabilityElements(menuItem),
+      menuItemId: itemId,
+      buttonText: formatMenuItemLabel(menuItem.label),
+      onClick,
+    }
   }
 
   private onOpenInExternalEditorClicked = () =>

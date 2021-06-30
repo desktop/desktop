@@ -3,7 +3,7 @@ import { SuggestedAction } from './suggested-action'
 import { MenuIDs } from '../../models/menu-ids'
 import { executeMenuItemById } from '../main-process-proxy'
 
-interface IMenuBackedSuggestedAction {
+export interface IMenuBackedSuggestedAction {
   /**
    * The id of the menu item backing this action.
    * When the action is invoked the menu item specified
