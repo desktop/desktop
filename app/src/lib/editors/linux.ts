@@ -22,7 +22,7 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'Visual Studio Code',
-    paths: ['/snap/bin/code', '/usr/bin/code'],
+    paths: ['/usr/share/code/bin/code', '/snap/bin/code', '/usr/bin/code'],
   },
   {
     name: 'Visual Studio Code (Insiders)',
@@ -30,7 +30,7 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'VSCodium',
-    paths: ['/usr/bin/codium'],
+    paths: ['/usr/bin/codium','/var/lib/flatpak/app/com.vscodium.codium'],
   },
   {
     name: 'Sublime Text',
