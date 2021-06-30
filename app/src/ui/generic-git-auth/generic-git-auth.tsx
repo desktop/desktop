@@ -78,13 +78,13 @@ export class GenericGitAuthentication extends React.Component<
 
           <Row>
             <div>
-              Depending on your repository's hosting service, you might
-              need to use a Personal Access Token (PAT) as your password.
-              Take a look at the{' '}
+              Depending on your repository's hosting service, you might need to
+              use a Personal Access Token (PAT) as your password. Learn more
+              about creating a PAT in our{' '}
               <LinkButton uri="https://github.com/desktop/desktop/tree/development/docs/integrations">
-                integration instructions
-              </LinkButton>{' '}
-              for different hosting services to learn how to create a PAT.
+                integration docs
+              </LinkButton>
+              .
             </div>
           </Row>
         </DialogContent>
