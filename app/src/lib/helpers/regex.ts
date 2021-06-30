@@ -51,3 +51,17 @@ export function getMatches(text: string, re: RegExp): Array<RegExpExecArray> {
 export function escapeRegExp(expression: string) {
   return expression.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')
 }
+
+export function getFileFromExceedsError(error: string): string | null {
+  const endRegex = /(\sis\s\d+.\d+ [a-zA-Z]+;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm;
+  const beginRegex = /(^remote:\serror:\sFile\s)/gm
+  const beginMatch = beginRegex.exec(error)
+  const endMatch = endRegex.exec(error)
+  
+  if(beginMatch && beginMatch.index && endMatch && endMatch.index)
+  {
+    return "\n\nFile: " + error.slice(beginMatch.index + beginMatch[0].length, endMatch.index);
+  }
+  
+  return null;
+}

@@ -18,6 +18,7 @@ import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
 import { Readable } from 'stream'
 import split2 from 'split2'
+import { getFileFromExceedsError } from '../helpers/regex'
 
 /**
  * An extension of the execution options in dugite that
@@ -229,6 +230,14 @@ export async function git(
   }
 
   log.error(errorMessage.join('\n'))
+
+  if (gitError && gitError === DugiteError.PushWithFileSizeExceedingLimit)
+  {
+    const result = getFileFromExceedsError(errorMessage.join())
+    if(result) {
+      gitResult.gitErrorDescription += result;
+    }
+  }
 
   throw new GitError(gitResult, args)
 }
