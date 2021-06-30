@@ -72,7 +72,12 @@ export class DropdownSelectButton extends React.Component<
     }
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: IDropdownSelectButtonProps) {
+    if (this.props.selectedValue !== prevProps.selectedValue) {
+      const selectedOption = this.getSelectedOption(this.props.selectedValue)
+      this.setState({ selectedOption, showButtonOptions: false })
+    }
+
     if (this.invokeButtonRef === null || this.optionsContainerRef === null) {
       return
     }
