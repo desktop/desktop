@@ -53,15 +53,17 @@ export function escapeRegExp(expression: string) {
 }
 
 export function getFileFromExceedsError(error: string): string | null {
-  const endRegex = /(\sis\s\d+.\d+ [a-zA-Z]+;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm;
+  const endRegex = /(\sis\s\d+.\d+ [a-zA-Z]+;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm
   const beginRegex = /(^remote:\serror:\sFile\s)/gm
   const beginMatch = beginRegex.exec(error)
   const endMatch = endRegex.exec(error)
-  
-  if(beginMatch && beginMatch.index && endMatch && endMatch.index)
-  {
-    return "\n\nFile: " + error.slice(beginMatch.index + beginMatch[0].length, endMatch.index);
+
+  if (beginMatch && beginMatch.index && endMatch && endMatch.index) {
+    return (
+      '\n\nFile: ' +
+      error.slice(beginMatch.index + beginMatch[0].length, endMatch.index)
+    )
   }
-  
-  return null;
+
+  return null
 }
