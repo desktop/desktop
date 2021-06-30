@@ -230,13 +230,19 @@ export class NoChanges extends React.Component<
 
     return (
       <MenuBackedSuggestedAction
-        title={title}
-        description={description}
-        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
-        menuItemId={itemId}
-        buttonText={formatMenuItemLabel(menuItem.label)}
+        actions={[
+          {
+            title,
+            description,
+            discoverabilityContent: this.renderDiscoverabilityElements(
+              menuItem
+            ),
+            menuItemId: itemId,
+            buttonText: formatMenuItemLabel(menuItem.label),
+            onClick,
+          },
+        ]}
         disabled={!menuItem.enabled}
-        onClick={onClick}
       />
     )
   }
@@ -308,11 +314,48 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    return this.renderMenuBackedAction(
-      itemId,
-      title,
-      description,
-      this.onOpenInExternalEditorClicked
+    return (
+      <MenuBackedSuggestedAction
+        actions={[
+          {
+            title,
+            description,
+            discoverabilityContent: this.renderDiscoverabilityElements(
+              menuItem
+            ),
+            menuItemId: itemId,
+            buttonText: formatMenuItemLabel(menuItem.label),
+            onClick: this.onOpenInExternalEditorClicked,
+          },
+          {
+            title: 'Open the repository in your terminal',
+            description: (
+              <>
+                Select your terminal in{' '}
+                <LinkButton onClick={this.openPreferences}>
+                  {__DARWIN__ ? 'Preferences' : 'Options'}
+                </LinkButton>
+              </>
+            ),
+            discoverabilityContent: this.renderDiscoverabilityElements(
+              menuItem
+            ),
+            menuItemId: itemId,
+            buttonText: 'Open in iTerm 2',
+            onClick: this.onOpenInExternalEditorClicked,
+          },
+          {
+            title: 'View the files of your repository in Finder',
+            discoverabilityContent: this.renderDiscoverabilityElements(
+              menuItem
+            ),
+            menuItemId: itemId,
+            buttonText: 'Show in Finder',
+            onClick: this.onOpenInExternalEditorClicked,
+          },
+        ]}
+        disabled={!menuItem.enabled}
+      />
     )
   }
 
@@ -412,14 +455,18 @@ export class NoChanges extends React.Component<
     return (
       <MenuBackedSuggestedAction
         key="view-stash-action"
-        title="View your stashed changes"
-        menuItemId={itemId}
-        description={description}
-        discoverabilityContent={discoverabilityContent}
-        buttonText="View stash"
+        actions={[
+          {
+            title: 'View your stashed changes',
+            menuItemId: itemId,
+            description,
+            discoverabilityContent: discoverabilityContent,
+            buttonText: 'View stash',
+            onClick: this.onViewStashClicked,
+          },
+        ]}
         type="primary"
         disabled={menuItem !== null && !menuItem.enabled}
-        onClick={this.onViewStashClicked}
       />
     )
   }
@@ -450,14 +497,19 @@ export class NoChanges extends React.Component<
     return (
       <MenuBackedSuggestedAction
         key="publish-repository-action"
-        title="Publish your repository to GitHub"
-        description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
-        discoverabilityContent={discoverabilityContent}
-        buttonText="Publish repository"
-        menuItemId={itemId}
+        actions={[
+          {
+            title: 'Publish your repository to GitHub',
+            description:
+              'This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others.',
+            discoverabilityContent,
+            buttonText: 'Publish repository',
+            menuItemId: itemId,
+            onClick: this.onPublishRepositoryClicked,
+          },
+        ]}
         type="primary"
         disabled={!menuItem.enabled}
-        onClick={this.onPublishRepositoryClicked}
       />
     )
   }
@@ -499,14 +551,18 @@ export class NoChanges extends React.Component<
     return (
       <MenuBackedSuggestedAction
         key="publish-branch-action"
-        title="Publish your branch"
-        menuItemId={itemId}
-        description={description}
-        discoverabilityContent={discoverabilityContent}
-        buttonText="Publish branch"
+        actions={[
+          {
+            title: 'Publish your branch',
+            menuItemId: itemId,
+            description,
+            discoverabilityContent,
+            buttonText: 'Publish branch',
+            onClick: this.onPublishBranchClicked,
+          },
+        ]}
         type="primary"
         disabled={!menuItem.enabled}
-        onClick={this.onPublishBranchClicked}
       />
     )
   }
@@ -555,11 +611,15 @@ export class NoChanges extends React.Component<
     return (
       <MenuBackedSuggestedAction
         key="pull-branch-action"
-        title={title}
-        menuItemId={itemId}
-        description={description}
-        discoverabilityContent={discoverabilityContent}
-        buttonText={buttonText}
+        actions={[
+          {
+            title,
+            menuItemId: itemId,
+            description,
+            discoverabilityContent,
+            buttonText,
+          },
+        ]}
         type="primary"
         disabled={!menuItem.enabled}
       />
@@ -621,11 +681,15 @@ export class NoChanges extends React.Component<
     return (
       <MenuBackedSuggestedAction
         key="push-branch-action"
-        title={title}
-        menuItemId={itemId}
-        description={description}
-        discoverabilityContent={discoverabilityContent}
-        buttonText={buttonText}
+        actions={[
+          {
+            title,
+            menuItemId: itemId,
+            description,
+            discoverabilityContent,
+            buttonText,
+          },
+        ]}
         type="primary"
         disabled={!menuItem.enabled}
       />
@@ -655,14 +719,20 @@ export class NoChanges extends React.Component<
     return (
       <MenuBackedSuggestedAction
         key="create-pr-action"
-        title={title}
-        menuItemId={itemId}
-        description={description}
-        buttonText={buttonText}
-        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
+        actions={[
+          {
+            title,
+            menuItemId: itemId,
+            description,
+            buttonText,
+            discoverabilityContent: this.renderDiscoverabilityElements(
+              menuItem
+            ),
+            onClick: this.onCreatePullRequestClicked,
+          },
+        ]}
         type="primary"
         disabled={!menuItem.enabled}
-        onClick={this.onCreatePullRequestClicked}
       />
     )
   }

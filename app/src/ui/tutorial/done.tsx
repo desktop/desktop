@@ -42,30 +42,45 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
           </div>
           <SuggestedActionGroup>
             <SuggestedAction
-              title="Explore projects on GitHub"
-              description="Contribute to a project that interests you"
-              buttonText={__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
-              onClick={this.openDotcomExplore}
+              actions={[
+                {
+                  title: 'Explore projects on GitHub',
+                  description: 'Contribute to a project that interests you',
+                  buttonText: __DARWIN__
+                    ? 'Open in Browser'
+                    : 'Open in browser',
+                  onClick: this.openDotcomExplore,
+                  image: TelescopeOcticon,
+                },
+              ]}
               type="normal"
-              image={TelescopeOcticon}
             />
             <SuggestedAction
-              title="Create a new repository"
-              description="Get started on a brand new project"
-              buttonText={
-                __DARWIN__ ? 'Create Repository' : 'Create repository'
-              }
-              onClick={this.onCreateNewRepository}
+              actions={[
+                {
+                  title: 'Create a new repository',
+                  description: 'Get started on a brand new project',
+                  buttonText: __DARWIN__
+                    ? 'Create Repository'
+                    : 'Create repository',
+
+                  onClick: this.onCreateNewRepository,
+                  image: PlusOcticon,
+                },
+              ]}
               type="normal"
-              image={PlusOcticon}
             />
             <SuggestedAction
-              title="Add a local repository"
-              description="Work on an existing project in GitHub Desktop"
-              buttonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
-              onClick={this.onAddExistingRepository}
+              actions={[
+                {
+                  title: 'Add a local repository',
+                  description: 'Work on an existing project in GitHub Desktop',
+                  buttonText: __DARWIN__ ? 'Add Repository' : 'Add repository',
+                  onClick: this.onAddExistingRepository,
+                  image: FileDirectoryOcticon,
+                },
+              ]}
               type="normal"
-              image={FileDirectoryOcticon}
             />
           </SuggestedActionGroup>
         </div>

@@ -3,7 +3,7 @@ import { SuggestedAction } from './suggested-action'
 import { MenuIDs } from '../../models/menu-ids'
 import { executeMenuItemById } from '../main-process-proxy'
 
-interface IMenuBackedSuggestedActionProps {
+interface IMenuBackedSuggestedAction {
   /**
    * The id of the menu item backing this action.
    * When the action is invoked the menu item specified
@@ -33,7 +33,21 @@ interface IMenuBackedSuggestedActionProps {
   /**
    * The text, or "label", for the action button.
    */
-  readonly buttonText: string | JSX.Element
+  readonly buttonText: string
+
+  /**
+   * A callback which is invoked when the user clicks
+   * or activates the action using their keyboard.
+   *
+   * In order to suppress the menu backed action from being invoked
+   * consumers of this event will need to suppress the default behavior
+   * by calling `e.preventDefault`.
+   */
+  readonly onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
+}
+
+interface IMenuBackedSuggestedActionProps {
+  readonly actions: ReadonlyArray<IMenuBackedSuggestedAction>
 
   /**
    * The type of action, currently supported actions are
@@ -49,16 +63,6 @@ interface IMenuBackedSuggestedActionProps {
    * clickable.
    */
   readonly disabled?: boolean
-
-  /**
-   * A callback which is invoked when the user clicks
-   * or activates the action using their keyboard.
-   *
-   * In order to suppress the menu backed action from being invoked
-   * consumers of this event will need to suppress the default behavior
-   * by calling `e.preventDefault`.
-   */
-  readonly onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
 /**
@@ -80,24 +84,26 @@ export class MenuBackedSuggestedAction extends React.Component<
   public render() {
     return (
       <SuggestedAction
-        title={this.props.title}
-        description={this.props.description}
-        discoverabilityContent={this.props.discoverabilityContent}
-        buttonText={this.props.buttonText}
-        onClick={this.onClick}
+        actions={this.props.actions.map(action => ({
+          ...action,
+          onClick: this.onClick.bind(this, action),
+        }))}
         type={this.props.type}
         disabled={this.props.disabled}
       />
     )
   }
 
-  private onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.onClick !== undefined) {
-      this.props.onClick(e)
+  private onClick = (
+    action: IMenuBackedSuggestedAction,
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    if (action.onClick !== undefined) {
+      action.onClick(e)
     }
 
     if (!e.defaultPrevented) {
-      executeMenuItemById(this.props.menuItemId)
+      executeMenuItemById(action.menuItemId)
     }
   }
 }

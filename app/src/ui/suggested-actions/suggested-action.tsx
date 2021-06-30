@@ -1,8 +1,12 @@
 import * as React from 'react'
 import classNames from 'classnames'
 import { Button } from '../lib/button'
+import {
+  DropdownSelectButton,
+  IDropdownSelectButtonOption,
+} from '../dropdown-select-button'
 
-interface ISuggestedActionProps {
+interface ISuggestedAction {
   /**
    * The title, or "header" text for a suggested
    * action.
@@ -25,13 +29,22 @@ interface ISuggestedActionProps {
   /**
    * The text, or "label", for the action button.
    */
-  readonly buttonText: string | JSX.Element
+  readonly buttonText: string
 
   /**
    * A callback which is invoked when the user clicks
    * or activates the action using their keyboard.
    */
   readonly onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
+   * An image to illustrate what this component's action does
+   */
+  readonly image?: JSX.Element
+}
+
+interface ISuggestedActionProps {
+  readonly actions: ReadonlyArray<ISuggestedAction>
 
   /**
    * The type of action, currently supported actions are
@@ -47,11 +60,10 @@ interface ISuggestedActionProps {
    * clickable.
    */
   readonly disabled?: boolean
+}
 
-  /**
-   * An image to illustrate what this component's action does
-   */
-  readonly image?: JSX.Element
+interface ISuggestedActionState {
+  readonly selectedAction: string | undefined
 }
 
 /**
@@ -61,36 +73,95 @@ interface ISuggestedActionProps {
  * connects one or more actions. An action component has a title,
  * a description, a button label, and an optional image.
  */
-export class SuggestedAction extends React.Component<ISuggestedActionProps> {
+export class SuggestedAction extends React.Component<
+  ISuggestedActionProps,
+  ISuggestedActionState
+> {
+  public constructor(props: ISuggestedActionProps) {
+    super(props)
+    this.state = {
+      selectedAction: props.actions[0].buttonText,
+    }
+  }
+
   public render() {
     const primary = this.props.type === 'primary'
     const cn = classNames('suggested-action', { primary })
+    const action = this.selectedAction
+
     const description =
-      this.props.description === undefined ? undefined : (
-        <p className="description">{this.props.description}</p>
+      action.description === undefined ? undefined : (
+        <p className="description">{action.description}</p>
       )
     return (
       <div className={cn}>
-        {this.props.image && (
-          <div className="image-wrapper">{this.props.image}</div>
-        )}
+        {action.image && <div className="image-wrapper">{action.image}</div>}
         <div className="text-wrapper">
-          <h2>{this.props.title}</h2>
+          <h2>{action.title}</h2>
           {description}
-          {this.props.discoverabilityContent && (
-            <p className="discoverability">
-              {this.props.discoverabilityContent}
-            </p>
+          {action.discoverabilityContent && (
+            <p className="discoverability">{action.discoverabilityContent}</p>
           )}
         </div>
-        <Button
-          type={primary ? 'submit' : undefined}
-          onClick={this.props.onClick}
-          disabled={this.props.disabled}
-        >
-          {this.props.buttonText}
-        </Button>
+
+        {this.renderSubmitButton()}
       </div>
     )
+  }
+
+  private get selectedAction(): ISuggestedAction {
+    return (
+      this.props.actions.find(
+        a => a.buttonText === this.state.selectedAction
+      ) ?? this.props.actions[0]
+    )
+  }
+
+  private renderSubmitButton() {
+    if (this.props.actions.length === 1) {
+      const action = this.props.actions[0]
+
+      return (
+        <Button
+          type={this.props.type === 'primary' ? 'submit' : undefined}
+          onClick={action.onClick}
+          disabled={this.props.disabled}
+        >
+          {action.buttonText}
+        </Button>
+      )
+    }
+
+    return (
+      <DropdownSelectButton
+        selectedValue={this.state.selectedAction}
+        options={this.props.actions.map(a => {
+          return {
+            label: a.buttonText,
+            value: a.buttonText,
+          }
+        })}
+        disabled={this.props.disabled}
+        onSelectChange={this.onOperationChange}
+        onSubmit={this.onOperationInvoked}
+      />
+    )
+  }
+
+  private onOperationChange = (selectedOption: IDropdownSelectButtonOption) => {
+    this.setState({ selectedAction: selectedOption.value })
+  }
+
+  private onOperationInvoked = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    selectedOption: IDropdownSelectButtonOption
+  ) => {
+    const action = this.props.actions.find(
+      a => a.buttonText === selectedOption.value
+    )
+
+    if (action !== undefined) {
+      action.onClick(event)
+    }
   }
 }
