@@ -20,6 +20,7 @@ import { Readable } from 'stream'
 import split2 from 'split2'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
+import { getFileFromExceedsError } from '../helpers/regex'
 
 /**
  * An extension of the execution options in dugite that
@@ -240,8 +241,15 @@ export async function git(
 
     log.error(errorMessage.join('\n'))
 
-    throw new GitError(gitResult, args)
-  })
+  if (gitError && gitError === DugiteError.PushWithFileSizeExceedingLimit)
+  {
+    const result = getFileFromExceedsError(errorMessage.join())
+    if(result) {
+      gitResult.gitErrorDescription += result;
+    }
+  }
+
+  throw new GitError(gitResult, args)
 }
 
 /**
