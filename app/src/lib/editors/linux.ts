@@ -21,6 +21,10 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/snap/bin/atom', '/usr/bin/atom'],
   },
   {
+    name: 'Neovim',
+    paths: ['/usr/bin/nvim'],
+  },
+  {
     name: 'Visual Studio Code',
     paths: ['/usr/share/code/bin/code', '/snap/bin/code', '/usr/bin/code'],
   },
