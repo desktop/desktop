@@ -69,7 +69,21 @@
     }
   }
 
-  .button-component {
+  .dropdown-select-button {
+    height: var(--button-height);
+
+    .invoke-button {
+      width: fit-content;
+      padding-left: revert !important;
+    }
+
+    .dropdown-button {
+      width: revert;
+    }
+  }
+
+  .button-component,
+  .dropdown-select-button {
     flex-shrink: 0;
   }
 

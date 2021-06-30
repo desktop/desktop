@@ -135,6 +135,7 @@ export class SuggestedAction extends React.Component<
     return (
       <DropdownSelectButton
         selectedValue={this.state.selectedAction}
+        type={this.props.type}
         options={this.props.actions.map(a => {
           return {
             label: a.buttonText,

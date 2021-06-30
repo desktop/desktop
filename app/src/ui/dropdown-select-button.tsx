@@ -18,6 +18,9 @@ interface IDropdownSelectButtonProps {
   /** The selection button options */
   readonly options: ReadonlyArray<IDropdownSelectButtonOption>
 
+  /** Whether the button is a primary. */
+  readonly type?: 'primary' | 'normal'
+
   /** The selection option value */
   readonly selectedValue?: string
 
@@ -192,7 +195,10 @@ export class DropdownSelectButton extends React.Component<
       optionsPositionBottom !== undefined ? 'open-top' : 'open-bottom'
     const containerClasses = classNames(
       'dropdown-select-button',
-      showButtonOptions ? openClass : null
+      showButtonOptions ? openClass : null,
+      {
+        primary: this.props.type === 'primary',
+      }
     )
 
     const dropdownClasses = classNames('dropdown-button', { disabled })
@@ -203,7 +209,7 @@ export class DropdownSelectButton extends React.Component<
         <Button
           className="invoke-button"
           disabled={disabled}
-          type="submit"
+          type={this.props.type === 'primary' ? 'submit' : undefined}
           tooltip={this.props.tooltip}
           onButtonRef={this.onInvokeButtonRef}
           onClick={this.onSubmit}
@@ -213,7 +219,7 @@ export class DropdownSelectButton extends React.Component<
         <Button
           className={dropdownClasses}
           onClick={this.openSplitButtonDropdown}
-          type="button"
+          type={this.props.type === 'primary' ? 'button' : undefined}
         >
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
