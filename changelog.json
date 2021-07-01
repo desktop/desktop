@@ -1,5 +1,18 @@
 {
   "releases": {
+    "2.9.0": [
+      "[New] Reorder commits with drag and drop in your commit history - #2507",
+      "[New] Create a branch from any commit in your history - #3474",
+      "[New] Amend the most recent commit on your branch - #1644",
+      "[New] Squash commits in the history tab with drag and drop and a context menu - #2507",
+      "[New] Squash and merge option available when merging branches - #2507",
+      "[Added] Add support for Sublime Text 4 on Windows - #12124",
+      "[Improved] Show warning before undoing commit if it potentially conflicts with changes in working directory - #4596 #9286 #5874 #6043",
+      "[Fixed] Remove extra space in drag & drop tooltips - #12327"
+    ],
+    "2.8.4-beta5": [
+      "[Improved] Scroll history to top after creating a branch from a commit - #12432"
+    ],
     "2.8.4-beta4": [
       "[Added] Add support for Sublime Text 4 on Windows - #12124",
       "[Fixed] Fix rebase after a successful merge - #12429",

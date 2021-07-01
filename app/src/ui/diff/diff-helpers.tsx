@@ -8,7 +8,8 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
-import { DiffHunkExpansionType } from '../../models/diff/raw-diff'
+import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
+import { DiffLineType } from '../../models/diff'
 
 /**
  * DiffRowType defines the different types of
@@ -351,4 +352,38 @@ export function canSelect(
   file: ChangedFile
 ): file is WorkingDirectoryFileChange {
   return file instanceof WorkingDirectoryFileChange
+}
+
+/** Gets the width in pixels of the diff line number gutter based on the number of digits in the number */
+export function getLineWidthFromDigitCount(digitAmount: number): number {
+  return Math.max(digitAmount, 3) * 10 + 5
+}
+
+/** Utility function for getting the digit count of the largest line number in an array of diff hunks */
+export function getLargestLineNumber(hunks: DiffHunk[]): number {
+  if (hunks.length === 0) {
+    return 0
+  }
+
+  for (let i = hunks.length - 1; i >= 0; i--) {
+    const hunk = hunks[i]
+
+    for (let j = hunk.lines.length - 1; j >= 0; j--) {
+      const line = hunk.lines[j]
+
+      if (line.type === DiffLineType.Hunk) {
+        continue
+      }
+
+      const newLineNumber = line.newLineNumber ?? 0
+      const oldLineNumber = line.oldLineNumber ?? 0
+      return newLineNumber > oldLineNumber ? newLineNumber : oldLineNumber
+    }
+  }
+
+  return 0
+}
+
+export function getNumberOfDigits(val: number): number {
+  return (Math.log(val) * Math.LOG10E + 1) | 0
 }

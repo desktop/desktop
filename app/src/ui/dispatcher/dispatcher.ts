@@ -3573,6 +3573,18 @@ export class Dispatcher {
     return result
   }
 
+  public handleConflictsDetectedOnError(
+    repository: Repository,
+    currentBranch: string,
+    theirBranch: string
+  ) {
+    return this.appStore._handleConflictsDetectedOnError(
+      repository,
+      currentBranch,
+      theirBranch
+    )
+  }
+
   /**
    * This method is to update the multi operation state to move it along in
    * steps.

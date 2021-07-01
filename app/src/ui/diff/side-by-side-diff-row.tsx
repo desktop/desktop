@@ -41,6 +41,11 @@ interface ISideBySideDiffRowProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
+   * The width to display the diff gutter with.
+   */
+  readonly lineNumberWidth: string
+
+  /**
    * The index of the row in the displayed diff.
    */
   readonly numRow: number
@@ -395,7 +400,10 @@ export class SideBySideDiffRow extends React.Component<
   ) {
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
-        <div className="line-number">
+        <div
+          className="line-number"
+          style={{ width: this.props.lineNumberWidth }}
+        >
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
@@ -410,6 +418,7 @@ export class SideBySideDiffRow extends React.Component<
           hoverable: !this.props.hideWhitespaceInDiff,
           hover: this.props.isHunkHovered,
         })}
+        style={{ width: this.props.lineNumberWidth }}
         title={
           this.props.hideWhitespaceInDiff ? HideWhitespaceWarning : undefined
         }

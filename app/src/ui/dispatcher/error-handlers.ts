@@ -20,8 +20,6 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
 import { RetryActionType } from '../../models/retry-actions'
 import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
-import { MultiCommitOperationStepKind } from '../../models/multi-commit-operation'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -316,20 +314,11 @@ export async function mergeConflictHandler(
 
   const { currentBranch, theirBranch } = gitContext
 
-  dispatcher.setMultiCommitOperationStep(repository, {
-    kind: MultiCommitOperationStepKind.ShowConflicts,
-    conflictState: {
-      kind: 'multiCommitOperation',
-      manualResolutions: new Map<string, ManualConflictResolution>(),
-      ourBranch: currentBranch,
-      theirBranch,
-    },
-  })
-
-  dispatcher.showPopup({
-    type: PopupType.MultiCommitOperation,
+  dispatcher.handleConflictsDetectedOnError(
     repository,
-  })
+    currentBranch,
+    theirBranch
+  )
 
   return null
 }

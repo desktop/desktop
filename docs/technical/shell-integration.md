@@ -32,6 +32,7 @@ These shells are currently supported:
  - [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) (beta)
  - [Windows Terminal](https://github.com/microsoft/terminal)
  - [Alacritty](https://github.com/alacritty/alacritty)
+ - [Fluent Terminal](https://github.com/felixse/FluentTerminal)
 
 These are defined in an enum at the top of the file:
 

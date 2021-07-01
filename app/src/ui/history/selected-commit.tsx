@@ -343,7 +343,7 @@ export class SelectedCommit extends React.Component<
       {
         label: openInExternalEditor,
         action: () => this.props.onOpenInExternalEditor(fullPath),
-        enabled: isSafeExtension && fileExistsOnDisk,
+        enabled: fileExistsOnDisk,
       },
       {
         label: OpenWithDefaultProgramLabel,

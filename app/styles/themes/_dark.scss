@@ -165,7 +165,7 @@ body.theme-dark {
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
-  --toolbar-button-active-border-color: var(--box-border-color);
+  --toolbar-button-active-border-color: var(--background-color);
 
   --toolbar-button-progress-color: #{$gray-800};
   --toolbar-button-focus-progress-color: #{$gray-700};

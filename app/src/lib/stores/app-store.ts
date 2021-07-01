@@ -2638,11 +2638,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         })
 
-        await this._refreshRepository(repository)
         await this.refreshChangesSection(repository, {
           includingStatus: true,
           clearPartialState: true,
         })
+
+        // Do not await for refreshing the repository, otherwise this will block
+        // the commit button unnecessarily for a long time in big repos.
+        this._refreshRepository(repository)
       }
 
       return result !== undefined
@@ -6774,6 +6777,59 @@ export class AppStore extends TypedBaseStore<IAppState> {
         branchName: tip.branch.name,
       })
     )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _handleConflictsDetectedOnError(
+    repository: Repository,
+    currentBranch: string,
+    theirBranch: string
+  ): Promise<void> {
+    const { multiCommitOperationState } = this.repositoryStateCache.get(
+      repository
+    )
+
+    if (multiCommitOperationState === null) {
+      const gitStore = this.gitStoreCache.get(repository)
+
+      const targetBranch = gitStore.allBranches.find(
+        branch => branch.name === currentBranch
+      )
+
+      if (targetBranch === undefined) {
+        return
+      }
+
+      const sourceBranch = gitStore.allBranches.find(
+        branch => branch.name === theirBranch
+      )
+
+      this._initializeMultiCommitOperation(
+        repository,
+        {
+          kind: MultiCommitOperationKind.Merge,
+          isSquash: false,
+          sourceBranch: sourceBranch ?? null,
+        },
+        targetBranch,
+        []
+      )
+    }
+
+    this._setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ShowConflicts,
+      conflictState: {
+        kind: 'multiCommitOperation',
+        manualResolutions: new Map<string, ManualConflictResolution>(),
+        ourBranch: currentBranch,
+        theirBranch,
+      },
+    })
+
+    return this._showPopup({
+      type: PopupType.MultiCommitOperation,
+      repository,
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
