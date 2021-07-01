@@ -222,6 +222,11 @@ export class CommitMessage extends React.Component<
       })
     }
 
+    // If the need to show co-authors from the props changed, update the state.
+    if (prevProps.showCoAuthoredBy !== this.props.showCoAuthoredBy) {
+      this.setState({ showCoAuthoredBy: this.props.showCoAuthoredBy })
+    }
+
     if (this.props.focusCommitMessage) {
       this.focusSummary()
     } else if (
