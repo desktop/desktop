@@ -201,37 +201,6 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load the next batch of history, starting from the last loaded commit. */
-  public async loadNextHistoryBatch() {
-    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
-      return
-    }
-
-    if (!this.history.length) {
-      return
-    }
-
-    const lastSHA = this.history[this.history.length - 1]
-    const requestKey = `history/${lastSHA}`
-    if (this.requestsInFight.has(requestKey)) {
-      return
-    }
-
-    this.requestsInFight.add(requestKey)
-
-    const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
-    )
-    if (!commits) {
-      return
-    }
-
-    this._history = this._history.concat(commits.map(c => c.sha))
-    this.storeCommits(commits)
-    this.requestsInFight.delete(requestKey)
-    this.emitUpdate()
-  }
-
   /** Load a batch of commits from the repository, using a given commitish object as the starting point */
   public async loadCommitBatch(commitish: string) {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {

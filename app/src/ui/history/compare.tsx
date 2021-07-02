@@ -498,7 +498,7 @@ export class CompareSidebar extends React.Component<
     if (commits.length - end <= CloseToBottomThreshold) {
       if (this.loadingMoreCommitsPromise != null) {
         // as this callback fires for any scroll event we need to guard
-        // against re-entrant calls to loadNextHistoryBatch
+        // against re-entrant calls to loadCommitBatch
         return
       }
 
