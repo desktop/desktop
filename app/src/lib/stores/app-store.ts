@@ -525,6 +525,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.repositoryIndicatorUpdater.start()
       }
     }, InitialRepositoryIndicatorTimeout)
+
+    API.onTokenInvalidated(this.onTokenInvalidated)
+  }
+
+  private onTokenInvalidated = (endpoint: string) => {
+    const account = getAccountForEndpoint(this.accounts, endpoint)
+
+    if (account === null) {
+      return
+    }
+
+    // If the token was invalidated for an account, sign out from that account
+    this._removeAccount(account)
+
+    const isEnterpriseAccount = account.endpoint !== getDotComAPIEndpoint()
+    const accountTypeSuffix = isEnterpriseAccount ? ' Enterprise' : ''
+
+    const error = new Error(
+      `The token for your GitHub${accountTypeSuffix} account was invalidated. Please, sign in again`
+    )
+
+    this._pushError(error)
   }
 
   /** Figure out what step of the tutorial the user needs to do next */

@@ -13,6 +13,7 @@ import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
+import { Emitter } from 'event-kit'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -576,6 +577,18 @@ function toGitHubIsoDateString(date: Date) {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
+  private static readonly TOKEN_INVALIDATED_EVENT = 'token-invalidated'
+
+  private static readonly emitter = new Emitter()
+
+  public static onTokenInvalidated(callback: (endpoint: string) => void) {
+    API.emitter.on(API.TOKEN_INVALIDATED_EVENT, callback)
+  }
+
+  private static emitTokenInvalidated(endpoint: string) {
+    API.emitter.emit(API.TOKEN_INVALIDATED_EVENT, endpoint)
+  }
+
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
@@ -1026,7 +1039,7 @@ export class API {
   }
 
   /** Make an authenticated request to the client's endpoint with its token. */
-  private request(
+  private async request(
     method: HTTPMethod,
     path: string,
     options: {
@@ -1036,6 +1049,7 @@ export class API {
     } = {}
   ): Promise<Response> {
     return request(
+    const response = await request(
       this.endpoint,
       this.token,
       method,
@@ -1044,6 +1058,12 @@ export class API {
       options.customHeaders,
       options.reloadCache
     )
+
+    if (response.status === 401) {
+      API.emitTokenInvalidated(this.endpoint)
+    }
+
+    return response
   }
 
   /**
