@@ -633,10 +633,11 @@ export class API {
     name: string,
     protocol: GitProtocol | undefined
   ): Promise<IAPIRepositoryCloneInfo | null> {
-    const response = await this.requestReloadCache(
-      'GET',
-      `repos/${owner}/${name}`
-    )
+    const response = await this.request('GET', `repos/${owner}/${name}`, {
+      // Make sure we don't run into cache issues when fetching the repositories,
+      // specially after repositories have been renamed.
+      reloadCache: true,
+    })
 
     if (response.status === HttpStatusCode.NotFound) {
       return null
@@ -715,9 +716,11 @@ export class API {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
       const response = await this.request('POST', apiPath, {
-        name,
-        description,
-        private: private_,
+        body: {
+          name,
+          description,
+          private: private_,
+        },
       })
 
       return await parsedResponse<IAPIFullRepository>(response)
@@ -918,7 +921,7 @@ export class API {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
 
-    const response = await this.request('GET', path, undefined, headers)
+    const response = await this.request('GET', path, { customHeaders: headers })
 
     try {
       return await parsedResponse<IAPIRefCheckRuns>(response)
@@ -950,7 +953,9 @@ export class API {
     }
 
     try {
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
       return await parsedResponse<IAPIPushControl>(response)
     } catch (err) {
       log.info(
@@ -1024,28 +1029,20 @@ export class API {
   private request(
     method: HTTPMethod,
     path: string,
-    body?: Object,
-    customHeaders?: Object
-  ): Promise<Response> {
-    return request(this.endpoint, this.token, method, path, body, customHeaders)
-  }
-
-  /** Make an authenticated request to the client's endpoint with its token but
-   * skip checking cache while also updating cache. */
-  private requestReloadCache(
-    method: HTTPMethod,
-    path: string,
-    body?: Object,
-    customHeaders?: Object
+    options: {
+      body?: Object
+      customHeaders?: Object
+      reloadCache?: boolean
+    } = {}
   ): Promise<Response> {
     return request(
       this.endpoint,
       this.token,
       method,
       path,
-      body,
-      customHeaders,
-      true
+      options.body,
+      options.customHeaders,
+      options.reloadCache
     )
   }
 
@@ -1089,7 +1086,9 @@ export class API {
 
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
 
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchMentionables: '${path}' returned a 404`)
