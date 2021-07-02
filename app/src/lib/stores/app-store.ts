@@ -1275,12 +1275,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { formState } = state.compareState
     if (formState.kind === HistoryTabMode.History) {
       const commits = state.compareState.commitSHAs
-      const firstCommitSha = commits[0]
 
-      const newCommits = await gitStore.loadCommitBatch(
-        firstCommitSha,
-        commits.length
-      )
+      const newCommits = await gitStore.loadCommitBatch('HEAD', commits.length)
       if (newCommits == null) {
         return
       }
