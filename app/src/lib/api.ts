@@ -1048,7 +1048,6 @@ export class API {
       reloadCache?: boolean
     } = {}
   ): Promise<Response> {
-    return request(
     const response = await request(
       this.endpoint,
       this.token,
