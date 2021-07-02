@@ -539,14 +539,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // If the token was invalidated for an account, sign out from that account
     this._removeAccount(account)
 
-    const isEnterpriseAccount = account.endpoint !== getDotComAPIEndpoint()
-    const accountTypeSuffix = isEnterpriseAccount ? ' Enterprise' : ''
-
-    const error = new Error(
-      `The token for your GitHub${accountTypeSuffix} account was invalidated. Please, sign in again`
-    )
-
-    this._pushError(error)
+    this._showPopup({
+      type: PopupType.InvalidatedToken,
+      account,
+    })
   }
 
   /** Figure out what step of the tutorial the user needs to do next */
