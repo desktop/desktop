@@ -66,6 +66,7 @@ export async function getCommits(
   repository: Repository,
   revisionRange?: string,
   limit?: number,
+  skip?: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
   const { formatArgs, parse } = createLogParser({
@@ -93,6 +94,10 @@ export async function getCommits(
 
   if (limit !== undefined) {
     args.push(`--max-count=${limit}`)
+  }
+
+  if (skip !== undefined) {
+    args.push(`--skip=${skip}`)
   }
 
   args.push(
@@ -221,9 +226,13 @@ export async function doMergeCommitsExistAfterCommit(
   const commitRevRange =
     commitRef === null ? undefined : revRange(commitRef, 'HEAD')
 
-  const mergeCommits = await getCommits(repository, commitRevRange, undefined, [
-    '--merges',
-  ])
+  const mergeCommits = await getCommits(
+    repository,
+    commitRevRange,
+    undefined,
+    undefined,
+    ['--merges']
+  )
 
   return mergeCommits.length > 0
 }

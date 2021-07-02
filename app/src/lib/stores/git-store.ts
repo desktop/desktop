@@ -616,7 +616,7 @@ export class GitStore extends BaseStore {
       )
     } else {
       localCommits = await this.performFailableOperation(() =>
-        getCommits(this.repository, 'HEAD', CommitBatchSize, [
+        getCommits(this.repository, 'HEAD', CommitBatchSize, undefined, [
           '--not',
           '--remotes',
         ])
