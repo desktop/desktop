@@ -71,7 +71,7 @@ interface IPreferencesState {
   readonly initialDefaultBranch: string | null
   readonly initialMergeToolName: string | null
   readonly initialMergeToolCommand: string | null
-  readonly initialUseCustomMergeTool : boolean
+  readonly initialUseCustomMergeTool: boolean
   readonly disallowedCharactersMessage: string | null
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
@@ -137,8 +137,10 @@ export class Preferences extends React.Component<
     const initialMergeToolName = await getGlobalConfigValue('merge.tool')
     let initialMergeToolCommand: string | null = null
 
-    if(initialMergeToolName) {
-      initialMergeToolCommand = await getGlobalConfigValue('mergetool.' + initialMergeToolName + '.cmd')
+    if (initialMergeToolName) {
+      initialMergeToolCommand = await getGlobalConfigValue(
+        'mergetool.' + initialMergeToolName + '.cmd'
+      )
     }
 
     let committerName = initialCommitterName
@@ -191,7 +193,7 @@ export class Preferences extends React.Component<
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
-      useCustomMergeTool: initialMergeToolName ? true : false
+      useCustomMergeTool: initialMergeToolName ? true : false,
     })
   }
 
@@ -431,7 +433,7 @@ export class Preferences extends React.Component<
   }
 
   private onMergeToolCommandChanged = (command: string) => {
-    this.setState({ mergeToolCommand: command });
+    this.setState({ mergeToolCommand: command })
   }
 
   private onCommitterEmailChanged = (committerEmail: string) => {
@@ -521,21 +523,34 @@ export class Preferences extends React.Component<
         )
       }
 
-      if(this.state.useCustomMergeTool !== this.state.initialUseCustomMergeTool ||
+      if (
+        this.state.useCustomMergeTool !==
+          this.state.initialUseCustomMergeTool ||
         this.state.mergeToolName !== this.state.initialMergeToolName ||
-        this.state.mergeToolCommand !== this.state.initialMergeToolCommand) {
-
-        if(this.state.mergeToolName !== this.state.initialMergeToolName && this.state.mergeToolName !== '') {
-            await setGlobalConfigValue('merge.tool', this.state.mergeToolName)
+        this.state.mergeToolCommand !== this.state.initialMergeToolCommand
+      ) {
+        if (
+          this.state.mergeToolName !== this.state.initialMergeToolName &&
+          this.state.mergeToolName !== ''
+        ) {
+          await setGlobalConfigValue('merge.tool', this.state.mergeToolName)
         }
 
-        if(this.state.mergeToolCommand !== this.state.initialMergeToolCommand && this.state.mergeToolCommand !== '') {
-          await setGlobalConfigValue('mergetool.' + this.state.mergeToolName + '.cmd', this.state.mergeToolCommand)
+        if (
+          this.state.mergeToolCommand !== this.state.initialMergeToolCommand &&
+          this.state.mergeToolCommand !== ''
+        ) {
+          await setGlobalConfigValue(
+            'mergetool.' + this.state.mergeToolName + '.cmd',
+            this.state.mergeToolCommand
+          )
         }
 
-        if(this.state.useCustomMergeTool === false) {
+        if (this.state.useCustomMergeTool === false) {
           await removeGlobalConfigValue('merge.tool')
-          await removeGlobalConfigValue('mergetool' + this.state.initialMergeToolName + '.cmd')
+          await removeGlobalConfigValue(
+            'mergetool' + this.state.initialMergeToolName + '.cmd'
+          )
         }
       }
     } catch (e) {

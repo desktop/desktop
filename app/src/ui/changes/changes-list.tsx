@@ -509,15 +509,15 @@ export class ChangesList extends React.Component<
         })
       })
 
-    if(file.status.kind === AppFileStatusKind.Conflicted) {
+    if (file.status.kind === AppFileStatusKind.Conflicted) {
       items.push({
         label: __DARWIN__
           ? 'Open In External Merge Tool'
           : 'Open in external merge tool',
-          action: () => {
-            // This doesn't do anything...
-            git(['mergetool'], this.props.repository.path, 'openGitMergeTool')
-          }
+        action: () => {
+          // This doesn't do anything...
+          git(['mergetool'], this.props.repository.path, 'openGitMergeTool')
+        },
       })
     }
 

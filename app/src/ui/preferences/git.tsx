@@ -147,18 +147,19 @@ export class Git extends React.Component<IGitProps, IGitState> {
     )
   }
 
-  private onUseCustomMergeToolEnabledChanged= (
+  private onUseCustomMergeToolEnabledChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onUseCustomMergeToolChanged(event.currentTarget.checked)
   }
 
   private renderMergeToolSetting() {
-    return (<div className="merge-tool-component">
-      <h2>Merge Tool</h2>
+    return (
+      <div className="merge-tool-component">
+        <h2>Merge Tool</h2>
 
-      <Row>
-        <Checkbox
+        <Row>
+          <Checkbox
             label="Use custom merge tool"
             value={
               this.props.useCustomMergeTool
@@ -166,28 +167,29 @@ export class Git extends React.Component<IGitProps, IGitState> {
                 : CheckboxValue.Off
             }
             onChange={this.onUseCustomMergeToolEnabledChanged}
-        />
-      </Row>
-      <Row>
-        <TextBox 
-          label="Merge Tool Name" 
-          value={this.props.mergeTool}
-          onValueChanged={this.props.onMergeToolChanged}
-          disabled={!this.props.useCustomMergeTool}
           />
-      </Row>
-      <Row>
-        <TextBox 
-          label="Merge Tool Command" 
-          value={this.props.mergeToolCommand}
-          onValueChanged={this.props.onMergeToolCommandChanged}
-          disabled={!this.props.useCustomMergeTool}
+        </Row>
+        <Row>
+          <TextBox
+            label="Merge Tool Name"
+            value={this.props.mergeTool}
+            onValueChanged={this.props.onMergeToolChanged}
+            disabled={!this.props.useCustomMergeTool}
           />
-      </Row>
-      <p className="git-settings-description">
+        </Row>
+        <Row>
+          <TextBox
+            label="Merge Tool Command"
+            value={this.props.mergeToolCommand}
+            onValueChanged={this.props.onMergeToolCommandChanged}
+            disabled={!this.props.useCustomMergeTool}
+          />
+        </Row>
+        <p className="git-settings-description">
           These preferences will edit your global Git config.
         </p>
-    </div>)
+      </div>
+    )
   }
 
   /**
