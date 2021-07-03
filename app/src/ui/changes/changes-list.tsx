@@ -39,6 +39,7 @@ import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
+import { git } from '../../lib/git'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -495,6 +496,7 @@ export class ChangesList extends React.Component<
         enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
       })
     }
+
     // Five menu items should be enough for everyone
     Array.from(extensions)
       .slice(0, 5)
@@ -506,6 +508,18 @@ export class ChangesList extends React.Component<
           action: () => this.props.onIgnore(`*${extension}`),
         })
       })
+
+    if(file.status.kind === AppFileStatusKind.Conflicted) {
+      items.push({
+        label: __DARWIN__
+          ? 'Open In External Merge Tool'
+          : 'Open in external merge tool',
+          action: () => {
+            // This doesn't do anything...
+            git(['mergetool'], this.props.repository.path, 'openGitMergeTool')
+          }
+      })
+    }
 
     const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(

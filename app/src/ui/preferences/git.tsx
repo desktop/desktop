@@ -4,13 +4,19 @@ import { SuggestedBranchNames } from '../../lib/helpers/default-branch'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { RadioButton } from '../lib/radio-button'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
+import { Row } from '../lib/row'
+import { TextBox } from '../lib/text-box'
 
 interface IGitProps {
   readonly name: string
   readonly email: string
   readonly defaultBranch: string
+  readonly mergeTool: string
+  readonly mergeToolCommand: string
+  readonly useCustomMergeTool: boolean
 
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
@@ -18,6 +24,9 @@ interface IGitProps {
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
   readonly onDefaultBranchChanged: (defaultBranch: string) => void
+  readonly onUseCustomMergeToolChanged: (enabled: boolean) => void
+  readonly onMergeToolChanged: (mergeTool: string) => void
+  readonly onMergeToolCommandChanged: (mergeToolCommand: string) => void
 }
 
 interface IGitState {
@@ -63,6 +72,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
       <DialogContent>
         {this.renderGitConfigAuthorInfo()}
         {this.renderDefaultBranchSetting()}
+        {this.renderMergeToolSetting()}
       </DialogContent>
     )
   }
@@ -133,12 +143,51 @@ export class Git extends React.Component<IGitProps, IGitState> {
             ref={this.defaultBranchInputRef}
           />
         )}
-
-        <p className="git-settings-description">
-          These preferences will edit your global Git config.
-        </p>
       </div>
     )
+  }
+
+  private onUseCustomMergeToolEnabledChanged= (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onUseCustomMergeToolChanged(event.currentTarget.checked)
+  }
+
+  private renderMergeToolSetting() {
+    return (<div className="merge-tool-component">
+      <h2>Merge Tool</h2>
+
+      <Row>
+        <Checkbox
+            label="Use custom merge tool"
+            value={
+              this.props.useCustomMergeTool
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onUseCustomMergeToolEnabledChanged}
+        />
+      </Row>
+      <Row>
+        <TextBox 
+          label="Merge Tool Name" 
+          value={this.props.mergeTool}
+          onValueChanged={this.props.onMergeToolChanged}
+          disabled={!this.props.useCustomMergeTool}
+          />
+      </Row>
+      <Row>
+        <TextBox 
+          label="Merge Tool Command" 
+          value={this.props.mergeToolCommand}
+          onValueChanged={this.props.onMergeToolCommandChanged}
+          disabled={!this.props.useCustomMergeTool}
+          />
+      </Row>
+      <p className="git-settings-description">
+          These preferences will edit your global Git config.
+        </p>
+    </div>)
   }
 
   /**

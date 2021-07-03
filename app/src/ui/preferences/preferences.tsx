@@ -10,6 +10,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
+  removeGlobalConfigValue,
   setGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
@@ -63,14 +64,20 @@ interface IPreferencesState {
   readonly committerName: string
   readonly committerEmail: string
   readonly defaultBranch: string
+  readonly mergeToolName: string
+  readonly mergeToolCommand: string
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
   readonly initialDefaultBranch: string | null
+  readonly initialMergeToolName: string | null
+  readonly initialMergeToolCommand: string | null
+  readonly initialUseCustomMergeTool : boolean
   readonly disallowedCharactersMessage: string | null
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly useCustomMergeTool: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
@@ -99,16 +106,22 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      mergeToolName: '',
+      mergeToolCommand: '',
       defaultBranch: '',
       initialCommitterName: null,
       initialCommitterEmail: null,
       initialDefaultBranch: null,
+      initialMergeToolName: null,
+      initialMergeToolCommand: null,
+      initialUseCustomMergeTool: false,
       disallowedCharactersMessage: null,
       availableEditors: [],
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmForcePush: false,
+      useCustomMergeTool: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
@@ -121,6 +134,12 @@ export class Preferences extends React.Component<
     const initialCommitterName = await getGlobalConfigValue('user.name')
     const initialCommitterEmail = await getGlobalConfigValue('user.email')
     const initialDefaultBranch = await getDefaultBranch()
+    const initialMergeToolName = await getGlobalConfigValue('merge.tool')
+    let initialMergeToolCommand: string | null = null
+
+    if(initialMergeToolName) {
+      initialMergeToolCommand = await getGlobalConfigValue('mergetool.' + initialMergeToolName + '.cmd')
+    }
 
     let committerName = initialCommitterName
     let committerEmail = initialCommitterEmail
@@ -142,6 +161,9 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
+    const mergeTool = initialMergeToolName || ''
+    const mergeToolCommand = initialMergeToolCommand || ''
+
     const [editors, shells] = await Promise.all([
       getAvailableEditors(),
       getAvailableShells(),
@@ -153,10 +175,15 @@ export class Preferences extends React.Component<
     this.setState({
       committerName,
       committerEmail,
+      mergeToolName: mergeTool,
+      mergeToolCommand: mergeToolCommand,
       defaultBranch: initialDefaultBranch,
       initialCommitterName,
       initialCommitterEmail,
       initialDefaultBranch,
+      initialMergeToolName,
+      initialMergeToolCommand,
+      initialUseCustomMergeTool: initialMergeToolName ? true : false,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
@@ -164,6 +191,7 @@ export class Preferences extends React.Component<
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
+      useCustomMergeTool: initialMergeToolName ? true : false
     })
   }
 
@@ -285,12 +313,18 @@ export class Preferences extends React.Component<
             <Git
               name={this.state.committerName}
               email={this.state.committerEmail}
+              mergeTool={this.state.mergeToolName}
+              useCustomMergeTool={this.state.useCustomMergeTool}
+              mergeToolCommand={this.state.mergeToolCommand}
               defaultBranch={this.state.defaultBranch}
               dotComAccount={this.props.dotComAccount}
               enterpriseAccount={this.props.enterpriseAccount}
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
+              onMergeToolChanged={this.onMergeToolChanged}
+              onUseCustomMergeToolChanged={this.onUseCustomMergeToolChanged}
+              onMergeToolCommandChanged={this.onMergeToolCommandChanged}
             />
           </>
         )
@@ -388,6 +422,18 @@ export class Preferences extends React.Component<
     })
   }
 
+  private onMergeToolChanged = (mergeTool: string) => {
+    this.setState({ mergeToolName: mergeTool })
+  }
+
+  private onUseCustomMergeToolChanged = (use: boolean) => {
+    this.setState({ useCustomMergeTool: use })
+  }
+
+  private onMergeToolCommandChanged = (command: string) => {
+    this.setState({ mergeToolCommand: command });
+  }
+
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
   }
@@ -473,6 +519,24 @@ export class Preferences extends React.Component<
         this.props.dispatcher.setRepositoryIndicatorsEnabled(
           this.state.repositoryIndicatorsEnabled
         )
+      }
+
+      if(this.state.useCustomMergeTool !== this.state.initialUseCustomMergeTool ||
+        this.state.mergeToolName !== this.state.initialMergeToolName ||
+        this.state.mergeToolCommand !== this.state.initialMergeToolCommand) {
+
+        if(this.state.mergeToolName !== this.state.initialMergeToolName && this.state.mergeToolName !== '') {
+            await setGlobalConfigValue('merge.tool', this.state.mergeToolName)
+        }
+
+        if(this.state.mergeToolCommand !== this.state.initialMergeToolCommand && this.state.mergeToolCommand !== '') {
+          await setGlobalConfigValue('mergetool.' + this.state.mergeToolName + '.cmd', this.state.mergeToolCommand)
+        }
+
+        if(this.state.useCustomMergeTool === false) {
+          await removeGlobalConfigValue('merge.tool')
+          await removeGlobalConfigValue('mergetool' + this.state.initialMergeToolName + '.cmd')
+        }
       }
     } catch (e) {
       if (isConfigFileLockError(e)) {
