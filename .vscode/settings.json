@@ -16,7 +16,6 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/out": true,
-    "tslint-rules/**/*.js": true,
     ".awcache": true,
     ".eslintcache": true
   },
