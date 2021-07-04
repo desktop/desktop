@@ -26,7 +26,6 @@
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
   "prettier.ignorePath": ".prettierignore",
-  "tslint.ignoreDefinitionFiles": true,
   "eslint.options": {
     "configFile": ".eslintrc.yml",
     "rulePaths": ["eslint-rules"]
