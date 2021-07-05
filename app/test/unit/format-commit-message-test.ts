@@ -34,6 +34,19 @@ describe('formatCommitMessage', () => {
     ).toBe('foo\n\nbar\n')
   })
 
+  it('formats descriptions with a maximum line length of 72 characters', async () => {
+    const repo = await setupEmptyRepository()
+    expect(
+      await formatCommitMessage(repo, {
+        summary: 'foo',
+        description:
+          'Lorem ipsum dolor sit amet.\n\nConsetetur\nsadipscing\n elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
+      })
+    ).toBe(
+      'foo\n\nLorem ipsum dolor sit amet.\n\nConsetetur\nsadipscing\n elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore\nmagna aliquyam erat, sed diam voluptua.\n'
+    )
+  })
+
   it('appends trailers to a summary-only message', async () => {
     const repo = await setupEmptyRepository()
     const trailers = [
