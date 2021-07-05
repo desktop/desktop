@@ -295,6 +295,28 @@ const editors: IWindowsExternalEditor[] = [
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'RStudio' && publisher === 'RStudio',
   },
+  //Adding intelliJ IDEA to the list, versions 2020.2.4 and 2021.1.3
+  {
+      name: 'JetBrains IntelliJ Idea',
+      registryKeys: [
+        Wow64LocalMachineUninstallKey('IntelliJ IDEA 2020.2.4'),
+        Wow64LocalMachineUninstallKey('IntelliJ IDEA 2021.1.3'),
+      ],
+      //I think the reg keys are for 32-bit version but the IDE runs 64-bit
+      executableShimPath: ['bin', 'idea64.exe'],
+      expectedInstallationChecker: (displayName, publisher) =>
+        displayName.startsWith('IntelliJ IDEA ') && publisher === 'JetBrains s.r.o.',
+  },
+  {
+        name: 'JetBrains IntelliJ Idea Community Edition',
+        registryKeys: [
+          Wow64LocalMachineUninstallKey('IntelliJ IDEA Community Edition 2020.2.4'),
+          Wow64LocalMachineUninstallKey('IntelliJ IDEA Community Edition 2021.1.3'),
+        ],
+        executableShimPath: ['bin', 'idea64.exe'],
+        expectedInstallationChecker: (displayName, publisher) =>
+          displayName.startsWith('IntelliJ IDEA Community Edition ') && publisher === 'JetBrains s.r.o.',
+    },
 ]
 
 function getKeyOrEmpty(
