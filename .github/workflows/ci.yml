@@ -111,6 +111,5 @@ jobs:
             dist/*.rpm
             dist/*.txt
           draft: true
-          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
