@@ -13,6 +13,7 @@
   - [Authentication errors due to modified registry entries](#authentication-errors-due-to-modified-registry-entries)
 - [Linux](#linux)
    - [I get a white screen when launching Desktop](#i-get-a-white-screen-when-launching-desktop)
+   - [I cannot access repositories under my organization](#i-cannot-access-repositories-under-my-organization)
 
 # Known Issues
 
@@ -235,3 +236,20 @@ If you see an error that says "Not enough resources are available to process thi
 Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a white screen. If you are running GitHub Desktop within virtualization software like Parallels Desktop, hardware accelerated graphics may not be available.
 
 **Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
+
+### I cannot access repositories under my organization
+
+The GitHub Desktop application is an OAuth application, but this fork does not
+have the same permissions as the app does on Windows and macOS, which manifests
+in a couple of different ways:
+
+ - the "Clone a Repository" view does not show all organization repositories
+ - pushes to a repository owned by an organization may be rejected with a
+   generic error message
+
+The root cause of this is organizations by default will have "OAuth App access
+restrictions" enabled, which blocks the GitHub Desktop development app that is
+used by this fork.
+
+**Workaround:** ask your organization admin to [approve access](https://docs.github.com/en/organizations/restricting-access-to-your-organizations-data/approving-oauth-apps-for-your-organization)
+to the GitHub Desktop development app.
