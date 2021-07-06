@@ -192,7 +192,6 @@ module.exports = {
       nameMismatch: `{{ methodName }} has parameter {{ parameterName }} which does not match expected name {{ expectedName }}`,
       typeMismatch: `{{ methodName }} has parameter {{ parameterName }} which does not match expected type {{ expectedType }}`,
       reservedMethodName: `Method name {{ methodName }} is prohibited as names starting with 'component' or 'shouldComponent' can be confused with React lifecycle methods`,
-      voidParametersNotAllowed: `{{ methodName }} has parameter {{ parameterName }} which is of type void and is not permitted`,
     },
     fixable: 'code',
     schema: [], // no options
