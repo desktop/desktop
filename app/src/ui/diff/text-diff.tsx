@@ -1405,10 +1405,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     document.removeEventListener('find-text', this.onFindText)
   }
 
+  // eslint-disable-next-line react-proper-lifecycle-methods
   public componentDidUpdate(
     prevProps: ITextDiffProps,
     prevState: ITextDiffState,
-    // tslint:disable-next-line:react-proper-lifecycle-methods
     snapshot: CodeMirror.ScrollInfo | null
   ) {
     if (this.codeMirror === null) {
