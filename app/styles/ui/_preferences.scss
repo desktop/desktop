@@ -70,6 +70,14 @@
     }
   }
 
+  .merge-tool-component {
+    margin-top: var(--spacing-double);
+
+    .ref-name-text-box {
+      margin-top: var(--spacing);
+    }
+  }
+
   .git-settings-description {
     margin-top: var(--spacing-double);
     font-size: var(--font-size-sm);
