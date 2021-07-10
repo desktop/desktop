@@ -51,6 +51,8 @@ Arch Linux users can install the latest version from the
 
 ## Is GitHub Desktop right for me? What are the primary areas of focus?
 
+Of course Desktop is right for you!
+
 [This document](https://github.com/desktop/desktop/blob/development/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
 
 And to see what the team is working on currently and in the near future, check out the [GitHub Desktop roadmap](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
