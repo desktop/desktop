@@ -525,6 +525,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.repositoryIndicatorUpdater.start()
       }
     }, InitialRepositoryIndicatorTimeout)
+
+    API.onTokenInvalidated(this.onTokenInvalidated)
+  }
+
+  private onTokenInvalidated = (endpoint: string) => {
+    const account = getAccountForEndpoint(this.accounts, endpoint)
+
+    if (account === null) {
+      return
+    }
+
+    // If the token was invalidated for an account, sign out from that account
+    this._removeAccount(account)
+
+    this._showPopup({
+      type: PopupType.InvalidatedToken,
+      account,
+    })
   }
 
   /** Figure out what step of the tutorial the user needs to do next */

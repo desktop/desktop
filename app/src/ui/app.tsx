@@ -147,6 +147,7 @@ import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
 import { WarningBeforeReset } from './reset/warning-before-reset'
+import { InvalidatedToken } from './invalidated-token/invalidated-token'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2111,6 +2112,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             commit={commit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.InvalidatedToken: {
+        return (
+          <InvalidatedToken
+            key="invalidated-token"
+            dispatcher={this.props.dispatcher}
+            account={popup.account}
             onDismissed={onPopupDismissedFn}
           />
         )
