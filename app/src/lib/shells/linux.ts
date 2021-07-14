@@ -1,8 +1,8 @@
-import { spawn, ChildProcess } from 'child_process'
+import { ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { parseEnumValue } from '../enum'
-import { pathExists } from '../../ui/lib/path-exists'
+import { pathExists as pathExistsLinux, spawnShell } from '../helpers/linux'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
@@ -27,7 +27,7 @@ export function parse(label: string): Shell {
 }
 
 async function getPathIfAvailable(path: string): Promise<string | null> {
-  return (await pathExists(path)) ? path : null
+  return (await pathExistsLinux(path)) ? path : null
 }
 
 function getShellPath(shell: Shell): Promise<string | null> {
@@ -164,21 +164,25 @@ export function launch(
     case Shell.Terminator:
     case Shell.XFCE:
     case Shell.Alacritty:
-      return spawn(foundShell.path, ['--working-directory', path])
+      return spawnShell(foundShell.path, ['--working-directory', path])
     case Shell.Urxvt:
-      return spawn(foundShell.path, ['-cd', path])
+      return spawnShell(foundShell.path, ['-cd', path])
     case Shell.Konsole:
-      return spawn(foundShell.path, ['--workdir', path])
+      return spawnShell(foundShell.path, ['--workdir', path])
     case Shell.Xterm:
-      return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
+      return spawnShell(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
     case Shell.Terminology:
-      return spawn(foundShell.path, ['-d', path])
+      return spawnShell(foundShell.path, ['-d', path])
     case Shell.Deepin:
-      return spawn(foundShell.path, ['-w', path])
+      return spawnShell(foundShell.path, ['-w', path])
     case Shell.Elementary:
-      return spawn(foundShell.path, ['-w', path])
+      return spawnShell(foundShell.path, ['-w', path])
     case Shell.Kitty:
-      return spawn(foundShell.path, ['--single-instance', '--directory', path])
+      return spawnShell(foundShell.path, [
+        '--single-instance',
+        '--directory',
+        path,
+      ])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
