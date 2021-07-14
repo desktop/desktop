@@ -1,9 +1,10 @@
 import { ChildProcess } from 'child_process'
-import { pathExists } from 'fs-extra'
+import { pathExists as pathExistsDefault } from 'fs-extra'
 
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
 import * as Linux from './linux'
+import { pathExists as pathExistsLinux } from '../helpers/linux'
 import { IFoundShell } from './found-shell'
 import { ShellError } from './error'
 
@@ -69,6 +70,23 @@ export async function findShellOrDefault(shell: Shell): Promise<FoundShell> {
     return found
   } else {
     return available.find(s => s.shell === Default)!
+  }
+}
+
+/**
+ * Use a platform-specific pathExists based on the platform, to simplify changes
+ * to the application logic
+ *
+ * @param path the location of some program on disk
+ *
+ * @returns `true` if the path exists on disk, or `false` otherwise
+ *
+ */
+function pathExists(path: string) {
+  if (__LINUX__) {
+    return pathExistsLinux(path)
+  } else {
+    return pathExistsDefault(path)
   }
 }
 
