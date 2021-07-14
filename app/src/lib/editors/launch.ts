@@ -1,5 +1,5 @@
 import { spawn, SpawnOptions } from 'child_process'
-import { pathExists } from '../../ui/lib/path-exists'
+import { pathExists, spawnEditor } from '../helpers/linux'
 import { ExternalEditorError, FoundEditor } from './shared'
 
 /**
@@ -36,6 +36,8 @@ export async function launchExternalEditor(
       // In macOS we can use `open`, which will open the right executable file
       // for us, we only need the path to the editor .app folder.
       spawn('open', ['-a', editorPath, fullPath], opts)
+    } else if (__LINUX__) {
+      spawnEditor(editorPath, fullPath, opts)
     } else {
       spawn(editorPath, [fullPath], opts)
     }
