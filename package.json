@@ -171,7 +171,7 @@
     "@types/xml2js": "^0.4.0",
     "electron": "17.0.1",
     "electron-builder": "^22.9.1",
-    "electron-packager": "^15.2.0",
+    "electron-packager": "^15.4.0",
     "electron-winstaller": "^5.0.0",
     "jest-esm-transformer": "^1.0.0",
     "reserved-words": "^0.1.2",
