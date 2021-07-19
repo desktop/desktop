@@ -1,4 +1,7 @@
-import { convertToFlatpakPath } from '../../../src/lib/helpers/linux'
+import {
+  convertToFlatpakPath,
+  formatWorkingDirectoryForFlatpak,
+} from '../../../src/lib/helpers/linux'
 
 describe('convertToFlatpakPath()', () => {
   if (__LINUX__) {
@@ -25,6 +28,20 @@ describe('convertToFlatpakPath()', () => {
     it('returns same path', () => {
       const path = '/usr/local/bin/code'
       expect(convertToFlatpakPath(path)).toEqual(path)
+    })
+  }
+})
+
+describe('formatWorkingDirectoryForFlatpak()', () => {
+  if (__LINUX__) {
+    it('escapes string', () => {
+      const path = '/home/test/path with space'
+      const expectedPath = '/home/test/path with space'
+      expect(formatWorkingDirectoryForFlatpak(path)).toEqual(expectedPath)
+    })
+    it('returns same path', () => {
+      const path = '/home/test/path_wthout_spaces'
+      expect(formatWorkingDirectoryForFlatpak(path)).toEqual(path)
     })
   }
 })
