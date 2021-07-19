@@ -1124,7 +1124,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       // load initial group of commits for current branch
-      const commits = await gitStore.loadCommitBatch('HEAD')
+      const commits = await gitStore.loadCommitBatch('HEAD', 0)
 
       if (commits === null) {
         return
@@ -1275,9 +1275,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { formState } = state.compareState
     if (formState.kind === HistoryTabMode.History) {
       const commits = state.compareState.commitSHAs
-      const lastCommitSha = commits[commits.length - 1]
 
-      const newCommits = await gitStore.loadCommitBatch(`${lastCommitSha}^`)
+      const newCommits = await gitStore.loadCommitBatch('HEAD', commits.length)
       if (newCommits == null) {
         return
       }
