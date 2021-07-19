@@ -7,6 +7,7 @@ import {
   nativeTheme,
 } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
+import { join } from 'path'
 import { encodePathAsUrl } from '../lib/path'
 import {
   getWindowState,
@@ -74,6 +75,8 @@ export class AppWindow {
     } else if (__WIN32__) {
       windowOptions.frame = false
     } else if (__LINUX__) {
+      windowOptions.icon = join(__dirname, 'static', 'logos', '512x512.png')
+
       // relax restriction here for users trying to run app at a small
       // resolution and any other side-effects of dropping this restriction are
       // currently unsupported
