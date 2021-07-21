@@ -536,6 +536,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // If there is a currently open popup, don't do anything here. Since the
+    // app can only show one popup at a time, we don't want to close the current
+    // one in favor of the error we're about to show.
+    if (this.currentPopup !== null) {
+      return
+    }
+
     // If the token was invalidated for an account, sign out from that account
     this._removeAccount(account)
 
