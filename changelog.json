@@ -1,5 +1,17 @@
 {
   "releases": {
+    "2.9.1-beta1": [
+      "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
+      "[Fixed] History tab shows all commits as the user scrolls down - #12506 #3704",
+      "[Fixed] Show co-authors from undone commits - #12537",
+      "[Fixed] Change the diff gutter width based on number of lines in diff - #2102. Thanks @ADustyOldMuffin!",
+      "[Fixed] Enable 'Open in External Editor' for bat/cmd/sh/exe files - #6361. Thanks @AndreiMaga!",
+      "[Fixed] Green circle in progress dialog remains round when commits have long descriptions - #12594. Thanks @litetex!",
+      "[Fixed] Removed border of Repository and Branch foldouts in dark theme - #12478. Thanks @meJevin!",
+      "[Improved] Double-click an option when switching branches to quickly confirm how you want changed files to be handled - #12522. Thanks @j-f1!",
+      "[Improved] Use \"Recycle Bin\" name only on Windows - #12544. Thanks @shiftkey!",
+      "[Improved] Reduced time needed to make a commit - #12529"
+    ],
     "2.9.0": [
       "[New] Reorder commits with drag and drop in your commit history - #2507",
       "[New] Create a branch from any commit in your history - #3474",
