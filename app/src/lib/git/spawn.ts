@@ -101,7 +101,7 @@ export async function spawnAndComplete(
             // the process terminates
             const exitCodes = successExitCodes || new Set([0])
 
-            if (exitCodes.has(code) || signal) {
+            if (code !== null && (exitCodes.has(code) || signal)) {
               resolve({
                 output: stdout,
                 error: stderr,
