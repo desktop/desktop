@@ -13,6 +13,22 @@ const options: SpawnSyncOptions = {
   stdio: 'inherit',
 }
 
+/** Check if the caller has set the OFFLINe environment variable */
+function isOffline() {
+  return process.env.OFFLINE === '1'
+}
+
+/** Format the arguments to ensure these work offline */
+function getYarnArgs(baseArgs: Array<string>): Array<string> {
+  const args = baseArgs
+
+  if (isOffline()) {
+    args.splice(1, 0, '--offline')
+  }
+
+  return args
+}
+
 function findYarnVersion(callback: (path: string) => void) {
   glob('vendor/yarn-*.js', (error, files) => {
     if (error != null) {
@@ -28,27 +44,27 @@ function findYarnVersion(callback: (path: string) => void) {
 }
 
 findYarnVersion(path => {
-  let result = spawnSync(
-    'node',
-    [path, '--cwd', 'app', 'install', '--force'],
-    options
-  )
+  const installArgs = getYarnArgs([path, '--cwd', 'app', 'install', '--force'])
+
+  let result = spawnSync('node', installArgs, options)
 
   if (result.status !== 0) {
     process.exit(result.status || 1)
   }
 
-  result = spawnSync(
-    'git',
-    ['submodule', 'update', '--recursive', '--init'],
-    options
-  )
+  if (isOffline()) {
+    result = spawnSync(
+      'git',
+      ['submodule', 'update', '--recursive', '--init'],
+      options
+    )
 
-  if (result.status !== 0) {
-    process.exit(result.status || 1)
+    if (result.status !== 0) {
+      process.exit(result.status || 1)
+    }
   }
 
-  result = spawnSync('node', [path, 'compile:script'], options)
+  result = spawnSync('node', getYarnArgs([path, 'compile:script']), options)
 
   if (result.status !== 0) {
     process.exit(result.status || 1)
