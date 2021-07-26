@@ -13,8 +13,8 @@ interface IInvalidatedTokenResetProps {
 }
 
 /**
- * Dialog that alerts user that there are uncommitted changes in the working
- * directory where they are gonna be resetting to a previous commit.
+ * Dialog that alerts user that their GitHub (Enterprise) account token is not
+ * valid and they need to sign in again.
  */
 export class InvalidatedToken extends React.Component<
   IInvalidatedTokenResetProps
