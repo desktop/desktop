@@ -12,7 +12,7 @@ Write a clear and concise description of what the bug is.
 
 ### Version & OS
 
-Open the 'About GitHub Desktop' menu to see Desktop's version. Also include what operating system you are using.
+Open the 'About GitHub Desktop' menu to see the GitHub Desktop version. Also include what operating system you are using.
 
 ### Steps to reproduce the behavior
 
@@ -23,11 +23,11 @@ Open the 'About GitHub Desktop' menu to see Desktop's version. Also include what
 
 ### Expected behavior
 
-A clear and concise description of what you expected to happen.
+Write a clear and concise description of what you expected to happen.
 
 ### Actual behavior
 
-A clear and concise description of what actually happened.
+Write a clear and concise description of what actually happened.
 
 ### Screenshots
 

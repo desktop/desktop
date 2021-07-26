@@ -13,8 +13,8 @@ Write a clear and concise description of what the feature or problem is. If this
 
 ### Proposed solution
 
-How will it benefit Desktop and its users?
+Please share how this will it benefit Desktop and its users?
 
 ### Additional context
 
-Add any other context, like screenshots or mockups, if applicable.
+Please include any other context, like screenshots or mockups, if applicable.
