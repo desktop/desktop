@@ -13,6 +13,7 @@ import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
+import { Emitter } from 'event-kit'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -576,6 +577,18 @@ function toGitHubIsoDateString(date: Date) {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
+  private static readonly TOKEN_INVALIDATED_EVENT = 'token-invalidated'
+
+  private static readonly emitter = new Emitter()
+
+  public static onTokenInvalidated(callback: (endpoint: string) => void) {
+    API.emitter.on(API.TOKEN_INVALIDATED_EVENT, callback)
+  }
+
+  private static emitTokenInvalidated(endpoint: string) {
+    API.emitter.emit(API.TOKEN_INVALIDATED_EVENT, endpoint)
+  }
+
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
@@ -633,10 +646,11 @@ export class API {
     name: string,
     protocol: GitProtocol | undefined
   ): Promise<IAPIRepositoryCloneInfo | null> {
-    const response = await this.requestReloadCache(
-      'GET',
-      `repos/${owner}/${name}`
-    )
+    const response = await this.request('GET', `repos/${owner}/${name}`, {
+      // Make sure we don't run into cache issues when fetching the repositories,
+      // specially after repositories have been renamed.
+      reloadCache: true,
+    })
 
     if (response.status === HttpStatusCode.NotFound) {
       return null
@@ -715,9 +729,11 @@ export class API {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
       const response = await this.request('POST', apiPath, {
-        name,
-        description,
-        private: private_,
+        body: {
+          name,
+          description,
+          private: private_,
+        },
       })
 
       return await parsedResponse<IAPIFullRepository>(response)
@@ -918,7 +934,7 @@ export class API {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
 
-    const response = await this.request('GET', path, undefined, headers)
+    const response = await this.request('GET', path, { customHeaders: headers })
 
     try {
       return await parsedResponse<IAPIRefCheckRuns>(response)
@@ -950,7 +966,9 @@ export class API {
     }
 
     try {
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
       return await parsedResponse<IAPIPushControl>(response)
     } catch (err) {
       log.info(
@@ -1021,32 +1039,30 @@ export class API {
   }
 
   /** Make an authenticated request to the client's endpoint with its token. */
-  private request(
+  private async request(
     method: HTTPMethod,
     path: string,
-    body?: Object,
-    customHeaders?: Object
+    options: {
+      body?: Object
+      customHeaders?: Object
+      reloadCache?: boolean
+    } = {}
   ): Promise<Response> {
-    return request(this.endpoint, this.token, method, path, body, customHeaders)
-  }
-
-  /** Make an authenticated request to the client's endpoint with its token but
-   * skip checking cache while also updating cache. */
-  private requestReloadCache(
-    method: HTTPMethod,
-    path: string,
-    body?: Object,
-    customHeaders?: Object
-  ): Promise<Response> {
-    return request(
+    const response = await request(
       this.endpoint,
       this.token,
       method,
       path,
-      body,
-      customHeaders,
-      true
+      options.body,
+      options.customHeaders,
+      options.reloadCache
     )
+
+    if (response.status === 401) {
+      API.emitTokenInvalidated(this.endpoint)
+    }
+
+    return response
   }
 
   /**
@@ -1089,7 +1105,9 @@ export class API {
 
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
 
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchMentionables: '${path}' returned a 404`)

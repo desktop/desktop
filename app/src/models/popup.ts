@@ -74,6 +74,7 @@ export enum PopupType {
   MultiCommitOperation,
   WarnLocalChangesBeforeUndo,
   WarningBeforeReset,
+  InvalidatedToken,
 }
 
 export type Popup =
@@ -297,4 +298,8 @@ export type Popup =
       type: PopupType.WarningBeforeReset
       repository: Repository
       commit: Commit
+    }
+  | {
+      type: PopupType.InvalidatedToken
+      account: Account
     }

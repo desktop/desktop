@@ -1524,9 +1524,15 @@ export class Dispatcher {
   /**
    * Launch a sign in dialog for authenticating a user with
    * a GitHub Enterprise instance.
+   * Optionally, you can provide an endpoint URL.
    */
-  public async showEnterpriseSignInDialog(): Promise<void> {
+  public async showEnterpriseSignInDialog(endpoint?: string): Promise<void> {
     await this.appStore._beginEnterpriseSignIn()
+
+    if (endpoint !== undefined) {
+      await this.appStore._setSignInEndpoint(endpoint)
+    }
+
     await this.appStore._showPopup({ type: PopupType.SignIn })
   }
 
