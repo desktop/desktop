@@ -1,6 +1,7 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
+import { getSSHArguments } from './core'
 
 type ProcessOutput = {
   /** The contents of stdout received from the spawned process */
@@ -31,6 +32,8 @@ export function spawnAndComplete(
   successExitCodes?: Set<number>,
   stdOutMaxLength?: number
 ): Promise<ProcessOutput> {
+  args = [...getSSHArguments(), ...args]
+
   const commandName = `${name}: git ${args.join(' ')}`
   return GitPerf.measure(
     commandName,

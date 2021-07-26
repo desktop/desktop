@@ -131,6 +131,8 @@ export async function git(
   name: string,
   options?: IGitExecutionOptions
 ): Promise<IGitResult> {
+  args = [...getSSHArguments(), ...args]
+
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
     expectedErrors: new Set(),
@@ -473,6 +475,19 @@ export async function gitNetworkArguments(
 
   // opt in for v2 of the Git Wire protocol for GitHub repositories
   return [...baseArgs, '-c', 'protocol.version=2']
+}
+
+/**
+ * Returns the git arguments related to SSH depending on the current context
+ * (OS and user settings).
+ */
+export function getSSHArguments() {
+  if (!__WIN32__) {
+    return []
+  }
+
+  // Replace git sshCommand with Windows' OpenSSH executable path
+  return ['-c', 'core.sshCommand="C:\\Windows\\System32\\OpenSSH\\ssh.exe"']
 }
 
 /**
