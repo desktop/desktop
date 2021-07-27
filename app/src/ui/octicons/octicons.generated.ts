@@ -10,7 +10,7 @@ export type OcticonSymbolType = {
   readonly fr?: React.SVGAttributes<SVGElement>['fillRule']
 }
 
-export const alert = {
+export const alert: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -18,7 +18,7 @@ export const alert = {
   fr: 'evenodd',
 }
 
-export const archive = {
+export const archive: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -26,7 +26,7 @@ export const archive = {
   fr: 'evenodd',
 }
 
-export const arrowBoth = {
+export const arrowBoth: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -34,7 +34,7 @@ export const arrowBoth = {
   fr: 'evenodd',
 }
 
-export const arrowDown = {
+export const arrowDown: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -42,7 +42,7 @@ export const arrowDown = {
   fr: 'evenodd',
 }
 
-export const arrowDownLeft = {
+export const arrowDownLeft: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -50,7 +50,7 @@ export const arrowDownLeft = {
   fr: 'evenodd',
 }
 
-export const arrowDownRight = {
+export const arrowDownRight: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -58,7 +58,7 @@ export const arrowDownRight = {
   fr: 'evenodd',
 }
 
-export const arrowLeft = {
+export const arrowLeft: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -66,7 +66,7 @@ export const arrowLeft = {
   fr: 'evenodd',
 }
 
-export const arrowRight = {
+export const arrowRight: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -74,7 +74,7 @@ export const arrowRight = {
   fr: 'evenodd',
 }
 
-export const arrowUp = {
+export const arrowUp: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -82,7 +82,7 @@ export const arrowUp = {
   fr: 'evenodd',
 }
 
-export const arrowUpLeft = {
+export const arrowUpLeft: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -90,7 +90,7 @@ export const arrowUpLeft = {
   fr: 'evenodd',
 }
 
-export const arrowUpRight = {
+export const arrowUpRight: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -98,7 +98,7 @@ export const arrowUpRight = {
   fr: 'evenodd',
 }
 
-export const beaker = {
+export const beaker: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -106,7 +106,7 @@ export const beaker = {
   fr: 'evenodd',
 }
 
-export const bell = {
+export const bell: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -114,7 +114,7 @@ export const bell = {
   fr: undefined,
 }
 
-export const bellFill = {
+export const bellFill: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -122,7 +122,7 @@ export const bellFill = {
   fr: 'evenodd',
 }
 
-export const bellSlash = {
+export const bellSlash: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -130,7 +130,7 @@ export const bellSlash = {
   fr: 'evenodd',
 }
 
-export const bold = {
+export const bold: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -138,7 +138,7 @@ export const bold = {
   fr: 'evenodd',
 }
 
-export const book = {
+export const book: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -146,7 +146,7 @@ export const book = {
   fr: 'evenodd',
 }
 
-export const bookmark = {
+export const bookmark: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -154,7 +154,7 @@ export const bookmark = {
   fr: 'evenodd',
 }
 
-export const bookmarkFill = {
+export const bookmarkFill: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -162,7 +162,7 @@ export const bookmarkFill = {
   fr: 'evenodd',
 }
 
-export const bookmarkSlash = {
+export const bookmarkSlash: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -170,7 +170,7 @@ export const bookmarkSlash = {
   fr: 'evenodd',
 }
 
-export const bookmarkSlashFill = {
+export const bookmarkSlashFill: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -178,7 +178,7 @@ export const bookmarkSlashFill = {
   fr: 'evenodd',
 }
 
-export const briefcase = {
+export const briefcase: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -186,7 +186,7 @@ export const briefcase = {
   fr: 'evenodd',
 }
 
-export const broadcast = {
+export const broadcast: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -194,7 +194,7 @@ export const broadcast = {
   fr: 'evenodd',
 }
 
-export const browser = {
+export const browser: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -202,7 +202,7 @@ export const browser = {
   fr: 'evenodd',
 }
 
-export const bug = {
+export const bug: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -210,7 +210,7 @@ export const bug = {
   fr: 'evenodd',
 }
 
-export const calendar = {
+export const calendar: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -218,7 +218,7 @@ export const calendar = {
   fr: 'evenodd',
 }
 
-export const check = {
+export const check: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -226,7 +226,7 @@ export const check = {
   fr: 'evenodd',
 }
 
-export const checkCircle = {
+export const checkCircle: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -234,7 +234,7 @@ export const checkCircle = {
   fr: 'evenodd',
 }
 
-export const checkCircleFill = {
+export const checkCircleFill: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -242,7 +242,7 @@ export const checkCircleFill = {
   fr: 'evenodd',
 }
 
-export const checklist = {
+export const checklist: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -250,7 +250,7 @@ export const checklist = {
   fr: 'evenodd',
 }
 
-export const chevronDown = {
+export const chevronDown: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -258,7 +258,7 @@ export const chevronDown = {
   fr: 'evenodd',
 }
 
-export const chevronLeft = {
+export const chevronLeft: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -266,7 +266,7 @@ export const chevronLeft = {
   fr: 'evenodd',
 }
 
-export const chevronRight = {
+export const chevronRight: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -274,7 +274,7 @@ export const chevronRight = {
   fr: 'evenodd',
 }
 
-export const chevronUp = {
+export const chevronUp: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -282,7 +282,7 @@ export const chevronUp = {
   fr: 'evenodd',
 }
 
-export const circle = {
+export const circle: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -290,7 +290,7 @@ export const circle = {
   fr: 'evenodd',
 }
 
-export const circleSlash = {
+export const circleSlash: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -298,7 +298,7 @@ export const circleSlash = {
   fr: 'evenodd',
 }
 
-export const clippy = {
+export const clippy: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -306,7 +306,7 @@ export const clippy = {
   fr: 'evenodd',
 }
 
-export const clock = {
+export const clock: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -314,7 +314,7 @@ export const clock = {
   fr: 'evenodd',
 }
 
-export const code = {
+export const code: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -322,7 +322,7 @@ export const code = {
   fr: 'evenodd',
 }
 
-export const codeReview = {
+export const codeReview: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -330,7 +330,7 @@ export const codeReview = {
   fr: 'evenodd',
 }
 
-export const codeSquare = {
+export const codeSquare: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -338,7 +338,7 @@ export const codeSquare = {
   fr: 'evenodd',
 }
 
-export const comment = {
+export const comment: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -346,7 +346,7 @@ export const comment = {
   fr: 'evenodd',
 }
 
-export const commentDiscussion = {
+export const commentDiscussion: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -354,7 +354,7 @@ export const commentDiscussion = {
   fr: 'evenodd',
 }
 
-export const commit = {
+export const commit: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -362,7 +362,7 @@ export const commit = {
   fr: 'evenodd',
 }
 
-export const copy = {
+export const copy: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -370,7 +370,7 @@ export const copy = {
   fr: 'evenodd',
 }
 
-export const cpu = {
+export const cpu: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -378,14 +378,14 @@ export const cpu = {
   fr: 'evenodd',
 }
 
-export const creditCard = {
+export const creditCard: OcticonSymbolType = {
   w: 16,
   h: 16,
   d: 'M10.75 9a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5h-1.5z',
   fr: undefined,
 }
 
-export const crossReference = {
+export const crossReference: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -393,14 +393,14 @@ export const crossReference = {
   fr: 'evenodd',
 }
 
-export const dash = {
+export const dash: OcticonSymbolType = {
   w: 16,
   h: 16,
   d: 'M2 8a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H2.75A.75.75 0 012 8z',
   fr: 'evenodd',
 }
 
-export const database = {
+export const database: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -408,7 +408,7 @@ export const database = {
   fr: 'evenodd',
 }
 
-export const desktopDownload = {
+export const desktopDownload: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -416,7 +416,7 @@ export const desktopDownload = {
   fr: 'evenodd',
 }
 
-export const deviceCamera = {
+export const deviceCamera: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -424,7 +424,7 @@ export const deviceCamera = {
   fr: 'evenodd',
 }
 
-export const deviceCameraVideo = {
+export const deviceCameraVideo: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -432,7 +432,7 @@ export const deviceCameraVideo = {
   fr: 'evenodd',
 }
 
-export const deviceDesktop = {
+export const deviceDesktop: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -440,7 +440,7 @@ export const deviceDesktop = {
   fr: 'evenodd',
 }
 
-export const deviceMobile = {
+export const deviceMobile: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -448,7 +448,7 @@ export const deviceMobile = {
   fr: 'evenodd',
 }
 
-export const diff = {
+export const diff: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -456,7 +456,7 @@ export const diff = {
   fr: 'evenodd',
 }
 
-export const diffAdded = {
+export const diffAdded: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -464,7 +464,7 @@ export const diffAdded = {
   fr: 'evenodd',
 }
 
-export const diffIgnored = {
+export const diffIgnored: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -472,7 +472,7 @@ export const diffIgnored = {
   fr: 'evenodd',
 }
 
-export const diffModified = {
+export const diffModified: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -480,7 +480,7 @@ export const diffModified = {
   fr: 'evenodd',
 }
 
-export const diffRemoved = {
+export const diffRemoved: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -488,7 +488,7 @@ export const diffRemoved = {
   fr: 'evenodd',
 }
 
-export const diffRenamed = {
+export const diffRenamed: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -496,21 +496,21 @@ export const diffRenamed = {
   fr: 'evenodd',
 }
 
-export const dot = {
+export const dot: OcticonSymbolType = {
   w: 16,
   h: 16,
   d: 'M8 5.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM4 8a4 4 0 118 0 4 4 0 01-8 0z',
   fr: 'evenodd',
 }
 
-export const dotFill = {
+export const dotFill: OcticonSymbolType = {
   w: 16,
   h: 16,
   d: 'M8 4a4 4 0 100 8 4 4 0 000-8z',
   fr: 'evenodd',
 }
 
-export const download = {
+export const download: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -518,7 +518,7 @@ export const download = {
   fr: 'evenodd',
 }
 
-export const ellipsis = {
+export const ellipsis: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -526,7 +526,7 @@ export const ellipsis = {
   fr: 'evenodd',
 }
 
-export const eye = {
+export const eye: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -534,7 +534,7 @@ export const eye = {
   fr: 'evenodd',
 }
 
-export const eyeClosed = {
+export const eyeClosed: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -542,7 +542,7 @@ export const eyeClosed = {
   fr: 'evenodd',
 }
 
-export const eyeSlash = {
+export const eyeSlash: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -550,7 +550,7 @@ export const eyeSlash = {
   fr: undefined,
 }
 
-export const file = {
+export const file: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -558,7 +558,7 @@ export const file = {
   fr: 'evenodd',
 }
 
-export const fileBinary = {
+export const fileBinary: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -566,7 +566,7 @@ export const fileBinary = {
   fr: 'evenodd',
 }
 
-export const fileCode = {
+export const fileCode: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -574,7 +574,7 @@ export const fileCode = {
   fr: 'evenodd',
 }
 
-export const fileDiff = {
+export const fileDiff: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -582,7 +582,7 @@ export const fileDiff = {
   fr: 'evenodd',
 }
 
-export const fileDirectory = {
+export const fileDirectory: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -590,7 +590,7 @@ export const fileDirectory = {
   fr: 'evenodd',
 }
 
-export const fileDirectoryFill = {
+export const fileDirectoryFill: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -598,7 +598,7 @@ export const fileDirectoryFill = {
   fr: 'evenodd',
 }
 
-export const fileMedia = {
+export const fileMedia: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -606,7 +606,7 @@ export const fileMedia = {
   fr: 'evenodd',
 }
 
-export const fileSubmodule = {
+export const fileSubmodule: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -614,7 +614,7 @@ export const fileSubmodule = {
   fr: 'evenodd',
 }
 
-export const fileSymlink = {
+export const fileSymlink: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -622,7 +622,7 @@ export const fileSymlink = {
   fr: 'evenodd',
 }
 
-export const fileSymlinkFile = {
+export const fileSymlinkFile: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -630,7 +630,7 @@ export const fileSymlinkFile = {
   fr: 'evenodd',
 }
 
-export const fileZip = {
+export const fileZip: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -638,7 +638,7 @@ export const fileZip = {
   fr: 'evenodd',
 }
 
-export const filter = {
+export const filter: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -646,7 +646,7 @@ export const filter = {
   fr: 'evenodd',
 }
 
-export const fire = {
+export const fire: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -654,7 +654,7 @@ export const fire = {
   fr: 'evenodd',
 }
 
-export const flame = {
+export const flame: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -662,7 +662,7 @@ export const flame = {
   fr: 'evenodd',
 }
 
-export const fold = {
+export const fold: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -670,7 +670,7 @@ export const fold = {
   fr: 'evenodd',
 }
 
-export const foldDown = {
+export const foldDown: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -678,7 +678,7 @@ export const foldDown = {
   fr: 'evenodd',
 }
 
-export const foldUp = {
+export const foldUp: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -686,7 +686,7 @@ export const foldUp = {
   fr: 'evenodd',
 }
 
-export const gear = {
+export const gear: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -694,7 +694,7 @@ export const gear = {
   fr: 'evenodd',
 }
 
-export const gift = {
+export const gift: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -702,7 +702,7 @@ export const gift = {
   fr: 'evenodd',
 }
 
-export const gitBranch = {
+export const gitBranch: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -710,7 +710,7 @@ export const gitBranch = {
   fr: 'evenodd',
 }
 
-export const gitCommit = {
+export const gitCommit: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -718,7 +718,7 @@ export const gitCommit = {
   fr: 'evenodd',
 }
 
-export const gitCompare = {
+export const gitCompare: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -726,7 +726,7 @@ export const gitCompare = {
   fr: 'evenodd',
 }
 
-export const gitFork = {
+export const gitFork: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -734,7 +734,7 @@ export const gitFork = {
   fr: 'evenodd',
 }
 
-export const gitMerge = {
+export const gitMerge: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -742,7 +742,7 @@ export const gitMerge = {
   fr: 'evenodd',
 }
 
-export const gitPullRequest = {
+export const gitPullRequest: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -750,7 +750,7 @@ export const gitPullRequest = {
   fr: 'evenodd',
 }
 
-export const globe = {
+export const globe: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -758,7 +758,7 @@ export const globe = {
   fr: 'evenodd',
 }
 
-export const grabber = {
+export const grabber: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -766,7 +766,7 @@ export const grabber = {
   fr: 'evenodd',
 }
 
-export const graph = {
+export const graph: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -774,7 +774,7 @@ export const graph = {
   fr: 'evenodd',
 }
 
-export const heading = {
+export const heading: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -782,7 +782,7 @@ export const heading = {
   fr: 'evenodd',
 }
 
-export const heart = {
+export const heart: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -790,7 +790,7 @@ export const heart = {
   fr: 'evenodd',
 }
 
-export const heartFill = {
+export const heartFill: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -798,7 +798,7 @@ export const heartFill = {
   fr: 'evenodd',
 }
 
-export const history = {
+export const history: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -806,7 +806,7 @@ export const history = {
   fr: 'evenodd',
 }
 
-export const home = {
+export const home: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -814,7 +814,7 @@ export const home = {
   fr: 'evenodd',
 }
 
-export const homeFill = {
+export const homeFill: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -822,14 +822,14 @@ export const homeFill = {
   fr: undefined,
 }
 
-export const horizontalRule = {
+export const horizontalRule: OcticonSymbolType = {
   w: 16,
   h: 16,
   d: 'M0 7.75A.75.75 0 01.75 7h14.5a.75.75 0 010 1.5H.75A.75.75 0 010 7.75z',
   fr: 'evenodd',
 }
 
-export const hourglass = {
+export const hourglass: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -837,7 +837,7 @@ export const hourglass = {
   fr: 'evenodd',
 }
 
-export const hubot = {
+export const hubot: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -845,7 +845,7 @@ export const hubot = {
   fr: 'evenodd',
 }
 
-export const image = {
+export const image: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -853,7 +853,7 @@ export const image = {
   fr: 'evenodd',
 }
 
-export const inbox = {
+export const inbox: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -861,7 +861,7 @@ export const inbox = {
   fr: 'evenodd',
 }
 
-export const infinity = {
+export const infinity: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -869,7 +869,7 @@ export const infinity = {
   fr: 'evenodd',
 }
 
-export const info = {
+export const info: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -877,7 +877,7 @@ export const info = {
   fr: 'evenodd',
 }
 
-export const insights = {
+export const insights: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -885,7 +885,7 @@ export const insights = {
   fr: 'evenodd',
 }
 
-export const issueClosed = {
+export const issueClosed: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -893,7 +893,7 @@ export const issueClosed = {
   fr: 'evenodd',
 }
 
-export const issueOpened = {
+export const issueOpened: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -901,7 +901,7 @@ export const issueOpened = {
   fr: 'evenodd',
 }
 
-export const issueReopened = {
+export const issueReopened: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -909,7 +909,7 @@ export const issueReopened = {
   fr: 'evenodd',
 }
 
-export const italic = {
+export const italic: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -917,7 +917,7 @@ export const italic = {
   fr: 'evenodd',
 }
 
-export const kebabHorizontal = {
+export const kebabHorizontal: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -925,7 +925,7 @@ export const kebabHorizontal = {
   fr: undefined,
 }
 
-export const key = {
+export const key: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -933,7 +933,7 @@ export const key = {
   fr: 'evenodd',
 }
 
-export const law = {
+export const law: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -941,7 +941,7 @@ export const law = {
   fr: 'evenodd',
 }
 
-export const lightBulb = {
+export const lightBulb: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -949,7 +949,7 @@ export const lightBulb = {
   fr: 'evenodd',
 }
 
-export const link = {
+export const link: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -957,7 +957,7 @@ export const link = {
   fr: 'evenodd',
 }
 
-export const linkExternal = {
+export const linkExternal: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -965,7 +965,7 @@ export const linkExternal = {
   fr: 'evenodd',
 }
 
-export const listOrdered = {
+export const listOrdered: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -973,7 +973,7 @@ export const listOrdered = {
   fr: 'evenodd',
 }
 
-export const listUnordered = {
+export const listUnordered: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -981,7 +981,7 @@ export const listUnordered = {
   fr: 'evenodd',
 }
 
-export const location = {
+export const location: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -989,7 +989,7 @@ export const location = {
   fr: 'evenodd',
 }
 
-export const lock = {
+export const lock: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -997,7 +997,7 @@ export const lock = {
   fr: 'evenodd',
 }
 
-export const logoGist = {
+export const logoGist: OcticonSymbolType = {
   w: 25,
   h: 16,
   d:
@@ -1005,7 +1005,7 @@ export const logoGist = {
   fr: 'evenodd',
 }
 
-export const logoGithub = {
+export const logoGithub: OcticonSymbolType = {
   w: 45,
   h: 16,
   d:
@@ -1013,7 +1013,7 @@ export const logoGithub = {
   fr: 'evenodd',
 }
 
-export const mail = {
+export const mail: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1021,7 +1021,7 @@ export const mail = {
   fr: 'evenodd',
 }
 
-export const markGithub = {
+export const markGithub: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1029,7 +1029,7 @@ export const markGithub = {
   fr: 'evenodd',
 }
 
-export const markdown = {
+export const markdown: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1037,7 +1037,7 @@ export const markdown = {
   fr: 'evenodd',
 }
 
-export const megaphone = {
+export const megaphone: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1045,7 +1045,7 @@ export const megaphone = {
   fr: 'evenodd',
 }
 
-export const mention = {
+export const mention: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1053,7 +1053,7 @@ export const mention = {
   fr: 'evenodd',
 }
 
-export const meter = {
+export const meter: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1061,7 +1061,7 @@ export const meter = {
   fr: 'evenodd',
 }
 
-export const milestone = {
+export const milestone: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1069,7 +1069,7 @@ export const milestone = {
   fr: 'evenodd',
 }
 
-export const mirror = {
+export const mirror: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1077,7 +1077,7 @@ export const mirror = {
   fr: 'evenodd',
 }
 
-export const moon = {
+export const moon: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1085,7 +1085,7 @@ export const moon = {
   fr: 'evenodd',
 }
 
-export const mortarBoard = {
+export const mortarBoard: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1093,7 +1093,7 @@ export const mortarBoard = {
   fr: 'evenodd',
 }
 
-export const mute = {
+export const mute: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1101,7 +1101,7 @@ export const mute = {
   fr: 'evenodd',
 }
 
-export const noEntry = {
+export const noEntry: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1109,7 +1109,7 @@ export const noEntry = {
   fr: 'evenodd',
 }
 
-export const northStar = {
+export const northStar: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1117,7 +1117,7 @@ export const northStar = {
   fr: undefined,
 }
 
-export const note = {
+export const note: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1125,7 +1125,7 @@ export const note = {
   fr: 'evenodd',
 }
 
-export const octoface = {
+export const octoface: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1133,7 +1133,7 @@ export const octoface = {
   fr: 'evenodd',
 }
 
-export const organization = {
+export const organization: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1141,7 +1141,7 @@ export const organization = {
   fr: 'evenodd',
 }
 
-export const package_ = {
+export const package_: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1149,7 +1149,7 @@ export const package_ = {
   fr: 'evenodd',
 }
 
-export const packageDependencies = {
+export const packageDependencies: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1157,7 +1157,7 @@ export const packageDependencies = {
   fr: 'evenodd',
 }
 
-export const packageDependents = {
+export const packageDependents: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1165,7 +1165,7 @@ export const packageDependents = {
   fr: 'evenodd',
 }
 
-export const paintbrush = {
+export const paintbrush: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1173,7 +1173,7 @@ export const paintbrush = {
   fr: 'evenodd',
 }
 
-export const paperAirplane = {
+export const paperAirplane: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1181,7 +1181,7 @@ export const paperAirplane = {
   fr: 'evenodd',
 }
 
-export const pencil = {
+export const pencil: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1189,7 +1189,7 @@ export const pencil = {
   fr: 'evenodd',
 }
 
-export const people = {
+export const people: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1197,7 +1197,7 @@ export const people = {
   fr: 'evenodd',
 }
 
-export const person = {
+export const person: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1205,7 +1205,7 @@ export const person = {
   fr: 'evenodd',
 }
 
-export const pin = {
+export const pin: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1213,7 +1213,7 @@ export const pin = {
   fr: 'evenodd',
 }
 
-export const play = {
+export const play: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1221,7 +1221,7 @@ export const play = {
   fr: 'evenodd',
 }
 
-export const plug = {
+export const plug: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1229,7 +1229,7 @@ export const plug = {
   fr: 'evenodd',
 }
 
-export const plus = {
+export const plus: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1237,7 +1237,7 @@ export const plus = {
   fr: 'evenodd',
 }
 
-export const plusCircle = {
+export const plusCircle: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1245,7 +1245,7 @@ export const plusCircle = {
   fr: 'evenodd',
 }
 
-export const project = {
+export const project: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1253,7 +1253,7 @@ export const project = {
   fr: 'evenodd',
 }
 
-export const pulse = {
+export const pulse: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1261,7 +1261,7 @@ export const pulse = {
   fr: 'evenodd',
 }
 
-export const question = {
+export const question: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1269,7 +1269,7 @@ export const question = {
   fr: 'evenodd',
 }
 
-export const quote = {
+export const quote: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1277,7 +1277,7 @@ export const quote = {
   fr: 'evenodd',
 }
 
-export const reply = {
+export const reply: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1285,7 +1285,7 @@ export const reply = {
   fr: 'evenodd',
 }
 
-export const repo = {
+export const repo: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1293,7 +1293,7 @@ export const repo = {
   fr: 'evenodd',
 }
 
-export const repoClone = {
+export const repoClone: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1301,7 +1301,7 @@ export const repoClone = {
   fr: 'evenodd',
 }
 
-export const repoForked = {
+export const repoForked: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1309,7 +1309,7 @@ export const repoForked = {
   fr: 'evenodd',
 }
 
-export const repoPull = {
+export const repoPull: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1317,7 +1317,7 @@ export const repoPull = {
   fr: 'evenodd',
 }
 
-export const repoPush = {
+export const repoPush: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1325,7 +1325,7 @@ export const repoPush = {
   fr: 'evenodd',
 }
 
-export const repoTemplate = {
+export const repoTemplate: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1333,7 +1333,7 @@ export const repoTemplate = {
   fr: 'evenodd',
 }
 
-export const report = {
+export const report: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1341,7 +1341,7 @@ export const report = {
   fr: 'evenodd',
 }
 
-export const rocket = {
+export const rocket: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1349,7 +1349,7 @@ export const rocket = {
   fr: 'evenodd',
 }
 
-export const rss = {
+export const rss: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1357,7 +1357,7 @@ export const rss = {
   fr: 'evenodd',
 }
 
-export const ruby = {
+export const ruby: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1365,7 +1365,7 @@ export const ruby = {
   fr: 'evenodd',
 }
 
-export const screenFull = {
+export const screenFull: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1373,7 +1373,7 @@ export const screenFull = {
   fr: 'evenodd',
 }
 
-export const screenNormal = {
+export const screenNormal: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1381,7 +1381,7 @@ export const screenNormal = {
   fr: 'evenodd',
 }
 
-export const search = {
+export const search: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1389,7 +1389,7 @@ export const search = {
   fr: 'evenodd',
 }
 
-export const server = {
+export const server: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1397,7 +1397,7 @@ export const server = {
   fr: 'evenodd',
 }
 
-export const settings = {
+export const settings: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -1405,7 +1405,7 @@ export const settings = {
   fr: 'evenodd',
 }
 
-export const share = {
+export const share: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1413,7 +1413,7 @@ export const share = {
   fr: 'evenodd',
 }
 
-export const shareAndroid = {
+export const shareAndroid: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1421,7 +1421,7 @@ export const shareAndroid = {
   fr: 'evenodd',
 }
 
-export const shield = {
+export const shield: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1429,7 +1429,7 @@ export const shield = {
   fr: 'evenodd',
 }
 
-export const shieldCheck = {
+export const shieldCheck: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1437,7 +1437,7 @@ export const shieldCheck = {
   fr: 'evenodd',
 }
 
-export const shieldLock = {
+export const shieldLock: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1445,7 +1445,7 @@ export const shieldLock = {
   fr: 'evenodd',
 }
 
-export const shieldX = {
+export const shieldX: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1453,7 +1453,7 @@ export const shieldX = {
   fr: 'evenodd',
 }
 
-export const signIn = {
+export const signIn: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1461,7 +1461,7 @@ export const signIn = {
   fr: 'evenodd',
 }
 
-export const signOut = {
+export const signOut: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1469,7 +1469,7 @@ export const signOut = {
   fr: 'evenodd',
 }
 
-export const skip = {
+export const skip: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1477,7 +1477,7 @@ export const skip = {
   fr: 'evenodd',
 }
 
-export const smiley = {
+export const smiley: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1485,7 +1485,7 @@ export const smiley = {
   fr: 'evenodd',
 }
 
-export const square = {
+export const square: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1493,7 +1493,7 @@ export const square = {
   fr: 'evenodd',
 }
 
-export const squareFill = {
+export const squareFill: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1501,7 +1501,7 @@ export const squareFill = {
   fr: 'evenodd',
 }
 
-export const squirrel = {
+export const squirrel: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1509,7 +1509,7 @@ export const squirrel = {
   fr: 'evenodd',
 }
 
-export const star = {
+export const star: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1517,7 +1517,7 @@ export const star = {
   fr: 'evenodd',
 }
 
-export const starFill = {
+export const starFill: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1525,7 +1525,7 @@ export const starFill = {
   fr: 'evenodd',
 }
 
-export const stop = {
+export const stop: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1533,7 +1533,7 @@ export const stop = {
   fr: 'evenodd',
 }
 
-export const stopwatch = {
+export const stopwatch: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1541,7 +1541,7 @@ export const stopwatch = {
   fr: 'evenodd',
 }
 
-export const sun = {
+export const sun: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1549,7 +1549,7 @@ export const sun = {
   fr: 'evenodd',
 }
 
-export const sync = {
+export const sync: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1557,7 +1557,7 @@ export const sync = {
   fr: 'evenodd',
 }
 
-export const tab = {
+export const tab: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -1565,7 +1565,7 @@ export const tab = {
   fr: undefined,
 }
 
-export const tag = {
+export const tag: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1573,7 +1573,7 @@ export const tag = {
   fr: 'evenodd',
 }
 
-export const tasklist = {
+export const tasklist: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1581,7 +1581,7 @@ export const tasklist = {
   fr: 'evenodd',
 }
 
-export const telescope = {
+export const telescope: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1589,7 +1589,7 @@ export const telescope = {
   fr: 'evenodd',
 }
 
-export const terminal = {
+export const terminal: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1597,7 +1597,7 @@ export const terminal = {
   fr: 'evenodd',
 }
 
-export const threeBars = {
+export const threeBars: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1605,7 +1605,7 @@ export const threeBars = {
   fr: 'evenodd',
 }
 
-export const thumbsdown = {
+export const thumbsdown: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1613,7 +1613,7 @@ export const thumbsdown = {
   fr: 'evenodd',
 }
 
-export const thumbsup = {
+export const thumbsup: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1621,7 +1621,7 @@ export const thumbsup = {
   fr: 'evenodd',
 }
 
-export const tools = {
+export const tools: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1629,7 +1629,7 @@ export const tools = {
   fr: 'evenodd',
 }
 
-export const trash = {
+export const trash: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -1637,7 +1637,7 @@ export const trash = {
   fr: 'evenodd',
 }
 
-export const trashcan = {
+export const trashcan: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1645,7 +1645,7 @@ export const trashcan = {
   fr: 'evenodd',
 }
 
-export const triangleDown = {
+export const triangleDown: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1653,7 +1653,7 @@ export const triangleDown = {
   fr: undefined,
 }
 
-export const triangleLeft = {
+export const triangleLeft: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1661,7 +1661,7 @@ export const triangleLeft = {
   fr: undefined,
 }
 
-export const triangleRight = {
+export const triangleRight: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1669,7 +1669,7 @@ export const triangleRight = {
   fr: undefined,
 }
 
-export const triangleUp = {
+export const triangleUp: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1677,7 +1677,7 @@ export const triangleUp = {
   fr: undefined,
 }
 
-export const typography = {
+export const typography: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1685,7 +1685,7 @@ export const typography = {
   fr: 'evenodd',
 }
 
-export const unfold = {
+export const unfold: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1693,7 +1693,7 @@ export const unfold = {
   fr: 'evenodd',
 }
 
-export const unlock = {
+export const unlock: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1701,7 +1701,7 @@ export const unlock = {
   fr: 'evenodd',
 }
 
-export const unmute = {
+export const unmute: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1709,7 +1709,7 @@ export const unmute = {
   fr: 'evenodd',
 }
 
-export const unverifed = {
+export const unverifed: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -1717,7 +1717,7 @@ export const unverifed = {
   fr: undefined,
 }
 
-export const unverified = {
+export const unverified: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1725,7 +1725,7 @@ export const unverified = {
   fr: 'evenodd',
 }
 
-export const upload = {
+export const upload: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1733,7 +1733,7 @@ export const upload = {
   fr: 'evenodd',
 }
 
-export const verified = {
+export const verified: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1741,7 +1741,7 @@ export const verified = {
   fr: 'evenodd',
 }
 
-export const versions = {
+export const versions: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1749,7 +1749,7 @@ export const versions = {
   fr: 'evenodd',
 }
 
-export const workflow = {
+export const workflow: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1757,7 +1757,7 @@ export const workflow = {
   fr: 'evenodd',
 }
 
-export const x = {
+export const x: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
@@ -1765,7 +1765,7 @@ export const x = {
   fr: 'evenodd',
 }
 
-export const xCircle = {
+export const xCircle: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -1773,7 +1773,7 @@ export const xCircle = {
   fr: undefined,
 }
 
-export const xCircleFill = {
+export const xCircleFill: OcticonSymbolType = {
   w: 24,
   h: 24,
   d:
@@ -1781,7 +1781,7 @@ export const xCircleFill = {
   fr: 'evenodd',
 }
 
-export const zap = {
+export const zap: OcticonSymbolType = {
   w: 16,
   h: 16,
   d:
