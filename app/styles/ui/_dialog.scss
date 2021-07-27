@@ -1,8 +1,8 @@
 @import '../mixins';
 @import 'dialogs/merge';
-@import 'dialogs/merge-conflicts';
+@import 'dialogs/conflicts';
 @import 'dialogs/rebase';
-@import 'dialogs/rebase-progress';
+@import 'dialogs/progress-dialog';
 @import 'dialogs/abort-merge';
 @import 'dialogs/push-needs-pull';
 @import 'dialogs/publish-repository';
@@ -14,6 +14,10 @@
 @import 'dialogs/create-tutorial-repository';
 @import 'dialogs/create-fork';
 @import 'dialogs/fork-settings';
+@import 'dialogs/cherry-pick';
+@import 'dialogs/thank-you';
+@import 'dialogs/commit-message';
+@import 'dialogs/choose-branch';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -313,9 +317,20 @@ dialog {
       flex-shrink: 0;
       margin-right: var(--spacing);
     }
+
+    div {
+      overflow-wrap: break-word;
+      overflow-x: hidden;
+    }
   }
 
   &#app-error {
+    // Use wider dialogs for raw git errors, to make sure we can display lines
+    // up to 80 characters long without wrapping them.
+    &.raw-git-error {
+      max-width: 700px;
+    }
+
     .dialog-content {
       p {
         -webkit-user-select: text;
@@ -363,7 +378,8 @@ dialog {
     width: 400px;
   }
 
-  &#confirm-remove-repository {
+  &#confirm-remove-repository,
+  &#change-repository-alias {
     width: 450px;
 
     .description {

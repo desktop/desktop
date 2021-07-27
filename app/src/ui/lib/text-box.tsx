@@ -41,6 +41,9 @@ export interface ITextBoxProps {
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
+  /** Called when the Enter key is pressed in field of type search */
+  readonly onEnterPressed?: (text: string) => void
+
   /** The type of the input. Defaults to `text`. */
   readonly type?: 'text' | 'search' | 'password' | 'email'
 
@@ -91,6 +94,9 @@ export interface ITextBoxProps {
    * Callback used when the user has cleared the search text.
    */
   readonly onSearchCleared?: () => void
+
+  /** Indicates if input field applies spellcheck */
+  readonly spellcheck?: boolean
 }
 
 interface ITextBoxState {
@@ -138,6 +144,15 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     if (this.inputElement !== null) {
       this.inputElement.select()
     }
+  }
+
+  /** Determines if the contained text input element is currently focused. */
+  public get isFocused() {
+    return (
+      this.inputElement !== null &&
+      document.activeElement !== null &&
+      this.inputElement === document.activeElement
+    )
   }
 
   /**
@@ -259,6 +274,14 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           this.inputElement.blur()
         }
       }
+    } else if (
+      this.props.type === 'search' &&
+      event.key === 'Enter' &&
+      value !== undefined &&
+      value !== '' &&
+      this.props.onEnterPressed !== undefined
+    ) {
+      this.props.onEnterPressed(value)
     }
 
     if (this.props.onKeyDown !== undefined) {
@@ -288,6 +311,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
           onContextMenu={this.onContextMenu}
+          spellCheck={this.props.spellcheck === true}
         />
       </div>
     )

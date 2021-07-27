@@ -5,6 +5,7 @@
   overflow: hidden;
   flex-grow: 1;
   user-select: contain;
+  position: relative;
 
   &.selecting-before .after,
   &.selecting-after .before {
@@ -73,7 +74,7 @@
     }
 
     &.selectable {
-      span {
+      &.hoverable span {
         cursor: pointer;
       }
 
@@ -82,12 +83,43 @@
         color: var(--diff-selected-text-color);
         border-color: var(--diff-selected-border-color);
 
-        &:hover,
+        &.hoverable:hover,
         &.hover {
           background: var(--diff-hover-background-color);
           color: var(--diff-hover-text-color);
           border-color: var(--diff-hover-border-color);
         }
+      }
+    }
+  }
+
+  .row .hunk-expansion-handle {
+    width: var(--width-line-number);
+    flex-shrink: 0;
+    background: var(--diff-hunk-background-color);
+    color: var(--diff-hunk-text-color);
+    display: flex;
+    box-sizing: content-box;
+
+    span {
+      width: 100%;
+      height: 100%;
+      padding: 0 var(--spacing-half);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+    }
+
+    &.selectable.hoverable {
+      * {
+        cursor: pointer;
+      }
+
+      &:hover {
+        background: var(--diff-hover-background-color);
+        border-color: var(--diff-hover-border-color);
+        color: var(--diff-hover-text-color);
       }
     }
   }
@@ -98,7 +130,10 @@
     width: 20px;
     left: calc(50% - 10px);
     top: 0;
-    cursor: pointer;
+
+    &.hoverable {
+      cursor: pointer;
+    }
   }
 
   .content {
@@ -145,7 +180,7 @@
       border-color: var(--diff-delete-border-color);
     }
 
-    .selectable:hover,
+    .selectable.hoverable:hover,
     .selectable.hover {
       background: var(--diff-delete-hover-background-color);
       color: var(--diff-delete-hover-text-color);
@@ -162,7 +197,7 @@
       border-color: var(--diff-add-border-color);
     }
 
-    .selectable:hover,
+    .selectable.hoverable:hover,
     .selectable.hover {
       background: var(--diff-add-hover-background-color);
       color: var(--diff-add-hover-text-color);
@@ -179,6 +214,7 @@
     &.hunk-info {
       background: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
+      align-items: center;
 
       div,
       span {
@@ -232,7 +268,7 @@
     .row {
       .before,
       .after {
-        width: 100%;
+        width: 100% !important;
         border: none;
         flex-direction: row;
       }
@@ -266,6 +302,51 @@
 
     &.editable .row .line-number {
       border-right-width: 4px;
+    }
+  }
+
+  .diff-search {
+    position: absolute;
+    top: 0;
+    right: var(--spacing);
+    border: var(--base-border);
+    border-top: 0;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--spacing-half) var(--spacing);
+    box-shadow: var(--base-box-shadow);
+    z-index: var(--popup-z-index);
+    background: var(--background-color);
+
+    .text-box-component {
+      input {
+        border: 0;
+        box-shadow: none;
+
+        background: var(--box-background-color);
+        color: var(--text-color);
+        font-size: var(--font-size);
+        font-family: var(--font-family-sans-serif);
+        height: var(--text-field-height);
+        padding: 0;
+        width: 180px;
+
+        &:focus {
+          border: none;
+          outline: 0;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+
+  .cm-search-result {
+    // match codemirror for now
+    // https://github.com/codemirror/CodeMirror/blob/264022ee4af4abca1c158944dc299a8faf8696d6/lib/codemirror.css#L333
+    background-color: rgba(255, 255, 0, 0.4);
+
+    &.cm-selected {
+      background: Highlight;
+      color: HighlightText;
     }
   }
 }

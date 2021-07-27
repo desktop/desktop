@@ -140,7 +140,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
           selectedIndex={this.state.currentTab}
         >
           <span>GitHub.com</span>
-          <span>GitHub Enterprise Server</span>
+          <span>GitHub Enterprise</span>
         </TabBar>
 
         {currentTabState.error ? (
@@ -235,7 +235,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
             onAction={this.signInEnterprise}
           >
             <div>
-              If you have a GitHub Enterprise Server account at work, sign in to
+              If you have a GitHub Enterprise or AE account at work, sign in to
               it to get access to your repositories.
             </div>
           </CallToAction>

@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import appPath from 'app-path'
+import { parseEnumValue } from '../enum'
 
 export enum Shell {
   Terminal = 'Terminal',
@@ -15,31 +16,7 @@ export enum Shell {
 export const Default = Shell.Terminal
 
 export function parse(label: string): Shell {
-  if (label === Shell.Terminal) {
-    return Shell.Terminal
-  }
-
-  if (label === Shell.Hyper) {
-    return Shell.Hyper
-  }
-
-  if (label === Shell.iTerm2) {
-    return Shell.iTerm2
-  }
-
-  if (label === Shell.PowerShellCore) {
-    return Shell.PowerShellCore
-  }
-
-  if (label === Shell.Kitty) {
-    return Shell.Kitty
-  }
-
-  if (label === Shell.Alacritty) {
-    return Shell.Alacritty
-  }
-
-  return Default
+  return parseEnumValue(Shell, label) ?? Default
 }
 
 function getBundleID(shell: Shell): string {

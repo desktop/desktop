@@ -5,6 +5,7 @@ import {
   ConflictedFileStatus,
   ConflictsWithMarkers,
   ManualConflict,
+  GitStatusEntry,
 } from '../../../models/status'
 import { join } from 'path'
 import { Repository } from '../../../models/repository'
@@ -13,10 +14,7 @@ import { showContextualMenu } from '../../main-process-proxy'
 import { Octicon } from '../../octicons'
 import * as OcticonSymbol from '../../octicons/octicons.generated'
 import { PathText } from '../path-text'
-import {
-  ManualConflictResolutionKind,
-  ManualConflictResolution,
-} from '../../../models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
@@ -52,9 +50,11 @@ export const renderUnmergedFile: React.FunctionComponent<{
    *
    *  - for a merge, this is the tip of the repository
    *  - for a rebase, this is the base branch that commits are being applied on top
+   *  - for a cherry pick, this is the source branch that the commits come from
    *
-   * If the rebase is started outside Desktop, the details about this branch may
-   * not be known - the rendered component will handle this fine.
+   * If the rebase or cherry pick is started outside Desktop, the details about
+   * this branch may not be known - the rendered component will handle this
+   * fine.
    */
   readonly ourBranch?: string
   /**
@@ -62,6 +62,8 @@ export const renderUnmergedFile: React.FunctionComponent<{
    *
    *  - for a merge, this is be the branch being merged into the tip of the repository
    *  - for a rebase, this is the target branch that is having it's history rewritten
+   *  - for a cherrypick, this is the target branch that the commits are being
+   *    applied to.
    *
    * If the merge is started outside Desktop, the details about this branch may
    * not be known - the rendered component will handle this fine.
@@ -162,12 +164,28 @@ const renderManualConflictedFile: React.FunctionComponent<{
     props.ourBranch,
     props.theirBranch
   )
+  const { ourBranch, theirBranch } = props
+  const { entry } = props.status
+
+  let conflictTypeString = manualConflictString
+
+  if ([entry.us, entry.them].includes(GitStatusEntry.Deleted)) {
+    let targetBranch = 'target branch'
+    if (entry.us === GitStatusEntry.Deleted && ourBranch !== undefined) {
+      targetBranch = ourBranch
+    }
+
+    if (entry.them === GitStatusEntry.Deleted && theirBranch !== undefined) {
+      targetBranch = theirBranch
+    }
+    conflictTypeString = `File does not exist on ${targetBranch}.`
+  }
 
   const content = (
     <>
       <div className="column-left">
         <PathText path={props.path} />
-        <div className="file-conflicts-status">{manualConflictString}</div>
+        <div className="file-conflicts-status">{conflictTypeString}</div>
       </div>
       <div className="action-buttons">
         <Button
@@ -340,7 +358,7 @@ function getManualResolutionMenuItems(
         dispatcher.updateManualConflictResolution(
           repository,
           relativeFilePath,
-          ManualConflictResolutionKind.ours
+          ManualConflictResolution.ours
         ),
     },
 
@@ -350,7 +368,7 @@ function getManualResolutionMenuItems(
         dispatcher.updateManualConflictResolution(
           repository,
           relativeFilePath,
-          ManualConflictResolutionKind.theirs
+          ManualConflictResolution.theirs
         ),
     },
   ]
@@ -361,10 +379,10 @@ function resolvedFileStatusString(
   manualResolution?: ManualConflictResolution,
   branch?: string
 ): string {
-  if (manualResolution === ManualConflictResolutionKind.ours) {
+  if (manualResolution === ManualConflictResolution.ours) {
     return getUnmergedStatusEntryDescription(status.entry.us, branch)
   }
-  if (manualResolution === ManualConflictResolutionKind.theirs) {
+  if (manualResolution === ManualConflictResolution.theirs) {
     return getUnmergedStatusEntryDescription(status.entry.them, branch)
   }
   return 'No conflicts remaining'
@@ -414,10 +432,10 @@ function getBranchForResolution(
   ourBranch?: string,
   theirBranch?: string
 ): string | undefined {
-  if (manualResolution === ManualConflictResolutionKind.ours) {
+  if (manualResolution === ManualConflictResolution.ours) {
     return ourBranch
   }
-  if (manualResolution === ManualConflictResolutionKind.theirs) {
+  if (manualResolution === ManualConflictResolution.theirs) {
     return theirBranch
   }
   return undefined

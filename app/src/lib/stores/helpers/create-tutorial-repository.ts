@@ -11,7 +11,9 @@ import {
 import { git } from '../../git'
 import { friendlyEndpointName } from '../../friendly-endpoint-name'
 import { IRemote } from '../../../models/remote'
-import { envForRemoteOperation } from '../../git/environment'
+import { merge } from '../../merge'
+import { withTrampolineEnvForRemoteOperation } from '../../trampoline/trampoline-environment'
+import { getDefaultBranch } from '../../helpers/default-branch'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InitialReadmeContents =
@@ -63,15 +65,14 @@ async function pushRepo(
   path: string,
   account: Account,
   remote: IRemote,
+  remoteBranchName: string,
   progressCb: (title: string, value: number, description?: string) => void
 ) {
   const pushTitle = `Pushing repository to ${friendlyEndpointName(account)}`
   progressCb(pushTitle, 0)
 
   const pushOpts = await executionOptionsWithProgress(
-    {
-      env: await envForRemoteOperation(account, remote.url),
-    },
+    {},
     new PushProgressParser(),
     progress => {
       if (progress.kind === 'progress') {
@@ -80,8 +81,14 @@ async function pushRepo(
     }
   )
 
-  const args = ['push', '-u', remote.name, 'master']
-  await git(args, path, 'tutorial:push', pushOpts)
+  const args = ['push', '-u', remote.name, remoteBranchName]
+
+  await withTrampolineEnvForRemoteOperation(account, remote.url, env => {
+    return git(args, path, 'tutorial:push', {
+      ...pushOpts,
+      env: merge(pushOpts.env, env),
+    })
+  })
 }
 
 /**
@@ -113,30 +120,30 @@ export async function createTutorialRepository(
   }
 
   const repo = await createAPIRepository(account, name)
-
+  const branch = repo.default_branch ?? (await getDefaultBranch())
   progressCb('Initializing local repository', 0.2)
 
   await ensureDir(path)
-  await git(['init'], path, 'tutorial:init')
+
+  await git(
+    ['-c', `init.defaultBranch=${branch}`, 'init'],
+    path,
+    'tutorial:init'
+  )
 
   await writeFile(Path.join(path, 'README.md'), InitialReadmeContents)
 
   await git(['add', '--', 'README.md'], path, 'tutorial:add')
-  await git(
-    ['commit', '-m', 'Initial commit', '--', 'README.md'],
-    path,
-    'tutorial:commit'
-  )
+  await git(['commit', '-m', 'Initial commit'], path, 'tutorial:commit')
 
   const remote: IRemote = { name: 'origin', url: repo.clone_url }
-
   await git(
     ['remote', 'add', remote.name, remote.url],
     path,
     'tutorial:add-remote'
   )
 
-  await pushRepo(path, account, remote, (title, value, description) => {
+  await pushRepo(path, account, remote, branch, (title, value, description) => {
     progressCb(title, 0.3 + value * 0.6, description)
   })
 

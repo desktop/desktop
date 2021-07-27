@@ -21,11 +21,6 @@ function enableDevelopmentFeatures(): boolean {
   return false
 }
 
-/** Should we show progress bars on the Windows app taskbar icon? */
-export function enableProgressBarOnIcon(): boolean {
-  return enableBetaFeatures()
-}
-
 /** Should the app enable beta features? */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore: this will be used again in the future
@@ -47,90 +42,14 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
-/**
- * Should we show the create fork dialog flow?
- */
-export function enableCreateForkFlow(): boolean {
+/** Should the app show hide whitespace in changes tab */
+export function enableHideWhitespaceInDiffOption(): boolean {
   return true
 }
 
-/**
- * Whether or not to enable support for automatically resolving the
- * system-configured proxy url and passing that to Git.
- */
-export function enableAutomaticGitProxyConfiguration(): boolean {
+/** Should the app use the shiny new TCP-based trampoline? */
+export function enableDesktopTrampoline(): boolean {
   return true
-}
-
-/**
- * Should we show the "Create Issue on GitHub" item under
- * "Repository" in the app menu?
- */
-export function enableCreateGitHubIssueFromMenu(): boolean {
-  return true
-}
-
-/**
- * Should we update remote url if it has changed?
- */
-export function enableUpdateRemoteUrl(): boolean {
-  return true
-}
-
-/**
- * Should we show the fork-specific, "branch from the upstream
- * default branch" version of the create branch dialog?
- */
-export function enableForkyCreateBranchUI(): boolean {
-  return true
-}
-
-/**
- * Should we show the NDDB banner?
- *
- * (It's a notification in the history sidebar that there
- * are new commits upstream.)
- */
-export function enableNDDBBanner(): boolean {
-  return false
-}
-
-/**
- * Should we show the git tag information in the app UI?
- */
-export function enableGitTagsDisplay(): boolean {
-  return true
-}
-
-/**
- * Should we allow users to create git tags from the app?
- */
-export function enableGitTagsCreation(): boolean {
-  return true
-}
-
-/**
- * Should we show the dialogs to allow users customize which is the
- * main repository when opening a fork?
- */
-export function enableForkSettings(): boolean {
-  return true
-}
-
-/**
- * Should we show the discard lines/hunks context menu item?
- */
-export function enableDiscardLines(): boolean {
-  return true
-}
-
-/**
- * Should we show the checkbox to enable side by side diffs?
- *
- * Note: side by side diffs will use the new diff viewer.
- */
-export function enableSideBySideDiffs(): boolean {
-  return enableBetaFeatures()
 }
 
 /**
@@ -141,8 +60,65 @@ export function enableExperimentalDiffViewer(): boolean {
 }
 
 /**
- * Should we allow to change the default branch when creating new repositories?
+ * Should we allow reporting unhandled rejections as if they were crashes?
  */
-export function enableDefaultBranchSetting(): boolean {
+export function enableUnhandledRejectionReporting(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we allow expanding text diffs? */
+export function enableTextDiffExpansion(): boolean {
   return true
+}
+
+/**
+ * Should we allow x64 apps running under ARM translation to auto-update to
+ * ARM64 builds?
+ */
+export function enableUpdateFromEmulatedX64ToARM64(): boolean {
+  if (__DARWIN__) {
+    return true
+  }
+
+  return enableBetaFeatures()
+}
+
+/** Should we allow using the save dialog when choosing where to clone a repo */
+export function enableSaveDialogOnCloneRepository(): boolean {
+  return true
+}
+
+/** Should we allow setting repository aliases? */
+export function enableRepositoryAliases(): boolean {
+  return true
+}
+
+/** Should we allow to create branches from a commit? */
+export function enableBranchFromCommit(): boolean {
+  return true
+}
+
+/** Should we allow squashing? */
+export function enableSquashing(): boolean {
+  return true
+}
+
+/** Should we allow squash-merging? */
+export function enableSquashMerging(): boolean {
+  return true
+}
+
+/** Should we allow amending commits? */
+export function enableAmendingCommits(): boolean {
+  return true
+}
+
+/** Should we allow reordering commits? */
+export function enableCommitReordering(): boolean {
+  return true
+}
+
+/** Should we allow resetting to a previous commit? */
+export function enableResetToCommit(): boolean {
+  return enableDevelopmentFeatures()
 }

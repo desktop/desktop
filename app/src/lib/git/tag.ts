@@ -2,7 +2,7 @@ import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { IGitAccount } from '../../models/git-account'
 import { IRemote } from '../../models/remote'
-import { envForRemoteOperation } from './environment'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 
 /**
  * Create a new tag on the given target commit.
@@ -103,10 +103,16 @@ export async function fetchTagsToPush(
     '--porcelain',
   ]
 
-  const result = await git(args, repository.path, 'fetchTagsToPush', {
-    env: await envForRemoteOperation(account, remote.url),
-    successExitCodes: new Set([0, 1, 128]),
-  })
+  const result = await withTrampolineEnvForRemoteOperation(
+    account,
+    remote.url,
+    env => {
+      return git(args, repository.path, 'fetchTagsToPush', {
+        env,
+        successExitCodes: new Set([0, 1, 128]),
+      })
+    }
+  )
 
   if (result.exitCode !== 0 && result.exitCode !== 1) {
     // Only when the exit code of git is 0 or 1, its stdout is parseable.

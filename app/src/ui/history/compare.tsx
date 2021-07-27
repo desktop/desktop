@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
-import { Commit } from '../../models/commit'
+import { Commit, CommitOneLine, ICommitContext } from '../../models/commit'
 import {
   HistoryTabMode,
   ICompareState,
@@ -12,7 +11,7 @@ import {
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../dispatcher'
+import { defaultErrorHandler, Dispatcher } from '../dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
@@ -24,16 +23,15 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
-import {
-  NewCommitsBanner,
-  DismissalReason,
-} from '../notification/new-commits-banner'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
-import { assertNever } from '../../lib/fatal-error'
-import { enableNDDBBanner } from '../../lib/feature-flag'
-
-const DivergingBannerAnimationTimeout = 300
-
+import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
+import { DragType } from '../../models/drag-drop'
+import { PopupType } from '../../models/popup'
+import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
+import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
+import { doMergeCommitsExistAfterCommit } from '../../lib/git'
+import { enableCommitReordering } from '../../lib/feature-flag'
+import { DragAndDropIntroType } from './drag-and-drop-intro'
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
@@ -43,13 +41,21 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
-  readonly selectedCommitSha: string | null
+  readonly selectedCommitShas: ReadonlyArray<string>
   readonly onRevertCommit: (commit: Commit) => void
+  readonly onAmendCommit: () => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
+  readonly onCherryPick: (
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
+  readonly aheadBehindStore: AheadBehindStore
+  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
+  readonly isCherryPickInProgress: boolean
 }
 
 interface ICompareSidebarState {
@@ -59,12 +65,6 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
-
-  /**
-   * Flag that tracks whether the user interacted with one of the notification's
-   * "call to action" buttons
-   */
-  readonly hasConsumedNotification: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -83,17 +83,7 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    this.state = {
-      focusedBranch: null,
-      hasConsumedNotification: false,
-    }
-  }
-
-  public componentDidMount() {
-    this.props.dispatcher.setDivergingBranchNudgeVisibility(
-      this.props.repository,
-      false
-    )
+    this.state = { focusedBranch: null }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -157,15 +147,11 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { allBranches, filterText, showBranchList } = this.props.compareState
+    const { branches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
       <div id="compare-view">
-        {enableNDDBBanner() && (
-          <TransitionGroup>{this.renderNotificationBanner()}</TransitionGroup>
-        )}
-
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -173,7 +159,7 @@ export class CompareSidebar extends React.Component<
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
-            disabled={allBranches.length === 0}
+            disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
@@ -188,38 +174,6 @@ export class CompareSidebar extends React.Component<
 
   private onBranchesListRef = (branchList: BranchList | null) => {
     this.branchList = branchList
-  }
-
-  private renderNotificationBanner() {
-    const bannerState = this.props.compareState.divergingBranchBannerState
-
-    if (!bannerState.isPromptVisible || bannerState.isPromptDismissed) {
-      return null
-    }
-
-    const { inferredComparisonBranch } = this.props.compareState
-
-    return inferredComparisonBranch.branch !== null &&
-      inferredComparisonBranch.aheadBehind !== null &&
-      inferredComparisonBranch.aheadBehind.behind > 0 ? (
-      <CSSTransition
-        classNames="diverge-banner"
-        appear={true}
-        timeout={DivergingBannerAnimationTimeout}
-      >
-        <div className="diverge-banner-wrapper">
-          <NewCommitsBanner
-            dispatcher={this.props.dispatcher}
-            repository={this.props.repository}
-            commitsBehindBaseBranch={
-              inferredComparisonBranch.aheadBehind.behind
-            }
-            baseBranch={inferredComparisonBranch.branch}
-            onDismiss={this.onNotificationBannerDismissed}
-          />
-        </div>
-      </CSSTransition>
-    ) : null
   }
 
   private renderCommits() {
@@ -276,25 +230,92 @@ export class CompareSidebar extends React.Component<
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
-        selectedSHA={this.props.selectedCommitSha}
+        selectedSHAs={this.props.selectedCommitShas}
         localCommitSHAs={this.props.localCommitSHAs}
+        canResetToCommits={formState.kind === HistoryTabMode.History}
+        canUndoCommits={formState.kind === HistoryTabMode.History}
+        canAmendCommits={formState.kind === HistoryTabMode.History}
         emoji={this.props.emoji}
+        reorderingEnabled={
+          enableCommitReordering() && formState.kind === HistoryTabMode.History
+        }
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onUndoCommit={this.onUndoCommit}
+        onResetToCommit={this.onResetToCommit}
         onRevertCommit={
           ableToRevertCommit(this.props.compareState.formState)
             ? this.props.onRevertCommit
             : undefined
         }
-        onCommitSelected={this.onCommitSelected}
+        onAmendCommit={this.props.onAmendCommit}
+        onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
+        onCreateBranch={this.onCreateBranch}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
+        onCherryPick={this.onCherryPick}
+        onDropCommitInsertion={this.onDropCommitInsertion}
+        onSquash={this.onSquash}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
+        dragAndDropIntroTypesShown={this.props.dragAndDropIntroTypesShown}
+        onDragAndDropIntroSeen={this.onDragAndDropIntroSeen}
+        isCherryPickInProgress={this.props.isCherryPickInProgress}
+        onRenderCommitDragElement={this.onRenderCommitDragElement}
+        onRemoveCommitDragElement={this.onRemoveCommitDragElement}
+        disableSquashing={formState.kind === HistoryTabMode.Compare}
       />
     )
+  }
+
+  private onDropCommitInsertion = async (
+    baseCommit: Commit | null,
+    commitsToInsert: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ) => {
+    if (
+      await doMergeCommitsExistAfterCommit(
+        this.props.repository,
+        lastRetainedCommitRef
+      )
+    ) {
+      defaultErrorHandler(
+        new Error(
+          `Unable to reorder. Reordering replays all commits up to the last one required for the reorder. A merge commit cannot exist among those commits.`
+        ),
+        this.props.dispatcher
+      )
+      return
+    }
+
+    return this.props.dispatcher.reorderCommits(
+      this.props.repository,
+      commitsToInsert,
+      baseCommit,
+      lastRetainedCommitRef
+    )
+  }
+
+  private onRenderCommitDragElement = (
+    commit: Commit,
+    selectedCommits: ReadonlyArray<Commit>
+  ) => {
+    this.props.dispatcher.setDragElement({
+      type: DragType.Commit,
+      commit,
+      selectedCommits,
+      gitHubRepository: this.props.repository.gitHubRepository,
+    })
+  }
+
+  private onRemoveCommitDragElement = () => {
+    this.props.dispatcher.clearDragElement()
+  }
+
+  private onDragAndDropIntroSeen = (intro: DragAndDropIntroType) => {
+    this.props.dispatcher.markDragAndDropIntroAsSeen(intro)
   }
 
   private renderActiveTab(view: ICompareBranch) {
@@ -311,7 +332,7 @@ export class CompareSidebar extends React.Component<
   private renderFilterList() {
     const {
       defaultBranch,
-      allBranches,
+      branches,
       recentBranches,
       filterText,
     } = this.props.compareState
@@ -321,7 +342,7 @@ export class CompareSidebar extends React.Component<
         ref={this.onBranchesListRef}
         defaultBranch={defaultBranch}
         currentBranch={this.props.currentBranch}
-        allBranches={allBranches}
+        allBranches={branches}
         recentBranches={recentBranches}
         filterText={filterText}
         textbox={this.textbox!}
@@ -349,7 +370,6 @@ export class CompareSidebar extends React.Component<
         currentBranch={this.props.currentBranch}
         comparisonBranch={formState.comparisonBranch}
         commitsBehind={formState.aheadBehind.behind}
-        onMerged={this.onMerge}
       />
     )
   }
@@ -391,24 +411,13 @@ export class CompareSidebar extends React.Component<
     item: IBranchListItem,
     matches: IMatches
   ) => {
-    const currentBranch = this.props.currentBranch
-
-    const currentBranchName = currentBranch != null ? currentBranch.name : null
-    const branch = item.branch
-
-    const aheadBehind = currentBranch
-      ? this.props.compareState.aheadBehindCache.get(
-          currentBranch.tip.sha,
-          branch.tip.sha
-        )
-      : null
-
     return (
       <CompareBranchListItem
-        branch={branch}
-        isCurrentBranch={branch.name === currentBranchName}
+        branch={item.branch}
+        currentBranch={this.props.currentBranch}
         matches={matches}
-        aheadBehind={aheadBehind}
+        repository={this.props.repository}
+        aheadBehindStore={this.props.aheadBehindStore}
       />
     )
   }
@@ -462,10 +471,10 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onCommitSelected = (commit: Commit) => {
+  private onCommitsSelected = (commits: ReadonlyArray<Commit>) => {
     this.props.dispatcher.changeCommitSelection(
       this.props.repository,
-      commit.sha
+      commits.map(c => c.sha)
     )
 
     this.loadChangedFilesScheduler.queue(() => {
@@ -489,7 +498,7 @@ export class CompareSidebar extends React.Component<
     if (commits.length - end <= CloseToBottomThreshold) {
       if (this.loadingMoreCommitsPromise != null) {
         // as this callback fires for any scroll event we need to guard
-        // against re-entrant calls to loadNextHistoryBatch
+        // against re-entrant calls to loadCommitBatch
         return
       }
 
@@ -564,31 +573,6 @@ export class CompareSidebar extends React.Component<
     this.textbox = textbox
   }
 
-  private onNotificationBannerDismissed = (reason: DismissalReason) => {
-    if (reason === DismissalReason.Close) {
-      this.props.dispatcher.dismissDivergingBranchBanner(this.props.repository)
-    }
-    this.props.dispatcher.recordDivergingBranchBannerDismissal()
-
-    switch (reason) {
-      case DismissalReason.Close:
-        this.setState({ hasConsumedNotification: false })
-        break
-      case DismissalReason.Compare:
-      case DismissalReason.Merge:
-        this.setState({ hasConsumedNotification: true })
-        break
-      default:
-        assertNever(reason, 'Unknown reason')
-    }
-  }
-
-  private onMerge = () => {
-    if (this.state.hasConsumedNotification) {
-      this.props.dispatcher.recordDivergingBranchBannerInfluencedMerge()
-    }
-  }
-
   private onCreateTag = (targetCommitSha: string) => {
     this.props.dispatcher.showCreateTagDialog(
       this.props.repository,
@@ -597,15 +581,97 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private onUndoCommit = (commit: Commit) => {
+    this.props.dispatcher.undoCommit(this.props.repository, commit)
+  }
+
+  private onResetToCommit = (commit: Commit) => {
+    this.props.dispatcher.resetToCommit(this.props.repository, commit)
+  }
+
+  private onCreateBranch = (commit: CommitOneLine) => {
+    const { repository, dispatcher } = this.props
+
+    dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository,
+      targetCommit: commit,
+    })
+  }
+
   private onDeleteTag = (tagName: string) => {
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
+  }
+
+  private onCherryPick = (commits: ReadonlyArray<CommitOneLine>) => {
+    this.props.onCherryPick(this.props.repository, commits)
+  }
+
+  private onSquash = async (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string | null,
+    isInvokedByContextMenu: boolean
+  ) => {
+    const toSquashSansSquashOnto = toSquash.filter(
+      c => c.sha !== squashOnto.sha
+    )
+
+    const allCommitsInSquash = [...toSquashSansSquashOnto, squashOnto]
+    const coAuthors = getUniqueCoauthorsAsAuthors(allCommitsInSquash)
+
+    const squashedDescription = getSquashedCommitDescription(
+      toSquashSansSquashOnto,
+      squashOnto
+    )
+
+    if (
+      await doMergeCommitsExistAfterCommit(
+        this.props.repository,
+        lastRetainedCommitRef
+      )
+    ) {
+      defaultErrorHandler(
+        new Error(
+          `Unable to squash. Squashing replays all commits up to the last one required for the squash. A merge commit cannot exist among those commits.`
+        ),
+        this.props.dispatcher
+      )
+      return
+    }
+
+    this.props.dispatcher.recordSquashInvoked(isInvokedByContextMenu)
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.CommitMessage,
+      repository: this.props.repository,
+      coAuthors,
+      showCoAuthoredBy: coAuthors.length > 0,
+      commitMessage: {
+        summary: squashOnto.summary,
+        description: squashedDescription,
+      },
+      dialogTitle: `Squash ${allCommitsInSquash.length} Commits`,
+      dialogButtonText: `Squash ${allCommitsInSquash.length} Commits`,
+      prepopulateCommitSummary: true,
+      onSubmitCommitMessage: async (context: ICommitContext) => {
+        this.props.dispatcher.squash(
+          this.props.repository,
+          toSquashSansSquashOnto,
+          squashOnto,
+          lastRetainedCommitRef,
+          context
+        )
+        return true
+      },
+    })
   }
 }
 
 function getPlaceholderText(state: ICompareState) {
-  const { allBranches, formState } = state
+  const { branches, formState } = state
 
-  if (allBranches.length === 0) {
+  if (!branches.some(b => !b.isDesktopForkRemoteBranch)) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === HistoryTabMode.History) {
     return __DARWIN__

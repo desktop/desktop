@@ -1,6 +1,5 @@
 import { envForAuthentication } from './authentication'
 import { IGitAccount } from '../../models/git-account'
-import { enableAutomaticGitProxyConfiguration } from '../feature-flag'
 import { resolveGitProxy } from '../resolve-git-proxy'
 import { getDotComAPIEndpoint } from '../api'
 import { Repository } from '../../models/repository'
@@ -87,10 +86,6 @@ export async function envForProxy(
   env: NodeJS.ProcessEnv = process.env,
   resolve: (url: string) => Promise<string | undefined> = resolveGitProxy
 ): Promise<NodeJS.ProcessEnv | undefined> {
-  if (!enableAutomaticGitProxyConfiguration()) {
-    return
-  }
-
   const protocolMatch = /^(https?):\/\//i.exec(remoteUrl)
 
   // We can only resolve and use a proxy for the protocols where cURL

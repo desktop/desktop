@@ -8,6 +8,8 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
+import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
+import { DiffLineType } from '../../models/diff'
 
 /**
  * DiffRowType defines the different types of
@@ -45,11 +47,10 @@ export interface IDiffRowData {
   readonly lineNumber: number
 
   /**
-   * The line number on the diff.
-   * This is used for discarding lines
-   * and for partial committing lines.
+   * The line number on the original diff (without expansion).
+   * This is used for discarding lines and for partial committing lines.
    */
-  readonly diffLineNumber: number
+  readonly diffLineNumber: number | null
 
   /**
    * Flag to display that this diff line lacks a new line.
@@ -161,15 +162,14 @@ interface IDiffRowContext {
   readonly afterLineNumber: number
 
   /**
-   * Tokens to use to syntax highlight the contents of the line.
-   *
-   * TODO: It would be more resilient to have separate tokens for the
-   * before version and the after one, since the syntax highlighting
-   * depends on previous lines. That's currently not possible because an
-   * optimization done in getLineFilters() that avoids calculating
-   * the syntax highlighting of the after state of context lines.
+   * Tokens to use to syntax highlight the contents of the before version of the line.
    */
-  readonly tokens: ReadonlyArray<ILineTokens>
+  readonly beforeTokens: ReadonlyArray<ILineTokens>
+
+  /**
+   * Tokens to use to syntax highlight the contents of the after version of the line.
+   */
+  readonly afterTokens: ReadonlyArray<ILineTokens>
 }
 
 /**
@@ -182,6 +182,12 @@ interface IDiffRowHunk {
    * The actual contents of the line.
    */
   readonly content: string
+
+  /** How the hunk can be expanded. */
+  readonly expansionType: DiffHunkExpansionType
+
+  /** Index of the hunk in the diff. */
+  readonly hunkIndex: number
 }
 
 export type DiffRow =
@@ -346,4 +352,38 @@ export function canSelect(
   file: ChangedFile
 ): file is WorkingDirectoryFileChange {
   return file instanceof WorkingDirectoryFileChange
+}
+
+/** Gets the width in pixels of the diff line number gutter based on the number of digits in the number */
+export function getLineWidthFromDigitCount(digitAmount: number): number {
+  return Math.max(digitAmount, 3) * 10 + 5
+}
+
+/** Utility function for getting the digit count of the largest line number in an array of diff hunks */
+export function getLargestLineNumber(hunks: DiffHunk[]): number {
+  if (hunks.length === 0) {
+    return 0
+  }
+
+  for (let i = hunks.length - 1; i >= 0; i--) {
+    const hunk = hunks[i]
+
+    for (let j = hunk.lines.length - 1; j >= 0; j--) {
+      const line = hunk.lines[j]
+
+      if (line.type === DiffLineType.Hunk) {
+        continue
+      }
+
+      const newLineNumber = line.newLineNumber ?? 0
+      const oldLineNumber = line.oldLineNumber ?? 0
+      return newLineNumber > oldLineNumber ? newLineNumber : oldLineNumber
+    }
+  }
+
+  return 0
+}
+
+export function getNumberOfDigits(val: number): number {
+  return (Math.log(val) * Math.LOG10E + 1) | 0
 }
