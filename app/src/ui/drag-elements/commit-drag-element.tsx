@@ -7,7 +7,8 @@ import { Commit } from '../../models/commit'
 import { DragType, DropTarget, DropTargetType } from '../../models/drag-drop'
 import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface ICommitDragElementProps {
   readonly commit: Commit

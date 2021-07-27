@@ -54,6 +54,7 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 /** The longest line for which we'd try to calculate a line diff. */
