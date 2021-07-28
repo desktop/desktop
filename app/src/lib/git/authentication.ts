@@ -8,13 +8,16 @@ import { TrampolineCommandIdentifier } from '../trampoline/trampoline-command'
 
 /** Get the environment for authenticating remote operations. */
 export function envForAuthentication(auth: IGitAccount | null): Object {
+  const askPassPath = enableDesktopTrampoline()
+    ? getDesktopTrampolinePath()
+    : getAskPassTrampolinePath()
+
   const env = {
     DESKTOP_PATH: process.execPath,
     DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
     DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.AskPass,
-    GIT_ASKPASS: enableDesktopTrampoline()
-      ? getDesktopTrampolinePath()
-      : getAskPassTrampolinePath(),
+    GIT_ASKPASS: askPassPath,
+    SSH_ASKPASS: askPassPath,
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
     GIT_TERMINAL_PROMPT: '0',

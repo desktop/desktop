@@ -7,6 +7,11 @@ export const askpassTrampolineHandler: TrampolineCommandHandler = async command 
     return undefined
   }
 
+  if (command.parameters[0].startsWith('The authenticity of host ')) {
+    // FIXME: actually ask the user what to do with the host
+    return 'yes'
+  }
+
   const username = command.environmentVariables.get('DESKTOP_USERNAME')
   if (username === undefined || username.length === 0) {
     return undefined
