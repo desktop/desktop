@@ -1,7 +1,8 @@
 import classNames from 'classnames'
 import React from 'react'
 import { Button } from './lib/button'
-import { Octicon, OcticonSymbol } from './octicons'
+import { Octicon } from './octicons'
+import * as OcticonSymbol from './octicons/octicons.generated'
 
 export interface IDropdownSelectButtonOption {
   /** The select option header label. */
