@@ -31,6 +31,5 @@ export type MenuIDs =
   | 'clone-repository'
   | 'about'
   | 'create-pull-request'
-  | 'compare-to-branch'
   | 'toggle-stashed-changes'
   | 'create-issue-in-repository-on-github'

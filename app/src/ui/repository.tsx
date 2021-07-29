@@ -332,9 +332,9 @@ export class RepositoryView extends React.Component<
       sidebarHasFocusWithin === false &&
       this.props.state.selectedSection === RepositorySectionTab.History
     ) {
-      this.props.dispatcher.updateCompareForm(this.props.repository, {
-        showBranchList: false,
-      })
+      // this.props.dispatcher.updateCompareForm(this.props.repository, {
+      //   showBranchList: false,
+      // })
     }
   }
 
@@ -573,9 +573,9 @@ export class RepositoryView extends React.Component<
       section
     )
     if (!!section) {
-      this.props.dispatcher.updateCompareForm(this.props.repository, {
-        showBranchList: false,
-      })
+      // this.props.dispatcher.updateCompareForm(this.props.repository, {
+      //   showBranchList: false,
+      // })
     }
   }
 

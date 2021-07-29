@@ -382,12 +382,6 @@ export function buildDefaultMenu({
       click: emit('update-branch'),
     },
     {
-      label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
-      id: 'compare-to-branch',
-      accelerator: 'CmdOrCtrl+Shift+B',
-      click: emit('compare-to-branch'),
-    },
-    {
       label: __DARWIN__
         ? 'Merge into Current Branch…'
         : '&Merge into current branch…',

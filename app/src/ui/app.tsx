@@ -7,7 +7,6 @@ import {
   RepositorySectionTab,
   FoldoutType,
   SelectionType,
-  HistoryTabMode,
   ICherryPickState,
   isRebaseConflictState,
   isCherryPickConflictState,
@@ -384,8 +383,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'update-branch':
         this.props.dispatcher.recordMenuInitiatedUpdate()
         return this.updateBranch()
-      case 'compare-to-branch':
-        return this.showHistory(true)
       case 'merge-branch':
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
@@ -794,7 +791,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
-  private async showHistory(showBranchList: boolean = false) {
+  private async showHistory() {
     const state = this.state.selectedState
     if (state == null || state.type !== SelectionType.Repository) {
       return
@@ -802,9 +799,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     await this.props.dispatcher.closeCurrentFoldout()
 
-    await this.props.dispatcher.initializeCompare(state.repository, {
-      kind: HistoryTabMode.History,
-    })
+    await this.props.dispatcher.initializeCompare(state.repository)
 
     await this.props.dispatcher.changeRepositorySection(
       state.repository,
@@ -813,7 +808,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     await this.props.dispatcher.updateCompareForm(state.repository, {
       filterText: '',
-      showBranchList,
     })
   }
 
@@ -2859,9 +2853,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // we need to exit out of the compare state after the
     // branch has been deleted. Calling executeCompare allows
     // us to do just that.
-    this.props.dispatcher.executeCompare(repository, {
-      kind: HistoryTabMode.History,
-    })
+    this.props.dispatcher.executeCompare(repository)
   }
 
   private inNoRepositoriesViewState() {

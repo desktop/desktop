@@ -9,7 +9,6 @@ import {
 } from '../../models/status'
 import { TipState } from '../../models/tip'
 import {
-  HistoryTabMode,
   IBranchesState,
   IChangesState,
   ICompareState,
@@ -226,12 +225,8 @@ function getInitialRepositoryState(): IRepositoryState {
       rebasedBranches: new Map<string, string>(),
     },
     compareState: {
-      formState: {
-        kind: HistoryTabMode.History,
-      },
       tip: null,
       mergeStatus: null,
-      showBranchList: false,
       filterText: '',
       commitSHAs: [],
       branches: new Array<Branch>(),

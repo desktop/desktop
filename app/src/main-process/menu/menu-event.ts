@@ -17,7 +17,6 @@ export type MenuEvent =
   | 'choose-repository'
   | 'open-working-directory'
   | 'update-branch'
-  | 'compare-to-branch'
   | 'merge-branch'
   | 'squash-and-merge-branch'
   | 'rebase-branch'

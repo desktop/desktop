@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { HistoryTabMode } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
@@ -116,12 +115,9 @@ export class MergeCallToActionWithConflicts extends React.Component<
       selectedOption.value as MultiCommitOperationKind
     )
 
-    dispatcher.executeCompare(repository, {
-      kind: HistoryTabMode.History,
-    })
+    dispatcher.executeCompare(repository)
 
     dispatcher.updateCompareForm(repository, {
-      showBranchList: false,
       filterText: '',
     })
   }

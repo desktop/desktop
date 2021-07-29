@@ -8,7 +8,6 @@ import {
   AppFileStatusKind,
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
-import { HistoryTabMode, IDisplayHistory } from '../../src/lib/app-state'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 function createSamplePullRequest(gitHubRepository: GitHubRepository) {
@@ -96,19 +95,13 @@ describe('RepositoryStateCache', () => {
     const cache = new RepositoryStateCache()
 
     cache.updateCompareState(repository, () => {
-      const newState: IDisplayHistory = {
-        kind: HistoryTabMode.History,
-      }
-
       return {
-        formState: newState,
         filterText,
         commitSHAs: ['deadbeef'],
       }
     })
 
     const { compareState } = cache.get(repository)
-    expect(compareState.formState.kind).toBe(HistoryTabMode.History)
     expect(compareState.filterText).toBe(filterText)
     expect(compareState.commitSHAs).toHaveLength(1)
   })
