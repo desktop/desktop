@@ -1,7 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
 
-import { FileChange } from '../../models/status'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RichText } from '../lib/rich-text'
@@ -14,11 +13,12 @@ import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
 import { RepositorySectionTab } from '../../lib/app-state'
+import { IChangesetData } from '../../lib/git'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly commit: Commit
-  readonly files: ReadonlyArray<FileChange>
+  readonly files: IChangesetData
   readonly emoji: Map<string, string>
 
   /**
@@ -290,7 +290,7 @@ export class CommitSummary extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.files.length
+    const fileCount = this.props.files.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.commit.shortSha
@@ -353,6 +353,7 @@ export class CommitSummary extends React.Component<
 
               {filesDescription}
             </li>
+            {this.renderLinesChanged()}
             {this.renderTags()}
 
             <li
@@ -377,6 +378,42 @@ export class CommitSummary extends React.Component<
 
         {this.renderDescription()}
       </div>
+    )
+  }
+
+  private renderLinesChanged() {
+    const linesAdded = this.props.files.linesAdded
+    const linesDeleted = this.props.files.linesDeleted
+    if (linesAdded + linesDeleted === 0) {
+      return null
+    }
+
+    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
+    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
+    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
+    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
+
+    return (
+      <>
+        <li
+          className="commit-summary-meta-item without-truncation lines-added"
+          title={linesAddedTitle}
+        >
+          {/* <span aria-hidden="true">
+            <Octicon symbol={OcticonSymbol.plus} />
+          </span> */}
+          +{linesAdded}
+        </li>
+        <li
+          className="commit-summary-meta-item without-truncation lines-deleted"
+          title={linesDeletedTitle}
+        >
+          {/* <span aria-hidden="true">
+            <Octicon symbol={OcticonSymbol.dash} />
+          </span> */}
+          -{linesDeleted}
+        </li>
+      </>
     )
   }
 

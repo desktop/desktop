@@ -290,10 +290,9 @@ describe('git/rebase', () => {
 
       status = await getStatusOrThrow(repository)
 
-      filesInRebasedCommit = await getChangedFiles(
-        repository,
-        status.currentTip!
-      )
+      const changedFiles = await getChangedFiles(repository, status.currentTip!)
+
+      filesInRebasedCommit = changedFiles.files
     })
 
     it('returns success', () => {

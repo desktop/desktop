@@ -46,6 +46,7 @@ import {
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
 import { DragAndDropIntroType } from '../ui/history/drag-and-drop-intro'
+import { IChangesetData } from './git'
 
 export enum SelectionType {
   Repository,
@@ -574,7 +575,7 @@ export interface ICommitSelection {
   readonly shas: ReadonlyArray<string>
 
   /** The list of files associated with the current commit */
-  readonly changedFiles: ReadonlyArray<CommittedFileChange>
+  readonly changesetData: IChangesetData
 
   /** The selected file inside the selected commit */
   readonly file: CommittedFileChange | null

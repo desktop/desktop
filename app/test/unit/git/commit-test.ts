@@ -188,8 +188,8 @@ describe('git/commit', () => {
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository, newTip.sha)
-      expect(changedFiles.length).toEqual(1)
-      expect(changedFiles[0].path).toEqual(newFileName)
+      expect(changedFiles.files.length).toEqual(1)
+      expect(changedFiles.files[0].path).toEqual(newFileName)
 
       // verify that changes remain for this new file
       const status = await getStatusOrThrow(repository)
@@ -240,8 +240,8 @@ describe('git/commit', () => {
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository, newTip.sha)
-      expect(changedFiles.length).toEqual(1)
-      expect(changedFiles[0].path).toEqual(modifiedFile)
+      expect(changedFiles.files.length).toEqual(1)
+      expect(changedFiles.files[0].path).toEqual(modifiedFile)
 
       // verify that changes remain for this modified file
       const status = await getStatusOrThrow(repository)
@@ -295,8 +295,8 @@ describe('git/commit', () => {
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository, newTip.sha)
-      expect(changedFiles.length).toEqual(1)
-      expect(changedFiles[0].path).toEqual(fileName)
+      expect(changedFiles.files.length).toEqual(1)
+      expect(changedFiles.files[0].path).toEqual(fileName)
     })
 
     it('can commit multiple hunks from modified file', async () => {
@@ -341,8 +341,8 @@ describe('git/commit', () => {
 
       // verify that the contents of this new commit are just the modified file
       const changedFiles = await getChangedFiles(repository, newTip.sha)
-      expect(changedFiles.length).toEqual(1)
-      expect(changedFiles[0].path).toEqual(modifiedFile)
+      expect(changedFiles.files.length).toEqual(1)
+      expect(changedFiles.files[0].path).toEqual(modifiedFile)
 
       // verify that changes remain for this modified file
       const status = await getStatusOrThrow(repository)
@@ -383,8 +383,8 @@ describe('git/commit', () => {
 
       // verify that the contents of this new commit are just the new file
       const changedFiles = await getChangedFiles(repository, newTip.sha)
-      expect(changedFiles.length).toEqual(1)
-      expect(changedFiles[0].path).toEqual(deletedFile)
+      expect(changedFiles.files.length).toEqual(1)
+      expect(changedFiles.files[0].path).toEqual(deletedFile)
 
       // verify that changes remain for this new file
       const status = await getStatusOrThrow(repository)
@@ -839,9 +839,9 @@ describe('git/commit', () => {
 
       // Verify the file was delete in repo
       const changedFiles = await getChangedFiles(repo, afterCommit.currentTip!)
-      expect(changedFiles.length).toBe(2)
-      expect(changedFiles[0].status.kind).toBe(AppFileStatusKind.Modified)
-      expect(changedFiles[1].status.kind).toBe(AppFileStatusKind.Deleted)
+      expect(changedFiles.files.length).toBe(2)
+      expect(changedFiles.files[0].status.kind).toBe(AppFileStatusKind.Modified)
+      expect(changedFiles.files[1].status.kind).toBe(AppFileStatusKind.Deleted)
     })
   })
 })

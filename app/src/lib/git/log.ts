@@ -138,15 +138,27 @@ export async function getCommits(
   })
 }
 
+/** This interface contains information of a changeset. */
+export interface IChangesetData {
+  /** Files changed in the changeset. */
+  readonly files: ReadonlyArray<CommittedFileChange>
+
+  /** Number of lines added in the changeset. */
+  readonly linesAdded: number
+
+  /** Number of lines deleted in the changeset. */
+  readonly linesDeleted: number
+}
+
 /** Get the files that were changed in the given commit. */
 export async function getChangedFiles(
   repository: Repository,
   sha: string
-): Promise<ReadonlyArray<CommittedFileChange>> {
+): Promise<IChangesetData> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
-  const args = [
+  const baseArgs = [
     'log',
     sha,
     '-C',
@@ -155,14 +167,55 @@ export async function getChangedFiles(
     '-1',
     '--no-show-signature',
     '--first-parent',
-    '--name-status',
     '--format=format:',
     '-z',
-    '--',
   ]
-  const result = await git(args, repository.path, 'getChangedFiles')
+  const resultNameStatus = await git(
+    [...baseArgs, '--name-status', '--'],
+    repository.path,
+    'getChangedFilesNameStatus'
+  )
 
-  return parseChangedFiles(result.stdout, sha)
+  const files = parseChangedFiles(resultNameStatus.stdout, sha)
+
+  const resultNumStat = await git(
+    [...baseArgs, '--numstat', '--'],
+    repository.path,
+    'getChangedFilesNumStats'
+  )
+
+  const linesChanged = parseChangedFilesNumStat(resultNumStat.stdout)
+
+  return {
+    files,
+    ...linesChanged,
+  }
+}
+
+function parseChangedFilesNumStat(
+  stdout: string
+): { linesAdded: number; linesDeleted: number } {
+  const lines = stdout.split('\0')
+  let totalLinesAdded = 0
+  let totalLinesDeleted = 0
+
+  for (const line of lines) {
+    const parts = line.split('\t')
+    if (parts.length !== 3) {
+      continue
+    }
+
+    const [added, deleted] = parts
+
+    if (added === '-' || deleted === '-') {
+      continue
+    }
+
+    totalLinesAdded += parseInt(added, 10)
+    totalLinesDeleted += parseInt(deleted, 10)
+  }
+
+  return { linesAdded: totalLinesAdded, linesDeleted: totalLinesDeleted }
 }
 
 /**
