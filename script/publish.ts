@@ -25,7 +25,7 @@ if (!currentTipSHA.toUpperCase().startsWith(releaseSHA!.toUpperCase())) {
 
 import * as Fs from 'fs'
 import { execSync } from 'child_process'
-import * as AWS from 'aws-sdk'
+import * as Azure from 'azure-storage'
 import * as Crypto from 'crypto'
 import request from 'request'
 
@@ -118,30 +118,25 @@ interface IUploadResult {
 }
 
 function upload(assetName: string, assetPath: string) {
-  const s3Info = {
-    accessKeyId: process.env.S3_KEY,
-    secretAccessKey: process.env.S3_SECRET,
-  }
-  const s3 = new AWS.S3(s3Info)
+  const azureBlobService = getAzureBlobService()
 
-  const bucket = process.env.S3_BUCKET || ''
-  const key = `releases/${packageInfo.getVersion()}-${sha}/${assetName.replace(
-    / /g,
-    ''
-  )}`
-  const url = `https://s3.amazonaws.com/${bucket}/${key}`
-
-  const uploadParams = {
-    Bucket: bucket,
-    ACL: 'public-read',
-    Key: key,
-    Body: Fs.createReadStream(assetPath),
+  if (azureBlobService === null) {
+    throw new Error(
+      'Unable to obtain an azure blob service. Deployment aborting...'
+    )
   }
+
+  const container = process.env.AZURE_BLOB_CONTAINER || ''
+  const cleanAssetName = assetName.replace(/ /g, '')
+  const blob = `releases/${packageInfo.getVersion()}-${sha}/${cleanAssetName}`
+  const url = `${process.env.AZURE_STORAGE_URL}/${container}/${blob}`
 
   return new Promise<IUploadResult>((resolve, reject) => {
-    s3.upload(
-      uploadParams,
-      (error: Error, data: AWS.S3.ManagedUpload.SendData) => {
+    azureBlobService.createBlockBlobFromLocalFile(
+      container,
+      blob,
+      assetPath,
+      (error, result, response) => {
         if (error != null) {
           reject(error)
         } else {
@@ -151,9 +146,16 @@ function upload(assetName: string, assetPath: string) {
           hash.setEncoding('hex')
           const input = Fs.createReadStream(assetPath)
 
+          const uploadResult: IUploadResult = {
+            name: assetName,
+            url,
+            size: stats['size'],
+            sha: '',
+          }
+
           hash.on('finish', () => {
-            const sha = hash.read() as string
-            resolve({ name: assetName, url, size: stats['size'], sha })
+            uploadResult.sha = hash.read() as string
+            resolve(uploadResult)
           })
 
           input.pipe(hash)
@@ -161,6 +163,37 @@ function upload(assetName: string, assetPath: string) {
       }
     )
   })
+}
+
+function getAzureBlobService(): Azure.BlobService | null {
+  if (
+    process.env.AZURE_STORAGE_ACCOUNT === undefined ||
+    process.env.AZURE_STORAGE_ACCESS_KEY === undefined ||
+    process.env.AZURE_BLOB_CONTAINER === undefined
+  ) {
+    console.error('Invalid azure storage credentials')
+    return null
+  }
+
+  const blobService = Azure.createBlobService(
+    process.env.AZURE_STORAGE_ACCOUNT,
+    process.env.AZURE_STORAGE_ACCESS_KEY
+  )
+
+  blobService.createContainerIfNotExists(
+    process.env.AZURE_BLOB_CONTAINER,
+    {
+      publicAccessLevel: 'blob',
+    },
+    error => {
+      if (error !== undefined) {
+        console.error(
+          `Unable to ensure azure blob container - ${process.env.AZURE_BLOB_CONTAINER}`
+        )
+      }
+    }
+  )
+  return blobService
 }
 
 function createSignature(body: any, secret: string) {
