@@ -146,16 +146,13 @@ function upload(assetName: string, assetPath: string) {
           hash.setEncoding('hex')
           const input = Fs.createReadStream(assetPath)
 
-          const uploadResult: IUploadResult = {
-            name: assetName,
-            url,
-            size: stats['size'],
-            sha: '',
-          }
-
           hash.on('finish', () => {
-            uploadResult.sha = hash.read() as string
-            resolve(uploadResult)
+            resolve({
+              name: assetName,
+              url,
+              size: stats['size'],
+              sha: hash.read() as string,
+            })
           })
 
           input.pipe(hash)
