@@ -399,18 +399,12 @@ export class CommitSummary extends React.Component<
           className="commit-summary-meta-item without-truncation lines-added"
           title={linesAddedTitle}
         >
-          {/* <span aria-hidden="true">
-            <Octicon symbol={OcticonSymbol.plus} />
-          </span> */}
           +{linesAdded}
         </li>
         <li
           className="commit-summary-meta-item without-truncation lines-deleted"
           title={linesDeletedTitle}
         >
-          {/* <span aria-hidden="true">
-            <Octicon symbol={OcticonSymbol.dash} />
-          </span> */}
           -{linesDeleted}
         </li>
       </>
