@@ -119,13 +119,6 @@ interface IUploadResult {
 
 async function upload(assetName: string, assetPath: string) {
   const azureBlobService = await getAzureBlobService()
-
-  if (azureBlobService === null) {
-    throw new Error(
-      'Unable to obtain an azure blob service. Deployment aborting...'
-    )
-  }
-
   const container = process.env.AZURE_BLOB_CONTAINER || ''
   const cleanAssetName = assetName.replace(/ /g, '')
   const blob = `releases/${packageInfo.getVersion()}-${sha}/${cleanAssetName}`
