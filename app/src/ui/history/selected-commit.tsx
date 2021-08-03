@@ -161,7 +161,7 @@ export class SelectedCommit extends React.Component<
     return (
       <CommitSummary
         commit={commit}
-        files={this.props.changesetData}
+        changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
         onExpandChanged={this.onExpandChanged}

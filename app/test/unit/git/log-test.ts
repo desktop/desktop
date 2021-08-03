@@ -61,13 +61,13 @@ describe('git/log', () => {
 
   describe('getChangedFiles', () => {
     it('loads the files changed in the commit', async () => {
-      const changedFiles = await getChangedFiles(
+      const changesetData = await getChangedFiles(
         repository,
         '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c'
       )
-      expect(changedFiles.files).toHaveLength(1)
-      expect(changedFiles.files[0].path).toBe('README.md')
-      expect(changedFiles.files[0].status.kind).toBe(AppFileStatusKind.New)
+      expect(changesetData.files).toHaveLength(1)
+      expect(changesetData.files[0].path).toBe('README.md')
+      expect(changesetData.files[0].status.kind).toBe(AppFileStatusKind.New)
     })
 
     it('detects renames', async () => {
@@ -104,27 +104,29 @@ describe('git/log', () => {
       // ensure the test repository is configured to detect copies
       await setupLocalConfig(repository, [['diff.renames', 'copies']])
 
-      const changedFiles = await getChangedFiles(repository, 'a500bf415')
-      expect(changedFiles.files).toHaveLength(2)
+      const changesetData = await getChangedFiles(repository, 'a500bf415')
+      expect(changesetData.files).toHaveLength(2)
 
-      expect(changedFiles.files[0].path).toBe('duplicate-with-edits.md')
-      expect(changedFiles.files[0].status).toEqual({
+      expect(changesetData.files[0].path).toBe('duplicate-with-edits.md')
+      expect(changesetData.files[0].status).toEqual({
         kind: AppFileStatusKind.Copied,
         oldPath: 'initial.md',
       })
 
-      expect(changedFiles.files[1].path).toBe('duplicate.md')
-      expect(changedFiles.files[1].status).toEqual({
+      expect(changesetData.files[1].path).toBe('duplicate.md')
+      expect(changesetData.files[1].status).toEqual({
         kind: AppFileStatusKind.Copied,
         oldPath: 'initial.md',
       })
     })
 
     it('handles commit when HEAD exists on disk', async () => {
-      const changedFiles = await getChangedFiles(repository, 'HEAD')
-      expect(changedFiles.files).toHaveLength(1)
-      expect(changedFiles.files[0].path).toBe('README.md')
-      expect(changedFiles.files[0].status.kind).toBe(AppFileStatusKind.Modified)
+      const changesetData = await getChangedFiles(repository, 'HEAD')
+      expect(changesetData.files).toHaveLength(1)
+      expect(changesetData.files[0].path).toBe('README.md')
+      expect(changesetData.files[0].status.kind).toBe(
+        AppFileStatusKind.Modified
+      )
     })
   })
 })

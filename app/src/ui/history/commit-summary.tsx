@@ -18,7 +18,7 @@ import { IChangesetData } from '../../lib/git'
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly commit: Commit
-  readonly files: IChangesetData
+  readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
   /**
@@ -290,7 +290,7 @@ export class CommitSummary extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.files.files.length
+    const fileCount = this.props.changesetData.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.commit.shortSha
@@ -382,8 +382,8 @@ export class CommitSummary extends React.Component<
   }
 
   private renderLinesChanged() {
-    const linesAdded = this.props.files.linesAdded
-    const linesDeleted = this.props.files.linesDeleted
+    const linesAdded = this.props.changesetData.linesAdded
+    const linesDeleted = this.props.changesetData.linesDeleted
     if (linesAdded + linesDeleted === 0) {
       return null
     }
