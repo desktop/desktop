@@ -146,6 +146,7 @@ import {
   MultiCommitOperationKind,
   MultiCommitOperationStepKind,
 } from '../models/multi-commit-operation'
+import { AddSSHHost } from './ssh/add-ssh-host'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2080,6 +2081,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="invalidated-token"
             dispatcher={this.props.dispatcher}
             account={popup.account}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.AddSSHHost: {
+        return (
+          <AddSSHHost
+            key="add-ssh-host"
+            message={popup.message}
+            onSubmit={popup.onSubmit}
             onDismissed={onPopupDismissedFn}
           />
         )

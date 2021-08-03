@@ -1,10 +1,5 @@
+import { PopupType } from '../../models/popup'
 import { Dispatcher } from '../../ui/dispatcher'
-
-enum AddSSHHostPreference {
-  YES = 'yes',
-  NO = 'no',
-  PERMANENT = 'permanent',
-}
 
 class TrampolineUIHelper {
   // The dispatcher must be set before this helper can do anything
@@ -14,13 +9,12 @@ class TrampolineUIHelper {
     this.dispatcher = dispatcher
   }
 
-  public promptAddingSSHHost(message: string): Promise<AddSSHHostPreference> {
-    return new Promise((resolve, reject) => {
+  public promptAddingSSHHost(message: string): Promise<boolean> {
+    return new Promise(resolve => {
       this.dispatcher.showPopup({
-        type: 'input',
-        title: 'Add SSH Host',
+        type: PopupType.AddSSHHost,
         message,
-        input: '',
+        onSubmit: resolve,
       })
     })
   }
