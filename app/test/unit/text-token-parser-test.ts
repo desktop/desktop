@@ -381,18 +381,18 @@ This fixes https://github.com/shiftkey/some-repo/issues/1034
 Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
 
       const expectedBefore = `Note: we keep a "denylist" of authentication methods for which we do
-not want to enable http.emptyAuth automatically. An allowlist would be
-nicer, but less robust, as we want to support linking to several cURL
-versions and the list of authentication methods (as well as their names)
-changed over time.
-
-[jes: actually added the "auto" handling, excluded Digest, too]
-
-This fixes `
+ not want to enable http.emptyAuth automatically. An allowlist would be
+ nicer, but less robust, as we want to support linking to several cURL
+ versions and the list of authentication methods (as well as their names)
+ changed over time.
+ 
+ [jes: actually added the "auto" handling, excluded Digest, too]
+ 
+ This fixes `
 
       const expectedAfter = `
-
-Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
+ 
+ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
 
       const tokenizer = new Tokenizer(emoji, repository)
       const results = tokenizer.tokenize(text)
