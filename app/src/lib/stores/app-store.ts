@@ -1015,7 +1015,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas: [],
       file: null,
-      changedFiles: [],
+      changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
     }))
   }
@@ -1037,7 +1037,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas,
       file: null,
-      changedFiles: [],
+      changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
     }))
 
@@ -1326,10 +1326,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    const changedFiles = await gitStore.performFailableOperation(() =>
+    const changesetData = await gitStore.performFailableOperation(() =>
       getChangedFiles(repository, currentSHAs[0])
     )
-    if (!changedFiles) {
+    if (!changesetData) {
       return
     }
 
@@ -1349,13 +1349,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const noFileSelected = commitSelection.file === null
 
     const firstFileOrDefault =
-      noFileSelected && changedFiles.length
-        ? changedFiles[0]
+      noFileSelected && changesetData.files.length
+        ? changesetData.files[0]
         : commitSelection.file
 
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       file: firstFileOrDefault,
-      changedFiles,
+      changesetData,
       diff: null,
     }))
 

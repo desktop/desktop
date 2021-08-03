@@ -377,7 +377,7 @@ export class RepositoryView extends React.Component<
     const selectedCommit =
       sha != null ? this.props.state.commitLookup.get(sha) || null : null
 
-    const { changedFiles, file, diff } = commitSelection
+    const { changesetData, file, diff } = commitSelection
 
     const showDragOverlay = dragAndDropManager.isDragOfTypeInProgress(
       DragType.Commit
@@ -388,7 +388,7 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         selectedCommit={selectedCommit}
-        changedFiles={changedFiles}
+        changesetData={changesetData}
         selectedFile={file}
         currentDiff={diff}
         emoji={this.props.emoji}

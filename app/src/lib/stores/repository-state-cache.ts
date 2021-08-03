@@ -3,7 +3,6 @@ import { Commit } from '../../models/commit'
 import { PullRequest } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
 import {
-  CommittedFileChange,
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
 } from '../../models/status'
@@ -195,7 +194,7 @@ function getInitialRepositoryState(): IRepositoryState {
     commitSelection: {
       shas: [],
       file: null,
-      changedFiles: new Array<CommittedFileChange>(),
+      changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
     },
     changesState: {
