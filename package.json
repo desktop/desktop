@@ -63,7 +63,7 @@
     "ajv": "^6.4.0",
     "awesome-node-loader": "^1.1.0",
     "awesome-typescript-loader": "^5.2.1",
-    "aws-sdk": "^2.23.0",
+    "azure-storage": "^2.10.4",
     "babel-core": "^6.26.3",
     "babel-jest": "^23.4.2",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
