@@ -117,8 +117,8 @@ interface IUploadResult {
   sha: string
 }
 
-function upload(assetName: string, assetPath: string) {
-  const azureBlobService = getAzureBlobService()
+async function upload(assetName: string, assetPath: string) {
+  const azureBlobService = await getAzureBlobService()
 
   if (azureBlobService === null) {
     throw new Error(
@@ -136,7 +136,7 @@ function upload(assetName: string, assetPath: string) {
       container,
       blob,
       assetPath,
-      (error, result, response) => {
+      (error: any) => {
         if (error != null) {
           reject(error)
         } else {
@@ -162,35 +162,39 @@ function upload(assetName: string, assetPath: string) {
   })
 }
 
-function getAzureBlobService(): Azure.BlobService | null {
-  if (
-    process.env.AZURE_STORAGE_ACCOUNT === undefined ||
-    process.env.AZURE_STORAGE_ACCESS_KEY === undefined ||
-    process.env.AZURE_BLOB_CONTAINER === undefined
-  ) {
-    console.error('Invalid azure storage credentials')
-    return null
-  }
-
-  const blobService = Azure.createBlobService(
-    process.env.AZURE_STORAGE_ACCOUNT,
-    process.env.AZURE_STORAGE_ACCESS_KEY
-  )
-
-  blobService.createContainerIfNotExists(
-    process.env.AZURE_BLOB_CONTAINER,
-    {
-      publicAccessLevel: 'blob',
-    },
-    error => {
-      if (error !== undefined) {
-        console.error(
-          `Unable to ensure azure blob container - ${process.env.AZURE_BLOB_CONTAINER}`
-        )
-      }
+function getAzureBlobService(): Promise<Azure.BlobService> {
+  return new Promise<Azure.BlobService>((resolve, reject) => {
+    if (
+      process.env.AZURE_STORAGE_ACCOUNT === undefined ||
+      process.env.AZURE_STORAGE_ACCESS_KEY === undefined ||
+      process.env.AZURE_BLOB_CONTAINER === undefined
+    ) {
+      reject('Invalid azure storage credentials')
+      return
     }
-  )
-  return blobService
+
+    const blobService = Azure.createBlobService(
+      process.env.AZURE_STORAGE_ACCOUNT,
+      process.env.AZURE_STORAGE_ACCESS_KEY
+    )
+
+    blobService.createContainerIfNotExists(
+      process.env.AZURE_BLOB_CONTAINER,
+      {
+        publicAccessLevel: 'blob',
+      },
+      (error: any) => {
+        if (error !== null) {
+          console.log(error)
+          reject(
+            `Unable to ensure azure blob container - ${process.env.AZURE_BLOB_CONTAINER}. Deployment aborting...`
+          )
+        } else {
+          resolve(blobService)
+        }
+      }
+    )
+  })
 }
 
 function createSignature(body: any, secret: string) {
