@@ -1355,7 +1355,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       file: firstFileOrDefault,
-      changesetData: changesetData,
+      changesetData,
       diff: null,
     }))
 
