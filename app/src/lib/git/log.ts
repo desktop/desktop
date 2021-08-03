@@ -16,6 +16,7 @@ import {
 import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
+import { enableLineChangesInCommit } from '../feature-flag'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -170,6 +171,8 @@ export async function getChangedFiles(
     '--format=format:',
     '-z',
   ]
+
+  // Run `git log` to obtain the file names and their state
   const resultNameStatus = await git(
     [...baseArgs, '--name-status', '--'],
     repository.path,
@@ -178,6 +181,12 @@ export async function getChangedFiles(
 
   const files = parseChangedFiles(resultNameStatus.stdout, sha)
 
+  if (!enableLineChangesInCommit()) {
+    return { files, linesAdded: 0, linesDeleted: 0 }
+  }
+
+  // Run `git log` again, but this time to get the number of lines added/deleted
+  // per file
   const resultNumStat = await git(
     [...baseArgs, '--numstat', '--'],
     repository.path,

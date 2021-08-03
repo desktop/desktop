@@ -122,3 +122,8 @@ export function enableCommitReordering(): boolean {
 export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we show line changes (added/deleted) in commits? */
+export function enableLineChangesInCommit(): boolean {
+  return enableBetaFeatures()
+}
