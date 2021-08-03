@@ -574,7 +574,7 @@ export interface ICommitSelection {
   /** The commits currently selected in the app */
   readonly shas: ReadonlyArray<string>
 
-  /** The list of files associated with the current commit */
+  /** The changeset data associated with the selected commit */
   readonly changesetData: IChangesetData
 
   /** The selected file inside the selected commit */
