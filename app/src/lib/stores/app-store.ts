@@ -336,6 +336,8 @@ const hideWhitespaceInHistoryDiffKey = 'hide-whitespace-in-diff'
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
+const useWindowsOpenSSHKey: string = 'useWindowsOpenSSH'
+
 const shellKey = 'shell'
 
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
@@ -450,6 +452,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.System
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
+  private useWindowsOpenSSH: boolean = false
+
   private hasUserViewedStash = false
 
   private repositoryIndicatorsEnabled: boolean
@@ -483,6 +487,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     super()
 
     this.showWelcomeFlow = !hasShownWelcomeFlow()
+
+    // If the user never selected whether to use Windows OpenSSH or not, use it
+    // by default if we have to show the welcome flow (i.e. if it's a new install)
+    if (__WIN32__ && getBoolean(useWindowsOpenSSHKey) === undefined) {
+      this.useWindowsOpenSSH = this.showWelcomeFlow
+    }
 
     this.gitStoreCache = new GitStoreCache(
       shell,
@@ -838,6 +848,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
+      useWindowsOpenSSH: this.useWindowsOpenSSH,
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
