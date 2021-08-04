@@ -5,6 +5,7 @@ import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
+import { isWindowsSSHAvailable } from '../../lib/ssh/ssh'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
@@ -20,6 +21,7 @@ interface IAdvancedPreferencesProps {
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly canUseWindowsSSH: boolean
 }
 
 export class Advanced extends React.Component<
@@ -32,7 +34,16 @@ export class Advanced extends React.Component<
     this.state = {
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
+      canUseWindowsSSH: false,
     }
+  }
+
+  public componentDidMount() {
+    this.checkSSHAvailability()
+  }
+
+  private async checkSSHAvailability() {
+    this.setState({ canUseWindowsSSH: await isWindowsSSHAvailable() })
   }
 
   private onReportingOptOutChanged = (
@@ -118,6 +129,7 @@ export class Advanced extends React.Component<
             list. Disabling this may improve performance with many repositories.
           </p>
         </div>
+        {this.renderSSHSettings()}
         <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
@@ -131,6 +143,27 @@ export class Advanced extends React.Component<
           />
         </div>
       </DialogContent>
+    )
+  }
+
+  private renderSSHSettings() {
+    if (!this.state.canUseWindowsSSH) {
+      return null
+    }
+
+    return (
+      <div className="advanced-section">
+        <h2>SSH</h2>
+        <Checkbox
+          label="Use system OpenSSH (recommended)"
+          value={
+            this.state.optOutOfUsageTracking
+              ? CheckboxValue.Off
+              : CheckboxValue.On
+          }
+          onChange={this.onReportingOptOutChanged}
+        />
+      </div>
     )
   }
 }

@@ -1,7 +1,7 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
-import { getSSHArguments } from './core'
+import { getSSHArguments } from '../ssh/ssh'
 
 type ProcessOutput = {
   /** The contents of stdout received from the spawned process */
@@ -25,14 +25,15 @@ type ProcessOutput = {
  *                         will be killed silently and the truncated output is
  *                         returned.
  */
-export function spawnAndComplete(
+export async function spawnAndComplete(
   args: string[],
   path: string,
   name: string,
   successExitCodes?: Set<number>,
   stdOutMaxLength?: number
 ): Promise<ProcessOutput> {
-  args = [...getSSHArguments(), ...args]
+  const sshArguments = await getSSHArguments()
+  args = [...sshArguments, ...args]
 
   const commandName = `${name}: git ${args.join(' ')}`
   return GitPerf.measure(
