@@ -2,11 +2,11 @@ import * as React from 'react'
 import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { SketchPicker } from 'react-color'
 import { Button } from '../lib/button'
+import { Octicon, syncClockwise } from '../octicons'
 
 const themeDefaults = {
   [ApplicationTheme.HighContrast]: {
     background: '#23262d',
-    toolbarBackground: '#0b0f12',
     text: '#eef1f5',
     hoverItem: '#939daa',
     hoverText: '#fff',
@@ -35,22 +35,29 @@ export class CustomThemeSelector extends React.Component<
   public constructor(props: ICustomThemeSelectorProps) {
     super(props)
 
-    const { customTheme: setTheme, selectedTheme } = this.props
-    let customTheme =
-      selectedTheme !== ApplicationTheme.HighContrast ? undefined : setTheme
-    if (
-      setTheme === undefined &&
-      selectedTheme === ApplicationTheme.HighContrast
-    ) {
-      customTheme = themeDefaults[selectedTheme]
-      this.props.onCustomThemeChanged(customTheme)
-    }
-
     this.state = {
-      customTheme,
+      customTheme: this.getDefaultCustomTheme(),
       isPopoverOpen: false,
       selectedThemeOptionColor: 'background',
     }
+  }
+
+  private isCustom = (): boolean => {
+    return this.props.selectedTheme === ApplicationTheme.HighContrast
+  }
+
+  private getDefaultCustomTheme = (): ICustomTheme => {
+    const { customTheme } = this.props
+    const defaultTheme =
+      customTheme === undefined
+        ? themeDefaults[ApplicationTheme.HighContrast]
+        : customTheme
+
+    if (customTheme === undefined) {
+      this.props.onCustomThemeChanged(defaultTheme)
+    }
+
+    return defaultTheme
   }
 
   private onThemeChange = (color: { hex: string }) => {
@@ -126,10 +133,10 @@ export class CustomThemeSelector extends React.Component<
   }
 
   private renderThemeOptions = () => {
-    if (this.state.customTheme === undefined) {
-      // not using a customizable theme
-      return
-    }
+    const customTheme =
+      this.state.customTheme === undefined
+        ? this.getDefaultCustomTheme()
+        : this.state.customTheme
 
     const themePropTitleMap = new Map([
       ['background', 'Background'],
@@ -141,7 +148,7 @@ export class CustomThemeSelector extends React.Component<
       ['border', 'Border'],
     ])
 
-    return Object.entries(this.state.customTheme).map(([key, value], i) => {
+    return Object.entries(customTheme).map(([key, value], i) => {
       const keyTyped = key as keyof ICustomTheme
       return (
         <div key={i}>
@@ -160,12 +167,21 @@ export class CustomThemeSelector extends React.Component<
   }
 
   public render() {
+    if (!this.isCustom()) {
+      return null
+    }
+
     return (
       <>
         <div>{this.renderThemeOptions()}</div>
         {this.renderPopover()}
         <div>
-          <Button onClick={this.onResetToDefaults}>Reset To Defaults</Button>
+          <Button
+            onClick={this.onResetToDefaults}
+            tooltip="Reset to High Contrast defaults"
+          >
+            <Octicon symbol={syncClockwise} />
+          </Button>
         </div>
       </>
     )
