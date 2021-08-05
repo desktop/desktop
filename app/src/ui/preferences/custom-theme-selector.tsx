@@ -133,7 +133,6 @@ export class CustomThemeSelector extends React.Component<
 
     const themePropTitleMap = new Map([
       ['background', 'Background'],
-      ['toolbarBackground', 'Toolbar Background'],
       ['text', 'Text'],
       ['activeItem', 'Active/Action Item'],
       ['activeText', 'Active/Action Item Text'],

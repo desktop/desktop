@@ -72,7 +72,6 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     const {
       background,
       text,
-      toolbarBackground,
       hoverItem,
       hoverText,
       activeItem,
@@ -102,7 +101,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
 
             --text-color: ${text};
             --text-secondary-color: ${text};
-            --toolbar-background-color: ${toolbarBackground};
+            --toolbar-background-color: ${background};
             --toolbar-button-secondary-color: ${text}
 
             --list-item-hover-background-color: ${hoverItem};

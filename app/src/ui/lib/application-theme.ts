@@ -11,8 +11,6 @@ export interface ICustomTheme {
   background: string
   // application border color
   border: string
-  // top nav bar background color
-  toolbarBackground: string
   // main application text color
   text: string
   // used to indicate mouse hovering

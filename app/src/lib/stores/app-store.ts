@@ -5850,6 +5850,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
+    if (theme === ApplicationTheme.HighContrast) {
+      this.currentTheme = theme
+    }
     this.emitUpdate()
 
     return Promise.resolve()
