@@ -265,6 +265,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-background-color: #{$white};
   --tab-bar-hover-background-color: #{$gray-100};
   --tab-bar-box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
+  --tab-bar-hover-border: none;
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);

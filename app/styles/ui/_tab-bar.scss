@@ -52,6 +52,7 @@
 
     &:hover {
       background: var(--tab-bar-hover-background-color);
+      border: var(--tab-bar-hover-border);
     }
 
     .with-indicator {
@@ -161,6 +162,7 @@
 
       &:hover {
         background: var(--tab-bar-hover-background-color);
+        border: var(--tab-bar-hover-border);
       }
     }
 

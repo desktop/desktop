@@ -3,16 +3,15 @@ import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { SketchPicker } from 'react-color'
 import { Button } from '../lib/button'
 import { Octicon, syncClockwise } from '../octicons'
+import { enableCustomizeTheme } from '../../lib/feature-flag'
 
 const themeDefaults = {
   [ApplicationTheme.HighContrast]: {
     background: '#23262d',
-    text: '#eef1f5',
-    hoverItem: '#939daa',
-    hoverText: '#fff',
-    activeItem: '#3892ff',
-    activeText: '#0b0f12',
     border: '#6f7783',
+    text: '#eef1f5',
+    activeItem: '#636B76',
+    activeText: '#eef1f5',
   },
 }
 
@@ -26,6 +25,8 @@ interface ICustomThemeSelectorState {
   readonly customTheme?: ICustomTheme
   readonly selectedThemeOptionColor: keyof ICustomTheme
   readonly isPopoverOpen: boolean
+  readonly popoverTop: string
+  readonly popoverLeft: string
 }
 
 export class CustomThemeSelector extends React.Component<
@@ -39,11 +40,16 @@ export class CustomThemeSelector extends React.Component<
       customTheme: this.getDefaultCustomTheme(),
       isPopoverOpen: false,
       selectedThemeOptionColor: 'background',
+      popoverTop: '500px',
+      popoverLeft: '275px',
     }
   }
 
   private isCustom = (): boolean => {
-    return this.props.selectedTheme === ApplicationTheme.HighContrast
+    return (
+      this.props.selectedTheme === ApplicationTheme.HighContrast &&
+      enableCustomizeTheme()
+    )
   }
 
   private getDefaultCustomTheme = (): ICustomTheme => {
@@ -95,8 +101,10 @@ export class CustomThemeSelector extends React.Component<
   }
 
   private onSwatchClick = (selectedThemeOptionColor: keyof ICustomTheme) => {
-    return () => {
-      this.setState({ selectedThemeOptionColor })
+    return (event: any) => {
+      const popoverTop = `${event.currentTarget.offsetTop + 50}px`
+      const popoverLeft = `${event.currentTarget.offsetLeft + 50}px`
+      this.setState({ selectedThemeOptionColor, popoverTop, popoverLeft })
       this.openPopover()
     }
   }
@@ -122,8 +130,13 @@ export class CustomThemeSelector extends React.Component<
       return
     }
 
+    const styles = {
+      top: this.state.popoverTop,
+      left: this.state.popoverLeft,
+    }
+
     return (
-      <div className="color-picker-container">
+      <div className="color-picker-container" style={styles}>
         <SketchPicker
           color={this.state.customTheme[this.state.selectedThemeOptionColor]}
           onChangeComplete={this.onThemeChange}
@@ -140,27 +153,24 @@ export class CustomThemeSelector extends React.Component<
 
     const themePropTitleMap = new Map([
       ['background', 'Background'],
-      ['text', 'Text'],
-      ['activeItem', 'Active/Action Item'],
-      ['activeText', 'Active/Action Item Text'],
-      ['hoverItem', 'Item Hover'],
-      ['hoverText', 'Item Hover Text'],
       ['border', 'Border'],
+      ['text', 'Text'],
+      ['activeItem', 'Active'],
+      ['activeText', 'Active Text'],
     ])
 
     return Object.entries(customTheme).map(([key, value], i) => {
       const keyTyped = key as keyof ICustomTheme
       return (
-        <div key={i}>
-          <span
+        <div key={i} className="swatch-box">
+          <div
             className="theme-option-swatch"
             onClick={this.onSwatchClick(keyTyped)}
             style={{
               backgroundColor: value,
             }}
-          ></span>
-          {' -  '}
-          {themePropTitleMap.get(key)}
+          ></div>
+          <div className="theme-option-title">{themePropTitleMap.get(key)}</div>
         </div>
       )
     })
@@ -172,10 +182,9 @@ export class CustomThemeSelector extends React.Component<
     }
 
     return (
-      <>
-        <div>{this.renderThemeOptions()}</div>
-        {this.renderPopover()}
-        <div>
+      <div className="custom-theme-selector">
+        <div className="custom-theme-selecter-header">
+          <h2>Customize:</h2>
           <Button
             onClick={this.onResetToDefaults}
             tooltip="Reset to High Contrast defaults"
@@ -183,7 +192,9 @@ export class CustomThemeSelector extends React.Component<
             <Octicon symbol={syncClockwise} />
           </Button>
         </div>
-      </>
+        <div className="swatch-options">{this.renderThemeOptions()}</div>
+        {this.renderPopover()}
+      </div>
     )
   }
 }

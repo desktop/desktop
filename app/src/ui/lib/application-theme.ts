@@ -13,10 +13,6 @@ export interface ICustomTheme {
   border: string
   // main application text color
   text: string
-  // used to indicate mouse hovering
-  hoverItem: string
-  // used to indicate mouse hovering
-  hoverText: string
   // used to indicate a selected item or action button
   activeItem: string
   // text used on selected item or action button

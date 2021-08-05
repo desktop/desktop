@@ -122,3 +122,13 @@ export function enableCommitReordering(): boolean {
 export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we allow high contrast theme option */
+export function enableHighContrastTheme(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+/** Should we allow customizing a theme */
+export function enableCustomizeTheme(): boolean {
+  return enableDevelopmentFeatures()
+}
