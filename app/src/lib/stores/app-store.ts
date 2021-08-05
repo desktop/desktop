@@ -293,6 +293,7 @@ import {
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
 import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
+import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -335,8 +336,6 @@ const hideWhitespaceInHistoryDiffKey = 'hide-whitespace-in-diff'
 
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
-
-const useWindowsOpenSSHKey: string = 'useWindowsOpenSSH'
 
 const shellKey = 'shell'
 
@@ -490,7 +489,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // If the user never selected whether to use Windows OpenSSH or not, use it
     // by default if we have to show the welcome flow (i.e. if it's a new install)
-    if (__WIN32__ && getBoolean(useWindowsOpenSSHKey) === undefined) {
+    if (__WIN32__ && getBoolean(UseWindowsOpenSSHKey) === undefined) {
       this._setUseWindowsOpenSSH(this.showWelcomeFlow)
     }
 
@@ -3093,7 +3092,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
-    setBoolean(useWindowsOpenSSHKey, useWindowsOpenSSH)
+    setBoolean(UseWindowsOpenSSHKey, useWindowsOpenSSH)
     this.useWindowsOpenSSH = useWindowsOpenSSH
 
     this.emitUpdate()

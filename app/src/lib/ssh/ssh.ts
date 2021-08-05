@@ -1,9 +1,12 @@
 import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
+import { getBoolean } from '../local-storage'
 
 const WindowsOpenSSHPath = 'C:\\Windows\\System32\\OpenSSH\\ssh.exe'
 
-export const isWindowsSSHAvailable = memoizeOne(
+export const UseWindowsOpenSSHKey: string = 'useWindowsOpenSSH'
+
+export const isWindowsOpenSSHAvailable = memoizeOne(
   async (): Promise<boolean> => {
     if (!__WIN32__) {
       return false
@@ -18,8 +21,8 @@ export const isWindowsSSHAvailable = memoizeOne(
  * (OS and user settings).
  */
 export async function getSSHArguments() {
-  const useWindowsSSH = await isWindowsSSHAvailable()
-  if (!useWindowsSSH) {
+  const canUseWindowsSSH = await isWindowsOpenSSHAvailable()
+  if (!canUseWindowsSSH || !getBoolean(UseWindowsOpenSSHKey, false)) {
     return []
   }
 

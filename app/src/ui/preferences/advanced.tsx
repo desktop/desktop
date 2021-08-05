@@ -5,7 +5,7 @@ import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
-import { isWindowsSSHAvailable } from '../../lib/ssh/ssh'
+import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
 
 interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
@@ -45,7 +45,7 @@ export class Advanced extends React.Component<
   }
 
   private async checkSSHAvailability() {
-    this.setState({ canUseWindowsSSH: await isWindowsSSHAvailable() })
+    this.setState({ canUseWindowsSSH: await isWindowsOpenSSHAvailable() })
   }
 
   private onReportingOptOutChanged = (
