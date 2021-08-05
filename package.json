@@ -57,6 +57,7 @@
   "dependencies": {
     "@primer/octicons": "^10.0.0",
     "@types/plist": "^3.0.2",
+    "@types/react-color": "^3.0.4",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
     "@typescript-eslint/parser": "^3.5.0",
     "airbnb-browser-shims": "^3.0.0",
