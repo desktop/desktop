@@ -144,7 +144,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
   private lightenDarkenColor(col: string, amt: number) {
     let usePound = false
 
-    if (col[0] == '#') {
+    if (col[0] === '#') {
       col = col.slice(1)
       usePound = true
     }
