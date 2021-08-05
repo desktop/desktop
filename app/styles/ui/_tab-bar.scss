@@ -47,7 +47,7 @@
     // in so far that it doesn't have an active selection state, just a selected
     // one.
     &.selected {
-      box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
+      box-shadow: var(--tab-bar-box-shadow);
     }
 
     &:hover {

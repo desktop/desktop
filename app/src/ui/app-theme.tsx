@@ -89,13 +89,16 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
             --box-background-color: ${background};
             --box-alt-background-color: ${background};
             --box-alt-text-color: ${activeText};
+
             --box-border-color: ${border};
+            --diff-border-color: ${border};
 
             --box-selected-background-color: ${hoverItem};
             --box-selected-text-color: ${hoverText};
             
             --box-selected-active-background-color: ${activeItem};
             --box-selected-active-text-color: ${activeText};
+            --box-selected-active-border: 2px solid ${border};
 
             --button-background: ${activeItem};
             --button-text-color: ${activeText};
@@ -109,9 +112,14 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
 
             --list-item-hover-background-color: ${hoverItem};
             --list-item-hover-text-color: ${hoverText};
+            --list-item-hover-border: 2px solid ${border};
+            
+            --box-placeholder-color: ${text};
+            --tab-bar-active-color: ${activeItem};
+            --tab-bar-box-shadow: inset -2px -2px 0px var(--tab-bar-active-color), inset 2px 2px 0px var(--tab-bar-active-color);
+
             --diff-add-border: 1px solid green;
             --diff-delete-border: 1px solid crimson;
-            --diff-border-color: ${border};
           }`
       )
     )

@@ -148,6 +148,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-selected-active-background-color: #{$blue};
 
   /**
+   * Border styles for selected boxes with active keyboard focus
+   */
+  --box-selected-active-border: none;
+
+  /**
    * Text color for selected boxes with active keyboard focus
    */
   --box-selected-active-text-color: #{$white};
@@ -259,6 +264,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-active-color: #{$blue};
   --tab-bar-background-color: #{$white};
   --tab-bar-hover-background-color: #{$gray-100};
+  --tab-bar-box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
@@ -277,6 +283,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-active-badge-background-color: #{$white};
   --list-item-hover-background-color: #{$gray-100};
   --list-item-hover-text-color: var(--text-color);
+  --list-item-hover-border: none;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
