@@ -84,3 +84,16 @@
     word-wrap: break-word;
   }
 }
+
+.theme-option-swatch {
+  display: inline-block;
+  border-radius: 5px;
+  border: 1px solid black;
+  width: 20px;
+  height: 20px;
+}
+
+.color-picker-container {
+  float: right;
+  width: 100px;
+}

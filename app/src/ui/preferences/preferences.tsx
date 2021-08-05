@@ -20,7 +20,7 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Appearance } from './appearance'
-import { ApplicationTheme } from '../lib/application-theme'
+import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
 import {
@@ -55,6 +55,7 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
 }
 
@@ -300,7 +301,9 @@ export class Preferences extends React.Component<
         View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
+            customTheme={this.props.customTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            onCustomThemeChanged={this.onCustomThemeChanged}
           />
         )
         break
@@ -406,6 +409,10 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onCustomThemeChanged = (theme: ICustomTheme) => {
+    this.props.dispatcher.setCustomTheme(theme)
   }
 
   private renderFooter() {
