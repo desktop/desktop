@@ -491,7 +491,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // If the user never selected whether to use Windows OpenSSH or not, use it
     // by default if we have to show the welcome flow (i.e. if it's a new install)
     if (__WIN32__ && getBoolean(useWindowsOpenSSHKey) === undefined) {
-      this.useWindowsOpenSSH = this.showWelcomeFlow
+      this._setUseWindowsOpenSSH(this.showWelcomeFlow)
     }
 
     this.gitStoreCache = new GitStoreCache(
@@ -3088,6 +3088,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setBoolean(commitSpellcheckEnabledKey, commitSpellcheckEnabled)
     this.commitSpellcheckEnabled = commitSpellcheckEnabled
+
+    this.emitUpdate()
+  }
+
+  public _setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
+    setBoolean(useWindowsOpenSSHKey, useWindowsOpenSSH)
+    this.useWindowsOpenSSH = useWindowsOpenSSH
 
     this.emitUpdate()
   }

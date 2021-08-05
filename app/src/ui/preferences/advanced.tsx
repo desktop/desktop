@@ -8,9 +8,11 @@ import { RadioButton } from '../lib/radio-button'
 import { isWindowsSSHAvailable } from '../../lib/ssh/ssh'
 
 interface IAdvancedPreferencesProps {
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
+  readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
@@ -66,6 +68,12 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
+  }
+
+  private onUseWindowsOpenSSHChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -157,11 +165,9 @@ export class Advanced extends React.Component<
         <Checkbox
           label="Use system OpenSSH (recommended)"
           value={
-            this.state.optOutOfUsageTracking
-              ? CheckboxValue.Off
-              : CheckboxValue.On
+            this.props.useWindowsOpenSSH ? CheckboxValue.On : CheckboxValue.Off
           }
-          onChange={this.onReportingOptOutChanged}
+          onChange={this.onUseWindowsOpenSSHChanged}
         />
       </div>
     )
