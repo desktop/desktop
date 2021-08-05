@@ -9,11 +9,15 @@ class TrampolineUIHelper {
     this.dispatcher = dispatcher
   }
 
-  public promptAddingSSHHost(message: string): Promise<boolean> {
+  public promptAddingSSHHost(
+    host: string,
+    fingerprint: string
+  ): Promise<boolean> {
     return new Promise(resolve => {
       this.dispatcher.showPopup({
         type: PopupType.AddSSHHost,
-        message,
+        host,
+        fingerprint,
         onSubmit: resolve,
       })
     })
