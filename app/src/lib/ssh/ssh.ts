@@ -13,6 +13,12 @@ export const isWindowsOpenSSHAvailable = memoizeOne(
       return false
     }
 
+    // FIXME: for now, seems like we can't use Windows' OpenSSH binary on Windows
+    // for ARM.
+    if (process.arch === 'arm64') {
+      return false
+    }
+
     return await fse.pathExists(WindowsOpenSSHPath)
   }
 )
