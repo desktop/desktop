@@ -20,5 +20,6 @@
 
   &:not(.not-selectable):hover {
     background: var(--list-item-hover-background-color);
+    color: var(--list-item-hover-text-color);
   }
 }

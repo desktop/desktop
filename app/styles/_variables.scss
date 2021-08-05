@@ -276,6 +276,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-active-badge-color: #{$gray-900};
   --list-item-selected-active-badge-background-color: #{$white};
   --list-item-hover-background-color: #{$gray-100};
+  --list-item-hover-text-color: var(--text-color);
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
@@ -352,6 +353,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-selected-text-color: var(--background-color);
 
   --diff-add-background-color: #{darken($green-000, 2%)};
+  --diff-add-border: 'none';
   --diff-add-border-color: #{$green-300};
   --diff-add-gutter-color: #{$green-300};
   --diff-add-gutter-background-color: #{darken($green-100, 3%)};
@@ -364,6 +366,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-delete-gutter-background-color: #{$red-100};
   --diff-delete-inner-background-color: #fdb8c0;
   --diff-delete-text-color: var(--diff-text-color);
+  --diff-add-border: 'none';
 
   --diff-hunk-background-color: #{$blue-000};
   --diff-hunk-border-color: #{$blue-200};
