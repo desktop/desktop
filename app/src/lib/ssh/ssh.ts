@@ -40,12 +40,16 @@ function isWindowsOpenSSHUseEnabled() {
  */
 export async function getSSHEnvironment() {
   const canUseWindowsSSH = await isWindowsOpenSSHAvailable()
-  if (!canUseWindowsSSH || !isWindowsOpenSSHUseEnabled()) {
+  if (canUseWindowsSSH && isWindowsOpenSSHUseEnabled()) {
     return {}
   }
 
-  // Replace git ssh command with Windows' OpenSSH executable path
-  return {
-    GIT_SSH_COMMAND: WindowsOpenSSHPath,
+  if (canUseWindowsSSH && getBoolean(UseWindowsOpenSSHKey, false)) {
+    // Replace git ssh command with Windows' OpenSSH executable path
+    return {
+      GIT_SSH_COMMAND: WindowsOpenSSHPath,
+    }
   }
+
+  return {}
 }

@@ -18,6 +18,7 @@ export function envForAuthentication(auth: IGitAccount | null): Object {
     DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.AskPass,
     GIT_ASKPASS: askPassPath,
     SSH_ASKPASS: askPassPath,
+    DISPLAY: '.', // Needed to force ssh on macOS to use the ssh-askpass
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
     GIT_TERMINAL_PROMPT: '0',
