@@ -59,22 +59,6 @@ export function getThemeName(
   }
 }
 
-/**
- * Load the currently selected theme
- */
-export function getPersistedTheme(): ApplicationTheme {
-  const currentTheme = getPersistedThemeName()
-
-  switch (currentTheme) {
-    case 'light':
-      return ApplicationTheme.Light
-    case 'dark':
-      return ApplicationTheme.Dark
-    default:
-      return ApplicationTheme.System
-  }
-}
-
 // The key under which the decision to automatically switch the theme is persisted
 // in localStorage.
 const automaticallySwitchApplicationThemeKey = 'autoSwitchTheme'
@@ -106,22 +90,18 @@ const applicationThemeKey = 'theme'
 /**
  * Returns User's theme preference or 'system' if not set or parsable
  */
-function getApplicationThemeSetting(): 'light' | 'dark' | 'system' {
+function getApplicationThemeSetting(): ApplicationTheme {
   const themeSetting = localStorage.getItem(applicationThemeKey)
 
-  if (themeSetting === null) {
-    return 'system'
-  }
-
   if (
-    themeSetting === 'light' ||
-    themeSetting === 'dark' ||
-    themeSetting === 'system'
+    themeSetting === ApplicationTheme.Light ||
+    themeSetting === ApplicationTheme.Dark ||
+    themeSetting === ApplicationTheme.HighContrast
   ) {
     return themeSetting
   }
 
-  return 'system'
+  return ApplicationTheme.System
 }
 
 /**
@@ -134,11 +114,9 @@ export function getCurrentlyAppliedTheme(): ApplicableTheme {
 /**
  * Load the name of the currently selected theme
  */
-export function getPersistedThemeName(): string {
-  const setting = migrateAutomaticallySwitchSetting()
-
-  if (setting === 'system') {
-    return setting
+export function getPersistedThemeName(): ApplicationTheme {
+  if (migrateAutomaticallySwitchSetting() === 'system') {
+    return ApplicationTheme.System
   }
 
   return getApplicationThemeSetting()
@@ -149,7 +127,7 @@ export function getPersistedThemeName(): string {
  */
 export function setPersistedTheme(theme: ApplicationTheme): void {
   const themeName = getThemeName(theme)
-  localStorage.setItem(applicationThemeKey, themeName)
+  localStorage.setItem(applicationThemeKey, theme)
   remote.nativeTheme.themeSource = themeName
 }
 
