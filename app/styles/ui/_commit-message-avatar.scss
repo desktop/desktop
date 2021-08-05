@@ -3,16 +3,17 @@
   position: relative;
 
   .warning-badge {
-    background-color: #f6f8fa;
+    background-color: var(--commit-warning-badge-background-color);
+    border: var(--commit-warning-badge-border-color) 1px solid;
     width: 18px;
     height: 18px;
     position: absolute;
     margin-top: -6px;
     margin-left: -7px;
     border-radius: 9px;
-    border: #d1d5da 1px solid;
 
     > svg {
+      color: var(--commit-warning-badge-icon-color);
       height: 10px;
       // With width=100%, the icon will be centered horizontally
       width: 100%;

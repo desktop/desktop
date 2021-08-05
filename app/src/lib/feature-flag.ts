@@ -123,6 +123,11 @@ export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
 }
 
+/** Should we show line changes (added/deleted) in commits? */
+export function enableLineChangesInCommit(): boolean {
+  return enableBetaFeatures()
+}
+
 /** Should we allow high contrast theme option */
 export function enableHighContrastTheme(): boolean {
   return enableDevelopmentFeatures()

@@ -3,7 +3,8 @@ import memoizeOne from 'memoize-one'
 import { remote } from 'electron'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons/octicon'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { isMacOSBigSurOrLater } from '../../lib/get-os'
 
 /** Get the height (in pixels) of the title bar depending on the platform */

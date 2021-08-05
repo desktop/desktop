@@ -18,7 +18,6 @@ import { WorkingDirectoryStatus } from '../../models/status'
 import { getResolvedFiles } from '../../lib/status'
 import { ConfirmCherryPickAbortDialog } from './confirm-cherry-pick-abort-dialog'
 import { CreateBranch } from '../create-branch'
-import { String } from 'aws-sdk/clients/acm'
 import { ConflictsDialog } from '../multi-commit-operation/conflicts-dialog'
 
 interface ICherryPickFlowProps {
@@ -161,7 +160,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     })
   }
 
-  private onCreateNewBranch = (targetBranchName: String) => {
+  private onCreateNewBranch = (targetBranchName: string) => {
     const { dispatcher, repository } = this.props
     dispatcher.setCherryPickCreateBranchFlowStep(repository, targetBranchName)
   }

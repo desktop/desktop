@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { assertNever } from '../../lib/fatal-error'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 export enum CommitWarningIcon {
   Warning,
