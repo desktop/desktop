@@ -47,7 +47,10 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     const newThemeClassName = `theme-${getThemeName(themeToDisplay)}`
     const body = document.body
 
-    if (!body.classList.contains(newThemeClassName)) {
+    if (
+      !body.classList.contains(newThemeClassName) ||
+      (body.classList.contains('theme-custom') && !this.props.useCustomTheme)
+    ) {
       this.clearThemes()
       body.classList.add(newThemeClassName)
     }
@@ -118,7 +121,8 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
   private clearThemes() {
     const body = document.body
 
-    for (const className of body.classList) {
+    const classList = [...body.classList]
+    for (const className of classList) {
       if (className.startsWith('theme-')) {
         body.classList.remove(className)
       }
