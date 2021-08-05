@@ -3,10 +3,13 @@ import {
   ApplicationTheme,
   getThemeName,
   getCurrentlyAppliedTheme,
+  ICustomTheme,
 } from './lib/application-theme'
 
 interface IAppThemeProps {
   readonly theme: ApplicationTheme
+  readonly useCustomTheme: boolean
+  readonly customTheme?: ICustomTheme
 }
 
 /**
@@ -44,13 +47,73 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     const newThemeClassName = `theme-${getThemeName(themeToDisplay)}`
     const body = document.body
 
-    if (body.classList.contains(newThemeClassName)) {
+    if (!body.classList.contains(newThemeClassName)) {
+      this.clearThemes()
+      body.classList.add(newThemeClassName)
+    }
+
+    this.setCustomTheme()
+  }
+
+  private setCustomTheme() {
+    const { customTheme, useCustomTheme } = this.props
+    if (customTheme === undefined || !useCustomTheme) {
       return
     }
 
-    this.clearThemes()
+    const body = document.body
+    if (!body.classList.contains('theme-custom')) {
+      body.classList.add('theme-custom')
+    }
 
-    body.classList.add(newThemeClassName)
+    const styles = document.createElement('style')
+    styles.setAttribute('type', 'text/css')
+
+    const {
+      background,
+      text,
+      toolbarBackground,
+      hoverItem,
+      hoverText,
+      activeItem,
+      activeText,
+      border,
+    } = customTheme
+
+    styles.appendChild(
+      document.createTextNode(
+        `body.theme-custom {
+            --background-color: ${background};
+            --box-background-color: ${background};
+            --box-alt-background-color: ${background};
+            --box-alt-text-color: ${activeText};
+            --box-border-color: ${border};
+
+            --box-selected-background-color: ${hoverItem};
+            --box-selected-text-color: ${hoverText};
+            
+            --box-selected-active-background-color: ${activeItem};
+            --box-selected-active-text-color: ${activeText};
+
+            --button-background: ${activeItem};
+            --button-text-color: ${activeText};
+            --secondary-button-background: ${background};
+            --secondary-button-text-color: ${text};
+
+            --text-color: ${text};
+            --text-secondary-color: ${text};
+            --toolbar-background-color: ${toolbarBackground};
+            --toolbar-button-secondary-color: ${text}
+
+            --list-item-hover-background-color: ${hoverItem};
+            --list-item-hover-text-color: ${hoverText};
+            --diff-add-border: 1px solid green;
+            --diff-delete-border: 1px solid crimson;
+            --diff-border-color: ${border};
+          }`
+      )
+    )
+    body.appendChild(styles)
   }
 
   private clearThemes() {
