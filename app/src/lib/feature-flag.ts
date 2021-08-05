@@ -127,3 +127,8 @@ export function enableResetToCommit(): boolean {
 export function enableLineChangesInCommit(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we allow using Windows' OpenSSH? */
+export function enableWindowsOpenSSH(): boolean {
+  return enableBetaFeatures()
+}
