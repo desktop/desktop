@@ -11,7 +11,7 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
-  readonly onOptOutofReportingchanged: (checked: boolean) => void
+  readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
   ) => void
@@ -52,7 +52,7 @@ export class Advanced extends React.Component<
     const value = !event.currentTarget.checked
 
     this.setState({ optOutOfUsageTracking: value })
-    this.props.onOptOutofReportingchanged(value)
+    this.props.onOptOutofReportingChanged(value)
   }
 
   private onUncommittedChangesStrategyChanged = (
