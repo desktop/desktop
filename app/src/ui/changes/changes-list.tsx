@@ -343,6 +343,11 @@ export class ChangesList extends React.Component<
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
   }
 
+  private getAddToStashMenuItemLabel = () => {
+    const label =`Stash All Changes…`
+    return label
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
@@ -386,6 +391,15 @@ export class ChangesList extends React.Component<
     return {
       label: this.getDiscardChangesMenuItemLabel(paths),
       action: () => this.onDiscardChanges(paths),
+    }
+  }
+
+  private getAddToStashMenuItem = (
+    paths: ReadonlyArray<string>
+  ): IMenuItem => {
+    return {
+      label: this.getAddToStashMenuItemLabel(),
+      action: () => this.onStashChanges(),
     }
   }
 
@@ -470,6 +484,7 @@ export class ChangesList extends React.Component<
 
     const items: IMenuItem[] = [
       this.getDiscardChangesMenuItem(paths),
+      this.getAddToStashMenuItem(paths),
       { type: 'separator' },
     ]
     if (paths.length === 1) {
