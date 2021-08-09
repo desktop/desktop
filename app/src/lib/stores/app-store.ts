@@ -487,10 +487,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
-    // If the user never selected whether to use Windows OpenSSH or not, use it
-    // by default if we have to show the welcome flow (i.e. if it's a new install)
-    if (__WIN32__ && getBoolean(UseWindowsOpenSSHKey) === undefined) {
-      this._setUseWindowsOpenSSH(this.showWelcomeFlow)
+    if (__WIN32__) {
+      const useWindowsOpenSSH = getBoolean(UseWindowsOpenSSHKey)
+
+      // If the user never selected whether to use Windows OpenSSH or not, use it
+      // by default if we have to show the welcome flow (i.e. if it's a new install)
+      if (useWindowsOpenSSH === undefined) {
+        this._setUseWindowsOpenSSH(this.showWelcomeFlow)
+      } else {
+        this.useWindowsOpenSSH = useWindowsOpenSSH
+      }
     }
 
     this.gitStoreCache = new GitStoreCache(
