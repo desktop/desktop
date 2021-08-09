@@ -101,7 +101,7 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.intellij'],
   },
   {
-    name: 'IntelliJ CE',
+    name: 'IntelliJ Community Edition',
     bundleIdentifiers: ['com.jetbrains.intellij.ce'],
   },
   {
