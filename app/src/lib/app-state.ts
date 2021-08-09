@@ -881,10 +881,11 @@ export interface IMultiCommitOperationState {
    *
    * Uses:
    *  - Cherry-picking = tip of target branch before cherry-pick, used to undo cherry-pick
+   *        - This maybe null if app opens mid cherry-pick
    *  - Rebasing = tip of current branch before rebase, used enable force pushing after rebase complete.
    *  - Interactive Rebasing (Squash, Reorder) = tip of current branch, used for force pushing and undoing
    */
-  readonly originalBranchTip: string
+  readonly originalBranchTip: string | null
 
   /**
    * The branch that is being modified during the operation.

@@ -36,6 +36,7 @@ export abstract class Reorder extends BaseMultiCommitOperation {
     if (
       conflictState === null ||
       targetBranch === null ||
+      originalBranchTip === null ||
       operationDetail.kind !== MultiCommitOperationKind.Reorder
     ) {
       this.endFlowInvalidState()
