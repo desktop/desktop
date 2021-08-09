@@ -36,9 +36,9 @@ export async function spawnAndComplete(
   return GitPerf.measure(
     commandName,
     () =>
-      new Promise<ProcessOutput>((resolve, reject) => {
+      new Promise<ProcessOutput>(async (resolve, reject) => {
         const process = GitProcess.spawn(args, path, {
-          env: getSSHEnvironment(),
+          env: await getSSHEnvironment(),
         })
 
         process.on('error', err => {

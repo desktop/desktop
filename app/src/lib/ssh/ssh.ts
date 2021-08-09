@@ -3,7 +3,7 @@ import memoizeOne from 'memoize-one'
 import { enableWindowsOpenSSH } from '../feature-flag'
 import { getBoolean } from '../local-storage'
 
-const WindowsOpenSSHPath = 'C:\\Windows\\System32\\OpenSSH\\ssh.exe'
+const WindowsOpenSSHPath = 'C:/Windows/System32/OpenSSH/ssh.exe'
 
 export const UseWindowsOpenSSHKey: string = 'useWindowsOpenSSH'
 

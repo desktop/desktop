@@ -138,11 +138,13 @@ export async function git(
     expectedErrors: new Set(),
   }
 
+  const sshEnvironment = await getSSHEnvironment()
+
   let combinedOutput = ''
   const opts = {
     ...defaultOptions,
     ...options,
-    env: merge(options?.env, getSSHEnvironment()),
+    env: merge(options?.env, sshEnvironment),
   }
 
   opts.processCallback = (process: ChildProcess) => {
