@@ -23,13 +23,24 @@ export const isWindowsOpenSSHAvailable = memoizeOne(
   }
 )
 
+// HACK: The purpose of this function is to wrap `getBoolean` inside a try/catch
+// block, because for some reason, accessing localStorage from tests sometimes
+// fails.
+function isWindowsOpenSSHUseEnabled() {
+  try {
+    return getBoolean(UseWindowsOpenSSHKey, false)
+  } catch (e) {
+    return false
+  }
+}
+
 /**
  * Returns the git arguments related to SSH depending on the current context
  * (OS and user settings).
  */
 export async function getSSHArguments() {
   const canUseWindowsSSH = await isWindowsOpenSSHAvailable()
-  if (!canUseWindowsSSH || !getBoolean(UseWindowsOpenSSHKey, false)) {
+  if (!canUseWindowsSSH || !isWindowsOpenSSHUseEnabled()) {
     return []
   }
 
