@@ -6,19 +6,29 @@ import { trampolineUIHelper } from './trampoline-ui-helper'
 
 async function handleSSHHostAuthenticity(
   prompt: string
-): Promise<string | undefined> {
-  const promptRegex = /^The authenticity of host '([^']+)' can't be established.\nRSA key fingerprint is ([^.]+).\nAre you sure you want to continue connecting \(yes\/no\/\[fingerprint\]\)\? $/
+): Promise<'yes' | 'no' | undefined> {
+  const promptRegex = /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established.\nRSA key fingerprint is ([^.]+).\nAre you sure you want to continue connecting \(yes\/no\/\[fingerprint\]\)\? $/
 
   const matches = promptRegex.exec(prompt)
-  if (matches === null || matches.length < 3) {
+  if (matches === null || matches.length < 4) {
     return undefined
   }
 
   const host = matches[1]
-  const fingerprint = matches[2]
+  const ip = matches[2]
+  const fingerprint = matches[3]
+
+  // We'll accept github.com as valid host automatically
+  if (
+    host === 'github.com' &&
+    fingerprint === 'SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8'
+  ) {
+    return 'yes'
+  }
 
   const addHost = await trampolineUIHelper.promptAddingSSHHost(
     host,
+    ip,
     fingerprint
   )
   return addHost ? 'yes' : 'no'

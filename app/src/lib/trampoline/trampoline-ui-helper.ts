@@ -11,12 +11,14 @@ class TrampolineUIHelper {
 
   public promptAddingSSHHost(
     host: string,
+    ip: string,
     fingerprint: string
   ): Promise<boolean> {
     return new Promise(resolve => {
       this.dispatcher.showPopup({
         type: PopupType.AddSSHHost,
         host,
+        ip,
         fingerprint,
         onSubmit: resolve,
       })
