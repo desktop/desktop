@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { TextBox } from '../lib/text-box'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { storeSSHKeyPassphrase } from '../../lib/ssh/ssh'
 
 interface ISSHKeyPassphraseProps {
   readonly keyPath: string
@@ -12,6 +14,7 @@ interface ISSHKeyPassphraseProps {
 
 interface ISSHKeyPassphraseState {
   readonly passphrase: string
+  readonly rememberPassphrase: boolean
 }
 
 /**
@@ -23,7 +26,7 @@ export class SSHKeyPassphrase extends React.Component<
 > {
   public constructor(props: ISSHKeyPassphraseProps) {
     super(props)
-    this.state = { passphrase: '' }
+    this.state = { passphrase: '', rememberPassphrase: false }
   }
 
   public render() {
@@ -45,6 +48,17 @@ export class SSHKeyPassphrase extends React.Component<
               onValueChanged={this.onValueChanged}
             />
           </Row>
+          <Row>
+            <Checkbox
+              label="Remember passphrase"
+              value={
+                this.state.rememberPassphrase
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onRememberPassphraseChanged}
+            />
+          </Row>
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
@@ -54,6 +68,12 @@ export class SSHKeyPassphrase extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onRememberPassphraseChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.setState({ rememberPassphrase: event.currentTarget.checked })
   }
 
   private onValueChanged = (value: string) => {
@@ -68,6 +88,9 @@ export class SSHKeyPassphrase extends React.Component<
   }
 
   private onSubmit = () => {
+    if (this.state.rememberPassphrase) {
+      storeSSHKeyPassphrase(this.props.keyPath, this.state.passphrase)
+    }
     this.submit(this.state.passphrase)
   }
 

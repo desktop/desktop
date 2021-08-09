@@ -1,4 +1,5 @@
 import { getKeyForEndpoint } from '../auth'
+import { getSSHKeyPassphrase } from '../ssh/ssh'
 import { TokenStore } from '../stores'
 import { TrampolineCommandHandler } from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
@@ -34,6 +35,12 @@ async function handleSSHKeyPassphrase(
   }
 
   const keyPath = matches[1]
+
+  const storedPassphrase = await getSSHKeyPassphrase(keyPath)
+  if (storedPassphrase !== null) {
+    return storedPassphrase
+  }
+
   const passphrase = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
 
   return passphrase ?? ''

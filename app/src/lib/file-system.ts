@@ -4,6 +4,7 @@ import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Tailer } from './tailer'
 import byline from 'byline'
+import * as Crypto from 'crypto'
 
 /**
  * Get a path to a temp file using the given name. Note that the file itself
@@ -109,5 +110,22 @@ export async function readPartialFile(
       })
       .on('error', reject)
       .on('end', () => resolve(Buffer.concat(chunks, total)))
+  })
+}
+
+export async function getFileHash(
+  path: string,
+  type: 'sha1' | 'sha256'
+): Promise<string> {
+  return new Promise(resolve => {
+    const hash = Crypto.createHash(type)
+    hash.setEncoding('hex')
+    const input = FSE.createReadStream(path)
+
+    hash.on('finish', () => {
+      resolve(hash.read() as string)
+    })
+
+    input.pipe(hash)
   })
 }
