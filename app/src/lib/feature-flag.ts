@@ -130,10 +130,10 @@ export function enableLineChangesInCommit(): boolean {
 
 /** Should we allow high contrast theme option */
 export function enableHighContrastTheme(): boolean {
-  return enableDevelopmentFeatures()
+  return true
 }
 
 /** Should we allow customizing a theme */
 export function enableCustomizeTheme(): boolean {
-  return enableDevelopmentFeatures()
+  return true
 }
