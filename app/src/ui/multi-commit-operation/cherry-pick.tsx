@@ -11,7 +11,7 @@ export abstract class CherryPick extends BaseMultiCommitOperation {
       state,
       conflictState,
     } = this.props
-    const { commits, operationDetail, targetBranch } = state
+    const { operationDetail, targetBranch } = state
 
     if (
       conflictState === null ||
@@ -21,6 +21,8 @@ export abstract class CherryPick extends BaseMultiCommitOperation {
       this.endFlowInvalidState()
       return
     }
+
+    const { commits } = operationDetail
 
     await dispatcher.switchMultiCommitOperationToShowProgress(repository)
 

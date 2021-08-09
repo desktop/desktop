@@ -2089,7 +2089,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const { step } = multiCommitOperationState
+    const { step, operationDetail } = multiCommitOperationState
     if (step.kind !== MultiCommitOperationStepKind.ShowConflicts) {
       return
     }
@@ -2107,7 +2107,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { currentTip } = conflictState
       this.repositoryStateCache.updateMultiCommitOperationState(
         repository,
-        () => ({ currentTip })
+        () => ({ operationDetail: { ...operationDetail, currentTip } })
       )
     }
   }
@@ -6896,8 +6896,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         value: 0,
       },
       userHasResolvedConflicts: false,
-      commits,
-      currentTip: targetBranch.tip.sha,
       originalBranchTip: targetBranch.tip.sha,
       targetBranch,
     })

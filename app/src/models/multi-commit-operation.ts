@@ -140,7 +140,19 @@ interface IInteractiveRebaseDetails {
    * interactive rebase or null if rebasing to the root.
    */
   readonly lastRetainedCommitRef: string | null
+
+  /**
+   * Array of commits used during the operation.
+   */
+  readonly commits: ReadonlyArray<Commit>
+
+  /**
+   * This is the commit sha of the HEAD of the in-flight operation used to compare
+   * the state of the after an operation to a previous state.
+   */
+  readonly currentTip: string
 }
+
 interface ISourceBranchDetails {
   /**
    * The branch that are the source of the commits for the operation.
@@ -150,6 +162,7 @@ interface ISourceBranchDetails {
    */
   readonly sourceBranch: Branch | null
 }
+
 interface ISquashDetails extends IInteractiveRebaseDetails {
   readonly kind: MultiCommitOperationKind.Squash
 
@@ -181,6 +194,11 @@ interface ICherryPickDetails extends ISourceBranchDetails {
    * Example: can create a new branch to copy commits to during cherry-pick
    */
   readonly branchCreated: boolean
+
+  /**
+   * Array of commits used during the operation.
+   */
+  readonly commits: ReadonlyArray<CommitOneLine>
 }
 
 interface IRebaseDetails extends ISourceBranchDetails {
