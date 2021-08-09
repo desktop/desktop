@@ -35,15 +35,17 @@ function isWindowsOpenSSHUseEnabled() {
 }
 
 /**
- * Returns the git arguments related to SSH depending on the current context
- * (OS and user settings).
+ * Returns the git environment variables related to SSH depending on the current
+ * context (OS and user settings).
  */
-export async function getSSHArguments() {
+export async function getSSHEnvironment() {
   const canUseWindowsSSH = await isWindowsOpenSSHAvailable()
   if (!canUseWindowsSSH || !isWindowsOpenSSHUseEnabled()) {
-    return []
+    return {}
   }
 
-  // Replace git sshCommand with Windows' OpenSSH executable path
-  return ['-c', `core.sshCommand="${WindowsOpenSSHPath}"`]
+  // Replace git ssh command with Windows' OpenSSH executable path
+  return {
+    GIT_SSH_COMMAND: WindowsOpenSSHPath,
+  }
 }

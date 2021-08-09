@@ -18,7 +18,8 @@ import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
 import { Readable } from 'stream'
 import split2 from 'split2'
-import { getSSHArguments } from '../ssh/ssh'
+import { getSSHEnvironment } from '../ssh/ssh'
+import { merge } from '../merge'
 
 /**
  * An extension of the execution options in dugite that
@@ -132,16 +133,17 @@ export async function git(
   name: string,
   options?: IGitExecutionOptions
 ): Promise<IGitResult> {
-  const sshArguments = await getSSHArguments()
-  args = [...sshArguments, ...args]
-
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
     expectedErrors: new Set(),
   }
 
   let combinedOutput = ''
-  const opts = { ...defaultOptions, ...options }
+  const opts = {
+    ...defaultOptions,
+    ...options,
+    env: merge(options?.env, getSSHEnvironment()),
+  }
 
   opts.processCallback = (process: ChildProcess) => {
     options?.processCallback?.(process)

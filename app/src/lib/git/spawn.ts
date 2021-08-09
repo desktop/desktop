@@ -1,7 +1,7 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
-import { getSSHArguments } from '../ssh/ssh'
+import { getSSHEnvironment } from '../ssh/ssh'
 
 type ProcessOutput = {
   /** The contents of stdout received from the spawned process */
@@ -32,15 +32,14 @@ export async function spawnAndComplete(
   successExitCodes?: Set<number>,
   stdOutMaxLength?: number
 ): Promise<ProcessOutput> {
-  const sshArguments = await getSSHArguments()
-  args = [...sshArguments, ...args]
-
   const commandName = `${name}: git ${args.join(' ')}`
   return GitPerf.measure(
     commandName,
     () =>
       new Promise<ProcessOutput>((resolve, reject) => {
-        const process = GitProcess.spawn(args, path)
+        const process = GitProcess.spawn(args, path, {
+          env: getSSHEnvironment(),
+        })
 
         process.on('error', err => {
           // If this is an exception thrown by Node.js while attempting to
