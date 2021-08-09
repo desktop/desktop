@@ -3217,6 +3217,8 @@ export class Dispatcher {
         kind: MultiCommitOperationKind.Reorder,
         lastRetainedCommitRef,
         beforeCommit,
+        commits: commitsToReorder,
+        currentTip: tip.branch.tip.sha,
       },
       tip.branch,
       commitsToReorder
@@ -3322,6 +3324,8 @@ export class Dispatcher {
         lastRetainedCommitRef,
         commitContext,
         targetCommit: squashOnto,
+        commits: toSquash,
+        currentTip: tip.branch.tip.sha,
       },
       tip.branch,
       toSquash
