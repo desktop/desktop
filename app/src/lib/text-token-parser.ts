@@ -280,12 +280,6 @@ export class Tokenizer {
           )
           break
 
-        case '\n':
-          this.append(element)
-          this.append(' ')
-          i++
-          break
-
         default:
           this.append(element)
           i++
@@ -325,12 +319,6 @@ export class Tokenizer {
           i = this.inspectAndMove(element, i, () =>
             this.scanForHyperlink(text, i, repository)
           )
-          break
-
-        case '\n':
-          this.append(element)
-          this.append(' ')
-          i++
           break
 
         default:
