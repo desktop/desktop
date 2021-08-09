@@ -22,6 +22,16 @@ class TrampolineUIHelper {
       })
     })
   }
+
+  public promptSSHKeyPassphrase(keyPath: string): Promise<string | undefined> {
+    return new Promise(resolve => {
+      this.dispatcher.showPopup({
+        type: PopupType.SSHKeyPassphrase,
+        keyPath,
+        onSubmit: resolve,
+      })
+    })
+  }
 }
 
 export const trampolineUIHelper = new TrampolineUIHelper()

@@ -23,13 +23,35 @@ async function handleSSHHostAuthenticity(
   return addHost ? 'yes' : 'no'
 }
 
+async function handleSSHKeyPassphrase(
+  prompt: string
+): Promise<string | undefined> {
+  const promptRegex = /^Enter passphrase for key '(.+)': $/
+
+  const matches = promptRegex.exec(prompt)
+  if (matches === null || matches.length < 2) {
+    return undefined
+  }
+
+  const keyPath = matches[1]
+  const passphrase = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
+
+  return passphrase ?? ''
+}
+
 export const askpassTrampolineHandler: TrampolineCommandHandler = async command => {
   if (command.parameters.length !== 1) {
     return undefined
   }
 
-  if (command.parameters[0].startsWith('The authenticity of host ')) {
-    return handleSSHHostAuthenticity(command.parameters[0])
+  const firstParameter = command.parameters[0]
+
+  if (firstParameter.startsWith('The authenticity of host ')) {
+    return handleSSHHostAuthenticity(firstParameter)
+  }
+
+  if (firstParameter.startsWith('Enter passphrase for key ')) {
+    return handleSSHKeyPassphrase(firstParameter)
   }
 
   const username = command.environmentVariables.get('DESKTOP_USERNAME')
@@ -37,9 +59,9 @@ export const askpassTrampolineHandler: TrampolineCommandHandler = async command 
     return undefined
   }
 
-  if (command.parameters[0].startsWith('Username')) {
+  if (firstParameter.startsWith('Username')) {
     return username
-  } else if (command.parameters[0].startsWith('Password')) {
+  } else if (firstParameter.startsWith('Password')) {
     const endpoint = command.environmentVariables.get('DESKTOP_ENDPOINT')
     if (endpoint === undefined || endpoint.length === 0) {
       return undefined

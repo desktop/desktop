@@ -147,6 +147,7 @@ import {
   MultiCommitOperationStepKind,
 } from '../models/multi-commit-operation'
 import { AddSSHHost } from './ssh/add-ssh-host'
+import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2091,6 +2092,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="add-ssh-host"
             host={popup.host}
             fingerprint={popup.fingerprint}
+            onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.SSHKeyPassphrase: {
+        return (
+          <SSHKeyPassphrase
+            key="ssh-key-passphrase"
+            keyPath={popup.keyPath}
             onSubmit={popup.onSubmit}
             onDismissed={onPopupDismissedFn}
           />

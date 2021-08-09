@@ -20,6 +20,7 @@ export class AddSSHHost extends React.Component<IAddSSHHostProps> {
         id="add-ssh-host"
         type="normal"
         title="SSH Host"
+        dismissable={false}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
