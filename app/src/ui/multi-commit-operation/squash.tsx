@@ -42,6 +42,7 @@ export abstract class Squash extends BaseMultiCommitOperation {
     if (
       conflictState === null ||
       targetBranch === null ||
+      originalBranchTip === null ||
       operationDetail.kind !== MultiCommitOperationKind.Squash
     ) {
       this.endFlowInvalidState()
