@@ -101,6 +101,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.intellij'],
   },
   {
+    name: 'IntelliJ CE',
+    bundleIdentifiers: ['com.jetbrains.intellij.ce'],
+  },
+  {
     name: 'Xcode',
     bundleIdentifiers: ['com.apple.dt.Xcode'],
   },
