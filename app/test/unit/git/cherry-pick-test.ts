@@ -541,7 +541,7 @@ describe('git/cherry-pick', () => {
       expect(progress).toEqual([
         {
           currentCommitSummary: featureTip.summary,
-          kind: 'cherryPick',
+          kind: 'multiCommitOperation',
           position: 1,
           totalCommitCount: 1,
           value: 1,
