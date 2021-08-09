@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.9.1-beta2": [
+      "[Added] Show number of lines changed in a commit - #11656",
+      "[Improved] Increase visibility of misattributed commit warning in dark mode - #12210",
+      "[Improved] Check invalidated tokens and prompt the user to sign in again - #12554",
+      "[Improved] Improve auth error and prompt to suggest the user use a PAT instead of password - #12323"
+    ],
     "2.9.1-beta1": [
       "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
       "[Fixed] History tab shows all commits as the user scrolls down - #12506 #3704",
