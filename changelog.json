@@ -2,7 +2,7 @@
   "releases": {
     "2.9.1-beta2": [
       "[Added] Show number of lines changed in a commit - #11656",
-      "[Fixed] Made misattributed commit warning more visible in dark mode - #12210",
+      "[Improved] Increase visibility of misattributed commit warning in dark mode - #12210",
       "[Improved] Check invalidated tokens and prompt the user to sign in again - #12554",
       "[Improved] Improve auth error and prompt to suggest the user use a PAT instead of password - #12323"
     ],
