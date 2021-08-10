@@ -1,14 +1,18 @@
 import * as React from 'react'
-import { Branch } from '../../models/branch'
-import { IMatches } from '../../lib/fuzzy-find'
+import { Branch } from '../../../models/branch'
+import { IMatches } from '../../../lib/fuzzy-find'
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   OkCancelButtonGroup,
-} from '../dialog'
-import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
-import { ClickSource } from '../lib/list'
+} from '../../dialog'
+import {
+  BranchList,
+  IBranchListItem,
+  renderDefaultBranch,
+} from '../../branches'
+import { ClickSource } from '../../lib/list'
 
 interface IChooseTargetBranchDialogProps {
   /**
