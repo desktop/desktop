@@ -97,7 +97,8 @@ export abstract class BaseMultiCommitOperation extends React.Component<
 
     const operationDescription = (
       <>
-        {operationPrefix} <strong>{targetBranch.name}</strong>
+        {operationPrefix}{' '}
+        {targetBranch !== null ? <strong>{targetBranch.name}</strong> : null}
       </>
     )
     return dispatcher.onConflictsFoundBanner(

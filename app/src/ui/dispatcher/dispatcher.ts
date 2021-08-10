@@ -3217,6 +3217,8 @@ export class Dispatcher {
         kind: MultiCommitOperationKind.Reorder,
         lastRetainedCommitRef,
         beforeCommit,
+        commits: commitsToReorder,
+        currentTip: tip.branch.tip.sha,
       },
       tip.branch,
       commitsToReorder
@@ -3322,6 +3324,8 @@ export class Dispatcher {
         lastRetainedCommitRef,
         commitContext,
         targetCommit: squashOnto,
+        commits: toSquash,
+        currentTip: tip.branch.tip.sha,
       },
       tip.branch,
       toSquash
@@ -3542,13 +3546,20 @@ export class Dispatcher {
 
     const {
       branchesState,
-      multiCommitOperationState,
+      multiCommitOperationState: mcos,
     } = this.repositoryStateManager.get(repository)
     const { tip } = branchesState
 
-    if (tip.kind === TipState.Valid && multiCommitOperationState !== null) {
-      const { originalBranchTip } = multiCommitOperationState
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+    if (
+      tip.kind === TipState.Valid &&
+      mcos !== null &&
+      mcos.originalBranchTip !== null
+    ) {
+      this.addRebasedBranchToForcePushList(
+        repository,
+        tip,
+        mcos.originalBranchTip
+      )
     }
 
     this.statsStore.recordOperationSuccessful(kind)
