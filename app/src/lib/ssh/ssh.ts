@@ -1,6 +1,6 @@
 import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
-import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
+import { enableWindowsOpenSSH } from '../feature-flag'
 import { getFileHash } from '../file-system'
 import { getBoolean } from '../local-storage'
 import { TokenStore } from '../stores'
