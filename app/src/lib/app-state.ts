@@ -20,7 +20,6 @@ import {
   Progress,
   ICheckoutProgress,
   ICloneProgress,
-  ICherryPickProgress,
   IMultiCommitOperationProgress,
 } from '../models/progress'
 import { Popup } from '../models/popup'
@@ -789,7 +788,7 @@ export interface ICherryPickState {
    * This will be set to `null` when no target branch has been selected to
    * initiate the rebase.
    */
-  readonly progress: ICherryPickProgress | null
+  readonly progress: IMultiCommitOperationProgress | null
 
   /**
    * Whether the user has done work to resolve any conflicts as part of this

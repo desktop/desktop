@@ -3,11 +3,11 @@ import { RichText } from '../lib/rich-text'
 import { Dialog, DialogContent } from '../dialog'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { ICherryPickProgress } from '../../models/progress'
+import { IMultiCommitOperationProgress } from '../../models/progress'
 
 interface ICherryPickProgressDialogProps {
   /** Progress information about the current cherry pick */
-  readonly progress: ICherryPickProgress
+  readonly progress: IMultiCommitOperationProgress
 
   readonly emoji: Map<string, string>
 }

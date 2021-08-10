@@ -2,7 +2,7 @@ import { CherryPickConflictState } from '../lib/app-state'
 import { Branch } from './branch'
 import { CommitOneLine } from './commit'
 import { GitHubRepository } from './github-repository'
-import { ICherryPickProgress } from './progress'
+import { IMultiCommitOperationProgress } from './progress'
 import { IDetachedHead, IUnbornRepository, IValidBranch } from './tip'
 
 /** Represents a snapshot of the cherry pick state from the Git repository  */
@@ -12,7 +12,7 @@ export interface ICherryPickSnapshot {
   /** The sequence of commits being cherry picked */
   readonly commits: ReadonlyArray<CommitOneLine>
   /** The progress of the operation */
-  readonly progress: ICherryPickProgress
+  readonly progress: IMultiCommitOperationProgress
   /** The sha of the target branch tip before cherry pick initiated. */
   readonly targetBranchUndoSha: string
   /** The number of commits already cherry-picked */
