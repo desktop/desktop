@@ -1,6 +1,6 @@
 import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
-import { enableWindowsOpenSSH } from '../feature-flag'
+import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
 import { getFileHash } from '../file-system'
 import { getBoolean } from '../local-storage'
 import { TokenStore } from '../stores'
@@ -43,10 +43,6 @@ function isWindowsOpenSSHUseEnabled() {
 export async function getSSHEnvironment() {
   const canUseWindowsSSH = await isWindowsOpenSSHAvailable()
   if (canUseWindowsSSH && isWindowsOpenSSHUseEnabled()) {
-    return {}
-  }
-
-  if (canUseWindowsSSH && getBoolean(UseWindowsOpenSSHKey, false)) {
     // Replace git ssh command with Windows' OpenSSH executable path
     return {
       GIT_SSH_COMMAND: WindowsOpenSSHPath,
