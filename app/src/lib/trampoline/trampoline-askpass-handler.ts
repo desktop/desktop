@@ -46,7 +46,16 @@ async function handleSSHKeyPassphrase(
     return undefined
   }
 
-  const keyPath = matches[1]
+  let keyPath = matches[1]
+
+  // The ssh bundled with Desktop on Windows, for some reason, provides Unix-like
+  // paths for the keys (e.g. /c/Users/.../id_rsa). We need to convert them to
+  // Windows-like paths (e.g. C:\Users\...\id_rsa).
+  if (__WIN32__ && /^\/\w\//.test(keyPath)) {
+    const driveLetter = keyPath[1]
+    keyPath = keyPath.slice(2)
+    keyPath = `${driveLetter}:${keyPath}`
+  }
 
   const storedPassphrase = await getSSHKeyPassphrase(keyPath)
   if (storedPassphrase !== null) {
