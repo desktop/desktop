@@ -18,6 +18,8 @@ import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
 import { Readable } from 'stream'
 import split2 from 'split2'
+import { getSSHEnvironment } from '../ssh/ssh'
+import { merge } from '../merge'
 
 /**
  * An extension of the execution options in dugite that
@@ -136,8 +138,14 @@ export async function git(
     expectedErrors: new Set(),
   }
 
+  const sshEnvironment = await getSSHEnvironment()
+
   let combinedOutput = ''
-  const opts = { ...defaultOptions, ...options }
+  const opts = {
+    ...defaultOptions,
+    ...options,
+    env: merge(options?.env, sshEnvironment),
+  }
 
   opts.processCallback = (process: ChildProcess) => {
     options?.processCallback?.(process)

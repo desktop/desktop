@@ -292,6 +292,7 @@ import {
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
 import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
+import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -449,6 +450,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.System
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
+  private useWindowsOpenSSH: boolean = false
+
   private hasUserViewedStash = false
 
   private repositoryIndicatorsEnabled: boolean
@@ -482,6 +485,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     super()
 
     this.showWelcomeFlow = !hasShownWelcomeFlow()
+
+    if (__WIN32__) {
+      const useWindowsOpenSSH = getBoolean(UseWindowsOpenSSHKey)
+
+      // If the user never selected whether to use Windows OpenSSH or not, use it
+      // by default if we have to show the welcome flow (i.e. if it's a new install)
+      if (useWindowsOpenSSH === undefined) {
+        this._setUseWindowsOpenSSH(this.showWelcomeFlow)
+      } else {
+        this.useWindowsOpenSSH = useWindowsOpenSSH
+      }
+    }
 
     this.gitStoreCache = new GitStoreCache(
       shell,
@@ -837,6 +852,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
+      useWindowsOpenSSH: this.useWindowsOpenSSH,
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
@@ -3076,6 +3092,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setBoolean(commitSpellcheckEnabledKey, commitSpellcheckEnabled)
     this.commitSpellcheckEnabled = commitSpellcheckEnabled
+
+    this.emitUpdate()
+  }
+
+  public _setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
+    setBoolean(UseWindowsOpenSSHKey, useWindowsOpenSSH)
+    this.useWindowsOpenSSH = useWindowsOpenSSH
 
     this.emitUpdate()
   }

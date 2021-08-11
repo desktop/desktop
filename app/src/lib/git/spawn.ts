@@ -1,6 +1,7 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
+import { getSSHEnvironment } from '../ssh/ssh'
 
 type ProcessOutput = {
   /** The contents of stdout received from the spawned process */
@@ -24,7 +25,7 @@ type ProcessOutput = {
  *                         will be killed silently and the truncated output is
  *                         returned.
  */
-export function spawnAndComplete(
+export async function spawnAndComplete(
   args: string[],
   path: string,
   name: string,
@@ -35,8 +36,10 @@ export function spawnAndComplete(
   return GitPerf.measure(
     commandName,
     () =>
-      new Promise<ProcessOutput>((resolve, reject) => {
-        const process = GitProcess.spawn(args, path)
+      new Promise<ProcessOutput>(async (resolve, reject) => {
+        const process = GitProcess.spawn(args, path, {
+          env: await getSSHEnvironment(),
+        })
 
         process.on('error', err => {
           // If this is an exception thrown by Node.js while attempting to

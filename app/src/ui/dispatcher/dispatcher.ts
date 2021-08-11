@@ -2658,6 +2658,10 @@ export class Dispatcher {
     this.appStore._setCommitSpellcheckEnabled(commitSpellcheckEnabled)
   }
 
+  public setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
+    this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
+  }
+
   public recordDiffOptionsViewed() {
     return this.statsStore.recordDiffOptionsViewed()
   }

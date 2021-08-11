@@ -196,6 +196,9 @@ export interface IAppState {
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: string | null
 
+  /** Whether or not the app should use Windows' OpenSSH client */
+  readonly useWindowsOpenSSH: boolean
+
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
   /**
