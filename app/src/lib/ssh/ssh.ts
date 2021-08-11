@@ -60,8 +60,13 @@ async function getHashForSSHKey(keyPath: string) {
 
 /** Retrieves the passphrase for the SSH key in the given path. */
 export async function getSSHKeyPassphrase(keyPath: string) {
-  const fileHash = await getHashForSSHKey(keyPath)
-  return TokenStore.getItem(SSHKeyPassphraseTokenStoreKey, fileHash)
+  try {
+    const fileHash = await getHashForSSHKey(keyPath)
+    return TokenStore.getItem(SSHKeyPassphraseTokenStoreKey, fileHash)
+  } catch (e) {
+    log.error('Could not retrieve passphrase for SSH key:', e)
+    return null
+  }
 }
 
 /** Stores the passphrase for the SSH key in the given path. */
@@ -69,6 +74,14 @@ export async function storeSSHKeyPassphrase(
   keyPath: string,
   passphrase: string
 ) {
-  const fileHash = await getHashForSSHKey(keyPath)
-  return TokenStore.setItem(SSHKeyPassphraseTokenStoreKey, fileHash, passphrase)
+  try {
+    const fileHash = await getHashForSSHKey(keyPath)
+    await TokenStore.setItem(
+      SSHKeyPassphraseTokenStoreKey,
+      fileHash,
+      passphrase
+    )
+  } catch (e) {
+    log.error('Could not store passphrase for SSH key:', e)
+  }
 }

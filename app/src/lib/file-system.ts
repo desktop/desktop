@@ -117,7 +117,7 @@ export async function getFileHash(
   path: string,
   type: 'sha1' | 'sha256'
 ): Promise<string> {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const hash = Crypto.createHash(type)
     hash.setEncoding('hex')
     const input = FSE.createReadStream(path)
@@ -125,6 +125,9 @@ export async function getFileHash(
     hash.on('finish', () => {
       resolve(hash.read() as string)
     })
+
+    input.on('error', reject)
+    hash.on('error', reject)
 
     input.pipe(hash)
   })
