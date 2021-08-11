@@ -8,6 +8,12 @@ import { arrayEquals } from '../../lib/equality'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { Button } from '../lib/button'
 import { encodePathAsUrl } from '../../lib/path'
+import { DragData, DragType } from '../../models/drag-drop'
+import {
+  AvailableDragAndDropIntroKeys,
+  AvailableDragAndDropIntros,
+  DragAndDropIntroType,
+} from './drag-and-drop-intro'
 
 const RowHeight = 50
 
@@ -24,6 +30,15 @@ interface ICommitListProps {
   /** The SHAs of the selected commits */
   readonly selectedSHAs: ReadonlyArray<string>
 
+  /** Whether or not commits in this list can be undone. */
+  readonly canUndoCommits: boolean
+
+  /** Whether or not commits in this list can be amended. */
+  readonly canAmendCommits: boolean
+
+  /** Whether or the user can reset to commits in this list. */
+  readonly canResetToCommits: boolean
+
   /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
 
@@ -39,8 +54,16 @@ interface ICommitListProps {
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
 
+  /** Callback to fire to undo a given commit in the current repository */
+  readonly onUndoCommit: ((commit: Commit) => void) | undefined
+
+  /** Callback to fire to reset to a given commit in the current repository */
+  readonly onResetToCommit: (commit: Commit) => void
+
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
+
+  readonly onAmendCommit?: () => void
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
@@ -57,6 +80,20 @@ interface ICommitListProps {
   /** Callback to fire to delete an unpushed tag */
   readonly onDeleteTag: (tagName: string) => void
 
+  /**
+   * A handler called whenever the user drops commits on the list to be inserted.
+   *
+   * @param baseCommit - The commit before the selected commits will be inserted.
+   *                     This will be null when commits must be inserted at the
+   *                     end of the list.
+   * @param commitsToInsert -  The commits dropped by the user.
+   */
+  readonly onDropCommitInsertion?: (
+    baseCommit: Commit | null,
+    commitsToInsert: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ) => void
+
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick: (commits: ReadonlyArray<CommitOneLine>) => void
 
@@ -64,7 +101,8 @@ interface ICommitListProps {
   readonly onSquash: (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
-    lastRetainedCommitRef: string | null
+    lastRetainedCommitRef: string | null,
+    isInvokedByContextMenu: boolean
   ) => void
 
   /**
@@ -82,11 +120,14 @@ interface ICommitListProps {
   /* Tags that haven't been pushed yet. This is used to show the unpushed indicator */
   readonly tagsToPush: ReadonlyArray<string> | null
 
-  /* Whether or not the user has been introduced to cherry picking feature */
-  readonly hasShownCherryPickIntro: boolean
+  /** Whether or not commits in this list can be reordered. */
+  readonly reorderingEnabled: boolean
 
-  /** Callback to fire when cherry pick intro popover has been dismissed */
-  readonly onDismissCherryPickIntro: () => void
+  /* Types of drag and drop intros already seen by the user */
+  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
+
+  /** Callback to fire when a drag & drop intro popover has been seen */
+  readonly onDragAndDropIntroSeen: (intro: DragAndDropIntroType) => void
 
   /** Whether a cherry pick is progress */
   readonly isCherryPickInProgress: boolean
@@ -99,11 +140,35 @@ interface ICommitListProps {
 
   /** Callback to remove commit drag element */
   readonly onRemoveCommitDragElement: () => void
+
+  /** Whether squashing should be enabled on the commit list */
+  readonly disableSquashing?: boolean
+}
+
+interface ICommitListState {
+  /** Remaining drag and drop intros to show in the popover. */
+  readonly remainingDragAndDropIntros: ReadonlyArray<DragAndDropIntroType>
 }
 
 /** A component which displays the list of commits. */
-export class CommitList extends React.Component<ICommitListProps, {}> {
+export class CommitList extends React.Component<
+  ICommitListProps,
+  ICommitListState
+> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
+
+  public constructor(props: ICommitListProps) {
+    super(props)
+
+    const remainingDragAndDropIntros = AvailableDragAndDropIntroKeys.filter(
+      intro => !props.dragAndDropIntroTypesShown.has(intro)
+    )
+
+    this.state = {
+      remainingDragAndDropIntros,
+    }
+  }
+
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
     for (const sha of this.props.commitSHAs) {
@@ -140,11 +205,20 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       (isLocal || unpushedTags.length > 0) &&
       this.props.isLocalRepository === false
 
+    // The user can reset to any commit up to the first non-local one (included).
+    // They cannot reset to the most recent commit... because they're already
+    // in it.
+    const isResettableCommit =
+      row > 0 && row <= this.props.localCommitSHAs.length
+
     return (
       <CommitListItem
         key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
+        canBeUndone={this.props.canUndoCommits && isLocal && row === 0}
+        canBeAmended={this.props.canAmendCommits && isLocal && row === 0}
+        canBeResetTo={this.props.canResetToCommits && isResettableCommit}
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,
@@ -158,27 +232,44 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
         onSquash={this.onSquash}
+        onResetToCommit={this.props.onResetToCommit}
+        onUndoCommit={this.props.onUndoCommit}
         onRevertCommit={this.props.onRevertCommit}
+        onAmendCommit={this.props.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.props.onRemoveCommitDragElement}
+        disableSquashing={this.props.disableSquashing}
       />
     )
   }
 
-  private onSquash = (toSquash: ReadonlyArray<Commit>, squashOnto: Commit) => {
-    const indexes = [...toSquash, squashOnto].map(v =>
-      this.props.commitSHAs.findIndex(sha => sha === v.sha)
-    )
+  private getLastRetainedCommitRef(indexes: ReadonlyArray<number>) {
     const maxIndex = Math.max(...indexes)
     const lastIndex = this.props.commitSHAs.length - 1
     /* If the commit is the first commit in the branch, you cannot reference it
     using the sha */
     const lastRetainedCommitRef =
       maxIndex !== lastIndex ? `${this.props.commitSHAs[maxIndex]}^` : null
-    this.props.onSquash(toSquash, squashOnto, lastRetainedCommitRef)
+    return lastRetainedCommitRef
+  }
+
+  private onSquash = (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    isInvokedByContextMenu: boolean
+  ) => {
+    const indexes = [...toSquash, squashOnto].map(v =>
+      this.props.commitSHAs.findIndex(sha => sha === v.sha)
+    )
+    this.props.onSquash(
+      toSquash,
+      squashOnto,
+      this.getLastRetainedCommitRef(indexes),
+      isInvokedByContextMenu
+    )
   }
 
   private onRenderCommitDragElement = (commit: Commit) => {
@@ -267,7 +358,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private renderCherryPickIntroPopover() {
-    if (this.props.hasShownCherryPickIntro) {
+    if (this.state.remainingDragAndDropIntros.length === 0) {
       return null
     }
 
@@ -276,24 +367,43 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       'static/cherry-pick-intro.png'
     )
 
+    const nextButtonTitle =
+      this.state.remainingDragAndDropIntros.length > 1 ? 'Next' : 'Got it'
+
+    const introType = this.state.remainingDragAndDropIntros[0]
+    const intro = AvailableDragAndDropIntros[introType]
+
     return (
       <Popover caretPosition={PopoverCaretPosition.LeftTop}>
         <img src={cherryPickIntro} className="cherry-pick-intro" />
         <h3>
-          Drag and drop to cherry pick!
+          {intro.title}
           <span className="call-to-action-bubble">New</span>
         </h3>
-        <p>
-          Copy commits to another branch by dragging and dropping them onto a
-          branch in the branch menu, or by right clicking on a commit.
-        </p>
+        <p>{intro.body}</p>
         <div>
-          <Button onClick={this.props.onDismissCherryPickIntro} type="submit">
-            Got it
+          <Button onClick={this.onNextDragAndDropIntro} type="submit">
+            {nextButtonTitle}
           </Button>
         </div>
       </Popover>
     )
+  }
+
+  private onNextDragAndDropIntro = () => {
+    if (this.state.remainingDragAndDropIntros.length === 0) {
+      return
+    }
+
+    const intro = this.state.remainingDragAndDropIntros[0]
+
+    this.setState({
+      remainingDragAndDropIntros: this.state.remainingDragAndDropIntros.slice(
+        1
+      ),
+    })
+
+    this.props.onDragAndDropIntroSeen(intro)
   }
 
   public render() {
@@ -310,10 +420,14 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           rowHeight={RowHeight}
           selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
+          onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
           selectionMode="multi"
           onScroll={this.onScroll}
+          insertionDragType={
+            this.props.reorderingEnabled ? DragType.Commit : undefined
+          }
           invalidationProps={{
             commits: this.props.commitSHAs,
             localCommitSHAs: this.props.localCommitSHAs,
@@ -324,6 +438,80 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         />
         {this.renderCherryPickIntroPopover()}
       </div>
+    )
+  }
+
+  private onDropDataInsertion = (row: number, data: DragData) => {
+    if (
+      this.props.onDropCommitInsertion === undefined ||
+      data.type !== DragType.Commit
+    ) {
+      return
+    }
+
+    // The base commit index will be in row - 1, because row is the position
+    // where the new item should be inserted, and commits have a reverse order
+    // (newer commits are in lower row values) in the list.
+    const baseCommitIndex = row === 0 ? null : row - 1
+
+    if (
+      this.props.commitSHAs.length === 0 ||
+      (baseCommitIndex !== null &&
+        baseCommitIndex > this.props.commitSHAs.length)
+    ) {
+      return
+    }
+
+    const baseCommitSHA =
+      baseCommitIndex === null ? null : this.props.commitSHAs[baseCommitIndex]
+    const baseCommit =
+      baseCommitSHA !== null ? this.props.commitLookup.get(baseCommitSHA) : null
+
+    const commitIndexes = data.commits
+      .filter((v): v is Commit => v !== null && v !== undefined)
+      .map(v => this.props.commitSHAs.findIndex(sha => sha === v.sha))
+      .sort() // Required to check if they're contiguous
+
+    // Check if values in commit indexes are contiguous
+    const commitsAreContiguous = commitIndexes.every((value, i, array) => {
+      return i === array.length - 1 || value === array[i + 1] - 1
+    })
+
+    // If commits are contiguous and they are dropped in a position contained
+    // among those indexes, ignore the drop.
+    if (commitsAreContiguous) {
+      const firstDroppedCommitIndex = commitIndexes[0]
+
+      // Commits are dropped right above themselves if
+      // 1. The base commit index is null (meaning, it was dropped at the top
+      //    of the commit list) and the index of the first dropped commit is 0.
+      // 2. The base commit index is the index right above the first dropped.
+      const commitsDroppedRightAboveThemselves =
+        (baseCommitIndex === null && firstDroppedCommitIndex === 0) ||
+        baseCommitIndex === firstDroppedCommitIndex - 1
+
+      // Commits are dropped within themselves if there is a base commit index
+      // and it's in the list of commit indexes.
+      const commitsDroppedWithinThemselves =
+        baseCommitIndex !== null &&
+        commitIndexes.indexOf(baseCommitIndex) !== -1
+
+      if (
+        commitsDroppedRightAboveThemselves ||
+        commitsDroppedWithinThemselves
+      ) {
+        return
+      }
+    }
+
+    const allIndexes = commitIndexes.concat(
+      baseCommitIndex !== null ? [baseCommitIndex] : []
+    )
+
+    this.props.onDropCommitInsertion(
+      baseCommit ?? null,
+      data.commits,
+      this.getLastRetainedCommitRef(allIndexes)
     )
   }
 }

@@ -71,8 +71,15 @@ export function enableTextDiffExpansion(): boolean {
   return true
 }
 
-/** Should we allow apps running from Rosetta to auto-update to ARM64 builds? */
-export function enableUpdateFromRosettaToARM64(): boolean {
+/**
+ * Should we allow x64 apps running under ARM translation to auto-update to
+ * ARM64 builds?
+ */
+export function enableUpdateFromEmulatedX64ToARM64(): boolean {
+  if (__DARWIN__) {
+    return true
+  }
+
   return enableBetaFeatures()
 }
 
@@ -88,10 +95,35 @@ export function enableRepositoryAliases(): boolean {
 
 /** Should we allow to create branches from a commit? */
 export function enableBranchFromCommit(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow squashing? */
 export function enableSquashing(): boolean {
+  return true
+}
+
+/** Should we allow squash-merging? */
+export function enableSquashMerging(): boolean {
+  return true
+}
+
+/** Should we allow amending commits? */
+export function enableAmendingCommits(): boolean {
+  return true
+}
+
+/** Should we allow reordering commits? */
+export function enableCommitReordering(): boolean {
+  return true
+}
+
+/** Should we allow resetting to a previous commit? */
+export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
+}
+
+/** Should we show line changes (added/deleted) in commits? */
+export function enableLineChangesInCommit(): boolean {
+  return enableBetaFeatures()
 }

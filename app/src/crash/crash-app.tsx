@@ -8,7 +8,8 @@ import {
   getWindowState,
   windowStateChannelName,
 } from '../lib/window-state'
-import { Octicon, OcticonSymbol } from '../ui/octicons'
+import { Octicon } from '../ui/octicons'
+import * as OcticonSymbol from '../ui/octicons/octicons.generated'
 import { Button } from '../ui/lib/button'
 import { LinkButton } from '../ui/lib/link-button'
 import { getVersion } from '../ui/lib/app-proxy'

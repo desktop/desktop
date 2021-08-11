@@ -5,7 +5,7 @@ import { BaseMultiCommitOperation } from './base-multi-commit-operation'
 export abstract class Squash extends BaseMultiCommitOperation {
   protected onBeginOperation = () => {
     const { repository, dispatcher, state } = this.props
-    const { commits, operationDetail } = state
+    const { operationDetail } = state
 
     if (operationDetail.kind !== MultiCommitOperationKind.Squash) {
       this.endFlowInvalidState()
@@ -16,6 +16,7 @@ export abstract class Squash extends BaseMultiCommitOperation {
       targetCommit,
       lastRetainedCommitRef,
       commitContext,
+      commits,
     } = operationDetail
 
     return dispatcher.squash(
@@ -23,7 +24,8 @@ export abstract class Squash extends BaseMultiCommitOperation {
       commits,
       targetCommit,
       lastRetainedCommitRef,
-      commitContext
+      commitContext,
+      true
     )
   }
 
@@ -35,12 +37,19 @@ export abstract class Squash extends BaseMultiCommitOperation {
       state,
       conflictState,
     } = this.props
-    const { commits, currentTip, targetBranch, originalBranchTip } = state
+    const { operationDetail, targetBranch, originalBranchTip } = state
 
-    if (conflictState === null) {
+    if (
+      conflictState === null ||
+      targetBranch === null ||
+      originalBranchTip === null ||
+      operationDetail.kind !== MultiCommitOperationKind.Squash
+    ) {
       this.endFlowInvalidState()
       return
     }
+
+    const { commits, currentTip } = operationDetail
 
     await dispatcher.switchMultiCommitOperationToShowProgress(repository)
 
@@ -55,15 +64,17 @@ export abstract class Squash extends BaseMultiCommitOperation {
     }
 
     const rebaseResult = await dispatcher.continueRebase(
+      MultiCommitOperationKind.Squash,
       repository,
       workingDirectory,
       rebaseConflictState
     )
 
-    return dispatcher.processSquashRebaseResult(
+    return dispatcher.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Squash,
       repository,
       rebaseResult,
-      commits,
+      commits.length + 1,
       targetBranch.name
     )
   }

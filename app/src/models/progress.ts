@@ -99,18 +99,6 @@ export interface IRevertProgress extends IProgress {
   kind: 'revert'
 }
 
-/** An object describing the progress of a cherry pick operation */
-export interface ICherryPickProgress extends IProgress {
-  readonly kind: 'cherryPick'
-  /** The summary of the commit applied to the base branch */
-  readonly currentCommitSummary: string
-  /** The number to signify which commit in a selection is being cherry-picked
-   **/
-  readonly position: number
-  /** The total number of commits to cherry pick on top of the current branch */
-  readonly totalCommitCount: number
-}
-
 export interface IMultiCommitOperationProgress extends IProgress {
   readonly kind: 'multiCommitOperation'
   /** The summary of the commit applied */
@@ -128,5 +116,4 @@ export type Progress =
   | IPullProgress
   | IPushProgress
   | IRevertProgress
-  | ICherryPickProgress
   | IMultiCommitOperationProgress

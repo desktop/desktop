@@ -196,7 +196,7 @@ export class PullRequestList extends React.Component<
       prNumber === selectedPullRequest.pullRequestNumber
     ) {
       dispatcher.endCherryPickFlow(repository)
-      dispatcher.recordCherryPickDragStartedAndCanceled()
+      dispatcher.recordDragStartedAndCanceled()
       return
     }
 

@@ -1,12 +1,14 @@
 import classNames from 'classnames'
+import { Disposable } from 'event-kit'
 import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { assertNever } from '../../lib/fatal-error'
 import { Commit } from '../../models/commit'
-import { DropTarget, DropTargetType } from '../../models/drag-drop'
+import { DragType, DropTarget, DropTargetType } from '../../models/drag-drop'
 import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface ICommitDragElementProps {
   readonly commit: Commit
@@ -25,6 +27,8 @@ export class CommitDragElement extends React.Component<
   ICommitDragElementState
 > {
   private timeoutId: number | null = null
+  private onEnterDropTarget: Disposable | null = null
+  private onLeaveDropTargetDisposable: Disposable | null = null
 
   public constructor(props: ICommitDragElementProps) {
     super(props)
@@ -32,22 +36,12 @@ export class CommitDragElement extends React.Component<
       showTooltip: false,
       currentDropTarget: null,
     }
+  }
 
-    dragAndDropManager.onEnterDropTarget(dropTarget => {
-      this.setState({ currentDropTarget: dropTarget })
-      switch (dropTarget.type) {
-        case DropTargetType.Branch:
-        case DropTargetType.Commit:
-          this.setToolTipTimer(1500)
-          break
-        default:
-          assertNever(dropTarget, `Unknown drop target type: ${dropTarget}`)
-      }
-    })
-
-    dragAndDropManager.onLeaveDropTarget(() => {
-      this.setState({ currentDropTarget: null, showTooltip: false })
-    })
+  private clearTimeout() {
+    if (this.timeoutId !== null) {
+      window.clearTimeout(this.timeoutId)
+    }
   }
 
   private setToolTipTimer(time: number) {
@@ -57,9 +51,7 @@ export class CommitDragElement extends React.Component<
       // also are implementing this timeout to have similar hover-to-see feel.
       this.setState({ showTooltip: false })
 
-      if (this.timeoutId !== null) {
-        window.clearTimeout(this.timeoutId)
-      }
+      this.clearTimeout()
 
       this.timeoutId = window.setTimeout(
         () => this.setState({ showTooltip: true }),
@@ -86,7 +78,7 @@ export class CommitDragElement extends React.Component<
           <>
             {copyToPlus}
             <span>
-              <span className="copy-to">Copy to </span>
+              <span className="copy-to">Copy to</span>
               <span className="branch-name">
                 {currentDropTarget.branchName}
               </span>
@@ -100,6 +92,24 @@ export class CommitDragElement extends React.Component<
         toolTipContents = (
           <>
             <span>Squash {commitsBeingSquashedCount} commits</span>
+          </>
+        )
+        break
+      case DropTargetType.ListInsertionPoint:
+        if (currentDropTarget.data.type !== DragType.Commit) {
+          toolTipContents = (
+            <>
+              <span>'Insert here'</span>
+            </>
+          )
+          break
+        }
+
+        const pluralized =
+          currentDropTarget.data.commits.length === 1 ? 'commit' : 'commits'
+        toolTipContents = (
+          <>
+            <span>{`Move ${pluralized} here`}</span>
           </>
         )
         break
@@ -117,6 +127,43 @@ export class CommitDragElement extends React.Component<
     )
   }
 
+  public componentDidMount() {
+    this.onEnterDropTarget = dragAndDropManager.onEnterDropTarget(
+      dropTarget => {
+        this.setState({ currentDropTarget: dropTarget })
+        switch (dropTarget.type) {
+          case DropTargetType.Branch:
+          case DropTargetType.Commit:
+          case DropTargetType.ListInsertionPoint:
+            this.setToolTipTimer(1500)
+            break
+          default:
+            assertNever(dropTarget, `Unknown drop target type: ${dropTarget}`)
+        }
+      }
+    )
+
+    this.onLeaveDropTargetDisposable = dragAndDropManager.onLeaveDropTarget(
+      () => {
+        this.setState({ currentDropTarget: null, showTooltip: false })
+      }
+    )
+  }
+
+  public componentWillUnmount() {
+    this.clearTimeout()
+
+    if (this.onEnterDropTarget !== null) {
+      this.onEnterDropTarget.dispose()
+      this.onEnterDropTarget = null
+    }
+
+    if (this.onLeaveDropTargetDisposable !== null) {
+      this.onLeaveDropTargetDisposable.dispose()
+      this.onLeaveDropTargetDisposable = null
+    }
+  }
+
   public render() {
     const { commit, gitHubRepository, selectedCommits, emoji } = this.props
     const count = selectedCommits.length
@@ -131,6 +178,9 @@ export class CommitDragElement extends React.Component<
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
+            canBeUndone={false}
+            canBeAmended={false}
+            canBeResetTo={false}
             isLocal={false}
             showUnpushedIndicator={false}
           />

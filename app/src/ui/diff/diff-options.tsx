@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import { getBoolean, setBoolean } from '../../lib/local-storage'
 import { Popover, PopoverCaretPosition } from '../lib/popover'

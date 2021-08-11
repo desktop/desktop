@@ -1,8 +1,8 @@
 import * as React from 'react'
 import classNames from 'classnames'
 
-import { FileChange } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -13,11 +13,12 @@ import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
 import { RepositorySectionTab } from '../../lib/app-state'
+import { IChangesetData } from '../../lib/git'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly commit: Commit
-  readonly files: ReadonlyArray<FileChange>
+  readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
   /**
@@ -289,7 +290,7 @@ export class CommitSummary extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.files.length
+    const fileCount = this.props.changesetData.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.commit.shortSha
@@ -301,14 +302,23 @@ export class CommitSummary extends React.Component<
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
+    const hasEmptySummary = this.state.summary.length === 0
+    const commitSummary = hasEmptySummary
+      ? 'Empty commit message'
+      : this.state.summary
+
+    const summaryClassNames = classNames('commit-summary-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
     return (
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
           <RichText
-            className="commit-summary-title"
+            className={summaryClassNames}
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.state.summary}
+            text={commitSummary}
           />
 
           <ul className="commit-summary-meta">
@@ -343,6 +353,7 @@ export class CommitSummary extends React.Component<
 
               {filesDescription}
             </li>
+            {this.renderLinesChanged()}
             {this.renderTags()}
 
             <li
@@ -367,6 +378,36 @@ export class CommitSummary extends React.Component<
 
         {this.renderDescription()}
       </div>
+    )
+  }
+
+  private renderLinesChanged() {
+    const linesAdded = this.props.changesetData.linesAdded
+    const linesDeleted = this.props.changesetData.linesDeleted
+    if (linesAdded + linesDeleted === 0) {
+      return null
+    }
+
+    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
+    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
+    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
+    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
+
+    return (
+      <>
+        <li
+          className="commit-summary-meta-item without-truncation lines-added"
+          title={linesAddedTitle}
+        >
+          +{linesAdded}
+        </li>
+        <li
+          className="commit-summary-meta-item without-truncation lines-deleted"
+          title={linesDeletedTitle}
+        >
+          -{linesDeleted}
+        </li>
+      </>
     )
   }
 

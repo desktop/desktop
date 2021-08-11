@@ -15,8 +15,6 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
-import { OcticonSymbol } from '../octicons'
-
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { CodeMirrorHost } from './code-mirror-host'
@@ -44,7 +42,11 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { canSelect } from './diff-helpers'
+import {
+  canSelect,
+  getLineWidthFromDigitCount,
+  getNumberOfDigits,
+} from './diff-helpers'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -52,6 +54,7 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 /** The longest line for which we'd try to calculate a line diff. */
@@ -59,11 +62,12 @@ const MaxIntraLineDiffStringLength = 4096
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
-export const narrowNoNewlineSymbol = new OcticonSymbol(
-  16,
-  8,
-  'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z'
-)
+export const narrowNoNewlineSymbol = {
+  w: 16,
+  h: 8,
+  d:
+    'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+}
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -988,7 +992,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 lineNumber,
                 hunks,
                 hunk,
-                diffLine
+                diffLine,
+                getNumberOfDigits(this.state.diff.maxLineNumber)
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
@@ -1004,6 +1009,17 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     if (batchedOps.length > 0) {
       cm.operation(() => batchedOps.forEach(x => x()))
     }
+
+    const diffSize = getLineWidthFromDigitCount(
+      getNumberOfDigits(this.state.diff.maxLineNumber)
+    )
+
+    const gutterParentElement = cm.getGutterElement()
+    const gutterElement = gutterParentElement.getElementsByClassName(
+      'diff-gutter'
+    )[0]
+    gutterElement.setAttribute('style', `width: ${diffSize * 2}px;`)
+    cm.refresh()
   }
 
   /**
@@ -1065,9 +1081,14 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     index: number,
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
-    diffLine: DiffLine
+    diffLine: DiffLine,
+    digitCount: number
   ) {
+    const diffSize = getLineWidthFromDigitCount(digitCount)
+
     const marker = document.createElement('div')
+    marker.style.width = `${diffSize * 2}px`
+    marker.style.margin = '0px'
     marker.className = 'diff-line-gutter'
 
     marker.addEventListener(
@@ -1077,10 +1098,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.classList.add('diff-line-number', 'before')
+    oldLineNumber.style.width = `${diffSize}px`
     marker.appendChild(oldLineNumber)
 
     const newLineNumber = document.createElement('div')
     newLineNumber.classList.add('diff-line-number', 'after')
+    newLineNumber.style.width = `${diffSize}px`
     marker.appendChild(newLineNumber)
 
     const hunkHandle = document.createElement('div')

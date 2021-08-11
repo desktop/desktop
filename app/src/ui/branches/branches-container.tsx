@@ -16,7 +16,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
@@ -288,10 +289,7 @@ export class BranchesContainer extends React.Component<
 
   private onMergeClick = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.showPopup({
-      type: PopupType.MergeBranch,
-      repository: this.props.repository,
-    })
+    this.props.dispatcher.startMergeBranchOperation(this.props.repository)
   }
 
   private onBranchItemClick = (branch: Branch) => {
@@ -407,7 +405,7 @@ export class BranchesContainer extends React.Component<
 
   private onDropOntoCurrentBranch = () => {
     if (dragAndDropManager.isDragOfType(DragType.Commit)) {
-      this.props.dispatcher.recordCherryPickDragStartedAndCanceled()
+      this.props.dispatcher.recordDragStartedAndCanceled()
     }
   }
 }

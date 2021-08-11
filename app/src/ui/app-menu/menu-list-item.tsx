@@ -1,7 +1,8 @@
 import * as React from 'react'
 import classNames from 'classnames'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { MenuItem } from '../../models/app-menu'
 import { AccessText } from '../lib/access-text'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'

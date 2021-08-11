@@ -11,6 +11,7 @@ import { ConflictsDialog } from './conflicts-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { ProgressDialog } from './progress-dialog'
 import { WarnForcePushDialog } from './warn-force-push-dialog'
+import { PopupType } from '../../models/popup'
 
 export interface IMultiCommitOperationProps {
   readonly repository: Repository
@@ -63,7 +64,7 @@ export abstract class BaseMultiCommitOperation extends React.Component<
   }
 
   protected onFlowEnded = () => {
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
     this.props.dispatcher.endMultiCommitOperation(this.props.repository)
   }
 
@@ -96,7 +97,8 @@ export abstract class BaseMultiCommitOperation extends React.Component<
 
     const operationDescription = (
       <>
-        {operationPrefix} <strong>{targetBranch.name}</strong>
+        {operationPrefix}{' '}
+        {targetBranch !== null ? <strong>{targetBranch.name}</strong> : null}
       </>
     )
     return dispatcher.onConflictsFoundBanner(
