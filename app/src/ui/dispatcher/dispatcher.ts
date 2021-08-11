@@ -3475,45 +3475,18 @@ export class Dispatcher {
       return
     }
 
-    const { operationDetail, targetBranch, originalBranchTip } = mcos
+    const { operationDetail, originalBranchTip } = mcos
     const { kind } = operationDetail
-
-    let banner: Banner
-    switch (kind) {
-      case MultiCommitOperationKind.Squash:
-        banner = {
-          type: BannerType.SuccessfulSquash,
-          count,
-          onUndo: () => {
-            this.undoMultiCommitOperation(mcos, repository, count)
-          },
-        }
-        break
-      case MultiCommitOperationKind.Reorder:
-        banner = {
-          type: BannerType.SuccessfulReorder,
-          count,
-          onUndo: () => {
-            this.undoMultiCommitOperation(mcos, repository, count)
-          },
-        }
-        break
-      case MultiCommitOperationKind.CherryPick:
-        const targetBranchName = targetBranch !== null ? targetBranch.name : ''
-        banner = {
-          type: BannerType.SuccessfulCherryPick,
-          targetBranchName,
-          countCherryPicked: count,
-          onUndoCherryPick: () => {
-            this.undoMultiCommitOperation(mcos, repository, count)
-          },
-        }
-        break
-      case MultiCommitOperationKind.Rebase:
-      case MultiCommitOperationKind.Merge:
-        throw new Error(`Unexpected multi commit operation kind ${kind}`)
-      default:
-        assertNever(kind, `Unsupported multi operation kind ${kind}`)
+    const banner = this.getMultiCommitOperationSuccessBanner(
+      repository,
+      count,
+      mcos
+    )
+    if (banner === null) {
+      log.error(
+        '[completeMultiCommitOperation] - No multi commit operation to complete.'
+      )
+      return
     }
 
     this.setBanner(banner)
@@ -3530,6 +3503,48 @@ export class Dispatcher {
 
     this.endMultiCommitOperation(repository)
     await this.refreshRepository(repository)
+  }
+
+  private getMultiCommitOperationSuccessBanner(
+    repository: Repository,
+    count: number,
+    mcos: IMultiCommitOperationState
+  ): Banner | null {
+    const {
+      operationDetail: { kind },
+      targetBranch,
+    } = mcos
+
+    const bannerBase: any = {
+      count,
+      onUndo: () => {
+        this.undoMultiCommitOperation(mcos, repository, count)
+      },
+    }
+
+    let banner: Banner
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        banner = { ...bannerBase, type: BannerType.SuccessfulSquash }
+        break
+      case MultiCommitOperationKind.Reorder:
+        banner = { ...bannerBase, type: BannerType.SuccessfulReorder }
+        break
+      case MultiCommitOperationKind.CherryPick:
+        banner = {
+          ...bannerBase,
+          type: BannerType.SuccessfulCherryPick,
+          targetBranchName: targetBranch !== null ? targetBranch.name : '',
+        }
+        break
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        throw new Error(`Unexpected multi commit operation kind ${kind}`)
+      default:
+        assertNever(kind, `Unsupported multi operation kind ${kind}`)
+    }
+
+    return banner
   }
 
   /**
