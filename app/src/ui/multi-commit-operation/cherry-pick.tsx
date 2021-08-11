@@ -180,7 +180,14 @@ export abstract class CherryPick extends BaseMultiCommitOperation {
       return
     }
 
-    dispatcher.setCherryPickCreateBranchFlowStep(repository, targetBranchName)
+    const { commits, sourceBranch } = operationDetail
+
+    dispatcher.setCherryPickCreateBranchFlowStep(
+      repository,
+      targetBranchName,
+      commits,
+      sourceBranch
+    )
   }
 
   private onCreateBranchAndCherryPick = (
