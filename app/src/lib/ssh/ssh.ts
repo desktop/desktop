@@ -1,9 +1,10 @@
 import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
-import { enableWindowsOpenSSH } from '../feature-flag'
+import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
 import { getFileHash } from '../file-system'
 import { getBoolean } from '../local-storage'
 import { TokenStore } from '../stores'
+import { getDesktopTrampolinePath } from '../trampoline/trampoline-environment'
 
 const WindowsOpenSSHPath = 'C:/Windows/System32/OpenSSH/ssh.exe'
 
@@ -41,15 +42,22 @@ function isWindowsOpenSSHUseEnabled() {
  * context (OS and user settings).
  */
 export async function getSSHEnvironment() {
+  const baseEnv = enableSSHAskPass()
+    ? {
+        SSH_ASKPASS: getDesktopTrampolinePath(),
+      }
+    : {}
+
   const canUseWindowsSSH = await isWindowsOpenSSHAvailable()
   if (canUseWindowsSSH && isWindowsOpenSSHUseEnabled()) {
     // Replace git ssh command with Windows' OpenSSH executable path
     return {
+      ...baseEnv,
       GIT_SSH_COMMAND: WindowsOpenSSHPath,
     }
   }
 
-  return {}
+  return baseEnv
 }
 
 const SSHKeyPassphraseTokenStoreKey = 'GitHub-Desktop-SSHKeyPassphrases'
