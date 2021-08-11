@@ -10,7 +10,6 @@ import {
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { ChooseTargetBranchDialog } from './choose-target-branch'
 import { CherryPickProgressDialog } from './cherry-pick-progress-dialog'
 import { CommitOneLine } from '../../models/commit'
 import { WorkingDirectoryStatus } from '../../models/status'
@@ -19,6 +18,7 @@ import { ConfirmCherryPickAbortDialog } from './confirm-cherry-pick-abort-dialog
 import { CreateBranch } from '../create-branch'
 import { ConflictsDialog } from '../multi-commit-operation/conflicts-dialog'
 import { IMultiCommitOperationProgress } from '../../models/progress'
+import { ChooseTargetBranchDialog } from '../multi-commit-operation/choose-branch/choose-target-branch'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
