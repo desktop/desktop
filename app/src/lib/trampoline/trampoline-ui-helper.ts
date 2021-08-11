@@ -20,7 +20,7 @@ class TrampolineUIHelper {
         host,
         ip,
         fingerprint,
-        onSubmit: resolve,
+        onSubmit: addHost => resolve(addHost),
       })
     })
   }
@@ -30,7 +30,7 @@ class TrampolineUIHelper {
       this.dispatcher.showPopup({
         type: PopupType.SSHKeyPassphrase,
         keyPath,
-        onSubmit: resolve,
+        onSubmit: passphrase => resolve(passphrase),
       })
     })
   }
