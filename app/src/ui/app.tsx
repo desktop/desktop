@@ -8,9 +8,7 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
-  ICherryPickState,
   isRebaseConflictState,
-  isCherryPickConflictState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -121,14 +119,8 @@ import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
-import { CherryPickFlow } from './cherry-pick/cherry-pick-flow'
-import {
-  CherryPickStepKind,
-  ChooseTargetBranchesStep,
-} from '../models/cherry-pick'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
-import { WorkingDirectoryStatus } from '../models/status'
 import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
@@ -149,6 +141,11 @@ import { MultiCommitOperation } from './multi-commit-operation/multi-commit-oper
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
 import { WarningBeforeReset } from './reset/warning-before-reset'
 import { InvalidatedToken } from './invalidated-token/invalidated-token'
+import {
+  ChooseBranchStep,
+  MultiCommitOperationKind,
+  MultiCommitOperationStepKind,
+} from '../models/multi-commit-operation'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1942,47 +1939,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
           />
         )
-      case PopupType.CherryPick: {
-        const cherryPickState = this.getCherryPickState()
-        const workingDirectory = this.getWorkingDirectory()
-        if (
-          cherryPickState === null ||
-          cherryPickState.step == null ||
-          workingDirectory === null
-        ) {
-          log.warn(
-            `[App] Invalid state encountered:
-            cherry-pick flow should not be active when step is null,
-            the selected app state is not a repository state,
-            or cannot obtain the working directory.`
-          )
-          return null
-        }
-
-        const { step, progress, userHasResolvedConflicts } = cherryPickState
-
-        return (
-          <CherryPickFlow
-            key="cherry-pick-flow"
-            repository={popup.repository}
-            dispatcher={this.props.dispatcher}
-            onDismissed={onPopupDismissedFn}
-            step={step}
-            emoji={this.state.emoji}
-            progress={progress}
-            commits={popup.commits}
-            openFileInExternalEditor={this.openFileInExternalEditor}
-            workingDirectory={workingDirectory}
-            userHasResolvedConflicts={userHasResolvedConflicts}
-            resolvedExternalEditor={this.state.resolvedExternalEditor}
-            openRepositoryInShell={this.openCurrentRepositoryInShell}
-            sourceBranch={popup.sourceBranch}
-            onShowCherryPickConflictsBanner={
-              this.onShowCherryPickConflictsBanner
-            }
-          />
-        )
-      }
       case PopupType.MoveToApplicationsFolder: {
         return (
           <MoveToApplicationsFolder
@@ -2905,93 +2861,34 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     }
 
-    const initialStep: ChooseTargetBranchesStep = {
-      kind: CherryPickStepKind.ChooseTargetBranch,
+    this.props.dispatcher.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.CherryPick,
+        sourceBranch: currentBranch,
+        branchCreated: false,
+        commits,
+      },
+      tip.branch,
+      commits,
+      tip.branch.tip.sha
+    )
+
+    const initialStep: ChooseBranchStep = {
+      kind: MultiCommitOperationStepKind.ChooseBranch,
       defaultBranch,
       currentBranch,
       allBranches,
       recentBranches,
     }
 
-    this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+    this.props.dispatcher.setMultiCommitOperationStep(repository, initialStep)
     this.props.dispatcher.recordCherryPickViaContextMenu()
 
     this.showPopup({
-      type: PopupType.CherryPick,
+      type: PopupType.MultiCommitOperation,
       repository,
-      commits,
-      sourceBranch: currentBranch,
     })
-  }
-
-  private getCherryPickState(): ICherryPickState | null {
-    const { selectedState } = this.state
-    if (
-      selectedState === null ||
-      selectedState.type !== SelectionType.Repository
-    ) {
-      return null
-    }
-
-    const { cherryPickState } = selectedState.state
-    return cherryPickState
-  }
-
-  private onShowCherryPickConflictsBanner = (
-    repository: Repository,
-    targetBranchName: string,
-    sourceBranch: Branch | null,
-    commits: ReadonlyArray<CommitOneLine>
-  ) => {
-    this.props.dispatcher.setCherryPickFlowStep(repository, {
-      kind: CherryPickStepKind.HideConflicts,
-    })
-
-    this.props.dispatcher.setBanner({
-      type: BannerType.CherryPickConflictsFound,
-      targetBranchName,
-      onOpenConflictsDialog: async () => {
-        const { changesState } = this.props.repositoryStateManager.get(
-          repository
-        )
-        const { conflictState } = changesState
-
-        if (
-          conflictState === null ||
-          !isCherryPickConflictState(conflictState)
-        ) {
-          log.debug(
-            `[App.onShowCherryPickConflictsBanner] no cherry-pick conflict state found, ignoring...`
-          )
-          return
-        }
-
-        await this.props.dispatcher.setCherryPickProgressFromState(repository)
-
-        this.props.dispatcher.setCherryPickFlowStep(repository, {
-          kind: CherryPickStepKind.ShowConflicts,
-          conflictState,
-        })
-
-        this.props.dispatcher.showPopup({
-          type: PopupType.CherryPick,
-          repository,
-          commits,
-          sourceBranch,
-        })
-      },
-    })
-  }
-
-  private getWorkingDirectory(): WorkingDirectoryStatus | null {
-    const { selectedState } = this.state
-    if (
-      selectedState === null ||
-      selectedState.type !== SelectionType.Repository
-    ) {
-      return null
-    }
-    return selectedState.state.changesState.workingDirectory
   }
 
   /**

@@ -17,7 +17,6 @@ import {
   ICommitSelection,
   IRebaseState,
   ChangesSelectionKind,
-  ICherryPickState,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
 } from '../app-state'
@@ -118,17 +117,6 @@ export class RepositoryStateCache {
       const { rebaseState } = state
       const newState = merge(rebaseState, fn(rebaseState))
       return { rebaseState: newState }
-    })
-  }
-
-  public updateCherryPickState<K extends keyof ICherryPickState>(
-    repository: Repository,
-    fn: (state: ICherryPickState) => Pick<ICherryPickState, K>
-  ) {
-    this.update(repository, state => {
-      const { cherryPickState } = state
-      const newState = merge(cherryPickState, fn(cherryPickState))
-      return { cherryPickState: newState }
     })
   }
 
@@ -257,13 +245,6 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
-    cherryPickState: {
-      step: null,
-      progress: null,
-      userHasResolvedConflicts: false,
-      targetBranchUndoSha: null,
-      branchCreated: false,
-    },
     multiCommitOperationUndoState: null,
     multiCommitOperationState: null,
   }
