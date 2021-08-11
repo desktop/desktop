@@ -3482,12 +3482,6 @@ export class Dispatcher {
       count,
       mcos
     )
-    if (banner === null) {
-      log.error(
-        '[completeMultiCommitOperation] - No multi commit operation to complete.'
-      )
-      return
-    }
 
     this.setBanner(banner)
 
@@ -3509,7 +3503,7 @@ export class Dispatcher {
     repository: Repository,
     count: number,
     mcos: IMultiCommitOperationState
-  ): Banner | null {
+  ): Banner {
     const {
       operationDetail: { kind },
       targetBranch,
