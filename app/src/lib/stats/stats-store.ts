@@ -1464,7 +1464,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickSuccessful(): Promise<void> {
+  private recordCherryPickSuccessful(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
     }))
@@ -1508,7 +1508,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickUndone(): Promise<void> {
+  private recordCherryPickUndone(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
     }))
