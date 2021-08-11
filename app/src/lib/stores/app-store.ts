@@ -6168,7 +6168,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private getMCOProgressCallBack(repository: Repository) {
+  private getMultiCommitOperationProgressCallBack(repository: Repository) {
     return (progress: IMultiCommitOperationProgress) => {
       this.repositoryStateCache.updateMultiCommitOperationState(
         repository,
@@ -6192,7 +6192,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await this._refreshRepository(repository)
 
-    const progressCallback = this.getMCOProgressCallBack(repository)
+    const progressCallback = this.getMultiCommitOperationProgressCallBack(
+      repository
+    )
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
       cherryPick(repository, commits, progressCallback)
@@ -6310,7 +6312,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<CherryPickResult> {
-    const progressCallback = this.getMCOProgressCallBack(repository)
+    const progressCallback = this.getMultiCommitOperationProgressCallBack(
+      repository
+    )
 
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
@@ -6527,7 +6531,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return RebaseResult.Error
     }
 
-    const progressCallback = this.getMCOProgressCallBack(repository)
+    const progressCallback = this.getMultiCommitOperationProgressCallBack(
+      repository
+    )
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
       reorder(
@@ -6555,7 +6561,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return RebaseResult.Error
     }
 
-    const progressCallback = this.getMCOProgressCallBack(repository)
+    const progressCallback = this.getMultiCommitOperationProgressCallBack(
+      repository
+    )
     const commitMessage = await formatCommitMessage(repository, commitContext)
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
