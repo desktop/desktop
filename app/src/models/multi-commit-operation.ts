@@ -134,13 +134,7 @@ export type CreateBranchStep = {
   targetBranchName: string
 }
 
-interface IInteractiveRebaseDetails {
-  /**
-   * The reference to the last retained commit on the branch during an
-   * interactive rebase or null if rebasing to the root.
-   */
-  readonly lastRetainedCommitRef: string | null
-
+interface IBaseRebaseDetails {
   /**
    * Array of commits used during the operation.
    */
@@ -151,6 +145,14 @@ interface IInteractiveRebaseDetails {
    * the state of the after an operation to a previous state.
    */
   readonly currentTip: string
+}
+
+interface IInteractiveRebaseDetails extends IBaseRebaseDetails {
+  /**
+   * The reference to the last retained commit on the branch during an
+   * interactive rebase or null if rebasing to the root.
+   */
+  readonly lastRetainedCommitRef: string | null
 }
 
 interface ISourceBranchDetails {
@@ -201,7 +203,7 @@ interface ICherryPickDetails extends ISourceBranchDetails {
   readonly commits: ReadonlyArray<CommitOneLine>
 }
 
-interface IRebaseDetails extends ISourceBranchDetails {
+interface IRebaseDetails extends ISourceBranchDetails, IBaseRebaseDetails {
   readonly kind: MultiCommitOperationKind.Rebase
 }
 
@@ -216,3 +218,9 @@ export type MultiCommitOperationDetail =
   | ICherryPickDetails
   | IRebaseDetails
   | IMergeDetails
+
+export function instanceOfIBaseRebaseDetails(
+  object: any
+): object is IBaseRebaseDetails {
+  return 'commits' in object && 'currentTip' in object
+}
