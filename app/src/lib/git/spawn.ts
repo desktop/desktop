@@ -2,6 +2,7 @@ import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
 import { getSSHEnvironment } from '../ssh/ssh'
+import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
 type ProcessOutput = {
   /** The contents of stdout received from the spawned process */
@@ -32,91 +33,97 @@ export async function spawnAndComplete(
   successExitCodes?: Set<number>,
   stdOutMaxLength?: number
 ): Promise<ProcessOutput> {
-  const commandName = `${name}: git ${args.join(' ')}`
-  return GitPerf.measure(
-    commandName,
-    () =>
-      new Promise<ProcessOutput>(async (resolve, reject) => {
-        const process = GitProcess.spawn(args, path, {
-          env: await getSSHEnvironment(),
-        })
+  return withTrampolineEnv(env => {
+    const commandName = `${name}: git ${args.join(' ')}`
+    return GitPerf.measure(
+      commandName,
+      () =>
+        new Promise<ProcessOutput>(async (resolve, reject) => {
+          const sshEnv = await getSSHEnvironment()
+          const process = GitProcess.spawn(args, path, {
+            env: {
+              ...env,
+              ...sshEnv,
+            },
+          })
 
-        process.on('error', err => {
-          // If this is an exception thrown by Node.js while attempting to
-          // spawn let's keep the salient details but include the name of
-          // the operation.
-          if (isErrnoException(err)) {
-            reject(new Error(`Failed to execute ${name}: ${err.code}`))
-          } else {
-            // for unhandled errors raised by the process, let's surface this in the
-            // promise and make the caller handle it
-            reject(err)
-          }
-        })
-
-        let totalStdoutLength = 0
-        let killSignalSent = false
-
-        const stdoutChunks = new Array<Buffer>()
-
-        // If Node.js encounters a synchronous runtime error while spawning
-        // `stdout` will be undefined and the error will be emitted asynchronously
-        if (process.stdout) {
-          process.stdout.on('data', (chunk: Buffer) => {
-            if (!stdOutMaxLength || totalStdoutLength < stdOutMaxLength) {
-              stdoutChunks.push(chunk)
-              totalStdoutLength += chunk.length
-            }
-
-            if (
-              stdOutMaxLength &&
-              totalStdoutLength >= stdOutMaxLength &&
-              !killSignalSent
-            ) {
-              process.kill()
-              killSignalSent = true
+          process.on('error', err => {
+            // If this is an exception thrown by Node.js while attempting to
+            // spawn let's keep the salient details but include the name of
+            // the operation.
+            if (isErrnoException(err)) {
+              reject(new Error(`Failed to execute ${name}: ${err.code}`))
+            } else {
+              // for unhandled errors raised by the process, let's surface this in the
+              // promise and make the caller handle it
+              reject(err)
             }
           })
-        }
 
-        const stderrChunks = new Array<Buffer>()
+          let totalStdoutLength = 0
+          let killSignalSent = false
 
-        // See comment above about stdout and asynchronous errors.
-        if (process.stderr) {
-          process.stderr.on('data', (chunk: Buffer) => {
-            stderrChunks.push(chunk)
-          })
-        }
+          const stdoutChunks = new Array<Buffer>()
 
-        process.on('close', (code, signal) => {
-          const stdout = Buffer.concat(
-            stdoutChunks,
-            stdOutMaxLength
-              ? Math.min(stdOutMaxLength, totalStdoutLength)
-              : totalStdoutLength
-          )
+          // If Node.js encounters a synchronous runtime error while spawning
+          // `stdout` will be undefined and the error will be emitted asynchronously
+          if (process.stdout) {
+            process.stdout.on('data', (chunk: Buffer) => {
+              if (!stdOutMaxLength || totalStdoutLength < stdOutMaxLength) {
+                stdoutChunks.push(chunk)
+                totalStdoutLength += chunk.length
+              }
 
-          const stderr = Buffer.concat(stderrChunks)
-
-          // mimic the experience of GitProcess.exec for handling known codes when
-          // the process terminates
-          const exitCodes = successExitCodes || new Set([0])
-
-          if (exitCodes.has(code) || signal) {
-            resolve({
-              output: stdout,
-              error: stderr,
-              exitCode: code,
+              if (
+                stdOutMaxLength &&
+                totalStdoutLength >= stdOutMaxLength &&
+                !killSignalSent
+              ) {
+                process.kill()
+                killSignalSent = true
+              }
             })
-            return
-          } else {
-            reject(
-              new Error(
-                `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
-              )
-            )
           }
+
+          const stderrChunks = new Array<Buffer>()
+
+          // See comment above about stdout and asynchronous errors.
+          if (process.stderr) {
+            process.stderr.on('data', (chunk: Buffer) => {
+              stderrChunks.push(chunk)
+            })
+          }
+
+          process.on('close', (code, signal) => {
+            const stdout = Buffer.concat(
+              stdoutChunks,
+              stdOutMaxLength
+                ? Math.min(stdOutMaxLength, totalStdoutLength)
+                : totalStdoutLength
+            )
+
+            const stderr = Buffer.concat(stderrChunks)
+
+            // mimic the experience of GitProcess.exec for handling known codes when
+            // the process terminates
+            const exitCodes = successExitCodes || new Set([0])
+
+            if (exitCodes.has(code) || signal) {
+              resolve({
+                output: stdout,
+                error: stderr,
+                exitCode: code,
+              })
+              return
+            } else {
+              reject(
+                new Error(
+                  `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
+                )
+              )
+            }
+          })
         })
-      })
-  )
+    )
+  })
 }

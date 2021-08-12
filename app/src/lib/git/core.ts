@@ -20,6 +20,7 @@ import { Readable } from 'stream'
 import split2 from 'split2'
 import { getSSHEnvironment } from '../ssh/ssh'
 import { merge } from '../merge'
+import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
 /**
  * An extension of the execution options in dugite that
@@ -138,13 +139,10 @@ export async function git(
     expectedErrors: new Set(),
   }
 
-  const sshEnvironment = await getSSHEnvironment()
-
   let combinedOutput = ''
   const opts = {
     ...defaultOptions,
     ...options,
-    env: merge(options?.env, sshEnvironment),
   }
 
   opts.processCallback = (process: ChildProcess) => {
@@ -162,25 +160,30 @@ export async function git(
     combineOutput(process.stdout)
   }
 
-  // Explicitly set TERM to 'dumb' so that if Desktop was launched
-  // from a terminal or if the system environment variables
-  // have TERM set Git won't consider us as a smart terminal.
-  // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
-  opts.env = { TERM: 'dumb', ...opts.env } as Object
+  const result = await withTrampolineEnv(async env => {
+    const sshEnvironment = await getSSHEnvironment()
+    const combinedEnv = merge(opts.env, merge(env, sshEnvironment))
 
-  const commandName = `${name}: git ${args.join(' ')}`
+    // Explicitly set TERM to 'dumb' so that if Desktop was launched
+    // from a terminal or if the system environment variables
+    // have TERM set Git won't consider us as a smart terminal.
+    // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
+    opts.env = { TERM: 'dumb', ...combinedEnv } as Object
 
-  const result = await GitPerf.measure(commandName, () =>
-    GitProcess.exec(args, path, opts)
-  ).catch(err => {
-    // If this is an exception thrown by Node.js (as opposed to
-    // dugite) let's keep the salient details but include the name of
-    // the operation.
-    if (isErrnoException(err)) {
-      throw new Error(`Failed to execute ${name}: ${err.code}`)
-    }
+    const commandName = `${name}: git ${args.join(' ')}`
 
-    throw err
+    return GitPerf.measure(commandName, () =>
+      GitProcess.exec(args, path, opts)
+    ).catch(err => {
+      // If this is an exception thrown by Node.js (as opposed to
+      // dugite) let's keep the salient details but include the name of
+      // the operation.
+      if (isErrnoException(err)) {
+        throw new Error(`Failed to execute ${name}: ${err.code}`)
+      }
+
+      throw err
+    })
   })
 
   const exitCode = result.exitCode
