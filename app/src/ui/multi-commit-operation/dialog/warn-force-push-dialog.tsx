@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { Dispatcher } from '../dispatcher'
-import { DialogFooter, DialogContent, Dialog } from '../dialog'
-import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Checkbox, CheckboxValue } from '../../lib/checkbox'
+import { Dispatcher } from '../../dispatcher'
+import { DialogFooter, DialogContent, Dialog } from '../../dialog'
+import { OkCancelButtonGroup } from '../../dialog/ok-cancel-button-group'
 
 interface IWarnForcePushProps {
   /**
