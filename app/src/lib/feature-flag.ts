@@ -132,3 +132,8 @@ export function enableLineChangesInCommit(): boolean {
 export function enableWindowsOpenSSH(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we use the setImmediate alternative? */
+export function enableSetAlmostImmediate(): boolean {
+  return enableBetaFeatures()
+}
