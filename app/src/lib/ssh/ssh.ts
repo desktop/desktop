@@ -60,7 +60,8 @@ export async function getSSHEnvironment() {
   return baseEnv
 }
 
-const SSHKeyPassphraseTokenStoreKey = 'GitHub-Desktop-SSHKeyPassphrases'
+const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub'
+const SSHKeyPassphraseTokenStoreKey = `${appName} - SSH key passphrases`
 
 async function getHashForSSHKey(keyPath: string) {
   return getFileHash(keyPath, 'sha256')
