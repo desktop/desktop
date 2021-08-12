@@ -3,11 +3,11 @@ import { enableSetAlmostImmediate } from './feature-flag'
 
 /**
  * Reference created by setAlmostImmediate so that it can be cleared later.
- * It can be NodeJS.Immediate or NodeJS.Timeout because we use a feature flag
+ * It can be NodeJS.Immediate or number because we use a feature flag
  * to tweak the behavior of setAlmostImmediate, but this type should be used
  * as if it were opaque.
  */
-export type AlmostImmediate = NodeJS.Immediate | NodeJS.Timeout
+export type AlmostImmediate = NodeJS.Immediate | number
 
 /**
  * This function behaves almost like setImmediate, but it will rely on
@@ -21,15 +21,15 @@ export function setAlmostImmediate(
   ...args: any[]
 ): AlmostImmediate {
   return enableSetAlmostImmediate()
-    ? setTimeout(callback, 0, ...args)
+    ? window.setTimeout(callback, 0, ...args)
     : setImmediate(callback, ...args)
 }
 
 /** Used to clear references created by setAlmostImmediate. */
 export function clearAlmostImmediate(almostImmediate: AlmostImmediate) {
-  if (almostImmediate instanceof NodeJS.Immediate) {
-    clearImmediate(almostImmediate)
-  } else {
+  if (typeof almostImmediate === 'number') {
     clearTimeout(almostImmediate)
+  } else {
+    clearImmediate(almostImmediate)
   }
 }
