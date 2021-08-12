@@ -74,6 +74,8 @@ export enum PopupType {
   WarnLocalChangesBeforeUndo,
   WarningBeforeReset,
   InvalidatedToken,
+  AddSSHHost,
+  SSHKeyPassphrase,
 }
 
 export type Popup =
@@ -295,4 +297,16 @@ export type Popup =
   | {
       type: PopupType.InvalidatedToken
       account: Account
+    }
+  | {
+      type: PopupType.AddSSHHost
+      host: string
+      ip: string
+      fingerprint: string
+      onSubmit: (addHost: boolean) => void
+    }
+  | {
+      type: PopupType.SSHKeyPassphrase
+      keyPath: string
+      onSubmit: (passphrase: string | undefined) => void
     }
