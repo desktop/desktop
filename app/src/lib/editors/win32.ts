@@ -21,6 +21,8 @@ type ExpectedInstallationChecker = (
   publisher: string
 ) => boolean
 
+type RegistryKey = { key: HKEY; subKey: string }
+
 /** Represents an external editor on Windows */
 interface IWindowsExternalEditor {
   /** Name of the editor. It will be used both as identifier and user-facing. */
@@ -32,7 +34,7 @@ interface IWindowsExternalEditor {
    * Some tools (like VSCode) may support a 64-bit or 32-bit version of the
    * tool - we should use whichever they have installed.
    */
-  readonly registryKeys: ReadonlyArray<{ key: HKEY; subKey: string }>
+  readonly registryKeys: ReadonlyArray<RegistryKey>
 
   /**
    * List of path components from the editor's installation folder to the
@@ -56,7 +58,7 @@ interface IWindowsExternalEditor {
   readonly expectedInstallationChecker: ExpectedInstallationChecker
 }
 
-const registryKey = (key: HKEY, ...subKeys: string[]) => ({
+const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
   key,
   subKey: Path.win32.join(...subKeys),
 })
@@ -75,6 +77,28 @@ const LocalMachineUninstallKey = (subKey: string) =>
 
 const Wow64LocalMachineUninstallKey = (subKey: string) =>
   registryKey(HKEY.HKEY_LOCAL_MACHINE, wow64UninstallSubKey, subKey)
+
+// This function generates registry keys for a given JetBrains product for the
+// last 2 years, assuming JetBrains makes no more than 5 releases per year.
+const registryKeysForJetBrainsIDE = (
+  product: string
+): ReadonlyArray<RegistryKey> => {
+  const maxReleasesPerYear = 5
+  const lastYear = new Date().getFullYear()
+  const firstYear = lastYear - 2
+
+  const result = new Array<RegistryKey>()
+
+  for (let year = firstYear; year <= lastYear; year++) {
+    for (let release = 1; release <= maxReleasesPerYear; release++) {
+      const key = `${product} ${year}.${release}`
+      result.push(Wow64LocalMachineUninstallKey(key))
+    }
+  }
+
+  // Return in reverse order to prioritize newer versions
+  return result.reverse()
+}
 
 /**
  * This list contains all the external editors supported on Windows. Add a new
@@ -243,25 +267,14 @@ const editors: IWindowsExternalEditor[] = [
   },
   {
     name: 'JetBrains Webstorm',
-    registryKeys: [
-      Wow64LocalMachineUninstallKey('WebStorm 2018.3'),
-      Wow64LocalMachineUninstallKey('WebStorm 2019.2'),
-      Wow64LocalMachineUninstallKey('WebStorm 2019.2.4'),
-      Wow64LocalMachineUninstallKey('WebStorm 2019.3'),
-      Wow64LocalMachineUninstallKey('WebStorm 2020.1'),
-    ],
+    registryKeys: registryKeysForJetBrainsIDE('WebStorm'),
     executableShimPath: ['bin', 'webstorm.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.',
   },
   {
     name: 'JetBrains Phpstorm',
-    registryKeys: [
-      Wow64LocalMachineUninstallKey('PhpStorm 2019.2'),
-      Wow64LocalMachineUninstallKey('PhpStorm 2019.2.4'),
-      Wow64LocalMachineUninstallKey('PhpStorm 2019.3'),
-      Wow64LocalMachineUninstallKey('PhpStorm 2020.1'),
-    ],
+    registryKeys: registryKeysForJetBrainsIDE('PhpStorm'),
     executableShimPath: ['bin', 'phpstorm.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('PhpStorm') && publisher === 'JetBrains s.r.o.',
@@ -281,7 +294,7 @@ const editors: IWindowsExternalEditor[] = [
   },
   {
     name: 'JetBrains Rider',
-    registryKeys: [Wow64LocalMachineUninstallKey('JetBrains Rider 2019.3.4')],
+    registryKeys: registryKeysForJetBrainsIDE('JetBrains Rider'),
     executableShimPath: ['bin', 'rider64.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('JetBrains Rider') &&
@@ -294,6 +307,25 @@ const editors: IWindowsExternalEditor[] = [
     installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'RStudio' && publisher === 'RStudio',
+  },
+  {
+    name: 'JetBrains IntelliJ Idea',
+    registryKeys: registryKeysForJetBrainsIDE('IntelliJ IDEA'),
+    //I think the reg keys are for 32-bit version but the IDE runs 64-bit
+    executableShimPath: ['bin', 'idea64.exe'],
+    expectedInstallationChecker: (displayName, publisher) =>
+      displayName.startsWith('IntelliJ IDEA ') &&
+      publisher === 'JetBrains s.r.o.',
+  },
+  {
+    name: 'JetBrains IntelliJ Idea Community Edition',
+    registryKeys: registryKeysForJetBrainsIDE(
+      'IntelliJ IDEA Community Edition'
+    ),
+    executableShimPath: ['bin', 'idea64.exe'],
+    expectedInstallationChecker: (displayName, publisher) =>
+      displayName.startsWith('IntelliJ IDEA Community Edition ') &&
+      publisher === 'JetBrains s.r.o.',
   },
 ]
 
