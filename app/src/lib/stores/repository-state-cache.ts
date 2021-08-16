@@ -15,7 +15,6 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ICommitSelection,
-  IRebaseState,
   ChangesSelectionKind,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
@@ -106,17 +105,6 @@ export class RepositoryStateCache {
       const changesState = state.branchesState
       const newState = merge(changesState, fn(changesState))
       return { branchesState: newState }
-    })
-  }
-
-  public updateRebaseState<K extends keyof IRebaseState>(
-    repository: Repository,
-    fn: (branchesState: IRebaseState) => Pick<IRebaseState, K>
-  ) {
-    this.update(repository, state => {
-      const { rebaseState } = state
-      const newState = merge(rebaseState, fn(rebaseState))
-      return { rebaseState: newState }
     })
   }
 
@@ -224,12 +212,6 @@ function getInitialRepositoryState(): IRepositoryState {
       branches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
-    },
-    rebaseState: {
-      step: null,
-      progress: null,
-      commits: null,
-      userHasResolvedConflicts: false,
     },
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),

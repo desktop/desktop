@@ -31,6 +31,7 @@ import {
   PushOptions,
   getCommitsBetweenCommits,
   getBranches,
+  getRebaseSnapshot,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -53,10 +54,6 @@ import { AppStore } from '../../lib/stores/app-store'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
-import {
-  initializeNewRebaseFlow,
-  initializeRebaseFlowForConflictedRepository,
-} from '../../lib/rebase'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
@@ -100,7 +97,6 @@ import {
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
-import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { resolveWithin } from '../../lib/path'
@@ -118,6 +114,7 @@ import {
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
+import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 
 /**
  * An error handler function.
@@ -440,12 +437,15 @@ export class Dispatcher {
     initialBranch?: Branch | null
   ) {
     const repositoryState = this.repositoryStateManager.get(repository)
-    const initialStep = initializeNewRebaseFlow(repositoryState, initialBranch)
+    const initialStep = getMultiCommitOperationChooseBranchStep(
+      repositoryState,
+      initialBranch
+    )
 
-    this.setRebaseFlowStep(repository, initialStep)
+    this.setMultiCommitOperationStep(repository, initialStep)
 
     this.showPopup({
-      type: PopupType.RebaseFlow,
+      type: PopupType.MultiCommitOperation,
       repository,
     })
   }
@@ -463,6 +463,22 @@ export class Dispatcher {
     const hasOverriddenForcePushCheck =
       options !== undefined && options.continueWithForcePush
 
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const originalBranchTip = getTipSha(branchesState.tip)
+
+    this.appStore._initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Rebase,
+        commits,
+        currentTip: baseBranch.tip.sha,
+        sourceBranch: baseBranch,
+      },
+      targetBranch,
+      commits,
+      originalBranchTip
+    )
+
     if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
       const showWarning = await this.warnAboutRemoteCommits(
         repository,
@@ -471,32 +487,26 @@ export class Dispatcher {
       )
 
       if (showWarning) {
-        this.setRebaseFlowStep(repository, {
-          kind: RebaseStep.WarnForcePush,
-          baseBranch,
+        this.setMultiCommitOperationStep(repository, {
+          kind: MultiCommitOperationStepKind.WarnForcePush,
           targetBranch,
+          baseBranch,
           commits,
         })
         return
       }
     }
 
-    this.initializeRebaseProgress(repository, commits)
-
-    const startRebaseAction = () => {
-      return this.rebase(repository, baseBranch, targetBranch)
-    }
-
-    this.setRebaseFlowStep(repository, {
-      kind: RebaseStep.ShowProgress,
-      rebaseAction: startRebaseAction,
-    })
+    await this.rebase(repository, baseBranch, targetBranch)
   }
 
   /**
    * Initialize and launch the rebase flow for a conflicted repository
    */
-  public async launchRebaseFlow(repository: Repository, targetBranch: string) {
+  public async launchRebaseOperation(
+    repository: Repository,
+    targetBranch: string
+  ) {
     await this.appStore._loadStatus(repository)
 
     const repositoryState = this.repositoryStateManager.get(repository)
@@ -515,16 +525,45 @@ export class Dispatcher {
       conflictState: updatedConflictState,
     }))
 
-    await this.setRebaseProgressFromState(repository)
+    const snapshot = await getRebaseSnapshot(repository)
+    if (snapshot === null) {
+      return
+    }
 
-    const initialStep = initializeRebaseFlowForConflictedRepository(
-      updatedConflictState
+    const { progress, commits } = snapshot
+    this.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Rebase,
+        sourceBranch: null,
+        commits,
+        currentTip: '',
+      },
+      null,
+      commits,
+      null
     )
 
-    this.setRebaseFlowStep(repository, initialStep)
+    this.repositoryStateManager.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        progress,
+      })
+    )
+
+    const { manualResolutions } = conflictState
+    this.setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ShowConflicts,
+      conflictState: {
+        kind: 'multiCommitOperation',
+        manualResolutions,
+        ourBranch: targetBranch,
+        theirBranch: undefined,
+      },
+    })
 
     this.showPopup({
-      type: PopupType.RebaseFlow,
+      type: PopupType.MultiCommitOperation,
       repository,
     })
   }
@@ -1016,52 +1055,27 @@ export class Dispatcher {
     return this.appStore._setConflictsResolved(repository)
   }
 
-  /**
-   * Initialize the progress in application state based on the known commits
-   * that will be applied in the rebase.
-   *
-   * @param commits the list of commits that exist on the target branch which do
-   *                not exist on the base branch
-   */
-  public initializeRebaseProgress(
-    repository: Repository,
-    commits: ReadonlyArray<CommitOneLine>
-  ) {
-    return this.appStore._initializeRebaseProgress(repository, commits)
-  }
-
-  /**
-   * Update the rebase progress in application state by querying the Git
-   * repository state.
-   */
-  public setRebaseProgressFromState(repository: Repository) {
-    return this.appStore._setRebaseProgressFromState(repository)
-  }
-
-  /**
-   * Move the rebase flow to a new state.
-   */
-  public setRebaseFlowStep(
-    repository: Repository,
-    step: RebaseFlowStep
-  ): Promise<void> {
-    return this.appStore._setRebaseFlowStep(repository, step)
-  }
-
-  /** End the rebase flow and cleanup any related app state */
-  public endRebaseFlow(repository: Repository) {
-    return this.appStore._endRebaseFlow(repository)
-  }
-
   /** Starts a rebase for the given base and target branch */
   public async rebase(
     repository: Repository,
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<void> {
-    const stateBefore = this.repositoryStateManager.get(repository)
+    const {
+      branchesState,
+      multiCommitOperationState,
+    } = this.repositoryStateManager.get(repository)
 
-    const beforeSha = getTipSha(stateBefore.branchesState.tip)
+    if (
+      multiCommitOperationState == null ||
+      multiCommitOperationState.operationDetail.kind !==
+        MultiCommitOperationKind.Rebase
+    ) {
+      return
+    }
+    const { commits } = multiCommitOperationState.operationDetail
+
+    const beforeSha = getTipSha(branchesState.tip)
 
     log.info(
       `[rebase] starting rebase for ${targetBranch.name} at ${beforeSha}`
@@ -1104,13 +1118,12 @@ export class Dispatcher {
         return
       }
 
-      const conflictsWithBranches: RebaseConflictState = {
-        ...conflictState,
-        baseBranch: baseBranch.name,
-        targetBranch: targetBranch.name,
-      }
-
-      this.switchToConflicts(repository, conflictsWithBranches)
+      return this.startMultiCommitOperationConflictFlow(
+        MultiCommitOperationKind.Rebase,
+        repository,
+        baseBranch.name,
+        targetBranch.name
+      )
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1120,22 +1133,12 @@ export class Dispatcher {
       }
 
       this.statsStore.recordRebaseSuccessWithoutConflicts()
-
-      await this.completeRebase(
-        repository,
-        {
-          type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch.name,
-          baseBranch: baseBranch.name,
-        },
-        tip,
-        beforeSha
-      )
+      await this.completeMultiCommitOperation(repository, commits.length)
     } else if (result === RebaseResult.Error) {
       // we were unable to successfully start the rebase, and an error should
       // be shown through the default error handling infrastructure, so we can
       // just abandon the rebase for now
-      this.endRebaseFlow(repository)
+      this.endMultiCommitOperation(repository)
     }
   }
 
@@ -1184,93 +1187,6 @@ export class Dispatcher {
     )
 
     return result
-  }
-
-  public processContinueRebaseResult(
-    result: RebaseResult,
-    conflictsState: RebaseConflictState,
-    repository: Repository
-  ) {
-    const stateAfter = this.repositoryStateManager.get(repository)
-    const { tip } = stateAfter.branchesState
-    const { targetBranch, baseBranch, originalBranchTip } = conflictsState
-
-    if (result === RebaseResult.ConflictsEncountered) {
-      const { conflictState } = stateAfter.changesState
-      if (conflictState === null) {
-        log.warn(
-          `[continueRebase] conflict state after rebase is null - unable to continue`
-        )
-        return
-      }
-
-      if (!isRebaseConflictState(conflictState)) {
-        log.warn(
-          `[continueRebase] conflict state after rebase is not rebase conflicts - unable to continue`
-        )
-        return
-      }
-
-      // ensure branches are persisted when transitioning back to conflicts
-      const conflictsWithBranches: RebaseConflictState = {
-        ...conflictState,
-        baseBranch,
-        targetBranch,
-      }
-
-      return this.switchToConflicts(repository, conflictsWithBranches)
-    } else if (result === RebaseResult.CompletedWithoutError) {
-      if (tip.kind !== TipState.Valid) {
-        log.warn(
-          `[continueRebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
-        )
-        return
-      }
-
-      this.statsStore.recordRebaseSuccessAfterConflicts()
-
-      return this.completeRebase(
-        repository,
-        {
-          type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch,
-          baseBranch: baseBranch,
-        },
-        tip,
-        originalBranchTip
-      )
-    }
-  }
-
-  /** Switch the rebase flow to show the latest conflicts */
-  private switchToConflicts = (
-    repository: Repository,
-    conflictState: RebaseConflictState
-  ) => {
-    this.setRebaseFlowStep(repository, {
-      kind: RebaseStep.ShowConflicts,
-      conflictState,
-    })
-  }
-
-  /** Tidy up the rebase flow after reaching the end */
-  private async completeRebase(
-    repository: Repository,
-    banner: Banner,
-    tip: IValidBranch,
-    originalBranchTip: string
-  ): Promise<void> {
-    this.closePopup()
-
-    this.setBanner(banner)
-
-    if (tip.kind === TipState.Valid) {
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
-    }
-
-    this.endRebaseFlow(repository)
-
-    await this.refreshRepository(repository)
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
@@ -3217,7 +3133,8 @@ export class Dispatcher {
       repository,
       result,
       commitsToReorder.length,
-      tip.branch.name
+      tip.branch.name,
+      `${MultiCommitOperationKind.Reorder.toLowerCase()} commit`
     )
   }
 
@@ -3326,7 +3243,8 @@ export class Dispatcher {
       repository,
       result,
       toSquash.length + 1,
-      tip.branch.name
+      tip.branch.name,
+      `${MultiCommitOperationKind.Squash.toLowerCase()} commit`
     )
   }
 
@@ -3378,7 +3296,8 @@ export class Dispatcher {
     repository: Repository,
     result: RebaseResult,
     totalNumberOfCommits: number,
-    targetBranchName: string
+    ourBranch: string,
+    theirBranch: string
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
     // conflict flow if squash results in conflict.
@@ -3403,8 +3322,8 @@ export class Dispatcher {
         this.startMultiCommitOperationConflictFlow(
           kind,
           repository,
-          targetBranchName,
-          `${kind.toLowerCase()} commit`
+          ourBranch,
+          theirBranch
         )
         break
       default:
@@ -3508,10 +3427,8 @@ export class Dispatcher {
     count: number,
     mcos: IMultiCommitOperationState
   ): Banner {
-    const {
-      operationDetail: { kind },
-      targetBranch,
-    } = mcos
+    const { operationDetail, targetBranch } = mcos
+    const { kind } = operationDetail
 
     const bannerBase: any = {
       count,
@@ -3536,6 +3453,16 @@ export class Dispatcher {
         }
         break
       case MultiCommitOperationKind.Rebase:
+        const sourceBranch =
+          operationDetail.kind === MultiCommitOperationKind.Rebase
+            ? operationDetail.sourceBranch
+            : null
+        banner = {
+          type: BannerType.SuccessfulRebase,
+          targetBranch: targetBranch !== null ? targetBranch.name : '',
+          baseBranch: sourceBranch !== null ? sourceBranch.name : '',
+        }
+        break
       case MultiCommitOperationKind.Merge:
         throw new Error(`Unexpected multi commit operation kind ${kind}`)
       default:

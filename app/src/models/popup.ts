@@ -51,7 +51,6 @@ export enum PopupType {
   OversizedFiles,
   CommitConflictsWarning,
   PushNeedsPull,
-  RebaseFlow,
   ConfirmForcePush,
   StashAndSwitchBranch,
   ConfirmOverwriteStash,
@@ -194,10 +193,6 @@ export type Popup =
       type: PopupType.ConfirmForcePush
       repository: Repository
       upstreamBranch: string
-    }
-  | {
-      type: PopupType.RebaseFlow
-      repository: Repository
     }
   | {
       type: PopupType.StashAndSwitchBranch

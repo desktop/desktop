@@ -4,7 +4,7 @@ import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
-import { Commit, CommitOneLine } from '../models/commit'
+import { Commit } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -33,7 +33,6 @@ import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
@@ -412,8 +411,6 @@ export interface IRepositoryState {
 
   readonly branchesState: IBranchesState
 
-  readonly rebaseState: IRebaseState
-
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
@@ -533,39 +530,6 @@ export interface IBranchesState {
 
   /** Tracking branches that have been rebased within Desktop */
   readonly rebasedBranches: ReadonlyMap<string, string>
-}
-
-/** State associated with a rebase being performed on a repository */
-export interface IRebaseState {
-  /**
-   * The current step of the flow the user should see.
-   *
-   * `null` indicates that there is no rebase underway.
-   */
-  readonly step: RebaseFlowStep | null
-
-  /**
-   * The underlying Git information associated with the current rebase
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly progress: IMultiCommitOperationProgress | null
-
-  /**
-   * The known range of commits that will be applied to the repository
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly commits: ReadonlyArray<CommitOneLine> | null
-
-  /**
-   * Whether the user has done work to resolve any conflicts as part of this
-   * rebase, as the rebase flow should confirm the user wishes to abort the
-   * rebase and lose that work.
-   */
-  readonly userHasResolvedConflicts: boolean
 }
 
 export interface ICommitSelection {

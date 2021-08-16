@@ -173,15 +173,12 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     const { selectedBranch } = this.state
     switch (value) {
       case MultiCommitOperationKind.Merge:
-        dispatcher.endRebaseFlow(repository)
         dispatcher.startMergeBranchOperation(repository, false, selectedBranch)
         break
       case MultiCommitOperationKind.Squash:
-        dispatcher.endRebaseFlow(repository)
         dispatcher.startMergeBranchOperation(repository, true, selectedBranch)
         break
       case MultiCommitOperationKind.Rebase:
-        dispatcher.endMultiCommitOperation(repository)
         dispatcher.showRebaseDialog(repository, selectedBranch)
         break
       case MultiCommitOperationKind.CherryPick:
