@@ -146,6 +146,8 @@ import {
   MultiCommitOperationKind,
   MultiCommitOperationStepKind,
 } from '../models/multi-commit-operation'
+import { AddSSHHost } from './ssh/add-ssh-host'
+import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
 import { setAlmostImmediate } from '../lib/set-almost-immediate'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -2081,6 +2083,28 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="invalidated-token"
             dispatcher={this.props.dispatcher}
             account={popup.account}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.AddSSHHost: {
+        return (
+          <AddSSHHost
+            key="add-ssh-host"
+            host={popup.host}
+            ip={popup.ip}
+            fingerprint={popup.fingerprint}
+            onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.SSHKeyPassphrase: {
+        return (
+          <SSHKeyPassphrase
+            key="ssh-key-passphrase"
+            keyPath={popup.keyPath}
+            onSubmit={popup.onSubmit}
             onDismissed={onPopupDismissedFn}
           />
         )

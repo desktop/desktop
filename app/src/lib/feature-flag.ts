@@ -133,6 +133,11 @@ export function enableWindowsOpenSSH(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should we use SSH askpass? */
+export function enableSSHAskPass(): boolean {
+  return __WIN32__ && enableBetaFeatures()
+}
+
 /** Should we use the setImmediate alternative? */
 export function enableSetAlmostImmediate(): boolean {
   return enableBetaFeatures()
