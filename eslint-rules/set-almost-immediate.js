@@ -35,7 +35,8 @@ module.exports = {
     const sourceCode = context.getSourceCode()
 
     /**
-     * Check each member of the interface body and ensure it is marked `readonly`.
+     * Check if a type annotation contains any references to NodeJS.Immediate
+     * and report them to be changed to AlmostImmediate.
      *
      * @param {TSTypeAnnotation} node
      * @param {TypeNode} typeAnnotation
