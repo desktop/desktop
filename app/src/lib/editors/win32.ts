@@ -37,10 +37,10 @@ interface IWindowsExternalEditor {
   readonly registryKeys: ReadonlyArray<RegistryKey>
 
   /**
-   * List of path components from the editor's installation folder to the
-   * executable shim.
+   * List of lists of path components from the editor's installation folder to
+   * the potential executable shims.
    **/
-  readonly executableShimPath: ReadonlyArray<string>
+  readonly executableShimPaths: ReadonlyArray<ReadonlyArray<string>>
 
   /**
    * Registry key with the install location of the app. If not provided,
@@ -100,6 +100,16 @@ const registryKeysForJetBrainsIDE = (
   return result.reverse()
 }
 
+// JetBrains IDEs might have 64 and/or 32 bit executables, so let's add both.
+const executableShimPathsForJetBrainsIDE = (
+  baseName: string
+): ReadonlyArray<ReadonlyArray<string>> => {
+  return [
+    ['bin', `${baseName}64.exe`],
+    ['bin', `${baseName}.exe`],
+  ]
+}
+
 /**
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
@@ -108,21 +118,21 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'Atom',
     registryKeys: [CurrentUserUninstallKey('atom')],
-    executableShimPath: ['bin', 'atom.cmd'],
+    executableShimPaths: [['bin', 'atom.cmd']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom' && publisher === 'GitHub Inc.',
   },
   {
     name: 'Atom Beta',
     registryKeys: [CurrentUserUninstallKey('atom-beta')],
-    executableShimPath: ['bin', 'atom-beta.cmd'],
+    executableShimPaths: [['bin', 'atom-beta.cmd']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom Beta' && publisher === 'GitHub Inc.',
   },
   {
     name: 'Atom Nightly',
     registryKeys: [CurrentUserUninstallKey('atom-nightly')],
-    executableShimPath: ['bin', 'atom-nightly.cmd'],
+    executableShimPaths: [['bin', 'atom-nightly.cmd']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom Nightly' && publisher === 'GitHub Inc.',
   },
@@ -144,7 +154,7 @@ const editors: IWindowsExternalEditor[] = [
       // ARM64 version of VSCode (system)
       LocalMachineUninstallKey('{A5270FC5-65AD-483E-AC30-2C276B63D0AC}_is1'),
     ],
-    executableShimPath: ['bin', 'code.cmd'],
+    executableShimPaths: [['bin', 'code.cmd']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Microsoft Visual Studio Code') &&
       publisher === 'Microsoft Corporation',
@@ -167,7 +177,7 @@ const editors: IWindowsExternalEditor[] = [
       // ARM64 version of VSCode (system)
       LocalMachineUninstallKey('{0AEDB616-9614-463B-97D7-119DD86CCA64}_is1'),
     ],
-    executableShimPath: ['bin', 'code-insiders.cmd'],
+    executableShimPaths: [['bin', 'code-insiders.cmd']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Microsoft Visual Studio Code Insiders') &&
       publisher === 'Microsoft Corporation',
@@ -190,7 +200,7 @@ const editors: IWindowsExternalEditor[] = [
       // ARM64 version of VSCodium (system)
       LocalMachineUninstallKey('{D1ACE434-89C5-48D1-88D3-E2991DF85475}_is1'),
     ],
-    executableShimPath: ['bin', 'codium.cmd'],
+    executableShimPaths: [['bin', 'codium.cmd']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('VSCodium') &&
       publisher === 'Microsoft Corporation',
@@ -203,7 +213,7 @@ const editors: IWindowsExternalEditor[] = [
       // Sublime Text 3
       LocalMachineUninstallKey('Sublime Text 3_is1'),
     ],
-    executableShimPath: ['subl.exe'],
+    executableShimPaths: [['subl.exe']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Sublime Text') &&
       publisher === 'Sublime HQ Pty Ltd',
@@ -216,7 +226,7 @@ const editors: IWindowsExternalEditor[] = [
       // 64-bit version of ColdFusionBuilder2016
       LocalMachineUninstallKey('Adobe ColdFusion Builder 2016'),
     ],
-    executableShimPath: ['CFBuilder.exe'],
+    executableShimPaths: [['CFBuilder.exe']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Adobe ColdFusion Builder') &&
       publisher === 'Adobe Systems Incorporated',
@@ -231,7 +241,7 @@ const editors: IWindowsExternalEditor[] = [
         '{37771A20-7167-44C0-B322-FD3E54C56156}_is1'
       ),
     ],
-    executableShimPath: ['typora.exe'],
+    executableShimPaths: [['typora.exe']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Typora') && publisher === 'typora.io',
   },
@@ -261,21 +271,21 @@ const editors: IWindowsExternalEditor[] = [
       // 64-bit version of SlickEdit Pro 2014 (19.0.2)
       LocalMachineUninstallKey('{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}'),
     ],
-    executableShimPath: ['win', 'vs.exe'],
+    executableShimPaths: [['win', 'vs.exe']],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.',
   },
   {
     name: 'JetBrains Webstorm',
     registryKeys: registryKeysForJetBrainsIDE('WebStorm'),
-    executableShimPath: ['bin', 'webstorm.exe'],
+    executableShimPaths: executableShimPathsForJetBrainsIDE('webstorm'),
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.',
   },
   {
     name: 'JetBrains Phpstorm',
     registryKeys: registryKeysForJetBrainsIDE('PhpStorm'),
-    executableShimPath: ['bin', 'phpstorm.exe'],
+    executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('PhpStorm') && publisher === 'JetBrains s.r.o.',
   },
@@ -287,7 +297,7 @@ const editors: IWindowsExternalEditor[] = [
       // 32-bit version of Notepad++
       Wow64LocalMachineUninstallKey('Notepad++'),
     ],
-    executableShimPath: [],
+    executableShimPaths: [],
     installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team',
@@ -295,7 +305,7 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'JetBrains Rider',
     registryKeys: registryKeysForJetBrainsIDE('JetBrains Rider'),
-    executableShimPath: ['bin', 'rider64.exe'],
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rider'),
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('JetBrains Rider') &&
       publisher === 'JetBrains s.r.o.',
@@ -303,7 +313,7 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'RStudio',
     registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
-    executableShimPath: [],
+    executableShimPaths: [],
     installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'RStudio' && publisher === 'RStudio',
@@ -311,8 +321,7 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'JetBrains IntelliJ Idea',
     registryKeys: registryKeysForJetBrainsIDE('IntelliJ IDEA'),
-    //I think the reg keys are for 32-bit version but the IDE runs 64-bit
-    executableShimPath: ['bin', 'idea64.exe'],
+    executableShimPaths: executableShimPathsForJetBrainsIDE('idea'),
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('IntelliJ IDEA ') &&
       publisher === 'JetBrains s.r.o.',
@@ -322,7 +331,7 @@ const editors: IWindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE(
       'IntelliJ IDEA Community Edition'
     ),
-    executableShimPath: ['bin', 'idea64.exe'],
+    executableShimPaths: executableShimPathsForJetBrainsIDE('idea'),
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('IntelliJ IDEA Community Edition ') &&
       publisher === 'JetBrains s.r.o.',
@@ -364,14 +373,15 @@ async function findApplication(editor: IWindowsExternalEditor) {
       continue
     }
 
-    const path = Path.join(installLocation, ...editor.executableShimPath)
-    const exists = await pathExists(path)
-    if (!exists) {
-      log.debug(`Executable for ${editor.name} not found at '${path}'`)
-      continue
-    }
+    for (const executableShimPath of editor.executableShimPaths) {
+      const path = Path.join(installLocation, ...executableShimPath)
+      const exists = await pathExists(path)
+      if (exists) {
+        return path
+      }
 
-    return path
+      log.debug(`Executable for ${editor.name} not found at '${path}'`)
+    }
   }
 
   return null
