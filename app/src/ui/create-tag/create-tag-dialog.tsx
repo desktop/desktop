@@ -1,4 +1,5 @@
 import * as React from 'react'
+import _ from 'lodash'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -28,6 +29,7 @@ interface ICreateTagState {
    * shown in its place.
    */
   readonly isCreatingTag: boolean
+  readonly previousTags: Array<string> | null
 }
 
 const MaxTagNameLength = 245
@@ -43,12 +45,14 @@ export class CreateTag extends React.Component<
     this.state = {
       tagName: props.initialName || '',
       isCreatingTag: false,
+      previousTags: this.getExistingTagsFiltered(),
     }
   }
 
   public render() {
     const error = this.getCurrentError()
     const disabled = error !== null || this.state.tagName.length === 0
+    const lastThreeTags = _.takeRight(this.state.previousTags, 3)
 
     return (
       <Dialog
@@ -67,6 +71,17 @@ export class CreateTag extends React.Component<
             initialValue={this.props.initialName}
             onValueChange={this.updateTagName}
           />
+
+          {this.state.previousTags && (
+            <>
+              {lastThreeTags.length > 0 && <p>Previous Tags</p>}
+              {lastThreeTags.map((item: string, index: number) => (
+                <>
+                  <Ref key={index}>{item}</Ref>{' '}
+                </>
+              ))}
+            </>
+          )}
         </DialogContent>
 
         <DialogFooter>
@@ -99,9 +114,21 @@ export class CreateTag extends React.Component<
     return null
   }
 
+  private getExistingTagsFiltered(filter: string = ''): Array<string> | null {
+    const previousTags = []
+    if (this.props.localTags) {
+      for (const item of this.props.localTags.keys()) {
+        previousTags.push(item)
+      }
+      return previousTags.filter(item => item.includes(filter))
+    }
+    return null
+  }
+
   private updateTagName = (tagName: string) => {
     this.setState({
       tagName,
+      previousTags: this.getExistingTagsFiltered(tagName),
     })
   }
 
