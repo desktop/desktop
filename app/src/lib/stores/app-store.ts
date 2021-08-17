@@ -2003,7 +2003,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.updateMultiCommitOperationConflictsIfFound(repository)
-    this.initializeMultiCommitOperationIfConflictsFound(repository, status)
+    await this.initializeMultiCommitOperationIfConflictsFound(
+      repository,
+      status
+    )
 
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository, status)
