@@ -137,3 +137,10 @@ export function enableWindowsOpenSSH(): boolean {
 export function enableSSHAskPass(): boolean {
   return __WIN32__ && enableBetaFeatures()
 }
+
+/** Should we use the setImmediate alternative? */
+export function enableSetAlmostImmediate(): boolean {
+  // We only noticed the problem with `setImmediate` on macOS, so no need to
+  // use this trick on Windows for now.
+  return __DARWIN__ && enableBetaFeatures()
+}

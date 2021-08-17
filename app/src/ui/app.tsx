@@ -148,6 +148,7 @@ import {
 } from '../models/multi-commit-operation'
 import { AddSSHHost } from './ssh/add-ssh-host'
 import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
+import { setAlmostImmediate } from '../lib/set-almost-immediate'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -548,7 +549,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private boomtown() {
-    setImmediate(() => {
+    setAlmostImmediate(() => {
       throw new Error('Boomtown!')
     })
   }
