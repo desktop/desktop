@@ -311,9 +311,9 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-trampoline@desktop/desktop-trampoline#v0.9.7:
-  version "0.9.7"
-  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/38c590851f84e1dc856b6fd7e49920ef360c2ca0"
+desktop-trampoline@desktop/desktop-trampoline#v0.9.8:
+  version "0.9.8"
+  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/cbd3dbb31d0d3ea9f325067f48bfbf60b6663a57"
   dependencies:
     node-addon-api "^3.1.0"
     prebuild-install "^6.0.0"
