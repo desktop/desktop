@@ -4,7 +4,7 @@
       "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
       "[Fixed] Render links in commit messages when they are at the beginning of a line - #12105. Thanks @tsvetilian-ty!",
       "[Improved] Added support for more versions of JetBrains IDEs on Windows - #12778",
-      "[Improved] Windows users can now rely on the system OpenSSH for their git repositories - #5641"
+      "[Improved] Windows users can use the system OpenSSH for their Git repositories - #5641"
     ],
     "2.9.1-beta2": [
       "[Added] Show number of lines changed in a commit - #11656",
