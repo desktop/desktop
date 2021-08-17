@@ -344,6 +344,19 @@ function copyDependencies() {
     path.resolve(desktopTrampolineDir, desktopTrampolineFile)
   )
 
+  if (process.platform === 'darwin') {
+    console.log('  Copying ssh-wrapper')
+    const sshWrapperFile = 'ssh-wrapper'
+    fs.copySync(
+      path.resolve(
+        projectRoot,
+        'app/node_modules/desktop-trampoline/build/Release',
+        sshWrapperFile
+      ),
+      path.resolve(desktopTrampolineDir, sshWrapperFile)
+    )
+  }
+
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
   fs.removeSync(gitDir)
