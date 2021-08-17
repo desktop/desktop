@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.9.1-beta4": [
+      "[Fixed] Show SSH prompts (key passphrase, adding host, etc.) to Windows users via dialog - #3457 #8761"
+    ],
     "2.9.1-beta3": [
       "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
       "[Fixed] Render links in commit messages when they are at the beginning of a line - #12105. Thanks @tsvetilian-ty!",
