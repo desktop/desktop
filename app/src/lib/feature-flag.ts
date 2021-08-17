@@ -47,11 +47,6 @@ export function enableHideWhitespaceInDiffOption(): boolean {
   return true
 }
 
-/** Should the app use the shiny new TCP-based trampoline? */
-export function enableDesktopTrampoline(): boolean {
-  return true
-}
-
 /**
  * Should we use the new diff viewer for unified diffs?
  */
