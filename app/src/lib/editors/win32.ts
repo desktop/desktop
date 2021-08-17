@@ -93,6 +93,7 @@ const registryKeysForJetBrainsIDE = (
     for (let release = 1; release <= maxReleasesPerYear; release++) {
       const key = `${product} ${year}.${release}`
       result.push(Wow64LocalMachineUninstallKey(key))
+      result.push(CurrentUserUninstallKey(key))
     }
   }
 
