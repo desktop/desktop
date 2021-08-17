@@ -45,6 +45,8 @@ export async function getSSHEnvironment() {
   const baseEnv = enableSSHAskPass()
     ? {
         SSH_ASKPASS: getDesktopTrampolinePath(),
+        // DISPLAY needs to be set to _something_ so ssh actually uses SSH_ASKPASS
+        DISPLAY: '.',
       }
     : {}
 
