@@ -442,6 +442,30 @@ export class Dispatcher {
       initialBranch
     )
 
+    const { tip } = repositoryState.branchesState
+    let currentBranch: Branch | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentBranch = tip.branch
+    } else {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the rebase flow'
+      )
+    }
+
+    this.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Rebase,
+        sourceBranch: null,
+        commits: [],
+        currentTip: tip.branch.tip.sha,
+      },
+      currentBranch,
+      [],
+      currentBranch.tip.sha
+    )
+
     this.setMultiCommitOperationStep(repository, initialStep)
 
     this.showPopup({
