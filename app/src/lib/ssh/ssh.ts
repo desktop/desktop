@@ -4,7 +4,10 @@ import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
 import { getFileHash } from '../file-system'
 import { getBoolean } from '../local-storage'
 import { TokenStore } from '../stores'
-import { getDesktopTrampolinePath } from '../trampoline/trampoline-environment'
+import {
+  getDesktopTrampolinePath,
+  getSSHWrapperPath,
+} from '../trampoline/trampoline-environment'
 
 const WindowsOpenSSHPath = 'C:/Windows/System32/OpenSSH/ssh.exe'
 
@@ -56,6 +59,15 @@ export async function getSSHEnvironment() {
     return {
       ...baseEnv,
       GIT_SSH_COMMAND: WindowsOpenSSHPath,
+    }
+  }
+
+  if (__DARWIN__ && enableSSHAskPass()) {
+    // Replace git ssh command with our wrapper
+    return {
+      ...baseEnv,
+      DISPLAY: '.', // Required for ssh to actually use SSH_ASKPASS
+      GIT_SSH_COMMAND: `"${getSSHWrapperPath()}"`,
     }
   }
 
