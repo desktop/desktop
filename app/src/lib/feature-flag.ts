@@ -135,7 +135,8 @@ export function enableWindowsOpenSSH(): boolean {
 
 /** Should we use SSH askpass? */
 export function enableSSHAskPass(): boolean {
-  return __WIN32__ && enableBetaFeatures()
+  // TODO: enable in prod *ONLY for Windows*
+  return enableBetaFeatures()
 }
 
 /** Should we use the setImmediate alternative? */
