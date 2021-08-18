@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.1-test9": ["[Fixed] Fixed many things"],
     "2.9.1-beta5": [
       "[Fixed] Fixed authentication errors in some Git operations - #12796"
     ],
