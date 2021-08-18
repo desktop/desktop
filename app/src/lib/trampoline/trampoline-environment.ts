@@ -1,7 +1,6 @@
 import { trampolineServer } from './trampoline-server'
 import { withTrampolineToken } from './trampoline-tokens'
 import * as Path from 'path'
-import { enableDesktopTrampoline } from '../feature-flag'
 import { getDesktopTrampolineFilename } from 'desktop-trampoline'
 import { TrampolineCommandIdentifier } from '../trampoline/trampoline-command'
 import { getSSHEnvironment } from '../ssh/ssh'
@@ -24,10 +23,6 @@ import {
 export async function withTrampolineEnv<T>(
   fn: (env: Object) => Promise<T>
 ): Promise<T> {
-  const askPassPath = enableDesktopTrampoline()
-    ? getDesktopTrampolinePath()
-    : getAskPassTrampolinePath()
-
   const sshEnv = await getSSHEnvironment()
 
   return withTrampolineToken(async token => {
@@ -45,14 +40,10 @@ export async function withTrampolineEnv<T>(
       const result = await fn({
         DESKTOP_PORT: await trampolineServer.getPort(),
         DESKTOP_TRAMPOLINE_TOKEN: token,
-        GIT_ASKPASS: askPassPath,
+        GIT_ASKPASS: getDesktopTrampolinePath(),
         DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.AskPass,
 
         ...sshEnv,
-
-        // Env variables specific to the old askpass trampoline
-        DESKTOP_PATH: process.execPath,
-        DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
       })
 
       await storePendingSSHKeyPassphrase(token)
@@ -71,15 +62,6 @@ export function getDesktopTrampolinePath(): string {
     'desktop-trampoline',
     getDesktopTrampolineFilename()
   )
-}
-
-function getAskPassTrampolinePath(): string {
-  const extension = __WIN32__ ? 'bat' : 'sh'
-  return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
-}
-
-function getAskPassScriptPath(): string {
-  return Path.resolve(__dirname, 'ask-pass.js')
 }
 
 /** Returns the path of the ssh-wrapper binary. */

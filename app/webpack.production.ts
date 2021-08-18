@@ -11,7 +11,6 @@ const config: webpack.Configuration = {
 }
 
 const mainConfig = merge({}, common.main, config)
-const askPassConfig = merge({}, common.askPass, config)
 const cliConfig = merge({}, common.cli, config)
 const highlighterConfig = merge({}, common.highlighter, config)
 
@@ -65,7 +64,6 @@ const crashConfig = merge({}, common.crash, config, {
 export default [
   mainConfig,
   rendererConfig,
-  askPassConfig,
   crashConfig,
   cliConfig,
   highlighterConfig,
