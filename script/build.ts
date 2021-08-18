@@ -344,7 +344,8 @@ function copyDependencies() {
     path.resolve(desktopTrampolineDir, desktopTrampolineFile)
   )
 
-  if (process.platform === 'darwin') {
+  // Dev builds for macOS require a SSH wrapper to use SSH_ASKPASS
+  if (process.platform === 'darwin' && isDevelopmentBuild) {
     console.log('  Copying ssh-wrapper')
     const sshWrapperFile = 'ssh-wrapper'
     fs.copySync(
