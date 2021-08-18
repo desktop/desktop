@@ -91,7 +91,7 @@ export async function deleteRemoteBranch(
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
   const result = await git(args, repository.path, 'deleteRemoteBranch', {
-    env: envForRemoteOperation(account, remoteUrl),
+    env: await envForRemoteOperation(account, remoteUrl),
     expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
   })
 
