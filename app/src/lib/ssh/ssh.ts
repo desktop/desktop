@@ -4,7 +4,10 @@ import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
 import { getFileHash } from '../file-system'
 import { getBoolean } from '../local-storage'
 import { TokenStore } from '../stores'
-import { getDesktopTrampolinePath } from '../trampoline/trampoline-environment'
+import {
+  getDesktopTrampolinePath,
+  getSSHWrapperPath,
+} from '../trampoline/trampoline-environment'
 
 const WindowsOpenSSHPath = 'C:/Windows/System32/OpenSSH/ssh.exe'
 
@@ -59,10 +62,19 @@ export async function getSSHEnvironment() {
     }
   }
 
+  if (__DARWIN__ && __DEV__ && enableSSHAskPass()) {
+    // Replace git ssh command with our wrapper in dev builds, since they are
+    // launched from a command line.
+    return {
+      ...baseEnv,
+      GIT_SSH_COMMAND: `"${getSSHWrapperPath()}"`,
+    }
+  }
+
   return baseEnv
 }
 
-const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub'
+const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub Desktop'
 const SSHKeyPassphraseTokenStoreKey = `${appName} - SSH key passphrases`
 
 async function getHashForSSHKey(keyPath: string) {

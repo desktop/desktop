@@ -52,3 +52,8 @@ function getAskPassTrampolinePath(): string {
 function getAskPassScriptPath(): string {
   return Path.resolve(__dirname, 'ask-pass.js')
 }
+
+/** Returns the path of the ssh-wrapper binary. */
+export function getSSHWrapperPath(): string {
+  return Path.resolve(__dirname, 'desktop-trampoline', 'ssh-wrapper')
+}
