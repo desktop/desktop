@@ -19,7 +19,7 @@ import {
 import { isConflictedFile } from '../../../src/lib/status'
 import { Branch } from '../../../src/models/branch'
 import { ManualConflictResolution } from '../../../src/models/manual-conflict-resolution'
-import { ICherryPickProgress } from '../../../src/models/progress'
+import { IMultiCommitOperationProgress } from '../../../src/models/progress'
 import { Repository } from '../../../src/models/repository'
 import { AppFileStatusKind } from '../../../src/models/status'
 import { getBranchOrError } from '../../helpers/git'
@@ -525,7 +525,7 @@ describe('git/cherry-pick', () => {
   })
 
   describe('cherry-picking progress', () => {
-    let progress = new Array<ICherryPickProgress>()
+    let progress = new Array<IMultiCommitOperationProgress>()
     beforeEach(() => {
       progress = []
     })
@@ -541,7 +541,7 @@ describe('git/cherry-pick', () => {
       expect(progress).toEqual([
         {
           currentCommitSummary: featureTip.summary,
-          kind: 'cherryPick',
+          kind: 'multiCommitOperation',
           position: 1,
           totalCommitCount: 1,
           value: 1,

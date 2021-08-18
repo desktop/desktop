@@ -47,6 +47,7 @@ interface IPreferencesProps {
   readonly enterpriseAccount: Account | null
   readonly repository: Repository | null
   readonly onDismissed: () => void
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
@@ -69,6 +70,7 @@ interface IPreferencesState {
   readonly initialCommitterEmail: string | null
   readonly initialDefaultBranch: string | null
   readonly disallowedCharactersMessage: string | null
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
@@ -107,6 +109,7 @@ export class Preferences extends React.Component<
       initialDefaultBranch: null,
       disallowedCharactersMessage: null,
       availableEditors: [],
+      useWindowsOpenSSH: false,
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
@@ -159,6 +162,7 @@ export class Preferences extends React.Component<
       initialCommitterName,
       initialCommitterEmail,
       initialDefaultBranch,
+      useWindowsOpenSSH: this.props.useWindowsOpenSSH,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
@@ -326,10 +330,12 @@ export class Preferences extends React.Component<
       case PreferencesTab.Advanced: {
         View = (
           <Advanced
+            useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
-            onOptOutofReportingchanged={this.onOptOutofReportingChanged}
+            onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
+            onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
             }
@@ -359,6 +365,10 @@ export class Preferences extends React.Component<
 
   private onLockFileDeleteError = (e: Error) => {
     this.props.dispatcher.postError(e)
+  }
+
+  private onUseWindowsOpenSSHChanged = (useWindowsOpenSSH: boolean) => {
+    this.setState({ useWindowsOpenSSH })
   }
 
   private onOptOutofReportingChanged = (value: boolean) => {
@@ -499,6 +509,8 @@ export class Preferences extends React.Component<
       this.props.dispatcher.postError(e)
       return
     }
+
+    this.props.dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
 
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,

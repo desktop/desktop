@@ -76,7 +76,7 @@ export abstract class BaseMultiCommitOperation extends React.Component<
   protected endFlowInvalidState(): void {
     const { step, operationDetail } = this.props.state
     throw new Error(
-      `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step}.`
+      `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
     )
   }
 
@@ -97,7 +97,8 @@ export abstract class BaseMultiCommitOperation extends React.Component<
 
     const operationDescription = (
       <>
-        {operationPrefix} <strong>{targetBranch.name}</strong>
+        {operationPrefix}{' '}
+        {targetBranch !== null ? <strong>{targetBranch.name}</strong> : null}
       </>
     )
     return dispatcher.onConflictsFoundBanner(

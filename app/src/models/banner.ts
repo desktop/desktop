@@ -58,7 +58,7 @@ export type Banner =
       /** name of the branch that was cherry picked to */
       readonly targetBranchName: string
       /** number of commits cherry picked */
-      readonly countCherryPicked: number
+      readonly count: number
       /** callback to run when user clicks undo link in banner */
       readonly onUndoCherryPick: () => void
     }

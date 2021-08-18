@@ -226,16 +226,18 @@ export class BranchesContainer extends React.Component<
       return
     }
 
-    await this.props.dispatcher.setCherryPickCreateBranchFlowStep(
-      this.props.repository,
-      ''
+    const { dispatcher, repository, currentBranch } = this.props
+
+    await dispatcher.setCherryPickCreateBranchFlowStep(
+      repository,
+      '',
+      dragData.commits,
+      currentBranch
     )
 
     this.props.dispatcher.showPopup({
-      type: PopupType.CherryPick,
-      repository: this.props.repository,
-      commits: dragData.commits,
-      sourceBranch: this.props.currentBranch,
+      type: PopupType.MultiCommitOperation,
+      repository,
     })
   }
 

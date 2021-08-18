@@ -13,7 +13,6 @@ module.exports = {
     '!**/vendor/**',
     '!**/*.d.*',
     // not focused on testing these areas currently
-    '!src/ask-pass/**/*',
     '!src/cli/**/*',
     '!src/crash/**/*',
     '!src/highlighter/**/*',

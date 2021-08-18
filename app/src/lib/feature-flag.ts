@@ -47,11 +47,6 @@ export function enableHideWhitespaceInDiffOption(): boolean {
   return true
 }
 
-/** Should the app use the shiny new TCP-based trampoline? */
-export function enableDesktopTrampoline(): boolean {
-  return true
-}
-
 /**
  * Should we use the new diff viewer for unified diffs?
  */
@@ -136,4 +131,21 @@ export function enableHighContrastTheme(): boolean {
 /** Should we allow customizing a theme */
 export function enableCustomizeTheme(): boolean {
   return true
+}
+
+/** Should we allow using Windows' OpenSSH? */
+export function enableWindowsOpenSSH(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we use SSH askpass? */
+export function enableSSHAskPass(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we use the setImmediate alternative? */
+export function enableSetAlmostImmediate(): boolean {
+  // We only noticed the problem with `setImmediate` on macOS, so no need to
+  // use this trick on Windows for now.
+  return __DARWIN__ && enableBetaFeatures()
 }
