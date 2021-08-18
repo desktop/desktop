@@ -4,11 +4,13 @@ import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { TextBox } from '../lib/text-box'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { storeSSHKeyPassphrase } from '../../lib/ssh/ssh'
 
 interface ISSHKeyPassphraseProps {
   readonly keyPath: string
-  readonly onSubmit: (passphrase: string | undefined) => void
+  readonly onSubmit: (
+    passphrase: string | undefined,
+    storePassphrase: boolean
+  ) => void
   readonly onDismissed: () => void
 }
 
@@ -80,21 +82,18 @@ export class SSHKeyPassphrase extends React.Component<
     this.setState({ passphrase: value })
   }
 
-  private submit(passphrase: string | undefined) {
+  private submit(passphrase: string | undefined, storePassphrase: boolean) {
     const { onSubmit, onDismissed } = this.props
 
-    onSubmit(passphrase)
+    onSubmit(passphrase, storePassphrase)
     onDismissed()
   }
 
   private onSubmit = () => {
-    if (this.state.rememberPassphrase) {
-      storeSSHKeyPassphrase(this.props.keyPath, this.state.passphrase)
-    }
-    this.submit(this.state.passphrase)
+    this.submit(this.state.passphrase, this.state.rememberPassphrase)
   }
 
   private onCancel = () => {
-    this.submit(undefined)
+    this.submit(undefined, false)
   }
 }

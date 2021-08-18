@@ -62,7 +62,10 @@ async function handleSSHKeyPassphrase(
     return storedPassphrase
   }
 
-  const passphrase = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
+  const {
+    passphrase,
+    storePassphrase,
+  } = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
 
   return passphrase ?? ''
 }

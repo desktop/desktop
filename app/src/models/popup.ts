@@ -308,5 +308,8 @@ export type Popup =
   | {
       type: PopupType.SSHKeyPassphrase
       keyPath: string
-      onSubmit: (passphrase: string | undefined) => void
+      onSubmit: (
+        passphrase: string | undefined,
+        storePassphrase: boolean
+      ) => void
     }
