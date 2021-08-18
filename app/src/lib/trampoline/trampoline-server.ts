@@ -157,9 +157,7 @@ export class TrampolineServer {
   }
 
   private async processCommand(socket: Socket, command: ITrampolineCommand) {
-    const token = command.environmentVariables.get('DESKTOP_TRAMPOLINE_TOKEN')
-
-    if (token === undefined || !isValidTrampolineToken(token)) {
+    if (!isValidTrampolineToken(command.trampolineToken)) {
       throw new Error('Tried to use invalid trampoline token')
     }
 

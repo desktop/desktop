@@ -13,6 +13,12 @@ export interface ITrampolineCommand {
   readonly identifier: TrampolineCommandIdentifier
 
   /**
+   * Trampoline token sent with this command via the DESKTOP_TRAMPOLINE_TOKEN
+   * environment variable.
+   */
+  readonly trampolineToken: string
+
+  /**
    * Parameters of the command.
    *
    * This corresponds to the command line arguments (argv) except the name of
