@@ -1,5 +1,8 @@
 import { getKeyForEndpoint } from '../auth'
-import { getSSHKeyPassphrase } from '../ssh/ssh'
+import {
+  getSSHKeyPassphrase,
+  keepSSHKeyPassphraseToStore,
+} from '../ssh/ssh-key-passphrase'
 import { TokenStore } from '../stores'
 import { TrampolineCommandHandler } from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
@@ -37,6 +40,7 @@ async function handleSSHHostAuthenticity(
 }
 
 async function handleSSHKeyPassphrase(
+  operationGUID: string,
   prompt: string
 ): Promise<string | undefined> {
   const promptRegex = /^Enter passphrase for key '(.+)': $/
@@ -62,7 +66,14 @@ async function handleSSHKeyPassphrase(
     return storedPassphrase
   }
 
-  const passphrase = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
+  const {
+    passphrase,
+    storePassphrase,
+  } = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
+
+  if (passphrase !== undefined && storePassphrase) {
+    keepSSHKeyPassphraseToStore(operationGUID, keyPath, passphrase)
+  }
 
   return passphrase ?? ''
 }
@@ -79,7 +90,7 @@ export const askpassTrampolineHandler: TrampolineCommandHandler = async command 
   }
 
   if (firstParameter.startsWith('Enter passphrase for key ')) {
-    return handleSSHKeyPassphrase(firstParameter)
+    return handleSSHKeyPassphrase(command.trampolineToken, firstParameter)
   }
 
   const username = command.environmentVariables.get('DESKTOP_USERNAME')

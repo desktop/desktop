@@ -1,7 +1,6 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
-import { getSSHEnvironment } from '../ssh/ssh'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
 type ProcessOutput = {
@@ -39,13 +38,7 @@ export async function spawnAndComplete(
       commandName,
       () =>
         new Promise<ProcessOutput>(async (resolve, reject) => {
-          const sshEnv = await getSSHEnvironment()
-          const process = GitProcess.spawn(args, path, {
-            env: {
-              ...env,
-              ...sshEnv,
-            },
-          })
+          const process = GitProcess.spawn(args, path, { env })
 
           process.on('error', err => {
             // If this is an exception thrown by Node.js while attempting to

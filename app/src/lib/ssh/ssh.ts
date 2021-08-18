@@ -1,9 +1,7 @@
 import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
 import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
-import { getFileHash } from '../file-system'
 import { getBoolean } from '../local-storage'
-import { TokenStore } from '../stores'
 import {
   getDesktopTrampolinePath,
   getSSHWrapperPath,
@@ -72,39 +70,4 @@ export async function getSSHEnvironment() {
   }
 
   return baseEnv
-}
-
-const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub Desktop'
-const SSHKeyPassphraseTokenStoreKey = `${appName} - SSH key passphrases`
-
-async function getHashForSSHKey(keyPath: string) {
-  return getFileHash(keyPath, 'sha256')
-}
-
-/** Retrieves the passphrase for the SSH key in the given path. */
-export async function getSSHKeyPassphrase(keyPath: string) {
-  try {
-    const fileHash = await getHashForSSHKey(keyPath)
-    return TokenStore.getItem(SSHKeyPassphraseTokenStoreKey, fileHash)
-  } catch (e) {
-    log.error('Could not retrieve passphrase for SSH key:', e)
-    return null
-  }
-}
-
-/** Stores the passphrase for the SSH key in the given path. */
-export async function storeSSHKeyPassphrase(
-  keyPath: string,
-  passphrase: string
-) {
-  try {
-    const fileHash = await getHashForSSHKey(keyPath)
-    await TokenStore.setItem(
-      SSHKeyPassphraseTokenStoreKey,
-      fileHash,
-      passphrase
-    )
-  } catch (e) {
-    log.error('Could not store passphrase for SSH key:', e)
-  }
 }
