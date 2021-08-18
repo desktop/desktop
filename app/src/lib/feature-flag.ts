@@ -135,7 +135,6 @@ export function enableWindowsOpenSSH(): boolean {
 
 /** Should we use SSH askpass? */
 export function enableSSHAskPass(): boolean {
-  // TODO: enable in prod *ONLY for Windows*
   return enableBetaFeatures()
 }
 
