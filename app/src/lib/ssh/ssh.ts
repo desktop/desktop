@@ -62,11 +62,11 @@ export async function getSSHEnvironment() {
     }
   }
 
-  if (__DARWIN__ && enableSSHAskPass()) {
-    // Replace git ssh command with our wrapper
+  if (__DARWIN__ && __DEV__ && enableSSHAskPass()) {
+    // Replace git ssh command with our wrapper in dev builds, since they are
+    // launched from a command line.
     return {
       ...baseEnv,
-      DISPLAY: '.', // Required for ssh to actually use SSH_ASKPASS
       GIT_SSH_COMMAND: `"${getSSHWrapperPath()}"`,
     }
   }
