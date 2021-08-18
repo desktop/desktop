@@ -72,14 +72,20 @@ export class CreateTag extends React.Component<
             onValueChange={this.updateTagName}
           />
 
-          {this.state.previousTags && (
+          {this.state.previousTags !== null && (
             <>
-              {lastThreeTags.length > 0 && <p>Previous Tags</p>}
-              {lastThreeTags.map((item: string, index: number) => (
+              <p>Previous Tags</p>
+              {lastThreeTags.length === 0 ? (
                 <>
-                  <Ref key={index}>{item}</Ref>{' '}
+                  <Ref>{`No matches found for '${this.state.tagName}'`}</Ref>
                 </>
-              ))}
+              ) : (
+                lastThreeTags.map((item: string, index: number) => (
+                  <>
+                    <Ref key={index}>{item}</Ref>{' '}
+                  </>
+                ))
+              )}
             </>
           )}
         </DialogContent>
@@ -115,14 +121,11 @@ export class CreateTag extends React.Component<
   }
 
   private getExistingTagsFiltered(filter: string = ''): Array<string> | null {
-    const previousTags = []
-    if (this.props.localTags) {
-      for (const item of this.props.localTags.keys()) {
-        previousTags.push(item)
-      }
-      return previousTags.filter(item => item.includes(filter))
+    if (this.props.localTags === null) {
+      return null
     }
-    return null
+    const previousTags = Array.from(this.props.localTags.keys())
+    return previousTags.filter(item => item.includes(filter))
   }
 
   private updateTagName = (tagName: string) => {
