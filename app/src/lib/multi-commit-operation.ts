@@ -15,7 +15,7 @@ import { IMultiCommitOperationState, IRepositoryState } from './app-state'
 export function getMultiCommitOperationChooseBranchStep(
   state: IRepositoryState,
   initialBranch?: Branch | null
-) {
+): ChooseBranchStep {
   const {
     defaultBranch,
     allBranches,
@@ -28,11 +28,11 @@ export function getMultiCommitOperationChooseBranchStep(
     currentBranch = tip.branch
   } else {
     throw new Error(
-      'Tip is not in a valid state, which is required to start the rebase flow'
+      'Tip is not in a valid state, which is required to start the multi commit operation'
     )
   }
 
-  const initialState: ChooseBranchStep = {
+  return {
     kind: MultiCommitOperationStepKind.ChooseBranch,
     defaultBranch,
     currentBranch,
@@ -40,8 +40,6 @@ export function getMultiCommitOperationChooseBranchStep(
     recentBranches,
     initialBranch: initialBranch !== null ? initialBranch : undefined,
   }
-
-  return initialState
 }
 
 export function isConflictsFlow(

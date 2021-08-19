@@ -228,7 +228,12 @@ export type MultiCommitOperationDetail =
 export function instanceOfIBaseRebaseDetails(
   object: any
 ): object is IBaseInteractiveRebaseDetails {
-  return 'commits' in object && 'currentTip' in object
+  const objectWithRequiredFields: IBaseInteractiveRebaseDetails = {
+    commits: [],
+    currentTip: '',
+  }
+
+  return Object.keys(objectWithRequiredFields).every(key => key in object)
 }
 
 export const conflictSteps = [

@@ -19,25 +19,17 @@ export abstract class BaseRebase extends BaseMultiCommitOperation {
     } = this.props
     const { operationDetail, originalBranchTip } = state
 
-    const targetBranchName =
-      conflictState !== null && isRebaseConflictState(conflictState)
-        ? conflictState.targetBranch
-        : null
-    const baseBranchName =
-      conflictState !== null && isRebaseConflictState(conflictState)
-        ? conflictState.baseBranch || ''
-        : ''
-
     if (
       conflictState === null ||
-      targetBranchName === null ||
       originalBranchTip === null ||
+      !isRebaseConflictState(conflictState) ||
       !instanceOfIBaseRebaseDetails(operationDetail)
     ) {
       this.endFlowInvalidState()
       return
     }
 
+    const { targetBranch, baseBranch } = conflictState
     const { commits, currentTip } = operationDetail
 
     await dispatcher.switchMultiCommitOperationToShowProgress(repository)
@@ -45,8 +37,8 @@ export abstract class BaseRebase extends BaseMultiCommitOperation {
     const rebaseConflictState: RebaseConflictState = {
       kind: 'rebase',
       currentTip,
-      targetBranch: targetBranchName,
-      baseBranch: undefined,
+      targetBranch,
+      baseBranch,
       originalBranchTip,
       baseBranchTip: currentTip,
       manualResolutions: conflictState.manualResolutions,
@@ -59,15 +51,18 @@ export abstract class BaseRebase extends BaseMultiCommitOperation {
       rebaseConflictState
     )
 
+    const thierBranch =
+      this.rebaseKind === MultiCommitOperationKind.Rebase
+        ? baseBranch || ''
+        : `${this.rebaseKind.toLowerCase()} commit`
+
     await dispatcher.processMultiCommitOperationRebaseResult(
       this.rebaseKind,
       repository,
       rebaseResult,
       commits.length + 1,
-      targetBranchName,
-      this.rebaseKind === MultiCommitOperationKind.Rebase
-        ? baseBranchName
-        : `${this.rebaseKind.toLowerCase()} commit`
+      targetBranch,
+      thierBranch
     )
   }
 
