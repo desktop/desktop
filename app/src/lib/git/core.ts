@@ -18,7 +18,6 @@ import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
 import { Readable } from 'stream'
 import split2 from 'split2'
-import { getSSHEnvironment } from '../ssh/ssh'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
@@ -160,9 +159,8 @@ export async function git(
     combineOutput(process.stdout)
   }
 
-  const result = await withTrampolineEnv(async env => {
-    const sshEnvironment = await getSSHEnvironment()
-    const combinedEnv = merge(opts.env, merge(env, sshEnvironment))
+  return withTrampolineEnv(async env => {
+    const combinedEnv = merge(opts.env, env)
 
     // Explicitly set TERM to 'dumb' so that if Desktop was launched
     // from a terminal or if the system environment variables
@@ -172,7 +170,7 @@ export async function git(
 
     const commandName = `${name}: git ${args.join(' ')}`
 
-    return GitPerf.measure(commandName, () =>
+    const result = await GitPerf.measure(commandName, () =>
       GitProcess.exec(args, path, opts)
     ).catch(err => {
       // If this is an exception thrown by Node.js (as opposed to
@@ -184,64 +182,66 @@ export async function git(
 
       throw err
     })
-  })
 
-  const exitCode = result.exitCode
+    const exitCode = result.exitCode
 
-  let gitError: DugiteError | null = null
-  const acceptableExitCode = opts.successExitCodes
-    ? opts.successExitCodes.has(exitCode)
-    : false
-  if (!acceptableExitCode) {
-    gitError = GitProcess.parseError(result.stderr)
-    if (!gitError) {
-      gitError = GitProcess.parseError(result.stdout)
+    let gitError: DugiteError | null = null
+    const acceptableExitCode = opts.successExitCodes
+      ? opts.successExitCodes.has(exitCode)
+      : false
+    if (!acceptableExitCode) {
+      gitError = GitProcess.parseError(result.stderr)
+      if (!gitError) {
+        gitError = GitProcess.parseError(result.stdout)
+      }
     }
-  }
 
-  const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
-  const gitResult = {
-    ...result,
-    gitError,
-    gitErrorDescription,
-    combinedOutput,
-    path,
-  }
+    const gitErrorDescription = gitError
+      ? getDescriptionForError(gitError)
+      : null
+    const gitResult = {
+      ...result,
+      gitError,
+      gitErrorDescription,
+      combinedOutput,
+      path,
+    }
 
-  let acceptableError = true
-  if (gitError && opts.expectedErrors) {
-    acceptableError = opts.expectedErrors.has(gitError)
-  }
+    let acceptableError = true
+    if (gitError && opts.expectedErrors) {
+      acceptableError = opts.expectedErrors.has(gitError)
+    }
 
-  if ((gitError && acceptableError) || acceptableExitCode) {
-    return gitResult
-  }
+    if ((gitError && acceptableError) || acceptableExitCode) {
+      return gitResult
+    }
 
-  // The caller should either handle this error, or expect that exit code.
-  const errorMessage = new Array<string>()
-  errorMessage.push(
-    `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
-  )
-
-  if (result.stdout) {
-    errorMessage.push('stdout:')
-    errorMessage.push(result.stdout)
-  }
-
-  if (result.stderr) {
-    errorMessage.push('stderr:')
-    errorMessage.push(result.stderr)
-  }
-
-  if (gitError) {
+    // The caller should either handle this error, or expect that exit code.
+    const errorMessage = new Array<string>()
     errorMessage.push(
-      `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+      `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
     )
-  }
 
-  log.error(errorMessage.join('\n'))
+    if (result.stdout) {
+      errorMessage.push('stdout:')
+      errorMessage.push(result.stdout)
+    }
 
-  throw new GitError(gitResult, args)
+    if (result.stderr) {
+      errorMessage.push('stderr:')
+      errorMessage.push(result.stderr)
+    }
+
+    if (gitError) {
+      errorMessage.push(
+        `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+      )
+    }
+
+    log.error(errorMessage.join('\n'))
+
+    throw new GitError(gitResult, args)
+  })
 }
 
 /**

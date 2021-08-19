@@ -1,10 +1,11 @@
 import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
 import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
-import { getFileHash } from '../file-system'
 import { getBoolean } from '../local-storage'
-import { TokenStore } from '../stores'
-import { getDesktopTrampolinePath } from '../trampoline/trampoline-environment'
+import {
+  getDesktopTrampolinePath,
+  getSSHWrapperPath,
+} from '../trampoline/trampoline-environment'
 
 const WindowsOpenSSHPath = 'C:/Windows/System32/OpenSSH/ssh.exe'
 
@@ -45,6 +46,8 @@ export async function getSSHEnvironment() {
   const baseEnv = enableSSHAskPass()
     ? {
         SSH_ASKPASS: getDesktopTrampolinePath(),
+        // DISPLAY needs to be set to _something_ so ssh actually uses SSH_ASKPASS
+        DISPLAY: '.',
       }
     : {}
 
@@ -57,40 +60,14 @@ export async function getSSHEnvironment() {
     }
   }
 
+  if (__DARWIN__ && __DEV__ && enableSSHAskPass()) {
+    // Replace git ssh command with our wrapper in dev builds, since they are
+    // launched from a command line.
+    return {
+      ...baseEnv,
+      GIT_SSH_COMMAND: `"${getSSHWrapperPath()}"`,
+    }
+  }
+
   return baseEnv
-}
-
-const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub'
-const SSHKeyPassphraseTokenStoreKey = `${appName} - SSH key passphrases`
-
-async function getHashForSSHKey(keyPath: string) {
-  return getFileHash(keyPath, 'sha256')
-}
-
-/** Retrieves the passphrase for the SSH key in the given path. */
-export async function getSSHKeyPassphrase(keyPath: string) {
-  try {
-    const fileHash = await getHashForSSHKey(keyPath)
-    return TokenStore.getItem(SSHKeyPassphraseTokenStoreKey, fileHash)
-  } catch (e) {
-    log.error('Could not retrieve passphrase for SSH key:', e)
-    return null
-  }
-}
-
-/** Stores the passphrase for the SSH key in the given path. */
-export async function storeSSHKeyPassphrase(
-  keyPath: string,
-  passphrase: string
-) {
-  try {
-    const fileHash = await getHashForSSHKey(keyPath)
-    await TokenStore.setItem(
-      SSHKeyPassphraseTokenStoreKey,
-      fileHash,
-      passphrase
-    )
-  } catch (e) {
-    log.error('Could not store passphrase for SSH key:', e)
-  }
 }

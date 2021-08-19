@@ -63,7 +63,7 @@ export async function fetch(
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(account, remote.url),
   }
 
   if (progressCallback) {
@@ -121,7 +121,7 @@ export async function fetchRefspec(
 ): Promise<void> {
   const options = {
     successExitCodes: new Set([0, 128]),
-    env: envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(account, remote.url),
   }
 
   const networkArguments = await gitNetworkArguments(repository, account)

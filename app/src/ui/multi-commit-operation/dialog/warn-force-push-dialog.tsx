@@ -41,7 +41,7 @@ export class WarnForcePushDialog extends React.Component<
 
     const title = __DARWIN__
       ? `${operation} Will Require Force Push`
-      : `${operation} will require force push'`
+      : `${operation} will require force push`
 
     return (
       <Dialog
