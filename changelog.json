@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.9.1-beta7": [
+      "[Fixed] Wrong SSH key passphrases are not stored after multiple failed attempts and then one successful - #12804"
+    ],
     "2.9.1-beta6": [
       "[Fixed] Wrong SSH key passphrases are not stored - #12800",
       "[Fixed] Show SSH prompts (key passphrase, adding host, etc.) to macOS users via dialog - #12782"
