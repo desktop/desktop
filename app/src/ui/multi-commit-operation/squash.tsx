@@ -3,6 +3,7 @@ import { BaseRebase } from './base-rebase'
 
 export abstract class Squash extends BaseRebase {
   protected conflictDialogOperationPrefix = 'squashing commits on'
+  protected rebaseKind = MultiCommitOperationKind.Squash
 
   protected onBeginOperation = () => {
     const { repository, dispatcher, state } = this.props

@@ -3,6 +3,7 @@ import { BaseRebase } from './base-rebase'
 
 export abstract class Reorder extends BaseRebase {
   protected conflictDialogOperationPrefix = 'reordering commits on'
+  protected rebaseKind = MultiCommitOperationKind.Reorder
 
   protected onBeginOperation = () => {
     const { repository, dispatcher, state } = this.props
