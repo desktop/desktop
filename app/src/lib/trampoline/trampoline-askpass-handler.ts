@@ -2,6 +2,7 @@ import { getKeyForEndpoint } from '../auth'
 import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
+  removePendingSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
 import { TokenStore } from '../stores'
 import { TrampolineCommandHandler } from './trampoline-command'
@@ -71,8 +72,17 @@ async function handleSSHKeyPassphrase(
     storePassphrase,
   } = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
 
+  // If the user wanted us to remember the passphrase, we'll keep it around to
+  // store it later if the git operation succeeds.
+  // However, when running a git command, it's possible that the user will need
+  // to enter the passphrase multiple times if there are failed attempts.
+  // Because of that, we need to remove any pending passphrases to be stored
+  // when, in one of those multiple attempts, the user chooses NOT to remember
+  // the passphrase.
   if (passphrase !== undefined && storePassphrase) {
     keepSSHKeyPassphraseToStore(operationGUID, keyPath, passphrase)
+  } else {
+    removePendingSSHKeyPassphraseToStore(operationGUID)
   }
 
   return passphrase ?? ''
