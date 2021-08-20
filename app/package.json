@@ -21,7 +21,7 @@
     "byline": "^5.0.0",
     "chalk": "^2.3.0",
     "classnames": "^2.2.5",
-    "codemirror": "^5.49.2",
+    "codemirror": "^5.58.2",
     "codemirror-mode-elixir": "^1.1.2",
     "compare-versions": "^3.6.0",
     "deep-equal": "^1.0.1",
