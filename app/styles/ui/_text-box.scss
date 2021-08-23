@@ -1,6 +1,7 @@
 @import '../mixins';
 
 .text-box-component {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -49,6 +50,30 @@
       // https://github.com/primer/octicons/blob/4661c1e0aa30c7d252318d2b003af782a6891089/icons/x-16.svg#L1
       -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>');
       -webkit-mask-repeat: no-repeat;
+    }
+  }
+
+  .warning-badge {
+    background-color: #f6f8fa;
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    top: -6px;
+    right: -7px;
+    border-radius: 9px;
+    border: #d1d5da 1px solid;
+
+    > svg {
+      height: 10px;
+      // With width=100%, the icon will be centered horizontally
+      width: 100%;
+    }
+    
+    .popover-component {
+      position: absolute;
+      left: 24px;
+      bottom: -12px;
+      width: 300px;
     }
   }
 }

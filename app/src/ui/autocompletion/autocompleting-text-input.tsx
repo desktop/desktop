@@ -16,6 +16,14 @@ interface IRange {
 
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../main-process-proxy'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { Row } from '../lib/row'
+
+export interface IWarningMessage {
+  title: string
+  description: JSX.Element | string
+}
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -38,6 +46,9 @@ interface IAutocompletingTextInputProps<ElementType> {
 
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
+
+  /** Optional warning message. If provided, a warning badge is shown and the message is shown on badge hover. */
+  readonly warningMessage?: IWarningMessage
 
   /**
    * Called when the user changes the value in the input field.
@@ -92,6 +103,7 @@ const YOffset = 20
 const DefaultPopupHeight = 100
 
 interface IAutocompletingTextInputState<T> {
+  readonly isPopoverOpen: boolean
   /**
    * All of the state about autocompletion. Will be null if there are no
    * matching autocompletion providers.
@@ -120,7 +132,7 @@ export abstract class AutocompletingTextInput<
   public constructor(props: IAutocompletingTextInputProps<ElementType>) {
     super(props)
 
-    this.state = { autocompletionState: null }
+    this.state = { isPopoverOpen: false, autocompletionState: null }
   }
 
   private renderItem = (row: number): JSX.Element | null => {
@@ -277,6 +289,7 @@ export abstract class AutocompletingTextInput<
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
+      className: this.props.warningMessage ? 'warning' : undefined,
       ref: this.onRef,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
@@ -291,6 +304,45 @@ export abstract class AutocompletingTextInput<
       this.getElementTagName(),
       props
     )
+  }
+
+  private renderPopover() {
+    return (
+      <Popover
+        caretPosition={PopoverCaretPosition.LeftBottom}
+        focusable={false}
+      >
+        <h3>{this.props.warningMessage!.title}</h3>
+        <Row><div>{this.props.warningMessage!.description}</div></Row>
+      </Popover>
+    )
+  }
+
+  private renderWarningBadge() {
+    return (
+      <div className="warning-badge" onMouseEnter={this.onWarningBadgeMouseEnter} onMouseLeave={this.onWarningBadgeMouseLeave}>
+        <Octicon symbol={OcticonSymbol.alert} />
+        {this.state.isPopoverOpen && this.renderPopover()}
+      </div>
+    )
+  }
+
+  private onWarningBadgeMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    this.openPopover()
+  }
+
+  private onWarningBadgeMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    this.closePopover()
+  }
+
+  private openPopover() {
+    this.setState(prevState => ({...prevState, isPopoverOpen: true}))
+  }
+
+  private closePopover() {
+    this.setState(prevState => ({...prevState, isPopoverOpen: false}))
   }
 
   private onBlur = (e: React.FocusEvent<ElementType>) => {
@@ -323,8 +375,8 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className}>
         {this.renderAutocompletions()}
-
         {this.renderTextInput()}
+        {this.props.warningMessage && this.renderWarningBadge()}
       </div>
     )
   }

@@ -7,7 +7,6 @@ import {
 } from './text-token-parser'
 import { assertNever } from './fatal-error'
 
-export const IdealSummaryLength = 50
 export const MaxSummaryLength = 72
 
 /**

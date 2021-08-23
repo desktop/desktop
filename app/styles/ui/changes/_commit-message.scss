@@ -22,20 +22,6 @@
       input {
         width: 100%;
       }
-
-      &.near-limit input {
-        border-color: var(--color-modified);
-        &:focus {
-          @include textboxish-focus-styles(var(--color-modified), var(--text-field-focus-shadow-color-modified));
-        }
-      }
-
-      &.over-limit input {
-        border-color: var(--color-deleted);
-        &:focus {
-          @include textboxish-focus-styles(var(--color-deleted), var(--text-field-focus-shadow-color-deleted));
-        }
-      }
     }
 
     .avatar {

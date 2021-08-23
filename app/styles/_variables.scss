@@ -324,8 +324,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --text-field-height: 25px;
   --text-field-focus-shadow-color: #{rgba($blue, 0.25)};
-  --text-field-focus-shadow-color-modified: #{rgba($yellow-700, 0.25)};
-  --text-field-focus-shadow-color-deleted: #{rgba($red, 0.25)};
+  --text-field-focus-shadow-color-warning: #{rgba($yellow-600, 0.25)};
 
   /**
    * Blankslate actions, see `BlankslateAction` component.

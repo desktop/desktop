@@ -36,7 +36,6 @@ import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isAccountEmail } from '../../lib/is-account-email'
 import {
-  IdealSummaryLength,
   MaxSummaryLength,
 } from '../../lib/wrap-rich-text-commit-message'
 
@@ -354,7 +353,7 @@ export class CommitMessage extends React.Component<
     const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
     const email = commitAuthor?.email
 
-    const warningBadgeVisible =
+    let warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
       repositoryAccount !== undefined &&
@@ -734,10 +733,10 @@ export class CommitMessage extends React.Component<
     })
 
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
-      'nudge-arrow-left': this.props.shouldNudge === true,
-      'near-limit': this.state.summary.length > IdealSummaryLength,
-      'over-limit': this.state.summary.length > MaxSummaryLength,
+      'nudge-arrow-left': this.props.shouldNudge === true
     })
+
+    const charactersOverLimit = this.state.summary.length - MaxSummaryLength
 
     return (
       <div
@@ -762,6 +761,7 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
+            warningMessage={charactersOverLimit > 0 ? { title:'This commit summary is too long',description: <>The summary is limited to {MaxSummaryLength} characters, which you've exceeded. <strong>{charactersOverLimit} {charactersOverLimit === 1 ? 'character':'characters'}</strong> going over the limit will be cut off.</> }: undefined}
           />
         </div>
 

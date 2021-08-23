@@ -21,6 +21,14 @@
   &::-webkit-input-placeholder {
     color: var(--box-placeholder-color);
   }
+
+  &.warning {
+    border-color: var(--dialog-warning-color);
+
+    &:focus {
+      @include textboxish-focus-styles(var(--dialog-warning-color), var(--text-field-focus-shadow-color-warning));
+    }
+  }
 }
 
 @mixin textboxish-focus-styles($border-color: var(--focus-color), $box-shadow-color: var(--text-field-focus-shadow-color)) {

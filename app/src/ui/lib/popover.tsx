@@ -23,6 +23,7 @@ export enum PopoverCaretPosition {
 interface IPopoverProps {
   readonly onClickOutside?: () => void
   readonly caretPosition: PopoverCaretPosition
+  readonly focusable?: boolean
 }
 
 export class Popover extends React.Component<IPopoverProps> {
@@ -66,7 +67,7 @@ export class Popover extends React.Component<IPopoverProps> {
     const classNames = ['popover-component', this.getClassNameForCaret()]
 
     return (
-      <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
+      <FocusTrap active={this.props.focusable ?? true} focusTrapOptions={this.focusTrapOptions}>
         <div className={classNames.join(' ')} ref={this.containerDivRef}>
           {this.props.children}
         </div>
