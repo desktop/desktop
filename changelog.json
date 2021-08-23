@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.1-test9": ["[Improved] Release test for 2.9.1"],
     "2.9.1": [
       "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
       "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
