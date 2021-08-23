@@ -79,7 +79,7 @@ export function renderBanner(
           targetBranchName={banner.targetBranchName}
           countCherryPicked={banner.count}
           onDismissed={onDismissed}
-          onUndoCherryPick={banner.onUndoCherryPick}
+          onUndo={banner.onUndo}
         />
       )
     case BannerType.CherryPickConflictsFound:
