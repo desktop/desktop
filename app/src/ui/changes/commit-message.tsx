@@ -353,7 +353,7 @@ export class CommitMessage extends React.Component<
     const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
     const email = commitAuthor?.email
 
-    let warningBadgeVisible =
+    const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
       repositoryAccount !== undefined &&
