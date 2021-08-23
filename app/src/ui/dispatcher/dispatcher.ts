@@ -3513,7 +3513,7 @@ export class Dispatcher {
       targetBranch,
     } = mcos
 
-    const bannerBase: any = {
+    const bannerBase = {
       count,
       onUndo: () => {
         this.undoMultiCommitOperation(mcos, repository, count)
