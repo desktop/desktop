@@ -1,5 +1,26 @@
 {
   "releases": {
+    "2.9.1": [
+      "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
+      "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
+      "[Added] Show number of lines changed in a commit - #11656",
+      "[Fixed] Change the diff gutter width based on number of lines in diff - #2102. Thanks @ADustyOldMuffin!",
+      "[Fixed] Enable 'Open in External Editor' for bat/cmd/sh/exe files - #6361. Thanks @AndreiMaga!",
+      "[Fixed] Green circle in progress dialog remains round when commits have long descriptions - #12594. Thanks @litetex!",
+      "[Fixed] History tab shows all commits as the user scrolls down - #12506 #3704",
+      "[Fixed] Removed border of Repository and Branch foldouts in dark theme - #12478. Thanks @meJevin!",
+      "[Fixed] Render links in commit messages when they are at the beginning of a line - #12105. Thanks @tsvetilian-ty!",
+      "[Fixed] Show co-authors from undone commits - #12537",
+      "[Fixed] Show SSH prompts (key passphrase, adding host, etc.) to users via dialog - #3457 #8761",
+      "[Improved] Added support for more versions of JetBrains IDEs on Windows - #12778",
+      "[Improved] Check invalidated tokens and prompt the user to sign in again - #12554",
+      "[Improved] Double-click an option when switching branches to quickly confirm how you want changed files to be handled - #12522. Thanks @j-f1!",
+      "[Improved] Improve auth error and prompt to suggest the user use a PAT instead of password - #12323",
+      "[Improved] Increase visibility of misattributed commit warning in dark mode - #12210",
+      "[Improved] Reduced time needed to make a commit - #12529",
+      "[Improved] Use \"Recycle Bin\" name only on Windows - #12544. Thanks @shiftkey!",
+      "[Improved] Windows users can use the system OpenSSH for their Git repositories - #5641"
+    ],
     "2.9.1-beta7": [
       "[Fixed] Wrong SSH key passphrases are not stored after multiple failed attempts and then one successful - #12804"
     ],
