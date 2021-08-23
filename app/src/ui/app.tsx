@@ -2370,6 +2370,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={externalEditorLabel}
         shellLabel={shellLabel}
+        showRecentRepositories={this.state.showRecentRepositories}
         dispatcher={this.props.dispatcher}
       />
     )

@@ -2365,6 +2365,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set whether or not to show recent repositories
+   */
+  public setShowRecentRepositories(show: boolean) {
+    return this.appStore._setShowRecentRepositories(show)
+  }
+
+  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */

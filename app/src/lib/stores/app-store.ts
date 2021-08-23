@@ -299,6 +299,9 @@ const RecentRepositoriesKey = 'recently-selected-repositories'
  */
 const RecentRepositoriesLength = 3
 
+const showRecentRepositoriesDefault = true;
+const showRecentRepositoriesKey = 'showRecentRepositories'
+
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
 
@@ -444,6 +447,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
+  private showRecentRepositories = showRecentRepositoriesDefault;
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private useWindowsOpenSSH: boolean = false
@@ -856,6 +860,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       dragAndDropIntroTypesShown: this.dragAndDropIntroTypesShown,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
+      showRecentRepositories: this.showRecentRepositories
     }
   }
 
@@ -1779,6 +1784,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnForcePush = getBoolean(
       confirmForcePushKey,
       askForConfirmationOnForcePushDefault
+    )
+
+    this.showRecentRepositories = getBoolean(
+      showRecentRepositoriesKey,
+      showRecentRepositoriesDefault
     )
 
     this.uncommittedChangesStrategy =
@@ -5867,6 +5877,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /**
+   * Set whether or not to show recent repositories
+   */
+  public _setShowRecentRepositories(show: boolean) {
+    setBoolean(showRecentRepositoriesKey, show);
+    this.showRecentRepositories = show
+    this.emitUpdate()
   }
 
   public async _resolveCurrentEditor() {

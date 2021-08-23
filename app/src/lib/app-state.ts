@@ -237,6 +237,9 @@ export interface IAppState {
   /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
 
+  /** Whether or not to show recent repositories */
+  readonly showRecentRepositories: boolean
+
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
 

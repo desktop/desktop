@@ -30,6 +30,7 @@ interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
   readonly recentRepositories: ReadonlyArray<number>
+  readonly showRecentRepositories: boolean
 
   /** A cache of the latest repository state values, keyed by the repository id */
   readonly localRepositoryStateLookup: ReadonlyMap<
@@ -193,7 +194,8 @@ export class RepositoriesList extends React.Component<
     )
 
     const groups =
-      this.props.repositories.length > recentRepositoriesThreshold
+      this.props.repositories.length > recentRepositoriesThreshold &&
+      this.props.showRecentRepositories
         ? [
             makeRecentRepositoriesGroup(
               this.props.recentRepositories,
