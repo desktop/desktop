@@ -1016,10 +1016,15 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const gutterParentElement = cm.getGutterElement()
     const gutterElement = gutterParentElement.getElementsByClassName(
-      'diff-gutter'
+      diffGutterName
     )[0]
-    gutterElement.setAttribute('style', `width: ${diffSize * 2}px;`)
-    cm.refresh()
+
+    const newStyle = `width: ${diffSize * 2}px;`
+    const currentStyle = gutterElement.getAttribute('style')
+    if (newStyle !== currentStyle) {
+      gutterElement.setAttribute('style', newStyle)
+      cm.refresh()
+    }
   }
 
   /**
