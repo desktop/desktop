@@ -87,6 +87,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
         --diff-add-border: 1px solid green;
         --diff-delete-border: 1px solid crimson;
         --tab-bar-hover-border: 2px solid ${border} !important;
+        --tab-bar-item-border: 2px solid ${background};
         --foldout-border: 1px solid ${border};
     `
 

@@ -13,7 +13,7 @@
 
   &-item {
     // Reset styles from global buttons
-    border: none;
+    border: var(--tab-bar-item-border);
     box-shadow: none;
     color: var(--text-color);
     background: var(--background-color);
