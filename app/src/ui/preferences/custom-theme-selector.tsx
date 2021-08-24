@@ -7,11 +7,11 @@ import { enableCustomizeTheme } from '../../lib/feature-flag'
 
 const themeDefaults = {
   [ApplicationTheme.HighContrast]: {
-    background: '#23262d',
-    border: '#6f7783',
-    text: '#eef1f5',
-    activeItem: '#636B76',
-    activeText: '#eef1f5',
+    background: '#090c11',
+    border: '#7a828e',
+    text: '#f0f3f6',
+    activeItem: '#9ea7b3',
+    activeText: '#090c11',
   },
 }
 
