@@ -120,7 +120,7 @@ export function enableResetToCommit(): boolean {
 
 /** Should we show line changes (added/deleted) in commits? */
 export function enableLineChangesInCommit(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow high contrast theme option */
@@ -135,12 +135,12 @@ export function enableCustomizeTheme(): boolean {
 
 /** Should we allow using Windows' OpenSSH? */
 export function enableWindowsOpenSSH(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we use SSH askpass? */
 export function enableSSHAskPass(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we use the setImmediate alternative? */
