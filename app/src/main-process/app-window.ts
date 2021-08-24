@@ -20,10 +20,14 @@ export class AppWindow {
   private minWidth = 960
   private minHeight = 660
 
+  // See https://github.com/desktop/desktop/pull/11162
+  private shouldMaximizeOnShow = false
+
   public constructor() {
     const savedWindowState = windowStateKeeper({
       defaultWidth: this.minWidth,
       defaultHeight: this.minHeight,
+      maximize: false,
     })
 
     const windowOptions: Electron.BrowserWindowConstructorOptions = {
@@ -43,7 +47,7 @@ export class AppWindow {
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
         enableRemoteModule: true,
-        spellcheck: false,
+        spellcheck: true,
       },
       acceptFirstMouse: true,
     }
@@ -58,6 +62,7 @@ export class AppWindow {
 
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
+    this.shouldMaximizeOnShow = savedWindowState.isMaximized
 
     let quitting = false
     app.on('before-quit', () => {
@@ -76,7 +81,7 @@ export class AppWindow {
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
-          Menu.sendActionToFirstResponder('hide:')
+          app.hide()
         }
       })
     }
@@ -205,6 +210,12 @@ export class AppWindow {
   /** Show the window. */
   public show() {
     this.window.show()
+    if (this.shouldMaximizeOnShow) {
+      // Only maximize the window the first time it's shown, not every time.
+      // Otherwise, it causes the problem described in desktop/desktop#11590
+      this.shouldMaximizeOnShow = false
+      this.window.maximize()
+    }
   }
 
   /** Send the menu event to the renderer. */

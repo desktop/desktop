@@ -9,7 +9,8 @@ import {
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
@@ -169,7 +170,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogContent>
         <Row>
           <TextBox
-            label="Enterprise Server address"
+            label="Enterprise address"
             value={this.state.endpoint}
             onValueChanged={this.onEndpointChanged}
             placeholder="https://github.example.com"
@@ -199,8 +200,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         return (
           <DialogContent>
             <p>
-              Your GitHub Enterprise Server instance requires you to sign in
-              with your browser.
+              Your GitHub Enterprise instance requires you to sign in with your
+              browser.
             </p>
           </DialogContent>
         )

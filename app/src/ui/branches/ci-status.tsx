@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import classNames from 'classnames'
 import { GitHubRepository } from '../../models/github-repository'
 import { IDisposable } from 'event-kit'
@@ -109,7 +110,7 @@ export class CIStatus extends React.PureComponent<
   }
 }
 
-function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbol {
+function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbolType {
   switch (check.conclusion) {
     case 'timed_out':
       return OcticonSymbol.x

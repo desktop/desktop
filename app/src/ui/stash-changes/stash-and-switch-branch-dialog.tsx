@@ -5,11 +5,9 @@ import { Dispatcher } from '../dispatcher'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import { Row } from '../lib/row'
 import { Branch } from '../../models/branch'
-import {
-  UncommittedChangesStrategyKind,
-  stashOnCurrentBranch,
-} from '../../models/uncommitted-changes-strategy'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { PopupType } from '../../models/popup'
 import { startTimer } from '../lib/timing'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -157,14 +155,15 @@ export class StashAndSwitchBranch extends React.Component<
         await dispatcher.checkoutBranch(
           repository,
           branchToCheckout,
-          stashOnCurrentBranch
+          UncommittedChangesStrategy.StashOnCurrentBranch
         )
       } else if (selectedStashAction === StashAction.MoveToNewBranch) {
         // attempt to checkout the branch without creating a stash entry
-        await dispatcher.checkoutBranch(repository, branchToCheckout, {
-          kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-          transientStashEntry: null,
-        })
+        await dispatcher.checkoutBranch(
+          repository,
+          branchToCheckout,
+          UncommittedChangesStrategy.MoveToNewBranch
+        )
       }
     } finally {
       timer.done()

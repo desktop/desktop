@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
@@ -25,7 +25,7 @@ export interface IToolbarButtonProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbol
+  readonly icon?: OcticonSymbolType
 
   /** The class name for the icon element. */
   readonly iconClassName?: string

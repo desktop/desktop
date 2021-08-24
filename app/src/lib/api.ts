@@ -13,8 +13,16 @@ import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
+import { Emitter } from 'event-kit'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
+const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
+const envAdditionalCookies =
+  process.env['DESKTOP_GITHUB_DOTCOM_ADDITIONAL_COOKIES']
+
+if (envAdditionalCookies !== undefined) {
+  document.cookie += '; ' + envAdditionalCookies
+}
 
 /**
  * Optional set of configurable settings for the fetchAll method
@@ -76,7 +84,7 @@ const DotComOAuthScopes = ['repo', 'user', 'workflow']
 
 /**
  * The OAuth scopes we want to request from GitHub
- * Enterprise Server.
+ * Enterprise.
  */
 const EnterpriseOAuthScopes = ['repo', 'user']
 
@@ -103,7 +111,35 @@ export interface IAPIRepository {
   readonly pushed_at: string
   readonly has_issues: boolean
   readonly archived: boolean
-  readonly parent?: IAPIRepository
+}
+
+/** Information needed to clone a repository. */
+export interface IAPIRepositoryCloneInfo {
+  /** Canonical clone URL of the repository. */
+  readonly url: string
+
+  /**
+   * Default branch of the repository, if any. This is usually either retrieved
+   * from the API for GitHub repositories, or undefined for other repositories.
+   */
+  readonly defaultBranch?: string
+}
+
+export interface IAPIFullRepository extends IAPIRepository {
+  /**
+   * The parent repository of a fork.
+   *
+   * HACK: BEWARE: This is defined as `parent: IAPIRepository | undefined`
+   * rather than `parent?: ...` even though the parent property is actually
+   * optional in the API response. So we're lying a bit to the type system
+   * here saying that this will be present but the only time the difference
+   * between omission and explicit undefined matters is when using constructs
+   * like `x in y` or `y.hasOwnProperty('x')` which we do very rarely.
+   *
+   * Without at least one non-optional type in this interface TypeScript will
+   * happily let us pass an IAPIRepository in place of an IAPIFullRepository.
+   */
+  readonly parent: IAPIRepository | undefined
 
   /**
    * The high-level permissions that the currently authenticated
@@ -353,7 +389,7 @@ export interface IAPIBranch {
   /**
    * The name of the branch stored on the remote.
    *
-   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/main`)
    */
   readonly name: string
   /**
@@ -541,6 +577,18 @@ function toGitHubIsoDateString(date: Date) {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
+  private static readonly TOKEN_INVALIDATED_EVENT = 'token-invalidated'
+
+  private static readonly emitter = new Emitter()
+
+  public static onTokenInvalidated(callback: (endpoint: string) => void) {
+    API.emitter.on(API.TOKEN_INVALIDATED_EVENT, callback)
+  }
+
+  private static emitTokenInvalidated(endpoint: string) {
+    API.emitter.emit(API.TOKEN_INVALIDATED_EVENT, endpoint)
+  }
+
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
@@ -559,14 +607,14 @@ export class API {
   public async fetchRepository(
     owner: string,
     name: string
-  ): Promise<IAPIRepository | null> {
+  ): Promise<IAPIFullRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
         return null
       }
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
@@ -574,8 +622,11 @@ export class API {
   }
 
   /**
-   * Fetch the canonical clone URL for a repository, respecting the protocol
-   * preference if provided.
+   * Fetch info needed to clone a repository. That includes:
+   *  - The canonical clone URL for a repository, respecting the protocol
+   *    preference if provided.
+   *  - The default branch of the repository, in case the repository is empty.
+   *    Only available for GitHub repositories.
    *
    * Returns null if the request returned a 404 (NotFound). NotFound doesn't
    * necessarily mean that the repository doesn't exist, it could exist and
@@ -590,19 +641,26 @@ export class API {
    * @param name     The repository name (node in https://github.com/nodejs/node)
    * @param protocol The preferred Git protocol (https or ssh)
    */
-  public async fetchRepositoryCloneUrl(
+  public async fetchRepositoryCloneInfo(
     owner: string,
     name: string,
     protocol: GitProtocol | undefined
-  ): Promise<string | null> {
-    const response = await this.request('GET', `repos/${owner}/${name}`)
+  ): Promise<IAPIRepositoryCloneInfo | null> {
+    const response = await this.request('GET', `repos/${owner}/${name}`, {
+      // Make sure we don't run into cache issues when fetching the repositories,
+      // specially after repositories have been renamed.
+      reloadCache: true,
+    })
 
     if (response.status === HttpStatusCode.NotFound) {
       return null
     }
 
     const repo = await parsedResponse<IAPIRepository>(response)
-    return protocol === 'ssh' ? repo.ssh_url : repo.clone_url
+    return {
+      url: protocol === 'ssh' ? repo.ssh_url : repo.clone_url,
+      defaultBranch: repo.default_branch,
+    }
   }
 
   /** Fetch all repos a user has access to. */
@@ -615,7 +673,7 @@ export class API {
       // Ordinarily you'd be correct but turns out there's super
       // rare circumstances where a user has been deleted but the
       // repository hasn't. Such cases are usually addressed swiftly
-      // but in some cases like GitHub Enterprise Server instances
+      // but in some cases like GitHub Enterprise instances
       // they can linger for longer than we'd like so we'll make
       // sure to exclude any such dangling repository, chances are
       // they won't be cloneable anyway.
@@ -667,16 +725,18 @@ export class API {
     name: string,
     description: string,
     private_: boolean
-  ): Promise<IAPIRepository> {
+  ): Promise<IAPIFullRepository> {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
       const response = await this.request('POST', apiPath, {
-        name,
-        description,
-        private: private_,
+        body: {
+          name,
+          description,
+          private: private_,
+        },
       })
 
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       if (e instanceof APIError) {
         if (org !== null) {
@@ -698,11 +758,11 @@ export class API {
   public async forkRepository(
     owner: string,
     name: string
-  ): Promise<IAPIRepository> {
+  ): Promise<IAPIFullRepository> {
     try {
       const apiPath = `/repos/${owner}/${name}/forks`
       const response = await this.request('POST', apiPath)
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       log.error(
         `forkRepository: failed to fork ${owner}/${name} at endpoint: ${this.endpoint}`,
@@ -874,7 +934,7 @@ export class API {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
 
-    const response = await this.request('GET', path, undefined, headers)
+    const response = await this.request('GET', path, { customHeaders: headers })
 
     try {
       return await parsedResponse<IAPIRefCheckRuns>(response)
@@ -906,7 +966,9 @@ export class API {
     }
 
     try {
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
       return await parsedResponse<IAPIPushControl>(response)
     } catch (err) {
       log.info(
@@ -977,13 +1039,30 @@ export class API {
   }
 
   /** Make an authenticated request to the client's endpoint with its token. */
-  private request(
+  private async request(
     method: HTTPMethod,
     path: string,
-    body?: Object,
-    customHeaders?: Object
+    options: {
+      body?: Object
+      customHeaders?: Object
+      reloadCache?: boolean
+    } = {}
   ): Promise<Response> {
-    return request(this.endpoint, this.token, method, path, body, customHeaders)
+    const response = await request(
+      this.endpoint,
+      this.token,
+      method,
+      path,
+      options.body,
+      options.customHeaders,
+      options.reloadCache
+    )
+
+    if (response.status === 401) {
+      API.emitTokenInvalidated(this.endpoint)
+    }
+
+    return response
   }
 
   /**
@@ -1026,7 +1105,9 @@ export class API {
 
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
 
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchMentionables: '${path}' returned a 404`)
@@ -1291,10 +1372,14 @@ export function getEndpointForRepository(url: string): string {
  * http://github.mycompany.com/api -> http://github.mycompany.com/
  */
 export function getHTMLURL(endpoint: string): string {
+  if (envHTMLURL !== undefined) {
+    return envHTMLURL
+  }
+
   // In the case of GitHub.com, the HTML site lives on the parent domain.
   //  E.g., https://api.github.com -> https://github.com
   //
-  // Whereas with Enterprise Server, it lives on the same domain but without the
+  // Whereas with Enterprise, it lives on the same domain but without the
   // API path:
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //

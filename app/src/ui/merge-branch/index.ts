@@ -1,1 +1,0 @@
-export { Merge } from './merge'

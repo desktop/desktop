@@ -1,16 +1,18 @@
 ---
 name: "\U0001F41B Bug report"
-about: Report a problem encountered while using GitHub Desktop
+about: Report a bug while using GitHub Desktop. The full template is required.
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
 ### Describe the bug
-
-A clear and concise description of what the bug is.
+Write a clear and concise description of what the bug is.
 
 ### Version & OS
 
-Open 'About GitHub Desktop' menu to see the Desktop version. Also include what operating system you are using.
+Open the 'About GitHub Desktop' menu to see the GitHub Desktop version. Also include what operating system you are using.
 
 ### Steps to reproduce the behavior
 
@@ -21,11 +23,11 @@ Open 'About GitHub Desktop' menu to see the Desktop version. Also include what o
 
 ### Expected behavior
 
-A clear and concise description of what you expected to happen.
+Write a clear and concise description of what you expected to happen.
 
 ### Actual behavior
 
-A clear and concise description of what actually happened.
+Write a clear and concise description of what actually happened.
 
 ### Screenshots
 

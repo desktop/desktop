@@ -19,7 +19,9 @@ export class ImageContainer extends React.Component<IImageProps, {}> {
     const imageSource = `data:${image.mediaType};base64,${image.contents}`
 
     return (
-      <img src={imageSource} style={this.props.style} onLoad={this.onLoad} />
+      <div className="image-wrapper">
+        <img src={imageSource} style={this.props.style} onLoad={this.onLoad} />
+      </div>
     )
   }
 

@@ -13,6 +13,8 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
+import { WorkingDirectoryFileChange } from '../../models/status'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
@@ -104,6 +106,7 @@ export async function checkoutBranch(
   )
 
   await git(args, repository.path, 'checkoutBranch', opts)
+
   // we return `true` here so `GitStore.performFailableGitOperation`
   // will return _something_ differentiable from `undefined` if this succeeds
   return true
@@ -122,18 +125,17 @@ export async function checkoutPaths(
 }
 
 /**
- * Create and checkout the given branch.
- *
- * @param repository The repository.
- * @param branchName The branch to create and checkout.
+ * Check out either stage #2 (ours) or #3 (theirs) for a conflicted
+ * file.
  */
-export async function createAndCheckoutBranch(
+export async function checkoutConflictedFile(
   repository: Repository,
-  branchName: string
-): Promise<void> {
+  file: WorkingDirectoryFileChange,
+  resolution: ManualConflictResolution
+) {
   await git(
-    ['checkout', '-b', branchName],
+    ['checkout', `--${resolution}`, '--', file.path],
     repository.path,
-    'createAndCheckoutBranch'
+    'checkoutConflictedFile'
   )
 }

@@ -1,3 +1,4 @@
+/* eslint-disable no-sync */
 import * as distInfo from './dist-info'
 import * as gitInfo from '../app/git-info'
 import * as packageInfo from '../app/package-info'
@@ -24,7 +25,7 @@ if (!currentTipSHA.toUpperCase().startsWith(releaseSHA!.toUpperCase())) {
 
 import * as Fs from 'fs'
 import { execSync } from 'child_process'
-import * as AWS from 'aws-sdk'
+import * as Azure from 'azure-storage'
 import * as Crypto from 'crypto'
 import request from 'request'
 
@@ -74,6 +75,8 @@ function uploadOSXAssets() {
 }
 
 function uploadWindowsAssets() {
+  // For the nuget packages, include the architecture infix in the asset name
+  // when they're uploaded.
   const uploads = [
     upload(
       distInfo.getWindowsInstallerName(),
@@ -84,15 +87,21 @@ function uploadWindowsAssets() {
       distInfo.getWindowsStandalonePath()
     ),
     upload(
-      distInfo.getWindowsFullNugetPackageName(),
+      distInfo.getWindowsFullNugetPackageName(true),
       distInfo.getWindowsFullNugetPackagePath()
     ),
   ]
 
-  if (distInfo.shouldMakeDelta()) {
+  // Even if we should make a delta, it might not exist (if it's the first time
+  // we publish a nuget package of the app... for example, when we added support
+  // for ARM64).
+  if (
+    distInfo.shouldMakeDelta() &&
+    Fs.existsSync(distInfo.getWindowsDeltaNugetPackagePath())
+  ) {
     uploads.push(
       upload(
-        distInfo.getWindowsDeltaNugetPackageName(),
+        distInfo.getWindowsDeltaNugetPackageName(true),
         distInfo.getWindowsDeltaNugetPackagePath()
       )
     )
@@ -108,31 +117,19 @@ interface IUploadResult {
   sha: string
 }
 
-function upload(assetName: string, assetPath: string) {
-  const s3Info = {
-    accessKeyId: process.env.S3_KEY,
-    secretAccessKey: process.env.S3_SECRET,
-  }
-  const s3 = new AWS.S3(s3Info)
-
-  const bucket = process.env.S3_BUCKET || ''
-  const key = `releases/${packageInfo.getVersion()}-${sha}/${assetName.replace(
-    / /g,
-    ''
-  )}`
-  const url = `https://s3.amazonaws.com/${bucket}/${key}`
-
-  const uploadParams = {
-    Bucket: bucket,
-    ACL: 'public-read',
-    Key: key,
-    Body: Fs.createReadStream(assetPath),
-  }
+async function upload(assetName: string, assetPath: string) {
+  const azureBlobService = await getAzureBlobService()
+  const container = process.env.AZURE_BLOB_CONTAINER || ''
+  const cleanAssetName = assetName.replace(/ /g, '')
+  const blob = `releases/${packageInfo.getVersion()}-${sha}/${cleanAssetName}`
+  const url = `${process.env.AZURE_STORAGE_URL}/${container}/${blob}`
 
   return new Promise<IUploadResult>((resolve, reject) => {
-    s3.upload(
-      uploadParams,
-      (error: Error, data: AWS.S3.ManagedUpload.SendData) => {
+    azureBlobService.createBlockBlobFromLocalFile(
+      container,
+      blob,
+      assetPath,
+      (error: any) => {
         if (error != null) {
           reject(error)
         } else {
@@ -143,11 +140,50 @@ function upload(assetName: string, assetPath: string) {
           const input = Fs.createReadStream(assetPath)
 
           hash.on('finish', () => {
-            const sha = hash.read() as string
-            resolve({ name: assetName, url, size: stats['size'], sha })
+            resolve({
+              name: assetName,
+              url,
+              size: stats['size'],
+              sha: hash.read() as string,
+            })
           })
 
           input.pipe(hash)
+        }
+      }
+    )
+  })
+}
+
+function getAzureBlobService(): Promise<Azure.BlobService> {
+  return new Promise<Azure.BlobService>((resolve, reject) => {
+    if (
+      process.env.AZURE_STORAGE_ACCOUNT === undefined ||
+      process.env.AZURE_STORAGE_ACCESS_KEY === undefined ||
+      process.env.AZURE_BLOB_CONTAINER === undefined
+    ) {
+      reject('Invalid azure storage credentials')
+      return
+    }
+
+    const blobService = Azure.createBlobService(
+      process.env.AZURE_STORAGE_ACCOUNT,
+      process.env.AZURE_STORAGE_ACCESS_KEY
+    )
+
+    blobService.createContainerIfNotExists(
+      process.env.AZURE_BLOB_CONTAINER,
+      {
+        publicAccessLevel: 'blob',
+      },
+      (error: any) => {
+        if (error !== null) {
+          console.log(error)
+          reject(
+            `Unable to ensure azure blob container - ${process.env.AZURE_BLOB_CONTAINER}. Deployment aborting...`
+          )
+        } else {
+          resolve(blobService)
         }
       }
     )
@@ -160,10 +196,20 @@ function createSignature(body: any, secret: string) {
   return `sha1=${hmac.digest('hex')}`
 }
 
-function updateDeploy(artifacts: ReadonlyArray<IUploadResult>, secret: string) {
+function getContext() {
+  return (
+    process.platform +
+    (distInfo.getDistArchitecture() === 'arm64' ? '-arm64' : '')
+  )
+}
+
+function updateDeploy(
+  artifacts: ReadonlyArray<IUploadResult>,
+  secret: string
+): Promise<void> {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
-    context: process.platform,
+    context: getContext(),
     branch_name: platforms.getReleaseBranchName(),
     artifacts,
     stats: {

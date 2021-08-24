@@ -13,10 +13,13 @@ import { TipState } from '../models/tip'
 import { clamp } from './clamp'
 
 /**
- * Setup the rebase flow state when the user neeeds to select a branch as the
+ * Setup the rebase flow state when the user needs to select a branch as the
  * base for the operation.
  */
-export function initializeNewRebaseFlow(state: IRepositoryState) {
+export function initializeNewRebaseFlow(
+  state: IRepositoryState,
+  initialBranch?: Branch | null
+) {
   const {
     defaultBranch,
     allBranches,
@@ -39,6 +42,7 @@ export function initializeNewRebaseFlow(state: IRepositoryState) {
     currentBranch,
     allBranches,
     recentBranches,
+    initialBranch: initialBranch !== null ? initialBranch : undefined,
   }
 
   return initialState
@@ -48,7 +52,7 @@ export function initializeNewRebaseFlow(state: IRepositoryState) {
  * Setup the rebase flow when rebase conflicts are detected in the repository.
  *
  * This indicates a rebase is in progress, and the application needs to guide
- * the user to resolve conflicts and complete the rebae.
+ * the user to resolve conflicts and complete the rebase.
  *
  * @param conflictState current set of conflicts
  */

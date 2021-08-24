@@ -66,7 +66,7 @@ When naming the branch, ensure you use the `releases/[version]` pattern to ensur
 
 ### 3. Create Draft Release
 
-Run the script below (which relies on the your personal acccess token being set), which will determine the next version from what was previously published, based on the desired channel.
+Run the script below (which relies on the your personal access token being set), which will determine the next version from what was previously published, based on the desired channel.
 
 For `production` and `beta` releases, run:
 
@@ -132,7 +132,7 @@ Here's an example of the previous changelog draft after it has been edited:
 
 Add your new changelog entries to `changelog.json`, update the version in `app/package.json`, commit the changes, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `development` without affecting your release.
 
-If a maintainer would like to backport a pull request to the next release, it is their responsibilty to co-ordinate with the release owner and ensure they are fine with accepting this work.
+If a maintainer would like to backport a pull request to the next release, it is their responsibility to co-ordinate with the release owner and ensure they are fine with accepting this work.
 
 Once your release branch is ready to review and ship, ask the other maintainers to review and approve the changes!
 
@@ -192,6 +192,16 @@ Once your app updates and you see the visible changes in your app and there are 
 
 Also it might make sense to continue to monitor Haystack in the background for the next 24 hours.
 
+## Retrying a Failed Release
+
+Sometimes deployments will fail for any reason: one of the CI jobs times out, uploading the builds fails…
+
+When that happens, we should never just re-run the CI jobs, because that could cause problems with the updates of the Windows app.
+
+Instead, we have two options:
+1. Delete the failed release from Central (and its `release-${version}-${channel}` tag, if it exists), and then create a new release from the same branch as usual.
+2. Just create a new version (bumping the version number) and release it instead.
+
 ## Stopping a Release Mid-flight
 
 So let's say you kicked off a release with chatops on accident. Here's how you fix that.
@@ -199,9 +209,8 @@ So let's say you kicked off a release with chatops on accident. Here's how you f
 When you kicked off the release, a branch with the prefix `__release-${channel}-` was created in the GitHub repo. Use that branch name to find the proper CI jobs below.
 
 1. Delete the pending release from Central
-2. Cancel the Appveyor release job
-3. Cancel the CircleCI release job
-4. Delete the CI release job branch from GitHub
-5. Breathe a sigh of relief
+2. Cancel the GitHub Action release job
+3. Delete the CI release job branch from GitHub
+4. Breathe a sigh of relief
 
 You don't need to do anything with your manually created release branch, that you referred to in the chatops command. Feel free to re-use it.

@@ -98,7 +98,7 @@ export class DiffSelection {
 
     // If we know which lines are selectable we need to check that
     // all lines are divergent and return the inverse of default selection.
-    // To avoid loopting through the set that often our happy path is
+    // To avoid looping through the set that often our happy path is
     // if there's a size mismatch.
     if (selectableLines && selectableLines.size === divergingLines.size) {
       const allSelectableLinesAreDivergent = [...selectableLines].every(i =>
@@ -260,7 +260,7 @@ export class DiffSelection {
 
   /**
    * Returns a copy of this selection instance with a specified set of
-   * selecable lines. By default a DiffSelection instance allows selecting
+   * selectable lines. By default a DiffSelection instance allows selecting
    * all lines (in fact, it has no notion of how many lines exists or what
    * it is that is being selected).
    *

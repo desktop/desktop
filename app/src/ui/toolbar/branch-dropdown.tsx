@@ -1,16 +1,22 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import { OcticonSymbol, syncClockwise } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
-import { IRepositoryState, isRebaseConflictState } from '../../lib/app-state'
+import {
+  FoldoutType,
+  IRepositoryState,
+  isRebaseConflictState,
+} from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType } from '../../models/drag-drop'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -46,10 +52,6 @@ interface IBranchDropdownProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
-
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
-
-  readonly couldOverwriteStash: boolean
 }
 
 /**
@@ -59,8 +61,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
-    const currentBranchProtected =
-      repositoryState.changesState.currentBranchProtected
 
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -77,11 +77,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        currentBranchProtected={currentBranchProtected}
-        selectedUncommittedChangesStrategy={
-          this.props.selectedUncommittedChangesStrategy
-        }
-        couldOverwriteStash={this.props.couldOverwriteStash}
       />
     )
   }
@@ -103,7 +98,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     const tipKind = tip.kind
 
-    let icon = OcticonSymbol.gitBranch
+    let icon: OcticonSymbol.OcticonSymbolType = OcticonSymbol.gitBranch
     let iconClassName: string | undefined = undefined
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
@@ -121,7 +116,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     } else if (tip.kind === TipState.Unborn) {
       title = tip.ref
       tooltip = `Current branch is ${tip.ref}`
-      canOpen = branchesState.allBranches.length > 0
+      canOpen = branchesState.allBranches.some(
+        b => !b.isDesktopForkRemoteBranch
+      )
     } else if (tip.kind === TipState.Detached) {
       title = `On ${tip.currentSha.substr(0, 7)}`
       tooltip = 'Currently on a detached HEAD'
@@ -178,10 +175,24 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
         buttonClassName={buttonClassName}
+        onMouseEnter={this.onMouseEnter}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>
     )
+  }
+
+  /**
+   * Method to capture when the mouse is over the branch dropdown button.
+   *
+   * We currently only use this in conjunction with dragging cherry picks so
+   * that we can open the branch menu when dragging a commit over it.
+   */
+  private onMouseEnter = (): void => {
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      dragAndDropManager.emitEnterDragZone('branch-button')
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    }
   }
 
   private renderPullRequestInfo() {

@@ -5,7 +5,8 @@
     "**/dist": true,
     "**/node_modules": true,
     "**/out": true,
-    "app/test/fixtures": true
+    "app/test/fixtures": true,
+    "vendor": true
   },
   "files.exclude": {
     "**/.git": true,
@@ -15,17 +16,16 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/out": true,
-    "tslint-rules/**/*.js": true,
     ".awcache": true,
     ".eslintcache": true
   },
+  "files.insertFinalNewline": true,
   "editor.tabSize": 2,
   "prettier.semi": false,
   "prettier.singleQuote": true,
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
   "prettier.ignorePath": ".prettierignore",
-  "tslint.ignoreDefinitionFiles": true,
   "eslint.options": {
     "configFile": ".eslintrc.yml",
     "rulePaths": ["eslint-rules"]

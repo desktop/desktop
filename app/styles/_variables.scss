@@ -176,6 +176,13 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --co-author-tag-border-color: #{$blue-200};
 
   /**
+   * Author input (co-authors)
+   */
+  --commit-warning-badge-background-color: #{$gray-000};
+  --commit-warning-badge-border-color: #{$gray-300};
+  --commit-warning-badge-icon-color: #{$gray-900};
+
+  /**
    * The height of the title bar area on Win32 platforms
    * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
   */
@@ -292,6 +299,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
   --foldout-z-index: calc(var(--popup-z-index) - 2);
   --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
+  --drag-overlay-z-index: calc(var(--popup-z-index) - 3);
   /**
    * This is 7 to make sure it appears on top code mirror
    * but behind popups, overlays, and foldouts
@@ -385,6 +393,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-delete-hover-gutter-color: #{$red-300};
   --diff-delete-hover-text-color: var(--text-color);
 
+  --diff-empty-row-background-color: #{$gray-000};
+  --diff-empty-row-gutter-background-color: var(--diff-empty-row-background-color);
+
   // Syntax highlighting text colors
   --syntax-variable-color: #6f42c1;
   --syntax-alt-variable-color: #24292e;
@@ -414,16 +425,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** Dialog */
   --dialog-warning-color: #{$yellow-600};
+  --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
 
   /** Inline paths and code */
   --path-segment-background: #{$blue-000};
   --path-segment-padding: var(--spacing-third);
-
-  /** Diverging notification banner colors */
-  --notification-banner-background: #{$blue-000};
-  --notification-banner-border-color: #{$blue-200};
-  --notification-ref-background: rgba(255, 255, 255, 0.75);
 
   // http://easings.net/#easeOutBack
   --easing-ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -435,7 +442,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
 
   /** rebase progress bar */
-  --dialog-rebase-progress-background: #{$green};
+  --dialog-progress-background: #{$green};
 
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};
@@ -445,6 +452,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-500};
+
+  --call-to-action-bubble-border-color: #{$green};
+  --call-to-action-bubble-color: #{$green};
+
+  --title-tool-tip-background-color: rgb(236, 236, 236);
+  --title-tool-tip-shadow: 1px 2px 5px 0px rgb(125, 125, 125, 0.5);
 }
 
 ::backdrop {

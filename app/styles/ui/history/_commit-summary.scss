@@ -4,6 +4,7 @@
 #commit-summary {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 
   .avatar {
     width: 16px;
@@ -70,6 +71,14 @@
   &-title,
   &-meta {
     padding: var(--spacing);
+
+    .lines-added {
+      color: var(--color-new);
+    }
+
+    .lines-deleted {
+      color: var(--color-deleted);
+    }
   }
 
   &-title {
@@ -78,6 +87,10 @@
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
   }
 
   &-description-container {
@@ -85,6 +98,7 @@
     // So that we have something to position the expander against
     position: relative;
     border-bottom: var(--base-border);
+    min-height: 0;
   }
 
   &-description-scroll-view {
@@ -114,6 +128,7 @@
     word-wrap: break-word;
     white-space: pre-line;
     padding: var(--spacing);
+    min-height: 0;
   }
 
   &-meta {

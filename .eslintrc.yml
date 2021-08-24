@@ -22,6 +22,10 @@ rules:
   # CUSTOM #
   ##########
   insecure-random: error
+  react-no-unbound-dispatcher-props: error
+  react-readonly-props-and-state: error
+  react-proper-lifecycle-methods: error
+  set-almost-immediate: error
 
   ###########
   # PLUGINS #

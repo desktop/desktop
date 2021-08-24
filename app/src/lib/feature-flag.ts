@@ -21,11 +21,6 @@ function enableDevelopmentFeatures(): boolean {
   return false
 }
 
-/** Should we show progress bars on the Windows app taskbar icon? */
-export function enableProgressBarOnIcon(): boolean {
-  return enableBetaFeatures()
-}
-
 /** Should the app enable beta features? */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore: this will be used again in the future
@@ -47,86 +42,100 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
-/**
- * Should we show the create fork dialog flow?
- */
-export function enableCreateForkFlow(): boolean {
+/** Should the app show hide whitespace in changes tab */
+export function enableHideWhitespaceInDiffOption(): boolean {
   return true
 }
 
 /**
- * Whether or not to enable support for automatically resolving the
- * system-configured proxy url and passing that to Git.
+ * Should we use the new diff viewer for unified diffs?
  */
-export function enableAutomaticGitProxyConfiguration(): boolean {
-  return true
-}
-
-/**
- * Should we show the "Create Issue on GitHub" item under
- * "Repository" in the app menu?
- */
-export function enableCreateGitHubIssueFromMenu(): boolean {
-  return true
-}
-
-/**
- * Should we update remote url if it has changed?
- */
-export function enableUpdateRemoteUrl(): boolean {
-  return true
-}
-
-/**
- * Should we show the fork-specific, "branch from the upstream
- * default branch" version of the create branch dialog?
- */
-export function enableForkyCreateBranchUI(): boolean {
-  return true
-}
-
-/**
- * Should we show the NDDB banner?
- *
- * (It's a notification in the history sidebar that there
- * are new commits upstream.)
- */
-export function enableNDDBBanner(): boolean {
+export function enableExperimentalDiffViewer(): boolean {
   return false
 }
 
 /**
- * Should we show the git tag information in the app UI?
+ * Should we allow reporting unhandled rejections as if they were crashes?
  */
-export function enableGitTagsDisplay(): boolean {
+export function enableUnhandledRejectionReporting(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we allow expanding text diffs? */
+export function enableTextDiffExpansion(): boolean {
   return true
 }
 
 /**
- * Should we allow users to create git tags from the app?
+ * Should we allow x64 apps running under ARM translation to auto-update to
+ * ARM64 builds?
  */
-export function enableGitTagsCreation(): boolean {
+export function enableUpdateFromEmulatedX64ToARM64(): boolean {
+  if (__DARWIN__) {
+    return true
+  }
+
+  return enableBetaFeatures()
+}
+
+/** Should we allow using the save dialog when choosing where to clone a repo */
+export function enableSaveDialogOnCloneRepository(): boolean {
   return true
 }
 
-/**
- * Should we show the dialogs to allow users customize which is the
- * main repository when opening a fork?
- */
-export function enableForkSettings(): boolean {
+/** Should we allow setting repository aliases? */
+export function enableRepositoryAliases(): boolean {
   return true
 }
 
-/**
- * Should we show the discard lines/hunks context menu item?
- */
-export function enableDiscardLines(): boolean {
+/** Should we allow to create branches from a commit? */
+export function enableBranchFromCommit(): boolean {
   return true
 }
 
-/**
- * Should we allow to change the default branch when creating new repositories?
- */
-export function enableDefaultBranchSetting(): boolean {
+/** Should we allow squashing? */
+export function enableSquashing(): boolean {
   return true
+}
+
+/** Should we allow squash-merging? */
+export function enableSquashMerging(): boolean {
+  return true
+}
+
+/** Should we allow amending commits? */
+export function enableAmendingCommits(): boolean {
+  return true
+}
+
+/** Should we allow reordering commits? */
+export function enableCommitReordering(): boolean {
+  return true
+}
+
+/** Should we allow resetting to a previous commit? */
+export function enableResetToCommit(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+/** Should we show line changes (added/deleted) in commits? */
+export function enableLineChangesInCommit(): boolean {
+  return true
+}
+
+/** Should we allow using Windows' OpenSSH? */
+export function enableWindowsOpenSSH(): boolean {
+  return true
+}
+
+/** Should we use SSH askpass? */
+export function enableSSHAskPass(): boolean {
+  return true
+}
+
+/** Should we use the setImmediate alternative? */
+export function enableSetAlmostImmediate(): boolean {
+  // We only noticed the problem with `setImmediate` on macOS, so no need to
+  // use this trick on Windows for now.
+  return __DARWIN__ && enableBetaFeatures()
 }

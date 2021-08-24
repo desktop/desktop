@@ -8,6 +8,7 @@ import {
   OkCancelButtonGroup,
 } from '../dialog'
 import { shell } from '../../lib/app-shell'
+import { suggestedExternalEditor } from '../../lib/editors/shared'
 
 interface IEditorErrorProps {
   /**
@@ -26,8 +27,8 @@ interface IEditorErrorProps {
    */
   readonly message: string
 
-  /** Render the "Install Atom" link as the default action */
-  readonly suggestAtom?: boolean
+  /** Render the "Install ${Default}" link as the default action */
+  readonly suggestDefaultEditor?: boolean
 
   /** Render the "Open Preferences" link as the default action */
   readonly viewPreferences?: boolean
@@ -43,8 +44,7 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
   }
 
   private onExternalLink = () => {
-    const url = `https://atom.io/`
-    shell.openExternal(url)
+    shell.openExternal(suggestedExternalEditor.url)
   }
 
   private onShowPreferencesDialog = (
@@ -56,7 +56,7 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
   }
 
   private renderFooter() {
-    const { viewPreferences, suggestAtom } = this.props
+    const { viewPreferences, suggestDefaultEditor } = this.props
 
     if (viewPreferences) {
       return (
@@ -68,12 +68,12 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
           />
         </DialogFooter>
       )
-    } else if (suggestAtom) {
+    } else if (suggestDefaultEditor) {
       return (
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText="Close"
-            cancelButtonText="Download Atom"
+            cancelButtonText={`Download ${suggestedExternalEditor.name}`}
             onCancelButtonClick={this.onExternalLink}
           />
         </DialogFooter>

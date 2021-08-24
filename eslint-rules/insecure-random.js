@@ -1,37 +1,46 @@
-// strings from https://github.com/Microsoft/tslint-microsoft-contrib/blob/b720cd9/src/insecureRandomRule.ts
-const MATH_FAIL_STRING =
-  'Math.random produces insecure random numbers. ' +
-  'Use crypto.randomBytes() or window.crypto.getRandomValues() instead'
+// @ts-check
 
-const NODE_FAIL_STRING =
-  'crypto.pseudoRandomBytes produces insecure random numbers. ' +
-  'Use crypto.randomBytes() instead'
+/**
+ * @typedef {import('eslint').Rule.RuleModule} RuleModule
+ */
 
+/** @type {RuleModule} */
 module.exports = {
   meta: {
     docs: {
       description: 'Do not use insecure sources for random bytes',
       category: 'Best Practices',
     },
+    // strings from https://github.com/Microsoft/tslint-microsoft-contrib/blob/b720cd9/src/insecureRandomRule.ts
+    messages: {
+      mathRandomInsecure:
+        'Math.random produces insecure random numbers. Use crypto.randomBytes() or window.crypto.getRandomValues() instead',
+      pseudoRandomBytesInsecure:
+        'crypto.pseudoRandomBytes produces insecure random numbers. Use crypto.randomBytes() instead',
+    },
   },
   create(context) {
     return {
       CallExpression(node) {
         const { callee } = node
-        const isMemberExpression = callee.type === 'MemberExpression'
+
         if (
-          isMemberExpression &&
+          callee.type === 'MemberExpression' &&
+          callee.object.type === 'Identifier' &&
           callee.object.name === 'Math' &&
+          callee.property.type === 'Identifier' &&
           callee.property.name === 'random'
         ) {
-          context.report(node, MATH_FAIL_STRING)
+          context.report({ node, messageId: 'mathRandomInsecure' })
         }
+
         if (
-          (isMemberExpression &&
+          (callee.type === 'MemberExpression' &&
+            callee.property.type === 'Identifier' &&
             callee.property.name === 'pseudoRandomBytes') ||
-          callee.name === 'pseudoRandomBytes'
+          (callee.type === 'Identifier' && callee.name === 'pseudoRandomBytes')
         ) {
-          context.report(node, NODE_FAIL_STRING)
+          context.report({ node, messageId: 'pseudoRandomBytesInsecure' })
         }
       },
     }

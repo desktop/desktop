@@ -5,6 +5,7 @@ import {
   ReleaseNote,
   ReleaseSummary,
 } from '../models/release-notes'
+import { encodePathAsUrl } from './path'
 
 // expects a release note entry to contain a header and then some text
 // example:
@@ -66,6 +67,7 @@ export function getReleaseSummary(
   )
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
+  const thankYous = entries.filter(e => e.message.includes(' Thanks @'))
 
   const datePublished = moment(latestRelease.pub_date).format('MMMM Do YYYY')
 
@@ -77,15 +79,26 @@ export function getReleaseSummary(
     enhancements,
     bugfixes,
     other,
+    thankYous,
   }
 }
 
-async function getChangeLog(): Promise<ReadonlyArray<ReleaseMetadata>> {
-  const changelog =
+export async function getChangeLog(
+  limit?: number
+): Promise<ReadonlyArray<ReleaseMetadata>> {
+  const changelogURL = new URL(
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
-  const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
+  )
 
-  const response = await fetch(`${changelog}${query}`)
+  if (__RELEASE_CHANNEL__ === 'beta') {
+    changelogURL.searchParams.set('env', 'beta')
+  }
+
+  if (limit !== undefined) {
+    changelogURL.searchParams.set('limit', limit.toString())
+  }
+
+  const response = await fetch(changelogURL.toString())
   if (response.ok) {
     const releases: ReadonlyArray<ReleaseMetadata> = await response.json()
     return releases
@@ -99,3 +112,12 @@ export async function generateReleaseSummary(): Promise<ReleaseSummary> {
   const latestRelease = releases[0]
   return getReleaseSummary(latestRelease)
 }
+
+export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
+  __dirname,
+  'static/release-note-header-left.svg'
+)
+export const ReleaseNoteHeaderRightUri = encodePathAsUrl(
+  __dirname,
+  'static/release-note-header-right.svg'
+)

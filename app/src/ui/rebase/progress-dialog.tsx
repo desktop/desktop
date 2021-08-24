@@ -5,12 +5,13 @@ import { formatRebaseValue } from '../../lib/rebase'
 import { RichText } from '../lib/rich-text'
 
 import { Dialog, DialogContent } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { GitRebaseProgress } from '../../models/rebase'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { IMultiCommitOperationProgress } from '../../models/progress'
 
 interface IRebaseProgressDialogProps {
   /** Progress information about the current rebase */
-  readonly progress: GitRebaseProgress
+  readonly progress: IMultiCommitOperationProgress
 
   readonly emoji: Map<string, string>
 }
@@ -24,14 +25,14 @@ export class RebaseProgressDialog extends React.Component<
 
   public render() {
     const {
-      rebasedCommitCount,
+      position,
       totalCommitCount,
       value,
       currentCommitSummary,
     } = this.props.progress
 
     // ensure progress always starts from 1
-    const count = rebasedCommitCount <= 1 ? 1 : rebasedCommitCount
+    const count = position <= 1 ? 1 : position
 
     const progressValue = formatRebaseValue(value)
     return (

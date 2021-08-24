@@ -32,7 +32,7 @@
         - [ ] Browser login, [insert custom security measure], Authorize GitHub Desktop, “accept” link
     - [ ] User goes to Configure Git if successful
     - [ ] `Cancel` returns to initial Welcome Flow
-    - [ ] User served generic message if not authorized to access Enterprise server
+    - [ ] User served generic message if not authorized to access Enterprise
   - [ ] Skip "username+password" step
     - [ ] Configure Git
       - [ ] Name and email pulled from global `.gitconfig` file, if configured
@@ -50,8 +50,8 @@
     - [ ] If user logged in during sign-up process with repository lists for GitHub.com and/or Enterprise
     - [ ] Always show suggested steps: Clone repository, Add existing repository, Add new repository
     - [ ] If logged into GitHub, show button for creating tutorial
-      - [ ] Adding a repository will automically exit Onboarding
-        - [ ] User can revert to Onboarding if all respositories are removed
+      - [ ] Adding a repository will automatically exit Onboarding
+        - [ ] User can revert to Onboarding if all repositories are removed
       - [ ] Tutorial can only be started if there is no local or remote `desktop-tutorial` repository, else error surfaced
         - [ ] Repository is created as first step, with green checkmarks for each completed step. 
 	  - [ ] User can click `Exit Tutorial` anytime to return to Onboarding page
@@ -134,7 +134,7 @@
       - [ ] User can sign out of either account
       - [ ] User can be signed-in to both Enterprise and GitHub.com at same time  
     - [ ] Integrations
-      - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
+      - [ ] External Editor options shown in dropdown; else show link to install the default editor
       - [ ] Shell options shown in dropdown
     - [ ] Git
       - [ ] Username and email are displayed if `.gitconfig` configured for Welcome flow
@@ -145,18 +145,18 @@
       - [ ] Dark theme is optional 
       - [ ] For Mac, users can opt to match system preference theme with checkbox
     - [ ] Advanced
-      - [ ] Stashing options include "Ask me..", "Alsways bring my changes...", and "Always stash...". "Ask Me" is default.
+      - [ ] Stashing options include "Ask me..", "Always bring my changes...", and "Always stash...". "Ask Me" is default.
       - [ ] Confirmation dialogue for removing repositories is checked by default; user can toggle
-        - [ ] Verify postive `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
+        - [ ] Verify positive `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
       - [ ] Confirmation dialogue for discarding files is checked by default; user can toggle
-        - [ ] Verify postive `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
+        - [ ] Verify positive `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
       - [ ] Confirmation dialogue for force pushing files is checked by default; user can toggle
-        - [ ] Verify postive `confirmForcePush` value in Dev Tools > Application > Local storage > file://
+        - [ ] Verify positive `confirmForcePush` value in Dev Tools > Application > Local storage > file://
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
       - [ ] Shared usage data option; selection carried through from Welcome flow
         - [ ] `anonymous usage data` link opens https://desktop.github.com/usage-data/
-        - [ ] Verify postive `stats-opt-out` value in Dev Tools > Application > Local storage > file://
+        - [ ] Verify positive `stats-opt-out` value in Dev Tools > Application > Local storage > file://
   - [ ] Install command line tool installs tool at `/usr/local/bin/github` (Mac only as Windows done automagically; Helper may require password, else error message)
     - [ ] If already installed, user sees: "The command line tool has been installed at /usr/local/bin/github"
     - [ ] Clicking `OK` closes modal
@@ -207,7 +207,7 @@
   - [ ] Show in Finder/Explorer (Mac: `⇧⌘F`; Windows: `Ctrl+Shift+F`)
     - [ ] Local repository is opened
   - [ ] Open in [insert editor] (Mac: `⇧⌘A`; Windows: `Ctrl+Shift+A`); see External Editor option in preferences
-    - [ ] Secondary modal appears if no Editors set; option to Download Atom 
+    - [ ] Secondary modal appears if no Editors set; option to download the default editor
   - [ ] Repository settings...
     - [ ] Remote path can be edited for existing repository; origin already set. Cannot be empty string, else error message.
       - [ ] `Saved` button saves last entry
@@ -280,13 +280,13 @@
   
 ### Next Steps
  - [ ] Up to four suggested steps are shown at any given time, contingent on the state of the repository and/or branch
-   - [ ] First step is not always showm, and it can be `View Stash`, `Pull Origin`, `Pull Origin`, `Create Pull Request`, `Publish Repository`
+   - [ ] First step is not always shown, and it can be `View Stash`, `Pull Origin`, `Pull Origin`, `Create Pull Request`, `Publish Repository`
    - [ ] Other steps are `Open in [editor]` with Preferences/Options link, `Show in [Finder/Explorer]` and `View in GitHub`
 
 ### Repositories list
   - [ ] Current repository is always shown in top slot with respective icon; if repository exists
   - [ ] Opening list shows all repositories, categorized by owner in alpha format with a working filter
-    - [ ] If more than six repostories, a Recent group will appear at the top of the list; limit 3 repositories
+    - [ ] If more than six repositories, a Recent group will appear at the top of the list; limit 3 repositories
     - [ ] `ESC` clears the filter
     - [ ] Search filter match results in bold characters
     - [ ] A repository with uncommitted files shows a `•` next to name
@@ -370,12 +370,12 @@
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
   - [ ] `Undo` button disabled if user is pushing commit
   - [ ] User can publish a new repository with no commits (aka unborn repository/branch)
-  - [ ] User can make new branch the default branch, by making the intial commit on the new branch
-  - [ ] User can select individual file(s) -- and individial lines of a file(s) -- to commit at a time
+  - [ ] User can make new branch the default branch, by making the initial commit on the new branch
+  - [ ] User can select individual file(s) -- and individual lines of a file(s) -- to commit at a time
   - [ ] Forked messaging shown if user cannot write to cloned repository and there are changes
     - [ ] If user opts to fork the repository, a confirmation dialogue surfaced. Errors caught within the dialogue.
     - [ ] Clicking confirm results in successful fork creation
-  - [ ] Protected branches messsaging shown if branch is protected and there are changes
+  - [ ] Protected branches messaging shown if branch is protected and there are changes
   
 ### Co-authoring (Changes tab)
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
@@ -391,7 +391,7 @@
         - [ ] Navigating away from the Changes tab will clear red tags 
      - [ ] Toggling the co-author icon clears the field
   - [ ] All co-authors show up in History and diff view
-    - [ ] Commits with `Co-Authored-By: Name <username@github.com>`in the decription field reveal avatar of user    
+    - [ ] Commits with `Co-Authored-By: Name <username@github.com>`in the description field reveal avatar of user    
     - [ ] Hovering over an avatar reveals all tagged users
     - [ ] Hovering over the "people" text reveals all names/emails of tagged users
   - [ ] Undoing a commit re-enables the valid tags

@@ -3,23 +3,27 @@ import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
-import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
+import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
 
 interface IAdvancedPreferencesProps {
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
-  readonly onOptOutofReportingchanged: (checked: boolean) => void
-  readonly onUncommittedChangesStrategyKindChanged: (
-    value: UncommittedChangesStrategyKind
+  readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
+  readonly onOptOutofReportingChanged: (checked: boolean) => void
+  readonly onUncommittedChangesStrategyChanged: (
+    value: UncommittedChangesStrategy
   ) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly canUseWindowsSSH: boolean
 }
 
 export class Advanced extends React.Component<
@@ -31,8 +35,17 @@ export class Advanced extends React.Component<
 
     this.state = {
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
-      uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
+      uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
+      canUseWindowsSSH: false,
     }
+  }
+
+  public componentDidMount() {
+    this.checkSSHAvailability()
+  }
+
+  private async checkSSHAvailability() {
+    this.setState({ canUseWindowsSSH: await isWindowsOpenSSHAvailable() })
   }
 
   private onReportingOptOutChanged = (
@@ -41,20 +54,26 @@ export class Advanced extends React.Component<
     const value = !event.currentTarget.checked
 
     this.setState({ optOutOfUsageTracking: value })
-    this.props.onOptOutofReportingchanged(value)
+    this.props.onOptOutofReportingChanged(value)
   }
 
-  private onUncommittedChangesStrategyKindChanged = (
-    value: UncommittedChangesStrategyKind
+  private onUncommittedChangesStrategyChanged = (
+    value: UncommittedChangesStrategy
   ) => {
-    this.setState({ uncommittedChangesStrategyKind: value })
-    this.props.onUncommittedChangesStrategyKindChanged(value)
+    this.setState({ uncommittedChangesStrategy: value })
+    this.props.onUncommittedChangesStrategyChanged(value)
   }
 
   private onRepositoryIndicatorsEnabledChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
+  }
+
+  private onUseWindowsOpenSSHChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -73,33 +92,33 @@ export class Advanced extends React.Component<
           <h2>If I have changes and I switch branches...</h2>
 
           <RadioButton
-            value={UncommittedChangesStrategyKind.AskForConfirmation}
+            value={UncommittedChangesStrategy.AskForConfirmation}
             checked={
-              this.state.uncommittedChangesStrategyKind ===
-              UncommittedChangesStrategyKind.AskForConfirmation
+              this.state.uncommittedChangesStrategy ===
+              UncommittedChangesStrategy.AskForConfirmation
             }
             label="Ask me where I want the changes to go"
-            onSelected={this.onUncommittedChangesStrategyKindChanged}
+            onSelected={this.onUncommittedChangesStrategyChanged}
           />
 
           <RadioButton
-            value={UncommittedChangesStrategyKind.MoveToNewBranch}
+            value={UncommittedChangesStrategy.MoveToNewBranch}
             checked={
-              this.state.uncommittedChangesStrategyKind ===
-              UncommittedChangesStrategyKind.MoveToNewBranch
+              this.state.uncommittedChangesStrategy ===
+              UncommittedChangesStrategy.MoveToNewBranch
             }
             label="Always bring my changes to my new branch"
-            onSelected={this.onUncommittedChangesStrategyKindChanged}
+            onSelected={this.onUncommittedChangesStrategyChanged}
           />
 
           <RadioButton
-            value={UncommittedChangesStrategyKind.StashOnCurrentBranch}
+            value={UncommittedChangesStrategy.StashOnCurrentBranch}
             checked={
-              this.state.uncommittedChangesStrategyKind ===
-              UncommittedChangesStrategyKind.StashOnCurrentBranch
+              this.state.uncommittedChangesStrategy ===
+              UncommittedChangesStrategy.StashOnCurrentBranch
             }
             label="Always stash and leave my changes on the current branch"
-            onSelected={this.onUncommittedChangesStrategyKindChanged}
+            onSelected={this.onUncommittedChangesStrategyChanged}
           />
         </div>
         <div className="advanced-section">
@@ -118,6 +137,7 @@ export class Advanced extends React.Component<
             list. Disabling this may improve performance with many repositories.
           </p>
         </div>
+        {this.renderSSHSettings()}
         <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
@@ -131,6 +151,25 @@ export class Advanced extends React.Component<
           />
         </div>
       </DialogContent>
+    )
+  }
+
+  private renderSSHSettings() {
+    if (!this.state.canUseWindowsSSH) {
+      return null
+    }
+
+    return (
+      <div className="advanced-section">
+        <h2>SSH</h2>
+        <Checkbox
+          label="Use system OpenSSH (recommended)"
+          value={
+            this.props.useWindowsOpenSSH ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onUseWindowsOpenSSHChanged}
+        />
+      </div>
     )
   }
 }

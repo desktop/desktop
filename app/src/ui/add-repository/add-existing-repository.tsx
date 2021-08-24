@@ -9,7 +9,8 @@ import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -197,16 +198,14 @@ export class AddExistingRepository extends React.Component<
 
   private addRepository = async () => {
     this.props.onDismissed()
+    const { dispatcher } = this.props
 
     const resolvedPath = this.resolvedPath(this.state.path)
-    const repositories = await this.props.dispatcher.addRepositories([
-      resolvedPath,
-    ])
+    const repositories = await dispatcher.addRepositories([resolvedPath])
 
-    if (repositories && repositories.length) {
-      const repository = repositories[0]
-      this.props.dispatcher.selectRepository(repository)
-      this.props.dispatcher.recordAddExistingRepository()
+    if (repositories.length > 0) {
+      dispatcher.selectRepository(repositories[0])
+      dispatcher.recordAddExistingRepository()
     }
   }
 

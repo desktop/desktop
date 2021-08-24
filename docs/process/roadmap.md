@@ -2,11 +2,31 @@
 
 The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-#### Add and view Tags in Desktop
+#### Native arm64 support for macOS and Windows
 
-- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/desktop/desktop/issues/4829)
+- Provide support for arm64 Windows machines and Apple Silicon (M1) machines: [#9691](https://github.com/desktop/desktop/pull/9691)
+
+#### Expanding diffs
+
+- Allow users to expand diffs to get more context outside of the specific hunk where the change is: [#7014](https://github.com/desktop/desktop/issues/7014)
 
 ## Shipped in previous releases
+
+#### Cherry-picking commits from one branch to another (2.7.1)
+
+- Cherry-pick commits with a context menu and interactively: [#1685](https://github.com/desktop/desktop/issues/1685)
+
+#### Commits are not always attributed to someone's GitHub user (2.6.4)
+
+- Warn and provide a way to ensure your commits will be attributed to you: [#610](https://github.com/desktop/desktop/issues/610)
+
+#### Split diffs (2.6)
+
+- Give people the ability to use split diffs in Desktop in addition to unified diffs: [#10617](https://github.com/desktop/desktop/issues/10617)
+
+#### Add and view Tags in Desktop (2.5)
+
+- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/desktop/desktop/issues/4829)
 
 #### Users behind corporate proxies cannot clone repositories in Desktop without manual setup (2.4)
 

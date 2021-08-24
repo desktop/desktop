@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import {
   WelcomeLeftTopImageUri,
   WelcomeLeftBottomImageUri,
@@ -36,11 +37,11 @@ interface INoRepositoriesProps {
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
 
-  /** The logged in account for GitHub Enterprise Server. */
+  /** The logged in account for GitHub Enterprise. */
   readonly enterpriseAccount: Account | null
 
   /**
-   * A map keyed on a user account (GitHub.com or GitHub Enterprise Server)
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
    * as well as information about whether the list of repositories
@@ -320,7 +321,7 @@ export class NoRepositoriesView extends React.Component<
     return (
       <TabBar selectedIndex={selectedIndex} onTabClicked={this.onTabClicked}>
         <span>GitHub.com</span>
-        <span>GitHub Enterprise Server</span>
+        <span>GitHub Enterprise</span>
       </TabBar>
     )
   }
@@ -340,7 +341,7 @@ export class NoRepositoriesView extends React.Component<
   private onShowClone = () => this.props.onClone()
 
   private renderButtonGroupButton(
-    symbol: OcticonSymbol,
+    symbol: OcticonSymbolType,
     title: string,
     onClick: () => void,
     type?: 'submit'

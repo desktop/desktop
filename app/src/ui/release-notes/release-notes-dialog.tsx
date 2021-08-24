@@ -1,62 +1,17 @@
 import * as React from 'react'
-
-import { encodePathAsUrl } from '../../lib/path'
-
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
-
 import { updateStore } from '../lib/update-store'
 import { LinkButton } from '../lib/link-button'
-
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-
 import { RichText } from '../lib/rich-text'
-import { Repository } from '../../models/repository'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import { ReleaseNotesUri } from '../lib/releases'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-
-// HACK: This is needed because the `Rich`Text` component
-// needs to know what repo to link issues against.
-// Since release notes are Desktop specific, we can't
-// reley on the repo info we keep in state, so we've
-// stubbed out this repo
-const repository = new Repository(
-  '',
-  -1,
-  {
-    dbID: null,
-    name: 'desktop',
-    owner: {
-      id: null,
-      login: 'desktop',
-      endpoint: getDotComAPIEndpoint(),
-      hash: '',
-    },
-    isPrivate: false,
-    parent: null,
-    htmlURL: 'https://github.com/desktop/desktop',
-    defaultBranch: 'master',
-    cloneURL: 'https://github.com/desktop/desktop',
-    endpoint: getDotComAPIEndpoint(),
-    fullName: 'desktop/desktop',
-    fork: false,
-    hash: '',
-    issuesEnabled: null,
-    isArchived: false,
-    permissions: null,
-  },
-  true
-)
-
-const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
-  __dirname,
-  'static/release-note-header-left.svg'
-)
-const ReleaseNoteHeaderRightUri = encodePathAsUrl(
-  __dirname,
-  'static/release-note-header-right.svg'
-)
+import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
+import {
+  ReleaseNoteHeaderLeftUri,
+  ReleaseNoteHeaderRightUri,
+} from '../../lib/release-notes'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -85,7 +40,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
             text={entry.message}
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
-            repository={repository}
+            repository={DesktopFakeRepository}
           />
         </li>
       )

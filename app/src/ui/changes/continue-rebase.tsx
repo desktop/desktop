@@ -6,6 +6,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { getConflictedFiles } from '../../lib/status'
+import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 
 interface IContinueRebaseProps {
   readonly dispatcher: Dispatcher
@@ -21,6 +22,7 @@ export class ContinueRebase extends React.Component<IContinueRebaseProps, {}> {
     const { rebaseConflictState } = this.props
 
     await this.props.dispatcher.continueRebase(
+      MultiCommitOperationKind.Rebase,
       this.props.repository,
       this.props.workingDirectory,
       rebaseConflictState
