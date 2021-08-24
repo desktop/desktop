@@ -48,11 +48,14 @@
     // one.
     &.selected {
       box-shadow: var(--tab-bar-box-shadow);
+      background-color: var(--horizontal-bar-active-color);
+      color: var(--horizontal-bar-active-text-color);
     }
 
     &:hover {
       background: var(--tab-bar-hover-background-color);
       border: var(--tab-bar-hover-border);
+      color: var(--text-color);
     }
 
     .with-indicator {

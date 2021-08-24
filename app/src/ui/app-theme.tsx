@@ -82,7 +82,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
 
         --secondary-button-hover-border-width: 2px;
 
-        --tab-bar-box-shadow: inset -3px -2px 0px var(--tab-bar-active-color), inset 3px 2px 0px var(--tab-bar-active-color);
+        --tab-bar-box-shadow: none;
 
         --diff-add-border: 1px solid green;
         --diff-delete-border: 1px solid crimson;
@@ -109,7 +109,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
 
             --box-selected-background-color: ${secondaryActiveColor};
             --box-selected-text-color: ${activeText};
-            
+
             --box-selected-active-background-color: ${activeItem};
             --box-selected-active-text-color: ${activeText};
 
@@ -122,6 +122,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
             --app-menu-button-hover-background-color: ${secondaryBackgroundColor};
             --toolbar-button-focus-background-color: ${secondaryBackgroundColor};
             --toolbar-button-hover-background-color: ${secondaryBackgroundColor};
+            --toolbar-button-active-border-color: ${border};
             --tab-bar-hover-background-color: ${secondaryBackgroundColor};
 
             --text-color: ${text};
@@ -131,10 +132,12 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
 
             --list-item-hover-background-color: ${secondaryActiveColor};
             --list-item-hover-text-color: ${activeText};
-            
+
             --box-placeholder-color: ${text};
             --tab-bar-active-color: ${activeItem};
-            
+            --horizontal-bar-active-color: ${activeItem};
+            --horizontal-bar-active-text-color: ${activeText};
+
             ${highContrastSpecific}
           }`
       )

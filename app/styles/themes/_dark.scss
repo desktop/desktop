@@ -197,6 +197,7 @@ body.theme-dark {
   --tab-bar-active-color: #{$blue};
   --tab-bar-background-color: var(--box-background-color);
   --tab-bar-hover-background-color: #{$gray-800};
+  --horizontal-bar-active-color: 'none';
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
