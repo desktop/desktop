@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.2": ["[Fixed] Fix scrolling performance issue for large diffs."],
     "2.9.1": [
       "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
       "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
