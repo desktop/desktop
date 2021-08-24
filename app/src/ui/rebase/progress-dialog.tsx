@@ -5,7 +5,8 @@ import { formatRebaseValue } from '../../lib/rebase'
 import { RichText } from '../lib/rich-text'
 
 import { Dialog, DialogContent } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IMultiCommitOperationProgress } from '../../models/progress'
 
 interface IRebaseProgressDialogProps {

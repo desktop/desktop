@@ -10,7 +10,7 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { CommitOneLine, ICommitContext } from './commit'
+import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
@@ -25,7 +25,6 @@ export enum PopupType {
   DeleteRemoteBranch,
   ConfirmDiscardChanges,
   Preferences,
-  MergeBranch,
   RepositorySettings,
   AddRepository,
   CreateRepository,
@@ -49,8 +48,6 @@ export enum PopupType {
   UpstreamAlreadyExists,
   ReleaseNotes,
   DeletePullRequest,
-  MergeConflicts,
-  AbortMerge,
   OversizedFiles,
   CommitConflictsWarning,
   PushNeedsPull,
@@ -69,12 +66,16 @@ export enum PopupType {
   LocalChangesOverwritten,
   ChooseForkSettings,
   ConfirmDiscardSelection,
-  CherryPick,
   MoveToApplicationsFolder,
   ChangeRepositoryAlias,
   ThankYou,
   CommitMessage,
   MultiCommitOperation,
+  WarnLocalChangesBeforeUndo,
+  WarningBeforeReset,
+  InvalidatedToken,
+  AddSSHHost,
+  SSHKeyPassphrase,
 }
 
 export type Popup =
@@ -105,11 +106,6 @@ export type Popup =
       selection: DiffSelection
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
-  | {
-      type: PopupType.MergeBranch
-      repository: Repository
-      branch?: Branch
-    }
   | {
       type: PopupType.RepositorySettings
       repository: Repository
@@ -174,18 +170,6 @@ export type Popup =
       repository: Repository
       branch: Branch
       pullRequest: PullRequest
-    }
-  | {
-      type: PopupType.MergeConflicts
-      repository: Repository
-      ourBranch: string
-      theirBranch?: string
-    }
-  | {
-      type: PopupType.AbortMerge
-      repository: Repository
-      ourBranch: string
-      theirBranch?: string
     }
   | {
       type: PopupType.OversizedFiles
@@ -276,12 +260,6 @@ export type Popup =
       retryAction: RetryAction
       files: ReadonlyArray<string>
     }
-  | {
-      type: PopupType.CherryPick
-      repository: Repository
-      commits: ReadonlyArray<CommitOneLine>
-      sourceBranch: Branch | null
-    }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
   | {
@@ -304,4 +282,34 @@ export type Popup =
   | {
       type: PopupType.MultiCommitOperation
       repository: Repository
+    }
+  | {
+      type: PopupType.WarnLocalChangesBeforeUndo
+      repository: Repository
+      commit: Commit
+      isWorkingDirectoryClean: boolean
+    }
+  | {
+      type: PopupType.WarningBeforeReset
+      repository: Repository
+      commit: Commit
+    }
+  | {
+      type: PopupType.InvalidatedToken
+      account: Account
+    }
+  | {
+      type: PopupType.AddSSHHost
+      host: string
+      ip: string
+      fingerprint: string
+      onSubmit: (addHost: boolean) => void
+    }
+  | {
+      type: PopupType.SSHKeyPassphrase
+      keyPath: string
+      onSubmit: (
+        passphrase: string | undefined,
+        storePassphrase: boolean
+      ) => void
     }

@@ -12,13 +12,14 @@ import { WorkingDirectoryStatus } from '../../models/status'
 
 import { Dispatcher } from '../dispatcher'
 
-import { ChooseBranchDialog } from './choose-branch'
 import { RebaseProgressDialog } from './progress-dialog'
 import { ConfirmAbortDialog } from './confirm-abort-dialog'
 import { getResolvedFiles } from '../../lib/status'
 import { WarnForcePushDialog } from './warn-force-push-dialog'
 import { ConflictsDialog } from '../multi-commit-operation/conflicts-dialog'
 import { IMultiCommitOperationProgress } from '../../models/progress'
+import { RebaseChooseBranchDialog } from '../multi-commit-operation/choose-branch/rebase-choose-branch-dialog'
+import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 
 interface IRebaseFlowProps {
   readonly repository: Repository
@@ -95,6 +96,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
 
     const continueRebaseAction = async () => {
       const rebaseResult = await dispatcher.continueRebase(
+        MultiCommitOperationKind.Rebase,
         repository,
         workingDirectory,
         conflictState
@@ -211,15 +213,16 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
           initialBranch,
         } = step
         return (
-          <ChooseBranchDialog
+          <RebaseChooseBranchDialog
             key="choose-branch"
-            repository={repository}
             dispatcher={dispatcher}
+            repository={repository}
             allBranches={allBranches}
             defaultBranch={defaultBranch}
             recentBranches={recentBranches}
             currentBranch={currentBranch}
             initialBranch={initialBranch}
+            operation={MultiCommitOperationKind.Rebase}
             onDismissed={this.onFlowEnded}
           />
         )

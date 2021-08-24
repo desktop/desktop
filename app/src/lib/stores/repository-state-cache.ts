@@ -3,7 +3,6 @@ import { Commit } from '../../models/commit'
 import { PullRequest } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
 import {
-  CommittedFileChange,
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
 } from '../../models/status'
@@ -18,8 +17,7 @@ import {
   ICommitSelection,
   IRebaseState,
   ChangesSelectionKind,
-  ICherryPickState,
-  ISquashState,
+  IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
 } from '../app-state'
 import { merge } from '../merge'
@@ -46,7 +44,24 @@ export class RepositoryStateCache {
   ) {
     const currentState = this.get(repository)
     const newValues = fn(currentState)
-    this.repositoryState.set(repository.hash, merge(currentState, newValues))
+    const newState = merge(currentState, newValues)
+
+    const isSameLastLocalCommit =
+      currentState.localCommitSHAs.length > 0 &&
+      newState.localCommitSHAs.length > 0 &&
+      currentState.localCommitSHAs[0] === newState.localCommitSHAs[0]
+
+    // Only keep the "is amending" state if the last local commit hasn't changed
+    // and there is no "fixing conflicts" state.
+    const newIsAmending =
+      newState.isAmending &&
+      isSameLastLocalCommit &&
+      newState.changesState.conflictState === null
+
+    this.repositoryState.set(repository.hash, {
+      ...newState,
+      isAmending: newIsAmending,
+    })
   }
 
   public updateCompareState<K extends keyof ICompareState>(
@@ -105,25 +120,22 @@ export class RepositoryStateCache {
     })
   }
 
-  public updateCherryPickState<K extends keyof ICherryPickState>(
+  public updateMultiCommitOperationUndoState<
+    K extends keyof IMultiCommitOperationUndoState
+  >(
     repository: Repository,
-    fn: (state: ICherryPickState) => Pick<ICherryPickState, K>
+    fn: (
+      state: IMultiCommitOperationUndoState | null
+    ) => Pick<IMultiCommitOperationUndoState, K> | null
   ) {
     this.update(repository, state => {
-      const { cherryPickState } = state
-      const newState = merge(cherryPickState, fn(cherryPickState))
-      return { cherryPickState: newState }
-    })
-  }
-
-  public updateSquashState<K extends keyof ISquashState>(
-    repository: Repository,
-    fn: (state: ISquashState) => Pick<ISquashState, K>
-  ) {
-    this.update(repository, state => {
-      const { squashState } = state
-      const newState = merge(squashState, fn(squashState))
-      return { squashState: newState }
+      const { multiCommitOperationUndoState } = state
+      const computedState = fn(multiCommitOperationUndoState)
+      const newState =
+        computedState === null
+          ? null
+          : merge(multiCommitOperationUndoState, computedState)
+      return { multiCommitOperationUndoState: newState }
     })
   }
 
@@ -170,7 +182,7 @@ function getInitialRepositoryState(): IRepositoryState {
     commitSelection: {
       shas: [],
       file: null,
-      changedFiles: new Array<CommittedFileChange>(),
+      changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
     },
     changesState: {
@@ -228,21 +240,12 @@ function getInitialRepositoryState(): IRepositoryState {
     remote: null,
     isPushPullFetchInProgress: false,
     isCommitting: false,
+    isAmending: false,
     lastFetched: null,
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
-    cherryPickState: {
-      step: null,
-      progress: null,
-      userHasResolvedConflicts: false,
-      targetBranchUndoSha: null,
-      branchCreated: false,
-    },
-    squashState: {
-      undoSha: null,
-      squashBranchName: null,
-    },
+    multiCommitOperationUndoState: null,
     multiCommitOperationState: null,
   }
 }

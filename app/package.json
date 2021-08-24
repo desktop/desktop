@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "2.8.3-beta1",
+  "version": "2.9.1-beta7",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
     "codemirror-mode-elixir": "^1.1.2",
     "compare-versions": "^3.6.0",
     "deep-equal": "^1.0.1",
-    "desktop-trampoline": "desktop/desktop-trampoline#v0.9.7",
+    "desktop-trampoline": "desktop/desktop-trampoline#v0.9.8",
     "detect-arm64-translation": "https://github.com/desktop/node-detect-arm64-translation#v1.0.4",
     "dexie": "^2.0.0",
     "double-ended-queue": "^2.1.0-0",

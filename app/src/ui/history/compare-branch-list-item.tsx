@@ -1,6 +1,7 @@
 import * as React from 'react'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
 import { Branch, IAheadBehind } from '../../models/branch'
 import { IMatches } from '../../lib/fuzzy-find'

@@ -10,7 +10,8 @@ import classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
-import { OcticonSymbol, syncClockwise } from '../octicons'
+import { syncClockwise } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IAuthor } from '../../models/author'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
@@ -722,6 +723,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         closeOnUnfocus: true,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
+        container: host,
       },
     }
 

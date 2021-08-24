@@ -23,7 +23,7 @@ import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { fatalError } from '../../lib/fatal-error'
-import { isMergeHeadSet } from './merge'
+import { isMergeHeadSet, isSquashMsgSet } from './merge'
 import { getBinaryPaths } from './diff'
 import { getRebaseInternalState } from './rebase'
 import { RebaseInternalState } from '../../models/rebase'
@@ -59,6 +59,9 @@ export interface IStatusResult {
   /** true if repository is in a conflicted state */
   readonly mergeHeadFound: boolean
 
+  /** true merge --squash operation started */
+  readonly squashMsgFound: boolean
+
   /** details about the rebase operation, if found */
   readonly rebaseInternalState: RebaseInternalState | null
 
@@ -67,6 +70,9 @@ export interface IStatusResult {
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
+
+  /** whether conflicting files present on repository */
+  readonly doConflictedFilesExist: boolean
 }
 
 interface IStatusHeadersData {
@@ -235,6 +241,8 @@ export async function getStatus(
 
   const isCherryPickingHeadFound = await isCherryPickHeadFound(repository)
 
+  const squashMsgFound = await isSquashMsgSet(repository)
+
   return {
     currentBranch,
     currentTip,
@@ -245,6 +253,8 @@ export async function getStatus(
     rebaseInternalState,
     workingDirectory,
     isCherryPickingHeadFound,
+    squashMsgFound,
+    doConflictedFilesExist: conflictedFilesInIndex,
   }
 }
 

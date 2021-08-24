@@ -47,11 +47,6 @@ export function enableHideWhitespaceInDiffOption(): boolean {
   return true
 }
 
-/** Should the app use the shiny new TCP-based trampoline? */
-export function enableDesktopTrampoline(): boolean {
-  return true
-}
-
 /**
  * Should we use the new diff viewer for unified diffs?
  */
@@ -71,8 +66,15 @@ export function enableTextDiffExpansion(): boolean {
   return true
 }
 
-/** Should we allow apps running from Rosetta to auto-update to ARM64 builds? */
-export function enableUpdateFromRosettaToARM64(): boolean {
+/**
+ * Should we allow x64 apps running under ARM translation to auto-update to
+ * ARM64 builds?
+ */
+export function enableUpdateFromEmulatedX64ToARM64(): boolean {
+  if (__DARWIN__) {
+    return true
+  }
+
   return enableBetaFeatures()
 }
 
@@ -88,10 +90,52 @@ export function enableRepositoryAliases(): boolean {
 
 /** Should we allow to create branches from a commit? */
 export function enableBranchFromCommit(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow squashing? */
 export function enableSquashing(): boolean {
+  return true
+}
+
+/** Should we allow squash-merging? */
+export function enableSquashMerging(): boolean {
+  return true
+}
+
+/** Should we allow amending commits? */
+export function enableAmendingCommits(): boolean {
+  return true
+}
+
+/** Should we allow reordering commits? */
+export function enableCommitReordering(): boolean {
+  return true
+}
+
+/** Should we allow resetting to a previous commit? */
+export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
+}
+
+/** Should we show line changes (added/deleted) in commits? */
+export function enableLineChangesInCommit(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we allow using Windows' OpenSSH? */
+export function enableWindowsOpenSSH(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we use SSH askpass? */
+export function enableSSHAskPass(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we use the setImmediate alternative? */
+export function enableSetAlmostImmediate(): boolean {
+  // We only noticed the problem with `setImmediate` on macOS, so no need to
+  // use this trick on Windows for now.
+  return __DARWIN__ && enableBetaFeatures()
 }

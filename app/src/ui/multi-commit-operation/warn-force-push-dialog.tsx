@@ -41,7 +41,7 @@ export class WarnForcePushDialog extends React.Component<
 
     const title = __DARWIN__
       ? `${operation} Will Require Force Push`
-      : `${operation} will require force push'`
+      : `${operation} will require force push`
 
     return (
       <Dialog
@@ -52,7 +52,7 @@ export class WarnForcePushDialog extends React.Component<
         type="warning"
       >
         <DialogContent>
-          <p>Are you sure you want to {operation}?</p>
+          <p>Are you sure you want to {operation.toLowerCase()}?</p>
           <p>
             At the end of the {operation.toLowerCase()} flow, GitHub Desktop
             will enable you to force push the branch to update the upstream

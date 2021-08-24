@@ -24,6 +24,7 @@ import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 import { remote } from 'electron'
 import { Architecture, getArchitecture } from '../get-architecture'
+import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -146,12 +147,33 @@ const DefaultDailyMeasures: IDailyMeasures = {
   cherryPickSuccessfulCount: 0,
   cherryPickViaDragAndDropCount: 0,
   cherryPickViaContextMenuCount: 0,
-  cherryPickDragStartedAndCanceledCount: 0,
+  dragStartedAndCanceledCount: 0,
   cherryPickConflictsEncounteredCount: 0,
   cherryPickSuccessfulWithConflictsCount: 0,
   cherryPickMultipleCommitsCount: 0,
   cherryPickUndoneCount: 0,
   cherryPickBranchCreatedCount: 0,
+  amendCommitStartedCount: 0,
+  amendCommitSuccessfulWithFileChangesCount: 0,
+  amendCommitSuccessfulWithoutFileChangesCount: 0,
+  reorderSuccessfulCount: 0,
+  reorderStartedCount: 0,
+  reorderConflictsEncounteredCount: 0,
+  reorderSuccessfulWithConflictsCount: 0,
+  reorderMultipleCommitsCount: 0,
+  reorderUndoneCount: 0,
+  squashConflictsEncounteredCount: 0,
+  squashMultipleCommitsInvokedCount: 0,
+  squashSuccessfulCount: 0,
+  squashSuccessfulWithConflictsCount: 0,
+  squashViaContextMenuInvokedCount: 0,
+  squashViaDragAndDropInvokedCount: 0,
+  squashUndoneCount: 0,
+  squashMergeIntoCurrentBranchMenuCount: 0,
+  squashMergeSuccessfulWithConflictsCount: 0,
+  squashMergeSuccessfulCount: 0,
+  squashMergeInvokedCount: 0,
+  resetToCommitCount: 0,
 }
 
 interface IOnboardingStats {
@@ -673,6 +695,39 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /** Record that the user started amending a commit */
+  public recordAmendCommitStarted(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      amendCommitStartedCount: m.amendCommitStartedCount + 1,
+    }))
+  }
+
+  /**
+   * Record that the user amended a commit.
+   *
+   * @param withFileChanges Whether the amendment included file changes or not.
+   */
+  public recordAmendCommitSuccessful(withFileChanges: boolean): Promise<void> {
+    if (withFileChanges) {
+      return this.updateDailyMeasures(m => ({
+        amendCommitSuccessfulWithFileChangesCount:
+          m.amendCommitSuccessfulWithFileChangesCount + 1,
+      }))
+    }
+
+    return this.updateDailyMeasures(m => ({
+      amendCommitSuccessfulWithoutFileChangesCount:
+        m.amendCommitSuccessfulWithoutFileChangesCount + 1,
+    }))
+  }
+
+  /** Record that the user reset to a previous commit */
+  public recordResetToCommitCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      resetToCommitCount: m.resetToCommitCount + 1,
+    }))
+  }
+
   /** Record that the user opened a shell. */
   public recordOpenShell(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -724,7 +779,14 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
-  public recordMenuInitiatedMerge(): Promise<void> {
+  public recordMenuInitiatedMerge(isSquash: boolean = false): Promise<void> {
+    if (isSquash) {
+      return this.updateDailyMeasures(m => ({
+        squashMergeIntoCurrentBranchMenuCount:
+          m.squashMergeIntoCurrentBranchMenuCount + 1,
+      }))
+    }
+
     return this.updateDailyMeasures(m => ({
       mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
     }))
@@ -1402,7 +1464,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickSuccessful(): Promise<void> {
+  private recordCherryPickSuccessful(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
     }))
@@ -1420,10 +1482,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickDragStartedAndCanceled(): Promise<void> {
+  public recordDragStartedAndCanceled(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      cherryPickDragStartedAndCanceledCount:
-        m.cherryPickDragStartedAndCanceledCount + 1,
+      dragStartedAndCanceledCount: m.dragStartedAndCanceledCount + 1,
     }))
   }
 
@@ -1447,7 +1508,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickUndone(): Promise<void> {
+  private recordCherryPickUndone(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
     }))
@@ -1456,6 +1517,186 @@ export class StatsStore implements IStatsStore {
   public recordCherryPickBranchCreatedCount(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
+    }))
+  }
+
+  private recordReorderSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderSuccessfulCount: m.reorderSuccessfulCount + 1,
+    }))
+  }
+
+  public recordReorderStarted(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderStartedCount: m.reorderStartedCount + 1,
+    }))
+  }
+
+  private recordReorderConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderConflictsEncounteredCount: m.reorderConflictsEncounteredCount + 1,
+    }))
+  }
+
+  private recordReorderSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderSuccessfulWithConflictsCount:
+        m.reorderSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordReorderMultipleCommits(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderMultipleCommitsCount: m.reorderMultipleCommitsCount + 1,
+    }))
+  }
+
+  private recordReorderUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderUndoneCount: m.reorderUndoneCount + 1,
+    }))
+  }
+
+  private recordSquashConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashConflictsEncounteredCount: m.squashConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordSquashMultipleCommitsInvoked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMultipleCommitsInvokedCount:
+        m.squashMultipleCommitsInvokedCount + 1,
+    }))
+  }
+
+  private recordSquashSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashSuccessfulCount: m.squashSuccessfulCount + 1,
+    }))
+  }
+
+  private recordSquashSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashSuccessfulWithConflictsCount:
+        m.squashSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordSquashViaContextMenuInvoked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashViaContextMenuInvokedCount: m.squashViaContextMenuInvokedCount + 1,
+    }))
+  }
+
+  public recordSquashViaDragAndDropInvokedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashViaDragAndDropInvokedCount: m.squashViaDragAndDropInvokedCount + 1,
+    }))
+  }
+
+  private recordSquashUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashUndoneCount: m.squashUndoneCount + 1,
+    }))
+  }
+
+  public async recordOperationConflictsEncounteredCount(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashConflictsEncountered()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderConflictsEncountered()
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        log.error(
+          `[recordOperationConflictsEncounteredCount] - Operation not supported: ${kind}`
+        )
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public async recordOperationSuccessful(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashSuccessful()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderSuccessful()
+      case MultiCommitOperationKind.CherryPick:
+        return this.recordCherryPickSuccessful()
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        log.error(
+          `[recordOperationSuccessful] - Operation not supported: ${kind}`
+        )
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public async recordOperationSuccessfulWithConflicts(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashSuccessfulWithConflicts()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderSuccessfulWithConflicts()
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        log.error(
+          `[recordOperationSuccessfulWithConflicts] - Operation not supported: ${kind}`
+        )
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public async recordOperationUndone(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashUndone()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderUndone()
+      case MultiCommitOperationKind.CherryPick:
+        return this.recordCherryPickUndone()
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        log.error(`[recordOperationUndone] - Operation not supported: ${kind}`)
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public recordSquashMergeSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeSuccessfulWithConflictsCount:
+        m.squashMergeSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordSquashMergeSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeSuccessfulCount: m.squashMergeSuccessfulCount + 1,
+    }))
+  }
+
+  public recordSquashMergeInvokedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeInvokedCount: m.squashMergeInvokedCount + 1,
     }))
   }
 

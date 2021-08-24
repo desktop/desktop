@@ -4,11 +4,11 @@ import moment from 'moment'
 
 import { IMatches } from '../../lib/fuzzy-find'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
-import { String } from 'aws-sdk/clients/apigateway'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
 
@@ -33,7 +33,7 @@ interface IBranchListItemProps {
   readonly onDeleteBranch?: (branchName: string) => void
 
   /** When a drag element has landed on a branch that is not current */
-  readonly onDropOntoBranch?: (branchName: String) => void
+  readonly onDropOntoBranch?: (branchName: string) => void
 
   /** When a drag element has landed on the current branch */
   readonly onDropOntoCurrentBranch?: () => void

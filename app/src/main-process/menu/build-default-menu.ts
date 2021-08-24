@@ -6,6 +6,7 @@ import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
+import { enableSquashMerging } from '../../lib/feature-flag'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
@@ -337,88 +338,102 @@ export function buildDefaultMenu({
     ],
   })
 
+  const branchSubmenu = [
+    {
+      label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
+      id: 'create-branch',
+      accelerator: 'CmdOrCtrl+Shift+N',
+      click: emit('create-branch'),
+    },
+    {
+      label: __DARWIN__ ? 'Rename…' : '&Rename…',
+      id: 'rename-branch',
+      accelerator: 'CmdOrCtrl+Shift+R',
+      click: emit('rename-branch'),
+    },
+    {
+      label: __DARWIN__ ? 'Delete…' : '&Delete…',
+      id: 'delete-branch',
+      accelerator: 'CmdOrCtrl+Shift+D',
+      click: emit('delete-branch'),
+    },
+    separator,
+    {
+      label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+      id: 'discard-all-changes',
+      accelerator: 'CmdOrCtrl+Shift+Backspace',
+      click: emit('discard-all-changes'),
+    },
+    {
+      label: askForConfirmationWhenStashingAllChanges
+        ? confirmStashAllChangesLabel
+        : stashAllChangesLabel,
+      id: 'stash-all-changes',
+      accelerator: 'CmdOrCtrl+Shift+S',
+      click: emit('stash-all-changes'),
+    },
+    separator,
+    {
+      label: __DARWIN__
+        ? `Update from ${defaultBranchName}`
+        : `&Update from ${defaultBranchName}`,
+      id: 'update-branch',
+      accelerator: 'CmdOrCtrl+Shift+U',
+      click: emit('update-branch'),
+    },
+    {
+      label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
+      id: 'compare-to-branch',
+      accelerator: 'CmdOrCtrl+Shift+B',
+      click: emit('compare-to-branch'),
+    },
+    {
+      label: __DARWIN__
+        ? 'Merge into Current Branch…'
+        : '&Merge into current branch…',
+      id: 'merge-branch',
+      accelerator: 'CmdOrCtrl+Shift+M',
+      click: emit('merge-branch'),
+    },
+  ]
+
+  if (enableSquashMerging()) {
+    branchSubmenu.push({
+      label: __DARWIN__
+        ? 'Squash and Merge into Current Branch…'
+        : 'Squas&h and merge into current branch…',
+      id: 'squash-and-merge-branch',
+      accelerator: 'CmdOrCtrl+Shift+H',
+      click: emit('squash-and-merge-branch'),
+    })
+  }
+
+  branchSubmenu.push(
+    {
+      label: __DARWIN__ ? 'Rebase Current Branch…' : 'R&ebase current branch…',
+      id: 'rebase-branch',
+      accelerator: 'CmdOrCtrl+Shift+E',
+      click: emit('rebase-branch'),
+    },
+    separator,
+    {
+      label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
+      id: 'compare-on-github',
+      accelerator: 'CmdOrCtrl+Shift+C',
+      click: emit('compare-on-github'),
+    },
+    {
+      label: pullRequestLabel,
+      id: 'create-pull-request',
+      accelerator: 'CmdOrCtrl+R',
+      click: emit('open-pull-request'),
+    }
+  )
+
   template.push({
     label: __DARWIN__ ? 'Branch' : '&Branch',
     id: 'branch',
-    submenu: [
-      {
-        label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
-        id: 'create-branch',
-        accelerator: 'CmdOrCtrl+Shift+N',
-        click: emit('create-branch'),
-      },
-      {
-        label: __DARWIN__ ? 'Rename…' : '&Rename…',
-        id: 'rename-branch',
-        accelerator: 'CmdOrCtrl+Shift+R',
-        click: emit('rename-branch'),
-      },
-      {
-        label: __DARWIN__ ? 'Delete…' : '&Delete…',
-        id: 'delete-branch',
-        accelerator: 'CmdOrCtrl+Shift+D',
-        click: emit('delete-branch'),
-      },
-      separator,
-      {
-        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-        id: 'discard-all-changes',
-        accelerator: 'CmdOrCtrl+Shift+Backspace',
-        click: emit('discard-all-changes'),
-      },
-      {
-        label: askForConfirmationWhenStashingAllChanges
-          ? confirmStashAllChangesLabel
-          : stashAllChangesLabel,
-        id: 'stash-all-changes',
-        accelerator: 'CmdOrCtrl+Shift+S',
-        click: emit('stash-all-changes'),
-      },
-      separator,
-      {
-        label: __DARWIN__
-          ? `Update from ${defaultBranchName}`
-          : `&Update from ${defaultBranchName}`,
-        id: 'update-branch',
-        accelerator: 'CmdOrCtrl+Shift+U',
-        click: emit('update-branch'),
-      },
-      {
-        label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
-        id: 'compare-to-branch',
-        accelerator: 'CmdOrCtrl+Shift+B',
-        click: emit('compare-to-branch'),
-      },
-      {
-        label: __DARWIN__
-          ? 'Merge into Current Branch…'
-          : '&Merge into current branch…',
-        id: 'merge-branch',
-        accelerator: 'CmdOrCtrl+Shift+M',
-        click: emit('merge-branch'),
-      },
-      {
-        label: __DARWIN__
-          ? 'Rebase Current Branch…'
-          : 'R&ebase current branch…',
-        id: 'rebase-branch',
-        accelerator: 'CmdOrCtrl+Shift+E',
-        click: emit('rebase-branch'),
-      },
-      separator,
-      {
-        label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
-        id: 'compare-on-github',
-        accelerator: 'CmdOrCtrl+Shift+C',
-        click: emit('compare-on-github'),
-      },
-      {
-        label: pullRequestLabel,
-        id: 'create-pull-request',
-        accelerator: 'CmdOrCtrl+R',
-        click: emit('open-pull-request'),
-      },
-    ],
+    submenu: branchSubmenu,
   })
 
   if (__DARWIN__) {

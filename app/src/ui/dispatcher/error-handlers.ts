@@ -314,12 +314,11 @@ export async function mergeConflictHandler(
 
   const { currentBranch, theirBranch } = gitContext
 
-  dispatcher.showPopup({
-    type: PopupType.MergeConflicts,
+  dispatcher.handleConflictsDetectedOnError(
     repository,
-    ourBranch: currentBranch,
-    theirBranch,
-  })
+    currentBranch,
+    theirBranch
+  )
 
   return null
 }

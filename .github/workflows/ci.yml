@@ -101,3 +101,7 @@ jobs:
           S3_KEY: ${{ secrets.S3_KEY }}
           S3_SECRET: ${{ secrets.S3_SECRET }}
           S3_BUCKET: github-desktop
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
+          AZURE_BLOB_CONTAINER: ${{ secrets.AZURE_BLOB_CONTAINER }}
+          AZURE_STORAGE_URL: ${{ secrets.AZURE_STORAGE_URL }}

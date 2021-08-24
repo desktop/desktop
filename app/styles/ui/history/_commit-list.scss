@@ -10,7 +10,7 @@
     position: absolute;
     left: 100%;
     top: 73px;
-    width: 282px;
+    width: 284px;
 
     .call-to-action-bubble {
       font-weight: var(--font-weight-semibold);
@@ -104,6 +104,10 @@
 
     .summary {
       font-weight: var(--font-weight-semibold);
+
+      &.empty-summary {
+        color: var(--text-secondary-color);
+      }
     }
 
     .summary,

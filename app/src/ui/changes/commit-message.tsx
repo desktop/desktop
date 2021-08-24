@@ -17,12 +17,12 @@ import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
-import { ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
-import { PermissionsCommitWarning } from './permissions-commit-warning'
+import { CommitWarning, CommitWarningIcon } from './commit-warning'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
@@ -36,16 +36,17 @@ import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isAccountEmail } from '../../lib/is-account-email'
 
-const addAuthorIcon = new OcticonSymbol(
-  18,
-  13,
-  'M14 6V4.25a.75.75 0 0 1 1.5 0V6h1.75a.75.75 0 1 1 0 1.5H15.5v1.75a.75.75 0 0 ' +
+const addAuthorIcon = {
+  w: 18,
+  h: 13,
+  d:
+    'M14 6V4.25a.75.75 0 0 1 1.5 0V6h1.75a.75.75 0 1 1 0 1.5H15.5v1.75a.75.75 0 0 ' +
     '1-1.5 0V7.5h-1.75a.75.75 0 1 1 0-1.5H14zM8.5 4a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 ' +
     '0zm.063 3.064a3.995 3.995 0 0 0 1.2-4.429A3.996 3.996 0 0 0 8.298.725a4.01 4.01 0 0 ' +
     '0-6.064 1.91 3.987 3.987 0 0 0 1.2 4.43A5.988 5.988 0 0 0 0 12.2a.748.748 0 0 0 ' +
     '.716.766.751.751 0 0 0 .784-.697 4.49 4.49 0 0 1 1.39-3.04 4.51 4.51 0 0 1 6.218 ' +
-    '0 4.49 4.49 0 0 1 1.39 3.04.748.748 0 0 0 .786.73.75.75 0 0 0 .714-.8 5.989 5.989 0 0 0-3.435-5.136z'
-)
+    '0 4.49 4.49 0 0 1 1.39 3.04.748.748 0 0 0 .786.73.75.75 0 0 0 .714-.8 5.989 5.989 0 0 0-3.435-5.136z',
+}
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
@@ -59,6 +60,7 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting?: boolean
+  readonly commitToAmend: Commit | null
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
   readonly showBranchProtected: boolean
@@ -178,16 +180,36 @@ export class CommitMessage extends React.Component<
    */
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
     const { commitMessage } = nextProps
+
+    // If we switch from not amending to amending, we want to populate the
+    // textfields with the commit message from the commit.
+    if (this.props.commitToAmend === null && nextProps.commitToAmend !== null) {
+      this.fillWithCommitMessage({
+        summary: nextProps.commitToAmend.summary,
+        description: nextProps.commitToAmend.body,
+      })
+    } else if (
+      this.props.commitToAmend !== null &&
+      nextProps.commitToAmend === null &&
+      commitMessage !== null
+    ) {
+      this.fillWithCommitMessage(commitMessage)
+    }
+
     if (!commitMessage || commitMessage === this.props.commitMessage) {
       return
     }
 
     if (this.state.summary === '' && !this.state.description) {
-      this.setState({
-        summary: commitMessage.summary,
-        description: commitMessage.description,
-      })
+      this.fillWithCommitMessage(commitMessage)
     }
+  }
+
+  private fillWithCommitMessage(commitMessage: ICommitMessage) {
+    this.setState({
+      summary: commitMessage.summary,
+      description: commitMessage.description,
+    })
   }
 
   public componentDidUpdate(prevProps: ICommitMessageProps) {
@@ -199,6 +221,11 @@ export class CommitMessage extends React.Component<
           this.props.autocompletionProviders
         ),
       })
+    }
+
+    // If the need to show co-authors from the props changed, update the state.
+    if (prevProps.showCoAuthoredBy !== this.props.showCoAuthoredBy) {
+      this.setState({ showCoAuthoredBy: this.props.showCoAuthoredBy })
     }
 
     if (this.props.focusCommitMessage) {
@@ -242,7 +269,17 @@ export class CommitMessage extends React.Component<
       return []
     }
 
-    return this.state.coAuthors.map(a => ({
+    /**
+     * When we persist coauthors in the app's changes state or outside this
+     * component, they will be sent in via the props. When we do not want to
+     * persist (like when used in modal), we will be storing and using from the
+     * component's state.
+     */
+    const coAuthors = this.props.persistCoAuthors
+      ? this.props.coAuthors
+      : this.state.coAuthors
+
+    return coAuthors.map(a => ({
       token: 'Co-Authored-By',
       value: `${a.name} <${a.email}>`,
     }))
@@ -251,7 +288,7 @@ export class CommitMessage extends React.Component<
   private async createCommit() {
     const { summary, description } = this.state
 
-    if (!this.canCommit()) {
+    if (!this.canCommit() && !this.canAmend()) {
       return
     }
 
@@ -266,6 +303,7 @@ export class CommitMessage extends React.Component<
       summary: summaryOrPlaceholder,
       description,
       trailers,
+      amend: this.props.commitToAmend !== null,
     }
 
     const timer = startTimer('create commit', this.props.repository)
@@ -281,6 +319,13 @@ export class CommitMessage extends React.Component<
     return (
       (this.props.anyFilesSelected === true && this.state.summary.length > 0) ||
       this.props.prepopulateCommitSummary
+    )
+  }
+
+  private canAmend(): boolean {
+    return (
+      this.props.commitToAmend !== null &&
+      (this.state.summary.length > 0 || this.props.prepopulateCommitSummary)
     )
   }
 
@@ -559,19 +604,28 @@ export class CommitMessage extends React.Component<
 
   private renderPermissionsCommitWarning() {
     const {
+      commitToAmend,
       showBranchProtected,
       showNoWriteAccess,
       repository,
       branch,
     } = this.props
 
-    if (showNoWriteAccess) {
+    if (commitToAmend !== null) {
       return (
-        <PermissionsCommitWarning>
+        <CommitWarning icon={CommitWarningIcon.Information}>
+          Your changes will modify your <strong>most recent commit</strong>.{' '}
+          <LinkButton onClick={this.onStopAmending}>Stop amending</LinkButton>{' '}
+          to make these changes as a new commit.
+        </CommitWarning>
+      )
+    } else if (showNoWriteAccess) {
+      return (
+        <CommitWarning icon={CommitWarningIcon.Warning}>
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
           <LinkButton onClick={this.onMakeFork}>create a fork</LinkButton>?
-        </PermissionsCommitWarning>
+        </CommitWarning>
       )
     } else if (showBranchProtected) {
       if (branch === null) {
@@ -583,11 +637,11 @@ export class CommitMessage extends React.Component<
       }
 
       return (
-        <PermissionsCommitWarning>
+        <CommitWarning icon={CommitWarningIcon.Warning}>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
-        </PermissionsCommitWarning>
+        </CommitWarning>
       )
     } else {
       return null
@@ -606,11 +660,17 @@ export class CommitMessage extends React.Component<
     }
   }
 
+  private onStopAmending = () => {
+    this.props.dispatcher.setAmendingRepository(this.props.repository, false)
+  }
+
   private renderSubmitButton() {
     const { isCommitting } = this.props
     const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
     const buttonEnabled =
-      this.canCommit() && isCommitting !== true && !isSummaryWhiteSpace
+      (this.canCommit() || this.canAmend()) &&
+      isCommitting !== true &&
+      !isSummaryWhiteSpace
 
     return (
       <Button
@@ -628,10 +688,17 @@ export class CommitMessage extends React.Component<
     const { isCommitting, branch: branchName, commitButtonText } = this.props
 
     const loading = isCommitting === true ? <Loading /> : undefined
+
+    const isAmending = this.props.commitToAmend !== null
+
+    const amendVerb = loading ? 'Amending' : 'Amend'
     const commitVerb = loading ? 'Committing' : 'Commit'
+
+    const amendTitle = `${amendVerb} last commit`
     const commitTitle =
       branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
-    const defaultContents =
+
+    const defaultCommitContents =
       branchName !== null ? (
         <>
           {commitVerb} to <strong>{branchName}</strong>
@@ -640,12 +707,20 @@ export class CommitMessage extends React.Component<
         commitVerb
       )
 
+    const defaultAmendContents = <>{amendVerb} last commit</>
+
+    const defaultContents = isAmending
+      ? defaultAmendContents
+      : defaultCommitContents
+
     const commitButton = commitButtonText ? commitButtonText : defaultContents
 
     return (
       <>
         {loading}
-        <span title={commitTitle}>{commitButton}</span>
+        <span title={isAmending ? amendTitle : commitTitle}>
+          {commitButton}
+        </span>
       </>
     )
   }

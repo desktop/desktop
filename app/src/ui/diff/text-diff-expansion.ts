@@ -7,6 +7,7 @@ import {
   DiffLineType,
   ITextDiff,
 } from '../../models/diff'
+import { getLargestLineNumber } from './diff-helpers'
 
 /** How many new lines will be added to a diff hunk by default. */
 export const DefaultDiffExpansionStep = 20
@@ -392,6 +393,7 @@ export function expandTextDiffHunk(
     ...diff,
     text: newDiffText,
     hunks: newHunks,
+    maxLineNumber: getLargestLineNumber(newHunks),
   }
 }
 
