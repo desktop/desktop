@@ -25,7 +25,7 @@ interface ICustomThemeSelectorState {
   readonly customTheme?: ICustomTheme
   readonly selectedThemeOptionColor: keyof ICustomTheme
   readonly isPopoverOpen: boolean
-  readonly popoverTop: string
+  readonly popoverBottom: string
   readonly popoverLeft: string
 }
 
@@ -40,7 +40,7 @@ export class CustomThemeSelector extends React.Component<
       customTheme: this.getDefaultCustomTheme(),
       isPopoverOpen: false,
       selectedThemeOptionColor: 'background',
-      popoverTop: '500px',
+      popoverBottom: '500px',
       popoverLeft: '275px',
     }
   }
@@ -102,9 +102,9 @@ export class CustomThemeSelector extends React.Component<
 
   private onSwatchClick = (selectedThemeOptionColor: keyof ICustomTheme) => {
     return (event: any) => {
-      const popoverTop = `${event.currentTarget.offsetTop + 50}px`
+      const popoverBottom = `${event.currentTarget.offsetTop - 300}px`
       const popoverLeft = `${event.currentTarget.offsetLeft + 50}px`
-      this.setState({ selectedThemeOptionColor, popoverTop, popoverLeft })
+      this.setState({ selectedThemeOptionColor, popoverBottom, popoverLeft })
       this.openPopover()
     }
   }
@@ -131,7 +131,7 @@ export class CustomThemeSelector extends React.Component<
     }
 
     const styles = {
-      top: this.state.popoverTop,
+      bottom: this.state.popoverBottom,
       left: this.state.popoverLeft,
     }
 
