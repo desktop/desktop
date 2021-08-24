@@ -3454,7 +3454,7 @@ export class Dispatcher {
     const { operationDetail, targetBranch } = mcos
     const { kind } = operationDetail
 
-    const bannerBase: any = {
+    const bannerBase = {
       count,
       onUndo: () => {
         this.undoMultiCommitOperation(mcos, repository, count)
