@@ -5,6 +5,10 @@ import {
   getCurrentlyAppliedTheme,
   ICustomTheme,
 } from './lib/application-theme'
+import {
+  isHexColorLight,
+  lightenDarkenHexColor,
+} from './lib/color-manipulation'
 
 interface IAppThemeProps {
   readonly theme: ApplicationTheme
@@ -38,6 +42,13 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
   }
 
   private ensureTheme() {
+    const { customTheme, useCustomTheme } = this.props
+    if (customTheme !== undefined && useCustomTheme) {
+      this.clearThemes()
+      this.setCustomTheme(customTheme)
+      return
+    }
+
     let themeToDisplay = this.props.theme
 
     if (this.props.theme === ApplicationTheme.System) {
@@ -54,27 +65,44 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
       this.clearThemes()
       body.classList.add(newThemeClassName)
     }
-
-    this.setCustomTheme()
   }
 
-  private setCustomTheme() {
-    const { customTheme, useCustomTheme } = this.props
-    if (customTheme === undefined || !useCustomTheme) {
-      return
-    }
-
+  /**
+   * This takes a custom theme object and applies it over top either our dark or
+   * light theme dynamically creating a new variables style sheet.
+   *
+   * It uses the background color of the custom theme to determine if the custom
+   * theme should be based on the light or dark theme. This is most important
+   * for the diff syntax highlighting.
+   *
+   * Currently, our only custom theme is a high-contrast theme, thus there are
+   * styles that are specifically added for this purpose such as adding borders
+   * or backgrounds to things that didn't have borders in our non-high-contrast
+   * themes.
+   *
+   * @param customTheme
+   */
+  private setCustomTheme(customTheme: ICustomTheme) {
+    const { background, text, activeItem, activeText, border } = customTheme
     const body = document.body
+
     if (!body.classList.contains('theme-custom')) {
       body.classList.add('theme-custom')
+      // This is important so that code diff syntax colors are legible if the
+      // user customizes to a light vs dark background. Tho, the code diff does
+      // still use the customizable text color for some of the syntax text so
+      // user can still make things illegible by choosing poorly.
+      const themeBase = isHexColorLight(background)
+        ? 'theme-light'
+        : 'theme-dark'
+      body.classList.add(themeBase)
     }
 
     const styles = document.createElement('style')
     styles.setAttribute('type', 'text/css')
 
-    const { background, text, activeItem, activeText, border } = customTheme
-    const secondaryActiveColor = this.lightenDarkenColor(activeItem, 20)
-    const secondaryBackgroundColor = this.lightenDarkenColor(background, 20)
+    const secondaryActiveColor = lightenDarkenHexColor(activeItem, 20)
+    const secondaryBackgroundColor = lightenDarkenHexColor(background, 20)
 
     const highContrastSpecific = `
         --box-selected-active-border: 2px solid ${border};
@@ -89,6 +117,8 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
         --tab-bar-hover-border: 2px solid ${border} !important;
         --tab-bar-item-border: 2px solid ${background};
         --foldout-border: 1px solid ${border};
+        --horizontal-bar-active-color: ${activeItem};
+        --horizontal-bar-active-text-color: ${activeText};
     `
 
     styles.appendChild(
@@ -104,6 +134,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
             --diff-line-number-color: ${text};
             --diff-gutter-background-color: ${background};
             --diff-hunk-background-color: ${background};
+            --diff-empty-row-background-color: ${secondaryBackgroundColor};
 
             --box-border-color: ${border};
             --diff-border-color: ${border};
@@ -136,51 +167,12 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
 
             --box-placeholder-color: ${text};
             --tab-bar-active-color: ${activeItem};
-            --horizontal-bar-active-color: ${activeItem};
-            --horizontal-bar-active-text-color: ${activeText};
 
             ${highContrastSpecific}
           }`
       )
     )
     body.appendChild(styles)
-  }
-
-  private lightenDarkenColor(col: string, amt: number) {
-    let usePound = false
-
-    if (col[0] === '#') {
-      col = col.slice(1)
-      usePound = true
-    }
-
-    const num = parseInt(col, 16)
-
-    let r = (num >> 16) + amt
-
-    if (r > 255) {
-      r = 255
-    } else if (r < 0) {
-      r = 0
-    }
-
-    let b = ((num >> 8) & 0x00ff) + amt
-
-    if (b > 255) {
-      b = 255
-    } else if (b < 0) {
-      b = 0
-    }
-
-    let g = (num & 0x0000ff) + amt
-
-    if (g > 255) {
-      g = 255
-    } else if (g < 0) {
-      g = 0
-    }
-
-    return (usePound ? '#' : '') + (g | (b << 8) | (r << 16)).toString(16)
   }
 
   private clearThemes() {
