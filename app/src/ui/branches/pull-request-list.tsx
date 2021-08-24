@@ -195,7 +195,7 @@ export class PullRequestList extends React.Component<
       selectedPullRequest !== null &&
       prNumber === selectedPullRequest.pullRequestNumber
     ) {
-      dispatcher.endCherryPickFlow(repository)
+      dispatcher.endMultiCommitOperation(repository)
       dispatcher.recordDragStartedAndCanceled()
       return
     }
@@ -205,7 +205,7 @@ export class PullRequestList extends React.Component<
     const pr = pullRequests.find(pr => pr.pullRequestNumber === prNumber)
     if (pr === undefined) {
       log.error('[onDropOntoPullRequest] - Could not find pull request.')
-      dispatcher.endCherryPickFlow(repository)
+      dispatcher.endMultiCommitOperation(repository)
       return
     }
 

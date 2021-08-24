@@ -66,7 +66,6 @@ export enum PopupType {
   LocalChangesOverwritten,
   ChooseForkSettings,
   ConfirmDiscardSelection,
-  CherryPick,
   MoveToApplicationsFolder,
   ChangeRepositoryAlias,
   ThankYou,
@@ -75,6 +74,8 @@ export enum PopupType {
   WarnLocalChangesBeforeUndo,
   WarningBeforeReset,
   InvalidatedToken,
+  AddSSHHost,
+  SSHKeyPassphrase,
 }
 
 export type Popup =
@@ -259,12 +260,6 @@ export type Popup =
       retryAction: RetryAction
       files: ReadonlyArray<string>
     }
-  | {
-      type: PopupType.CherryPick
-      repository: Repository
-      commits: ReadonlyArray<CommitOneLine>
-      sourceBranch: Branch | null
-    }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
   | {
@@ -302,4 +297,19 @@ export type Popup =
   | {
       type: PopupType.InvalidatedToken
       account: Account
+    }
+  | {
+      type: PopupType.AddSSHHost
+      host: string
+      ip: string
+      fingerprint: string
+      onSubmit: (addHost: boolean) => void
+    }
+  | {
+      type: PopupType.SSHKeyPassphrase
+      keyPath: string
+      onSubmit: (
+        passphrase: string | undefined,
+        storePassphrase: boolean
+      ) => void
     }

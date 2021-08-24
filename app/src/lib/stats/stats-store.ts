@@ -1464,7 +1464,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickSuccessful(): Promise<void> {
+  private recordCherryPickSuccessful(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
     }))
@@ -1508,7 +1508,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCherryPickUndone(): Promise<void> {
+  private recordCherryPickUndone(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
     }))
@@ -1630,6 +1630,7 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.Reorder:
         return this.recordReorderSuccessful()
       case MultiCommitOperationKind.CherryPick:
+        return this.recordCherryPickSuccessful()
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
         log.error(
@@ -1670,6 +1671,7 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.Reorder:
         return this.recordReorderUndone()
       case MultiCommitOperationKind.CherryPick:
+        return this.recordCherryPickUndone()
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
         log.error(`[recordOperationUndone] - Operation not supported: ${kind}`)
