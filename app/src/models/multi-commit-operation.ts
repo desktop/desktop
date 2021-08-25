@@ -134,13 +134,7 @@ export type CreateBranchStep = {
   targetBranchName: string
 }
 
-interface IInteractiveRebaseDetails {
-  /**
-   * The reference to the last retained commit on the branch during an
-   * interactive rebase or null if rebasing to the root.
-   */
-  readonly lastRetainedCommitRef: string | null
-
+interface IBaseInteractiveRebaseDetails {
   /**
    * Array of commits used during the operation.
    */
@@ -151,6 +145,14 @@ interface IInteractiveRebaseDetails {
    * the state of the after an operation to a previous state.
    */
   readonly currentTip: string
+}
+
+interface IInteractiveRebaseDetails extends IBaseInteractiveRebaseDetails {
+  /**
+   * The reference to the last retained commit on the branch during an
+   * interactive rebase or null if rebasing to the root.
+   */
+  readonly lastRetainedCommitRef: string | null
 }
 
 interface ISourceBranchDetails {
@@ -203,6 +205,12 @@ interface ICherryPickDetails extends ISourceBranchDetails {
 
 interface IRebaseDetails extends ISourceBranchDetails {
   readonly kind: MultiCommitOperationKind.Rebase
+  readonly commits: ReadonlyArray<CommitOneLine>
+  /**
+   * This is the commit sha of the HEAD of the in-flight operation used to compare
+   * the state of the after an operation to a previous state.
+   */
+  readonly currentTip: string
 }
 
 interface IMergeDetails extends ISourceBranchDetails {
@@ -216,3 +224,19 @@ export type MultiCommitOperationDetail =
   | ICherryPickDetails
   | IRebaseDetails
   | IMergeDetails
+
+export function instanceOfIBaseRebaseDetails(
+  object: any
+): object is IBaseInteractiveRebaseDetails {
+  const objectWithRequiredFields: IBaseInteractiveRebaseDetails = {
+    commits: [],
+    currentTip: '',
+  }
+
+  return Object.keys(objectWithRequiredFields).every(key => key in object)
+}
+
+export const conflictSteps = [
+  MultiCommitOperationStepKind.ShowConflicts,
+  MultiCommitOperationStepKind.ConfirmAbort,
+]

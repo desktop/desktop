@@ -1609,8 +1609,10 @@ export class StatsStore implements IStatsStore {
         return this.recordSquashConflictsEncountered()
       case MultiCommitOperationKind.Reorder:
         return this.recordReorderConflictsEncountered()
-      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
+        // ignored because rebase records different stats
+        return
+      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Merge:
         log.error(
           `[recordOperationConflictsEncounteredCount] - Operation not supported: ${kind}`
@@ -1632,6 +1634,8 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.CherryPick:
         return this.recordCherryPickSuccessful()
       case MultiCommitOperationKind.Rebase:
+        // ignored because rebase records different stats
+        return
       case MultiCommitOperationKind.Merge:
         log.error(
           `[recordOperationSuccessful] - Operation not supported: ${kind}`
@@ -1650,8 +1654,9 @@ export class StatsStore implements IStatsStore {
         return this.recordSquashSuccessfulWithConflicts()
       case MultiCommitOperationKind.Reorder:
         return this.recordReorderSuccessfulWithConflicts()
-      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
+        return this.recordRebaseSuccessAfterConflicts()
+      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Merge:
         log.error(
           `[recordOperationSuccessfulWithConflicts] - Operation not supported: ${kind}`
