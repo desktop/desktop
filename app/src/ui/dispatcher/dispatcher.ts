@@ -3484,7 +3484,7 @@ export class Dispatcher {
         banner = {
           type: BannerType.SuccessfulRebase,
           targetBranch: targetBranch !== null ? targetBranch.name : '',
-          baseBranch: sourceBranch !== null ? sourceBranch.name : '',
+          baseBranch: sourceBranch !== null ? sourceBranch.name : undefined,
         }
         break
       case MultiCommitOperationKind.Merge:

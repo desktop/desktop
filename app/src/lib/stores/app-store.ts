@@ -154,6 +154,7 @@ import {
   reset,
   getBranchAheadBehind,
   getRebaseInternalState,
+  getCommit,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -2076,6 +2077,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         sourceBranch: null,
         commits,
         currentTip: rebaseState.baseBranchTip,
+      }
+
+      const commit = await getCommit(repository, rebaseState.originalBranchTip)
+
+      if (commit !== null) {
+        targetBranch = new Branch(
+          rebaseState.targetBranch,
+          null,
+          commit,
+          BranchType.Local,
+          `refs/heads/${rebaseState.targetBranch}`
+        )
       }
     } else if (isCherryPickConflictState(conflictState)) {
       const snapshot = await getCherryPickSnapshot(repository)
