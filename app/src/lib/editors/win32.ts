@@ -79,21 +79,36 @@ const Wow64LocalMachineUninstallKey = (subKey: string) =>
   registryKey(HKEY.HKEY_LOCAL_MACHINE, wow64UninstallSubKey, subKey)
 
 // This function generates registry keys for a given JetBrains product for the
-// last 2 years, assuming JetBrains makes no more than 5 releases per year.
+// last 2 years, assuming JetBrains makes no more than 5 major releases and
+// no more than 5 minor releases per year
 const registryKeysForJetBrainsIDE = (
   product: string
 ): ReadonlyArray<RegistryKey> => {
-  const maxReleasesPerYear = 5
+  const maxMajorReleasesPerYear = 5
+  const maxMinorReleasesPerYear = 5
   const lastYear = new Date().getFullYear()
   const firstYear = lastYear - 2
 
   const result = new Array<RegistryKey>()
 
   for (let year = firstYear; year <= lastYear; year++) {
-    for (let release = 1; release <= maxReleasesPerYear; release++) {
-      const key = `${product} ${year}.${release}`
-      result.push(Wow64LocalMachineUninstallKey(key))
-      result.push(CurrentUserUninstallKey(key))
+    for (
+      let majorRelease = 1;
+      majorRelease <= maxMajorReleasesPerYear;
+      majorRelease++
+    ) {
+      for (
+        let minorRelease = 0;
+        minorRelease <= maxMinorReleasesPerYear;
+        minorRelease++
+      ) {
+        let key = `${product} ${year}.${majorRelease}`
+        if (minorRelease > 0) {
+          key = `${key}.${minorRelease}`
+        }
+        result.push(Wow64LocalMachineUninstallKey(key))
+        result.push(CurrentUserUninstallKey(key))
+      }
     }
   }
 
