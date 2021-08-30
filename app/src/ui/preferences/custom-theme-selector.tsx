@@ -4,16 +4,7 @@ import { SketchPicker } from 'react-color'
 import { Button } from '../lib/button'
 import { Octicon, syncClockwise } from '../octicons'
 import { enableCustomizeTheme } from '../../lib/feature-flag'
-
-const themeDefaults = {
-  [ApplicationTheme.HighContrast]: {
-    background: '#090c11',
-    border: '#7a828e',
-    text: '#f0f3f6',
-    activeItem: '#9ea7b3',
-    activeText: '#090c11',
-  },
-}
+import { CustomThemeDefaults } from '../lib/custom-theme'
 
 interface ICustomThemeSelectorProps {
   readonly selectedTheme: ApplicationTheme
@@ -56,7 +47,7 @@ export class CustomThemeSelector extends React.Component<
     const { customTheme } = this.props
     const defaultTheme =
       customTheme === undefined
-        ? themeDefaults[ApplicationTheme.HighContrast]
+        ? CustomThemeDefaults[ApplicationTheme.HighContrast]
         : customTheme
 
     if (customTheme === undefined) {
@@ -111,10 +102,10 @@ export class CustomThemeSelector extends React.Component<
 
   private onResetToDefaults = () => {
     this.setState({
-      customTheme: themeDefaults[ApplicationTheme.HighContrast],
+      customTheme: CustomThemeDefaults[ApplicationTheme.HighContrast],
     })
     this.props.onCustomThemeChanged(
-      themeDefaults[ApplicationTheme.HighContrast]
+      CustomThemeDefaults[ApplicationTheme.HighContrast]
     )
   }
 
