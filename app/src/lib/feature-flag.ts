@@ -125,12 +125,12 @@ export function enableLineChangesInCommit(): boolean {
 
 /** Should we allow high contrast theme option */
 export function enableHighContrastTheme(): boolean {
-  return true
+  return enableBetaFeatures()
 }
 
 /** Should we allow customizing a theme */
 export function enableCustomizeTheme(): boolean {
-  return true
+  return enableBetaFeatures()
 }
 
 /** Should we allow using Windows' OpenSSH? */
