@@ -298,7 +298,7 @@ const editors: IWindowsExternalEditor[] = [
       // 32-bit version of Notepad++
       Wow64LocalMachineUninstallKey('Notepad++'),
     ],
-    executableShimPaths: [],
+    executableShimPaths: [[]],
     installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team',
@@ -314,7 +314,7 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'RStudio',
     registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
-    executableShimPaths: [],
+    executableShimPaths: [[]],
     installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'RStudio' && publisher === 'RStudio',
