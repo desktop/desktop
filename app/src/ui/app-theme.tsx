@@ -178,6 +178,10 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
   private clearThemes() {
     const body = document.body
 
+    // body.classList is a DOMTokenList and it does not iterate all the way
+    // through with the for loop. (why it doesn't.. ¯\_(ツ)_/¯ - Possibly
+    // because we are modifying it as we loop) Hence the extra step of
+    // converting it to a string array.
     const classList = [...body.classList]
     for (const className of classList) {
       if (className.startsWith('theme-')) {
