@@ -53,7 +53,7 @@ findYarnVersion(path => {
     process.exit(result.status || 1)
   }
 
-  if (isOffline()) {
+  if (!isOffline()) {
     result = spawnSync(
       'git',
       ['submodule', 'update', '--recursive', '--init'],
