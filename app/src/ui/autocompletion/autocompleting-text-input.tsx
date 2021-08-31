@@ -313,36 +313,46 @@ export abstract class AutocompletingTextInput<
         focusable={false}
       >
         <h3>{this.props.warningMessage!.title}</h3>
-        <Row><div>{this.props.warningMessage!.description}</div></Row>
+        <Row>
+          <div>{this.props.warningMessage!.description}</div>
+        </Row>
       </Popover>
     )
   }
 
   private renderWarningBadge() {
     return (
-      <div className="warning-badge" onMouseEnter={this.onWarningBadgeMouseEnter} onMouseLeave={this.onWarningBadgeMouseLeave}>
+      <div
+        className="warning-badge"
+        onMouseEnter={this.onWarningBadgeMouseEnter}
+        onMouseLeave={this.onWarningBadgeMouseLeave}
+      >
         <Octicon symbol={OcticonSymbol.alert} />
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
     )
   }
 
-  private onWarningBadgeMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+  private onWarningBadgeMouseEnter = (
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
     event.preventDefault()
     this.openPopover()
   }
 
-  private onWarningBadgeMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+  private onWarningBadgeMouseLeave = (
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
     event.preventDefault()
     this.closePopover()
   }
 
   private openPopover() {
-    this.setState(prevState => ({...prevState, isPopoverOpen: true}))
+    this.setState(prevState => ({ ...prevState, isPopoverOpen: true }))
   }
 
   private closePopover() {
-    this.setState(prevState => ({...prevState, isPopoverOpen: false}))
+    this.setState(prevState => ({ ...prevState, isPopoverOpen: false }))
   }
 
   private onBlur = (e: React.FocusEvent<ElementType>) => {

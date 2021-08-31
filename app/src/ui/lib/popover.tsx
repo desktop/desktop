@@ -67,7 +67,10 @@ export class Popover extends React.Component<IPopoverProps> {
     const classNames = ['popover-component', this.getClassNameForCaret()]
 
     return (
-      <FocusTrap active={this.props.focusable ?? true} focusTrapOptions={this.focusTrapOptions}>
+      <FocusTrap
+        active={this.props.focusable ?? true}
+        focusTrapOptions={this.focusTrapOptions}
+      >
         <div className={classNames.join(' ')} ref={this.containerDivRef}>
           {this.props.children}
         </div>
