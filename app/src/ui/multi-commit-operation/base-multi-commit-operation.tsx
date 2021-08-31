@@ -73,11 +73,15 @@ export abstract class BaseMultiCommitOperation extends React.Component<
    * needed for typing purposes. Thus it should never happen, so throw error if
    * does.
    */
-  protected endFlowInvalidState(): void {
+  protected endFlowInvalidState(isSilent: boolean = false): void {
     const { step, operationDetail } = this.props.state
-    throw new Error(
-      `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
-    )
+    const errorMessage = `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
+    if (isSilent) {
+      this.onFlowEnded()
+      log.error(errorMessage)
+      return
+    }
+    throw new Error(errorMessage)
   }
 
   protected onInvokeConflictsDialogDismissed = (operationPrefix: string) => {
