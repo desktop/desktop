@@ -137,9 +137,11 @@ async function findApplication(
         return installPath
       }
 
-      log.debug(`App installation for ${editor} not found at '${installPath}'`)
+      log.debug(
+        `App installation for ${editor.name} not found at '${installPath}'`
+      )
     } catch (error) {
-      log.debug(`Unable to locate ${editor} installation`, error)
+      log.debug(`Unable to locate ${editor.name} installation`, error)
     }
   }
 
