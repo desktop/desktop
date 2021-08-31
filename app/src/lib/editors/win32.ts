@@ -23,8 +23,30 @@ type ExpectedInstallationChecker = (
 
 type RegistryKey = { key: HKEY; subKey: string }
 
+type WindowsExternalEditorPathInfo =
+  | {
+      /**
+       * Registry key with the install location of the app. If not provided,
+       * 'InstallLocation' will be used.
+       **/
+      readonly installLocationRegistryKey?: 'InstallLocation'
+
+      /**
+       * List of lists of path components from the editor's installation folder to
+       * the potential executable shims. Only needed when the install location
+       * registry key is `InstallLocation`.
+       **/
+      readonly executableShimPaths: ReadonlyArray<ReadonlyArray<string>>
+    }
+  | {
+      /**
+       * Registry key with the install location of the app.
+       **/
+      readonly installLocationRegistryKey: 'DisplayIcon'
+    }
+
 /** Represents an external editor on Windows */
-interface IWindowsExternalEditor {
+type WindowsExternalEditor = {
   /** Name of the editor. It will be used both as identifier and user-facing. */
   readonly name: string
 
@@ -37,18 +59,6 @@ interface IWindowsExternalEditor {
   readonly registryKeys: ReadonlyArray<RegistryKey>
 
   /**
-   * List of lists of path components from the editor's installation folder to
-   * the potential executable shims.
-   **/
-  readonly executableShimPaths: ReadonlyArray<ReadonlyArray<string>>
-
-  /**
-   * Registry key with the install location of the app. If not provided,
-   * 'InstallLocation' will be used.
-   **/
-  readonly installLocationRegistryKey?: string
-
-  /**
    * Function to check if the found installation matches the expected identifier
    * details.
    *
@@ -56,7 +66,7 @@ interface IWindowsExternalEditor {
    * @param publisher The publisher who created the installer
    */
   readonly expectedInstallationChecker: ExpectedInstallationChecker
-}
+} & WindowsExternalEditorPathInfo
 
 const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
   key,
@@ -130,7 +140,7 @@ const executableShimPathsForJetBrainsIDE = (
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
  **/
-const editors: IWindowsExternalEditor[] = [
+const editors: WindowsExternalEditor[] = [
   {
     name: 'Atom',
     registryKeys: [CurrentUserUninstallKey('atom')],
@@ -313,7 +323,6 @@ const editors: IWindowsExternalEditor[] = [
       // 32-bit version of Notepad++
       Wow64LocalMachineUninstallKey('Notepad++'),
     ],
-    executableShimPaths: [[]],
     installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team',
@@ -329,7 +338,6 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'RStudio',
     registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
-    executableShimPaths: [[]],
     installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'RStudio' && publisher === 'RStudio',
@@ -363,7 +371,7 @@ function getKeyOrEmpty(
 }
 
 function getAppInfo(
-  editor: IWindowsExternalEditor,
+  editor: WindowsExternalEditor,
   keys: ReadonlyArray<RegistryValue>
 ): IWindowsAppInformation {
   const displayName = getKeyOrEmpty(keys, 'DisplayName')
@@ -375,7 +383,7 @@ function getAppInfo(
   return { displayName, publisher, installLocation }
 }
 
-async function findApplication(editor: IWindowsExternalEditor) {
+async function findApplication(editor: WindowsExternalEditor) {
   for (const { key, subKey } of editor.registryKeys) {
     const keys = enumerateValues(key, subKey)
     if (keys.length === 0) {
@@ -389,8 +397,12 @@ async function findApplication(editor: IWindowsExternalEditor) {
       continue
     }
 
-    for (const executableShimPath of editor.executableShimPaths) {
-      const path = Path.join(installLocation, ...executableShimPath)
+    const executableShimPaths =
+      editor.installLocationRegistryKey === 'DisplayIcon'
+        ? [installLocation]
+        : editor.executableShimPaths.map(p => Path.join(installLocation, ...p))
+
+    for (const path of executableShimPaths) {
       const exists = await pathExists(path)
       if (exists) {
         return path
