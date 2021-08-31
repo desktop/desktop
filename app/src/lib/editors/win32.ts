@@ -16,11 +16,6 @@ interface IWindowsAppInformation {
   installLocation: string
 }
 
-type ExpectedInstallationChecker = (
-  displayName: string,
-  publisher: string
-) => boolean
-
 type RegistryKey = { key: HKEY; subKey: string }
 
 type WindowsExternalEditorPathInfo =
@@ -58,14 +53,11 @@ type WindowsExternalEditor = {
    */
   readonly registryKeys: ReadonlyArray<RegistryKey>
 
-  /**
-   * Function to check if the found installation matches the expected identifier
-   * details.
-   *
-   * @param displayName The display name as listed in the registry
-   * @param publisher The publisher who created the installer
-   */
-  readonly expectedInstallationChecker: ExpectedInstallationChecker
+  /** Prefix of the DisplayName registry key that belongs to this editor. */
+  readonly displayNamePrefix: string
+
+  /** Value of the Publisher registry key that belongs to this editor. */
+  readonly publisher: string
 } & WindowsExternalEditorPathInfo
 
 const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
@@ -145,22 +137,22 @@ const editors: WindowsExternalEditor[] = [
     name: 'Atom',
     registryKeys: [CurrentUserUninstallKey('atom')],
     executableShimPaths: [['bin', 'atom.cmd']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName === 'Atom' && publisher === 'GitHub Inc.',
+    displayNamePrefix: 'Atom',
+    publisher: 'GitHub Inc.',
   },
   {
     name: 'Atom Beta',
     registryKeys: [CurrentUserUninstallKey('atom-beta')],
     executableShimPaths: [['bin', 'atom-beta.cmd']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName === 'Atom Beta' && publisher === 'GitHub Inc.',
+    displayNamePrefix: 'Atom Beta',
+    publisher: 'GitHub Inc.',
   },
   {
     name: 'Atom Nightly',
     registryKeys: [CurrentUserUninstallKey('atom-nightly')],
     executableShimPaths: [['bin', 'atom-nightly.cmd']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName === 'Atom Nightly' && publisher === 'GitHub Inc.',
+    displayNamePrefix: 'Atom Nightly',
+    publisher: 'GitHub Inc.',
   },
   {
     name: 'Visual Studio Code',
@@ -181,9 +173,8 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{A5270FC5-65AD-483E-AC30-2C276B63D0AC}_is1'),
     ],
     executableShimPaths: [['bin', 'code.cmd']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('Microsoft Visual Studio Code') &&
-      publisher === 'Microsoft Corporation',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
   },
   {
     name: 'Visual Studio Code (Insiders)',
@@ -204,9 +195,8 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{0AEDB616-9614-463B-97D7-119DD86CCA64}_is1'),
     ],
     executableShimPaths: [['bin', 'code-insiders.cmd']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('Microsoft Visual Studio Code Insiders') &&
-      publisher === 'Microsoft Corporation',
+    displayNamePrefix: 'Microsoft Visual Studio Code Insiders',
+    publisher: 'Microsoft Corporation',
   },
   {
     name: 'Visual Studio Codium',
@@ -227,9 +217,8 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{D1ACE434-89C5-48D1-88D3-E2991DF85475}_is1'),
     ],
     executableShimPaths: [['bin', 'codium.cmd']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('VSCodium') &&
-      publisher === 'Microsoft Corporation',
+    displayNamePrefix: 'VSCodium',
+    publisher: 'Microsoft Corporation',
   },
   {
     name: 'Sublime Text',
@@ -240,9 +229,8 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('Sublime Text 3_is1'),
     ],
     executableShimPaths: [['subl.exe']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('Sublime Text') &&
-      publisher === 'Sublime HQ Pty Ltd',
+    displayNamePrefix: 'Sublime Text',
+    publisher: 'Sublime HQ Pty Ltd',
   },
   {
     name: 'ColdFusion Builder',
@@ -253,9 +241,8 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('Adobe ColdFusion Builder 2016'),
     ],
     executableShimPaths: [['CFBuilder.exe']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('Adobe ColdFusion Builder') &&
-      publisher === 'Adobe Systems Incorporated',
+    displayNamePrefix: 'Adobe ColdFusion Builder',
+    publisher: 'Adobe Systems Incorporated',
   },
   {
     name: 'Typora',
@@ -268,8 +255,8 @@ const editors: WindowsExternalEditor[] = [
       ),
     ],
     executableShimPaths: [['typora.exe']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('Typora') && publisher === 'typora.io',
+    displayNamePrefix: 'Typora',
+    publisher: 'typora.io',
   },
   {
     name: 'SlickEdit',
@@ -298,22 +285,22 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}'),
     ],
     executableShimPaths: [['win', 'vs.exe']],
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.',
+    displayNamePrefix: 'SlickEdit',
+    publisher: 'SlickEdit Inc.',
   },
   {
     name: 'JetBrains Webstorm',
     registryKeys: registryKeysForJetBrainsIDE('WebStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('webstorm'),
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.',
+    displayNamePrefix: 'WebStorm',
+    publisher: 'JetBrains s.r.o.',
   },
   {
     name: 'JetBrains Phpstorm',
     registryKeys: registryKeysForJetBrainsIDE('PhpStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('PhpStorm') && publisher === 'JetBrains s.r.o.',
+    displayNamePrefix: 'PhpStorm',
+    publisher: 'JetBrains s.r.o.',
   },
   {
     name: 'Notepad++',
@@ -324,31 +311,29 @@ const editors: WindowsExternalEditor[] = [
       Wow64LocalMachineUninstallKey('Notepad++'),
     ],
     installLocationRegistryKey: 'DisplayIcon',
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team',
+    displayNamePrefix: 'Notepad++',
+    publisher: 'Notepad++ Team',
   },
   {
     name: 'JetBrains Rider',
     registryKeys: registryKeysForJetBrainsIDE('JetBrains Rider'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('rider'),
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('JetBrains Rider') &&
-      publisher === 'JetBrains s.r.o.',
+    displayNamePrefix: 'JetBrains Rider',
+    publisher: 'JetBrains s.r.o.',
   },
   {
     name: 'RStudio',
     registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
     installLocationRegistryKey: 'DisplayIcon',
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName === 'RStudio' && publisher === 'RStudio',
+    displayNamePrefix: 'RStudio',
+    publisher: 'RStudio',
   },
   {
     name: 'JetBrains IntelliJ Idea',
     registryKeys: registryKeysForJetBrainsIDE('IntelliJ IDEA'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('idea'),
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('IntelliJ IDEA ') &&
-      publisher === 'JetBrains s.r.o.',
+    displayNamePrefix: 'IntelliJ IDEA ',
+    publisher: 'JetBrains s.r.o.',
   },
   {
     name: 'JetBrains IntelliJ Idea Community Edition',
@@ -356,9 +341,8 @@ const editors: WindowsExternalEditor[] = [
       'IntelliJ IDEA Community Edition'
     ),
     executableShimPaths: executableShimPathsForJetBrainsIDE('idea'),
-    expectedInstallationChecker: (displayName, publisher) =>
-      displayName.startsWith('IntelliJ IDEA Community Edition ') &&
-      publisher === 'JetBrains s.r.o.',
+    displayNamePrefix: 'IntelliJ IDEA Community Edition ',
+    publisher: 'JetBrains s.r.o.',
   },
 ]
 
@@ -392,7 +376,10 @@ async function findApplication(editor: WindowsExternalEditor) {
 
     const { displayName, publisher, installLocation } = getAppInfo(editor, keys)
 
-    if (!editor.expectedInstallationChecker(displayName, publisher)) {
+    if (
+      !displayName.startsWith(editor.displayNamePrefix) ||
+      publisher !== editor.publisher
+    ) {
       log.debug(`Unexpected registry entries for ${editor.name}`)
       continue
     }
