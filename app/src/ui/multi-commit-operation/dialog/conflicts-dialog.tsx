@@ -1,25 +1,25 @@
 import * as React from 'react'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Dispatcher } from '../dispatcher'
-import { Repository } from '../../models/repository'
+import { Dialog, DialogContent, DialogFooter } from '../../dialog'
+import { Dispatcher } from '../../dispatcher'
+import { Repository } from '../../../models/repository'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-} from '../../models/status'
+} from '../../../models/status'
 import {
   isConflictedFile,
   getResolvedFiles,
   getConflictedFiles,
   getUnmergedFiles,
-} from '../../lib/status'
+} from '../../../lib/status'
 import {
   renderUnmergedFile,
   renderUnmergedFilesSummary,
   renderShellLink,
   renderAllResolved,
-} from '../lib/conflicts'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+} from '../../lib/conflicts'
+import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
+import { OkCancelButtonGroup } from '../../dialog/ok-cancel-button-group'
 
 interface IConflictsDialogProps {
   readonly dispatcher: Dispatcher

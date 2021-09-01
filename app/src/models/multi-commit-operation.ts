@@ -134,13 +134,27 @@ export type CreateBranchStep = {
   targetBranchName: string
 }
 
-interface IInteractiveRebaseDetails {
+interface IBaseInteractiveRebaseDetails {
+  /**
+   * Array of commits used during the operation.
+   */
+  readonly commits: ReadonlyArray<Commit>
+
+  /**
+   * This is the commit sha of the HEAD of the in-flight operation used to compare
+   * the state of the after an operation to a previous state.
+   */
+  readonly currentTip: string
+}
+
+interface IInteractiveRebaseDetails extends IBaseInteractiveRebaseDetails {
   /**
    * The reference to the last retained commit on the branch during an
    * interactive rebase or null if rebasing to the root.
    */
   readonly lastRetainedCommitRef: string | null
 }
+
 interface ISourceBranchDetails {
   /**
    * The branch that are the source of the commits for the operation.
@@ -150,6 +164,7 @@ interface ISourceBranchDetails {
    */
   readonly sourceBranch: Branch | null
 }
+
 interface ISquashDetails extends IInteractiveRebaseDetails {
   readonly kind: MultiCommitOperationKind.Squash
 
@@ -181,10 +196,21 @@ interface ICherryPickDetails extends ISourceBranchDetails {
    * Example: can create a new branch to copy commits to during cherry-pick
    */
   readonly branchCreated: boolean
+
+  /**
+   * Array of commits used during the operation.
+   */
+  readonly commits: ReadonlyArray<CommitOneLine>
 }
 
 interface IRebaseDetails extends ISourceBranchDetails {
   readonly kind: MultiCommitOperationKind.Rebase
+  readonly commits: ReadonlyArray<CommitOneLine>
+  /**
+   * This is the commit sha of the HEAD of the in-flight operation used to compare
+   * the state of the after an operation to a previous state.
+   */
+  readonly currentTip: string
 }
 
 interface IMergeDetails extends ISourceBranchDetails {
@@ -198,3 +224,19 @@ export type MultiCommitOperationDetail =
   | ICherryPickDetails
   | IRebaseDetails
   | IMergeDetails
+
+export function instanceOfIBaseRebaseDetails(
+  object: any
+): object is IBaseInteractiveRebaseDetails {
+  const objectWithRequiredFields: IBaseInteractiveRebaseDetails = {
+    commits: [],
+    currentTip: '',
+  }
+
+  return Object.keys(objectWithRequiredFields).every(key => key in object)
+}
+
+export const conflictSteps = [
+  MultiCommitOperationStepKind.ShowConflicts,
+  MultiCommitOperationStepKind.ConfirmAbort,
+]

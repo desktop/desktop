@@ -16,6 +16,7 @@ import {
 import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
+import { enableLineChangesInCommit } from '../feature-flag'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -66,6 +67,7 @@ export async function getCommits(
   repository: Repository,
   revisionRange?: string,
   limit?: number,
+  skip?: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
   const { formatArgs, parse } = createLogParser({
@@ -93,6 +95,10 @@ export async function getCommits(
 
   if (limit !== undefined) {
     args.push(`--max-count=${limit}`)
+  }
+
+  if (skip !== undefined) {
+    args.push(`--skip=${skip}`)
   }
 
   args.push(
@@ -133,15 +139,27 @@ export async function getCommits(
   })
 }
 
+/** This interface contains information of a changeset. */
+export interface IChangesetData {
+  /** Files changed in the changeset. */
+  readonly files: ReadonlyArray<CommittedFileChange>
+
+  /** Number of lines added in the changeset. */
+  readonly linesAdded: number
+
+  /** Number of lines deleted in the changeset. */
+  readonly linesDeleted: number
+}
+
 /** Get the files that were changed in the given commit. */
 export async function getChangedFiles(
   repository: Repository,
   sha: string
-): Promise<ReadonlyArray<CommittedFileChange>> {
+): Promise<IChangesetData> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
-  const args = [
+  const baseArgs = [
     'log',
     sha,
     '-C',
@@ -150,14 +168,63 @@ export async function getChangedFiles(
     '-1',
     '--no-show-signature',
     '--first-parent',
-    '--name-status',
     '--format=format:',
     '-z',
-    '--',
   ]
-  const result = await git(args, repository.path, 'getChangedFiles')
 
-  return parseChangedFiles(result.stdout, sha)
+  // Run `git log` to obtain the file names and their state
+  const resultNameStatus = await git(
+    [...baseArgs, '--name-status', '--'],
+    repository.path,
+    'getChangedFilesNameStatus'
+  )
+
+  const files = parseChangedFiles(resultNameStatus.stdout, sha)
+
+  if (!enableLineChangesInCommit()) {
+    return { files, linesAdded: 0, linesDeleted: 0 }
+  }
+
+  // Run `git log` again, but this time to get the number of lines added/deleted
+  // per file
+  const resultNumStat = await git(
+    [...baseArgs, '--numstat', '--'],
+    repository.path,
+    'getChangedFilesNumStats'
+  )
+
+  const linesChanged = parseChangedFilesNumStat(resultNumStat.stdout)
+
+  return {
+    files,
+    ...linesChanged,
+  }
+}
+
+function parseChangedFilesNumStat(
+  stdout: string
+): { linesAdded: number; linesDeleted: number } {
+  const lines = stdout.split('\0')
+  let totalLinesAdded = 0
+  let totalLinesDeleted = 0
+
+  for (const line of lines) {
+    const parts = line.split('\t')
+    if (parts.length !== 3) {
+      continue
+    }
+
+    const [added, deleted] = parts
+
+    if (added === '-' || deleted === '-') {
+      continue
+    }
+
+    totalLinesAdded += parseInt(added, 10)
+    totalLinesDeleted += parseInt(deleted, 10)
+  }
+
+  return { linesAdded: totalLinesAdded, linesDeleted: totalLinesDeleted }
 }
 
 /**
@@ -221,9 +288,13 @@ export async function doMergeCommitsExistAfterCommit(
   const commitRevRange =
     commitRef === null ? undefined : revRange(commitRef, 'HEAD')
 
-  const mergeCommits = await getCommits(repository, commitRevRange, undefined, [
-    '--merges',
-  ])
+  const mergeCommits = await getCommits(
+    repository,
+    commitRevRange,
+    undefined,
+    undefined,
+    ['--merges']
+  )
 
   return mergeCommits.length > 0
 }

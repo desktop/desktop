@@ -1,11 +1,13 @@
-import { RebaseConflictState } from '../../lib/app-state'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
-import { BaseMultiCommitOperation } from './base-multi-commit-operation'
+import { BaseRebase } from './base-rebase'
 
-export abstract class Squash extends BaseMultiCommitOperation {
+export abstract class Squash extends BaseRebase {
+  protected conflictDialogOperationPrefix = 'squashing commits on'
+  protected rebaseKind = MultiCommitOperationKind.Squash
+
   protected onBeginOperation = () => {
     const { repository, dispatcher, state } = this.props
-    const { commits, operationDetail } = state
+    const { operationDetail } = state
 
     if (operationDetail.kind !== MultiCommitOperationKind.Squash) {
       this.endFlowInvalidState()
@@ -16,6 +18,7 @@ export abstract class Squash extends BaseMultiCommitOperation {
       targetCommit,
       lastRetainedCommitRef,
       commitContext,
+      commits,
     } = operationDetail
 
     return dispatcher.squash(
@@ -26,58 +29,5 @@ export abstract class Squash extends BaseMultiCommitOperation {
       commitContext,
       true
     )
-  }
-
-  protected onContinueAfterConflicts = async (): Promise<void> => {
-    const {
-      repository,
-      dispatcher,
-      workingDirectory,
-      state,
-      conflictState,
-    } = this.props
-    const { commits, currentTip, targetBranch, originalBranchTip } = state
-
-    if (conflictState === null) {
-      this.endFlowInvalidState()
-      return
-    }
-
-    await dispatcher.switchMultiCommitOperationToShowProgress(repository)
-
-    const rebaseConflictState: RebaseConflictState = {
-      kind: 'rebase',
-      currentTip,
-      targetBranch: targetBranch.name,
-      baseBranch: undefined,
-      originalBranchTip,
-      baseBranchTip: currentTip,
-      manualResolutions: conflictState.manualResolutions,
-    }
-
-    const rebaseResult = await dispatcher.continueRebase(
-      MultiCommitOperationKind.Squash,
-      repository,
-      workingDirectory,
-      rebaseConflictState
-    )
-
-    return dispatcher.processMultiCommitOperationRebaseResult(
-      MultiCommitOperationKind.Squash,
-      repository,
-      rebaseResult,
-      commits.length + 1,
-      targetBranch.name
-    )
-  }
-
-  protected onAbort = async (): Promise<void> => {
-    const { repository, dispatcher } = this.props
-    this.onFlowEnded()
-    return dispatcher.abortRebase(repository)
-  }
-
-  protected onConflictsDialogDismissed = () => {
-    this.onInvokeConflictsDialogDismissed('squashing commits on')
   }
 }

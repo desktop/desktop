@@ -9,9 +9,6 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
-  ICherryPickState,
-  isRebaseConflictState,
-  isCherryPickConflictState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -56,7 +53,8 @@ import {
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
-import { OcticonSymbol, iconForRepository } from './octicons'
+import { iconForRepository, OcticonSymbolType } from './octicons'
+import * as OcticonSymbol from './octicons/octicons.generated'
 import { showCertificateTrustDialog, sendReady } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -94,11 +92,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
-import { RebaseFlow, ConfirmForcePush } from './rebase'
-import {
-  initializeRebaseFlowForConflictedRepository,
-  isCurrentBranchForcePush,
-} from '../lib/rebase'
+import { isCurrentBranchForcePush } from '../lib/rebase'
 import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
@@ -121,14 +115,8 @@ import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
-import { CherryPickFlow } from './cherry-pick/cherry-pick-flow'
-import {
-  CherryPickStepKind,
-  ChooseTargetBranchesStep,
-} from '../models/cherry-pick'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
-import { WorkingDirectoryStatus } from '../models/status'
 import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
@@ -148,6 +136,13 @@ import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
 import { WarningBeforeReset } from './reset/warning-before-reset'
+import { InvalidatedToken } from './invalidated-token/invalidated-token'
+import { MultiCommitOperationKind } from '../models/multi-commit-operation'
+import { AddSSHHost } from './ssh/add-ssh-host'
+import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
+import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-operation'
+import { ConfirmForcePush } from './rebase/confirm-force-push'
+import { setAlmostImmediate } from '../lib/set-almost-immediate'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -548,7 +543,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private boomtown() {
-    setImmediate(() => {
+    setAlmostImmediate(() => {
       throw new Error('Boomtown!')
     })
   }
@@ -1118,6 +1113,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!repository || repository instanceof CloningRepository) {
       return
     }
+
     this.props.dispatcher.showRebaseDialog(repository)
   }
 
@@ -1412,6 +1408,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
+            useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
             repository={repository}
@@ -1717,63 +1714,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
-      case PopupType.RebaseFlow: {
-        const { selectedState, emoji } = this.state
-
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const {
-          changesState,
-          rebaseState,
-          multiCommitOperationState,
-        } = selectedState.state
-        const { workingDirectory, conflictState } = changesState
-        const { progress, step, userHasResolvedConflicts } = rebaseState
-
-        if (
-          (conflictState !== null && conflictState.kind !== 'rebase') ||
-          multiCommitOperationState !== null
-        ) {
-          log.warn(
-            '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
-          )
-          return null
-        }
-
-        if (step === null) {
-          log.warn(
-            '[App] invalid state encountered - rebase flow should not be active when step is null'
-          )
-          return null
-        }
-
-        return (
-          <RebaseFlow
-            key="rebase-flow"
-            repository={popup.repository}
-            openFileInExternalEditor={this.openFileInExternalEditor}
-            dispatcher={this.props.dispatcher}
-            onFlowEnded={this.onRebaseFlowEnded}
-            onDismissed={onPopupDismissedFn}
-            workingDirectory={workingDirectory}
-            progress={progress}
-            step={step}
-            userHasResolvedConflicts={userHasResolvedConflicts}
-            askForConfirmationOnForcePush={
-              this.state.askForConfirmationOnForcePush
-            }
-            resolvedExternalEditor={this.state.resolvedExternalEditor}
-            openRepositoryInShell={this.openCurrentRepositoryInShell}
-            onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}
-            emoji={emoji}
-          />
-        )
-      }
       case PopupType.ConfirmForcePush: {
         const { askForConfirmationOnForcePush } = this.state
 
@@ -1940,47 +1880,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
           />
         )
-      case PopupType.CherryPick: {
-        const cherryPickState = this.getCherryPickState()
-        const workingDirectory = this.getWorkingDirectory()
-        if (
-          cherryPickState === null ||
-          cherryPickState.step == null ||
-          workingDirectory === null
-        ) {
-          log.warn(
-            `[App] Invalid state encountered:
-            cherry-pick flow should not be active when step is null,
-            the selected app state is not a repository state,
-            or cannot obtain the working directory.`
-          )
-          return null
-        }
-
-        const { step, progress, userHasResolvedConflicts } = cherryPickState
-
-        return (
-          <CherryPickFlow
-            key="cherry-pick-flow"
-            repository={popup.repository}
-            dispatcher={this.props.dispatcher}
-            onDismissed={onPopupDismissedFn}
-            step={step}
-            emoji={this.state.emoji}
-            progress={progress}
-            commits={popup.commits}
-            openFileInExternalEditor={this.openFileInExternalEditor}
-            workingDirectory={workingDirectory}
-            userHasResolvedConflicts={userHasResolvedConflicts}
-            resolvedExternalEditor={this.state.resolvedExternalEditor}
-            openRepositoryInShell={this.openCurrentRepositoryInShell}
-            sourceBranch={popup.sourceBranch}
-            onShowCherryPickConflictsBanner={
-              this.onShowCherryPickConflictsBanner
-            }
-          />
-        )
-      }
       case PopupType.MoveToApplicationsFolder: {
         return (
           <MoveToApplicationsFolder
@@ -2116,6 +2015,38 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.InvalidatedToken: {
+        return (
+          <InvalidatedToken
+            key="invalidated-token"
+            dispatcher={this.props.dispatcher}
+            account={popup.account}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.AddSSHHost: {
+        return (
+          <AddSSHHost
+            key="add-ssh-host"
+            host={popup.host}
+            ip={popup.ip}
+            fingerprint={popup.fingerprint}
+            onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.SSHKeyPassphrase: {
+        return (
+          <SSHKeyPassphrase
+            key="ssh-key-passphrase"
+            keyPath={popup.keyPath}
+            onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2133,46 +2064,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onCreateTutorialRepository = (account: Account) => {
     this.props.dispatcher.createTutorialRepository(account)
-  }
-
-  private onShowRebaseConflictsBanner = (
-    repository: Repository,
-    targetBranch: string
-  ) => {
-    this.props.dispatcher.setBanner({
-      type: BannerType.RebaseConflictsFound,
-      targetBranch,
-      onOpenDialog: async () => {
-        const { changesState } = this.props.repositoryStateManager.get(
-          repository
-        )
-        const { conflictState } = changesState
-
-        if (conflictState === null || !isRebaseConflictState(conflictState)) {
-          log.debug(
-            `[App.onShowRebaseConflictsBanner] no rebase conflict state found, ignoring...`
-          )
-          return
-        }
-
-        await this.props.dispatcher.setRebaseProgressFromState(repository)
-
-        const initialStep = initializeRebaseFlowForConflictedRepository(
-          conflictState
-        )
-
-        this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
-
-        this.props.dispatcher.showPopup({
-          type: PopupType.RebaseFlow,
-          repository,
-        })
-      },
-    })
-  }
-
-  private onRebaseFlowEnded = (repository: Repository) => {
-    this.props.dispatcher.endRebaseFlow(repository)
   }
 
   private onUpdateExistingUpstreamRemote = (repository: Repository) => {
@@ -2441,7 +2332,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection ? selection.repository : null
 
-    let icon: OcticonSymbol
+    let icon: OcticonSymbolType
     let title: string
     if (repository) {
       const alias = repository instanceof Repository ? repository.alias : null
@@ -2888,12 +2779,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   ) => {
     const repositoryState = this.props.repositoryStateManager.get(repository)
 
-    const {
-      defaultBranch,
-      allBranches,
-      recentBranches,
-      tip,
-    } = repositoryState.branchesState
+    const { tip } = repositoryState.branchesState
     let currentBranch: Branch | null = null
 
     if (tip.kind === TipState.Valid) {
@@ -2904,93 +2790,28 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     }
 
-    const initialStep: ChooseTargetBranchesStep = {
-      kind: CherryPickStepKind.ChooseTargetBranch,
-      defaultBranch,
-      currentBranch,
-      allBranches,
-      recentBranches,
-    }
+    this.props.dispatcher.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.CherryPick,
+        sourceBranch: currentBranch,
+        branchCreated: false,
+        commits,
+      },
+      tip.branch,
+      commits,
+      tip.branch.tip.sha
+    )
 
-    this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+    const initialStep = getMultiCommitOperationChooseBranchStep(repositoryState)
+
+    this.props.dispatcher.setMultiCommitOperationStep(repository, initialStep)
     this.props.dispatcher.recordCherryPickViaContextMenu()
 
     this.showPopup({
-      type: PopupType.CherryPick,
+      type: PopupType.MultiCommitOperation,
       repository,
-      commits,
-      sourceBranch: currentBranch,
     })
-  }
-
-  private getCherryPickState(): ICherryPickState | null {
-    const { selectedState } = this.state
-    if (
-      selectedState === null ||
-      selectedState.type !== SelectionType.Repository
-    ) {
-      return null
-    }
-
-    const { cherryPickState } = selectedState.state
-    return cherryPickState
-  }
-
-  private onShowCherryPickConflictsBanner = (
-    repository: Repository,
-    targetBranchName: string,
-    sourceBranch: Branch | null,
-    commits: ReadonlyArray<CommitOneLine>
-  ) => {
-    this.props.dispatcher.setCherryPickFlowStep(repository, {
-      kind: CherryPickStepKind.HideConflicts,
-    })
-
-    this.props.dispatcher.setBanner({
-      type: BannerType.CherryPickConflictsFound,
-      targetBranchName,
-      onOpenConflictsDialog: async () => {
-        const { changesState } = this.props.repositoryStateManager.get(
-          repository
-        )
-        const { conflictState } = changesState
-
-        if (
-          conflictState === null ||
-          !isCherryPickConflictState(conflictState)
-        ) {
-          log.debug(
-            `[App.onShowCherryPickConflictsBanner] no cherry-pick conflict state found, ignoring...`
-          )
-          return
-        }
-
-        await this.props.dispatcher.setCherryPickProgressFromState(repository)
-
-        this.props.dispatcher.setCherryPickFlowStep(repository, {
-          kind: CherryPickStepKind.ShowConflicts,
-          conflictState,
-        })
-
-        this.props.dispatcher.showPopup({
-          type: PopupType.CherryPick,
-          repository,
-          commits,
-          sourceBranch,
-        })
-      },
-    })
-  }
-
-  private getWorkingDirectory(): WorkingDirectoryStatus | null {
-    const { selectedState } = this.state
-    if (
-      selectedState === null ||
-      selectedState.type !== SelectionType.Repository
-    ) {
-      return null
-    }
-    return selectedState.state.changesState.workingDirectory
   }
 
   /**

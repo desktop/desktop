@@ -34,6 +34,7 @@ import {
   DragAndDropIntroType,
   AvailableDragAndDropIntroKeys,
 } from './history/drag-and-drop-intro'
+import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -253,8 +254,30 @@ export class RepositoryView extends React.Component<
   }
 
   private renderCompareSidebar(): JSX.Element {
-    const tip = this.props.state.branchesState.tip
+    const {
+      repository,
+      dispatcher,
+      state,
+      aheadBehindStore,
+      dragAndDropIntroTypesShown,
+      emoji,
+    } = this.props
+    const {
+      remote,
+      compareState,
+      branchesState,
+      commitSelection: { shas },
+      commitLookup,
+      localCommitSHAs,
+      localTags,
+      tagsToPush,
+      multiCommitOperationState: mcos,
+    } = state
+    const { tip } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const isCherryPickInProgress =
+      mcos !== null &&
+      mcos.operationDetail.kind === MultiCommitOperationKind.CherryPick
 
     const scrollTop =
       this.forceCompareListScrollTop ||
@@ -266,26 +289,26 @@ export class RepositoryView extends React.Component<
 
     return (
       <CompareSidebar
-        repository={this.props.repository}
-        isLocalRepository={this.props.state.remote === null}
-        compareState={this.props.state.compareState}
-        selectedCommitShas={this.props.state.commitSelection.shas}
+        repository={repository}
+        isLocalRepository={remote === null}
+        compareState={compareState}
+        selectedCommitShas={shas}
         currentBranch={currentBranch}
-        emoji={this.props.emoji}
-        commitLookup={this.props.state.commitLookup}
-        localCommitSHAs={this.props.state.localCommitSHAs}
-        localTags={this.props.state.localTags}
-        dispatcher={this.props.dispatcher}
+        emoji={emoji}
+        commitLookup={commitLookup}
+        localCommitSHAs={localCommitSHAs}
+        localTags={localTags}
+        dispatcher={dispatcher}
         onRevertCommit={this.onRevertCommit}
         onAmendCommit={this.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
         onCherryPick={this.props.onCherryPick}
         compareListScrollTop={scrollTop}
-        tagsToPush={this.props.state.tagsToPush}
-        aheadBehindStore={this.props.aheadBehindStore}
-        dragAndDropIntroTypesShown={this.props.dragAndDropIntroTypesShown}
-        isCherryPickInProgress={this.props.state.cherryPickState.step !== null}
+        tagsToPush={tagsToPush}
+        aheadBehindStore={aheadBehindStore}
+        dragAndDropIntroTypesShown={dragAndDropIntroTypesShown}
+        isCherryPickInProgress={isCherryPickInProgress}
       />
     )
   }
@@ -382,7 +405,7 @@ export class RepositoryView extends React.Component<
         ? false
         : this.props.state.localCommitSHAs.includes(selectedCommit.sha)
 
-    const { changedFiles, file, diff } = commitSelection
+    const { changesetData, file, diff } = commitSelection
 
     const showDragOverlay = dragAndDropManager.isDragOfTypeInProgress(
       DragType.Commit
@@ -395,7 +418,7 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         selectedCommit={selectedCommit}
         isLocal={isLocal}
-        changedFiles={changedFiles}
+        changesetData={changesetData}
         selectedFile={file}
         currentDiff={diff}
         emoji={this.props.emoji}

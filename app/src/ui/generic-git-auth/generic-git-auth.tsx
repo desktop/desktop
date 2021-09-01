@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { RetryAction } from '../../models/retry-actions'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
+import { LinkButton } from '../lib/link-button'
 
 interface IGenericGitAuthenticationProps {
   /** The hostname with which the user tried to authenticate. */
@@ -73,6 +74,18 @@ export class GenericGitAuthentication extends React.Component<
               value={this.state.password}
               onValueChanged={this.onPasswordChange}
             />
+          </Row>
+
+          <Row>
+            <div>
+              Depending on your repository's hosting service, you might need to
+              use a Personal Access Token (PAT) as your password. Learn more
+              about creating a PAT in our{' '}
+              <LinkButton uri="https://github.com/desktop/desktop/tree/development/docs/integrations">
+                integration docs
+              </LinkButton>
+              .
+            </div>
           </Row>
         </DialogContent>
 

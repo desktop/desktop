@@ -16,7 +16,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
@@ -225,16 +226,18 @@ export class BranchesContainer extends React.Component<
       return
     }
 
-    await this.props.dispatcher.setCherryPickCreateBranchFlowStep(
-      this.props.repository,
-      ''
+    const { dispatcher, repository, currentBranch } = this.props
+
+    await dispatcher.setCherryPickCreateBranchFlowStep(
+      repository,
+      '',
+      dragData.commits,
+      currentBranch
     )
 
     this.props.dispatcher.showPopup({
-      type: PopupType.CherryPick,
-      repository: this.props.repository,
-      commits: dragData.commits,
-      sourceBranch: this.props.currentBranch,
+      type: PopupType.MultiCommitOperation,
+      repository,
     })
   }
 

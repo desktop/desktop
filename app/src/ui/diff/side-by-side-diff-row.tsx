@@ -9,7 +9,8 @@ import {
 } from './diff-helpers'
 import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
@@ -39,6 +40,11 @@ interface ISideBySideDiffRowProps {
 
   /** Whether or not whitespace changes are hidden. */
   readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * The width to display the diff gutter with.
+   */
+  readonly lineNumberWidth: string
 
   /**
    * The index of the row in the displayed diff.
@@ -395,7 +401,10 @@ export class SideBySideDiffRow extends React.Component<
   ) {
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
-        <div className="line-number">
+        <div
+          className="line-number"
+          style={{ width: this.props.lineNumberWidth }}
+        >
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
@@ -410,6 +419,7 @@ export class SideBySideDiffRow extends React.Component<
           hoverable: !this.props.hideWhitespaceInDiff,
           hover: this.props.isHunkHovered,
         })}
+        style={{ width: this.props.lineNumberWidth }}
         title={
           this.props.hideWhitespaceInDiff ? HideWhitespaceWarning : undefined
         }

@@ -5,6 +5,8 @@ import { Squash } from './squash'
 import { IMultiCommitOperationProps } from './base-multi-commit-operation'
 import { Merge } from './merge'
 import { Reorder } from './reorder'
+import { CherryPick } from './cherry-pick'
+import { Rebase } from './rebase'
 
 /** A component for managing the views of a multi commit operation. */
 export class MultiCommitOperation extends React.Component<
@@ -14,9 +16,9 @@ export class MultiCommitOperation extends React.Component<
     const { kind } = this.props.state.operationDetail
     switch (kind) {
       case MultiCommitOperationKind.CherryPick:
-        return null
+        return <CherryPick {...this.props} />
       case MultiCommitOperationKind.Rebase:
-        return null
+        return <Rebase {...this.props} />
       case MultiCommitOperationKind.Merge:
         return (
           <Merge
