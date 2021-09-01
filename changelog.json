@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.9.3": [
+      "[Fixed] Fix Notepad++ and RStudio integration on Windows - #12841",
+      "[Fixed] Add minor version support for JetBrains IDEs on Windows - #12847. Thanks @tsvetilian-ty!"
+    ],
     "2.9.3-beta2": [
       "[Fixed] Fix Notepad++ and RStudio integration on Windows - #12841",
       "[Fixed] Add minor version support for JetBrains IDEs on Windows - #12847. Thanks @tsvetilian-ty!"
