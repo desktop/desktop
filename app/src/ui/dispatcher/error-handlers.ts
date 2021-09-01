@@ -417,7 +417,7 @@ export async function rebaseConflictsHandler(
 
   const { currentBranch } = gitContext
 
-  dispatcher.launchRebaseFlow(repository, currentBranch)
+  dispatcher.launchRebaseOperation(repository, currentBranch)
 
   return null
 }

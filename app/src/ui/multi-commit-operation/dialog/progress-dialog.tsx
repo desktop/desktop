@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { formatRebaseValue } from '../../lib/rebase'
-import { RichText } from '../lib/rich-text'
-import { Dialog, DialogContent } from '../dialog'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
-import { IMultiCommitOperationProgress } from '../../models/progress'
+import { formatRebaseValue } from '../../../lib/rebase'
+import { RichText } from '../../lib/rich-text'
+import { Dialog, DialogContent } from '../../dialog'
+import { Octicon } from '../../octicons'
+import * as OcticonSymbol from '../../octicons/octicons.generated'
+import { IMultiCommitOperationProgress } from '../../../models/progress'
 
 interface IProgressDialogProps {
   /**

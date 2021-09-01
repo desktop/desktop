@@ -8,7 +8,6 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
-  isRebaseConflictState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -92,11 +91,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
-import { RebaseFlow, ConfirmForcePush } from './rebase'
-import {
-  initializeRebaseFlowForConflictedRepository,
-  isCurrentBranchForcePush,
-} from '../lib/rebase'
+import { isCurrentBranchForcePush } from '../lib/rebase'
 import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
@@ -141,13 +136,11 @@ import { MultiCommitOperation } from './multi-commit-operation/multi-commit-oper
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
 import { WarningBeforeReset } from './reset/warning-before-reset'
 import { InvalidatedToken } from './invalidated-token/invalidated-token'
-import {
-  ChooseBranchStep,
-  MultiCommitOperationKind,
-  MultiCommitOperationStepKind,
-} from '../models/multi-commit-operation'
+import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 import { AddSSHHost } from './ssh/add-ssh-host'
 import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
+import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-operation'
+import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { setAlmostImmediate } from '../lib/set-almost-immediate'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -1119,6 +1112,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!repository || repository instanceof CloningRepository) {
       return
     }
+
     this.props.dispatcher.showRebaseDialog(repository)
   }
 
@@ -1719,63 +1713,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
-      case PopupType.RebaseFlow: {
-        const { selectedState, emoji } = this.state
-
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const {
-          changesState,
-          rebaseState,
-          multiCommitOperationState,
-        } = selectedState.state
-        const { workingDirectory, conflictState } = changesState
-        const { progress, step, userHasResolvedConflicts } = rebaseState
-
-        if (
-          (conflictState !== null && conflictState.kind !== 'rebase') ||
-          multiCommitOperationState !== null
-        ) {
-          log.warn(
-            '[App] invalid state encountered - rebase flow should not be used when merge conflicts found'
-          )
-          return null
-        }
-
-        if (step === null) {
-          log.warn(
-            '[App] invalid state encountered - rebase flow should not be active when step is null'
-          )
-          return null
-        }
-
-        return (
-          <RebaseFlow
-            key="rebase-flow"
-            repository={popup.repository}
-            openFileInExternalEditor={this.openFileInExternalEditor}
-            dispatcher={this.props.dispatcher}
-            onFlowEnded={this.onRebaseFlowEnded}
-            onDismissed={onPopupDismissedFn}
-            workingDirectory={workingDirectory}
-            progress={progress}
-            step={step}
-            userHasResolvedConflicts={userHasResolvedConflicts}
-            askForConfirmationOnForcePush={
-              this.state.askForConfirmationOnForcePush
-            }
-            resolvedExternalEditor={this.state.resolvedExternalEditor}
-            openRepositoryInShell={this.openCurrentRepositoryInShell}
-            onShowRebaseConflictsBanner={this.onShowRebaseConflictsBanner}
-            emoji={emoji}
-          />
-        )
-      }
       case PopupType.ConfirmForcePush: {
         const { askForConfirmationOnForcePush } = this.state
 
@@ -2126,46 +2063,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onCreateTutorialRepository = (account: Account) => {
     this.props.dispatcher.createTutorialRepository(account)
-  }
-
-  private onShowRebaseConflictsBanner = (
-    repository: Repository,
-    targetBranch: string
-  ) => {
-    this.props.dispatcher.setBanner({
-      type: BannerType.RebaseConflictsFound,
-      targetBranch,
-      onOpenDialog: async () => {
-        const { changesState } = this.props.repositoryStateManager.get(
-          repository
-        )
-        const { conflictState } = changesState
-
-        if (conflictState === null || !isRebaseConflictState(conflictState)) {
-          log.debug(
-            `[App.onShowRebaseConflictsBanner] no rebase conflict state found, ignoring...`
-          )
-          return
-        }
-
-        await this.props.dispatcher.setRebaseProgressFromState(repository)
-
-        const initialStep = initializeRebaseFlowForConflictedRepository(
-          conflictState
-        )
-
-        this.props.dispatcher.setRebaseFlowStep(repository, initialStep)
-
-        this.props.dispatcher.showPopup({
-          type: PopupType.RebaseFlow,
-          repository,
-        })
-      },
-    })
-  }
-
-  private onRebaseFlowEnded = (repository: Repository) => {
-    this.props.dispatcher.endRebaseFlow(repository)
   }
 
   private onUpdateExistingUpstreamRemote = (repository: Repository) => {
@@ -2870,12 +2767,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   ) => {
     const repositoryState = this.props.repositoryStateManager.get(repository)
 
-    const {
-      defaultBranch,
-      allBranches,
-      recentBranches,
-      tip,
-    } = repositoryState.branchesState
+    const { tip } = repositoryState.branchesState
     let currentBranch: Branch | null = null
 
     if (tip.kind === TipState.Valid) {
@@ -2899,13 +2791,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       tip.branch.tip.sha
     )
 
-    const initialStep: ChooseBranchStep = {
-      kind: MultiCommitOperationStepKind.ChooseBranch,
-      defaultBranch,
-      currentBranch,
-      allBranches,
-      recentBranches,
-    }
+    const initialStep = getMultiCommitOperationChooseBranchStep(repositoryState)
 
     this.props.dispatcher.setMultiCommitOperationStep(repository, initialStep)
     this.props.dispatcher.recordCherryPickViaContextMenu()

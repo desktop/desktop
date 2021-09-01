@@ -72,7 +72,7 @@ export abstract class Merge extends BaseMultiCommitOperation {
   protected onConflictsDialogDismissed = () => {
     const { dispatcher, workingDirectory, conflictState } = this.props
     if (conflictState === null || !isMergeConflictState(conflictState)) {
-      this.endFlowInvalidState()
+      this.endFlowInvalidState(true)
       return
     }
     dispatcher.recordMergeConflictsDialogDismissal()

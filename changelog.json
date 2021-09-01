@@ -4,6 +4,14 @@
       "[Fixed] Fix Notepad++ and RStudio integration on Windows - #12841",
       "[Fixed] Add minor version support for JetBrains IDEs on Windows - #12847. Thanks @tsvetilian-ty!"
     ],
+    "2.9.3-beta2": [
+      "[Fixed] Fix Notepad++ and RStudio integration on Windows - #12841",
+      "[Fixed] Add minor version support for JetBrains IDEs on Windows - #12847. Thanks @tsvetilian-ty!"
+    ],
+    "2.9.3-beta1": [
+      "[Added] Add syntax highlighting for dart - #12827. Thanks @say25!",
+      "[Fixed] Fix scrolling performance issue for large diffs."
+    ],
     "2.9.2": ["[Fixed] Fix scrolling performance issue for large diffs."],
     "2.9.1": [
       "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
