@@ -377,6 +377,11 @@ export class RepositoryView extends React.Component<
     const selectedCommit =
       sha != null ? this.props.state.commitLookup.get(sha) || null : null
 
+    const isLocal =
+      selectedCommit == null
+        ? false
+        : this.props.state.localCommitSHAs.includes(selectedCommit.sha)
+
     const { changedFiles, file, diff } = commitSelection
 
     const showDragOverlay = dragAndDropManager.isDragOfTypeInProgress(
@@ -389,6 +394,7 @@ export class RepositoryView extends React.Component<
         isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommit={selectedCommit}
+        isLocal={isLocal}
         changedFiles={changedFiles}
         selectedFile={file}
         currentDiff={diff}

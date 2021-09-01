@@ -37,6 +37,7 @@ interface ISelectedCommitProps {
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommit: Commit | null
+  readonly isLocal: boolean
   readonly changedFiles: ReadonlyArray<CommittedFileChange>
   readonly selectedFile: CommittedFileChange | null
   readonly currentDiff: IDiff | null
@@ -371,7 +372,7 @@ export class SelectedCommit extends React.Component<
       label: viewOnGitHubLabel,
       action: () => this.onViewOnGitHub(file),
       enabled:
-        !this.props.isLocalRepository &&
+        !this.props.isLocal &&
         !!gitHubRepository &&
         !!this.props.selectedCommit,
     })
