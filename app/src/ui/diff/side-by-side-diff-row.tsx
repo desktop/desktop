@@ -323,6 +323,7 @@ export class SideBySideDiffRow extends React.Component<
         <div
           className="hunk-expansion-handle"
           onContextMenu={this.props.onContextMenuExpandHunk}
+          style={{ width: this.props.lineNumberWidth }}
         >
           <span></span>
         </div>
@@ -339,6 +340,7 @@ export class SideBySideDiffRow extends React.Component<
         className="hunk-expansion-handle selectable hoverable"
         title={elementInfo.title}
         onClick={elementInfo.handler}
+        style={{ width: this.props.lineNumberWidth }}
         onContextMenu={this.props.onContextMenuExpandHunk}
       >
         <span>
