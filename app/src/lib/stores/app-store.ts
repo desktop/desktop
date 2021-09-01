@@ -4644,6 +4644,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _setConflictsResolved(repository: Repository) {
+    const { multiCommitOperationState } = this.repositoryStateCache.get(
+      repository
+    )
+
+    // the operation has already completed.
+    if (multiCommitOperationState === null) {
+      return
+    }
+
     // an update is not emitted here because there is no need
     // to trigger a re-render at this point
 
