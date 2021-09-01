@@ -1172,7 +1172,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
       hunkExpandWholeHandle.appendChild(
         createOcticonElement(
-          OcticonSymbol.fold,
+          OcticonSymbol.unfold,
           'hunk-expand-icon',
           'hunk-expand-short-icon'
         )
