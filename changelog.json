@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.9.4-beta1": [
+      "[Added] Add a menu item to view a committed file change on GitHub - #12492. Thanks @haykam821!",
+      "[Added] Customizable high contrast theme - #12833",
+      "[Fixed] App no longer crashes on successful merge after conflicts resolved - #12888",
+      "[Fixed] Use same width for hunk expansion handles as we do for line numbers - #12887",
+      "[Fixed] Use the correct icon for diff expansion - #12882"
+    ],
     "2.9.3": [
       "[Fixed] Fix Notepad++ and RStudio integration on Windows - #12841",
       "[Fixed] Add minor version support for JetBrains IDEs on Windows - #12847. Thanks @tsvetilian-ty!"
