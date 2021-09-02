@@ -29,7 +29,11 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
+import {
+  ApplicableTheme,
+  ApplicationTheme,
+  ICustomTheme,
+} from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
@@ -235,6 +239,9 @@ export interface IAppState {
 
   /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
+
+  /** The custom theme  */
+  readonly customTheme?: ICustomTheme
 
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
