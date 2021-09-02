@@ -445,10 +445,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
-    const newContentLines =
-      contents.newContents === null ? [] : contents.newContents
-    const oldContentLines =
-      contents.oldContents === null ? [] : contents.oldContents
+    const newContentLines = contents.newContents ?? []
+    const oldContentLines = contents.oldContents ?? []
 
     const shouldEnableDiffExpansion =
       enableTextDiffExpansion() && contents.canBeExpanded
