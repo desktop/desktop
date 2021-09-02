@@ -12,6 +12,7 @@ import {
   getLineFilters,
   getFileContents,
   highlightContents,
+  IFileContents,
 } from './syntax-highlighting'
 import { ITokens, ILineTokens, IToken } from '../../lib/highlighter/types'
 import {
@@ -114,23 +115,12 @@ interface ISideBySideDiffProps {
   readonly showSideBySideDiff: boolean
 }
 
-interface ISideBySideTextDiffDocumentContents {
-  /** The content lines of the "new" file */
-  readonly newContentLines: ReadonlyArray<string>
-
-  /** The content lines of the "old" file */
-  readonly oldContentLines: ReadonlyArray<string>
-
-  /** Whether or not the file can be expanded */
-  readonly canBeExpanded: boolean
-}
-
 interface ISideBySideTextDiffDocument {
   /** The diff that should be rendered */
   readonly diff: ITextDiff
 
   /** Contents of the old and new files for this diff. */
-  readonly contents: ISideBySideTextDiffDocumentContents | null
+  readonly contents: IFileContents | null
 }
 
 interface ISideBySideDiffState {
@@ -266,7 +256,7 @@ export class SideBySideDiff extends React.Component<
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null && contents.newContentLines.length > 0
+      contents !== null && contents.newContents.length > 0
     )
     const containerClassName = classNames('side-by-side-diff-container', {
       'unified-diff': !this.props.showSideBySideDiff,
@@ -321,7 +311,7 @@ export class SideBySideDiff extends React.Component<
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null && contents.newContentLines.length > 0
+      contents !== null && contents.newContents.length > 0
     )
     const row = rows[index]
 
@@ -393,14 +383,7 @@ export class SideBySideDiff extends React.Component<
     const tabSize = 4
 
     const contents =
-      currentContents !== null
-        ? {
-            file,
-            newContents: currentContents.newContentLines,
-            oldContents: currentContents.oldContentLines,
-            canBeExpanded: currentContents.canBeExpanded,
-          }
-        : await getFileContents(repository, file, lineFilters)
+      currentContents ?? (await getFileContents(repository, file, lineFilters))
 
     if (
       !highlightParametersEqual(
@@ -426,17 +409,14 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const newContentLines = contents.newContents ?? []
-    const oldContentLines = contents.oldContents ?? []
-
     const shouldEnableDiffExpansion =
       enableTextDiffExpansion() && contents.canBeExpanded
     const newDiff = shouldEnableDiffExpansion
       ? getTextDiffWithBottomDummyHunk(
           currentDiff,
           currentDiff.hunks,
-          oldContentLines.length,
-          newContentLines.length
+          contents.oldContents.length,
+          contents.newContents.length
         )
       : null
 
@@ -444,8 +424,9 @@ export class SideBySideDiff extends React.Component<
       document: {
         diff: newDiff ?? currentDiff,
         contents: {
-          newContentLines: shouldEnableDiffExpansion ? newContentLines : [],
-          oldContentLines: shouldEnableDiffExpansion ? oldContentLines : [],
+          ...contents,
+          newContents: shouldEnableDiffExpansion ? contents.newContents : [],
+          oldContents: shouldEnableDiffExpansion ? contents.oldContents : [],
           canBeExpanded: contents.canBeExpanded,
         },
       },
@@ -600,7 +581,7 @@ export class SideBySideDiff extends React.Component<
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null && contents.newContentLines.length > 0
+      contents !== null && contents.newContents.length > 0
     )
     const row = rows[rowNumber]
 
@@ -803,7 +784,7 @@ export class SideBySideDiff extends React.Component<
     if (
       !enableTextDiffExpansion() ||
       contents === null ||
-      contents.newContentLines.length === 0
+      contents.newContents.length === 0
     ) {
       return null
     }
@@ -828,11 +809,11 @@ export class SideBySideDiff extends React.Component<
   private onExpandWholeFile = () => {
     const { diff, contents } = this.state.document
 
-    if (contents === null || contents.newContentLines.length === 0) {
+    if (contents === null || contents.newContents.length === 0) {
       return
     }
 
-    const updatedDiff = expandWholeTextDiff(diff, contents.newContentLines)
+    const updatedDiff = expandWholeTextDiff(diff, contents.newContents)
 
     if (updatedDiff === undefined) {
       return
@@ -984,7 +965,7 @@ export class SideBySideDiff extends React.Component<
         diff,
         showSideBySideDiff,
         searchQuery,
-        contents !== null && contents.newContentLines.length > 0
+        contents !== null && contents.newContents.length > 0
       )
       selectedSearchResult = 0
 
@@ -1020,7 +1001,7 @@ export class SideBySideDiff extends React.Component<
   private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
     const { diff, contents } = this.state.document
 
-    if (contents === null || contents.newContentLines.length === 0) {
+    if (contents === null || contents.newContents.length === 0) {
       return
     }
 
@@ -1028,7 +1009,7 @@ export class SideBySideDiff extends React.Component<
       diff,
       hunk,
       kind,
-      contents.newContentLines
+      contents.newContents
     )
 
     if (updatedDiff === undefined) {
