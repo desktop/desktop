@@ -401,9 +401,8 @@ export class RepositoryView extends React.Component<
       sha != null ? this.props.state.commitLookup.get(sha) || null : null
 
     const isLocal =
-      selectedCommit == null
-        ? false
-        : this.props.state.localCommitSHAs.includes(selectedCommit.sha)
+      selectedCommit != null &&
+      this.props.state.localCommitSHAs.includes(selectedCommit.sha)
 
     const { changesetData, file, diff } = commitSelection
 
