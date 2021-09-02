@@ -86,7 +86,7 @@ function highlightParametersEqual(
 ) {
   return (
     (newProps === prevProps || newProps.file.id === prevProps.file.id) &&
-    newState.diff.text === prevState.diff.text
+    newState.document.diff.text === prevState.document.diff.text
   )
 }
 
@@ -176,9 +176,27 @@ interface ITextDiffProps {
   readonly askForConfirmationOnDiscardChanges?: boolean
 }
 
-interface ITextDiffState {
+interface ITextDiffDocumentContents {
+  /** The content lines of the "new" file */
+  readonly newContentLines: ReadonlyArray<string>
+
+  /** The content lines of the "old" file */
+  readonly oldContentLines: ReadonlyArray<string>
+
+  /** Whether or not the file can be expanded */
+  readonly canBeExpanded: boolean
+}
+interface ITextDiffDocument {
   /** The diff that should be rendered */
   readonly diff: ITextDiff
+
+  /** Contents of the old and new files for this diff. */
+  readonly contents: ITextDiffDocumentContents | null
+}
+
+interface ITextDiffState {
+  /** Represents a diff and its associated files (old and new) */
+  readonly document: ITextDiffDocument
 }
 
 const diffGutterName = 'diff-gutter'
@@ -341,9 +359,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   /** The current, active, diff gutter selection if any */
   private selection: ISelection | null = null
 
-  /** The content lines of the "new" file */
-  private newContentLines: ReadonlyArray<string> | null = null
-
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
 
@@ -370,7 +385,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   public constructor(props: ITextDiffProps) {
     super(props)
 
-    this.state = { diff: this.props.diff }
+    this.state = {
+      document: {
+        diff: this.props.diff,
+        contents: null,
+      },
+    }
   }
 
   private async initDiffSyntaxMode() {
@@ -379,7 +399,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const { file, repository } = this.props
-    const diff = this.state.diff
+    const { contents: currentContents, diff: currentDiff } = this.state.document
 
     // Store the current props and state to that we can see if anything
     // changes from underneath us as we're making asynchronous
@@ -387,11 +407,19 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     const propsSnapshot = this.props
     const stateSnapshot = this.state
 
-    const lineFilters = getLineFilters(diff.hunks)
+    const lineFilters = getLineFilters(currentDiff.hunks)
     const tsOpt = this.codeMirror.getOption('tabSize')
     const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
-    const contents = await getFileContents(repository, file, lineFilters)
+    const contents =
+      currentContents !== null
+        ? {
+            file,
+            newContents: currentContents.newContentLines,
+            oldContents: currentContents.oldContentLines,
+            canBeExpanded: currentContents.canBeExpanded,
+          }
+        : await getFileContents(repository, file, lineFilters)
 
     if (
       !highlightParametersEqual(
@@ -422,7 +450,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     const oldContentLines =
       contents.oldContents === null ? [] : contents.oldContents
 
-    const currentDiff = this.state.diff
     const shouldEnableDiffExpansion =
       enableTextDiffExpansion() && contents.canBeExpanded
     const newDiff = shouldEnableDiffExpansion
@@ -433,7 +460,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           newContentLines.length
         )
       : null
-    this.newContentLines = shouldEnableDiffExpansion ? newContentLines : null
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
@@ -448,7 +474,16 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     // If there is a new diff with the fake hunk at the end, update the state
     if (newDiff !== null) {
-      this.setState({ diff: newDiff })
+      this.setState({
+        document: {
+          diff: newDiff,
+          contents: {
+            newContentLines: shouldEnableDiffExpansion ? newContentLines : [],
+            oldContentLines: shouldEnableDiffExpansion ? oldContentLines : [],
+            canBeExpanded: contents.canBeExpanded,
+          },
+        },
+      })
     }
   }
 
@@ -522,7 +557,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     this.codeMirror.scrollIntoView({ line: index, ch: 0 })
 
-    const to = getLineInOriginalDiff(this.state.diff.hunks, index)
+    const to = getLineInOriginalDiff(this.state.document.diff.hunks, index)
 
     if (to === null) {
       return
@@ -556,7 +591,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     if (this.selection.kind === 'hunk') {
       const index = this.codeMirror.lineAtHeight(ev.y)
       const indexInOriginalDiff = getLineInOriginalDiff(
-        this.state.diff.hunks,
+        this.state.document.diff.hunks,
         index
       )
       if (indexInOriginalDiff === null) {
@@ -620,15 +655,17 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   /** Expand a selected hunk. */
   private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
-    if (this.newContentLines === null || this.newContentLines.length === 0) {
+    const { contents } = this.state.document
+
+    if (contents === null || contents.newContentLines.length === 0) {
       return
     }
 
     const updatedDiff = expandTextDiffHunk(
-      this.state.diff,
+      this.state.document.diff,
       hunk,
       kind,
-      this.newContentLines
+      contents.newContentLines
     )
 
     if (updatedDiff === undefined) {
@@ -636,7 +673,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     this.setState({
-      diff: updatedDiff,
+      document: {
+        ...this.state.document,
+        diff: updatedDiff,
+      },
     })
     this.updateViewport()
   }
@@ -675,7 +715,13 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private buildExpandMenuItem(event: Event): IMenuItem | null {
-    if (!enableTextDiffExpansion() || this.newContentLines === null) {
+    const { contents } = this.state.document
+
+    if (
+      !enableTextDiffExpansion() ||
+      contents === null ||
+      contents.newContentLines.length === 0
+    ) {
       return null
     }
 
@@ -685,7 +731,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return null
     }
 
-    const diff = this.state.diff
+    const diff = this.state.document.diff
 
     return this.diffToRestore === null
       ? {
@@ -725,17 +771,15 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return null
     }
 
+    const diff = this.state.document.diff
     const lineNumber = editor.lineAtHeight(event.y)
-    const diffLine = diffLineForIndex(this.state.diff.hunks, lineNumber)
+    const diffLine = diffLineForIndex(diff.hunks, lineNumber)
     if (diffLine === null || !diffLine.isIncludeableLine()) {
       // Do not show the discard options for lines that are not additions/deletions.
       return null
     }
 
-    const range = findInteractiveOriginalDiffRange(
-      this.state.diff.hunks,
-      lineNumber
-    )
+    const range = findInteractiveOriginalDiffRange(diff.hunks, lineNumber)
     if (range === null) {
       return null
     }
@@ -793,23 +837,28 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private onExpandWholeFile = () => {
-    if (this.newContentLines === null || this.newContentLines.length === 0) {
+    const { contents } = this.state.document
+
+    if (contents === null || contents.newContentLines.length === 0) {
       return
     }
 
     const updatedDiff = expandWholeTextDiff(
-      this.state.diff,
-      this.newContentLines
+      this.state.document.diff,
+      contents.newContentLines
     )
 
     if (updatedDiff === undefined) {
       return
     }
 
-    this.diffToRestore = this.state.diff
+    this.diffToRestore = this.state.document.diff
 
     this.setState({
-      diff: updatedDiff,
+      document: {
+        ...this.state.document,
+        diff: updatedDiff,
+      },
     })
     this.updateViewport()
   }
@@ -820,7 +869,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     this.setState({
-      diff: this.diffToRestore,
+      document: {
+        ...this.state.document,
+        diff: this.diffToRestore,
+      },
     })
     this.updateViewport()
 
@@ -938,7 +990,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
     this.swappedDocumentHasUpdatedViewport = false
     this.initDiffSyntaxMode()
-    this.markIntraLineChanges(cm.getDoc(), this.state.diff.hunks)
+    this.markIntraLineChanges(cm.getDoc(), this.state.document.diff.hunks)
   }
 
   /**
@@ -966,7 +1018,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     this.swappedDocumentHasUpdatedViewport = true
 
-    const hunks = this.state.diff.hunks
+    const hunks = this.state.document.diff.hunks
 
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
@@ -993,7 +1045,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 hunks,
                 hunk,
                 diffLine,
-                getNumberOfDigits(this.state.diff.maxLineNumber)
+                getNumberOfDigits(this.state.document.diff.maxLineNumber)
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
@@ -1011,7 +1063,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const diffSize = getLineWidthFromDigitCount(
-      getNumberOfDigits(this.state.diff.maxLineNumber)
+      getNumberOfDigits(this.state.document.diff.maxLineNumber)
     )
 
     const gutterParentElement = cm.getGutterElement()
@@ -1054,8 +1106,11 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       diffLine.originalLineNumber !== null &&
       inSelection(this.hunkHighlightRange, diffLine.originalLineNumber)
 
+    const { contents } = this.state.document
     const shouldEnableDiffExpansion =
-      enableTextDiffExpansion() && this.newContentLines !== null
+      enableTextDiffExpansion() &&
+      contents !== null &&
+      contents.newContentLines.length > 0
 
     return {
       'diff-line-gutter': true,
@@ -1118,7 +1173,13 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunkHandle.classList.add('hunk-handle')
     marker.appendChild(hunkHandle)
 
-    if (enableTextDiffExpansion() && this.newContentLines !== null) {
+    const { contents } = this.state.document
+
+    if (
+      enableTextDiffExpansion() &&
+      contents !== null &&
+      contents.newContentLines.length > 0
+    ) {
       const hunkExpandUpHandle = document.createElement('div')
       hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
       hunkExpandUpHandle.title = 'Expand Up'
@@ -1322,7 +1383,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    const hunks = this.state.diff.hunks
+    const hunks = this.state.document.diff.hunks
     const diffLine = diffLineForIndex(hunks, lineNumber)
 
     if (!diffLine || !diffLine.isIncludeableLine()) {
@@ -1362,7 +1423,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const { file, readOnly } = this.props
-    const diff = this.state.diff
+    const diff = this.state.document.diff
 
     if (!canSelect(file) || readOnly) {
       return
@@ -1392,7 +1453,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const { file, readOnly } = this.props
-    const diff = this.state.diff
+    const diff = this.state.document.diff
 
     if (!canSelect(file) || readOnly) {
       return
@@ -1436,7 +1497,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     if (this.props.diff.text !== prevProps.diff.text) {
       this.diffToRestore = null
-      this.setState({ diff: this.props.diff })
+      this.setState({
+        document: {
+          diff: this.props.diff,
+          contents: null,
+        },
+      })
     }
 
     if (snapshot !== null) {
@@ -1455,7 +1521,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       ((this.props.file !== prevProps.file &&
         this.props.file.id === prevProps.file.id &&
         this.props.diff.text !== prevProps.diff.text) ||
-        this.state.diff.text !== prevState.diff.text)
+        this.state.document.diff.text !== prevState.document.diff.text)
     ) {
       return this.codeMirror.getScrollInfo()
     }
@@ -1479,8 +1545,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   public render() {
     const doc = this.getCodeMirrorDocument(
-      this.state.diff.text,
-      this.getNoNewlineIndicatorLines(this.state.diff.hunks)
+      this.state.document.diff.text,
+      this.getNoNewlineIndicatorLines(this.state.document.diff.hunks)
     )
 
     return (
