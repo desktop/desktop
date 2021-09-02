@@ -36,8 +36,8 @@ interface ILineFilters {
 
 interface IFileContents {
   readonly file: ChangedFile
-  readonly oldContents: string | null
-  readonly newContents: string | null
+  readonly oldContents: ReadonlyArray<string> | null
+  readonly newContents: ReadonlyArray<string> | null
   readonly canBeExpanded: boolean
 }
 
@@ -135,8 +135,10 @@ export async function getFileContents(
 
   return {
     file,
-    oldContents: oldContents === null ? null : oldContents.toString('utf8'),
-    newContents: newContents === null ? null : newContents.toString('utf8'),
+    oldContents:
+      oldContents === null ? null : oldContents.toString('utf8').split(/\r?\n/),
+    newContents:
+      newContents === null ? null : newContents.toString('utf8').split(/\r?\n/),
     canBeExpanded:
       newContents !== null &&
       newContents.length <= MaxDiffExpansionNewContentLength,

@@ -56,9 +56,9 @@ export interface IHighlightRequest {
   readonly extension: string
 
   /**
-   * The actual contents which is to be used for highlighting.
+   * The actual content lines which is to be used for highlighting.
    */
-  readonly contents: string
+  readonly contentLines: ReadonlyArray<string>
 
   /**
    * An optional filter of lines which needs to be tokenized.
