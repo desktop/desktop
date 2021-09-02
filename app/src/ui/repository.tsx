@@ -49,7 +49,7 @@ interface IRepositoryViewProps {
   readonly stashedFilesWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
-  readonly onViewCommitOnGitHub: (SHA: string) => void
+  readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
   readonly imageDiffType: ImageDiffType
   readonly hideWhitespaceInChangesDiff: boolean
   readonly hideWhitespaceInHistoryDiff: boolean
@@ -400,6 +400,10 @@ export class RepositoryView extends React.Component<
     const selectedCommit =
       sha != null ? this.props.state.commitLookup.get(sha) || null : null
 
+    const isLocal =
+      selectedCommit != null &&
+      this.props.state.localCommitSHAs.includes(selectedCommit.sha)
+
     const { changesetData, file, diff } = commitSelection
 
     const showDragOverlay = dragAndDropManager.isDragOfTypeInProgress(
@@ -409,8 +413,10 @@ export class RepositoryView extends React.Component<
     return (
       <SelectedCommit
         repository={this.props.repository}
+        isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommit={selectedCommit}
+        isLocal={isLocal}
         changesetData={changesetData}
         selectedFile={file}
         currentDiff={diff}
@@ -419,6 +425,7 @@ export class RepositoryView extends React.Component<
         selectedDiffType={this.props.imageDiffType}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         hideWhitespaceInDiff={this.props.hideWhitespaceInHistoryDiff}
         showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.onOpenBinaryFile}
