@@ -5270,7 +5270,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (!deleted) {
           this.emitError(
             new Error(
-              `Failed moving repository directory to ${TrashNameLabel}.\n\nA common reason for this is if a file or directory is open in another program.`
+              `Failed to move the repository directory to ${TrashNameLabel}.\n\nA common reason for this is that the directory or a part of it is open in another program.`
             )
           )
           return
@@ -5756,7 +5756,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitError(
         new Error(
           `Couldn't find branch '${headRefName}' in remote '${remote.name}'. ` +
-            `A common cause for this is if the PR author has deleted their ` +
+            `A common reason for this is that the PR author has deleted their ` +
             `branch or their forked repository.`
         )
       )
