@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { Banner } from './banner'
+import { SuccessBanner } from './success-banner'
 
 interface ICherryPickUndoneBannerProps {
   readonly targetBranchName: string
@@ -16,18 +15,11 @@ export class CherryPickUndone extends React.Component<
     const { countCherryPicked, targetBranchName, onDismissed } = this.props
     const pluralized = countCherryPicked === 1 ? 'commit' : 'commits'
     return (
-      <Banner id="cherry-pick-undone" timeout={5000} onDismissed={onDismissed}>
-        <div className="green-circle">
-          <Octicon className="check-icon" symbol={OcticonSymbol.check} />
-        </div>
-        <div className="banner-message">
-          <span>
-            Cherry-pick undone. Successfully removed the {countCherryPicked}
-            {' copied '}
-            {pluralized} from <strong>{targetBranchName}</strong>.
-          </span>
-        </div>
-      </Banner>
+      <SuccessBanner timeout={5000} onDismissed={onDismissed}>
+        Cherry-pick undone. Successfully removed the {countCherryPicked}
+        {' copied '}
+        {pluralized} from <strong>{targetBranchName}</strong>.
+      </SuccessBanner>
     )
   }
 }

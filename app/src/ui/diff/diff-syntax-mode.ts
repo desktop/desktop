@@ -1,11 +1,11 @@
-import { DiffHunk, DiffLine } from '../../models/diff'
+import { DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
 
 import 'codemirror/mode/javascript/javascript'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
-import { DiffExpansionStep } from './text-diff-expansion'
+import { DefaultDiffExpansionStep } from './text-diff-expansion'
 
 export interface IDiffSyntaxModeOptions {
   /**
@@ -30,7 +30,9 @@ export interface IDiffSyntaxModeSpec extends IDiffSyntaxModeOptions {
   readonly name: 'github-diff-syntax'
 }
 
-const TokenNames: { [key: string]: string | null } = {
+type DiffSyntaxToken = 'diff-add' | 'diff-delete' | 'diff-hunk' | 'diff-context'
+
+const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
   '+': 'diff-add',
   '-': 'diff-delete',
   '@': 'diff-hunk',
@@ -46,6 +48,10 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
   stream.skipToEnd()
   state.diffLineIndex++
   return null
+}
+
+function getBaseDiffLineStyle(token: DiffSyntaxToken) {
+  return `line-${token} line-background-${token}`
 }
 
 /**
@@ -112,10 +118,22 @@ export class DiffSyntaxMode {
     return { diffLineIndex: 0, previousHunkOldEndLine: null }
   }
 
-  // Should never happen except for blank diffs but
-  // let's play along
   public blankLine(state: IState) {
+    // A line might be empty in a non-blank diff for the only line of the
+    // dummy hunk we put at the bottom of the diff to allow users to expand
+    // the visible contents.
+    if (this.hunks !== undefined && this.hunks.length > 0) {
+      const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
+
+      if (diffLine?.type === DiffLineType.Hunk) {
+        return getBaseDiffLineStyle('diff-hunk')
+      }
+    }
+
+    // Should never happen except for blank diffs but
+    // let's play along
     state.diffLineIndex++
+    return undefined
   }
 
   public token = (
@@ -131,13 +149,17 @@ export class DiffSyntaxMode {
         state.diffLineIndex++
       }
 
-      const token = index ? TokenNames[index] : null
+      if (index === null) {
+        return null
+      }
+
+      const token = TokenNames[index] ?? null
 
       if (token === null) {
         return null
       }
 
-      let result = `line-${token} line-background-${token}`
+      let result = getBaseDiffLineStyle(token)
 
       // If it's a hunk header line, we want to make a few extra checks
       // depending on the distance to the previous hunk.
@@ -153,7 +175,8 @@ export class DiffSyntaxMode {
           // will be used to make that line taller to fit the expansion buttons.
           if (
             state.previousHunkOldEndLine !== null &&
-            oldStartLine - state.previousHunkOldEndLine > DiffExpansionStep
+            oldStartLine - state.previousHunkOldEndLine >
+              DefaultDiffExpansionStep
           ) {
             result += ` line-${token}-expandable-both`
           }

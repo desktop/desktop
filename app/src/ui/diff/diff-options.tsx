@@ -1,11 +1,13 @@
 import * as React from 'react'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import { getBoolean, setBoolean } from '../../lib/local-storage'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { RepositorySectionTab } from '../../lib/app-state'
+import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 interface IDiffOptionsProps {
   readonly sourceTab: RepositorySectionTab
@@ -74,10 +76,12 @@ export class DiffOptions extends React.Component<
     })
   }
 
-  private onHideWhitespaceChangesChanged = async (
+  private onHideWhitespaceChangesChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    await this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
+    return this.props.onHideWhitespaceChangesChanged(
+      event.currentTarget.checked
+    )
   }
 
   public render() {
@@ -161,6 +165,9 @@ export class DiffOptions extends React.Component<
             __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
           }
         />
+        {this.props.sourceTab === RepositorySectionTab.Changes && (
+          <p className="secondary-text">{HideWhitespaceWarning}</p>
+        )}
       </section>
     )
   }

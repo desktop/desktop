@@ -44,6 +44,7 @@ export interface IDatabaseRepository {
   readonly id?: number
   readonly gitHubRepositoryID: number | null
   readonly path: string
+  readonly alias: string | null
   readonly missing: boolean
 
   /** The last time the stash entries were checked for the repository */

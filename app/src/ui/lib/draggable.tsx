@@ -2,6 +2,7 @@ import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { mouseScroller } from '../../lib/mouse-scroller'
 import { sleep } from '../../lib/promise'
+import { DropTargetSelector } from '../../models/drag-drop'
 
 interface IDraggableProps {
   /**
@@ -14,10 +15,13 @@ interface IDraggableProps {
    * Callback for when the drag ends - user releases mouse (mouse up event) or
    * mouse goes out of screen
    *
-   * @param isOverDropTarget - whether the last element the mouse was over
-   * before the mouse up event matches one of the dropTargetSelectors provided
+   * @param dropTargetSelector - if the last element the mouse was over
+   * before the mouse up event matches one of the dropTargetSelectors provided,
+   * it is that selector enum
    */
-  readonly onDragEnd: (isOverDropTarget: boolean) => void
+  readonly onDragEnd?: (
+    dropTargetSelector: DropTargetSelector | undefined
+  ) => void
 
   /** Callback to render a drag element inside the #dragElement */
   readonly onRenderDragElement: () => void
@@ -29,11 +33,12 @@ interface IDraggableProps {
   readonly isEnabled: boolean
 
   /** An array of css selectors for elements that are valid drop targets. */
-  readonly dropTargetSelectors: ReadonlyArray<string>
+  readonly dropTargetSelectors: ReadonlyArray<DropTargetSelector>
 }
 
 export class Draggable extends React.Component<IDraggableProps> {
-  private dragStarted: boolean = false
+  private hasDragStarted: boolean = false
+  private hasDragEnded: boolean = false
   private dragElement: HTMLElement | null = null
   private elemBelow: Element | null = null
   // Default offset to place the cursor slightly above the top left corner of
@@ -41,7 +46,6 @@ export class Draggable extends React.Component<IDraggableProps> {
   // dragElement then elemBelow will always return the dragElement and cannot
   // detect drop targets or scroll elements.
   private verticalOffset: number = __DARWIN__ ? 32 : 15
-  private hasMouseUpOccurred = false
 
   public componentDidMount() {
     this.dragElement = document.getElementById('dragElement')
@@ -58,7 +62,7 @@ export class Draggable extends React.Component<IDraggableProps> {
   }
 
   private initializeDrag(): void {
-    this.dragStarted = false
+    this.hasDragStarted = false
     this.elemBelow = null
   }
 
@@ -72,10 +76,10 @@ export class Draggable extends React.Component<IDraggableProps> {
     if (!this.canDragCommit(event)) {
       return
     }
-    this.hasMouseUpOccurred = false
-    document.onmouseup = this.onMouseUp
+    this.hasDragEnded = false
+    document.onmouseup = this.handleDragEndEvent
     await sleep(100)
-    if (this.hasMouseUpOccurred) {
+    if (this.hasDragEnded) {
       return
     }
 
@@ -91,16 +95,17 @@ export class Draggable extends React.Component<IDraggableProps> {
    * just clicking a draggable element.
    */
   private onMouseMove = (moveEvent: MouseEvent) => {
-    if (this.hasMouseUpOccurred) {
+    if (this.hasDragEnded) {
       this.onDragEnd()
       return
     }
     // start drag
-    if (!this.dragStarted) {
+    if (!this.hasDragStarted) {
       this.props.onRenderDragElement()
       this.props.onDragStart()
       dragAndDropManager.dragStarted()
-      this.dragStarted = true
+      this.hasDragStarted = true
+      window.addEventListener('keyup', this.onKeyUp)
     }
 
     // move drag element where mouse is
@@ -126,20 +131,30 @@ export class Draggable extends React.Component<IDraggableProps> {
   /**
    * End a drag event
    */
-  private onMouseUp = () => {
-    this.hasMouseUpOccurred = true
-    if (this.dragStarted) {
+  private handleDragEndEvent = () => {
+    this.hasDragEnded = true
+    if (this.hasDragStarted) {
       this.onDragEnd()
     }
     document.onmouseup = null
+    window.removeEventListener('keyup', this.onKeyUp)
+  }
+
+  private onKeyUp = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape') {
+      return
+    }
+    this.handleDragEndEvent()
   }
 
   private onDragEnd(): void {
     document.removeEventListener('mousemove', this.onMouseMove)
     mouseScroller.clearScrollTimer()
     this.props.onRemoveDragElement()
-    this.props.onDragEnd(this.isLastElemBelowDropTarget())
-    dragAndDropManager.dragEnded()
+    if (this.props.onDragEnd !== undefined) {
+      this.props.onDragEnd(this.getLastElemBelowDropTarget())
+    }
+    dragAndDropManager.dragEnded(this.getLastElemBelowDropTarget())
   }
 
   /**
@@ -147,16 +162,14 @@ export class Draggable extends React.Component<IDraggableProps> {
    * css selectors provided in dropTargetSelectors to determine if the drag
    * ended on target or not.
    */
-  private isLastElemBelowDropTarget = (): boolean => {
+  private getLastElemBelowDropTarget = (): DropTargetSelector | undefined => {
     if (this.elemBelow === null) {
-      return false
+      return
     }
 
-    const foundDropTarget = this.props.dropTargetSelectors.find(dts => {
+    return this.props.dropTargetSelectors.find(dts => {
       return this.elemBelow !== null && this.elemBelow.closest(dts) !== null
     })
-
-    return foundDropTarget !== undefined
   }
 
   public render() {

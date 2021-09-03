@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { rectEquals } from '../lib/rect'
@@ -20,7 +21,7 @@ export interface IToolbarDropdownProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbol
+  readonly icon?: OcticonSymbolType
 
   /**
    * The state for of the drop down button.
@@ -173,7 +174,7 @@ export class ToolbarDropdown extends React.Component<
     return this.props.dropdownState === 'open'
   }
 
-  private dropdownIcon(state: DropdownState): OcticonSymbol {
+  private dropdownIcon(state: DropdownState): OcticonSymbolType {
     // @TODO: Remake triangle octicon in a 12px version,
     // right now it's scaled badly on normal dpi monitors.
     if (state === 'open') {

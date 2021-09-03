@@ -13,6 +13,10 @@ export interface ICommitContext {
    */
   readonly description: string | null
   /**
+   * Whether or not it should amend the last commit (optional, default: false)
+   */
+  readonly amend?: boolean
+  /**
    * An optional array of commit trailers (for example Co-Authored-By trailers) which will be appended to the commit message in accordance with the Git trailer configuration.
    */
   readonly trailers?: ReadonlyArray<ITrailer>
@@ -35,6 +39,19 @@ function extractCoAuthors(trailers: ReadonlyArray<ITrailer>) {
   }
 
   return coAuthors
+}
+
+function trimCoAuthorsTrailers(
+  trailers: ReadonlyArray<ITrailer>,
+  body: string
+) {
+  let trimmedCoAuthors = body
+
+  trailers.filter(isCoAuthoredByTrailer).forEach(({ token, value }) => {
+    trimmedCoAuthors = trimmedCoAuthors.replace(`${token}: ${value}`, '')
+  })
+
+  return trimmedCoAuthors
 }
 
 /**
@@ -60,10 +77,20 @@ export class Commit {
   public readonly coAuthors: ReadonlyArray<GitAuthor>
 
   /**
+   * The commit body after removing coauthors
+   */
+  public readonly bodyNoCoAuthors: string
+
+  /**
    * A value indicating whether the author and the committer
    * are the same person.
    */
   public readonly authoredByCommitter: boolean
+
+  /**
+   * Whether or not the commit is a merge commit (i.e. has at least 2 parents)
+   */
+  public readonly isMergeCommit: boolean
 
   /**
    * @param sha The commit's SHA.
@@ -95,5 +122,9 @@ export class Commit {
     this.authoredByCommitter =
       this.author.name === this.committer.name &&
       this.author.email === this.committer.email
+
+    this.bodyNoCoAuthors = trimCoAuthorsTrailers(trailers, body)
+
+    this.isMergeCommit = parentSHAs.length > 1
   }
 }

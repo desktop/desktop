@@ -19,6 +19,8 @@ import { Button } from '../lib/button'
 import { Octicon, syncClockwise } from '../octicons'
 import { FoldoutType } from '../../lib/app-state'
 import { startTimer } from '../lib/timing'
+import { DragType } from '../../models/drag-drop'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -170,8 +172,44 @@ export class PullRequestList extends React.Component<
         matches={matches}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        onDropOntoPullRequest={this.onDropOntoPullRequest}
       />
     )
+  }
+
+  private onDropOntoPullRequest = (prNumber: number) => {
+    const {
+      repository,
+      selectedPullRequest,
+      dispatcher,
+      pullRequests,
+    } = this.props
+
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      return
+    }
+
+    // If dropped on currently checked out pull request, it is treated the same
+    // as dropping on non-pull-request.
+    if (
+      selectedPullRequest !== null &&
+      prNumber === selectedPullRequest.pullRequestNumber
+    ) {
+      dispatcher.endMultiCommitOperation(repository)
+      dispatcher.recordDragStartedAndCanceled()
+      return
+    }
+
+    // If not the currently checked out pull request, find the full pull request
+    // object to start the cherry-pick
+    const pr = pullRequests.find(pr => pr.pullRequestNumber === prNumber)
+    if (pr === undefined) {
+      log.error('[onDropOntoPullRequest] - Could not find pull request.')
+      dispatcher.endMultiCommitOperation(repository)
+      return
+    }
+
+    dispatcher.startCherryPickWithPullRequest(repository, pr)
   }
 
   private onItemClick = (

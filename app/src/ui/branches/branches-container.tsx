@@ -16,7 +16,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
@@ -25,6 +26,8 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType, DropTargetType } from '../../models/drag-drop'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -41,18 +44,6 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
-
-  /** When a drag element has landed on the current branch */
-  readonly onDropOntoCurrentBranch?: () => void
-
-  /** Whether a cherry pick is in progress */
-  readonly isCherryPickInProgress?: boolean
-
-  /** When a drag element enters a branch */
-  readonly onDragEnterBranch: (branchName: string) => void
-
-  //** When a drag element leave a branch */
-  readonly onDragLeaveBranch: () => void
 }
 
 interface IBranchesContainerState {
@@ -166,10 +157,7 @@ export class BranchesContainer extends React.Component<
       this.onRenameBranch,
       this.onDeleteBranch,
       this.onDropOntoBranch,
-      this.props.onDropOntoCurrentBranch,
-      this.props.onDragEnterBranch,
-      this.props.onDragLeaveBranch,
-      this.props.isCherryPickInProgress
+      this.onDropOntoCurrentBranch
     )
   }
 
@@ -195,6 +183,10 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
+              DragType.Commit
+            )}
+            renderPreList={this.renderPreList}
           />
         )
 
@@ -204,6 +196,62 @@ export class BranchesContainer extends React.Component<
       default:
         return assertNever(tab, `Unknown Branches tab: ${tab}`)
     }
+  }
+
+  private renderPreList = () => {
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      return null
+    }
+
+    const label = __DARWIN__ ? 'New Branch' : 'New branch'
+
+    return (
+      <div
+        className="branches-list-item new-branch-drop"
+        onMouseEnter={this.onMouseEnterNewBranchDrop}
+        onMouseLeave={this.onMouseLeaveNewBranchDrop}
+        onMouseUp={this.onMouseUpNewBranchDrop}
+      >
+        <Octicon className="icon" symbol={OcticonSymbol.plus} />
+        <div className="name" title={label}>
+          {label}
+        </div>
+      </div>
+    )
+  }
+
+  private onMouseUpNewBranchDrop = async () => {
+    const { dragData } = dragAndDropManager
+    if (dragData === null || dragData.type !== DragType.Commit) {
+      return
+    }
+
+    const { dispatcher, repository, currentBranch } = this.props
+
+    await dispatcher.setCherryPickCreateBranchFlowStep(
+      repository,
+      '',
+      dragData.commits,
+      currentBranch
+    )
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.MultiCommitOperation,
+      repository,
+    })
+  }
+
+  private onMouseEnterNewBranchDrop = () => {
+    // This is just used for displaying on windows drag ghost.
+    // Thus, it doesn't have to be an actual branch name.
+    dragAndDropManager.emitEnterDropTarget({
+      type: DropTargetType.Branch,
+      branchName: 'a new branch',
+    })
+  }
+
+  private onMouseLeaveNewBranchDrop = () => {
+    dragAndDropManager.emitLeaveDropTarget()
   }
 
   private renderPullRequests() {
@@ -243,10 +291,7 @@ export class BranchesContainer extends React.Component<
 
   private onMergeClick = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.showPopup({
-      type: PopupType.MergeBranch,
-      repository: this.props.repository,
-    })
+    this.props.dispatcher.startMergeBranchOperation(this.props.repository)
   }
 
   private onBranchItemClick = (branch: Branch) => {
@@ -304,7 +349,7 @@ export class BranchesContainer extends React.Component<
     })
   }
 
-  private onDeleteBranch = (branchName: string) => {
+  private onDeleteBranch = async (branchName: string) => {
     const branch = this.getBranchWithName(branchName)
 
     if (branch === undefined) {
@@ -320,11 +365,15 @@ export class BranchesContainer extends React.Component<
       return
     }
 
+    const aheadBehind = await this.props.dispatcher.getBranchAheadBehind(
+      this.props.repository,
+      branch
+    )
     this.props.dispatcher.showPopup({
       type: PopupType.DeleteBranch,
       repository: this.props.repository,
       branch,
-      existsOnRemote: branch.upstreamRemoteName !== null,
+      existsOnRemote: aheadBehind !== null,
     })
   }
 
@@ -348,11 +397,17 @@ export class BranchesContainer extends React.Component<
       return
     }
 
-    if (this.props.isCherryPickInProgress) {
+    if (dragAndDropManager.isDragOfType(DragType.Commit)) {
       this.props.dispatcher.startCherryPickWithBranch(
         this.props.repository,
         branch
       )
+    }
+  }
+
+  private onDropOntoCurrentBranch = () => {
+    if (dragAndDropManager.isDragOfType(DragType.Commit)) {
+      this.props.dispatcher.recordDragStartedAndCanceled()
     }
   }
 }

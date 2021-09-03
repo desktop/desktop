@@ -24,6 +24,7 @@ import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
 import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { enableSaveDialogOnCloneRepository } from '../../lib/feature-flag'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -503,6 +504,14 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseDirectory = async () => {
+    if (enableSaveDialogOnCloneRepository()) {
+      return this.onChooseWithSaveDialog()
+    }
+
+    return this.onChooseWithOpenDialog()
+  }
+
+  private onChooseWithOpenDialog = async (): Promise<string | undefined> => {
     const window = remote.getCurrentWindow()
     const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
@@ -524,6 +533,27 @@ export class CloneRepository extends React.Component<
     )
 
     return directory
+  }
+
+  private onChooseWithSaveDialog = async (): Promise<string | undefined> => {
+    const window = remote.getCurrentWindow()
+    const tabState = this.getSelectedTabState()
+
+    const { canceled, filePath } = await remote.dialog.showSaveDialog(window, {
+      buttonLabel: 'Select',
+      nameFieldLabel: 'Clone As:',
+      showsTagField: false,
+      defaultPath: tabState.path,
+      properties: ['createDirectory'],
+    })
+
+    if (canceled || filePath == null) {
+      return
+    }
+
+    this.setSelectedTabState({ path: filePath, error: null }, this.validatePath)
+
+    return filePath
   }
 
   private updateUrl = async (url: string) => {
@@ -567,6 +597,13 @@ export class CloneRepository extends React.Component<
         )
       }
     } catch (error) {
+      if (error.code === 'ENOTDIR') {
+        // path refers to a file or other file system entry
+        return new Error(
+          'There is already a file with this name. Git can only clone to a folder.'
+        )
+      }
+
       if (error.code === 'ENOENT') {
         // Folder does not exist
         return null

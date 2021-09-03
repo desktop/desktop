@@ -14,6 +14,10 @@ import { BranchAlreadyUpToDate } from './branch-already-up-to-date-banner'
 import { SuccessfulCherryPick } from './successful-cherry-pick'
 import { CherryPickConflictsBanner } from './cherry-pick-conflicts-banner'
 import { CherryPickUndone } from './cherry-pick-undone'
+import { OpenThankYouCard } from './open-thank-you-card'
+import { SuccessfulSquash } from './successful-squash'
+import { SuccessBanner } from './success-banner'
+import { ConflictsFoundBanner } from './conflicts-found-banner'
 
 export function renderBanner(
   banner: Banner,
@@ -73,9 +77,9 @@ export function renderBanner(
         <SuccessfulCherryPick
           key="successful-cherry-pick"
           targetBranchName={banner.targetBranchName}
-          countCherryPicked={banner.countCherryPicked}
+          countCherryPicked={banner.count}
           onDismissed={onDismissed}
-          onUndoCherryPick={banner.onUndoCherryPick}
+          onUndo={banner.onUndo}
         />
       )
     case BannerType.CherryPickConflictsFound:
@@ -95,6 +99,65 @@ export function renderBanner(
           countCherryPicked={banner.countCherryPicked}
           onDismissed={onDismissed}
         />
+      )
+    case BannerType.OpenThankYouCard:
+      return (
+        <OpenThankYouCard
+          key="open-thank-you-card"
+          emoji={banner.emoji}
+          onDismissed={onDismissed}
+          onOpenCard={banner.onOpenCard}
+          onThrowCardAway={banner.onThrowCardAway}
+        />
+      )
+    case BannerType.SuccessfulSquash:
+      return (
+        <SuccessfulSquash
+          key="successful-squash"
+          count={banner.count}
+          onDismissed={onDismissed}
+          onUndo={banner.onUndo}
+        />
+      )
+    case BannerType.SquashUndone: {
+      const pluralized = banner.commitsCount === 1 ? 'commit' : 'commits'
+      return (
+        <SuccessBanner timeout={5000} onDismissed={onDismissed}>
+          Squash of {banner.commitsCount} {pluralized} undone.
+        </SuccessBanner>
+      )
+    }
+    case BannerType.SuccessfulReorder: {
+      const pluralized = banner.count === 1 ? 'commit' : 'commits'
+
+      return (
+        <SuccessBanner
+          timeout={15000}
+          onDismissed={onDismissed}
+          onUndo={banner.onUndo}
+        >
+          <span>
+            Successfully reordered {banner.count} {pluralized}.
+          </span>
+        </SuccessBanner>
+      )
+    }
+    case BannerType.ReorderUndone: {
+      const pluralized = banner.commitsCount === 1 ? 'commit' : 'commits'
+      return (
+        <SuccessBanner timeout={5000} onDismissed={onDismissed}>
+          Reorder of {banner.commitsCount} {pluralized} undone.
+        </SuccessBanner>
+      )
+    }
+    case BannerType.ConflictsFound:
+      return (
+        <ConflictsFoundBanner
+          operationDescription={banner.operationDescription}
+          onOpenConflictsDialog={banner.onOpenConflictsDialog}
+          onDismissed={onDismissed}
+          key={'conflicts-found'}
+        ></ConflictsFoundBanner>
       )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)

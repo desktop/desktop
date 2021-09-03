@@ -1,28 +1,29 @@
 import * as React from 'react'
 import classNames from 'classnames'
 
-import { FileChange } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import {
-  enableGitTagsDisplay,
-  enableSideBySideDiffs,
-} from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
 import { RepositorySectionTab } from '../../lib/app-state'
+import { IChangesetData } from '../../lib/git'
+import {
+  AlmostImmediate,
+  clearAlmostImmediate,
+  setAlmostImmediate,
+} from '../../lib/set-almost-immediate'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly commit: Commit
-  readonly files: ReadonlyArray<FileChange>
+  readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
   /**
@@ -128,7 +129,7 @@ export class CommitSummary extends React.Component<
 > {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateOverflowTimeoutId: NodeJS.Immediate | null = null
+  private updateOverflowTimeoutId: AlmostImmediate | null = null
   private descriptionRef: HTMLDivElement | null = null
 
   public constructor(props: ICommitSummaryProps) {
@@ -147,21 +148,14 @@ export class CommitSummary extends React.Component<
             // when we're reacting to a resize so we'll defer it until after
             // react is done with this frame.
             if (this.updateOverflowTimeoutId !== null) {
-              clearImmediate(this.updateOverflowTimeoutId)
+              clearAlmostImmediate(this.updateOverflowTimeoutId)
             }
 
-            this.updateOverflowTimeoutId = setImmediate(this.onResized)
+            this.updateOverflowTimeoutId = setAlmostImmediate(this.onResized)
           }
         }
       })
     }
-  }
-
-  private onHideWhitespaceInDiffChanged = async (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    await this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {
@@ -301,7 +295,7 @@ export class CommitSummary extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.files.length
+    const fileCount = this.props.changesetData.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.commit.shortSha
@@ -313,14 +307,23 @@ export class CommitSummary extends React.Component<
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
+    const hasEmptySummary = this.state.summary.length === 0
+    const commitSummary = hasEmptySummary
+      ? 'Empty commit message'
+      : this.state.summary
+
+    const summaryClassNames = classNames('commit-summary-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
     return (
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
           <RichText
-            className="commit-summary-title"
+            className={summaryClassNames}
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.state.summary}
+            text={commitSummary}
           />
 
           <ul className="commit-summary-meta">
@@ -355,44 +358,26 @@ export class CommitSummary extends React.Component<
 
               {filesDescription}
             </li>
+            {this.renderLinesChanged()}
             {this.renderTags()}
 
-            {enableSideBySideDiffs() || (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title="Hide Whitespace"
-              >
-                <Checkbox
-                  label="Hide Whitespace"
-                  value={
-                    this.props.hideWhitespaceInDiff
-                      ? CheckboxValue.On
-                      : CheckboxValue.Off
-                  }
-                  onChange={this.onHideWhitespaceInDiffChanged}
-                />
-              </li>
-            )}
-
-            {enableSideBySideDiffs() && (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title="Diff Options"
-              >
-                <DiffOptions
-                  sourceTab={RepositorySectionTab.History}
-                  hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                  onHideWhitespaceChangesChanged={
-                    this.props.onHideWhitespaceInDiffChanged
-                  }
-                  showSideBySideDiff={this.props.showSideBySideDiff}
-                  onShowSideBySideDiffChanged={
-                    this.props.onShowSideBySideDiffChanged
-                  }
-                  onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-                />
-              </li>
-            )}
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title="Diff Options"
+            >
+              <DiffOptions
+                sourceTab={RepositorySectionTab.History}
+                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                onHideWhitespaceChangesChanged={
+                  this.props.onHideWhitespaceInDiffChanged
+                }
+                showSideBySideDiff={this.props.showSideBySideDiff}
+                onShowSideBySideDiffChanged={
+                  this.props.onShowSideBySideDiffChanged
+                }
+                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+              />
+            </li>
           </ul>
         </div>
 
@@ -401,11 +386,37 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  private renderTags() {
-    if (!enableGitTagsDisplay()) {
+  private renderLinesChanged() {
+    const linesAdded = this.props.changesetData.linesAdded
+    const linesDeleted = this.props.changesetData.linesDeleted
+    if (linesAdded + linesDeleted === 0) {
       return null
     }
 
+    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
+    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
+    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
+    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
+
+    return (
+      <>
+        <li
+          className="commit-summary-meta-item without-truncation lines-added"
+          title={linesAddedTitle}
+        >
+          +{linesAdded}
+        </li>
+        <li
+          className="commit-summary-meta-item without-truncation lines-deleted"
+          title={linesDeletedTitle}
+        >
+          -{linesDeleted}
+        </li>
+      </>
+    )
+  }
+
+  private renderTags() {
     const tags = this.props.commit.tags || []
 
     if (tags.length === 0) {

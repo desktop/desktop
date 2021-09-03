@@ -74,7 +74,7 @@
     }
 
     &.selectable {
-      span {
+      &.hoverable span {
         cursor: pointer;
       }
 
@@ -83,12 +83,43 @@
         color: var(--diff-selected-text-color);
         border-color: var(--diff-selected-border-color);
 
-        &:hover,
+        &.hoverable:hover,
         &.hover {
           background: var(--diff-hover-background-color);
           color: var(--diff-hover-text-color);
           border-color: var(--diff-hover-border-color);
         }
+      }
+    }
+  }
+
+  .row .hunk-expansion-handle {
+    width: var(--width-line-number);
+    flex-shrink: 0;
+    background: var(--diff-hunk-background-color);
+    color: var(--diff-hunk-text-color);
+    display: flex;
+    box-sizing: content-box;
+
+    span {
+      width: 100%;
+      height: 100%;
+      padding: 0 var(--spacing-half);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+    }
+
+    &.selectable.hoverable {
+      * {
+        cursor: pointer;
+      }
+
+      &:hover {
+        background: var(--diff-hover-background-color);
+        border-color: var(--diff-hover-border-color);
+        color: var(--diff-hover-text-color);
       }
     }
   }
@@ -99,7 +130,10 @@
     width: 20px;
     left: calc(50% - 10px);
     top: 0;
-    cursor: pointer;
+
+    &.hoverable {
+      cursor: pointer;
+    }
   }
 
   .content {
@@ -140,13 +174,14 @@
     color: var(--diff-delete-text-color);
     background: var(--diff-delete-background-color);
     border-right: 1px solid var(--diff-border-color);
+    border: var(--diff-delete-border);
 
     .line-number {
       background: var(--diff-delete-gutter-background-color);
       border-color: var(--diff-delete-border-color);
     }
 
-    .selectable:hover,
+    .selectable.hoverable:hover,
     .selectable.hover {
       background: var(--diff-delete-hover-background-color);
       color: var(--diff-delete-hover-text-color);
@@ -157,13 +192,14 @@
   .after {
     color: var(--diff-add-text-color);
     background: var(--diff-add-background-color);
+    border: var(--diff-add-border);
 
     .line-number {
       background: var(--diff-add-gutter-background-color);
       border-color: var(--diff-add-border-color);
     }
 
-    .selectable:hover,
+    .selectable.hoverable:hover,
     .selectable.hover {
       background: var(--diff-add-hover-background-color);
       color: var(--diff-add-hover-text-color);
@@ -180,6 +216,7 @@
     &.hunk-info {
       background: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
+      align-items: center;
 
       div,
       span {
@@ -196,6 +233,7 @@
     &.added .before,
     &.deleted .after {
       background: var(--diff-empty-row-background-color);
+      border: none;
 
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
@@ -221,6 +259,7 @@
     &.context .after {
       background: var(--diff-background-color);
       color: var(--diff-text-color);
+      border: none;
 
       .line-number {
         background: var(--diff-gutter-background-color);

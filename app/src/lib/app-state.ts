@@ -4,7 +4,7 @@ import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
-import { Commit, CommitOneLine } from '../models/commit'
+import { Commit } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -20,7 +20,7 @@ import {
   Progress,
   ICheckoutProgress,
   ICloneProgress,
-  ICherryPickProgress,
+  IMultiCommitOperationProgress,
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
@@ -29,17 +29,25 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
+import {
+  ApplicableTheme,
+  ApplicationTheme,
+  ICustomTheme,
+} from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { GitRebaseProgress } from '../models/rebase'
-import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
-import { CherryPickFlowStep } from '../models/cherry-pick'
-import { DragElement } from '../models/drag-element'
+import { DragElement } from '../models/drag-drop'
+import { ILastThankYou } from '../models/last-thank-you'
+import {
+  MultiCommitOperationDetail,
+  MultiCommitOperationStep,
+} from '../models/multi-commit-operation'
+import { DragAndDropIntroType } from '../ui/history/drag-and-drop-intro'
+import { IChangesetData } from './git'
 
 export enum SelectionType {
   Repository,
@@ -172,6 +180,9 @@ export interface IAppState {
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
 
+  /** Whether we should ask the user to move the app to /Applications */
+  readonly askToMoveToApplicationsFolderSetting: boolean
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
@@ -186,6 +197,9 @@ export interface IAppState {
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: string | null
+
+  /** Whether or not the app should use Windows' OpenSSH client */
+  readonly useWindowsOpenSSH: boolean
 
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
@@ -202,8 +216,11 @@ export interface IAppState {
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
 
-  /** Whether we should hide white space changes in diff */
-  readonly hideWhitespaceInDiff: boolean
+  /** Whether we should hide white space changes in changes diff */
+  readonly hideWhitespaceInChangesDiff: boolean
+
+  /** Whether we should hide white space changes in history diff */
+  readonly hideWhitespaceInHistoryDiff: boolean
 
   /** Whether we should show side by side diffs */
   readonly showSideBySideDiff: boolean
@@ -222,6 +239,9 @@ export interface IAppState {
 
   /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
+
+  /** The custom theme  */
+  readonly customTheme?: ICustomTheme
 
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
@@ -260,9 +280,15 @@ export interface IAppState {
   readonly commitSpellcheckEnabled: boolean
 
   /**
-   * Whether or not the user has been introduced to the cherry pick feature
+   * List of drag & drop intro types that have been shown to the user.
    */
-  readonly hasShownCherryPickIntro: boolean
+  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
+
+  /**
+   * Record of what logged in users have been checked to see if thank you is in
+   * order for external contributions in latest release.
+   */
+  readonly lastThankYou: ILastThankYou | undefined
 }
 
 export enum FoldoutType {
@@ -392,8 +418,6 @@ export interface IRepositoryState {
 
   readonly branchesState: IBranchesState
 
-  readonly rebaseState: IRebaseState
-
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
@@ -417,6 +441,9 @@ export interface IRepositoryState {
 
   /** Is a commit in progress? */
   readonly isCommitting: boolean
+
+  /** Is an amend in progress? */
+  readonly isAmending: boolean
 
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
@@ -448,8 +475,12 @@ export interface IRepositoryState {
 
   readonly localTags: Map<string, string> | null
 
-  /** State associated with a cherry pick being performed */
-  readonly cherryPickState: ICherryPickState
+  /** Undo state associated with a multi commit operation operation */
+  readonly multiCommitOperationUndoState: IMultiCommitOperationUndoState | null
+
+  /** State associated with a multi commit operation such as rebase,
+   * cherry-pick, squash, reorder... */
+  readonly multiCommitOperationState: IMultiCommitOperationState | null
 }
 
 export interface IBranchesState {
@@ -508,45 +539,12 @@ export interface IBranchesState {
   readonly rebasedBranches: ReadonlyMap<string, string>
 }
 
-/** State associated with a rebase being performed on a repository */
-export interface IRebaseState {
-  /**
-   * The current step of the flow the user should see.
-   *
-   * `null` indicates that there is no rebase underway.
-   */
-  readonly step: RebaseFlowStep | null
-
-  /**
-   * The underlying Git information associated with the current rebase
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly progress: GitRebaseProgress | null
-
-  /**
-   * The known range of commits that will be applied to the repository
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly commits: ReadonlyArray<CommitOneLine> | null
-
-  /**
-   * Whether the user has done work to resolve any conflicts as part of this
-   * rebase, as the rebase flow should confirm the user wishes to abort the
-   * rebase and lose that work.
-   */
-  readonly userHasResolvedConflicts: boolean
-}
-
 export interface ICommitSelection {
   /** The commits currently selected in the app */
   readonly shas: ReadonlyArray<string>
 
-  /** The list of files associated with the current commit */
-  readonly changedFiles: ReadonlyArray<CommittedFileChange>
+  /** The changeset data associated with the selected commit */
+  readonly changesetData: IChangesetData
 
   /** The selected file inside the selected commit */
   readonly file: CommittedFileChange | null
@@ -745,40 +743,16 @@ export interface ICompareToBranch {
  */
 export type CompareAction = IViewHistory | ICompareToBranch
 
-/** State associated with a cherry pick being performed on a repository */
-export interface ICherryPickState {
-  /**
-   * The current step of the flow the user should see.
-   *
-   * `null` indicates that there is no cherry pick underway.
-   */
-  readonly step: CherryPickFlowStep | null
+/**
+ * Undo state associated with a multi commit operation being performed on a
+ * repository.
+ */
+export interface IMultiCommitOperationUndoState {
+  /** The sha of the tip before operation was initiated. */
+  readonly undoSha: string
 
-  /**
-   * The underlying Git information associated with the current cherry pick
-   *
-   * This will be set to `null` when no target branch has been selected to
-   * initiate the rebase.
-   */
-  readonly progress: ICherryPickProgress | null
-
-  /**
-   * Whether the user has done work to resolve any conflicts as part of this
-   * cherry pick.
-   */
-  readonly userHasResolvedConflicts: boolean
-
-  /**
-   * The sha of the target branch tip before cherry pick initiated.
-   *
-   * This will be set to null if no cherry pick has been initiated.
-   */
-  readonly targetBranchUndoSha: string | null
-
-  /**
-   * Whether the target branch was created during cherry-pick operation
-   */
-  readonly branchCreated: boolean
+  /** The name of the branch the operation applied to */
+  readonly branchName: string
 }
 
 /**
@@ -804,4 +778,85 @@ export function isCherryPickConflictState(
   conflictStatus: ConflictState
 ): conflictStatus is CherryPickConflictState {
   return conflictStatus.kind === 'cherryPick'
+}
+
+/**
+ * Tracks the state of the app during a multi commit operation such as rebase,
+ * cherry-picking, and interactive rebase (squashing, reordering).
+ */
+export interface IMultiCommitOperationState {
+  /**
+   * The current step of the operation the user is at.
+   * Examples: ChooseBranchStep, ChooseBranchStep, ShowConflictsStep, etc.
+   */
+  readonly step: MultiCommitOperationStep
+
+  /**
+   * This hold properties specific to the operation.
+   */
+  readonly operationDetail: MultiCommitOperationDetail
+  /**
+   * The underlying parsed Git information associated with the progress of the
+   * current operation.
+   *
+   * Example: During cherry-picking, after each commit this progress will be
+   * updated to reflect the next commit in the list to cherry-pick.
+   */
+  readonly progress: IMultiCommitOperationProgress
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * operation, and therefore, should be warned on aborting the operation.
+   */
+  readonly userHasResolvedConflicts: boolean
+
+  /**
+   * The commit id of the tip of the branch user is modifying in the operation.
+   *
+   * Uses:
+   *  - Cherry-picking = tip of target branch before cherry-pick, used to undo cherry-pick
+   *        - This maybe null if app opens mid cherry-pick
+   *  - Rebasing = tip of current branch before rebase, used enable force pushing after rebase complete.
+   *  - Interactive Rebasing (Squash, Reorder) = tip of current branch, used for force pushing and undoing
+   */
+  readonly originalBranchTip: string | null
+
+  /**
+   * The branch that is being modified during the operation.
+   *
+   * - Cherry-pick = the branch chosen to copy commits to; Maybe null when cherry-pick is in the choose branch step.
+   * - Rebase = the current branch the user is on.
+   * - Squash = the current branch the user is on.
+   */
+  readonly targetBranch: Branch | null
+}
+
+export type MultiCommitOperationConflictState = {
+  readonly kind: 'multiCommitOperation'
+
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the operation
+   */
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+
+  /**
+   * Depending on the operation, this may be either source branch or the
+   * target branch.
+   *
+   * Also, we may not know what it is. This usually happens if Desktop is closed
+   * during an operation and the reopened and we lose some context that is
+   * stored in state.
+   */
+  readonly ourBranch?: string
+
+  /**
+   * Depending on the operation, this may be either source branch or the
+   * target branch
+   *
+   * Also, we may not know what it is. This usually happens if Desktop is closed
+   * during an operation and the reopened and we lose some context that is
+   * stored in state.
+   */
+  readonly theirBranch?: string
 }

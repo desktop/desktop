@@ -6,6 +6,8 @@ import {
   DiffLineType,
 } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
+import { getHunkHeaderExpansionType } from '../ui/diff/text-diff-expansion'
+import { getLargestLineNumber } from '../ui/diff/diff-helpers'
 
 // https://en.wikipedia.org/wiki/Diff_utility
 //
@@ -280,7 +282,11 @@ export class DiffParser {
    *                      have no real meaning in the context of a diff and
    *                      are only used to aid the app in line-selections.
    */
-  private parseHunk(linesConsumed: number): DiffHunk {
+  private parseHunk(
+    linesConsumed: number,
+    hunkIndex: number,
+    previousHunk: DiffHunk | null
+  ): DiffHunk {
     const headerLine = this.readLine()
     if (!headerLine) {
       throw new Error('Expected hunk header but reached end of diff')
@@ -366,7 +372,8 @@ export class DiffParser {
       header,
       lines,
       linesConsumed,
-      linesConsumed + lines.length - 1
+      linesConsumed + lines.length - 1,
+      getHunkHeaderExpansionType(hunkIndex, header, previousHunk)
     )
   }
 
@@ -388,19 +395,33 @@ export class DiffParser {
 
       // empty diff
       if (!headerInfo) {
-        return { header, contents: '', hunks: [], isBinary: false }
+        return {
+          header,
+          contents: '',
+          hunks: [],
+          isBinary: false,
+          maxLineNumber: 0,
+        }
       }
 
       if (headerInfo.isBinary) {
-        return { header, contents: '', hunks: [], isBinary: true }
+        return {
+          header,
+          contents: '',
+          hunks: [],
+          isBinary: true,
+          maxLineNumber: 0,
+        }
       }
 
       const hunks = new Array<DiffHunk>()
       let linesConsumed = 0
+      let previousHunk: DiffHunk | null = null
 
       do {
-        const hunk = this.parseHunk(linesConsumed)
+        const hunk = this.parseHunk(linesConsumed, hunks.length, previousHunk)
         hunks.push(hunk)
+        previousHunk = hunk
         linesConsumed += hunk.lines.length
       } while (this.peek())
 
@@ -411,7 +432,13 @@ export class DiffParser {
         // a new string instance.
         .replace(/\n\\ No newline at end of file/g, '')
 
-      return { header, contents, hunks, isBinary: headerInfo.isBinary }
+      return {
+        header,
+        contents,
+        hunks,
+        isBinary: headerInfo.isBinary,
+        maxLineNumber: getLargestLineNumber(hunks),
+      }
     } finally {
       this.reset()
     }

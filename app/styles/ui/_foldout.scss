@@ -19,5 +19,7 @@
   .foldout {
     background: var(--background-color);
     color: var(--text-color);
+    border: var(--foldout-border);
+    overflow: hidden;
   }
 }

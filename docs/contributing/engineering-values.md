@@ -22,7 +22,7 @@ We believe in strongly typed programming languages that help us avoid mistakes t
 
 Our [`assertNever`](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/app/src/lib/fatal-error.ts#L6-L21) helper lets us leverage the type system to verify exhaustiveness and get [compile-time errors](https://github.com/desktop/desktop/blob/8fc8e6f5d1a8153cc92bb0e324b9c26602211646/app/src/ui/branches/ci-status.tsx#L36-L47) when that assertion fails.
 
-Our [`react-readonly-props-and-state`](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/tslint-rules/reactReadonlyPropsAndStateRule.ts) static analysis ensures that we don't accidentally mutate state which React prohibits being mutated but isn't able to enforce due to the dynamic runtime.
+Our [`react-readonly-props-and-state`](https://github.com/desktop/desktop/blob/075c9e81f312ed7f2bcf631c4b158c25f9afd6a1/eslint-rules/react-readonly-props-and-state.js) static analysis ensures that we don't accidentally mutate state which React prohibits being mutated but isn't able to enforce due to the dynamic runtime.
 
 We [write our own type definitions](https://github.com/desktop/desktop/blob/eee92a96943afbc39057b1aae66c642e23dbf136/app/src/lib/globals.d.ts#L94-L112) when none exist.
 

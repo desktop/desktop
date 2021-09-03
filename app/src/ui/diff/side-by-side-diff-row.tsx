@@ -10,8 +10,12 @@ import {
 import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
 import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
+import { DiffHunkExpansionType } from '../../models/diff'
+import { DiffExpansionKind } from './text-diff-expansion'
+import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -33,6 +37,14 @@ interface ISideBySideDiffRowProps {
    * Whether to display the rows side by side.
    */
   readonly showSideBySideDiff: boolean
+
+  /** Whether or not whitespace changes are hidden. */
+  readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * The width to display the diff gutter with.
+   */
+  readonly lineNumberWidth: string
 
   /**
    * The index of the row in the displayed diff.
@@ -72,6 +84,8 @@ interface ISideBySideDiffRowProps {
    */
   readonly onMouseLeaveHunk: (hunkStartLine: number) => void
 
+  readonly onExpandHunk: (hunkIndex: number, kind: DiffExpansionKind) => void
+
   /**
    * Called when the user clicks on the hunk handle. Called with the start
    * line of the hunk and a flag indicating whether to select or unselect
@@ -95,6 +109,11 @@ interface ISideBySideDiffRowProps {
   readonly onContextMenuHunk: (hunkStartLine: number) => void
 
   /**
+   * Called when the user right-clicks a hunk expansion handle.
+   */
+  readonly onContextMenuExpandHunk: () => void
+
+  /**
    * Called when the user right-clicks text on the diff.
    */
   readonly onContextMenuText: () => void
@@ -107,13 +126,19 @@ export class SideBySideDiffRow extends React.Component<
     const { row, showSideBySideDiff } = this.props
 
     switch (row.type) {
-      case DiffRowType.Hunk:
+      case DiffRowType.Hunk: {
+        const className = ['row', 'hunk-info']
+        if (row.expansionType === DiffHunkExpansionType.Both) {
+          className.push('expandable-both')
+        }
+
         return (
-          <div className="row hunk-info">
-            {this.renderLineNumber()}
+          <div className={classNames(className)}>
+            {this.renderHunkHeaderGutter(row.hunkIndex, row.expansionType)}
             {this.renderContentFromString(row.content)}
           </div>
         )
+      }
       case DiffRowType.Context:
         const { beforeLineNumber, afterLineNumber } = row
         if (!showSideBySideDiff) {
@@ -258,14 +283,104 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
+  private getHunkExpansionElementInfo(
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType
+  ) {
+    switch (expansionType) {
+      // This can only be the first hunk
+      case DiffHunkExpansionType.Up:
+        return {
+          icon: OcticonSymbol.foldUp,
+          title: 'Expand Up',
+          handler: this.onExpandHunk(hunkIndex, 'up'),
+        }
+      // This can only be the last dummy hunk. In this case, we expand the
+      // second to last hunk down.
+      case DiffHunkExpansionType.Down:
+        return {
+          icon: OcticonSymbol.foldDown,
+          title: 'Expand Down',
+          handler: this.onExpandHunk(hunkIndex - 1, 'down'),
+        }
+      case DiffHunkExpansionType.Short:
+        return {
+          icon: OcticonSymbol.fold,
+          title: 'Expand All',
+          handler: this.onExpandHunk(hunkIndex, 'up'),
+        }
+    }
+
+    throw new Error(`Unexpected expansion type ${expansionType}`)
+  }
+
+  private renderHunkExpansionHandle(
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType
+  ) {
+    if (expansionType === DiffHunkExpansionType.None) {
+      return (
+        <div
+          className="hunk-expansion-handle"
+          onContextMenu={this.props.onContextMenuExpandHunk}
+          style={{ width: this.props.lineNumberWidth }}
+        >
+          <span></span>
+        </div>
+      )
+    }
+
+    const elementInfo = this.getHunkExpansionElementInfo(
+      hunkIndex,
+      expansionType
+    )
+
+    return (
+      <div
+        className="hunk-expansion-handle selectable hoverable"
+        title={elementInfo.title}
+        onClick={elementInfo.handler}
+        style={{ width: this.props.lineNumberWidth }}
+        onContextMenu={this.props.onContextMenuExpandHunk}
+      >
+        <span>
+          <Octicon symbol={elementInfo.icon} />
+        </span>
+      </div>
+    )
+  }
+
+  private renderHunkHeaderGutter(
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType
+  ) {
+    if (expansionType === DiffHunkExpansionType.Both) {
+      return (
+        <div>
+          {this.renderHunkExpansionHandle(
+            hunkIndex,
+            DiffHunkExpansionType.Down
+          )}
+          {this.renderHunkExpansionHandle(hunkIndex, DiffHunkExpansionType.Up)}
+        </div>
+      )
+    }
+
+    return this.renderHunkExpansionHandle(hunkIndex, expansionType)
+  }
+
   private renderHunkHandle() {
     if (!this.props.isDiffSelectable) {
       return null
     }
 
+    const classes = classNames('hunk-handle', {
+      hoverable: !this.props.hideWhitespaceInDiff,
+    })
+
     return (
       <div
-        className="hunk-handle"
+        className={classes}
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
@@ -288,7 +403,10 @@ export class SideBySideDiffRow extends React.Component<
   ) {
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
-        <div className="line-number">
+        <div
+          className="line-number"
+          style={{ width: this.props.lineNumberWidth }}
+        >
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
@@ -300,8 +418,13 @@ export class SideBySideDiffRow extends React.Component<
       <div
         className={classNames('line-number', 'selectable', {
           'line-selected': isSelected,
+          hoverable: !this.props.hideWhitespaceInDiff,
           hover: this.props.isHunkHovered,
         })}
+        style={{ width: this.props.lineNumberWidth }}
+        title={
+          this.props.hideWhitespaceInDiff ? HideWhitespaceWarning : undefined
+        }
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
@@ -374,7 +497,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseDownLineNumber = (evt: React.MouseEvent) => {
-    if (evt.buttons === 2) {
+    if (evt.buttons === 2 || this.props.hideWhitespaceInDiff) {
       return
     }
 
@@ -387,6 +510,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     const data = this.getDiffData(evt.currentTarget)
     const column = this.getDiffColumn(evt.currentTarget)
 
@@ -396,18 +523,34 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
     }
   }
 
   private onMouseLeaveHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
   }
 
+  private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => () => {
+    this.props.onExpandHunk(hunkIndex, kind)
+  }
+
   private onClickHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     // Since the hunk handler lies between the previous and the next columns,
     // when clicking on it on modified lines we cannot know if we should
     // use the state of the previous or the next line to know whether we should
@@ -422,13 +565,21 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onContextMenuLineNumber = (evt: React.MouseEvent) => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     const data = this.getDiffData(evt.currentTarget)
-    if (data !== null) {
+    if (data !== null && data.diffLineNumber !== null) {
       this.props.onContextMenuLine(data.diffLineNumber)
     }
   }
 
   private onContextMenuHunk = () => {
+    if (this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     if ('hunkStartLine' in this.props.row) {
       this.props.onContextMenuHunk(this.props.row.hunkStartLine)
     }
