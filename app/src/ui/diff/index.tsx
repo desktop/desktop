@@ -260,6 +260,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           repository={this.props.repository}
           file={this.props.file}
           diff={diff}
+          fileContents={this.props.fileContents}
           hideWhitespaceInDiff={hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onIncludeChanged={this.props.onIncludeChanged}

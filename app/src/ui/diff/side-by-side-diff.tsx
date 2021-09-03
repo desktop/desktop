@@ -10,7 +10,6 @@ import {
 } from '../../models/diff'
 import {
   getLineFilters,
-  getFileContents,
   highlightContents,
   IFileContents,
 } from './syntax-highlighting'
@@ -55,7 +54,6 @@ import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
-  getTextDiffWithBottomDummyHunk,
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
@@ -84,6 +82,9 @@ interface ISideBySideDiffProps {
 
   /** The initial diff */
   readonly diff: ITextDiff
+
+  /** The contents of the old and new files related to the current diff. */
+  readonly fileContents: IFileContents | null
 
   /**
    * Called when the includedness of lines or a range of lines has changed.
@@ -115,17 +116,9 @@ interface ISideBySideDiffProps {
   readonly showSideBySideDiff: boolean
 }
 
-interface ISideBySideTextDiffDocument {
+interface ISideBySideDiffState {
   /** The diff that should be rendered */
   readonly diff: ITextDiff
-
-  /** Contents of the old and new files for this diff. */
-  readonly contents: IFileContents | null
-}
-
-interface ISideBySideDiffState {
-  /** Represents a diff and its associated files (old and new) */
-  readonly document: ISideBySideTextDiffDocument
 
   /**
    * The list of syntax highlighting tokens corresponding to
@@ -203,10 +196,7 @@ export class SideBySideDiff extends React.Component<
     super(props)
 
     this.state = {
-      document: {
-        diff: props.diff,
-        contents: null,
-      },
+      diff: props.diff,
       isSearching: false,
       selectedSearchResult: undefined,
     }
@@ -242,16 +232,14 @@ export class SideBySideDiff extends React.Component<
     if (this.props.diff.text !== prevProps.diff.text) {
       this.diffToRestore = null
       this.setState({
-        document: {
-          diff: this.props.diff,
-          contents: null,
-        },
+        diff: this.props.diff,
       })
     }
   }
 
   public render() {
-    const { diff, contents } = this.state.document
+    const contents = this.props.fileContents
+    const { diff } = this.state
 
     const rows = getDiffRows(
       diff,
@@ -307,7 +295,8 @@ export class SideBySideDiff extends React.Component<
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
-    const { diff, contents } = this.state.document
+    const contents = this.props.fileContents
+    const { diff } = this.state
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
@@ -370,8 +359,13 @@ export class SideBySideDiff extends React.Component<
   }
 
   private async initDiffSyntaxMode() {
-    const { file, repository } = this.props
-    const { contents: currentContents, diff: currentDiff } = this.state.document
+    const contents = this.props.fileContents
+
+    if (contents === null) {
+      return
+    }
+
+    const { diff: currentDiff } = this.state
 
     // Store the current props and state so that we can see if anything
     // changes from underneath us as we're making asynchronous
@@ -381,20 +375,6 @@ export class SideBySideDiff extends React.Component<
 
     const lineFilters = getLineFilters(currentDiff.hunks)
     const tabSize = 4
-
-    const contents =
-      currentContents ?? (await getFileContents(repository, file, lineFilters))
-
-    if (
-      !highlightParametersEqual(
-        this.props,
-        propsSnapshot,
-        this.state,
-        stateSnapshot
-      )
-    ) {
-      return
-    }
 
     const tokens = await highlightContents(contents, tabSize, lineFilters)
 
@@ -409,27 +389,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const shouldEnableDiffExpansion =
-      enableTextDiffExpansion() && contents.canBeExpanded
-    const newDiff = shouldEnableDiffExpansion
-      ? getTextDiffWithBottomDummyHunk(
-          currentDiff,
-          currentDiff.hunks,
-          contents.oldContents.length,
-          contents.newContents.length
-        )
-      : null
-
     this.setState({
-      document: {
-        diff: newDiff ?? currentDiff,
-        contents: {
-          ...contents,
-          newContents: shouldEnableDiffExpansion ? contents.newContents : [],
-          oldContents: shouldEnableDiffExpansion ? contents.oldContents : [],
-          canBeExpanded: contents.canBeExpanded,
-        },
-      },
       beforeTokens: tokens.oldTokens,
       afterTokens: tokens.newTokens,
     })
@@ -577,7 +537,8 @@ export class SideBySideDiff extends React.Component<
     rowNumber: number,
     column: DiffColumn
   ): number | null {
-    const { diff, contents } = this.state.document
+    const contents = this.props.fileContents
+    const { diff } = this.state
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
@@ -695,7 +656,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => {
-    const { diff } = this.state.document
+    const { diff } = this.state
 
     if (hunkIndex === -1 || hunkIndex >= diff.hunks.length) {
       return
@@ -709,7 +670,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const { diff } = this.state.document
+    const { diff } = this.state
     const selection = this.getSelection()
 
     if (selection !== undefined) {
@@ -752,7 +713,7 @@ export class SideBySideDiff extends React.Component<
    */
   private onContextMenuLine = (diffLineNumber: number) => {
     const { file, hideWhitespaceInDiff } = this.props
-    const { diff } = this.state.document
+    const { diff } = this.state
 
     if (!canSelect(file)) {
       return
@@ -780,7 +741,8 @@ export class SideBySideDiff extends React.Component<
   }
 
   private buildExpandMenuItem(): IMenuItem | null {
-    const { diff, contents } = this.state.document
+    const contents = this.props.fileContents
+    const { diff } = this.state
     if (
       !enableTextDiffExpansion() ||
       contents === null ||
@@ -807,7 +769,8 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onExpandWholeFile = () => {
-    const { diff, contents } = this.state.document
+    const contents = this.props.fileContents
+    const { diff } = this.state
 
     if (contents === null || contents.newContents.length === 0) {
       return
@@ -822,10 +785,7 @@ export class SideBySideDiff extends React.Component<
     this.diffToRestore = diff
 
     this.setState({
-      document: {
-        ...this.state.document,
-        diff: updatedDiff,
-      },
+      diff: updatedDiff,
     })
   }
 
@@ -835,10 +795,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     this.setState({
-      document: {
-        ...this.state.document,
-        diff: this.diffToRestore,
-      },
+      diff: this.diffToRestore,
     })
 
     this.diffToRestore = null
@@ -859,7 +816,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     const range = findInteractiveOriginalDiffRange(
-      this.state.document.diff.hunks,
+      this.state.diff.hunks,
       hunkStartLine
     )
     if (range === null || range.type === null) {
@@ -946,7 +903,8 @@ export class SideBySideDiff extends React.Component<
   private onSearch = (searchQuery: string, direction: 'next' | 'previous') => {
     let { selectedSearchResult, searchResults: searchResults } = this.state
     const { showSideBySideDiff } = this.props
-    const { diff, contents } = this.state.document
+    const contents = this.props.fileContents
+    const { diff } = this.state
 
     // If the query is unchanged and we've got tokens we'll continue, else we'll restart
     if (searchQuery === this.state.searchQuery && searchResults !== undefined) {
@@ -999,7 +957,8 @@ export class SideBySideDiff extends React.Component<
 
   /** Expand a selected hunk. */
   private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
-    const { diff, contents } = this.state.document
+    const contents = this.props.fileContents
+    const { diff } = this.state
 
     if (contents === null || contents.newContents.length === 0) {
       return
@@ -1017,10 +976,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     this.setState({
-      document: {
-        ...this.state.document,
-        diff: updatedDiff,
-      },
+      diff: updatedDiff,
     })
   }
 }
@@ -1042,7 +998,7 @@ function highlightParametersEqual(
     (newProps === prevProps ||
       (newProps.file.id === prevProps.file.id &&
         newProps.showSideBySideDiff === prevProps.showSideBySideDiff)) &&
-    newState.document.diff.text === prevState.document.diff.text
+    newState.diff.text === prevState.diff.text
   )
 }
 
