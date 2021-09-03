@@ -11,7 +11,7 @@ import { trampolineUIHelper } from './trampoline-ui-helper'
 async function handleSSHHostAuthenticity(
   prompt: string
 ): Promise<'yes' | 'no' | undefined> {
-  const promptRegex = /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established.\nRSA key fingerprint is ([^.]+).\nAre you sure you want to continue connecting \(yes\/no\/\[fingerprint\]\)\? $/
+  const promptRegex = /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established.\nRSA key fingerprint is ([^.]+).\n(?:.*\n)*Are you sure you want to continue connecting \(yes\/no\/\[fingerprint\]\)\? $/
 
   const matches = promptRegex.exec(prompt)
   if (matches === null || matches.length < 4) {
