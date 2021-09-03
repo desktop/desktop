@@ -143,6 +143,11 @@ export class SeamlessDiffSwitcher extends React.Component<
       props.diff === null ||
       (props.diff.kind === DiffType.Text && fileContents === null)
     const beganOrFinishedLoadingDiff = isLoadingDiff !== state.isLoadingDiff
+    // If the props diff is not a Text diff, just pass it along to the state.
+    const diff =
+      props.diff !== null && props.diff.kind !== DiffType.Text
+        ? props.diff
+        : state.diff
 
     return {
       isLoadingDiff,
@@ -151,7 +156,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       // can't say that it's slow in all other cases we leave the
       // isLoadingSlow state as-is
       ...(beganOrFinishedLoadingDiff ? { isLoadingSlow: false } : undefined),
-      diff: state.diff,
+      diff,
       fileContents,
     }
   }
@@ -254,7 +259,7 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     this.loadingFile = null
 
-    this.setState({ diff: newDiff, fileContents })
+    this.setState({ diff: newDiff ?? diff, fileContents })
   }
 
   private onSlowLoadingTimeout = () => {
