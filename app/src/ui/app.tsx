@@ -2032,6 +2032,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="add-ssh-host"
             host={popup.host}
             ip={popup.ip}
+            keyType={popup.keyType}
             fingerprint={popup.fingerprint}
             onSubmit={popup.onSubmit}
             onDismissed={onPopupDismissedFn}
