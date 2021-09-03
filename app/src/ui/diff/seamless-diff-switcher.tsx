@@ -10,11 +10,19 @@ import {
 } from '../../models/status'
 import {
   DiffSelection,
+  DiffType,
   IDiff,
   ImageDiffType,
   ITextDiff,
 } from '../../models/diff'
 import { Loading } from '../lib/loading'
+import {
+  getFileContents,
+  getLineFilters,
+  IFileContents,
+} from './syntax-highlighting'
+import { enableTextDiffExpansion } from '../../lib/feature-flag'
+import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
 
 /**
  * The time (in milliseconds) we allow when loading a diff before
@@ -97,10 +105,20 @@ interface ISeamlessDiffSwitcherState {
    * `isLoadingDiff` prop is true.
    */
   readonly propSnapshot: ISeamlessDiffSwitcherProps
+
+  /** The diff that should be rendered */
+  readonly diff: IDiff | null
+
+  /** Contents of the old and new files related to the current text diff. */
+  readonly fileContents: IFileContents | null
 }
 
 /** I'm super useful */
 function noop() {}
+
+function isSameFile(prevFile: ChangedFile, newFile: ChangedFile) {
+  return prevFile === newFile || prevFile.id === newFile.id
+}
 
 /**
  * A component which attempts to minimize the need for unmounting
@@ -115,7 +133,15 @@ export class SeamlessDiffSwitcher extends React.Component<
     props: ISeamlessDiffSwitcherProps,
     state: ISeamlessDiffSwitcherState
   ): Partial<ISeamlessDiffSwitcherState> {
-    const isLoadingDiff = props.diff === null
+    const sameFile =
+      state.fileContents !== null &&
+      isSameFile(state.fileContents.file, props.file)
+    const fileContents = sameFile ? state.fileContents : null
+    // If it's a text diff, we'll consider it loaded once the contents of the old
+    // and new files have been loaded.
+    const isLoadingDiff =
+      props.diff === null ||
+      (props.diff.kind === DiffType.Text && fileContents === null)
     const beganOrFinishedLoadingDiff = isLoadingDiff !== state.isLoadingDiff
 
     return {
@@ -125,18 +151,31 @@ export class SeamlessDiffSwitcher extends React.Component<
       // can't say that it's slow in all other cases we leave the
       // isLoadingSlow state as-is
       ...(beganOrFinishedLoadingDiff ? { isLoadingSlow: false } : undefined),
+      diff: state.diff,
+      fileContents,
     }
   }
 
   private slowLoadingTimeoutId: number | null = null
 
+  /** File whose (old & new files) contents are being loaded. */
+  private loadingFile: ChangedFile | null = null
+
   public constructor(props: ISeamlessDiffSwitcherProps) {
     super(props)
 
+    // It's loading the diff if (1) there is no diff or (2) we have a diff but
+    // it's a text diff. In that case we need to load the contents of the old
+    // and new files before considering it loaded.
+    const isLoadingDiff =
+      props.diff === null || props.diff.kind === DiffType.Text
+
     this.state = {
-      isLoadingDiff: props.diff === null,
+      isLoadingDiff,
       isLoadingSlow: false,
       propSnapshot: props,
+      diff: props.diff,
+      fileContents: null,
     }
   }
 
@@ -144,6 +183,7 @@ export class SeamlessDiffSwitcher extends React.Component<
     if (this.state.isLoadingDiff) {
       this.scheduleSlowLoadingTimeout()
     }
+    this.loadFileContentsIfNeeded()
   }
 
   public componentWillUnmount() {
@@ -165,6 +205,56 @@ export class SeamlessDiffSwitcher extends React.Component<
         this.clearSlowLoadingTimeout()
       }
     }
+
+    this.loadFileContentsIfNeeded()
+  }
+
+  private async loadFileContentsIfNeeded() {
+    const { diff, file: fileToLoad } = this.props
+
+    if (diff?.kind !== DiffType.Text) {
+      return
+    }
+
+    const currentFileContents = this.state.fileContents
+    if (
+      currentFileContents !== null &&
+      isSameFile(currentFileContents.file, fileToLoad)
+    ) {
+      return
+    }
+
+    if (this.loadingFile !== null && isSameFile(fileToLoad, this.loadingFile)) {
+      return
+    }
+
+    this.loadingFile = fileToLoad
+
+    const lineFilters = getLineFilters(diff.hunks)
+    const fileContents = await getFileContents(
+      this.props.repository,
+      this.props.file,
+      lineFilters
+    )
+
+    if (!isSameFile(fileToLoad, this.props.file)) {
+      return
+    }
+
+    const shouldEnableDiffExpansion =
+      enableTextDiffExpansion() && fileContents.canBeExpanded
+    const newDiff = shouldEnableDiffExpansion
+      ? getTextDiffWithBottomDummyHunk(
+          diff,
+          diff.hunks,
+          fileContents.oldContents.length,
+          fileContents.newContents.length
+        )
+      : null
+
+    this.loadingFile = null
+
+    this.setState({ diff: newDiff, fileContents })
   }
 
   private onSlowLoadingTimeout = () => {
@@ -187,7 +277,7 @@ export class SeamlessDiffSwitcher extends React.Component<
   }
 
   public render() {
-    const { isLoadingDiff, isLoadingSlow } = this.state
+    const { isLoadingDiff, isLoadingSlow, fileContents, diff } = this.state
     const {
       repository,
       imageDiffType,
@@ -196,7 +286,6 @@ export class SeamlessDiffSwitcher extends React.Component<
       showSideBySideDiff,
       onIncludeChanged,
       onDiscardChanges,
-      diff,
       file,
       onOpenBinaryFile,
       onChangeImageDiffType,
@@ -222,6 +311,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             imageDiffType={imageDiffType}
             file={file}
             diff={diff}
+            fileContents={fileContents}
             readOnly={readOnly}
             hideWhitespaceInDiff={hideWhitespaceInDiff}
             showSideBySideDiff={showSideBySideDiff}
