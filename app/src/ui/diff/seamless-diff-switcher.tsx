@@ -316,7 +316,9 @@ export class SeamlessDiffSwitcher extends React.Component<
             imageDiffType={imageDiffType}
             file={file}
             diff={diff}
-            fileContents={fileContents}
+            fileContents={
+              fileContents?.canBeExpanded === true ? fileContents : null
+            }
             readOnly={readOnly}
             hideWhitespaceInDiff={hideWhitespaceInDiff}
             showSideBySideDiff={showSideBySideDiff}

@@ -60,7 +60,10 @@ interface IDiffProps {
   /** The diff that should be rendered */
   readonly diff: IDiff
 
-  /** Contents of the old and new files related to the current text diff. */
+  /**
+   * Contents of the old and new files related to the current text diff. Only
+   * needed for diffs that can be expanded.
+   */
   readonly fileContents: IFileContents | null
 
   /** The type of image diff to display. */
