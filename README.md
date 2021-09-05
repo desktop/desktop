@@ -64,6 +64,19 @@ $ sudo yum install github-desktop
 $ sudo dnf install github-desktop
 ```
 
+### OpenSUSE distribution
+```sh
+$ sudo rpm --import https://packagecloud.io/shiftkey/desktop/gpgkey
+$ sudo sh -c 'echo -e "[shiftkey]\nname=GitHub Desktop\nbaseurl=https://packagecloud.io/shiftkey/desktop/el/7/\$basearch\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=https://packagecloud.io/shiftkey/desktop/gpgkey" > /etc/zypp/repos.d/shiftkey-desktop.repo'
+```
+
+Then install GitHub Desktop:
+
+```sh
+# if zypper is your package manager
+$ sudo zypper ref && sudo zypper in github-desktop
+```
+
 ## Other Distributions
 
 Arch Linux users can install GitHub Desktop from the
