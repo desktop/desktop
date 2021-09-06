@@ -6,6 +6,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 interface IAddSSHHostProps {
   readonly host: string
   readonly ip: string
+  readonly keyType: string
   readonly fingerprint: string
   readonly onSubmit: (addHost: boolean) => void
   readonly onDismissed: () => void
@@ -28,7 +29,8 @@ export class AddSSHHost extends React.Component<IAddSSHHostProps> {
         <DialogContent>
           <Row>
             The authenticity of host '{this.props.host} ({this.props.ip})' can't
-            be established. RSA key fingerprint is {this.props.fingerprint}.
+            be established. {this.props.keyType} key fingerprint is{' '}
+            {this.props.fingerprint}.
             <br />
             Are you sure you want to continue connecting?
           </Row>
