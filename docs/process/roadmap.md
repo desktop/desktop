@@ -4,13 +4,17 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 
 #### Native arm64 support for macOS and Windows
 
-- Provide support for arm64 Windows machines and Apple Silicon (M1) machines: [#9691](https://github.com/desktop/desktop/pull/9691)
-
-#### Expanding diffs
-
-- Allow users to expand diffs to get more context outside of the specific hunk where the change is: [#7014](https://github.com/desktop/desktop/issues/7014)
+- Provide support for arm64 Windows machines: [#9691](https://github.com/desktop/desktop/pull/9691)
 
 ## Shipped in previous releases
+
+#### Native support for Apple Silicon (M1)
+
+- Provide support for Apple Silicon (M1) machines: [#9691](https://github.com/desktop/desktop/pull/9691)
+
+#### Expanding diffs (2.8.0)
+
+- Allow users to expand diffs to get more context outside of the specific hunk where the change is: [#7014](https://github.com/desktop/desktop/issues/7014)
 
 #### Cherry-picking commits from one branch to another (2.7.1)
 
