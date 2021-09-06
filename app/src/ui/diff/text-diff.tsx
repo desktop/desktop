@@ -151,8 +151,8 @@ interface ITextDiffProps {
   /** The initial diff that should be rendered */
   readonly diff: ITextDiff
   /**
-   * Contents of the old and new files related to the current diff. Only needed
-   * for diffs that can be expanded.
+   * Contents of the old and new files related to the current text diff. Must
+   * be null for diffs that cannot be expanded.
    */
   readonly fileContents: IFileContents | null
   /** If true, no selections or discards can be done against this diff. */

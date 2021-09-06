@@ -84,8 +84,8 @@ interface ISideBySideDiffProps {
   readonly diff: ITextDiff
 
   /**
-   * Contents of the old and new files related to the current diff. Only needed
-   * for diffs that can be expanded.
+   * Contents of the old and new files related to the current text diff. Must
+   * be null for diffs that cannot be expanded.
    */
   readonly fileContents: IFileContents | null
 
