@@ -33,8 +33,11 @@
   }
 
   &.with-co-authors .description-focus-container {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    .action-bar,
+    & {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
   }
 
   .co-authors-toggle {
