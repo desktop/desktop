@@ -41,7 +41,7 @@ type WindowsExternalEditorPathInfo =
     }
 
 /** Represents an external editor on Windows */
-type WindowsExternalEditor = {
+export type WindowsExternalEditor = {
   /** Name of the editor. It will be used both as identifier and user-facing. */
   readonly name: string
 
