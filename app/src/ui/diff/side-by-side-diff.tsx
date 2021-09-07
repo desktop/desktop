@@ -787,9 +787,7 @@ export class SideBySideDiff extends React.Component<
 
     this.diffToRestore = diff
 
-    this.setState({
-      diff: updatedDiff,
-    })
+    this.setState({ diff: updatedDiff })
   }
 
   private onCollapseExpandedLines = () => {
@@ -797,9 +795,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    this.setState({
-      diff: this.diffToRestore,
-    })
+    this.setState({ diff: this.diffToRestore })
 
     this.diffToRestore = null
   }
@@ -978,9 +974,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    this.setState({
-      diff: updatedDiff,
-    })
+    this.setState({ diff: updatedDiff })
   }
 }
 

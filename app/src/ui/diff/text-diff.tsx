@@ -609,9 +609,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
-    this.setState({
-      diff: updatedDiff,
-    })
+    this.setState({ diff: updatedDiff })
     this.updateViewport()
   }
 
@@ -788,9 +786,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     this.diffToRestore = this.state.diff
 
-    this.setState({
-      diff: updatedDiff,
-    })
+    this.setState({ diff: updatedDiff })
     this.updateViewport()
   }
 
@@ -799,9 +795,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
-    this.setState({
-      diff: this.diffToRestore,
-    })
+    this.setState({ diff: this.diffToRestore })
     this.updateViewport()
 
     this.diffToRestore = null
