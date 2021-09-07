@@ -50,7 +50,6 @@ import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-search-input'
 import { escapeRegExp } from '../../lib/helpers/regex'
-import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -752,7 +751,6 @@ export class SideBySideDiff extends React.Component<
     const contents = this.props.fileContents
     const { diff } = this.state
     if (
-      !enableTextDiffExpansion() ||
       contents === null ||
       !contents.canBeExpanded ||
       contents.newContents.length === 0

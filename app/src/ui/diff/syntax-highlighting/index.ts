@@ -138,6 +138,7 @@ export async function getFileContents(
     oldContents: oldContents?.toString('utf8').split(/\r?\n/) ?? [],
     newContents: newContents?.toString('utf8').split(/\r?\n/) ?? [],
     canBeExpanded:
+      enableTextDiffExpansion() &&
       newContents !== null &&
       newContents.length <= MaxDiffExpansionNewContentLength,
   }

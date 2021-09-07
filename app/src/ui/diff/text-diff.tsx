@@ -41,7 +41,6 @@ import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
-import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   canSelect,
   getLineWidthFromDigitCount,
@@ -653,7 +652,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     const contents = this.props.fileContents
 
     if (
-      !enableTextDiffExpansion() ||
       contents === null ||
       !contents.canBeExpanded ||
       contents.newContents.length === 0
@@ -1038,7 +1036,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const contents = this.props.fileContents
     const shouldEnableDiffExpansion =
-      enableTextDiffExpansion() &&
       contents !== null &&
       contents.canBeExpanded &&
       contents.newContents.length > 0
@@ -1107,7 +1104,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     const contents = this.props.fileContents
 
     if (
-      enableTextDiffExpansion() &&
       contents !== null &&
       contents.canBeExpanded &&
       contents.newContents.length > 0
