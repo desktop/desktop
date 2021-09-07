@@ -5270,7 +5270,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (!deleted) {
           this.emitError(
             new Error(
-              `Failed to move the repository directory to ${TrashNameLabel}.\n\nA common reason for this is that the directory or a part of it is open in another program.`
+              `Failed to move the repository directory to ${TrashNameLabel}.\n\nA common reason for this is that the directory or one of its files is open in another program.`
             )
           )
           return
