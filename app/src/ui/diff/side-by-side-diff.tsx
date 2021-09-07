@@ -993,7 +993,8 @@ function highlightParametersEqual(
     (newProps === prevProps ||
       (newProps.file.id === prevProps.file.id &&
         newProps.showSideBySideDiff === prevProps.showSideBySideDiff)) &&
-    newState.diff.text === prevState.diff.text
+    newState.diff.text === prevState.diff.text &&
+    prevProps.fileContents?.file.id === newProps.fileContents?.file.id
   )
 }
 

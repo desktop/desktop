@@ -84,7 +84,8 @@ function highlightParametersEqual(
 ) {
   return (
     (newProps === prevProps || newProps.file.id === prevProps.file.id) &&
-    newState.diff.text === prevState.diff.text
+    newState.diff.text === prevState.diff.text &&
+    prevProps.fileContents?.file.id === newProps.fileContents?.file.id
   )
 }
 
