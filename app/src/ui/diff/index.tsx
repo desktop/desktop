@@ -61,8 +61,7 @@ interface IDiffProps {
   readonly diff: IDiff
 
   /**
-   * Contents of the old and new files related to the current text diff. Must
-   * be null for diffs that cannot be expanded.
+   * Contents of the old and new files related to the current text diff.
    */
   readonly fileContents: IFileContents | null
 

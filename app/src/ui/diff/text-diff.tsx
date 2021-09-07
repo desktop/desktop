@@ -151,8 +151,7 @@ interface ITextDiffProps {
   /** The initial diff that should be rendered */
   readonly diff: ITextDiff
   /**
-   * Contents of the old and new files related to the current text diff. Must
-   * be null for diffs that cannot be expanded.
+   * Contents of the old and new files related to the current text diff.
    */
   readonly fileContents: IFileContents | null
   /** If true, no selections or discards can be done against this diff. */
@@ -594,7 +593,11 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
     const contents = this.props.fileContents
 
-    if (contents === null || contents.newContents.length === 0) {
+    if (
+      contents === null ||
+      !contents.canBeExpanded ||
+      contents.newContents.length === 0
+    ) {
       return
     }
 
@@ -652,6 +655,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     if (
       !enableTextDiffExpansion() ||
       contents === null ||
+      !contents.canBeExpanded ||
       contents.newContents.length === 0
     ) {
       return null
@@ -771,7 +775,11 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   private onExpandWholeFile = () => {
     const contents = this.props.fileContents
 
-    if (contents === null || contents.newContents.length === 0) {
+    if (
+      contents === null ||
+      !contents.canBeExpanded ||
+      contents.newContents.length === 0
+    ) {
       return
     }
 
@@ -1032,6 +1040,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     const shouldEnableDiffExpansion =
       enableTextDiffExpansion() &&
       contents !== null &&
+      contents.canBeExpanded &&
       contents.newContents.length > 0
 
     return {
@@ -1100,6 +1109,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     if (
       enableTextDiffExpansion() &&
       contents !== null &&
+      contents.canBeExpanded &&
       contents.newContents.length > 0
     ) {
       const hunkExpandUpHandle = document.createElement('div')

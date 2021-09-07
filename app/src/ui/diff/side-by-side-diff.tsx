@@ -84,8 +84,7 @@ interface ISideBySideDiffProps {
   readonly diff: ITextDiff
 
   /**
-   * Contents of the old and new files related to the current text diff. Must
-   * be null for diffs that cannot be expanded.
+   * Contents of the old and new files related to the current text diff.
    */
   readonly fileContents: IFileContents | null
 
@@ -247,7 +246,9 @@ export class SideBySideDiff extends React.Component<
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null && contents.newContents.length > 0
+      contents !== null &&
+        contents.canBeExpanded &&
+        contents.newContents.length > 0
     )
     const containerClassName = classNames('side-by-side-diff-container', {
       'unified-diff': !this.props.showSideBySideDiff,
@@ -303,7 +304,9 @@ export class SideBySideDiff extends React.Component<
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null && contents.newContents.length > 0
+      contents !== null &&
+        contents.canBeExpanded &&
+        contents.newContents.length > 0
     )
     const row = rows[index]
 
@@ -545,7 +548,9 @@ export class SideBySideDiff extends React.Component<
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null && contents.newContents.length > 0
+      contents !== null &&
+        contents.canBeExpanded &&
+        contents.newContents.length > 0
     )
     const row = rows[rowNumber]
 
@@ -749,6 +754,7 @@ export class SideBySideDiff extends React.Component<
     if (
       !enableTextDiffExpansion() ||
       contents === null ||
+      !contents.canBeExpanded ||
       contents.newContents.length === 0
     ) {
       return null
@@ -775,7 +781,11 @@ export class SideBySideDiff extends React.Component<
     const contents = this.props.fileContents
     const { diff } = this.state
 
-    if (contents === null || contents.newContents.length === 0) {
+    if (
+      contents === null ||
+      !contents.canBeExpanded ||
+      contents.newContents.length === 0
+    ) {
       return
     }
 
@@ -922,7 +932,9 @@ export class SideBySideDiff extends React.Component<
         diff,
         showSideBySideDiff,
         searchQuery,
-        contents !== null && contents.newContents.length > 0
+        contents !== null &&
+          contents.canBeExpanded &&
+          contents.newContents.length > 0
       )
       selectedSearchResult = 0
 
@@ -959,7 +971,11 @@ export class SideBySideDiff extends React.Component<
     const contents = this.props.fileContents
     const { diff } = this.state
 
-    if (contents === null || contents.newContents.length === 0) {
+    if (
+      contents === null ||
+      !contents.canBeExpanded ||
+      contents.newContents.length === 0
+    ) {
       return
     }
 
