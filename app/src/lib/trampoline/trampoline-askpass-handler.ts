@@ -7,38 +7,33 @@ import {
 import { TokenStore } from '../stores'
 import { TrampolineCommandHandler } from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
+import { parseAddSSHHostPrompt } from '../ssh/ssh'
 
 async function handleSSHHostAuthenticity(
   prompt: string
 ): Promise<'yes' | 'no' | undefined> {
-  const promptRegex = /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established.\n([^ ]+) key fingerprint is ([^.]+).\n(?:.*\n)*Are you sure you want to continue connecting \(yes\/no\/\[fingerprint\]\)\? $/
+  const info = parseAddSSHHostPrompt(prompt)
 
-  const matches = promptRegex.exec(prompt)
-  if (matches === null || matches.length < 5) {
+  if (info === null) {
     return undefined
   }
-
-  const host = matches[1]
-  const ip = matches[2]
-  const keyType = matches[3]
-  const fingerprint = matches[4]
 
   // We'll accept github.com as valid host automatically. GitHub's public key
   // fingerprint can be obtained from
   // https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
   if (
-    host === 'github.com' &&
-    keyType === 'RSA' &&
-    fingerprint === 'SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8'
+    info.host === 'github.com' &&
+    info.keyType === 'RSA' &&
+    info.fingerprint === 'SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8'
   ) {
     return 'yes'
   }
 
   const addHost = await trampolineUIHelper.promptAddingSSHHost(
-    host,
-    ip,
-    keyType,
-    fingerprint
+    info.host,
+    info.ip,
+    info.keyType,
+    info.fingerprint
   )
   return addHost ? 'yes' : 'no'
 }
