@@ -14,6 +14,7 @@ import {
   IDiff,
   ImageDiffType,
   ITextDiff,
+  ILargeTextDiff,
 } from '../../models/diff'
 import { Loading } from '../lib/loading'
 import {
@@ -21,7 +22,6 @@ import {
   getLineFilters,
   IFileContents,
 } from './syntax-highlighting'
-import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
 
 /**
@@ -120,6 +120,10 @@ function isSameFile(prevFile: ChangedFile, newFile: ChangedFile) {
   return prevFile === newFile || prevFile.id === newFile.id
 }
 
+function isTextDiff(diff: IDiff): diff is ITextDiff | ILargeTextDiff {
+  return diff.kind === DiffType.Text || diff.kind === DiffType.LargeText
+}
+
 /**
  * A component which attempts to minimize the need for unmounting
  * and remounting text diff components with the ultimate goal of
@@ -140,14 +144,11 @@ export class SeamlessDiffSwitcher extends React.Component<
     // If it's a text diff, we'll consider it loaded once the contents of the old
     // and new files have been loaded.
     const isLoadingDiff =
-      props.diff === null ||
-      (props.diff.kind === DiffType.Text && fileContents === null)
+      props.diff === null || (isTextDiff(props.diff) && fileContents === null)
     const beganOrFinishedLoadingDiff = isLoadingDiff !== state.isLoadingDiff
-    // If the props diff is not a Text diff, just pass it along to the state.
+    // If the props diff is not a text diff, just pass it along to the state.
     const diff =
-      props.diff !== null && props.diff.kind !== DiffType.Text
-        ? props.diff
-        : state.diff
+      props.diff !== null && !isTextDiff(props.diff) ? props.diff : state.diff
 
     return {
       isLoadingDiff,
@@ -172,8 +173,7 @@ export class SeamlessDiffSwitcher extends React.Component<
     // It's loading the diff if (1) there is no diff or (2) we have a diff but
     // it's a text diff. In that case we need to load the contents of the old
     // and new files before considering it loaded.
-    const isLoadingDiff =
-      props.diff === null || props.diff.kind === DiffType.Text
+    const isLoadingDiff = props.diff === null || isTextDiff(props.diff)
 
     this.state = {
       isLoadingDiff,
@@ -217,7 +217,7 @@ export class SeamlessDiffSwitcher extends React.Component<
   private async loadFileContentsIfNeeded() {
     const { diff, file: fileToLoad } = this.props
 
-    if (diff?.kind !== DiffType.Text) {
+    if (diff === null || !isTextDiff(diff)) {
       return
     }
 
@@ -246,16 +246,15 @@ export class SeamlessDiffSwitcher extends React.Component<
       return
     }
 
-    const shouldEnableDiffExpansion =
-      enableTextDiffExpansion() && fileContents.canBeExpanded
-    const newDiff = shouldEnableDiffExpansion
-      ? getTextDiffWithBottomDummyHunk(
-          diff,
-          diff.hunks,
-          fileContents.oldContents.length,
-          fileContents.newContents.length
-        )
-      : null
+    const newDiff =
+      fileContents.canBeExpanded && diff.kind === DiffType.Text
+        ? getTextDiffWithBottomDummyHunk(
+            diff,
+            diff.hunks,
+            fileContents.oldContents.length,
+            fileContents.newContents.length
+          )
+        : null
 
     this.loadingFile = null
 
