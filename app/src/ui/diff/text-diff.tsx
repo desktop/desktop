@@ -588,15 +588,20 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     return this.selection === null
   }
 
+  private canExpandDiff() {
+    const contents = this.props.fileContents
+    return (
+      contents !== null &&
+      contents.canBeExpanded &&
+      contents.newContents.length > 0
+    )
+  }
+
   /** Expand a selected hunk. */
   private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
     const contents = this.props.fileContents
 
-    if (
-      contents === null ||
-      !contents.canBeExpanded ||
-      contents.newContents.length === 0
-    ) {
+    if (contents === null || !this.canExpandDiff()) {
       return
     }
 
@@ -649,13 +654,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private buildExpandMenuItem(event: Event): IMenuItem | null {
-    const contents = this.props.fileContents
-
-    if (
-      contents === null ||
-      !contents.canBeExpanded ||
-      contents.newContents.length === 0
-    ) {
+    if (!this.canExpandDiff()) {
       return null
     }
 
@@ -773,11 +772,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   private onExpandWholeFile = () => {
     const contents = this.props.fileContents
 
-    if (
-      contents === null ||
-      !contents.canBeExpanded ||
-      contents.newContents.length === 0
-    ) {
+    if (contents === null || !this.canExpandDiff()) {
       return
     }
 
@@ -1034,11 +1029,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       diffLine.originalLineNumber !== null &&
       inSelection(this.hunkHighlightRange, diffLine.originalLineNumber)
 
-    const contents = this.props.fileContents
-    const shouldEnableDiffExpansion =
-      contents !== null &&
-      contents.canBeExpanded &&
-      contents.newContents.length > 0
+    const shouldEnableDiffExpansion = this.canExpandDiff()
 
     return {
       'diff-line-gutter': true,
@@ -1101,13 +1092,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunkHandle.classList.add('hunk-handle')
     marker.appendChild(hunkHandle)
 
-    const contents = this.props.fileContents
-
-    if (
-      contents !== null &&
-      contents.canBeExpanded &&
-      contents.newContents.length > 0
-    ) {
+    if (this.canExpandDiff()) {
       const hunkExpandUpHandle = document.createElement('div')
       hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
       hunkExpandUpHandle.title = 'Expand Up'

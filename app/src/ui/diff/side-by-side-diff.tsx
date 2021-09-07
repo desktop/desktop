@@ -238,16 +238,22 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  public render() {
+  private canExpandDiff() {
     const contents = this.props.fileContents
+    return (
+      contents !== null &&
+      contents.canBeExpanded &&
+      contents.newContents.length > 0
+    )
+  }
+
+  public render() {
     const { diff } = this.state
 
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null &&
-        contents.canBeExpanded &&
-        contents.newContents.length > 0
+      this.canExpandDiff()
     )
     const containerClassName = classNames('side-by-side-diff-container', {
       'unified-diff': !this.props.showSideBySideDiff,
@@ -298,14 +304,11 @@ export class SideBySideDiff extends React.Component<
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
-    const contents = this.props.fileContents
     const { diff } = this.state
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null &&
-        contents.canBeExpanded &&
-        contents.newContents.length > 0
+      this.canExpandDiff()
     )
     const row = rows[index]
 
@@ -542,14 +545,11 @@ export class SideBySideDiff extends React.Component<
     rowNumber: number,
     column: DiffColumn
   ): number | null {
-    const contents = this.props.fileContents
     const { diff } = this.state
     const rows = getDiffRows(
       diff,
       this.props.showSideBySideDiff,
-      contents !== null &&
-        contents.canBeExpanded &&
-        contents.newContents.length > 0
+      this.canExpandDiff()
     )
     const row = rows[rowNumber]
 
@@ -748,13 +748,8 @@ export class SideBySideDiff extends React.Component<
   }
 
   private buildExpandMenuItem(): IMenuItem | null {
-    const contents = this.props.fileContents
     const { diff } = this.state
-    if (
-      contents === null ||
-      !contents.canBeExpanded ||
-      contents.newContents.length === 0
-    ) {
+    if (!this.canExpandDiff()) {
       return null
     }
 
@@ -779,11 +774,7 @@ export class SideBySideDiff extends React.Component<
     const contents = this.props.fileContents
     const { diff } = this.state
 
-    if (
-      contents === null ||
-      !contents.canBeExpanded ||
-      contents.newContents.length === 0
-    ) {
+    if (contents === null || !this.canExpandDiff()) {
       return
     }
 
@@ -910,7 +901,6 @@ export class SideBySideDiff extends React.Component<
   private onSearch = (searchQuery: string, direction: 'next' | 'previous') => {
     let { selectedSearchResult, searchResults: searchResults } = this.state
     const { showSideBySideDiff } = this.props
-    const contents = this.props.fileContents
     const { diff } = this.state
 
     // If the query is unchanged and we've got tokens we'll continue, else we'll restart
@@ -930,9 +920,7 @@ export class SideBySideDiff extends React.Component<
         diff,
         showSideBySideDiff,
         searchQuery,
-        contents !== null &&
-          contents.canBeExpanded &&
-          contents.newContents.length > 0
+        this.canExpandDiff()
       )
       selectedSearchResult = 0
 
@@ -969,11 +957,7 @@ export class SideBySideDiff extends React.Component<
     const contents = this.props.fileContents
     const { diff } = this.state
 
-    if (
-      contents === null ||
-      !contents.canBeExpanded ||
-      contents.newContents.length === 0
-    ) {
+    if (contents === null || !this.canExpandDiff()) {
       return
     }
 
