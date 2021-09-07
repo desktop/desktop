@@ -119,12 +119,19 @@ export class DiffSyntaxMode {
   }
 
   public blankLine(state: IState) {
+    // If we run into a blank line and we don't have hunks yet, and given we
+    // should never get blank diffs, let's assume we're in the last line of a
+    // diff that was just loaded, but for which we haven't run the highlighter
+    // yet. If we don't do this, that last line will be formatted wrongly.
+    if (this.hunks === undefined) {
+      return getBaseDiffLineStyle('diff-hunk')
+    }
+
     // A line might be empty in a non-blank diff for the only line of the
     // dummy hunk we put at the bottom of the diff to allow users to expand
     // the visible contents.
-    if (this.hunks !== undefined && this.hunks.length > 0) {
+    if (this.hunks.length > 0) {
       const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
-
       if (diffLine?.type === DiffLineType.Hunk) {
         return getBaseDiffLineStyle('diff-hunk')
       }
