@@ -294,6 +294,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-hover-background-color: #{$gray-100};
   --list-item-hover-text-color: var(--text-color);
   --list-item-hover-border: none;
+  --list-item-hover-border-bottom: var(--base-border);
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;

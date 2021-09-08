@@ -217,6 +217,8 @@ body.theme-dark {
   --list-item-selected-active-badge-background-color: #{$white};
   --list-item-hover-background-color: #{$gray-800};
   --list-item-hover-text-color: var(--text-color);
+  --list-item-hover-border: none;
+  --list-item-hover-border-bottom: var(--base-border);
 
   /**
    * Toast notifications are shown temporarily for things like the zoom

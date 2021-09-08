@@ -36,6 +36,7 @@ export function buildCustomThemeStyles(customTheme: ICustomTheme): string {
   const highContrastSpecific = `
       --box-selected-active-border: 2px solid ${border};
       --list-item-hover-border: 2px solid ${border};
+      --list-item-hover-border-bottom: 2px solid ${border};
 
       --secondary-button-hover-border-width: 2px;
 
