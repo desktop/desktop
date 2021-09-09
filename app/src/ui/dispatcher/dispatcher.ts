@@ -1761,15 +1761,6 @@ export class Dispatcher {
           path
         )
 
-        // in case this is valid git repository, there is no need to ask
-        // user for confirmation and it can be added automatically
-        if (existingRepository == null) {
-          const isRepository = await isGitRepository(path)
-          if (isRepository) {
-            const addedRepositories = await this.addRepositories([path])
-            existingRepository = addedRepositories[0]
-          }
-        }
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
