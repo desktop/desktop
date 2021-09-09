@@ -26,7 +26,6 @@ import {
   setGenericUsername,
 } from '../../lib/generic-git-auth'
 import {
-  isGitRepository,
   RebaseResult,
   PushOptions,
   getCommitsBetweenCommits,
