@@ -1755,21 +1755,14 @@ export class Dispatcher {
         // this ensures we use the repository root, if it is actually a repository
         // otherwise we consider it an untracked repository
         const path = (await validatedRepositoryPath(action.path)) || action.path
-        const state = this.appStore.getState()
-        let existingRepository = matchExistingRepository(
-          state.repositories,
-          path
-        )
-
+        const { repositories } = this.appStore.getState()
+        const existingRepository = matchExistingRepository(repositories, path)
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
           this.statsStore.recordAddExistingRepository()
         } else {
-          await this.showPopup({
-            type: PopupType.AddRepository,
-            path,
-          })
+          await this.showPopup({ type: PopupType.AddRepository, path })
         }
         break
 
