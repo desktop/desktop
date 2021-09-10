@@ -414,6 +414,8 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
 function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
     name: checkRun.name,
+    description:
+      checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
     status: checkRun.status,
     conclusion: checkRun.conclusion,
     appName: checkRun.app.name,
