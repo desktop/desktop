@@ -149,3 +149,8 @@ export function enableSetAlmostImmediate(): boolean {
   // use this trick on Windows for now.
   return __DARWIN__ && enableBetaFeatures()
 }
+
+/** Should we show ci check runs? */
+export function enableCICheckRuns(): boolean {
+  return enableDevelopmentFeatures()
+}
