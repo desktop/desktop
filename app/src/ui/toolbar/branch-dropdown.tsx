@@ -17,6 +17,8 @@ import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
+import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { CICheckList } from '../branches/ci-check-list'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -54,10 +56,24 @@ interface IBranchDropdownProps {
   readonly shouldNudge: boolean
 }
 
+interface IBranchDropdownState {
+  readonly isPopoverOpen: boolean
+}
+
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<IBranchDropdownProps> {
+export class BranchDropdown extends React.Component<
+  IBranchDropdownProps,
+  IBranchDropdownState
+> {
+  public constructor(props: IBranchDropdownProps) {
+    super(props)
+    this.state = {
+      isPopoverOpen: false,
+    }
+  }
+
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
@@ -161,24 +177,27 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     })
 
     return (
-      <ToolbarDropdown
-        className="branch-button"
-        icon={icon}
-        iconClassName={iconClassName}
-        title={title}
-        description={description}
-        tooltip={tooltip}
-        onDropdownStateChanged={this.onDropDownStateChanged}
-        dropdownContentRenderer={this.renderBranchFoldout}
-        dropdownState={currentState}
-        disabled={disabled}
-        showDisclosureArrow={canOpen}
-        progressValue={progressValue}
-        buttonClassName={buttonClassName}
-        onMouseEnter={this.onMouseEnter}
-      >
-        {this.renderPullRequestInfo()}
-      </ToolbarDropdown>
+      <>
+        <ToolbarDropdown
+          className="branch-button"
+          icon={icon}
+          iconClassName={iconClassName}
+          title={title}
+          description={description}
+          tooltip={tooltip}
+          onDropdownStateChanged={this.onDropDownStateChanged}
+          dropdownContentRenderer={this.renderBranchFoldout}
+          dropdownState={currentState}
+          disabled={disabled}
+          showDisclosureArrow={canOpen}
+          progressValue={progressValue}
+          buttonClassName={buttonClassName}
+          onMouseEnter={this.onMouseEnter}
+        >
+          {this.renderPullRequestInfo()}
+        </ToolbarDropdown>
+        {this.state.isPopoverOpen && this.renderPopover()}
+      </>
     )
   }
 
@@ -195,6 +214,52 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     }
   }
 
+  private onBadgeClick = () => {
+    if (this.state.isPopoverOpen) {
+      this.closePopover()
+    } else {
+      this.openPopover()
+    }
+  }
+
+  private openPopover = () => {
+    this.setState(prevState => {
+      if (!prevState.isPopoverOpen) {
+        return { isPopoverOpen: true }
+      }
+      return null
+    })
+  }
+
+  private closePopover = () => {
+    this.setState({ isPopoverOpen: false })
+  }
+
+  private renderPopover() {
+    const pr = this.props.currentPullRequest
+
+    if (pr === null) {
+      return null
+    }
+
+    return (
+      <div className="ci-check-list-popover">
+        <Popover
+          caretPosition={PopoverCaretPosition.Top}
+          onClickOutside={this.closePopover}
+        >
+          <div>
+            <CICheckList
+              prNumber={pr.pullRequestNumber}
+              dispatcher={this.props.dispatcher}
+              repository={pr.base.gitHubRepository}
+            />
+          </div>
+        </Popover>
+      </div>
+    )
+  }
+
   private renderPullRequestInfo() {
     const pr = this.props.currentPullRequest
 
@@ -207,6 +272,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         number={pr.pullRequestNumber}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        onBadgeClick={this.onBadgeClick}
       />
     )
   }

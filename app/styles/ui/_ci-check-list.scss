@@ -1,3 +1,13 @@
+.ci-check-list-popover {
+  .popover-component {
+    position: absolute;
+    padding: 0px;
+    width: 300px;
+    top: 65px;
+    margin-left: -225px;
+  }
+}
+
 .ci-check-list {
   height: 300px;
   overflow: hidden;

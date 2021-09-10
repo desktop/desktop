@@ -15,6 +15,7 @@ import { Options as FocusTrapOptions } from 'focus-trap'
  * position.
  **/
 export enum PopoverCaretPosition {
+  Top = 'top',
   TopRight = 'top-right',
   TopLeft = 'top-left',
   LeftTop = 'left-top',
