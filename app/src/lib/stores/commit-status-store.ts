@@ -28,6 +28,7 @@ export interface IRefCheck {
   readonly description: string
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
+  readonly appName: string
 }
 
 /**
@@ -403,6 +404,7 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
     description: apiStatus.description,
     status: state,
     conclusion,
+    appName: '',
   }
 }
 
@@ -412,10 +414,9 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
 function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
     name: checkRun.name,
-    description:
-      checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
     status: checkRun.status,
     conclusion: checkRun.conclusion,
+    appName: checkRun.app.name,
   }
 }
 
