@@ -338,6 +338,8 @@ export interface IAPIRefCheckRun {
   readonly output: IAPIRefCheckRunOutput
   readonly check_suite: IAPIRefCheckRunCheckSuite
   readonly app: IAPIRefCheckRunApp
+  readonly completed_at: string
+  readonly started_at: string
 }
 
 // NB. Only partially mapped

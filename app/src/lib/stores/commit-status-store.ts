@@ -468,11 +468,28 @@ function getAPICheckRunDescription(
 
   if (durationSeconds !== undefined && durationSeconds > 0) {
     const duration =
-      durationSeconds < 60 ? `${durationSeconds}s` : `${durationSeconds / 60}m`
+      durationSeconds < 60
+        ? `${durationSeconds}s`
+        : `${Math.round(durationSeconds / 60)}m`
     return `${adjective} ${preposition} ${duration}`
   }
 
   return adjective
+}
+
+/**
+ * Attempts to get the duration of a check run in seconds.
+ * If it fails, it returns 0
+ */
+function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
+  try {
+    // This could fail if the dates cannot be parsed.
+    const completedAt = new Date(checkRun.completed_at).getTime()
+    const startedAt = new Date(checkRun.started_at).getTime()
+    return (completedAt - startedAt) / 1000
+  } catch (e) {}
+
+  return 0
 }
 
 /**
@@ -484,7 +501,7 @@ function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
     description: getAPICheckRunDescription(
       checkRun.status,
       checkRun.conclusion,
-      10
+      getCheckDurationInSeconds(checkRun)
     ),
     status: checkRun.status,
     conclusion: checkRun.conclusion,
