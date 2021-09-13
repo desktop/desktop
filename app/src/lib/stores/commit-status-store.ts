@@ -408,14 +408,17 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   }
 }
 
+function getAPICheckRunDescription(checkRun: IAPIRefCheckRun): string {
+  return checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status
+}
+
 /**
  * Convert an API check run object to a RefCheck model
  */
 function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
     name: checkRun.name,
-    description:
-      checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
+    description: getAPICheckRunDescription(checkRun),
     status: checkRun.status,
     conclusion: checkRun.conclusion,
     appName: checkRun.app.name,
