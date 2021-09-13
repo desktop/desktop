@@ -174,7 +174,10 @@
     color: var(--diff-delete-text-color);
     background: var(--diff-delete-background-color);
     border-right: 1px solid var(--diff-border-color);
-    border: var(--diff-delete-border);
+
+    @include high-contrast {
+      border: var(--diff-delete-border);
+    }
 
     .line-number {
       background: var(--diff-delete-gutter-background-color);
@@ -192,7 +195,10 @@
   .after {
     color: var(--diff-add-text-color);
     background: var(--diff-add-background-color);
-    border: var(--diff-add-border);
+
+    @include high-contrast {
+      border: var(--diff-add-border);
+    }
 
     .line-number {
       background: var(--diff-add-gutter-background-color);
@@ -233,7 +239,10 @@
     &.added .before,
     &.deleted .after {
       background: var(--diff-empty-row-background-color);
-      border: none;
+
+      @include high-contrast {
+        border: none;
+      }
 
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
@@ -259,7 +268,10 @@
     &.context .after {
       background: var(--diff-background-color);
       color: var(--diff-text-color);
-      border: none;
+
+      @include high-contrast {
+        border: none;
+      }
 
       .line-number {
         background: var(--diff-gutter-background-color);

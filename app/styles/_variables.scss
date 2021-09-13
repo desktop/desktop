@@ -113,11 +113,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-border-accent-color: #{$blue};
 
   /**
-   * Background color for selected boxes without keyboard focus
-   */
-  --box-selected-background-color: #ebeef1;
-
-  /**
    * Text color for when a user hovers over a boxe with a
    * pointing device. Should not be used by boxes that doesn't
    * implement a hover state since this will conflict with
@@ -271,10 +266,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --tab-bar-active-color: #{$blue};
   --tab-bar-background-color: #{$white};
   --tab-bar-hover-background-color: #{$gray-100};
-  --tab-bar-box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
-  --tab-bar-hover-border: none;
-  --horizontal-bar-active-color: 'none';
-  --tab-bar-item-border: 'none';
 
   /** Count bubble colors when used inside of a tab bar item */
   --tab-bar-count-color: var(--text-color);
@@ -292,8 +283,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-active-badge-color: #{$gray-900};
   --list-item-selected-active-badge-background-color: #{$white};
   --list-item-hover-background-color: #{$gray-100};
-  --list-item-hover-text-color: var(--text-color);
-  --list-item-hover-border: none;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
@@ -370,7 +359,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-selected-text-color: var(--background-color);
 
   --diff-add-background-color: #{darken($green-000, 2%)};
-  --diff-add-border: 'none';
   --diff-add-border-color: #{$green-300};
   --diff-add-gutter-color: #{$green-300};
   --diff-add-gutter-background-color: #{darken($green-100, 3%)};
@@ -383,7 +371,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-delete-gutter-background-color: #{$red-100};
   --diff-delete-inner-background-color: #fdb8c0;
   --diff-delete-text-color: var(--diff-text-color);
-  --diff-add-border: 'none';
 
   --diff-hunk-background-color: #{$blue-000};
   --diff-hunk-border-color: #{$blue-200};
@@ -471,8 +458,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --title-tool-tip-background-color: rgb(236, 236, 236);
   --title-tool-tip-shadow: 1px 2px 5px 0px rgb(125, 125, 125, 0.5);
-
-  --foldout-border: 'none';
 }
 
 ::backdrop {
