@@ -36,13 +36,6 @@ export function buildCustomThemeStyles(customTheme: ICustomTheme): string {
   const highContrastSpecific = `
       --box-selected-active-border: 2px solid ${border};
       --list-item-hover-border: 2px solid ${border};
-
-      --secondary-button-hover-border-width: 2px;
-
-      --tab-bar-box-shadow: none;
-
-      --diff-add-border: 1px solid green;
-      --diff-delete-border: 1px solid crimson;
       --tab-bar-hover-border: 2px solid ${border} !important;
       --tab-bar-item-border: 2px solid ${background};
       --foldout-border: 1px solid ${border};
@@ -50,7 +43,7 @@ export function buildCustomThemeStyles(customTheme: ICustomTheme): string {
       --horizontal-bar-active-text-color: ${activeText};
   `
 
-  return `body.theme-custom {
+  return `body.theme-high-contrast {
     --background-color: ${background};
     --box-background-color: ${background};
     --box-alt-background-color: ${background};
