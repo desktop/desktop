@@ -16,7 +16,7 @@ body.theme-high-contrast {
   --text-secondary-color: var(--hc-text-color);
 
   //border
-  --hc-hover-border: 2px solid var(--hc-border-color) !important;
+  --hc-hover-border: 2px solid var(--hc-border-color);
 
   /// tab-bar
   --tab-bar-active-color: var(--hc-active-item-color);
