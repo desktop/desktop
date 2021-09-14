@@ -13,7 +13,12 @@
 
   &-item {
     // Reset styles from global buttons
-    border: var(--tab-bar-item-border);
+    border: none;
+
+    @include high-contrast {
+      border: 2px solid var(--hc-background-color);
+    }
+
     box-shadow: none;
     color: var(--text-color);
     background: var(--background-color);
@@ -47,15 +52,22 @@
     // in so far that it doesn't have an active selection state, just a selected
     // one.
     &.selected {
-      box-shadow: var(--tab-bar-box-shadow);
-      background-color: var(--horizontal-bar-active-color);
-      color: var(--horizontal-bar-active-text-color);
+      box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
+
+      @include high-contrast {
+        box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
+        background-color: var(--hc-active-item-color);
+        color: var(--hc-active-text-color);
+      }
     }
 
     &:hover {
       background: var(--tab-bar-hover-background-color);
-      border: var(--tab-bar-hover-border);
-      color: var(--text-color);
+
+      @include high-contrast {
+        border: var(--hc-hover-border);
+        color: var(--text-color);
+      }
     }
 
     .with-indicator {
@@ -165,7 +177,10 @@
 
       &:hover {
         background: var(--tab-bar-hover-background-color);
-        border: var(--tab-bar-hover-border);
+
+        @include high-contrast {
+          border: var(--hc-hover-border);
+        }
       }
     }
 

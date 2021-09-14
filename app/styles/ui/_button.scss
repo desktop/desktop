@@ -19,7 +19,10 @@
   border-radius: var(--button-border-radius);
 
   &:not(:disabled):hover {
-    border-width: var(--secondary-button-hover-border-width);
+    @include high-contrast {
+      border-width: 2px;
+    }
+
     border-color: var(--secondary-button-focus-border-color);
     background-color: var(--secondary-button-hover-background);
   }

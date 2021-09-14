@@ -74,9 +74,11 @@
     }
   }
 
-  .list-item:hover {
-    .commit {
-      color: var(--text-color);
+  @include high-contrast {
+    .list-item:hover {
+      .commit {
+        color: var(--text-color);
+      }
     }
   }
 }
