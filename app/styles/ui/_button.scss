@@ -20,7 +20,7 @@
 
   &:not(:disabled):hover {
     @include high-contrast {
-      border-width: var(--secondary-button-hover-border-width);
+      border-width: 2px;
     }
 
     border-color: var(--secondary-button-focus-border-color);

@@ -21,8 +21,8 @@
   &:not(.not-selectable):hover {
     background: var(--list-item-hover-background-color);
     @include high-contrast {
-      color: var(--list-item-hover-text-color);
-      border: var(--list-item-hover-border);
+      color: var(--hc-active-text-color);
+      border: var(--hc-hover-border);
     }
   }
 }

@@ -271,7 +271,7 @@
     background: var(--diff-add-background-color);
 
     @include high-contrast {
-      border: var(--diff-add-border);
+      border: var(--hc-diff-add-border);
       margin-top: 1px;
     }
   }
@@ -280,7 +280,7 @@
     background: var(--diff-delete-background-color);
 
     @include high-contrast {
-      border: var(--diff-delete-border);
+      border: var(--hc-diff-delete-border);
     }
   }
 

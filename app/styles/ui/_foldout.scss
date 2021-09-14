@@ -21,7 +21,7 @@
     color: var(--text-color);
 
     @include high-contrast {
-      border: var(--foldout-border);
+      border: 1px solid var(--hc-border-color);
       overflow: hidden;
     }
   }

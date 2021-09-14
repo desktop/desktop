@@ -176,7 +176,7 @@
     border-right: 1px solid var(--diff-border-color);
 
     @include high-contrast {
-      border: var(--diff-delete-border);
+      border: var(--hc-diff-delete-border);
     }
 
     .line-number {
@@ -197,7 +197,7 @@
     background: var(--diff-add-background-color);
 
     @include high-contrast {
-      border: var(--diff-add-border);
+      border: var(--hc-diff-add-border);
     }
 
     .line-number {
