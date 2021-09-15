@@ -5,7 +5,7 @@
       "[Fixed] Remove high-contrast specific hover effects from light and dark theme - #12952",
       "[Fixed] Show \"add repo\" dialog when opening repo from CLI - #12935",
       "[Fixed] Merge flow continues after merge conflicts are resolved with exterior conflict tool - #12881",
-      "[Fixed] Removed glitches when diffs are shown for the first time - #12903",
+      "[Fixed] Remove glitches when diffs are shown for the first time - #12903",
       "[Improved] Remove gaps in the commit message container revealing a different background - #12900. Thanks @haykam821!",
       "[Improved] Be more specific about what will get removed in the \"remove repository\" dialog - #12497. Thanks @fonsp!",
       "[Improved] Update grammar for \"repo deletion\" and \"couldn't find pull request\" error messages - #12902. Thanks @patrykmichalik!",
