@@ -2,7 +2,7 @@
   "releases": {
     "2.9.4-beta2": [
       "[Added] Add support for WezTerm on macOS - #12957. Thanks @theodore-s-beers!",
-      "[Fixed] Prevent styles from high-contrast theme from leaking - #12952",
+      "[Fixed] Removed high-contrast specific hover effects from light and dark theme - #12952",
       "[Fixed] Show \"add repo\" dialog when opening repo from CLI - #12935",
       "[Fixed] Merge head is correctly detected after merge conflicts resolved externally - #12881",
       "[Fixed] Removed glitches when diffs are shown for the first time - #12903",
