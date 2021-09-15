@@ -9,7 +9,7 @@
       "[Improved] Remove gaps in the commit message container revealing a different background - #12900. Thanks @haykam821!",
       "[Improved] Update \"remove repository\" dialog - #12497. Thanks @fonsp!",
       "[Improved] Update grammar for \"repo deletion\" and \"couldn't find pull request\" error messages - #12902. Thanks @patrykmichalik!",
-      "[Improved] Add host key verification to auth issue list - #12894. Thanks @thsmdt!"
+      "[Improved] Show confirmation dialog for SSH host key verification - #12894. Thanks @thsmdt!"
     ],
     "2.9.4-beta1": [
       "[Added] Add a menu item to view a committed file change on GitHub - #12492. Thanks @haykam821!",
