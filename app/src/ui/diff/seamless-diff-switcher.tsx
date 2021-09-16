@@ -257,7 +257,7 @@ export class SeamlessDiffSwitcher extends React.Component<
     const lineFilters = getLineFilters(diff.hunks)
     const fileContents = await getFileContents(
       this.props.repository,
-      this.props.file,
+      fileToLoad,
       lineFilters
     )
 
