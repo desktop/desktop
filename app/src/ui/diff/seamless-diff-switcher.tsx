@@ -120,6 +120,15 @@ function isSameFile(prevFile: ChangedFile, newFile: ChangedFile) {
   return prevFile === newFile || prevFile.id === newFile.id
 }
 
+function isSameDiff(prevDiff: IDiff, newDiff: IDiff) {
+  return (
+    prevDiff === newDiff ||
+    (isTextDiff(prevDiff) &&
+      isTextDiff(newDiff) &&
+      prevDiff.text === newDiff.text)
+  )
+}
+
 function isTextDiff(diff: IDiff): diff is ITextDiff | ILargeTextDiff {
   return diff.kind === DiffType.Text || diff.kind === DiffType.LargeText
 }
