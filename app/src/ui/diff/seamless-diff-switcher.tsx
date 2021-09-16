@@ -263,6 +263,7 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     this.loadingState = null
 
+    // Has the file changed while we've been reading it?
     if (!isSameFile(fileToLoad, this.props.file)) {
       return
     }
