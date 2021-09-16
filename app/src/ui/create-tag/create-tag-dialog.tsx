@@ -77,7 +77,7 @@ export class CreateTag extends React.Component<
               <p>Previous Tags</p>
               {lastThreeTags.length === 0 ? (
                 <>
-                  <Ref>{`No matches found for '${this.state.tagName}'`}</Ref>
+                  <p>{`No matches found for '${this.state.tagName}'`}</p>
                 </>
               ) : (
                 lastThreeTags.map((item: string, index: number) => (
