@@ -197,7 +197,7 @@ export class SeamlessDiffSwitcher extends React.Component<
     if (this.state.isLoadingDiff) {
       this.scheduleSlowLoadingTimeout()
     }
-    this.loadFileContentsIfNeeded()
+    this.loadFileContentsIfNeeded(null)
   }
 
   public componentWillUnmount() {
