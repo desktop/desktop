@@ -1058,7 +1058,13 @@ export class API {
       options.reloadCache
     )
 
-    if (response.status === 401) {
+    // Only consider invalid token when the status is 401 and the response has
+    // the X-GitHub-Request-Id header, meaning it comes from GH(E) and not from
+    // any kind of proxy/gateway. For more info see #12943
+    if (
+      response.status === 401 &&
+      response.headers.has('X-GitHub-Request-Id')
+    ) {
       API.emitTokenInvalidated(this.endpoint)
     }
 
