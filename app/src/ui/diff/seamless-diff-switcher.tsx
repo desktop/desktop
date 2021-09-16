@@ -230,6 +230,8 @@ export class SeamlessDiffSwitcher extends React.Component<
       return
     }
 
+    // Have we already loaded file contents for this file and is the diff
+    // still the same, if so there's no need to do it again.
     const currentFileContents = this.state.fileContents
     if (
       currentFileContents !== null &&
@@ -240,6 +242,8 @@ export class SeamlessDiffSwitcher extends React.Component<
       return
     }
 
+    // Are we currently loading file contents for this file and is the diff
+    // still the same? If so we can wait for that to load
     if (
       this.loadingState !== null &&
       isSameFile(this.loadingState.file, fileToLoad) &&
