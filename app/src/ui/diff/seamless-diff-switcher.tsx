@@ -174,7 +174,7 @@ export class SeamlessDiffSwitcher extends React.Component<
   private slowLoadingTimeoutId: number | null = null
 
   /** File whose (old & new files) contents are being loaded. */
-  private loadingFile: ChangedFile | null = null
+  private loadingState: { file: ChangedFile; diff: IDiff } | null = null
 
   public constructor(props: ISeamlessDiffSwitcherProps) {
     super(props)
@@ -238,11 +238,15 @@ export class SeamlessDiffSwitcher extends React.Component<
       return
     }
 
-    if (this.loadingFile !== null && isSameFile(fileToLoad, this.loadingFile)) {
+    if (
+      this.loadingState !== null &&
+      isSameFile(this.loadingState.file, fileToLoad) &&
+      isSameDiff(this.loadingState.diff, diff)
+    ) {
       return
     }
 
-    this.loadingFile = fileToLoad
+    this.loadingState = { file: fileToLoad, diff }
 
     const lineFilters = getLineFilters(diff.hunks)
     const fileContents = await getFileContents(
@@ -250,6 +254,8 @@ export class SeamlessDiffSwitcher extends React.Component<
       this.props.file,
       lineFilters
     )
+
+    this.loadingState = null
 
     if (!isSameFile(fileToLoad, this.props.file)) {
       return
@@ -264,8 +270,6 @@ export class SeamlessDiffSwitcher extends React.Component<
             fileContents.newContents.length
           )
         : null
-
-    this.loadingFile = null
 
     this.setState({ diff: newDiff ?? diff, fileContents })
   }
