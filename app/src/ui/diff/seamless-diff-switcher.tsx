@@ -220,10 +220,10 @@ export class SeamlessDiffSwitcher extends React.Component<
       }
     }
 
-    this.loadFileContentsIfNeeded()
+    this.loadFileContentsIfNeeded(prevProps.diff)
   }
 
-  private async loadFileContentsIfNeeded() {
+  private async loadFileContentsIfNeeded(prevDiff: IDiff | null) {
     const { diff, file: fileToLoad } = this.props
 
     if (diff === null || !isTextDiff(diff)) {
@@ -233,7 +233,9 @@ export class SeamlessDiffSwitcher extends React.Component<
     const currentFileContents = this.state.fileContents
     if (
       currentFileContents !== null &&
-      isSameFile(currentFileContents.file, fileToLoad)
+      isSameFile(currentFileContents.file, fileToLoad) &&
+      prevDiff !== null &&
+      isSameDiff(prevDiff, diff)
     ) {
       return
     }
