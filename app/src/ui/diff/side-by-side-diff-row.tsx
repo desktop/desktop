@@ -625,20 +625,12 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterHunk = () => {
-    // if (this.props.hideWhitespaceInDiff) {
-    //   return
-    // }
-
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
     }
   }
 
   private onMouseLeaveHunk = () => {
-    // if (this.props.hideWhitespaceInDiff) {
-    //   return
-    // }
-
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
