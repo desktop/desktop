@@ -462,9 +462,8 @@ export class SideBySideDiffRow extends React.Component<
 
     return (
       <div
-        className={classNames('line-number', 'selectable', {
+        className={classNames('line-number', 'selectable', 'hoverable', {
           'line-selected': isSelected,
-          hoverable: true, //!this.props.hideWhitespaceInDiff,
           hover: this.props.isHunkHovered,
         })}
         style={{ width: this.props.lineNumberWidth }}
