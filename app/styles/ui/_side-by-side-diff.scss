@@ -61,6 +61,7 @@
     color: var(--diff-line-number-color);
     display: flex;
     box-sizing: content-box;
+    position: relative;
 
     span {
       flex: 1;
@@ -71,6 +72,11 @@
       // Workaround to show the ellipsis at the beginning of
       // the line number when it's too long.
       direction: rtl;
+    }
+
+    .popover-component.whitespace-hint {
+      position: absolute;
+      width: 200px;
     }
 
     &.selectable {
