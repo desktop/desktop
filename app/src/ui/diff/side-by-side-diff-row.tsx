@@ -42,9 +42,9 @@ interface ISideBySideDiffRowProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
-   * The width to display the diff gutter with.
+   * The width (in pixels) of the diff gutter.
    */
-  readonly lineNumberWidth: string
+  readonly lineNumberWidth: number
 
   /**
    * The index of the row in the displayed diff.
