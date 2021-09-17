@@ -19,6 +19,7 @@ export enum PopoverCaretPosition {
   TopLeft = 'top-left',
   LeftTop = 'left-top',
   LeftBottom = 'left-bottom',
+  RightTop = 'right-top',
 }
 interface IPopoverProps {
   readonly onClickOutside?: () => void

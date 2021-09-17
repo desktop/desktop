@@ -106,3 +106,22 @@
     border-right-color: var(--background-color);
   }
 }
+
+.popover-component.popover-caret-right-top {
+  &::before,
+  &::after {
+    top: 20px;
+  }
+
+  &::before {
+    right: -16px;
+    margin-top: -9px;
+    border-left-color: var(--box-border-color);
+  }
+
+  &::after {
+    right: -14px;
+    margin-top: -8px;
+    border-left-color: var(--background-color);
+  }
+}
