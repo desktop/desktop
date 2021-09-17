@@ -504,10 +504,10 @@ export class SideBySideDiffRow extends React.Component<
         style={style}
         appearEffect={PopoverAppearEffect.Shake}
       >
-        <p>
-          Selecting lines or hunks is disabled when hiding whitespace changes.
+        <h3>Show whitespace changes?</h3>
+        <p className="byline">
+          Selecting lines is disabled when hiding whitespace changes.
         </p>
-        <p>Would you like to show whitespace changes again?</p>
         <footer>
           <OkCancelButtonGroup
             okButtonText="Yes"

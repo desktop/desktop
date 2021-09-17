@@ -29,7 +29,8 @@
     border: 7px solid transparent;
   }
 
-  & > p:first-child {
+  & > p:first-of-type,
+  & > h3:first-of-type {
     margin-top: 0;
   }
 
