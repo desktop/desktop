@@ -28,6 +28,10 @@
   &::after {
     border: 7px solid transparent;
   }
+
+  & > p:first-child {
+    margin-top: 0;
+  }
 }
 
 // Carets
