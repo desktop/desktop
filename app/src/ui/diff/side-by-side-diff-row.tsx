@@ -16,12 +16,8 @@ import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
 import { HideWhitespaceWarning } from './hide-whitespace-warning'
-import {
-  Popover,
-  PopoverCaretPosition,
-  PopoverAppearEffect,
-} from '../lib/popover'
-import { OkCancelButtonGroup } from '../dialog'
+import { PopoverCaretPosition } from '../lib/popover'
+import { WhitespaceHintPopover } from './whitespace-hint-popover'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -484,36 +480,16 @@ export class SideBySideDiffRow extends React.Component<
     }
 
     return (
-      <Popover
+      <WhitespaceHintPopover
         caretPosition={caretPosition}
-        onClickOutside={this.onWhitespaceHintClose}
-        className={'whitespace-hint'}
         style={style}
-        appearEffect={PopoverAppearEffect.Shake}
-      >
-        <h3>Show whitespace changes?</h3>
-        <p className="byline">
-          Selecting lines is disabled when hiding whitespace changes.
-        </p>
-        <footer>
-          <OkCancelButtonGroup
-            okButtonText="Yes"
-            cancelButtonText="No"
-            onCancelButtonClick={this.onWhitespaceHintClose}
-            onOkButtonClick={this.onShowWhitespaceChanges}
-          />
-        </footer>
-      </Popover>
+        onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
+        onDismissed={this.onWhitespaceHintClose}
+      />
     )
   }
 
-  private onShowWhitespaceChanges = () => {
-    this.props.onHideWhitespaceInDiffChanged(false)
-    this.onWhitespaceHintClose()
-  }
-
-  private onWhitespaceHintClose = (event?: React.SyntheticEvent<any>) => {
-    event?.preventDefault?.()
+  private onWhitespaceHintClose = () => {
     this.setState({ showWhitespaceHint: undefined })
   }
 
