@@ -474,9 +474,9 @@ export class SideBySideDiffRow extends React.Component<
         : PopoverCaretPosition.LeftTop
 
     const style: React.CSSProperties = {
-      [column === DiffColumn.Before ? 'right' : 'left']:
+      [column === DiffColumn.Before ? 'marginRight' : 'marginLeft']:
         this.props.lineNumberWidth + 10,
-      top: -10,
+      marginTop: -10,
     }
 
     return (
