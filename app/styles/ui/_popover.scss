@@ -32,6 +32,24 @@
   & > p:first-child {
     margin-top: 0;
   }
+
+  footer {
+    .button-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+
+    button {
+      @include ellipsis;
+      margin-right: var(--spacing-half);
+      min-width: 60px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
 }
 
 // Carets
