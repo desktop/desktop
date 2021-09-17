@@ -22,11 +22,17 @@ export enum PopoverCaretPosition {
   LeftBottom = 'left-bottom',
   RightTop = 'right-top',
 }
+
+export enum PopoverAppearEffect {
+  Shake = 'shake',
+}
+
 interface IPopoverProps {
   readonly onClickOutside?: () => void
   readonly caretPosition: PopoverCaretPosition
   readonly className?: string
   readonly style?: React.CSSProperties
+  readonly appearEffect?: PopoverAppearEffect
 }
 
 export class Popover extends React.Component<IPopoverProps> {
@@ -70,7 +76,8 @@ export class Popover extends React.Component<IPopoverProps> {
     const cn = classNames(
       'popover-component',
       this.getClassNameForCaret(),
-      this.props.className
+      this.props.className,
+      this.props.appearEffect && `appear-${this.props.appearEffect}`
     )
 
     return (

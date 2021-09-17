@@ -16,7 +16,11 @@ import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
 import { HideWhitespaceWarning } from './hide-whitespace-warning'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
+import {
+  Popover,
+  PopoverCaretPosition,
+  PopoverAppearEffect,
+} from '../lib/popover'
 import { OkCancelButtonGroup } from '../dialog'
 
 interface ISideBySideDiffRowProps {
@@ -496,6 +500,7 @@ export class SideBySideDiffRow extends React.Component<
         onClickOutside={this.onWhitespaceHintClose}
         className={'whitespace-hint'}
         style={style}
+        appearEffect={PopoverAppearEffect.Shake}
       >
         <p>
           Selecting lines or hunks is disabled when hiding whitespace changes.
