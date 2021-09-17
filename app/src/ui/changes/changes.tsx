@@ -118,6 +118,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           }
           onOpenBinaryFile={this.props.onOpenBinaryFile}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
+          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         />
       </div>
     )

@@ -123,6 +123,9 @@ interface ISideBySideDiffRowProps {
    * Called when the user right-clicks text on the diff.
    */
   readonly onContextMenuText: () => void
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ISideBySideDiffRowState {
@@ -518,7 +521,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onShowWhitespaceChanges = () => {
-    // todo: actually flip the switch
+    this.props.onHideWhitespaceInDiffChanged(false)
     this.onWhitespaceHintClose()
   }
 
