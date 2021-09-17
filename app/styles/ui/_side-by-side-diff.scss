@@ -54,6 +54,13 @@
     border-bottom: 1px solid var(--diff-border-color);
   }
 
+  .row {
+    .popover-component.whitespace-hint {
+      position: absolute;
+      width: 275px;
+    }
+  }
+
   .row .line-number {
     width: var(--width-line-number);
     flex-shrink: 0;
@@ -72,11 +79,6 @@
       // Workaround to show the ellipsis at the beginning of
       // the line number when it's too long.
       direction: rtl;
-    }
-
-    .popover-component.whitespace-hint {
-      position: absolute;
-      width: 200px;
     }
 
     &.selectable {
@@ -174,6 +176,7 @@
     width: 50%;
     display: flex;
     flex-direction: row;
+    position: relative;
   }
 
   .before {
