@@ -642,6 +642,7 @@ export class SideBySideDiffRow extends React.Component<
 
   private onClickHunk = () => {
     if (this.props.hideWhitespaceInDiff) {
+      this.setState({ showWhitespaceHint: DiffColumn.Before })
       return
     }
 
