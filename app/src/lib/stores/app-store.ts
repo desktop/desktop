@@ -5529,6 +5529,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _refreshApiRepositories(account: Account) {
     return this.apiRepositoriesStore.loadRepositories(account)
   }
+  
+  public _refreshApiOrganizationRepositories(account: Account, orgName: string, expand: boolean) {
+    if (expand) {
+      return this.apiRepositoriesStore.loadOrganizationRepositories(account, orgName)
+    } else {
+      return this.apiRepositoriesStore.unloadOrganizationRepositories(account, orgName)
+    }
+  }
 
   public _changeBranchesTab(tab: BranchesTab): Promise<void> {
     this.selectedBranchesTab = tab

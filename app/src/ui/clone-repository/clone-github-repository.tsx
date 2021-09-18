@@ -5,7 +5,7 @@ import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
-import { IAPIRepository } from '../../lib/api'
+import { IAPIRepository, IAPIOrganization } from '../../lib/api'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
 import { ClickSource } from '../lib/list'
 
@@ -32,6 +32,12 @@ interface ICloneGithubRepositoryProps {
 
   /** Called when a repository is selected. */
   readonly onSelectionChanged: (selectedItem: IAPIRepository | null) => void
+
+  /**
+   * The list of organizations that the account has explicit permissions
+   * to access, or null if no organizations has been loaded yet.
+   */
+   readonly organizations: ReadonlyArray<IAPIOrganization> | null
 
   /**
    * The list of repositories that the account has explicit permissions
@@ -65,6 +71,12 @@ interface ICloneGithubRepositoryProps {
   readonly onRefreshRepositories: (account: Account) => void
 
   /**
+   * Called when the user requests a refresh of the repositories
+   * available for cloning.
+   */
+  readonly onRefreshOrganizationRepositories: (account: Account, orgName: string, expand: boolean) => void
+
+  /**
    * This function will be called when a pointer device is pressed and then
    * released on a selectable row. Note that this follows the conventions
    * of button elements such that pressing Enter or Space on a keyboard
@@ -93,9 +105,11 @@ export class CloneGithubRepository extends React.PureComponent<
             onSelectionChanged={this.props.onSelectionChanged}
             loading={this.props.loading}
             repositories={this.props.repositories}
+            organizations={this.props.organizations}
             filterText={this.props.filterText}
             onFilterTextChanged={this.props.onFilterTextChanged}
             onRefreshRepositories={this.props.onRefreshRepositories}
+            onRefreshOrganizationRepositories={this.props.onRefreshOrganizationRepositories}
             onItemClicked={this.props.onItemClicked}
           />
         </Row>

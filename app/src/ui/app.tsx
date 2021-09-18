@@ -1482,6 +1482,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onTabSelected={this.onCloneRepositoriesTabSelected}
             apiRepositories={this.state.apiRepositories}
             onRefreshRepositories={this.onRefreshRepositories}
+            onRefreshOrganizationRepositories={this.onRefreshOrganizationRepositories}
           />
         )
       case PopupType.CreateBranch: {
@@ -2209,6 +2210,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onRefreshRepositories = (account: Account) => {
     this.props.dispatcher.refreshApiRepositories(account)
   }
+  
+  private onRefreshOrganizationRepositories = (account: Account, orgName: string, expand: boolean) => {
+    this.props.dispatcher.refreshApiOrganizationRepositories(account, orgName, expand)
+  }
 
   private onShowAdvancedPreferences = () => {
     this.props.dispatcher.showPopup({
@@ -2720,6 +2725,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           tutorialPaused={this.isTutorialPaused()}
           apiRepositories={state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
+          onRefreshOrganizationRepositories={this.onRefreshOrganizationRepositories}
         />
       )
     }

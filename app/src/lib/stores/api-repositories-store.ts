@@ -1,6 +1,6 @@
 import { BaseStore } from './base-store'
 import { AccountsStore } from './accounts-store'
-import { IAPIRepository, API } from '../api'
+import { IAPIRepository, API, IAPIOrganization } from '../api'
 import { Account } from '../../models/account'
 import { merge } from '../merge'
 
@@ -76,6 +76,12 @@ function resolveAccount(
  * repositories.
  */
 export interface IAccountRepositories {
+  /**
+   * The list of organizations that a particular account
+   * belongs to
+   */
+  readonly organizations: ReadonlyArray<IAPIOrganization>
+
   /**
    * The list of repositories that a particular account
    * has explicit permissions to access.
@@ -157,7 +163,7 @@ export class ApiRepositoriesStore extends BaseStore {
 
     const newRepositories =
       existingRepositories === undefined
-        ? merge({ loading: false, repositories: [] }, repositories)
+        ? merge({ loading: false, repositories: [], organizations: [] }, repositories)
         : merge(existingRepositories, repositories)
 
     newState.set(newOrExistingAccount, newRepositories)
@@ -181,15 +187,114 @@ export class ApiRepositoriesStore extends BaseStore {
     this.updateAccount(existingAccount, { loading: true })
 
     const api = API.fromAccount(existingAccount)
-    const repositories = await api.fetchRepositories()
-
-    if (repositories === null) {
-      this.updateAccount(account, { loading: false })
-    } else {
-      this.updateAccount(account, { loading: false, repositories })
+    
+    // Get all organizations the user is a member of
+    const organizations = await api.fetchOrgs()
+    
+    // Get all repositories the user has, ignoring organizations
+    let repositories = await api.fetchRepositories(account.login, false)
+      
+    // Make sure we get rid of any ones on which we are a collaborator but which 
+    // belong to an organisation we are listing (i.e. ones for which we are not
+    // an outside collaborator)
+    if (organizations !== null && repositories !== null) {
+      for (const org of organizations) {
+        repositories = repositories.filter(r => (r.owner.type === "User" || r.owner.login !== org.login))
+      }
     }
+    
+    // Populate results for updateAccount call
+    let accountArgs : any = {loading: false}
+    if (organizations !== null) {
+      accountArgs = {...accountArgs, ["organizations"]:organizations}
+    }
+    if (repositories !== null) {
+      accountArgs = {...accountArgs, ["repositories"]:repositories}
+    }
+    
+    // Call updateAccount with our results
+    this.updateAccount(account, accountArgs)
+    
   }
 
+  /**
+   * Request that the store loads the list of repositories that
+   * the provided account has explicit permissions to access.
+   */
+  public async loadOrganizationRepositories(
+     account: Account, 
+     orgName: string
+  ) {
+    const existingAccount = resolveAccount(account, this.accountState)
+    const existingRepositories = this.accountState.get(existingAccount)
+
+    let repositories : readonly IAPIRepository[]
+    if (existingRepositories !== undefined) {
+      if (existingRepositories.loading) {
+        return
+      }
+      // Get existing repositories to merge in with query
+      repositories = existingRepositories.repositories
+    } else {
+      repositories = []
+    }
+
+    this.updateAccount(existingAccount, { loading: true })
+
+    const api = API.fromAccount(existingAccount)
+    
+    // Get all repositories the provided organization
+    const fetchedRepos = await api.fetchRepositories(orgName, true)
+    if (fetchedRepos !== null) {
+      const mergedRepos = [...repositories ,...fetchedRepos]
+      // Keep only unique ones based on html URL.
+      repositories = mergedRepos.filter((v,i,a)=>a.findIndex(t=>(t.html_url === v.html_url))===i)
+    }
+
+    // Call updateAccount with our results
+    let accountArgs : any = {loading: false}
+    if (repositories !== null) {
+      accountArgs = {...accountArgs, ["repositories"]:repositories}
+    }
+    this.updateAccount(account, accountArgs)
+    
+  }
+  
+  /**
+   * Request that the store unloads the list of repositories that
+   * belong to the provided organisation
+   */
+  public async unloadOrganizationRepositories(
+    account: Account, 
+    orgName: string
+  ) {
+    
+    const existingAccount = resolveAccount(account, this.accountState)
+    const existingRepositories = this.accountState.get(existingAccount)
+
+    let repositories : readonly IAPIRepository[]
+    if (existingRepositories !== undefined) {
+      if (existingRepositories.loading) {
+        return
+      }
+      // Get existing repositories to merge in with query
+      repositories = existingRepositories.repositories
+    } else {
+      repositories = []
+    }
+    this.updateAccount(existingAccount, { loading: true })
+    
+    // Filter repository list to exclude this org
+    repositories = repositories.filter(x => (x.owner.type === "User" || x.owner.login !== orgName))
+    
+    // Call updateAccount with our results
+    let accountArgs : any = {loading: false}
+    if (repositories !== null) {
+      accountArgs = {...accountArgs, ["repositories"]:repositories}
+    }
+    this.updateAccount(account, accountArgs)
+  }
+  
   public getState(): ReadonlyMap<Account, IAccountRepositories> {
     return this.accountState
   }

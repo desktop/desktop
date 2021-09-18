@@ -2122,6 +2122,10 @@ export class Dispatcher {
   public refreshApiRepositories(account: Account) {
     return this.appStore._refreshApiRepositories(account)
   }
+  
+  public refreshApiOrganizationRepositories(account: Account, orgName: string, expand: boolean) {
+    return this.appStore._refreshApiOrganizationRepositories(account, orgName, expand)
+  }
 
   /** Change the selected Branches foldout tab. */
   public changeBranchesTab(tab: BranchesTab): Promise<void> {

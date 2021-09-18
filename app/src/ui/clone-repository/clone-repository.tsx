@@ -66,6 +66,12 @@ interface ICloneRepositoryProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /**
+   * Called when the user requests a refresh of the repositories
+   * available for the current organisation.
+   */
+  readonly onRefreshOrganizationRepositories: (account: Account, orgName: string, expand: boolean) => void
 }
 
 interface ICloneRepositoryState {
@@ -290,6 +296,8 @@ export class CloneRepository extends React.Component<
           return <DialogContent>{this.renderSignIn(tab)}</DialogContent>
         } else {
           const accountState = this.props.apiRepositories.get(account)
+          const organizations =
+            accountState === undefined ? null : accountState.organizations
           const repositories =
             accountState === undefined ? null : accountState.repositories
           const loading =
@@ -304,9 +312,11 @@ export class CloneRepository extends React.Component<
               onSelectionChanged={this.onSelectionChanged}
               onPathChanged={this.onPathChanged}
               onChooseDirectory={this.onChooseDirectory}
+              organizations={organizations}
               repositories={repositories}
               loading={loading}
               onRefreshRepositories={this.props.onRefreshRepositories}
+              onRefreshOrganizationRepositories={this.props.onRefreshOrganizationRepositories}
               filterText={tabState.filterText}
               onFilterTextChanged={this.onFilterTextChanged}
               onItemClicked={this.onItemClicked}

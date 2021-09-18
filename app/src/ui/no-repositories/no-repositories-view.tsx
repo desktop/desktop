@@ -61,6 +61,12 @@ interface INoRepositoriesProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /**
+   * Called when the user requests a refresh of the repositories
+   * available for cloning.
+   */
+  readonly onRefreshOrganizationRepositories: (account: Account, orgName: string, expand: boolean) => void
 }
 
 /**
@@ -219,6 +225,9 @@ export class NoRepositoriesView extends React.Component<
   ) {
     const loading = accountState === undefined ? true : accountState.loading
 
+    const organizations =
+      accountState === undefined ? null : accountState.organizations
+
     const repositories =
       accountState === undefined ? null : accountState.repositories
 
@@ -236,7 +245,9 @@ export class NoRepositoriesView extends React.Component<
           selectedItem={selectedItem}
           filterText={filterText}
           onRefreshRepositories={this.props.onRefreshRepositories}
+          onRefreshOrganizationRepositories={this.props.onRefreshOrganizationRepositories}
           loading={loading}
+          organizations={organizations}
           repositories={repositories}
           onSelectionChanged={this.onSelectionChanged}
           onFilterTextChanged={this.onFilterTextChanged}

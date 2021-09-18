@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { FilterList, IFilterListGroup } from '../lib/filter-list'
-import { IAPIRepository, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
+import { FilterList, IFilterListGroup, IFilterListCollapsableGroup } from '../lib/filter-list'
+import { IAPIRepository, getDotComAPIEndpoint, getHTMLURL, IAPIOrganization } from '../../lib/api'
 import {
   ICloneableRepositoryListItem,
   groupRepositories,
@@ -10,7 +10,7 @@ import {
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
-import { Octicon, syncClockwise } from '../octicons'
+import { Octicon, OcticonSymbolType, syncClockwise } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { ClickSource } from '../lib/list'
 import { LinkButton } from '../lib/link-button'
@@ -28,6 +28,12 @@ interface ICloneableRepositoryFilterListProps {
 
   /** Called when a repository is selected. */
   readonly onSelectionChanged: (selectedItem: IAPIRepository | null) => void
+
+  /**
+   * The list of organizations that the account has explicit permissions
+   * to access, or null if no organizations has been loaded yet.
+   */
+   readonly organizations: ReadonlyArray<IAPIOrganization> | null
 
   /**
    * The list of repositories that the account has explicit permissions
@@ -59,6 +65,12 @@ interface ICloneableRepositoryFilterListProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /**
+   * Called when the user requests a refresh of the repositories
+   * available for cloning.
+   */
+  readonly onRefreshOrganizationRepositories: (account: Account, orgName: string, expand: boolean) => void
 
   /**
    * This function will be called when a pointer device is pressed and then
@@ -111,6 +123,19 @@ function findRepositoryForListItem(
   return repositories.find(r => r.clone_url === listItem.url) || null
 }
 
+/**
+ * Attempt to locate the source IAPIOrganization instance given
+ * an ICloneableRepositoryList item using clone_url for the
+ * equality comparison.
+ */
+ function findOrganizationForListItem(
+  organizations: ReadonlyArray<IAPIOrganization>,
+  listItem: IFilterListCollapsableGroup<ICloneableRepositoryListItem>
+) {
+  return organizations.find(r => r.url === listItem.id) || null
+}
+
+
 export class CloneableRepositoryFilterList extends React.PureComponent<
   ICloneableRepositoryFilterListProps
 > {
@@ -121,8 +146,11 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
    * time the method was called (reference equality).
    */
   private getRepositoryGroups = memoizeOne(
-    (repositories: ReadonlyArray<IAPIRepository> | null, login: string) =>
-      repositories === null ? [] : groupRepositories(repositories, login)
+    (organizations: ReadonlyArray<IAPIOrganization> | null, 
+     repositories: ReadonlyArray<IAPIRepository> | null, 
+     login: string) =>
+      ((repositories === null) || (organizations === null)) ? 
+          [] : groupRepositories(organizations, repositories, login)
   )
 
   /**
@@ -156,9 +184,9 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
   }
 
   public render() {
-    const { repositories, account, selectedItem } = this.props
+    const { organizations, repositories, account, selectedItem } = this.props
 
-    const groups = this.getRepositoryGroups(repositories, account.login)
+    const groups = this.getRepositoryGroups(organizations, repositories, account.login)
     const selectedListItem = this.getSelectedListItem(groups, selectedItem)
 
     return (
@@ -168,6 +196,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         selectedItem={selectedListItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
+        renderCollapsableGroupHeader={this.renderCollapsableGroupHeader}
         onSelectionChanged={this.onSelectionChanged}
         invalidationProps={groups}
         groups={groups}
@@ -176,9 +205,28 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         renderNoItems={this.renderNoItems}
         renderPostFilter={this.renderPostFilter}
         onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
+        onCollapsableGroupClick={this.onCollapsableGroupClick}
         placeholderText="Filter your repositories"
       />
     )
+  }
+  
+  private onCollapsableGroupClick = (
+    item: IFilterListCollapsableGroup<ICloneableRepositoryListItem>,
+    source: ClickSource
+  ) => {
+    const {organizations} = this.props
+    
+    if (organizations === null) {
+      return
+    }
+
+    const selectedItem = findOrganizationForListItem(organizations, item)
+
+    if (selectedItem !== null) {
+      this.props.onRefreshOrganizationRepositories(this.props.account, selectedItem.login, item.collapsed)
+    }
+    
   }
 
   private onItemClick = (
@@ -206,6 +254,19 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         findRepositoryForListItem(this.props.repositories, item)
       )
     }
+  }
+  
+  private renderCollapsableGroupHeader = (identifier: string, icon: OcticonSymbolType) => {
+    let header = identifier
+    if (identifier === YourRepositoriesIdentifier) {
+      header = __DARWIN__ ? 'Your Repositories' : 'Your repositories'
+    }
+    return (
+      <div className="clone-repository-list-content clone-repository-list-group-header">
+        <Octicon className="icon" symbol={icon} />
+        {header}
+      </div>
+    )
   }
 
   private renderGroupHeader = (identifier: string) => {

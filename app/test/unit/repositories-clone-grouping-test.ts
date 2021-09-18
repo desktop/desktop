@@ -2,7 +2,7 @@ import {
   groupRepositories,
   YourRepositoriesIdentifier,
 } from '../../src/ui/clone-repository/group-repositories'
-import { IAPIIdentity, IAPIFullRepository } from '../../src/lib/api'
+import { IAPIIdentity, IAPIFullRepository, IAPIOrganization } from '../../src/lib/api'
 
 const users = {
   shiftkey: {
@@ -33,6 +33,10 @@ const users = {
 
 describe('clone repository grouping', () => {
   it('groups repositories by organization', () => {
+    const organizations: Array<IAPIOrganization> = [
+      users.desktop,
+      users.octokit
+    ]
     const repositories: Array<IAPIFullRepository> = [
       {
         clone_url: '',
@@ -93,7 +97,7 @@ describe('clone repository grouping', () => {
       },
     ]
 
-    const grouped = groupRepositories(repositories, 'shiftkey')
+    const grouped = groupRepositories(organizations, repositories, 'shiftkey')
     expect(grouped).toHaveLength(3)
 
     expect(grouped[0].identifier).toBe(YourRepositoriesIdentifier)

@@ -1,5 +1,5 @@
-import { IAPIRepository } from '../../lib/api'
-import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+import { IAPIRepository, IAPIOrganization } from '../../lib/api'
+import { IFilterListCollapsableGroup, IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbolType } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -56,6 +56,7 @@ function convert(
 }
 
 export function groupRepositories(
+  organizations: ReadonlyArray<IAPIOrganization>,
   repositories: ReadonlyArray<IAPIRepository>,
   login: string
 ): ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>> {
@@ -67,20 +68,53 @@ export function groupRepositories(
   const groups = [
     {
       identifier: YourRepositoriesIdentifier,
-      items: convert(userRepos),
+      items: convert(userRepos)
     },
   ]
 
-  const orgs = orgRepos.map(repo => repo.owner.login)
-  const distinctOrgs = Array.from(new Set(orgs))
+  const userOrgs = organizations.map(org => org.login)
+  const repoOrgs = orgRepos.map(repo => repo.owner.login)
+  const distinctOrgs = Array.from(new Set([...userOrgs, ...repoOrgs]))
 
   for (const org of distinctOrgs.sort(caseInsensitiveCompare)) {
     const orgRepositories = orgRepos.filter(repo => repo.owner.login === org)
-
-    groups.push({
-      identifier: org,
-      items: convert(orgRepositories),
-    })
+    const userOrg = organizations.filter(orgObj => orgObj.login === org)
+    
+    // Convert organization repositories into repo list
+    const repoList = convert(orgRepositories);
+    
+    // Check if this is an orgnisation from the list or all user orgs, or an extra
+    // on that has snuck in from the repo list. In practice this should always be the
+    // true. However on the off chance that it isn't, we simply make a non-collapsable
+    // group
+    if (userOrg.length) {
+      
+      // Check if we have any repositories for this organization. If so, they must
+      // have come from an expanded organization, so create an expanded group. Otherwise
+      // the organization was one that the user is a member of, but we haven't loaded 
+      // the repositories for it yet, so make as a collapsed group.
+      const isExpanded = orgRepositories.length
+    
+      // Create a collapsable group using the organization URL as the id for our fake
+      // list item. Mark also whether the group is collapsed or not.
+      const group : IFilterListCollapsableGroup<ICloneableRepositoryListItem> = 
+      {
+        identifier: org,
+        id: userOrg[0].url,
+        text: [org],
+        items: repoList,
+        collapsed: !isExpanded
+      }
+      
+      groups.push(group);
+    } else {
+      
+      // Create a non-collapsable group using just the org name and repo list
+      groups.push({
+        identifier: org,
+        items: repoList
+      }) 
+    }
   }
 
   return groups
