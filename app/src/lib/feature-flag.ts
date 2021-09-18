@@ -47,11 +47,6 @@ export function enableHideWhitespaceInDiffOption(): boolean {
   return true
 }
 
-/** Should the app use the shiny new TCP-based trampoline? */
-export function enableDesktopTrampoline(): boolean {
-  return true
-}
-
 /**
  * Should we use the new diff viewer for unified diffs?
  */
@@ -125,5 +120,32 @@ export function enableResetToCommit(): boolean {
 
 /** Should we show line changes (added/deleted) in commits? */
 export function enableLineChangesInCommit(): boolean {
+  return true
+}
+
+/** Should we allow high contrast theme option */
+export function enableHighContrastTheme(): boolean {
   return enableBetaFeatures()
+}
+
+/** Should we allow customizing a theme */
+export function enableCustomizeTheme(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we allow using Windows' OpenSSH? */
+export function enableWindowsOpenSSH(): boolean {
+  return true
+}
+
+/** Should we use SSH askpass? */
+export function enableSSHAskPass(): boolean {
+  return true
+}
+
+/** Should we use the setImmediate alternative? */
+export function enableSetAlmostImmediate(): boolean {
+  // We only noticed the problem with `setImmediate` on macOS, so no need to
+  // use this trick on Windows for now.
+  return __DARWIN__ && enableBetaFeatures()
 }

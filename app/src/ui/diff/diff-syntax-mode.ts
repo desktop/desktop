@@ -1,4 +1,4 @@
-import { DiffHunk, DiffLine } from '../../models/diff'
+import { DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
@@ -30,7 +30,9 @@ export interface IDiffSyntaxModeSpec extends IDiffSyntaxModeOptions {
   readonly name: 'github-diff-syntax'
 }
 
-const TokenNames: { [key: string]: string | null } = {
+type DiffSyntaxToken = 'diff-add' | 'diff-delete' | 'diff-hunk' | 'diff-context'
+
+const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
   '+': 'diff-add',
   '-': 'diff-delete',
   '@': 'diff-hunk',
@@ -46,6 +48,10 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
   stream.skipToEnd()
   state.diffLineIndex++
   return null
+}
+
+function getBaseDiffLineStyle(token: DiffSyntaxToken) {
+  return `line-${token} line-background-${token}`
 }
 
 /**
@@ -112,10 +118,29 @@ export class DiffSyntaxMode {
     return { diffLineIndex: 0, previousHunkOldEndLine: null }
   }
 
-  // Should never happen except for blank diffs but
-  // let's play along
   public blankLine(state: IState) {
+    // If we run into a blank line and we don't have hunks yet, and given we
+    // should never get blank diffs, let's assume we're in the last line of a
+    // diff that was just loaded, but for which we haven't run the highlighter
+    // yet. If we don't do this, that last line will be formatted wrongly.
+    if (this.hunks === undefined) {
+      return getBaseDiffLineStyle('diff-hunk')
+    }
+
+    // A line might be empty in a non-blank diff for the only line of the
+    // dummy hunk we put at the bottom of the diff to allow users to expand
+    // the visible contents.
+    if (this.hunks.length > 0) {
+      const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
+      if (diffLine?.type === DiffLineType.Hunk) {
+        return getBaseDiffLineStyle('diff-hunk')
+      }
+    }
+
+    // Should never happen except for blank diffs but
+    // let's play along
     state.diffLineIndex++
+    return undefined
   }
 
   public token = (
@@ -131,13 +156,17 @@ export class DiffSyntaxMode {
         state.diffLineIndex++
       }
 
-      const token = index ? TokenNames[index] : null
+      if (index === null) {
+        return null
+      }
+
+      const token = TokenNames[index] ?? null
 
       if (token === null) {
         return null
       }
 
-      let result = `line-${token} line-background-${token}`
+      let result = getBaseDiffLineStyle(token)
 
       // If it's a hunk header line, we want to make a few extra checks
       // depending on the distance to the previous hunk.

@@ -436,14 +436,8 @@ export function getTextDiffWithBottomDummyHunk(
     dummyNewStartLine,
     numberOfNewLines - dummyNewStartLine + 1
   )
-  const dummyLine = new DiffLine(
-    '@@ @@',
-    DiffLineType.Hunk,
-    null,
-    null,
-    null,
-    false
-  )
+  // Use an empty line for this dummy hunk to keep the diff clean
+  const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, null, false)
   const dummyHunk = new DiffHunk(
     dummyHeader,
     [dummyLine],

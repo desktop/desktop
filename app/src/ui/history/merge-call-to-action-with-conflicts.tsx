@@ -160,7 +160,8 @@ export class MergeCallToActionWithConflicts extends React.Component<
         sourceBranch: comparisonBranch,
       },
       currentBranch,
-      []
+      [],
+      currentBranch.tip.sha
     )
     dispatcher.recordCompareInitiatedMerge()
 

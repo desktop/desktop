@@ -17,6 +17,11 @@ import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
+import {
+  AlmostImmediate,
+  clearAlmostImmediate,
+  setAlmostImmediate,
+} from '../../../lib/set-almost-immediate'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -276,7 +281,7 @@ export class List extends React.Component<IListProps, IListState> {
   private list: HTMLDivElement | null = null
   private grid: Grid | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateSizeTimeoutId: NodeJS.Immediate | null = null
+  private updateSizeTimeoutId: AlmostImmediate | null = null
 
   public constructor(props: IListProps) {
     super(props)
@@ -294,10 +299,10 @@ export class List extends React.Component<IListProps, IListState> {
             // when we're reacting to a resize so we'll defer it until after
             // react is done with this frame.
             if (this.updateSizeTimeoutId !== null) {
-              clearImmediate(this.updateSizeTimeoutId)
+              clearAlmostImmediate(this.updateSizeTimeoutId)
             }
 
-            this.updateSizeTimeoutId = setImmediate(
+            this.updateSizeTimeoutId = setAlmostImmediate(
               this.onResized,
               entry.target,
               entry.contentRect
@@ -774,7 +779,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   public componentWillUnmount() {
     if (this.updateSizeTimeoutId !== null) {
-      clearImmediate(this.updateSizeTimeoutId)
+      clearAlmostImmediate(this.updateSizeTimeoutId)
       this.updateSizeTimeoutId = null
     }
 

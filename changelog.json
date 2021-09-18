@@ -1,5 +1,76 @@
 {
   "releases": {
+    "2.9.4-beta2": [
+      "[Added] Add support for WezTerm on macOS - #12957. Thanks @theodore-s-beers!",
+      "[Fixed] Remove high-contrast specific hover effects from light and dark theme - #12952",
+      "[Fixed] Show \"add repo\" dialog when opening repo from CLI - #12935",
+      "[Fixed] Continue merge flow after merge conflicts are resolved with exterior conflict tool - #12881",
+      "[Fixed] Remove glitches when diffs are shown for the first time - #12903",
+      "[Improved] Remove gaps in the commit message container revealing a different background - #12900. Thanks @haykam821!",
+      "[Improved] Add clearer verbiage in the \"remove repository\" dialog - #12497. Thanks @fonsp!",
+      "[Improved] Update grammar for \"repo deletion\" and \"couldn't find pull request\" error messages - #12902. Thanks @patrykmichalik!",
+      "[Improved] Show confirmation dialog for SSH host key verification - #12894. Thanks @thsmdt!"
+    ],
+    "2.9.4-beta1": [
+      "[Added] Add a menu item to view a committed file change on GitHub - #12492. Thanks @haykam821!",
+      "[Added] Customizable high contrast theme - #12833",
+      "[Fixed] App no longer crashes on successful merge after conflicts resolved - #12888",
+      "[Fixed] Use same width for hunk expansion handles as we do for line numbers - #12887",
+      "[Fixed] Use the correct icon for diff expansion - #12882"
+    ],
+    "2.9.3": [
+      "[Fixed] Fix Notepad++ and RStudio integration on Windows - #12841",
+      "[Fixed] Add minor version support for JetBrains IDEs on Windows - #12847. Thanks @tsvetilian-ty!"
+    ],
+    "2.9.3-beta2": [
+      "[Fixed] Fix Notepad++ and RStudio integration on Windows - #12841",
+      "[Fixed] Add minor version support for JetBrains IDEs on Windows - #12847. Thanks @tsvetilian-ty!"
+    ],
+    "2.9.3-beta1": [
+      "[Added] Add syntax highlighting for dart - #12827. Thanks @say25!",
+      "[Fixed] Fix scrolling performance issue for large diffs."
+    ],
+    "2.9.2": ["[Fixed] Fix scrolling performance issue for large diffs."],
+    "2.9.1": [
+      "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
+      "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
+      "[Added] Show number of lines changed in a commit - #11656",
+      "[Fixed] Enable 'Open in External Editor' for bat/cmd/sh/exe files - #6361. Thanks @AndreiMaga!",
+      "[Fixed] Green circle in progress dialog remains round when commits have long descriptions - #12594. Thanks @litetex!",
+      "[Fixed] History tab shows all commits as the user scrolls down - #12506 #3704",
+      "[Fixed] Remove border of Repository and Branch foldouts in dark theme - #12478. Thanks @meJevin!",
+      "[Fixed] Render links in commit messages when they are at the beginning of a line - #12105. Thanks @tsvetilian-ty!",
+      "[Fixed] Show co-authors from undone commits - #12537",
+      "[Fixed] Show SSH prompts (key passphrase, adding host, etc.) to users via dialog - #3457 #8761",
+      "[Improved] Add support for more versions of JetBrains IDEs on Windows - #12778",
+      "[Improved] Change the diff gutter width based on number of lines in diff - #2102. Thanks @ADustyOldMuffin!",
+      "[Improved] Check invalidated tokens and prompt the user to sign in again - #12554",
+      "[Improved] Double-click an option when switching branches to confirm how changed files are handled - #12522. Thanks @j-f1!",
+      "[Improved] Improve auth error and prompt to suggest the user use a PAT instead of password - #12323",
+      "[Improved] Increase visibility of misattributed commit warning in dark mode - #12210",
+      "[Improved] Reduce time needed to make a commit - #12529",
+      "[Improved] Use \"Recycle Bin\" name only on Windows - #12544. Thanks @shiftkey!",
+      "[Improved] Windows users can use the system OpenSSH for their Git repositories - #5641"
+    ],
+    "2.9.1-beta7": [
+      "[Fixed] Wrong SSH key passphrases are not stored after multiple failed attempts and then one successful - #12804"
+    ],
+    "2.9.1-beta6": [
+      "[Fixed] Wrong SSH key passphrases are not stored - #12800",
+      "[Fixed] Show SSH prompts (key passphrase, adding host, etc.) to macOS users via dialog - #12782"
+    ],
+    "2.9.1-beta5": [
+      "[Fixed] Fixed authentication errors in some Git operations - #12796"
+    ],
+    "2.9.1-beta4": [
+      "[Fixed] Show SSH prompts (key passphrase, adding host, etc.) to Windows users via dialog - #3457 #8761"
+    ],
+    "2.9.1-beta3": [
+      "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
+      "[Fixed] Render links in commit messages when they are at the beginning of a line - #12105. Thanks @tsvetilian-ty!",
+      "[Improved] Added support for more versions of JetBrains IDEs on Windows - #12778",
+      "[Improved] Windows users can use the system OpenSSH for their Git repositories - #5641"
+    ],
     "2.9.1-beta2": [
       "[Added] Show number of lines changed in a commit - #11656",
       "[Improved] Increase visibility of misattributed commit warning in dark mode - #12210",

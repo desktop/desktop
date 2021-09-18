@@ -15,9 +15,7 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ICommitSelection,
-  IRebaseState,
   ChangesSelectionKind,
-  ICherryPickState,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
 } from '../app-state'
@@ -107,28 +105,6 @@ export class RepositoryStateCache {
       const changesState = state.branchesState
       const newState = merge(changesState, fn(changesState))
       return { branchesState: newState }
-    })
-  }
-
-  public updateRebaseState<K extends keyof IRebaseState>(
-    repository: Repository,
-    fn: (branchesState: IRebaseState) => Pick<IRebaseState, K>
-  ) {
-    this.update(repository, state => {
-      const { rebaseState } = state
-      const newState = merge(rebaseState, fn(rebaseState))
-      return { rebaseState: newState }
-    })
-  }
-
-  public updateCherryPickState<K extends keyof ICherryPickState>(
-    repository: Repository,
-    fn: (state: ICherryPickState) => Pick<ICherryPickState, K>
-  ) {
-    this.update(repository, state => {
-      const { cherryPickState } = state
-      const newState = merge(cherryPickState, fn(cherryPickState))
-      return { cherryPickState: newState }
     })
   }
 
@@ -237,12 +213,6 @@ function getInitialRepositoryState(): IRepositoryState {
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
     },
-    rebaseState: {
-      step: null,
-      progress: null,
-      commits: null,
-      userHasResolvedConflicts: false,
-    },
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
@@ -257,13 +227,6 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
-    cherryPickState: {
-      step: null,
-      progress: null,
-      userHasResolvedConflicts: false,
-      targetBranchUndoSha: null,
-      branchCreated: false,
-    },
     multiCommitOperationUndoState: null,
     multiCommitOperationState: null,
   }

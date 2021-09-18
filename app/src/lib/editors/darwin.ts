@@ -101,6 +101,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.intellij'],
   },
   {
+    name: 'IntelliJ Community Edition',
+    bundleIdentifiers: ['com.jetbrains.intellij.ce'],
+  },
+  {
     name: 'Xcode',
     bundleIdentifiers: ['com.apple.dt.Xcode'],
   },
@@ -127,15 +131,28 @@ async function findApplication(
 ): Promise<string | null> {
   for (const identifier of editor.bundleIdentifiers) {
     try {
-      const installPath = await appPath(identifier)
-      const exists = await pathExists(installPath)
-      if (exists) {
+      // app-path not finding the app isn't an error, it just means the
+      // bundle isn't registered on the machine.
+      // https://github.com/sindresorhus/app-path/blob/0e776d4e132676976b4a64e09b5e5a4c6e99fcba/index.js#L7-L13
+      const installPath = await appPath(identifier).catch(e =>
+        e.message === "Couldn't find the app"
+          ? Promise.resolve(null)
+          : Promise.reject(e)
+      )
+
+      if (installPath === null) {
+        return null
+      }
+
+      if (await pathExists(installPath)) {
         return installPath
       }
 
-      log.debug(`App installation for ${editor} not found at '${installPath}'`)
+      log.debug(
+        `App installation for ${editor.name} not found at '${installPath}'`
+      )
     } catch (error) {
-      log.debug(`Unable to locate ${editor} installation`, error)
+      log.debug(`Unable to locate ${editor.name} installation`, error)
     }
   }
 

@@ -5,7 +5,7 @@ interface ISuccessfulCherryPickBannerProps {
   readonly targetBranchName: string
   readonly countCherryPicked: number
   readonly onDismissed: () => void
-  readonly onUndoCherryPick: () => void
+  readonly onUndo: () => void
 }
 
 export class SuccessfulCherryPick extends React.Component<
@@ -16,18 +16,14 @@ export class SuccessfulCherryPick extends React.Component<
     const {
       countCherryPicked,
       onDismissed,
-      onUndoCherryPick,
+      onUndo,
       targetBranchName,
     } = this.props
 
     const pluralized = countCherryPicked === 1 ? 'commit' : 'commits'
 
     return (
-      <SuccessBanner
-        timeout={15000}
-        onDismissed={onDismissed}
-        onUndo={onUndoCherryPick}
-      >
+      <SuccessBanner timeout={15000} onDismissed={onDismissed} onUndo={onUndo}>
         <span>
           Successfully copied {countCherryPicked} {pluralized} to{' '}
           <strong>{targetBranchName}</strong>.

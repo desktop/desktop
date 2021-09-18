@@ -6,7 +6,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Account } from '../../models/account'
 import { getDotComAPIEndpoint } from '../../lib/api'
 
-interface IInvalidatedTokenResetProps {
+interface IInvalidatedTokenProps {
   readonly dispatcher: Dispatcher
   readonly account: Account
   readonly onDismissed: () => void
@@ -16,9 +16,7 @@ interface IInvalidatedTokenResetProps {
  * Dialog that alerts user that their GitHub (Enterprise) account token is not
  * valid and they need to sign in again.
  */
-export class InvalidatedToken extends React.Component<
-  IInvalidatedTokenResetProps
-> {
+export class InvalidatedToken extends React.Component<IInvalidatedTokenProps> {
   public render() {
     const accountTypeSuffix = this.isEnterpriseAccount ? ' Enterprise' : ''
 
