@@ -1087,7 +1087,14 @@ export class API {
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
-        buf.push(...items)
+        // Catch an edge-case where the resulting JSON is not actually
+        // parsed as an array, so parsedResponse is lying
+        let itemsArray : any = items
+        if (!Array.isArray(items)) {
+          itemsArray = Array.of(itemsArray)
+        }
+        // Push the items array to our buffer
+        buf.push(...itemsArray)
       }
 
       nextPath = opts.getNextPagePath
