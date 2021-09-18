@@ -27,12 +27,24 @@ if (envAdditionalCookies !== undefined) {
 /**
  * Optional set of configurable settings for the fetchAll method
  */
+
+enum IFetchRespositoryAffiliations {
+  Owner = "owner",
+  Collaborator = "collaborator",
+  Organization = "organization_member"
+}
+
 interface IFetchAllOptions<T> {
   /**
    * The number of results to ask for on each page when making
    * requests to paged API endpoints.
    */
   perPage?: number
+  
+  /**
+   * An optional affiliation for use when querying repositories
+   */
+  affiliation?: Array<IFetchRespositoryAffiliations>
 
   /**
    * An optional predicate which determines whether or not to
@@ -663,12 +675,53 @@ export class API {
     }
   }
 
-  /** Fetch all repos a user has access to. */
-  public async fetchRepositories(): Promise<ReadonlyArray<
+  /** Fetch all repos a user has access to.
+   *  We can optionally limit to a just user repositories, or just repos for a given
+   *  organization by providing a login string. The login string is treated as an 
+   *  organisation name if isOrg is true.
+   *  Passing a null or empty login string will fetch all repositories
+   */
+  public async fetchRepositories(
+    login ?: string,
+    isOrg ?: boolean
+  ): Promise<ReadonlyArray<
     IAPIRepository
   > | null> {
     try {
-      const repositories = await this.fetchAll<IAPIRepository>('user/repos')
+      // Default options for fetchAll
+      let repositories : ReadonlyArray<IAPIRepository>;
+      const hasLogin = (login !== undefined) && (login !== null) && (login.length > 0)
+      const loginIsUser = hasLogin && !isOrg
+      const loginIsOrg = hasLogin && isOrg
+      
+      // Check if limiting scope to organization
+      if ( loginIsOrg ) {
+        
+        // Lookup the organisation
+        const organization = await this.fetchAll<IAPIOrganization>(`orgs/${login}`, {'perPage': undefined})
+        if (!organization.length) {
+          // Didn't find the organisation
+          return null
+        }
+        
+        // Fetch all repositories for the specified organization that are
+        // visible to the current user
+        repositories = await this.fetchAll<IAPIRepository>(`orgs/${organization[0].login}/repos`)
+        
+      } else {
+        // Otherwise, not limiting to a specific organization
+        const opts : IFetchAllOptions<IAPIRepository> = {}
+          
+        // Check if ignoring all organization repos
+        if ( loginIsUser ) {
+          // If so, then set affiliation to just owner and collaborator
+          opts.affiliation = [IFetchRespositoryAffiliations.Owner, IFetchRespositoryAffiliations.Collaborator]
+        }
+        
+        // Fetch all repositories or limited scope repos
+        repositories = await this.fetchAll<IAPIRepository>('user/repos', opts)
+        
+      }
       // "But wait, repositories can't have a null owner" you say.
       // Ordinarily you'd be correct but turns out there's super
       // rare circumstances where a user has been deleted but the
@@ -1015,7 +1068,14 @@ export class API {
   private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
     const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
-    const params = { per_page: `${opts.perPage}` }
+    const params : any = {}
+    if (opts?.perPage !== undefined) {
+      params.per_page = `${opts.perPage}`
+    }
+    if (options?.affiliation !== undefined) {
+      params.affiliation = options?.affiliation.toString()
+    }
+
 
     let nextPath: string | null = urlWithQueryString(path, params)
     do {
