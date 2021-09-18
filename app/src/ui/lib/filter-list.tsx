@@ -1,6 +1,9 @@
 import * as React from 'react'
 import classnames from 'classnames'
 
+import { OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+
 import {
   List,
   SelectionSource as ListSelectionSource,
@@ -31,16 +34,45 @@ export interface IFilterListGroup<T extends IFilterListItem> {
   readonly items: ReadonlyArray<T>
 }
 
-interface IFlattenedGroup {
-  readonly kind: 'group'
-  readonly identifier: string
+/** A group of items in the list. */
+export interface IFilterListCollapsableGroup<T extends IFilterListItem> 
+    extends Omit<IFilterListGroup<T>, 'collapsable'>, IFilterListItem {
+  /** Whether the group is collapsed. */
+  readonly collapsed: boolean
+}
+
+/** Type gaurd to ensure group is collapsable type. */
+function isCollapsableGroup<T extends IFilterListItem>(
+  group: IFilterListCollapsableGroup<T> | IFilterListGroup<T>
+): group is IFilterListCollapsableGroup<T> {
+  return 'collapsed' in group
+}
+
+
+/** Types used when the user-provided groups are flattened */
+enum IFlattenedKinds {
+  Item = "item",
+  Group = "group",
+  Collapsable = "collapsable"
 }
 
 interface IFlattenedItem<T extends IFilterListItem> {
-  readonly kind: 'item'
+  readonly kind: IFlattenedKinds.Item
   readonly item: T
   /** Array of indexes in `item.text` that should be highlighted */
   readonly matches: IMatches
+}
+
+interface IFlattenedGroup {
+  readonly kind: IFlattenedKinds.Group
+  readonly identifier: string
+}
+
+interface IFlattenedCollapsableGroup<T extends IFilterListItem> {
+  readonly kind:  IFlattenedKinds.Collapsable
+  readonly identifier: string
+  readonly item: IFilterListItem
+  readonly group: IFilterListCollapsableGroup<T>
 }
 
 /**
@@ -48,8 +80,9 @@ interface IFlattenedItem<T extends IFilterListItem> {
  * flattened.
  */
 type IFilterListRow<T extends IFilterListItem> =
-  | IFlattenedGroup
   | IFlattenedItem<T>
+  | IFlattenedGroup
+  | IFlattenedCollapsableGroup<T>
 
 interface IFilterListProps<T extends IFilterListItem> {
   /** A class name for the wrapping element. */
@@ -70,6 +103,9 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** Called to render header for the group with the given identifier. */
   readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
 
+  /** Called to render a collapsable header for the group with the given identifier. */
+  readonly renderCollapsableGroupHeader?: ( identifier: string, icon: OcticonSymbolType) => JSX.Element | null
+
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
 
@@ -88,6 +124,21 @@ interface IFilterListProps<T extends IFilterListItem> {
    */
   readonly onItemClick?: (item: T, source: ClickSource) => void
 
+  /**
+   * This function will be called when a pointer device is pressed and then
+   * released on a collapsable group header. Note that this follows the
+   * conventions of button elements such that pressing Enter or Space on a
+   * keyboard while focused on a particular row will also trigger this event.
+   * Consumers can differentiate between the two using the source parameter.
+   *
+   * Note that this event handler will not be called for keyboard events
+   * if `event.preventDefault()` was called in the onRowKeyDown event handler.
+   *
+   * Consumers of this event do _not_ have to call event.preventDefault,
+   * when this event is subscribed to the list will automatically call it.
+   */
+  readonly onCollapsableGroupClick?: (item: IFilterListCollapsableGroup<T>, source: ClickSource) => void
+  
   /**
    * This function will be called when the selection changes as a result of a
    * user keyboard or mouse action (i.e. not when props change). This function
@@ -231,7 +282,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     if (this.props.onFilterListResultsChanged !== undefined) {
-      const itemCount = this.state.rows.filter(row => row.kind === 'item')
+      const itemCount = this.state.rows.filter(row => row.kind === IFlattenedKinds.Item)
         .length
 
       this.props.onFilterListResultsChanged(itemCount)
@@ -353,8 +404,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
   private renderRow = (index: number) => {
     const row = this.state.rows[index]
-    if (row.kind === 'item') {
+    if (row.kind === IFlattenedKinds.Item) {
       return this.props.renderItem(row.item, row.matches)
+    } else if ((row.kind === IFlattenedKinds.Collapsable) && this.props.renderCollapsableGroupHeader) {
+      return this.props.renderCollapsableGroupHeader(row.identifier, row.group.collapsed ? OcticonSymbol.plus : OcticonSymbol.dash)
     } else if (this.props.renderGroupHeader) {
       return this.props.renderGroupHeader(row.identifier)
     } else {
@@ -392,7 +445,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     if (this.props.onSelectionChanged) {
       const row = this.state.rows[index]
-      if (row.kind === 'item') {
+      if (row.kind === IFlattenedKinds.Item) {
         this.props.onSelectionChanged(row.item, source)
       }
     }
@@ -404,16 +457,16 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     const row = this.state.rows[index]
-    return row.kind === 'item'
+    return (row.kind === IFlattenedKinds.Item) || (row.kind === IFlattenedKinds.Collapsable)
   }
 
   private onRowClick = (index: number, source: ClickSource) => {
-    if (this.props.onItemClick) {
-      const row = this.state.rows[index]
-
-      if (row.kind === 'item') {
-        this.props.onItemClick(row.item, source)
-      }
+    const row = this.state.rows[index]
+    
+    if (this.props.onItemClick && (row.kind === IFlattenedKinds.Item)) {
+      this.props.onItemClick(row.item, source)
+    } else if (this.props.onCollapsableGroupClick && (row.kind === IFlattenedKinds.Collapsable)) {
+      this.props.onCollapsableGroupClick(row.group, source)
     }
   }
 
@@ -548,16 +601,18 @@ function createStateUpdate<T extends IFilterListItem>(
           item,
         }))
 
-    if (!items.length) {
-      continue
-    }
-
     if (props.renderGroupHeader) {
-      flattenedRows.push({ kind: 'group', identifier: group.identifier })
+      if (isCollapsableGroup(group)) {
+        // Safe cast as above type guard has ensured group is a collapsable type
+        const collapsableGroup = group as IFilterListCollapsableGroup<T>
+        flattenedRows.push({ kind: IFlattenedKinds.Collapsable, identifier: group.identifier, item: collapsableGroup, group: collapsableGroup })
+      } else {
+        flattenedRows.push({ kind: IFlattenedKinds.Group, identifier: group.identifier })
+      }
     }
 
     for (const { item, matches } of items) {
-      flattenedRows.push({ kind: 'item', item, matches })
+      flattenedRows.push({ kind: IFlattenedKinds.Item, item, matches })
     }
   }
 
@@ -565,14 +620,14 @@ function createStateUpdate<T extends IFilterListItem>(
   const selectedItem = props.selectedItem
   if (selectedItem) {
     selectedRow = flattenedRows.findIndex(
-      i => i.kind === 'item' && i.item.id === selectedItem.id
+      i => (i.kind === IFlattenedKinds.Item || i.kind === IFlattenedKinds.Collapsable ) && i.item.id === selectedItem.id
     )
   }
 
   if (selectedRow < 0 && filter.length) {
     // If the selected item isn't in the list (e.g., filtered out), then
     // select the first visible item.
-    selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
+    selectedRow = flattenedRows.findIndex(i => (i.kind === IFlattenedKinds.Item || i.kind === IFlattenedKinds.Collapsable ))
   }
 
   return { rows: flattenedRows, selectedRow }
@@ -585,7 +640,7 @@ function getItemFromRowIndex<T extends IFilterListItem>(
   if (index >= 0 && index < items.length) {
     const row = items[index]
 
-    if (row.kind === 'item') {
+    if (row.kind === IFlattenedKinds.Item) {
       return row.item
     }
   }
