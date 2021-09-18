@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { FilterList, IFilterListGroup, IFilterListCollapsableGroup } from '../lib/filter-list'
-import { IAPIRepository, getDotComAPIEndpoint, getHTMLURL, IAPIOrganization } from '../../lib/api'
+import { IAPIRepository, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import {
   ICloneableRepositoryListItem,
   groupRepositories,
   YourRepositoriesIdentifier,
 } from './group-repositories'
+import { IExpandableOrganisation } from '../../lib/stores/api-repositories-store'
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -33,7 +34,7 @@ interface ICloneableRepositoryFilterListProps {
    * The list of organizations that the account has explicit permissions
    * to access, or null if no organizations has been loaded yet.
    */
-   readonly organizations: ReadonlyArray<IAPIOrganization> | null
+   readonly organizations: ReadonlyArray<IExpandableOrganisation> | null
 
   /**
    * The list of repositories that the account has explicit permissions
@@ -129,7 +130,7 @@ function findRepositoryForListItem(
  * equality comparison.
  */
  function findOrganizationForListItem(
-  organizations: ReadonlyArray<IAPIOrganization>,
+  organizations: ReadonlyArray<IExpandableOrganisation>,
   listItem: IFilterListCollapsableGroup<ICloneableRepositoryListItem>
 ) {
   return organizations.find(r => r.url === listItem.id) || null
@@ -146,7 +147,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
    * time the method was called (reference equality).
    */
   private getRepositoryGroups = memoizeOne(
-    (organizations: ReadonlyArray<IAPIOrganization> | null, 
+    (organizations: ReadonlyArray<IExpandableOrganisation> | null, 
      repositories: ReadonlyArray<IAPIRepository> | null, 
      login: string) =>
       ((repositories === null) || (organizations === null)) ? 

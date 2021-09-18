@@ -1,4 +1,5 @@
-import { IAPIRepository, IAPIOrganization } from '../../lib/api'
+import { IAPIRepository } from '../../lib/api'
+import { IExpandableOrganisation } from '../../lib/stores/api-repositories-store'
 import { IFilterListCollapsableGroup, IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbolType } from '../octicons'
@@ -56,7 +57,7 @@ function convert(
 }
 
 export function groupRepositories(
-  organizations: ReadonlyArray<IAPIOrganization>,
+  organizations: ReadonlyArray<IExpandableOrganisation>,
   repositories: ReadonlyArray<IAPIRepository>,
   login: string
 ): ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>> {
@@ -89,21 +90,21 @@ export function groupRepositories(
     // group
     if (userOrg.length) {
       
-      // Check if we have any repositories for this organization. If so, they must
-      // have come from an expanded organization, so create an expanded group. Otherwise
-      // the organization was one that the user is a member of, but we haven't loaded 
-      // the repositories for it yet, so make as a collapsed group.
-      const isExpanded = orgRepositories.length
-    
+      // There should only be one filtered organisation, so use that
+      const theOrg = userOrg[0]
+      
+      // Group is collapsed if it hasn't yet been loaded, or it is marked as such
+      const collapsed = (theOrg.collapsed || !theOrg.loaded)
+      
       // Create a collapsable group using the organization URL as the id for our fake
       // list item. Mark also whether the group is collapsed or not.
       const group : IFilterListCollapsableGroup<ICloneableRepositoryListItem> = 
       {
         identifier: org,
-        id: userOrg[0].url,
+        id: theOrg.url,
         text: [org],
-        items: repoList,
-        collapsed: !isExpanded
+        items: collapsed ? [] : repoList,
+        collapsed: collapsed
       }
       
       groups.push(group);

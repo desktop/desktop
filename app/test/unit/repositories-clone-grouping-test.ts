@@ -2,7 +2,8 @@ import {
   groupRepositories,
   YourRepositoriesIdentifier,
 } from '../../src/ui/clone-repository/group-repositories'
-import { IAPIIdentity, IAPIFullRepository, IAPIOrganization } from '../../src/lib/api'
+import { IExpandableOrganisation } from '../../src/lib/stores/api-repositories-store'
+import { IAPIIdentity, IAPIFullRepository } from '../../src/lib/api'
 
 const users = {
   shiftkey: {
@@ -33,10 +34,9 @@ const users = {
 
 describe('clone repository grouping', () => {
   it('groups repositories by organization', () => {
-    const organizations: Array<IAPIOrganization> = [
-      users.desktop,
-      users.octokit
-    ]
+    const organizations : Array<IExpandableOrganisation> = 
+      [users.desktop,users.octokit].map(o => ({...o, collapsed: true, loaded: false}))
+      
     const repositories: Array<IAPIFullRepository> = [
       {
         clone_url: '',

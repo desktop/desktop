@@ -66,6 +66,16 @@ function resolveAccount(
 }
 
 /**
+ * Extend API Organisation to include collapsed flag
+ */
+export interface IExpandableOrganisation extends IAPIOrganization{
+  // Whether the group is collapsed
+  collapsed: boolean,
+  // Whether or not the group has been loaded
+  loaded: boolean
+}
+
+/**
  * An interface describing the current state of
  * repositories that a particular account has explicit
  * permissions to access and whether or not the list of
@@ -80,7 +90,7 @@ export interface IAccountRepositories {
    * The list of organizations that a particular account
    * belongs to
    */
-  readonly organizations: ReadonlyArray<IAPIOrganization>
+  readonly organizations: ReadonlyArray<IExpandableOrganisation>
 
   /**
    * The list of repositories that a particular account
@@ -189,7 +199,12 @@ export class ApiRepositoriesStore extends BaseStore {
     const api = API.fromAccount(existingAccount)
     
     // Get all organizations the user is a member of
-    const organizations = await api.fetchOrgs()
+    const apiOrgs = await api.fetchOrgs()
+    
+    // Map the fetched organisations to our expandable org type, marking
+    // each by default as collapsed and not loaded.
+    const organizations : IExpandableOrganisation[] = 
+      apiOrgs.map(o => ({...o, collapsed: true, loaded: false}))
     
     // Get all repositories the user has, ignoring organizations
     let repositories = await api.fetchRepositories(account.login, false)
@@ -217,6 +232,35 @@ export class ApiRepositoriesStore extends BaseStore {
     
   }
 
+  
+  /**
+   * Lookup organisation object for a given organisation name
+   */
+  private findOrganisationByName(
+    account: Account, 
+    orgName: string
+  ): IExpandableOrganisation | null {
+    const existingRepositories = this.accountState.get(account)
+
+    let organizations : readonly IExpandableOrganisation[]
+    if (existingRepositories !== undefined) {
+      if (existingRepositories.loading) {
+        return null
+      }
+      // Get existing repositories to merge in with query
+      organizations = existingRepositories.organizations
+    } else {
+      organizations = []
+    }
+    // Filter org list down to just the one we are looking for
+    const theOrg = organizations.filter(x => (x.login === orgName))
+    if (theOrg.length) {
+      return theOrg[0]
+    } else {
+      return null
+    }
+  }
+  
   /**
    * Request that the store loads the list of repositories that
    * the provided account has explicit permissions to access.
@@ -227,18 +271,37 @@ export class ApiRepositoriesStore extends BaseStore {
   ) {
     const existingAccount = resolveAccount(account, this.accountState)
     const existingRepositories = this.accountState.get(existingAccount)
+    if (existingRepositories === undefined || existingRepositories.loading) {
+      return
+    }
 
+    // Filter org list down to just the one we are looking for
+    const theOrg = this.findOrganisationByName(existingAccount, orgName)
+    if (!theOrg) {
+      // If we didn't find the organisation, then we can't proceed
+      return
+    }
+    
+    // Check if the repositories for this org have already been loaded
+    if (theOrg.loaded) {
+      // In which case we can just mark as not collapsed. The account
+      // update call is necessary to trigger updating of the list view
+      theOrg.collapsed = false
+      this.updateAccount(account, { loading: false, organizations: [...existingRepositories.organizations] })
+      return
+    }
+    
+    
+    // If we didn't find the org, or it is not yet loaded, then load it
     let repositories : readonly IAPIRepository[]
     if (existingRepositories !== undefined) {
-      if (existingRepositories.loading) {
-        return
-      }
       // Get existing repositories to merge in with query
       repositories = existingRepositories.repositories
     } else {
       repositories = []
     }
 
+    // Mark as loading
     this.updateAccount(existingAccount, { loading: true })
 
     const api = API.fromAccount(existingAccount)
@@ -256,6 +319,10 @@ export class ApiRepositoriesStore extends BaseStore {
     if (repositories !== null) {
       accountArgs = {...accountArgs, ["repositories"]:repositories}
     }
+    
+    // Finished loading
+    theOrg.loaded = true
+    theOrg.collapsed = false
     this.updateAccount(account, accountArgs)
     
   }
@@ -271,28 +338,20 @@ export class ApiRepositoriesStore extends BaseStore {
     
     const existingAccount = resolveAccount(account, this.accountState)
     const existingRepositories = this.accountState.get(existingAccount)
-
-    let repositories : readonly IAPIRepository[]
-    if (existingRepositories !== undefined) {
-      if (existingRepositories.loading) {
-        return
-      }
-      // Get existing repositories to merge in with query
-      repositories = existingRepositories.repositories
-    } else {
-      repositories = []
+    if (existingRepositories === undefined || existingRepositories.loading) {
+      return
     }
-    this.updateAccount(existingAccount, { loading: true })
     
-    // Filter repository list to exclude this org
-    repositories = repositories.filter(x => (x.owner.type === "User" || x.owner.login !== orgName))
+    // Filter org list down to just the one we are looking for
+    const theOrg = this.findOrganisationByName(existingAccount, orgName)
     
-    // Call updateAccount with our results
-    let accountArgs : any = {loading: false}
-    if (repositories !== null) {
-      accountArgs = {...accountArgs, ["repositories"]:repositories}
+    // Mark org as collapsed. The account update call is necessary to 
+    // trigger updating of the list view
+    if (theOrg) {
+      theOrg.collapsed = true
+      this.updateAccount(account, { loading: false, organizations: [...existingRepositories.organizations] })
+      return
     }
-    this.updateAccount(account, accountArgs)
   }
   
   public getState(): ReadonlyMap<Account, IAccountRepositories> {

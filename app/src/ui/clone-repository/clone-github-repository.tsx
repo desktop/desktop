@@ -5,7 +5,8 @@ import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
-import { IAPIRepository, IAPIOrganization } from '../../lib/api'
+import { IAPIRepository } from '../../lib/api'
+import { IExpandableOrganisation } from '../../lib/stores/api-repositories-store'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
 import { ClickSource } from '../lib/list'
 
@@ -37,7 +38,7 @@ interface ICloneGithubRepositoryProps {
    * The list of organizations that the account has explicit permissions
    * to access, or null if no organizations has been loaded yet.
    */
-   readonly organizations: ReadonlyArray<IAPIOrganization> | null
+   readonly organizations: ReadonlyArray<IExpandableOrganisation> | null
 
   /**
    * The list of repositories that the account has explicit permissions
