@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { FilterList, IFilterListGroup, IFilterListCollapsableGroup } from '../lib/filter-list'
+import { FilterList, IFilterListGroup, IFilterListCollapsableGroup, isCollapsableGroup } from '../lib/filter-list'
 import { IAPIRepository, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import {
   ICloneableRepositoryListItem,
@@ -17,6 +17,13 @@ import { ClickSource } from '../lib/list'
 import { LinkButton } from '../lib/link-button'
 import { Ref } from '../lib/ref'
 
+
+export type IClonableRepositorySelectedItem = IAPIRepository | IExpandableOrganisation | null
+export function selectedItemIsClonable(item : IClonableRepositorySelectedItem) : item is IAPIRepository {
+   return (item !== null) && ("clone_url" in item)
+}
+
+
 interface ICloneableRepositoryFilterListProps {
   /** The account to clone from. */
   readonly account: Account
@@ -25,10 +32,10 @@ interface ICloneableRepositoryFilterListProps {
    * The currently selected repository, or null if no repository
    * is selected.
    */
-  readonly selectedItem: IAPIRepository | null
+  readonly selectedItem: IClonableRepositorySelectedItem
 
   /** Called when a repository is selected. */
-  readonly onSelectionChanged: (selectedItem: IAPIRepository | null) => void
+  readonly onSelectionChanged: (selectedItem: IClonableRepositorySelectedItem) => void
 
   /**
    * The list of organizations that the account has explicit permissions
@@ -97,13 +104,22 @@ const RowHeight = 31
  */
 function findMatchingListItem(
   groups: ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>>,
-  selectedRepository: IAPIRepository | null
+  selectedRepository: IClonableRepositorySelectedItem
 ) {
+  const selectedIsItem = selectedItemIsClonable(selectedRepository)
   if (selectedRepository !== null) {
     for (const group of groups) {
-      for (const item of group.items) {
-        if (item.url === selectedRepository.clone_url) {
-          return item
+      if (!selectedIsItem) {
+        const selected = selectedRepository as IExpandableOrganisation
+        if (isCollapsableGroup(group) && group.url === selected.url) {
+          return group
+        }
+      } else {
+        const selected = selectedRepository as IAPIRepository
+        for (const item of group.items) {
+          if (item.url === selected.clone_url) {
+            return item
+          }
         }
       }
     }
@@ -248,13 +264,16 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
   }
 
   private onSelectionChanged = (item: ICloneableRepositoryListItem | null) => {
-    if (item === null || this.props.repositories === null) {
-      this.props.onSelectionChanged(null)
-    } else {
-      this.props.onSelectionChanged(
-        findRepositoryForListItem(this.props.repositories, item)
-      )
+    let repoOrOrg : IClonableRepositorySelectedItem = null
+    if (item !== null) {
+      if (this.props.repositories !== null) {
+        repoOrOrg = findRepositoryForListItem(this.props.repositories, item)
+      }
+      if (repoOrOrg === null && this.props.organizations !== null) {
+        repoOrOrg = findOrganizationForListItem(this.props.organizations, item)
+      }
     }
+    this.props.onSelectionChanged(repoOrOrg)
   }
   
   private renderCollapsableGroupHeader = (group : IFilterListCollapsableGroup<ICloneableRepositoryListItem>, identifier: string) => {

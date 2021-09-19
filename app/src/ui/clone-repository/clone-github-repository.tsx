@@ -7,7 +7,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { IAPIRepository } from '../../lib/api'
 import { IExpandableOrganisation } from '../../lib/stores/api-repositories-store'
-import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
+import { CloneableRepositoryFilterList, IClonableRepositorySelectedItem } from './cloneable-repository-filter-list'
 import { ClickSource } from '../lib/list'
 
 interface ICloneGithubRepositoryProps {
@@ -29,10 +29,10 @@ interface ICloneGithubRepositoryProps {
    * The currently selected repository, or null if no repository
    * is selected.
    */
-  readonly selectedItem: IAPIRepository | null
+  readonly selectedItem: IClonableRepositorySelectedItem
 
   /** Called when a repository is selected. */
-  readonly onSelectionChanged: (selectedItem: IAPIRepository | null) => void
+  readonly onSelectionChanged: (selectedItem: IClonableRepositorySelectedItem) => void
 
   /**
    * The list of organizations that the account has explicit permissions

@@ -10,7 +10,7 @@ import {
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { Account } from '../../models/account'
 import { TabBar } from '../tab-bar'
-import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
+import { CloneableRepositoryFilterList, IClonableRepositorySelectedItem, selectedItemIsClonable } from '../clone-repository/cloneable-repository-filter-list'
 import { IAPIRepository } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { ClickSource } from '../lib/list'
@@ -93,7 +93,7 @@ interface INoRepositoriesState {
    * The currently selected repository (if any) in the GitHub.com
    * tab.
    */
-  readonly selectedDotComRepository: IAPIRepository | null
+  readonly selectedDotComRepository: IClonableRepositorySelectedItem
 
   /**
    * The current filter text in the GitHub.com clone tab
@@ -104,7 +104,7 @@ interface INoRepositoriesState {
    * The currently selected repository (if any) in the GitHub
    * Enterprise tab.
    */
-  readonly selectedEnterpriseRepository: IAPIRepository | null
+  readonly selectedEnterpriseRepository: IClonableRepositorySelectedItem
 
   /**
    * The current filter text in the GitHub.com clone tab
@@ -265,9 +265,9 @@ export class NoRepositoriesView extends React.Component<
   }
 
   private renderCloneSelectedRepositoryButton(
-    selectedItem: IAPIRepository | null
+    selectedItem: IClonableRepositorySelectedItem
   ) {
-    if (selectedItem === null) {
+    if (!selectedItemIsClonable(selectedItem)) {
       return null
     }
 
@@ -293,14 +293,14 @@ export class NoRepositoriesView extends React.Component<
 
     const selectedItem = this.getSelectedItemForAccount(selectedAccount)
 
-    if (selectedItem === null) {
+    if (!selectedItemIsClonable(selectedItem)) {
       return
     }
 
     this.props.onClone(selectedItem.clone_url)
   }
 
-  private onSelectionChanged = (selectedItem: IAPIRepository | null) => {
+  private onSelectionChanged = (selectedItem: IClonableRepositorySelectedItem) => {
     const account = this.getSelectedAccount()
     if (account === this.props.dotComAccount) {
       this.setState({ selectedDotComRepository: selectedItem })

@@ -18,6 +18,7 @@ import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
+import { IClonableRepositorySelectedItem, selectedItemIsClonable } from './cloneable-repository-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
@@ -147,7 +148,7 @@ interface IGitHubTabState extends IBaseTabState {
    * The currently selected repository, or null if no repository
    * is selected.
    */
-  readonly selectedItem: IAPIRepository | null
+  readonly selectedItem: IClonableRepositorySelectedItem
 }
 
 /** The component for cloning a repository. */
@@ -483,10 +484,10 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private onSelectionChanged = (selectedItem: IAPIRepository | null) => {
+  private onSelectionChanged = (selectedItem: IClonableRepositorySelectedItem) => {
     if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
       this.setGitHubTabState({ selectedItem }, this.props.selectedTab)
-      this.updateUrl(selectedItem === null ? '' : selectedItem.clone_url)
+      this.updateUrl(selectedItemIsClonable(selectedItem) ? selectedItem.clone_url : '')
     }
   }
 
