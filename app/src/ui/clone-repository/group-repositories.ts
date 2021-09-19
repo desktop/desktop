@@ -101,9 +101,12 @@ export function groupRepositories(
       const group : IFilterListCollapsableGroup<ICloneableRepositoryListItem> = 
       {
         identifier: org,
+        items: collapsed ? [] : repoList,
         id: theOrg.url,
         text: [org],
-        items: collapsed ? [] : repoList,
+        name: org,
+        icon: collapsed ? OcticonSymbol.plus : OcticonSymbol.dash ,
+        url: theOrg.url,
         collapsed: collapsed
       }
       

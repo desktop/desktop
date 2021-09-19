@@ -1,9 +1,6 @@
 import * as React from 'react'
 import classnames from 'classnames'
 
-import { OcticonSymbolType } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
-
 import {
   List,
   SelectionSource as ListSelectionSource,
@@ -35,14 +32,13 @@ export interface IFilterListGroup<T extends IFilterListItem> {
 }
 
 /** A group of items in the list. */
-export interface IFilterListCollapsableGroup<T extends IFilterListItem> 
-    extends Omit<IFilterListGroup<T>, 'collapsable'>, IFilterListItem {
+export type IFilterListCollapsableGroup<T extends IFilterListItem> = IFilterListGroup<T> & T & {
   /** Whether the group is collapsed. */
   readonly collapsed: boolean
 }
 
 /** Type gaurd to ensure group is collapsable type. */
-function isCollapsableGroup<T extends IFilterListItem>(
+export function isCollapsableGroup<T extends IFilterListItem>(
   group: IFilterListCollapsableGroup<T> | IFilterListGroup<T>
 ): group is IFilterListCollapsableGroup<T> {
   return 'collapsed' in group
@@ -71,7 +67,7 @@ interface IFlattenedGroup {
 interface IFlattenedCollapsableGroup<T extends IFilterListItem> {
   readonly kind:  IFlattenedKinds.Collapsable
   readonly identifier: string
-  readonly item: IFilterListItem
+  readonly item: T
   readonly group: IFilterListCollapsableGroup<T>
 }
 
@@ -104,7 +100,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
 
   /** Called to render a collapsable header for the group with the given identifier. */
-  readonly renderCollapsableGroupHeader?: ( identifier: string, icon: OcticonSymbolType) => JSX.Element | null
+  readonly renderCollapsableGroupHeader?: ( item: IFilterListCollapsableGroup<T>, identifier: string) => JSX.Element | null
 
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
@@ -407,7 +403,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     if (row.kind === IFlattenedKinds.Item) {
       return this.props.renderItem(row.item, row.matches)
     } else if ((row.kind === IFlattenedKinds.Collapsable) && this.props.renderCollapsableGroupHeader) {
-      return this.props.renderCollapsableGroupHeader(row.identifier, row.group.collapsed ? OcticonSymbol.plus : OcticonSymbol.dash)
+      return this.props.renderCollapsableGroupHeader(row.group, row.identifier)
     } else if (this.props.renderGroupHeader) {
       return this.props.renderGroupHeader(row.identifier)
     } else {
@@ -640,7 +636,7 @@ function getItemFromRowIndex<T extends IFilterListItem>(
   if (index >= 0 && index < items.length) {
     const row = items[index]
 
-    if (row.kind === IFlattenedKinds.Item) {
+    if ((row.kind === IFlattenedKinds.Item) || (row.kind === IFlattenedKinds.Collapsable)) {
       return row.item
     }
   }

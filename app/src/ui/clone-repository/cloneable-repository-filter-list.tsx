@@ -11,7 +11,7 @@ import { IExpandableOrganisation } from '../../lib/stores/api-repositories-store
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
-import { Octicon, OcticonSymbolType, syncClockwise } from '../octicons'
+import { Octicon, syncClockwise } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { ClickSource } from '../lib/list'
 import { LinkButton } from '../lib/link-button'
@@ -131,7 +131,7 @@ function findRepositoryForListItem(
  */
  function findOrganizationForListItem(
   organizations: ReadonlyArray<IExpandableOrganisation>,
-  listItem: IFilterListCollapsableGroup<ICloneableRepositoryListItem>
+  listItem: ICloneableRepositoryListItem
 ) {
   return organizations.find(r => r.url === listItem.id) || null
 }
@@ -257,14 +257,14 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
     }
   }
   
-  private renderCollapsableGroupHeader = (identifier: string, icon: OcticonSymbolType) => {
+  private renderCollapsableGroupHeader = (group : IFilterListCollapsableGroup<ICloneableRepositoryListItem>, identifier: string) => {
     let header = identifier
     if (identifier === YourRepositoriesIdentifier) {
       header = __DARWIN__ ? 'Your Repositories' : 'Your repositories'
     }
     return (
       <div className="clone-repository-list-content clone-repository-list-group-header">
-        <Octicon className="icon" symbol={icon} />
+        <Octicon className="icon" symbol={group.icon} />
         {header}
       </div>
     )
