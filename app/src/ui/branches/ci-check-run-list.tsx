@@ -10,7 +10,7 @@ import { List } from '../lib/list'
 import { Octicon, syncClockwise } from '../octicons'
 import _ from 'lodash'
 import { Button } from '../lib/button'
-import { CICheckListItem } from './ci-check-list-item'
+import { CICheckRunListItem } from './ci-check-list-item'
 
 const RowHeight = 50
 
@@ -100,7 +100,7 @@ export class CICheckRunList extends React.PureComponent<
 
   private renderRow = (checks: ReadonlyArray<IRefCheck>) => {
     return (row: number): JSX.Element | null => {
-      return <CICheckListItem checkRef={checks[row]} />
+      return <CICheckRunListItem checkRun={checks[row]} />
     }
   }
 

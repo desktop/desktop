@@ -5,17 +5,17 @@ import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from './ci-status'
 import classNames from 'classnames'
 
-interface ICICheckListItemProps {
-  /** The check ref  **/
-  readonly checkRef: IRefCheck
+interface ICICheckRunListItemProps {
+  /** The check run to display **/
+  readonly checkRun: IRefCheck
 }
 
 /** The CI check list item. */
-export class CICheckListItem extends React.PureComponent<
-  ICICheckListItemProps
+export class CICheckRunListItem extends React.PureComponent<
+  ICICheckRunListItemProps
 > {
   public render() {
-    const { checkRef } = this.props
+    const { checkRun } = this.props
 
     return (
       <div className="ci-check-list-item">
@@ -23,17 +23,17 @@ export class CICheckListItem extends React.PureComponent<
           <Octicon
             className={classNames(
               'ci-status',
-              `ci-status-${getClassNameForCheck(checkRef)}`
+              `ci-status-${getClassNameForCheck(checkRun)}`
             )}
-            symbol={getSymbolForCheck(checkRef)}
-            title={checkRef.description}
+            symbol={getSymbolForCheck(checkRun)}
+            title={checkRun.description}
           />
         </div>
 
         <div className="ci-check-list-item-detail">
-          <div className="ci-check-name">{checkRef.name}</div>
-          <div className="ci-check-description" title={checkRef.description}>
-            {checkRef.description}
+          <div className="ci-check-name">{checkRun.name}</div>
+          <div className="ci-check-description" title={checkRun.description}>
+            {checkRun.description}
           </div>
         </div>
       </div>
