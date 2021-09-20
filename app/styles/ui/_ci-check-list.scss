@@ -2,7 +2,7 @@
   .popover-component {
     position: absolute;
     padding: 0px;
-    width: 300px;
+    width: 375px;
     top: 65px;
     margin-left: -225px;
   }
@@ -15,13 +15,12 @@
 
 .ci-check-app-header {
   display: flex;
-  ç: center;
+  align-items: center;
   border-bottom: var(--base-border);
   padding: var(--spacing-half) var(--spacing);
 
   .ci-check-app-name {
     font-weight: var(--font-weight-semibold);
-    font-size: var(--font-size-md);
     flex: 1;
   }
 }
