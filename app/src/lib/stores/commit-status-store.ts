@@ -401,7 +401,7 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
 
   return {
     name: apiStatus.context,
-    description: getAPICheckRunDescription(state, conclusion),
+    description: getCheckRunShortDescription(state, conclusion),
     status: state,
     conclusion,
     appName: '',
@@ -421,9 +421,8 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
  * @param conclusion - The conclusion of the check, something like success or
  * skipped...
  * @param durationSeconds - The time in seconds it took to complete.
- * @returns
  */
-function getAPICheckRunDescription(
+function getCheckRunShortDescription(
   status: APICheckStatus,
   conclusion: APICheckConclusion | null,
   durationSeconds?: number
@@ -498,7 +497,7 @@ function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
 function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
     name: checkRun.name,
-    description: getAPICheckRunDescription(
+    description: getCheckRunShortDescription(
       checkRun.status,
       checkRun.conclusion,
       getCheckDurationInSeconds(checkRun)
