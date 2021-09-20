@@ -105,7 +105,7 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private rerunJobs = () => {
-    console.log("Let's re run these jobs!")
+    // TODO: Rerun jobs
   }
 
   private getListHeightStyles = (
