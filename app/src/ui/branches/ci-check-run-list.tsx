@@ -14,7 +14,7 @@ import { CICheckListItem } from './ci-check-list-item'
 
 const RowHeight = 50
 
-interface ICICheckListProps {
+interface ICICheckRunListProps {
   /** The classname for the underlying element. */
   readonly className?: string
 
@@ -27,18 +27,18 @@ interface ICICheckListProps {
   readonly prNumber: number
 }
 
-interface ICICheckListState {
+interface ICICheckRunListState {
   readonly check: ICombinedRefCheck | null
 }
 
 /** The CI Check list. */
-export class CICheckList extends React.PureComponent<
-  ICICheckListProps,
-  ICICheckListState
+export class CICheckRunList extends React.PureComponent<
+  ICICheckRunListProps,
+  ICICheckRunListState
 > {
   private statusSubscription: IDisposable | null = null
 
-  public constructor(props: ICICheckListProps) {
+  public constructor(props: ICICheckRunListProps) {
     super(props)
     this.state = {
       check: props.dispatcher.tryGetCommitStatus(
@@ -69,7 +69,7 @@ export class CICheckList extends React.PureComponent<
     }
   }
 
-  public componentDidUpdate(prevProps: ICICheckListProps) {
+  public componentDidUpdate(prevProps: ICICheckRunListProps) {
     // Re-subscribe if we're being reused to show a different status.
     if (
       this.props.repository !== prevProps.repository ||

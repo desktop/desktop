@@ -18,7 +18,7 @@ import classNames from 'classnames'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { CICheckList } from '../branches/ci-check-list'
+import { CICheckRunList } from '../branches/ci-check-run-list'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -249,7 +249,7 @@ export class BranchDropdown extends React.Component<
           onClickOutside={this.closePopover}
         >
           <div>
-            <CICheckList
+            <CICheckRunList
               prNumber={pr.pullRequestNumber}
               dispatcher={this.props.dispatcher}
               repository={pr.base.gitHubRepository}
