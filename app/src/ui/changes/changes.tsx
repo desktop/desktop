@@ -9,7 +9,6 @@ import {
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
 
@@ -86,9 +85,6 @@ export class Changes extends React.Component<IChangesProps, {}> {
   public render() {
     const diff = this.props.diff
     const file = this.props.file
-    const isReadonly =
-      this.props.isCommitting ||
-      (enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff)
 
     return (
       <div className="changed-file">
@@ -107,7 +103,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           repository={this.props.repository}
           imageDiffType={this.props.imageDiffType}
           file={file}
-          readOnly={isReadonly}
+          readOnly={false}
           onIncludeChanged={this.onDiffLineIncludeChanged}
           onDiscardChanges={this.onDiscardChanges}
           diff={diff}
