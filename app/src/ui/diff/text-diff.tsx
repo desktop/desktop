@@ -1,4 +1,5 @@
 import * as React from 'react'
+import ReactDOM from 'react-dom'
 import { clipboard } from 'electron'
 import { Editor, Doc } from 'codemirror'
 
@@ -54,6 +55,8 @@ import {
 import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HideWhitespaceWarning } from './hide-whitespace-warning'
+import { WhitespaceHintPopover } from './whitespace-hint-popover'
+import { PopoverCaretPosition } from '../lib/popover'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -177,6 +180,9 @@ interface ITextDiffProps {
    * discards changes.
    */
   readonly askForConfirmationOnDiscardChanges?: boolean
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ITextDiffState {
@@ -284,6 +290,8 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
 
 export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   private codeMirror: Editor | null = null
+  private whitespaceHintMountId: number | null = null
+  private whitespaceHintContainer: Element | null = null
 
   private getCodeMirrorDocument = memoizeOne(
     (text: string, noNewlineIndicatorLines: ReadonlyArray<number>) => {
@@ -442,6 +450,13 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const isSelected = !file.selection.isSelected(indexInOriginalDiff)
+
+    if (this.props.hideWhitespaceInDiff) {
+      if (file.selection.isSelectable(indexInOriginalDiff)) {
+        this.mountWhitespaceHint(index)
+      }
+      return
+    }
 
     if (kind === 'hunk') {
       const range = findInteractiveOriginalDiffRange(hunks, index)
@@ -1381,8 +1396,66 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   public componentWillUnmount() {
     this.cancelSelection()
+    this.unmountWhitespaceHint()
     this.codeMirror = null
     document.removeEventListener('find-text', this.onFindText)
+  }
+
+  private mountWhitespaceHint(index: number) {
+    this.unmountWhitespaceHint()
+
+    // Since we're in a bit of a weird state here where CodeMirror is mounted
+    // through React and we're in turn mounting a React component from a
+    // DOM event we want to make sure we're not mounting the Popover
+    // synchronously. Doing so will cause the popover to receiving the bubbling
+    // mousedown event (on document) which caused it to be mounted in the first
+    // place and it will then close itself thinking that it's seen a mousedown
+    // event outside of its container.
+    this.whitespaceHintMountId = requestAnimationFrame(() => {
+      this.whitespaceHintMountId = null
+
+      if (this.codeMirror === null) {
+        return
+      }
+      const container = document.createElement('div')
+      this.codeMirror.getScrollerElement().appendChild(container)
+      this.whitespaceHintContainer = container
+
+      const diffSize = getLineWidthFromDigitCount(
+        getNumberOfDigits(this.state.diff.maxLineNumber)
+      )
+
+      const top = this.codeMirror.heightAtLine(index, 'local') - 10
+      const left = diffSize * 2 + 10
+
+      ReactDOM.render(
+        <WhitespaceHintPopover
+          caretPosition={PopoverCaretPosition.LeftTop}
+          onDismissed={this.unmountWhitespaceHint}
+          onHideWhitespaceInDiffChanged={
+            this.props.onHideWhitespaceInDiffChanged
+          }
+          style={{ top, left }}
+        />,
+        container
+      )
+    })
+  }
+
+  private unmountWhitespaceHint = () => {
+    if (this.whitespaceHintMountId !== null) {
+      cancelAnimationFrame(this.whitespaceHintMountId)
+      this.whitespaceHintMountId = null
+    }
+
+    if (this.whitespaceHintContainer !== null) {
+      ReactDOM.unmountComponentAtNode(this.whitespaceHintContainer)
+    }
+
+    if (this.whitespaceHintContainer !== null) {
+      this.whitespaceHintContainer.remove()
+      this.whitespaceHintContainer = null
+    }
   }
 
   // eslint-disable-next-line react-proper-lifecycle-methods

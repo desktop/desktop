@@ -293,6 +293,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
+        onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
       />
     )
   }
