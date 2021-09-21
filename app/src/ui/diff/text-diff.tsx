@@ -1292,15 +1292,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       marker.removeAttribute('role')
     }
 
-    const oldLineNumber = marker.childNodes[0]
-
-    oldLineNumber.textContent =
-      diffLine.oldLineNumber === null ? '' : `${diffLine.oldLineNumber}`
-
-    const newLineNumber = marker.childNodes[1]
-
-    newLineNumber.textContent =
-      diffLine.newLineNumber === null ? '' : `${diffLine.newLineNumber}`
+    const [oldLineNumber, newLineNumber] = marker.childNodes
+    oldLineNumber.textContent = `${diffLine.oldLineNumber ?? ''}`
+    newLineNumber.textContent = `${diffLine.newLineNumber ?? ''}`
   }
 
   private onHunkHandleMouseEnter = (ev: MouseEvent) => {
