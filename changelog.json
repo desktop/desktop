@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.9.4-beta3": [
+      "[Fixed] Refresh diffs when application receives focus - #12962",
+      "[Fixed] Tokens are not considered invalid when accessing GitHub Enterprise from outside of the company's VPN - #12943",
+      "[Improved] Upgrade embedded Git to v2.32.0 on macOS, and to v2.32.0.windows.2 on Windows - #13000"
+    ],
     "2.9.4-beta2": [
       "[Added] Add support for WezTerm on macOS - #12957. Thanks @theodore-s-beers!",
       "[Fixed] Remove high-contrast specific hover effects from light and dark theme - #12952",
