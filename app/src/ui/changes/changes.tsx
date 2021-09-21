@@ -83,15 +83,12 @@ export class Changes extends React.Component<IChangesProps, {}> {
   }
 
   public render() {
-    const diff = this.props.diff
-    const file = this.props.file
-
     return (
       <div className="changed-file">
         <ChangedFileDetails
-          path={file.path}
-          status={file.status}
-          diff={diff}
+          path={this.props.file.path}
+          status={this.props.file.status}
+          diff={this.props.diff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
@@ -102,11 +99,11 @@ export class Changes extends React.Component<IChangesProps, {}> {
         <SeamlessDiffSwitcher
           repository={this.props.repository}
           imageDiffType={this.props.imageDiffType}
-          file={file}
+          file={this.props.file}
           readOnly={false}
           onIncludeChanged={this.onDiffLineIncludeChanged}
           onDiscardChanges={this.onDiscardChanges}
-          diff={diff}
+          diff={this.props.diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           askForConfirmationOnDiscardChanges={
