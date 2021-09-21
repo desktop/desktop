@@ -52,6 +52,10 @@ interface IChangesProps {
 
 export class Changes extends React.Component<IChangesProps, {}> {
   private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
+    if (this.props.isCommitting || this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     const file = this.props.file
     this.props.dispatcher.changeFileLineSelection(
       this.props.repository,
@@ -64,6 +68,10 @@ export class Changes extends React.Component<IChangesProps, {}> {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => {
+    if (this.props.isCommitting || this.props.hideWhitespaceInDiff) {
+      return
+    }
+
     if (this.props.askForConfirmationOnDiscardChanges) {
       this.props.dispatcher.showPopup({
         type: PopupType.ConfirmDiscardSelection,
