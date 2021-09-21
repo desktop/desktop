@@ -403,13 +403,9 @@ export class SideBySideDiffRow extends React.Component<
       return null
     }
 
-    const classes = classNames('hunk-handle', {
-      hoverable: true,
-    })
-
     return (
       <div
-        className={classes}
+        className="hunk-handle hoverable"
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
