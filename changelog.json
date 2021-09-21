@@ -1,5 +1,16 @@
 {
   "releases": {
+    "2.9.4-beta2": [
+      "[Added] Add support for WezTerm on macOS - #12957. Thanks @theodore-s-beers!",
+      "[Fixed] Remove high-contrast specific hover effects from light and dark theme - #12952",
+      "[Fixed] Show \"add repo\" dialog when opening repo from CLI - #12935",
+      "[Fixed] Continue merge flow after merge conflicts are resolved with exterior conflict tool - #12881",
+      "[Fixed] Remove glitches when diffs are shown for the first time - #12903",
+      "[Improved] Remove gaps in the commit message container revealing a different background - #12900. Thanks @haykam821!",
+      "[Improved] Add clearer verbiage in the \"remove repository\" dialog - #12497. Thanks @fonsp!",
+      "[Improved] Update grammar for \"repo deletion\" and \"couldn't find pull request\" error messages - #12902. Thanks @patrykmichalik!",
+      "[Improved] Show confirmation dialog for SSH host key verification - #12894. Thanks @thsmdt!"
+    ],
     "2.9.4-beta1": [
       "[Added] Add a menu item to view a committed file change on GitHub - #12492. Thanks @haykam821!",
       "[Added] Customizable high contrast theme - #12833",
