@@ -1407,29 +1407,49 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // event outside of its container.
     this.whitespaceHintMountId = requestAnimationFrame(() => {
       this.whitespaceHintMountId = null
+      const cm = this.codeMirror
 
-      if (this.codeMirror === null) {
+      if (cm === null) {
         return
       }
+
       const container = document.createElement('div')
-      this.codeMirror.getScrollerElement().appendChild(container)
-      this.whitespaceHintContainer = container
+      container.style.position = 'absolute'
+      const scroller = cm.getScrollerElement()
 
       const diffSize = getLineWidthFromDigitCount(
         getNumberOfDigits(this.state.diff.maxLineNumber)
       )
 
-      const top = this.codeMirror.heightAtLine(index, 'local') - 10
-      const left = diffSize * 2 + 10
+      const lineY = cm.heightAtLine(index, 'local')
+      // We're positioning relative to the scroll container, not the
+      // sizer or lines so we'll have to account for the gutter width and
+      // the hunk handle.
+      const style: React.CSSProperties = { left: diffSize * 2 + 10 }
+      let caretPosition = PopoverCaretPosition.LeftTop
+
+      // Offset down by 10px to align the popover arrow.
+      container.style.top = `${lineY - 10}px`
+
+      // If the line is further than 50% down the viewport we'll flip the
+      // popover to point upwards so as to not get hidden beneath (or above)
+      // the scroll boundary.
+      if (lineY - scroller.scrollTop > scroller.clientHeight / 2) {
+        caretPosition = PopoverCaretPosition.LeftBottom
+        style.bottom = -35
+      }
+
+      scroller.appendChild(container)
+      this.whitespaceHintContainer = container
 
       ReactDOM.render(
         <WhitespaceHintPopover
-          caretPosition={PopoverCaretPosition.LeftTop}
+          caretPosition={caretPosition}
           onDismissed={this.unmountWhitespaceHint}
           onHideWhitespaceInDiffChanged={
             this.props.onHideWhitespaceInDiffChanged
           }
-          style={{ top, left }}
+          style={style}
         />,
         container
       )
