@@ -109,19 +109,6 @@ function packageWindows() {
     options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
   }
 
-  fs.removeSync(
-    path.join(
-      __dirname,
-      '..',
-      'app',
-      'git',
-      'mingw32',
-      'libexec',
-      'git-core',
-      'WebView2Loader.dll'
-    )
-  )
-
   console.log('Packaging for Windows…')
   electronInstaller
     .createWindowsInstaller(options)

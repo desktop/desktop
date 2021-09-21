@@ -376,6 +376,7 @@ function copyDependencies() {
       'Microsoft.Vsts.Authentication.dll',
       'git-askpass.exe',
       'git-credential-manager.exe',
+      'WebView2Loader.dll',
     ]
 
     const gitCoreDir = path.join(gitDir, 'mingw64', 'libexec', 'git-core')
