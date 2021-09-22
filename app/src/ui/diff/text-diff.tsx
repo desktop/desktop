@@ -623,6 +623,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
+    this.initDiffSyntaxMode()
   }
 
   private onContextMenu = (instance: CodeMirror.Editor, event: Event) => {
@@ -1444,8 +1445,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   public componentDidMount() {
-    this.initDiffSyntaxMode()
-
     // Listen for the custom event find-text (see app.tsx)
     // and trigger the search plugin if we see it.
     document.addEventListener('find-text', this.onFindText)
