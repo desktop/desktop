@@ -218,6 +218,7 @@ export class BranchDropdown extends React.Component<
     if (this.state.isPopoverOpen) {
       this.closePopover()
     } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
       this.openPopover()
     }
   }
