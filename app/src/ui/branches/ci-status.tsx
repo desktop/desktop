@@ -47,9 +47,7 @@ export class CIStatus extends React.PureComponent<
     this.state = {
       check,
     }
-    if (this.props.onCheckChange !== undefined) {
-      this.props.onCheckChange(check)
-    }
+    this.props.onCheckChange?.(check)
   }
 
   private subscribe() {
