@@ -51,24 +51,27 @@ interface IChangesProps {
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
-  private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
-    if (this.props.isCommitting || this.props.hideWhitespaceInDiff) {
-      return
-    }
+  /**
+   * Whether or not it's currently possible to change the line selection
+   * of a diff. Changing selection is not possible while a commit is in
+   * progress or if the user has opted to hide whitespace changes.
+   */
+  private get canChangeLineSelection() {
+    return !this.props.isCommitting && !this.props.hideWhitespaceInDiff
+  }
 
-    const file = this.props.file
-    this.props.dispatcher.changeFileLineSelection(
-      this.props.repository,
-      file,
-      diffSelection
-    )
+  private onDiffLineIncludeChanged = (selection: DiffSelection) => {
+    if (this.canChangeLineSelection) {
+      const { repository, file } = this.props
+      this.props.dispatcher.changeFileLineSelection(repository, file, selection)
+    }
   }
 
   private onDiscardChanges = (
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => {
-    if (this.props.isCommitting || this.props.hideWhitespaceInDiff) {
+    if (!this.canChangeLineSelection) {
       return
     }
 
