@@ -231,7 +231,23 @@ export class BranchDropdown extends React.Component<
     })
   }
 
-  private closePopover = () => {
+  private closePopover = (event?: MouseEvent) => {
+    if (event === undefined) {
+      this.setState({ isPopoverOpen: false })
+      return
+    }
+
+    const { target } = event
+    const prBadgeElem = document.getElementById('pr-badge')
+    if (
+      prBadgeElem !== null &&
+      target !== null &&
+      target instanceof Node &&
+      prBadgeElem.contains(target)
+    ) {
+      return
+    }
+
     this.setState({ isPopoverOpen: false })
   }
 

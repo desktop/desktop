@@ -53,7 +53,7 @@ export class PullRequestBadge extends React.Component<
   public render() {
     const ref = `refs/pull/${this.props.number}/head`
     return (
-      <div className="pr-badge" onClick={this.onBadgeClick}>
+      <div id="pr-badge" onClick={this.onBadgeClick}>
         <span className="number">#{this.props.number}</span>
         <CIStatus
           commitRef={ref}
