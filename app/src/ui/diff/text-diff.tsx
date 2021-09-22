@@ -1395,6 +1395,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
+    if (!isSameFileContents(this.props.fileContents, prevProps.fileContents)) {
+      this.initDiffSyntaxMode()
+    }
+
     if (canSelect(this.props.file)) {
       if (
         !canSelect(prevProps.file) ||
@@ -1475,4 +1479,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       />
     )
   }
+}
+
+function isSameFileContents(x: IFileContents | null, y: IFileContents | null) {
+  return x?.newContents === y?.newContents && x?.oldContents === y?.oldContents
 }
