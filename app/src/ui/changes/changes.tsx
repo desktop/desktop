@@ -9,6 +9,7 @@ import {
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
+import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
 
@@ -56,12 +57,15 @@ export class Changes extends React.Component<IChangesProps, {}> {
    * of a diff. Changing selection is not possible while a commit is in
    * progress or if the user has opted to hide whitespace changes.
    */
-  private get canChangeLineSelection() {
-    return !this.props.isCommitting && !this.props.hideWhitespaceInDiff
+  private get lineSelectionDisabled() {
+    return (
+      this.props.isCommitting ||
+      (enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff)
+    )
   }
 
   private onDiffLineIncludeChanged = (selection: DiffSelection) => {
-    if (this.canChangeLineSelection) {
+    if (!this.lineSelectionDisabled) {
       const { repository, file } = this.props
       this.props.dispatcher.changeFileLineSelection(repository, file, selection)
     }
@@ -71,7 +75,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => {
-    if (!this.canChangeLineSelection) {
+    if (this.lineSelectionDisabled) {
       return
     }
 
