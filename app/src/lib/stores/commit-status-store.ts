@@ -431,10 +431,6 @@ function getCheckRunShortDescription(
     return 'In progress'
   }
 
-  if (status !== APICheckStatus.Completed) {
-    return 'In progress'
-  }
-
   let adjective = ''
   let preposition = 'after'
 
