@@ -33,68 +33,13 @@ export function buildCustomThemeStyles(customTheme: ICustomTheme): string {
   const secondaryActiveColor = lightenDarkenHexColor(activeItem, 20)
   const secondaryBackgroundColor = lightenDarkenHexColor(background, 20)
 
-  const highContrastSpecific = `
-      --box-selected-active-border: 2px solid ${border};
-      --list-item-hover-border: 2px solid ${border};
-
-      --secondary-button-hover-border-width: 2px;
-
-      --tab-bar-box-shadow: none;
-
-      --diff-add-border: 1px solid green;
-      --diff-delete-border: 1px solid crimson;
-      --tab-bar-hover-border: 2px solid ${border} !important;
-      --tab-bar-item-border: 2px solid ${background};
-      --foldout-border: 1px solid ${border};
-      --horizontal-bar-active-color: ${activeItem};
-      --horizontal-bar-active-text-color: ${activeText};
-  `
-
-  return `body.theme-custom {
-    --background-color: ${background};
-    --box-background-color: ${background};
-    --box-alt-background-color: ${background};
-    --box-alt-text-color: ${activeText};
-
-    --diff-hunk-gutter-background-color: ${background};
-    --diff-text-color: ${text};
-    --diff-line-number-color: ${text};
-    --diff-gutter-background-color: ${background};
-    --diff-hunk-background-color: ${background};
-    --diff-empty-row-background-color: ${secondaryBackgroundColor};
-
-    --box-border-color: ${border};
-    --diff-border-color: ${border};
-
-    --box-selected-background-color: ${secondaryActiveColor};
-    --box-selected-text-color: ${activeText};
-
-    --box-selected-active-background-color: ${activeItem};
-    --box-selected-active-text-color: ${activeText};
-
-    --button-background: ${activeItem};
-    --button-text-color: ${activeText};
-    --secondary-button-background: ${background};
-    --secondary-button-text-color: ${text};
-    --button-hover-background: ${secondaryActiveColor};
-    --secondary-button-hover-background: ${secondaryBackgroundColor};
-    --app-menu-button-hover-background-color: ${secondaryBackgroundColor};
-    --toolbar-button-focus-background-color: ${secondaryBackgroundColor};
-    --toolbar-button-hover-background-color: ${secondaryBackgroundColor};
-    --toolbar-button-active-border-color: ${border};
-    --tab-bar-hover-background-color: ${secondaryBackgroundColor};
-
-    --text-color: ${text};
-    --text-secondary-color: ${text};
-    --toolbar-background-color: ${background};
-    --toolbar-button-secondary-color: ${text};
-
-    --list-item-hover-background-color: ${secondaryActiveColor};
-    --list-item-hover-text-color: ${activeText};
-
-    --box-placeholder-color: ${text};
-    --tab-bar-active-color: ${activeItem};
-
-    ${highContrastSpecific}
+  return `body.theme-high-contrast {
+    --hc-background-color: ${background};
+    --hc-secondary-background-color: ${secondaryBackgroundColor};
+    --hc-border-color: ${border};
+    --hc-text-color: ${text};
+    --hc-active-item-color: ${activeItem};
+    --hc-secondary-active-item-color: ${secondaryActiveColor};
+    --hc-active-text-color: ${activeText};
   }`
 }

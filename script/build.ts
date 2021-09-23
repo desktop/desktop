@@ -40,6 +40,7 @@ import {
   getExecutableName,
   isPublishable,
   getIconFileName,
+  getDistArchitecture,
 } from './dist-info'
 import { isCircleCI, isGitHubActions } from './build-platforms'
 
@@ -376,9 +377,11 @@ function copyDependencies() {
       'Microsoft.Vsts.Authentication.dll',
       'git-askpass.exe',
       'git-credential-manager.exe',
+      'WebView2Loader.dll',
     ]
 
-    const gitCoreDir = path.join(gitDir, 'mingw64', 'libexec', 'git-core')
+    const mingwFolder = getDistArchitecture() === 'x64' ? 'mingw64' : 'mingw32'
+    const gitCoreDir = path.join(gitDir, mingwFolder, 'libexec', 'git-core')
 
     for (const file of files) {
       const filePath = path.join(gitCoreDir, file)

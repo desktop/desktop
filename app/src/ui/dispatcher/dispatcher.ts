@@ -26,7 +26,6 @@ import {
   setGenericUsername,
 } from '../../lib/generic-git-auth'
 import {
-  isGitRepository,
   RebaseResult,
   PushOptions,
   getCommitsBetweenCommits,
@@ -1755,30 +1754,14 @@ export class Dispatcher {
         // this ensures we use the repository root, if it is actually a repository
         // otherwise we consider it an untracked repository
         const path = (await validatedRepositoryPath(action.path)) || action.path
-        const state = this.appStore.getState()
-        let existingRepository = matchExistingRepository(
-          state.repositories,
-          path
-        )
-
-        // in case this is valid git repository, there is no need to ask
-        // user for confirmation and it can be added automatically
-        if (existingRepository == null) {
-          const isRepository = await isGitRepository(path)
-          if (isRepository) {
-            const addedRepositories = await this.addRepositories([path])
-            existingRepository = addedRepositories[0]
-          }
-        }
+        const { repositories } = this.appStore.getState()
+        const existingRepository = matchExistingRepository(repositories, path)
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
           this.statsStore.recordAddExistingRepository()
         } else {
-          await this.showPopup({
-            type: PopupType.AddRepository,
-            path,
-          })
+          await this.showPopup({ type: PopupType.AddRepository, path })
         }
         break
 
