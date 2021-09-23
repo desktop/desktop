@@ -28,6 +28,7 @@ export interface IRefCheck {
   readonly description: string
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
+  readonly appName: string
 }
 
 /**
@@ -389,21 +390,101 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   let conclusion: APICheckConclusion | null = null
 
   if (apiStatus.state === 'success') {
-    state = 'completed'
-    conclusion = 'success'
+    state = APICheckStatus.Completed
+    conclusion = APICheckConclusion.Success
   } else if (apiStatus.state === 'pending') {
-    state = 'in_progress'
+    state = APICheckStatus.InProgress
   } else {
-    state = 'completed'
-    conclusion = 'failure'
+    state = APICheckStatus.Completed
+    conclusion = APICheckConclusion.Failure
   }
 
   return {
     name: apiStatus.context,
-    description: apiStatus.description,
+    description: getCheckRunShortDescription(state, conclusion),
     status: state,
     conclusion,
+    appName: '',
   }
+}
+
+/**
+ * Method to generate a user friendly short check run description such as
+ * "Successful in xs", "In Progress", "Failed after 1m"
+ *
+ * If the duration is not provided, it will omit the preposition and duration
+ * context. Also, conclusions such as `Skipped`, 'Action required`, `Marked as
+ * stale` don't make sense with duration context so it is ommited.
+ *
+ * @param status - The overall check status, something like completed, pending,
+ * or failing...
+ * @param conclusion - The conclusion of the check, something like success or
+ * skipped...
+ * @param durationSeconds - The time in seconds it took to complete.
+ */
+function getCheckRunShortDescription(
+  status: APICheckStatus,
+  conclusion: APICheckConclusion | null,
+  durationSeconds?: number
+): string {
+  if (status !== APICheckStatus.Completed || conclusion === null) {
+    return 'In progress'
+  }
+
+  let adjective = ''
+  let preposition = 'after'
+
+  // Some of these such as 'Action required' or 'Skipped' don't make sense with
+  // time context so we just return them.
+  switch (conclusion) {
+    case APICheckConclusion.ActionRequired:
+      return 'Action required'
+    case APICheckConclusion.Canceled:
+      adjective = 'Canceled'
+      break
+    case APICheckConclusion.TimedOut:
+      adjective = 'Timed out'
+      break
+    case APICheckConclusion.Failure:
+      adjective = 'Failed'
+      break
+    case APICheckConclusion.Neutral:
+      adjective = 'Completed'
+      break
+    case APICheckConclusion.Success:
+      adjective = 'Successful'
+      preposition = 'in'
+      break
+    case APICheckConclusion.Skipped:
+      return 'Skipped'
+    case APICheckConclusion.Stale:
+      return 'Marked as stale'
+  }
+
+  if (durationSeconds !== undefined && durationSeconds > 0) {
+    const duration =
+      durationSeconds < 60
+        ? `${durationSeconds}s`
+        : `${Math.round(durationSeconds / 60)}m`
+    return `${adjective} ${preposition} ${duration}`
+  }
+
+  return adjective
+}
+
+/**
+ * Attempts to get the duration of a check run in seconds.
+ * If it fails, it returns 0
+ */
+function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
+  try {
+    // This could fail if the dates cannot be parsed.
+    const completedAt = new Date(checkRun.completed_at).getTime()
+    const startedAt = new Date(checkRun.started_at).getTime()
+    return (completedAt - startedAt) / 1000
+  } catch (e) {}
+
+  return 0
 }
 
 /**
@@ -412,10 +493,14 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
 function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
     name: checkRun.name,
-    description:
-      checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
+    description: getCheckRunShortDescription(
+      checkRun.status,
+      checkRun.conclusion,
+      getCheckDurationInSeconds(checkRun)
+    ),
     status: checkRun.status,
     conclusion: checkRun.conclusion,
+    appName: checkRun.app.name,
   }
 }
 
@@ -437,11 +522,19 @@ function createCombinedCheckFromChecks(
   }
 
   if (checks.some(isIncompleteOrFailure)) {
-    return { status: 'completed', conclusion: 'failure', checks }
+    return {
+      status: APICheckStatus.Completed,
+      conclusion: APICheckConclusion.Failure,
+      checks,
+    }
   } else if (checks.every(isSuccess)) {
-    return { status: 'completed', conclusion: 'success', checks }
+    return {
+      status: APICheckStatus.Completed,
+      conclusion: APICheckConclusion.Success,
+      checks,
+    }
   } else {
-    return { status: 'in_progress', conclusion: null, checks }
+    return { status: APICheckStatus.InProgress, conclusion: null, checks }
   }
 }
 
