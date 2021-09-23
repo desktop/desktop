@@ -11,6 +11,7 @@ import { Octicon, syncClockwise } from '../octicons'
 import _ from 'lodash'
 import { Button } from '../lib/button'
 import { CICheckRunListItem } from './ci-check-list-item'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 const RowHeight = 50
 
@@ -29,6 +30,7 @@ interface ICICheckRunListProps {
 
 interface ICICheckRunListState {
   readonly check: ICombinedRefCheck | null
+  readonly checkRunsShown: string | null
 }
 
 /** The CI Check list. */
@@ -45,6 +47,7 @@ export class CICheckRunList extends React.PureComponent<
         this.props.repository,
         this.getCommitRef(this.props.prNumber)
       ),
+      checkRunsShown: null,
     }
   }
 
@@ -114,6 +117,14 @@ export class CICheckRunList extends React.PureComponent<
     return { height: checks.length * RowHeight, maxHeight: '100%' }
   }
 
+  private onAppHeaderClick = (appName: string) => {
+    return () => {
+      this.setState({
+        checkRunsShown: this.state.checkRunsShown === appName ? '' : appName,
+      })
+    }
+  }
+
   private renderList = (checks: ReadonlyArray<IRefCheck>) => {
     const styles = this.getListHeightStyles(checks)
     return (
@@ -128,7 +139,7 @@ export class CICheckRunList extends React.PureComponent<
     )
   }
 
-  public renderRerunButton = () => {
+  private renderRerunButton = () => {
     return (
       <div className="ci-check-rerun">
         <Button onClick={this.rerunJobs}>
@@ -139,9 +150,12 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public render() {
-    const { check } = this.state
+    const { check, checkRunsShown } = this.state
 
     if (check === null || check.checks.length === 0) {
+      // If this is actually occurred, it will crash the app because there is
+      // nothing for focus trap to focus on.
+      // TODO: close popup
       return null
     }
 
@@ -150,16 +164,30 @@ export class CICheckRunList extends React.PureComponent<
       (a, b) => b.length - a.length
     )
 
+    const appNameShown = checkRunsShown !== null ? checkRunsShown : appNames[0]
+
     const checkLists = appNames.map((appName: string, index: number) => {
+      const displayAppName = appName !== '' ? appName : 'Other'
       return (
-        <div className="ci-check-app-list" key={appName}>
-          <div className="ci-check-app-header">
-            <div className="ci-check-app-name">
-              {appName !== '' ? appName : 'Other'}
-            </div>
+        <div className="ci-check-app-list" key={displayAppName}>
+          <div
+            className="ci-check-app-header"
+            onClick={this.onAppHeaderClick(displayAppName)}
+          >
+            <Octicon
+              className="open-closed-icon"
+              symbol={
+                appNameShown === displayAppName
+                  ? OcticonSymbol.chevronDown
+                  : OcticonSymbol.chevronRight
+              }
+            />
+            <div className="ci-check-app-name">{displayAppName}</div>
             {index === 0 ? this.renderRerunButton() : null}
           </div>
-          {this.renderList(checksByApp[appName])}
+          {appNameShown === displayAppName
+            ? this.renderList(checksByApp[appName])
+            : null}
         </div>
       )
     })
