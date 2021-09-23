@@ -1424,6 +1424,11 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     if (snapshot !== null) {
       this.codeMirror.scrollTo(undefined, snapshot.top)
     }
+
+    // Scroll to top if we switched to a new file
+    if (this.props.file.id !== prevProps.file.id) {
+      this.codeMirror.scrollTo(undefined, 0)
+    }
   }
 
   public getSnapshotBeforeUpdate(
