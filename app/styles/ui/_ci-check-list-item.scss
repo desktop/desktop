@@ -33,30 +33,39 @@
 }
 
 .ci-check-list-item-logs {
-  padding: var(--spacing-half);
-  font-size: var(--font-size-sm);
+  padding: var(--spacing);
   border-bottom: var(--base-border);
   box-shadow: inset 0px 0px 3px -1px grey;
-  max-height: 200px;
-  overflow: auto;
-  word-break: break-word;
 
-  pre {
-    margin: 0;
+  .ci-check-list-item-logs-output {
+    font-size: var(--font-size-sm);
+    max-height: 200px;
+    overflow: auto;
+    word-break: break-word;
+
+    pre {
+      margin: 0;
+    }
+
+    .ci-check-run-log-step {
+      display: flex;
+      align-items: center;
+      .ci-check-status-symbol {
+        padding: var(--spacing-third);
+      }
+      .ci-check-run-log-step-name {
+        flex: 1;
+      }
+    }
+
+    .no-logs-to-display {
+      padding: var(--spacing-half);
+    }
   }
 
-  .ci-check-run-log-step {
-    display: flex;
-    align-items: center;
-    .ci-check-status-symbol {
-      padding: var(--spacing-third);
+  .view-on-github {
+    .button-component {
+      width: 100%;
     }
-    .ci-check-run-log-step-name {
-      flex: 1;
-    }
-  }
-
-  .no-logs-to-display {
-    padding: var(--spacing-half);
   }
 }

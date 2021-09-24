@@ -36,6 +36,7 @@ export interface IRefCheck {
   readonly appName: string
   readonly checkSuiteId: number | null // API status don't have check suite id's
   readonly output: IRefCheckOutput
+  readonly htmlUrl: string | null
 }
 
 /**
@@ -484,6 +485,7 @@ export class CommitStatusStore {
 
       mappedCheckRuns.push({
         ...cr,
+        htmlUrl: matchingJob.html_url,
         output: {
           type: RefCheckOutputType.Actions,
           title: name,
@@ -596,6 +598,7 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
       title: apiStatus.context,
       text: '',
     },
+    htmlUrl: null,
   }
 }
 
@@ -706,6 +709,7 @@ function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
       summary: checkRun.output.summary,
       text: checkRun.output.text,
     },
+    htmlUrl: checkRun.html_url,
   }
 }
 

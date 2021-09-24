@@ -10,6 +10,7 @@ import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from './ci-status'
 import classNames from 'classnames'
 import { APICheckConclusion } from '../../lib/api'
+import { Button } from '../lib/button'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -23,14 +24,21 @@ interface ICICheckRunListItemProps {
 
   /** Callback for when a check run is clicked */
   readonly onCheckRunClick: (checkRun: IRefCheck) => void
+
+  /** Callback to opens check runs on GitHub */
+  readonly onViewOnGitHub: (checkRun: IRefCheck) => void
 }
 
 /** The CI check list item. */
 export class CICheckRunListItem extends React.PureComponent<
   ICICheckRunListItemProps
 > {
-  public onCheckRunClick = () => {
+  private onCheckRunClick = () => {
     this.props.onCheckRunClick(this.props.checkRun)
+  }
+
+  private onViewOnGitHub = () => {
+    this.props.onViewOnGitHub(this.props.checkRun)
   }
 
   private renderActionsLogOutput = (output: IRefCheckOutput) => {
@@ -108,6 +116,14 @@ export class CICheckRunListItem extends React.PureComponent<
     )
   }
 
+  private renderViewOnGitHub = () => {
+    return (
+      <div className="view-on-github">
+        <Button onClick={this.onViewOnGitHub}>View on GitHub</Button>
+      </div>
+    )
+  }
+
   private renderLogs = () => {
     const {
       loadingLogs,
@@ -124,8 +140,11 @@ export class CICheckRunListItem extends React.PureComponent<
 
     return (
       <div className="ci-check-list-item-logs">
-        {this.renderActionsLogOutput(output)}
-        {this.renderNonActionsLogOutput(output)}
+        <div className="ci-check-list-item-logs-output">
+          {this.renderActionsLogOutput(output)}
+          {this.renderNonActionsLogOutput(output)}
+        </div>
+        {this.renderViewOnGitHub()}
       </div>
     )
   }

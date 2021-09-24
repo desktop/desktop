@@ -11,7 +11,6 @@ import _ from 'lodash'
 import { Button } from '../lib/button'
 import { CICheckRunListItem } from './ci-check-list-item'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-
 interface ICICheckRunListProps {
   /** The classname for the underlying element. */
   readonly className?: string
@@ -120,6 +119,21 @@ export class CICheckRunList extends React.PureComponent<
     this.setState({ checkRuns, loadingLogs: false })
   }
 
+  private viewCheckRunsOnGitHub = (checkRun: IRefCheck): void => {
+    // Some checks do not provide htmlURLS like ones for the legacy status
+    // object as they do not have a view in the checks screen. In that case we
+    // will just open the PR and they can navigate from there... a little
+    // dissatisfying tho more of an edgecase anyways.
+    const url =
+      checkRun.htmlUrl ??
+      `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
+    if (url === null) {
+      // The repository should have a htmlURL.
+      return
+    }
+    this.props.dispatcher.openInBrowser(url)
+  }
+
   private onCheckRunClick = (checkRun: IRefCheck): void => {
     this.setState({
       checkRunLogsShown:
@@ -154,6 +168,7 @@ export class CICheckRunList extends React.PureComponent<
           loadingLogs={this.state.loadingLogs}
           showLogs={this.state.checkRunLogsShown === c.id.toString()}
           onCheckRunClick={this.onCheckRunClick}
+          onViewOnGitHub={this.viewCheckRunsOnGitHub}
         />
       )
     })
