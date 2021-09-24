@@ -50,7 +50,7 @@ export class WhitespaceHintPopover extends React.Component<
     this.props.onDismissed()
   }
 
-  private onDismissed = (event?: React.MouseEvent<HTMLButtonElement>) => {
+  private onDismissed = (event?: React.MouseEvent | MouseEvent) => {
     event?.preventDefault()
     this.props.onDismissed()
   }
