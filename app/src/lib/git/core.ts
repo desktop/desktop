@@ -159,8 +159,6 @@ export async function git(
 
             console.error('Combined output (object):', combinedOutput)
             console.error('Line (object):', line)
-
-            throw err
           }
         })
       }
