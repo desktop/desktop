@@ -6,14 +6,11 @@ import {
   ICombinedRefCheck,
   IRefCheck,
 } from '../../lib/stores/commit-status-store'
-import { List } from '../lib/list'
 import { Octicon, syncClockwise } from '../octicons'
 import _ from 'lodash'
 import { Button } from '../lib/button'
 import { CICheckRunListItem } from './ci-check-list-item'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-
-const RowHeight = 50
 
 interface ICICheckRunListProps {
   /** The classname for the underlying element. */
@@ -34,6 +31,8 @@ interface ICICheckRunListProps {
 interface ICICheckRunListState {
   readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunsShown: string | null
+  readonly checkRunLogsShown: string | null
+  readonly loadingLogs: boolean
 }
 
 /** The CI Check list. */
@@ -54,6 +53,8 @@ export class CICheckRunList extends React.PureComponent<
     this.state = {
       checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
       checkRunsShown: null,
+      checkRunLogsShown: null,
+      loadingLogs: true,
     }
 
     this.onStatus(combinedCheck)
@@ -116,27 +117,24 @@ export class CICheckRunList extends React.PureComponent<
           )
         : statusChecks
 
-    this.setState({ checkRuns })
+    this.setState({ checkRuns, loadingLogs: false })
+  }
+
+  private onCheckRunClick = (checkRun: IRefCheck): void => {
+    this.setState({
+      checkRunLogsShown:
+        this.state.checkRunLogsShown === checkRun.id.toString()
+          ? null
+          : checkRun.id.toString(),
+    })
   }
 
   private getCommitRef(prNumber: number): string {
     return `refs/pull/${prNumber}/head`
   }
 
-  private renderRow = (checks: ReadonlyArray<IRefCheck>) => {
-    return (row: number): JSX.Element | null => {
-      return <CICheckRunListItem checkRun={checks[row]} />
-    }
-  }
-
   private rerunJobs = () => {
     // TODO: Rerun jobs
-  }
-
-  private getListHeightStyles = (
-    checks: ReadonlyArray<IRefCheck>
-  ): React.CSSProperties => {
-    return { height: checks.length * RowHeight, maxHeight: '100%' }
   }
 
   private onAppHeaderClick = (appName: string) => {
@@ -148,17 +146,19 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private renderList = (checks: ReadonlyArray<IRefCheck>) => {
-    const styles = this.getListHeightStyles(checks)
-    return (
-      <div className="ci-check-list" style={styles}>
-        <List
-          rowCount={checks.length}
-          rowHeight={RowHeight}
-          rowRenderer={this.renderRow(checks)}
-          selectedRows={[]}
+    const list = checks.map((c, i) => {
+      return (
+        <CICheckRunListItem
+          key={i}
+          checkRun={c}
+          loadingLogs={this.state.loadingLogs}
+          showLogs={this.state.checkRunLogsShown === c.id.toString()}
+          onCheckRunClick={this.onCheckRunClick}
         />
-      </div>
-    )
+      )
+    })
+
+    return <>{list}</>
   }
 
   private renderRerunButton = () => {
@@ -214,6 +214,6 @@ export class CICheckRunList extends React.PureComponent<
       )
     })
 
-    return <>{checkLists}</>
+    return <div className="ci-check-run-list">{checkLists}</div>
   }
 }

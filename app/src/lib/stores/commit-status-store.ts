@@ -28,6 +28,7 @@ import JSZip from 'jszip'
  * as statuses the model closely aligns with Check Runs.
  */
 export interface IRefCheck {
+  readonly id: number
   readonly name: string
   readonly description: string
   readonly status: APICheckStatus
@@ -564,12 +565,6 @@ async function parseJobStepLogs(
 
   return job.steps
 }
-/**
- *
-
-apiStatus
-
- */
 
 /**
  * Convert a legacy API commit status to a fake check run
@@ -589,6 +584,7 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   }
 
   return {
+    id: apiStatus.id,
     name: apiStatus.context,
     description: getCheckRunShortDescription(state, conclusion),
     status: state,
@@ -671,12 +667,18 @@ function getCheckRunShortDescription(
  * Attempts to get the duration of a check run in seconds.
  * If it fails, it returns 0
  */
-function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
+export function getCheckDurationInSeconds(
+  checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
+): number {
   try {
     // This could fail if the dates cannot be parsed.
     const completedAt = new Date(checkRun.completed_at).getTime()
     const startedAt = new Date(checkRun.started_at).getTime()
-    return (completedAt - startedAt) / 1000
+    const duration = (completedAt - startedAt) / 1000
+
+    if (!isNaN(duration)) {
+      return duration
+    }
   } catch (e) {}
 
   return 0
@@ -687,6 +689,7 @@ function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
  */
 function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
+    id: checkRun.id,
     name: checkRun.name,
     description: getCheckRunShortDescription(
       checkRun.status,
