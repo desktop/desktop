@@ -351,6 +351,8 @@ export interface IAPIRefCheckRunApp {
 // NB. Only partially mapped
 export interface IAPIRefCheckRunOutput {
   readonly title: string | null
+  readonly summary: string
+  readonly text: string
 }
 
 export interface IAPIRefCheckRunCheckSuite {
@@ -401,7 +403,7 @@ export interface IAPIWorkflowJobStep {
   readonly conclusion: APICheckConclusion | null
   readonly completed_at: string
   readonly started_at: string
-  log: string
+  readonly log: string
 }
 
 /** Protected branch information returned by the GitHub API */

@@ -10,9 +10,13 @@ import {
   IAPIRefCheckRun,
   APICheckStatus,
   APICheckConclusion,
+  IAPIWorkflowRun,
+  IAPIWorkflowJobStep,
+  IAPIWorkflowJob,
 } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import { setAlmostImmediate } from '../set-almost-immediate'
+import JSZip from 'jszip'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -29,6 +33,37 @@ export interface IRefCheck {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly appName: string
+  readonly checkSuiteId: number | null // API status don't have check suite id's
+  readonly output: IRefCheckOutput
+}
+
+/**
+ * There are two types of check run outputs.
+ *
+ * 1. From GitHub Actions, which comes in steps with individual log texts,
+ *    statuses, and duration info.
+ * 2. From any other check run app, which comes with a generic string of
+ *    whatever the check run app provides.
+ */
+export type IRefCheckOutput =
+  | {
+      readonly title: string
+      readonly summary?: string
+      readonly type: RefCheckOutputType.Actions
+      readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
+    }
+  | {
+      readonly title: string
+      readonly summary?: string
+      readonly type: RefCheckOutputType.Default
+      // This text is whatever a check run app decides to place in it.
+      // It may include html.
+      readonly text: string
+    }
+
+export enum RefCheckOutputType {
+  Actions = 'Actions',
+  Default = 'Default',
 }
 
 /**
@@ -380,7 +415,161 @@ export class CommitStatusStore {
       }
     })
   }
+
+  /**
+   * Retrieve GitHub Actions workflows, jobs, and logs for the branch and apply
+   * logs to matching check run output.
+   */
+  public async getLatestPRWorkflowRunsLogsForCheckrun(
+    repository: GitHubRepository,
+    ref: string,
+    branchName: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    const key = getCacheKeyForRepository(repository, ref)
+    const subscription = this.subscriptions.get(key)
+    if (subscription === undefined) {
+      return checkRuns
+    }
+
+    const { endpoint, owner, name } = subscription
+    const account = this.accounts.find(a => a.endpoint === endpoint)
+    if (account === undefined) {
+      return checkRuns
+    }
+
+    const api = API.fromAccount(account)
+    const latestWorkflowRuns = await this.getLatestPRWorkflowRuns(
+      api,
+      owner,
+      name,
+      branchName
+    )
+
+    if (latestWorkflowRuns.length === 0) {
+      return checkRuns
+    }
+
+    const logHash = new Map<string, JSZip>()
+    const mappedCheckRuns = new Array<IRefCheck>()
+    for (let i = 0; i < checkRuns.length; i++) {
+      const cr = checkRuns[i]
+      const matchingWR = latestWorkflowRuns.find(
+        wr => wr.check_suite_id === cr.checkSuiteId
+      )
+      if (matchingWR === undefined) {
+        mappedCheckRuns.push(cr)
+        continue
+      }
+
+      const workFlowRunJobs = await api.fetchWorkflowRunJobs(matchingWR)
+      const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
+      if (matchingJob === undefined) {
+        mappedCheckRuns.push(cr)
+        continue
+      }
+
+      // One workflow can have the logs for multiple check runs.. no need to
+      // keep retrieving it. So we are hashing it.
+      const logZip =
+        logHash.get(matchingWR.name) ??
+        (await api.fetchWorkflowRunJobLogs(matchingWR.logs_url))
+      if (logZip === null) {
+        mappedCheckRuns.push(cr)
+        continue
+      }
+
+      logHash.set(matchingWR.name, logZip)
+
+      mappedCheckRuns.push({
+        ...cr,
+        output: {
+          type: RefCheckOutputType.Actions,
+          title: name,
+          summary: cr.description,
+          steps: await parseJobStepLogs(logZip, matchingJob),
+        },
+      })
+    }
+
+    return mappedCheckRuns
+  }
+
+  // Gets only the latest PR workflow runs hashed by name
+  private async getLatestPRWorkflowRuns(
+    api: API,
+    owner: string,
+    name: string,
+    branchName: string
+  ): Promise<ReadonlyArray<IAPIWorkflowRun>> {
+    const wrMap = new Map<string, IAPIWorkflowRun>()
+    const allBranchWorkflowRuns = await api.fetchPRWorkflowRuns(
+      owner,
+      name,
+      branchName
+    )
+
+    if (allBranchWorkflowRuns === null) {
+      return []
+    }
+
+    // When retrieving Actions Workflow runs it returns all present and past
+    // workflow runs for the given branch name. For each workflow name, we only
+    // care about showing the latest run.
+    allBranchWorkflowRuns.workflow_runs.forEach(wr => {
+      const storedWR = wrMap.get(wr.name)
+      if (storedWR === undefined) {
+        wrMap.set(wr.name, wr)
+        return
+      }
+
+      const storedWRDate = new Date(storedWR.created_at)
+      const givenWRDate = new Date(wr.created_at)
+      if (storedWRDate.getTime() < givenWRDate.getTime()) {
+        wrMap.set(wr.name, wr)
+      }
+    })
+
+    return Array.from(wrMap.values())
+  }
 }
+
+async function parseJobStepLogs(
+  logZip: JSZip,
+  job: IAPIWorkflowJob
+): Promise<ReadonlyArray<IAPIWorkflowJobStep>> {
+  try {
+    const jobFolder = logZip.folder(job.name)
+    if (jobFolder === null) {
+      return job.steps
+    }
+
+    const stepsWLogs = new Array<IAPIWorkflowJobStep>()
+    for (let j = 0; j < job.steps.length; j++) {
+      const step = job.steps[j]
+      const stepFileName = `${step.number}_${step.name}.txt`
+      const stepLogFile = jobFolder.file(stepFileName)
+      if (stepLogFile === null) {
+        stepsWLogs.push(step)
+        continue
+      }
+
+      const log = await stepLogFile.async('text')
+      stepsWLogs.push({ ...step, log })
+    }
+    return stepsWLogs
+  } catch (e) {
+    log.warn('Could not parse logs for: ' + job.name)
+  }
+
+  return job.steps
+}
+/**
+ *
+
+apiStatus
+
+ */
 
 /**
  * Convert a legacy API commit status to a fake check run
@@ -405,6 +594,12 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
     status: state,
     conclusion,
     appName: '',
+    checkSuiteId: null,
+    output: {
+      type: RefCheckOutputType.Default,
+      title: apiStatus.context,
+      text: '',
+    },
   }
 }
 
@@ -501,6 +696,13 @@ function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
     status: checkRun.status,
     conclusion: checkRun.conclusion,
     appName: checkRun.app.name,
+    checkSuiteId: checkRun.check_suite.id,
+    output: {
+      type: RefCheckOutputType.Default,
+      title: checkRun.output.title ?? '',
+      summary: checkRun.output.summary,
+      text: checkRun.output.text,
+    },
   }
 }
 
