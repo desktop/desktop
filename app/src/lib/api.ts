@@ -376,6 +376,33 @@ export interface IAPIWorkflowRun {
   readonly check_suite_id: number
 }
 
+interface IAPIWorkflowJobs {
+  readonly total_count: number
+  readonly jobs: IAPIWorkflowJob[]
+}
+
+// NB. Only partially mapped
+export interface IAPIWorkflowJob {
+  readonly id: number
+  readonly name: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
+  readonly html_url: string
+}
+
+export interface IAPIWorkflowJobStep {
+  readonly name: string
+  readonly number: number
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  log: string
+}
+
 /** Protected branch information returned by the GitHub API */
 export interface IAPIPushControl {
   /**
@@ -994,6 +1021,28 @@ export class API {
     } catch (err) {
       log.debug(
         `Failed fetching workflow runs for  ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * List workflow run jobs for a given workflow run
+   */
+  public async fetchPRWorkflowRunJobs(
+    workflowRun: IAPIWorkflowRun
+  ): Promise<IAPIWorkflowJobs | null> {
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', workflowRun.jobs_url, {
+      customHeaders,
+    })
+    try {
+      return await parsedResponse<IAPIWorkflowJobs>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow jobs for workflow run named: ${workflowRun.name}`
       )
     }
     return null
