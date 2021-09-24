@@ -54,27 +54,6 @@ export class CICheckRunList extends React.PureComponent<
     }
   }
 
-  private getCommitRef(prNumber: number): string {
-    return `refs/pull/${prNumber}/head`
-  }
-
-  private subscribe() {
-    this.unsubscribe()
-
-    this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
-      this.props.repository,
-      this.getCommitRef(this.props.prNumber),
-      this.onStatus
-    )
-  }
-
-  private unsubscribe() {
-    if (this.statusSubscription) {
-      this.statusSubscription.dispose()
-      this.statusSubscription = null
-    }
-  }
-
   public componentDidUpdate(prevProps: ICICheckRunListProps) {
     // Re-subscribe if we're being reused to show a different status.
     if (
@@ -100,6 +79,27 @@ export class CICheckRunList extends React.PureComponent<
 
   public componentWillUnmount() {
     this.unsubscribe()
+  }
+
+  private getCommitRef(prNumber: number): string {
+    return `refs/pull/${prNumber}/head`
+  }
+
+  private subscribe() {
+    this.unsubscribe()
+
+    this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber),
+      this.onStatus
+    )
+  }
+
+  private unsubscribe() {
+    if (this.statusSubscription) {
+      this.statusSubscription.dispose()
+      this.statusSubscription = null
+    }
   }
 
   private onStatus = (check: ICombinedRefCheck | null) => {
