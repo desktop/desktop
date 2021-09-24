@@ -5,32 +5,33 @@ enum ProgrammingLanguage {
   Java,
 }
 
-function describeProgrammingLanguage(language: ProgrammingLanguage): string {
+function getProgrammingLanguageName(language: ProgrammingLanguage): string {
   switch (language) {
     case ProgrammingLanguage.JavaScript:
-      return `Yeah.. It is pretty good.`
+      return `JavaScript`
     case ProgrammingLanguage.TypeScript:
-      return 'Better than javascript.'
+      return 'TypeScript'
     case ProgrammingLanguage.HTML:
-      return 'Are you sure that is a programming language? - The real changes'
+      return 'HyperText Markup Language'
+    case ProgrammingLanguage.CSS:
+      return 'Cascading Style Sheets'
     case ProgrammingLanguage.Java:
       return 'Java java!'
     default:
-      return `Don't know  what you are talking about..`
+      return `Don't know what you are talking about..`
   }
 }
 
-
-describe('universe-demo-describeProgrammingLanguage', () => {
-  it('describes  javascript', () => {
-    const result = describeProgrammingLanguage(ProgrammingLanguage.JavaScript)
-    expect(result).toBe('Yeah..  It is pretty good.')
+describe('universe-demo-getProgrammingLanguageName', () => {
+  it('gets javascript name', () => {
+    const result = getProgrammingLanguageName(ProgrammingLanguage.JavaScript)
+    expect(result).toBe('JavaScript')
   })
 
-    it('cannot describe java', () => {
-    const result = describeProgrammingLanguage(ProgrammingLanguage.Java)
-    expect(result).toBe(
-      `Don't know what you are talking  about.. Another change`
-    )
+  it('gets java name', () => {
+    const result = getProgrammingLanguageName(ProgrammingLanguage.Java)
+    expect(result).toBe(`Java java!`)
   })
 })
+
+
