@@ -1462,6 +1462,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       this.whitespaceHintMountId = null
     }
 
+    // Note that unmountComponentAtNode may cause a reentrant call to this
+    // method by means of the Popover onDismissed callback. This is why we can't
+    // trust that whitespaceHintContainer remains non-null after this.
     if (this.whitespaceHintContainer !== null) {
       ReactDOM.unmountComponentAtNode(this.whitespaceHintContainer)
     }
