@@ -73,12 +73,12 @@ export class CICheckRunListItem extends React.PureComponent<
       return null
     }
 
-    let logOutput: JSX.Element[] = []
+    const logOutput: JSX.Element[] = []
 
     const isNoProvidedOutput = output.text === null || output.text.trim() === ''
 
     if (this.props.loadingLogs && isNoProvidedOutput) {
-      return <p>Loading Logs... please wait.. need empty graphic...</p>
+      return this.renderLoadingLogs()
     }
 
     logOutput.push(
@@ -101,7 +101,11 @@ export class CICheckRunListItem extends React.PureComponent<
 
   private renderLoadingLogs = () => {
     // TODO: Need empty graphic... like for loading PR's
-    return <p>Loading Logs... please wait.. </p>
+    return (
+      <div className="no-logs-to-display">
+        Loading Logs... please wait.. need empty graphic...
+      </div>
+    )
   }
 
   private renderLogs = () => {
