@@ -24,6 +24,9 @@ interface ICICheckRunListProps {
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
 
+  /** The current branch name. */
+  readonly branchName: string
+
   /** The pull request's number. */
   readonly prNumber: number
 }
@@ -52,6 +55,8 @@ export class CICheckRunList extends React.PureComponent<
       checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
       checkRunsShown: null,
     }
+
+    this.onStatus(combinedCheck)
   }
 
   public componentDidUpdate(prevProps: ICICheckRunListProps) {
@@ -98,8 +103,20 @@ export class CICheckRunList extends React.PureComponent<
     }
   }
 
-  private onStatus = (check: ICombinedRefCheck | null) => {
-    this.setState({ checkRuns: check !== null ? check.checks : [] })
+  private onStatus = async (check: ICombinedRefCheck | null) => {
+    const statusChecks = check !== null ? check.checks : []
+
+    const checkRuns =
+      statusChecks.length > 0
+        ? await this.props.dispatcher.getActionsWorkflowRunLogs(
+            this.props.repository,
+            this.getCommitRef(this.props.prNumber),
+            this.props.branchName,
+            statusChecks
+          )
+        : statusChecks
+
+    this.setState({ checkRuns })
   }
 
   private getCommitRef(prNumber: number): string {
