@@ -361,6 +361,21 @@ export interface IAPIRefCheckRuns {
   readonly check_runs: IAPIRefCheckRun[]
 }
 
+interface IAPIWorkflowRuns {
+  readonly total_count: number
+  readonly workflow_runs: IAPIWorkflowRun[]
+}
+// NB. Only partially mapped
+export interface IAPIWorkflowRun {
+  readonly cancel_url: string
+  readonly created_at: string
+  readonly jobs_url: string
+  readonly logs_url: string
+  readonly name: string
+  readonly rerun_url: string
+  readonly check_suite_id: number
+}
+
 /** Protected branch information returned by the GitHub API */
 export interface IAPIPushControl {
   /**
@@ -958,6 +973,30 @@ export class API {
       )
       return null
     }
+  }
+
+  /**
+   * List workflow runs for a repository filtered by branch and event type of
+   * pull_request
+   */
+  public async fetchPRWorkflowRuns(
+    owner: string,
+    name: string,
+    branchName: string
+  ): Promise<IAPIWorkflowRuns | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${branchName}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      return await parsedResponse<IAPIWorkflowRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for  ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
   }
 
   /**
