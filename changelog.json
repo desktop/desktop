@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.4-test3": ["[Improved] Add some logging around crash"],
     "2.9.4-beta3": [
       "[Fixed] Refresh diffs when application receives focus - #12962",
       "[Fixed] Tokens are not considered invalid when accessing GitHub Enterprise from outside of the company's VPN - #12943",
