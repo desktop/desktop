@@ -1,0 +1,26 @@
+.ci-check-list-popover {
+  .popover-component {
+    position: relative;
+    padding: 0px;
+    width: 375px;
+    top: 45px;
+    margin-left: -272px;
+  }
+}
+
+.ci-check-list {
+  height: 300px;
+  overflow: hidden;
+}
+
+.ci-check-app-header {
+  display: flex;
+  align-items: center;
+  border-bottom: var(--base-border);
+  padding: var(--spacing-half) var(--spacing);
+
+  .ci-check-app-name {
+    font-weight: var(--font-weight-semibold);
+    flex: 1;
+  }
+}

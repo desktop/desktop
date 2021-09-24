@@ -147,3 +147,8 @@ export function enableSSHAskPass(): boolean {
 export function enableSetAlmostImmediate(): boolean {
   return false
 }
+
+/** Should we show ci check runs? */
+export function enableCICheckRuns(): boolean {
+  return enableDevelopmentFeatures()
+}

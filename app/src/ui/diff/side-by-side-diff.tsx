@@ -239,6 +239,14 @@ export class SideBySideDiff extends React.Component<
         diff: this.props.diff,
       })
     }
+
+    // Scroll to top if we switched to a new file
+    if (
+      this.virtualListRef.current !== null &&
+      this.props.file.id !== prevProps.file.id
+    ) {
+      this.virtualListRef.current.scrollToPosition(0)
+    }
   }
 
   private canExpandDiff() {

@@ -638,6 +638,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
+    this.initDiffSyntaxMode()
   }
 
   private onContextMenu = (instance: CodeMirror.Editor, event: Event) => {
@@ -1485,6 +1486,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
+    if (!isSameFileContents(this.props.fileContents, prevProps.fileContents)) {
+      this.initDiffSyntaxMode()
+    }
+
     if (canSelect(this.props.file)) {
       if (
         !canSelect(prevProps.file) ||
@@ -1509,6 +1514,11 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     if (snapshot !== null) {
       this.codeMirror.scrollTo(undefined, snapshot.top)
     }
+
+    // Scroll to top if we switched to a new file
+    if (this.props.file.id !== prevProps.file.id) {
+      this.codeMirror.scrollTo(undefined, 0)
+    }
   }
 
   public getSnapshotBeforeUpdate(
@@ -1530,8 +1540,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   public componentDidMount() {
-    this.initDiffSyntaxMode()
-
     // Listen for the custom event find-text (see app.tsx)
     // and trigger the search plugin if we see it.
     document.addEventListener('find-text', this.onFindText)
@@ -1565,4 +1573,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       />
     )
   }
+}
+
+function isSameFileContents(x: IFileContents | null, y: IFileContents | null) {
+  return x?.newContents === y?.newContents && x?.oldContents === y?.oldContents
 }
