@@ -29,7 +29,7 @@ interface ICICheckRunListProps {
 }
 
 interface ICICheckRunListState {
-  readonly check: ICombinedRefCheck | null
+  readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunsShown: string | null
 }
 
@@ -42,11 +42,14 @@ export class CICheckRunList extends React.PureComponent<
 
   public constructor(props: ICICheckRunListProps) {
     super(props)
+
+    const combinedCheck = props.dispatcher.tryGetCommitStatus(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber)
+    )
+
     this.state = {
-      check: props.dispatcher.tryGetCommitStatus(
-        this.props.repository,
-        this.getCommitRef(this.props.prNumber)
-      ),
+      checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
       checkRunsShown: null,
     }
   }
@@ -79,11 +82,13 @@ export class CICheckRunList extends React.PureComponent<
       this.getCommitRef(this.props.prNumber) !==
         this.getCommitRef(prevProps.prNumber)
     ) {
+      const combinedCheck = this.props.dispatcher.tryGetCommitStatus(
+        this.props.repository,
+        this.getCommitRef(this.props.prNumber)
+      )
+
       this.setState({
-        check: this.props.dispatcher.tryGetCommitStatus(
-          this.props.repository,
-          this.getCommitRef(this.props.prNumber)
-        ),
+        checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
       })
       this.subscribe()
     }
@@ -98,7 +103,7 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private onStatus = (check: ICombinedRefCheck | null) => {
-    this.setState({ check })
+    this.setState({ checkRuns: check !== null ? check.checks : [] })
   }
 
   private renderRow = (checks: ReadonlyArray<IRefCheck>) => {
@@ -150,16 +155,16 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public render() {
-    const { check, checkRunsShown } = this.state
+    const { checkRuns, checkRunsShown } = this.state
 
-    if (check === null || check.checks.length === 0) {
+    if (checkRuns.length === 0) {
       // If this is actually occurred, it will crash the app because there is
       // nothing for focus trap to focus on.
       // TODO: close popup
       return null
     }
 
-    const checksByApp = _.groupBy(check.checks, 'appName')
+    const checksByApp = _.groupBy(checkRuns, 'appName')
     const appNames = Object.keys(checksByApp).sort(
       (a, b) => b.length - a.length
     )
