@@ -150,7 +150,18 @@ export async function git(
     const combineOutput = (readable: Readable | null) => {
       if (readable) {
         readable.pipe(split2()).on('data', (line: string) => {
-          combinedOutput += line + '\n'
+          try {
+            combinedOutput += line + '\n'
+          } catch (err) {
+            log.error(err)
+            log.error('Combined output:' + JSON.stringify(combinedOutput))
+            log.error('Line:' + JSON.stringify(line))
+
+            console.error('Combined output (object):', combinedOutput)
+            console.error('Line (object):', line)
+
+            throw err
+          }
         })
       }
     }
