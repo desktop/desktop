@@ -599,7 +599,13 @@ export class SideBySideDiffRow extends React.Component<
 
   private onClickHunk = () => {
     if (this.props.hideWhitespaceInDiff) {
-      this.setState({ showWhitespaceHint: DiffColumn.Before })
+      const { row } = this.props
+      // Prefer left hand side popovers when clicking hunk except for when
+      // the left hand side doesn't have a gutter
+      const column =
+        row.type === DiffRowType.Added ? DiffColumn.After : DiffColumn.Before
+
+      this.setState({ showWhitespaceHint: column })
       return
     }
 
