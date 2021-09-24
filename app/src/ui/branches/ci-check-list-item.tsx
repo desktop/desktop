@@ -41,6 +41,20 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onViewOnGitHub(this.props.checkRun)
   }
 
+  private isNoAdditionalInfoToDisplay(output: IRefCheckOutput): boolean {
+    return (
+      this.isNoOutputText(output) &&
+      (output.summary === undefined || output.summary.trim() === '')
+    )
+  }
+
+  private isNoOutputText(output: IRefCheckOutput): boolean {
+    return (
+      output.type === RefCheckOutputType.Default &&
+      (output.text === null || output.text.trim() === '')
+    )
+  }
+
   private renderActionsLogOutput = (output: IRefCheckOutput) => {
     if (output.type === RefCheckOutputType.Default) {
       return null
@@ -81,22 +95,26 @@ export class CICheckRunListItem extends React.PureComponent<
       return null
     }
 
-    const logOutput: JSX.Element[] = []
+    return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
+  }
 
-    const isNoProvidedOutput = output.text === null || output.text.trim() === ''
+  private renderMetaOutput = (
+    output: IRefCheckOutput,
+    checkRunName: string
+  ) => {
+    const { title, summary } = output
 
-    if (this.props.loadingLogs && isNoProvidedOutput) {
-      return this.renderLoadingLogs()
-    }
+    const displayTitle =
+      title !== '' && // don't diplay something empty or redundant
+      title.trim().toLocaleLowerCase() !==
+        checkRunName.trim().toLocaleLowerCase()
 
-    logOutput.push(
-      isNoProvidedOutput ? (
-        this.renderEmptyLogOutput()
-      ) : (
-        <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
-      )
+    return (
+      <div>
+        {displayTitle ? <div>{title}</div> : null}
+        {summary !== '' ? <pre>{summary}</pre> : null}
+      </div>
     )
-    return logOutput
   }
 
   private renderEmptyLogOutput = () => {
@@ -127,20 +145,20 @@ export class CICheckRunListItem extends React.PureComponent<
   private renderLogs = () => {
     const {
       loadingLogs,
-      checkRun: { output },
+      checkRun: { output, name },
     } = this.props
 
-    const isNoProvidedOutput =
-      output.type === RefCheckOutputType.Default &&
-      (output.text === null || output.text.trim() === '')
-
-    if (loadingLogs && isNoProvidedOutput) {
+    if (loadingLogs && this.isNoOutputText(output)) {
       return this.renderLoadingLogs()
     }
 
     return (
       <div className="ci-check-list-item-logs">
         <div className="ci-check-list-item-logs-output">
+          {this.isNoAdditionalInfoToDisplay(output)
+            ? this.renderEmptyLogOutput()
+            : null}
+          {this.renderMetaOutput(output, name)}
           {this.renderActionsLogOutput(output)}
           {this.renderNonActionsLogOutput(output)}
         </div>

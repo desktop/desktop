@@ -488,8 +488,8 @@ export class CommitStatusStore {
         htmlUrl: matchingJob.html_url,
         output: {
           type: RefCheckOutputType.Actions,
-          title: name,
-          summary: cr.description,
+          title: cr.output.title,
+          summary: cr.output.summary,
           steps: await parseJobStepLogs(logZip, matchingJob),
         },
       })
