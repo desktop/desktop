@@ -81,10 +81,6 @@ export class CICheckRunList extends React.PureComponent<
     this.unsubscribe()
   }
 
-  private getCommitRef(prNumber: number): string {
-    return `refs/pull/${prNumber}/head`
-  }
-
   private subscribe() {
     this.unsubscribe()
 
@@ -104,6 +100,10 @@ export class CICheckRunList extends React.PureComponent<
 
   private onStatus = (check: ICombinedRefCheck | null) => {
     this.setState({ checkRuns: check !== null ? check.checks : [] })
+  }
+
+  private getCommitRef(prNumber: number): string {
+    return `refs/pull/${prNumber}/head`
   }
 
   private renderRow = (checks: ReadonlyArray<IRefCheck>) => {
