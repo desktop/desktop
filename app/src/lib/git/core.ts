@@ -241,14 +241,12 @@ export async function git(
 
     log.error(errorMessage.join('\n'))
 
-  if (gitError && gitError === DugiteError.PushWithFileSizeExceedingLimit) {
+  if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
     const result = getFileFromExceedsError(errorMessage.join())
-    if (result) {
-      const files = result.join('\n\t\t')
+    const files = result.join('\n\t\t')
 
-      if (files && files !== '') {
-        gitResult.gitErrorDescription += '\n\nFiles:\n\t\t' + files
-      }
+    if (files !== '') {
+      gitResult.gitErrorDescription += '\n\nFiles:\n\t\t' + files
     }
   }
 
