@@ -50,17 +50,17 @@ export interface IRefCheck {
 export type IRefCheckOutput =
   | {
       readonly title: string
-      readonly summary?: string
+      readonly summary?: string | null
       readonly type: RefCheckOutputType.Actions
       readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
     }
   | {
       readonly title: string
-      readonly summary?: string
+      readonly summary?: string | null
       readonly type: RefCheckOutputType.Default
       // This text is whatever a check run app decides to place in it.
       // It may include html.
-      readonly text: string
+      readonly text: string | null
     }
 
 export enum RefCheckOutputType {

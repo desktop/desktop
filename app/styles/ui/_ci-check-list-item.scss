@@ -33,11 +33,11 @@
 }
 
 .ci-check-list-item-logs {
-  padding: var(--spacing);
   border-bottom: var(--base-border);
   box-shadow: inset 0px 0px 3px -1px grey;
 
   .ci-check-list-item-logs-output {
+    padding: var(--spacing);
     font-size: var(--font-size-sm);
     max-height: 200px;
     overflow: auto;
@@ -64,6 +64,8 @@
   }
 
   .view-on-github {
+    padding: var(--spacing);
+
     .button-component {
       width: 100%;
     }

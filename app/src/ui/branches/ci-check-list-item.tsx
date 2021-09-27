@@ -44,7 +44,9 @@ export class CICheckRunListItem extends React.PureComponent<
   private isNoAdditionalInfoToDisplay(output: IRefCheckOutput): boolean {
     return (
       this.isNoOutputText(output) &&
-      (output.summary === undefined || output.summary.trim() === '')
+      (output.summary === undefined ||
+        output.summary === null ||
+        output.summary.trim() === '')
     )
   }
 
@@ -91,7 +93,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderNonActionsLogOutput = (output: IRefCheckOutput) => {
-    if (output.type === RefCheckOutputType.Actions) {
+    if (output.type === RefCheckOutputType.Actions || output.text === null) {
       return null
     }
 

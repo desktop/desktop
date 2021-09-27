@@ -352,8 +352,8 @@ export interface IAPIRefCheckRunApp {
 // NB. Only partially mapped
 export interface IAPIRefCheckRunOutput {
   readonly title: string | null
-  readonly summary: string
-  readonly text: string
+  readonly summary: string | null
+  readonly text: string | null
 }
 
 export interface IAPIRefCheckRunCheckSuite {
