@@ -18,6 +18,7 @@ import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
 import { Readable } from 'stream'
 import split2 from 'split2'
+import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
@@ -239,6 +240,15 @@ export async function git(
     }
 
     log.error(errorMessage.join('\n'))
+
+    if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
+      const result = getFileFromExceedsError(errorMessage.join())
+      const files = result.join('\n')
+
+      if (files !== '') {
+        gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+      }
+    }
 
     throw new GitError(gitResult, args)
   })
