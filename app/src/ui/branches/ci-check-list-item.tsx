@@ -97,6 +97,7 @@ export class CICheckRunListItem extends React.PureComponent<
       return null
     }
 
+    // TODO: Html needs santized. Later PR
     return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
   }
 
@@ -106,15 +107,20 @@ export class CICheckRunListItem extends React.PureComponent<
   ) => {
     const { title, summary } = output
 
+    // Don't display something empty or redundant
     const displayTitle =
-      title !== '' && // don't diplay something empty or redundant
+      title !== null &&
+      title.trim() !== '' &&
       title.trim().toLocaleLowerCase() !==
         checkRunName.trim().toLocaleLowerCase()
+
+    const displaySummary =
+      summary !== null && summary !== undefined && summary.trim() !== ''
 
     return (
       <div>
         {displayTitle ? <div>{title}</div> : null}
-        {summary !== '' ? <pre>{summary}</pre> : null}
+        {displaySummary ? <pre>{summary}</pre> : null}
       </div>
     )
   }

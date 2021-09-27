@@ -49,13 +49,13 @@ export interface IRefCheck {
  */
 export type IRefCheckOutput =
   | {
-      readonly title: string
+      readonly title: string | null
       readonly summary?: string | null
       readonly type: RefCheckOutputType.Actions
       readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
     }
   | {
-      readonly title: string
+      readonly title: string | null
       readonly summary?: string | null
       readonly type: RefCheckOutputType.Default
       // This text is whatever a check run app decides to place in it.
@@ -487,9 +487,8 @@ export class CommitStatusStore {
         ...cr,
         htmlUrl: matchingJob.html_url,
         output: {
+          ...cr.output,
           type: RefCheckOutputType.Actions,
-          title: cr.output.title,
-          summary: cr.output.summary,
           steps: await parseJobStepLogs(logZip, matchingJob),
         },
       })
@@ -595,8 +594,8 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
     checkSuiteId: null,
     output: {
       type: RefCheckOutputType.Default,
-      title: apiStatus.context,
-      text: '',
+      title: null,
+      text: null,
     },
     htmlUrl: null,
   }
@@ -704,10 +703,8 @@ function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
     appName: checkRun.app.name,
     checkSuiteId: checkRun.check_suite.id,
     output: {
+      ...checkRun.output,
       type: RefCheckOutputType.Default,
-      title: checkRun.output.title ?? '',
-      summary: checkRun.output.summary,
-      text: checkRun.output.text,
     },
     htmlUrl: checkRun.html_url,
   }
