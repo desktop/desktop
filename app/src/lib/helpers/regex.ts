@@ -52,7 +52,6 @@ export function escapeRegExp(expression: string) {
   return expression.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&')
 }
 
-
 /*
  * Looks for the phrases "remote: error File " and " is (file size I.E. 106.5 MB); this exceeds GitHub's file size limit of 100.00 MB"
  * inside of a string containing errors and return an array of all the filenames and their sizes located between these two strings.
