@@ -241,16 +241,17 @@ export async function git(
 
     log.error(errorMessage.join('\n'))
 
-  if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
-    const result = getFileFromExceedsError(errorMessage.join())
-    const files = result.join('\n')
+    if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
+      const result = getFileFromExceedsError(errorMessage.join())
+      const files = result.join('\n')
 
-    if (files !== '') {
-      gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+      if (files !== '') {
+        gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+      }
     }
-  }
 
-  throw new GitError(gitResult, args)
+    throw new GitError(gitResult, args)
+  })
 }
 
 /**
