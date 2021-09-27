@@ -233,10 +233,10 @@ export async function git(
 
   if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
     const result = getFileFromExceedsError(errorMessage.join())
-    const files = result.join('\n\t\t')
+    const files = result.join('\n')
 
     if (files !== '') {
-      gitResult.gitErrorDescription += '\n\nFiles:\n\t\t' + files
+      gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
     }
   }
 

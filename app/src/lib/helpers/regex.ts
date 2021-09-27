@@ -54,12 +54,12 @@ export function escapeRegExp(expression: string) {
 
 /*
  * Looks for the phrases "remote: error File " and " is (file size I.E. 106.5 MB); this exceeds GitHub's file size limit of 100.00 MB"
- * inside of a string containing errors and return an array of all the filenames located between these two strings.
+ * inside of a string containing errors and return an array of all the filenames and their sizes located between these two strings.
  *
- * example return [ "LargeFile.exe", "AlsoTooLargeOfAFile.txt" ]
+ * example return [ "LargeFile.exe (150.00 MB)", "AlsoTooLargeOfAFile.txt (1.00 GB)" ]
  */
 export function getFileFromExceedsError(error: string): string[] {
-  const endRegex = /(\sis\s\d+.\d+ [a-zA-Z]+;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm
+  const endRegex = /(;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm
   const beginRegex = /(^remote:\serror:\sFile\s)/gm
   const beginMatches = Array.from(error.matchAll(beginRegex))
   const endMatches = Array.from(error.matchAll(endRegex))
@@ -82,7 +82,10 @@ export function getFileFromExceedsError(error: string): string[] {
 
     const from = beginMatch.index + beginMatch[0].length
     const to = endMatch.index
-    files.push(error.slice(from, to))
+    let file = error.slice(from, to)
+    file = file.replace('is ', '(')
+    file += ')'
+    files.push(file)
   }
 
   return files
