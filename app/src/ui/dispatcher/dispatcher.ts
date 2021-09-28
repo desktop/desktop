@@ -2930,7 +2930,7 @@ export class Dispatcher {
         if (this.appStore.getState().cherryPickRestoreSource && sourceBranch) {
           await this.checkoutBranch(repository, sourceBranch)
         }
-        await this.changeCommitSelection(repository, [commits[0].sha])
+        await this.changeCommitSelection(repository, commits.map(commit => commit.sha))
         await this.completeMultiCommitOperation(repository, commits.length)
         break
       case CherryPickResult.ConflictsEncountered:
