@@ -91,11 +91,12 @@ export class CreateTag extends React.Component<
       return null
     }
 
+    const title = __DARWIN__ ? 'Previous Tags' : 'Previous tags'
     const lastThreeTags = previousTags.slice(-3)
 
     return (
       <>
-        <p>Previous Tags</p>
+        <p>{title}</p>
         {lastThreeTags.length === 0 ? (
           <>
             <p>{`No matches found for '${tagName}'`}</p>
