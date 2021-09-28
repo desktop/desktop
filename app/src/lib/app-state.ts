@@ -289,6 +289,13 @@ export interface IAppState {
    * order for external contributions in latest release.
    */
   readonly lastThankYou: ILastThankYou | undefined
+
+  /**
+   * Indicate if, after a successful cherry-pick, desktop should restore
+   * source branch and commit selection instead of staying on the target 
+   * branch.
+   */
+  readonly cherryPickRestoreSource: boolean
 }
 
 export enum FoldoutType {

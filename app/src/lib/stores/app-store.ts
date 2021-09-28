@@ -347,6 +347,8 @@ const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
 const dragAndDropIntroTypesShownKey = 'drag-and-drop-intro-types-shown'
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const customThemeKey = 'custom-theme-key'
+const cherryPickRestoreSourceKey = 'cherry-pick-restore-source-branch'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -448,6 +450,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private repositoryIndicatorsEnabled: boolean
 
+  private cherryPickRestoreSource: boolean = false
+
   /** Which step the user needs to complete next in the onboarding tutorial */
   private currentOnboardingTutorialStep = TutorialStep.NotApplicable
   private readonly tutorialAssessor: OnboardingTutorialAssessor
@@ -508,6 +512,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
     )
+
+    if (getBoolean(cherryPickRestoreSourceKey) === undefined) {
+      setBoolean(cherryPickRestoreSourceKey, false)
+    }
+    this.cherryPickRestoreSource =
+      getBoolean(cherryPickRestoreSourceKey) ?? true
 
     // We're considering flipping the default value and have new users
     // start off with repository indicators disabled. As such we'll start
@@ -853,6 +863,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       dragAndDropIntroTypesShown: this.dragAndDropIntroTypesShown,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
+      cherryPickRestoreSource: this.cherryPickRestoreSource
     }
   }
 
@@ -3096,6 +3107,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
     setBoolean(UseWindowsOpenSSHKey, useWindowsOpenSSH)
     this.useWindowsOpenSSH = useWindowsOpenSSH
+
+    this.emitUpdate()
+  }
+
+  public _setCherryPickRestoreSourceSetting(cherryPickRestoreSource: boolean) {
+    setBoolean(cherryPickRestoreSourceKey, cherryPickRestoreSource)
+    this.cherryPickRestoreSource = cherryPickRestoreSource
 
     this.emitUpdate()
   }

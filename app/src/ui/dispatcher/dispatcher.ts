@@ -2589,6 +2589,10 @@ export class Dispatcher {
     this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
   }
 
+  public setCherryPickRestoreSourceSetting(cherryPickRestoreSource: boolean) {
+    this.appStore._setCherryPickRestoreSourceSetting(cherryPickRestoreSource)
+  }
+
   public recordDiffOptionsViewed() {
     return this.statsStore.recordDiffOptionsViewed()
   }
@@ -2923,6 +2927,9 @@ export class Dispatcher {
 
     switch (cherryPickResult) {
       case CherryPickResult.CompletedWithoutError:
+        if (this.appStore.getState().cherryPickRestoreSource && sourceBranch) {
+          await this.checkoutBranch(repository, sourceBranch)
+        }
         await this.changeCommitSelection(repository, [commits[0].sha])
         await this.completeMultiCommitOperation(repository, commits.length)
         break

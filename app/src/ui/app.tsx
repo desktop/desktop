@@ -1416,6 +1416,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             customTheme={this.state.customTheme}
+            cherryPickRestoreSource={this.state.cherryPickRestoreSource}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
           />
         )

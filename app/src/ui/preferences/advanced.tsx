@@ -12,12 +12,15 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
+  readonly cherryPickRestoreSource: boolean
+
   readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
   ) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
+  readonly onCherryPickResourceSourceChanged: (checked: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -75,6 +78,12 @@ export class Advanced extends React.Component<
   ) => {
     this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
+  
+  private onCherryPickResourceSourceChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onCherryPickResourceSourceChanged(event.currentTarget.checked)
+  }
 
   private reportDesktopUsageLabel() {
     return (
@@ -119,6 +128,16 @@ export class Advanced extends React.Component<
             }
             label="Always stash and leave my changes on the current branch"
             onSelected={this.onUncommittedChangesStrategyChanged}
+          />
+        </div>
+        <div className="advanced-section">
+          <h2>Cherry picking</h2>
+          <Checkbox
+            label="Restore source branch and commit selection after cherry picking"
+            value={
+              this.props.cherryPickRestoreSource ? CheckboxValue.On : CheckboxValue.Off
+            }
+            onChange={this.onCherryPickResourceSourceChanged}
           />
         </div>
         <div className="advanced-section">

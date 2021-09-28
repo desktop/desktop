@@ -59,6 +59,7 @@ interface IPreferencesProps {
   readonly selectedTheme: ApplicationTheme
   readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
+  readonly cherryPickRestoreSource: boolean
 }
 
 interface IPreferencesState {
@@ -89,6 +90,7 @@ interface IPreferencesState {
    */
   readonly existingLockFilePath?: string
   readonly repositoryIndicatorsEnabled: boolean
+  readonly cherryPickRestoreSource: boolean
 }
 
 /** The app-level preferences component. */
@@ -119,6 +121,7 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
+      cherryPickRestoreSource: this.props.cherryPickRestoreSource,
     }
   }
 
@@ -170,6 +173,7 @@ export class Preferences extends React.Component<
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
+      cherryPickRestoreSource: this.props.cherryPickRestoreSource,
     })
   }
 
@@ -334,6 +338,7 @@ export class Preferences extends React.Component<
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
+            cherryPickRestoreSource={this.state.cherryPickRestoreSource}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
@@ -341,6 +346,9 @@ export class Preferences extends React.Component<
             }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
+            }
+            onCherryPickResourceSourceChanged={
+              this.onCherryPickResourceSourceChanged
             }
           />
         )
@@ -426,6 +434,12 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setCustomTheme(theme)
   }
 
+  private onCherryPickResourceSourceChanged = (
+    cherryPickRestoreSource: boolean
+  ) => {
+    this.setState({ cherryPickRestoreSource })
+  }
+
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
@@ -509,6 +523,9 @@ export class Preferences extends React.Component<
       this.props.dispatcher.postError(e)
       return
     }
+    this.props.dispatcher.setCherryPickRestoreSourceSetting(
+      this.state.cherryPickRestoreSource
+    )
 
     this.props.dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
 
