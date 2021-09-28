@@ -42,6 +42,9 @@ interface IStashDiffViewerProps {
    * to change the diff presentation mode.
    */
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 /**
@@ -90,6 +93,9 @@ export class StashDiffViewer extends React.PureComponent<
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={onOpenBinaryFile}
           onChangeImageDiffType={onChangeImageDiffType}
+          onHideWhitespaceInDiffChanged={
+            this.props.onHideWhitespaceInDiffChanged
+          }
         />
       ) : null
 

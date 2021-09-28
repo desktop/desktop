@@ -1,4 +1,5 @@
 import * as React from 'react'
+import ReactDOM from 'react-dom'
 import { clipboard } from 'electron'
 import { Editor, Doc } from 'codemirror'
 
@@ -54,6 +55,8 @@ import {
 import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HideWhitespaceWarning } from './hide-whitespace-warning'
+import { WhitespaceHintPopover } from './whitespace-hint-popover'
+import { PopoverCaretPosition } from '../lib/popover'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -177,6 +180,9 @@ interface ITextDiffProps {
    * discards changes.
    */
   readonly askForConfirmationOnDiscardChanges?: boolean
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ITextDiffState {
@@ -284,6 +290,8 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
 
 export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   private codeMirror: Editor | null = null
+  private whitespaceHintMountId: number | null = null
+  private whitespaceHintContainer: Element | null = null
 
   private getCodeMirrorDocument = memoizeOne(
     (text: string, noNewlineIndicatorLines: ReadonlyArray<number>) => {
@@ -442,6 +450,13 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     const isSelected = !file.selection.isSelected(indexInOriginalDiff)
+
+    if (this.props.hideWhitespaceInDiff) {
+      if (file.selection.isSelectable(indexInOriginalDiff)) {
+        this.mountWhitespaceHint(index)
+      }
+      return
+    }
 
     if (kind === 'hunk') {
       const range = findInteractiveOriginalDiffRange(hunks, index)
@@ -1278,15 +1293,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       marker.removeAttribute('role')
     }
 
-    const oldLineNumber = marker.childNodes[0]
-
-    oldLineNumber.textContent =
-      diffLine.oldLineNumber === null ? '' : `${diffLine.oldLineNumber}`
-
-    const newLineNumber = marker.childNodes[1]
-
-    newLineNumber.textContent =
-      diffLine.newLineNumber === null ? '' : `${diffLine.newLineNumber}`
+    const [oldLineNumber, newLineNumber] = marker.childNodes
+    oldLineNumber.textContent = `${diffLine.oldLineNumber ?? ''}`
+    newLineNumber.textContent = `${diffLine.newLineNumber ?? ''}`
   }
 
   private onHunkHandleMouseEnter = (ev: MouseEvent) => {
@@ -1382,8 +1391,89 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   public componentWillUnmount() {
     this.cancelSelection()
+    this.unmountWhitespaceHint()
     this.codeMirror = null
     document.removeEventListener('find-text', this.onFindText)
+  }
+
+  private mountWhitespaceHint(index: number) {
+    this.unmountWhitespaceHint()
+
+    // Since we're in a bit of a weird state here where CodeMirror is mounted
+    // through React and we're in turn mounting a React component from a
+    // DOM event we want to make sure we're not mounting the Popover
+    // synchronously. Doing so will cause the popover to receiving the bubbling
+    // mousedown event (on document) which caused it to be mounted in the first
+    // place and it will then close itself thinking that it's seen a mousedown
+    // event outside of its container.
+    this.whitespaceHintMountId = requestAnimationFrame(() => {
+      this.whitespaceHintMountId = null
+      const cm = this.codeMirror
+
+      if (cm === null) {
+        return
+      }
+
+      const container = document.createElement('div')
+      container.style.position = 'absolute'
+      const scroller = cm.getScrollerElement()
+
+      const diffSize = getLineWidthFromDigitCount(
+        getNumberOfDigits(this.state.diff.maxLineNumber)
+      )
+
+      const lineY = cm.heightAtLine(index, 'local')
+      // We're positioning relative to the scroll container, not the
+      // sizer or lines so we'll have to account for the gutter width and
+      // the hunk handle.
+      const style: React.CSSProperties = { left: diffSize * 2 + 10 }
+      let caretPosition = PopoverCaretPosition.LeftTop
+
+      // Offset down by 10px to align the popover arrow.
+      container.style.top = `${lineY - 10}px`
+
+      // If the line is further than 50% down the viewport we'll flip the
+      // popover to point upwards so as to not get hidden beneath (or above)
+      // the scroll boundary.
+      if (lineY - scroller.scrollTop > scroller.clientHeight / 2) {
+        caretPosition = PopoverCaretPosition.LeftBottom
+        style.bottom = -35
+      }
+
+      scroller.appendChild(container)
+      this.whitespaceHintContainer = container
+
+      ReactDOM.render(
+        <WhitespaceHintPopover
+          caretPosition={caretPosition}
+          onDismissed={this.unmountWhitespaceHint}
+          onHideWhitespaceInDiffChanged={
+            this.props.onHideWhitespaceInDiffChanged
+          }
+          style={style}
+        />,
+        container
+      )
+    })
+  }
+
+  private unmountWhitespaceHint = () => {
+    if (this.whitespaceHintMountId !== null) {
+      cancelAnimationFrame(this.whitespaceHintMountId)
+      this.whitespaceHintMountId = null
+    }
+
+    // Note that unmountComponentAtNode may cause a reentrant call to this
+    // method by means of the Popover onDismissed callback. This is why we can't
+    // trust that whitespaceHintContainer remains non-null after this.
+    if (this.whitespaceHintContainer !== null) {
+      ReactDOM.unmountComponentAtNode(this.whitespaceHintContainer)
+    }
+
+    if (this.whitespaceHintContainer !== null) {
+      this.whitespaceHintContainer.remove()
+      this.whitespaceHintContainer = null
+    }
   }
 
   // eslint-disable-next-line react-proper-lifecycle-methods
