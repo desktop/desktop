@@ -1,5 +1,4 @@
 import * as React from 'react'
-import _ from 'lodash'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -52,7 +51,6 @@ export class CreateTag extends React.Component<
   public render() {
     const error = this.getCurrentError()
     const disabled = error !== null || this.state.tagName.length === 0
-    const lastThreeTags = _.takeRight(this.state.previousTags, 3)
 
     return (
       <Dialog
@@ -72,22 +70,7 @@ export class CreateTag extends React.Component<
             onValueChange={this.updateTagName}
           />
 
-          {this.state.previousTags !== null && (
-            <>
-              <p>Previous Tags</p>
-              {lastThreeTags.length === 0 ? (
-                <>
-                  <p>{`No matches found for '${this.state.tagName}'`}</p>
-                </>
-              ) : (
-                lastThreeTags.map((item: string, index: number) => (
-                  <>
-                    <Ref key={index}>{item}</Ref>{' '}
-                  </>
-                ))
-              )}
-            </>
-          )}
+          {this.renderPreviousTags()}
         </DialogContent>
 
         <DialogFooter>
@@ -97,6 +80,34 @@ export class CreateTag extends React.Component<
           />
         </DialogFooter>
       </Dialog>
+    )
+  }
+
+  private renderPreviousTags() {
+    const { localTags } = this.props
+    const { previousTags, tagName } = this.state
+
+    if (previousTags === null || localTags === null || localTags.size === 0) {
+      return null
+    }
+
+    const lastThreeTags = previousTags.slice(-3)
+
+    return (
+      <>
+        <p>Previous Tags</p>
+        {lastThreeTags.length === 0 ? (
+          <>
+            <p>{`No matches found for '${tagName}'`}</p>
+          </>
+        ) : (
+          lastThreeTags.map((item: string, index: number) => (
+            <>
+              <Ref key={index}>{item}</Ref>{' '}
+            </>
+          ))
+        )}
+      </>
     )
   }
 
