@@ -8,6 +8,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
 import { Ref } from '../lib/ref'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
+import { enablePreviousTagSuggestions } from '../../lib/feature-flag'
 
 interface ICreateTagProps {
   readonly repository: Repository
@@ -84,6 +85,10 @@ export class CreateTag extends React.Component<
   }
 
   private renderPreviousTags() {
+    if (!enablePreviousTagSuggestions()) {
+      return null
+    }
+
     const { localTags } = this.props
     const { previousTags, tagName } = this.state
 
