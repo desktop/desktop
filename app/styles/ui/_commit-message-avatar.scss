@@ -49,6 +49,10 @@
     color: var(--text-secondary-color);
   }
 
+  .git-email {
+    overflow-wrap: anywhere;
+  }
+
   .popover-component {
     // This allows for using <Rows> to structure content within dialog content.
     // All Rows that are direct descendants of dialog content except for the
