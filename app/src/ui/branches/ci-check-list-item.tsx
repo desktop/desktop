@@ -11,6 +11,13 @@ import { getClassNameForCheck, getSymbolForCheck } from './ci-status'
 import classNames from 'classnames'
 import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
+import { encodePathAsUrl } from '../../lib/path'
+
+// TODO: Get empty graphic for logs?
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -134,10 +141,11 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderLoadingLogs = () => {
-    // TODO: Need empty graphic... like for loading PR's
     return (
       <div className="no-logs-to-display">
-        Loading Logs... please wait.. need empty graphic...
+        <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="title">Hang tight</div>
+        <div className="loading-blurb">Loading the logs as fast as I can!</div>
       </div>
     )
   }

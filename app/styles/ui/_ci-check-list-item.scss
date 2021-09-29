@@ -57,10 +57,6 @@
         flex: 1;
       }
     }
-
-    .no-logs-to-display {
-      padding: var(--spacing-half);
-    }
   }
 
   .view-on-github {
@@ -69,5 +65,25 @@
     .button-component {
       width: 100%;
     }
+  }
+}
+
+.no-logs-to-display {
+  border-bottom: var(--base-border);
+  box-shadow: inset 0px 0px 3px -1px grey;
+  padding: var(--spacing);
+  text-align: center;
+
+  .blankslate-image {
+    min-width: 350px;
+  }
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+    margin-top: calc(var(--spacing) * -1);
+  }
+
+  .loading-blurb {
+    font-size: var(--font-size-sm);
   }
 }
