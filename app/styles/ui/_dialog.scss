@@ -376,6 +376,11 @@ dialog {
   }
   &#create-tag {
     width: 400px;
+
+    // Spacing for list of previous tags
+    .ref-component {
+      margin-right: var(--spacing-half);
+    }
   }
 
   &#confirm-remove-repository,
