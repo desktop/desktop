@@ -21,7 +21,7 @@ export function convertToFlatpakPath(path: string) {
     return path
   }
 
-  if (path.startsWith('/opt/')) {
+  if (path.startsWith('/opt/') || path.startsWith('/var/lib/flatpak')) {
     return path
   }
 
@@ -32,6 +32,12 @@ export function formatWorkingDirectoryForFlatpak(path: string): string {
   return path.replace(/(\s)/, ' ')
 }
 
+export function formatPathForFlatpak(path: string): string {
+  if (path.startsWith('/var/lib/flatpak/app')) {
+    return path.replace('/var/lib/flatpak/app/', '')
+  }
+  return path
+}
 /**
  * Checks the file path on disk exists before attempting to launch a specific shell
  *
@@ -85,11 +91,12 @@ export function spawnEditor(
   options: SpawnOptions
 ): ChildProcess {
   if (isFlatpakBuild()) {
+    const actualPath = formatPathForFlatpak(path)
     const EscapedworkingDirectory =
       formatWorkingDirectoryForFlatpak(workingDirectory)
     return nodeSpawn(
       'flatpak-spawn',
-      ['--host', path, EscapedworkingDirectory],
+      ['--host', actualPath, EscapedworkingDirectory],
       options
     )
   } else {
