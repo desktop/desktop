@@ -111,8 +111,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     }
 
     if (tip.kind === TipState.Unknown) {
-      // TODO: this is bad and I feel bad
-      return null
+      // BUGFIX: We need to throw an error here, so the app doesn't get in a weird
+      // unrenderable state.
+      log.error('Tip is in an Unknown state - Cannot proceed!')
     } else if (tip.kind === TipState.Unborn) {
       title = tip.ref
       tooltip = `Current branch is ${tip.ref}`
