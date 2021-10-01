@@ -422,7 +422,7 @@ export class CommitStatusStore {
    * Retrieve GitHub Actions workflows, jobs, and logs for the branch and apply
    * logs to matching check run output.
    */
-  public async getLatestPRWorkflowRunsLogsForCheckrun(
+  public async getLatestPRWorkflowRunsLogsForCheckRun(
     repository: GitHubRepository,
     ref: string,
     branchName: string,
