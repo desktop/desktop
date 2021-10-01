@@ -547,8 +547,7 @@ async function parseJobStepLogs(
     }
 
     const stepsWLogs = new Array<IAPIWorkflowJobStep>()
-    for (let j = 0; j < job.steps.length; j++) {
-      const step = job.steps[j]
+    for (const step of job.steps) {
       const stepFileName = `${step.number}_${step.name}.txt`
       const stepLogFile = jobFolder.file(stepFileName)
       if (stepLogFile === null) {
