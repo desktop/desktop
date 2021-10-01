@@ -367,7 +367,7 @@ export interface IAPIRefCheckRuns {
 
 interface IAPIWorkflowRuns {
   readonly total_count: number
-  readonly workflow_runs: IAPIWorkflowRun[]
+  readonly workflow_runs: ReadonlyArray<IAPIWorkflowRun>
 }
 // NB. Only partially mapped
 export interface IAPIWorkflowRun {
