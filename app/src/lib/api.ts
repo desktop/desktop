@@ -1024,7 +1024,7 @@ export class API {
       return await parsedResponse<IAPIWorkflowRuns>(response)
     } catch (err) {
       log.debug(
-        `Failed fetching workflow runs for  ${branchName} (${owner}/${name})`
+        `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
       )
     }
     return null
