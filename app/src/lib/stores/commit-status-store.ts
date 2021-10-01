@@ -530,7 +530,7 @@ export class CommitStatusStore {
       if (storedWRDate.getTime() < givenWRDate.getTime()) {
         wrMap.set(wr.name, wr)
       }
-    })
+    }
 
     return Array.from(wrMap.values())
   }

@@ -2425,7 +2425,7 @@ export class Dispatcher {
     branchName: string,
     checkRuns: ReadonlyArray<IRefCheck>
   ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckrun(
+    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
       repository,
       ref,
       branchName,
