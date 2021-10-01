@@ -522,7 +522,7 @@ export class CommitStatusStore {
       const storedWR = wrMap.get(wr.name)
       if (storedWR === undefined) {
         wrMap.set(wr.name, wr)
-        return
+        break
       }
 
       const storedWRDate = new Date(storedWR.created_at)
