@@ -371,6 +371,10 @@ interface IAPIWorkflowRuns {
 }
 // NB. Only partially mapped
 export interface IAPIWorkflowRun {
+  /**
+   * The workflow_id is the id of the workflow not the individual run.
+   **/
+  readonly workflow_id: number
   readonly cancel_url: string
   readonly created_at: string
   readonly jobs_url: string

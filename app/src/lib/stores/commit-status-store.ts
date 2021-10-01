@@ -452,7 +452,7 @@ export class CommitStatusStore {
       return checkRuns
     }
 
-    const logHash = new Map<string, JSZip>()
+    const logHash = new Map<number, JSZip>()
     const mappedCheckRuns = new Array<IRefCheck>()
     for (let i = 0; i < checkRuns.length; i++) {
       const cr = checkRuns[i]
@@ -465,6 +465,8 @@ export class CommitStatusStore {
       }
 
       const workFlowRunJobs = await api.fetchWorkflowRunJobs(matchingWR)
+      // Here check run and jobs only share their names.
+      // Thus, unfortunately cannot match on a numerical id.
       const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
       if (matchingJob === undefined) {
         mappedCheckRuns.push(cr)
@@ -474,14 +476,14 @@ export class CommitStatusStore {
       // One workflow can have the logs for multiple check runs.. no need to
       // keep retrieving it. So we are hashing it.
       const logZip =
-        logHash.get(matchingWR.name) ??
+        logHash.get(matchingWR.workflow_id) ??
         (await api.fetchWorkflowRunJobLogs(matchingWR.logs_url))
       if (logZip === null) {
         mappedCheckRuns.push(cr)
         continue
       }
 
-      logHash.set(matchingWR.name, logZip)
+      logHash.set(matchingWR.workflow_id, logZip)
 
       mappedCheckRuns.push({
         ...cr,
@@ -504,7 +506,7 @@ export class CommitStatusStore {
     name: string,
     branchName: string
   ): Promise<ReadonlyArray<IAPIWorkflowRun>> {
-    const wrMap = new Map<string, IAPIWorkflowRun>()
+    const wrMap = new Map<number, IAPIWorkflowRun>()
     const allBranchWorkflowRuns = await api.fetchPRWorkflowRuns(
       owner,
       name,
@@ -519,16 +521,16 @@ export class CommitStatusStore {
     // workflow runs for the given branch name. For each workflow name, we only
     // care about showing the latest run.
     for (const wr of allBranchWorkflowRuns.workflow_runs) {
-      const storedWR = wrMap.get(wr.name)
+      const storedWR = wrMap.get(wr.workflow_id)
       if (storedWR === undefined) {
-        wrMap.set(wr.name, wr)
-        break
+        wrMap.set(wr.workflow_id, wr)
+        continue
       }
 
       const storedWRDate = new Date(storedWR.created_at)
       const givenWRDate = new Date(wr.created_at)
       if (storedWRDate.getTime() < givenWRDate.getTime()) {
-        wrMap.set(wr.name, wr)
+        wrMap.set(wr.workflow_id, wr)
       }
     }
 
