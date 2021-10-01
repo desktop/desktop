@@ -518,7 +518,7 @@ export class CommitStatusStore {
     // When retrieving Actions Workflow runs it returns all present and past
     // workflow runs for the given branch name. For each workflow name, we only
     // care about showing the latest run.
-    allBranchWorkflowRuns.workflow_runs.forEach(wr => {
+    for (const wr of allBranchWorkflowRuns.workflow_runs) {
       const storedWR = wrMap.get(wr.name)
       if (storedWR === undefined) {
         wrMap.set(wr.name, wr)
