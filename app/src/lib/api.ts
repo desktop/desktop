@@ -1070,7 +1070,7 @@ export class API {
       return new JSZip().loadAsync(zipBlob)
     } catch (e) {
       // Sometimes a workflow provides a log url, but still returns a 404
-      // because a log file doesn't makes sense for the workflow. Thus, we just
+      // because a log file doesn't make sense for the workflow. Thus, we just
       // want to fail without raising an error.
     }
 
