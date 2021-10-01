@@ -454,8 +454,7 @@ export class CommitStatusStore {
 
     const logHash = new Map<number, JSZip>()
     const mappedCheckRuns = new Array<IRefCheck>()
-    for (let i = 0; i < checkRuns.length; i++) {
-      const cr = checkRuns[i]
+    for (const cr of checkRuns) {
       const matchingWR = latestWorkflowRuns.find(
         wr => wr.check_suite_id === cr.checkSuiteId
       )
