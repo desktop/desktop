@@ -62,7 +62,7 @@ export class CICheckRunList extends React.PureComponent<
   public componentDidUpdate(prevProps: ICICheckRunListProps) {
     // Re-subscribe if we're being reused to show a different status.
     if (
-      this.props.repository !== prevProps.repository ||
+      this.props.repository.hash !== prevProps.repository.hash ||
       this.getCommitRef(this.props.prNumber) !==
         this.getCommitRef(prevProps.prNumber)
     ) {
