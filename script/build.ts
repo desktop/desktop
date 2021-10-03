@@ -160,13 +160,20 @@ function packageApp() {
     )
   }
 
+  // this setting only works for macOS and Windows, so let's clear it now to ensure
+  // the app is working as expected
+  const icon =
+    process.platform === 'linux'
+      ? undefined
+      : path.join(projectRoot, 'app', 'static', 'logos', getIconFileName())
+
   return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', getIconFileName()),
+    icon,
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
