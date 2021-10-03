@@ -49,12 +49,12 @@ const options: RedhatOptions = {
     'gnome-keyring',
   ],
   icon: {
-    '32x32': 'app/static/logos/32x32.png',
-    '64x64': 'app/static/logos/64x64.png',
-    '128x128': 'app/static/logos/128x128.png',
-    '256x256': 'app/static/logos/256x256.png',
-    '512x512': 'app/static/logos/512x512.png',
-    '1024x1024': 'app/static/logos/1024x1024.png',
+    '32x32': 'app/static/linux/logos/32x32.png',
+    '64x64': 'app/static/linux/logos/64x64.png',
+    '128x128': 'app/static/linux/logos/128x128.png',
+    '256x256': 'app/static/linux/logos/256x256.png',
+    '512x512': 'app/static/linux/logos/512x512.png',
+    '1024x1024': 'app/static/linux/logos/1024x1024.png',
   },
   scripts: {
     post: 'script/resources/rpm/post.sh',
