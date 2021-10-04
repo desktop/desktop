@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.9.4-beta4": [
+      "[Fixed] Add syntax mapping for HAML - #13009. Thanks @alexanderadam!",
+      "[Fixed] Diff are scrolled to the top when switching between files - #12980",
+      "[Fixed] Fix SSH prompt for unknown hosts in some scenarios - #13050",
+      "[Fixed] Syntax highlighting is once again applied when viewing a small change for the first time - #13004",
+      "[Fixed] Wrap long email addresses in the misattributed commit warning popover - #13044",
+      "[Improved] Added offending file name to the file exceeds size limit error - #10242. Thanks @ADustyOldMuffin!",
+      "[Improved] Show a message explaining why line selection is disabled when hiding whitespace - #12979",
+      "[Improved] Show previous similar tags in the tag creation dialog - #12509. Thanks @mahezsh!"
+    ],
     "2.9.4-beta3": [
       "[Fixed] Refresh diffs when application receives focus - #12962",
       "[Fixed] Tokens are not considered invalid when accessing GitHub Enterprise from outside of the company's VPN - #12943",
