@@ -14,6 +14,29 @@
   .summary {
     display: flex;
     flex-direction: row;
+    position: relative;
+
+    &.with-overflow-hint {
+      .overflow-hint {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        width: 18px;
+        height: var(--text-field-height);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .octicon {
+          height: 12px;
+          margin-right: 4px;
+        }
+      }
+
+      input {
+        padding-right: 18px;
+      }
+    }
 
     .summary-field {
       flex: 1;

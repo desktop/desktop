@@ -18,6 +18,7 @@ import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
@@ -735,6 +736,12 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
+    const showOverflowHint = this.state.summary.length > 50
+
+    const summaryWrapperClassName = classNames('summary', {
+      'with-overflow-hint': showOverflowHint,
+    })
+
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge === true,
     })
@@ -748,7 +755,7 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
-        <div className="summary">
+        <div className={summaryWrapperClassName}>
           {this.renderAvatar()}
 
           <AutocompletingInput
@@ -763,6 +770,14 @@ export class CommitMessage extends React.Component<
             disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
           />
+          {showOverflowHint && (
+            <div className="overflow-hint">
+              <Octicon
+                symbol={OcticonSymbol.lightBulb}
+                title={`Great commit summaries contain fewer than 50 characters\nPlace extra information in the extended description.`}
+              />
+            </div>
+          )}
         </div>
 
         <FocusContainer
