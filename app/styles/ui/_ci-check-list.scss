@@ -8,9 +8,10 @@
   }
 }
 
-.ci-check-list {
-  height: 300px;
-  overflow: hidden;
+.ci-check-run-list {
+  max-height: 585px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .ci-check-app-header {
@@ -18,9 +19,15 @@
   align-items: center;
   border-bottom: var(--base-border);
   padding: var(--spacing-half) var(--spacing);
+  background-color: var(--box-alt-background-color);
+  min-height: 35px;
 
   .ci-check-app-name {
     font-weight: var(--font-weight-semibold);
     flex: 1;
+  }
+
+  .open-closed-icon {
+    margin-right: var(--spacing-half);
   }
 }

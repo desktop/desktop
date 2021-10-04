@@ -254,6 +254,9 @@ export class BranchDropdown extends React.Component<
 
   private renderPopover() {
     const pr = this.props.currentPullRequest
+    const { tip } = this.props.repositoryState.branchesState
+    // It is ok if it doesn't exist, we just can't retrieve actions workflows
+    const currentBranchName = tip.kind === TipState.Valid ? tip.branch.name : ''
 
     if (pr === null) {
       return null
@@ -270,6 +273,7 @@ export class BranchDropdown extends React.Component<
               prNumber={pr.pullRequestNumber}
               dispatcher={this.props.dispatcher}
               repository={pr.base.gitHubRepository}
+              branchName={currentBranchName}
             />
           </div>
         </Popover>

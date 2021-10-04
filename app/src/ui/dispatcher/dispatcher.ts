@@ -93,6 +93,7 @@ import {
   CommitStatusStore,
   StatusCallBack,
   ICombinedRefCheck,
+  IRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
@@ -2413,6 +2414,23 @@ export class Dispatcher {
     callback: StatusCallBack
   ): IDisposable {
     return this.commitStatusStore.subscribe(repository, ref, callback)
+  }
+
+  /**
+   * Populates Actions workflow logs for provided checkruns if applicable
+   */
+  public getActionsWorkflowRunLogs(
+    repository: GitHubRepository,
+    ref: string,
+    branchName: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
+      repository,
+      ref,
+      branchName,
+      checkRuns
+    )
   }
 
   /**
