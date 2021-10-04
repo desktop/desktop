@@ -384,7 +384,7 @@ export interface IAPIWorkflowRun {
   readonly check_suite_id: number
 }
 
-interface IAPIWorkflowJobs {
+export interface IAPIWorkflowJobs {
   readonly total_count: number
   readonly jobs: IAPIWorkflowJob[]
 }

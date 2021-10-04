@@ -142,7 +142,7 @@ export class CICheckRunListItem extends React.PureComponent<
 
   private renderLoadingLogs = () => {
     return (
-      <div className="no-logs-to-display">
+      <div className="loading-logs">
         <img src={BlankSlateImage} className="blankslate-image" />
         <div className="title">Hang tight</div>
         <div className="loading-blurb">Loading the logs as fast as I can!</div>

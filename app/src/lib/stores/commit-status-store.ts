@@ -13,6 +13,7 @@ import {
   IAPIWorkflowRun,
   IAPIWorkflowJobStep,
   IAPIWorkflowJob,
+  IAPIWorkflowJobs,
 } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import { setAlmostImmediate } from '../set-almost-immediate'
@@ -452,7 +453,8 @@ export class CommitStatusStore {
       return checkRuns
     }
 
-    const logHash = new Map<number, JSZip>()
+    const logCache = new Map<number, JSZip>()
+    const jobsCache = new Map<number, IAPIWorkflowJobs>()
     const mappedCheckRuns = new Array<IRefCheck>()
     for (const cr of checkRuns) {
       const matchingWR = latestWorkflowRuns.find(
@@ -463,7 +465,12 @@ export class CommitStatusStore {
         continue
       }
 
-      const workFlowRunJobs = await api.fetchWorkflowRunJobs(matchingWR)
+      // Multiple check runs match a single workflow run.
+      // We can prevent several job network calls by caching them.
+      const workFlowRunJobs =
+        jobsCache.get(matchingWR.workflow_id) ??
+        (await api.fetchWorkflowRunJobs(matchingWR))
+
       // Here check run and jobs only share their names.
       // Thus, unfortunately cannot match on a numerical id.
       const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
@@ -475,14 +482,14 @@ export class CommitStatusStore {
       // One workflow can have the logs for multiple check runs.. no need to
       // keep retrieving it. So we are hashing it.
       const logZip =
-        logHash.get(matchingWR.workflow_id) ??
+        logCache.get(matchingWR.workflow_id) ??
         (await api.fetchWorkflowRunJobLogs(matchingWR.logs_url))
       if (logZip === null) {
         mappedCheckRuns.push(cr)
         continue
       }
 
-      logHash.set(matchingWR.workflow_id, logZip)
+      logCache.set(matchingWR.workflow_id, logZip)
 
       mappedCheckRuns.push({
         ...cr,
