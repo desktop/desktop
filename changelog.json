@@ -2,7 +2,7 @@
   "releases": {
     "2.9.4-beta4": [
       "[Added] Add syntax mapping for HAML - #13009. Thanks @alexanderadam!",
-      "[Fixed] Diff are scrolled to the top when switching between files - #12980",
+      "[Fixed] Diffs are scrolled to the top when switching between files - #12980",
       "[Fixed] Fix SSH prompt for unknown hosts in some scenarios - #13050",
       "[Fixed] Syntax highlighting is once again applied when viewing a small change for the first time - #13004",
       "[Fixed] Wrap long email addresses in the misattributed commit warning popover - #13044",
