@@ -4,9 +4,9 @@
       "[Added] Add syntax mapping for HAML - #13009. Thanks @alexanderadam!",
       "[Fixed] Diffs are scrolled to the top when switching between files - #12980",
       "[Fixed] Fix SSH prompt for unknown hosts in some scenarios - #13050",
-      "[Fixed] Syntax highlighting is once again applied when viewing a small change for the first time - #13004",
+      "[Fixed] Apply syntax highlighting when viewing a small change for the first time - #13004",
       "[Fixed] Wrap long email addresses in the misattributed commit warning popover - #13044",
-      "[Improved] Added offending file name to the file exceeds size limit error - #10242. Thanks @ADustyOldMuffin!",
+      "[Improved] Add offending file name to the file exceeds size limit error - #10242. Thanks @ADustyOldMuffin!",
       "[Improved] Show a message explaining why line selection is disabled when hiding whitespace - #12979",
       "[Improved] Show previous similar tags in the tag creation dialog - #12509. Thanks @mahezsh!"
     ],
