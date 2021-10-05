@@ -9,7 +9,7 @@
       "[Fixed] Apply syntax highlighting when viewing a small change for the first time - #13004",
       "[Fixed] Wrap long email addresses in the misattributed commit warning popover - #13044",
       "[Fixed] Refresh diffs when application receives focus - #12962",
-      "[Fixed] Tokens are not considered invalid when accessing GitHub Enterprise from outside of the company's VPN - #12943",
+      "[Fixed] Only consider tokens invalid when 401 error comes from GitHub Enterprise - #12943",
       "[Fixed] Show \"add repo\" dialog when opening repo from CLI - #12935",
       "[Fixed] Continue merge flow after merge conflicts are resolved with external conflict tool - #12881",
       "[Fixed] Prevent crash on successful merge after conflicts resolved - #12888",
