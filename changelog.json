@@ -11,7 +11,7 @@
       "[Fixed] Refresh diffs when application receives focus - #12962",
       "[Fixed] Tokens are not considered invalid when accessing GitHub Enterprise from outside of the company's VPN - #12943",
       "[Fixed] Show \"add repo\" dialog when opening repo from CLI - #12935",
-      "[Fixed] Continue merge flow after merge conflicts are resolved with exterior conflict tool - #12881",
+      "[Fixed] Continue merge flow after merge conflicts are resolved with external conflict tool - #12881",
       "[Fixed] App no longer crashes on successful merge after conflicts resolved - #12888",
       "[Fixed] Use same width for hunk expansion handles as we do for line numbers - #12887",
       "[Fixed] Use the correct icon for diff expansion - #12882",
