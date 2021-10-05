@@ -2411,8 +2411,13 @@ export class Dispatcher {
   public subscribeToCommitStatus(
     repository: GitHubRepository,
     ref: string,
-    callback: StatusCallBack
+    callback: StatusCallBack,
+    branchName?: string
   ): IDisposable {
+    if (branchName !== undefined) {
+      this.commitStatusStore.setCheckedOutRefAndBranchName(ref, branchName)
+    }
+
     return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 
@@ -2422,13 +2427,11 @@ export class Dispatcher {
   public getActionsWorkflowRunLogs(
     repository: GitHubRepository,
     ref: string,
-    branchName: string,
     checkRuns: ReadonlyArray<IRefCheck>
   ): Promise<ReadonlyArray<IRefCheck>> {
     return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
       repository,
       ref,
-      branchName,
       checkRuns
     )
   }

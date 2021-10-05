@@ -18,6 +18,7 @@ import {
 import { IDisposable, Disposable } from 'event-kit'
 import { setAlmostImmediate } from '../set-almost-immediate'
 import JSZip from 'jszip'
+import { enableCICheckRuns } from '../feature-flag'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -38,6 +39,8 @@ export interface IRefCheck {
   readonly checkSuiteId: number | null // API status don't have check suite id's
   readonly output: IRefCheckOutput
   readonly htmlUrl: string | null
+  readonly jobs_url?: string
+  readonly logs_url?: string
 }
 
 /**
@@ -186,6 +189,17 @@ export class CommitStatusStore {
 
   private backgroundRefreshHandle: number | null = null
   private refreshQueued = false
+
+  /**
+   * The repositories currently checked out ref and branch name. This is used to
+   * determine if we retrieve the action workflows to see if they exist for the
+   * checkruns, which we currently only do if the we are retrieve a status for a
+   * ref that is currently checked out - not for all the pull requests.
+   */
+  private checkedOutRef: {
+    ref: string
+    branchName: string
+  } | null = null
 
   /**
    * A map keyed on the value of `getCacheKey` containing one object
@@ -350,7 +364,25 @@ export class CommitStatusStore {
       checks.push(...latestCheckRunsByName.map(apiCheckRunToRefCheck))
     }
 
-    const check = createCombinedCheckFromChecks(checks)
+    let checksWithActionsInfo: ReadonlyArray<IRefCheck> | undefined
+    if (
+      enableCICheckRuns() &&
+      this.checkedOutRef !== null &&
+      this.checkedOutRef.ref === ref
+    ) {
+      const actionWorkflows = await this.getLatestPRWorkflowRuns(
+        api,
+        owner,
+        name,
+        this.checkedOutRef.branchName
+      )
+      checksWithActionsInfo = this.getCheckRunWithActionsJobAndLogURLs(
+        checks,
+        actionWorkflows
+      )
+    }
+
+    const check = createCombinedCheckFromChecks(checksWithActionsInfo ?? checks)
     this.cache.set(key, { check, fetchedAt: new Date() })
     subscription.callbacks.forEach(cb => cb(check))
   }
@@ -420,13 +452,19 @@ export class CommitStatusStore {
   }
 
   /**
+   * Set the checked out ref and branch name.
+   */
+  public setCheckedOutRefAndBranchName(ref: string, branchName: string): void {
+    this.checkedOutRef = { ref, branchName }
+  }
+
+  /**
    * Retrieve GitHub Actions workflows, jobs, and logs for the branch and apply
    * logs to matching check run output.
    */
   public async getLatestPRWorkflowRunsLogsForCheckRun(
     repository: GitHubRepository,
     ref: string,
-    branchName: string,
     checkRuns: ReadonlyArray<IRefCheck>
   ): Promise<ReadonlyArray<IRefCheck>> {
     const key = getCacheKeyForRepository(repository, ref)
@@ -435,32 +473,20 @@ export class CommitStatusStore {
       return checkRuns
     }
 
-    const { endpoint, owner, name } = subscription
-    const account = this.accounts.find(a => a.endpoint === endpoint)
+    const account = this.accounts.find(
+      a => a.endpoint === subscription.endpoint
+    )
     if (account === undefined) {
       return checkRuns
     }
 
     const api = API.fromAccount(account)
-    const latestWorkflowRuns = await this.getLatestPRWorkflowRuns(
-      api,
-      owner,
-      name,
-      branchName
-    )
 
-    if (latestWorkflowRuns.length === 0) {
-      return checkRuns
-    }
-
-    const logCache = new Map<number, JSZip>()
-    const jobsCache = new Map<number, IAPIWorkflowJobs>()
+    const logCache = new Map<string, JSZip>()
+    const jobsCache = new Map<string, IAPIWorkflowJobs>()
     const mappedCheckRuns = new Array<IRefCheck>()
     for (const cr of checkRuns) {
-      const matchingWR = latestWorkflowRuns.find(
-        wr => wr.check_suite_id === cr.checkSuiteId
-      )
-      if (matchingWR === undefined) {
+      if (cr.jobs_url === undefined || cr.logs_url === undefined) {
         mappedCheckRuns.push(cr)
         continue
       }
@@ -468,8 +494,8 @@ export class CommitStatusStore {
       // Multiple check runs match a single workflow run.
       // We can prevent several job network calls by caching them.
       const workFlowRunJobs =
-        jobsCache.get(matchingWR.workflow_id) ??
-        (await api.fetchWorkflowRunJobs(matchingWR))
+        jobsCache.get(cr.jobs_url) ??
+        (await api.fetchWorkflowRunJobs(cr.jobs_url))
 
       // Here check run and jobs only share their names.
       // Thus, unfortunately cannot match on a numerical id.
@@ -482,14 +508,14 @@ export class CommitStatusStore {
       // One workflow can have the logs for multiple check runs.. no need to
       // keep retrieving it. So we are hashing it.
       const logZip =
-        logCache.get(matchingWR.workflow_id) ??
-        (await api.fetchWorkflowRunJobLogs(matchingWR.logs_url))
+        logCache.get(cr.logs_url) ??
+        (await api.fetchWorkflowRunJobLogs(cr.logs_url))
       if (logZip === null) {
         mappedCheckRuns.push(cr)
         continue
       }
 
-      logCache.set(matchingWR.workflow_id, logZip)
+      logCache.set(cr.logs_url, logZip)
 
       mappedCheckRuns.push({
         ...cr,
@@ -505,6 +531,34 @@ export class CommitStatusStore {
     return mappedCheckRuns
   }
 
+  private getCheckRunWithActionsJobAndLogURLs(
+    checkRuns: ReadonlyArray<IRefCheck>,
+    actionWorkflowRuns: ReadonlyArray<IAPIWorkflowRun>
+  ): ReadonlyArray<IRefCheck> {
+    if (actionWorkflowRuns.length === 0 || checkRuns.length === 0) {
+      return checkRuns
+    }
+
+    const mappedCheckRuns = new Array<IRefCheck>()
+    for (const cr of checkRuns) {
+      const matchingWR = actionWorkflowRuns.find(
+        wr => wr.check_suite_id === cr.checkSuiteId
+      )
+      if (matchingWR === undefined) {
+        mappedCheckRuns.push(cr)
+        continue
+      }
+
+      const { jobs_url, logs_url } = matchingWR
+      mappedCheckRuns.push({
+        ...cr,
+        jobs_url,
+        logs_url,
+      })
+    }
+
+    return mappedCheckRuns
+  }
   // Gets only the latest PR workflow runs hashed by name
   private async getLatestPRWorkflowRuns(
     api: API,

@@ -16,6 +16,9 @@ interface IPullRequestBadgeProps {
 
   /** The GitHub repository to use when looking up commit status. */
   readonly onBadgeClick: () => void
+
+  /** The current branch name. */
+  readonly branchName: string
 }
 
 interface IPullRequestBadgeState {
@@ -60,6 +63,7 @@ export class PullRequestBadge extends React.Component<
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           onCheckChange={this.onCheckChange}
+          branchName={this.props.branchName}
         />
       </div>
     )

@@ -20,9 +20,6 @@ interface ICICheckRunListProps {
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
 
-  /** The current branch name. */
-  readonly branchName: string
-
   /** The pull request's number. */
   readonly prNumber: number
 }
@@ -111,7 +108,6 @@ export class CICheckRunList extends React.PureComponent<
         ? await this.props.dispatcher.getActionsWorkflowRunLogs(
             this.props.repository,
             this.getCommitRef(this.props.prNumber),
-            this.props.branchName,
             statusChecks
           )
         : statusChecks

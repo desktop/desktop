@@ -26,6 +26,12 @@ interface ICIStatusProps {
 
   /** A callback to bubble up whether there is a check displayed */
   readonly onCheckChange?: (check: ICombinedRefCheck | null) => void
+
+  /**
+   * The branch name of the commit ref. This can be optionally supplied when
+   * fetching actions workflow info is required for the status.
+   */
+  readonly branchName?: string
 }
 
 interface ICIStatusState {
@@ -57,7 +63,8 @@ export class CIStatus extends React.PureComponent<
     this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
       this.props.repository,
       this.props.commitRef,
-      this.onStatus
+      this.onStatus,
+      this.props.branchName
     )
   }
 
