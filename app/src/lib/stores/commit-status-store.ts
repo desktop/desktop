@@ -610,7 +610,8 @@ async function parseJobStepLogs(
 
     const stepsWLogs = new Array<IAPIWorkflowJobStep>()
     for (const step of job.steps) {
-      const stepFileName = `${step.number}_${step.name}.txt`
+      const stepName = step.name.replace('/', '')
+      const stepFileName = `${step.number}_${stepName}.txt`
       const stepLogFile = jobFolder.file(stepFileName)
       if (stepLogFile === null) {
         stepsWLogs.push(step)
