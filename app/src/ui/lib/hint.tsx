@@ -35,14 +35,14 @@ export class Hint extends React.Component<IHintProps, IHintState> {
 
   private onHintMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
-    this.closePopover()
+    this.hideTooltip()
   }
 
   private showTooltip() {
     this.setState(prevState => ({ ...prevState, isTooltipShown: true }))
   }
 
-  private closePopover() {
+  private hideTooltip() {
     this.setState(prevState => ({ ...prevState, isTooltipShown: false }))
   }
 
