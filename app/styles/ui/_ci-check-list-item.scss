@@ -42,7 +42,7 @@
   }
 
   .ci-check-list-item-logs-output {
-    padding-top: var(--spacing);
+    padding: var(--spacing);
     max-height: 200px;
     overflow: auto;
     word-break: break-word;
@@ -55,17 +55,15 @@
   &.actions {
     color: var(--check-run-header-label-text-color);
     background-color: var(--check-run-bg-color);
-    border-color: var(--check-run-border-color) !important;
+    border-color: var(--check-run-border-color);
 
     .ci-check-run-log-step {
-      border-radius: 6px !important;
-      padding-left: 8px !important;
-      padding-right: 4px !important;
-
       .ci-check-run-log-step-header {
-        border-radius: 6px !important;
-        padding: 8px !important;
-        margin-bottom: 4px !important;
+        border-radius: 6px;
+        padding: 8px;
+        margin-bottom: var(--spacing-half);
+        margin-left: var(--spacing-half);
+        margin-right: var(--spacing-half);
         color: var(--check-run-text-secondary-color);
         overflow: hidden;
         text-overflow: ellipsis;

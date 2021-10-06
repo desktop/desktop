@@ -731,7 +731,7 @@ function getCheckRunShortDescription(
  * Attempts to get the duration of a check run in seconds.
  * If it fails, it returns 0
  */
-export function getCheckDurationInSeconds(
+function getCheckDurationInSeconds(
   checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
 ): number {
   try {
@@ -746,6 +746,23 @@ export function getCheckDurationInSeconds(
   } catch (e) {}
 
   return 0
+}
+
+export function getFormattedCheckRunDuration(
+  checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
+): string {
+  const duration = getCheckDurationInSeconds(checkRun)
+  if (duration < 60) {
+    return `${duration}s`
+  }
+
+  const minutes = Math.floor(duration / 60)
+  const seconds = duration - minutes * 60
+  if (seconds === 0) {
+    return `${minutes}m`
+  }
+
+  return `${minutes}m ${seconds}s`
 }
 
 /**

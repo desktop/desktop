@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {
-  getCheckDurationInSeconds,
+  getFormattedCheckRunDuration,
   IRefCheckOutput,
   RefCheckOutputType,
 } from '../../lib/stores/commit-status-store'
@@ -75,7 +75,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
             title={step.name}
           />
           <div className="ci-check-run-log-step-name">{step.name}</div>
-          <div>{getCheckDurationInSeconds(step)}s</div>
+          <div>{getFormattedCheckRunDuration(step)}</div>
         </div>
       )
 
