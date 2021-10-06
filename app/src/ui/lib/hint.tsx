@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbolType} from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
 
 interface IHintProps {
   readonly symbol: OcticonSymbolType
@@ -15,10 +15,9 @@ export class Hint extends React.Component<IHintProps, IHintState> {
   public constructor(props: IHintProps) {
     super(props)
     this.state = {
-      isTooltipShown: false
+      isTooltipShown: false,
     }
   }
-
 
   private renderTooltip() {
     return (
@@ -29,16 +28,12 @@ export class Hint extends React.Component<IHintProps, IHintState> {
     )
   }
 
-  private onHintMouseEnter = (
-    event: React.MouseEvent<HTMLDivElement>
-  ) => {
+  private onHintMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
     this.showTooltip()
   }
 
-  private onHintMouseLeave = (
-    event: React.MouseEvent<HTMLDivElement>
-  ) => {
+  private onHintMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
     this.closePopover()
   }
@@ -53,13 +48,14 @@ export class Hint extends React.Component<IHintProps, IHintState> {
 
   public render() {
     return (
-<div className="hint-component"        onMouseEnter={this.onHintMouseEnter}
-            onMouseLeave={this.onHintMouseLeave}>
-              <Octicon
-                symbol={this.props.symbol}
-              />
-              {this.state.isTooltipShown && this.renderTooltip()}
-            </div>
+      <div
+        className="hint-component"
+        onMouseEnter={this.onHintMouseEnter}
+        onMouseLeave={this.onHintMouseLeave}
+      >
+        <Octicon symbol={this.props.symbol} />
+        {this.state.isTooltipShown && this.renderTooltip()}
+      </div>
     )
   }
 }

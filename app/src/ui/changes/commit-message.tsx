@@ -792,9 +792,25 @@ export class CommitMessage extends React.Component<
             spellcheck={this.props.commitSpellcheckEnabled}
           />
           {isLengthHintShown && (
-            <Hint symbol={summaryLengthState === SummaryLengthState.Overflowing ? OcticonSymbol.alert : OcticonSymbol.lightBulb}
-            title={summaryLengthState === SummaryLengthState.Overflowing ? "Commit summaries are limited to 72 characters" : 'Great commit summaries contain fewer than 50 characters'}
-            description={summaryLengthState === SummaryLengthState.Overflowing ? `${summaryOverflowLength} ${summaryOverflowLength === 1 ? 'character' : 'characters'} going over the limit will be moved into the description field.` : 'Place extra information in the description field.'}/>
+            <Hint
+              symbol={
+                summaryLengthState === SummaryLengthState.Overflowing
+                  ? OcticonSymbol.alert
+                  : OcticonSymbol.lightBulb
+              }
+              title={
+                summaryLengthState === SummaryLengthState.Overflowing
+                  ? 'Commit summaries are limited to 72 characters'
+                  : 'Great commit summaries contain fewer than 50 characters'
+              }
+              description={
+                summaryLengthState === SummaryLengthState.Overflowing
+                  ? `${summaryOverflowLength} ${
+                      summaryOverflowLength === 1 ? 'character' : 'characters'
+                    } going over the limit will be moved into the description field.`
+                  : 'Place extra information in the description field.'
+              }
+            />
           )}
         </div>
 
