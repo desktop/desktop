@@ -34,7 +34,7 @@
 
 .ci-check-list-item-logs {
   .view-on-github {
-    padding: var(--spacing);
+    padding: var(--spacing-half);
 
     .button-component {
       width: 100%;
@@ -58,6 +58,10 @@
     border-color: var(--check-run-border-color);
 
     .ci-check-run-log-step {
+      div:first-child:hover {
+        background-color: var(--check-run-step-header-open-bg-color);
+      }
+
       .ci-check-run-log-step-header {
         border-radius: 6px;
         padding: 8px;
@@ -71,10 +75,6 @@
 
         &.open {
           color: var(--check-run-text-primary-color);
-        }
-
-        &.open,
-        :hover {
           background-color: var(--check-run-step-header-open-bg-color);
         }
 
@@ -94,9 +94,10 @@
       }
 
       .ci-check-run-step-log-display {
+        // TODO: Future PR for log parsing - use theme variables here (this is just copied from github.com inspector)
         word-wrap: break-word;
         font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace !important;
-        font-size: 12px !important;
+        font-size: var(--font-size-sm);
         padding-top: 4px !important;
         padding-bottom: 4px !important;
         margin-top: 8px !important;
