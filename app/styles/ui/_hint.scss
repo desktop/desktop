@@ -1,0 +1,44 @@
+.hint-component {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: var(--text-field-height);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .octicon {
+    height: 12px;
+  }
+
+  .hint-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    z-index: var(--foldout-z-index);
+    background: var(--text-color);
+    color: var(--background-color);
+    border-radius: var(--border-radius);
+    padding: 6px 8px;
+
+    &::after {
+      position: absolute;
+      left: calc(50% - 7px);
+      display: inline-block;
+      content: '';
+      pointer-events: none;
+      bottom: -14px;
+      border: 7px solid transparent;
+      border-top-color: var(--text-color);
+    }
+  }
+
+  .hint-title {
+    font-weight: 500;
+    white-space: pre;
+  }
+
+  .hint-description {
+    opacity: 0.7;
+  }
+}

@@ -7,7 +7,8 @@ import {
 } from './text-token-parser'
 import { assertNever } from './fatal-error'
 
-const MaxSummaryLength = 72
+export const MaxSummaryLength = 72
+export const IdealSummaryLength = 50
 
 /**
  * A method used to wrap long commit summaries and put any overflow

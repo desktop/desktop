@@ -36,6 +36,11 @@ import { setGlobalConfigValue } from '../../lib/git/config'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isAccountEmail } from '../../lib/is-account-email'
+import {
+  IdealSummaryLength,
+  MaxSummaryLength,
+} from '../../lib/wrap-rich-text-commit-message'
+import { Hint } from '../lib/hint'
 
 const addAuthorIcon = {
   w: 18,
@@ -115,6 +120,15 @@ interface ICommitMessageState {
 
   /** when not persisting, we need to store locally */
   readonly coAuthors: ReadonlyArray<IAuthor>
+}
+
+enum SummaryLengthState {
+  /** The summary is under IdealSummaryLength - nothing to complain about. */
+  Ideal,
+  /** The summary is over IdealSummaryLength but under MaxSummaryLength - not great but alright. */
+  Excessive,
+  /** The summary is over MaxSummaryLength - characters going over the maximum will be moved to the description. */
+  Overflowing,
 }
 
 function findUserAutoCompleteProvider(
@@ -736,10 +750,17 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
-    const showOverflowHint = this.state.summary.length > 50
+    const summaryLengthState: SummaryLengthState =
+      this.state.summary.length > MaxSummaryLength
+        ? SummaryLengthState.Overflowing
+        : this.state.summary.length > IdealSummaryLength
+        ? SummaryLengthState.Excessive
+        : SummaryLengthState.Ideal
+    const summaryOverflowLength = this.state.summary.length - MaxSummaryLength
+    const isLengthHintShown = summaryLengthState !== SummaryLengthState.Ideal
 
     const summaryWrapperClassName = classNames('summary', {
-      'with-overflow-hint': showOverflowHint,
+      'with-length-hint': isLengthHintShown,
     })
 
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
@@ -770,13 +791,10 @@ export class CommitMessage extends React.Component<
             disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
           />
-          {showOverflowHint && (
-            <div className="overflow-hint">
-              <Octicon
-                symbol={OcticonSymbol.lightBulb}
-                title={`Great commit summaries contain fewer than 50 characters\nPlace extra information in the extended description.`}
-              />
-            </div>
+          {isLengthHintShown && (
+            <Hint symbol={summaryLengthState === SummaryLengthState.Overflowing ? OcticonSymbol.alert : OcticonSymbol.lightBulb}
+            title={summaryLengthState === SummaryLengthState.Overflowing ? "Commit summaries are limited to 72 characters" : 'Great commit summaries contain fewer than 50 characters'}
+            description={summaryLengthState === SummaryLengthState.Overflowing ? `${summaryOverflowLength} ${summaryOverflowLength === 1 ? 'character' : 'characters'} going over the limit will be moved into the description field.` : 'Place extra information in the description field.'}/>
           )}
         </div>
 
