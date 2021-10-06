@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import {
   Dialog,
   DialogContent,
@@ -104,7 +103,6 @@ export class MoveToApplicationsFolder extends React.Component<
     try {
       this.props.dispatcher.moveToApplicationsFolder()
     } catch (error) {
-      sendNonFatalException('moveApplication', error)
       this.props.dispatcher.postError(error)
     }
   }
