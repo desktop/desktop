@@ -5,6 +5,7 @@ import { Repository } from '../../models/repository'
 import { Tokenizer, TokenType, TokenResult } from '../../lib/text-token-parser'
 import { assertNever } from '../../lib/fatal-error'
 import memoizeOne from 'memoize-one'
+import { createObservableRef } from './observable-ref'
 
 interface IRichTextProps {
   readonly className?: string
@@ -82,6 +83,7 @@ export class RichText extends React.Component<IRichTextProps, {}> {
   private getTitle = memoizeOne((text: string | ReadonlyArray<TokenResult>) =>
     typeof text === 'string' ? text : text.map(x => x.text).join('')
   )
+  private containerRef = createObservableRef<HTMLDivElement>()
 
   public render() {
     const { emoji, repository, renderUrlsAsLinks, text } = this.props
@@ -93,7 +95,8 @@ export class RichText extends React.Component<IRichTextProps, {}> {
     }
 
     return (
-      <div className={this.props.className} title={this.getTitle(text)}>
+      <div ref={this.containerRef} className={this.props.className}>
+        <Tooltip target={this.containerRef}>{this.getTitle(text)}</Tooltip>
         {this.getElements(emoji, repository, renderUrlsAsLinks, text)}
       </div>
     )
