@@ -34,7 +34,7 @@
 
 .ci-check-list-item-logs {
   .view-on-github {
-    padding: var(--spacing-half);
+    padding: var(--spacing);
 
     .button-component {
       width: 100%;
@@ -42,7 +42,7 @@
   }
 
   .ci-check-list-item-logs-output {
-    padding: var(--spacing);
+    padding: var(--spacing-half);
     max-height: 200px;
     overflow: auto;
     word-break: break-word;
