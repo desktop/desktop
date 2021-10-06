@@ -54,8 +54,10 @@ function getElements(
         )
       case TokenType.Link:
         if (renderUrlsAsLinks !== false) {
+          const title = token.text !== token.url ? token.url : undefined
           return (
             <LinkButton key={index} uri={token.url} title={token.url}>
+            <LinkButton key={index} uri={token.url} title={title}>
               {token.text}
             </LinkButton>
           )
