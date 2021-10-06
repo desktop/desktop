@@ -1,0 +1,14 @@
+body > .tooltips {
+  > .tooltip {
+    position: absolute;
+    background: black;
+    color: white;
+    border-radius: var(--border-radius);
+    padding: 10px;
+    font-size: var(--font-size-sm);
+
+    &:not(.interactive) {
+      pointer-events: none;
+    }
+  }
+}
