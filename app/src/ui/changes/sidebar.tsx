@@ -364,6 +364,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       <div className="panel">
         <ChangesList
           dispatcher={this.props.dispatcher}
+          emoji={this.props.emoji}
           repository={this.props.repository}
           repositoryAccount={repositoryAccount}
           workingDirectory={workingDirectory}

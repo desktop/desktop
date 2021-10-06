@@ -38,9 +38,10 @@ import { RepositorySettingsTab } from '../repository-settings/repository-setting
 import { isAccountEmail } from '../../lib/is-account-email'
 import {
   IdealSummaryLength,
-  MaxSummaryLength,
+  wrapRichTextCommitMessage,
 } from '../../lib/wrap-rich-text-commit-message'
 import { Hint } from '../lib/hint'
+import { Tokenizer } from '../../lib/text-token-parser'
 
 const addAuthorIcon = {
   w: 18,
@@ -64,6 +65,7 @@ interface ICommitMessageProps {
   readonly repository: Repository
   readonly repositoryAccount?: Account | null
   readonly dispatcher: Dispatcher
+  readonly emoji: Map<string, string>
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting?: boolean
   readonly commitToAmend: Commit | null
@@ -120,6 +122,9 @@ interface ICommitMessageState {
 
   /** when not persisting, we need to store locally */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /** Tokenizer used for detecting if the summary is going to be wrapped. */
+  readonly tokenizer: Tokenizer
 }
 
 enum SummaryLengthState {
@@ -169,6 +174,7 @@ export class CommitMessage extends React.Component<
       descriptionObscured: false,
       showCoAuthoredBy: props.showCoAuthoredBy,
       coAuthors: props.coAuthors,
+      tokenizer: new Tokenizer(props.emoji, props.repository)
     }
   }
 
@@ -750,13 +756,17 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
+    const { body: summaryOverflowTokens } = wrapRichTextCommitMessage(
+      this.state.summary,
+      '',
+      this.state.tokenizer
+    )
     const summaryLengthState: SummaryLengthState =
-      this.state.summary.length > MaxSummaryLength
+    summaryOverflowTokens.length > 0
         ? SummaryLengthState.Overflowing
         : this.state.summary.length > IdealSummaryLength
         ? SummaryLengthState.Excessive
         : SummaryLengthState.Ideal
-    const summaryOverflowLength = this.state.summary.length - MaxSummaryLength
     const isLengthHintShown = summaryLengthState !== SummaryLengthState.Ideal
 
     const summaryWrapperClassName = classNames('summary', {
@@ -800,14 +810,12 @@ export class CommitMessage extends React.Component<
               }
               title={
                 summaryLengthState === SummaryLengthState.Overflowing
-                  ? 'Commit summaries are limited to 72 characters'
+                  ? 'This summary is too long to be kept in one piece'
                   : 'Great commit summaries contain fewer than 50 characters'
               }
               description={
                 summaryLengthState === SummaryLengthState.Overflowing
-                  ? `${summaryOverflowLength} ${
-                      summaryOverflowLength === 1 ? 'character' : 'characters'
-                    } going over the limit will be moved into the description field.`
+                  ? "Commit summaries generally are limited to 72 characters. The overflowing part will be moved into the commit's description."
                   : 'Place extra information in the description field.'
               }
             />

@@ -1943,6 +1943,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dialogButtonText={popup.dialogButtonText}
             dialogTitle={popup.dialogTitle}
             dispatcher={this.props.dispatcher}
+            emoji={this.state.emoji}
             prepopulateCommitSummary={popup.prepopulateCommitSummary}
             repository={popup.repository}
             showBranchProtected={

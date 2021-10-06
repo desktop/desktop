@@ -76,6 +76,8 @@ interface ICommitMessageDialogProps {
 
   /** Method to run when dialog is submitted */
   readonly onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
+
+  readonly emoji: Map<string, string>
 }
 
 export class CommitMessageDialog extends React.Component<
@@ -97,6 +99,7 @@ export class CommitMessageDialog extends React.Component<
             commitToAmend={null}
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
+            emoji={this.props.emoji}
             commitMessage={this.props.commitMessage}
             focusCommitMessage={false}
             autocompletionProviders={this.props.autocompletionProviders}
