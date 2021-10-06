@@ -6,6 +6,7 @@ import { Tokenizer, TokenType, TokenResult } from '../../lib/text-token-parser'
 import { assertNever } from '../../lib/fatal-error'
 import memoizeOne from 'memoize-one'
 import { createObservableRef } from './observable-ref'
+import { Tooltip } from './tooltip'
 
 interface IRichTextProps {
   readonly className?: string
@@ -57,7 +58,6 @@ function getElements(
         if (renderUrlsAsLinks !== false) {
           const title = token.text !== token.url ? token.url : undefined
           return (
-            <LinkButton key={index} uri={token.url} title={token.url}>
             <LinkButton key={index} uri={token.url} title={title}>
               {token.text}
             </LinkButton>
@@ -73,17 +73,62 @@ function getElements(
   })
 }
 
+interface IRichTextState {
+  readonly overflowed: boolean
+}
+
 /**
  * A component which replaces any emoji shortcuts (e.g., :+1:) in its child text
  * with the appropriate image tag, and also highlights username and issue mentions
  * with hyperlink tags if it has a repository to read.
  */
-export class RichText extends React.Component<IRichTextProps, {}> {
+export class RichText extends React.Component<IRichTextProps, IRichTextState> {
   private getElements = memoizeOne(getElements)
   private getTitle = memoizeOne((text: string | ReadonlyArray<TokenResult>) =>
     typeof text === 'string' ? text : text.map(x => x.text).join('')
   )
   private containerRef = createObservableRef<HTMLDivElement>()
+  private readonly resizeObserver: ResizeObserver
+  private resizeDebounceId: number | null = null
+  private lastKnownWidth: number | null = null
+
+  public constructor(props: IRichTextProps) {
+    super(props)
+    this.state = { overflowed: false }
+    this.containerRef.subscribe(this.onContainerRef)
+    this.resizeObserver = new ResizeObserver(entries => {
+      const newWidth = entries[0].contentRect.width
+
+      if (this.lastKnownWidth !== newWidth) {
+        this.lastKnownWidth = newWidth
+
+        if (this.resizeDebounceId !== null) {
+          cancelAnimationFrame(this.resizeDebounceId)
+          this.resizeDebounceId = null
+        }
+        this.resizeDebounceId = requestAnimationFrame(_ => this.onResized())
+      }
+    })
+  }
+
+  private onContainerRef = (elem: HTMLDivElement | null) => {
+    if (elem === null) {
+      this.resizeObserver.disconnect()
+      return
+    }
+
+    this.resizeObserver.observe(elem)
+    this.onResized(elem)
+  }
+
+  private onResized = (elem?: HTMLDivElement) => {
+    elem = elem ?? this.containerRef.current ?? undefined
+    if (elem && elem.scrollWidth > elem.clientWidth) {
+      this.setState({ overflowed: true })
+    } else {
+      this.setState({ overflowed: false })
+    }
+  }
 
   public render() {
     const { emoji, repository, renderUrlsAsLinks, text } = this.props
@@ -96,7 +141,9 @@ export class RichText extends React.Component<IRichTextProps, {}> {
 
     return (
       <div ref={this.containerRef} className={this.props.className}>
-        <Tooltip target={this.containerRef}>{this.getTitle(text)}</Tooltip>
+        {this.state.overflowed && (
+          <Tooltip target={this.containerRef}>{this.getTitle(text)}</Tooltip>
+        )}
         {this.getElements(emoji, repository, renderUrlsAsLinks, text)}
       </div>
     )
