@@ -19,6 +19,8 @@ import {
   clearAlmostImmediate,
   setAlmostImmediate,
 } from '../../lib/set-almost-immediate'
+import { Tooltip } from '../lib/tooltip'
+import { createObservableRef } from '../lib/observable-ref'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -131,6 +133,7 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: AlmostImmediate | null = null
   private descriptionRef: HTMLDivElement | null = null
+  private readonly shaRef = createObservableRef<HTMLSpanElement>()
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -345,7 +348,10 @@ export class CommitSummary extends React.Component<
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
-              <span className="sha">{shortSHA}</span>
+              <span ref={this.shaRef} className="sha">
+                <Tooltip target={this.shaRef}>{this.props.commit.sha}</Tooltip>
+                {shortSHA}
+              </span>
             </li>
 
             <li
