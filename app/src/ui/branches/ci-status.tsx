@@ -154,6 +154,19 @@ export function getSymbolForCheck(
   return OcticonSymbol.dotFill
 }
 
+export function getSymbolForLogStep(
+  logStep: IAPIWorkflowJobStep
+): OcticonSymbolType {
+  switch (logStep.conclusion) {
+    case 'success':
+      return OcticonSymbol.checkCircleFill
+    case 'failure':
+      return OcticonSymbol.xCircleFill
+  }
+
+  return getSymbolForCheck(logStep)
+}
+
 export function getClassNameForCheck(
   check: ICombinedRefCheck | IRefCheck | IAPIWorkflowJobStep
 ): string {
@@ -173,6 +186,16 @@ export function getClassNameForCheck(
 
   // Pending
   return 'pending'
+}
+
+export function getClassNameForLogStep(logStep: IAPIWorkflowJobStep): string {
+  switch (logStep.conclusion) {
+    case 'failure':
+      return logStep.conclusion
+  }
+
+  // Pending
+  return ''
 }
 
 /**

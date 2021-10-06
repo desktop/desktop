@@ -1,23 +1,12 @@
+import classNames from 'classnames'
 import * as React from 'react'
 import {
-  getCheckDurationInSeconds,
   IRefCheck,
   IRefCheckOutput,
   RefCheckOutputType,
 } from '../../lib/stores/commit-status-store'
-
-import { Octicon } from '../octicons'
-import { getClassNameForCheck, getSymbolForCheck } from './ci-status'
-import classNames from 'classnames'
-import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
-import { encodePathAsUrl } from '../../lib/path'
-
-// TODO: Get empty graphic for logs?
-const BlankSlateImage = encodePathAsUrl(
-  __dirname,
-  'static/empty-no-pull-requests.svg'
-)
+import { CICheckRunActionLogs } from './ci-check-run-action-logs'
 
 interface ICICheckRunListItemLogsProps {
   /** The check run to display **/
@@ -47,46 +36,12 @@ export class CICheckRunListItemLogs extends React.PureComponent<
     )
   }
 
-  private isNoOutputText(output: IRefCheckOutput): boolean {
+  private isNoOutputText = (output: IRefCheckOutput): boolean => {
     return (
+      !this.hasActionsWorkflowLogs() &&
       output.type === RefCheckOutputType.Default &&
       (output.text === null || output.text.trim() === '')
     )
-  }
-
-  private renderActionsLogOutput = (output: IRefCheckOutput) => {
-    if (output.type === RefCheckOutputType.Default) {
-      return null
-    }
-
-    return output.steps.map((step, i) => {
-      const header = (
-        <div className="ci-check-run-log-step" key={i}>
-          <div className="ci-check-status-symbol">
-            <Octicon
-              className={classNames(
-                'ci-status',
-                `ci-status-${getClassNameForCheck(step)}`
-              )}
-              symbol={getSymbolForCheck(step)}
-              title={step.name}
-            />
-          </div>
-          <div className="ci-check-run-log-step-name">{step.name}</div>
-          <div>{getCheckDurationInSeconds(step)}s</div>
-        </div>
-      )
-
-      const log =
-        step.conclusion === APICheckConclusion.Failure ? step.log : null
-
-      return (
-        <>
-          {header}
-          {log}
-        </>
-      )
-    })
   }
 
   private renderNonActionsLogOutput = (output: IRefCheckOutput) => {
@@ -94,7 +49,7 @@ export class CICheckRunListItemLogs extends React.PureComponent<
       return null
     }
 
-    // TODO: Html needs santized. Later PR
+    // TODO: Markdown needs to be parsed/santized. Later PR
     return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
   }
 
@@ -102,6 +57,10 @@ export class CICheckRunListItemLogs extends React.PureComponent<
     output: IRefCheckOutput,
     checkRunName: string
   ) => {
+    if (this.hasActionsWorkflowLogs()) {
+      return null
+    }
+
     const { title, summary } = output
 
     // Don't display something empty or redundant
@@ -111,6 +70,7 @@ export class CICheckRunListItemLogs extends React.PureComponent<
       title.trim().toLocaleLowerCase() !==
         checkRunName.trim().toLocaleLowerCase()
 
+    // TODO: Markdown needs to be parsed/santized. Later PR
     const displaySummary =
       summary !== null && summary !== undefined && summary.trim() !== ''
 
@@ -126,16 +86,6 @@ export class CICheckRunListItemLogs extends React.PureComponent<
     return (
       <div className="no-logs-to-display">
         No additional information to display.
-      </div>
-    )
-  }
-
-  private renderLoadingLogs = () => {
-    return (
-      <div className="loading-logs">
-        <img src={BlankSlateImage} className="blankslate-image" />
-        <div className="title">Hang tight</div>
-        <div className="loading-blurb">Loading the logs as fast as I can!</div>
       </div>
     )
   }
@@ -158,19 +108,23 @@ export class CICheckRunListItemLogs extends React.PureComponent<
       checkRun: { output, name },
     } = this.props
 
-    if (this.hasActionsWorkflowLogs() && loadingLogs) {
-      return this.renderLoadingLogs()
-    }
+    const logsOutput = this.hasActionsWorkflowLogs() ? (
+      <CICheckRunActionLogs output={output} loadingLogs={loadingLogs} />
+    ) : (
+      this.renderNonActionsLogOutput(output)
+    )
+
+    const className = classNames('ci-check-list-item-logs', {
+      actions: this.hasActionsWorkflowLogs(),
+    })
 
     return (
-      <div className="ci-check-list-item-logs">
+      <div className={className}>
         <div className="ci-check-list-item-logs-output">
           {this.isNoAdditionalInfoToDisplay(output)
             ? this.renderEmptyLogOutput()
-            : null}
-          {this.renderMetaOutput(output, name)}
-          {this.renderActionsLogOutput(output)}
-          {this.renderNonActionsLogOutput(output)}
+            : this.renderMetaOutput(output, name)}
+          {logsOutput}
         </div>
         {this.renderViewOnGitHub()}
       </div>
