@@ -253,7 +253,7 @@ function copyStaticResources() {
   if (fs.existsSync(platformSpecific)) {
     fs.copySync(platformSpecific, destination)
   }
-  fs.copySync(common, destination, { overwrite: false })
+  fs.copySync(common, destination, { overwrite: true })
 }
 
 function moveAnalysisFiles() {

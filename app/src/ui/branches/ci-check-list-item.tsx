@@ -12,6 +12,7 @@ import classNames from 'classnames'
 import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
 import { encodePathAsUrl } from '../../lib/path'
+import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 
 // TODO: Get empty graphic for logs?
 const BlankSlateImage = encodePathAsUrl(
@@ -121,13 +122,12 @@ export class CICheckRunListItem extends React.PureComponent<
       title.trim().toLocaleLowerCase() !==
         checkRunName.trim().toLocaleLowerCase()
 
-    const displaySummary =
-      summary !== null && summary !== undefined && summary.trim() !== ''
-
     return (
       <div>
-        {displayTitle ? <div>{title}</div> : null}
-        {displaySummary ? <pre>{summary}</pre> : null}
+        {displayTitle ? <h2>{title}</h2> : null}
+        {summary !== null && summary !== undefined && summary.trim() !== '' ? (
+          <SandboxedMarkdown markdown={summary} />
+        ) : null}
       </div>
     )
   }
