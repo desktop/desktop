@@ -32,6 +32,42 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   /**
+   * Since iframe styles are isolated from the rest of the app, we have a
+   * markdown.css file that we added to app/static directory that we can read in
+   * and provide to the iframe.
+   *
+   * Additionally, the iframe will not be aware of light/dark theme variables,
+   * thus we will scrape the subset of them needed for the markdown css from the
+   * document body and provide them aswell.
+   */
+  private async getInlineStyleSheet(): Promise<string> {
+    const css = await FSE.readFile(
+      Path.join(__dirname, 'static', 'markdown.css'),
+      'utf8'
+    )
+
+    // scrape theme variables so iframe theme will match app
+    const docStyle = getComputedStyle(document.body)
+    const textColor = docStyle.getPropertyValue('--text-color')
+    const backgroundColor = docStyle.getPropertyValue('--background-color')
+    const codeBackgroundColor = docStyle.getPropertyValue(
+      '--box-alt-background-color'
+    )
+    const boxBorderColor = docStyle.getPropertyValue('--box-border-color')
+
+    return `<style>
+      :root {
+        --text-color: ${textColor};
+        --background-color: ${backgroundColor};
+        --code-background-color: ${codeBackgroundColor};
+        --box-border-color: ${boxBorderColor};
+      }
+
+      ${css}
+    </style>`
+  }
+
+  /**
    * We still want to be able to navigate to links provided in the markdown.
    * However, we want to intercept them an verify they are valid links first.
    */
@@ -64,21 +100,11 @@ export class SandboxedMarkdown extends React.PureComponent<
       Path.join(__dirname, 'static', 'marked.min.js'),
       'utf8'
     )
-
-    const css = await FSE.readFile(
-      Path.join(__dirname, 'static', 'markdown.css'),
-      'utf8'
-    )
+    const styleSheet = await this.getInlineStyleSheet()
 
     // Prevents any script without the generated nonce (number used once)
     const nonce = crypto.randomBytes(16).toString('base64')
     const contentSecurityPolicy = `script-src 'nonce-${nonce}'`
-
-    // get colors
-    const textColor = 'black'
-    const backgroundColor = 'white'
-    const codeBackgroundColor = 'rgb(110 118 129 / 40%)'
-    const boxBorderColor = 'grey'
 
     const testEvilScript = `<script>
     console.log("this one fails.. not csp")
@@ -86,34 +112,23 @@ export class SandboxedMarkdown extends React.PureComponent<
    `
 
     this.frameRef.srcdoc = `
-    <meta http-equiv="Content-Security-Policy"
-      content="${contentSecurityPolicy}">
+      <meta http-equiv="Content-Security-Policy"
+        content="${contentSecurityPolicy}">
 
-    <style>
-      :root {
-        --text-color: ${textColor};
-        --background-color: ${backgroundColor};
-        --code-background-color: ${codeBackgroundColor};
-        --box-border-color: ${boxBorderColor};
-      }
+      ${styleSheet}
 
-      ${css}
-    </style>
+      <div id="content"></div>
 
-    <div id="content">
+      <script nonce="${nonce}">
+        ${markedJS}
 
-    </div>
-
-    <script nonce="${nonce}">
-      ${markedJS}
-
-      var md = atob('${btoa(this.props.markdown)}');
-      marked.use({
-        gfm: true
-      });
-      var parsed = marked(md);
-      document.getElementById('content').innerHTML = parsed;
-    </script>
+        var md = atob('${btoa(this.props.markdown)}');
+        marked.use({
+          gfm: true
+        });
+        var parsed = marked(md);
+        document.getElementById('content').innerHTML = parsed;
+      </script>
 
     ${testEvilScript}
     `
