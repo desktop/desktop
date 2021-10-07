@@ -31,6 +31,10 @@ export class SandboxedMarkdown extends React.PureComponent<
     }
   }
 
+  /**
+   * We still want to be able to navigate to links provided in the markdown.
+   * However, we want to intercept them an verify they are valid links first.
+   */
   private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
     frameRef.onload = () => {
       if (frameRef.contentDocument === null) {
