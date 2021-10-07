@@ -45,6 +45,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         e.preventDefault()
         const linkPath =
           e.target !== null ? (e.target as HTMLAnchorElement).href : null
+        // TODO: add regex to verify valid url format and then bubble up for app to handle
         console.log(linkPath)
       })
     }
