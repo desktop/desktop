@@ -31,8 +31,27 @@ export class SandboxedMarkdown extends React.PureComponent<
     }
   }
 
+  private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
+    frameRef.onload = () => {
+      if (frameRef.contentDocument === null) {
+        return
+      }
+      const linkTags = frameRef.contentDocument.querySelector('a')
+      if (linkTags === null) {
+        return
+      }
+
+      linkTags.addEventListener('click', (e: MouseEvent) => {
+        e.preventDefault()
+        const linkPath =
+          e.target !== null ? (e.target as HTMLAnchorElement).href : null
+        console.log(linkPath)
+      })
+    }
+  }
+
   private mountIframeContents = async (): Promise<void> => {
-    if (this.frameRef === null || this.frameRef.contentDocument === null) {
+    if (this.frameRef === null) {
       return
     }
 
@@ -89,30 +108,19 @@ export class SandboxedMarkdown extends React.PureComponent<
       });
       var parsed = marked(md);
       document.getElementById('content').innerHTML = parsed;
-
-      document.querySelector('a').addEventListener('click', e => {
-        e.preventDefault();
-        window.parent.postMessage(e.toString());
-      })
     </script>
 
     ${testEvilScript}
     `
 
-    window.addEventListener(
-      'message',
-      event => {
-        console.log(event)
-      },
-      false
-    )
+    this.setupLinkInterceptor(this.frameRef)
   }
 
   public render() {
     return (
       <iframe
         className="markdown-iframe"
-        sandbox="allow-scripts allow-same-origin"
+        sandbox="allow-scripts"
         ref={this.onFrameRef}
       />
     )
