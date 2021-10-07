@@ -15,6 +15,12 @@ export class SandboxedMarkdown extends React.PureComponent<
   ISandboxedMarkdownProps
 > {
   private frameRef: HTMLIFrameElement | null = null
+  /**
+   * A random string to use a unique script id or number only once (nonce) so
+   * the content security policy will only allow our provided script in the
+   * iframe to run.
+   */
+  private scriptNonce: string = crypto.randomBytes(16).toString('base64')
 
   private onFrameRef = (frameRef: HTMLIFrameElement | null) => {
     this.frameRef = frameRef
@@ -68,6 +74,15 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   /**
+   * Gets a content security policy that only allows a script with the provided
+   * nonce to run in the iframe.
+   */
+  private getContentSecurityPolicy(): string {
+    const contentSecurityPolicy = `script-src 'nonce-${this.scriptNonce}'`
+    return `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">`
+  }
+
+  /**
    * We still want to be able to navigate to links provided in the markdown.
    * However, we want to intercept them an verify they are valid links first.
    */
@@ -101,10 +116,7 @@ export class SandboxedMarkdown extends React.PureComponent<
       'utf8'
     )
     const styleSheet = await this.getInlineStyleSheet()
-
-    // Prevents any script without the generated nonce (number used once)
-    const nonce = crypto.randomBytes(16).toString('base64')
-    const contentSecurityPolicy = `script-src 'nonce-${nonce}'`
+    const csp = this.getContentSecurityPolicy()
 
     const testEvilScript = `<script>
     console.log("this one fails.. not csp")
@@ -112,14 +124,12 @@ export class SandboxedMarkdown extends React.PureComponent<
    `
 
     this.frameRef.srcdoc = `
-      <meta http-equiv="Content-Security-Policy"
-        content="${contentSecurityPolicy}">
-
+      ${csp}
       ${styleSheet}
 
       <div id="content"></div>
 
-      <script nonce="${nonce}">
+      <script nonce="${this.scriptNonce}">
         ${markedJS}
 
         var md = atob('${btoa(this.props.markdown)}');
