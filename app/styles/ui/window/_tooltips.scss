@@ -9,11 +9,13 @@ body > .tooltip,
   max-height: 500px;
   max-width: 500px;
 
+  word-wrap: break-word;
+
   background-color: var(--tooltip-background-color);
   color: var(--tooltip-color);
   border-radius: var(--border-radius);
   padding: var(--spacing);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size);
   box-shadow: 0 8px 24px var(--tooltip-shadow-color);
   border: 1px solid var(--tooltip-border-color);
 

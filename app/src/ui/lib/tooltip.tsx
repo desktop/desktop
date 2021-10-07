@@ -165,7 +165,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       show: false,
       targetRect:
         this.props.direction === undefined
-          ? translateRect(this.mouseRect, 5, 10)
+          ? translateRect(this.mouseRect, 0, 5)
           : target.getBoundingClientRect(),
       hostRect: container.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
