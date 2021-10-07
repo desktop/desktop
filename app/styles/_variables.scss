@@ -296,16 +296,16 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * 0-6.
    */
   --tooltip-z-index: 20;
-  --popup-z-index: calc(var(--popup-z-index) - 1);
-  --popup-overlay-z-index: calc(var(--popup-z-index) - 2);
-  --foldout-z-index: calc(var(--popup-z-index) - 3);
-  --nudge-arrow-z-index: calc(var(--popup-z-index) - 4);
-  --drag-overlay-z-index: calc(var(--popup-z-index) - 5);
+  --popup-z-index: calc(var(--tooltip-z-index) - 1);
+  --popup-overlay-z-index: calc(var(--tooltip-z-index) - 2);
+  --foldout-z-index: calc(var(--tooltip-z-index) - 3);
+  --nudge-arrow-z-index: calc(var(--tooltip-z-index) - 4);
+  --drag-overlay-z-index: calc(var(--tooltip-z-index) - 5);
   /**
    * This is 7 to make sure it appears on top code mirror
    * but behind popups, overlays, and foldouts
    */
-  --side-panel-z-index: calc(var(--popup-z-index) - 6);
+  --side-panel-z-index: calc(var(--tooltip-z-index) - 6);
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
