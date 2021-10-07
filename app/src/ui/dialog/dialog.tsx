@@ -585,7 +585,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         error: this.props.type === 'error',
         warning: this.props.type === 'warning',
       },
-      this.props.className
+      this.props.className,
+      'tooltip-host'
     )
 
     return (
