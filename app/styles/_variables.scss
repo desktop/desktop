@@ -288,23 +288,24 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --win32-scroll-bar-size: 10px;
 
   /**
-   * The z-index for popups. Nothing should be higher, but other z-indexes can
+   * The z-index for tooltips. Nothing should be higher, but other z-indexes can
    * be defined in terms of it.
    *
    * 10 seems arbitrary (because it is) but we have to go that high because
    * codemirror is all over the place with their z-indexes and uses at least
    * 0-6.
    */
-  --popup-z-index: 20;
-  --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
-  --foldout-z-index: calc(var(--popup-z-index) - 2);
-  --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
-  --drag-overlay-z-index: calc(var(--popup-z-index) - 3);
+  --tooltip-z-index: 20;
+  --popup-z-index: calc(var(--popup-z-index) - 1);
+  --popup-overlay-z-index: calc(var(--popup-z-index) - 2);
+  --foldout-z-index: calc(var(--popup-z-index) - 3);
+  --nudge-arrow-z-index: calc(var(--popup-z-index) - 4);
+  --drag-overlay-z-index: calc(var(--popup-z-index) - 5);
   /**
    * This is 7 to make sure it appears on top code mirror
    * but behind popups, overlays, and foldouts
    */
-  --side-panel-z-index: calc(var(--popup-z-index) - 4);
+  --side-panel-z-index: calc(var(--popup-z-index) - 6);
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
