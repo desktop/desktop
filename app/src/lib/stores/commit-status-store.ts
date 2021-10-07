@@ -608,6 +608,32 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   }
 }
 
+export function getCheckRunConclusionAdjective(
+  conclusion: APICheckConclusion | null
+): string {
+  if (conclusion === null) {
+    return 'In progress'
+  }
+
+  switch (conclusion) {
+    case APICheckConclusion.ActionRequired:
+      return 'Action required'
+    case APICheckConclusion.Canceled:
+      return 'Canceled'
+    case APICheckConclusion.TimedOut:
+      return 'Timed out'
+    case APICheckConclusion.Failure:
+      return 'Failed'
+    case APICheckConclusion.Neutral:
+      return 'Neutral'
+    case APICheckConclusion.Success:
+      return 'Successful'
+    case APICheckConclusion.Skipped:
+      return 'Skipped'
+    case APICheckConclusion.Stale:
+      return 'Marked as stale'
+  }
+}
 /**
  * Method to generate a user friendly short check run description such as
  * "Successful in xs", "In Progress", "Failed after 1m"
@@ -631,35 +657,21 @@ function getCheckRunShortDescription(
     return 'In progress'
   }
 
-  let adjective = ''
-  let preposition = 'after'
+  const adjective = getCheckRunConclusionAdjective(conclusion)
 
-  // Some of these such as 'Action required' or 'Skipped' don't make sense with
-  // time context so we just return them.
-  switch (conclusion) {
-    case APICheckConclusion.ActionRequired:
-      return 'Action required'
-    case APICheckConclusion.Canceled:
-      adjective = 'Canceled'
-      break
-    case APICheckConclusion.TimedOut:
-      adjective = 'Timed out'
-      break
-    case APICheckConclusion.Failure:
-      adjective = 'Failed'
-      break
-    case APICheckConclusion.Neutral:
-      adjective = 'Completed'
-      break
-    case APICheckConclusion.Success:
-      adjective = 'Successful'
-      preposition = 'in'
-      break
-    case APICheckConclusion.Skipped:
-      return 'Skipped'
-    case APICheckConclusion.Stale:
-      return 'Marked as stale'
+  // Some conclusions such as 'Action required' or 'Skipped' don't make sense
+  // with time context so we just return them.
+  if (
+    [
+      APICheckConclusion.ActionRequired,
+      APICheckConclusion.Skipped,
+      APICheckConclusion.Stale,
+    ].includes(conclusion)
+  ) {
+    return adjective
   }
+
+  const preposition = conclusion === APICheckConclusion.Success ? 'in' : 'after'
 
   if (durationSeconds !== undefined && durationSeconds > 0) {
     const duration =

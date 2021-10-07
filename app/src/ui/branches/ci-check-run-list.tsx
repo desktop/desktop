@@ -3,6 +3,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { IDisposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
 import {
+  getCheckRunConclusionAdjective,
   ICombinedRefCheck,
   IRefCheck,
 } from '../../lib/stores/commit-status-store'
@@ -11,6 +12,7 @@ import _ from 'lodash'
 import { Button } from '../lib/button'
 import { CICheckRunListItem } from './ci-check-list-item'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+
 interface ICICheckRunListProps {
   /** The classname for the underlying element. */
   readonly className?: string
@@ -29,6 +31,7 @@ interface ICICheckRunListProps {
 
 interface ICICheckRunListState {
   readonly checkRuns: ReadonlyArray<IRefCheck>
+  readonly checkRunSummary: string
   readonly checkRunsShown: string | null
   readonly checkRunLogsShown: string | null
   readonly loadingLogs: boolean
@@ -51,6 +54,7 @@ export class CICheckRunList extends React.PureComponent<
 
     this.state = {
       checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
+      checkRunSummary: this.getCombinedCheckSummary(combinedCheck),
       checkRunsShown: null,
       checkRunLogsShown: null,
       loadingLogs: true,
@@ -116,7 +120,11 @@ export class CICheckRunList extends React.PureComponent<
           )
         : statusChecks
 
-    this.setState({ checkRuns, loadingLogs: false })
+    this.setState({
+      checkRuns,
+      loadingLogs: false,
+      checkRunSummary: this.getCombinedCheckSummary(check),
+    })
   }
 
   private viewCheckRunsOnGitHub = (checkRun: IRefCheck): void => {
@@ -145,6 +153,36 @@ export class CICheckRunList extends React.PureComponent<
 
   private getCommitRef(prNumber: number): string {
     return `refs/pull/${prNumber}/head`
+  }
+
+  private getCombinedCheckSummary(
+    combinedCheck: ICombinedRefCheck | null
+  ): string {
+    if (combinedCheck === null || combinedCheck.checks.length === 0) {
+      return ''
+    }
+
+    const { checks } = combinedCheck
+    const conclusionMap = new Map<string, number>()
+    for (const check of checks) {
+      const adj = getCheckRunConclusionAdjective(
+        check.conclusion
+      ).toLocaleLowerCase()
+      conclusionMap.set(adj, (conclusionMap.get(adj) ?? 0) + 1)
+    }
+
+    const summaryArray = []
+    for (const [conclusion, count] of conclusionMap.entries()) {
+      summaryArray.push(`${count} ${conclusion}`)
+    }
+
+    if (summaryArray.length > 1) {
+      return `${summaryArray.slice(0, -1).join(', ')}, and ${summaryArray.slice(
+        -1
+      )} checks`
+    }
+
+    return `${summaryArray[0]} check`
   }
 
   private rerunJobs = () => {
@@ -177,9 +215,10 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private renderRerunButton = () => {
+    const { checkRuns } = this.state
     return (
       <div className="ci-check-rerun">
-        <Button onClick={this.rerunJobs}>
+        <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
           <Octicon symbol={syncClockwise} /> Re-run jobs
         </Button>
       </div>
@@ -187,14 +226,7 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public render() {
-    const { checkRuns, checkRunsShown } = this.state
-
-    if (checkRuns.length === 0) {
-      // If this is actually occurred, it will crash the app because there is
-      // nothing for focus trap to focus on.
-      // TODO: close popup
-      return null
-    }
+    const { checkRuns, checkRunsShown, checkRunSummary } = this.state
 
     const checksByApp = _.groupBy(checkRuns, 'appName')
     const appNames = Object.keys(checksByApp).sort(
@@ -220,7 +252,6 @@ export class CICheckRunList extends React.PureComponent<
               }
             />
             <div className="ci-check-app-name">{displayAppName}</div>
-            {index === 0 ? this.renderRerunButton() : null}
           </div>
           {appNameShown === displayAppName
             ? this.renderList(checksByApp[appName])
@@ -229,6 +260,17 @@ export class CICheckRunList extends React.PureComponent<
       )
     })
 
-    return <div className="ci-check-run-list">{checkLists}</div>
+    return (
+      <div className="ci-check-run-list">
+        <div className="ci-check-run-list-header">
+          <div className="ci-check-run-list-title-container">
+            <div className="title">Checks Summary</div>
+            {this.renderRerunButton()}
+          </div>
+          <div className="check-run-list-summary">{checkRunSummary}</div>
+        </div>
+        {checkRuns.length !== 0 ? checkLists : 'Unable to load checks runs.'}
+      </div>
+    )
   }
 }
