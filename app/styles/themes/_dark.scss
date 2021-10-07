@@ -331,6 +331,7 @@ body.theme-dark {
   --tooltip-background-color: #{$gray-800};
   --tooltip-color: #{$gray-100};
   --tooltip-shadow-color: #{$black};
+  --tooltip-border-color: #{$gray-600};
 
   /** Inline paths and code */
   --path-segment-background: #{$gray-700};

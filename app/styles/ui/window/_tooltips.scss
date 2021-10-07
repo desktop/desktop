@@ -24,6 +24,7 @@ body > .tooltips,
       padding: var(--spacing);
       font-size: var(--font-size-sm);
       box-shadow: 0 8px 24px var(--tooltip-shadow-color);
+      border: 1px solid var(--tooltip-border-color);
     }
 
     &.interactive {
