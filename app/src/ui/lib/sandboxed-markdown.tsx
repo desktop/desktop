@@ -21,6 +21,17 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   public async componentDidMount() {
+    this.mountIframeContents()
+  }
+
+  public async componentDidUpdate(prevProps: ISandboxedMarkdownProps) {
+    // rerender iframe contents if provided markdown changes
+    if (prevProps.markdown !== this.props.markdown) {
+      this.mountIframeContents()
+    }
+  }
+
+  private mountIframeContents = async (): Promise<void> => {
     if (this.frameRef === null || this.frameRef.contentDocument === null) {
       return
     }
