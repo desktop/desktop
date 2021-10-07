@@ -118,11 +118,6 @@ export class SandboxedMarkdown extends React.PureComponent<
     const styleSheet = await this.getInlineStyleSheet()
     const csp = this.getContentSecurityPolicy()
 
-    const testEvilScript = `<script>
-    console.log("this one fails.. not csp")
-  </script>
-   `
-
     this.frameRef.srcdoc = `
       ${csp}
       ${styleSheet}
@@ -139,8 +134,6 @@ export class SandboxedMarkdown extends React.PureComponent<
         var parsed = marked(md);
         document.getElementById('content').innerHTML = parsed;
       </script>
-
-    ${testEvilScript}
     `
 
     this.setupLinkInterceptor(this.frameRef)
