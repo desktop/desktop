@@ -106,6 +106,9 @@ export class SandboxedMarkdown extends React.PureComponent<
     }
   }
 
+  /**
+   * Generates an iframe with a csp allowed script of a markdown parser.
+   */
   private mountIframeContents = async (): Promise<void> => {
     if (this.frameRef === null) {
       return
@@ -115,8 +118,21 @@ export class SandboxedMarkdown extends React.PureComponent<
       Path.join(__dirname, 'static', 'marked.min.js'),
       'utf8'
     )
+
     const styleSheet = await this.getInlineStyleSheet()
     const csp = this.getContentSecurityPolicy()
+
+    // btoa converts the markdown into a base64 string to allow us to print it into
+    // a script file. Then, in the script file we have atob to convert it back
+    // to a markdown string.
+    const mardownToAndFromBase64 = `var md = atob('${btoa(
+      this.props.markdown
+    )}');`
+
+    // We want the marked parse to use GitHub Flavored Markdown (gfm)
+    const useGFM = `marked.use({
+                      gfm: true
+                    });`
 
     this.frameRef.srcdoc = `
       ${csp}
@@ -127,12 +143,11 @@ export class SandboxedMarkdown extends React.PureComponent<
       <script nonce="${this.scriptNonce}">
         ${markedJS}
 
-        var md = atob('${btoa(this.props.markdown)}');
-        marked.use({
-          gfm: true
-        });
-        var parsed = marked(md);
-        document.getElementById('content').innerHTML = parsed;
+        ${mardownToAndFromBase64}
+
+        ${useGFM}
+
+        document.getElementById('content').innerHTML = marked(md);
       </script>
     `
 
