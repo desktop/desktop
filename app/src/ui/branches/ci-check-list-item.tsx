@@ -109,7 +109,7 @@ export class CICheckRunListItem extends React.PureComponent<
     return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
   }
 
-  private markDownLinkClicked(link: string): void {
+  private markDownLinkClicked = (link: string): void => {
     console.log(link)
   }
 
