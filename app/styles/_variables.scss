@@ -432,6 +432,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /** Tooltips */
   --tooltip-background-color: #{$gray-900};
   --tooltip-color: #{$gray-100};
+  --tooltip-shadow-color: #{rgba($gray-900, 0.75)};
 
   /** Inline paths and code */
   --path-segment-background: #{$blue-000};
