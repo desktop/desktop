@@ -3,6 +3,9 @@ import * as ReactDOM from 'react-dom'
 import { ObservableRef } from './observable-ref'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import classNames from 'classnames'
+import { assertNever } from '../../lib/fatal-error'
+
+export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 
 interface ITooltipProps<T> {
   readonly target: ObservableRef<T>
@@ -10,43 +13,55 @@ interface ITooltipProps<T> {
   readonly accessible?: boolean
   readonly interactive?: boolean
   readonly noDelay?: boolean
+  readonly direction?: TooltipDirection
 }
 
 interface ITooltipState {
   readonly target: HTMLElement | null
-  readonly visibleAt?: TooltipPosition
+  readonly tooltipContainer: HTMLElement | null
+  readonly visible: boolean
+  readonly targetRect: DOMRect
+  readonly hostRect: DOMRect
+  readonly windowRect: DOMRect
 }
-
-type TooltipPosition = { x: number; y: number }
 
 export class Tooltip<T extends HTMLElement> extends React.Component<
   ITooltipProps<T>,
   ITooltipState
 > {
-  private static globalWrapper: HTMLDivElement | null = null
   private id: string | undefined = undefined
   private showTooltipTimeout: number | undefined = undefined
 
   public constructor(props: ITooltipProps<T>) {
     super(props)
-    this.state = { target: props.target.current }
+    const target = props.target.current
+    this.state = {
+      target,
+      visible: false,
+      targetRect: new DOMRect(),
+      hostRect: new DOMRect(),
+      windowRect: new DOMRect(),
+      tooltipContainer: target === null ? null : getOrCreateContainer(target),
+    }
   }
 
   public componentDidMount() {
     this.id = createUniqueId('tooltip')
-    this.props.target.subscribe(this.onTargetRef)
-    if (
-      this.props.target.current !== null &&
-      this.state.target !== this.props.target.current
-    ) {
-      this.setState({ target: this.props.target.current })
+    const { target } = this.props
+    target.subscribe(this.onTargetRef)
+
+    if (target.current !== null && this.state.target !== target.current) {
+      this.onTargetRef(target.current)
     } else if (this.state.target !== null) {
       this.installTooltip(this.state.target)
     }
   }
 
   public onTargetRef = (elem: HTMLElement | null) => {
-    this.setState({ target: elem })
+    this.setState({
+      target: elem,
+      tooltipContainer: elem === null ? null : getOrCreateContainer(elem),
+    })
   }
 
   public componentDidUpdate(
@@ -73,6 +88,12 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         }
       }
     }
+
+    if (prevState.tooltipContainer !== this.state.tooltipContainer) {
+      if (prevState.tooltipContainer?.childElementCount === 0) {
+        prevState.tooltipContainer.remove()
+      }
+    }
   }
 
   private installTooltip(elem: HTMLElement) {
@@ -94,11 +115,6 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     if (this.id !== undefined) {
       releaseUniqueId(this.id)
       this.id = undefined
-    }
-
-    if (Tooltip.globalWrapper?.childElementCount === 0) {
-      Tooltip.globalWrapper.remove()
-      Tooltip.globalWrapper = null
     }
   }
 
@@ -123,8 +139,18 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private showTooltip(target: HTMLElement) {
-    const { x, y } = target.getBoundingClientRect()
-    this.setState({ visibleAt: { x, y: y + 30 } })
+    const container = this.state.tooltipContainer
+
+    if (container === null) {
+      return
+    }
+
+    this.setState({
+      visible: true,
+      targetRect: target.getBoundingClientRect(),
+      hostRect: container.getBoundingClientRect(),
+      windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
+    })
   }
 
   private cancelShowTooltip() {
@@ -136,42 +162,58 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
 
   private onTargetMouseLeave = (event: MouseEvent) => {
     this.cancelShowTooltip()
-    this.setState({ visibleAt: undefined })
+    this.setState({ visible: false })
   }
 
   public componentWillUnmount() {
     this.cancelShowTooltip()
     this.props.target.unsubscribe(this.onTargetRef)
     this.removeTooltip(this.state.target)
+
+    if (this.state.tooltipContainer?.childElementCount === 0) {
+      this.state.tooltipContainer.remove()
+    }
   }
 
   public render() {
-    if (this.state.target === null) {
-      return null
-    }
+    const { target, tooltipContainer } = this.state
 
-    if (Tooltip.globalWrapper === null) {
-      Tooltip.globalWrapper = document.createElement('div')
-      Tooltip.globalWrapper.classList.add('tooltips')
-      document.body.appendChild(Tooltip.globalWrapper)
-    }
-
-    return ReactDOM.createPortal(this.renderPortal(), Tooltip.globalWrapper)
+    return target === null || tooltipContainer === null
+      ? null
+      : ReactDOM.createPortal(this.renderPortal(), tooltipContainer)
   }
 
   private renderPortal() {
-    const { visibleAt } = this.state
-    const style: React.CSSProperties = visibleAt
-      ? { left: `${visibleAt.x}px`, top: `${visibleAt.y}px` }
+    const { visible, targetRect, hostRect, windowRect } = this.state
+    const { interactive } = this.props
+
+    const mW = 400
+    const mH = 300
+
+    const direction = visible
+      ? getDirection(this.props.direction, targetRect, windowRect, mW, mH)
+      : 's'
+
+    const size: React.CSSProperties = {
+      width: `${mW}px`,
+      height: `${mH}px`,
+      maxWidth: `${mW}px`,
+      maxHeight: `${mH}px`,
+    }
+
+    const style: React.CSSProperties = visible
+      ? {
+          ...getTooltipPositionStyle(direction, targetRect, hostRect, mW, mH),
+          ...size,
+        }
       : { display: 'none' }
 
     const ariaHidden =
-      this.props.accessible !== false && visibleAt !== undefined
-        ? 'false'
-        : 'true'
+      this.props.accessible !== false && visible ? 'false' : 'true'
 
     const className = classNames('tooltip', {
-      interactive: this.props.interactive === true,
+      interactive,
+      [`tooltip-${direction}`]: visible,
     })
 
     return (
@@ -182,8 +224,134 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         id={this.id}
         style={style}
       >
-        {this.props.children}
+        {/* <div className="tip"></div> */}
+        <div className="bubble">{this.props.children}</div>
       </div>
     )
+  }
+}
+
+function createContainer(parent: Element) {
+  const container = document.createElement('div')
+  container.classList.add('tooltips')
+  return parent.appendChild(container)
+}
+
+function getOrCreateContainer(elem: HTMLElement): HTMLElement | null {
+  const host = elem.closest('.tooltip-host') ?? document.body
+  return host.querySelector(':scope >.tooltips') ?? createContainer(host)
+}
+
+function getDirection(
+  direction: TooltipDirection | undefined,
+  target: DOMRect,
+  window: DOMRect,
+  maxWidth: number,
+  maxHeight: number
+): TooltipDirection {
+  const fits = (direction: TooltipDirection) => {
+    const r = getTooltipRectRelativeTo(target, direction, maxWidth, maxHeight)
+    return (
+      r.top >= window.top &&
+      r.left >= window.left &&
+      r.bottom <= window.bottom &&
+      r.right <= window.right
+    )
+  }
+
+  let candidates = new Set<TooltipDirection>([
+    'n',
+    'ne',
+    'nw',
+    's',
+    'se',
+    'sw',
+    'e',
+    'w',
+  ])
+
+  if (direction !== undefined) {
+    if (fits(direction)) {
+      return direction
+    }
+
+    // Try to respect the desired direction by changing the order
+    if (direction.startsWith('s')) {
+      candidates = new Set(['s', 'se', 'sw', ...candidates])
+    } else if (direction.startsWith('n')) {
+      candidates = new Set(['n', 'ne', 'nw', ...candidates])
+    }
+
+    // We already know it won't fit
+    candidates.delete(direction)
+  }
+
+  for (const candidate of candidates) {
+    if (fits(candidate)) {
+      return candidate
+    }
+  }
+
+  // Fall back to south even though it doesn't fit
+  return 's'
+}
+
+function getTooltipPositionStyle(
+  direction: TooltipDirection,
+  target: DOMRect,
+  host: DOMRect,
+  maxWidth: number,
+  maxHeight: number
+): React.CSSProperties {
+  const r = getTooltipRectRelativeTo(target, direction, maxWidth, maxHeight)
+  r.x -= host.x
+  r.y -= host.y
+
+  if (direction === 'nw') {
+    return {
+      right: `${host.width - r.left}px`,
+      bottom: `${host.height - r.bottom}px`,
+    }
+  } else if (direction === 'n' || direction === 'ne') {
+    return { left: `${r.left}px`, bottom: `${host.height - r.bottom}px` }
+  } else if (direction === 'e' || direction === 's' || direction === 'se') {
+    return { left: `${r.left}px`, top: `${r.top}px` }
+  } else if (direction === 'sw' || direction === 'w') {
+    return { right: `${host.width - r.left}px`, top: `${r.top}px` }
+  }
+
+  return assertNever(direction, `Unknown direction ${direction}`)
+}
+
+function getTooltipRectRelativeTo(
+  target: DOMRect,
+  direction: TooltipDirection,
+  w: number,
+  h: number
+) {
+  const { left: xLeft, right: xRight, bottom: yBotttom } = target
+  const xCenter = target.left + target.width / 2
+  const yTop = target.top - h
+  const yCenter = target.top + target.height / 2 - h / 2
+
+  switch (direction) {
+    case 'ne':
+      return new DOMRect(xCenter, yTop, w, h)
+    case 'n':
+      return new DOMRect(xCenter - w / 2, yTop, w, h)
+    case 'nw':
+      return new DOMRect(xCenter, yTop, w, h)
+    case 'e':
+      return new DOMRect(xRight, yCenter, w, h)
+    case 'se':
+      return new DOMRect(xCenter, yBotttom, w, h)
+    case 's':
+      return new DOMRect(xCenter - w / 2, yBotttom, w, h)
+    case 'sw':
+      return new DOMRect(xCenter, yBotttom, w, h)
+    case 'w':
+      return new DOMRect(xLeft, yCenter, w, h)
+    default:
+      return assertNever(direction, `Unknown direction ${direction}`)
   }
 }

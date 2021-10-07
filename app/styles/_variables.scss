@@ -429,6 +429,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
 
+  /** Tooltips */
+  --tooltip-background-color: #{$gray-900};
+  --tooltip-color: #{$gray-100};
+
   /** Inline paths and code */
   --path-segment-background: #{$blue-000};
   --path-segment-padding: var(--spacing-third);

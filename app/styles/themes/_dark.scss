@@ -327,6 +327,10 @@ body.theme-dark {
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
 
+  /** Tooltips */
+  --tooltip-background-color: #{$gray-800};
+  --tooltip-color: #{$gray-100};
+
   /** Inline paths and code */
   --path-segment-background: #{$gray-700};
 

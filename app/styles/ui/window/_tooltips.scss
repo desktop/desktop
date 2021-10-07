@@ -1,14 +1,66 @@
-body > .tooltips {
-  > .tooltip {
-    position: absolute;
-    background: black;
-    color: white;
-    border-radius: var(--border-radius);
-    padding: 10px;
-    font-size: var(--font-size-sm);
+body > .tooltips,
+.tooltip-host > .tooltips {
+  position: absolute;
+  pointer-events: none;
 
-    &:not(.interactive) {
-      pointer-events: none;
+  .tooltip {
+    position: absolute;
+    z-index: var(--tooltip-z-index);
+    display: flex;
+
+    .tip {
+      position: absolute;
+      background: red;
+      width: 10px;
+      height: 10px;
+      //transform: rotate(45deg);
+      clip: rect(0, 5px, 5px, 0);
+    }
+
+    .bubble {
+      background-color: var(--tooltip-background-color);
+      color: var(--tooltip-color);
+      border-radius: var(--border-radius);
+      padding: var(--spacing);
+      font-size: var(--font-size-sm);
+    }
+
+    &.interactive {
+      pointer-events: auto;
+    }
+
+    &.tooltip-ne,
+    &.tooltip-n,
+    &.tooltip-nw {
+      align-items: flex-end;
+    }
+
+    &.tooltip-w,
+    &.tooltip-e {
+      align-items: center;
+    }
+
+    &.tooltip-sw,
+    &.tooltip-s,
+    &.tooltip-se {
+      align-items: flex-start;
+    }
+
+    &.tooltip-n,
+    &.tooltip-s {
+      justify-content: center;
+    }
+
+    &.tooltip-ne,
+    &.tooltip-e,
+    &.tooltip-se {
+      justify-content: flex-start;
+    }
+
+    &.tooltip-nw,
+    &.tooltip-sw,
+    &.tooltip-w {
+      justify-content: flex-end;
     }
   }
 }
