@@ -109,6 +109,10 @@ export class CICheckRunListItem extends React.PureComponent<
     return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
   }
 
+  private markDownLinkClicked(link: string): void {
+    console.log(link)
+  }
+
   private renderMetaOutput = (
     output: IRefCheckOutput,
     checkRunName: string
@@ -126,7 +130,10 @@ export class CICheckRunListItem extends React.PureComponent<
       <div>
         {displayTitle ? <h2>{title}</h2> : null}
         {summary !== null && summary !== undefined && summary.trim() !== '' ? (
-          <SandboxedMarkdown markdown={summary} />
+          <SandboxedMarkdown
+            markdown={summary}
+            onMarkdownLinkClicked={this.markDownLinkClicked}
+          />
         ) : null}
       </div>
     )
