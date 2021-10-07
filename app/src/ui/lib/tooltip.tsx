@@ -31,6 +31,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
 > {
   private id: string | undefined = undefined
   private showTooltipTimeout: number | undefined = undefined
+  private pointerRect = new DOMRect()
 
   public constructor(props: ITooltipProps<T>) {
     super(props)
@@ -103,6 +104,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
 
     elem.addEventListener('mouseenter', this.onTargetMouseEnter)
     elem.addEventListener('mouseleave', this.onTargetMouseLeave)
+    elem.addEventListener('mousemove', this.onTargetMouseMove)
   }
 
   private removeTooltip(prevTarget: HTMLElement | null) {
@@ -110,6 +112,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       prevTarget.removeAttribute('aria-describedby')
       prevTarget.removeEventListener('mouseenter', this.onTargetMouseEnter)
       prevTarget.removeEventListener('mouseleave', this.onTargetMouseLeave)
+      prevTarget.removeEventListener('mousemove', this.onTargetMouseMove)
     }
 
     if (this.id !== undefined) {
@@ -123,7 +126,12 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       return
     }
 
+    this.pointerRect = new DOMRect(event.clientX, event.clientY)
     this.beginShowTooltip(event.currentTarget)
+  }
+
+  private onTargetMouseMove = (event: MouseEvent) => {
+    this.pointerRect = new DOMRect(event.clientX, event.clientY)
   }
 
   private beginShowTooltip(target: HTMLElement) {
@@ -147,7 +155,10 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
 
     this.setState({
       visible: true,
-      targetRect: target.getBoundingClientRect(),
+      targetRect:
+        this.props.direction === undefined
+          ? this.pointerRect
+          : target.getBoundingClientRect(),
       hostRect: container.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
     })
@@ -270,6 +281,8 @@ function getDirection(
     'w',
   ])
 
+  // We'll attempt to honor the desired placement but if it won't fit we'll
+  // move it around until it does.
   if (direction !== undefined) {
     if (fits(direction)) {
       return direction
@@ -284,6 +297,9 @@ function getDirection(
 
     // We already know it won't fit
     candidates.delete(direction)
+  } else {
+    // Placement based on mouse position, prefer south east, north east
+    candidates = new Set(['se', 'ne', ...candidates])
   }
 
   for (const candidate of candidates) {
