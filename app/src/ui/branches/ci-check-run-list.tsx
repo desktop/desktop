@@ -148,7 +148,17 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private rerunJobs = () => {
-    // TODO: Rerun jobs
+    // Get unique set of check suite ids
+    const checkSuiteIds = new Set<number | null>([
+      ...this.state.checkRuns.map(cr => cr.checkSuiteId),
+    ])
+
+    for (const id of checkSuiteIds) {
+      if (id === null) {
+        continue
+      }
+      this.props.dispatcher.rerequestCheckSuite(this.props.repository, id)
+    }
   }
 
   private onAppHeaderClick = (appName: string) => {

@@ -14,6 +14,7 @@ import {
   IAPIWorkflowJobStep,
   IAPIWorkflowJob,
   IAPIWorkflowJobs,
+  getAccountForEndpoint,
 } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import { setAlmostImmediate } from '../set-almost-immediate'
@@ -541,6 +542,20 @@ export class CommitStatusStore {
     }
 
     return Array.from(wrMap.values())
+  }
+
+  public async rerequestCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
   }
 }
 
