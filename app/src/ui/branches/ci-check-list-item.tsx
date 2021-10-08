@@ -30,6 +30,10 @@ interface ICICheckRunListItemProps {
   /** Whether to show the logs for this check run */
   readonly showLogs: boolean
 
+  /** The base href used for relative links provided in check run markdown
+   * output */
+  readonly baseHref: string | null
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunClick: (checkRun: IRefCheck) => void
 
@@ -132,6 +136,7 @@ export class CICheckRunListItem extends React.PureComponent<
         {summary !== null && summary !== undefined && summary.trim() !== '' ? (
           <SandboxedMarkdown
             markdown={summary}
+            baseHref={this.props.baseHref}
             onMarkdownLinkClicked={this.markDownLinkClicked}
           />
         ) : null}

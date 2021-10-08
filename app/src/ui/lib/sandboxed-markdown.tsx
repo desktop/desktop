@@ -7,7 +7,7 @@ interface ISandboxedMarkdownProps {
   /** A string of unparsed markdownm to display */
   readonly markdown: string
 
-  /** The baseHref of the markdown content */
+  /** The baseHref of the markdown content for when the markdown has relative links */
   readonly baseHref: string | null
 
   /**
@@ -130,16 +130,9 @@ export class SandboxedMarkdown extends React.PureComponent<
           return
         }
 
-        // TODO: Our markdown parser may need expanded for better gfm support or
-        // some of our own parsing on top... seems github.com may be doing this (see all the filters listed..)
-        // - https://github.com/github/github/blob/c64a19a5173834d776cc67f21fd7cf141e5fd2ab/lib/github/goomba.rb#L129.
-        // But as it is, there are links provided that look like:
-        // "/desktop/desktop/security/code-scanning?query=pr%3A13013+tool%3ACodeQL"
-        // The expectation is that his should open
-        // github.com/desktop/desktop/security/code-scanning?query=pr%3A13013+tool%3ACodeQL
-        if (url.protocol !== 'https:') {
+        if (url.protocol !== 'https:' && url.protocol !== 'http:') {
           log.warn(
-            'Failed to parse markdown link href - non https: links are blocked'
+            'Failed to parse markdown link href - non https: and http: links are blocked'
           )
           return
         }
