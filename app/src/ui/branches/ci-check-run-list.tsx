@@ -118,7 +118,12 @@ export class CICheckRunList extends React.PureComponent<
     }
 
     /*
-      Until we retrieve the actions 
+      Until we retrieve the actions workflows, we don't know if a check run has
+      action logs to output, thus, we want to show loading until then. However,
+      once the workflows have been retrieved and since the logs retrieval and
+      parsing can be noticeably time consuming. We go ahead and flip a flag so
+      that we know we can go ahead and display the checkrun `output` content if
+      a check run does not have action logs to retrieve/parse.
     */
     const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsJobsAndLogURLS(
       this.props.repository,
@@ -132,7 +137,6 @@ export class CICheckRunList extends React.PureComponent<
       loadingActionWorkflows: false,
     })
 
-    //
     const checkRuns = await this.props.dispatcher.getActionsWorkflowRunLogs(
       this.props.repository,
       this.getCommitRef(this.props.prNumber),

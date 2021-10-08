@@ -167,14 +167,14 @@ export class CICheckRunListItem extends React.PureComponent<
 
   private renderLogs = () => {
     const {
-      loadingLogs,
+      loadingActionLogs,
       loadingActionWorkflows,
       checkRun: { output, name },
     } = this.props
 
     if (
       loadingActionWorkflows ||
-      (this.hasActionsWorkflowLogs() && loadingLogs)
+      (this.hasActionsWorkflowLogs() && loadingActionLogs)
     ) {
       return this.renderLoadingLogs()
     }
