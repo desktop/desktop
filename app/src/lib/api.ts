@@ -1019,7 +1019,9 @@ export class API {
     name: string,
     branchName: string
   ): Promise<IAPIWorkflowRuns | null> {
-    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${branchName}`
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${encodeURIComponent(
+      branchName
+    )}`
     const customHeaders = {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
