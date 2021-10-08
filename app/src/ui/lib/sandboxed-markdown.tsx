@@ -165,10 +165,11 @@ export class SandboxedMarkdown extends React.PureComponent<
     const styleSheet = await this.getInlineStyleSheet()
     this.setContentSecurityPolicy(this.frameRef)
 
-    // btoa converts the markdown into a base64 string to allow us to print it into
-    // a script file. Then, in the script file we have atob to convert it back
-    // to a markdown string.
-    //const b64markedJS = Buffer.from(markedJS, 'utf8').toString('base64')
+    // We need to convert the markdown into a base64 string to allow us to print
+    // it into a script file and not break into multiple lines. Then, in the
+    // script file, we need to convert it back to a markdown string.
+    // encodeURIComponent/decodeURIComponent is important for things like emoji
+    // unicode and btoa fails to parse non latin strings.
     const mardownToAndFromBase64 = `var md = decodeURIComponent(atob('${btoa(
       encodeURIComponent(this.props.markdown)
     )}'));`
@@ -202,7 +203,16 @@ export class SandboxedMarkdown extends React.PureComponent<
       </html>
     `
 
+    // We used this `Buffer.toString('base64')` approach because `btoa` could not
+    // convert non-latin strings that existed in the markedjs.
     const b64src = Buffer.from(src, 'utf8').toString('base64')
+
+    // We are using `src` and data uri as opposed to an html string in the
+    // `srcdoc` property because the `srcdoc` property renders the html in the
+    // parent dom and therefore does not utilize the content security policy
+    // provided in the iframe's csp attribute. Additionally, we want all rendering
+    // to be isolated to our sandboxed iframe - not in the parents dom.
+    // -- https://csplite.com/csp/test188/
     this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
     this.setupLinkInterceptor(this.frameRef)
   }
