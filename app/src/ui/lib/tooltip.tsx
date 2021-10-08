@@ -55,7 +55,6 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     this.resizeObserver = new ResizeObserver(entries => {
       const tooltipRect = entries[0]?.target?.getBoundingClientRect()
       if (tooltipRect && !rectEquals(this.state.tooltipRect, tooltipRect)) {
-        console.log('resized!', entries[0].contentRect, tooltipRect)
         this.setState({ tooltipRect })
       }
     })
