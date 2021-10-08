@@ -7,6 +7,9 @@ interface ISandboxedMarkdownProps {
   /** A string of unparsed markdownm to display */
   readonly markdown: string
 
+  /** The baseHref of the markdown content */
+  readonly baseHref: string | null
+
   /**
    * A callback with the url of a link clicked in the parsed markdown
    *
@@ -176,6 +179,15 @@ export class SandboxedMarkdown extends React.PureComponent<
                     });`
 
     const src = `
+      <html>
+      <head>
+        ${
+          this.props.baseHref !== null
+            ? `<base href="${this.props.baseHref}" />`
+            : ''
+        }
+      </head>
+      <body>
       ${styleSheet}
 
       <div id="content"></div>
@@ -186,10 +198,12 @@ export class SandboxedMarkdown extends React.PureComponent<
         ${useGFM}
         document.getElementById('content').innerHTML = marked(md);
       </script>
+      </body>
+      </html>
     `
 
     const b64src = Buffer.from(src, 'utf8').toString('base64')
-    this.frameRef.src = `data:text/html;base64,${b64src}`
+    this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
     this.setupLinkInterceptor(this.frameRef)
   }
 
