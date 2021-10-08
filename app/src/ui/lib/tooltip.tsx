@@ -324,28 +324,29 @@ function getTooltipRectRelativeTo(
   tooltip: DOMRect
 ) {
   const { left: xLeft, right: xRight, bottom: yBotttom } = target
-  const xCenter = target.left + target.width / 2
+  const xMid = target.left + target.width / 2
   const yTop = target.top - tooltip.height
-  const yCenter = target.top + target.height / 2 - tooltip.height / 2
+  const yMid = target.top + target.height / 2 - tooltip.height / 2
   const { width: w, height: h } = tooltip
+  const tip = new DOMRect(10, 0, 6, 6)
 
   switch (direction) {
     case 'ne':
-      return new DOMRect(xCenter, yTop, w, h)
+      return new DOMRect(xMid - tip.x - tip.width, yTop - tip.height, w, h)
     case 'n':
-      return new DOMRect(xCenter - w / 2, yTop, w, h)
+      return new DOMRect(xMid - w / 2, yTop - tip.height, w, h)
     case 'nw':
-      return new DOMRect(xCenter - w, yTop, w, h)
+      return new DOMRect(xMid - w + tip.right, yTop - tip.height, w, h)
     case 'e':
-      return new DOMRect(xRight, yCenter, w, h)
+      return new DOMRect(xRight + tip.width, yMid, w, h)
     case 'se':
-      return new DOMRect(xCenter, yBotttom, w, h)
+      return new DOMRect(xMid - tip.x - tip.width, yBotttom + tip.height, w, h)
     case 's':
-      return new DOMRect(xCenter - w / 2, yBotttom, w, h)
+      return new DOMRect(xMid - w / 2, yBotttom + tip.height, w, h)
     case 'sw':
-      return new DOMRect(xCenter - w, yBotttom, tooltip.width, h)
+      return new DOMRect(xMid - w + tip.right, yBotttom + tip.height, w, h)
     case 'w':
-      return new DOMRect(xLeft - w, yCenter, tooltip.width, h)
+      return new DOMRect(xLeft - w - tip.width, yMid, w, h)
     default:
       return assertNever(direction, `Unknown direction ${direction}`)
   }

@@ -59,7 +59,7 @@ body > .tooltip,
     &::before {
       top: 50%;
       bottom: 50%;
-      right: -13px;
+      right: -12px;
       margin-top: -6px;
       border-left-color: var(--tooltip-background-color);
     }
@@ -79,6 +79,7 @@ body > .tooltip,
   &.tooltip-nw {
     &::before {
       right: 10px;
+      margin-right: 0;
     }
   }
 
