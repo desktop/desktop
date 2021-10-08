@@ -156,7 +156,6 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     const container = this.state.tooltipContainer
 
     if (container === null) {
-      debugger
       return
     }
 
