@@ -4,6 +4,7 @@ import { ObservableRef } from './observable-ref'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
+import { rectEquals } from './rect'
 
 export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 
@@ -35,6 +36,8 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   private showTooltipTimeout: number | undefined = undefined
   private mouseRect = new DOMRect()
 
+  private readonly resizeObserver: ResizeObserver
+
   public constructor(props: ITooltipProps<T>) {
     super(props)
     const target = props.target.current
@@ -48,6 +51,14 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       tooltipRect: new DOMRect(),
       tooltipContainer: tooltipContainerFor(target),
     }
+
+    this.resizeObserver = new ResizeObserver(entries => {
+      const tooltipRect = entries[0]?.target?.getBoundingClientRect()
+      if (tooltipRect && !rectEquals(this.state.tooltipRect, tooltipRect)) {
+        console.log('resized!', entries[0].contentRect, tooltipRect)
+        this.setState({ tooltipRect })
+      }
+    })
   }
 
   public componentDidMount() {
@@ -72,14 +83,16 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         releaseUniqueId(this.state.id)
         this.setState({ id: undefined })
       }
+      this.resizeObserver.disconnect()
     } else {
       // todo observe changes
       this.setState({
-        tooltipRect: elem?.getBoundingClientRect() ?? new DOMRect(),
+        tooltipRect: elem.getBoundingClientRect() ?? new DOMRect(),
         show: elem !== null,
         measure: false,
         id: this.state.id ?? createUniqueId('tooltip'),
       })
+      this.resizeObserver.observe(elem)
     }
   }
 
@@ -129,33 +142,26 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private onTargetMouseEnter = (event: MouseEvent) => {
-    if (!(event.currentTarget instanceof HTMLElement)) {
-      return
-    }
-    this.mouseRect = new DOMRect(event.clientX, event.clientY)
-    this.beginShowTooltip(event.currentTarget)
+    this.beginShowTooltip()
   }
 
   private onTargetMouseMove = (event: MouseEvent) => {
-    this.mouseRect = new DOMRect(event.clientX, event.clientY)
+    this.mouseRect = new DOMRect(event.clientX - 5, event.clientY - 5, 10, 10)
   }
 
-  private beginShowTooltip(target: HTMLElement) {
+  private beginShowTooltip() {
     this.cancelShowTooltip()
+
     if (this.props.noDelay === true) {
-      this.showTooltip(target)
+      this.showTooltip()
     } else {
-      this.showTooltipTimeout = window.setTimeout(
-        () => this.showTooltip(target),
-        400
-      )
+      this.showTooltipTimeout = window.setTimeout(() => this.showTooltip(), 400)
     }
   }
 
-  private showTooltip(target: HTMLElement) {
-    const container = this.state.tooltipContainer
-
-    if (container === null) {
+  private showTooltip() {
+    const { tooltipContainer, target } = this.state
+    if (tooltipContainer === null || target === null) {
       return
     }
 
@@ -163,9 +169,9 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       measure: true,
       show: false,
       targetRect: !this.props.direction
-        ? translateRect(this.mouseRect, 0, 5)
+        ? this.mouseRect
         : target.getBoundingClientRect(),
-      hostRect: container.getBoundingClientRect(),
+      hostRect: tooltipContainer.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
     })
   }
@@ -241,7 +247,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         style={style}
         ref={this.onTooltipRef}
       >
-        {this.props.children}
+        <div className="tooltip-content">{this.props.children}</div>
       </div>
     )
   }
@@ -354,6 +360,3 @@ function getTooltipRectRelativeTo(
 
 const tooltipContainerFor = (target: Element | undefined | null) =>
   target?.closest('.tooltip-host') ?? document.body
-
-const translateRect = (r: DOMRect, x: number, y: number) =>
-  new DOMRect(r.x + x, r.y + y, r.width, r.height)

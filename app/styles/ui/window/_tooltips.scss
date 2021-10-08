@@ -1,5 +1,6 @@
 body > .tooltip,
 .tooltip-host > .tooltip {
+  display: flex;
   position: fixed;
   left: 0;
   top: 0;
@@ -18,6 +19,10 @@ body > .tooltip,
   font-size: var(--font-size);
   box-shadow: 0 8px 24px var(--tooltip-shadow-color);
   border: 1px solid var(--tooltip-border-color);
+
+  .tooltip-content {
+    overflow: scroll;
+  }
 
   &::before {
     position: absolute;
