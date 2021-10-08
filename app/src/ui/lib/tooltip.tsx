@@ -84,7 +84,6 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       }
       this.resizeObserver.disconnect()
     } else {
-      // todo observe changes
       this.setState({
         tooltipRect: elem.getBoundingClientRect() ?? new DOMRect(),
         show: elem !== null,
