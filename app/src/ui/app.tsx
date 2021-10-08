@@ -2711,8 +2711,58 @@ export class App extends React.Component<IAppProps, IAppState> {
           : this.renderApp()}
         {this.renderZoomInfo()}
         {this.renderFullScreenInfo()}
+        <>
+          <iframe ref={this.onIFrameRef}></iframe>
+        </>
       </div>
     )
+  }
+
+  private onIFrameRef = (frame: HTMLIFrameElement | null) => {
+    if (!frame) {
+      return
+    }
+
+    const nonce = '3'
+    const safeScript = `
+      const a = document.createElement('a')
+      a.href='https://github.com/'
+      a.innerText = 'GitHub'
+      document.body.appendChild(a)
+    `
+
+    const unsafeScript = `
+      const a = document.createElement('a')
+      a.href='https://evil.com/'
+      a.innerText = 'Evil'
+      document.body.appendChild(a)
+    `
+
+    const src = `<html>
+      <body><a href="http://google.com">Google</a></body>
+      <script nonce=${nonce}>${safeScript}</script>
+      <script>${unsafeScript}</script>
+    </html>`
+
+    frame.setAttribute('csp', `script-src 'nonce-${nonce}'`)
+    frame.sandbox.add('allow-scripts')
+
+    frame.style.background = '#fff'
+    frame.style.position = 'absolute'
+    frame.style.left = `0px`
+    frame.style.top = `0px`
+    frame.style.width = `300px`
+    frame.style.height = `200px`
+
+    frame.addEventListener('load', () => {
+      console.log('frame loaded')
+      frame.contentDocument?.addEventListener('click', e => {
+        console.log('frame click', e.target)
+        e.preventDefault()
+      })
+    })
+
+    frame.src = `data:text/html;base64,${btoa(src)}`
   }
 
   private onRepositoryFilterTextChanged = (text: string) => {
