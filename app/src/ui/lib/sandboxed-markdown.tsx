@@ -86,9 +86,9 @@ export class SandboxedMarkdown extends React.PureComponent<
    * Gets a content security policy that only allows a script with the provided
    * nonce to run in the iframe.
    */
-  private getContentSecurityPolicy(): string {
+  private setContentSecurityPolicy(frameRef: HTMLIFrameElement): void {
     const contentSecurityPolicy = `script-src 'nonce-${this.scriptNonce}'`
-    return `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">`
+    frameRef.setAttribute('csp', contentSecurityPolicy)
   }
 
   /**
@@ -160,37 +160,36 @@ export class SandboxedMarkdown extends React.PureComponent<
     )
 
     const styleSheet = await this.getInlineStyleSheet()
-    const csp = this.getContentSecurityPolicy()
+    this.setContentSecurityPolicy(this.frameRef)
 
     // btoa converts the markdown into a base64 string to allow us to print it into
     // a script file. Then, in the script file we have atob to convert it back
     // to a markdown string.
-    const mardownToAndFromBase64 = `var md = atob('${btoa(
-      this.props.markdown
-    )}');`
+    //const b64markedJS = Buffer.from(markedJS, 'utf8').toString('base64')
+    const mardownToAndFromBase64 = `var md = decodeURIComponent(atob('${btoa(
+      encodeURIComponent(this.props.markdown)
+    )}'));`
 
     // We want the marked parse to use GitHub Flavored Markdown (gfm)
     const useGFM = `marked.use({
                       gfm: true
                     });`
 
-    this.frameRef.srcdoc = `
-      ${csp}
+    const src = `
       ${styleSheet}
 
       <div id="content"></div>
 
       <script nonce="${this.scriptNonce}">
         ${markedJS}
-
         ${mardownToAndFromBase64}
-
         ${useGFM}
-
         document.getElementById('content').innerHTML = marked(md);
       </script>
     `
 
+    const b64src = Buffer.from(src, 'utf8').toString('base64')
+    this.frameRef.src = `data:text/html;base64,${b64src}`
     this.setupLinkInterceptor(this.frameRef)
   }
 
