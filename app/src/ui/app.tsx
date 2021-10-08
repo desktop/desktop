@@ -2723,7 +2723,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const nonce = '3'
+    // https://xkcd.com/221/
+    const nonce = '4'
     const safeScript = `
       const a = document.createElement('a')
       a.href='https://github.com/'
