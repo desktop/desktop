@@ -31,7 +31,8 @@ interface ICICheckRunListState {
   readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunsShown: string | null
   readonly checkRunLogsShown: string | null
-  readonly loadingLogs: boolean
+  readonly loadingActionLogs: boolean
+  readonly loadingActionWorkflows: boolean
 }
 
 /** The CI Check list. */
@@ -53,7 +54,8 @@ export class CICheckRunList extends React.PureComponent<
       checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
       checkRunsShown: null,
       checkRunLogsShown: null,
-      loadingLogs: true,
+      loadingActionLogs: true,
+      loadingActionWorkflows: true,
     }
 
     this.onStatus(combinedCheck)
@@ -106,17 +108,38 @@ export class CICheckRunList extends React.PureComponent<
   private onStatus = async (check: ICombinedRefCheck | null) => {
     const statusChecks = check !== null ? check.checks : []
 
-    const checkRuns =
-      statusChecks.length > 0
-        ? await this.props.dispatcher.getActionsWorkflowRunLogs(
-            this.props.repository,
-            this.getCommitRef(this.props.prNumber),
-            this.props.branchName,
-            statusChecks
-          )
-        : statusChecks
+    if (statusChecks.length === 0) {
+      this.setState({
+        checkRuns: statusChecks,
+        loadingActionLogs: false,
+        loadingActionWorkflows: false,
+      })
+      return
+    }
 
-    this.setState({ checkRuns, loadingLogs: false })
+    /*
+      Until we retrieve the actions 
+    */
+    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsJobsAndLogURLS(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber),
+      this.props.branchName,
+      statusChecks
+    )
+
+    this.setState({
+      checkRuns: checkRunsWithActionsUrls,
+      loadingActionWorkflows: false,
+    })
+
+    //
+    const checkRuns = await this.props.dispatcher.getActionsWorkflowRunLogs(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber),
+      checkRunsWithActionsUrls
+    )
+
+    this.setState({ checkRuns, loadingActionLogs: false })
   }
 
   private viewCheckRunsOnGitHub = (checkRun: IRefCheck): void => {
@@ -175,7 +198,8 @@ export class CICheckRunList extends React.PureComponent<
         <CICheckRunListItem
           key={i}
           checkRun={c}
-          loadingLogs={this.state.loadingLogs}
+          loadingActionLogs={this.state.loadingActionLogs}
+          loadingActionWorkflows={this.state.loadingActionWorkflows}
           showLogs={this.state.checkRunLogsShown === c.id.toString()}
           onCheckRunClick={this.onCheckRunClick}
           onViewOnGitHub={this.viewCheckRunsOnGitHub}

@@ -1040,20 +1040,18 @@ export class API {
    * List workflow run jobs for a given workflow run
    */
   public async fetchWorkflowRunJobs(
-    workflowRun: IAPIWorkflowRun
+    jobs_url: string
   ): Promise<IAPIWorkflowJobs | null> {
     const customHeaders = {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
-    const response = await this.request('GET', workflowRun.jobs_url, {
+    const response = await this.request('GET', jobs_url, {
       customHeaders,
     })
     try {
       return await parsedResponse<IAPIWorkflowJobs>(response)
     } catch (err) {
-      log.debug(
-        `Failed fetching workflow jobs for workflow run named: ${workflowRun.name}`
-      )
+      log.debug(`Failed fetching workflow jobs: ${jobs_url}`)
     }
     return null
   }

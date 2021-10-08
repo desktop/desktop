@@ -24,7 +24,10 @@ interface ICICheckRunListItemProps {
   readonly checkRun: IRefCheck
 
   /** Whether call for actions logs is pending */
-  readonly loadingLogs: boolean
+  readonly loadingActionLogs: boolean
+
+  /** Whether tcall for actions workflows is pending */
+  readonly loadingActionWorkflows: boolean
 
   /** Whether to show the logs for this check run */
   readonly showLogs: boolean
@@ -158,13 +161,21 @@ export class CICheckRunListItem extends React.PureComponent<
     )
   }
 
+  private hasActionsWorkflowLogs = (): boolean => {
+    return this.props.checkRun.jobs_url !== undefined
+  }
+
   private renderLogs = () => {
     const {
       loadingLogs,
+      loadingActionWorkflows,
       checkRun: { output, name },
     } = this.props
 
-    if (loadingLogs && this.isNoOutputText(output)) {
+    if (
+      loadingActionWorkflows ||
+      (this.hasActionsWorkflowLogs() && loadingLogs)
+    ) {
       return this.renderLoadingLogs()
     }
 
