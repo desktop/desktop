@@ -246,6 +246,34 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         id={this.state.id}
         style={style}
         ref={this.onTooltipRef}
+        // https://github.com/facebook/react/issues/11387
+        onClick={stopPropagation}
+        onContextMenu={stopPropagation}
+        onDoubleClick={stopPropagation}
+        onDrag={stopPropagation}
+        onDragEnd={stopPropagation}
+        onDragEnter={stopPropagation}
+        onDragExit={stopPropagation}
+        onDragLeave={stopPropagation}
+        onDragOver={stopPropagation}
+        onDragStart={stopPropagation}
+        onDrop={stopPropagation}
+        onMouseDown={stopPropagation}
+        onMouseEnter={stopPropagation}
+        onMouseLeave={stopPropagation}
+        onMouseMove={stopPropagation}
+        onMouseOver={stopPropagation}
+        onMouseOut={stopPropagation}
+        onMouseUp={stopPropagation}
+        onKeyDown={stopPropagation}
+        onKeyPress={stopPropagation}
+        onKeyUp={stopPropagation}
+        onFocus={stopPropagation}
+        onBlur={stopPropagation}
+        onChange={stopPropagation}
+        onInput={stopPropagation}
+        onInvalid={stopPropagation}
+        onSubmit={stopPropagation}
       >
         <div className="tooltip-content">{this.props.children}</div>
       </div>
@@ -360,3 +388,5 @@ function getTooltipRectRelativeTo(
 
 const tooltipContainerFor = (target: Element | undefined | null) =>
   target?.closest('.tooltip-host') ?? document.body
+
+const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation()
