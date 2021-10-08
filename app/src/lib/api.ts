@@ -1084,6 +1084,29 @@ export class API {
   }
 
   /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
+    const response = await this.request('POST', path)
+
+    try {
+      return response.ok
+    } catch (_) {
+      log.debug(
+        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return false
+  }
+
+  /**
    * Get branch protection info to determine if a user can push to a given branch.
    *
    * Note: if request fails, the default returned value assumes full access for the user

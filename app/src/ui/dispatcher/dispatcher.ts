@@ -2434,6 +2434,17 @@ export class Dispatcher {
   }
 
   /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public rerequestCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    return this.commitStatusStore.rerequestCheckSuite(repository, checkSuiteId)
+  }
+
+  /**
    * Creates a stash for the current branch. Note that this will
    * override any stash that already exists for the current branch.
    *
