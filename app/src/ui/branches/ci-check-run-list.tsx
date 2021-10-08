@@ -173,16 +173,18 @@ export class CICheckRunList extends React.PureComponent<
 
     const summaryArray = []
     for (const [conclusion, count] of conclusionMap.entries()) {
-      summaryArray.push(`${count} ${conclusion}`)
+      summaryArray.push({ count, conclusion })
     }
 
     if (summaryArray.length > 1) {
-      return `${summaryArray.slice(0, -1).join(', ')}, and ${summaryArray.slice(
-        -1
-      )} checks`
+      const output = summaryArray.map(
+        ({ count, conclusion }) => `${count} ${conclusion}`
+      )
+      return `${output.slice(0, -1).join(', ')}, and ${output.slice(-1)} checks`
     }
 
-    return `${summaryArray[0]} check`
+    const pluralize = summaryArray[0].count > 1 ? 'checks' : 'check'
+    return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
   private rerunJobs = () => {
