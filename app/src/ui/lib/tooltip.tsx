@@ -354,5 +354,5 @@ function getTooltipRectRelativeTo(
 const tooltipContainerFor = (target: Element | undefined | null) =>
   target?.closest('.tooltip-host') ?? document.body
 
-const translateRect = (rect: DOMRect, x: number, y: number) =>
-  new DOMRect(rect.x + x, rect.y + y, rect.width, rect.height)
+const translateRect = (r: DOMRect, x: number, y: number) =>
+  new DOMRect(r.x + x, r.y + y, r.width, r.height)
