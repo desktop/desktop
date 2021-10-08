@@ -265,9 +265,9 @@ export class CICheckRunList extends React.PureComponent<
         <div className="ci-check-run-list-header">
           <div className="ci-check-run-list-title-container">
             <div className="title">Checks Summary</div>
-            {this.renderRerunButton()}
+            <div className="check-run-list-summary">{checkRunSummary}</div>
           </div>
-          <div className="check-run-list-summary">{checkRunSummary}</div>
+          {this.renderRerunButton()}
         </div>
         {checkRuns.length !== 0 ? checkLists : 'Unable to load checks runs.'}
       </div>
