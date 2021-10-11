@@ -1072,19 +1072,27 @@ export class API {
 
       remote.session.defaultSession.webRequest.onBeforeRedirect(details => {
         if (
-          details.responseHeaders &&
-          details.responseHeaders.location.length > 0 &&
-          details.responseHeaders.location[0].startsWith(
-            'https://pipelines.actions.githubusercontent.com'
-          )
+          details.responseHeaders === undefined ||
+          details.responseHeaders.location.length === 0
         ) {
-          resolve(details.responseHeaders.location[0])
+          // shouldn't happen...
+          resolve(null)
+          return
         }
 
-        // This means if some other request happens at the same time
-        // that redirects.. we will lose this call to the logs.
-        // ... Considered a timer... but that feels hacky for an unlikely edge case..
-        resolve(null)
+        const redirectURL = URL.parse(details.responseHeaders.location[0])
+        if (
+          redirectURL.host !== 'pipelines.actions.githubusercontent.com' ||
+          redirectURL.protocol !== 'https:'
+        ) {
+          // This means some other request happened at the same time that
+          // redirects. We will lose this call to the logs. Considered a
+          // timer... but that feels hacky for an unlikely edge case..
+          resolve(null)
+          return
+        }
+
+        resolve(redirectURL.href)
       })
 
       this.request('GET', logsUrl, {
