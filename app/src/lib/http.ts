@@ -143,6 +143,9 @@ export function request(
     headers,
     method,
     body: JSON.stringify(jsonBody),
+    // We do not want to automatically follow location header redirects as it
+    // will mean appending our auth token to an externally provided endpoint.
+    redirect: 'manual',
   }
 
   if (reloadCache) {
