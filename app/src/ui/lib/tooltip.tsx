@@ -10,6 +10,9 @@ export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 const DefaultTooltipDelay = 400
 const InteractiveTooltipHideDelay = 150
 
+// Curse you SVGSVGElement
+type TooltipTarget = Element & GlobalEventHandlers
+
 export interface ITooltipProps<T> {
   /**
    * The target element for which to display a tooltip. Use
@@ -68,7 +71,7 @@ interface ITooltipState {
   readonly id?: string
 
   /** The target element for which to display a tooltip */
-  readonly target: HTMLElement | null
+  readonly target: TooltipTarget | null
 
   /** The parent element of tooltips, typically body unless in a dialog */
   readonly tooltipHost: Element | null
@@ -95,7 +98,7 @@ interface ITooltipState {
   readonly tooltipRect: DOMRect
 }
 
-export class Tooltip<T extends HTMLElement> extends React.Component<
+export class Tooltip<T extends TooltipTarget> extends React.Component<
   ITooltipProps<T>,
   ITooltipState
 > {
@@ -104,7 +107,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   private showTooltipTimeout: number | null = null
   private hideTooltipTimeout: number | null = null
 
-  private tooltipRef: HTMLElement | null = null
+  private tooltipRef: TooltipTarget | null = null
 
   private readonly resizeObserver: ResizeObserver
 
@@ -141,7 +144,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     }
   }
 
-  public onTargetRef = (target: HTMLElement | null) => {
+  public onTargetRef = (target: TooltipTarget | null) => {
     this.setState({ target, tooltipHost: tooltipHostFor(target) })
   }
 
@@ -207,14 +210,14 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     }
   }
 
-  private installTooltip(elem: HTMLElement) {
+  private installTooltip(elem: TooltipTarget) {
     elem.addEventListener('mouseenter', this.onTargetMouseEnter)
     elem.addEventListener('mouseleave', this.onTargetMouseLeave)
     elem.addEventListener('mousemove', this.onTargetMouseMove)
     elem.addEventListener('mousedown', this.onTargetMouseDown)
   }
 
-  private removeTooltip(prevTarget: HTMLElement | null) {
+  private removeTooltip(prevTarget: TooltipTarget | null) {
     if (prevTarget !== null) {
       if (prevTarget.getAttribute('aria-describedby')) {
         prevTarget.removeAttribute('aria-describedby')
