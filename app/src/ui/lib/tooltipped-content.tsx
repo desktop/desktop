@@ -4,7 +4,7 @@ import { createObservableRef } from './observable-ref'
 
 interface ITooltippedContentProps
   extends Omit<ITooltipProps<HTMLElement>, 'target'> {
-  readonly tooltip: JSX.Element | string
+  readonly tooltip: JSX.Element | string | undefined
   readonly wrapperElement?: 'span' | 'div'
 }
 
@@ -25,9 +25,11 @@ export class TooltippedContent extends React.Component<
       ref: this.wrapperRef,
       children: (
         <>
-          <Tooltip target={this.wrapperRef} {...rest}>
-            {tooltip}
-          </Tooltip>
+          {tooltip !== undefined && (
+            <Tooltip target={this.wrapperRef} {...rest}>
+              {tooltip}
+            </Tooltip>
+          )}
           {children}
         </>
       ),
