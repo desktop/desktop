@@ -59,11 +59,6 @@ export function installSameOriginFilter(webRequest: WebRequest) {
       return cb({ requestHeaders: details.requestHeaders })
     }
 
-    // From here on we consider this request unsafe, there's no point in
-    // restoring unsafe headers should the request end up being redirected
-    // back to the origin again so we can just drop it from the dictionary
-    requestOrigin.delete(details.id)
-
     const sanitizedHeaders: Record<string, string> = {}
 
     for (const [k, v] of Object.entries(details.requestHeaders)) {
