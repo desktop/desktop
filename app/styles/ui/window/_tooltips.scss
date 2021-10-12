@@ -15,7 +15,7 @@ body > .tooltip,
   background-color: var(--tooltip-background-color);
   color: var(--tooltip-color);
   border-radius: var(--border-radius);
-  padding: var(--spacing-half);
+  padding: var(--spacing-half) var(--spacing);
   font-size: var(--font-size);
   box-shadow: 0 8px 24px var(--tooltip-shadow-color);
 
