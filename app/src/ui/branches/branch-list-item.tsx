@@ -1,6 +1,5 @@
 import { clipboard } from 'electron'
 import * as React from 'react'
-import moment from 'moment'
 
 import { IMatches } from '../../lib/fuzzy-find'
 
@@ -11,6 +10,8 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { RelativeTime } from '../relative-time'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -119,17 +120,8 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   public render() {
-    const lastCommitDate = this.props.lastCommitDate
-    const isCurrentBranch = this.props.isCurrentBranch
-    const name = this.props.name
-
-    const date = lastCommitDate ? moment(lastCommitDate).fromNow() : ''
+    const { lastCommitDate, isCurrentBranch, name } = this.props
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
-    const infoTitle = isCurrentBranch
-      ? 'Current branch'
-      : lastCommitDate
-      ? lastCommitDate.toString()
-      : ''
 
     return (
       <div
@@ -140,12 +132,17 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         onMouseUp={this.onMouseUp}
       >
         <Octicon className="icon" symbol={icon} />
-        <div className="name" title={name}>
+        <TooltippedContent
+          className="name"
+          tooltip={name}
+          onlyWhenOverflowed={true}
+          wrapperElement="div"
+        >
           <HighlightText text={name} highlight={this.props.matches.title} />
-        </div>
-        <div className="description" title={infoTitle}>
-          {date}
-        </div>
+        </TooltippedContent>
+        {lastCommitDate && (
+          <RelativeTime className="description" date={lastCommitDate} />
+        )}
       </div>
     )
   }
