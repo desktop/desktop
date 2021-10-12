@@ -16,6 +16,8 @@ interface IRelativeTimeProps {
    * Defaults to `false`
    */
   readonly abbreviate?: boolean
+
+  readonly className?: string
 }
 
 interface IRelativeTimeState {
@@ -139,7 +141,10 @@ export class RelativeTime extends React.Component<
 
   public render() {
     return (
-      <TooltippedContent tooltip={this.state.absoluteText}>
+      <TooltippedContent
+        className={this.props.className}
+        tooltip={this.state.absoluteText}
+      >
         {this.state.relativeText}
       </TooltippedContent>
     )
