@@ -10,7 +10,7 @@ export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 const DefaultTooltipDelay = 400
 const InteractiveTooltipHideDelay = 300
 
-interface ITooltipProps<T> {
+export interface ITooltipProps<T> {
   /**
    * The target element for which to display a tooltip. Use
    * `createObservableRef` to create an `ObservableRef`. Note that
