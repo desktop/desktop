@@ -8,7 +8,7 @@ import { rectEquals, rectContains } from './rect'
 
 export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 const DefaultTooltipDelay = 400
-const InteractiveTooltipHideDelay = 300
+const InteractiveTooltipHideDelay = 150
 
 export interface ITooltipProps<T> {
   /**
