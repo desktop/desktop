@@ -211,6 +211,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     elem.addEventListener('mouseenter', this.onTargetMouseEnter)
     elem.addEventListener('mouseleave', this.onTargetMouseLeave)
     elem.addEventListener('mousemove', this.onTargetMouseMove)
+    elem.addEventListener('mousedown', this.onTargetMouseDown)
   }
 
   private removeTooltip(prevTarget: HTMLElement | null) {
@@ -233,6 +234,10 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
 
   private onTargetMouseMove = (event: MouseEvent) => {
     this.mouseRect = new DOMRect(event.clientX - 5, event.clientY - 5, 10, 10)
+  }
+
+  private onTargetMouseDown = (event: MouseEvent) => {
+    this.hideTooltip()
   }
 
   private beginShowTooltip() {
@@ -286,6 +291,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private hideTooltip = () => {
+    this.cancelShowTooltip()
     this.cancelHideTooltip()
     this.setState({ show: false, measure: false })
   }
