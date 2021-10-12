@@ -287,6 +287,8 @@ export interface IAPIIssue {
   readonly title: string
   readonly state: 'open' | 'closed'
   readonly updated_at: string
+  readonly created_at: string
+  readonly user: IAPIIdentity
 }
 
 /** The combined state of a ref. */
@@ -857,7 +859,7 @@ export class API {
       const issues = await this.fetchAll<IAPIIssue>(url)
 
       // PRs are issues! But we only want Really Seriously Issues.
-      return issues.filter((i: any) => !i.pullRequest)
+      return issues.filter((i: any) => !i.pull_request)
     } catch (e) {
       log.warn(`fetchIssues: failed for repository ${owner}/${name}`, e)
       throw e

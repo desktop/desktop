@@ -84,6 +84,7 @@ import {
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
+  IAPIIssue,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -1606,6 +1607,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } catch (e) {
       log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
     }
+  }
+
+  public async getOpenIssues(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<IAPIIssue>> {
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (!account) {
+      return []
+    }
+
+    const api = API.fromAccount(account)
+
+    const limitToOneMonthForTimeSake = new Date()
+    limitToOneMonthForTimeSake.setMonth(
+      limitToOneMonthForTimeSake.getMonth() - 1
+    )
+
+    try {
+      return await api.fetchIssues(
+        repository.owner.login,
+        repository.name,
+        'open',
+        limitToOneMonthForTimeSake
+      )
+    } catch (e) {
+      log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
+    }
+    return []
   }
 
   private stopBackgroundFetching() {

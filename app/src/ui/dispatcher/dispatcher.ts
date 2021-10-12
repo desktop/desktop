@@ -5,6 +5,7 @@ import {
   IAPIOrganization,
   IAPIPullRequest,
   IAPIFullRepository,
+  IAPIIssue,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -3690,5 +3691,11 @@ export class Dispatcher {
       [],
       currentBranch.tip.sha
     )
+  }
+
+  public async getOpenIssues(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<IAPIIssue>> {
+    return this.appStore.getOpenIssues(repository)
   }
 }

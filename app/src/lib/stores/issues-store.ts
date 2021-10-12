@@ -147,7 +147,7 @@ export class IssuesStore {
     }
   }
 
-  private async getAllIssueHitsFor(repository: GitHubRepository) {
+  public async getAllIssueHitsFor(repository: GitHubRepository) {
     const hits = await this.db.getIssuesForRepository(repository.dbID)
     return hits.map(i => ({ number: i.number, title: i.title }))
   }

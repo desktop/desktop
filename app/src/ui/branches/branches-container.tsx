@@ -28,6 +28,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
+import { IssueList } from './issues-list'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -145,6 +146,7 @@ export class BranchesContainer extends React.Component<
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
           {this.renderOpenPullRequestsBubble()}
         </span>
+        <span>Issues</span>
       </TabBar>
     )
   }
@@ -192,6 +194,9 @@ export class BranchesContainer extends React.Component<
 
       case BranchesTab.PullRequests: {
         return this.renderPullRequests()
+      }
+      case BranchesTab.Issues: {
+        return this.renderIssues()
       }
       default:
         return assertNever(tab, `Unknown Branches tab: ${tab}`)
@@ -277,6 +282,22 @@ export class BranchesContainer extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+      />
+    )
+  }
+
+  private renderIssues() {
+    const repository = this.props.repository
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      return null
+    }
+
+    return (
+      <IssueList
+        key="issue-list"
+        onDismiss={this.onDismiss}
+        dispatcher={this.props.dispatcher}
+        repository={repository.gitHubRepository}
       />
     )
   }
