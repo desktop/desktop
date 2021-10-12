@@ -26,15 +26,12 @@ export class CICheckRunListItem extends React.PureComponent<
               `ci-status-${getClassNameForCheck(checkRun)}`
             )}
             symbol={getSymbolForCheck(checkRun)}
-            title={checkRun.description}
           />
         </div>
 
         <div className="ci-check-list-item-detail">
           <div className="ci-check-name">{checkRun.name}</div>
-          <div className="ci-check-description" title={checkRun.description}>
-            {checkRun.description}
-          </div>
+          <div className="ci-check-description">{checkRun.description}</div>
         </div>
       </div>
     )
