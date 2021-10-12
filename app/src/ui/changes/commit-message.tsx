@@ -344,9 +344,11 @@ export class CommitMessage extends React.Component<
   private renderAvatar() {
     const { commitAuthor, repository } = this.props
     const { gitHubRepository } = repository
-    const avatarTitle = commitAuthor
-      ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
-      : undefined
+    const avatarTitle = commitAuthor ? (
+      <>
+        Committing as <strong>{commitAuthor.name}</strong> {commitAuthor.email}
+      </>
+    ) : undefined
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
         ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)

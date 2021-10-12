@@ -25,7 +25,7 @@ interface ICommitMessageAvatarProps {
    * Defaults to the name and email if undefined and is
    * skipped completely if title is null
    */
-  readonly title?: string | null
+  readonly title?: string | JSX.Element | null
 
   /** Current email address configured by the user. */
   readonly email?: string

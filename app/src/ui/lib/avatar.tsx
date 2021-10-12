@@ -15,7 +15,7 @@ interface IAvatarProps {
    * Defaults to the name and email if undefined and is
    * skipped completely if title is null
    */
-  readonly title?: string | null
+  readonly title?: string | JSX.Element | null
 
   /**
    * The what dimensions of avatar the component should
@@ -157,7 +157,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       return undefined
     }
 
-    if (this.props.title === undefined) {
+    if (this.props.title !== undefined) {
       return this.props.title
     }
 
