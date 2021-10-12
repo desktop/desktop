@@ -4,7 +4,7 @@ import { ObservableRef } from './observable-ref'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
-import { rectEquals } from './rect'
+import { rectEquals, rectContains } from './rect'
 
 export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 const DefaultTooltipDelay = 400
@@ -393,15 +393,8 @@ function getDirection(
   window: DOMRect,
   tooltip: DOMRect
 ): TooltipDirection {
-  const fits = (direction: TooltipDirection) => {
-    const r = getTooltipRectRelativeTo(target, direction, tooltip)
-    return (
-      r.top >= window.top &&
-      r.left >= window.left &&
-      r.bottom <= window.bottom &&
-      r.right <= window.right
-    )
-  }
+  const fits = (direction: TooltipDirection) =>
+    rectContains(window, getTooltipRectRelativeTo(target, direction, tooltip))
 
   let candidates = new Set<TooltipDirection>([
     'n',
