@@ -1,0 +1,60 @@
+/* Following copied from inspector on github.com */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  font-size: 14px !important;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+code, tt {
+  padding: .2em .4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: var(--code-background-color);
+  border-radius: 6px;
+}
+
+table {
+  display: block;
+  width: 100%;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 6px 13px;
+  border: 1px solid var(--box-border-color);
+}
+
+th {
+  font-weight: 600;
+}
+
+tr {
+  border-top: 1px solid var(--box-border-color);
+}
+
+
+
+h1,
+h2,
+h3,
+h4,
+h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 1.25em;
+}

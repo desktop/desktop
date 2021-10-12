@@ -12,6 +12,7 @@ import classNames from 'classnames'
 import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
 import { encodePathAsUrl } from '../../lib/path'
+import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 
 // TODO: Get empty graphic for logs?
 const BlankSlateImage = encodePathAsUrl(
@@ -28,6 +29,10 @@ interface ICICheckRunListItemProps {
 
   /** Whether to show the logs for this check run */
   readonly showLogs: boolean
+
+  /** The base href used for relative links provided in check run markdown
+   * output */
+  readonly baseHref: string | null
 
   /** Callback for when a check run is clicked */
   readonly onCheckRunClick: (checkRun: IRefCheck) => void
@@ -108,6 +113,10 @@ export class CICheckRunListItem extends React.PureComponent<
     return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
   }
 
+  private markDownLinkClicked = (link: string): void => {
+    console.log(link)
+  }
+
   private renderMetaOutput = (
     output: IRefCheckOutput,
     checkRunName: string
@@ -121,13 +130,16 @@ export class CICheckRunListItem extends React.PureComponent<
       title.trim().toLocaleLowerCase() !==
         checkRunName.trim().toLocaleLowerCase()
 
-    const displaySummary =
-      summary !== null && summary !== undefined && summary.trim() !== ''
-
     return (
       <div>
-        {displayTitle ? <div>{title}</div> : null}
-        {displaySummary ? <pre>{summary}</pre> : null}
+        {displayTitle ? <h2>{title}</h2> : null}
+        {summary !== null && summary !== undefined && summary.trim() !== '' ? (
+          <SandboxedMarkdown
+            markdown={summary}
+            baseHref={this.props.baseHref}
+            onMarkdownLinkClicked={this.markDownLinkClicked}
+          />
+        ) : null}
       </div>
     )
   }

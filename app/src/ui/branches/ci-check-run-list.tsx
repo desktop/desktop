@@ -170,6 +170,10 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private renderList = (checks: ReadonlyArray<IRefCheck>) => {
+    const baseHref =
+      this.props.repository.htmlURL !== null
+        ? new URL('/', this.props.repository.htmlURL).href
+        : null
     const list = checks.map((c, i) => {
       return (
         <CICheckRunListItem
@@ -177,6 +181,7 @@ export class CICheckRunList extends React.PureComponent<
           checkRun={c}
           loadingLogs={this.state.loadingLogs}
           showLogs={this.state.checkRunLogsShown === c.id.toString()}
+          baseHref={baseHref}
           onCheckRunClick={this.onCheckRunClick}
           onViewOnGitHub={this.viewCheckRunsOnGitHub}
         />
