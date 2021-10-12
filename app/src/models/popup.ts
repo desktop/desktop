@@ -18,6 +18,7 @@ import { ITextDiff, DiffSelection } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
+import { IAPIIssue } from '../lib/api'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -75,6 +76,7 @@ export enum PopupType {
   InvalidatedToken,
   AddSSHHost,
   SSHKeyPassphrase,
+  Issue,
 }
 
 export type Popup =
@@ -308,4 +310,9 @@ export type Popup =
         passphrase: string | undefined,
         storePassphrase: boolean
       ) => void
+    }
+  | {
+      type: PopupType.Issue
+      issue: IAPIIssue
+      onSubmit: () => void
     }

@@ -13,6 +13,7 @@ import { IAPIIssue } from '../../lib/api'
 import { HighlightText } from '../lib/highlight-text'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import moment from 'moment'
+import { PopupType } from '../../models/popup'
 
 interface IIssueListItem extends IFilterListItem {
   readonly issue: IAPIIssue
@@ -107,7 +108,13 @@ export class IssueList extends React.Component<
   }
 
   private onItemClick = (item: IIssueListItem) => {
-    console.log(item)
+    this.props.dispatcher.showPopup({
+      type: PopupType.Issue,
+      issue: item.issue,
+      onSubmit: () => {
+        console.log('Lets get started!')
+      },
+    })
   }
 
   private renderListHeader = () => {
@@ -150,7 +157,7 @@ export class IssueList extends React.Component<
     issues: ReadonlyArray<IAPIIssue>
   ): IFilterListGroup<IIssueListItem> {
     const items = issues.map(issue => ({
-      text: [issue.title, getSubtitle(issue)],
+      text: [issue.title, getIssueSubtitle(issue)],
       id: issue.number.toString(),
       issue,
     }))
@@ -162,7 +169,7 @@ export class IssueList extends React.Component<
   }
 }
 
-function getSubtitle(issue: IAPIIssue) {
+export function getIssueSubtitle(issue: IAPIIssue) {
   const timeAgo = moment(issue.created_at).fromNow()
   return `#${issue.number} opened ${timeAgo} by ${issue.user.login}`
 }

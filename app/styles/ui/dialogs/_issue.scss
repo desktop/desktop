@@ -1,0 +1,63 @@
+#issue {
+  .dialog-header {
+    height: auto;
+    align-items: unset;
+
+    h1 {
+      white-space: break-spaces;
+    }
+  }
+
+  .dialog-content {
+    padding: 0;
+    padding-left: var(--spacing);
+  }
+
+  .issue-title {
+    font-size: 22px;
+    span {
+      color: var(--text-secondary-color);
+    }
+  }
+
+  .issue-subtitle {
+    display: flex;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    font-weight: var(--font-weight-light);
+    color: var(--text-secondary-color);
+    align-items: baseline;
+
+    .issue-open-bubble {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      display: flex;
+      color: white;
+      background-color: var(--color-new);
+      padding: var(--spacing-half) var(--spacing);
+      border-radius: 2em;
+      margin-right: var(--spacing-half);
+      white-space: nowrap;
+      text-align: center;
+      .icon {
+        margin-right: var(--spacing-third);
+      }
+    }
+  }
+
+  .issue-body {
+    height: 500px;
+    position: relative;
+    overflow-x: hidden;
+
+    .markdown-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+  }
+}

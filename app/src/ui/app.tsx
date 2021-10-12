@@ -143,6 +143,7 @@ import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
 import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-operation'
 import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { setAlmostImmediate } from '../lib/set-almost-immediate'
+import { Issue } from './issue/issue'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2045,6 +2046,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="ssh-key-passphrase"
             keyPath={popup.keyPath}
             onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.Issue: {
+        return (
+          <Issue
+            issue={popup.issue}
+            onStartWorkingIssue={popup.onSubmit}
             onDismissed={onPopupDismissedFn}
           />
         )
