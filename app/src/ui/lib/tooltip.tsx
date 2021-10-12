@@ -63,14 +63,34 @@ interface ITooltipProps<T> {
 }
 
 interface ITooltipState {
+  /** The unique id of the tooltip (when shown)  */
   readonly id?: string
+
+  /** The target element for which to display a tooltip */
   readonly target: HTMLElement | null
+
+  /** The parent element of tooltips, typically body unless in a dialog */
   readonly tooltipHost: Element | null
+
+  /**
+   * Whether the tooltip is currently being measured (i.e. it should not be
+   * visible to the user)
+   **/
   readonly measure: boolean
+
+  /** Whether or not the tooltip is currently visible to the user */
   readonly show: boolean
+
+  /** The size and position of the target element relative to the window */
   readonly targetRect: DOMRect
+
+  /** The size and position of the tooltip parent relative to the window */
   readonly hostRect: DOMRect
+
+  /** The size of the window */
   readonly windowRect: DOMRect
+
+  /** The size and position of the tooltip relative to the window */
   readonly tooltipRect: DOMRect
 }
 
