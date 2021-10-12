@@ -65,7 +65,7 @@ interface ITooltipProps<T> {
 interface ITooltipState {
   readonly id?: string
   readonly target: HTMLElement | null
-  readonly tooltipContainer: Element | null
+  readonly tooltipHost: Element | null
   readonly measure: boolean
   readonly show: boolean
   readonly targetRect: DOMRect
@@ -98,7 +98,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       hostRect: new DOMRect(),
       windowRect: new DOMRect(),
       tooltipRect: new DOMRect(),
-      tooltipContainer: tooltipContainerFor(target),
+      tooltipHost: tooltipHostFor(target),
     }
 
     this.resizeObserver = new ResizeObserver(entries => {
@@ -121,8 +121,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   public onTargetRef = (target: HTMLElement | null) => {
-    const tooltipContainer = tooltipContainerFor(target)
-    this.setState({ target, tooltipContainer })
+    this.setState({ target, tooltipHost: tooltipHostFor(target) })
   }
 
   public onTooltipRef = (elem: HTMLDivElement | null) => {
@@ -228,8 +227,8 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private showTooltip = () => {
-    const { tooltipContainer, target } = this.state
-    if (tooltipContainer === null || target === null) {
+    const { tooltipHost, target } = this.state
+    if (tooltipHost === null || target === null) {
       return
     }
 
@@ -239,7 +238,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
       targetRect: !this.props.direction
         ? this.mouseRect
         : target.getBoundingClientRect(),
-      hostRect: tooltipContainer.getBoundingClientRect(),
+      hostRect: tooltipHost.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
     })
   }
@@ -288,11 +287,9 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   public render() {
-    const { target, tooltipContainer } = this.state
-
-    return target === null || tooltipContainer === null
+    return this.state.target === null || this.state.tooltipHost === null
       ? null
-      : ReactDOM.createPortal(this.renderPortal(), tooltipContainer)
+      : ReactDOM.createPortal(this.renderPortal(), this.state.tooltipHost)
   }
 
   private renderPortal() {
@@ -475,7 +472,7 @@ function getTooltipRectRelativeTo(
   }
 }
 
-const tooltipContainerFor = (target: Element | undefined | null) =>
+const tooltipHostFor = (target: Element | undefined | null) =>
   target?.closest('.tooltip-host') ?? document.body
 
 const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation()
