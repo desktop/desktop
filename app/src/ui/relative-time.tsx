@@ -1,7 +1,6 @@
 import * as React from 'react'
 import moment from 'moment'
-import { Tooltip } from './lib/tooltip'
-import { createObservableRef } from './lib/observable-ref'
+import { TooltippedContent } from './lib/tooltipped-content'
 
 interface IRelativeTimeProps {
   /**
@@ -51,7 +50,6 @@ export class RelativeTime extends React.Component<
   IRelativeTimeState
 > {
   private timer: number | null = null
-  private spanRef = createObservableRef<HTMLSpanElement>()
 
   public constructor(props: IRelativeTimeProps) {
     super(props)
@@ -141,10 +139,9 @@ export class RelativeTime extends React.Component<
 
   public render() {
     return (
-      <span ref={this.spanRef} title={this.state.absoluteText}>
-        <Tooltip target={this.spanRef}>{this.state.relativeText}</Tooltip>
+      <TooltippedContent tooltip={this.state.absoluteText}>
         {this.state.relativeText}
-      </span>
+      </TooltippedContent>
     )
   }
 }
