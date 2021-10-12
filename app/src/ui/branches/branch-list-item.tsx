@@ -12,6 +12,7 @@ import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { RelativeTime } from '../relative-time'
+import classNames from 'classnames'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -40,8 +41,20 @@ interface IBranchListItemProps {
   readonly onDropOntoCurrentBranch?: () => void
 }
 
+interface IBranchListItemState {
+  readonly isDragInProgress: boolean
+}
+
 /** The branch component. */
-export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
+export class BranchListItem extends React.Component<
+  IBranchListItemProps,
+  IBranchListItemState
+> {
+  public constructor(props: IBranchListItemProps) {
+    super(props)
+    this.state = { isDragInProgress: false }
+  }
+
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
 
@@ -85,6 +98,8 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
 
   private onMouseEnter = () => {
     if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      this.setState({ isDragInProgress: true })
+
       dragAndDropManager.emitEnterDropTarget({
         type: DropTargetType.Branch,
         branchName: this.props.name,
@@ -94,6 +109,8 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
 
   private onMouseLeave = () => {
     if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      this.setState({ isDragInProgress: false })
+
       dragAndDropManager.emitLeaveDropTarget()
     }
   }
@@ -105,6 +122,8 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       name,
       isCurrentBranch,
     } = this.props
+
+    this.setState({ isDragInProgress: false })
 
     if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       return
@@ -122,11 +141,14 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   public render() {
     const { lastCommitDate, isCurrentBranch, name } = this.props
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
+    const className = classNames('branches-list-item', {
+      'drop-target': this.state.isDragInProgress,
+    })
 
     return (
       <div
         onContextMenu={this.onContextMenu}
-        className="branches-list-item"
+        className={className}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         onMouseUp={this.onMouseUp}
