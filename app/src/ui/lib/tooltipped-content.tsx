@@ -8,7 +8,11 @@ interface ITooltippedContentProps
   readonly wrapperElement?: 'span' | 'div'
 }
 
-/** A button component that can be unchecked or checked by the user. */
+/**
+ * A less complicated version of the Tooltip component for when it's acceptable
+ * to add a wrapping element around the content. supports all the options that
+ * the Tooltip component does without having to worry about refs.
+ **/
 export class TooltippedContent extends React.Component<
   ITooltippedContentProps
 > {
