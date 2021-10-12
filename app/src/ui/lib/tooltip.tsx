@@ -13,7 +13,7 @@ interface ITooltipProps<T> {
   // Only if using aria-label manually
   readonly accessible?: boolean
   readonly interactive?: boolean
-  readonly noDelay?: boolean
+  readonly delay?: number
   readonly direction?: TooltipDirection
   readonly className?: string
 }
@@ -177,12 +177,10 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
 
   private beginShowTooltip() {
     this.cancelShowTooltip()
-
-    if (this.props.noDelay === true) {
-      this.showTooltip()
-    } else {
-      this.showTooltipTimeout = window.setTimeout(this.showTooltip, 400)
-    }
+    this.showTooltipTimeout = window.setTimeout(
+      this.showTooltip,
+      this.props.delay ?? DefaultTooltipDelay
+    )
   }
 
   private showTooltip = () => {
