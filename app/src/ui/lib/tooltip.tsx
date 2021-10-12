@@ -233,7 +233,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private onTargetMouseMove = (event: MouseEvent) => {
-    this.mouseRect = new DOMRect(event.clientX - 5, event.clientY - 5, 10, 10)
+    this.mouseRect = new DOMRect(event.clientX - 10, event.clientY - 10, 20, 20)
   }
 
   private onTargetMouseDown = (event: MouseEvent) => {
