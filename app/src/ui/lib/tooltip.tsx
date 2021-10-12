@@ -15,6 +15,7 @@ interface ITooltipProps<T> {
   readonly interactive?: boolean
   readonly noDelay?: boolean
   readonly direction?: TooltipDirection
+  readonly className?: string
 }
 
 interface ITooltipState {
@@ -279,7 +280,7 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
 
     const ariaHidden = accessible === false || !visible ? 'true' : 'false'
 
-    const className = classNames('tooltip', {
+    const className = classNames('tooltip', this.props.className, {
       interactive,
       [`tooltip-${direction}`]: show,
     })
