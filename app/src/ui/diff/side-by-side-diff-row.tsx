@@ -446,9 +446,6 @@ export class SideBySideDiffRow extends React.Component<
           hover: this.props.isHunkHovered,
         })}
         style={{ width: this.props.lineNumberWidth }}
-        title={
-          this.props.hideWhitespaceInDiff ? HideWhitespaceWarning : undefined
-        }
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
