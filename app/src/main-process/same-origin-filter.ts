@@ -32,6 +32,7 @@ import { WebRequest } from 'electron/main'
  * @param webRequest
  */
 export function installSameOriginFilter(webRequest: WebRequest) {
+  // A map between the request ID and the _initial_ request origin
   const requestOrigin = new Map<number, string>()
   const safeProtocols = new Set(['devtools:', 'file:', 'chrome-extension:'])
   const unsafeHeaders = new Set(['authentication', 'authorization', 'cookie'])
