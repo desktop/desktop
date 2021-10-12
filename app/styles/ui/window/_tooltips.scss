@@ -18,7 +18,6 @@ body > .tooltip,
   padding: var(--spacing);
   font-size: var(--font-size);
   box-shadow: 0 8px 24px var(--tooltip-shadow-color);
-  border: 1px solid var(--tooltip-border-color);
 
   .tooltip-content {
     overflow: scroll;
@@ -40,7 +39,7 @@ body > .tooltip,
   &.tooltip-se,
   &.tooltip-sw {
     &::before {
-      top: -13px;
+      top: -12px;
       right: 50%;
       bottom: auto;
       margin-right: -6px;
@@ -52,7 +51,7 @@ body > .tooltip,
   &.tooltip-ne,
   &.tooltip-nw {
     &::before {
-      bottom: -13px;
+      bottom: -12px;
       right: 50%;
       top: auto;
       margin-right: -6px;
