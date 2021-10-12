@@ -33,8 +33,12 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   ITooltipProps<T>,
   ITooltipState
 > {
-  private showTooltipTimeout: number | undefined = undefined
   private mouseRect = new DOMRect()
+
+  private showTooltipTimeout: number | null = null
+  private hideTooltipTimeout: number | null = null
+
+  private tooltipRef: HTMLElement | null = null
 
   private readonly resizeObserver: ResizeObserver
 
@@ -83,6 +87,17 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         this.setState({ id: undefined })
       }
       this.resizeObserver.disconnect()
+
+      if (this.tooltipRef !== null) {
+        this.tooltipRef.removeEventListener(
+          'mouseenter',
+          this.onTooltipMouseEnter
+        )
+        this.tooltipRef.removeEventListener(
+          'mouseleave',
+          this.onTooltipMouseLeave
+        )
+      }
     } else {
       this.setState({
         tooltipRect: elem.getBoundingClientRect() ?? new DOMRect(),
@@ -91,8 +106,17 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         id: this.state.id ?? createUniqueId('tooltip'),
       })
       this.resizeObserver.observe(elem)
+      if (this.props.interactive === true) {
+        elem.addEventListener('mouseenter', this.onTooltipMouseEnter)
+        elem.addEventListener('mouseleave', this.onTooltipMouseLeave)
+      }
     }
+
+    this.tooltipRef = elem
   }
+
+  private onTooltipMouseEnter = (e: MouseEvent) => this.cancelHideTooltip()
+  private onTooltipMouseLeave = (e: MouseEvent) => this.beginHideTooltip()
 
   public componentDidUpdate(
     prevProps: ITooltipProps<T>,
@@ -140,7 +164,10 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private onTargetMouseEnter = (event: MouseEvent) => {
-    this.beginShowTooltip()
+    this.cancelHideTooltip()
+    if (!this.state.show) {
+      this.beginShowTooltip()
+    }
   }
 
   private onTargetMouseMove = (event: MouseEvent) => {
@@ -153,11 +180,11 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     if (this.props.noDelay === true) {
       this.showTooltip()
     } else {
-      this.showTooltipTimeout = window.setTimeout(() => this.showTooltip(), 400)
+      this.showTooltipTimeout = window.setTimeout(this.showTooltip, 400)
     }
   }
 
-  private showTooltip() {
+  private showTooltip = () => {
     const { tooltipContainer, target } = this.state
     if (tooltipContainer === null || target === null) {
       return
@@ -175,15 +202,36 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private cancelShowTooltip() {
-    if (this.showTooltipTimeout !== undefined) {
+    if (this.showTooltipTimeout !== null) {
       clearTimeout(this.showTooltipTimeout)
-      this.showTooltipTimeout = undefined
+      this.showTooltipTimeout = null
     }
   }
 
   private onTargetMouseLeave = (event: MouseEvent) => {
+    this.beginHideTooltip()
+  }
+
+  private beginHideTooltip() {
     this.cancelShowTooltip()
+
+    if (this.props.interactive === true && this.hideTooltipTimeout === null) {
+      this.hideTooltipTimeout = window.setTimeout(this.hideTooltip, 300)
+    } else {
+      this.hideTooltip()
+    }
+  }
+
+  private hideTooltip = () => {
+    this.cancelHideTooltip()
     this.setState({ show: false, measure: false })
+  }
+
+  private cancelHideTooltip() {
+    if (this.hideTooltipTimeout !== null) {
+      clearTimeout(this.hideTooltipTimeout)
+      this.hideTooltipTimeout = null
+    }
   }
 
   public componentWillUnmount() {
