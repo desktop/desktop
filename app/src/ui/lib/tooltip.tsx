@@ -313,22 +313,15 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
   }
 
   private renderPortal() {
-    const {
-      show,
-      measure,
-      targetRect,
-      hostRect,
-      windowRect,
-      tooltipRect,
-    } = this.state
-
-    const { interactive, accessible } = this.props
-
+    const { show, measure } = this.state
     if (!show && !measure) {
       return null
     }
 
     const visible = show && !measure
+    const { targetRect, hostRect, windowRect, tooltipRect } = this.state
+    const { interactive, accessible } = this.props
+
     const direction = visible
       ? getDirection(this.props.direction, targetRect, windowRect, tooltipRect)
       : 's'
