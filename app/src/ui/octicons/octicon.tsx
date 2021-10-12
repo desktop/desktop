@@ -3,7 +3,7 @@ import { OcticonSymbolType } from './octicons.generated'
 import classNames from 'classnames'
 import ReactDOM from 'react-dom'
 import { createObservableRef } from '../lib/observable-ref'
-import { Tooltip } from '../lib/tooltip'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 interface IOcticonProps {
   /**
@@ -22,7 +22,9 @@ interface IOcticonProps {
   /**
    * An optional string to use as a tooltip for the icon
    */
-  readonly title?: string
+  readonly title?: JSX.Element | string
+
+  readonly tooltipDirection?: TooltipDirection
 }
 
 /**
@@ -38,15 +40,18 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
   private svgRef = createObservableRef<SVGSVGElement>()
 
   public render() {
-    const { symbol, title } = this.props
+    const { symbol, title, tooltipDirection } = this.props
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
     const className = classNames('octicon', this.props.className)
 
     // Hide the octicon from screen readers when it's only being used
     // as a visual without any attached meaning applicable to users
     // consuming the app through an accessibility interface.
-    const ariaHidden =
-      title === undefined || title.length === 0 ? 'true' : undefined
+    const ariaHidden = title === undefined ? 'true' : undefined
+
+    // Octicons are typically very small so having an explicit direction makes
+    // more sense
+    const direction = tooltipDirection ?? 'n'
 
     return (
       <svg
@@ -57,7 +62,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         ref={this.svgRef}
       >
         {!ariaHidden && (
-          <Tooltip target={this.svgRef} direction="n">
+          <Tooltip target={this.svgRef} direction={direction}>
             {title}
           </Tooltip>
         )}
