@@ -7,14 +7,58 @@ import { assertNever } from '../../lib/fatal-error'
 import { rectEquals } from './rect'
 
 export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
+const DefaultTooltipDelay = 400
 
 interface ITooltipProps<T> {
+  /**
+   * The target element for which to display a tooltip. Use
+   * `createObservableRef` to create an `ObservableRef`. Note that
+   * `ObservablRef` is compatible with `React.Ref`
+   */
   readonly target: ObservableRef<T>
-  // Only if using aria-label manually
+
+  /**
+   * Whether or not to modify the target element when the tooltip is showing to
+   * add the necessary `aria-` attributes for accessibility. It's not
+   * recommended to disable this unless the target element is already adequately
+   * described by `aria-label`.
+   *
+   * Defaults to true
+   */
   readonly accessible?: boolean
+
+  /**
+   * Whether or not the tooltip should remain open when the user moves their
+   * pointer device from the target onto the tooltip itself. Non interactive
+   * tooltips are not pointer event targets.
+   */
   readonly interactive?: boolean
+
+  /**
+   * The amount of time to wait (in milliseconds) while a user hovers over the
+   * target before displaying the tooltip. There's typically no reason to
+   * increase this but it may be used to show the tooltip without any delay (by
+   * setting it to zero)
+   *
+   * Defaults to 400ms
+   */
   readonly delay?: number
+
+  /**
+   * The desired position of the tooltip in relation to the target (cardinal
+   * directions). Note that the tooltip will attempt to honor the desired
+   * direction but if there's not enough room to place the tooltip in said
+   * direction it will be repositioned automatically.
+   *
+   * When no direction has been specified the tooltip is automatically
+   * positioned relative to the pointer coordinates.
+   */
   readonly direction?: TooltipDirection
+
+  /**
+   * An optional additional class name to set on the tooltip in order to be able
+   * to apply specific styles to the tooltip
+   */
   readonly className?: string
 }
 
