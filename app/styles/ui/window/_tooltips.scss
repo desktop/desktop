@@ -8,7 +8,7 @@ body > .tooltip,
   pointer-events: none;
 
   max-height: 500px;
-  max-width: 500px;
+  max-width: 300px;
 
   word-wrap: break-word;
 
@@ -21,6 +21,7 @@ body > .tooltip,
 
   .tooltip-content {
     overflow: scroll;
+    font-size: var(--font-size-sm);
   }
 
   &::before {
