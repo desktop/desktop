@@ -53,11 +53,6 @@ export function installSameOriginFilter(webRequest: WebRequest) {
 
   webRequest.onBeforeSendHeaders((details, cb) => {
     const initialOrigin = requestOrigin.get(details.id)
-
-    if (initialOrigin === undefined) {
-      return cb({ requestHeaders: details.requestHeaders })
-    }
-
     const { origin } = new URL(details.url)
 
     if (initialOrigin === origin) {
