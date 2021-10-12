@@ -8,6 +8,7 @@ import { rectEquals, rectContains } from './rect'
 
 export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 const DefaultTooltipDelay = 400
+const InteractiveTooltipHideDelay = 300
 
 interface ITooltipProps<T> {
   /**
@@ -151,21 +152,17 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
         this.setState({ id: undefined })
       }
       this.resizeObserver.disconnect()
+      const { tooltipRef } = this
 
-      if (this.tooltipRef !== null) {
-        this.tooltipRef.removeEventListener(
-          'mouseenter',
-          this.onTooltipMouseEnter
-        )
-        this.tooltipRef.removeEventListener(
-          'mouseleave',
-          this.onTooltipMouseLeave
-        )
+      if (tooltipRef !== null) {
+        tooltipRef.removeEventListener('mouseenter', this.onTooltipMouseEnter)
+        tooltipRef.removeEventListener('mouseleave', this.onTooltipMouseLeave)
       }
     } else {
+      // The tooltip has been mounted, let's measure it and show it
       this.setState({
         tooltipRect: elem.getBoundingClientRect() ?? new DOMRect(),
-        show: elem !== null,
+        show: true,
         measure: false,
         id: this.state.id ?? createUniqueId('tooltip'),
       })
@@ -255,9 +252,10 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     this.setState({
       measure: true,
       show: false,
-      targetRect: !this.props.direction
-        ? this.mouseRect
-        : target.getBoundingClientRect(),
+      targetRect:
+        this.props.direction === undefined
+          ? this.mouseRect
+          : target.getBoundingClientRect(),
       hostRect: tooltipHost.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
     })
@@ -278,7 +276,10 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     this.cancelShowTooltip()
 
     if (this.props.interactive === true && this.hideTooltipTimeout === null) {
-      this.hideTooltipTimeout = window.setTimeout(this.hideTooltip, 300)
+      this.hideTooltipTimeout = window.setTimeout(
+        this.hideTooltip,
+        InteractiveTooltipHideDelay
+      )
     } else {
       this.hideTooltip()
     }
@@ -317,7 +318,6 @@ export class Tooltip<T extends HTMLElement> extends React.Component<
     if (!show && !measure) {
       return null
     }
-
     const visible = show && !measure
     const { targetRect, hostRect, windowRect, tooltipRect } = this.state
     const { interactive, accessible } = this.props
