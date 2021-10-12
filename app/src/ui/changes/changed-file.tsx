@@ -75,6 +75,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
+          tooltipDirection="e"
         />
       </div>
     )
