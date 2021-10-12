@@ -61,7 +61,8 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         viewBox={viewBox}
         ref={this.svgRef}
       >
-        {!ariaHidden && (
+        <title>{title}</title>
+        {title !== undefined && (
           <Tooltip target={this.svgRef} direction={direction}>
             {title}
           </Tooltip>
