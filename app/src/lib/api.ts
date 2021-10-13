@@ -14,6 +14,7 @@ import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
+import JSZip from 'jszip'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -340,6 +341,7 @@ export interface IAPIRefCheckRun {
   readonly app: IAPIRefCheckRunApp
   readonly completed_at: string
   readonly started_at: string
+  readonly html_url: string
 }
 
 // NB. Only partially mapped
@@ -350,6 +352,8 @@ export interface IAPIRefCheckRunApp {
 // NB. Only partially mapped
 export interface IAPIRefCheckRunOutput {
   readonly title: string | null
+  readonly summary: string | null
+  readonly text: string | null
 }
 
 export interface IAPIRefCheckRunCheckSuite {
@@ -359,6 +363,52 @@ export interface IAPIRefCheckRunCheckSuite {
 export interface IAPIRefCheckRuns {
   readonly total_count: number
   readonly check_runs: IAPIRefCheckRun[]
+}
+
+interface IAPIWorkflowRuns {
+  readonly total_count: number
+  readonly workflow_runs: ReadonlyArray<IAPIWorkflowRun>
+}
+// NB. Only partially mapped
+export interface IAPIWorkflowRun {
+  /**
+   * The workflow_id is the id of the workflow not the individual run.
+   **/
+  readonly workflow_id: number
+  readonly cancel_url: string
+  readonly created_at: string
+  readonly jobs_url: string
+  readonly logs_url: string
+  readonly name: string
+  readonly rerun_url: string
+  readonly check_suite_id: number
+}
+
+export interface IAPIWorkflowJobs {
+  readonly total_count: number
+  readonly jobs: IAPIWorkflowJob[]
+}
+
+// NB. Only partially mapped
+export interface IAPIWorkflowJob {
+  readonly id: number
+  readonly name: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
+  readonly html_url: string
+}
+
+export interface IAPIWorkflowJobStep {
+  readonly name: string
+  readonly number: number
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly log: string
 }
 
 /** Protected branch information returned by the GitHub API */
@@ -958,6 +1008,102 @@ export class API {
       )
       return null
     }
+  }
+
+  /**
+   * List workflow runs for a repository filtered by branch and event type of
+   * pull_request
+   */
+  public async fetchPRWorkflowRuns(
+    owner: string,
+    name: string,
+    branchName: string
+  ): Promise<IAPIWorkflowRuns | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${encodeURIComponent(
+      branchName
+    )}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      return await parsedResponse<IAPIWorkflowRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * List workflow run jobs for a given workflow run
+   */
+  public async fetchWorkflowRunJobs(
+    workflowRun: IAPIWorkflowRun
+  ): Promise<IAPIWorkflowJobs | null> {
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', workflowRun.jobs_url, {
+      customHeaders,
+    })
+    try {
+      return await parsedResponse<IAPIWorkflowJobs>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow jobs for workflow run named: ${workflowRun.name}`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Get JSZip for a workflow run log archive.
+   *
+   * If it fails to retrieve or parse the zip file, it will return null.
+   */
+  public async fetchWorkflowRunJobLogs(logsUrl: string): Promise<JSZip | null> {
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', logsUrl, {
+      customHeaders,
+    })
+
+    try {
+      const zipBlob = await response.blob()
+      return new JSZip().loadAsync(zipBlob)
+    } catch (e) {
+      // Sometimes a workflow provides a log url, but still returns a 404
+      // because a log file doesn't make sense for the workflow. Thus, we just
+      // want to fail without raising an error.
+    }
+
+    return null
+  }
+
+  /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
+    const response = await this.request('POST', path)
+
+    try {
+      return response.ok
+    } catch (_) {
+      log.debug(
+        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return false
   }
 
   /**

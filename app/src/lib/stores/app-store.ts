@@ -4151,7 +4151,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await fastForwardBranches(repository, eligibleBranches)
     } catch (e) {
       log.error('Branch fast-forwarding failed', e)
-      sendNonFatalException('fastForwardBranches', e)
     }
   }
 

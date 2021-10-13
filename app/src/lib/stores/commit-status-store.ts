@@ -10,9 +10,15 @@ import {
   IAPIRefCheckRun,
   APICheckStatus,
   APICheckConclusion,
+  IAPIWorkflowRun,
+  IAPIWorkflowJobStep,
+  IAPIWorkflowJob,
+  IAPIWorkflowJobs,
+  getAccountForEndpoint,
 } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import { setAlmostImmediate } from '../set-almost-immediate'
+import JSZip from 'jszip'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -24,11 +30,44 @@ import { setAlmostImmediate } from '../set-almost-immediate'
  * as statuses the model closely aligns with Check Runs.
  */
 export interface IRefCheck {
+  readonly id: number
   readonly name: string
   readonly description: string
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly appName: string
+  readonly checkSuiteId: number | null // API status don't have check suite id's
+  readonly output: IRefCheckOutput
+  readonly htmlUrl: string | null
+}
+
+/**
+ * There are two types of check run outputs.
+ *
+ * 1. From GitHub Actions, which comes in steps with individual log texts,
+ *    statuses, and duration info.
+ * 2. From any other check run app, which comes with a generic string of
+ *    whatever the check run app provides.
+ */
+export type IRefCheckOutput =
+  | {
+      readonly title: string | null
+      readonly summary?: string | null
+      readonly type: RefCheckOutputType.Actions
+      readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
+    }
+  | {
+      readonly title: string | null
+      readonly summary?: string | null
+      readonly type: RefCheckOutputType.Default
+      // This text is whatever a check run app decides to place in it.
+      // It may include html.
+      readonly text: string | null
+    }
+
+export enum RefCheckOutputType {
+  Actions = 'Actions',
+  Default = 'Default',
 }
 
 /**
@@ -380,6 +419,174 @@ export class CommitStatusStore {
       }
     })
   }
+
+  /**
+   * Retrieve GitHub Actions workflows, jobs, and logs for the branch and apply
+   * logs to matching check run output.
+   */
+  public async getLatestPRWorkflowRunsLogsForCheckRun(
+    repository: GitHubRepository,
+    ref: string,
+    branchName: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    const key = getCacheKeyForRepository(repository, ref)
+    const subscription = this.subscriptions.get(key)
+    if (subscription === undefined) {
+      return checkRuns
+    }
+
+    const { endpoint, owner, name } = subscription
+    const account = this.accounts.find(a => a.endpoint === endpoint)
+    if (account === undefined) {
+      return checkRuns
+    }
+
+    const api = API.fromAccount(account)
+    const latestWorkflowRuns = await this.getLatestPRWorkflowRuns(
+      api,
+      owner,
+      name,
+      branchName
+    )
+
+    if (latestWorkflowRuns.length === 0) {
+      return checkRuns
+    }
+
+    const logCache = new Map<number, JSZip>()
+    const jobsCache = new Map<number, IAPIWorkflowJobs>()
+    const mappedCheckRuns = new Array<IRefCheck>()
+    for (const cr of checkRuns) {
+      const matchingWR = latestWorkflowRuns.find(
+        wr => wr.check_suite_id === cr.checkSuiteId
+      )
+      if (matchingWR === undefined) {
+        mappedCheckRuns.push(cr)
+        continue
+      }
+
+      // Multiple check runs match a single workflow run.
+      // We can prevent several job network calls by caching them.
+      const workFlowRunJobs =
+        jobsCache.get(matchingWR.workflow_id) ??
+        (await api.fetchWorkflowRunJobs(matchingWR))
+
+      // Here check run and jobs only share their names.
+      // Thus, unfortunately cannot match on a numerical id.
+      const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
+      if (matchingJob === undefined) {
+        mappedCheckRuns.push(cr)
+        continue
+      }
+
+      // One workflow can have the logs for multiple check runs.. no need to
+      // keep retrieving it. So we are hashing it.
+      const logZip =
+        logCache.get(matchingWR.workflow_id) ??
+        (await api.fetchWorkflowRunJobLogs(matchingWR.logs_url))
+      if (logZip === null) {
+        mappedCheckRuns.push(cr)
+        continue
+      }
+
+      logCache.set(matchingWR.workflow_id, logZip)
+
+      mappedCheckRuns.push({
+        ...cr,
+        htmlUrl: matchingJob.html_url,
+        output: {
+          ...cr.output,
+          type: RefCheckOutputType.Actions,
+          steps: await parseJobStepLogs(logZip, matchingJob),
+        },
+      })
+    }
+
+    return mappedCheckRuns
+  }
+
+  // Gets only the latest PR workflow runs hashed by name
+  private async getLatestPRWorkflowRuns(
+    api: API,
+    owner: string,
+    name: string,
+    branchName: string
+  ): Promise<ReadonlyArray<IAPIWorkflowRun>> {
+    const wrMap = new Map<number, IAPIWorkflowRun>()
+    const allBranchWorkflowRuns = await api.fetchPRWorkflowRuns(
+      owner,
+      name,
+      branchName
+    )
+
+    if (allBranchWorkflowRuns === null) {
+      return []
+    }
+
+    // When retrieving Actions Workflow runs it returns all present and past
+    // workflow runs for the given branch name. For each workflow name, we only
+    // care about showing the latest run.
+    for (const wr of allBranchWorkflowRuns.workflow_runs) {
+      const storedWR = wrMap.get(wr.workflow_id)
+      if (storedWR === undefined) {
+        wrMap.set(wr.workflow_id, wr)
+        continue
+      }
+
+      const storedWRDate = new Date(storedWR.created_at)
+      const givenWRDate = new Date(wr.created_at)
+      if (storedWRDate.getTime() < givenWRDate.getTime()) {
+        wrMap.set(wr.workflow_id, wr)
+      }
+    }
+
+    return Array.from(wrMap.values())
+  }
+
+  public async rerequestCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
+  }
+}
+
+async function parseJobStepLogs(
+  logZip: JSZip,
+  job: IAPIWorkflowJob
+): Promise<ReadonlyArray<IAPIWorkflowJobStep>> {
+  try {
+    const jobFolder = logZip.folder(job.name)
+    if (jobFolder === null) {
+      return job.steps
+    }
+
+    const stepsWLogs = new Array<IAPIWorkflowJobStep>()
+    for (const step of job.steps) {
+      const stepFileName = `${step.number}_${step.name}.txt`
+      const stepLogFile = jobFolder.file(stepFileName)
+      if (stepLogFile === null) {
+        stepsWLogs.push(step)
+        continue
+      }
+
+      const log = await stepLogFile.async('text')
+      stepsWLogs.push({ ...step, log })
+    }
+    return stepsWLogs
+  } catch (e) {
+    log.warn('Could not parse logs for: ' + job.name)
+  }
+
+  return job.steps
 }
 
 /**
@@ -400,14 +607,48 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   }
 
   return {
+    id: apiStatus.id,
     name: apiStatus.context,
     description: getCheckRunShortDescription(state, conclusion),
     status: state,
     conclusion,
     appName: '',
+    checkSuiteId: null,
+    output: {
+      type: RefCheckOutputType.Default,
+      title: null,
+      text: null,
+    },
+    htmlUrl: null,
   }
 }
 
+export function getCheckRunConclusionAdjective(
+  conclusion: APICheckConclusion | null
+): string {
+  if (conclusion === null) {
+    return 'In progress'
+  }
+
+  switch (conclusion) {
+    case APICheckConclusion.ActionRequired:
+      return 'Action required'
+    case APICheckConclusion.Canceled:
+      return 'Canceled'
+    case APICheckConclusion.TimedOut:
+      return 'Timed out'
+    case APICheckConclusion.Failure:
+      return 'Failed'
+    case APICheckConclusion.Neutral:
+      return 'Neutral'
+    case APICheckConclusion.Success:
+      return 'Successful'
+    case APICheckConclusion.Skipped:
+      return 'Skipped'
+    case APICheckConclusion.Stale:
+      return 'Marked as stale'
+  }
+}
 /**
  * Method to generate a user friendly short check run description such as
  * "Successful in xs", "In Progress", "Failed after 1m"
@@ -431,35 +672,21 @@ function getCheckRunShortDescription(
     return 'In progress'
   }
 
-  let adjective = ''
-  let preposition = 'after'
+  const adjective = getCheckRunConclusionAdjective(conclusion)
 
-  // Some of these such as 'Action required' or 'Skipped' don't make sense with
-  // time context so we just return them.
-  switch (conclusion) {
-    case APICheckConclusion.ActionRequired:
-      return 'Action required'
-    case APICheckConclusion.Canceled:
-      adjective = 'Canceled'
-      break
-    case APICheckConclusion.TimedOut:
-      adjective = 'Timed out'
-      break
-    case APICheckConclusion.Failure:
-      adjective = 'Failed'
-      break
-    case APICheckConclusion.Neutral:
-      adjective = 'Completed'
-      break
-    case APICheckConclusion.Success:
-      adjective = 'Successful'
-      preposition = 'in'
-      break
-    case APICheckConclusion.Skipped:
-      return 'Skipped'
-    case APICheckConclusion.Stale:
-      return 'Marked as stale'
+  // Some conclusions such as 'Action required' or 'Skipped' don't make sense
+  // with time context so we just return them.
+  if (
+    [
+      APICheckConclusion.ActionRequired,
+      APICheckConclusion.Skipped,
+      APICheckConclusion.Stale,
+    ].includes(conclusion)
+  ) {
+    return adjective
   }
+
+  const preposition = conclusion === APICheckConclusion.Success ? 'in' : 'after'
 
   if (durationSeconds !== undefined && durationSeconds > 0) {
     const duration =
@@ -476,12 +703,18 @@ function getCheckRunShortDescription(
  * Attempts to get the duration of a check run in seconds.
  * If it fails, it returns 0
  */
-function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
+export function getCheckDurationInSeconds(
+  checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
+): number {
   try {
     // This could fail if the dates cannot be parsed.
     const completedAt = new Date(checkRun.completed_at).getTime()
     const startedAt = new Date(checkRun.started_at).getTime()
-    return (completedAt - startedAt) / 1000
+    const duration = (completedAt - startedAt) / 1000
+
+    if (!isNaN(duration)) {
+      return duration
+    }
   } catch (e) {}
 
   return 0
@@ -492,6 +725,7 @@ function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
  */
 function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
+    id: checkRun.id,
     name: checkRun.name,
     description: getCheckRunShortDescription(
       checkRun.status,
@@ -501,6 +735,12 @@ function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
     status: checkRun.status,
     conclusion: checkRun.conclusion,
     appName: checkRun.app.name,
+    checkSuiteId: checkRun.check_suite.id,
+    output: {
+      ...checkRun.output,
+      type: RefCheckOutputType.Default,
+    },
+    htmlUrl: checkRun.html_url,
   }
 }
 
