@@ -239,6 +239,9 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       prevTarget.removeEventListener('mouseenter', this.onTargetMouseEnter)
       prevTarget.removeEventListener('mouseleave', this.onTargetMouseLeave)
       prevTarget.removeEventListener('mousemove', this.onTargetMouseMove)
+      prevTarget.removeEventListener('mousedown', this.onTargetMouseDown)
+      prevTarget.removeEventListener('focusin', this.onTargetFocusIn)
+      prevTarget.removeEventListener('focusout', this.onTargetFocusOut)
     }
   }
 
