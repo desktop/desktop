@@ -106,6 +106,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
 > {
   private mouseRect = new DOMRect()
 
+  private mouseOverTarget = false
   private showTooltipTimeout: number | null = null
   private hideTooltipTimeout: number | null = null
 
@@ -226,6 +227,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('mouseleave', this.onTargetMouseLeave)
     elem.addEventListener('mousemove', this.onTargetMouseMove)
     elem.addEventListener('mousedown', this.onTargetMouseDown)
+    elem.addEventListener('focusin', this.onTargetFocusIn)
+    elem.addEventListener('focusout', this.onTargetFocusOut)
   }
 
   private removeTooltip(prevTarget: TooltipTarget | null) {
@@ -240,6 +243,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private onTargetMouseEnter = (event: MouseEvent) => {
+    this.mouseOverTarget = true
     this.cancelHideTooltip()
     if (!this.state.show) {
       this.beginShowTooltip()
@@ -252,6 +256,18 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
 
   private onTargetMouseDown = (event: MouseEvent) => {
     this.hideTooltip()
+  }
+
+  private onTargetFocusIn = (event: FocusEvent) => {
+    if (this.state.target?.matches(':focus-visible')) {
+      this.beginShowTooltip()
+    }
+  }
+
+  private onTargetFocusOut = (event: FocusEvent) => {
+    if (!this.mouseOverTarget) {
+      this.beginHideTooltip()
+    }
   }
 
   private beginShowTooltip() {
@@ -296,6 +312,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private onTargetMouseLeave = (event: MouseEvent) => {
+    this.mouseOverTarget = false
     this.beginHideTooltip()
   }
 
