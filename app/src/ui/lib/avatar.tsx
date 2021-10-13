@@ -219,7 +219,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     return (
       <TooltippedContent
         className="avatar-container"
-        tooltipClassName="user-info"
+        tooltipClassName={this.props.title ? undefined : 'user-info'}
         tooltip={title}
         direction="n"
         tagName="div"
