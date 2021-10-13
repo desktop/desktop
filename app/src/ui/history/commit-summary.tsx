@@ -19,8 +19,7 @@ import {
   clearAlmostImmediate,
   setAlmostImmediate,
 } from '../../lib/set-almost-immediate'
-import { Tooltip } from '../lib/tooltip'
-import { createObservableRef } from '../lib/observable-ref'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -133,7 +132,6 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: AlmostImmediate | null = null
   private descriptionRef: HTMLDivElement | null = null
-  private readonly shaRef = createObservableRef<HTMLSpanElement>()
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -345,13 +343,16 @@ export class CommitSummary extends React.Component<
               className="commit-summary-meta-item without-truncation"
               aria-label="SHA"
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.gitCommit} />
-              </span>
-              <span ref={this.shaRef} className="sha">
-                <Tooltip target={this.shaRef}>{this.props.commit.sha}</Tooltip>
+              <Octicon symbol={OcticonSymbol.gitCommit} />
+              <TooltippedContent
+                className="sha"
+                tooltip={this.renderShaTooltip()}
+                tooltipClassName="sha-hint"
+                interactive={true}
+                direction="s"
+              >
                 {shortSHA}
-              </span>
+              </TooltippedContent>
             </li>
 
             <li
@@ -389,6 +390,17 @@ export class CommitSummary extends React.Component<
 
         {this.renderDescription()}
       </div>
+    )
+  }
+
+  private renderShaTooltip() {
+    return (
+      <>
+        <code>{this.props.commit.sha}</code>
+        <button>
+          <span>Copy</span>
+        </button>
+      </>
     )
   }
 
