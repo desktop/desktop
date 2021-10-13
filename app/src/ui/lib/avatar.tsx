@@ -218,7 +218,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         className="avatar-container"
         tooltip={title}
         direction="n"
-        wrapperElement="div"
+        tagName="div"
       >
         {img}
       </TooltippedContent>

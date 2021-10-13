@@ -158,7 +158,7 @@ export class BranchListItem extends React.Component<
           className="name"
           tooltip={name}
           onlyWhenOverflowed={true}
-          wrapperElement="div"
+          tagName="div"
         >
           <HighlightText text={name} highlight={this.props.matches.title} />
         </TooltippedContent>

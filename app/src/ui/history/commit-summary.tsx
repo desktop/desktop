@@ -416,14 +416,14 @@ export class CommitSummary extends React.Component<
     return (
       <>
         <TooltippedContent
-          wrapperElement="li"
+          tagName="li"
           className="commit-summary-meta-item without-truncation lines-added"
           tooltip={linesAddedTitle}
         >
           +{linesAdded}
         </TooltippedContent>
         <TooltippedContent
-          wrapperElement="li"
+          tagName="li"
           className="commit-summary-meta-item without-truncation lines-deleted"
           tooltip={linesDeletedTitle}
         >
