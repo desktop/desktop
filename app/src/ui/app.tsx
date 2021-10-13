@@ -2110,10 +2110,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onIssueBranchCreatedCallback = (issueNumber: number) => {
-    return () => {
+    return async () => {
+      this.onBranchCreatedFromCommit()
+      this.props.dispatcher.closeCurrentFoldout()
+
       const repository = this.getRepository()
 
       if (!(repository instanceof Repository)) {
+        // This shouldn't happen....
         return
       }
 
@@ -2128,14 +2132,21 @@ export class App extends React.Component<IAppProps, IAppState> {
         currentUserLogin !== undefined &&
         repository.gitHubRepository !== null
       ) {
-        this.props.dispatcher.addAssigneesToAnIssue(
+        await this.props.dispatcher.addAssigneesToAnIssue(
           repository.gitHubRepository,
           issueNumber,
           [currentUserLogin]
         )
       }
 
-      this.onBranchCreatedFromCommit()
+      // TODO: pass in if user was assigned so message can reflect that...
+      this.props.dispatcher.setBanner({
+        type: BannerType.IssueAssigned,
+        issueNumber,
+        onOpenExternalEditor: () => {
+          this.props.dispatcher.openInExternalEditor(repository.path)
+        },
+      })
     }
   }
 

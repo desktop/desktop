@@ -18,6 +18,10 @@ import { OpenThankYouCard } from './open-thank-you-card'
 import { SuccessfulSquash } from './successful-squash'
 import { SuccessBanner } from './success-banner'
 import { ConflictsFoundBanner } from './conflicts-found-banner'
+import { Banner as BaseBanner } from './banner'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { LinkButton } from '../lib/link-button'
 
 export function renderBanner(
   banner: Banner,
@@ -159,6 +163,24 @@ export function renderBanner(
           key={'conflicts-found'}
         ></ConflictsFoundBanner>
       )
+    case BannerType.IssueAssigned: {
+      return (
+        <BaseBanner id="successful" timeout={20000} onDismissed={onDismissed}>
+          <div className="green-circle">
+            <Octicon className="check-icon" symbol={OcticonSymbol.check} />
+          </div>
+          <div className="banner-message">
+            <span className="success-contents">
+              Issue #{banner.issueNumber} has been assigned to you.{' '}
+              <LinkButton onClick={banner.onOpenExternalEditor}>
+                Open in your external editor
+              </LinkButton>{' '}
+              to start working!
+            </span>
+          </div>
+        </BaseBanner>
+      )
+    }
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
   }

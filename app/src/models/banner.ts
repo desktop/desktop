@@ -15,6 +15,7 @@ export enum BannerType {
   SuccessfulSquash = 'SuccessfulSquash',
   SuccessfulReorder = 'SuccessfulReorder',
   ConflictsFound = 'ConflictsFound',
+  IssueAssigned = 'IssueAssigned',
 }
 
 export type Banner =
@@ -118,4 +119,9 @@ export type Banner =
       readonly operationDescription: string | JSX.Element
       /** callback to run when user clicks on link in banner text */
       readonly onOpenConflictsDialog: () => void
+    }
+  | {
+      readonly type: BannerType.IssueAssigned
+      readonly issueNumber: number
+      readonly onOpenExternalEditor: () => void
     }
