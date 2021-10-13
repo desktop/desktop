@@ -302,7 +302,11 @@ export class PathText extends React.PureComponent<
           <span className="filename">{this.state.fileText}</span>
         </span>
         {truncated && (
-          <Tooltip target={this.pathElementRef}>
+          <Tooltip
+            target={this.pathElementRef}
+            interactive={true}
+            className="selectable"
+          >
             {this.state.normalizedPath}
           </Tooltip>
         )}
