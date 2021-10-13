@@ -148,4 +148,16 @@ body > .tooltip,
       color: #{$gray-900};
     }
   }
+
+  &.user-info .tooltip-content {
+    display: flex;
+    flex-direction: row;
+    padding: var(--spacing-half) 0;
+
+    img {
+      width: 32px;
+      height: 32px;
+      margin-right: var(--spacing);
+    }
+  }
 }

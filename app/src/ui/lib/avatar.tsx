@@ -166,10 +166,13 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       if (user.name) {
         return (
           <>
+            <Avatar title={null} user={user} />
             <div>
-              <strong>{user.name}</strong>
+              <div>
+                <strong>{user.name}</strong>
+              </div>
+              <div>{user.email}</div>
             </div>
-            <div>{user.email}</div>
           </>
         )
       } else {
@@ -216,6 +219,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     return (
       <TooltippedContent
         className="avatar-container"
+        tooltipClassName="user-info"
         tooltip={title}
         direction="n"
         tagName="div"
