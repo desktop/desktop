@@ -321,4 +321,5 @@ export type Popup =
       repository: Repository
       initialName?: string
       issueTitle: string
+      issueNumber: number
     }

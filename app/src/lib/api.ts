@@ -867,6 +867,42 @@ export class API {
     }
   }
 
+  /**
+   * Adds up to 10 assignees to an issue. Users already assigned to an issue are
+   * note replaced.
+   *
+   * NB: Only users with push access can add assignees to an issue. Assignees
+   * are silently ignored otherwise.
+   *
+   * @param assignees - Usernames of people to assign this issue to.
+   */
+  public async addAssigneesToAnIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    assignees: ReadonlyArray<string>
+  ) {
+    const apiPath = `repos/${owner}/${repo}/issues/${issueNumber}/assignees`
+
+    const response = await this.request('POST', apiPath, {
+      body: {
+        assignees,
+      },
+    })
+
+    try {
+      return response.ok
+    } catch (_) {
+      log.warn(
+        `Failed to set assignees (${assignees.join(
+          ', '
+        )}) for issue ${issueNumber} ${owner}/${repo}`
+      )
+    }
+
+    return false
+  }
+
   /** Fetch all open pull requests in the given repository. */
   public async fetchAllOpenPullRequests(owner: string, name: string) {
     const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {

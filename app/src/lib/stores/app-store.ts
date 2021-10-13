@@ -1637,6 +1637,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return []
   }
 
+  /**
+   * Adds up to 10 assignees to an issue. Users already assigned to an issue are
+   * note replaced.
+   * */
+  public async _addAssigneesToAnIssue(
+    repository: GitHubRepository,
+    issueNumber: number,
+    assignees: ReadonlyArray<string>
+  ): Promise<boolean> {
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (!account) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+
+    return api.addAssigneesToAnIssue(
+      repository.owner.login,
+      repository.name,
+      issueNumber,
+      assignees
+    )
+  }
+
   private stopBackgroundFetching() {
     const backgroundFetcher = this.currentBackgroundFetcher
     if (backgroundFetcher) {

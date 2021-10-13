@@ -2092,7 +2092,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             allBranches={branchesState.allBranches}
             repository={repository}
             upstreamGitHubRepository={upstreamGhRepo}
-            onBranchCreatedFromCommit={this.onBranchCreatedFromCommit}
+            onBranchCreated={this.onIssueBranchCreatedCallback(
+              popup.issueNumber
+            )}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
@@ -2104,6 +2106,36 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
+    }
+  }
+
+  private onIssueBranchCreatedCallback = (issueNumber: number) => {
+    return () => {
+      const repository = this.getRepository()
+
+      if (!(repository instanceof Repository)) {
+        return
+      }
+
+      const dotComAccount = this.getDotComAccount()
+      const enterpriseAccount = this.getEnterpriseAccount()
+      const currentUserLogin = dotComAccount?.login ?? enterpriseAccount?.login
+      // If we can't get an currently logged in user, we just won't assign.
+      // Thoughts... can you be logged into an enterprise account and open a non-enterprise repo..
+      // If so.. probably need to be more cautious about usng an enterprise login...
+      // (Also this only applies to GitHub Repos..)
+      if (
+        currentUserLogin !== undefined &&
+        repository.gitHubRepository !== null
+      ) {
+        this.props.dispatcher.addAssigneesToAnIssue(
+          repository.gitHubRepository,
+          issueNumber,
+          [currentUserLogin]
+        )
+      }
+
+      this.onBranchCreatedFromCommit()
     }
   }
 
@@ -2125,6 +2157,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             .replace(/\s/g, '-') // replace spaces with -
         }`,
         issueTitle: `${issue.title} #${issue.number}`,
+        issueNumber: issue.number,
       })
     }
   }

@@ -31,7 +31,7 @@ interface ICreateBranchProps {
   readonly targetCommit?: CommitOneLine
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
-  readonly onBranchCreatedFromCommit?: () => void
+  readonly onBranchCreated?: () => void
   readonly onDismissed: () => void
   /**
    * If provided, the branch creation is handled by the given method.
@@ -218,10 +218,10 @@ export class CreateBranchForIssue extends React.Component<
 
         <DialogContent>
           {this.props.subHeaderText !== undefined ? (
-            <p>
+            <div style={{ paddingBottom: '10px' }}>
               <div>Issue Title</div>
               <div>{this.props.subHeaderText}</div>
-            </p>
+            </div>
           ) : null}
 
           <RefNameTextBox
@@ -338,12 +338,8 @@ export class CreateBranchForIssue extends React.Component<
 
       // If the operation was successful and the branch was created from a
       // commit, invoke the callback.
-      if (
-        branch !== undefined &&
-        this.props.targetCommit !== undefined &&
-        this.props.onBranchCreatedFromCommit !== undefined
-      ) {
-        this.props.onBranchCreatedFromCommit()
+      if (branch !== undefined && this.props.onBranchCreated !== undefined) {
+        this.props.onBranchCreated()
       }
     }
   }
