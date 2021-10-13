@@ -6,6 +6,13 @@ export type ObservableRef<T> = {
   (instance: T): void
 }
 
+/**
+ * Creates an observable React Ref instance.
+ *
+ * Observable refs are similar to how refs from React.createRef works with the
+ * exception that refs created using `createObservableRef` can notify consumers
+ * when the underlying ref change without having to resort to callback refs.
+ */
 export function createObservableRef<T>(): ObservableRef<T> {
   const subscribers = new Set<RefCallback<T>>()
 
