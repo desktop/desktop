@@ -160,14 +160,10 @@ export class CommitMessageAvatar extends React.Component<
           </div>
         </Row>
         <Row className="button-row">
-          <Button onClick={this.onIgnoreClick} tooltip="Ignore" type="button">
+          <Button onClick={this.onIgnoreClick} type="button">
             Ignore
           </Button>
-          <Button
-            onClick={this.onUpdateEmailClick}
-            tooltip={updateEmailTitle}
-            type="submit"
-          >
+          <Button onClick={this.onUpdateEmailClick} type="submit">
             {updateEmailTitle}
           </Button>
         </Row>
