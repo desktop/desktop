@@ -20,6 +20,7 @@ import {
   setAlmostImmediate,
 } from '../../lib/set-almost-immediate'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { clipboard } from 'electron'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -394,11 +395,14 @@ export class CommitSummary extends React.Component<
     return (
       <>
         <code>{this.props.commit.sha}</code>
-        <button>
-          <span>Copy</span>
-        </button>
+        <button onClick={this.onCopyShaButtonClick}>Copy</button>
       </>
     )
+  }
+
+  private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    clipboard.writeText(this.props.commit.sha)
   }
 
   private renderLinesChanged() {
