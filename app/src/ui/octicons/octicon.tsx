@@ -60,8 +60,8 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         version="1.1"
         viewBox={viewBox}
         ref={this.svgRef}
+        tabIndex={-1}
       >
-        <title>{title}</title>
         {title !== undefined && (
           <Tooltip target={this.svgRef} direction={direction}>
             {title}
