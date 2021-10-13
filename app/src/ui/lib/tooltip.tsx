@@ -64,6 +64,8 @@ export interface ITooltipProps<T> {
    * to apply specific styles to the tooltip
    */
   readonly className?: string
+
+  readonly onlyWhenOverflowed?: boolean
 }
 
 interface ITooltipState {
@@ -126,9 +128,18 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     }
 
     this.resizeObserver = new ResizeObserver(entries => {
-      const tooltipRect = entries[0]?.target?.getBoundingClientRect()
-      if (tooltipRect && !rectEquals(this.state.tooltipRect, tooltipRect)) {
-        this.setState({ tooltipRect })
+      for (const entry of entries) {
+        if (entry.target === this.tooltipRef) {
+          const tooltipRect = this.tooltipRef.getBoundingClientRect()
+          if (!rectEquals(this.state.tooltipRect, tooltipRect)) {
+            this.setState({ tooltipRect })
+          }
+        } else if (entry.target === this.state.target) {
+          const targetRect = this.state.target.getBoundingClientRect()
+          if (!rectEquals(this.state.targetRect, targetRect)) {
+            this.setState({ targetRect })
+          }
+        }
       }
     })
   }
@@ -252,9 +263,17 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private showTooltip = () => {
+    this.cancelShowTooltip()
+
     const { tooltipHost, target } = this.state
     if (tooltipHost === null || target === null) {
       return
+    }
+
+    if (this.props.onlyWhenOverflowed) {
+      if (!isOverflowed(target)) {
+        return
+      }
     }
 
     this.setState({
@@ -491,3 +510,5 @@ const tooltipHostFor = (target: Element | undefined | null) =>
   target?.closest('.tooltip-host') ?? document.body
 
 const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation()
+
+const isOverflowed = (elem: Element) => elem.scrollWidth > elem.clientWidth

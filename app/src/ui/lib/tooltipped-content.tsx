@@ -6,14 +6,8 @@ interface ITooltippedContentProps
   extends Omit<ITooltipProps<HTMLElement>, 'target'> {
   readonly tooltip: JSX.Element | string | undefined
   readonly wrapperElement?: keyof HTMLElementTagNameMap
-  readonly wrapperRef?: React.Ref<HTMLElement>
   readonly tooltipClassName?: string
   readonly className?: string
-  readonly onlyWhenOverflowed?: boolean
-}
-
-interface ITooltippedContentState {
-  readonly overflowed?: boolean
 }
 
 /**
@@ -22,76 +16,26 @@ interface ITooltippedContentState {
  * the Tooltip component does without having to worry about refs.
  **/
 export class TooltippedContent extends React.Component<
-  ITooltippedContentProps,
-  ITooltippedContentState
+  ITooltippedContentProps
 > {
   private wrapperRef = createObservableRef<HTMLElement>()
-  private readonly resizeObserver: ResizeObserver
-
-  public constructor(props: ITooltippedContentProps) {
-    super(props)
-    this.state = {}
-    this.wrapperRef.subscribe(this.onWrapperRef)
-
-    this.resizeObserver = new ResizeObserver(() => {
-      this.checkIfOverflowed()
-    })
-  }
-
-  private onWrapperRef = (elem: HTMLElement | null) => {
-    this.checkIfOverflowed()
-  }
-
-  private checkIfOverflowed() {
-    const elem = this.wrapperRef.current
-
-    if (elem !== null) {
-      const overflowed = elem.scrollWidth > elem.clientWidth
-      if (this.state.overflowed !== overflowed) {
-        this.setState({ overflowed })
-      }
-    }
-  }
-
-  public componentDidMount() {
-    if (this.wrapperRef.current && this.props.onlyWhenOverflowed) {
-      this.checkIfOverflowed()
-    }
-  }
-
-  public componentDidUpdate(prevProps: ITooltippedContentProps) {
-    if (prevProps.onlyWhenOverflowed !== this.props.onlyWhenOverflowed) {
-      if (this.props.onlyWhenOverflowed && this.wrapperRef.current) {
-        this.resizeObserver.observe(this.wrapperRef.current)
-        this.checkIfOverflowed()
-      } else {
-        this.resizeObserver.disconnect()
-        this.setState({ overflowed: undefined })
-      }
-    }
-  }
 
   public render() {
-    const { overflowed } = this.state
     const {
       tooltip,
       wrapperElement,
       children,
       className,
       tooltipClassName,
-      onlyWhenOverflowed,
       ...rest
     } = this.props
-
-    const renderTooltip =
-      tooltip !== undefined && (!onlyWhenOverflowed || overflowed)
 
     return React.createElement(wrapperElement ?? 'span', {
       ref: this.wrapperRef,
       className: className,
       children: (
         <>
-          {renderTooltip && (
+          {tooltip !== undefined && (
             <Tooltip
               target={this.wrapperRef}
               className={tooltipClassName}
