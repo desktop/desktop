@@ -131,6 +131,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * implement a hover state since this will conflict with
    * selection and active selection
    */
+  --box-hover-background-color: #{$gray-100};
 
   /**
    * Text color for selected boxes without keyboard focus
