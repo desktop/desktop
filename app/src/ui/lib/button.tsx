@@ -102,27 +102,33 @@ export class Button extends React.Component<IButtonProps, {}> {
   }
 
   public render() {
-    const className = classNames(
-      'button-component',
-      { 'small-button': this.props.size === 'small' },
-      this.props.className
-    )
+    const { disabled, tooltip } = this.props
+
+    const className = classNames('button-component', this.props.className, {
+      'small-button': this.props.size === 'small',
+    })
 
     return (
       <button
         className={className}
-        disabled={this.props.disabled}
-        onClick={this.onClick}
+        onClick={disabled ? preventDefault : this.onClick}
         type={this.props.type || 'button'}
         ref={this.innerButtonRef}
         tabIndex={this.props.tabIndex}
-        onMouseEnter={this.props.onMouseEnter}
+        onMouseEnter={disabled ? preventDefault : this.props.onMouseEnter}
         role={this.props.role}
         aria-expanded={this.props.ariaExpanded}
+        aria-disabled={disabled ? 'true' : undefined}
       >
-        {this.props.tooltip && (
-          <Tooltip target={this.innerButtonRef} direction="s">
-            {this.props.tooltip}
+        {tooltip && (
+          <Tooltip
+            target={this.innerButtonRef}
+            direction="n"
+            // Show the tooltip immediately on hover if the button is
+            // disabled
+            delay={disabled && tooltip ? 0 : undefined}
+          >
+            {tooltip}
           </Tooltip>
         )}
         {this.props.children}
@@ -140,3 +146,5 @@ export class Button extends React.Component<IButtonProps, {}> {
     }
   }
 }
+
+const preventDefault = (e: Event | React.SyntheticEvent) => e.preventDefault()
