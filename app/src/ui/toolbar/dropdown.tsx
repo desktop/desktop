@@ -82,7 +82,7 @@ export interface IToolbarDropdownProps {
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
 
-  /** Wether the dropdown will trap focus or not. Defaults to true. */
+  /** Whether the dropdown will trap focus or not. Defaults to true. */
   readonly enableFocusTrap?: boolean
 
   /**
