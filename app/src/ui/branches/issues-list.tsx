@@ -111,9 +111,6 @@ export class IssueList extends React.Component<
     this.props.dispatcher.showPopup({
       type: PopupType.Issue,
       issue: item.issue,
-      onSubmit: () => {
-        console.log('Lets get started!')
-      },
     })
   }
 

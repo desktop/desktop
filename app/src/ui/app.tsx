@@ -18,7 +18,7 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint } from '../lib/api'
+import { getDotComAPIEndpoint, IAPIIssue } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
@@ -144,6 +144,7 @@ import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-ope
 import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { setAlmostImmediate } from '../lib/set-almost-immediate'
 import { Issue } from './issue/issue'
+import { CreateBranchForIssue } from './create-branch/create-branch-for-issue-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2054,13 +2055,77 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <Issue
             issue={popup.issue}
-            onStartWorkingIssue={popup.onSubmit}
+            onStartWorkingIssue={this.onStartWorkingAnIssueCallback(
+              popup.issue
+            )}
             onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.CreateBranchForIssue: {
+        const state = this.props.repositoryStateManager.get(popup.repository)
+        const branchesState = state.branchesState
+        const repository = popup.repository
+
+        if (branchesState.tip.kind === TipState.Unknown) {
+          onPopupDismissedFn()
+          return null
+        }
+
+        let upstreamGhRepo: GitHubRepository | null = null
+        let upstreamDefaultBranch: Branch | null = null
+
+        if (isRepositoryWithGitHubRepository(repository)) {
+          upstreamGhRepo = getNonForkGitHubRepository(repository)
+          upstreamDefaultBranch = findDefaultUpstreamBranch(
+            repository,
+            branchesState.allBranches
+          )
+        }
+
+        return (
+          <CreateBranchForIssue
+            key="create-branch"
+            tip={branchesState.tip}
+            defaultBranch={branchesState.defaultBranch}
+            upstreamDefaultBranch={upstreamDefaultBranch}
+            allBranches={branchesState.allBranches}
+            repository={repository}
+            upstreamGitHubRepository={upstreamGhRepo}
+            onBranchCreatedFromCommit={this.onBranchCreatedFromCommit}
+            onDismissed={onPopupDismissedFn}
+            dispatcher={this.props.dispatcher}
+            initialName={popup.initialName || ''}
+            headerText="Create an Issue Branch" // TODO: windows/mac-inize
+            okButtonText="Create Issue Branch" // TODO: windows/mac-inize
+            subHeaderText={popup.issueTitle}
           />
         )
       }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
+    }
+  }
+
+  private onStartWorkingAnIssueCallback = (issue: IAPIIssue) => {
+    return () => {
+      const repository = this.getRepository()
+
+      if (!(repository instanceof Repository)) {
+        return
+      }
+
+      this.props.dispatcher.showPopup({
+        type: PopupType.CreateBranchForIssue,
+        repository,
+        initialName: `${issue.number}-${
+          issue.title
+            .slice(0, 50) // clip long issue titles
+            .trim()
+            .replace(/\s/g, '-') // replace spaces with -
+        }`,
+        issueTitle: `${issue.title} #${issue.number}`,
+      })
     }
   }
 

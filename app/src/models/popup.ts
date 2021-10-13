@@ -77,6 +77,7 @@ export enum PopupType {
   AddSSHHost,
   SSHKeyPassphrase,
   Issue,
+  CreateBranchForIssue,
 }
 
 export type Popup =
@@ -314,5 +315,10 @@ export type Popup =
   | {
       type: PopupType.Issue
       issue: IAPIIssue
-      onSubmit: () => void
+    }
+  | {
+      type: PopupType.CreateBranchForIssue
+      repository: Repository
+      initialName?: string
+      issueTitle: string
     }
