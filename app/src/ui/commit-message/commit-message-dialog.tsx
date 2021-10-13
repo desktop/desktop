@@ -111,6 +111,8 @@ export class CommitMessageDialog extends React.Component<
             persistCoAuthors={false}
             persistCommitMessage={false}
             onCreateCommit={this.props.onSubmitCommitMessage}
+            anyFilesAvailable={true}
+            anyFilesSelected={true}
           />
         </DialogContent>
       </Dialog>

@@ -671,6 +671,7 @@ export class ChangesList extends React.Component<
         branch={this.props.branch}
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
+        anyFilesAvailable={fileCount > 0}
         repository={repository}
         repositoryAccount={repositoryAccount}
         dispatcher={dispatcher}
