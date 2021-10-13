@@ -5,7 +5,7 @@ import { createObservableRef } from './observable-ref'
 interface ITooltippedContentProps
   extends Omit<ITooltipProps<HTMLElement>, 'target'> {
   readonly tooltip: JSX.Element | string | undefined
-  readonly wrapperElement?: 'span' | 'div'
+  readonly wrapperElement?: keyof HTMLElementTagNameMap
   readonly wrapperRef?: React.Ref<HTMLElement>
   readonly tooltipClassName?: string
   readonly className?: string
