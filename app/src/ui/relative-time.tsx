@@ -17,6 +17,13 @@ interface IRelativeTimeProps {
    */
   readonly abbreviate?: boolean
 
+  /**
+   * By default the RelativeTime component will start displaying a compact
+   * absolute date if the date is more than one week ago. Setting `onlyRelative`
+   * to true overrides this behavior and forces relative times for all dates.
+   */
+  readonly onlyRelative?: boolean
+
   readonly className?: string
 }
 
@@ -106,7 +113,11 @@ export class RelativeTime extends React.Component<
     } else if (duration < 7 * DAY) {
       this.updateAndSchedule(absoluteText, relativeText, 6 * HOUR)
     } else {
-      this.setState({ absoluteText, relativeText: then.format('ll') })
+      if (this.props.onlyRelative === true) {
+        this.updateAndSchedule(absoluteText, relativeText, 6 * HOUR)
+      } else {
+        this.setState({ absoluteText, relativeText: then.format('ll') })
+      }
     }
   }
 

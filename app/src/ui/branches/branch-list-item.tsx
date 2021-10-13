@@ -163,7 +163,11 @@ export class BranchListItem extends React.Component<
           <HighlightText text={name} highlight={this.props.matches.title} />
         </TooltippedContent>
         {lastCommitDate && (
-          <RelativeTime className="description" date={lastCommitDate} />
+          <RelativeTime
+            className="description"
+            date={lastCommitDate}
+            onlyRelative={true}
+          />
         )}
       </div>
     )
