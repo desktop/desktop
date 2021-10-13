@@ -100,6 +100,11 @@ body > .tooltip,
     pointer-events: auto;
   }
 
+  &.selectable .tooltip-content {
+    user-select: text;
+    cursor: text;
+  }
+
   &.sha-hint {
     max-width: 500px;
 
@@ -112,7 +117,6 @@ body > .tooltip,
     }
 
     code {
-      opacity: 0.8;
       padding-right: var(--spacing);
       user-select: text;
       cursor: text;
