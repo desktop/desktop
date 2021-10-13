@@ -359,10 +359,7 @@ export class CommitSummary extends React.Component<
               className="commit-summary-meta-item without-truncation"
               title={filesDescription}
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.diff} />
-              </span>
-
+              <Octicon symbol={OcticonSymbol.diff} />
               {filesDescription}
             </li>
             {this.renderLinesChanged()}
