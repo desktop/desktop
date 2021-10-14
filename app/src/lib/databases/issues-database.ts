@@ -10,6 +10,7 @@ export interface IIssue {
   readonly created_at: string
   readonly author: string
   readonly body: string
+  readonly assignees: ReadonlyArray<string>
 }
 
 export class IssuesDatabase extends BaseDatabase {

@@ -69,7 +69,7 @@ export class IssueList extends React.Component<
         <FilterList<IIssueListItem>
           className="issue-list"
           rowHeight={RowHeight}
-          groups={[groups]}
+          groups={groups}
           selectedItem={this.state.selectedItem}
           renderItem={this.renderIssue}
           filterText={this.state.filterText}
@@ -150,6 +150,9 @@ export class IssueList extends React.Component<
   }
 
   private renderListHeader = (identifier: string) => {
+    if (identifier === 'assigned-issues') {
+      return <div className="filter-list-group-header">Your Issues</div>
+    }
     return (
       <div className="filter-list-group-header">
         Issues in {this.props.repository.gitHubRepository.fullName}
@@ -182,21 +185,38 @@ export class IssueList extends React.Component<
 
   private createListItems(
     issues: ReadonlyArray<IIssue>
-  ): IFilterListGroup<IIssueListItem> {
+  ): ReadonlyArray<IFilterListGroup<IIssueListItem>> {
     const sortedIssues = [...issues].sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
-    const items = sortedIssues.map(issue => ({
-      text: [issue.title, getIssueSubtitle(issue)],
-      id: issue.number.toString(),
-      issue,
-    }))
 
-    return {
-      identifier: 'issues',
-      items,
-    }
+    const assigned = sortedIssues
+      .filter(i => i.assignees.includes('tidy-dev'))
+      .map(issue => ({
+        text: [issue.title, getIssueSubtitle(issue)],
+        id: issue.number.toString(),
+        issue,
+      }))
+
+    const notAssigned = sortedIssues
+      .filter(i => !assigned.map(i => i.issue.number).includes(i.number))
+      .map(issue => ({
+        text: [issue.title, getIssueSubtitle(issue)],
+        id: issue.number.toString(),
+        issue,
+      }))
+
+    return [
+      {
+        identifier: 'assigned-issues',
+        items: assigned,
+      },
+      {
+        identifier: 'not-assigned-issues',
+        items: notAssigned,
+      },
+    ]
   }
 }
 

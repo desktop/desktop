@@ -290,6 +290,7 @@ export interface IAPIIssue {
   readonly created_at: string
   readonly user: IAPIIdentity
   readonly body: string
+  readonly assignees: ReadonlyArray<IAPIIdentity>
 }
 
 /** The combined state of a ref. */

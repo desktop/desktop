@@ -104,6 +104,7 @@ export class IssuesStore {
           gitHubRepositoryID: repository.dbID,
           author: i.user.login,
           body: i.body,
+          assignees: i.assignees.map(a => a.login),
         }
       })
 
