@@ -70,7 +70,7 @@ export class IssueDropdown extends React.Component<IIssueDropdownProps> {
 
     return (
       <ToolbarDropdown
-        className="branch-button"
+        className="issue-button"
         icon={icon}
         iconClassName={iconClassName}
         title={title}
