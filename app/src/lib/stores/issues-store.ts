@@ -66,8 +66,8 @@ export class IssuesStore {
    */
   public async refreshIssues(repository: GitHubRepository, account: Account) {
     const api = API.fromAccount(account)
-    const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
 
+    const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
     // If we don't have a lastUpdatedAt that mean we haven't fetched any issues
     // for the repository yet which in turn means we only have to fetch the
     // currently open issues. If we have fetched before we get all issues
@@ -97,10 +97,9 @@ export class IssuesStore {
       .filter(i => i.state === 'open')
       .map<IIssue>(i => {
         return {
+          ...i,
           gitHubRepositoryID: repository.dbID,
-          number: i.number,
-          title: i.title,
-          updated_at: i.updated_at,
+          author: i.user.login,
         }
       })
 
@@ -147,10 +146,13 @@ export class IssuesStore {
     }
   }
 
-  public async getAllIssueHitsFor(repository: GitHubRepository) {
   private async getAllIssueHitsFor(repository: GitHubRepository) {
     const hits = await this.db.getIssuesForRepository(repository.dbID)
     return hits.map(i => ({ number: i.number, title: i.title }))
+  }
+
+  public async getAllIssues(repository: GitHubRepository) {
+    return await this.db.getIssuesForRepository(repository.dbID)
   }
 
   /** Get issues whose title or number matches the text. */

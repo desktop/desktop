@@ -84,7 +84,6 @@ import {
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
-  IAPIIssue,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -1539,7 +1538,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // on workflow preferences.
       const ghRepo = getNonForkGitHubRepository(repository)
 
-      this._refreshIssues(ghRepo)
+      this._refreshIssues(repository)
       this.refreshMentionables(ghRepo)
 
       this.pullRequestCoordinator.getAllPullRequests(repository).then(prs => {
@@ -1596,45 +1595,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.currentBranchPruner.start()
   }
 
-  public async _refreshIssues(repository: GitHubRepository) {
-    const user = getAccountForEndpoint(this.accounts, repository.endpoint)
+  public async _refreshIssues(repository: Repository) {
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      return
+    }
+    const ghRepo = getNonForkGitHubRepository(repository)
+    const user = getAccountForEndpoint(this.accounts, ghRepo.endpoint)
     if (!user) {
       return
     }
 
     try {
-      await this.issuesStore.refreshIssues(repository, user)
+      this.repositoryStateCache.updateIssuesState(repository, () => {
+        return { isLoadingIssues: true }
+      })
+      await this.issuesStore.refreshIssues(ghRepo, user)
+
+      const openIssues = await this.issuesStore.getAllIssues(ghRepo)
+
+      this.repositoryStateCache.updateIssuesState(repository, () => {
+        return { openIssues, isLoadingIssues: false }
+      })
     } catch (e) {
-      log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
+      log.warn(`Unable to fetch issues for ${ghRepo.fullName}`, e)
     }
-  }
-
-  public async getOpenIssues(
-    repository: GitHubRepository
-  ): Promise<ReadonlyArray<IAPIIssue>> {
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
-    if (!account) {
-      return []
-    }
-
-    const api = API.fromAccount(account)
-
-    const limitToOneMonthForTimeSake = new Date()
-    limitToOneMonthForTimeSake.setMonth(
-      limitToOneMonthForTimeSake.getMonth() - 1
-    )
-
-    try {
-      return await api.fetchIssues(
-        repository.owner.login,
-        repository.name,
-        'open',
-        limitToOneMonthForTimeSake
-      )
-    } catch (e) {
-      log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
-    }
-    return []
   }
 
   /**
@@ -4522,8 +4506,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updatePushPullFetchProgress(repository, null)
 
         if (fetchType === FetchType.UserInitiatedTask) {
-          if (repository.gitHubRepository != null) {
-            this._refreshIssues(repository.gitHubRepository)
+          if (isRepositoryWithGitHubRepository(repository)) {
+            this._refreshIssues(repository)
           }
         }
       }

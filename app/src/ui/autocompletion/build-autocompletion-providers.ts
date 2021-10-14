@@ -26,23 +26,15 @@ export function buildAutocompletionProviders(
   ]
 
   // Issues autocompletion is only available for GitHub repositories.
-  const gitHubRepository = isRepositoryWithGitHubRepository(repository)
-    ? getNonForkGitHubRepository(repository)
-    : null
-
-  if (gitHubRepository !== null) {
+  if (isRepositoryWithGitHubRepository(repository)) {
     autocompletionProviders.push(
-      new IssuesAutocompletionProvider(
-        issuesStore,
-        gitHubRepository,
-        dispatcher
-      )
+      new IssuesAutocompletionProvider(issuesStore, repository, dispatcher)
     )
-
-    const account = accounts.find(a => a.endpoint === gitHubRepository.endpoint)
+    const ghRepo = getNonForkGitHubRepository(repository)
+    const account = accounts.find(a => a.endpoint === ghRepo.endpoint)
 
     autocompletionProviders.push(
-      new UserAutocompletionProvider(gitHubUserStore, gitHubRepository, account)
+      new UserAutocompletionProvider(gitHubUserStore, ghRepo, account)
     )
   }
 

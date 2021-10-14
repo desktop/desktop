@@ -18,9 +18,11 @@ import {
   ChangesSelectionKind,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
+  IIssuesState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { IIssue } from '../databases'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -94,6 +96,17 @@ export class RepositoryStateCache {
       const { commitSelection } = state
       const newState = merge(commitSelection, fn(commitSelection))
       return { commitSelection: newState }
+    })
+  }
+
+  public updateIssuesState<K extends keyof IIssuesState>(
+    repository: Repository,
+    fn: (issuesState: IIssuesState) => Pick<IIssuesState, K>
+  ) {
+    this.update(repository, state => {
+      const changesState = state.issuesState
+      const newState = merge(changesState, fn(changesState))
+      return { issuesState: newState }
     })
   }
 
@@ -229,5 +242,9 @@ function getInitialRepositoryState(): IRepositoryState {
     revertProgress: null,
     multiCommitOperationUndoState: null,
     multiCommitOperationState: null,
+    issuesState: {
+      openIssues: new Array<IIssue>(),
+      isLoadingIssues: false,
+    },
   }
 }

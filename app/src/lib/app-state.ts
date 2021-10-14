@@ -418,6 +418,8 @@ export interface IRepositoryState {
 
   readonly branchesState: IBranchesState
 
+  readonly issuesState: IIssuesState
+
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
@@ -537,6 +539,14 @@ export interface IBranchesState {
 
   /** Tracking branches that have been rebased within Desktop */
   readonly rebasedBranches: ReadonlyMap<string, string>
+}
+
+export interface IIssuesState {
+  /** The open issues in the repository. */
+  readonly openIssues: ReadonlyArray<IIssue>
+
+  /** Are we currently loading issues? */
+  readonly isLoadingIssues: boolean
 }
 
 export interface ICommitSelection {
