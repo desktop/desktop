@@ -48,6 +48,7 @@ import {
 } from '../models/multi-commit-operation'
 import { DragAndDropIntroType } from '../ui/history/drag-and-drop-intro'
 import { IChangesetData } from './git'
+import { IIssue } from './databases'
 
 export enum SelectionType {
   Repository,
@@ -296,6 +297,7 @@ export enum FoldoutType {
   Branch,
   AppMenu,
   AddMenu,
+  Issue,
 }
 
 export type AppMenuFoldout = {
@@ -322,11 +324,16 @@ export type BranchFoldout = {
   type: FoldoutType.Branch
 }
 
+export type IssueFoldout = {
+  type: FoldoutType.Issue
+}
+
 export type Foldout =
   | { type: FoldoutType.Repository }
   | { type: FoldoutType.AddMenu }
   | BranchFoldout
   | AppMenuFoldout
+  | IssueFoldout
 
 export enum RepositorySectionTab {
   Changes,
