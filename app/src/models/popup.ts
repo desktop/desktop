@@ -18,7 +18,7 @@ import { ITextDiff, DiffSelection } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
-import { IAPIIssue } from '../lib/api'
+import { IIssue } from '../lib/databases'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -314,7 +314,7 @@ export type Popup =
     }
   | {
       type: PopupType.Issue
-      issue: IAPIIssue
+      issue: IIssue
     }
   | {
       type: PopupType.CreateBranchForIssue

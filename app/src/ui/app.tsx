@@ -18,7 +18,7 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint, IAPIIssue } from '../lib/api'
+import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
@@ -145,6 +145,8 @@ import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { setAlmostImmediate } from '../lib/set-almost-immediate'
 import { Issue } from './issue/issue'
 import { CreateBranchForIssue } from './create-branch/create-branch-for-issue-dialog'
+import { IssueDropdown } from './toolbar/issue-dropdown'
+import { IIssue } from '../lib/databases'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2150,7 +2152,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private onStartWorkingAnIssueCallback = (issue: IAPIIssue) => {
+  private onStartWorkingAnIssueCallback = (issue: IIssue) => {
     return () => {
       const repository = this.getRepository()
 
@@ -2605,6 +2607,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private onIssueDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Issue })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Issue)
+    }
+  }
+
   private renderBranchToolbarButton(): JSX.Element | null {
     const selection = this.state.selectedState
 
@@ -2634,6 +2644,33 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+      />
+    )
+  }
+
+  private renderIssuesToolbarButton(): JSX.Element | null {
+    const { selectedState, currentFoldout: cf } = this.state
+
+    if (
+      selectedState == null ||
+      selectedState.type !== SelectionType.Repository ||
+      !isRepositoryWithGitHubRepository(selectedState.repository)
+    ) {
+      return null
+    }
+
+    const { repository, state } = selectedState
+    const { openIssues, isLoadingIssues } = state.issuesState
+    const isOpen = cf !== null && cf.type === FoldoutType.Issue
+
+    return (
+      <IssueDropdown
+        isOpen={isOpen}
+        dispatcher={this.props.dispatcher}
+        repository={repository}
+        openIssues={openIssues}
+        isLoadingIssues={isLoadingIssues}
+        onDropDownStateChanged={this.onIssueDropdownStateChanged}
       />
     )
   }
@@ -2702,6 +2739,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
+        {this.renderIssuesToolbarButton()}
       </Toolbar>
     )
   }

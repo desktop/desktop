@@ -60,7 +60,12 @@
   }
 }
 
-.pull-request-list {
+.issue-list-container {
+  width: 350px;
+}
+
+.pull-request-list,
+.issue-list {
   height: 100%;
   width: 100%;
 
