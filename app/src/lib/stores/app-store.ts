@@ -1609,6 +1609,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.repositoryStateCache.updateIssuesState(repository, () => {
         return { isLoadingIssues: true }
       })
+      this.emitUpdate() // meh..
       await this.issuesStore.refreshIssues(ghRepo, user)
 
       const openIssues = await this.issuesStore.getAllIssues(ghRepo)
@@ -1616,6 +1617,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.repositoryStateCache.updateIssuesState(repository, () => {
         return { openIssues, isLoadingIssues: false }
       })
+      this.emitUpdate() // meh..
     } catch (e) {
       log.warn(`Unable to fetch issues for ${ghRepo.fullName}`, e)
     }
