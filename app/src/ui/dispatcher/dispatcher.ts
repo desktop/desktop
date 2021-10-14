@@ -5,7 +5,6 @@ import {
   IAPIOrganization,
   IAPIPullRequest,
   IAPIFullRepository,
-  IAPIIssue,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -962,7 +961,9 @@ export class Dispatcher {
   }
 
   /** Update the repository's issues from GitHub. */
-  public refreshIssues(repository: GitHubRepository): Promise<void> {
+  public refreshIssues(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
     return this.appStore._refreshIssues(repository)
   }
 
