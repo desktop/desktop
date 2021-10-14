@@ -183,7 +183,11 @@ export class IssueList extends React.Component<
   private createListItems(
     issues: ReadonlyArray<IIssue>
   ): IFilterListGroup<IIssueListItem> {
-    const items = issues.map(issue => ({
+    const sortedIssues = [...issues].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    const items = sortedIssues.map(issue => ({
       text: [issue.title, getIssueSubtitle(issue)],
       id: issue.number.toString(),
       issue,
