@@ -3694,12 +3694,6 @@ export class Dispatcher {
     )
   }
 
-  public async getOpenIssues(
-    repository: GitHubRepository
-  ): Promise<ReadonlyArray<IAPIIssue>> {
-    return this.appStore.getOpenIssues(repository)
-  }
-
   /**
    * Adds up to 10 assignees to an issue. Users already assigned to an issue are
    * note replaced.

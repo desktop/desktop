@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IAPIIssue } from '../../lib/api'
+import { IIssue } from '../../lib/databases'
 import { getIssueSubtitle } from '../branches/issues-list'
 import {
   Dialog,
@@ -14,7 +14,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 interface IIssueProps {
   readonly onDismissed: () => void
   readonly onStartWorkingIssue: () => void
-  readonly issue: IAPIIssue
+  readonly issue: IIssue
 }
 
 export class Issue extends React.Component<IIssueProps, {}> {

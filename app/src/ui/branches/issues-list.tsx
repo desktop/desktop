@@ -8,31 +8,43 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon, syncClockwise } from '../octicons'
-import { GitHubRepository } from '../../models/github-repository'
-import { IAPIIssue } from '../../lib/api'
 import { HighlightText } from '../lib/highlight-text'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import moment from 'moment'
 import { PopupType } from '../../models/popup'
+import { RepositoryWithGitHubRepository } from '../../models/repository'
+import { IIssue } from '../../lib/databases'
+import { Ref } from '../lib/ref'
+import { encodePathAsUrl } from '../../lib/path'
+
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 
 interface IIssueListItem extends IFilterListItem {
-  readonly issue: IAPIIssue
+  readonly issue: IIssue
 }
 
 export const RowHeight = 47
 
 interface IIssueListProps {
+  readonly dispatcher: Dispatcher
+  readonly repository: RepositoryWithGitHubRepository
+
+  /** The open issues in the repository. */
+  readonly openIssues: ReadonlyArray<IIssue>
+
+  /** Are we currently loading issues */
+  readonly isLoadingIssues: boolean
+
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
-  readonly dispatcher: Dispatcher
-  readonly repository: GitHubRepository
 }
 
 interface IIssueListState {
   readonly filterText: string
   readonly selectedItem: IIssueListItem | null
-  readonly isLoadingIssues: boolean
-  readonly issues: ReadonlyArray<IAPIIssue>
 }
 
 /** The list of open issues. */
@@ -45,43 +57,66 @@ export class IssueList extends React.Component<
 
     this.state = {
       filterText: '',
-      issues: [],
       selectedItem: null,
-      isLoadingIssues: true,
     }
-  }
-
-  public componentDidMount() {
-    this.onRefreshIssues()
   }
 
   public render() {
-    if (this.state.isLoadingIssues) {
-      return <div> Loading up these issues for you!</div>
-    }
-
-    const groups = this.createListItems(this.state.issues)
-
+    const { openIssues } = this.props
+    const groups = this.createListItems(openIssues)
     return (
-      <FilterList<IIssueListItem>
-        className="pull-request-list"
-        rowHeight={RowHeight}
-        groups={[groups]}
-        selectedItem={this.state.selectedItem}
-        renderItem={this.renderIssue}
-        filterText={this.state.filterText}
-        onFilterTextChanged={this.onFilterTextChanged}
-        invalidationProps={[]}
-        onItemClick={this.onItemClick}
-        renderGroupHeader={this.renderListHeader}
-        renderNoItems={this.renderNoItems}
-        renderPostFilter={this.renderPostFilter}
-      />
+      <div className="issue-list-container">
+        <FilterList<IIssueListItem>
+          className="issue-list"
+          rowHeight={RowHeight}
+          groups={[groups]}
+          selectedItem={this.state.selectedItem}
+          renderItem={this.renderIssue}
+          filterText={this.state.filterText}
+          onFilterTextChanged={this.onFilterTextChanged}
+          invalidationProps={[
+            this.props.openIssues,
+            this.props.isLoadingIssues,
+          ]}
+          onItemClick={this.onItemClick}
+          renderGroupHeader={this.renderListHeader}
+          renderNoItems={this.renderNoItems}
+          renderPostFilter={this.renderPostFilter}
+        />
+      </div>
     )
   }
 
   private renderNoItems = () => {
-    return <div> Sorry.. No Issues for that!</div>
+    let title = (
+      <div>
+        <div className="title">You're all set!</div>
+        <div className="no-prs">
+          No open issues in{' '}
+          <Ref>{this.props.repository.gitHubRepository.fullName}</Ref>
+        </div>
+      </div>
+    )
+
+    if (this.state.filterText.length > 0) {
+      title = <div className="title">Sorry, I can't find that issue!</div>
+    }
+
+    if (this.props.isLoadingIssues) {
+      title = (
+        <div className="title">
+          Hang tight
+          <div className="call-to-action">Loading issues as fast as I can!</div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="no-pull-requests">
+        <img src={BlankSlateImage} className="blankslate-image" />
+        {title}
+      </div>
+    )
   }
 
   private renderIssue = (item: IIssueListItem, matches: IMatches) => {
@@ -114,33 +149,28 @@ export class IssueList extends React.Component<
     })
   }
 
-  private renderListHeader = () => {
+  private renderListHeader = (identifier: string) => {
     return (
       <div className="filter-list-group-header">
-        Issues in {this.props.repository.fullName}
+        Issues in {this.props.repository.gitHubRepository.fullName}
       </div>
     )
   }
 
   private onRefreshIssues = async () => {
-    this.setState({ isLoadingIssues: true })
-
-    const issues = await this.props.dispatcher.getOpenIssues(
-      this.props.repository
-    )
-    this.setState({ issues, isLoadingIssues: false })
+    this.props.dispatcher.refreshIssues(this.props.repository)
   }
 
   private renderPostFilter = () => {
     return (
       <Button
-        disabled={this.state.isLoadingIssues}
+        disabled={this.props.isLoadingIssues}
         onClick={this.onRefreshIssues}
         tooltip="Refresh the list of issues"
       >
         <Octicon
           symbol={syncClockwise}
-          className={this.state.isLoadingIssues ? 'spin' : undefined}
+          className={this.props.isLoadingIssues ? 'spin' : undefined}
         />
       </Button>
     )
@@ -151,7 +181,7 @@ export class IssueList extends React.Component<
   }
 
   private createListItems(
-    issues: ReadonlyArray<IAPIIssue>
+    issues: ReadonlyArray<IIssue>
   ): IFilterListGroup<IIssueListItem> {
     const items = issues.map(issue => ({
       text: [issue.title, getIssueSubtitle(issue)],
@@ -166,7 +196,7 @@ export class IssueList extends React.Component<
   }
 }
 
-export function getIssueSubtitle(issue: IAPIIssue) {
+export function getIssueSubtitle(issue: IIssue) {
   const timeAgo = moment(issue.created_at).fromNow()
-  return `#${issue.number} opened ${timeAgo} by ${issue.user.login}`
+  return `#${issue.number} opened ${timeAgo} by ${issue.author}`
 }
