@@ -97,9 +97,13 @@ export class IssuesStore {
       .filter(i => i.state === 'open')
       .map<IIssue>(i => {
         return {
-          ...i,
+          number: i.number,
+          title: i.title,
+          updated_at: i.updated_at,
+          created_at: i.created_at,
           gitHubRepositoryID: repository.dbID,
           author: i.user.login,
+          body: i.body,
         }
       })
 
