@@ -371,13 +371,13 @@ interface IAPIWorkflowRuns {
 }
 // NB. Only partially mapped
 export interface IAPIWorkflowRun {
+  readonly id: number
   /**
    * The workflow_id is the id of the workflow not the individual run.
    **/
   readonly workflow_id: number
   readonly cancel_url: string
   readonly created_at: string
-  readonly jobs_url: string
   readonly logs_url: string
   readonly name: string
   readonly rerun_url: string
@@ -1040,19 +1040,22 @@ export class API {
    * List workflow run jobs for a given workflow run
    */
   public async fetchWorkflowRunJobs(
-    workflowRun: IAPIWorkflowRun
+    owner: string,
+    name: string,
+    workflowRunId: number
   ): Promise<IAPIWorkflowJobs | null> {
+    const path = `repos/${owner}/${name}/actions/runs/${workflowRunId}/jobs`
     const customHeaders = {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
-    const response = await this.request('GET', workflowRun.jobs_url, {
+    const response = await this.request('GET', path, {
       customHeaders,
     })
     try {
       return await parsedResponse<IAPIWorkflowJobs>(response)
     } catch (err) {
       log.debug(
-        `Failed fetching workflow jobs for workflow run named: ${workflowRun.name}`
+        `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
       )
     }
     return null
