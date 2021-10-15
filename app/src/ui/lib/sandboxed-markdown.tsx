@@ -99,45 +99,36 @@ export class SandboxedMarkdown extends React.PureComponent<
    * However, we want to intercept them an verify they are valid links first.
    */
   private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
+    if (this.props.onMarkdownLinkClicked === undefined) {
+      return
+    }
+
     frameRef.onload = () => {
       if (frameRef.contentDocument === null) {
         return
       }
-      const linkTags = frameRef.contentDocument.querySelector('a')
-      if (linkTags === null) {
-        return
-      }
 
-      linkTags.addEventListener('click', (e: MouseEvent) => {
-        e.preventDefault()
-        // The point of intercepting them is to bubble them up.
-        // If no callback provided, no need to continue.
-        if (this.props.onMarkdownLinkClicked === undefined) {
-          return
-        }
-
+      frameRef.contentDocument.addEventListener('click', e => {
         if (e.target === null) {
-          log.warn('Failed to parse markdown link href')
           return
         }
 
-        let url
+        // Target of a click handler should be an Element.
+        // If it isn't and closest doesn't exist, then this would fail.
+        // In that case, it wasn't an Anchor tag anyways.
+        // Note: e.target instanceof Element returns false
         try {
-          const href = (e.target as HTMLAnchorElement).href
-          url = new URL(href)
-        } catch (_) {
-          log.warn('Failed to parse markdown link href')
-          return
-        }
+          const target = e.target as Element
+          const a = target.closest('a')
+          if (a === null) {
+            return
+          }
 
-        if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-          log.warn(
-            'Failed to parse markdown link href - non https: and http: links are blocked'
-          )
-          return
-        }
-
-        this.props.onMarkdownLinkClicked(url.toString())
+          e.preventDefault()
+          if (/^https?:/.test(a.protocol)) {
+            this.props.onMarkdownLinkClicked?.(a.href)
+          }
+        } catch (_) {}
       })
     }
   }
