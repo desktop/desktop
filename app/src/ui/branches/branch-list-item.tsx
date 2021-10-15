@@ -102,9 +102,9 @@ export class BranchListItem extends React.Component<
   }
 
   private onMouseEnter = () => {
-    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
-      this.setState({ isDragInProgress: true })
+    this.setState({ isDragInProgress: true })
 
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitEnterDropTarget({
         type: DropTargetType.Branch,
         branchName: this.props.name,
@@ -113,9 +113,9 @@ export class BranchListItem extends React.Component<
   }
 
   private onMouseLeave = () => {
-    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
-      this.setState({ isDragInProgress: false })
+    this.setState({ isDragInProgress: false })
 
+    if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitLeaveDropTarget()
     }
   }
