@@ -515,7 +515,7 @@ export class CommitStatusStore {
     const api = API.fromAccount(account)
 
     const logCache = new Map<string, JSZip>()
-    const jobsCache = new Map<number, IAPIWorkflowJobs>()
+    const jobsCache = new Map<number, IAPIWorkflowJobs | null>()
     const mappedCheckRuns = new Array<IRefCheck>()
     for (const cr of checkRuns) {
       if (cr.actionsWorkflowRunId === undefined || cr.logs_url === undefined) {
@@ -528,6 +528,7 @@ export class CommitStatusStore {
       const workFlowRunJobs =
         jobsCache.get(cr.actionsWorkflowRunId) ??
         (await api.fetchWorkflowRunJobs(owner, name, cr.actionsWorkflowRunId))
+      jobsCache.set(cr.actionsWorkflowRunId, workFlowRunJobs)
 
       // Here check run and jobs only share their names.
       // Thus, unfortunately cannot match on a numerical id.
