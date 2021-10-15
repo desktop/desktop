@@ -143,6 +143,19 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   /**
+   * Builds a <base> tag for cases where markdown has relative links
+   */
+  private getBaseTag(baseHref: string | null): string {
+    if (baseHref == null) {
+      return ''
+    }
+
+    const base = document.createElement('base', {})
+    base.href = baseHref
+    return base.outerHTML
+  }
+
+  /**
    * Generates an iframe with a csp allowed script of a markdown parser.
    */
   private mountIframeContents = async (): Promise<void> => {
@@ -175,11 +188,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     const src = `
       <html>
       <head>
-        ${
-          this.props.baseHref !== null
-            ? `<base href="${this.props.baseHref}" />`
-            : ''
-        }
+        ${this.getBaseTag(this.props.baseHref)}
       </head>
       <body>
       ${styleSheet}
