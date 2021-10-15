@@ -132,7 +132,11 @@ export class CICheckRunList extends React.PureComponent<
       statusChecks
     )
 
-    this.setState({
+  if (this.subscription === null) {
+    return
+  }
+
+  this.setState({
       checkRuns: checkRunsWithActionsUrls,
       loadingActionWorkflows: false,
     })
