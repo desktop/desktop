@@ -368,7 +368,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     }
     const visible = show && !measure
     const { targetRect, hostRect, windowRect, tooltipRect } = this.state
-    const { interactive, accessible } = this.props
+    const { interactive } = this.props
 
     const direction = visible
       ? getDirection(this.props.direction, targetRect, windowRect, tooltipRect)
@@ -378,8 +378,6 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       ? getTooltipPositionStyle(direction, targetRect, hostRect, tooltipRect)
       : { visibility: 'hidden', left: `0px`, top: `0px` }
 
-    const ariaHidden = accessible === false || !visible ? 'true' : 'false'
-
     const className = classNames('tooltip', this.props.className, {
       interactive,
       [`tooltip-${direction}`]: show,
@@ -388,7 +386,9 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     return (
       <div
         role="tooltip"
-        aria-hidden={ariaHidden}
+        // https://www.digitala11y.com/tooltip-role/
+        // https://www.tpgi.com/short-note-on-aria-labelledby-and-aria-describedby/
+        aria-hidden="true"
         className={className}
         id={this.state.id}
         style={style}
