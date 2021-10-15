@@ -42,6 +42,11 @@ interface IBranchListItemProps {
 }
 
 interface IBranchListItemState {
+  /**
+   * Whether or not there's currently a draggable item being dragged
+   * on top of the branch item. We use this in order to disable pointer
+   * events when dragging.
+   */
   readonly isDragInProgress: boolean
 }
 
