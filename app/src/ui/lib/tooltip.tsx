@@ -368,7 +368,6 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     }
     const visible = show && !measure
     const { targetRect, hostRect, windowRect, tooltipRect } = this.state
-    const { interactive } = this.props
 
     const direction = visible
       ? getDirection(this.props.direction, targetRect, windowRect, tooltipRect)
@@ -379,7 +378,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       : { visibility: 'hidden', left: `0px`, top: `0px` }
 
     const className = classNames('tooltip', this.props.className, {
-      interactive,
+      interactive: this.props.interactive,
       [`tooltip-${direction}`]: show,
     })
 
