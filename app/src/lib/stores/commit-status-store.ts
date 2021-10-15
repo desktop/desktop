@@ -39,7 +39,7 @@ export interface IRefCheck {
   readonly checkSuiteId: number | null // API status don't have check suite id's
   readonly output: IRefCheckOutput
   readonly htmlUrl: string | null
-  readonly jobs_url?: string
+  readonly actionsWorkflowRunId?: number
   readonly logs_url?: string
 }
 
@@ -480,10 +480,10 @@ export class CommitStatusStore {
         continue
       }
 
-      const { jobs_url, logs_url } = matchingWR
+      const { id, logs_url } = matchingWR
       mappedCheckRuns.push({
         ...cr,
-        jobs_url,
+        actionsWorkflowRunId: id,
         logs_url,
       })
     }
@@ -505,9 +505,8 @@ export class CommitStatusStore {
       return checkRuns
     }
 
-    const account = this.accounts.find(
-      a => a.endpoint === subscription.endpoint
-    )
+    const { endpoint, owner, name } = subscription
+    const account = this.accounts.find(a => a.endpoint === endpoint)
 
     if (account === undefined) {
       return checkRuns
@@ -516,10 +515,10 @@ export class CommitStatusStore {
     const api = API.fromAccount(account)
 
     const logCache = new Map<string, JSZip>()
-    const jobsCache = new Map<string, IAPIWorkflowJobs>()
+    const jobsCache = new Map<number, IAPIWorkflowJobs>()
     const mappedCheckRuns = new Array<IRefCheck>()
     for (const cr of checkRuns) {
-      if (cr.jobs_url === undefined || cr.logs_url === undefined) {
+      if (cr.actionsWorkflowRunId === undefined || cr.logs_url === undefined) {
         mappedCheckRuns.push(cr)
         continue
       }
@@ -527,8 +526,8 @@ export class CommitStatusStore {
       // Multiple check runs match a single workflow run.
       // We can prevent several job network calls by caching them.
       const workFlowRunJobs =
-        jobsCache.get(cr.jobs_url) ??
-        (await api.fetchWorkflowRunJobs(cr.jobs_url))
+        jobsCache.get(cr.actionsWorkflowRunId) ??
+        (await api.fetchWorkflowRunJobs(owner, name, cr.actionsWorkflowRunId))
 
       // Here check run and jobs only share their names.
       // Thus, unfortunately cannot match on a numerical id.

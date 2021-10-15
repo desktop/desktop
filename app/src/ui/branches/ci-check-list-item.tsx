@@ -162,7 +162,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private hasActionsWorkflowLogs() {
-    return this.props.checkRun.jobs_url !== undefined
+    return this.props.checkRun.actionsWorkflowRunId !== undefined
   }
 
   private renderLogs = () => {
