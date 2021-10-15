@@ -132,11 +132,14 @@ export class CICheckRunList extends React.PureComponent<
       statusChecks
     )
 
-  if (this.subscription === null) {
-    return
-  }
+    // When the component unmounts, this is set to null. This check will help us
+    // prevent using set state on an unmounted component it it is unmounted
+    // before above api returns.
+    if (this.statusSubscription === null) {
+      return
+    }
 
-  this.setState({
+    this.setState({
       checkRuns: checkRunsWithActionsUrls,
       loadingActionWorkflows: false,
     })
@@ -146,6 +149,13 @@ export class CICheckRunList extends React.PureComponent<
       this.getCommitRef(this.props.prNumber),
       checkRunsWithActionsUrls
     )
+
+    // When the component unmounts, this is set to null. This check will help us
+    // prevent using set state on an unmounted component it it is unmounted
+    // before above api returns.
+    if (this.statusSubscription === null) {
+      return
+    }
 
     this.setState({ checkRuns, loadingActionLogs: false })
   }
