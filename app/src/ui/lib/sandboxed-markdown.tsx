@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
-import crypto from 'crypto'
+import marked from 'marked'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdownm to display */
@@ -27,12 +27,6 @@ export class SandboxedMarkdown extends React.PureComponent<
   ISandboxedMarkdownProps
 > {
   private frameRef: HTMLIFrameElement | null = null
-  /**
-   * A random string to use a unique script id or number only once (nonce) so
-   * the content security policy will only allow our provided script in the
-   * iframe to run.
-   */
-  private scriptNonce: string = crypto.randomBytes(16).toString('base64')
 
   private onFrameRef = (frameRef: HTMLIFrameElement | null) => {
     this.frameRef = frameRef
@@ -85,15 +79,6 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   /**
-   * Gets a content security policy that only allows a script with the provided
-   * nonce to run in the iframe.
-   */
-  private setContentSecurityPolicy(frameRef: HTMLIFrameElement): void {
-    const contentSecurityPolicy = `script-src 'nonce-${this.scriptNonce}'`
-    frameRef.setAttribute('csp', contentSecurityPolicy)
-  }
-
-  /**
    * We still want to be able to navigate to links provided in the markdown.
    * However, we want to intercept them an verify they are valid links first.
    */
@@ -137,45 +122,21 @@ export class SandboxedMarkdown extends React.PureComponent<
       return
     }
 
-    const markedJS = await FSE.readFile(
-      Path.join(__dirname, 'static', 'marked.min.js'),
-      'utf8'
-    )
-
     const styleSheet = await this.getInlineStyleSheet()
-    this.setContentSecurityPolicy(this.frameRef)
 
-    // We need to convert the markdown into a base64 string to allow us to print
-    // it into a script file and not break into multiple lines. Then, in the
-    // script file, we need to convert it back to a markdown string.
-    // encodeURIComponent/decodeURIComponent is important for things like emoji
-    // unicode and btoa fails to parse non latin strings.
-    const mardownToAndFromBase64 = `var md = decodeURIComponent(atob('${btoa(
-      encodeURIComponent(this.props.markdown)
-    )}'));`
-
-    // We want the marked parse to use GitHub Flavored Markdown (gfm)
-    const useGFM = `marked.use({
-                      gfm: true
-                    });`
+    const parsedMarkdown = marked(this.props.markdown, {
+      gfm: true,
+    })
 
     const src = `
       <html>
-      <head>
-        ${this.getBaseTag(this.props.baseHref)}
-      </head>
-      <body>
-      ${styleSheet}
-
-      <div id="content"></div>
-
-      <script nonce="${this.scriptNonce}">
-        ${markedJS}
-        ${mardownToAndFromBase64}
-        ${useGFM}
-        document.getElementById('content').innerHTML = marked(md);
-      </script>
-      </body>
+        <head>
+          ${this.getBaseTag(this.props.baseHref)}
+        </head>
+        <body>
+          ${styleSheet}
+          <div id="content">${parsedMarkdown}</div>
+        </body>
       </html>
     `
 
@@ -194,12 +155,6 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   public render() {
-    return (
-      <iframe
-        className="markdown-iframe"
-        sandbox="allow-scripts"
-        ref={this.onFrameRef}
-      />
-    )
+    return <iframe className="markdown-iframe" ref={this.onFrameRef} />
   }
 }
