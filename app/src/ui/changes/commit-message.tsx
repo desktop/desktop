@@ -35,6 +35,7 @@ import { setGlobalConfigValue } from '../../lib/git/config'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isAccountEmail } from '../../lib/is-account-email'
+import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 
 const addAuthorIcon = {
   w: 18,
@@ -675,19 +676,16 @@ export class CommitMessage extends React.Component<
 
   private renderSubmitButton() {
     const { isCommitting, branch, commitButtonText } = this.props
-    const summary = this.summaryOrPlaceholder
-    const isSummaryWhiteSpace = summary.match(/^\s+$/g)
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
     const buttonEnabled =
-      (this.canCommit() || this.canAmend()) &&
-      isCommitting !== true &&
-      !isSummaryWhiteSpace
+      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
 
-    const loading = isCommitting === true ? <Loading /> : undefined
+    const loading = isCommitting ? <Loading /> : undefined
 
     const isAmending = this.props.commitToAmend !== null
 
-    const amendVerb = loading ? 'Amending' : 'Amend'
-    const commitVerb = loading ? 'Committing' : 'Commit'
+    const amendVerb = isCommitting ? 'Amending' : 'Amend'
+    const commitVerb = isCommitting ? 'Committing' : 'Commit'
 
     const amendTitle = `${amendVerb} last commit`
     const commitTitle =
@@ -698,7 +696,7 @@ export class CommitMessage extends React.Component<
     if (buttonEnabled) {
       tooltip = isAmending ? amendTitle : commitTitle
     } else {
-      if (this.summaryOrPlaceholder.length === 0) {
+      if (isSummaryBlank) {
         tooltip = `A commit summary is required to commit`
       } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
         tooltip = `Select one or more files to commit`
