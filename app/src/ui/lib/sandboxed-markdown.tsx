@@ -80,7 +80,6 @@ export class SandboxedMarkdown extends React.PureComponent<
         --code-background-color: ${codeBackgroundColor};
         --box-border-color: ${boxBorderColor};
       }
-
       ${css}
     </style>`
   }
@@ -99,38 +98,22 @@ export class SandboxedMarkdown extends React.PureComponent<
    * However, we want to intercept them an verify they are valid links first.
    */
   private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
-    if (this.props.onMarkdownLinkClicked === undefined) {
-      return
-    }
+    frameRef.addEventListener('load', () => {
+      frameRef.contentDocument?.addEventListener('click', ev => {
+        const { contentWindow } = frameRef
 
-    frameRef.onload = () => {
-      if (frameRef.contentDocument === null) {
-        return
-      }
+        if (contentWindow && ev.target instanceof contentWindow.Element) {
+          const a = ev.target.closest('a')
+          if (a !== null) {
+            ev.preventDefault()
 
-      frameRef.contentDocument.addEventListener('click', e => {
-        if (e.target === null) {
-          return
+            if (/^https?:/.test(a.protocol)) {
+              this.props.onMarkdownLinkClicked?.(a.href)
+            }
+          }
         }
-
-        // Target of a click handler should be an Element.
-        // If it isn't and closest doesn't exist, then this would fail.
-        // In that case, it wasn't an Anchor tag anyways.
-        // Note: e.target instanceof Element returns false
-        try {
-          const target = e.target as Element
-          const a = target.closest('a')
-          if (a === null) {
-            return
-          }
-
-          e.preventDefault()
-          if (/^https?:/.test(a.protocol)) {
-            this.props.onMarkdownLinkClicked?.(a.href)
-          }
-        } catch (_) {}
       })
-    }
+    })
   }
 
   /**
