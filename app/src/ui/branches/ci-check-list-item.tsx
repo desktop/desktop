@@ -161,7 +161,7 @@ export class CICheckRunListItem extends React.PureComponent<
     )
   }
 
-  private hasActionsWorkflowLogs = (): boolean => {
+  private hasActionsWorkflowLogs() {
     return this.props.checkRun.jobs_url !== undefined
   }
 
