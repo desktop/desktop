@@ -101,6 +101,11 @@
       display: inline-block;
     }
   }
+
+  .popover-component.whitespace-hint {
+    position: absolute;
+    width: 225px;
+  }
 }
 
 // The container element which holds the before and after

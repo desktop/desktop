@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell, session } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
 
@@ -28,6 +28,7 @@ import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
+import { installSameOriginFilter } from './same-origin-filter'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -433,6 +434,10 @@ app.on('ready', () => {
         Menu.setApplicationMenu(currentMenu)
         mainWindow.sendAppMenu()
       }
+
+      // Ensures auth-related headers won't traverse http redirects to hosts
+      // on different origins than the originating request.
+      installSameOriginFilter(session.defaultSession.webRequest)
     }
   )
 

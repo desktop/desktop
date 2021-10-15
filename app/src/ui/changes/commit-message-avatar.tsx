@@ -130,8 +130,9 @@ export class CommitMessageAvatar extends React.Component<
         <h3>This commit will be misattributed</h3>
         <Row>
           <div>
-            The email in your global Git config ({this.props.email}) doesn't
-            match your GitHub{accountTypeSuffix} account.{' '}
+            The email in your global Git config (
+            <span className="git-email">{this.props.email}</span>) doesn't match
+            your GitHub{accountTypeSuffix} account.{' '}
             <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
               Learn more.
             </LinkButton>

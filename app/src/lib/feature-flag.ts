@@ -152,3 +152,8 @@ export function enableSetAlmostImmediate(): boolean {
 export function enableCICheckRuns(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we show previous tags as suggestions? */
+export function enablePreviousTagSuggestions(): boolean {
+  return enableBetaFeatures()
+}

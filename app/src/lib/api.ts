@@ -1019,7 +1019,9 @@ export class API {
     name: string,
     branchName: string
   ): Promise<IAPIWorkflowRuns | null> {
-    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${branchName}`
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${encodeURIComponent(
+      branchName
+    )}`
     const customHeaders = {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
@@ -1079,6 +1081,29 @@ export class API {
     }
 
     return null
+  }
+
+  /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
+    const response = await this.request('POST', path)
+
+    try {
+      return response.ok
+    } catch (_) {
+      log.debug(
+        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return false
   }
 
   /**

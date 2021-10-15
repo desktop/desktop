@@ -314,6 +314,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
+    install: () => import('codemirror/mode/haml/haml'),
+    mappings: {
+      '.haml': 'text/x-haml',
+    },
+  },
+  {
     install: () => import('codemirror/mode/sieve/sieve'),
     mappings: {
       '.sieve': 'application/sieve',
