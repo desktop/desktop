@@ -1,7 +1,8 @@
 name: 'Code scanning - action'
 
 on:
-  push:
+  push:[![CI](https://github.com/desktop/desktop/actions/workflows/ci.yml/badge.svg?branch=2.5.5-beta2)](https://github.com/desktop/desktop/actions/workflows/ci.yml)
+  
     branches: ['development']
   pull_request:
     branches: ['development']
