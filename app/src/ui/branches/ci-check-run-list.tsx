@@ -12,6 +12,7 @@ import _ from 'lodash'
 import { Button } from '../lib/button'
 import { CICheckRunListItem } from './ci-check-list-item'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { getHTMLURL } from '../../lib/api'
 
 interface ICICheckRunListProps {
   /** The classname for the underlying element. */
