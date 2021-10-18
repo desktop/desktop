@@ -140,9 +140,9 @@ export class SandboxedMarkdown extends React.PureComponent<
       <html>
         <head>
           ${this.getBaseTag(this.props.baseHref)}
+          ${styleSheet}
         </head>
         <body>
-          ${styleSheet}
           ${sanitizedHTML}
         </body>
       </html>
