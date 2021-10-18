@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import marked from 'marked'
+import DOMPurify from 'dompurify'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdownm to display */
@@ -128,6 +129,8 @@ export class SandboxedMarkdown extends React.PureComponent<
       gfm: true,
     })
 
+    const sanitizedHTML = DOMPurify.sanitize(parsedMarkdown)
+
     const src = `
       <html>
         <head>
@@ -135,7 +138,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         </head>
         <body>
           ${styleSheet}
-          <div id="content">${parsedMarkdown}</div>
+          <div id="content">${sanitizedHTML}</div>
         </body>
       </html>
     `
