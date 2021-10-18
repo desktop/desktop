@@ -98,6 +98,7 @@ body.theme-dark {
    * implement a hover state since this will conflict with
    * selection and active selection
    */
+  --box-hover-background-color: #{$gray-800};
 
   /**
    * Text color for selected boxes without keyboard focus
