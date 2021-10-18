@@ -22,7 +22,8 @@ interface ISandboxedMarkdownProps {
 }
 
 /**
- * Parses markdown into html and outputs it inside a sandboxed iframe.
+ * Parses and sanitizes markdown into html and outputs it inside a sandboxed
+ * iframe.
  **/
 export class SandboxedMarkdown extends React.PureComponent<
   ISandboxedMarkdownProps
@@ -142,7 +143,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         </head>
         <body>
           ${styleSheet}
-          <div id="content">${sanitizedHTML}</div>
+          ${sanitizedHTML}
         </body>
       </html>
     `
@@ -156,12 +157,15 @@ export class SandboxedMarkdown extends React.PureComponent<
     // parent dom and we want all rendering to be isolated to our sandboxed iframe.
     // -- https://csplite.com/csp/test188/
     this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
-    this.setupLinkInterceptor(this.frameRef)
   }
 
   public render() {
     return (
-      <iframe className="sandboxed-markdown-component" sandbox="" ref={this.onFrameRef} />
+      <iframe
+        className="sandboxed-markdown-component"
+        sandbox=""
+        ref={this.onFrameRef}
+      />
     )
   }
 }
