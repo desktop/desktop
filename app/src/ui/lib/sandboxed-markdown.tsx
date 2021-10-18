@@ -35,6 +35,10 @@ export class SandboxedMarkdown extends React.PureComponent<
 
   public async componentDidMount() {
     this.mountIframeContents()
+
+    if (this.frameRef !== null) {
+      this.setupLinkInterceptor(this.frameRef)
+    }
   }
 
   public async componentDidUpdate(prevProps: ISandboxedMarkdownProps) {
