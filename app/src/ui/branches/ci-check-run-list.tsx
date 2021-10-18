@@ -35,7 +35,8 @@ interface ICICheckRunListState {
   readonly checkRunSummary: string
   readonly checkRunsShown: string | null
   readonly checkRunLogsShown: string | null
-  readonly loadingLogs: boolean
+  readonly loadingActionLogs: boolean
+  readonly loadingActionWorkflows: boolean
 }
 
 /** The CI Check list. */
@@ -58,7 +59,8 @@ export class CICheckRunList extends React.PureComponent<
       checkRunSummary: this.getCombinedCheckSummary(combinedCheck),
       checkRunsShown: null,
       checkRunLogsShown: null,
-      loadingLogs: true,
+      loadingActionLogs: true,
+      loadingActionWorkflows: true,
     }
 
     this.onStatus(combinedCheck)
@@ -111,21 +113,56 @@ export class CICheckRunList extends React.PureComponent<
   private onStatus = async (check: ICombinedRefCheck | null) => {
     const statusChecks = check !== null ? check.checks : []
 
-    const checkRuns =
-      statusChecks.length > 0
-        ? await this.props.dispatcher.getActionsWorkflowRunLogs(
-            this.props.repository,
-            this.getCommitRef(this.props.prNumber),
-            this.props.branchName,
-            statusChecks
-          )
-        : statusChecks
+    if (statusChecks.length === 0) {
+      this.setState({
+        checkRuns: statusChecks,
+        loadingActionLogs: false,
+        loadingActionWorkflows: false,
+      })
+      return
+    }
+
+    /*
+      Until we retrieve the actions workflows, we don't know if a check run has
+      action logs to output, thus, we want to show loading until then. However,
+      once the workflows have been retrieved and since the logs retrieval and
+      parsing can be noticeably time consuming. We go ahead and flip a flag so
+      that we know we can go ahead and display the checkrun `output` content if
+      a check run does not have action logs to retrieve/parse.
+    */
+    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsJobsAndLogURLS(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber),
+      this.props.branchName,
+      statusChecks
+    )
+
+    // When the component unmounts, this is set to null. This check will help us
+    // prevent using set state on an unmounted component it it is unmounted
+    // before above api returns.
+    if (this.statusSubscription === null) {
+      return
+    }
 
     this.setState({
-      checkRuns,
-      loadingLogs: false,
-      checkRunSummary: this.getCombinedCheckSummary(check),
+      checkRuns: checkRunsWithActionsUrls,
+      loadingActionWorkflows: false,
     })
+
+    const checkRuns = await this.props.dispatcher.getActionsWorkflowRunLogs(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber),
+      checkRunsWithActionsUrls
+    )
+
+    // When the component unmounts, this is set to null. This check will help us
+    // prevent using set state on an unmounted component it it is unmounted
+    // before above api returns.
+    if (this.statusSubscription === null) {
+      return
+    }
+
+    this.setState({ checkRuns, loadingActionLogs: false })
   }
 
   private viewCheckRunsOnGitHub = (checkRun: IRefCheck): void => {
@@ -217,7 +254,8 @@ export class CICheckRunList extends React.PureComponent<
         <CICheckRunListItem
           key={i}
           checkRun={c}
-          loadingLogs={this.state.loadingLogs}
+          loadingActionLogs={this.state.loadingActionLogs}
+          loadingActionWorkflows={this.state.loadingActionWorkflows}
           showLogs={this.state.checkRunLogsShown === c.id.toString()}
           baseHref={baseHref}
           onCheckRunClick={this.onCheckRunClick}
