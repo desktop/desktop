@@ -123,7 +123,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   /**
    * Populates the mounted iframe with HTML generated from the provided markdown
    */
-  private mountIframeContents = async (): Promise<void> => {
+  private async mountIframeContents() {
     if (this.frameRef === null) {
       return
     }
