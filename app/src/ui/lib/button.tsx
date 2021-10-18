@@ -98,7 +98,7 @@ export class Button extends React.Component<IButtonProps, {}> {
   }
 
   public getBoundingClientRect() {
-    return this.innerButtonRef?.current?.getBoundingClientRect()
+    return this.innerButtonRef.current?.getBoundingClientRect()
   }
 
   public render() {
