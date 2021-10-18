@@ -157,7 +157,7 @@ export class SandboxedMarkdown extends React.PureComponent<
 
   public render() {
     return (
-      <iframe className="markdown-iframe" sandbox="" ref={this.onFrameRef} />
+      <iframe className="sandboxed-markdown-component" sandbox="" ref={this.onFrameRef} />
     )
   }
 }
