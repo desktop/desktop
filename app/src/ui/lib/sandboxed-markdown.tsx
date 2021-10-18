@@ -110,7 +110,7 @@ export class SandboxedMarkdown extends React.PureComponent<
       return ''
     }
 
-    const base = document.createElement('base', {})
+    const base = document.createElement('base')
     base.href = baseHref
     return base.outerHTML
   }
