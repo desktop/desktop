@@ -149,9 +149,7 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     // We are using `src` and data uri as opposed to an html string in the
     // `srcdoc` property because the `srcdoc` property renders the html in the
-    // parent dom and therefore does not utilize the content security policy
-    // provided in the iframe's csp attribute. Additionally, we want all rendering
-    // to be isolated to our sandboxed iframe - not in the parents dom.
+    // parent dom and we want all rendering to be isolated to our sandboxed iframe.
     // -- https://csplite.com/csp/test188/
     this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
     this.setupLinkInterceptor(this.frameRef)
