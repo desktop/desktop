@@ -116,7 +116,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   /**
-   * Generates an iframe with a csp allowed script of a markdown parser.
+   * Populates the mounted iframe with HTML generated from the provided markdown
    */
   private mountIframeContents = async (): Promise<void> => {
     if (this.frameRef === null) {
