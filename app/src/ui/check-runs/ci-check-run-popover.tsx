@@ -227,11 +227,9 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     return (
-      <div className="ci-check-rerun">
-        <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
-          <Octicon symbol={syncClockwise} /> Re-run jobs
-        </Button>
-      </div>
+      <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
+        <Octicon symbol={syncClockwise} /> Re-run jobs
+      </Button>
     )
   }
 

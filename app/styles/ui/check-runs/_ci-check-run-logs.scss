@@ -1,37 +1,3 @@
-.ci-check-list-item {
-  display: flex;
-  width: 100%;
-  border-bottom: var(--base-border);
-  height: 100%;
-
-  .ci-check-status-symbol {
-    padding: var(--spacing);
-    padding-top: 11px;
-  }
-
-  .ci-check-list-item-detail {
-    flex: 1;
-    margin: auto;
-  }
-
-  .ci-check-name {
-    font-weight: var(--font-weight-semibold);
-  }
-
-  .ci-check-description {
-    color: var(--text-secondary-color);
-    font-weight: var(--text-secondary-color);
-    font-size: var(--font-size-sm);
-    line-height: 9px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-
-    width: 250px;
-    height: 12px;
-  }
-}
-
 .ci-check-list-item-logs {
   border-bottom: var(--base-border);
   box-shadow: inset 0px 0px 3px -1px grey;
