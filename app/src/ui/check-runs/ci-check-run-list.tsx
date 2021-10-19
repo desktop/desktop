@@ -15,6 +15,10 @@ interface ICICheckRunListProps {
   /** Whether loading workflow  */
   readonly loadingActionWorkflows: boolean
 
+  /** The base href used for relative links provided in check run markdown
+   * output */
+  readonly baseHref: string | null
+
   /** Callback to opens check runs on GitHub */
   readonly onViewOnGitHub: (checkRun: IRefCheck) => void
 }
@@ -61,6 +65,7 @@ export class CICheckRunList extends React.PureComponent<
         <CICheckRunListItem
           key={i}
           checkRun={c}
+          baseHref={this.props.baseHref}
           loadingActionLogs={this.props.loadingActionLogs}
           loadingActionWorkflows={this.props.loadingActionWorkflows}
           showLogs={this.state.checkRunLogsShown === c.id.toString()}
