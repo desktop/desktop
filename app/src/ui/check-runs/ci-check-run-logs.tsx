@@ -6,14 +6,7 @@ import {
 } from '../../lib/stores/commit-status-store'
 import classNames from 'classnames'
 import { Button } from '../lib/button'
-import { encodePathAsUrl } from '../../lib/path'
 import { CICheckRunActionLogs } from './ci-check-run-actions-logs'
-
-// TODO: Get empty graphic for logs?
-const BlankSlateImage = encodePathAsUrl(
-  __dirname,
-  'static/empty-no-pull-requests.svg'
-)
 
 interface ICICheckRunLogsProps {
   /** The check run to display **/
@@ -98,13 +91,7 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
   }
 
   private renderLoadingLogs = () => {
-    return (
-      <div className="loading-logs">
-        <img src={BlankSlateImage} className="blankslate-image" />
-        <div className="title">Hang tight</div>
-        <div className="loading-blurb">Loading the logs as fast as I can!</div>
-      </div>
-    )
+    return <div className="no-logs-to-display">Loading</div>
   }
 
   private renderViewOnGitHub = () => {
@@ -126,18 +113,12 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
       checkRun: { output, name },
     } = this.props
 
-    if (
-      loadingActionWorkflows ||
-      (this.hasActionsWorkflowLogs() && loadingActionLogs)
-    ) {
+    if (loadingActionWorkflows) {
       return this.renderLoadingLogs()
     }
 
     const logsOutput = this.hasActionsWorkflowLogs() ? (
-      <CICheckRunActionLogs
-        output={output}
-        loadingLogs={loadingActionWorkflows}
-      />
+      <CICheckRunActionLogs output={output} loadingLogs={loadingActionLogs} />
     ) : (
       this.renderNonActionsLogOutput(output)
     )
