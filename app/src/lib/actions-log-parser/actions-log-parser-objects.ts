@@ -59,7 +59,7 @@ export interface IParseNode {
 }
 
 export interface ILine {
-  nodes: IParseNode[]
+  nodes: ReadonlyArray<IParseNode>
 }
 
 export interface IStyle {
