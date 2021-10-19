@@ -7,7 +7,7 @@ import {
 } from '../../lib/stores/commit-status-store'
 
 import { Octicon } from '../octicons'
-import { getClassNameForCheck, getSymbolForCheck } from './ci-status'
+import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
 import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
