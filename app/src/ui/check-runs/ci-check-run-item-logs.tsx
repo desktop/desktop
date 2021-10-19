@@ -7,12 +7,12 @@ import {
 } from '../../lib/stores/commit-status-store'
 
 import { Octicon } from '../octicons'
-import { getClassNameForCheck, getSymbolForCheck } from './ci-status'
 import classNames from 'classnames'
 import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
 import { encodePathAsUrl } from '../../lib/path'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
+import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 
 // TODO: Get empty graphic for logs?
 const BlankSlateImage = encodePathAsUrl(
@@ -20,7 +20,7 @@ const BlankSlateImage = encodePathAsUrl(
   'static/empty-no-pull-requests.svg'
 )
 
-interface ICICheckRunListItemProps {
+interface ICICheckRunLogsProps {
   /** The check run to display **/
   readonly checkRun: IRefCheck
 
@@ -30,28 +30,16 @@ interface ICICheckRunListItemProps {
   /** Whether tcall for actions workflows is pending */
   readonly loadingActionWorkflows: boolean
 
-  /** Whether to show the logs for this check run */
-  readonly showLogs: boolean
-
   /** The base href used for relative links provided in check run markdown
    * output */
   readonly baseHref: string | null
-
-  /** Callback for when a check run is clicked */
-  readonly onCheckRunClick: (checkRun: IRefCheck) => void
 
   /** Callback to opens check runs on GitHub */
   readonly onViewOnGitHub: (checkRun: IRefCheck) => void
 }
 
 /** The CI check list item. */
-export class CICheckRunListItem extends React.PureComponent<
-  ICICheckRunListItemProps
-> {
-  private onCheckRunClick = () => {
-    this.props.onCheckRunClick(this.props.checkRun)
-  }
-
+export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
   private onViewOnGitHub = () => {
     this.props.onViewOnGitHub(this.props.checkRun)
   }
@@ -177,10 +165,10 @@ export class CICheckRunListItem extends React.PureComponent<
     return this.props.checkRun.actionsWorkflowRunId !== undefined
   }
 
-  private renderLogs = () => {
+  public render() {
     const {
-      loadingActionLogs,
       loadingActionWorkflows,
+      loadingActionLogs,
       checkRun: { output, name },
     } = this.props
 
@@ -203,38 +191,6 @@ export class CICheckRunListItem extends React.PureComponent<
         </div>
         {this.renderViewOnGitHub()}
       </div>
-    )
-  }
-
-  public render() {
-    const { checkRun, showLogs } = this.props
-
-    return (
-      <>
-        <div
-          className="ci-check-list-item list-item"
-          onClick={this.onCheckRunClick}
-        >
-          <div className="ci-check-status-symbol">
-            <Octicon
-              className={classNames(
-                'ci-status',
-                `ci-status-${getClassNameForCheck(checkRun)}`
-              )}
-              symbol={getSymbolForCheck(checkRun)}
-              title={checkRun.description}
-            />
-          </div>
-
-          <div className="ci-check-list-item-detail">
-            <div className="ci-check-name">{checkRun.name}</div>
-            <div className="ci-check-description" title={checkRun.description}>
-              {checkRun.description}
-            </div>
-          </div>
-        </div>
-        {showLogs ? this.renderLogs() : null}
-      </>
     )
   }
 }

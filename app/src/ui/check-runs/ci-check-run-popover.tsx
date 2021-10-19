@@ -8,16 +8,12 @@ import {
   IRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { Octicon, syncClockwise } from '../octicons'
-import _ from 'lodash'
 import { Button } from '../lib/button'
-import { CICheckRunListItem } from './ci-check-list-item'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { getHTMLURL } from '../../lib/api'
+import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { CICheckRunList } from './ci-check-run-list'
 
-interface ICICheckRunListProps {
-  /** The classname for the underlying element. */
-  readonly className?: string
-
+interface ICICheckRunPopoverProps {
   readonly dispatcher: Dispatcher
 
   /** The GitHub repository to use when looking up commit status. */
@@ -28,25 +24,26 @@ interface ICICheckRunListProps {
 
   /** The pull request's number. */
   readonly prNumber: number
+
+  /** Callback for when popover closes */
+  readonly closePopover: (event?: MouseEvent) => void
 }
 
-interface ICICheckRunListState {
+interface ICICheckRunPopoverState {
   readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunSummary: string
-  readonly checkRunsShown: string | null
-  readonly checkRunLogsShown: string | null
   readonly loadingActionLogs: boolean
   readonly loadingActionWorkflows: boolean
 }
 
-/** The CI Check list. */
-export class CICheckRunList extends React.PureComponent<
-  ICICheckRunListProps,
-  ICICheckRunListState
+/** The CI Check Runs Popover. */
+export class CICheckRunPopover extends React.PureComponent<
+  ICICheckRunPopoverProps,
+  ICICheckRunPopoverState
 > {
   private statusSubscription: IDisposable | null = null
 
-  public constructor(props: ICICheckRunListProps) {
+  public constructor(props: ICICheckRunPopoverProps) {
     super(props)
 
     const combinedCheck = props.dispatcher.tryGetCommitStatus(
@@ -57,8 +54,6 @@ export class CICheckRunList extends React.PureComponent<
     this.state = {
       checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
       checkRunSummary: this.getCombinedCheckSummary(combinedCheck),
-      checkRunsShown: null,
-      checkRunLogsShown: null,
       loadingActionLogs: true,
       loadingActionWorkflows: true,
     }
@@ -66,7 +61,7 @@ export class CICheckRunList extends React.PureComponent<
     this.onStatus(combinedCheck)
   }
 
-  public componentDidUpdate(prevProps: ICICheckRunListProps) {
+  public componentDidUpdate(prevProps: ICICheckRunPopoverProps) {
     // Re-subscribe if we're being reused to show a different status.
     if (
       this.props.repository.hash !== prevProps.repository.hash ||
@@ -180,15 +175,6 @@ export class CICheckRunList extends React.PureComponent<
     this.props.dispatcher.openInBrowser(url)
   }
 
-  private onCheckRunClick = (checkRun: IRefCheck): void => {
-    this.setState({
-      checkRunLogsShown:
-        this.state.checkRunLogsShown === checkRun.id.toString()
-          ? null
-          : checkRun.id.toString(),
-    })
-  }
-
   private getCommitRef(prNumber: number): string {
     return `refs/pull/${prNumber}/head`
   }
@@ -239,34 +225,6 @@ export class CICheckRunList extends React.PureComponent<
     }
   }
 
-  private onAppHeaderClick = (appName: string) => {
-    return () => {
-      this.setState({
-        checkRunsShown: this.state.checkRunsShown === appName ? '' : appName,
-      })
-    }
-  }
-
-  private renderList = (checks: ReadonlyArray<IRefCheck>) => {
-    const baseHref = getHTMLURL(this.props.repository.endpoint)
-    const list = checks.map((c, i) => {
-      return (
-        <CICheckRunListItem
-          key={i}
-          checkRun={c}
-          loadingActionLogs={this.state.loadingActionLogs}
-          loadingActionWorkflows={this.state.loadingActionWorkflows}
-          showLogs={this.state.checkRunLogsShown === c.id.toString()}
-          baseHref={baseHref}
-          onCheckRunClick={this.onCheckRunClick}
-          onViewOnGitHub={this.viewCheckRunsOnGitHub}
-        />
-      )
-    })
-
-    return <>{list}</>
-  }
-
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     return (
@@ -279,50 +237,36 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public render() {
-    const { checkRuns, checkRunsShown, checkRunSummary } = this.state
+    const {
+      checkRunSummary,
+      checkRuns,
+      loadingActionLogs,
+      loadingActionWorkflows,
+    } = this.state
 
-    const checksByApp = _.groupBy(checkRuns, 'appName')
-    const appNames = Object.keys(checksByApp).sort(
-      (a, b) => b.length - a.length
-    )
-
-    const appNameShown = checkRunsShown !== null ? checkRunsShown : appNames[0]
-
-    const checkLists = appNames.map((appName: string, index: number) => {
-      const displayAppName = appName !== '' ? appName : 'Other'
-      return (
-        <div className="ci-check-app-list" key={displayAppName}>
-          <div
-            className="ci-check-app-header"
-            onClick={this.onAppHeaderClick(displayAppName)}
-          >
-            <Octicon
-              className="open-closed-icon"
-              symbol={
-                appNameShown === displayAppName
-                  ? OcticonSymbol.chevronDown
-                  : OcticonSymbol.chevronRight
-              }
-            />
-            <div className="ci-check-app-name">{displayAppName}</div>
-          </div>
-          {appNameShown === displayAppName
-            ? this.renderList(checksByApp[appName])
-            : null}
-        </div>
-      )
-    })
+    const baseHref = getHTMLURL(this.props.repository.endpoint)
 
     return (
-      <div className="ci-check-run-list">
-        <div className="ci-check-run-list-header">
-          <div className="ci-check-run-list-title-container">
-            <div className="title">Checks Summary</div>
-            <div className="check-run-list-summary">{checkRunSummary}</div>
+      <div className="ci-check-list-popover">
+        <Popover
+          caretPosition={PopoverCaretPosition.Top}
+          onClickOutside={this.props.closePopover}
+        >
+          <div className="ci-check-run-list-header">
+            <div className="ci-check-run-list-title-container">
+              <div className="title">Checks Summary</div>
+              <div className="check-run-list-summary">{checkRunSummary}</div>
+            </div>
+            {this.renderRerunButton()}
           </div>
-          {this.renderRerunButton()}
-        </div>
-        {checkRuns.length !== 0 ? checkLists : 'Unable to load checks runs.'}
+          <CICheckRunList
+            baseHref={baseHref}
+            checkRuns={checkRuns}
+            loadingActionLogs={loadingActionLogs}
+            loadingActionWorkflows={loadingActionWorkflows}
+            onViewOnGitHub={this.viewCheckRunsOnGitHub}
+          />
+        </Popover>
       </div>
     )
   }
