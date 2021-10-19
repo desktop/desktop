@@ -1,17 +1,13 @@
 import * as React from 'react'
 import {
-  getCheckDurationInSeconds,
   IRefCheck,
   IRefCheckOutput,
   RefCheckOutputType,
 } from '../../lib/stores/commit-status-store'
-
-import { Octicon } from '../octicons'
 import classNames from 'classnames'
-import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
 import { encodePathAsUrl } from '../../lib/path'
-import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
+import { CICheckRunActionLogs } from './ci-check-run-actions-logs'
 
 // TODO: Get empty graphic for logs?
 const BlankSlateImage = encodePathAsUrl(
@@ -48,46 +44,12 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     )
   }
 
-  private isNoOutputText(output: IRefCheckOutput): boolean {
+  private isNoOutputText = (output: IRefCheckOutput): boolean => {
     return (
+      !this.hasActionsWorkflowLogs() &&
       output.type === RefCheckOutputType.Default &&
       (output.text === null || output.text.trim() === '')
     )
-  }
-
-  private renderActionsLogOutput = (output: IRefCheckOutput) => {
-    if (output.type === RefCheckOutputType.Default) {
-      return null
-    }
-
-    return output.steps.map((step, i) => {
-      const header = (
-        <div className="ci-check-run-log-step" key={i}>
-          <div className="ci-check-status-symbol">
-            <Octicon
-              className={classNames(
-                'ci-status',
-                `ci-status-${getClassNameForCheck(step)}`
-              )}
-              symbol={getSymbolForCheck(step)}
-              title={step.name}
-            />
-          </div>
-          <div className="ci-check-run-log-step-name">{step.name}</div>
-          <div>{getCheckDurationInSeconds(step)}s</div>
-        </div>
-      )
-
-      const log =
-        step.conclusion === APICheckConclusion.Failure ? step.log : null
-
-      return (
-        <>
-          {header}
-          {log}
-        </>
-      )
-    })
   }
 
   private renderNonActionsLogOutput = (output: IRefCheckOutput) => {
@@ -103,6 +65,10 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     output: IRefCheckOutput,
     checkRunName: string
   ) => {
+    if (this.hasActionsWorkflowLogs()) {
+      return null
+    }
+
     const { title, summary } = output
 
     // Don't display something empty or redundant
@@ -167,15 +133,26 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
       return this.renderLoadingLogs()
     }
 
+    const logsOutput = this.hasActionsWorkflowLogs() ? (
+      <CICheckRunActionLogs
+        output={output}
+        loadingLogs={loadingActionWorkflows}
+      />
+    ) : (
+      this.renderNonActionsLogOutput(output)
+    )
+
+    const className = classNames('ci-check-list-item-logs', {
+      actions: this.hasActionsWorkflowLogs(),
+    })
+
     return (
-      <div className="ci-check-list-item-logs">
+      <div className={className}>
         <div className="ci-check-list-item-logs-output">
           {this.isNoAdditionalInfoToDisplay(output)
             ? this.renderEmptyLogOutput()
-            : null}
-          {this.renderMetaOutput(output, name)}
-          {this.renderActionsLogOutput(output)}
-          {this.renderNonActionsLogOutput(output)}
+            : this.renderMetaOutput(output, name)}
+          {logsOutput}
         </div>
         {this.renderViewOnGitHub()}
       </div>
