@@ -24,6 +24,8 @@
     border-color: var(--check-run-border-color);
 
     .ci-check-run-log-step {
+      // TODO: Figure out why hover only does middle part and not padding when using classes
+      // Currently can't figure out how to not hover skipped steps. :/
       div:first-child:hover {
         background-color: var(--check-run-step-header-open-bg-color);
       }
@@ -53,8 +55,14 @@
           }
 
           .log-step-toggled-indicator,
-          .log-step-status {
+          .log-step-status,
+          .no-toggle {
             margin-right: var(--spacing);
+          }
+
+          .no-toggle {
+            width: 16px;
+            height: 16px;
           }
         }
       }

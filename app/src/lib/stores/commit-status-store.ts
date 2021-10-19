@@ -629,7 +629,8 @@ async function parseJobStepLogs(
 
     const stepsWLogs = new Array<IAPIWorkflowJobStep>()
     for (const step of job.steps) {
-      const stepFileName = `${step.number}_${step.name}.txt`
+      const stepName = step.name.replace('/', '')
+      const stepFileName = `${step.number}_${stepName}.txt`
       const stepLogFile = jobFolder.file(stepFileName)
       if (stepLogFile === null) {
         stepsWLogs.push(step)
@@ -761,7 +762,7 @@ function getCheckRunShortDescription(
  * Attempts to get the duration of a check run in seconds.
  * If it fails, it returns 0
  */
-export function getCheckDurationInSeconds(
+function getCheckDurationInSeconds(
   checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
 ): number {
   try {
@@ -776,6 +777,27 @@ export function getCheckDurationInSeconds(
   } catch (e) {}
 
   return 0
+}
+
+/**
+ *  Gets the duration of a check run or job step formatted in minutes and
+ *  seconds.
+ */
+export function getFormattedCheckRunDuration(
+  checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
+): string {
+  const duration = getCheckDurationInSeconds(checkRun)
+  if (duration < 60) {
+    return `${duration}s`
+  }
+
+  const minutes = Math.floor(duration / 60)
+  const seconds = duration - minutes * 60
+  if (seconds === 0) {
+    return `${minutes}m`
+  }
+
+  return `${minutes}m ${seconds}s`
 }
 
 /**
