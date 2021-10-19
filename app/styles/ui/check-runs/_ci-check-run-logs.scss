@@ -1,30 +1,4 @@
 .ci-check-list-item-logs {
-  border-bottom: var(--base-border);
-  box-shadow: inset 0px 0px 3px -1px grey;
-
-  .ci-check-list-item-logs-output {
-    padding: var(--spacing);
-    font-size: var(--font-size-sm);
-    max-height: 200px;
-    overflow: auto;
-    word-break: break-word;
-
-    pre {
-      margin: 0;
-    }
-
-    .ci-check-run-log-step {
-      display: flex;
-      align-items: center;
-      .ci-check-status-symbol {
-        padding: var(--spacing-third);
-      }
-      .ci-check-run-log-step-name {
-        flex: 1;
-      }
-    }
-  }
-
   .view-on-github {
     padding: var(--spacing);
 
@@ -32,24 +6,70 @@
       width: 100%;
     }
   }
-}
 
-.loading-logs {
-  border-bottom: var(--base-border);
-  box-shadow: inset 0px 0px 3px -1px grey;
-  padding: var(--spacing);
-  text-align: center;
+  .ci-check-list-item-logs-output {
+    padding: var(--spacing-half);
+    max-height: 200px;
+    overflow: auto;
+    word-break: break-word;
 
-  .blankslate-image {
-    min-width: 350px;
+    pre {
+      margin: 0;
+    }
   }
 
-  .title {
-    font-weight: var(--font-weight-semibold);
-    margin-top: calc(var(--spacing) * -1);
-  }
+  &.actions {
+    color: var(--check-run-header-label-text-color);
+    background-color: var(--check-run-bg-color);
+    border-color: var(--check-run-border-color);
 
-  .loading-blurb {
-    font-size: var(--font-size-sm);
+    .ci-check-run-log-step {
+      div:first-child:hover {
+        background-color: var(--check-run-step-header-open-bg-color);
+      }
+
+      .ci-check-run-log-step-header {
+        border-radius: 6px;
+        padding: 8px;
+        margin-bottom: var(--spacing-half);
+        margin-left: var(--spacing-half);
+        margin-right: var(--spacing-half);
+        color: var(--check-run-text-secondary-color);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &.open {
+          color: var(--check-run-text-primary-color);
+          background-color: var(--check-run-step-header-open-bg-color);
+        }
+
+        .ci-check-run-log-step-header-container {
+          display: flex;
+          align-items: center;
+
+          .ci-check-run-log-step-name {
+            flex: 1;
+          }
+
+          .log-step-toggled-indicator,
+          .log-step-status {
+            margin-right: var(--spacing);
+          }
+        }
+      }
+
+      .ci-check-run-step-log-display {
+        // N.B. Likely to be refactored when log output classes and html pr is added.
+        word-wrap: break-word;
+        font-family: var(----font-family-monospace);
+        font-size: var(--font-size-sm);
+        padding-top: var(--spacing-half);
+        padding-bottom: var(--spacing-half);
+        margin-top: var(--spacing);
+        margin-bottom: var(--spacing);
+        margin-left: var(--spacing);
+      }
+    }
   }
 }
