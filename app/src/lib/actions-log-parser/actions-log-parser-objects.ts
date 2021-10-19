@@ -102,7 +102,7 @@ export interface ILogLine extends IParseNode {
 export interface ILogLineTemplateData {
   className: string
   lineNumber: number
-  lineContent: IParsedContent[]
+  lineContent: ReadonlyArray<IParsedContent>
   timeStamp?: string
   lineUrl: string
   isGroup: boolean
