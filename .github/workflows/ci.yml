@@ -17,7 +17,8 @@ jobs:
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    permissions: read-all
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
