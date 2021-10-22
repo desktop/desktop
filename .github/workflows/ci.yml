@@ -42,7 +42,7 @@ jobs:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     permissions:
-      contents: read
+      contents: write
     strategy:
       fail-fast: false
       matrix:
