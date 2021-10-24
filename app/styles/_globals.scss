@@ -186,3 +186,20 @@ kbd {
     margin-right: 2px;
   }
 }
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-image: linear-gradient(to bottom, #8290AD85, #68769385);
+  box-shadow: 4px 0 13px 0 rgba(53, 147, 238, 0.43);
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-track:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
