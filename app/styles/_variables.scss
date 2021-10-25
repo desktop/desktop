@@ -297,7 +297,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * The z-index for tooltips. Nothing should be higher, but other z-indexes can
    * be defined in terms of it.
    *
-   * 10 seems arbitrary (because it is) but we have to go that high because
+   * 20 seems arbitrary (because it is) but we have to go that high because
    * codemirror is all over the place with their z-indexes and uses at least
    * 0-6.
    */
