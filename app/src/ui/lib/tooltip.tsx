@@ -70,6 +70,10 @@ export interface ITooltipProps<T> {
    */
   readonly className?: string
 
+  /**
+   * Whether to only show the tooltip when the tooltip target overflows its
+   * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
+   */
   readonly onlyWhenOverflowed?: boolean
 }
 
