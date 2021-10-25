@@ -17,8 +17,7 @@ import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { CICheckRunList } from '../branches/ci-check-run-list'
+import { CICheckRunPopover } from '../check-runs/ci-check-run-popover'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -263,21 +262,13 @@ export class BranchDropdown extends React.Component<
     }
 
     return (
-      <div className="ci-check-list-popover">
-        <Popover
-          caretPosition={PopoverCaretPosition.Top}
-          onClickOutside={this.closePopover}
-        >
-          <div>
-            <CICheckRunList
-              prNumber={pr.pullRequestNumber}
-              dispatcher={this.props.dispatcher}
-              repository={pr.base.gitHubRepository}
-              branchName={currentBranchName}
-            />
-          </div>
-        </Popover>
-      </div>
+      <CICheckRunPopover
+        prNumber={pr.pullRequestNumber}
+        dispatcher={this.props.dispatcher}
+        repository={pr.base.gitHubRepository}
+        branchName={currentBranchName}
+        closePopover={this.closePopover}
+      />
     )
   }
 
