@@ -8,7 +8,7 @@ import { rectEquals, rectContains } from './rect'
 
 export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 const DefaultTooltipDelay = 400
-const InteractiveTooltipHideDelay = 150
+const InteractiveTooltipHideDelay = 250
 
 // Curse you SVGSVGElement. So the `<svg>` tag which is represented in the DOM
 // as SVGSVGElement does not inherit HTMLElement like most other tags we'd be
