@@ -116,6 +116,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   private mouseRect = new DOMRect()
 
   private mouseOverTarget = false
+  private mouseOverTooltip = false
   private showTooltipTimeout: number | null = null
   private hideTooltipTimeout: number | null = null
 
@@ -200,8 +201,14 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     this.tooltipRef = elem
   }
 
-  private onTooltipMouseEnter = (e: MouseEvent) => this.cancelHideTooltip()
-  private onTooltipMouseLeave = (e: MouseEvent) => this.beginHideTooltip()
+  private onTooltipMouseEnter = (e: MouseEvent) => {
+    this.mouseOverTooltip = true
+    this.cancelHideTooltip()
+  }
+  private onTooltipMouseLeave = (e: MouseEvent) => {
+    this.mouseOverTooltip = false
+    this.beginHideTooltip()
+  }
 
   public componentDidUpdate(
     prevProps: ITooltipProps<T>,
@@ -276,7 +283,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private onTargetFocusOut = (event: FocusEvent) => {
-    if (!this.mouseOverTarget) {
+    if (!this.mouseOverTarget && !this.mouseOverTooltip) {
       this.beginHideTooltip()
     }
   }
