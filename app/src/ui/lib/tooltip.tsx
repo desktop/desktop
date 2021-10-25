@@ -242,8 +242,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('mouseleave', this.onTargetMouseLeave)
     elem.addEventListener('mousemove', this.onTargetMouseMove)
     elem.addEventListener('mousedown', this.onTargetMouseDown)
-    elem.addEventListener('focusin', this.onTargetFocusIn)
-    elem.addEventListener('focusout', this.onTargetFocusOut)
+    elem.addEventListener('focus', this.onTargetFocus)
+    elem.addEventListener('blur', this.onTargetBlur)
   }
 
   private removeTooltip(prevTarget: TooltipTarget | null) {
@@ -255,8 +255,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       prevTarget.removeEventListener('mouseleave', this.onTargetMouseLeave)
       prevTarget.removeEventListener('mousemove', this.onTargetMouseMove)
       prevTarget.removeEventListener('mousedown', this.onTargetMouseDown)
-      prevTarget.removeEventListener('focusin', this.onTargetFocusIn)
-      prevTarget.removeEventListener('focusout', this.onTargetFocusOut)
+      prevTarget.removeEventListener('focus', this.onTargetFocus)
+      prevTarget.removeEventListener('blur', this.onTargetBlur)
     }
   }
 
@@ -276,13 +276,13 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     this.hideTooltip()
   }
 
-  private onTargetFocusIn = (event: FocusEvent) => {
+  private onTargetFocus = (event: FocusEvent) => {
     if (this.state.target?.matches(':focus-visible')) {
       this.beginShowTooltip()
     }
   }
 
-  private onTargetFocusOut = (event: FocusEvent) => {
+  private onTargetBlur = (event: FocusEvent) => {
     if (!this.mouseOverTarget && !this.mouseOverTooltip) {
       this.beginHideTooltip()
     }
