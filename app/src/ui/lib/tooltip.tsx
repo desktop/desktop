@@ -277,6 +277,9 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private onTargetFocus = (event: FocusEvent) => {
+    // We only want to show the tooltip if the target was focused as a result of
+    // keyboard navigation, see
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
     if (this.state.target?.matches(':focus-visible')) {
       this.beginShowTooltip()
     }
