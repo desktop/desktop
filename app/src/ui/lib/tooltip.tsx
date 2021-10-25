@@ -10,7 +10,12 @@ export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
 const DefaultTooltipDelay = 400
 const InteractiveTooltipHideDelay = 150
 
-// Curse you SVGSVGElement
+// Curse you SVGSVGElement. So the `<svg>` tag which is represented in the DOM
+// as SVGSVGElement does not inherit HTMLElement like most other tags we'd be
+// dealing with like <p>, <div> etc so we can't use that however convenient it
+// would be. What we really care about though is the basic methods from Element
+// like setAttribute etc coupled with the pointer-specific events from
+// HTMLElement like mouseenter, mouseleave etc. So we make our own type here.
 type TooltipTarget = Element & GlobalEventHandlers
 
 export interface ITooltipProps<T> {
