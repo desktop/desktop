@@ -215,9 +215,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     }
 
     if (target !== prevState.target) {
-      if (target === null) {
-        this.removeTooltip(prevState.target)
-      } else {
+      this.removeTooltip(prevState.target)
+      if (target !== null) {
         this.installTooltip(target)
       }
     }
