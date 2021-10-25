@@ -102,7 +102,9 @@ export class BranchListItem extends React.Component<
   }
 
   private onMouseEnter = () => {
-    this.setState({ isDragInProgress: true })
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: true })
+    }
 
     if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitEnterDropTarget({
