@@ -70,7 +70,6 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
                 `ci-status-${getClassNameForCheck(step)}`
               )}
               symbol={getSymbolForCheck(step)}
-              title={step.name}
             />
           </div>
           <div className="ci-check-run-log-step-name">{step.name}</div>

@@ -48,10 +48,20 @@ export interface IPullRequestListItemProps {
   readonly onDropOntoPullRequest: (prNumber: number) => void
 }
 
+interface IPullRequestListItemState {
+  readonly isDragInProgress: boolean
+}
+
 /** Pull requests as rendered in the Pull Requests list. */
 export class PullRequestListItem extends React.Component<
-  IPullRequestListItemProps
+  IPullRequestListItemProps,
+  IPullRequestListItemState
 > {
+  public constructor(props: IPullRequestListItemProps) {
+    super(props)
+    this.state = { isDragInProgress: false }
+  }
+
   private getSubtitle() {
     if (this.props.loading === true) {
       return undefined
@@ -65,6 +75,8 @@ export class PullRequestListItem extends React.Component<
 
   private onMouseEnter = () => {
     if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: true })
+
       dragAndDropManager.emitEnterDropTarget({
         type: DropTargetType.Branch,
         branchName: this.props.title,
@@ -74,12 +86,16 @@ export class PullRequestListItem extends React.Component<
 
   private onMouseLeave = () => {
     if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: false })
+
       dragAndDropManager.emitLeaveDropTarget()
     }
   }
 
   private onMouseUp = () => {
     if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: false })
+
       this.props.onDropOntoPullRequest(this.props.number)
     }
   }
@@ -92,6 +108,7 @@ export class PullRequestListItem extends React.Component<
       loading: this.props.loading === true,
       open: !this.props.draft,
       draft: this.props.draft,
+      'drop-target': this.state.isDragInProgress,
     })
 
     return (
