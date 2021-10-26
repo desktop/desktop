@@ -42,6 +42,7 @@ import {
 } from '../../lib/wrap-rich-text-commit-message'
 import { Hint } from '../lib/hint'
 import { Tokenizer } from '../../lib/text-token-parser'
+import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'e
 
 const addAuthorIcon = {
   w: 18,
@@ -59,7 +60,13 @@ interface ICommitMessageProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly anyFilesSelected?: boolean
+  readonly anyFilesSelected: boolean
+
+  /**
+   * Whether it's possible to select files for commit, affects messaging
+   * when commit button is disabled
+   */
+  readonly anyFilesAvailable: boolean
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
@@ -306,8 +313,14 @@ export class CommitMessage extends React.Component<
     }))
   }
 
+  private get summaryOrPlaceholder() {
+    return this.props.prepopulateCommitSummary && !this.state.summary
+      ? this.props.placeholder
+      : this.state.summary
+  }
+
   private async createCommit() {
-    const { summary, description } = this.state
+    const { description } = this.state
 
     if (!this.canCommit() && !this.canAmend()) {
       return
@@ -315,13 +328,8 @@ export class CommitMessage extends React.Component<
 
     const trailers = this.getCoAuthorTrailers()
 
-    const summaryOrPlaceholder =
-      this.props.prepopulateCommitSummary && !this.state.summary
-        ? this.props.placeholder
-        : summary
-
     const commitContext = {
-      summary: summaryOrPlaceholder,
+      summary: this.summaryOrPlaceholder,
       description,
       trailers,
       amend: this.props.commitToAmend !== null,
@@ -365,9 +373,11 @@ export class CommitMessage extends React.Component<
   private renderAvatar() {
     const { commitAuthor, repository } = this.props
     const { gitHubRepository } = repository
-    const avatarTitle = commitAuthor
-      ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
-      : undefined
+    const avatarTitle = commitAuthor ? (
+      <>
+        Committing as <strong>{commitAuthor.name}</strong> {commitAuthor.email}
+      </>
+    ) : undefined
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
         ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
@@ -686,43 +696,40 @@ export class CommitMessage extends React.Component<
   }
 
   private renderSubmitButton() {
-    const { isCommitting } = this.props
-    const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
+    const { isCommitting, branch, commitButtonText } = this.props
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
     const buttonEnabled =
-      (this.canCommit() || this.canAmend()) &&
-      isCommitting !== true &&
-      !isSummaryWhiteSpace
+      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
 
-    return (
-      <Button
-        type="submit"
-        className="commit-button"
-        onClick={this.onSubmit}
-        disabled={!buttonEnabled}
-      >
-        {this.renderButtonContents()}
-      </Button>
-    )
-  }
-
-  private renderButtonContents(): JSX.Element {
-    const { isCommitting, branch: branchName, commitButtonText } = this.props
-
-    const loading = isCommitting === true ? <Loading /> : undefined
+    const loading = isCommitting ? <Loading /> : undefined
 
     const isAmending = this.props.commitToAmend !== null
 
-    const amendVerb = loading ? 'Amending' : 'Amend'
-    const commitVerb = loading ? 'Committing' : 'Commit'
+    const amendVerb = isCommitting ? 'Amending' : 'Amend'
+    const commitVerb = isCommitting ? 'Committing' : 'Commit'
 
     const amendTitle = `${amendVerb} last commit`
     const commitTitle =
-      branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
+      branch !== null ? `${commitVerb} to ${branch}` : commitVerb
+
+    let tooltip: string | undefined = undefined
+
+    if (buttonEnabled) {
+      tooltip = isAmending ? amendTitle : commitTitle
+    } else {
+      if (isSummaryBlank) {
+        tooltip = `A commit summary is required to commit`
+      } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
+        tooltip = `Select one or more files to commit`
+      } else if (isCommitting) {
+        tooltip = `Committing changes…`
+      }
+    }
 
     const defaultCommitContents =
-      branchName !== null ? (
+      branch !== null ? (
         <>
-          {commitVerb} to <strong>{branchName}</strong>
+          {commitVerb} to <strong>{branch}</strong>
         </>
       ) : (
         commitVerb
@@ -737,12 +744,18 @@ export class CommitMessage extends React.Component<
     const commitButton = commitButtonText ? commitButtonText : defaultContents
 
     return (
-      <>
-        {loading}
-        <span title={isAmending ? amendTitle : commitTitle}>
-          {commitButton}
-        </span>
-      </>
+      <Button
+        type="submit"
+        className="commit-button"
+        onClick={this.onSubmit}
+        disabled={!buttonEnabled}
+        tooltip={tooltip}
+      >
+        <>
+          {loading}
+          <span>{commitButton}</span>
+        </>
+      </Button>
     )
   }
 

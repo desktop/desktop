@@ -31,3 +31,59 @@
     height: 12px;
   }
 }
+
+.ci-check-list-item-logs {
+  border-bottom: var(--base-border);
+  box-shadow: inset 0px 0px 3px -1px grey;
+
+  .ci-check-list-item-logs-output {
+    padding: var(--spacing);
+    font-size: var(--font-size-sm);
+    max-height: 200px;
+    overflow: auto;
+    word-break: break-word;
+
+    pre {
+      margin: 0;
+    }
+
+    .ci-check-run-log-step {
+      display: flex;
+      align-items: center;
+      .ci-check-status-symbol {
+        padding: var(--spacing-third);
+      }
+      .ci-check-run-log-step-name {
+        flex: 1;
+      }
+    }
+  }
+
+  .view-on-github {
+    padding: var(--spacing);
+
+    .button-component {
+      width: 100%;
+    }
+  }
+}
+
+.loading-logs {
+  border-bottom: var(--base-border);
+  box-shadow: inset 0px 0px 3px -1px grey;
+  padding: var(--spacing);
+  text-align: center;
+
+  .blankslate-image {
+    min-width: 350px;
+  }
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+    margin-top: calc(var(--spacing) * -1);
+  }
+
+  .loading-blurb {
+    font-size: var(--font-size-sm);
+  }
+}

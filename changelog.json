@@ -1,5 +1,38 @@
 {
   "releases": {
+    "2.9.4": [
+      "[Added] Add syntax mapping for HAML - #13009. Thanks @alexanderadam!",
+      "[Added] Add support for WezTerm on macOS - #12957. Thanks @theodore-s-beers!",
+      "[Added] Add a menu item to view a committed file change on GitHub - #12492. Thanks @haykam821!",
+      "[Fixed] Diffs are scrolled to the top when switching between files - #12980",
+      "[Fixed] Fix SSH prompt for unknown hosts in some scenarios - #13050",
+      "[Fixed] Apply syntax highlighting when viewing a small change for the first time - #13004",
+      "[Fixed] Wrap long email addresses in the misattributed commit warning popover - #13044",
+      "[Fixed] Refresh diffs when application receives focus - #12962",
+      "[Fixed] Only consider tokens invalid when 401 error comes from GitHub Enterprise - #12943",
+      "[Fixed] Show \"add repo\" dialog when opening repo from CLI - #12935",
+      "[Fixed] Continue merge flow after merge conflicts are resolved with external conflict tool - #12881",
+      "[Fixed] Prevent crash on successful merge after conflicts resolved - #12888",
+      "[Fixed] Use same width for hunk expansion handles as we do for line numbers - #12887",
+      "[Fixed] Use the correct icon for diff expansion - #12882",
+      "[Improved] Add offending file name to the file exceeds size limit error - #10242. Thanks @ADustyOldMuffin!",
+      "[Improved] Show a message explaining why line selection is disabled when hiding whitespace - #12979",
+      "[Improved] Upgrade embedded Git to v2.32.0 on macOS, and to v2.32.0.windows.2 on Windows - #13000",
+      "[Improved] Remove gaps in the commit message container revealing a different background - #12900. Thanks @haykam821!",
+      "[Improved] Add clearer verbiage in the \"remove repository\" dialog - #12497. Thanks @fonsp!",
+      "[Improved] Update grammar for \"repo deletion\" and \"couldn't find pull request\" error messages - #12902. Thanks @patrykmichalik!",
+      "[Improved] Show confirmation dialog for SSH host key verification - #12894. Thanks @thsmdt!"
+    ],
+    "2.9.4-beta4": [
+      "[Added] Add syntax mapping for HAML - #13009. Thanks @alexanderadam!",
+      "[Fixed] Diffs are scrolled to the top when switching between files - #12980",
+      "[Fixed] Fix SSH prompt for unknown hosts in some scenarios - #13050",
+      "[Fixed] Apply syntax highlighting when viewing a small change for the first time - #13004",
+      "[Fixed] Wrap long email addresses in the misattributed commit warning popover - #13044",
+      "[Improved] Add offending file name to the file exceeds size limit error - #10242. Thanks @ADustyOldMuffin!",
+      "[Improved] Show a message explaining why line selection is disabled when hiding whitespace - #12979",
+      "[Improved] Show previous similar tags in the tag creation dialog - #12509. Thanks @mahezsh!"
+    ],
     "2.9.4-beta3": [
       "[Fixed] Refresh diffs when application receives focus - #12962",
       "[Fixed] Tokens are not considered invalid when accessing GitHub Enterprise from outside of the company's VPN - #12943",

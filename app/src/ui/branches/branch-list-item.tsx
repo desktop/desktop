@@ -1,6 +1,5 @@
 import { clipboard } from 'electron'
 import * as React from 'react'
-import moment from 'moment'
 
 import { IMatches } from '../../lib/fuzzy-find'
 
@@ -11,6 +10,9 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { RelativeTime } from '../relative-time'
+import classNames from 'classnames'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -39,8 +41,25 @@ interface IBranchListItemProps {
   readonly onDropOntoCurrentBranch?: () => void
 }
 
+interface IBranchListItemState {
+  /**
+   * Whether or not there's currently a draggable item being dragged
+   * on top of the branch item. We use this in order to disable pointer
+   * events when dragging.
+   */
+  readonly isDragInProgress: boolean
+}
+
 /** The branch component. */
-export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
+export class BranchListItem extends React.Component<
+  IBranchListItemProps,
+  IBranchListItemState
+> {
+  public constructor(props: IBranchListItemProps) {
+    super(props)
+    this.state = { isDragInProgress: false }
+  }
+
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
 
@@ -83,6 +102,10 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   private onMouseEnter = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: true })
+    }
+
     if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitEnterDropTarget({
         type: DropTargetType.Branch,
@@ -92,6 +115,8 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   private onMouseLeave = () => {
+    this.setState({ isDragInProgress: false })
+
     if (dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       dragAndDropManager.emitLeaveDropTarget()
     }
@@ -104,6 +129,8 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       name,
       isCurrentBranch,
     } = this.props
+
+    this.setState({ isDragInProgress: false })
 
     if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       return
@@ -119,33 +146,36 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   }
 
   public render() {
-    const lastCommitDate = this.props.lastCommitDate
-    const isCurrentBranch = this.props.isCurrentBranch
-    const name = this.props.name
-
-    const date = lastCommitDate ? moment(lastCommitDate).fromNow() : ''
+    const { lastCommitDate, isCurrentBranch, name } = this.props
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
-    const infoTitle = isCurrentBranch
-      ? 'Current branch'
-      : lastCommitDate
-      ? lastCommitDate.toString()
-      : ''
+    const className = classNames('branches-list-item', {
+      'drop-target': this.state.isDragInProgress,
+    })
 
     return (
       <div
         onContextMenu={this.onContextMenu}
-        className="branches-list-item"
+        className={className}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         onMouseUp={this.onMouseUp}
       >
         <Octicon className="icon" symbol={icon} />
-        <div className="name" title={name}>
+        <TooltippedContent
+          className="name"
+          tooltip={name}
+          onlyWhenOverflowed={true}
+          tagName="div"
+        >
           <HighlightText text={name} highlight={this.props.matches.title} />
-        </div>
-        <div className="description" title={infoTitle}>
-          {date}
-        </div>
+        </TooltippedContent>
+        {lastCommitDate && (
+          <RelativeTime
+            className="description"
+            date={lastCommitDate}
+            onlyRelative={true}
+          />
+        )}
       </div>
     )
   }

@@ -100,6 +100,11 @@ h6 {
   margin-bottom: 0.5rem;
 }
 
+code,
+pre {
+  font-family: var(--font-family-monospace);
+}
+
 // Regardless of platform behavior we never want buttons to be
 // app drag targets unless explicitly specified.
 button {

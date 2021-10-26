@@ -93,6 +93,7 @@ import {
   CommitStatusStore,
   StatusCallBack,
   ICombinedRefCheck,
+  IRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
@@ -2413,6 +2414,49 @@ export class Dispatcher {
     callback: StatusCallBack
   ): IDisposable {
     return this.commitStatusStore.subscribe(repository, ref, callback)
+  }
+
+  /**
+   * Populates Actions workflow logs for provided checkruns if applicable
+   */
+  public getActionsWorkflowRunLogs(
+    repository: GitHubRepository,
+    ref: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
+      repository,
+      ref,
+      checkRuns
+    )
+  }
+
+  /**
+   * Populates Actions workflow log and job url's for provided checkruns if applicable
+   */
+  public getCheckRunActionsJobsAndLogURLS(
+    repository: GitHubRepository,
+    ref: string,
+    branchName: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    return this.commitStatusStore.getCheckRunActionsJobsAndLogURLS(
+      repository,
+      ref,
+      branchName,
+      checkRuns
+    )
+  }
+
+  /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public rerequestCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    return this.commitStatusStore.rerequestCheckSuite(repository, checkSuiteId)
   }
 
   /**

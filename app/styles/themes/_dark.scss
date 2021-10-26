@@ -98,6 +98,7 @@ body.theme-dark {
    * implement a hover state since this will conflict with
    * selection and active selection
    */
+  --box-hover-background-color: #{$gray-800};
 
   /**
    * Text color for selected boxes without keyboard focus
@@ -326,6 +327,11 @@ body.theme-dark {
   --dialog-warning-color: #{$yellow-600};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
+
+  /** Tooltips */
+  --tooltip-background-color: #{$gray-800};
+  --tooltip-color: #{$gray-100};
+  --tooltip-shadow-color: #{$black};
 
   /** Inline paths and code */
   --path-segment-background: #{$gray-700};

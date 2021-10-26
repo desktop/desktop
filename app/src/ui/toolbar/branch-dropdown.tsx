@@ -17,8 +17,7 @@ import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { CICheckRunList } from '../branches/ci-check-run-list'
+import { CICheckRunPopover } from '../check-runs/ci-check-run-popover'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -184,7 +183,7 @@ export class BranchDropdown extends React.Component<
           iconClassName={iconClassName}
           title={title}
           description={description}
-          tooltip={tooltip}
+          tooltip={isOpen ? undefined : tooltip}
           onDropdownStateChanged={this.onDropDownStateChanged}
           dropdownContentRenderer={this.renderBranchFoldout}
           dropdownState={currentState}
@@ -254,26 +253,22 @@ export class BranchDropdown extends React.Component<
 
   private renderPopover() {
     const pr = this.props.currentPullRequest
+    const { tip } = this.props.repositoryState.branchesState
+    // It is ok if it doesn't exist, we just can't retrieve actions workflows
+    const currentBranchName = tip.kind === TipState.Valid ? tip.branch.name : ''
 
     if (pr === null) {
       return null
     }
 
     return (
-      <div className="ci-check-list-popover">
-        <Popover
-          caretPosition={PopoverCaretPosition.Top}
-          onClickOutside={this.closePopover}
-        >
-          <div>
-            <CICheckRunList
-              prNumber={pr.pullRequestNumber}
-              dispatcher={this.props.dispatcher}
-              repository={pr.base.gitHubRepository}
-            />
-          </div>
-        </Popover>
-      </div>
+      <CICheckRunPopover
+        prNumber={pr.pullRequestNumber}
+        dispatcher={this.props.dispatcher}
+        repository={pr.base.gitHubRepository}
+        branchName={currentBranchName}
+        closePopover={this.closePopover}
+      />
     )
   }
 

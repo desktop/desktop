@@ -10,6 +10,7 @@ import {
   IRefCheck,
   isSuccess,
 } from '../../lib/stores/commit-status-store'
+import { IAPIWorkflowJobStep } from '../../lib/api'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
@@ -121,7 +122,7 @@ export class CIStatus extends React.PureComponent<
 }
 
 export function getSymbolForCheck(
-  check: ICombinedRefCheck | IRefCheck
+  check: ICombinedRefCheck | IRefCheck | IAPIWorkflowJobStep
 ): OcticonSymbolType {
   switch (check.conclusion) {
     case 'timed_out':
@@ -147,7 +148,7 @@ export function getSymbolForCheck(
 }
 
 export function getClassNameForCheck(
-  check: ICombinedRefCheck | IRefCheck
+  check: ICombinedRefCheck | IRefCheck | IAPIWorkflowJobStep
 ): string {
   switch (check.conclusion) {
     case 'timed_out':
