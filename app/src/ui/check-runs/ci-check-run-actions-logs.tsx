@@ -62,12 +62,12 @@ export class CICheckRunActionLogs extends React.PureComponent<
     }
 
     return output.steps.map((step, i) => {
-      const isSkipped = step.conclusion !== 'skipped'
-      const showLogs = this.state.openSections.has(i) && isSkipped
+      const isSkipped = step.conclusion === 'skipped'
+      const showLogs = this.state.openSections.has(i) && !isSkipped
 
       const header = (
         <div className="ci-check-run-log-step-header-container">
-          {isSkipped ? (
+          {!isSkipped ? (
             <Octicon
               className="log-step-toggled-indicator"
               symbol={
