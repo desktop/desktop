@@ -22,7 +22,7 @@ interface ICICheckRunActionLogsProps {
 }
 
 interface ICICheckRunActionLogsState {
-  readonly stepOpenState: Map<number, boolean>
+  readonly openSections: ReadonlySet<number>
 }
 
 export class CICheckRunActionLogs extends React.PureComponent<
