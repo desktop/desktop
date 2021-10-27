@@ -786,18 +786,9 @@ function getCheckDurationInSeconds(
 export function getFormattedCheckRunDuration(
   checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
 ): string {
-  const duration = getCheckDurationInSeconds(checkRun)
-  if (duration < 60) {
-    return `${duration}s`
-  }
-
-  const minutes = Math.floor(duration / 60)
-  const seconds = duration - minutes * 60
-  if (seconds === 0) {
-    return `${minutes}m`
-  }
-
-  return `${minutes}m ${seconds}s`
+  return moment
+    .duration(getCheckDurationInSeconds(checkRun), 'seconds')
+    .format('d[d] h[h] m[m] s[s]', { largest: 4 })
 }
 
 /**
