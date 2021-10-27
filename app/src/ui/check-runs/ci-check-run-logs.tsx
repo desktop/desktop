@@ -91,7 +91,7 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
   }
 
   private renderLoadingLogs = () => {
-    return <div className="no-logs-to-display">Loading</div>
+    return <div className="no-logs-to-display">Loading…</div>
   }
 
   private renderViewOnGitHub = () => {
