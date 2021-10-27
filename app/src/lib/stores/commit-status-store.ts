@@ -19,6 +19,7 @@ import {
 import { IDisposable, Disposable } from 'event-kit'
 import { setAlmostImmediate } from '../set-almost-immediate'
 import JSZip from 'jszip'
+import moment from 'moment'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
