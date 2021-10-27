@@ -48,7 +48,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
     const { output, loadingLogs } = this.props
 
     if (loadingLogs) {
-      return <>Loading...</>
+      return <>Loading…</>
     }
 
     if (output.type !== RefCheckOutputType.Actions) {
