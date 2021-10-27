@@ -32,13 +32,13 @@ export class CICheckRunActionLogs extends React.PureComponent<
   public constructor(props: ICICheckRunActionLogsProps) {
     super(props)
     this.state = {
-      stepOpenState: new Map<number, boolean>(),
+      openSections: new Set<number>(),
     }
   }
 
   public toggleOpenState = (index: number) => {
     return () => {
-            const openSections = new Set(this.state.openSections)
+      const openSections = new Set(this.state.openSections)
       if (openSections.has(index)) {
         openSections.delete(index)
       } else {
