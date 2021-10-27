@@ -38,9 +38,14 @@ export class CICheckRunActionLogs extends React.PureComponent<
 
   public toggleOpenState = (index: number) => {
     return () => {
-      const { stepOpenState } = this.state
-      stepOpenState.set(index, !(stepOpenState.get(index) === true))
-      this.setState({ stepOpenState: new Map(stepOpenState) })
+            const openSections = new Set(this.state.openSections)
+      if (openSections.has(index)) {
+        openSections.delete(index)
+      } else {
+        openSections.add(index)
+      }
+
+      this.setState({ openSections })
     }
   }
 
