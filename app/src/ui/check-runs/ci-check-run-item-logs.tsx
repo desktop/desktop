@@ -11,6 +11,7 @@ import classNames from 'classnames'
 import { APICheckConclusion } from '../../lib/api'
 import { Button } from '../lib/button'
 import { encodePathAsUrl } from '../../lib/path'
+import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 
 // TODO: Get empty graphic for logs?
@@ -28,6 +29,10 @@ interface ICICheckRunLogsProps {
 
   /** Whether tcall for actions workflows is pending */
   readonly loadingActionWorkflows: boolean
+
+  /** The base href used for relative links provided in check run markdown
+   * output */
+  readonly baseHref: string | null
 
   /** Callback to opens check runs on GitHub */
   readonly onViewOnGitHub: (checkRun: IRefCheck) => void
@@ -98,6 +103,10 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
   }
 
+  private markDownLinkClicked = (link: string): void => {
+    console.log(link)
+  }
+
   private renderMetaOutput = (
     output: IRefCheckOutput,
     checkRunName: string
@@ -111,13 +120,16 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
       title.trim().toLocaleLowerCase() !==
         checkRunName.trim().toLocaleLowerCase()
 
-    const displaySummary =
-      summary !== null && summary !== undefined && summary.trim() !== ''
-
     return (
       <div>
-        {displayTitle ? <div>{title}</div> : null}
-        {displaySummary ? <pre>{summary}</pre> : null}
+        {displayTitle ? <h2>{title}</h2> : null}
+        {summary !== null && summary !== undefined && summary.trim() !== '' ? (
+          <SandboxedMarkdown
+            markdown={summary}
+            baseHref={this.props.baseHref}
+            onMarkdownLinkClicked={this.markDownLinkClicked}
+          />
+        ) : null}
       </div>
     )
   }

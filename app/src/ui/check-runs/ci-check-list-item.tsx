@@ -18,6 +18,10 @@ interface ICICheckRunListItemProps {
   /** Whether to show the logs for this check run */
   readonly showLogs: boolean
 
+  /** The base href used for relative links provided in check run markdown
+   * output */
+  readonly baseHref: string | null
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunClick: (checkRun: IRefCheck) => void
 
@@ -38,7 +42,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   public render() {
-    const { checkRun, showLogs, loadingActionLogs } = this.props
+    const { checkRun, showLogs, loadingActionLogs, baseHref } = this.props
 
     return (
       <>
@@ -67,6 +71,7 @@ export class CICheckRunListItem extends React.PureComponent<
         {showLogs ? (
           <CICheckRunLogs
             checkRun={checkRun}
+            baseHref={baseHref}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionLogs}
             onViewOnGitHub={this.onViewOnGitHub}

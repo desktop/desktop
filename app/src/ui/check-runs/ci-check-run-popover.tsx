@@ -9,6 +9,7 @@ import {
 } from '../../lib/stores/commit-status-store'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
+import { getHTMLURL } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 
@@ -243,6 +244,8 @@ export class CICheckRunPopover extends React.PureComponent<
       loadingActionWorkflows,
     } = this.state
 
+    const baseHref = getHTMLURL(this.props.repository.endpoint)
+
     return (
       <div className="ci-check-list-popover">
         <Popover
@@ -257,6 +260,7 @@ export class CICheckRunPopover extends React.PureComponent<
             {this.renderRerunButton()}
           </div>
           <CICheckRunList
+            baseHref={baseHref}
             checkRuns={checkRuns}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionWorkflows}
