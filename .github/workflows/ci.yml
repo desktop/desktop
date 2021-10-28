@@ -28,6 +28,8 @@ jobs:
       # Needed for macOS arm64 until hosted macos-11.0 runners become available
       SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
+      - name: Fail immediately
+        run: exit 1
       - uses: actions/checkout@v2
         with:
           submodules: recursive
