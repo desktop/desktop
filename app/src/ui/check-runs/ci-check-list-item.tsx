@@ -18,6 +18,9 @@ interface ICICheckRunListItemProps {
   /** Whether to show the logs for this check run */
   readonly showLogs: boolean
 
+  /** Whether the list item is selected */
+  readonly selected: boolean
+
   /** The base href used for relative links provided in check run markdown
    * output */
   readonly baseHref: string | null
@@ -47,7 +50,10 @@ export class CICheckRunListItem extends React.PureComponent<
     return (
       <>
         <div
-          className="ci-check-list-item list-item"
+          className={classNames('ci-check-list-item list-item', {
+            selected: this.props.selected,
+          })}
+          tabIndex={0}
           onClick={this.onCheckRunClick}
         >
           <div className="ci-check-status-symbol">

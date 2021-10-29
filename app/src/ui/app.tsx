@@ -143,6 +143,7 @@ import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
 import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-operation'
 import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { setAlmostImmediate } from '../lib/set-almost-immediate'
+import { PullRequestChecksFailed } from './notifications/pull-request-checks-failed'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2049,6 +2050,23 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.PullRequestChecksFailed: {
+        return (
+          <PullRequestChecksFailed
+            key="pull-request-checks-failed"
+            dispatcher={this.props.dispatcher}
+            shouldChangeRepository={popup.needsSelectRepository}
+            repository={popup.repository}
+            pullRequest={popup.pullRequest}
+            commitMessage={popup.commitMessage}
+            commitSha={popup.commitSha}
+            checks={popup.checks}
+            accounts={this.state.accounts}
+            onSubmit={onPopupDismissedFn}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2515,6 +2533,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+        showCIStatusPopover={this.state.showCIStatusPopover}
       />
     )
   }
