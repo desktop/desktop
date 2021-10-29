@@ -73,6 +73,10 @@ export interface ICombinedRefCheck {
   readonly checks: ReadonlyArray<IRefCheck>
 }
 
+/**
+ * Given a zipped list of logs from a workflow job, parses the different job
+ * steps.
+ */
 export async function parseJobStepLogs(
   logZip: JSZip,
   job: IAPIWorkflowJob
@@ -137,6 +141,9 @@ export function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   }
 }
 
+/**
+ * Returns the user-facing adjective for a given check run conclusion.
+ */
 export function getCheckRunConclusionAdjective(
   conclusion: APICheckConclusion | null
 ): string {
@@ -259,6 +266,10 @@ export function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   }
 }
 
+/**
+ * Combines a list of check runs into a single combined check with global status
+ * and conclusion.
+ */
 export function createCombinedCheckFromChecks(
   checks: ReadonlyArray<IRefCheck>
 ): ICombinedRefCheck | null {
@@ -435,6 +446,16 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
   return mappedCheckRuns
 }
 
+/**
+ * Retrieves the jobs and logs URLs from a list of check runs. Retruns a list
+ * with the same check runs augmented with the job and logs URLs.
+ *
+ * @param api API instance used to retrieve the jobs and logs URLs
+ * @param owner Owner of the repository
+ * @param repo Name of the repository
+ * @param branchName Name of the branch to which the check runs belong
+ * @param checkRuns List of check runs to augment
+ */
 export async function getCheckRunActionsJobsAndLogURLS(
   api: API,
   owner: string,
