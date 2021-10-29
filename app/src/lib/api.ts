@@ -177,6 +177,11 @@ export interface IAPIRepositoryPermissions {
 export interface IAPICommit {
   readonly sha: string
   readonly author: IAPIIdentity | {} | null
+  readonly commit: IAPICommitInfo
+}
+
+export interface IAPICommitInfo {
+  readonly message: string
 }
 
 /**
@@ -328,6 +333,7 @@ export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+  readonly sha: string
 }
 
 export interface IAPIRefCheckRun {
@@ -1107,6 +1113,29 @@ export class API {
     }
 
     return false
+  }
+
+  /**
+   * Get any commit for the given sha.
+   */
+  public async fetchCommit(
+    owner: string,
+    name: string,
+    sha: string
+  ): Promise<IAPICommit | null> {
+    const path = `repos/${owner}/${name}/commits/${sha}`
+
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPICommit>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching commit with sha ${sha} (${owner}/${name})`,
+        err
+      )
+      return null
+    }
   }
 
   /**

@@ -30,6 +30,7 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 import { AheadBehindStore } from '../../src/lib/stores/ahead-behind-store'
+import { NotificationsStore } from '../../src/lib/stores/notifications-store'
 
 describe('App', () => {
   let appStore: AppStore
@@ -74,6 +75,11 @@ describe('App', () => {
     const commitStatusStore = new CommitStatusStore(accountsStore)
     aheadBehindStore = new AheadBehindStore()
 
+    const notificationsStore = new NotificationsStore(
+      accountsStore,
+      pullRequestCoordinator
+    )
+
     appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -84,7 +90,8 @@ describe('App', () => {
       repositoriesStore,
       pullRequestCoordinator,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      notificationsStore
     )
 
     dispatcher = new InMemoryDispatcher(
