@@ -4,7 +4,7 @@ import {
   IRefCheck,
   IRefCheckOutput,
   RefCheckOutputType,
-} from '../../lib/stores/commit-status-store'
+} from '../../lib/ci-checks/ci-checks'
 
 import { Octicon } from '../octicons'
 import classNames from 'classnames'

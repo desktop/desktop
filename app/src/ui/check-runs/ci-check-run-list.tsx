@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/stores/commit-status-store'
+import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import _ from 'lodash'
 import { CICheckRunListItem } from './ci-check-list-item'

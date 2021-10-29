@@ -9,7 +9,7 @@ import {
   ICombinedRefCheck,
   IRefCheck,
   isSuccess,
-} from '../../lib/stores/commit-status-store'
+} from '../../lib/ci-checks/ci-checks'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 
 interface ICIStatusProps {
