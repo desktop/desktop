@@ -444,6 +444,11 @@ dialog {
     width: 400px;
   }
 
+  &#pull-request-checks-failed {
+    max-width: none;
+    width: 910px;
+  }
+
   &#workflow-push-rejected {
     .ref-component {
       display: inline-block;

@@ -1,0 +1,89 @@
+#pull-request-checks-failed {
+  .custom-title {
+    display: flex;
+    column-gap: 4px;
+    align-items: center;
+
+    .pr-number {
+      color: var(--text-secondary-color);
+    }
+
+    .octicon {
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+      color: var(--pr-open-icon-color);
+
+      &.draft {
+        color: var(--pr-draft-icon-color);
+      }
+    }
+  }
+
+  .ci-check-run-dialog-container {
+    height: 300px;
+    width: 100%;
+    border-radius: var(--border-radius);
+    border: var(--base-border);
+    overflow-y: hidden;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+
+    .ci-check-run-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: var(--spacing);
+      border-bottom: var(--base-border);
+
+      .message {
+        margin-right: var(--spacing);
+        font-weight: bold;
+      }
+
+      .octicon {
+        margin-right: var(--spacing-third);
+        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+      }
+
+      .sha {
+        user-select: text;
+      }
+
+      .ci-check-rerun {
+        margin-left: auto;
+      }
+    }
+
+    .ci-check-run-content {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      justify-content: stretch;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      height: 100%;
+    }
+
+    .ci-check-run-list {
+      width: 30%;
+      border-radius: 0;
+    }
+    .ci-check-list-item-logs {
+      width: 70%;
+      box-shadow: none;
+      border: none;
+      border-left: var(--base-border);
+      border-right: none;
+    }
+    .ci-check-list-item-logs-output {
+      max-height: none;
+      height: 100%;
+    }
+    .loading-logs {
+      box-shadow: none;
+      border: none;
+      border-left: var(--base-border);
+      width: 70%;
+    }
+  }
+}
