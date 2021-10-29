@@ -2,7 +2,10 @@ import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { syncClockwise } from '../octicons'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
 import {
@@ -18,6 +21,9 @@ import classNames from 'classnames'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
 import { CICheckRunPopover } from '../check-runs/ci-check-run-popover'
+import { IRefCheck } from '../../lib/ci-checks/ci-checks'
+import { PopupType } from '../../models/popup'
+import { getCommit } from '../../lib/git'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -255,8 +261,37 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         repository={pr.base.gitHubRepository}
         branchName={currentBranchName}
         closePopover={this.closePopover}
+        onCheckRunsLoaded={this.onCheckRunsLoaded}
       />
     )
+  }
+
+  private onCheckRunsLoaded = async (checks: ReadonlyArray<IRefCheck>) => {
+    const { dispatcher, repository, currentPullRequest } = this.props
+
+    if (
+      !isRepositoryWithGitHubRepository(repository) ||
+      currentPullRequest === null
+    ) {
+      return
+    }
+
+    const commit = await getCommit(repository, currentPullRequest.head.sha)
+
+    if (commit === null) {
+      return
+    }
+
+    dispatcher.setShowCIStatusPopover(false)
+    dispatcher.showPopup({
+      type: PopupType.PullRequestChecksFailed,
+      repository,
+      pullRequest: currentPullRequest,
+      needsSelectRepository: false,
+      commitMessage: commit.summary,
+      commitSha: commit.sha,
+      checks,
+    })
   }
 
   private renderPullRequestInfo() {
