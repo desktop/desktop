@@ -1,4 +1,4 @@
-# [GitHub Desktop](https://lostleolotus/desktop.github.com)
+# [GitHub Desktop](https://github.com/lostleolotus/lostleolotus/blob/lostleolotus/lostleolotus/desktop/desktop.github.com/README.md)
 
 GitHub Desktop is an open source [Electron](https://www.electronjs.org/)-based
 GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
