@@ -4,6 +4,7 @@ import { shallowEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
 import { Octicon } from '../octicons'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { TooltippedContent } from './tooltipped-content'
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -14,7 +15,7 @@ interface IAvatarProps {
    * Defaults to the name and email if undefined and is
    * skipped completely if title is null
    */
-  readonly title?: string | null
+  readonly title?: string | JSX.Element | null
 
   /**
    * The what dimensions of avatar the component should
@@ -151,20 +152,29 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
   }
 
-  private getTitle(): string | undefined {
+  private getTitle(): string | JSX.Element | undefined {
     if (this.props.title === null) {
       return undefined
     }
 
-    if (this.props.title === undefined) {
+    if (this.props.title !== undefined) {
       return this.props.title
     }
 
     const user = this.props.user
     if (user) {
-      const name = user.name
-      if (name) {
-        return `${name} <${user.email}>`
+      if (user.name) {
+        return (
+          <>
+            <Avatar title={null} user={user} />
+            <div>
+              <div>
+                <strong>{user.name}</strong>
+              </div>
+              <div>{user.email}</div>
+            </div>
+          </>
+        )
       } else {
         return user.email
       }
@@ -181,8 +191,9 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public render() {
     const title = this.getTitle()
-    const ariaLabel = this.props.user
-      ? `Avatar for ${this.props.user.name || this.props.user.email}`
+    const { user } = this.props
+    const alt = user
+      ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
 
     if (this.state.candidates.length === 0) {
@@ -198,14 +209,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const src = this.state.candidates[0]
 
     const img = (
-      <img
-        className="avatar"
-        title={title}
-        src={src}
-        alt={title}
-        aria-label={ariaLabel}
-        onError={this.onImageError}
-      />
+      <img className="avatar" src={src} alt={alt} onError={this.onImageError} />
     )
 
     if (title === undefined) {
@@ -213,9 +217,15 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
 
     return (
-      <span title={title} className="avatar-container">
+      <TooltippedContent
+        className="avatar-container"
+        tooltipClassName={this.props.title ? undefined : 'user-info'}
+        tooltip={title}
+        direction="n"
+        tagName="div"
+      >
         {img}
-      </span>
+      </TooltippedContent>
     )
   }
 

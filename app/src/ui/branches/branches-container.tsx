@@ -213,9 +213,7 @@ export class BranchesContainer extends React.Component<
         onMouseUp={this.onMouseUpNewBranchDrop}
       >
         <Octicon className="icon" symbol={OcticonSymbol.plus} />
-        <div className="name" title={label}>
-          {label}
-        </div>
+        <div className="name">{label}</div>
       </div>
     )
   }

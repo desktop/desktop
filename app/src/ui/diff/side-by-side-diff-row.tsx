@@ -15,9 +15,9 @@ import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
-import { HideWhitespaceWarning } from './hide-whitespace-warning'
 import { PopoverCaretPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -367,14 +367,13 @@ export class SideBySideDiffRow extends React.Component<
     return (
       <div
         className="hunk-expansion-handle selectable hoverable"
-        title={elementInfo.title}
         onClick={elementInfo.handler}
         style={{ width: this.props.lineNumberWidth }}
         onContextMenu={this.props.onContextMenuExpandHunk}
       >
-        <span>
+        <TooltippedContent direction="s" tooltip={elementInfo.title}>
           <Octicon symbol={elementInfo.icon} />
-        </span>
+        </TooltippedContent>
       </div>
     )
   }
@@ -446,9 +445,6 @@ export class SideBySideDiffRow extends React.Component<
           hover: this.props.isHunkHovered,
         })}
         style={{ width: this.props.lineNumberWidth }}
-        title={
-          this.props.hideWhitespaceInDiff ? HideWhitespaceWarning : undefined
-        }
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >

@@ -1,5 +1,7 @@
 import * as React from 'react'
 import classNames from 'classnames'
+import { Tooltip } from './tooltip'
+import { createObservableRef } from './observable-ref'
 
 export interface IButtonProps {
   /**
@@ -66,7 +68,6 @@ export interface IButtonProps {
 
   readonly role?: string
   readonly ariaExpanded?: boolean
-  readonly ariaHasPopup?: boolean
 }
 
 /**
@@ -75,64 +76,60 @@ export interface IButtonProps {
  * Provide `children` elements to represent the title of the button.
  */
 export class Button extends React.Component<IButtonProps, {}> {
-  private innerButton: HTMLButtonElement | null = null
+  private innerButtonRef = createObservableRef<HTMLButtonElement>()
 
-  private onButtonRef = (button: HTMLButtonElement | null) => {
-    this.innerButton = button
-
-    if (this.props.onButtonRef) {
-      this.props.onButtonRef(button)
-    }
+  public constructor(props: IButtonProps) {
+    super(props)
+    this.innerButtonRef.subscribe(button => this.props.onButtonRef?.(button))
   }
 
   /**
    * Programmatically move keyboard focus to the button element.
    */
   public focus = () => {
-    if (this.innerButton) {
-      this.innerButton.focus()
-    }
+    this.innerButtonRef.current?.focus()
   }
 
   /**
    * Programmatically remove keyboard focus from the button element.
    */
   public blur() {
-    if (this.innerButton) {
-      this.innerButton.blur()
-    }
+    this.innerButtonRef.current?.blur()
   }
 
-  /**
-   * Get the client bounding box for the button element
-   */
-  public getBoundingClientRect = (): ClientRect | undefined => {
-    return this.innerButton
-      ? this.innerButton.getBoundingClientRect()
-      : undefined
+  public getBoundingClientRect() {
+    return this.innerButtonRef.current?.getBoundingClientRect()
   }
 
   public render() {
-    const className = classNames(
-      'button-component',
-      { 'small-button': this.props.size === 'small' },
-      this.props.className
-    )
+    const { disabled, tooltip } = this.props
+
+    const className = classNames('button-component', this.props.className, {
+      'small-button': this.props.size === 'small',
+    })
 
     return (
       <button
         className={className}
-        disabled={this.props.disabled}
-        onClick={this.onClick}
+        onClick={disabled ? preventDefault : this.onClick}
         type={this.props.type || 'button'}
-        ref={this.onButtonRef}
+        ref={this.innerButtonRef}
         tabIndex={this.props.tabIndex}
-        onMouseEnter={this.props.onMouseEnter}
-        title={this.props.tooltip}
+        onMouseEnter={disabled ? preventDefault : this.props.onMouseEnter}
         role={this.props.role}
         aria-expanded={this.props.ariaExpanded}
-        aria-haspopup={this.props.ariaHasPopup}
+        aria-disabled={disabled ? 'true' : undefined}
       >
+        {tooltip && (
+          <Tooltip
+            target={this.innerButtonRef}
+            direction="n"
+            // Show the tooltip immediately on hover if the button is disabled
+            delay={disabled && tooltip ? 0 : undefined}
+          >
+            {tooltip}
+          </Tooltip>
+        )}
         {this.props.children}
       </button>
     )
@@ -148,3 +145,5 @@ export class Button extends React.Component<IButtonProps, {}> {
     }
   }
 }
+
+const preventDefault = (e: Event | React.SyntheticEvent) => e.preventDefault()

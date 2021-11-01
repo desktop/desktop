@@ -54,7 +54,6 @@ import {
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { HideWhitespaceWarning } from './hide-whitespace-warning'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverCaretPosition } from '../lib/popover'
 
@@ -1263,10 +1262,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       } else {
         marker.classList.remove(className)
       }
-    }
-
-    if (this.props.hideWhitespaceInDiff) {
-      marker.title = HideWhitespaceWarning
     }
 
     const hunkExpandWholeHandle = marker.getElementsByClassName(
