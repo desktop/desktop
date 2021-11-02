@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-mw9q-f2j8-5qfg.git
+cd masaüstü-ghsa-mw9q-f2j8-5qfg
+git checkout -b danışma düzeltme-1
