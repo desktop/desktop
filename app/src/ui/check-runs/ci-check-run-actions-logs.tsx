@@ -126,6 +126,30 @@ export class CICheckRunActionLogs extends React.PureComponent<
     })
 
     const cn = classNames('line', logGroupSummary.className)
+
+    // Naturally, the groups of lines will be aligned to edge of the line number
+    // of first line in the group. Like this:
+    //  1 some non grouped line
+    //  2 \/ First line of Group
+    //    3   next line
+    //    4   next line
+    //  5 some non grouped line
+    // We want all line numbers to be vertically aligned. This this:
+    //  1 some non grouped line
+    //  2 \/ First line of Group
+    //  3   next line
+    //  4   next line
+    //  5 some non grouped line
+    // To do this, we need to artificially move the left position of the group
+    // to line up with the non-grouped lines. (negative margin left) However,
+    // that makes the first line in the group or summary line overlap it's line
+    // number.
+    //  1 some non grouped line
+    //  \2/ First line of Group
+    //  3   next line
+    //  4   next lineß
+    //  5 some non grouped line
+    // Thus, we correct the style on the sumary line inversely.
     const groupStyle = { marginLeft: -1 * this.logLineNumberWidth }
     const summaryStyle = { marginLeft: 1 * this.logLineNumberWidth }
     return (
