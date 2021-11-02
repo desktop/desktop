@@ -1,9 +1,4 @@
 import * as React from 'react'
-import {
-  getFormattedCheckRunDuration,
-  IRefCheckOutput,
-  RefCheckOutputType,
-} from '../../lib/stores/commit-status-store'
 
 import { Octicon } from '../octicons'
 import classNames from 'classnames'
@@ -18,6 +13,11 @@ import {
   IParsedContent,
 } from '../../lib/actions-log-parser/actions-log-parser-objects'
 import { IAPIWorkflowJobStep } from '../../lib/api'
+import {
+  getFormattedCheckRunDuration,
+  IRefCheckOutput,
+  RefCheckOutputType,
+} from '../../lib/ci-checks/ci-checks'
 
 const MIN_LOG_LINE_NUMBER_WIDTH = 25 // makes numbers line up with chevron
 const MAX_LOG_LINE_NUMBER_WIDTH = 100 // arbitrarily chosen
@@ -146,7 +146,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
   ): JSX.Element {
     const cn = classNames('line', lineData.className)
     const style = isInGroup
-      ? // Meh... the +10 is due to the margin-left of the log group = var(--spacing).... if this changes oh no.. we broke
+      ? // Meh... the +10 is due to the margin-left of the log group = var(--spacing).... if this changes oh no.. we broke - maybe can make this better in a future css improving pr.
         { marginLeft: -1 * (this.logLineNumberWidth + 10) }
       : undefined
     return (

@@ -3,7 +3,7 @@ import {
   IRefCheck,
   IRefCheckOutput,
   RefCheckOutputType,
-} from '../../lib/stores/commit-status-store'
+} from '../../lib/ci-checks/ci-checks'
 import classNames from 'classnames'
 import { Button } from '../lib/button'
 import { CICheckRunActionLogs } from './ci-check-run-actions-logs'
