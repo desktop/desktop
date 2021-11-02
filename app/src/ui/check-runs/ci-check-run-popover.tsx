@@ -6,7 +6,7 @@ import {
   getCheckRunConclusionAdjective,
   ICombinedRefCheck,
   IRefCheck,
-} from '../../lib/stores/commit-status-store'
+} from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
 import { getHTMLURL } from '../../lib/api'

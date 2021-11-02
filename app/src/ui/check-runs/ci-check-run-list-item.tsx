@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/stores/commit-status-store'
+import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
