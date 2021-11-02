@@ -1,9 +1,4 @@
 import * as React from 'react'
-import {
-  getFormattedCheckRunDuration,
-  IRefCheckOutput,
-  RefCheckOutputType,
-} from '../../lib/stores/commit-status-store'
 
 import { Octicon } from '../octicons'
 import classNames from 'classnames'
@@ -12,6 +7,11 @@ import {
   getClassNameForLogStep,
   getSymbolForLogStep,
 } from '../branches/ci-status'
+import {
+  getFormattedCheckRunDuration,
+  IRefCheckOutput,
+  RefCheckOutputType,
+} from '../../lib/ci-checks/ci-checks'
 
 interface ICICheckRunActionLogsProps {
   /** The check run to display **/

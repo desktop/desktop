@@ -10,6 +10,7 @@ import {
   IAPIWorkflowRun,
 } from '../api'
 import JSZip from 'jszip'
+import moment from 'moment'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -89,7 +90,8 @@ export async function parseJobStepLogs(
 
     const stepsWLogs = new Array<IAPIWorkflowJobStep>()
     for (const step of job.steps) {
-      const stepFileName = `${step.number}_${step.name}.txt`
+      const stepName = step.name.replace('/', '')
+      const stepFileName = `${step.number}_${stepName}.txt`
       const stepLogFile = jobFolder.file(stepFileName)
       if (stepLogFile === null) {
         stepsWLogs.push(step)
@@ -542,4 +544,16 @@ function getCheckRunWithActionsJobAndLogURLs(
   }
 
   return mappedCheckRuns
+}
+
+/**
+ *  Gets the duration of a check run or job step formatted in minutes and
+ *  seconds.
+ */
+export function getFormattedCheckRunDuration(
+  checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
+): string {
+  return moment
+    .duration(getCheckDurationInSeconds(checkRun), 'seconds')
+    .format('d[d] h[h] m[m] s[s]', { largest: 4 })
 }
