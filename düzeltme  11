@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-2w6x-fwwr-wghv.git
+cd masaüstü-ghsa-2w6x-fwwr-wghv
+git checkout -b danışma düzeltme-1
