@@ -151,9 +151,8 @@ export class CICheckRunActionLogs extends React.PureComponent<
     isInGroup: boolean = false
   ): JSX.Element {
     const cn = classNames('line', lineData.className)
-    const style = undefined
     return (
-      <div className={cn} key={index} style={style}>
+      <div className={cn} key={index}>
         {this.renderLogLineNumber(lineData.lineNumber)}
         {this.renderLogLineContentTemplate(lineData)}
       </div>
