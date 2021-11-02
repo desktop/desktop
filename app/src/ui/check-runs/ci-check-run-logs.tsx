@@ -55,8 +55,13 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
       return null
     }
 
-    // TODO: Html needs santized. Later PR
-    return <div dangerouslySetInnerHTML={{ __html: output.text }}></div>
+    return (
+      <SandboxedMarkdown
+        markdown={output.text}
+        baseHref={this.props.baseHref}
+        onMarkdownLinkClicked={this.markDownLinkClicked}
+      />
+    )
   }
 
   private markDownLinkClicked = (link: string): void => {
