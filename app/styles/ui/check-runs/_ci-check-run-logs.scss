@@ -85,6 +85,13 @@
 
           .line-content {
             margin-left: var(--spacing);
+
+            // 'word-break: normal' combined with 'overflow-wrap: anywhere' give
+            // us good line wrapping. It breaks long sections of joined
+            // characters such as a file path in an "anywhere" fashion so that
+            // we don't get overflowing lines yet also breaks sentence text in a
+            // "by words" fashion so as not to break in the middle of words.
+            // Similar to how the deprecated: word-break: break-word worked.
             word-break: normal;
             overflow-wrap: anywhere;
           }
