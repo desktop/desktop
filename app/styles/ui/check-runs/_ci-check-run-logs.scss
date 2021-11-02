@@ -23,13 +23,11 @@
     border-color: var(--check-run-border-color);
 
     .ci-check-run-log-step {
-      // TODO: Figure out why hover only does middle part and not padding when using classes
-      // Currently can't figure out how to not hover skipped steps. :/
-      div:first-child:hover {
-        background-color: var(--check-run-step-header-open-bg-color);
-      }
-
       .ci-check-run-log-step-header {
+        &:not(.skipped):hover {
+          background-color: var(--check-run-step-header-open-bg-color);
+        }
+
         border-radius: 6px;
         padding: 8px;
         margin-bottom: var(--spacing-half);
@@ -74,28 +72,41 @@
 
         .line {
           display: flex;
+          width: 100%;
 
           .line-number {
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: right;
             display: inline-block;
+            flex-shrink: 0;
+            flex-grow: 0;
           }
 
           .line-content {
             margin-left: var(--spacing);
-            white-space: nowrap;
-            max-width: 90%;
+
+            // 'word-break: normal' combined with 'overflow-wrap: anywhere' give
+            // us good line wrapping. It breaks long sections of joined
+            // characters such as a file path in an "anywhere" fashion so that
+            // we don't get overflowing lines yet also breaks sentence text in a
+            // "by words" fashion so as not to break in the middle of words.
+            // Similar to how the deprecated: word-break: break-word worked.
+            word-break: normal;
+            overflow-wrap: anywhere;
           }
 
           &.log-line-group {
             details.log-group {
-              margin-left: var(--spacing);
+              width: 100%;
+
+              summary {
+                padding-left: var(--spacing);
+              }
 
               .line {
                 .line-content {
                   margin-left: var(--spacing-double);
-                  max-width: 88%;
                 }
               }
             }

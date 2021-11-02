@@ -94,7 +94,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
     let logGroup: ILogLineTemplateData[] = []
     for (let i = 0; i < logLinesData.length; i++) {
       const lineData = logLinesData[i]
-      const isNextLineDataInGroup = logLinesData[i + 1]?.inGroup
+      const isNextLineDataInGroup = logLinesData[i + 1]?.inGroup ?? false
 
       // We simply have a regular log line
       if (!lineData.isGroup && !lineData.inGroup) {
@@ -105,7 +105,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
       // Otherwise this line is part of a group
       logGroup.push(lineData)
 
-      // If the currently line is the last in the group, then we want to render
+      // If the current line is the last in the group, then we want to render
       // the group
       if (!isNextLineDataInGroup) {
         logLineJSX.push(this.renderLogLineGroup(logGroup, i))
@@ -126,11 +126,41 @@ export class CICheckRunActionLogs extends React.PureComponent<
     })
 
     const cn = classNames('line', logGroupSummary.className)
+
+    // Naturally, the groups of lines will be aligned to edge of the line number
+    // of first line in the group. Like this:
+    //  1 some non grouped line
+    //  2 \/ First line of Group
+    //    3   next line
+    //    4   next line
+    //  5 some non grouped line
+    // We want all line numbers to be vertically aligned. This this:
+    //  1 some non grouped line
+    //  2 \/ First line of Group
+    //  3   next line
+    //  4   next line
+    //  5 some non grouped line
+    // To do this, we need to artificially move the left position of the group
+    // to line up with the non-grouped lines. (negative margin left) However,
+    // that makes the first line in the group or summary line overlap it's line
+    // number.
+    //  1 some non grouped line
+    //  \2/ First line of Group
+    //  3   next line
+    //  4   next lineß
+    //  5 some non grouped line
+    // Thus, we correct the style on the sumary line inversely.
+    const groupStyle = { marginLeft: -1 * this.logLineNumberWidth }
+    const summaryStyle = { marginLeft: 1 * this.logLineNumberWidth }
     return (
       <div className={cn} key={index}>
         {this.renderLogLineNumber(logGroupSummary.lineNumber)}
-        <details className="log-group" open={logGroupSummary.groupExpanded}>
-          <summary>
+        <details
+          className="log-group"
+          open={logGroupSummary.groupExpanded}
+          style={groupStyle}
+        >
+          <summary style={summaryStyle}>
             {this.renderLogLineContentTemplate(logGroupSummary)}
           </summary>
           {logGroupBody}
@@ -145,12 +175,8 @@ export class CICheckRunActionLogs extends React.PureComponent<
     isInGroup: boolean = false
   ): JSX.Element {
     const cn = classNames('line', lineData.className)
-    const style = isInGroup
-      ? // Meh... the +10 is due to the margin-left of the log group = var(--spacing).... if this changes oh no.. we broke - maybe can make this better in a future css improving pr.
-        { marginLeft: -1 * (this.logLineNumberWidth + 10) }
-      : undefined
     return (
-      <div className={cn} key={index} style={style}>
+      <div className={cn} key={index}>
         {this.renderLogLineNumber(lineData.lineNumber)}
         {this.renderLogLineContentTemplate(lineData)}
       </div>
@@ -227,6 +253,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
   ): JSX.Element {
     const headerClassNames = classNames('ci-check-run-log-step-header', {
       open: showLogs,
+      skipped: isSkipped,
     })
 
     return (
