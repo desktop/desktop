@@ -2,7 +2,7 @@ import * as React from 'react'
 import { CIStatus } from './ci-status'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
-import { ICombinedRefCheck } from '../../lib/stores/commit-status-store'
+import { ICombinedRefCheck } from '../../lib/ci-checks/ci-checks'
 import { enableCICheckRuns } from '../../lib/feature-flag'
 
 interface IPullRequestBadgeProps {

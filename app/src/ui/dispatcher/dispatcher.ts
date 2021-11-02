@@ -92,8 +92,6 @@ import { executeMenuItem } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
-  ICombinedRefCheck,
-  IRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
@@ -115,6 +113,7 @@ import {
 } from '../../models/multi-commit-operation'
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
+import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 
 /**
  * An error handler function.
