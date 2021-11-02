@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-gmw7-8r5f-9gxw.git
+cd masaüstü-ghsa-gmw7-8r5f-9gxw
+git checkout -b danışma düzeltme-1
