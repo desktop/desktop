@@ -1,0 +1,33 @@
+.ci-check-list-popover {
+  .popover-component {
+    position: relative;
+    padding: 0px;
+    width: 375px;
+    top: 45px;
+    margin-left: -272px;
+  }
+
+  .ci-check-run-list-header {
+    background-color: var(--box-alt-background-color);
+    border-bottom: var(--base-border);
+    display: flex;
+    font-size: var(--font-size-md);
+    padding: var(--spacing);
+    padding-top: var(--spacing-half);
+    padding-right: var(--spacing-half);
+
+    .ci-check-run-list-title-container {
+      flex: 1;
+      align-items: center;
+      .title {
+        font-weight: var(--font-weight-semibold);
+      }
+
+      .check-run-list-summary {
+        color: var(--text-secondary-color);
+        font-weight: var(--text-secondary-color);
+        font-size: var(--font-size-sm);
+      }
+    }
+  }
+}

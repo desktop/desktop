@@ -3,7 +3,7 @@ import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
-import { CICheckRunLogs } from './ci-check-run-item-logs'
+import { CICheckRunLogs } from './ci-check-run-logs'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/

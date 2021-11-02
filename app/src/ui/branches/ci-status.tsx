@@ -168,6 +168,29 @@ export function getClassNameForCheck(
   return 'pending'
 }
 
+export function getSymbolForLogStep(
+  logStep: IAPIWorkflowJobStep
+): OcticonSymbolType {
+  switch (logStep.conclusion) {
+    case 'success':
+      return OcticonSymbol.checkCircleFill
+    case 'failure':
+      return OcticonSymbol.xCircleFill
+  }
+
+  return getSymbolForCheck(logStep)
+}
+
+export function getClassNameForLogStep(logStep: IAPIWorkflowJobStep): string {
+  switch (logStep.conclusion) {
+    case 'failure':
+      return logStep.conclusion
+  }
+
+  // Pending
+  return ''
+}
+
 /**
  * Convert the combined check to an app-friendly string.
  */

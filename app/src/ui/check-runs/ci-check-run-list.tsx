@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import _ from 'lodash'
-import { CICheckRunListItem } from './ci-check-list-item'
+import { CICheckRunListItem } from './ci-check-run-list-item'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface ICICheckRunListProps {

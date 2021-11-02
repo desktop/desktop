@@ -1,0 +1,83 @@
+.ci-check-list-item-logs {
+  .view-on-github {
+    padding: var(--spacing);
+
+    .button-component {
+      width: 100%;
+    }
+  }
+
+  .ci-check-list-item-logs-output {
+    padding: var(--spacing-half);
+    max-height: 200px;
+    overflow: auto;
+    word-break: break-word;
+
+    pre {
+      margin: 0;
+    }
+  }
+
+  &.actions {
+    color: var(--check-run-header-label-text-color);
+    background-color: var(--check-run-bg-color);
+    border-color: var(--check-run-border-color);
+
+    .ci-check-run-log-step {
+      // TODO: Figure out why hover only does middle part and not padding when using classes
+      // Currently can't figure out how to not hover skipped steps. :/
+      div:first-child:hover {
+        background-color: var(--check-run-step-header-open-bg-color);
+      }
+
+      .ci-check-run-log-step-header {
+        border-radius: 6px;
+        padding: 8px;
+        margin-bottom: var(--spacing-half);
+        margin-left: var(--spacing-half);
+        margin-right: var(--spacing-half);
+        color: var(--check-run-text-secondary-color);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &.open {
+          color: var(--check-run-text-primary-color);
+          background-color: var(--check-run-step-header-open-bg-color);
+        }
+
+        .ci-check-run-log-step-header-container {
+          display: flex;
+          align-items: center;
+
+          .ci-check-run-log-step-name {
+            flex: 1;
+          }
+
+          .log-step-toggled-indicator,
+          .log-step-status,
+          .no-toggle {
+            margin-right: var(--spacing);
+          }
+
+          .no-toggle {
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+
+      .ci-check-run-step-log-display {
+        // N.B. Likely to be refactored when log output classes and html pr is added.
+        word-wrap: break-word;
+        font-family: var(----font-family-monospace);
+        font-size: var(--font-size-sm);
+        padding-top: var(--spacing-half);
+        padding-bottom: var(--spacing-half);
+        margin-top: var(--spacing);
+        margin-bottom: var(--spacing);
+        margin-left: var(--spacing);
+      }
+    }
+  }
+}
