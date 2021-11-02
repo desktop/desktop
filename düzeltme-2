@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-5h44-pvmq-hf24.git
+cd masaüstü-ghsa-5h44-pvmq-hf24
+git checkout -b danışma düzeltme-1
