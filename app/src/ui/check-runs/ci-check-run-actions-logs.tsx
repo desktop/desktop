@@ -94,7 +94,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
     let logGroup: ILogLineTemplateData[] = []
     for (let i = 0; i < logLinesData.length; i++) {
       const lineData = logLinesData[i]
-      const isNextLineDataInGroup = logLinesData[i + 1]?.inGroup
+      const isNextLineDataInGroup = logLinesData[i + 1]?.inGroup ?? false
 
       // We simply have a regular log line
       if (!lineData.isGroup && !lineData.inGroup) {
@@ -105,7 +105,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
       // Otherwise this line is part of a group
       logGroup.push(lineData)
 
-      // If the currently line is the last in the group, then we want to render
+      // If the current line is the last in the group, then we want to render
       // the group
       if (!isNextLineDataInGroup) {
         logLineJSX.push(this.renderLogLineGroup(logGroup, i))
