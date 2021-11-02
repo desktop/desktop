@@ -126,11 +126,17 @@ export class CICheckRunActionLogs extends React.PureComponent<
     })
 
     const cn = classNames('line', logGroupSummary.className)
+    const groupStyle = { marginLeft: -1 * this.logLineNumberWidth }
+    const summaryStyle = { marginLeft: 1 * this.logLineNumberWidth }
     return (
       <div className={cn} key={index}>
         {this.renderLogLineNumber(logGroupSummary.lineNumber)}
-        <details className="log-group" open={logGroupSummary.groupExpanded}>
-          <summary>
+        <details
+          className="log-group"
+          open={logGroupSummary.groupExpanded}
+          style={groupStyle}
+        >
+          <summary style={summaryStyle}>
             {this.renderLogLineContentTemplate(logGroupSummary)}
           </summary>
           {logGroupBody}
@@ -145,10 +151,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
     isInGroup: boolean = false
   ): JSX.Element {
     const cn = classNames('line', lineData.className)
-    const style = isInGroup
-      ? // Meh... the +10 is due to the margin-left of the log group = var(--spacing).... if this changes oh no.. we broke - maybe can make this better in a future css improving pr.
-        { marginLeft: -1 * (this.logLineNumberWidth + 10) }
-      : undefined
+    const style = undefined
     return (
       <div className={cn} key={index} style={style}>
         {this.renderLogLineNumber(lineData.lineNumber)}
@@ -227,6 +230,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
   ): JSX.Element {
     const headerClassNames = classNames('ci-check-run-log-step-header', {
       open: showLogs,
+      skipped: isSkipped,
     })
 
     return (

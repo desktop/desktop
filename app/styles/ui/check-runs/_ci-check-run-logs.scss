@@ -72,28 +72,34 @@
 
         .line {
           display: flex;
+          width: 100%;
 
           .line-number {
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: right;
             display: inline-block;
+            flex-shrink: 0;
+            flex-grow: 0;
           }
 
           .line-content {
             margin-left: var(--spacing);
-            white-space: nowrap;
-            max-width: 90%;
+            word-break: normal;
+            overflow-wrap: anywhere;
           }
 
           &.log-line-group {
             details.log-group {
-              margin-left: var(--spacing);
+              width: 100%;
+
+              summary {
+                padding-left: var(--spacing);
+              }
 
               .line {
                 .line-content {
                   margin-left: var(--spacing-double);
-                  max-width: 88%;
                 }
               }
             }
