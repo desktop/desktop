@@ -11,7 +11,6 @@
     padding: var(--spacing-half);
     max-height: 200px;
     overflow: auto;
-    word-break: break-word;
 
     pre {
       margin: 0;
@@ -68,15 +67,44 @@
       }
 
       .ci-check-run-step-log-display {
-        // N.B. Likely to be refactored when log output classes and html pr is added.
-        word-wrap: break-word;
         font-family: var(----font-family-monospace);
         font-size: var(--font-size-sm);
         padding-top: var(--spacing-half);
         padding-bottom: var(--spacing-half);
-        margin-top: var(--spacing);
-        margin-bottom: var(--spacing);
-        margin-left: var(--spacing);
+
+        .line {
+          display: flex;
+
+          .line-number {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: right;
+            display: inline-block;
+          }
+
+          .line-content {
+            margin-left: var(--spacing);
+            white-space: nowrap;
+            max-width: 90%;
+          }
+
+          &.log-line-group {
+            details.log-group {
+              margin-left: var(--spacing);
+
+              .line {
+                .line-content {
+                  margin-left: var(--spacing-double);
+                  max-width: 88%;
+                }
+              }
+            }
+
+            .line-content:first-child {
+              margin-left: 0;
+            }
+          }
+        }
       }
     }
   }
