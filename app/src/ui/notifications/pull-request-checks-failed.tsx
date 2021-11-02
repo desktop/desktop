@@ -54,7 +54,7 @@ export class PullRequestChecksFailed extends React.Component<
 
     const { checks } = this.props
 
-    const selectedCheck = checks.find(check => isFailure(check)) ?? checks[0]
+    const selectedCheck = checks.find(isFailure) ?? checks[0]
     this.state = {
       switchingToPullRequest: false,
       selectedCheckID: selectedCheck.id,
