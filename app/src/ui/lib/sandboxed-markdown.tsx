@@ -29,16 +29,23 @@ export class SandboxedMarkdown extends React.PureComponent<
   ISandboxedMarkdownProps
 > {
   private frameRef: HTMLIFrameElement | null = null
+  private frameContainingDivRef: HTMLDivElement | null = null
 
   private onFrameRef = (frameRef: HTMLIFrameElement | null) => {
     this.frameRef = frameRef
+  }
+
+  private onFrameContainingDivRef = (
+    frameContainingDivRef: HTMLIFrameElement | null
+  ) => {
+    this.frameContainingDivRef = frameContainingDivRef
   }
 
   public async componentDidMount() {
     this.mountIframeContents()
 
     if (this.frameRef !== null) {
-      this.setupLinkInterceptor(this.frameRef)
+      this.setupFrameLoadListeners(this.frameRef)
     }
   }
 
@@ -66,19 +73,27 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     // scrape theme variables so iframe theme will match app
     const docStyle = getComputedStyle(document.body)
-    const textColor = docStyle.getPropertyValue('--text-color')
-    const backgroundColor = docStyle.getPropertyValue('--background-color')
-    const codeBackgroundColor = docStyle.getPropertyValue(
-      '--box-alt-background-color'
-    )
-    const boxBorderColor = docStyle.getPropertyValue('--box-border-color')
+
+    function scrapeVariable(variableName: string): string {
+      return `${variableName}: ${docStyle.getPropertyValue(variableName)};`
+    }
 
     return `<style>
       :root {
-        --text-color: ${textColor};
-        --background-color: ${backgroundColor};
-        --code-background-color: ${codeBackgroundColor};
-        --box-border-color: ${boxBorderColor};
+        ${scrapeVariable('--md-border-default-color')}
+        ${scrapeVariable('--md-border-muted-color')}
+        ${scrapeVariable('--md-canvas-default-color')}
+        ${scrapeVariable('--md-canvas-subtle-color')}
+        ${scrapeVariable('--md-fg-default-color')}
+        ${scrapeVariable('--md-fg-muted-color')}
+        ${scrapeVariable('--md-danger-fg-color')}
+        ${scrapeVariable('--md-neutral-muted-color')}
+        ${scrapeVariable('--md-accent-emphasis-color')}
+        ${scrapeVariable('--md-accent-fg-color')}
+
+        ${scrapeVariable('--font-size')}
+        ${scrapeVariable('--font-size-sm')}
+        ${scrapeVariable('--text-color')}
       }
       ${css}
     </style>`
@@ -88,22 +103,50 @@ export class SandboxedMarkdown extends React.PureComponent<
    * We still want to be able to navigate to links provided in the markdown.
    * However, we want to intercept them an verify they are valid links first.
    */
-  private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
+  private setupFrameLoadListeners(frameRef: HTMLIFrameElement): void {
     frameRef.addEventListener('load', () => {
-      frameRef.contentDocument?.addEventListener('click', ev => {
-        const { contentWindow } = frameRef
+      this.setupLinkInterceptor(frameRef)
+      this.setFrameContainerHeight(frameRef)
+    })
+  }
 
-        if (contentWindow && ev.target instanceof contentWindow.Element) {
-          const a = ev.target.closest('a')
-          if (a !== null) {
-            ev.preventDefault()
+  /**
+   * Iframes without much styling help will act like a block element that has a
+   * predetermiend height and width and scrolling. We want our iframe to feel a
+   * bit more like a div. Thus, we want to capture the scroll height, and set
+   * the container div to that height and with some additional css we can
+   * achieve a inline feel.
+   */
+  private setFrameContainerHeight(frameRef: HTMLIFrameElement): void {
+    if (
+      frameRef.contentDocument == null ||
+      this.frameContainingDivRef == null
+    ) {
+      return
+    }
+    const docEl = frameRef.contentDocument.documentElement
+    const divHeight = docEl.clientHeight
+    this.frameContainingDivRef.style.height = `${divHeight}px`
+  }
 
-            if (/^https?:/.test(a.protocol)) {
-              this.props.onMarkdownLinkClicked?.(a.href)
-            }
+  /**
+   * We still want to be able to navigate to links provided in the markdown.
+   * However, we want to intercept them an verify they are valid links first.
+   */
+  private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
+    frameRef.contentDocument?.addEventListener('click', ev => {
+      const { contentWindow } = frameRef
+
+      if (contentWindow && ev.target instanceof contentWindow.Element) {
+        const a = ev.target.closest('a')
+        if (a !== null) {
+          ev.preventDefault()
+
+          if (/^https?:/.test(a.protocol)) {
+            this.props.onMarkdownLinkClicked?.(a.href)
           }
         }
-      })
+      }
     })
   }
 
@@ -142,7 +185,7 @@ export class SandboxedMarkdown extends React.PureComponent<
           ${this.getBaseTag(this.props.baseHref)}
           ${styleSheet}
         </head>
-        <body>
+        <body class="markdown-body">
           ${sanitizedHTML}
         </body>
       </html>
@@ -161,11 +204,16 @@ export class SandboxedMarkdown extends React.PureComponent<
 
   public render() {
     return (
-      <iframe
-        className="sandboxed-markdown-component"
-        sandbox=""
-        ref={this.onFrameRef}
-      />
+      <div
+        className="sandboxed-markdown-iframe-container"
+        ref={this.onFrameContainingDivRef}
+      >
+        <iframe
+          className="sandboxed-markdown-component"
+          sandbox=""
+          ref={this.onFrameRef}
+        />
+      </div>
     )
   }
 }

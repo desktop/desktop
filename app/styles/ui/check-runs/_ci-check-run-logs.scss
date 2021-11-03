@@ -10,14 +10,24 @@
   .ci-check-list-item-logs-output {
     padding: var(--spacing-half);
     max-height: 200px;
-    overflow: auto;
 
-    pre {
-      margin: 0;
+    .meta-output {
+      h4 {
+        padding: 0 var(--spacing-half);
+        margin-bottom: 0;
+      }
+    }
+
+    .sandboxed-markdown-iframe-container {
+      max-height: 150px;
     }
   }
 
   &.actions {
+    .ci-check-list-item-logs-output {
+      overflow: auto;
+    }
+
     color: var(--check-run-header-label-text-color);
     background-color: var(--check-run-bg-color);
     border-color: var(--check-run-border-color);

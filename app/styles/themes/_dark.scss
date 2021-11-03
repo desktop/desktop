@@ -362,6 +362,18 @@ body.theme-dark {
   --check-run-step-header-open-bg-color: #161b22;
   --check-run-header-label-text-color: #8b949e;
   --check-run-text-secondary-color: #8b949e;
+
+  // Markdown colors
+  --md-border-default-color: #30363d;
+  --md-border-muted-color: #21262d;
+  --md-canvas-default-color: #0d1117;
+  --md-canvas-subtle-color: #161b22;
+  --md-fg-default-color: #c9d1d9;
+  --md-fg-muted-color: #8b949e;
+  --md-danger-fg-color: #f85149;
+  --md-neutral-muted-color: rgba(110, 118, 129, 0.4);
+  --md-accent-emphasis-color: #1f6feb;
+  --md-accent-fg-color: #58a6ff;
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly
