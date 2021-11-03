@@ -66,19 +66,26 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     // scrape theme variables so iframe theme will match app
     const docStyle = getComputedStyle(document.body)
-    const textColor = docStyle.getPropertyValue('--text-color')
-    const backgroundColor = docStyle.getPropertyValue('--background-color')
-    const codeBackgroundColor = docStyle.getPropertyValue(
-      '--box-alt-background-color'
-    )
-    const boxBorderColor = docStyle.getPropertyValue('--box-border-color')
+
+    function scrapeVariable(variableName: string): string {
+      return `${variableName}: ${docStyle.getPropertyValue(variableName)};`
+    }
 
     return `<style>
       :root {
-        --text-color: ${textColor};
-        --background-color: ${backgroundColor};
-        --code-background-color: ${codeBackgroundColor};
-        --box-border-color: ${boxBorderColor};
+        ${scrapeVariable('--md-border-default-color')}
+        ${scrapeVariable('--md-border-muted-color')}
+        ${scrapeVariable('--md-canvas-default-color')}
+        ${scrapeVariable('--md-canvas-subtle-color')}
+        ${scrapeVariable('--md-fg-default-color')}
+        ${scrapeVariable('--md-fg-muted-color')}
+        ${scrapeVariable('--md-danger-fg-color')}
+        ${scrapeVariable('--md-neutral-muted-color')}
+        ${scrapeVariable('--md-accent-emphasis-color')}
+
+        ${scrapeVariable('--font-size')}
+        ${scrapeVariable('--font-size-sm')}
+        ${scrapeVariable('--text-color')}
       }
       ${css}
     </style>`
@@ -142,7 +149,7 @@ export class SandboxedMarkdown extends React.PureComponent<
           ${this.getBaseTag(this.props.baseHref)}
           ${styleSheet}
         </head>
-        <body>
+        <body class="markdown-body">
           ${sanitizedHTML}
         </body>
       </html>

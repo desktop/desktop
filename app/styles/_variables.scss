@@ -474,6 +474,17 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --check-run-step-header-open-bg-color: #32383f; // #161b22
   --check-run-header-label-text-color: #d0d7de; // #8b949e
   --check-run-text-secondary-color: #8c959f; // #8b949e
+
+  // Markdown colors
+  --md-border-default-color: #d0d7de;
+  --md-border-muted-color: hsla(210, 18%, 87%, 1);
+  --md-canvas-default-color: #ffffff;
+  --md-canvas-subtle-color: #f6f8fa;
+  --md-fg-default-color: #24292f;
+  --md-fg-muted-color: #57606a;
+  --md-danger-fg-color: #cf222e;
+  --md-neutral-muted-color: rgba(175, 184, 193, 0.2);
+  --md-accent-emphasis-color: #0969da;
 }
 
 ::backdrop {
