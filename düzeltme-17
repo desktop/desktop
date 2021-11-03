@@ -1,0 +1,3 @@
+git klon gh repo klonu ercetin/desktop-ghsa-cc44-f252-wcjp
+cd masaüstü-ghsa-cc44-f252-wcjp
+git checkout -b danışma düzeltme-1
