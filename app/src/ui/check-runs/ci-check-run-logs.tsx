@@ -50,14 +50,30 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     )
   }
 
+  private getNonActionsOutputMD(output: IRefCheckOutput): string | null {
+    const mainOutput =
+      output.type !== RefCheckOutputType.Actions && output.text !== null
+        ? output.text.trim()
+        : ''
+    const summaryOutput =
+      output.summary !== null &&
+      output.summary !== undefined &&
+      output.summary.trim() !== ''
+        ? output.summary
+        : ''
+    const combinedOutput = summaryOutput + mainOutput
+    return combinedOutput === '' ? null : combinedOutput
+  }
+
   private renderNonActionsLogOutput = (output: IRefCheckOutput) => {
-    if (output.type === RefCheckOutputType.Actions || output.text === null) {
+    const markdown = this.getNonActionsOutputMD(output)
+    if (output.type === RefCheckOutputType.Actions || markdown === null) {
       return null
     }
 
     return (
       <SandboxedMarkdown
-        markdown={output.text}
+        markdown={markdown}
         baseHref={this.props.baseHref}
         onMarkdownLinkClicked={this.markDownLinkClicked}
       />
@@ -85,12 +101,22 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
       title.trim().toLocaleLowerCase() !==
         checkRunName.trim().toLocaleLowerCase()
 
+    const cleanSummary =
+      summary !== null && summary !== undefined && summary.trim() !== ''
+        ? summary.trim()
+        : ''
+    const renderSummary =
+      cleanSummary !== '' &&
+      // For actions types, we will render it here - for non action types we
+      // will combine with output markdown so we only have one iframe.
+      output.type === RefCheckOutputType.Actions
+
     return (
-      <div>
-        {displayTitle ? <h2>{title}</h2> : null}
-        {summary !== null && summary !== undefined && summary.trim() !== '' ? (
+      <div className="meta-output">
+        {displayTitle ? <h4>{title}</h4> : null}
+        {renderSummary ? (
           <SandboxedMarkdown
-            markdown={summary}
+            markdown={cleanSummary}
             baseHref={this.props.baseHref}
             onMarkdownLinkClicked={this.markDownLinkClicked}
           />
