@@ -430,7 +430,10 @@ changes from the original, just a note that this will not match 1-1)
 .markdown-body .highlight pre,
 .markdown-body pre {
 	padding: 16px;
-	overflow: auto;
+  /* Destkop specific change due to view width constraints. Removed overflow
+  auto and added display table so that pre tags would not be bound horizontally
+  so externior container can be used to scroll it */
+  display: table;
 	font-size: 85%;
 	line-height: 1.45;
 	background-color: var(--md-canvas-subtle-color);

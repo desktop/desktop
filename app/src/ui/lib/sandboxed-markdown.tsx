@@ -168,11 +168,13 @@ export class SandboxedMarkdown extends React.PureComponent<
 
   public render() {
     return (
-      <iframe
-        className="sandboxed-markdown-component"
-        sandbox=""
-        ref={this.onFrameRef}
-      />
+      <div className="sandboxed-markdown-iframe-container">
+        <iframe
+          className="sandboxed-markdown-component"
+          sandbox=""
+          ref={this.onFrameRef}
+        />
+      </div>
     )
   }
 }
