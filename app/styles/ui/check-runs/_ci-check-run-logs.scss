@@ -1,25 +1,11 @@
 .ci-check-list-item-logs {
-  .view-on-github {
-    padding: var(--spacing);
-
-    .button-component {
-      width: 100%;
-    }
-  }
+  position: relative;
 
   .ci-check-list-item-logs-output {
-    padding: var(--spacing-half);
-    max-height: 200px;
-
-    .meta-output {
-      h4 {
-        padding: 0 var(--spacing-half);
-        margin-bottom: 0;
-      }
-    }
+    max-height: 250px;
 
     .sandboxed-markdown-iframe-container {
-      max-height: 150px;
+      max-height: 250px;
     }
   }
 
