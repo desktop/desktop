@@ -53,7 +53,8 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onCheckRunClick(this.props.checkRun)
   }
 
-  private onViewOnGitHub = () => {
+  private onViewOnGitHub = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
     this.props.onViewOnGitHub(this.props.checkRun)
   }
 
