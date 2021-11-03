@@ -249,7 +249,9 @@ changes from the original, just a note that this will not match 1-1)
 	width: 100%;
 	width: max-content;
 	max-width: 100%;
-	overflow: auto
+	border-collapse: collapse;
+	border-spacing: 0;
+	font-size: var(--font-size);
 }
 
 .markdown-body table th {
@@ -434,6 +436,7 @@ changes from the original, just a note that this will not match 1-1)
   auto and added display table so that pre tags would not be bound horizontally
   so externior container can be used to scroll it */
   display: table;
+	min-width: 90%;
 	font-size: 85%;
 	line-height: 1.45;
 	background-color: var(--md-canvas-subtle-color);
@@ -512,4 +515,9 @@ changes from the original, just a note that this will not match 1-1)
 
 .markdown-body .footnotes .data-footnote-backref g-emoji {
 	font-family: monospace
+}
+
+.markdown-body a {
+  color: var(--md-accent-fg-color);
+  text-decoration: none;
 }

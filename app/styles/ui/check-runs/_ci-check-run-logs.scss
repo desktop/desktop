@@ -19,12 +19,14 @@
     }
 
     .sandboxed-markdown-iframe-container {
-      height: 150px;
+      max-height: 150px;
     }
   }
 
   &.actions {
-    overflow: auto;
+    .ci-check-list-item-logs-output {
+      overflow: auto;
+    }
 
     color: var(--check-run-header-label-text-color);
     background-color: var(--check-run-bg-color);

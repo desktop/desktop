@@ -11,9 +11,6 @@ interface ISandboxedMarkdownProps {
   /** The baseHref of the markdown content for when the markdown has relative links */
   readonly baseHref: string | null
 
-  /** Whether height of container is static or should be dynamically set */
-  readonly isContainerHeightStatic?: boolean
-
   /**
    * A callback with the url of a link clicked in the parsed markdown
    *
@@ -92,6 +89,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         ${scrapeVariable('--md-danger-fg-color')}
         ${scrapeVariable('--md-neutral-muted-color')}
         ${scrapeVariable('--md-accent-emphasis-color')}
+        ${scrapeVariable('--md-accent-fg-color')}
 
         ${scrapeVariable('--font-size')}
         ${scrapeVariable('--font-size-sm')}
@@ -122,8 +120,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   private setupFrameScrollHeightListener(frameRef: HTMLIFrameElement): void {
     if (
       frameRef.contentDocument == null ||
-      this.frameContainingDivRef == null ||
-      this.props.isContainerHeightStatic === true
+      this.frameContainingDivRef == null
     ) {
       return
     }
