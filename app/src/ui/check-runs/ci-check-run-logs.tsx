@@ -34,40 +34,53 @@ interface ICICheckRunLogsProps {
 
 /** The CI check list item. */
 export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
-  private isNoAdditionalInfoToDisplay(output: IRefCheckOutput): boolean {
+  private isOutputToDisplay(output: IRefCheckOutput): boolean {
     return (
-      this.isNoOutputText(output) &&
+      output.type === RefCheckOutputType.Default &&
+      (output.text === null || output.text.trim() === '') &&
       (output.summary === undefined ||
         output.summary === null ||
         output.summary.trim() === '')
     )
   }
 
-  private isNoOutputText = (output: IRefCheckOutput): boolean => {
-    return (
-      !this.hasActionsWorkflowLogs() &&
-      output.type === RefCheckOutputType.Default &&
-      (output.text === null || output.text.trim() === '')
-    )
-  }
+  private getNonActionsOutputMD(
+    output: IRefCheckOutput,
+    checkRunName: string
+  ): string | null {
+    const { title, summary } = output
 
-  private getNonActionsOutputMD(output: IRefCheckOutput): string | null {
+    const titleOutput =
+      title !== null &&
+      title.trim() !== '' &&
+      title.trim().toLocaleLowerCase() !==
+        checkRunName.trim().toLocaleLowerCase()
+        ? `### ${title.trim()}\n`
+        : ''
+
+    const summaryOutput =
+      summary !== null && summary !== undefined && summary.trim() !== ''
+        ? summary
+        : ''
+
     const mainOutput =
       output.type !== RefCheckOutputType.Actions && output.text !== null
         ? output.text.trim()
         : ''
-    const summaryOutput =
-      output.summary !== null &&
-      output.summary !== undefined &&
-      output.summary.trim() !== ''
-        ? output.summary
-        : ''
-    const combinedOutput = summaryOutput + mainOutput
+
+    const combinedOutput = titleOutput + summaryOutput + mainOutput
     return combinedOutput === '' ? null : combinedOutput
   }
 
-  private renderNonActionsLogOutput = (output: IRefCheckOutput) => {
-    const markdown = this.getNonActionsOutputMD(output)
+  private renderNonActionsLogOutput = (
+    output: IRefCheckOutput,
+    checkRunName: string
+  ) => {
+    if (this.isOutputToDisplay(output)) {
+      return this.renderEmptyLogOutput()
+    }
+
+    const markdown = this.getNonActionsOutputMD(output, checkRunName)
     if (output.type === RefCheckOutputType.Actions || markdown === null) {
       return null
     }
@@ -78,47 +91,6 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
         baseHref={this.props.baseHref}
         onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
       />
-    )
-  }
-
-  private renderMetaOutput = (
-    output: IRefCheckOutput,
-    checkRunName: string
-  ) => {
-    if (this.hasActionsWorkflowLogs()) {
-      return null
-    }
-
-    const { title, summary } = output
-
-    // Don't display something empty or redundant
-    const displayTitle =
-      title !== null &&
-      title.trim() !== '' &&
-      title.trim().toLocaleLowerCase() !==
-        checkRunName.trim().toLocaleLowerCase()
-
-    const cleanSummary =
-      summary !== null && summary !== undefined && summary.trim() !== ''
-        ? summary.trim()
-        : ''
-    const renderSummary =
-      cleanSummary !== '' &&
-      // For actions types, we will render it here - for non action types we
-      // will combine with output markdown so we only have one iframe.
-      output.type === RefCheckOutputType.Actions
-
-    return (
-      <div className="meta-output">
-        {displayTitle ? <h4>{title}</h4> : null}
-        {renderSummary ? (
-          <SandboxedMarkdown
-            markdown={cleanSummary}
-            baseHref={this.props.baseHref}
-            onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
-          />
-        ) : null}
-      </div>
     )
   }
 
@@ -152,7 +124,7 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     const logsOutput = this.hasActionsWorkflowLogs() ? (
       <CICheckRunActionLogs output={output} loadingLogs={loadingActionLogs} />
     ) : (
-      this.renderNonActionsLogOutput(output)
+      this.renderNonActionsLogOutput(output, name)
     )
 
     const className = classNames('ci-check-list-item-logs', {
@@ -165,12 +137,7 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
         onMouseOver={this.props.onMouseOver}
         onMouseLeave={this.props.onMouseLeave}
       >
-        <div className="ci-check-list-item-logs-output">
-          {this.isNoAdditionalInfoToDisplay(output)
-            ? this.renderEmptyLogOutput()
-            : this.renderMetaOutput(output, name)}
-          {logsOutput}
-        </div>
+        <div className="ci-check-list-item-logs-output">{logsOutput}</div>
       </div>
     )
   }
