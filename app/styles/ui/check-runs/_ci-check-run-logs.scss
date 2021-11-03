@@ -12,8 +12,13 @@
     max-height: 200px;
     overflow: auto;
 
-    pre {
-      margin: 0;
+    .meta-output {
+      h4 {
+        padding: 0 var(--spacing-half);
+        margin-bottom: 0;
+      }
+    }
+
     }
   }
 
