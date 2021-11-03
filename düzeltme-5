@@ -1,0 +1,3 @@
+git klon gh repo klonu ercetin/desktop-ghsa-57w9-9h5r-p5rp
+cd masaüstü-ghsa-57w9-9h5r-p5rp
+git checkout -b danışma düzeltme-1
