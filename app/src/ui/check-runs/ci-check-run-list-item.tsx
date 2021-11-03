@@ -77,7 +77,6 @@ export class CICheckRunListItem extends React.PureComponent<
             baseHref={baseHref}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionLogs}
-            onViewOnGitHub={this.onViewOnGitHub}
             onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
           />
         ) : null}
