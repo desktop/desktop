@@ -11,6 +11,9 @@ interface ISandboxedMarkdownProps {
   /** The baseHref of the markdown content for when the markdown has relative links */
   readonly baseHref: string | null
 
+  /** Whether height of container is static or should be dynamically set */
+  readonly isContainerHeightStatic?: boolean
+
   /**
    * A callback with the url of a link clicked in the parsed markdown
    *
@@ -29,16 +32,23 @@ export class SandboxedMarkdown extends React.PureComponent<
   ISandboxedMarkdownProps
 > {
   private frameRef: HTMLIFrameElement | null = null
+  private frameContainingDivRef: HTMLDivElement | null = null
 
   private onFrameRef = (frameRef: HTMLIFrameElement | null) => {
     this.frameRef = frameRef
+  }
+
+  private onFrameContainingDivRef = (
+    frameContainingDivRef: HTMLIFrameElement | null
+  ) => {
+    this.frameContainingDivRef = frameContainingDivRef
   }
 
   public async componentDidMount() {
     this.mountIframeContents()
 
     if (this.frameRef !== null) {
-      this.setupLinkInterceptor(this.frameRef)
+      this.setupFrameLoadListeners(this.frameRef)
     }
   }
 
@@ -95,22 +105,51 @@ export class SandboxedMarkdown extends React.PureComponent<
    * We still want to be able to navigate to links provided in the markdown.
    * However, we want to intercept them an verify they are valid links first.
    */
-  private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
+  private setupFrameLoadListeners(frameRef: HTMLIFrameElement): void {
     frameRef.addEventListener('load', () => {
-      frameRef.contentDocument?.addEventListener('click', ev => {
-        const { contentWindow } = frameRef
+      this.setupLinkInterceptor(frameRef)
+      this.setupFrameScrollHeightListener(frameRef)
+    })
+  }
 
-        if (contentWindow && ev.target instanceof contentWindow.Element) {
-          const a = ev.target.closest('a')
-          if (a !== null) {
-            ev.preventDefault()
+  /**
+   * Iframes without much styling help will act like a block element that has a
+   * predetermiend height and width and scrolling. We want our iframe to feel a
+   * bit more like a div. Thus, we want to capture the scroll height, and set
+   * the container div to that height and with some additional css we can
+   * achieve a inline feel.
+   */
+  private setupFrameScrollHeightListener(frameRef: HTMLIFrameElement): void {
+    if (
+      frameRef.contentDocument == null ||
+      this.frameContainingDivRef == null ||
+      this.props.isContainerHeightStatic === true
+    ) {
+      return
+    }
+    const docEl = frameRef.contentDocument.documentElement
+    const divHeight = docEl.clientHeight
+    this.frameContainingDivRef.style.height = `${divHeight}px`
+  }
 
-            if (/^https?:/.test(a.protocol)) {
-              this.props.onMarkdownLinkClicked?.(a.href)
-            }
+  /**
+   * We still want to be able to navigate to links provided in the markdown.
+   * However, we want to intercept them an verify they are valid links first.
+   */
+  private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
+    frameRef.contentDocument?.addEventListener('click', ev => {
+      const { contentWindow } = frameRef
+
+      if (contentWindow && ev.target instanceof contentWindow.Element) {
+        const a = ev.target.closest('a')
+        if (a !== null) {
+          ev.preventDefault()
+
+          if (/^https?:/.test(a.protocol)) {
+            this.props.onMarkdownLinkClicked?.(a.href)
           }
         }
-      })
+      }
     })
   }
 
@@ -168,7 +207,10 @@ export class SandboxedMarkdown extends React.PureComponent<
 
   public render() {
     return (
-      <div className="sandboxed-markdown-iframe-container">
+      <div
+        className="sandboxed-markdown-iframe-container"
+        ref={this.onFrameContainingDivRef}
+      >
         <iframe
           className="sandboxed-markdown-component"
           sandbox=""
