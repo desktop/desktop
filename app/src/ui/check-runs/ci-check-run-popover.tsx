@@ -175,6 +175,10 @@ export class CICheckRunPopover extends React.PureComponent<
     this.props.dispatcher.openInBrowser(url)
   }
 
+  private markDownLinkClicked = (link: string): void => {
+    this.props.dispatcher.openInBrowser(link)
+  }
+
   private getCommitRef(prNumber: number): string {
     return `refs/pull/${prNumber}/head`
   }
@@ -263,6 +267,7 @@ export class CICheckRunPopover extends React.PureComponent<
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionWorkflows}
             onViewOnGitHub={this.viewCheckRunsOnGitHub}
+            onMarkdownLinkClicked={this.markDownLinkClicked}
           />
         </Popover>
       </div>

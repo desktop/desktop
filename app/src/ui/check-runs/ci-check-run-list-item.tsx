@@ -27,6 +27,9 @@ interface ICICheckRunListItemProps {
 
   /** Callback to opens check runs on GitHub */
   readonly onViewOnGitHub: (checkRun: IRefCheck) => void
+
+  /** Callback to open URL's originating from markdown */
+  readonly onMarkdownLinkClicked: (url: string) => void
 }
 
 /** The CI check list item. */
@@ -75,6 +78,7 @@ export class CICheckRunListItem extends React.PureComponent<
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionLogs}
             onViewOnGitHub={this.onViewOnGitHub}
+            onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
           />
         ) : null}
       </>

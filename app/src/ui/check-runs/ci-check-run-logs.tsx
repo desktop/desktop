@@ -25,6 +25,9 @@ interface ICICheckRunLogsProps {
 
   /** Callback to opens check runs on GitHub */
   readonly onViewOnGitHub: (checkRun: IRefCheck) => void
+
+  /** Callback to open URL's originating from markdown */
+  readonly onMarkdownLinkClicked: (url: string) => void
 }
 
 /** The CI check list item. */
@@ -75,13 +78,9 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
       <SandboxedMarkdown
         markdown={markdown}
         baseHref={this.props.baseHref}
-        onMarkdownLinkClicked={this.markDownLinkClicked}
+        onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
       />
     )
-  }
-
-  private markDownLinkClicked = (link: string): void => {
-    console.log(link)
   }
 
   private renderMetaOutput = (
@@ -118,7 +117,7 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
           <SandboxedMarkdown
             markdown={cleanSummary}
             baseHref={this.props.baseHref}
-            onMarkdownLinkClicked={this.markDownLinkClicked}
+            onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
           />
         ) : null}
       </div>
