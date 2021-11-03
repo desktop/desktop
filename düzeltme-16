@@ -1,0 +1,3 @@
+git klon gh repo klonu ercetin/desktop-ghsa-f8p5-f962-vhg5
+cd masaüstü-ghsa-f8p5-f962-vhg5
+git checkout -b danışma düzeltme-1
