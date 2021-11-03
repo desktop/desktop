@@ -106,7 +106,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   private setupFrameLoadListeners(frameRef: HTMLIFrameElement): void {
     frameRef.addEventListener('load', () => {
       this.setupLinkInterceptor(frameRef)
-      this.setFrameContainerScrollHeight(frameRef)
+      this.setFrameContainerHeight(frameRef)
     })
   }
 
@@ -117,7 +117,7 @@ export class SandboxedMarkdown extends React.PureComponent<
    * the container div to that height and with some additional css we can
    * achieve a inline feel.
    */
-  private setFrameContainerScrollHeight(frameRef: HTMLIFrameElement): void {
+  private setFrameContainerHeight(frameRef: HTMLIFrameElement): void {
     if (
       frameRef.contentDocument == null ||
       this.frameContainingDivRef == null
