@@ -57,6 +57,14 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onViewOnGitHub(this.props.checkRun)
   }
 
+  private onMouseOverLogs = () => {
+    this.setState({ isMouseOverLogs: true })
+  }
+
+  private onMouseLeaveLogs = () => {
+    this.setState({ isMouseOverLogs: false })
+  }
+
   public render() {
     const { checkRun, showLogs, loadingActionLogs, baseHref } = this.props
 
@@ -100,6 +108,8 @@ export class CICheckRunListItem extends React.PureComponent<
             baseHref={baseHref}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionLogs}
+            onMouseOver={this.onMouseOverLogs}
+            onMouseLeave={this.onMouseLeaveLogs}
             onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
           />
         ) : null}

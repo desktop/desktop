@@ -23,6 +23,10 @@ interface ICICheckRunLogsProps {
   readonly baseHref: string | null
 
   /** Callback to opens check runs on GitHub */
+  readonly onMouseOver: (mouseEvent: React.MouseEvent<HTMLDivElement>) => void
+
+  /** Callback to opens check runs on GitHub */
+  readonly onMouseLeave: (mouseEvent: React.MouseEvent<HTMLDivElement>) => void
 
   /** Callback to open URL's originating from markdown */
   readonly onMarkdownLinkClicked: (url: string) => void
@@ -30,7 +34,6 @@ interface ICICheckRunLogsProps {
 
 /** The CI check list item. */
 export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
-
   private isNoAdditionalInfoToDisplay(output: IRefCheckOutput): boolean {
     return (
       this.isNoOutputText(output) &&
@@ -157,7 +160,11 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     })
 
     return (
-      <div className={className}>
+      <div
+        className={className}
+        onMouseOver={this.props.onMouseOver}
+        onMouseLeave={this.props.onMouseLeave}
+      >
         <div className="ci-check-list-item-logs-output">
           {this.isNoAdditionalInfoToDisplay(output)
             ? this.renderEmptyLogOutput()
