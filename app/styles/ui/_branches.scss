@@ -18,6 +18,11 @@
   .branches-list-item {
     height: 100%;
 
+    // While dragging we don't want tooltips from the underlying item to show
+    &.drop-target * {
+      pointer-events: none;
+    }
+
     &.new-branch-drop {
       margin-top: var(--spacing-half);
       height: 30px;
@@ -85,7 +90,8 @@
     flex-grow: 1;
     height: 100%;
 
-    div {
+    // While dragging we don't want tooltips from the underlying item to show
+    &.drop-target div {
       pointer-events: none;
     }
 

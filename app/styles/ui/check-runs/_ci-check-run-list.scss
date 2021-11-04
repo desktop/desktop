@@ -1,0 +1,30 @@
+.ci-check-run-list {
+  max-height: 585px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: var(--border-radius);
+
+  .ci-check-app-header {
+    background-color: var(--box-alt-background-color);
+    border-bottom: var(--base-border);
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-half) var(--spacing);
+    min-height: 35px;
+
+    .ci-check-app-name {
+      font-weight: var(--font-weight-semibold);
+      flex: 1;
+    }
+
+    .open-closed-icon {
+      margin-right: var(--spacing-half);
+    }
+
+    &:last-child {
+      .ci-check-app-header {
+        border: none;
+      }
+    }
+  }
+}

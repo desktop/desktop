@@ -19,6 +19,8 @@ import {
   clearAlmostImmediate,
   setAlmostImmediate,
 } from '../../lib/set-almost-immediate'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { clipboard } from 'electron'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -342,20 +344,23 @@ export class CommitSummary extends React.Component<
               className="commit-summary-meta-item without-truncation"
               aria-label="SHA"
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.gitCommit} />
-              </span>
-              <span className="sha">{shortSHA}</span>
+              <Octicon symbol={OcticonSymbol.gitCommit} />
+              <TooltippedContent
+                className="sha"
+                tooltip={this.renderShaTooltip()}
+                tooltipClassName="sha-hint"
+                interactive={true}
+                direction="s"
+              >
+                {shortSHA}
+              </TooltippedContent>
             </li>
 
             <li
               className="commit-summary-meta-item without-truncation"
               title={filesDescription}
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.diff} />
-              </span>
-
+              <Octicon symbol={OcticonSymbol.diff} />
               {filesDescription}
             </li>
             {this.renderLinesChanged()}
@@ -386,6 +391,20 @@ export class CommitSummary extends React.Component<
     )
   }
 
+  private renderShaTooltip() {
+    return (
+      <>
+        <code>{this.props.commit.sha}</code>
+        <button onClick={this.onCopyShaButtonClick}>Copy</button>
+      </>
+    )
+  }
+
+  private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    clipboard.writeText(this.props.commit.sha)
+  }
+
   private renderLinesChanged() {
     const linesAdded = this.props.changesetData.linesAdded
     const linesDeleted = this.props.changesetData.linesDeleted
@@ -400,18 +419,20 @@ export class CommitSummary extends React.Component<
 
     return (
       <>
-        <li
+        <TooltippedContent
+          tagName="li"
           className="commit-summary-meta-item without-truncation lines-added"
-          title={linesAddedTitle}
+          tooltip={linesAddedTitle}
         >
           +{linesAdded}
-        </li>
-        <li
+        </TooltippedContent>
+        <TooltippedContent
+          tagName="li"
           className="commit-summary-meta-item without-truncation lines-deleted"
-          title={linesDeletedTitle}
+          tooltip={linesDeletedTitle}
         >
           -{linesDeleted}
-        </li>
+        </TooltippedContent>
       </>
     )
   }

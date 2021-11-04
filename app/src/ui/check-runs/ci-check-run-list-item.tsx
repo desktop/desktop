@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/stores/commit-status-store'
+import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
-import { CICheckRunLogs } from './ci-check-run-item-logs'
+import { CICheckRunLogs } from './ci-check-run-logs'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -18,11 +18,18 @@ interface ICICheckRunListItemProps {
   /** Whether to show the logs for this check run */
   readonly showLogs: boolean
 
+  /** The base href used for relative links provided in check run markdown
+   * output */
+  readonly baseHref: string | null
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunClick: (checkRun: IRefCheck) => void
 
   /** Callback to opens check runs on GitHub */
   readonly onViewOnGitHub: (checkRun: IRefCheck) => void
+
+  /** Callback to open URL's originating from markdown */
+  readonly onMarkdownLinkClicked: (url: string) => void
 }
 
 /** The CI check list item. */
@@ -38,7 +45,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   public render() {
-    const { checkRun, showLogs, loadingActionLogs } = this.props
+    const { checkRun, showLogs, loadingActionLogs, baseHref } = this.props
 
     return (
       <>
@@ -67,9 +74,11 @@ export class CICheckRunListItem extends React.PureComponent<
         {showLogs ? (
           <CICheckRunLogs
             checkRun={checkRun}
+            baseHref={baseHref}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionLogs}
             onViewOnGitHub={this.onViewOnGitHub}
+            onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
           />
         ) : null}
       </>

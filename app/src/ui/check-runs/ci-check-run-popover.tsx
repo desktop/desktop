@@ -6,9 +6,10 @@ import {
   getCheckRunConclusionAdjective,
   ICombinedRefCheck,
   IRefCheck,
-} from '../../lib/stores/commit-status-store'
+} from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
+import { getHTMLURL } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 
@@ -174,6 +175,10 @@ export class CICheckRunPopover extends React.PureComponent<
     this.props.dispatcher.openInBrowser(url)
   }
 
+  private markDownLinkClicked = (link: string): void => {
+    this.props.dispatcher.openInBrowser(link)
+  }
+
   private getCommitRef(prNumber: number): string {
     return `refs/pull/${prNumber}/head`
   }
@@ -227,11 +232,9 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     return (
-      <div className="ci-check-rerun">
-        <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
-          <Octicon symbol={syncClockwise} /> Re-run jobs
-        </Button>
-      </div>
+      <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
+        <Octicon symbol={syncClockwise} /> Re-run jobs
+      </Button>
     )
   }
 
@@ -242,6 +245,8 @@ export class CICheckRunPopover extends React.PureComponent<
       loadingActionLogs,
       loadingActionWorkflows,
     } = this.state
+
+    const baseHref = getHTMLURL(this.props.repository.endpoint)
 
     return (
       <div className="ci-check-list-popover">
@@ -257,10 +262,12 @@ export class CICheckRunPopover extends React.PureComponent<
             {this.renderRerunButton()}
           </div>
           <CICheckRunList
+            baseHref={baseHref}
             checkRuns={checkRuns}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionWorkflows}
             onViewOnGitHub={this.viewCheckRunsOnGitHub}
+            onMarkdownLinkClicked={this.markDownLinkClicked}
           />
         </Popover>
       </div>

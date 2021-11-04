@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/stores/commit-status-store'
+import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import _ from 'lodash'
-import { CICheckRunListItem } from './ci-check-list-item'
+import { CICheckRunListItem } from './ci-check-run-list-item'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface ICICheckRunListProps {
@@ -15,8 +15,15 @@ interface ICICheckRunListProps {
   /** Whether loading workflow  */
   readonly loadingActionWorkflows: boolean
 
+  /** The base href used for relative links provided in check run markdown
+   * output */
+  readonly baseHref: string | null
+
   /** Callback to opens check runs on GitHub */
   readonly onViewOnGitHub: (checkRun: IRefCheck) => void
+
+  /** Callback to open URL's originating from markdown */
+  readonly onMarkdownLinkClicked: (url: string) => void
 }
 
 interface ICICheckRunListState {
@@ -61,11 +68,13 @@ export class CICheckRunList extends React.PureComponent<
         <CICheckRunListItem
           key={i}
           checkRun={c}
+          baseHref={this.props.baseHref}
           loadingActionLogs={this.props.loadingActionLogs}
           loadingActionWorkflows={this.props.loadingActionWorkflows}
           showLogs={this.state.checkRunLogsShown === c.id.toString()}
           onCheckRunClick={this.onCheckRunClick}
           onViewOnGitHub={this.props.onViewOnGitHub}
+          onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
         />
       )
     })

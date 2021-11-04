@@ -1,0 +1,132 @@
+.ci-check-list-item-logs {
+  .view-on-github {
+    padding: var(--spacing);
+
+    .button-component {
+      width: 100%;
+    }
+  }
+
+  .ci-check-list-item-logs-output {
+    padding: var(--spacing-half);
+    max-height: 200px;
+
+    .meta-output {
+      h4 {
+        padding: 0 var(--spacing-half);
+        margin-bottom: 0;
+      }
+    }
+
+    .sandboxed-markdown-iframe-container {
+      max-height: 150px;
+    }
+  }
+
+  &.actions {
+    .ci-check-list-item-logs-output {
+      overflow: auto;
+    }
+
+    color: var(--check-run-header-label-text-color);
+    background-color: var(--check-run-bg-color);
+    border-color: var(--check-run-border-color);
+
+    .ci-check-run-log-step {
+      .ci-check-run-log-step-header {
+        &:not(.skipped):hover {
+          background-color: var(--check-run-step-header-open-bg-color);
+        }
+
+        border-radius: 6px;
+        padding: 8px;
+        margin-bottom: var(--spacing-half);
+        margin-left: var(--spacing-half);
+        margin-right: var(--spacing-half);
+        color: var(--check-run-text-secondary-color);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &.open {
+          color: var(--check-run-text-primary-color);
+          background-color: var(--check-run-step-header-open-bg-color);
+        }
+
+        .ci-check-run-log-step-header-container {
+          display: flex;
+          align-items: center;
+
+          .ci-check-run-log-step-name {
+            flex: 1;
+          }
+
+          .log-step-toggled-indicator,
+          .log-step-status,
+          .no-toggle {
+            margin-right: var(--spacing);
+          }
+
+          .no-toggle {
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+
+      .ci-check-run-step-log-display {
+        font-family: var(----font-family-monospace);
+        font-size: var(--font-size-sm);
+        padding-top: var(--spacing-half);
+        padding-bottom: var(--spacing-half);
+
+        .line {
+          display: flex;
+          width: 100%;
+
+          .line-number {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: right;
+            display: inline-block;
+            flex-shrink: 0;
+            flex-grow: 0;
+          }
+
+          .line-content {
+            margin-left: var(--spacing);
+
+            // 'word-break: normal' combined with 'overflow-wrap: anywhere' give
+            // us good line wrapping. It breaks long sections of joined
+            // characters such as a file path in an "anywhere" fashion so that
+            // we don't get overflowing lines yet also breaks sentence text in a
+            // "by words" fashion so as not to break in the middle of words.
+            // Similar to how the deprecated: word-break: break-word worked.
+            word-break: normal;
+            overflow-wrap: anywhere;
+          }
+
+          &.log-line-group {
+            details.log-group {
+              width: 100%;
+
+              summary {
+                padding-left: var(--spacing);
+              }
+
+              .line {
+                .line-content {
+                  margin-left: var(--spacing-double);
+                }
+              }
+            }
+
+            .line-content:first-child {
+              margin-left: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}

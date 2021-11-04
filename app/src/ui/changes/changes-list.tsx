@@ -40,6 +40,8 @@ import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
+import { createObservableRef } from '../lib/observable-ref'
+import { Tooltip } from '../lib/tooltip'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -220,6 +222,8 @@ export class ChangesList extends React.Component<
   IChangesListProps,
   IChangesState
 > {
+  private headerRef = createObservableRef<HTMLDivElement>()
+
   public constructor(props: IChangesListProps) {
     super(props)
     this.state = {
@@ -667,6 +671,7 @@ export class ChangesList extends React.Component<
         branch={this.props.branch}
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
+        anyFilesAvailable={fileCount > 0}
         repository={repository}
         repositoryAccount={repositoryAccount}
         dispatcher={dispatcher}
@@ -748,33 +753,36 @@ export class ChangesList extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.workingDirectory.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesPlural}`
+    const { workingDirectory, rebaseConflictState, isCommitting } = this.props
+    const { files } = workingDirectory
 
-    const selectedChangeCount = this.props.workingDirectory.files.filter(
+    const filesPlural = files.length === 1 ? 'file' : 'files'
+    const filesDescription = `${files.length} changed ${filesPlural}`
+
+    const selectedChangeCount = files.filter(
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
     const selectedFilesPlural = selectedChangeCount === 1 ? 'file' : 'files'
-    const selectedChangesDescription = `${selectedChangeCount} changed ${selectedFilesPlural} selected`
+    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${selectedFilesPlural} selected`
 
     const includeAllValue = getIncludeAllValue(
-      this.props.workingDirectory,
-      this.props.rebaseConflictState
+      workingDirectory,
+      rebaseConflictState
     )
 
     const disableAllCheckbox =
-      fileCount === 0 ||
-      this.props.isCommitting ||
-      this.props.rebaseConflictState !== null
+      files.length === 0 || isCommitting || rebaseConflictState !== null
 
     return (
       <div className="changes-list-container file-list">
         <div
           className="header"
           onContextMenu={this.onContextMenu}
-          title={selectedChangesDescription}
+          ref={this.headerRef}
         >
+          <Tooltip target={this.headerRef} direction="n">
+            {selectedChangesDescription}
+          </Tooltip>
           <Checkbox
             label={filesDescription}
             value={includeAllValue}
@@ -784,15 +792,15 @@ export class ChangesList extends React.Component<
         </div>
         <List
           id="changes-list"
-          rowCount={this.props.workingDirectory.files.length}
+          rowCount={files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
           selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={{
-            workingDirectory: this.props.workingDirectory,
-            isCommitting: this.props.isCommitting,
+            workingDirectory: workingDirectory,
+            isCommitting: isCommitting,
           }}
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}

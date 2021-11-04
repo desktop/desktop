@@ -16,6 +16,8 @@ import {
 } from '../lib/context-menu'
 import { enableRepositoryAliases } from '../../lib/feature-flag'
 import classNames from 'classnames'
+import { createObservableRef } from '../lib/observable-ref'
+import { Tooltip } from '../lib/tooltip'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -65,25 +67,16 @@ export class RepositoryListItem extends React.Component<
   IRepositoryListItemProps,
   {}
 > {
+  private readonly listItemRef = createObservableRef<HTMLDivElement>()
+
   public render() {
     const repository = this.props.repository
-    const path = repository.path
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
     const hasChanges = this.props.changedFilesCount > 0
 
     const alias: string | null =
       repository instanceof Repository ? repository.alias : null
-
-    const repoTooltipComponents = gitHubRepo
-      ? [gitHubRepo.fullName, gitHubRepo.htmlURL, path]
-      : [path]
-
-    if (alias !== null) {
-      repoTooltipComponents.unshift(alias)
-    }
-
-    const repoTooltip = repoTooltipComponents.join('\n')
 
     let prefix: string | null = null
     if (this.props.needsDisambiguation && gitHubRepo) {
@@ -98,8 +91,10 @@ export class RepositoryListItem extends React.Component<
       <div
         onContextMenu={this.onContextMenu}
         className="repository-list-item"
-        title={repoTooltip}
+        ref={this.listItemRef}
       >
+        <Tooltip target={this.listItemRef}>{this.renderTooltip()}</Tooltip>
+
         <Octicon
           className="icon-for-repository"
           symbol={iconForRepository(repository)}
@@ -119,6 +114,22 @@ export class RepositoryListItem extends React.Component<
             hasChanges: hasChanges,
           })}
       </div>
+    )
+  }
+  private renderTooltip() {
+    const repo = this.props.repository
+    const gitHubRepo = repo instanceof Repository ? repo.gitHubRepository : null
+    const alias = repo instanceof Repository ? repo.alias : null
+    const realName = gitHubRepo ? gitHubRepo.fullName : repo.name
+
+    return (
+      <>
+        <div>
+          <strong>{realName}</strong>
+          {alias && <> ({alias})</>}
+        </div>
+        <div>{repo.path}</div>
+      </>
     )
   }
 
