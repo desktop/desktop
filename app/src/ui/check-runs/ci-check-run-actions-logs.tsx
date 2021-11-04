@@ -16,6 +16,7 @@ import { IAPIWorkflowJobStep } from '../../lib/api'
 import {
   getFormattedCheckRunDuration,
   IRefCheckOutput,
+  isFailure,
   RefCheckOutputType,
 } from '../../lib/ci-checks/ci-checks'
 
@@ -33,6 +34,7 @@ interface ICICheckRunActionLogsProps {
 
 interface ICICheckRunActionLogsState {
   readonly openSections: ReadonlySet<number>
+  readonly firstFailedSectionIndex: number
 }
 
 export class CICheckRunActionLogs extends React.PureComponent<
@@ -43,8 +45,48 @@ export class CICheckRunActionLogs extends React.PureComponent<
 
   public constructor(props: ICICheckRunActionLogsProps) {
     super(props)
+
+    const openSections = new Set<number>()
+    const firstFailedSectionIndex =
+      props.output.type === RefCheckOutputType.Actions
+        ? props.output.steps.findIndex(isFailure)
+        : -1
+
+    openSections.add(firstFailedSectionIndex)
+
     this.state = {
-      openSections: new Set<number>(),
+      openSections,
+      firstFailedSectionIndex,
+    }
+  }
+
+  public componentDidUpdate(prevProps: ICICheckRunActionLogsProps) {
+    if (
+      prevProps.output.type === this.props.output.type ||
+      this.props.output.type !== RefCheckOutputType.Actions
+    ) {
+      return
+    }
+
+    const openSections = new Set<number>()
+    const firstFailedSectionIndex = this.props.output.steps.findIndex(isFailure)
+
+    openSections.add(firstFailedSectionIndex)
+
+    this.setState({
+      openSections,
+      firstFailedSectionIndex,
+    })
+  }
+
+  private onStepHeaderRef = (stepIndex: number) => {
+    return (stepHeaderRef: HTMLDivElement | null) => {
+      if (
+        stepIndex === this.state.firstFailedSectionIndex &&
+        stepHeaderRef !== null
+      ) {
+        stepHeaderRef.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
     }
   }
 
@@ -257,7 +299,11 @@ export class CICheckRunActionLogs extends React.PureComponent<
     })
 
     return (
-      <div className={headerClassNames} onClick={this.toggleOpenState(index)}>
+      <div
+        className={headerClassNames}
+        onClick={this.toggleOpenState(index)}
+        ref={this.onStepHeaderRef(index)}
+      >
         <div className="ci-check-run-log-step-header-container">
           {!isSkipped ? (
             <Octicon
