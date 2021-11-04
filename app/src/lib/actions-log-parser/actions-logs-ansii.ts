@@ -12,8 +12,8 @@ export const UrlRegex = /([{(<[]*https?:\/\/[a-z0-9][a-z0-9-]*[a-z0-9]\.[^\s<>|'
  * ?: Non-capturing group
  * (?:\u001b[) : Match ESC[
  * (?:[\?|#])??: Match also ? and # formats that we don't supports but want to eat our special characters to get rid of ESC character
- * (?:[0-9]{1,3})?: Match one or more occurances of the simple format we want with out semicolon
- * (?:(?:;[0-9]{0,3})*)?: Match one or more occurances of the format we want with semicolon
+ * (?:[0-9]{1,3})?: Match one or more occurrences of the simple format we want with out semicolon
+ * (?:(?:;[0-9]{0,3})*)?: Match one or more occurrences of the format we want with semicolon
  */
 // eslint-disable-next-line no-control-regex
 export const _ansiEscapeCodeRegex = /(?:\u001b\[)(?:[?|#])?(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-Z|a-z])/
