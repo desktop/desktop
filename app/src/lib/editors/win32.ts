@@ -344,6 +344,15 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'IntelliJ IDEA Community Edition ',
     publisher: 'JetBrains s.r.o.',
   },
+  {
+    name: 'JetBrains PyCharm',
+    registryKeys: registryKeysForJetBrainsIDE(
+      'PyCharm'
+    ),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('pycharm'),
+    displayNamePrefix: 'PyCharm ',
+    publisher: 'JetBrains s.r.o.',
+  },
 ]
 
 function getKeyOrEmpty(
