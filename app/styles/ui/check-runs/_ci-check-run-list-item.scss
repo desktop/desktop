@@ -30,4 +30,20 @@
     width: 250px;
     height: 12px;
   }
+
+  .view-on-github {
+    display: none;
+    padding: var(--spacing);
+    padding-bottom: var(--spacing-half);
+    color: var(--text-secondary-color);
+
+    .octicon:hover {
+      color: var(--text-color);
+    }
+  }
+
+  &:hover .view-on-github,
+  .view-on-github.show {
+    display: block;
+  }
 }

@@ -4,6 +4,7 @@ import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
 import { CICheckRunLogs } from './ci-check-run-logs'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -32,16 +33,37 @@ interface ICICheckRunListItemProps {
   readonly onMarkdownLinkClicked: (url: string) => void
 }
 
+interface ICICheckRunListItemState {
+  readonly isMouseOverLogs: boolean
+}
+
 /** The CI check list item. */
 export class CICheckRunListItem extends React.PureComponent<
-  ICICheckRunListItemProps
+  ICICheckRunListItemProps,
+  ICICheckRunListItemState
 > {
+  public constructor(props: ICICheckRunListItemProps) {
+    super(props)
+    this.state = {
+      isMouseOverLogs: false,
+    }
+  }
+
   private onCheckRunClick = () => {
     this.props.onCheckRunClick(this.props.checkRun)
   }
 
-  private onViewOnGitHub = () => {
+  private onViewOnGitHub = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
     this.props.onViewOnGitHub(this.props.checkRun)
+  }
+
+  private onMouseOverLogs = () => {
+    this.setState({ isMouseOverLogs: true })
+  }
+
+  private onMouseLeaveLogs = () => {
+    this.setState({ isMouseOverLogs: false })
   }
 
   public render() {
@@ -63,12 +85,22 @@ export class CICheckRunListItem extends React.PureComponent<
               title={checkRun.description}
             />
           </div>
-
           <div className="ci-check-list-item-detail">
             <div className="ci-check-name">{checkRun.name}</div>
             <div className="ci-check-description" title={checkRun.description}>
               {checkRun.description}
             </div>
+          </div>
+          <div
+            className={classNames('view-on-github', {
+              show: this.state.isMouseOverLogs,
+            })}
+            onClick={this.onViewOnGitHub}
+          >
+            <Octicon
+              symbol={OcticonSymbol.linkExternal}
+              title="View on GitHub"
+            />
           </div>
         </div>
         {showLogs ? (
@@ -77,7 +109,8 @@ export class CICheckRunListItem extends React.PureComponent<
             baseHref={baseHref}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionLogs}
-            onViewOnGitHub={this.onViewOnGitHub}
+            onMouseOver={this.onMouseOverLogs}
+            onMouseLeave={this.onMouseLeaveLogs}
             onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
           />
         ) : null}

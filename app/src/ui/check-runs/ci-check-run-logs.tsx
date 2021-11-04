@@ -5,7 +5,6 @@ import {
   RefCheckOutputType,
 } from '../../lib/ci-checks/ci-checks'
 import classNames from 'classnames'
-import { Button } from '../lib/button'
 import { CICheckRunActionLogs } from './ci-check-run-actions-logs'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 
@@ -24,7 +23,10 @@ interface ICICheckRunLogsProps {
   readonly baseHref: string | null
 
   /** Callback to opens check runs on GitHub */
-  readonly onViewOnGitHub: (checkRun: IRefCheck) => void
+  readonly onMouseOver: (mouseEvent: React.MouseEvent<HTMLDivElement>) => void
+
+  /** Callback to opens check runs on GitHub */
+  readonly onMouseLeave: (mouseEvent: React.MouseEvent<HTMLDivElement>) => void
 
   /** Callback to open URL's originating from markdown */
   readonly onMarkdownLinkClicked: (url: string) => void
@@ -32,10 +34,6 @@ interface ICICheckRunLogsProps {
 
 /** The CI check list item. */
 export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
-  private onViewOnGitHub = () => {
-    this.props.onViewOnGitHub(this.props.checkRun)
-  }
-
   private isNoAdditionalInfoToDisplay(output: IRefCheckOutput): boolean {
     return (
       this.isNoOutputText(output) &&
@@ -136,14 +134,6 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     return <div className="no-logs-to-display">Loading…</div>
   }
 
-  private renderViewOnGitHub = () => {
-    return (
-      <div className="view-on-github">
-        <Button onClick={this.onViewOnGitHub}>View on GitHub</Button>
-      </div>
-    )
-  }
-
   private hasActionsWorkflowLogs() {
     return this.props.checkRun.actionsWorkflowRunId !== undefined
   }
@@ -170,14 +160,17 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     })
 
     return (
-      <div className={className}>
+      <div
+        className={className}
+        onMouseOver={this.props.onMouseOver}
+        onMouseLeave={this.props.onMouseLeave}
+      >
         <div className="ci-check-list-item-logs-output">
           {this.isNoAdditionalInfoToDisplay(output)
             ? this.renderEmptyLogOutput()
             : this.renderMetaOutput(output, name)}
           {logsOutput}
         </div>
-        {this.renderViewOnGitHub()}
       </div>
     )
   }
