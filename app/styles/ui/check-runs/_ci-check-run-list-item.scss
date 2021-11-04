@@ -12,10 +12,14 @@
   .ci-check-list-item-detail {
     flex: 1;
     margin: auto;
+    width: 80%;
   }
 
   .ci-check-name {
     font-weight: var(--font-weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .ci-check-description {
@@ -32,10 +36,14 @@
   }
 
   .view-on-github {
-    display: none;
-    padding: var(--spacing);
-    padding-bottom: var(--spacing-half);
+    margin: var(--spacing);
     color: var(--text-secondary-color);
+    min-height: var(--spacing);
+    min-width: var(--spacing-double);
+
+    .octicon {
+      display: none;
+    }
 
     .octicon:hover {
       color: var(--text-color);
@@ -44,6 +52,8 @@
 
   &:hover .view-on-github,
   .view-on-github.show {
-    display: block;
+    .octicon {
+      display: block;
+    }
   }
 }
