@@ -9,9 +9,10 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
-import { getHTMLURL } from '../../lib/api'
+import { APICheckConclusion, getHTMLURL } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
+import _ from 'lodash'
 
 interface ICICheckRunPopoverProps {
   readonly dispatcher: Dispatcher
@@ -30,6 +31,7 @@ interface ICICheckRunPopoverProps {
 }
 
 interface ICICheckRunPopoverState {
+  readonly combinedConclusion: APICheckConclusion | null
   readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunSummary: string
   readonly loadingActionLogs: boolean
@@ -52,13 +54,13 @@ export class CICheckRunPopover extends React.PureComponent<
     )
 
     this.state = {
+      combinedConclusion:
+        combinedCheck !== null ? combinedCheck.conclusion : null,
       checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
       checkRunSummary: this.getCombinedCheckSummary(combinedCheck),
       loadingActionLogs: true,
       loadingActionWorkflows: true,
     }
-
-    this.onStatus(combinedCheck)
   }
 
   public componentDidUpdate(prevProps: ICICheckRunPopoverProps) {
@@ -81,6 +83,12 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   public componentDidMount() {
+    const combinedCheck = this.props.dispatcher.tryGetCommitStatus(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber)
+    )
+    this.onStatus(combinedCheck)
+
     this.subscribe()
   }
 
@@ -108,6 +116,31 @@ export class CICheckRunPopover extends React.PureComponent<
   private onStatus = async (check: ICombinedRefCheck | null) => {
     const statusChecks = check !== null ? check.checks : []
 
+    const {
+      combinedConclusion,
+      checkRuns: currentCheckRuns,
+      loadingActionWorkflows,
+    } = this.state
+
+    // If the checks haven't changed since last status refresh, don't reretrieve logs.
+    if (
+      // Already loading, it is the first iteration and we need to continue to retrieve the logs.
+      !loadingActionWorkflows &&
+      // This is for typing. If check is null, state will be set in next statement.
+      check !== null &&
+      // If check run conclusion is null, then it is pending and we don't want to stop retrieval of latest logs
+      check.conclusion !== null &&
+      // If not same conclusion, then need to get updated logs.
+      check.conclusion === combinedConclusion &&
+      // If same conclusion, we see if checkrun ids are the same in the two arrays.
+      _.xor(
+        currentCheckRuns.map(cr => cr.id),
+        statusChecks.map(cr => cr.id)
+      ).length === 0
+    ) {
+      return
+    }
+
     if (statusChecks.length === 0) {
       this.setState({
         checkRuns: statusChecks,
@@ -116,6 +149,11 @@ export class CICheckRunPopover extends React.PureComponent<
       })
       return
     }
+
+    this.setState({
+      loadingActionLogs: true,
+      loadingActionWorkflows: true,
+    })
 
     /*
       Until we retrieve the actions workflows, we don't know if a check run has
