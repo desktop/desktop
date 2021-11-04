@@ -42,4 +42,8 @@
   .view-on-github.show {
     display: block;
   }
+  
+  .view-on-github:hover {
+    color: var(--text-primary-color);
+  }
 }
