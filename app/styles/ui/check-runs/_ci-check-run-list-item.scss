@@ -12,10 +12,14 @@
   .ci-check-list-item-detail {
     flex: 1;
     margin: auto;
+    overflow-x: hidden;
   }
 
   .ci-check-name {
     font-weight: var(--font-weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .ci-check-description {
