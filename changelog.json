@@ -2,7 +2,7 @@
   "releases": {
     "2.9.5-beta1": [
       "[Added] Support PyCharm as an external editor - #13270. Thanks @stevetaggart!",
-      "[Fixed] Custom tooltips - #6384",
+      "[Added] Add custom tooltips for quicker and more helpful information - #6384",
       "[Fixed] Replace dialog animations with fade when user prefers reduced motion - #12976 #2768",
       "[Fixed] Prevent inactive selected state from disappearing on lists - #13115",
       "[Improved] Change wording for default branch name option - #13223. Thanks @Rexogamer!"
