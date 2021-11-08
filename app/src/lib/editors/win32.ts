@@ -346,9 +346,7 @@ const editors: WindowsExternalEditor[] = [
   },
   {
     name: 'JetBrains PyCharm',
-    registryKeys: registryKeysForJetBrainsIDE(
-      'PyCharm'
-    ),
+    registryKeys: registryKeysForJetBrainsIDE('PyCharm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('pycharm'),
     displayNamePrefix: 'PyCharm ',
     publisher: 'JetBrains s.r.o.',
