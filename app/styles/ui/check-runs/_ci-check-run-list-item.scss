@@ -36,14 +36,10 @@
   }
 
   .view-on-github {
-    margin: var(--spacing);
+    display: none;
+    padding: var(--spacing);
+    padding-bottom: var(--spacing-half);
     color: var(--text-secondary-color);
-    min-height: var(--spacing);
-    min-width: var(--spacing-double);
-
-    .octicon {
-      display: none;
-    }
 
     .octicon:hover {
       color: var(--text-color);
@@ -52,8 +48,6 @@
 
   &:hover .view-on-github,
   .view-on-github.show {
-    .octicon {
-      display: block;
-    }
+    display: block;
   }
 }
