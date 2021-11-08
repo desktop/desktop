@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-wmxm-hvp8-2w94.git
+cd masaüstü-ghsa-wmxm-hvp8-2w94
+git checkout -b danışma düzeltme-1

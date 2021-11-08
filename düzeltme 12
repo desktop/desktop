@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-4wgc-rm47-8xxw.git
+cd masaüstü-ghsa-4wgc-rm47-8xxw
+git checkout -b danışma düzeltme-1

@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-76hm-78qm-v67j.git
+cd masaüstü-ghsa-76hm-78qm-v67j
+git checkout -b danışma düzeltme-1

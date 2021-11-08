@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-x8rv-6378-544r.git
+cd masaüstü-ghsa-x8rv-6378-544r
+git checkout -b danışma düzeltme-1

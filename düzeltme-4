@@ -1,0 +1,3 @@
+git klon gh repo klonu ercetin/desktop-ghsa-f94m-g869-2q4c
+cd masaüstü-ghsa-f94m-g869-2q4c
+git checkout -b danışma düzeltme-1

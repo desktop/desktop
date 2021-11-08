@@ -1,0 +1,3 @@
+git klon git@github.com:ercetin/desktop-ghsa-8v3c-q8gr-f56j.git
+cd masaüstü-ghsa-8v3c-q8gr-f56j
+git checkout -b danışma düzeltme-1

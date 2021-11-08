@@ -1,0 +1,3 @@
+git klon gh repo klonu ercetin/desktop-ghsa-588r-vw53-hc8v
+cd masaüstü-ghsa-588r-vw53-hc8v
+git checkout -b danışma düzeltme-1
