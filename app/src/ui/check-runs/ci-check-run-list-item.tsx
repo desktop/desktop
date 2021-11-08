@@ -122,7 +122,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   public render() {
-    const { checkRun, showLogs, loadingActionLogs, baseHref } = this.props
+    const { checkRun, showLogs, baseHref } = this.props
 
     return (
       <>
@@ -159,8 +159,6 @@ export class CICheckRunListItem extends React.PureComponent<
           <CICheckRunLogs
             checkRun={checkRun}
             baseHref={baseHref}
-            loadingActionLogs={loadingActionLogs}
-            loadingActionWorkflows={loadingActionLogs}
             onMouseOver={this.onMouseOverLogs}
             onMouseLeave={this.onMouseLeaveLogs}
             onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
