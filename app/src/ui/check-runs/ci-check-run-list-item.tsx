@@ -5,6 +5,7 @@ import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
 import { CICheckRunLogs } from './ci-check-run-logs'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -86,10 +87,16 @@ export class CICheckRunListItem extends React.PureComponent<
             />
           </div>
           <div className="ci-check-list-item-detail">
-            <div className="ci-check-name">{checkRun.name}</div>
-            <div className="ci-check-description" title={checkRun.description}>
-              {checkRun.description}
-            </div>
+            <TooltippedContent
+              className="ci-check-name"
+              tooltip={checkRun.name}
+              onlyWhenOverflowed={true}
+              tagName="div"
+            >
+              {checkRun.name}
+            </TooltippedContent>
+
+            <div className="ci-check-description">{checkRun.description}</div>
           </div>
           <div
             className={classNames('view-on-github', {
