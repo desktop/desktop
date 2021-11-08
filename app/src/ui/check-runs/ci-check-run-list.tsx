@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/ci-checks/ci-checks'
+import { IRefCheck, isFailure } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import _ from 'lodash'
 import { CICheckRunListItem } from './ci-check-run-list-item'
@@ -29,6 +29,8 @@ interface ICICheckRunListProps {
 interface ICICheckRunListState {
   readonly checkRunsShown: string | null
   readonly checkRunLogsShown: string | null
+  readonly checksByApp: _.Dictionary<IRefCheck[]>
+  readonly appNames: ReadonlyArray<string>
 }
 
 /** The CI Check list. */
@@ -39,10 +41,55 @@ export class CICheckRunList extends React.PureComponent<
   public constructor(props: ICICheckRunListProps) {
     super(props)
 
-    this.state = {
-      checkRunsShown: null,
-      checkRunLogsShown: null,
+    this.state = this.setupStateAfterCheckRunPropChange(props)
+  }
+
+  public componentDidUpdate(prevProps: ICICheckRunListProps) {
+    // Currently, this updates if we retreive from api, thus memory ref check is
+    // appropriate.
+    if (prevProps.checkRuns === this.props.checkRuns) {
+      return
     }
+
+    this.setState(this.setupStateAfterCheckRunPropChange(this.props))
+  }
+
+  private setupStateAfterCheckRunPropChange(
+    props: ICICheckRunListProps
+  ): ICICheckRunListState {
+    const checksByApp = _.groupBy(props.checkRuns, 'appName')
+    if (checksByApp[''] !== undefined) {
+      checksByApp['Other'] = checksByApp['']
+      delete checksByApp['']
+    }
+    const appNames = this.getSortedAppNames(checksByApp)
+
+    let checkRunLogsShown = null
+    // If there is a failure, we want the first app and first check run with a
+    // failure, to be opened so the user doesn't have to click through to find
+    // it.
+    const firstFailureAppName = appNames.find(an => {
+      checkRunLogsShown = checksByApp[an].find(isFailure)?.id.toString() ?? null
+      return checkRunLogsShown !== null
+    })
+
+    // If there are no failures, just show the first app open. Let user pick
+    // which logs they would like look it. (checkRunLogsShown = null)
+    const checkRunsShown =
+      firstFailureAppName !== undefined ? firstFailureAppName : appNames[0]
+
+    return {
+      checkRunsShown,
+      checkRunLogsShown,
+      checksByApp,
+      appNames,
+    }
+  }
+
+  private getSortedAppNames(checksByApp: _.Dictionary<IRefCheck[]>): string[] {
+    return Object.keys(checksByApp)
+      .sort((a, b) => b.length - a.length)
+      .map(name => (name !== '' ? name : 'Other'))
   }
 
   private onCheckRunClick = (checkRun: IRefCheck): void => {
@@ -62,8 +109,13 @@ export class CICheckRunList extends React.PureComponent<
     }
   }
 
-  private renderList = (checks: ReadonlyArray<IRefCheck>) => {
-    const list = checks.map((c, i) => {
+  private renderList = (appName: string): JSX.Element | null => {
+    const { checkRunsShown, checksByApp } = this.state
+    if (checkRunsShown !== appName) {
+      return null
+    }
+
+    const list = checksByApp[appName].map((c, i) => {
       return (
         <CICheckRunListItem
           key={i}
@@ -82,41 +134,36 @@ export class CICheckRunList extends React.PureComponent<
     return <>{list}</>
   }
 
-  public render() {
+  private renderCheckAppHeader = (appName: string): JSX.Element => {
     const { checkRunsShown } = this.state
-    const { checkRuns } = this.props
 
-    const checksByApp = _.groupBy(checkRuns, 'appName')
-    const appNames = Object.keys(checksByApp).sort(
-      (a, b) => b.length - a.length
+    return (
+      <div
+        className="ci-check-app-header"
+        onClick={this.onAppHeaderClick(appName)}
+      >
+        <Octicon
+          className="open-closed-icon"
+          symbol={
+            checkRunsShown === appName
+              ? OcticonSymbol.chevronDown
+              : OcticonSymbol.chevronRight
+          }
+        />
+        <div className="ci-check-app-name">{appName}</div>
+      </div>
     )
+  }
 
-    const appNameShown = checkRunsShown !== null ? checkRunsShown : appNames[0]
+  public render() {
+    const { appNames } = this.state
 
-    const checkLists = appNames.map((appName: string, index: number) => {
-      const displayAppName = appName !== '' ? appName : 'Other'
-      return (
-        <div className="ci-check-app-list" key={displayAppName}>
-          <div
-            className="ci-check-app-header"
-            onClick={this.onAppHeaderClick(displayAppName)}
-          >
-            <Octicon
-              className="open-closed-icon"
-              symbol={
-                appNameShown === displayAppName
-                  ? OcticonSymbol.chevronDown
-                  : OcticonSymbol.chevronRight
-              }
-            />
-            <div className="ci-check-app-name">{displayAppName}</div>
-          </div>
-          {appNameShown === displayAppName
-            ? this.renderList(checksByApp[appName])
-            : null}
-        </div>
-      )
-    })
+    const checkLists = appNames.map(appName => (
+      <div className="ci-check-app-list" key={appName}>
+        {this.renderCheckAppHeader(appName)}
+        {this.renderList(appName)}
+      </div>
+    ))
 
     return <div className="ci-check-run-list">{checkLists}</div>
   }

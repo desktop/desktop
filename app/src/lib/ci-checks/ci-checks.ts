@@ -336,7 +336,7 @@ export function isIncomplete(check: IRefCheck) {
 }
 
 /** Whether the check has failed (failure or requires action) */
-export function isFailure(check: IRefCheck) {
+export function isFailure(check: IRefCheck | IAPIWorkflowJobStep) {
   if (check.status === 'completed') {
     switch (check.conclusion) {
       case 'failure':
