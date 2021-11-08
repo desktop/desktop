@@ -4,7 +4,7 @@
       "[Added] Support PyCharm as an external editor - #13270. Thanks @stevetaggart!",
       "[Fixed] Custom tooltips - #6384",
       "[Fixed] Replace dialog animations with fade when user prefers reduced motion - #12976 #2768",
-      "[Fixed] Fix inactive selected state on lists disappearing - #13115",
+      "[Fixed] Prevent inactive selected state from disappearing on lists - #13115",
       "[Improved] Change wording for default branch name option - #13223. Thanks @Rexogamer!"
     ],
     "2.9.4": [
