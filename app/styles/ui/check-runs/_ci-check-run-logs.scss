@@ -116,3 +116,26 @@
     }
   }
 }
+
+.no-logs-to-display {
+  display: flex;
+  padding: var(--spacing);
+
+  .text {
+    flex: 1;
+    margin-right: var(--spacing);
+
+    div {
+      margin-top: var(--spacing);
+    }
+  }
+
+  .blankslate-image {
+    flex: 0;
+    height: 70px;
+    width: 73px;
+    min-width: 70px;
+    min-height: 73px;
+    align-self: flex-end;
+  }
+}

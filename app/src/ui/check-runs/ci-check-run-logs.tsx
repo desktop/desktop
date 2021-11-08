@@ -7,6 +7,10 @@ import {
 import classNames from 'classnames'
 import { CICheckRunActionLogs } from './ci-check-run-actions-logs'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
+import { LinkButton } from '../lib/link-button'
+import { encodePathAsUrl } from '../../lib/path'
+
+const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface ICICheckRunLogsProps {
   /** The check run to display **/
@@ -94,10 +98,20 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     )
   }
 
+  private onViewPRGitHub = () => {}
+
   private renderEmptyLogOutput = () => {
     return (
       <div className="no-logs-to-display">
-        No additional information to display.
+        <div className="text">
+          There is no output data to display for this check.
+          <div>
+            <LinkButton onClick={this.onViewPRGitHub}>
+              View this pull request on GitHub
+            </LinkButton>
+          </div>
+        </div>
+        <img src={PaperStackImage} className="blankslate-image" />
       </div>
     )
   }
