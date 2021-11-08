@@ -1,0 +1,3 @@
+git klon gh repo klonu ercetin/desktop-ghsa-w59g-m9fc-gv9g
+cd masaüstü-ghsa-w59g-m9fc-gv9g
+git checkout -b danışma düzeltme-1
