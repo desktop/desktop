@@ -7,6 +7,7 @@ import {
 import classNames from 'classnames'
 import { CICheckRunActionLogs } from './ci-check-run-actions-logs'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
+import { enableCICheckRunsLogs } from '../../lib/feature-flag'
 
 interface ICICheckRunLogsProps {
   /** The check run to display **/
@@ -76,7 +77,7 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     output: IRefCheckOutput,
     checkRunName: string
   ) => {
-    if (this.isOutputToDisplay(output)) {
+    if (this.isOutputToDisplay(output) || !enableCICheckRunsLogs()) {
       return this.renderEmptyLogOutput()
     }
 
