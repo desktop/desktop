@@ -57,6 +57,7 @@ interface IBranchDropdownProps {
 
 interface IBranchDropdownState {
   readonly isPopoverOpen: boolean
+  readonly badgeBottom: number
 }
 
 /**
@@ -70,6 +71,7 @@ export class BranchDropdown extends React.Component<
     super(props)
     this.state = {
       isPopoverOpen: false,
+      badgeBottom: 0,
     }
   }
 
@@ -222,6 +224,10 @@ export class BranchDropdown extends React.Component<
     }
   }
 
+  private updateBadgeBottomPosition = (badgeBottom: number) => {
+    this.setState({ badgeBottom })
+  }
+
   private openPopover = () => {
     this.setState(prevState => {
       if (!prevState.isPopoverOpen) {
@@ -267,6 +273,7 @@ export class BranchDropdown extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
         branchName={currentBranchName}
+        badgeBottom={this.state.badgeBottom}
         closePopover={this.closePopover}
       />
     )
@@ -285,6 +292,7 @@ export class BranchDropdown extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
         onBadgeClick={this.onBadgeClick}
+        onBadgeBottomPositionUpdate={this.updateBadgeBottomPosition}
       />
     )
   }
