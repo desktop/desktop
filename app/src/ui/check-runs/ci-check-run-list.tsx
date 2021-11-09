@@ -28,6 +28,7 @@ interface ICICheckRunListProps {
 
 interface ICICheckRunListState {
   readonly checkRunsShown: string | null
+  readonly hasUserToggledCheckRun: boolean
   readonly checkRunLogsShown: string | null
   readonly checksByApp: _.Dictionary<IRefCheck[]>
   readonly appNames: ReadonlyArray<string>
@@ -41,7 +42,7 @@ export class CICheckRunList extends React.PureComponent<
   public constructor(props: ICICheckRunListProps) {
     super(props)
 
-    this.state = this.setupStateAfterCheckRunPropChange(props)
+    this.state = this.setupStateAfterCheckRunPropChange(this.props, null)
   }
 
   public componentDidUpdate(prevProps: ICICheckRunListProps) {
@@ -51,11 +52,14 @@ export class CICheckRunList extends React.PureComponent<
       return
     }
 
-    this.setState(this.setupStateAfterCheckRunPropChange(this.props))
+    this.setState(
+      this.setupStateAfterCheckRunPropChange(this.props, this.state)
+    )
   }
 
   private setupStateAfterCheckRunPropChange(
-    props: ICICheckRunListProps
+    props: ICICheckRunListProps,
+    currentState: ICICheckRunListState | null
   ): ICICheckRunListState {
     const checksByApp = _.groupBy(props.checkRuns, 'appName')
     if (checksByApp[''] !== undefined) {
@@ -64,25 +68,35 @@ export class CICheckRunList extends React.PureComponent<
     }
     const appNames = this.getSortedAppNames(checksByApp)
 
-    let checkRunLogsShown = null
-    // If there is a failure, we want the first app and first check run with a
-    // failure, to be opened so the user doesn't have to click through to find
-    // it.
-    const firstFailureAppName = appNames.find(an => {
-      checkRunLogsShown = checksByApp[an].find(isFailure)?.id.toString() ?? null
-      return checkRunLogsShown !== null
-    })
+    let checkRunLogsShown =
+      currentState !== null ? currentState.checkRunLogsShown : null
+    let checkRunsShown =
+      currentState !== null ? currentState.checkRunsShown : null
 
-    // If there are no failures, just show the first app open. Let user pick
-    // which logs they would like look it. (checkRunLogsShown = null)
-    const checkRunsShown =
-      firstFailureAppName !== undefined ? firstFailureAppName : appNames[0]
+    if (currentState === null || !currentState.hasUserToggledCheckRun) {
+      // If there is a failure, we want the first app and first check run with a
+      // failure, to be opened so the user doesn't have to click through to find
+      // it.
+      const firstFailureAppName = appNames.find(an => {
+        checkRunLogsShown =
+          checksByApp[an].find(isFailure)?.id.toString() ?? null
+        return checkRunLogsShown !== null
+      })
+
+      // If there are no failures, just show the first app open. Let user pick
+      // which logs they would like look it. (checkRunLogsShown = null)
+      checkRunsShown =
+        firstFailureAppName !== undefined ? firstFailureAppName : appNames[0]
+    }
 
     return {
       checkRunsShown,
       checkRunLogsShown,
       checksByApp,
       appNames,
+      hasUserToggledCheckRun: currentState
+        ? currentState.hasUserToggledCheckRun
+        : false,
     }
   }
 
@@ -98,6 +112,7 @@ export class CICheckRunList extends React.PureComponent<
         this.state.checkRunLogsShown === checkRun.id.toString()
           ? null
           : checkRun.id.toString(),
+      hasUserToggledCheckRun: true,
     })
   }
 
@@ -105,6 +120,7 @@ export class CICheckRunList extends React.PureComponent<
     return () => {
       this.setState({
         checkRunsShown: this.state.checkRunsShown === appName ? '' : appName,
+        hasUserToggledCheckRun: true,
       })
     }
   }

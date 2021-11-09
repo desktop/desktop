@@ -12,12 +12,6 @@ interface ICICheckRunLogsProps {
   /** The check run to display **/
   readonly checkRun: IRefCheck
 
-  /** Whether call for actions logs is pending */
-  readonly loadingActionLogs: boolean
-
-  /** Whether tcall for actions workflows is pending */
-  readonly loadingActionWorkflows: boolean
-
   /** The base href used for relative links provided in check run markdown
    * output */
   readonly baseHref: string | null
@@ -102,27 +96,17 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     )
   }
 
-  private renderLoadingLogs = () => {
-    return <div className="no-logs-to-display">Loading…</div>
-  }
-
   private hasActionsWorkflowLogs() {
     return this.props.checkRun.actionsWorkflowRunId !== undefined
   }
 
   public render() {
     const {
-      loadingActionWorkflows,
-      loadingActionLogs,
       checkRun: { output, name },
     } = this.props
 
-    if (loadingActionWorkflows) {
-      return this.renderLoadingLogs()
-    }
-
     const logsOutput = this.hasActionsWorkflowLogs() ? (
-      <CICheckRunActionLogs output={output} loadingLogs={loadingActionLogs} />
+      <CICheckRunActionLogs output={output} />
     ) : (
       this.renderNonActionsLogOutput(output, name)
     )
