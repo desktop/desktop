@@ -198,7 +198,7 @@ export class CICheckRunPopover extends React.PureComponent<
     this.setState({ checkRuns, loadingActionLogs: false })
   }
 
-  private viewCheckRunsOnGitHub = (checkRun: IRefCheck): void => {
+  private onViewCheckDetails = (checkRun: IRefCheck): void => {
     // Some checks do not provide htmlURLS like ones for the legacy status
     // object as they do not have a view in the checks screen. In that case we
     // will just open the PR and they can navigate from there... a little
@@ -304,7 +304,7 @@ export class CICheckRunPopover extends React.PureComponent<
             checkRuns={checkRuns}
             loadingActionLogs={loadingActionLogs}
             loadingActionWorkflows={loadingActionWorkflows}
-            onViewOnGitHub={this.viewCheckRunsOnGitHub}
+            onViewCheckDetails={this.onViewCheckDetails}
             onMarkdownLinkClicked={this.markDownLinkClicked}
           />
         </Popover>

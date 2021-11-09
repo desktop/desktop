@@ -28,6 +28,9 @@ interface ICICheckRunLogsProps {
 
   /** Callback to open URL's originating from markdown */
   readonly onMarkdownLinkClicked: (url: string) => void
+
+  /** Callback to open check run target url (maybe GitHub, maybe third party check run)*/
+  readonly onViewCheckDetails: () => void
 }
 
 /** The CI check list item. */
@@ -92,16 +95,16 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
     )
   }
 
-  private onViewPRGitHub = () => {}
-
   private renderEmptyLogOutput = () => {
     return (
       <div className="no-logs-to-display">
         <div className="text">
           There is no output data to display for this check.
           <div>
-            <LinkButton onClick={this.onViewPRGitHub}>
-              View this pull request on GitHub
+            <LinkButton onClick={this.props.onViewCheckDetails}>
+              {this.props.checkRun.htmlUrl !== null
+                ? 'View check details'
+                : 'View check pull request'}
             </LinkButton>
           </div>
         </div>

@@ -139,7 +139,7 @@ export function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
       title: null,
       text: null,
     },
-    htmlUrl: null,
+    htmlUrl: apiStatus.target_url,
   }
 }
 
