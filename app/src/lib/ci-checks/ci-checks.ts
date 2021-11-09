@@ -11,6 +11,7 @@ import {
 } from '../api'
 import JSZip from 'jszip'
 import moment from 'moment'
+import { enableCICheckRunsLogs } from '../feature-flag'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -419,6 +420,20 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
     const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
     if (matchingJob === undefined) {
       mappedCheckRuns.push(cr)
+      continue
+    }
+
+    if (!enableCICheckRunsLogs()) {
+      mappedCheckRuns.push({
+        ...cr,
+        htmlUrl: matchingJob.html_url,
+        output: {
+          ...cr.output,
+          type: RefCheckOutputType.Actions,
+          steps: matchingJob.steps,
+        },
+      })
+
       continue
     }
 
