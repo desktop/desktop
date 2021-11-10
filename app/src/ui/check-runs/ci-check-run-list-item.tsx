@@ -1,5 +1,8 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/ci-checks/ci-checks'
+import {
+  getCheckRunDisplayName,
+  IRefCheck,
+} from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
@@ -124,14 +127,7 @@ export class CICheckRunListItem extends React.PureComponent<
   public render() {
     const { checkRun, showLogs, baseHref } = this.props
 
-    const wfName =
-      checkRun.actionsWorkflowName !== undefined
-        ? checkRun.actionsWorkflowName
-        : checkRun.appName === 'GitHub Code Scanning'
-        ? 'Code scanning results' // seems this is hardcoded on dotcom too :/
-        : undefined
-    const name =
-      wfName !== undefined ? `${wfName} / ${checkRun.name}` : checkRun.name
+    const name = getCheckRunDisplayName(checkRun)
     return (
       <>
         <div

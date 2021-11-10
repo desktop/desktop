@@ -1,5 +1,9 @@
 import * as React from 'react'
-import { IRefCheck, isFailure } from '../../lib/ci-checks/ci-checks'
+import {
+  getCheckRunDisplayName,
+  IRefCheck,
+  isFailure,
+} from '../../lib/ci-checks/ci-checks'
 import { CICheckRunListItem } from './ci-check-run-list-item'
 
 interface ICICheckRunListProps {
@@ -84,21 +88,25 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private renderList = (): JSX.Element | null => {
-    const list = [...this.props.checkRuns].sort().map((c, i) => {
-      return (
-        <CICheckRunListItem
-          key={i}
-          checkRun={c}
-          baseHref={this.props.baseHref}
-          loadingActionLogs={this.props.loadingActionLogs}
-          loadingActionWorkflows={this.props.loadingActionWorkflows}
-          showLogs={this.state.checkRunExpanded === c.id.toString()}
-          onCheckRunClick={this.onCheckRunClick}
-          onViewCheckDetails={this.props.onViewCheckDetails}
-          onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
-        />
+    const list = [...this.props.checkRuns]
+      .sort((a, b) =>
+        getCheckRunDisplayName(a).localeCompare(getCheckRunDisplayName(b))
       )
-    })
+      .map((c, i) => {
+        return (
+          <CICheckRunListItem
+            key={i}
+            checkRun={c}
+            baseHref={this.props.baseHref}
+            loadingActionLogs={this.props.loadingActionLogs}
+            loadingActionWorkflows={this.props.loadingActionWorkflows}
+            showLogs={this.state.checkRunExpanded === c.id.toString()}
+            onCheckRunClick={this.onCheckRunClick}
+            onViewCheckDetails={this.props.onViewCheckDetails}
+            onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
+          />
+        )
+      })
 
     return <>{list}</>
   }
