@@ -13,7 +13,6 @@ import { encodePathAsUrl } from '../../lib/path'
 
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
-
 interface ICICheckRunLogsProps {
   /** The check run to display **/
   readonly checkRun: IRefCheck
