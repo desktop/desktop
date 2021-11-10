@@ -19,6 +19,7 @@ import {
   isFailure,
   RefCheckOutputType,
 } from '../../lib/ci-checks/ci-checks'
+import { enableCICheckRunsLogs } from '../../lib/feature-flag'
 
 const MIN_LOG_LINE_NUMBER_WIDTH = 25 // makes numbers line up with chevron
 const MAX_LOG_LINE_NUMBER_WIDTH = 100 // arbitrarily chosen
@@ -291,8 +292,8 @@ export class CICheckRunActionLogs extends React.PureComponent<
     index: number
   ): JSX.Element {
     const headerClassNames = classNames('ci-check-run-log-step-header', {
-      open: showLogs,
-      skipped: isSkipped,
+      open: showLogs && enableCICheckRunsLogs(),
+      skipped: isSkipped || !enableCICheckRunsLogs(),
     })
 
     return (
@@ -302,7 +303,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
         ref={this.onStepHeaderRef(index)}
       >
         <div className="ci-check-run-log-step-header-container">
-          {!isSkipped ? (
+          {!isSkipped && enableCICheckRunsLogs() ? (
             <Octicon
               className="log-step-toggled-indicator"
               symbol={
