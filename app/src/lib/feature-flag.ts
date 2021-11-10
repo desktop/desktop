@@ -1,6 +1,8 @@
 const Disable = false
 
 /**
+ * Changing ...
+ *
  * Enables the application to opt-in for preview features based on runtime
  * checks. This is backed by the GITHUB_DESKTOP_PREVIEW_FEATURES environment
  * variable, which is checked for non-development environments.
