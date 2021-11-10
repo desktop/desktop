@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.5-test1": ["[Added] Just test deployment still works"],
     "2.9.5-beta1": [
       "[Added] Support PyCharm as an external editor - #13270. Thanks @stevetaggart!",
       "[Added] Add custom tooltips for quicker and more helpful information - #6384",
