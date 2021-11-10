@@ -124,9 +124,14 @@ export class CICheckRunListItem extends React.PureComponent<
   public render() {
     const { checkRun, showLogs, baseHref } = this.props
 
-    const name = checkRun.actionsWorkflowName
-      ? `${checkRun.actionsWorkflowName} / ${checkRun.name}`
-      : checkRun.name
+    const wfName =
+      checkRun.actionsWorkflowName !== undefined
+        ? checkRun.actionsWorkflowName
+        : checkRun.appName === 'GitHub Code Scanning'
+        ? 'Code scanning results' // seems this is hardcoded on dotcom too :/
+        : undefined
+    const name =
+      wfName !== undefined ? `${wfName} / ${checkRun.name}` : checkRun.name
     return (
       <>
         <div
