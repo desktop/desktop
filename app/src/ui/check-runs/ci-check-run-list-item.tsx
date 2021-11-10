@@ -27,8 +27,8 @@ interface ICICheckRunListItemProps {
   /** Callback for when a check run is clicked */
   readonly onCheckRunClick: (checkRun: IRefCheck) => void
 
-  /** Callback to opens check runs on GitHub */
-  readonly onViewOnGitHub: (checkRun: IRefCheck) => void
+  /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
+  readonly onViewCheckDetails: (checkRun: IRefCheck) => void
 
   /** Callback to open URL's originating from markdown */
   readonly onMarkdownLinkClicked: (url: string) => void
@@ -54,9 +54,9 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onCheckRunClick(this.props.checkRun)
   }
 
-  private onViewOnGitHub = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation()
-    this.props.onViewOnGitHub(this.props.checkRun)
+  private onViewCheckDetails = (e?: React.MouseEvent<HTMLDivElement>) => {
+    e?.stopPropagation()
+    this.props.onViewCheckDetails(this.props.checkRun)
   }
 
   private onMouseOverLogs = () => {
@@ -147,7 +147,7 @@ export class CICheckRunListItem extends React.PureComponent<
             className={classNames('view-on-github', {
               show: this.state.isMouseOverLogs,
             })}
-            onClick={this.onViewOnGitHub}
+            onClick={this.onViewCheckDetails}
           >
             <Octicon
               symbol={OcticonSymbol.linkExternal}
@@ -162,6 +162,7 @@ export class CICheckRunListItem extends React.PureComponent<
             onMouseOver={this.onMouseOverLogs}
             onMouseLeave={this.onMouseLeaveLogs}
             onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
+            onViewCheckDetails={this.onViewCheckDetails}
           />
         ) : null}
       </>
