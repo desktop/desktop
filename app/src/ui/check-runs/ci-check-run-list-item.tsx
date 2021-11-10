@@ -124,6 +124,9 @@ export class CICheckRunListItem extends React.PureComponent<
   public render() {
     const { checkRun, showLogs, baseHref } = this.props
 
+    const name = checkRun.actionsWorkflowName
+      ? `${checkRun.actionsWorkflowName} / ${checkRun.name}`
+      : checkRun.name
     return (
       <>
         <div
@@ -134,11 +137,11 @@ export class CICheckRunListItem extends React.PureComponent<
           <div className="ci-check-list-item-detail">
             <TooltippedContent
               className="ci-check-name"
-              tooltip={checkRun.name}
+              tooltip={name}
               onlyWhenOverflowed={true}
               tagName="div"
             >
-              {checkRun.name}
+              {name}
             </TooltippedContent>
 
             <div className="ci-check-description">{checkRun.description}</div>
@@ -155,7 +158,9 @@ export class CICheckRunListItem extends React.PureComponent<
             />
           </div>
         </div>
-        {showLogs && !this.isLoading() ? (
+        {showLogs &&
+        !this.isLoading() &&
+        checkRun.actionJobSteps !== undefined ? (
           <CICheckRunLogs
             checkRun={checkRun}
             baseHref={baseHref}

@@ -15,9 +15,7 @@ import {
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import {
   getFormattedCheckRunDuration,
-  IRefCheckOutput,
   isFailure,
-  RefCheckOutputType,
 } from '../../lib/ci-checks/ci-checks'
 import { enableCICheckRunsLogs } from '../../lib/feature-flag'
 
@@ -26,8 +24,7 @@ const MAX_LOG_LINE_NUMBER_WIDTH = 100 // arbitrarily chosen
 const INDIVIDUAL_LOG_LINE_NUMBER_WIDTH_ALLOWED = 10
 
 interface ICICheckRunActionLogsProps {
-  /** The check run to display **/
-  readonly output: IRefCheckOutput
+  readonly actionSteps: ReadonlyArray<IAPIWorkflowJobStep>
 }
 
 interface ICICheckRunActionLogsState {
@@ -45,10 +42,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
     super(props)
 
     const openSections = new Set<number>()
-    const firstFailedSectionIndex =
-      props.output.type === RefCheckOutputType.Actions
-        ? props.output.steps.findIndex(isFailure)
-        : -1
+    const firstFailedSectionIndex = this.props.actionSteps.findIndex(isFailure)
 
     openSections.add(firstFailedSectionIndex)
 
@@ -59,15 +53,8 @@ export class CICheckRunActionLogs extends React.PureComponent<
   }
 
   public componentDidUpdate(prevProps: ICICheckRunActionLogsProps) {
-    if (
-      prevProps.output.type === this.props.output.type ||
-      this.props.output.type !== RefCheckOutputType.Actions
-    ) {
-      return
-    }
-
     const openSections = new Set<number>()
-    const firstFailedSectionIndex = this.props.output.steps.findIndex(isFailure)
+    const firstFailedSectionIndex = this.props.actionSteps.findIndex(isFailure)
 
     openSections.add(firstFailedSectionIndex)
 
@@ -333,14 +320,9 @@ export class CICheckRunActionLogs extends React.PureComponent<
   }
 
   public render() {
-    const { output } = this.props
+    const { actionSteps } = this.props
 
-    if (output.type !== RefCheckOutputType.Actions) {
-      // This shouldn't happen, should only be provided actions type
-      return <>Unable to load logs.</>
-    }
-
-    return output.steps.map((step, i) => {
+    return actionSteps.map((step, i) => {
       const isSkipped = step.conclusion === 'skipped'
       const showLogs = this.state.openSections.has(i) && !isSkipped
 

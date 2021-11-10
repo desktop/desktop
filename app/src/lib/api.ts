@@ -336,7 +336,6 @@ export interface IAPIRefCheckRun {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly name: string
-  readonly output: IAPIRefCheckRunOutput
   readonly check_suite: IAPIRefCheckRunCheckSuite
   readonly app: IAPIRefCheckRunApp
   readonly completed_at: string

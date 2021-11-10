@@ -29,40 +29,14 @@ export interface IRefCheck {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly appName: string
-  readonly checkSuiteId: number | null // API status don't have check suite id's
-  readonly output: IRefCheckOutput
   readonly htmlUrl: string | null
+
+  // Following are action check specific
+  readonly checkSuiteId: number | null
+  readonly actionJobSteps?: ReadonlyArray<IAPIWorkflowJobStep>
   readonly actionsWorkflowRunId?: number
+  readonly actionsWorkflowName?: string | null
   readonly logs_url?: string
-}
-
-/**
- * There are two types of check run outputs.
- *
- * 1. From GitHub Actions, which comes in steps with individual log texts,
- *    statuses, and duration info.
- * 2. From any other check run app, which comes with a generic string of
- *    whatever the check run app provides.
- */
-export type IRefCheckOutput =
-  | {
-      readonly title: string | null
-      readonly summary?: string | null
-      readonly type: RefCheckOutputType.Actions
-      readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
-    }
-  | {
-      readonly title: string | null
-      readonly summary?: string | null
-      readonly type: RefCheckOutputType.Default
-      // This text is whatever a check run app decides to place in it.
-      // It may include html.
-      readonly text: string | null
-    }
-
-export enum RefCheckOutputType {
-  Actions = 'Actions',
-  Default = 'Default',
 }
 
 /**
@@ -135,11 +109,6 @@ export function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
     conclusion,
     appName: '',
     checkSuiteId: null,
-    output: {
-      type: RefCheckOutputType.Default,
-      title: null,
-      text: null,
-    },
     htmlUrl: apiStatus.target_url,
   }
 }
@@ -261,10 +230,6 @@ export function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
     conclusion: checkRun.conclusion,
     appName: checkRun.app.name,
     checkSuiteId: checkRun.check_suite.id,
-    output: {
-      ...checkRun.output,
-      type: RefCheckOutputType.Default,
-    },
     htmlUrl: checkRun.html_url,
   }
 }
@@ -427,11 +392,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
       mappedCheckRuns.push({
         ...cr,
         htmlUrl: matchingJob.html_url,
-        output: {
-          ...cr.output,
-          type: RefCheckOutputType.Actions,
-          steps: matchingJob.steps,
-        },
+        actionJobSteps: matchingJob.steps,
       })
 
       continue
@@ -452,11 +413,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
     mappedCheckRuns.push({
       ...cr,
       htmlUrl: matchingJob.html_url,
-      output: {
-        ...cr.output,
-        type: RefCheckOutputType.Actions,
-        steps: await parseJobStepLogs(logZip, matchingJob),
-      },
+      actionJobSteps: await parseJobStepLogs(logZip, matchingJob),
     })
   }
 
@@ -550,10 +507,11 @@ function getCheckRunWithActionsJobAndLogURLs(
       continue
     }
 
-    const { id, logs_url } = matchingWR
+    const { id, name, logs_url } = matchingWR
     mappedCheckRuns.push({
       ...cr,
       actionsWorkflowRunId: id,
+      actionsWorkflowName: name,
       logs_url,
     })
   }
