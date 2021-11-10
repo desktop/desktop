@@ -8,16 +8,15 @@ import classNames from 'classnames'
 import { CICheckRunActionLogs } from './ci-check-run-actions-logs'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { enableCICheckRunsLogs } from '../../lib/feature-flag'
+import { LinkButton } from '../lib/link-button'
+import { encodePathAsUrl } from '../../lib/path'
+
+const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
+
 
 interface ICICheckRunLogsProps {
   /** The check run to display **/
   readonly checkRun: IRefCheck
-
-  /** Whether call for actions logs is pending */
-  readonly loadingActionLogs: boolean
-
-  /** Whether tcall for actions workflows is pending */
-  readonly loadingActionWorkflows: boolean
 
   /** The base href used for relative links provided in check run markdown
    * output */
@@ -31,6 +30,9 @@ interface ICICheckRunLogsProps {
 
   /** Callback to open URL's originating from markdown */
   readonly onMarkdownLinkClicked: (url: string) => void
+
+  /** Callback to open check run target url (maybe GitHub, maybe third party check run)*/
+  readonly onViewCheckDetails: () => void
 }
 
 /** The CI check list item. */
@@ -98,13 +100,19 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
   private renderEmptyLogOutput = () => {
     return (
       <div className="no-logs-to-display">
-        No additional information to display.
+        <div className="text">
+          There is no output data to display for this check.
+          <div>
+            <LinkButton onClick={this.props.onViewCheckDetails}>
+              {this.props.checkRun.htmlUrl !== null
+                ? 'View check details'
+                : 'View check pull request'}
+            </LinkButton>
+          </div>
+        </div>
+        <img src={PaperStackImage} className="blankslate-image" />
       </div>
     )
-  }
-
-  private renderLoadingLogs = () => {
-    return <div className="no-logs-to-display">Loading…</div>
   }
 
   private hasActionsWorkflowLogs() {
@@ -113,17 +121,11 @@ export class CICheckRunLogs extends React.PureComponent<ICICheckRunLogsProps> {
 
   public render() {
     const {
-      loadingActionWorkflows,
-      loadingActionLogs,
       checkRun: { output, name },
     } = this.props
 
-    if (loadingActionWorkflows) {
-      return this.renderLoadingLogs()
-    }
-
     const logsOutput = this.hasActionsWorkflowLogs() ? (
-      <CICheckRunActionLogs output={output} loadingLogs={loadingActionLogs} />
+      <CICheckRunActionLogs output={output} />
     ) : (
       this.renderNonActionsLogOutput(output, name)
     )

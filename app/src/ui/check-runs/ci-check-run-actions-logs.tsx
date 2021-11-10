@@ -28,9 +28,6 @@ const INDIVIDUAL_LOG_LINE_NUMBER_WIDTH_ALLOWED = 10
 interface ICICheckRunActionLogsProps {
   /** The check run to display **/
   readonly output: IRefCheckOutput
-
-  /** Whether call for actions logs is pending */
-  readonly loadingLogs: boolean
 }
 
 interface ICICheckRunActionLogsState {
@@ -336,11 +333,7 @@ export class CICheckRunActionLogs extends React.PureComponent<
   }
 
   public render() {
-    const { output, loadingLogs } = this.props
-
-    if (loadingLogs) {
-      return <>Loading…</>
-    }
+    const { output } = this.props
 
     if (output.type !== RefCheckOutputType.Actions) {
       // This shouldn't happen, should only be provided actions type
