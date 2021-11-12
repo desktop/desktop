@@ -181,6 +181,6 @@ export class CICheckRunList extends React.PureComponent<
       </div>
     ))
 
-    return <div className="ci-check-run-list">{checkLists}</div>
+    return <>{checkLists}</>
   }
 }
