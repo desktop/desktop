@@ -1,5 +1,8 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/ci-checks/ci-checks'
+import {
+  getCheckRunDisplayName,
+  IRefCheck,
+} from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
@@ -124,6 +127,7 @@ export class CICheckRunListItem extends React.PureComponent<
   public render() {
     const { checkRun, showLogs, baseHref } = this.props
 
+    const name = getCheckRunDisplayName(checkRun)
     return (
       <>
         <div
@@ -134,11 +138,11 @@ export class CICheckRunListItem extends React.PureComponent<
           <div className="ci-check-list-item-detail">
             <TooltippedContent
               className="ci-check-name"
-              tooltip={checkRun.name}
+              tooltip={name}
               onlyWhenOverflowed={true}
               tagName="div"
             >
-              {checkRun.name}
+              {name}
             </TooltippedContent>
 
             <div className="ci-check-description">{checkRun.description}</div>
@@ -155,7 +159,9 @@ export class CICheckRunListItem extends React.PureComponent<
             />
           </div>
         </div>
-        {showLogs && !this.isLoading() ? (
+        {showLogs &&
+        !this.isLoading() &&
+        checkRun.actionJobSteps !== undefined ? (
           <CICheckRunLogs
             checkRun={checkRun}
             baseHref={baseHref}

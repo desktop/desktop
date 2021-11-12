@@ -260,8 +260,18 @@ export class BranchDropdown extends React.Component<
   private renderPopover() {
     const pr = this.props.currentPullRequest
     const { tip } = this.props.repositoryState.branchesState
-    // It is ok if it doesn't exist, we just can't retrieve actions workflows
-    const currentBranchName = tip.kind === TipState.Valid ? tip.branch.name : ''
+    // This is used for retrieving the PR's action check runs (if exist). For
+    // forked repo PRs, we must use the upstreamWithoutRemote as we make are own
+    // temporary branch in Desktop for these that doesn't exist remotely (and
+    // thus doesn't exist in action's world). The upstreamWIthoutRemote will
+    // match a non forked PR. It _should_ only be null for a local branch..
+    // which _should_ not happen in this context. But, worst case, the user
+    // simply won't be able to retreive action steps and will get check run list
+    // items that are given for non-action checks.
+    const currentBranchName =
+      tip.kind === TipState.Valid
+        ? tip.branch.upstreamWithoutRemote ?? tip.branch.name
+        : ''
 
     if (pr === null) {
       return null

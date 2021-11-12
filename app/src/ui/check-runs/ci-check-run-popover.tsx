@@ -318,16 +318,21 @@ export class CICheckRunPopover extends React.PureComponent<
             </div>
             {this.renderRerunButton()}
           </div>
-          <div className="ci-check-run-list" style={this.getListHeightStyles()}>
-            <CICheckRunList
-              baseHref={baseHref}
-              checkRuns={checkRuns}
-              loadingActionLogs={loadingActionLogs}
-              loadingActionWorkflows={loadingActionWorkflows}
-              onViewCheckDetails={this.onViewCheckDetails}
-              onMarkdownLinkClicked={this.markDownLinkClicked}
-            />
-          </div>
+          {!loadingActionLogs ? (
+            <div
+              className="ci-check-run-list"
+              style={this.getListHeightStyles()}
+            >
+              <CICheckRunList
+                baseHref={baseHref}
+                checkRuns={checkRuns}
+                loadingActionLogs={loadingActionLogs}
+                loadingActionWorkflows={loadingActionWorkflows}
+                onViewCheckDetails={this.onViewCheckDetails}
+                onMarkdownLinkClicked={this.markDownLinkClicked}
+              />
+            </div>
+          ) : null}
         </Popover>
       </div>
     )
