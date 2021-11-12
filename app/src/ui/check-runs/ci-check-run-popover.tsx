@@ -9,7 +9,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
-import { APICheckConclusion, getHTMLURL } from '../../lib/api'
+import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import _ from 'lodash'
@@ -217,8 +217,18 @@ export class CICheckRunPopover extends React.PureComponent<
     this.props.dispatcher.openInBrowser(url)
   }
 
-  private markDownLinkClicked = (link: string): void => {
-    this.props.dispatcher.openInBrowser(link)
+  private onViewJobStep = (
+    checkRun: IRefCheck,
+    step: IAPIWorkflowJobStep
+  ): void => {
+    const url = checkRun.htmlUrl
+      ? `${checkRun.htmlUrl}/#step:${step.number}:1`
+      : `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
+    if (url === null) {
+      // The repository should have a htmlURL.
+      return
+    }
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private getCommitRef(prNumber: number): string {
@@ -302,8 +312,6 @@ export class CICheckRunPopover extends React.PureComponent<
       loadingActionWorkflows,
     } = this.state
 
-    const baseHref = getHTMLURL(this.props.repository.endpoint)
-
     return (
       <div className="ci-check-list-popover">
         <Popover
@@ -324,12 +332,11 @@ export class CICheckRunPopover extends React.PureComponent<
               style={this.getListHeightStyles()}
             >
               <CICheckRunList
-                baseHref={baseHref}
                 checkRuns={checkRuns}
                 loadingActionLogs={loadingActionLogs}
                 loadingActionWorkflows={loadingActionWorkflows}
                 onViewCheckDetails={this.onViewCheckDetails}
-                onMarkdownLinkClicked={this.markDownLinkClicked}
+                onViewJobStep={this.onViewJobStep}
               />
             </div>
           ) : null}

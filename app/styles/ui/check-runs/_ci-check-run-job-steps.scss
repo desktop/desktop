@@ -1,0 +1,25 @@
+.ci-check-run-job-steps-list {
+  overflow-y: auto;
+  max-height: 250px;
+  border-bottom: var(--base-border);
+
+  .ci-check-run-job-step {
+    border-bottom: var(--base-border);
+    background-color: var(--box-alt-background-color);
+
+    &:hover {
+      /* 100% is baseline so 95% is 5% darker */
+      filter: brightness(95%);
+    }
+
+    .job-step-status-symbol,
+    .job-step-duration {
+      padding: var(--spacing);
+      padding-top: 12px;
+    }
+
+    .job-step-name {
+      flex-grow: 1;
+    }
+  }
+}

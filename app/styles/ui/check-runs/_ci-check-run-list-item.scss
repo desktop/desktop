@@ -4,9 +4,26 @@
   border-bottom: var(--base-border);
   height: 100%;
 
-  .ci-check-status-symbol {
+  .ci-check-status-symbol,
+  .job-step-toggled-indicator div {
     padding: var(--spacing);
     padding-top: 11px;
+  }
+
+  .check-run-details {
+    flex-grow: 1;
+    display: flex;
+    overflow: hidden;
+
+    &:hover {
+      background: var(--list-item-hover-background-color);
+    }
+  }
+
+  .job-step-toggled-indicator {
+    &:hover {
+      background: var(--list-item-hover-background-color);
+    }
   }
 
   .ci-check-list-item-detail {
@@ -33,21 +50,5 @@
 
     width: 250px;
     height: 12px;
-  }
-
-  .view-on-github {
-    display: none;
-    padding: var(--spacing);
-    padding-bottom: var(--spacing-half);
-    color: var(--text-secondary-color);
-
-    .octicon:hover {
-      color: var(--text-color);
-    }
-  }
-
-  &:hover .view-on-github,
-  .view-on-github.show {
-    display: block;
   }
 }

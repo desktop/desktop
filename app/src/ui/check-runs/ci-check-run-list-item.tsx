@@ -6,9 +6,10 @@ import {
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
-import { CICheckRunLogs } from './ci-check-run-logs'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
+import { IAPIWorkflowJobStep } from '../../lib/api'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -21,40 +22,27 @@ interface ICICheckRunListItemProps {
   readonly loadingActionWorkflows: boolean
 
   /** Whether to show the logs for this check run */
-  readonly showLogs: boolean
-
-  /** The base href used for relative links provided in check run markdown
-   * output */
-  readonly baseHref: string | null
+  readonly isCheckRunExpanded: boolean
 
   /** Callback for when a check run is clicked */
-  readonly onCheckRunClick: (checkRun: IRefCheck) => void
+  readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
   readonly onViewCheckDetails: (checkRun: IRefCheck) => void
 
-  /** Callback to open URL's originating from markdown */
-  readonly onMarkdownLinkClicked: (url: string) => void
-}
-
-interface ICICheckRunListItemState {
-  readonly isMouseOverLogs: boolean
+  /** Callback to open a job steps link on dotcom*/
+  readonly onViewJobStep: (
+    checkRun: IRefCheck,
+    step: IAPIWorkflowJobStep
+  ) => void
 }
 
 /** The CI check list item. */
 export class CICheckRunListItem extends React.PureComponent<
-  ICICheckRunListItemProps,
-  ICICheckRunListItemState
+  ICICheckRunListItemProps
 > {
-  public constructor(props: ICICheckRunListItemProps) {
-    super(props)
-    this.state = {
-      isMouseOverLogs: false,
-    }
-  }
-
   private onCheckRunClick = () => {
-    this.props.onCheckRunClick(this.props.checkRun)
+    this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
 
   private onViewCheckDetails = (e?: React.MouseEvent<HTMLDivElement>) => {
@@ -62,113 +50,94 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onViewCheckDetails(this.props.checkRun)
   }
 
-  private onMouseOverLogs = () => {
-    this.setState({ isMouseOverLogs: true })
-  }
-
-  private onMouseLeaveLogs = () => {
-    this.setState({ isMouseOverLogs: false })
-  }
-
-  private isLoading = (): boolean => {
-    if (this.props.loadingActionLogs) {
-      return true
-    }
-
-    if (
-      this.props.loadingActionWorkflows &&
-      this.props.checkRun.actionsWorkflowRunId !== undefined
-    ) {
-      return true
-    }
-
-    return false
+  private onViewJobStep = (step: IAPIWorkflowJobStep) => {
+    this.props.onViewJobStep(this.props.checkRun, step)
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
-    const { checkRun, showLogs } = this.props
-
-    const stepLoader = (
-      <svg
-        fill="none"
-        height="16"
-        viewBox="0 0 16 16"
-        width="16"
-        className="spin"
-      >
-        <g strokeWidth="2">
-          <circle cx="8" cy="8" r="7" stroke="#959da5"></circle>
-          <path
-            d="m12.9497 3.05025c1.3128 1.31276 2.0503 3.09323 2.0503 4.94975 0 1.85651-.7375 3.637-2.0503 4.9497"
-            stroke="#fafbfc"
-          ></path>
-        </g>
-      </svg>
-    )
+    const { checkRun } = this.props
 
     return (
       <div className="ci-check-status-symbol">
-        {this.isLoading() && showLogs ? (
-          stepLoader
-        ) : (
+        <Octicon
+          className={classNames(
+            'ci-status',
+            `ci-status-${getClassNameForCheck(checkRun)}`
+          )}
+          symbol={getSymbolForCheck(checkRun)}
+        />
+      </div>
+    )
+  }
+
+  private rendeCheckJobStepToggle = (): JSX.Element | null => {
+    const { checkRun, isCheckRunExpanded } = this.props
+
+    if (checkRun.actionJobSteps === undefined) {
+      return null
+    }
+
+    return (
+      <TooltippedContent
+        className="job-step-toggled-indicator"
+        tooltip="Show job steps"
+        tagName="div"
+      >
+        <div onClick={this.onCheckRunClick}>
           <Octicon
-            className={classNames(
-              'ci-status',
-              `ci-status-${getClassNameForCheck(checkRun)}`
-            )}
-            symbol={getSymbolForCheck(checkRun)}
-            title={checkRun.description}
+            symbol={
+              isCheckRunExpanded
+                ? OcticonSymbol.chevronDown
+                : OcticonSymbol.chevronUp
+            }
           />
-        )}
+        </div>
+      </TooltippedContent>
+    )
+  }
+
+  private renderCheckRunName = (): JSX.Element => {
+    const { checkRun } = this.props
+    const name = getCheckRunDisplayName(checkRun)
+    return (
+      <div
+        className="ci-check-list-item-detail"
+        onClick={this.onViewCheckDetails}
+      >
+        <TooltippedContent
+          className="ci-check-name"
+          tooltip={name}
+          onlyWhenOverflowed={true}
+          tagName="div"
+        >
+          {name}
+        </TooltippedContent>
+
+        <div className="ci-check-description">{checkRun.description}</div>
       </div>
     )
   }
 
   public render() {
-    const { checkRun, showLogs, baseHref } = this.props
+    const { checkRun, isCheckRunExpanded } = this.props
 
-    const name = getCheckRunDisplayName(checkRun)
     return (
       <>
-        <div
-          className="ci-check-list-item list-item"
-          onClick={this.onCheckRunClick}
-        >
-          {this.renderCheckStatusSymbol()}
-          <div className="ci-check-list-item-detail">
-            <TooltippedContent
-              className="ci-check-name"
-              tooltip={name}
-              onlyWhenOverflowed={true}
-              tagName="div"
-            >
-              {name}
-            </TooltippedContent>
-
-            <div className="ci-check-description">{checkRun.description}</div>
-          </div>
-          <div
-            className={classNames('view-on-github', {
-              show: this.state.isMouseOverLogs,
-            })}
-            onClick={this.onViewCheckDetails}
+        <div className="ci-check-list-item">
+          <TooltippedContent
+            className="check-run-details"
+            tooltip="View online"
+            tagName="div"
           >
-            <Octicon
-              symbol={OcticonSymbol.linkExternal}
-              title="View on GitHub"
-            />
-          </div>
+            {this.renderCheckStatusSymbol()}
+            {this.renderCheckRunName()}
+          </TooltippedContent>
+          {this.rendeCheckJobStepToggle()}
         </div>
-        {showLogs &&
-        !this.isLoading() &&
-        checkRun.actionJobSteps !== undefined ? (
-          <CICheckRunLogs
-            checkRun={checkRun}
-            baseHref={baseHref}
-            onMouseOver={this.onMouseOverLogs}
-            onMouseLeave={this.onMouseLeaveLogs}
-            onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
-            onViewCheckDetails={this.onViewCheckDetails}
+        {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
+          <CICheckRunActionsJobStepList
+            steps={checkRun.actionJobSteps}
+            onViewJobStep={this.onViewJobStep}
           />
         ) : null}
       </>
