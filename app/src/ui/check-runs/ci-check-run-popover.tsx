@@ -26,6 +26,10 @@ interface ICICheckRunPopoverProps {
   /** The pull request's number. */
   readonly prNumber: number
 
+  /** The bottom of the pull request badge so we can position popover relative
+   * to it. */
+  readonly badgeBottom: number
+
   /** Callback for when popover closes */
   readonly closePopover: (event?: MouseEvent) => void
 }
@@ -267,6 +271,20 @@ export class CICheckRunPopover extends React.PureComponent<
     }
   }
 
+  private getPopoverPositioningStyles = (): React.CSSProperties => {
+    const top = this.props.badgeBottom + 10
+    return { top, maxHeight: `calc(100% - ${top + 10}px)` }
+  }
+
+  private getListHeightStyles = (): React.CSSProperties => {
+    const headerHeight = 55
+    return {
+      maxHeight: `${
+        window.innerHeight - (this.props.badgeBottom + headerHeight + 20)
+      }px`,
+    }
+  }
+
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     return (
@@ -291,6 +309,7 @@ export class CICheckRunPopover extends React.PureComponent<
         <Popover
           caretPosition={PopoverCaretPosition.Top}
           onClickOutside={this.props.closePopover}
+          style={this.getPopoverPositioningStyles()}
         >
           <div className="ci-check-run-list-header">
             <div className="ci-check-run-list-title-container">
@@ -300,14 +319,19 @@ export class CICheckRunPopover extends React.PureComponent<
             {this.renderRerunButton()}
           </div>
           {!loadingActionLogs ? (
-            <CICheckRunList
-              baseHref={baseHref}
-              checkRuns={checkRuns}
-              loadingActionLogs={loadingActionLogs}
-              loadingActionWorkflows={loadingActionWorkflows}
-              onViewCheckDetails={this.onViewCheckDetails}
-              onMarkdownLinkClicked={this.markDownLinkClicked}
-            />
+            <div
+              className="ci-check-run-list"
+              style={this.getListHeightStyles()}
+            >
+              <CICheckRunList
+                baseHref={baseHref}
+                checkRuns={checkRuns}
+                loadingActionLogs={loadingActionLogs}
+                loadingActionWorkflows={loadingActionWorkflows}
+                onViewCheckDetails={this.onViewCheckDetails}
+                onMarkdownLinkClicked={this.markDownLinkClicked}
+              />
+            </div>
           ) : null}
         </Popover>
       </div>
