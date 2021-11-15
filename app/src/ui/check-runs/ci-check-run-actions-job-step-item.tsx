@@ -7,6 +7,8 @@ import {
 } from '../branches/ci-status'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { getFormattedCheckRunDuration } from '../../lib/ci-checks/ci-checks'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { TooltipDirectionDef } from '../lib/tooltip'
 
 interface ICICheckRunActionsJobStepListItemProps {
   readonly step: IAPIWorkflowJobStep
@@ -50,9 +52,15 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<
             />
           </div>
 
-          <div className="job-step-name">
+          <TooltippedContent
+            className="job-step-name"
+            tooltip={step.name}
+            onlyWhenOverflowed={true}
+            tagName="div"
+            direction={TooltipDirectionDef.NORTH}
+          >
             <span onClick={this.onViewJobStepExternally}>{step.name}</span>
-          </div>
+          </TooltippedContent>
 
           <div className="job-step-duration">
             {getFormattedCheckRunDuration(step)}
