@@ -10,6 +10,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
 import { IAPIWorkflowJobStep } from '../../lib/api'
+import { TooltipDirectionDef } from '../lib/tooltip'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -99,6 +100,7 @@ export class CICheckRunListItem extends React.PureComponent<
           tooltip={name}
           onlyWhenOverflowed={true}
           tagName="div"
+          direction={TooltipDirectionDef.NORTH}
         >
           <span onClick={this.onViewCheckExternally}>{name}</span>
         </TooltippedContent>
