@@ -138,6 +138,7 @@
     width: 20px;
     left: calc(50% - 10px);
     top: 0;
+    z-index: 1;
 
     &.hoverable {
       cursor: pointer;
