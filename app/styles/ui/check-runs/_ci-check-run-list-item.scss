@@ -10,24 +10,14 @@
     }
   }
 
-  .view-externally {
-    display: none;
-    color: var(--text-secondary-color);
-
-    div {
-      margin-top: 2px;
-    }
-
-    &:hover {
-      color: var(--text-color);
-    }
-  }
-
   .ci-check-status-symbol,
-  .view-externally,
   .job-step-toggled-indicator {
     padding: var(--spacing);
     padding-top: 11px;
+  }
+
+  .job-step-toggled-indicator {
+    padding-left: 0px;
   }
 
   .ci-check-list-item-detail {

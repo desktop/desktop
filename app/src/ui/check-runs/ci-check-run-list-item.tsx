@@ -71,12 +71,6 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderLinkExternal = (): JSX.Element | null => {
-    const { checkRun } = this.props
-
-    if (checkRun.actionJobSteps === undefined) {
-      return null
-    }
-
     return (
       <TooltippedContent
         className="view-externally"
@@ -98,11 +92,7 @@ export class CICheckRunListItem extends React.PureComponent<
     }
 
     return (
-      <TooltippedContent
-        className="job-step-toggled-indicator"
-        tooltip="Show job steps"
-        tagName="div"
-      >
+      <div className="job-step-toggled-indicator">
         <Octicon
           symbol={
             isCheckRunExpanded
@@ -110,7 +100,7 @@ export class CICheckRunListItem extends React.PureComponent<
               : OcticonSymbol.chevronUp
           }
         />
-      </TooltippedContent>
+      </div>
     )
   }
 

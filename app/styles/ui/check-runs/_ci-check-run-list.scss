@@ -2,4 +2,19 @@
   overflow-y: auto;
   overflow-x: hidden;
   border-radius: var(--border-radius);
+
+  .view-externally {
+    display: none;
+    color: var(--text-secondary-color);
+
+    div {
+      padding: var(--spacing);
+      padding-top: 12px;
+      padding-bottom: 8px;
+    }
+
+    &:hover {
+      color: var(--text-color);
+    }
+  }
 }
