@@ -13,8 +13,10 @@
     &:hover {
       /* 100% is baseline so 95% is 5% darker */
       filter: brightness(95%);
+    }
 
-      .job-step-name span {
+    .job-step-name span {
+      &:hover {
         color: var(--link-button-color);
         cursor: pointer !important;
       }

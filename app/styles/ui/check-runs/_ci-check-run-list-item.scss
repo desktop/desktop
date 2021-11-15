@@ -4,8 +4,8 @@
   border-bottom: var(--base-border);
   height: 100%;
 
-  &:hover {
-    .ci-check-name span {
+  .ci-check-name span {
+    &:hover {
       color: var(--link-button-color);
       cursor: pointer !important;
     }
