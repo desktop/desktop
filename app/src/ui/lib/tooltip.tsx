@@ -7,6 +7,16 @@ import { assertNever } from '../../lib/fatal-error'
 import { rectEquals, rectContains } from './rect'
 
 export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
+export enum TooltipDirectionDef {
+  NORTH = 'n',
+  NORTH_EAST = 'ne',
+  EAST = 'e',
+  SOUTH_EAST = 'se',
+  SOUTH = 's',
+  SOUTH_WEST = 'sw',
+  WEST = 'w',
+  NORTH_WEST = 'nw',
+}
 const DefaultTooltipDelay = 400
 const InteractiveTooltipHideDelay = 250
 
