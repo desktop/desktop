@@ -10,12 +10,9 @@
       /* 100% is baseline so 95% is 5% darker */
       filter: brightness(95%);
 
-      .job-step-duration {
-        display: none;
-      }
-
-      .view-externally {
-        display: block;
+      .job-step-name span {
+        color: var(--link-button-color);
+        cursor: pointer !important;
       }
     }
 

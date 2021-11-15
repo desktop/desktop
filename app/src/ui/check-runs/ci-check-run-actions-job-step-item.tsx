@@ -7,8 +7,6 @@ import {
 } from '../branches/ci-status'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { getFormattedCheckRunDuration } from '../../lib/ci-checks/ci-checks'
-import { TooltippedContent } from '../lib/tooltipped-content'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface ICICheckRunActionsJobStepListItemProps {
   readonly step: IAPIWorkflowJobStep
@@ -37,20 +35,6 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<
     }
   }
 
-  private renderLinkExternal = (): JSX.Element | null => {
-    return (
-      <TooltippedContent
-        className="view-externally"
-        tooltip="View on GitHub"
-        tagName="div"
-      >
-        <div onClick={this.onViewJobStepExternally}>
-          <Octicon symbol={OcticonSymbol.linkExternal} />
-        </div>
-      </TooltippedContent>
-    )
-  }
-
   public render() {
     const { step } = this.props
     return (
@@ -66,11 +50,13 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<
             />
           </div>
 
-          <div className="job-step-name">{step.name}</div>
+          <div className="job-step-name">
+            <span onClick={this.onViewJobStepExternally}>{step.name}</span>
+          </div>
+
           <div className="job-step-duration">
             {getFormattedCheckRunDuration(step)}
           </div>
-          {this.renderLinkExternal()}
         </div>
       </div>
     )

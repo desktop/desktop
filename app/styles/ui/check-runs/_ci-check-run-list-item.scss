@@ -5,8 +5,9 @@
   height: 100%;
 
   &:hover {
-    .view-externally {
-      display: block;
+    .ci-check-name span {
+      color: var(--link-button-color);
+      cursor: pointer !important;
     }
   }
 

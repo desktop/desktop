@@ -45,8 +45,7 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
 
-  private onViewCheckExternally = (e?: React.MouseEvent<HTMLDivElement>) => {
-    e?.stopPropagation()
+  private onViewCheckExternally = () => {
     this.props.onViewCheckExternally(this.props.checkRun)
   }
 
@@ -67,20 +66,6 @@ export class CICheckRunListItem extends React.PureComponent<
           symbol={getSymbolForCheck(checkRun)}
         />
       </div>
-    )
-  }
-
-  private renderLinkExternal = (): JSX.Element | null => {
-    return (
-      <TooltippedContent
-        className="view-externally"
-        tooltip="View online"
-        tagName="div"
-      >
-        <div onClick={this.onViewCheckExternally}>
-          <Octicon symbol={OcticonSymbol.linkExternal} />
-        </div>
-      </TooltippedContent>
     )
   }
 
@@ -115,7 +100,7 @@ export class CICheckRunListItem extends React.PureComponent<
           onlyWhenOverflowed={true}
           tagName="div"
         >
-          {name}
+          <span onClick={this.onViewCheckExternally}>{name}</span>
         </TooltippedContent>
 
         <div className="ci-check-description">{checkRun.description}</div>
@@ -129,12 +114,11 @@ export class CICheckRunListItem extends React.PureComponent<
     return (
       <>
         <div
-          className="ci-check-list-item"
+          className="ci-check-list-item list-item"
           onClick={this.toggleCheckRunExpansion}
         >
           {this.renderCheckStatusSymbol()}
           {this.renderCheckRunName()}
-          {this.renderLinkExternal()}
           {this.renderCheckJobStepToggle()}
         </div>
         {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
