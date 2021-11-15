@@ -203,6 +203,12 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   private onViewCheckDetails = (checkRun: IRefCheck): void => {
+    if (checkRun.htmlUrl === null && this.props.repository.htmlURL === null) {
+      // A check run may not have a url depending on how it is setup.
+      // However, the repository should have one; Thus, we shouldn't hit this
+      return
+    }
+
     // Some checks do not provide htmlURLS like ones for the legacy status
     // object as they do not have a view in the checks screen. In that case we
     // will just open the PR and they can navigate from there... a little
@@ -210,10 +216,7 @@ export class CICheckRunPopover extends React.PureComponent<
     const url =
       checkRun.htmlUrl ??
       `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
-    if (url === null) {
-      // The repository should have a htmlURL.
-      return
-    }
+
     this.props.dispatcher.openInBrowser(url)
   }
 
@@ -221,13 +224,17 @@ export class CICheckRunPopover extends React.PureComponent<
     checkRun: IRefCheck,
     step: IAPIWorkflowJobStep
   ): void => {
-    const url = checkRun.htmlUrl
-      ? `${checkRun.htmlUrl}/#step:${step.number}:1`
-      : `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
-    if (url === null) {
-      // The repository should have a htmlURL.
+    if (checkRun.htmlUrl === null && this.props.repository.htmlURL === null) {
+      // A check run may not have a url depending on how it is setup.
+      // However, the repository should have one; Thus, we shouldn't hit this
       return
     }
+
+    const url =
+      checkRun.htmlUrl !== null
+        ? `${checkRun.htmlUrl}/#step:${step.number}:1`
+        : `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
+
     this.props.dispatcher.openInBrowser(url)
   }
 
