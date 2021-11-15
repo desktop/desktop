@@ -28,7 +28,7 @@ interface ICICheckRunListItemProps {
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
-  readonly onViewCheckDetails: (checkRun: IRefCheck) => void
+  readonly onViewCheckExternally: (checkRun: IRefCheck) => void
 
   /** Callback to open a job steps link on dotcom*/
   readonly onViewJobStep: (
@@ -41,13 +41,13 @@ interface ICICheckRunListItemProps {
 export class CICheckRunListItem extends React.PureComponent<
   ICICheckRunListItemProps
 > {
-  private onCheckRunClick = () => {
+  private toggleCheckRunExpansion = () => {
     this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
 
-  private onViewCheckDetails = (e?: React.MouseEvent<HTMLDivElement>) => {
+  private onViewCheckExternally = (e?: React.MouseEvent<HTMLDivElement>) => {
     e?.stopPropagation()
-    this.props.onViewCheckDetails(this.props.checkRun)
+    this.props.onViewCheckExternally(this.props.checkRun)
   }
 
   private onViewJobStep = (step: IAPIWorkflowJobStep) => {
@@ -70,7 +70,27 @@ export class CICheckRunListItem extends React.PureComponent<
     )
   }
 
-  private rendeCheckJobStepToggle = (): JSX.Element | null => {
+  private renderLinkExternal = (): JSX.Element | null => {
+    const { checkRun } = this.props
+
+    if (checkRun.actionJobSteps === undefined) {
+      return null
+    }
+
+    return (
+      <TooltippedContent
+        className="view-externally"
+        tooltip="View online"
+        tagName="div"
+      >
+        <div onClick={this.onViewCheckExternally}>
+          <Octicon symbol={OcticonSymbol.linkExternal} />
+        </div>
+      </TooltippedContent>
+    )
+  }
+
+  private renderCheckJobStepToggle = (): JSX.Element | null => {
     const { checkRun, isCheckRunExpanded } = this.props
 
     if (checkRun.actionJobSteps === undefined) {
@@ -83,15 +103,13 @@ export class CICheckRunListItem extends React.PureComponent<
         tooltip="Show job steps"
         tagName="div"
       >
-        <div onClick={this.onCheckRunClick}>
-          <Octicon
-            symbol={
-              isCheckRunExpanded
-                ? OcticonSymbol.chevronDown
-                : OcticonSymbol.chevronUp
-            }
-          />
-        </div>
+        <Octicon
+          symbol={
+            isCheckRunExpanded
+              ? OcticonSymbol.chevronDown
+              : OcticonSymbol.chevronUp
+          }
+        />
       </TooltippedContent>
     )
   }
@@ -100,10 +118,7 @@ export class CICheckRunListItem extends React.PureComponent<
     const { checkRun } = this.props
     const name = getCheckRunDisplayName(checkRun)
     return (
-      <div
-        className="ci-check-list-item-detail"
-        onClick={this.onViewCheckDetails}
-      >
+      <div className="ci-check-list-item-detail">
         <TooltippedContent
           className="ci-check-name"
           tooltip={name}
@@ -123,16 +138,14 @@ export class CICheckRunListItem extends React.PureComponent<
 
     return (
       <>
-        <div className="ci-check-list-item">
-          <TooltippedContent
-            className="check-run-details"
-            tooltip="View online"
-            tagName="div"
-          >
-            {this.renderCheckStatusSymbol()}
-            {this.renderCheckRunName()}
-          </TooltippedContent>
-          {this.rendeCheckJobStepToggle()}
+        <div
+          className="ci-check-list-item"
+          onClick={this.toggleCheckRunExpansion}
+        >
+          {this.renderCheckStatusSymbol()}
+          {this.renderCheckRunName()}
+          {this.renderLinkExternal()}
+          {this.renderCheckJobStepToggle()}
         </div>
         {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
           <CICheckRunActionsJobStepList

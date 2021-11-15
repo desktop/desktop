@@ -4,26 +4,30 @@
   border-bottom: var(--base-border);
   height: 100%;
 
+  &:hover {
+    .view-externally {
+      display: block;
+    }
+  }
+
+  .view-externally {
+    display: none;
+    color: var(--text-secondary-color);
+
+    div {
+      margin-top: 2px;
+    }
+
+    &:hover {
+      color: var(--text-color);
+    }
+  }
+
   .ci-check-status-symbol,
-  .job-step-toggled-indicator div {
+  .view-externally,
+  .job-step-toggled-indicator {
     padding: var(--spacing);
     padding-top: 11px;
-  }
-
-  .check-run-details {
-    flex-grow: 1;
-    display: flex;
-    overflow: hidden;
-
-    &:hover {
-      background: var(--list-item-hover-background-color);
-    }
-  }
-
-  .job-step-toggled-indicator {
-    &:hover {
-      background: var(--list-item-hover-background-color);
-    }
   }
 
   .ci-check-list-item-detail {
