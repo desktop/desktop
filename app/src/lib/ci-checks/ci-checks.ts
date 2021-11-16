@@ -343,12 +343,25 @@ export function getLatestCheckRunsByName(
   const latestCheckRunsByName = new Map<string, IAPIRefCheckRun>()
 
   for (const checkRun of checkRuns) {
-    const current = latestCheckRunsByName.get(checkRun.name)
+    // For release branches (maybe other scenarios?), there can be check runs
+    // with the same name, but are "push" events not "pull_request" events. For
+    // the push events, the pull_request array will be empty. For pull_request,
+    // the pull_request array should have the pull_request object in it. We want
+    // these runs treated separately even tho they have same name, they are not
+    // simply a repeat of the same run as they have a different origination. This
+    // feels hacky... but we don't have any other meta data on a check run that
+    // differieates these.
+    const nameAndHasPRs =
+      checkRun.name +
+      (checkRun.pull_requests.length > 0
+        ? 'isPullRequestCheckRun'
+        : 'isPushCheckRun')
+    const current = latestCheckRunsByName.get(nameAndHasPRs)
     if (
       current === undefined ||
       current.check_suite.id < checkRun.check_suite.id
     ) {
-      latestCheckRunsByName.set(checkRun.name, checkRun)
+      latestCheckRunsByName.set(nameAndHasPRs, checkRun)
     }
   }
 

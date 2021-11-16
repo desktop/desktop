@@ -341,6 +341,7 @@ export interface IAPIRefCheckRun {
   readonly completed_at: string
   readonly started_at: string
   readonly html_url: string
+  readonly pull_requests: ReadonlyArray<IAPIPullRequest>
 }
 
 // NB. Only partially mapped
