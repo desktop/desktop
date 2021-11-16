@@ -205,12 +205,12 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContentFromString('')}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after">
               {this.renderLineNumber(lineNumber, isSelected)}
               {this.renderContent(row.data)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
@@ -242,12 +242,12 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContent(row.data)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after">
               {this.renderLineNumber()}
               {this.renderContentFromString('')}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
@@ -260,12 +260,12 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContent(before)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
               {this.renderLineNumber(after.lineNumber, after.isSelected)}
               {this.renderContent(after)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
