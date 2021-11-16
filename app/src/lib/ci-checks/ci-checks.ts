@@ -526,6 +526,10 @@ function getCheckRunWithActionsJobAndLogURLs(
 export function getFormattedCheckRunDuration(
   checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
 ): string {
+  if (checkRun.completed_at === null || checkRun.started_at === null) {
+    return ''
+  }
+
   return moment
     .duration(getCheckDurationInSeconds(checkRun), 'seconds')
     .format('d[d] h[h] m[m] s[s]', { largest: 4 })

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { IAPIWorkflowJobStep } from '../../lib/api'
 import {
   getCheckRunDisplayName,
   IRefCheck,
@@ -16,15 +17,14 @@ interface ICICheckRunListProps {
   /** Whether loading workflow  */
   readonly loadingActionWorkflows: boolean
 
-  /** The base href used for relative links provided in check run markdown
-   * output */
-  readonly baseHref: string | null
-
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
   readonly onViewCheckDetails: (checkRun: IRefCheck) => void
 
-  /** Callback to open URL's originating from markdown */
-  readonly onMarkdownLinkClicked: (url: string) => void
+  /** Callback to open a job steps link on dotcom*/
+  readonly onViewJobStep: (
+    checkRun: IRefCheck,
+    step: IAPIWorkflowJobStep
+  ) => void
 }
 
 interface ICICheckRunListState {
@@ -97,13 +97,12 @@ export class CICheckRunList extends React.PureComponent<
           <CICheckRunListItem
             key={i}
             checkRun={c}
-            baseHref={this.props.baseHref}
             loadingActionLogs={this.props.loadingActionLogs}
             loadingActionWorkflows={this.props.loadingActionWorkflows}
-            showLogs={this.state.checkRunExpanded === c.id.toString()}
-            onCheckRunClick={this.onCheckRunClick}
+            isCheckRunExpanded={this.state.checkRunExpanded === c.id.toString()}
+            onCheckRunExpansionToggleClick={this.onCheckRunClick}
             onViewCheckDetails={this.props.onViewCheckDetails}
-            onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
+            onViewJobStep={this.props.onViewJobStep}
           />
         )
       })
@@ -112,10 +111,6 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public render() {
-    return (
-      <div className="ci-check-run-list">
-        <div className="ci-check-app-list">{this.renderList()}</div>
-      </div>
-    )
+    return <div className="ci-check-run-list">{this.renderList()}</div>
   }
 }

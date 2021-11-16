@@ -9,7 +9,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
-import { APICheckConclusion, getHTMLURL } from '../../lib/api'
+import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import _ from 'lodash'
@@ -203,6 +203,12 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   private onViewCheckDetails = (checkRun: IRefCheck): void => {
+    if (checkRun.htmlUrl === null && this.props.repository.htmlURL === null) {
+      // A check run may not have a url depending on how it is setup.
+      // However, the repository should have one; Thus, we shouldn't hit this
+      return
+    }
+
     // Some checks do not provide htmlURLS like ones for the legacy status
     // object as they do not have a view in the checks screen. In that case we
     // will just open the PR and they can navigate from there... a little
@@ -210,15 +216,26 @@ export class CICheckRunPopover extends React.PureComponent<
     const url =
       checkRun.htmlUrl ??
       `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
-    if (url === null) {
-      // The repository should have a htmlURL.
-      return
-    }
+
     this.props.dispatcher.openInBrowser(url)
   }
 
-  private markDownLinkClicked = (link: string): void => {
-    this.props.dispatcher.openInBrowser(link)
+  private onViewJobStep = (
+    checkRun: IRefCheck,
+    step: IAPIWorkflowJobStep
+  ): void => {
+    if (checkRun.htmlUrl === null && this.props.repository.htmlURL === null) {
+      // A check run may not have a url depending on how it is setup.
+      // However, the repository should have one; Thus, we shouldn't hit this
+      return
+    }
+
+    const url =
+      checkRun.htmlUrl !== null
+        ? `${checkRun.htmlUrl}/#step:${step.number}:1`
+        : `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
+
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private getCommitRef(prNumber: number): string {
@@ -302,8 +319,6 @@ export class CICheckRunPopover extends React.PureComponent<
       loadingActionWorkflows,
     } = this.state
 
-    const baseHref = getHTMLURL(this.props.repository.endpoint)
-
     return (
       <div className="ci-check-list-popover">
         <Popover
@@ -324,12 +339,11 @@ export class CICheckRunPopover extends React.PureComponent<
               style={this.getListHeightStyles()}
             >
               <CICheckRunList
-                baseHref={baseHref}
                 checkRuns={checkRuns}
                 loadingActionLogs={loadingActionLogs}
                 loadingActionWorkflows={loadingActionWorkflows}
                 onViewCheckDetails={this.onViewCheckDetails}
-                onMarkdownLinkClicked={this.markDownLinkClicked}
+                onViewJobStep={this.onViewJobStep}
               />
             </div>
           ) : null}
