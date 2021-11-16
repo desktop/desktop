@@ -150,7 +150,7 @@ export function enableSetAlmostImmediate(): boolean {
 
 /** Should we show ci check runs? */
 export function enableCICheckRuns(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /** Should ci check runs show logs? */
