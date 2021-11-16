@@ -32,4 +32,26 @@
       }
     }
   }
+
+  .loading-check-runs {
+    width: 365px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--spacing);
+
+    .blankslate-image {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .call-to-action {
+      font-size: var(--font-size-sm);
+    }
+  }
 }
