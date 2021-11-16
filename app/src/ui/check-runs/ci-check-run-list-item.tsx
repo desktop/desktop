@@ -10,6 +10,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
 import { IAPIWorkflowJobStep } from '../../lib/api'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -28,7 +29,7 @@ interface ICICheckRunListItemProps {
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
-  readonly onViewCheckDetails: (checkRun: IRefCheck) => void
+  readonly onViewCheckExternally: (checkRun: IRefCheck) => void
 
   /** Callback to open a job steps link on dotcom*/
   readonly onViewJobStep: (
@@ -41,13 +42,12 @@ interface ICICheckRunListItemProps {
 export class CICheckRunListItem extends React.PureComponent<
   ICICheckRunListItemProps
 > {
-  private onCheckRunClick = () => {
+  private toggleCheckRunExpansion = () => {
     this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
 
-  private onViewCheckDetails = (e?: React.MouseEvent<HTMLDivElement>) => {
-    e?.stopPropagation()
-    this.props.onViewCheckDetails(this.props.checkRun)
+  private onViewCheckExternally = () => {
+    this.props.onViewCheckExternally(this.props.checkRun)
   }
 
   private onViewJobStep = (step: IAPIWorkflowJobStep) => {
@@ -70,7 +70,7 @@ export class CICheckRunListItem extends React.PureComponent<
     )
   }
 
-  private rendeCheckJobStepToggle = (): JSX.Element | null => {
+  private renderCheckJobStepToggle = (): JSX.Element | null => {
     const { checkRun, isCheckRunExpanded } = this.props
 
     if (checkRun.actionJobSteps === undefined) {
@@ -78,21 +78,15 @@ export class CICheckRunListItem extends React.PureComponent<
     }
 
     return (
-      <TooltippedContent
-        className="job-step-toggled-indicator"
-        tooltip="Show job steps"
-        tagName="div"
-      >
-        <div onClick={this.onCheckRunClick}>
-          <Octicon
-            symbol={
-              isCheckRunExpanded
-                ? OcticonSymbol.chevronDown
-                : OcticonSymbol.chevronUp
-            }
-          />
-        </div>
-      </TooltippedContent>
+      <div className="job-step-toggled-indicator">
+        <Octicon
+          symbol={
+            isCheckRunExpanded
+              ? OcticonSymbol.chevronDown
+              : OcticonSymbol.chevronUp
+          }
+        />
+      </div>
     )
   }
 
@@ -100,17 +94,15 @@ export class CICheckRunListItem extends React.PureComponent<
     const { checkRun } = this.props
     const name = getCheckRunDisplayName(checkRun)
     return (
-      <div
-        className="ci-check-list-item-detail"
-        onClick={this.onViewCheckDetails}
-      >
+      <div className="ci-check-list-item-detail">
         <TooltippedContent
           className="ci-check-name"
           tooltip={name}
           onlyWhenOverflowed={true}
           tagName="div"
+          direction={TooltipDirection.NORTH}
         >
-          {name}
+          <span onClick={this.onViewCheckExternally}>{name}</span>
         </TooltippedContent>
 
         <div className="ci-check-description">{checkRun.description}</div>
@@ -123,16 +115,13 @@ export class CICheckRunListItem extends React.PureComponent<
 
     return (
       <>
-        <div className="ci-check-list-item">
-          <TooltippedContent
-            className="check-run-details"
-            tooltip="View online"
-            tagName="div"
-          >
-            {this.renderCheckStatusSymbol()}
-            {this.renderCheckRunName()}
-          </TooltippedContent>
-          {this.rendeCheckJobStepToggle()}
+        <div
+          className="ci-check-list-item list-item"
+          onClick={this.toggleCheckRunExpansion}
+        >
+          {this.renderCheckStatusSymbol()}
+          {this.renderCheckRunName()}
+          {this.renderCheckJobStepToggle()}
         </div>
         {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
           <CICheckRunActionsJobStepList

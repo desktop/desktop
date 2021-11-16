@@ -6,7 +6,17 @@ import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { rectEquals, rectContains } from './rect'
 
-export type TooltipDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw'
+export enum TooltipDirection {
+  NORTH = 'n',
+  NORTH_EAST = 'ne',
+  EAST = 'e',
+  SOUTH_EAST = 'se',
+  SOUTH = 's',
+  SOUTH_WEST = 'sw',
+  WEST = 'w',
+  NORTH_WEST = 'nw',
+}
+
 const DefaultTooltipDelay = 400
 const InteractiveTooltipHideDelay = 250
 
@@ -389,7 +399,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
 
     const direction = visible
       ? getDirection(this.props.direction, targetRect, windowRect, tooltipRect)
-      : 's'
+      : TooltipDirection.SOUTH
 
     const style: React.CSSProperties = visible
       ? getTooltipPositionStyle(direction, targetRect, hostRect, tooltipRect)
@@ -455,14 +465,14 @@ function getDirection(
     rectContains(window, getTooltipRectRelativeTo(target, direction, tooltip))
 
   let candidates = new Set<TooltipDirection>([
-    'n',
-    'ne',
-    'nw',
-    's',
-    'se',
-    'sw',
-    'e',
-    'w',
+    TooltipDirection.NORTH,
+    TooltipDirection.NORTH_EAST,
+    TooltipDirection.NORTH_WEST,
+    TooltipDirection.SOUTH,
+    TooltipDirection.SOUTH_EAST,
+    TooltipDirection.SOUTH_WEST,
+    TooltipDirection.EAST,
+    TooltipDirection.WEST,
   ])
 
   // We'll attempt to honor the desired placement but if it won't fit we'll
@@ -473,17 +483,31 @@ function getDirection(
     }
 
     // Try to respect the desired direction by changing the order
-    if (direction.startsWith('s')) {
-      candidates = new Set(['s', 'se', 'sw', ...candidates])
-    } else if (direction.startsWith('n')) {
-      candidates = new Set(['n', 'ne', 'nw', ...candidates])
+    if (direction.startsWith(TooltipDirection.SOUTH)) {
+      candidates = new Set([
+        TooltipDirection.SOUTH,
+        TooltipDirection.SOUTH_EAST,
+        TooltipDirection.SOUTH_WEST,
+        ...candidates,
+      ])
+    } else if (direction.startsWith(TooltipDirection.NORTH)) {
+      candidates = new Set([
+        TooltipDirection.NORTH,
+        TooltipDirection.NORTH_EAST,
+        TooltipDirection.NORTH_WEST,
+        ...candidates,
+      ])
     }
 
     // We already know it won't fit
     candidates.delete(direction)
   } else {
     // Placement based on mouse position, prefer south east, north east
-    candidates = new Set(['se', 'ne', ...candidates])
+    candidates = new Set([
+      TooltipDirection.SOUTH_EAST,
+      TooltipDirection.NORTH_EAST,
+      ...candidates,
+    ])
   }
 
   for (const candidate of candidates) {
@@ -493,7 +517,7 @@ function getDirection(
   }
 
   // Fall back to south even though it doesn't fit
-  return 's'
+  return TooltipDirection.SOUTH
 }
 
 function getTooltipPositionStyle(
@@ -522,21 +546,21 @@ function getTooltipRectRelativeTo(
   const tip = new DOMRect(10, 0, 6, 6)
 
   switch (direction) {
-    case 'ne':
+    case TooltipDirection.NORTH_EAST:
       return new DOMRect(xMid - tip.x - tip.width, yTop - tip.height, w, h)
-    case 'n':
+    case TooltipDirection.NORTH:
       return new DOMRect(xMid - w / 2, yTop - tip.height, w, h)
-    case 'nw':
+    case TooltipDirection.NORTH_WEST:
       return new DOMRect(xMid - w + tip.right, yTop - tip.height, w, h)
-    case 'e':
+    case TooltipDirection.EAST:
       return new DOMRect(xRight + tip.width, yMid, w, h)
-    case 'se':
+    case TooltipDirection.SOUTH_EAST:
       return new DOMRect(xMid - tip.x - tip.width, yBotttom + tip.height, w, h)
-    case 's':
+    case TooltipDirection.SOUTH:
       return new DOMRect(xMid - w / 2, yBotttom + tip.height, w, h)
-    case 'sw':
+    case TooltipDirection.SOUTH_WEST:
       return new DOMRect(xMid - w + tip.right, yBotttom + tip.height, w, h)
-    case 'w':
+    case TooltipDirection.WEST:
       return new DOMRect(xLeft - w - tip.width, yMid, w, h)
     default:
       return assertNever(direction, `Unknown direction ${direction}`)

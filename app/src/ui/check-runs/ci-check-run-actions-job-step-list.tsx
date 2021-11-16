@@ -43,7 +43,7 @@ export class CICheckRunActionsJobStepList extends React.PureComponent<
           key={i}
           step={step}
           firstFailedStep={this.state.firstFailedStep}
-          onViewJobStep={this.props.onViewJobStep}
+          onViewJobStepExternally={this.props.onViewJobStep}
         />
       )
     })

@@ -101,7 +101,7 @@ export class CICheckRunList extends React.PureComponent<
             loadingActionWorkflows={this.props.loadingActionWorkflows}
             isCheckRunExpanded={this.state.checkRunExpanded === c.id.toString()}
             onCheckRunExpansionToggleClick={this.onCheckRunClick}
-            onViewCheckDetails={this.props.onViewCheckDetails}
+            onViewCheckExternally={this.props.onViewCheckDetails}
             onViewJobStep={this.props.onViewJobStep}
           />
         )

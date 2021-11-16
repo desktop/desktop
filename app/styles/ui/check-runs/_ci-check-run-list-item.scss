@@ -4,26 +4,22 @@
   border-bottom: var(--base-border);
   height: 100%;
 
+  .ci-check-name span {
+    &:hover {
+      color: var(--link-button-color);
+      cursor: pointer !important;
+    }
+  }
+
   .ci-check-status-symbol,
-  .job-step-toggled-indicator div {
+  .job-step-toggled-indicator {
     padding: var(--spacing);
     padding-top: 11px;
   }
 
-  .check-run-details {
-    flex-grow: 1;
-    display: flex;
-    overflow: hidden;
-
-    &:hover {
-      background: var(--list-item-hover-background-color);
-    }
-  }
-
   .job-step-toggled-indicator {
-    &:hover {
-      background: var(--list-item-hover-background-color);
-    }
+    padding-left: 0px;
+    color: var(--text-secondary-color);
   }
 
   .ci-check-list-item-detail {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
-import { Tooltip } from './tooltip'
+import { Tooltip, TooltipDirection } from './tooltip'
 import { createObservableRef } from './observable-ref'
 
 export interface IButtonProps {
@@ -123,7 +123,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         {tooltip && (
           <Tooltip
             target={this.innerButtonRef}
-            direction="n"
+            direction={TooltipDirection.NORTH}
             // Show the tooltip immediately on hover if the button is disabled
             delay={disabled && tooltip ? 0 : undefined}
           >

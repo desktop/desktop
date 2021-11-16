@@ -18,6 +18,7 @@ import { DiffExpansionKind } from './text-diff-expansion'
 import { PopoverCaretPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -371,7 +372,10 @@ export class SideBySideDiffRow extends React.Component<
         style={{ width: this.props.lineNumberWidth }}
         onContextMenu={this.props.onContextMenuExpandHunk}
       >
-        <TooltippedContent direction="s" tooltip={elementInfo.title}>
+        <TooltippedContent
+          direction={TooltipDirection.SOUTH}
+          tooltip={elementInfo.title}
+        >
           <Octicon symbol={elementInfo.icon} />
         </TooltippedContent>
       </div>
