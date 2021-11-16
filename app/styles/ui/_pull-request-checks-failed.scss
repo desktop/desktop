@@ -65,25 +65,15 @@
     }
 
     .ci-check-run-list {
-      width: 30%;
+      width: 40%;
       border-radius: 0;
     }
-    .ci-check-list-item-logs {
-      width: 70%;
+    .ci-check-run-job-steps-list {
+      width: 60%;
       box-shadow: none;
       border: none;
       border-left: var(--base-border);
       border-right: none;
-    }
-    .ci-check-list-item-logs-output {
-      max-height: none;
-      height: 100%;
-    }
-    .loading-logs {
-      box-shadow: none;
-      border: none;
-      border-left: var(--base-border);
-      width: 70%;
     }
   }
 }

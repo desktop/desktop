@@ -11,13 +11,13 @@ import {
   getCheckRunActionsJobsAndLogURLS,
   isFailure,
 } from '../../lib/ci-checks/ci-checks'
-import { CICheckRunLogs } from '../check-runs/ci-check-run-item-logs'
 import { Account } from '../../models/account'
-import { API, getHTMLURL } from '../../lib/api'
+import { API, IAPIWorkflowJobStep } from '../../lib/api'
 import { Octicon, syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
+import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
 
 interface IPullRequestChecksFailedProps {
   readonly dispatcher: Dispatcher
@@ -64,6 +64,12 @@ export class PullRequestChecksFailed extends React.Component<
     }
   }
 
+  private get selectedCheck(): IRefCheck | undefined {
+    return this.state.checks.find(
+      check => check.id === this.state.selectedCheckID
+    )
+  }
+
   public render() {
     let okButtonTitle = __DARWIN__
       ? 'Switch to Pull Request'
@@ -75,7 +81,7 @@ export class PullRequestChecksFailed extends React.Component<
         : 'Switch to repository and pull request'
     }
 
-    const { pullRequest, repository } = this.props
+    const { pullRequest } = this.props
 
     const dialogTitle = (
       <span className="custom-title">
@@ -88,9 +94,7 @@ export class PullRequestChecksFailed extends React.Component<
       </span>
     )
 
-    const selectedCheck = this.state.checks.find(
-      check => check.id === this.state.selectedCheckID
-    )
+    const selectedCheck = this.selectedCheck
 
     const failedChecks = this.state.checks.filter(
       check => check.conclusion === 'failure'
@@ -102,8 +106,6 @@ export class PullRequestChecksFailed extends React.Component<
       this.state.loadingActionWorkflows ||
       this.state.loadingActionLogs ||
       this.state.switchingToPullRequest
-
-    const baseHref = getHTMLURL(repository.gitHubRepository.endpoint)
 
     return (
       <Dialog
@@ -140,21 +142,17 @@ export class PullRequestChecksFailed extends React.Component<
                   checkRuns={this.state.checks}
                   loadingActionLogs={this.state.loadingActionLogs}
                   loadingActionWorkflows={this.state.loadingActionWorkflows}
-                  showLogsInline={false}
                   selectable={true}
-                  selectedCheckRun={selectedCheck}
-                  baseHref={baseHref}
-                  onViewOnGitHub={this.onViewOnGitHub}
+                  onViewCheckDetails={this.onViewOnGitHub}
                   onCheckRunClick={this.onCheckRunClick}
                 />
-                {selectedCheck !== undefined && (
-                  <CICheckRunLogs
-                    checkRun={selectedCheck}
-                    loadingActionLogs={this.state.loadingActionLogs}
-                    loadingActionWorkflows={this.state.loadingActionWorkflows}
-                    baseHref={baseHref}
-                  />
-                )}
+                {selectedCheck !== undefined &&
+                  selectedCheck.actionJobSteps !== undefined && (
+                    <CICheckRunActionsJobStepList
+                      steps={selectedCheck.actionJobSteps}
+                      onViewJobStep={this.onViewJobStep}
+                    />
+                  )}
               </div>
             </div>
           </Row>
@@ -169,6 +167,27 @@ export class PullRequestChecksFailed extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onViewJobStep = (step: IAPIWorkflowJobStep): void => {
+    const repository = this.props.repository.gitHubRepository
+    const checkRun = this.selectedCheck
+
+    if (
+      checkRun === undefined ||
+      (checkRun.htmlUrl === null && repository.htmlURL === null)
+    ) {
+      // A check run may not have a url depending on how it is setup.
+      // However, the repository should have one; Thus, we shouldn't hit this
+      return
+    }
+
+    const url =
+      checkRun.htmlUrl !== null
+        ? `${checkRun.htmlUrl}/#step:${step.number}:1`
+        : `${repository.htmlURL}/pull/${this.props.pullRequest.pullRequestNumber}`
+
+    this.props.dispatcher.openInBrowser(url)
   }
 
   public componentDidMount() {
