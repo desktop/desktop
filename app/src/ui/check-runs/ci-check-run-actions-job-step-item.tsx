@@ -8,7 +8,7 @@ import {
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { getFormattedCheckRunDuration } from '../../lib/ci-checks/ci-checks'
 import { TooltippedContent } from '../lib/tooltipped-content'
-import { TooltipDirectionDef } from '../lib/tooltip'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICICheckRunActionsJobStepListItemProps {
   readonly step: IAPIWorkflowJobStep
@@ -57,7 +57,7 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<
             tooltip={step.name}
             onlyWhenOverflowed={true}
             tagName="div"
-            direction={TooltipDirectionDef.NORTH}
+            direction={TooltipDirection.NORTH}
           >
             <span onClick={this.onViewJobStepExternally}>{step.name}</span>
           </TooltippedContent>

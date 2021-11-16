@@ -51,7 +51,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
 
     // Octicons are typically very small so having an explicit direction makes
     // more sense
-    const direction = tooltipDirection ?? 'n'
+    const direction = tooltipDirection ?? TooltipDirection.NORTH
 
     return (
       <svg

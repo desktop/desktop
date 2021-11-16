@@ -5,7 +5,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { clamp } from '../../lib/clamp'
 import { createObservableRef } from '../lib/observable-ref'
-import { Tooltip } from '../lib/tooltip'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -173,7 +173,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
         ref={this.wrapperRef}
       >
         {tooltip && (
-          <Tooltip target={this.wrapperRef} direction="s">
+          <Tooltip target={this.wrapperRef} direction={TooltipDirection.SOUTH}>
             {tooltip}
           </Tooltip>
         )}

@@ -21,6 +21,7 @@ import {
 } from '../../lib/set-almost-immediate'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { clipboard } from 'electron'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -350,7 +351,7 @@ export class CommitSummary extends React.Component<
                 tooltip={this.renderShaTooltip()}
                 tooltipClassName="sha-hint"
                 interactive={true}
-                direction="s"
+                direction={TooltipDirection.SOUTH}
               >
                 {shortSHA}
               </TooltippedContent>

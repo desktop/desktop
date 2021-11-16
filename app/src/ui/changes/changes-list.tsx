@@ -41,7 +41,7 @@ import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
-import { Tooltip } from '../lib/tooltip'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -780,7 +780,7 @@ export class ChangesList extends React.Component<
           onContextMenu={this.onContextMenu}
           ref={this.headerRef}
         >
-          <Tooltip target={this.headerRef} direction="n">
+          <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
             {selectedChangesDescription}
           </Tooltip>
           <Checkbox
