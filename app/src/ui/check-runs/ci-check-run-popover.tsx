@@ -13,6 +13,11 @@ import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import _ from 'lodash'
+import { encodePathAsUrl } from '../../lib/path'
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 
 interface ICICheckRunPopoverProps {
   readonly dispatcher: Dispatcher
@@ -311,6 +316,16 @@ export class CICheckRunPopover extends React.PureComponent<
     )
   }
 
+  private renderCheckRunLoadings(): JSX.Element {
+    return (
+      <div className="loading-check-runs">
+        <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="title">Stand By</div>
+        <div className="call-to-action">Check runs incoming!</div>
+      </div>
+    )
+  }
+
   public render() {
     const {
       checkRunSummary,
@@ -346,7 +361,9 @@ export class CICheckRunPopover extends React.PureComponent<
                 onViewJobStep={this.onViewJobStep}
               />
             </div>
-          ) : null}
+          ) : (
+            this.renderCheckRunLoadings()
+          )}
         </Popover>
       </div>
     )
