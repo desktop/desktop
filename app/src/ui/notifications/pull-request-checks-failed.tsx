@@ -24,6 +24,10 @@ import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
 
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 const MaxCommitMessageLength = 72
 
 interface IPullRequestChecksFailedProps {
@@ -190,26 +194,35 @@ export class PullRequestChecksFailed extends React.Component<
       return null
     }
 
-    if (this.loadingChecksInfo) {
-      // TODO: add nice loading indicator
-      return null
-    }
+    let stepsContent = null
 
-    const stepsContent =
-      selectedCheck.actionJobSteps === undefined ? (
-        this.renderEmptyLogOutput()
-      ) : (
+    if (this.loadingChecksInfo) {
+      stepsContent = this.renderCheckRunStepsLoading()
+    } else if (selectedCheck.actionJobSteps === undefined) {
+      stepsContent = this.renderEmptyLogOutput()
+    } else {
+      stepsContent = (
         <CICheckRunActionsJobStepList
           steps={selectedCheck.actionJobSteps}
           onViewJobStep={this.onViewJobStep}
         />
       )
+    }
 
     return (
       <div className="ci-check-run-job-steps-container">{stepsContent}</div>
     )
   }
 
+  private renderCheckRunStepsLoading(): JSX.Element {
+    return (
+      <div className="loading-check-runs">
+        <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="title">Stand By</div>
+        <div className="call-to-action">Check run steps incoming!</div>
+      </div>
+    )
+  }
   private renderEmptyLogOutput() {
     return (
       <div className="no-steps-to-display">
