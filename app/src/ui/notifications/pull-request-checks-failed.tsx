@@ -18,6 +18,12 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+import { LinkButton } from '../lib/link-button'
+import { encodePathAsUrl } from '../../lib/path'
+
+const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
+const MaxCommitMessageLength = 72
 
 interface IPullRequestChecksFailedProps {
   readonly dispatcher: Dispatcher
@@ -70,6 +76,10 @@ export class PullRequestChecksFailed extends React.Component<
     )
   }
 
+  private get loadingChecksInfo(): boolean {
+    return this.state.loadingActionWorkflows || this.state.loadingActionLogs
+  }
+
   public render() {
     let okButtonTitle = __DARWIN__
       ? 'Switch to Pull Request'
@@ -102,10 +112,7 @@ export class PullRequestChecksFailed extends React.Component<
     const pluralChecks = failedChecks.length > 1 ? 'checks' : 'check'
     const pluralThem = failedChecks.length > 1 ? 'them' : 'it'
 
-    const loading =
-      this.state.loadingActionWorkflows ||
-      this.state.loadingActionLogs ||
-      this.state.switchingToPullRequest
+    const loadingChecksInfo = this.loadingChecksInfo
 
     return (
       <Dialog
@@ -115,7 +122,7 @@ export class PullRequestChecksFailed extends React.Component<
         dismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}
-        loading={loading}
+        loading={loadingChecksInfo || this.state.switchingToPullRequest}
       >
         <DialogContent>
           <Row>
@@ -129,7 +136,10 @@ export class PullRequestChecksFailed extends React.Component<
             <div className="ci-check-run-dialog-container">
               <div className="ci-check-run-header">
                 <span className="message">
-                  {this.props.commitMessage.slice(0, 72)}
+                  {truncateWithEllipsis(
+                    this.props.commitMessage,
+                    MaxCommitMessageLength
+                  )}
                 </span>
                 <span aria-hidden="true">
                   <Octicon symbol={OcticonSymbol.gitCommit} />
@@ -147,12 +157,7 @@ export class PullRequestChecksFailed extends React.Component<
                   onCheckRunClick={this.onCheckRunClick}
                 />
                 {selectedCheck !== undefined &&
-                  selectedCheck.actionJobSteps !== undefined && (
-                    <CICheckRunActionsJobStepList
-                      steps={selectedCheck.actionJobSteps}
-                      onViewJobStep={this.onViewJobStep}
-                    />
-                  )}
+                  this.renderCheckRunSteps(selectedCheck)}
               </div>
             </div>
           </Row>
@@ -166,6 +171,43 @@ export class PullRequestChecksFailed extends React.Component<
           />
         </DialogFooter>
       </Dialog>
+    )
+  }
+
+  private renderCheckRunSteps(checkRun: IRefCheck) {
+    if (this.loadingChecksInfo) {
+      // TODO: add nice loading indicator
+      return null
+    }
+
+    const stepsContent =
+      checkRun.actionJobSteps === undefined ? (
+        this.renderEmptyLogOutput()
+      ) : (
+        <CICheckRunActionsJobStepList
+          steps={checkRun.actionJobSteps}
+          onViewJobStep={this.onViewJobStep}
+        />
+      )
+
+    return (
+      <div className="ci-check-run-job-steps-container">{stepsContent}</div>
+    )
+  }
+
+  private renderEmptyLogOutput = () => {
+    return (
+      <div className="no-steps-to-display">
+        <div className="text">
+          There are no steps to display for this check.
+          <div>
+            <LinkButton onClick={this.onViewSelectedCheckRunOnGitHub}>
+              View check details
+            </LinkButton>
+          </div>
+        </div>
+        <img src={PaperStackImage} className="blankslate-image" />
+      </div>
     )
   }
 
@@ -287,6 +329,13 @@ export class PullRequestChecksFailed extends React.Component<
 
   private onCheckRunClick = (checkRun: IRefCheck): void => {
     this.setState({ selectedCheckID: checkRun.id })
+  }
+
+  private onViewSelectedCheckRunOnGitHub = () => {
+    const selectedCheck = this.selectedCheck
+    if (selectedCheck !== undefined) {
+      this.onViewOnGitHub(selectedCheck)
+    }
   }
 
   private onViewOnGitHub = (checkRun: IRefCheck) => {
