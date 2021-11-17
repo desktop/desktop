@@ -266,22 +266,10 @@ export class PullRequestChecksFailed extends React.Component<
   }
 
   private rerunJobs = () => {
-    // Get unique set of check suite ids
-    const checkSuiteIds = new Set<number | null>([
-      ...this.state.checks.map(cr => cr.checkSuiteId),
-    ])
-
-    for (const id of checkSuiteIds) {
-      if (id === null) {
-        continue
-      }
-      this.props.dispatcher.rerequestCheckSuite(
-        this.props.repository.gitHubRepository,
-        id
-      )
-    }
-
-    this.props.onDismissed()
+    this.props.dispatcher.rerequestCheckSuites(
+      this.props.repository.gitHubRepository,
+      this.state.checks
+    )
   }
 
   private async loadCheckRunLogs() {

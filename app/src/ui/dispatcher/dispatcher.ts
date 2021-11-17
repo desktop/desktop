@@ -2451,11 +2451,25 @@ export class Dispatcher {
    * Triggers GitHub to rerequest an existing check suite, without pushing new
    * code to a repository.
    */
-  public rerequestCheckSuite(
+  public async rerequestCheckSuites(
     repository: GitHubRepository,
-    checkSuiteId: number
-  ): Promise<boolean> {
-    return this.commitStatusStore.rerequestCheckSuite(repository, checkSuiteId)
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<void> {
+    // Get unique set of check suite ids
+    const checkSuiteIds = new Set<number | null>([
+      ...checkRuns.map(cr => cr.checkSuiteId),
+    ])
+
+    const promises = new Array<Promise<boolean>>()
+
+    for (const id of checkSuiteIds) {
+      if (id === null) {
+        continue
+      }
+      promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
+    }
+
+    await Promise.all(promises)
   }
 
   /**
