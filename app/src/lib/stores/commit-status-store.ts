@@ -6,7 +6,6 @@ import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
-import { setAlmostImmediate } from '../set-almost-immediate'
 import {
   ICombinedRefCheck,
   IRefCheck,
@@ -204,7 +203,7 @@ export class CommitStatusStore {
   private queueRefresh() {
     if (!this.refreshQueued) {
       this.refreshQueued = true
-      setAlmostImmediate(() => {
+      setImmediate(() => {
         this.refreshQueued = false
         this.refreshEligibleSubscriptions()
       })

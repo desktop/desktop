@@ -143,11 +143,6 @@ export function enableSSHAskPass(): boolean {
   return true
 }
 
-/** Should we use the setImmediate alternative? */
-export function enableSetAlmostImmediate(): boolean {
-  return false
-}
-
 /** Should we show ci check runs? */
 export function enableCICheckRuns(): boolean {
   return enableBetaFeatures()

@@ -14,11 +14,6 @@ import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-messa
 import { DiffOptions } from '../diff/diff-options'
 import { RepositorySectionTab } from '../../lib/app-state'
 import { IChangesetData } from '../../lib/git'
-import {
-  AlmostImmediate,
-  clearAlmostImmediate,
-  setAlmostImmediate,
-} from '../../lib/set-almost-immediate'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { clipboard } from 'electron'
 import { TooltipDirection } from '../lib/tooltip'
@@ -132,7 +127,7 @@ export class CommitSummary extends React.Component<
 > {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateOverflowTimeoutId: AlmostImmediate | null = null
+  private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
 
   public constructor(props: ICommitSummaryProps) {
@@ -151,10 +146,10 @@ export class CommitSummary extends React.Component<
             // when we're reacting to a resize so we'll defer it until after
             // react is done with this frame.
             if (this.updateOverflowTimeoutId !== null) {
-              clearAlmostImmediate(this.updateOverflowTimeoutId)
+              clearImmediate(this.updateOverflowTimeoutId)
             }
 
-            this.updateOverflowTimeoutId = setAlmostImmediate(this.onResized)
+            this.updateOverflowTimeoutId = setImmediate(this.onResized)
           }
         }
       })
