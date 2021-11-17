@@ -564,6 +564,15 @@ export function getCheckRunDisplayName(
   return wfName !== undefined ? `${wfName} / ${checkRun.name}` : checkRun.name
 }
 
+/**
+ * Generates the URL pointing to the details of a given check run. If that check
+ * run has no specific URL, returns the URL of the associated pull request.
+ *
+ * @param checkRun Check run to generate the URL for
+ * @param step Check run step to generate the URL for
+ * @param repository Repository to which the check run belongs
+ * @param pullRequestNumber Number of PR associated with the check run
+ */
 export function getCheckRunStepURL(
   checkRun: IRefCheck,
   step: IAPIWorkflowJobStep,

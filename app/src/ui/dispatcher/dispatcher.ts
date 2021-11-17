@@ -2448,7 +2448,7 @@ export class Dispatcher {
   }
 
   /**
-   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * Triggers GitHub to rerequest a list of check suites, without pushing new
    * code to a repository.
    */
   public async rerequestCheckSuites(
