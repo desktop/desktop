@@ -6,6 +6,7 @@ import {
   getCheckRunConclusionAdjective,
   ICombinedRefCheck,
   IRefCheck,
+  getCheckRunStepURL,
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
@@ -229,18 +230,13 @@ export class CICheckRunPopover extends React.PureComponent<
     checkRun: IRefCheck,
     step: IAPIWorkflowJobStep
   ): void => {
-    if (checkRun.htmlUrl === null && this.props.repository.htmlURL === null) {
-      // A check run may not have a url depending on how it is setup.
-      // However, the repository should have one; Thus, we shouldn't hit this
-      return
+    const { repository, prNumber, dispatcher } = this.props
+
+    const url = getCheckRunStepURL(checkRun, step, repository, prNumber)
+
+    if (url !== null) {
+      dispatcher.openInBrowser(url)
     }
-
-    const url =
-      checkRun.htmlUrl !== null
-        ? `${checkRun.htmlUrl}/#step:${step.number}:1`
-        : `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
-
-    this.props.dispatcher.openInBrowser(url)
   }
 
   private getCommitRef(prNumber: number): string {

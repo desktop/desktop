@@ -10,6 +10,7 @@ import {
   getLatestPRWorkflowRunsLogsForCheckRun,
   getCheckRunActionsJobsAndLogURLS,
   isFailure,
+  getCheckRunStepURL,
 } from '../../lib/ci-checks/ci-checks'
 import { Account } from '../../models/account'
 import { API, IAPIWorkflowJobStep } from '../../lib/api'
@@ -104,14 +105,6 @@ export class PullRequestChecksFailed extends React.Component<
       </span>
     )
 
-    const selectedCheck = this.selectedCheck
-
-    const failedChecks = this.state.checks.filter(
-      check => check.conclusion === 'failure'
-    )
-    const pluralChecks = failedChecks.length > 1 ? 'checks' : 'check'
-    const pluralThem = failedChecks.length > 1 ? 'them' : 'it'
-
     const loadingChecksInfo = this.loadingChecksInfo
 
     return (
@@ -125,39 +118,13 @@ export class PullRequestChecksFailed extends React.Component<
         loading={loadingChecksInfo || this.state.switchingToPullRequest}
       >
         <DialogContent>
-          <Row>
-            <span className="summary">
-              {failedChecks.length} {pluralChecks} failed in your pull request.
-              Do you want to switch to that Pull Request now and start fixing{' '}
-              {pluralThem}?
-            </span>
-          </Row>
+          <Row>{this.renderSummary()}</Row>
           <Row>
             <div className="ci-check-run-dialog-container">
-              <div className="ci-check-run-header">
-                <span className="message">
-                  {truncateWithEllipsis(
-                    this.props.commitMessage,
-                    MaxCommitMessageLength
-                  )}
-                </span>
-                <span aria-hidden="true">
-                  <Octicon symbol={OcticonSymbol.gitCommit} />
-                </span>{' '}
-                <span className="sha">{this.props.commitSha.slice(0, 9)}</span>
-                {this.renderRerunButton()}
-              </div>
+              {this.renderCheckRunHeader()}
               <div className="ci-check-run-content">
-                <CICheckRunList
-                  checkRuns={this.state.checks}
-                  loadingActionLogs={this.state.loadingActionLogs}
-                  loadingActionWorkflows={this.state.loadingActionWorkflows}
-                  selectable={true}
-                  onViewCheckDetails={this.onViewOnGitHub}
-                  onCheckRunClick={this.onCheckRunClick}
-                />
-                {selectedCheck !== undefined &&
-                  this.renderCheckRunSteps(selectedCheck)}
+                {this.renderCheckRunJobs()}
+                {this.renderCheckRunSteps()}
               </div>
             </div>
           </Row>
@@ -174,18 +141,66 @@ export class PullRequestChecksFailed extends React.Component<
     )
   }
 
-  private renderCheckRunSteps(checkRun: IRefCheck) {
+  private renderSummary() {
+    const failedChecks = this.state.checks.filter(isFailure)
+    const pluralChecks = failedChecks.length > 1 ? 'checks' : 'check'
+    const pluralThem = failedChecks.length > 1 ? 'them' : 'it'
+    return (
+      <span className="summary">
+        {failedChecks.length} {pluralChecks} failed in your pull request. Do you
+        want to switch to that Pull Request now and start fixing {pluralThem}?
+      </span>
+    )
+  }
+
+  private renderCheckRunHeader() {
+    return (
+      <div className="ci-check-run-header">
+        <span className="message">
+          {truncateWithEllipsis(
+            this.props.commitMessage,
+            MaxCommitMessageLength
+          )}
+        </span>
+        <span aria-hidden="true">
+          <Octicon symbol={OcticonSymbol.gitCommit} />
+        </span>{' '}
+        <span className="sha">{this.props.commitSha.slice(0, 9)}</span>
+        {this.renderRerunButton()}
+      </div>
+    )
+  }
+
+  private renderCheckRunJobs() {
+    return (
+      <CICheckRunList
+        checkRuns={this.state.checks}
+        loadingActionLogs={this.state.loadingActionLogs}
+        loadingActionWorkflows={this.state.loadingActionWorkflows}
+        selectable={true}
+        onViewCheckDetails={this.onViewOnGitHub}
+        onCheckRunClick={this.onCheckRunClick}
+      />
+    )
+  }
+
+  private renderCheckRunSteps() {
+    const selectedCheck = this.selectedCheck
+    if (selectedCheck === undefined) {
+      return null
+    }
+
     if (this.loadingChecksInfo) {
       // TODO: add nice loading indicator
       return null
     }
 
     const stepsContent =
-      checkRun.actionJobSteps === undefined ? (
+      selectedCheck.actionJobSteps === undefined ? (
         this.renderEmptyLogOutput()
       ) : (
         <CICheckRunActionsJobStepList
-          steps={checkRun.actionJobSteps}
+          steps={selectedCheck.actionJobSteps}
           onViewJobStep={this.onViewJobStep}
         />
       )
@@ -195,7 +210,7 @@ export class PullRequestChecksFailed extends React.Component<
     )
   }
 
-  private renderEmptyLogOutput = () => {
+  private renderEmptyLogOutput() {
     return (
       <div className="no-steps-to-display">
         <div className="text">
@@ -212,24 +227,23 @@ export class PullRequestChecksFailed extends React.Component<
   }
 
   private onViewJobStep = (step: IAPIWorkflowJobStep): void => {
-    const repository = this.props.repository.gitHubRepository
+    const { repository, pullRequest, dispatcher } = this.props
     const checkRun = this.selectedCheck
 
-    if (
-      checkRun === undefined ||
-      (checkRun.htmlUrl === null && repository.htmlURL === null)
-    ) {
-      // A check run may not have a url depending on how it is setup.
-      // However, the repository should have one; Thus, we shouldn't hit this
+    if (checkRun === undefined) {
       return
     }
 
-    const url =
-      checkRun.htmlUrl !== null
-        ? `${checkRun.htmlUrl}/#step:${step.number}:1`
-        : `${repository.htmlURL}/pull/${this.props.pullRequest.pullRequestNumber}`
+    const url = getCheckRunStepURL(
+      checkRun,
+      step,
+      repository.gitHubRepository,
+      pullRequest.pullRequestNumber
+    )
 
-    this.props.dispatcher.openInBrowser(url)
+    if (url !== null) {
+      dispatcher.openInBrowser(url)
+    }
   }
 
   public componentDidMount() {
