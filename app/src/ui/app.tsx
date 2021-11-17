@@ -142,7 +142,6 @@ import { AddSSHHost } from './ssh/add-ssh-host'
 import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
 import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-operation'
 import { ConfirmForcePush } from './rebase/confirm-force-push'
-import { setAlmostImmediate } from '../lib/set-almost-immediate'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -543,7 +542,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private boomtown() {
-    setAlmostImmediate(() => {
+    setImmediate(() => {
       throw new Error('Boomtown!')
     })
   }
