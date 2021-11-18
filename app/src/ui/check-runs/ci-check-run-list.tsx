@@ -1,10 +1,7 @@
+import _ from 'lodash'
 import * as React from 'react'
 import { IAPIWorkflowJobStep } from '../../lib/api'
-import {
-  getCheckRunDisplayName,
-  IRefCheck,
-  isFailure,
-} from '../../lib/ci-checks/ci-checks'
+import { IRefCheck, isFailure } from '../../lib/ci-checks/ci-checks'
 import { CICheckRunListItem } from './ci-check-run-list-item'
 
 interface ICICheckRunListProps {
@@ -92,21 +89,85 @@ export class CICheckRunList extends React.PureComponent<
     })
   }
 
-  private renderList = (): JSX.Element | null => {
-    const list = [...this.props.checkRuns]
-      .sort((a, b) =>
-        getCheckRunDisplayName(
-          a,
-          this.state.checkRunsHaveMultipleEventTypes
-        ).localeCompare(
-          getCheckRunDisplayName(b, this.state.checkRunsHaveMultipleEventTypes)
-        )
-      )
+  private getCheckRunsGroupedByWorkflowAction = (): _.Dictionary<
+    IRefCheck[]
+  > => {
+    const groups = _.groupBy(this.props.checkRuns, item =>
+      _.get(item, 'actionsWorkflow.name', 'Other')
+    )
+
+    if (groups.Other === undefined) {
+      return groups
+    }
+
+    const codeScanResults = groups.Other.filter(
+      check => check.appName === 'GitHub Code Scanning'
+    )
+
+    if (codeScanResults.length === 0) {
+      return groups
+    }
+
+    groups['Code scanning results'] = codeScanResults
+
+    const other = groups.Other.filter(
+      check => check.appName !== 'GitHub Code Scanning'
+    )
+
+    if (other.length > 0) {
+      groups['Other'] = other
+    } else {
+      delete groups.Other
+    }
+
+    return groups
+  }
+
+  private getCheckRunGroupNames = (): ReadonlyArray<string> => {
+    const groupNameSet = new Set<string>()
+
+    for (const checkRun of this.props.checkRuns) {
+      let name = checkRun.actionsWorkflow?.name || 'Other'
+      if (name === 'Other' && checkRun.appName === 'GitHub Code Scanning') {
+        name = 'Code scanning results'
+      }
+      if (groupNameSet.has(name)) {
+        continue
+      }
+
+      groupNameSet.add(name)
+    }
+
+    const groupNames = [...groupNameSet.values()]
+
+    // Sort names with 'Other' always last.
+    groupNames.sort((a, b) => {
+      if (a === 'Other' && b !== 'Other') {
+        return 1
+      }
+
+      if (a !== 'Other' && b === 'Other') {
+        return -1
+      }
+
+      if (a === 'Other' && b === 'Other') {
+        return 0
+      }
+
+      return a.localeCompare(b)
+    })
+
+    return groupNames
+  }
+
+  private renderListItems = (checkRuns: ReadonlyArray<IRefCheck>) => {
+    const list = [...checkRuns]
+      .sort((a, b) => a.name.localeCompare(b.name))
       .map((c, i) => {
         return (
           <CICheckRunListItem
-            key={i}
             checkRun={c}
+            key={i}
             loadingActionLogs={this.props.loadingActionLogs}
             loadingActionWorkflows={this.props.loadingActionWorkflows}
             isCheckRunExpanded={this.state.checkRunExpanded === c.id.toString()}
@@ -121,7 +182,30 @@ export class CICheckRunList extends React.PureComponent<
     return <>{list}</>
   }
 
+  private renderList = (): JSX.Element | null => {
+    const checkRunGroupNames = this.getCheckRunGroupNames()
+    if (checkRunGroupNames.length === 1 && checkRunGroupNames[0] === 'Other') {
+      return this.renderListItems(this.props.checkRuns)
+    }
+
+    const checkRunGroups = this.getCheckRunsGroupedByWorkflowAction()
+    const groups = checkRunGroupNames.map((groupName, i) => {
+      return (
+        <>
+          <div className="ci-check-run-list-group-header" key={i}>
+            {groupName}
+          </div>
+          {this.renderListItems(checkRunGroups[groupName])}
+        </>
+      )
+    })
+
+    return <>{groups}</>
+  }
+
   public render() {
-    return <div className="ci-check-run-list">{this.renderList()}</div>
+    return (
+      <div className="ci-check-run-list-container">{this.renderList()}</div>
+    )
   }
 }

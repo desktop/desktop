@@ -32,7 +32,8 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<
         step.number === this.props.firstFailedStep.number &&
         stepHeaderRef !== null
       ) {
-        stepHeaderRef.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        stepHeaderRef.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // stepHeaderRef.scrollTop -= 500
       }
     }
   }

@@ -116,12 +116,12 @@ export class CICheckRunListItem extends React.PureComponent<
   public render() {
     const { checkRun, isCheckRunExpanded } = this.props
 
+    const classes = classNames('ci-check-list-item', 'list-item', {
+      sticky: isCheckRunExpanded,
+    })
     return (
       <>
-        <div
-          className="ci-check-list-item list-item"
-          onClick={this.toggleCheckRunExpansion}
-        >
+        <div className={classes} onClick={this.toggleCheckRunExpansion}>
           {this.renderCheckStatusSymbol()}
           {this.renderCheckRunName()}
           {this.renderCheckJobStepToggle()}

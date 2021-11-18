@@ -1,5 +1,16 @@
 .ci-check-run-list {
   overflow-y: auto;
   overflow-x: hidden;
-  border-radius: var(--border-radius);
+
+  .ci-check-run-list-group-header {
+    position: sticky;
+    top: 0px;
+    padding: var(--spacing-half);
+    background-color: var(--box-alt-background-color);
+    border-bottom: var(--base-border);
+    filter: brightness(98%);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 }

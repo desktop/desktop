@@ -4,6 +4,12 @@
   border-bottom: var(--base-border);
   height: 100%;
 
+  &.sticky {
+    position: sticky;
+    background-color: var(--background-color);
+    top: 28px;
+  }
+
   .ci-check-name span {
     &:hover {
       color: var(--link-button-color);
