@@ -274,12 +274,10 @@ export function expandTextDiffHunk(
     )
   })
 
-  let hasHiddenBidiChars = diff.hasHiddenBidiChars
-  if (!hasHiddenBidiChars) {
-    hasHiddenBidiChars = newLines.some(
-      line => line.match(HiddenBidiCharsRegex) !== null
-    )
-  }
+  // Look for hidden bidi chars in the new lines, if the diff didn't have any already
+  const hasHiddenBidiChars =
+    diff.hasHiddenBidiChars ||
+    newLines.some(line => line.match(HiddenBidiCharsRegex) !== null)
 
   // Update the resulting hunk header with the new line count
   const newHunkHeader = new DiffHunkHeader(
