@@ -34,9 +34,7 @@ export interface IRefCheck {
   // Following are action check specific
   readonly checkSuiteId: number | null
   readonly actionJobSteps?: ReadonlyArray<IAPIWorkflowJobStep>
-  readonly actionsWorkflowRunId?: number
-  readonly actionsWorkflowName?: string | null
-  readonly logs_url?: string
+  readonly actionsWorkflow?: IAPIWorkflowRun
 }
 
 /**
@@ -381,17 +379,16 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
   const jobsCache = new Map<number, IAPIWorkflowJobs | null>()
   const mappedCheckRuns = new Array<IRefCheck>()
   for (const cr of checkRuns) {
-    if (cr.actionsWorkflowRunId === undefined || cr.logs_url === undefined) {
+    if (cr.actionsWorkflow === undefined) {
       mappedCheckRuns.push(cr)
       continue
     }
-
+    const { id: wfId, logs_url } = cr.actionsWorkflow
     // Multiple check runs match a single workflow run.
     // We can prevent several job network calls by caching them.
     const workFlowRunJobs =
-      jobsCache.get(cr.actionsWorkflowRunId) ??
-      (await api.fetchWorkflowRunJobs(owner, repo, cr.actionsWorkflowRunId))
-    jobsCache.set(cr.actionsWorkflowRunId, workFlowRunJobs)
+      jobsCache.get(wfId) ?? (await api.fetchWorkflowRunJobs(owner, repo, wfId))
+    jobsCache.set(wfId, workFlowRunJobs)
 
     // Here check run and jobs only share their names.
     // Thus, unfortunately cannot match on a numerical id.
@@ -414,14 +411,13 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
     // One workflow can have the logs for multiple check runs.. no need to
     // keep retrieving it. So we are hashing it.
     const logZip =
-      logCache.get(cr.logs_url) ??
-      (await api.fetchWorkflowRunJobLogs(cr.logs_url))
+      logCache.get(logs_url) ?? (await api.fetchWorkflowRunJobLogs(logs_url))
     if (logZip === null) {
       mappedCheckRuns.push(cr)
       continue
     }
 
-    logCache.set(cr.logs_url, logZip)
+    logCache.set(logs_url, logZip)
 
     mappedCheckRuns.push({
       ...cr,
@@ -520,12 +516,9 @@ function getCheckRunWithActionsJobAndLogURLs(
       continue
     }
 
-    const { id, name, logs_url } = matchingWR
     mappedCheckRuns.push({
       ...cr,
-      actionsWorkflowRunId: id,
-      actionsWorkflowName: name,
-      logs_url,
+      actionsWorkflow: matchingWR,
     })
   }
 
@@ -554,10 +547,12 @@ export function getFormattedCheckRunDuration(
  * If no workflow run name (non-actions check), then just return the name.
  */
 export function getCheckRunDisplayName(checkRun: IRefCheck): string {
+  if (checkRun.actionsWorkflow !== undefined) {
+    const { name, event } = checkRun.actionsWorkflow
+    return `${name} / ${checkRun.name} (${event})`
+  }
   const wfName =
-    checkRun.actionsWorkflowName !== undefined
-      ? checkRun.actionsWorkflowName
-      : checkRun.appName === 'GitHub Code Scanning'
+    checkRun.appName === 'GitHub Code Scanning'
       ? 'Code scanning results' // seems this is hardcoded on dotcom too :/
       : undefined
   return wfName !== undefined ? `${wfName} / ${checkRun.name}` : checkRun.name

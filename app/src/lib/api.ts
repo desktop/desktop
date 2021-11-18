@@ -382,6 +382,7 @@ export interface IAPIWorkflowRun {
   readonly name: string
   readonly rerun_url: string
   readonly check_suite_id: number
+  readonly event: string
 }
 
 export interface IAPIWorkflowJobs {
