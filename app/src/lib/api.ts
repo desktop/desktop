@@ -341,6 +341,7 @@ export interface IAPIRefCheckRun {
   readonly completed_at: string
   readonly started_at: string
   readonly html_url: string
+  readonly pull_requests: ReadonlyArray<IAPIPullRequest>
 }
 
 // NB. Only partially mapped
@@ -381,6 +382,7 @@ export interface IAPIWorkflowRun {
   readonly name: string
   readonly rerun_url: string
   readonly check_suite_id: number
+  readonly event: string
 }
 
 export interface IAPIWorkflowJobs {
