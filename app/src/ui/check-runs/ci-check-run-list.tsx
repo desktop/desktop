@@ -77,8 +77,7 @@ export class CICheckRunList extends React.PureComponent<
     )
     return {
       checkRunExpanded,
-      hasUserToggledCheckRun:
-        currentState !== null ? currentState.hasUserToggledCheckRun : false,
+      hasUserToggledCheckRun: currentState?.hasUserToggledCheckRun || false,
       checkRunsHaveMultipleEventTypes: checkRunEvents.size > 1,
     }
   }
