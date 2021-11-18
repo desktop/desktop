@@ -8,6 +8,7 @@ import {
   ITextDiff,
 } from '../../models/diff'
 import { getLargestLineNumber } from './diff-helpers'
+import { HiddenBidiCharsRegex } from '../../lib/diff-parser'
 
 /** How many new lines will be added to a diff hunk by default. */
 export const DefaultDiffExpansionStep = 20
@@ -273,6 +274,13 @@ export function expandTextDiffHunk(
     )
   })
 
+  let hasHiddenBidiChars = diff.hasHiddenBidiChars
+  if (!hasHiddenBidiChars) {
+    hasHiddenBidiChars = newLines.some(
+      line => line.match(HiddenBidiCharsRegex) !== null
+    )
+  }
+
   // Update the resulting hunk header with the new line count
   const newHunkHeader = new DiffHunkHeader(
     isExpandingUp
@@ -394,6 +402,7 @@ export function expandTextDiffHunk(
     text: newDiffText,
     hunks: newHunks,
     maxLineNumber: getLargestLineNumber(newHunks),
+    hasHiddenBidiChars,
   }
 }
 
