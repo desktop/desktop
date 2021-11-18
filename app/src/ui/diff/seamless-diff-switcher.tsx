@@ -23,9 +23,6 @@ import {
   IFileContents,
 } from './syntax-highlighting'
 import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
-import { LinkButton } from '../lib/link-button'
 
 /**
  * The time (in milliseconds) we allow when loading a diff before
@@ -336,20 +333,6 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     return (
       <div className={className}>
-        {diff !== null &&
-        diff.kind === DiffType.Text &&
-        diff.hasHiddenBidiChars ? (
-          <div className="hidden-bidi-chars-warning">
-            <Octicon symbol={OcticonSymbol.alert} />
-            This file contains bidirectional Unicode text that may be
-            interpreted or compiled differently than what appears below. To
-            review, open the file in an editor that reveals hidden Unicode
-            characters.{' '}
-            <LinkButton uri="https://github.co/hiddenchars">
-              Learn more about bidirectional Unicode characters
-            </LinkButton>
-          </div>
-        ) : null}
         {diff !== null ? (
           <Diff
             repository={repository}
