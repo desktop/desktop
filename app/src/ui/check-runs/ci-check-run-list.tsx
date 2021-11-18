@@ -30,6 +30,7 @@ interface ICICheckRunListProps {
 interface ICICheckRunListState {
   readonly checkRunExpanded: string | null
   readonly hasUserToggledCheckRun: boolean
+  readonly checkRunsHaveMultipleEventTypes: boolean
 }
 
 /** The CI Check list. */
@@ -69,11 +70,16 @@ export class CICheckRunList extends React.PureComponent<
           : props.checkRuns[0].id.toString()
     }
 
+    const checkRunEvents = new Set(
+      props.checkRuns
+        .map(c => c.actionsWorkflow?.event)
+        .filter(c => c !== undefined && c.trim() !== '')
+    )
     return {
       checkRunExpanded,
-      hasUserToggledCheckRun: currentState
-        ? currentState.hasUserToggledCheckRun
-        : false,
+      hasUserToggledCheckRun:
+        currentState !== null ? currentState.hasUserToggledCheckRun : false,
+      checkRunsHaveMultipleEventTypes: checkRunEvents.size > 1,
     }
   }
 
@@ -90,7 +96,12 @@ export class CICheckRunList extends React.PureComponent<
   private renderList = (): JSX.Element | null => {
     const list = [...this.props.checkRuns]
       .sort((a, b) =>
-        getCheckRunDisplayName(a).localeCompare(getCheckRunDisplayName(b))
+        getCheckRunDisplayName(
+          a,
+          this.state.checkRunsHaveMultipleEventTypes
+        ).localeCompare(
+          getCheckRunDisplayName(b, this.state.checkRunsHaveMultipleEventTypes)
+        )
       )
       .map((c, i) => {
         return (
@@ -103,6 +114,7 @@ export class CICheckRunList extends React.PureComponent<
             onCheckRunExpansionToggleClick={this.onCheckRunClick}
             onViewCheckExternally={this.props.onViewCheckDetails}
             onViewJobStep={this.props.onViewJobStep}
+            showEventInTitle={this.state.checkRunsHaveMultipleEventTypes}
           />
         )
       })

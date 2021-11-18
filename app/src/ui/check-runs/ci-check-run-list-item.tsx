@@ -25,6 +25,9 @@ interface ICICheckRunListItemProps {
   /** Whether to show the logs for this check run */
   readonly isCheckRunExpanded: boolean
 
+  /** Whether or not to show the action workflow event in the title */
+  readonly showEventInTitle: boolean
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
@@ -92,7 +95,7 @@ export class CICheckRunListItem extends React.PureComponent<
 
   private renderCheckRunName = (): JSX.Element => {
     const { checkRun } = this.props
-    const name = getCheckRunDisplayName(checkRun)
+    const name = getCheckRunDisplayName(checkRun, this.props.showEventInTitle)
     return (
       <div className="ci-check-list-item-detail">
         <TooltippedContent
