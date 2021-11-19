@@ -2,9 +2,16 @@
   display: flex;
   width: 100%;
   border-bottom: var(--base-border);
-  height: 100%;
+  height: auto;
 
-  .ci-check-name span {
+  &.selected .ci-check-name span {
+    &:hover {
+      color: var(--link-button-selected-hover-color);
+      cursor: pointer !important;
+    }
+  }
+
+  &:not(.selected) .ci-check-name span {
     &:hover {
       color: var(--link-button-color);
       cursor: pointer !important;

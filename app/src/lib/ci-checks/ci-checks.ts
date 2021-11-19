@@ -12,6 +12,7 @@ import {
 import JSZip from 'jszip'
 import moment from 'moment'
 import { enableCICheckRunsLogs } from '../feature-flag'
+import { GitHubRepository } from '../../models/github-repository'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -561,4 +562,33 @@ export function getCheckRunDisplayName(
       ? 'Code scanning results' // seems this is hardcoded on dotcom too :/
       : undefined
   return wfName !== undefined ? `${wfName} / ${checkRun.name}` : checkRun.name
+}
+
+/**
+ * Generates the URL pointing to the details of a given check run. If that check
+ * run has no specific URL, returns the URL of the associated pull request.
+ *
+ * @param checkRun Check run to generate the URL for
+ * @param step Check run step to generate the URL for
+ * @param repository Repository to which the check run belongs
+ * @param pullRequestNumber Number of PR associated with the check run
+ */
+export function getCheckRunStepURL(
+  checkRun: IRefCheck,
+  step: IAPIWorkflowJobStep,
+  repository: GitHubRepository,
+  pullRequestNumber: number
+): string | null {
+  if (checkRun.htmlUrl === null && repository.htmlURL === null) {
+    // A check run may not have a url depending on how it is setup.
+    // However, the repository should have one; Thus, we shouldn't hit this
+    return null
+  }
+
+  const url =
+    checkRun.htmlUrl !== null
+      ? `${checkRun.htmlUrl}/#step:${step.number}:1`
+      : `${repository.htmlURL}/pull/${pullRequestNumber}`
+
+  return url
 }

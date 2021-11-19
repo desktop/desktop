@@ -289,6 +289,11 @@ export interface IAppState {
    * order for external contributions in latest release.
    */
   readonly lastThankYou: ILastThankYou | undefined
+
+  /**
+   * Whether or not the CI status popover is visible.
+   */
+  readonly showCIStatusPopover: boolean
 }
 
 export enum FoldoutType {

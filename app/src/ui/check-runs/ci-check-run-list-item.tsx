@@ -28,6 +28,12 @@ interface ICICheckRunListItemProps {
   /** Whether or not to show the action workflow event in the title */
   readonly showEventInTitle: boolean
 
+  /** Whether the list item can be selected */
+  readonly selectable: boolean
+
+  /** Whether the list item is selected */
+  readonly selected: boolean
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
@@ -35,7 +41,7 @@ interface ICICheckRunListItemProps {
   readonly onViewCheckExternally: (checkRun: IRefCheck) => void
 
   /** Callback to open a job steps link on dotcom*/
-  readonly onViewJobStep: (
+  readonly onViewJobStep?: (
     checkRun: IRefCheck,
     step: IAPIWorkflowJobStep
   ) => void
@@ -54,7 +60,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private onViewJobStep = (step: IAPIWorkflowJobStep) => {
-    this.props.onViewJobStep(this.props.checkRun, step)
+    this.props.onViewJobStep?.(this.props.checkRun, step)
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
@@ -74,9 +80,9 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckJobStepToggle = (): JSX.Element | null => {
-    const { checkRun, isCheckRunExpanded } = this.props
+    const { checkRun, isCheckRunExpanded, selectable } = this.props
 
-    if (checkRun.actionJobSteps === undefined) {
+    if (checkRun.actionJobSteps === undefined || selectable) {
       return null
     }
 
@@ -119,7 +125,10 @@ export class CICheckRunListItem extends React.PureComponent<
     return (
       <>
         <div
-          className="ci-check-list-item list-item"
+          className={classNames('ci-check-list-item list-item', {
+            selected: this.props.selected,
+          })}
+          tabIndex={0}
           onClick={this.toggleCheckRunExpansion}
         >
           {this.renderCheckStatusSymbol()}
