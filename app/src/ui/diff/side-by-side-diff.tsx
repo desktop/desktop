@@ -56,6 +56,7 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
+import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
@@ -276,6 +277,7 @@ export class SideBySideDiff extends React.Component<
 
     return (
       <div className={containerClassName} onMouseDown={this.onMouseDown}>
+        {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
         {this.state.isSearching && (
           <DiffSearchInput
             onSearch={this.onSearch}

@@ -55,6 +55,8 @@ interface ITextDiffData {
   readonly lineEndingsChange?: LineEndingsChange
   /** The largest line number in the diff  */
   readonly maxLineNumber: number
+  /** Whether or not the diff has invisible bidi characters */
+  readonly hasHiddenBidiChars: boolean
 }
 
 export interface ITextDiff extends ITextDiffData {
