@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import * as React from 'react'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import {

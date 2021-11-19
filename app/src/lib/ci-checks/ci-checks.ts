@@ -589,8 +589,8 @@ export function getCheckRunStepURL(
 
 /**
  * Groups check runs by their actions workflow name and actions workflow event type.
- *
  * Event type only gets grouped if there are more than one event.
+ *
  * @param checkRuns
  * @returns A map of grouped check runs.
  */
