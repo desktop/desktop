@@ -191,12 +191,10 @@ export class CICheckRunList extends React.PureComponent<
     const checkRunGroups = this.getCheckRunsGroupedByWorkflowAction()
     const groups = checkRunGroupNames.map((groupName, i) => {
       return (
-        <>
-          <div className="ci-check-run-list-group-header" key={i}>
-            {groupName}
-          </div>
+        <div className="ci-check-run-list-group" key={i}>
+          <div className="ci-check-run-list-group-header">{groupName}</div>
           {this.renderListItems(checkRunGroups[groupName])}
-        </>
+        </div>
       )
     })
 
