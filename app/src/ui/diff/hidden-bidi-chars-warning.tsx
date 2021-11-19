@@ -8,7 +8,7 @@ export class HiddenBidiCharsWarning extends React.Component {
     return (
       <div className="hidden-bidi-chars-warning">
         <Octicon symbol={OcticonSymbol.alert} />
-        This file contains bidirectional Unicode text that may be interpreted or
+        This diff contains bidirectional Unicode text that may be interpreted or
         compiled differently than what appears below. To review, open the file
         in an editor that reveals hidden Unicode characters.{' '}
         <LinkButton uri="https://github.co/hiddenchars">
