@@ -375,15 +375,13 @@ export class DiffParser {
       throw new Error('Malformed diff, empty hunk')
     }
 
-    const hunk = new DiffHunk(
+    return new DiffHunk(
       header,
       lines,
       linesConsumed,
       linesConsumed + lines.length - 1,
       getHunkHeaderExpansionType(hunkIndex, header, previousHunk)
     )
-
-    return hunk
   }
 
   /**
