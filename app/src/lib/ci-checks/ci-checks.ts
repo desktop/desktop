@@ -543,22 +543,6 @@ export function getFormattedCheckRunDuration(
 }
 
 /**
- * Get check run display name
- *
- * Optionally display check run event
- **/
-export function getCheckRunDisplayName(
-  checkRun: IRefCheck,
-  showEvent: boolean
-): string {
-  if (checkRun.actionsWorkflow !== undefined && showEvent) {
-    const { event } = checkRun.actionsWorkflow
-    return `${checkRun.name} (${event})`
-  }
-  return checkRun.name
-}
-
-/**
  * Generates the URL pointing to the details of a given check run. If that check
  * run has no specific URL, returns the URL of the associated pull request.
  *
