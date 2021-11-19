@@ -22,6 +22,11 @@ import { getLargestLineNumber } from '../ui/diff/diff-helpers'
 // in which case s defaults to 1
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
+/**
+ * Regular expression matching invisible bidirectional Unicode characters that
+ * may be interpreted or compiled differently than what it appears. See more:
+ * https://github.co/hiddenchars
+ */
 export const HiddenBidiCharsRegex = /[\u202A-\u202E]|[\u2066-\u2069]/
 
 const DiffPrefixAdd = '+' as const
