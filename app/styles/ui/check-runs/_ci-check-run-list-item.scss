@@ -7,7 +7,8 @@
   &.sticky {
     position: sticky;
     background-color: var(--background-color);
-    top: 28px;
+    top: 29px;
+    z-index: 10;
   }
 
   .ci-check-name span {
