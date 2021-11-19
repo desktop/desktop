@@ -8,7 +8,7 @@
     position: sticky;
     background-color: var(--background-color);
     top: 29px;
-    z-index: 10;
+    z-index: var(--list-sticky-header-second-level);
   }
 
   .ci-check-name span {
