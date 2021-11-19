@@ -541,28 +541,11 @@ export function getFormattedCheckRunDuration(
     .format('d[d] h[h] m[m] s[s]', { largest: 4 })
 }
 
-/** Get check run display name
+/**
+ * Get check run display name
  *
- * Goal: Action Workflow Name / workflow run name
- * If no workflow run name (non-actions check), then just return the name.
-
-export function getCheckRunDisplayName(
-  checkRun: IRefCheck,
-  showEvent: boolean
-): string {
-  if (checkRun.actionsWorkflow !== undefined) {
-    const { name, event } = checkRun.actionsWorkflow
-    return showEvent
-      ? `${name} / ${checkRun.name} (${event})`
-      : `${name} / ${checkRun.name}`
-  }
-  const wfName =
-    checkRun.appName === 'GitHub Code Scanning'
-      ? 'Code scanning results' // seems this is hardcoded on dotcom too :/
-      : undefined
-  return wfName !== undefined ? `${wfName} / ${checkRun.name}` : checkRun.name
-}
-*/
+ * Optionally display check run event
+ **/
 export function getCheckRunDisplayName(
   checkRun: IRefCheck,
   showEvent: boolean
