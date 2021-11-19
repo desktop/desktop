@@ -1,7 +1,12 @@
 import _ from 'lodash'
 import * as React from 'react'
 import { IAPIWorkflowJobStep } from '../../lib/api'
-import { IRefCheck, isFailure } from '../../lib/ci-checks/ci-checks'
+import {
+  getCheckRunGroupNames,
+  getCheckRunsGroupedByActionWorkflowNameAndEvent,
+  IRefCheck,
+  isFailure,
+} from '../../lib/ci-checks/ci-checks'
 import { CICheckRunListItem } from './ci-check-run-list-item'
 import { FocusContainer } from '../lib/focus-container'
 
@@ -101,59 +106,6 @@ export class CICheckRunList extends React.PureComponent<
     this.props.onCheckRunClick?.(checkRun)
   }
 
-  private getCheckRunsGroupedByActionWorkflowNameAndEvent = (): Map<
-    string,
-    ReadonlyArray<IRefCheck>
-  > => {
-    const groups = new Map<string, ReadonlyArray<IRefCheck>>()
-    for (const checkRun of this.props.checkRuns) {
-      let group = checkRun.actionsWorkflow?.name || 'Other'
-
-      if (
-        this.state.checkRunsHaveMultipleEventTypes &&
-        checkRun.actionsWorkflow !== undefined
-      ) {
-        group = `${group} (${checkRun.actionsWorkflow.event})`
-      }
-
-      if (group === 'Other' && checkRun.appName === 'GitHub Code Scanning') {
-        group = 'Code scanning results'
-      }
-
-      const existingGroup = groups.get(group)
-      const newGroup =
-        existingGroup !== undefined ? [...existingGroup, checkRun] : [checkRun]
-      groups.set(group, newGroup)
-    }
-
-    return groups
-  }
-
-  private getCheckRunGroupNames = (
-    checkRunGroups: Map<string, ReadonlyArray<IRefCheck>>
-  ): ReadonlyArray<string> => {
-    const groupNames = [...checkRunGroups.keys()]
-
-    // Sort names with 'Other' always last.
-    groupNames.sort((a, b) => {
-      if (a === 'Other' && b !== 'Other') {
-        return 1
-      }
-
-      if (a !== 'Other' && b === 'Other') {
-        return -1
-      }
-
-      if (a === 'Other' && b === 'Other') {
-        return 0
-      }
-
-      return a.localeCompare(b)
-    })
-
-    return groupNames
-  }
-
   private renderListItems = (
     checkRuns: ReadonlyArray<IRefCheck> | undefined
   ) => {
@@ -192,8 +144,10 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private renderList = (): JSX.Element | null => {
-    const checkRunGroups = this.getCheckRunsGroupedByActionWorkflowNameAndEvent()
-    const checkRunGroupNames = this.getCheckRunGroupNames(checkRunGroups)
+    const checkRunGroups = getCheckRunsGroupedByActionWorkflowNameAndEvent(
+      this.props.checkRuns
+    )
+    const checkRunGroupNames = getCheckRunGroupNames(checkRunGroups)
     if (checkRunGroupNames.length === 1 && checkRunGroupNames[0] === 'Other') {
       return this.renderListItems(this.props.checkRuns)
     }

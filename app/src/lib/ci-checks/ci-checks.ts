@@ -586,3 +586,73 @@ export function getCheckRunStepURL(
 
   return url
 }
+
+/**
+ * Groups check runs by their actions workflow name and actions workflow event type.
+ *
+ * Event type only gets grouped if there are more than one event.
+ * @param checkRuns
+ * @returns A map of grouped check runs.
+ */
+export function getCheckRunsGroupedByActionWorkflowNameAndEvent(
+  checkRuns: ReadonlyArray<IRefCheck>
+): Map<string, ReadonlyArray<IRefCheck>> {
+  const checkRunEvents = new Set(
+    checkRuns
+      .map(c => c.actionsWorkflow?.event)
+      .filter(c => c !== undefined && c.trim() !== '')
+  )
+  const checkRunsHaveMultipleEventTypes = checkRunEvents.size > 1
+
+  const groups = new Map<string, ReadonlyArray<IRefCheck>>()
+  for (const checkRun of checkRuns) {
+    let group = checkRun.actionsWorkflow?.name || 'Other'
+
+    if (
+      checkRunsHaveMultipleEventTypes &&
+      checkRun.actionsWorkflow !== undefined &&
+      checkRun.actionsWorkflow.event.trim() !== ''
+    ) {
+      group = `${group} (${checkRun.actionsWorkflow.event})`
+    }
+
+    if (group === 'Other' && checkRun.appName === 'GitHub Code Scanning') {
+      group = 'Code scanning results'
+    }
+
+    const existingGroup = groups.get(group)
+    const newGroup =
+      existingGroup !== undefined ? [...existingGroup, checkRun] : [checkRun]
+    groups.set(group, newGroup)
+  }
+
+  return groups
+}
+
+/**
+ * Gets the check run group names from the map and sorts them alphebetically with Other being last.
+ */
+export function getCheckRunGroupNames(
+  checkRunGroups: Map<string, ReadonlyArray<IRefCheck>>
+): ReadonlyArray<string> {
+  const groupNames = [...checkRunGroups.keys()]
+
+  // Sort names with 'Other' always last.
+  groupNames.sort((a, b) => {
+    if (a === 'Other' && b !== 'Other') {
+      return 1
+    }
+
+    if (a !== 'Other' && b === 'Other') {
+      return -1
+    }
+
+    if (a === 'Other' && b === 'Other') {
+      return 0
+    }
+
+    return a.localeCompare(b)
+  })
+
+  return groupNames
+}
