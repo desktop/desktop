@@ -24,7 +24,7 @@ const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
 /**
  * Regular expression matching invisible bidirectional Unicode characters that
- * may be interpreted or compiled differently than what it appears. See more:
+ * may be interpreted or compiled differently than what it appears. More info:
  * https://github.co/hiddenchars
  */
 export const HiddenBidiCharsRegex = /[\u202A-\u202E]|[\u2066-\u2069]/
@@ -292,9 +292,8 @@ export class DiffParser {
   private parseHunk(
     linesConsumed: number,
     hunkIndex: number,
-    previousHunk: DiffHunk | null,
-    shouldLookForHiddenBidiChars: boolean
-  ) {
+    previousHunk: DiffHunk | null
+  ): DiffHunk {
     const headerLine = this.readLine()
     if (!headerLine) {
       throw new Error('Expected hunk header but reached end of diff')
@@ -308,7 +307,6 @@ export class DiffParser {
 
     let rollingDiffBeforeCounter = header.oldStartLine
     let rollingDiffAfterCounter = header.newStartLine
-    let foundHiddenBidiChars = false
 
     let diffLineNumber = linesConsumed
     while ((c = this.parseLinePrefix(this.peek()))) {
@@ -341,10 +339,6 @@ export class DiffParser {
       }
 
       let diffLine: DiffLine
-
-      foundHiddenBidiChars =
-        shouldLookForHiddenBidiChars &&
-        (foundHiddenBidiChars || line.match(HiddenBidiCharsRegex) !== null)
 
       if (c === DiffPrefixAdd) {
         diffLine = new DiffLine(
@@ -389,10 +383,7 @@ export class DiffParser {
       getHunkHeaderExpansionType(hunkIndex, header, previousHunk)
     )
 
-    return {
-      hunk,
-      foundHiddenBidiChars,
-    }
+    return hunk
   }
 
   /**
@@ -437,18 +428,10 @@ export class DiffParser {
       const hunks = new Array<DiffHunk>()
       let linesConsumed = 0
       let previousHunk: DiffHunk | null = null
-      let hasHiddenBidiChars = false
 
       do {
-        const { hunk, foundHiddenBidiChars } = this.parseHunk(
-          linesConsumed,
-          hunks.length,
-          previousHunk,
-          // Only keep looking for bidi chars if none have been found so far
-          !hasHiddenBidiChars
-        )
+        const hunk = this.parseHunk(linesConsumed, hunks.length, previousHunk)
         hunks.push(hunk)
-        hasHiddenBidiChars = hasHiddenBidiChars || foundHiddenBidiChars
         previousHunk = hunk
         linesConsumed += hunk.lines.length
       } while (this.peek())
@@ -466,7 +449,7 @@ export class DiffParser {
         hunks,
         isBinary: headerInfo.isBinary,
         maxLineNumber: getLargestLineNumber(hunks),
-        hasHiddenBidiChars,
+        hasHiddenBidiChars: HiddenBidiCharsRegex.test(text),
       }
     } finally {
       this.reset()
