@@ -116,7 +116,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /**
    * Background color for selected boxes without keyboard focus
    */
-  --box-selected-background-color: #ebeef1;
+  --box-selected-background-color: #{$gray-200};
 
   /**
    * Text color for when a user hovers over a boxe with a
