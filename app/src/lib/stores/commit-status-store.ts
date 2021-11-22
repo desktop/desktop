@@ -4,7 +4,7 @@ import QuickLRU from 'quick-lru'
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, getAccountForEndpoint } from '../api'
+import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import {
   ICombinedRefCheck,
@@ -427,5 +427,19 @@ export class CommitStatusStore {
 
     const api = API.fromAccount(account)
     return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
+  }
+
+  public async fetchCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return null
+    }
+
+    const api = API.fromAccount(account)
+    return api.fetchCheckSuite(owner.login, name, checkSuiteId)
   }
 }

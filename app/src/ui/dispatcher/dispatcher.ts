@@ -5,6 +5,7 @@ import {
   IAPIOrganization,
   IAPIPullRequest,
   IAPIFullRepository,
+  IAPICheckSuite,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -2470,6 +2471,16 @@ export class Dispatcher {
     }
 
     await Promise.all(promises)
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    return this.commitStatusStore.fetchCheckSuite(repository, checkSuiteId)
   }
 
   /**

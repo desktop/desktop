@@ -5,6 +5,7 @@ import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { CICheckRunList } from './ci-check-run-list'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
+import { IAPICheckSuite } from '../../lib/api'
 
 interface ICICheckRunRerunDialogProps {
   readonly dispatcher: Dispatcher
@@ -14,34 +15,90 @@ interface ICICheckRunRerunDialogProps {
   readonly onDismissed: () => void
 }
 
+interface ICICheckRunRerunDialogState {
+  readonly loadingCheckSuites: boolean
+  readonly rerunnable: ReadonlyArray<IRefCheck>
+  readonly nonRerunnable: ReadonlyArray<IRefCheck>
+}
+
 /**
  * Dialog that informs the user of which jobs will be rerun
  */
 export class CICheckRunRerunDialog extends React.Component<
-  ICICheckRunRerunDialogProps
+  ICICheckRunRerunDialogProps,
+  ICICheckRunRerunDialogState
 > {
   public constructor(props: ICICheckRunRerunDialogProps) {
     super(props)
+    this.state = { loadingCheckSuites: true, rerunnable: [], nonRerunnable: [] }
+    this.determineRerunnability()
   }
 
   private onSubmit = async () => {
-    // TODO: filter to only rerunable jobs
     this.props.dispatcher.rerequestCheckSuites(
       this.props.repository,
-      this.props.checkRuns
+      this.state.rerunnable
     )
   }
 
+  private determineRerunnability = async () => {
+    // Get unique set of check suite ids
+    const checkSuiteIds = new Set(
+      this.props.checkRuns.map(cr => cr.checkSuiteId)
+    )
+
+    const checkSuitesPromises = new Array<Promise<IAPICheckSuite | null>>()
+
+    for (const id of checkSuiteIds) {
+      if (id === null) {
+        continue
+      }
+      checkSuitesPromises.push(
+        this.props.dispatcher.fetchCheckSuite(this.props.repository, id)
+      )
+    }
+
+    const rerequestableCheckSuiteIds: number[] = []
+    for (const cs of await Promise.all(checkSuitesPromises)) {
+      if (cs === null) {
+        continue
+      }
+
+      if (cs.rerequestable) {
+        rerequestableCheckSuiteIds.push(cs.id)
+      }
+    }
+
+    const rerunnable = this.props.checkRuns.filter(
+      cr =>
+        cr.checkSuiteId !== null &&
+        rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
+    )
+    const nonRerunnable = this.props.checkRuns.filter(
+      cr =>
+        cr.checkSuiteId === null ||
+        !rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
+    )
+
+    this.setState({ loadingCheckSuites: false, rerunnable, nonRerunnable })
+  }
+
   private renderRerunnableJobsList = () => {
-    // TODO: Only display rerunable jobs
-    // Display a note about how many jobs were not rerunable, or toggle the list?
+    if (this.state.loadingCheckSuites) {
+      return <>Determining rerunability...</>
+    }
+
     return (
       <div className="ci-check-run-list check-run-rerun-list">
         <CICheckRunList
-          checkRuns={this.props.checkRuns}
+          checkRuns={this.state.rerunnable}
           loadingActionLogs={false}
           loadingActionWorkflows={false}
+          selectable={true}
         />
+        <div>
+          There are {this.state.nonRerunnable.length} jobs that cannot be rerun.
+        </div>
       </div>
     )
   }

@@ -360,6 +360,12 @@ export interface IAPIRefCheckRunCheckSuite {
   readonly id: number
 }
 
+export interface IAPICheckSuite {
+  readonly id: number
+  readonly rerequestable: boolean
+  readonly runs_rerequestable: boolean
+}
+
 export interface IAPIRefCheckRuns {
   readonly total_count: number
   readonly check_runs: IAPIRefCheckRun[]
@@ -1108,6 +1114,28 @@ export class API {
     }
 
     return false
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}`
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPICheckSuite>(response)
+    } catch (_) {
+      log.debug(
+        `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return null
   }
 
   /**
