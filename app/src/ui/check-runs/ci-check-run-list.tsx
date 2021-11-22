@@ -36,6 +36,7 @@ interface ICICheckRunListProps {
 }
 
 interface ICICheckRunListState {
+  readonly checkRunGroups: Map<string, ReadonlyArray<IRefCheck>>
   readonly checkRunExpanded: string | null
   readonly hasUserToggledCheckRun: boolean
 }
@@ -52,30 +53,46 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public componentDidUpdate(prevProps: ICICheckRunListProps) {
-    this.setState(
-      this.setupStateAfterCheckRunPropChange(this.props, this.state)
-    )
+    const {
+      checkRunExpanded,
+      hasUserToggledCheckRun,
+    } = this.setupStateAfterCheckRunPropChange(this.props, this.state)
+    this.setState({ checkRunExpanded, hasUserToggledCheckRun })
   }
 
   private setupStateAfterCheckRunPropChange(
     props: ICICheckRunListProps,
     currentState: ICICheckRunListState | null
   ): ICICheckRunListState {
+    // If the user has expanded something and then a load occurs, we don't want
+    // to reset their position.
+    if (currentState !== null && currentState.hasUserToggledCheckRun) {
+      return currentState
+    }
+
+    const checkRunGroups =
+      currentState === null
+        ? getCheckRunsGroupedByActionWorkflowNameAndEvent(props.checkRuns)
+        : currentState.checkRunGroups
+
     let checkRunExpanded = currentState?.checkRunExpanded ?? null
 
-    if (currentState === null || !currentState.hasUserToggledCheckRun) {
-      // If there is a failure, we want the first check run with a failure, to
-      // be opened so the user doesn't have to click through to find it.
-      // Otherwise, just open the first one. (Only actions type can be expanded.)
-      const firstFailure = props.checkRuns.find(
+    // If there is a failure, we want the first check run with a failure, to
+    // be opened so the user doesn't have to click through to find it.
+    let firstFailure: IRefCheck | undefined
+    checkRunExpanded = null
+    for (const group of checkRunGroups.values()) {
+      firstFailure = group.find(
         cr => isFailure(cr) && cr.actionJobSteps !== undefined
       )
-
-      const checkRun = firstFailure ?? props.checkRuns[0]
-      checkRunExpanded = checkRun.id.toString()
+      if (firstFailure !== undefined) {
+        checkRunExpanded = firstFailure.id.toString()
+        break
+      }
     }
 
     return {
+      checkRunGroups,
       checkRunExpanded,
       hasUserToggledCheckRun: currentState?.hasUserToggledCheckRun || false,
     }
@@ -106,28 +123,26 @@ export class CICheckRunList extends React.PureComponent<
       return null
     }
 
-    const list = [...checkRuns]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((c, i) => {
-        const checkRunExpanded = this.state.checkRunExpanded === c.id.toString()
-        const selectable = this.props.selectable === true
+    const list = checkRuns.map((c, i) => {
+      const checkRunExpanded = this.state.checkRunExpanded === c.id.toString()
+      const selectable = this.props.selectable === true
 
-        return (
-          <CICheckRunListItem
-            checkRun={c}
-            key={i}
-            loadingActionLogs={this.props.loadingActionLogs}
-            loadingActionWorkflows={this.props.loadingActionWorkflows}
-            selectable={selectable}
-            selected={selectable && checkRunExpanded}
-            // Only expand check runs if the list is not selectable
-            isCheckRunExpanded={!selectable && checkRunExpanded}
-            onCheckRunExpansionToggleClick={this.onCheckRunClick}
-            onViewCheckExternally={this.props.onViewCheckDetails}
-            onViewJobStep={this.props.onViewJobStep}
-          />
-        )
-      })
+      return (
+        <CICheckRunListItem
+          checkRun={c}
+          key={i}
+          loadingActionLogs={this.props.loadingActionLogs}
+          loadingActionWorkflows={this.props.loadingActionWorkflows}
+          selectable={selectable}
+          selected={selectable && checkRunExpanded}
+          // Only expand check runs if the list is not selectable
+          isCheckRunExpanded={!selectable && checkRunExpanded}
+          onCheckRunExpansionToggleClick={this.onCheckRunClick}
+          onViewCheckExternally={this.props.onViewCheckDetails}
+          onViewJobStep={this.props.onViewJobStep}
+        />
+      )
+    })
 
     return (
       <FocusContainer className="list-focus-container">{list}</FocusContainer>
@@ -135,9 +150,7 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private renderList = (): JSX.Element | null => {
-    const checkRunGroups = getCheckRunsGroupedByActionWorkflowNameAndEvent(
-      this.props.checkRuns
-    )
+    const { checkRunGroups } = this.state
     const checkRunGroupNames = getCheckRunGroupNames(checkRunGroups)
     if (checkRunGroupNames.length === 1 && checkRunGroupNames[0] === 'Other') {
       return this.renderListItems(this.props.checkRuns)
