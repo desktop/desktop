@@ -16,6 +16,16 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
+"@github/multimap@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@github/multimap/-/multimap-1.0.0.tgz#541bf212d088d1c2762691762d0017a84382cfba"
+  integrity sha512-7SQfzFHXSWXcSgKCvHAE2sG7ixseghr8W12VbnKDMY+NYN8t63Aq/l619xTIJMOM/1DHHej16m7WJlBXL/XYhA==
+
+"@github/stable-socket@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@github/stable-socket/-/stable-socket-1.1.0.tgz#b8598c02df1a935fb0c970252f0b0062f4bdaa29"
+  integrity sha512-kzLHnrWGvmXka7AIUnsyF+SO5dP4dxEXX2sMixXW5ngRf3i4RhvXzFNgXVy4qBKsIsg6V3fNb3NOto0z6o4XAw==
+
 "@icons/material@^0.2.4":
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/@icons/material/-/material-0.2.4.tgz#e90c9f71768b3736e76d7dd6783fc6c2afa88bc8"
