@@ -15,6 +15,7 @@ import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import _ from 'lodash'
 import { encodePathAsUrl } from '../../lib/path'
+import { PopupType } from '../../models/popup'
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
   'static/empty-no-pull-requests.svg'
@@ -276,10 +277,11 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   private rerunJobs = () => {
-    this.props.dispatcher.rerequestCheckSuites(
-      this.props.repository,
-      this.state.checkRuns
-    )
+    this.props.dispatcher.showPopup({
+      type: PopupType.CICheckRunRerun,
+      checkRuns: this.state.checkRuns,
+      repository: this.props.repository,
+    })
   }
 
   private getPopoverPositioningStyles = (): React.CSSProperties => {

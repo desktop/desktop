@@ -23,7 +23,7 @@ interface ICICheckRunListProps {
   readonly selectable?: boolean
 
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
-  readonly onViewCheckDetails: (checkRun: IRefCheck) => void
+  readonly onViewCheckDetails?: (checkRun: IRefCheck) => void
 
   /** Callback when a check run is clicked */
   readonly onCheckRunClick?: (checkRun: IRefCheck) => void
@@ -98,6 +98,10 @@ export class CICheckRunList extends React.PureComponent<
     this.props.onCheckRunClick?.(checkRun)
   }
 
+  private onViewCheckExternally = (checkRun: IRefCheck) => {
+    this.props.onViewCheckDetails?.(checkRun)
+  }
+
   private renderListItems = (
     checkRuns: ReadonlyArray<IRefCheck> | undefined
   ) => {
@@ -123,7 +127,7 @@ export class CICheckRunList extends React.PureComponent<
             // Only expand check runs if the list is not selectable
             isCheckRunExpanded={!selectable && checkRunExpanded}
             onCheckRunExpansionToggleClick={this.onCheckRunClick}
-            onViewCheckExternally={this.props.onViewCheckDetails}
+            onViewCheckExternally={this.onViewCheckExternally}
             onViewJobStep={this.props.onViewJobStep}
           />
         )
