@@ -12,6 +12,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    z-index: var(--list-sticky-header-top-level);
+    z-index: var(--list-sticky-header-top-level-z-index);
   }
 }

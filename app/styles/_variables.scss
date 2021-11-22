@@ -310,8 +310,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --drag-overlay-z-index: 15;
   --side-panel-z-index: 14;
   // We want second level to fall under top level when scrolling
-  --list-sticky-header-top-level: 11;
-  --list-sticky-header-second-level: 10;
+  --list-sticky-header-top-level-z-index: 11;
+  --list-sticky-header-second-level-z-index: 10;
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
@@ -434,6 +434,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-warning-color: #{$yellow-600};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
+
+  /** File warning */
+  --file-warning-background-color: #{$yellow-200};
+  --file-warning-color: #{$yellow-800};
+  --file-warning-border-color: #{rgba($yellow-700, 0.4)};
 
   /** Tooltips */
   --tooltip-background-color: #{$gray-900};
