@@ -4,6 +4,13 @@
   border-bottom: var(--base-border);
   height: auto;
 
+  &.sticky {
+    position: sticky;
+    background-color: var(--background-color);
+    top: 29px;
+    z-index: var(--list-sticky-header-second-level-z-index);
+  }
+
   &.selected .ci-check-name span {
     &:hover {
       color: var(--link-button-selected-hover-color);

@@ -122,14 +122,16 @@ export class CICheckRunListItem extends React.PureComponent<
   public render() {
     const { checkRun, isCheckRunExpanded } = this.props
 
+    const classes = classNames('ci-check-list-item', 'list-item', {
+      sticky: isCheckRunExpanded,
+      selected: this.props.selected,
+    })
     return (
-      <>
+      <div className="ci-check-list-item-group">
         <div
-          className={classNames('ci-check-list-item list-item', {
-            selected: this.props.selected,
-          })}
-          tabIndex={0}
+          className={classes}
           onClick={this.toggleCheckRunExpansion}
+          tabIndex={0}
         >
           {this.renderCheckStatusSymbol()}
           {this.renderCheckRunName()}
@@ -141,7 +143,7 @@ export class CICheckRunListItem extends React.PureComponent<
             onViewJobStep={this.onViewJobStep}
           />
         ) : null}
-      </>
+      </div>
     )
   }
 }

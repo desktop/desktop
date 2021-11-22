@@ -309,6 +309,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --nudge-arrow-z-index: 16;
   --drag-overlay-z-index: 15;
   --side-panel-z-index: 14;
+  // We want second level to fall under top level when scrolling
+  --list-sticky-header-top-level-z-index: 11;
+  --list-sticky-header-second-level-z-index: 10;
 
   /**
    * Toast notifications are shown temporarily for things like the zoom

@@ -6,6 +6,11 @@
     border-bottom: var(--base-border);
     background-color: var(--box-alt-background-color);
 
+    // This is the height of a check run step and check run group header so that
+    // when a first failed step is scroll into view it doesn't end up under the
+    // sticky headers (which are like fixed headers)
+    scroll-margin-top: 72px;
+
     .job-step-duration {
       color: var(--text-secondary-color);
     }

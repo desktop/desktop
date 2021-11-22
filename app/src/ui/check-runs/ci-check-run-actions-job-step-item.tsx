@@ -40,31 +40,32 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<
   public render() {
     const { step } = this.props
     return (
-      <div className="ci-check-run-job-step">
-        <div className="list-item" ref={this.onStepHeaderRef(step)}>
-          <div className="job-step-status-symbol">
-            <Octicon
-              className={classNames(
-                'ci-status',
-                `ci-status-${getClassNameForCheck(step)}`
-              )}
-              symbol={getSymbolForLogStep(step)}
-            />
-          </div>
+      <div
+        className="ci-check-run-job-step list-item"
+        ref={this.onStepHeaderRef(step)}
+      >
+        <div className="job-step-status-symbol">
+          <Octicon
+            className={classNames(
+              'ci-status',
+              `ci-status-${getClassNameForCheck(step)}`
+            )}
+            symbol={getSymbolForLogStep(step)}
+          />
+        </div>
 
-          <TooltippedContent
-            className="job-step-name"
-            tooltip={step.name}
-            onlyWhenOverflowed={true}
-            tagName="div"
-            direction={TooltipDirection.NORTH}
-          >
-            <span onClick={this.onViewJobStepExternally}>{step.name}</span>
-          </TooltippedContent>
+        <TooltippedContent
+          className="job-step-name"
+          tooltip={step.name}
+          onlyWhenOverflowed={true}
+          tagName="div"
+          direction={TooltipDirection.NORTH}
+        >
+          <span onClick={this.onViewJobStepExternally}>{step.name}</span>
+        </TooltippedContent>
 
-          <div className="job-step-duration">
-            {getFormattedCheckRunDuration(step)}
-          </div>
+        <div className="job-step-duration">
+          {getFormattedCheckRunDuration(step)}
         </div>
       </div>
     )
