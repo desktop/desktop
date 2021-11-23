@@ -7,6 +7,9 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { APICheckStatus, IAPICheckSuite } from '../../lib/api'
 import moment from 'moment'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from './../octicons/octicons.generated'
+import { Row } from '../lib/row'
 
 interface ICICheckRunRerunDialogProps {
   readonly dispatcher: Dispatcher
@@ -133,16 +136,19 @@ export class CICheckRunRerunDialog extends React.Component<
     const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
     const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
     return (
-      <div className="non-re-run-info">
+      <Row className="non-re-run-info warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+
         {this.state.rerunnable.length === 0
           ? `There are no checks that can be rerun. `
           : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be rerun. `}
+
         {this.state.nonRerunnable.length > 0
           ? `A check run cannot be rerun if the check is more than one month old,
           the check has not completed, or the check is not configured to be
           rerun.`
           : null}
-      </div>
+      </Row>
     )
   }
 
