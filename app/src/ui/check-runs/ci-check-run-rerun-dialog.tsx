@@ -111,35 +111,38 @@ export class CICheckRunRerunDialog extends React.Component<
       return <>Please wait. Determining which checks can be rerun.</>
     }
 
+    return (
+      <div className="ci-check-run-list check-run-rerun-list">
+        {this.state.rerunnable.length > 0 ? (
+          <CICheckRunList
+            checkRuns={this.state.rerunnable}
+            loadingActionLogs={false}
+            loadingActionWorkflows={false}
+            selectable={true}
+          />
+        ) : null}
+      </div>
+    )
+  }
+
+  private renderRerunInfo = () => {
+    if (this.state.loadingCheckSuites) {
+      return null
+    }
+
     const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
     const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
     return (
-      <>
-        <div className="non-re-run-info">
-          {this.state.rerunnable.length === 0
-            ? `There are no checks that can be rerun. `
-            : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be rerun. `}
-          {this.state.nonRerunnable.length > 0
-            ? `A check run cannot be rerun if the check is more than one month old,
+      <div className="non-re-run-info">
+        {this.state.rerunnable.length === 0
+          ? `There are no checks that can be rerun. `
+          : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be rerun. `}
+        {this.state.nonRerunnable.length > 0
+          ? `A check run cannot be rerun if the check is more than one month old,
           the check has not completed, or the check is not configured to be
-          rerun. `
-            : null}
-          {this.state.rerunnable.length > 0
-            ? 'The following checks will be rerun.'
-            : null}
-        </div>
-
-        <div className="ci-check-run-list check-run-rerun-list">
-          {this.state.rerunnable.length > 0 ? (
-            <CICheckRunList
-              checkRuns={this.state.rerunnable}
-              loadingActionLogs={false}
-              loadingActionWorkflows={false}
-              selectable={true}
-            />
-          ) : null}
-        </div>
-      </>
+          rerun.`
+          : null}
+      </div>
     )
   }
 
@@ -154,6 +157,7 @@ export class CICheckRunRerunDialog extends React.Component<
       >
         <DialogContent>{this.renderRerunnableJobsList()}</DialogContent>
         <DialogFooter>
+          {this.renderRerunInfo()}
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Re-run checks' : 'Re-run checks'}
             okButtonDisabled={this.state.rerunnable.length === 0}
