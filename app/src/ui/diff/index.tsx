@@ -97,6 +97,9 @@ interface IDiffProps {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => void
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface IDiffState {
@@ -199,6 +202,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       kind: DiffType.Text,
       lineEndingsChange: diff.lineEndingsChange,
       maxLineNumber: diff.maxLineNumber,
+      hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
     return this.renderTextDiff(textDiff)
@@ -270,6 +274,9 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
+          onHideWhitespaceInDiffChanged={
+            this.props.onHideWhitespaceInDiffChanged
+          }
         />
       )
     }
@@ -287,6 +294,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
+        onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
       />
     )
   }

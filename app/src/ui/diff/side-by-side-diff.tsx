@@ -56,6 +56,7 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
+import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
@@ -115,6 +116,9 @@ interface ISideBySideDiffProps {
    * Whether we'll show the diff in a side-by-side layout.
    */
   readonly showSideBySideDiff: boolean
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ISideBySideDiffState {
@@ -273,6 +277,7 @@ export class SideBySideDiff extends React.Component<
 
     return (
       <div className={containerClassName} onMouseDown={this.onMouseDown}>
+        {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
         {this.state.isSearching && (
           <DiffSearchInput
             onSearch={this.onSearch}
@@ -324,9 +329,9 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
-    const lineNumberWidth = `${getLineWidthFromDigitCount(
+    const lineNumberWidth = getLineWidthFromDigitCount(
       getNumberOfDigits(diff.maxLineNumber)
-    )}px`
+    )
 
     const rowWithTokens = this.createFullRow(row, index)
 
@@ -360,6 +365,9 @@ export class SideBySideDiff extends React.Component<
             onContextMenuHunk={this.onContextMenuHunk}
             onContextMenuExpandHunk={this.onContextMenuExpandHunk}
             onContextMenuText={this.onContextMenuText}
+            onHideWhitespaceInDiffChanged={
+              this.props.onHideWhitespaceInDiffChanged
+            }
           />
         </div>
       </CellMeasurer>

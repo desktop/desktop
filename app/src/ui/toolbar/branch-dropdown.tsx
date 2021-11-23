@@ -17,8 +17,7 @@ import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { CICheckRunList } from '../branches/ci-check-run-list'
+import { CICheckRunPopover } from '../check-runs/ci-check-run-popover'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -54,10 +53,11 @@ interface IBranchDropdownProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
-}
 
+  readonly showCIStatusPopover: boolean
+}
 interface IBranchDropdownState {
-  readonly isPopoverOpen: boolean
+  readonly badgeBottom: number
 }
 
 /**
@@ -70,7 +70,7 @@ export class BranchDropdown extends React.Component<
   public constructor(props: IBranchDropdownProps) {
     super(props)
     this.state = {
-      isPopoverOpen: false,
+      badgeBottom: 0,
     }
   }
 
@@ -184,7 +184,7 @@ export class BranchDropdown extends React.Component<
           iconClassName={iconClassName}
           title={title}
           description={description}
-          tooltip={tooltip}
+          tooltip={isOpen ? undefined : tooltip}
           onDropdownStateChanged={this.onDropDownStateChanged}
           dropdownContentRenderer={this.renderBranchFoldout}
           dropdownState={currentState}
@@ -196,7 +196,7 @@ export class BranchDropdown extends React.Component<
         >
           {this.renderPullRequestInfo()}
         </ToolbarDropdown>
-        {this.state.isPopoverOpen && this.renderPopover()}
+        {this.props.showCIStatusPopover && this.renderPopover()}
       </>
     )
   }
@@ -215,7 +215,11 @@ export class BranchDropdown extends React.Component<
   }
 
   private onBadgeClick = () => {
-    if (this.state.isPopoverOpen) {
+    this.togglePopover()
+  }
+
+  private togglePopover() {
+    if (this.props.showCIStatusPopover) {
       this.closePopover()
     } else {
       this.props.dispatcher.closeFoldout(FoldoutType.Branch)
@@ -223,18 +227,17 @@ export class BranchDropdown extends React.Component<
     }
   }
 
+  private updateBadgeBottomPosition = (badgeBottom: number) => {
+    this.setState({ badgeBottom })
+  }
+
   private openPopover = () => {
-    this.setState(prevState => {
-      if (!prevState.isPopoverOpen) {
-        return { isPopoverOpen: true }
-      }
-      return null
-    })
+    this.props.dispatcher.setShowCIStatusPopover(true)
   }
 
   private closePopover = (event?: MouseEvent) => {
     if (event === undefined) {
-      this.setState({ isPopoverOpen: false })
+      this.props.dispatcher.setShowCIStatusPopover(false)
       return
     }
 
@@ -249,31 +252,38 @@ export class BranchDropdown extends React.Component<
       return
     }
 
-    this.setState({ isPopoverOpen: false })
+    this.props.dispatcher.setShowCIStatusPopover(false)
   }
 
   private renderPopover() {
     const pr = this.props.currentPullRequest
+    const { tip } = this.props.repositoryState.branchesState
+    // This is used for retrieving the PR's action check runs (if exist). For
+    // forked repo PRs, we must use the upstreamWithoutRemote as we make are own
+    // temporary branch in Desktop for these that doesn't exist remotely (and
+    // thus doesn't exist in action's world). The upstreamWIthoutRemote will
+    // match a non forked PR. It _should_ only be null for a local branch..
+    // which _should_ not happen in this context. But, worst case, the user
+    // simply won't be able to retreive action steps and will get check run list
+    // items that are given for non-action checks.
+    const currentBranchName =
+      tip.kind === TipState.Valid
+        ? tip.branch.upstreamWithoutRemote ?? tip.branch.name
+        : ''
 
     if (pr === null) {
       return null
     }
 
     return (
-      <div className="ci-check-list-popover">
-        <Popover
-          caretPosition={PopoverCaretPosition.Top}
-          onClickOutside={this.closePopover}
-        >
-          <div>
-            <CICheckRunList
-              prNumber={pr.pullRequestNumber}
-              dispatcher={this.props.dispatcher}
-              repository={pr.base.gitHubRepository}
-            />
-          </div>
-        </Popover>
-      </div>
+      <CICheckRunPopover
+        prNumber={pr.pullRequestNumber}
+        dispatcher={this.props.dispatcher}
+        repository={pr.base.gitHubRepository}
+        branchName={currentBranchName}
+        badgeBottom={this.state.badgeBottom}
+        closePopover={this.closePopover}
+      />
     )
   }
 
@@ -290,6 +300,7 @@ export class BranchDropdown extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
         onBadgeClick={this.onBadgeClick}
+        onBadgeBottomPositionUpdate={this.updateBadgeBottomPosition}
       />
     )
   }

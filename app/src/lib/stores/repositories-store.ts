@@ -23,7 +23,6 @@ import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
 import { enableRepositoryAliases } from '../feature-flag'
-import { setAlmostImmediate } from '../set-almost-immediate'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -664,7 +663,7 @@ export class RepositoriesStore extends TypedBaseStore<
    */
   private emitUpdatedRepositories() {
     if (!this.emitQueued) {
-      setAlmostImmediate(() => {
+      setImmediate(() => {
         this.getAll()
           .then(repos => this.emitUpdate(repos))
           .catch(e => log.error(`Failed emitting update`, e))

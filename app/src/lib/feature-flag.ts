@@ -143,12 +143,17 @@ export function enableSSHAskPass(): boolean {
   return true
 }
 
-/** Should we use the setImmediate alternative? */
-export function enableSetAlmostImmediate(): boolean {
+/** Should we show ci check runs? */
+export function enableCICheckRuns(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should ci check runs show logs? */
+export function enableCICheckRunsLogs(): boolean {
   return false
 }
 
-/** Should we show ci check runs? */
-export function enableCICheckRuns(): boolean {
-  return enableDevelopmentFeatures()
+/** Should we show previous tags as suggestions? */
+export function enablePreviousTagSuggestions(): boolean {
+  return enableBetaFeatures()
 }

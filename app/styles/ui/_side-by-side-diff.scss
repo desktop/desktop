@@ -54,6 +54,13 @@
     border-bottom: 1px solid var(--diff-border-color);
   }
 
+  .row {
+    .popover-component.whitespace-hint {
+      position: fixed;
+      width: 275px;
+    }
+  }
+
   .row .line-number {
     width: var(--width-line-number);
     flex-shrink: 0;
@@ -61,6 +68,7 @@
     color: var(--diff-line-number-color);
     display: flex;
     box-sizing: content-box;
+    position: relative;
 
     span {
       flex: 1;
@@ -168,6 +176,7 @@
     width: 50%;
     display: flex;
     flex-direction: row;
+    position: relative;
   }
 
   .before {

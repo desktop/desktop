@@ -15,7 +15,10 @@ import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
-import { HideWhitespaceWarning } from './hide-whitespace-warning'
+import { PopoverCaretPosition } from '../lib/popover'
+import { WhitespaceHintPopover } from './whitespace-hint-popover'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -42,9 +45,9 @@ interface ISideBySideDiffRowProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
-   * The width to display the diff gutter with.
+   * The width (in pixels) of the diff gutter.
    */
-  readonly lineNumberWidth: string
+  readonly lineNumberWidth: number
 
   /**
    * The index of the row in the displayed diff.
@@ -117,11 +120,23 @@ interface ISideBySideDiffRowProps {
    * Called when the user right-clicks text on the diff.
    */
   readonly onContextMenuText: () => void
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+}
+
+interface ISideBySideDiffRowState {
+  readonly showWhitespaceHint: DiffColumn | undefined
 }
 
 export class SideBySideDiffRow extends React.Component<
-  ISideBySideDiffRowProps
+  ISideBySideDiffRowProps,
+  ISideBySideDiffRowState
 > {
+  public constructor(props: ISideBySideDiffRowProps) {
+    super(props)
+    this.state = { showWhitespaceHint: undefined }
+  }
   public render() {
     const { row, showSideBySideDiff } = this.props
 
@@ -177,6 +192,7 @@ export class SideBySideDiffRow extends React.Component<
                 {this.renderLineNumbers([undefined, lineNumber], isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
+                {this.renderWhitespaceHintPopover(DiffColumn.After)}
               </div>
             </div>
           )
@@ -187,12 +203,14 @@ export class SideBySideDiffRow extends React.Component<
             <div className="before">
               {this.renderLineNumber()}
               {this.renderContentFromString('')}
+              {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after">
               {this.renderLineNumber(lineNumber, isSelected)}
               {this.renderContent(row.data)}
+              {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
@@ -208,6 +226,7 @@ export class SideBySideDiffRow extends React.Component<
                 {this.renderLineNumbers([lineNumber, undefined], isSelected)}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
+                {this.renderWhitespaceHintPopover(DiffColumn.Before)}
               </div>
             </div>
           )
@@ -221,12 +240,14 @@ export class SideBySideDiffRow extends React.Component<
             <div className="before">
               {this.renderLineNumber(lineNumber, isSelected)}
               {this.renderContent(row.data)}
+              {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after">
               {this.renderLineNumber()}
               {this.renderContentFromString('')}
+              {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
@@ -237,19 +258,28 @@ export class SideBySideDiffRow extends React.Component<
             <div className="before" onMouseEnter={this.onMouseEnterLineNumber}>
               {this.renderLineNumber(before.lineNumber, before.isSelected)}
               {this.renderContent(before)}
+              {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
               {this.renderLineNumber(after.lineNumber, after.isSelected)}
               {this.renderContent(after)}
+              {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
     }
   }
 
-  public shouldComponentUpdate(nextProps: ISideBySideDiffRowProps) {
+  public shouldComponentUpdate(
+    nextProps: ISideBySideDiffRowProps,
+    nextState: ISideBySideDiffRowState
+  ) {
+    if (!shallowEquals(this.state, nextState)) {
+      return true
+    }
+
     const { row: prevRow, ...restPrevProps } = this.props
     const { row: nextRow, ...restNextProps } = nextProps
 
@@ -338,14 +368,16 @@ export class SideBySideDiffRow extends React.Component<
     return (
       <div
         className="hunk-expansion-handle selectable hoverable"
-        title={elementInfo.title}
         onClick={elementInfo.handler}
         style={{ width: this.props.lineNumberWidth }}
         onContextMenu={this.props.onContextMenuExpandHunk}
       >
-        <span>
+        <TooltippedContent
+          direction={TooltipDirection.SOUTH}
+          tooltip={elementInfo.title}
+        >
           <Octicon symbol={elementInfo.icon} />
-        </span>
+        </TooltippedContent>
       </div>
     )
   }
@@ -374,13 +406,9 @@ export class SideBySideDiffRow extends React.Component<
       return null
     }
 
-    const classes = classNames('hunk-handle', {
-      hoverable: !this.props.hideWhitespaceInDiff,
-    })
-
     return (
       <div
-        className={classes}
+        className="hunk-handle hoverable"
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
@@ -416,15 +444,11 @@ export class SideBySideDiffRow extends React.Component<
 
     return (
       <div
-        className={classNames('line-number', 'selectable', {
+        className={classNames('line-number', 'selectable', 'hoverable', {
           'line-selected': isSelected,
-          hoverable: !this.props.hideWhitespaceInDiff,
           hover: this.props.isHunkHovered,
         })}
         style={{ width: this.props.lineNumberWidth }}
-        title={
-          this.props.hideWhitespaceInDiff ? HideWhitespaceWarning : undefined
-        }
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
@@ -433,6 +457,36 @@ export class SideBySideDiffRow extends React.Component<
         ))}
       </div>
     )
+  }
+
+  private renderWhitespaceHintPopover(column: DiffColumn) {
+    if (this.state.showWhitespaceHint !== column) {
+      return
+    }
+
+    const caretPosition =
+      column === DiffColumn.Before
+        ? PopoverCaretPosition.RightTop
+        : PopoverCaretPosition.LeftTop
+
+    const style: React.CSSProperties = {
+      [column === DiffColumn.Before ? 'marginRight' : 'marginLeft']:
+        this.props.lineNumberWidth + 10,
+      marginTop: -10,
+    }
+
+    return (
+      <WhitespaceHintPopover
+        caretPosition={caretPosition}
+        style={style}
+        onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
+        onDismissed={this.onWhitespaceHintClose}
+      />
+    )
+  }
+
+  private onWhitespaceHintClose = () => {
+    this.setState({ showWhitespaceHint: undefined })
   }
 
   /**
@@ -497,14 +551,19 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseDownLineNumber = (evt: React.MouseEvent) => {
-    if (evt.buttons === 2 || this.props.hideWhitespaceInDiff) {
+    if (evt.buttons === 2) {
       return
     }
 
-    const data = this.getDiffData(evt.currentTarget)
     const column = this.getDiffColumn(evt.currentTarget)
+    const data = this.getDiffData(evt.currentTarget)
 
     if (data !== null && column !== null) {
+      if (this.props.hideWhitespaceInDiff) {
+        this.setState({ showWhitespaceHint: column })
+        return
+      }
+
       this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
     }
   }
@@ -523,20 +582,12 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterHunk = () => {
-    if (this.props.hideWhitespaceInDiff) {
-      return
-    }
-
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
     }
   }
 
   private onMouseLeaveHunk = () => {
-    if (this.props.hideWhitespaceInDiff) {
-      return
-    }
-
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
@@ -548,6 +599,13 @@ export class SideBySideDiffRow extends React.Component<
 
   private onClickHunk = () => {
     if (this.props.hideWhitespaceInDiff) {
+      const { row } = this.props
+      // Prefer left hand side popovers when clicking hunk except for when
+      // the left hand side doesn't have a gutter
+      const column =
+        row.type === DiffRowType.Added ? DiffColumn.After : DiffColumn.Before
+
+      this.setState({ showWhitespaceHint: column })
       return
     }
 

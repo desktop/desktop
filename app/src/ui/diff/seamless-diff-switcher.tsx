@@ -83,6 +83,9 @@ interface ISeamlessDiffSwitcherProps {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => void
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ISeamlessDiffSwitcherState {
@@ -313,6 +316,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       file,
       onOpenBinaryFile,
       onChangeImageDiffType,
+      onHideWhitespaceInDiffChanged,
     } = this.state.propSnapshot
 
     const className = classNames('seamless-diff-switcher', {
@@ -346,6 +350,9 @@ export class SeamlessDiffSwitcher extends React.Component<
             onDiscardChanges={isLoadingDiff ? noop : onDiscardChanges}
             onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
             onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
+            onHideWhitespaceInDiffChanged={
+              isLoadingDiff ? noop : onHideWhitespaceInDiffChanged
+            }
           />
         ) : null}
         {loadingIndicator}

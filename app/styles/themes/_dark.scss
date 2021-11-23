@@ -28,6 +28,7 @@ body.theme-dark {
 
   --link-button-color: #{lighten($blue-400, 3%)};
   --link-button-hover-color: #{$blue-400};
+  --link-button-selected-hover-color: #{$blue-300};
 
   --secondary-button-background: #{$gray-800};
   --secondary-button-hover-background: var(--secondary-button-background);
@@ -98,6 +99,7 @@ body.theme-dark {
    * implement a hover state since this will conflict with
    * selection and active selection
    */
+  --box-hover-background-color: #{$gray-800};
 
   /**
    * Text color for selected boxes without keyboard focus
@@ -327,6 +329,16 @@ body.theme-dark {
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
 
+  /** File warning */
+  --file-warning-background-color: #{rgba($yellow-900, 0.4)};
+  --file-warning-color: #{$yellow-700};
+  --file-warning-border-color: #{rgba($yellow-800, 0.4)};
+
+  /** Tooltips */
+  --tooltip-background-color: #{$gray-800};
+  --tooltip-color: #{$gray-100};
+  --tooltip-shadow-color: #{$black};
+
   /** Inline paths and code */
   --path-segment-background: #{$gray-700};
 
@@ -348,6 +360,18 @@ body.theme-dark {
 
   --title-tool-tip-background-color: rgb(56, 58, 62);
   --title-tool-tip-shadow: none;
+
+  // Markdown colors
+  --md-border-default-color: #30363d;
+  --md-border-muted-color: #21262d;
+  --md-canvas-default-color: #0d1117;
+  --md-canvas-subtle-color: #161b22;
+  --md-fg-default-color: #c9d1d9;
+  --md-fg-muted-color: #8b949e;
+  --md-danger-fg-color: #f85149;
+  --md-neutral-muted-color: rgba(110, 118, 129, 0.4);
+  --md-accent-emphasis-color: #1f6feb;
+  --md-accent-fg-color: #58a6ff;
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly

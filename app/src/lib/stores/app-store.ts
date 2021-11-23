@@ -461,6 +461,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
+  private showCIStatusPopover: boolean = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -853,6 +854,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       dragAndDropIntroTypesShown: this.dragAndDropIntroTypesShown,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
+      showCIStatusPopover: this.showCIStatusPopover,
     }
   }
 
@@ -4151,7 +4153,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await fastForwardBranches(repository, eligibleBranches)
     } catch (e) {
       log.error('Branch fast-forwarding failed', e)
-      sendNonFatalException('fastForwardBranches', e)
     }
   }
 
@@ -6728,6 +6729,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    this.emitUpdate()
+  }
+
+  public _setShowCIStatusPopover(showCIStatusPopover: boolean) {
+    if (this.showCIStatusPopover !== showCIStatusPopover) {
+      this.showCIStatusPopover = showCIStatusPopover
+      this.emitUpdate()
+    }
+  }
+
+  public _toggleCIStatusPopover() {
+    this.showCIStatusPopover = !this.showCIStatusPopover
     this.emitUpdate()
   }
 }

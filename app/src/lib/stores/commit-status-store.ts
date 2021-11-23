@@ -4,42 +4,18 @@ import QuickLRU from 'quick-lru'
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
-import {
-  API,
-  IAPIRefStatusItem,
-  IAPIRefCheckRun,
-  APICheckStatus,
-  APICheckConclusion,
-} from '../api'
+import { API, getAccountForEndpoint } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
-import { setAlmostImmediate } from '../set-almost-immediate'
-
-/**
- * A Desktop-specific model closely related to a GitHub API Check Run.
- *
- * The RefCheck object abstracts the difference between the legacy
- * Commit Status objects and the modern Check Runs and unifies them
- * under one common interface. Since all commit statuses can be
- * represented as Check Runs but not all Check Runs can be represented
- * as statuses the model closely aligns with Check Runs.
- */
-export interface IRefCheck {
-  readonly name: string
-  readonly description: string
-  readonly status: APICheckStatus
-  readonly conclusion: APICheckConclusion | null
-  readonly appName: string
-}
-
-/**
- * A combined view of all legacy commit statuses as well as
- * check runs for a particular Git reference.
- */
-export interface ICombinedRefCheck {
-  readonly status: APICheckStatus
-  readonly conclusion: APICheckConclusion | null
-  readonly checks: ReadonlyArray<IRefCheck>
-}
+import {
+  ICombinedRefCheck,
+  IRefCheck,
+  createCombinedCheckFromChecks,
+  apiCheckRunToRefCheck,
+  getLatestCheckRunsByName,
+  apiStatusToRefCheck,
+  getLatestPRWorkflowRunsLogsForCheckRun,
+  getCheckRunActionsJobsAndLogURLS,
+} from '../ci-checks/ci-checks'
 
 interface ICommitStatusCacheEntry {
   /**
@@ -227,7 +203,7 @@ export class CommitStatusStore {
   private queueRefresh() {
     if (!this.refreshQueued) {
       this.refreshQueued = true
-      setAlmostImmediate(() => {
+      setImmediate(() => {
         this.refreshQueued = false
         this.refreshEligibleSubscriptions()
       })
@@ -380,243 +356,76 @@ export class CommitStatusStore {
       }
     })
   }
-}
 
-/**
- * Convert a legacy API commit status to a fake check run
- */
-function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
-  let state: APICheckStatus
-  let conclusion: APICheckConclusion | null = null
-
-  if (apiStatus.state === 'success') {
-    state = APICheckStatus.Completed
-    conclusion = APICheckConclusion.Success
-  } else if (apiStatus.state === 'pending') {
-    state = APICheckStatus.InProgress
-  } else {
-    state = APICheckStatus.Completed
-    conclusion = APICheckConclusion.Failure
-  }
-
-  return {
-    name: apiStatus.context,
-    description: getCheckRunShortDescription(state, conclusion),
-    status: state,
-    conclusion,
-    appName: '',
-  }
-}
-
-/**
- * Method to generate a user friendly short check run description such as
- * "Successful in xs", "In Progress", "Failed after 1m"
- *
- * If the duration is not provided, it will omit the preposition and duration
- * context. Also, conclusions such as `Skipped`, 'Action required`, `Marked as
- * stale` don't make sense with duration context so it is ommited.
- *
- * @param status - The overall check status, something like completed, pending,
- * or failing...
- * @param conclusion - The conclusion of the check, something like success or
- * skipped...
- * @param durationSeconds - The time in seconds it took to complete.
- */
-function getCheckRunShortDescription(
-  status: APICheckStatus,
-  conclusion: APICheckConclusion | null,
-  durationSeconds?: number
-): string {
-  if (status !== APICheckStatus.Completed || conclusion === null) {
-    return 'In progress'
-  }
-
-  let adjective = ''
-  let preposition = 'after'
-
-  // Some of these such as 'Action required' or 'Skipped' don't make sense with
-  // time context so we just return them.
-  switch (conclusion) {
-    case APICheckConclusion.ActionRequired:
-      return 'Action required'
-    case APICheckConclusion.Canceled:
-      adjective = 'Canceled'
-      break
-    case APICheckConclusion.TimedOut:
-      adjective = 'Timed out'
-      break
-    case APICheckConclusion.Failure:
-      adjective = 'Failed'
-      break
-    case APICheckConclusion.Neutral:
-      adjective = 'Completed'
-      break
-    case APICheckConclusion.Success:
-      adjective = 'Successful'
-      preposition = 'in'
-      break
-    case APICheckConclusion.Skipped:
-      return 'Skipped'
-    case APICheckConclusion.Stale:
-      return 'Marked as stale'
-  }
-
-  if (durationSeconds !== undefined && durationSeconds > 0) {
-    const duration =
-      durationSeconds < 60
-        ? `${durationSeconds}s`
-        : `${Math.round(durationSeconds / 60)}m`
-    return `${adjective} ${preposition} ${duration}`
-  }
-
-  return adjective
-}
-
-/**
- * Attempts to get the duration of a check run in seconds.
- * If it fails, it returns 0
- */
-function getCheckDurationInSeconds(checkRun: IAPIRefCheckRun): number {
-  try {
-    // This could fail if the dates cannot be parsed.
-    const completedAt = new Date(checkRun.completed_at).getTime()
-    const startedAt = new Date(checkRun.started_at).getTime()
-    return (completedAt - startedAt) / 1000
-  } catch (e) {}
-
-  return 0
-}
-
-/**
- * Convert an API check run object to a RefCheck model
- */
-function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
-  return {
-    name: checkRun.name,
-    description: getCheckRunShortDescription(
-      checkRun.status,
-      checkRun.conclusion,
-      getCheckDurationInSeconds(checkRun)
-    ),
-    status: checkRun.status,
-    conclusion: checkRun.conclusion,
-    appName: checkRun.app.name,
-  }
-}
-
-function createCombinedCheckFromChecks(
-  checks: ReadonlyArray<IRefCheck>
-): ICombinedRefCheck | null {
-  if (checks.length === 0) {
-    // This case is distinct from when we fail to call the API in
-    // that this means there are no checks or statuses so we should
-    // clear whatever info we've got for this ref.
-    return null
-  }
-
-  if (checks.length === 1) {
-    // If we've got exactly one check then we can mirror its status
-    // and conclusion 1-1 without having to create an aggregate status
-    const { status, conclusion } = checks[0]
-    return { status, conclusion, checks }
-  }
-
-  if (checks.some(isIncompleteOrFailure)) {
-    return {
-      status: APICheckStatus.Completed,
-      conclusion: APICheckConclusion.Failure,
-      checks,
+  /**
+   * Retrieve GitHub Actions workflows and populates the job and log url if
+   * applicable to the checkruns
+   */
+  public async getCheckRunActionsJobsAndLogURLS(
+    repository: GitHubRepository,
+    ref: string,
+    branchName: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    const key = getCacheKeyForRepository(repository, ref)
+    const subscription = this.subscriptions.get(key)
+    if (subscription === undefined) {
+      return checkRuns
     }
-  } else if (checks.every(isSuccess)) {
-    return {
-      status: APICheckStatus.Completed,
-      conclusion: APICheckConclusion.Success,
-      checks,
-    }
-  } else {
-    return { status: APICheckStatus.InProgress, conclusion: null, checks }
-  }
-}
 
-/**
- * Whether the check is either incomplete or has failed
- */
-export function isIncompleteOrFailure(check: IRefCheck) {
-  return isIncomplete(check) || isFailure(check)
-}
-
-/**
- * Whether the check is incomplete (timed out, stale or cancelled).
- *
- * The terminology here is confusing and deserves explanation. An
- * incomplete check is a check run that has been started and who's
- * state is 'completed' but it never got to produce a conclusion
- * because it was either cancelled, it timed out, or GitHub marked
- * it as stale.
- */
-export function isIncomplete(check: IRefCheck) {
-  if (check.status === 'completed') {
-    switch (check.conclusion) {
-      case 'timed_out':
-      case 'stale':
-      case 'cancelled':
-        return true
+    const { endpoint, owner, name } = subscription
+    const account = this.accounts.find(a => a.endpoint === endpoint)
+    if (account === undefined) {
+      return checkRuns
     }
+
+    const api = API.fromAccount(account)
+    return getCheckRunActionsJobsAndLogURLS(
+      api,
+      owner,
+      name,
+      branchName,
+      checkRuns
+    )
   }
 
-  return false
-}
-
-/** Whether the check has failed (failure or requires action) */
-export function isFailure(check: IRefCheck) {
-  if (check.status === 'completed') {
-    switch (check.conclusion) {
-      case 'failure':
-      case 'action_required':
-        return true
+  /**
+   * Retrieve GitHub Actions job and logs for the check runs.
+   */
+  public async getLatestPRWorkflowRunsLogsForCheckRun(
+    repository: GitHubRepository,
+    ref: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    const key = getCacheKeyForRepository(repository, ref)
+    const subscription = this.subscriptions.get(key)
+    if (subscription === undefined) {
+      return checkRuns
     }
+
+    const { endpoint, owner, name } = subscription
+    const account = this.accounts.find(a => a.endpoint === endpoint)
+
+    if (account === undefined) {
+      return checkRuns
+    }
+
+    const api = API.fromAccount(account)
+
+    return getLatestPRWorkflowRunsLogsForCheckRun(api, owner, name, checkRuns)
   }
 
-  return false
-}
-
-/** Whether the check can be considered successful (success, neutral or skipped) */
-export function isSuccess(check: IRefCheck) {
-  if (check.status === 'completed') {
-    switch (check.conclusion) {
-      case 'success':
-      case 'neutral':
-      case 'skipped':
-        return true
+  public async rerequestCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
     }
+
+    const api = API.fromAccount(account)
+    return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
   }
-
-  return false
-}
-
-/**
- * In some cases there may be multiple check runs reported for a
- * reference. In that case GitHub.com will pick only the latest
- * run for each check name to present in the PR merge footer and
- * only the latest run counts towards the mergeability of a PR.
- *
- * We use the check suite id as a proxy for determining what's
- * the "latest" of two check runs with the same name.
- */
-function getLatestCheckRunsByName(
-  checkRuns: ReadonlyArray<IAPIRefCheckRun>
-): ReadonlyArray<IAPIRefCheckRun> {
-  const latestCheckRunsByName = new Map<string, IAPIRefCheckRun>()
-
-  for (const checkRun of checkRuns) {
-    const current = latestCheckRunsByName.get(checkRun.name)
-    if (
-      current === undefined ||
-      current.check_suite.id < checkRun.check_suite.id
-    ) {
-      latestCheckRunsByName.set(checkRun.name, checkRun)
-    }
-  }
-
-  return [...latestCheckRunsByName.values()]
 }

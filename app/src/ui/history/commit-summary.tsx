@@ -14,11 +14,9 @@ import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-messa
 import { DiffOptions } from '../diff/diff-options'
 import { RepositorySectionTab } from '../../lib/app-state'
 import { IChangesetData } from '../../lib/git'
-import {
-  AlmostImmediate,
-  clearAlmostImmediate,
-  setAlmostImmediate,
-} from '../../lib/set-almost-immediate'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { clipboard } from 'electron'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -129,7 +127,7 @@ export class CommitSummary extends React.Component<
 > {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateOverflowTimeoutId: AlmostImmediate | null = null
+  private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
 
   public constructor(props: ICommitSummaryProps) {
@@ -148,10 +146,10 @@ export class CommitSummary extends React.Component<
             // when we're reacting to a resize so we'll defer it until after
             // react is done with this frame.
             if (this.updateOverflowTimeoutId !== null) {
-              clearAlmostImmediate(this.updateOverflowTimeoutId)
+              clearImmediate(this.updateOverflowTimeoutId)
             }
 
-            this.updateOverflowTimeoutId = setAlmostImmediate(this.onResized)
+            this.updateOverflowTimeoutId = setImmediate(this.onResized)
           }
         }
       })
@@ -342,20 +340,23 @@ export class CommitSummary extends React.Component<
               className="commit-summary-meta-item without-truncation"
               aria-label="SHA"
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.gitCommit} />
-              </span>
-              <span className="sha">{shortSHA}</span>
+              <Octicon symbol={OcticonSymbol.gitCommit} />
+              <TooltippedContent
+                className="sha"
+                tooltip={this.renderShaTooltip()}
+                tooltipClassName="sha-hint"
+                interactive={true}
+                direction={TooltipDirection.SOUTH}
+              >
+                {shortSHA}
+              </TooltippedContent>
             </li>
 
             <li
               className="commit-summary-meta-item without-truncation"
               title={filesDescription}
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.diff} />
-              </span>
-
+              <Octicon symbol={OcticonSymbol.diff} />
               {filesDescription}
             </li>
             {this.renderLinesChanged()}
@@ -386,6 +387,20 @@ export class CommitSummary extends React.Component<
     )
   }
 
+  private renderShaTooltip() {
+    return (
+      <>
+        <code>{this.props.commit.sha}</code>
+        <button onClick={this.onCopyShaButtonClick}>Copy</button>
+      </>
+    )
+  }
+
+  private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    clipboard.writeText(this.props.commit.sha)
+  }
+
   private renderLinesChanged() {
     const linesAdded = this.props.changesetData.linesAdded
     const linesDeleted = this.props.changesetData.linesDeleted
@@ -400,18 +415,20 @@ export class CommitSummary extends React.Component<
 
     return (
       <>
-        <li
+        <TooltippedContent
+          tagName="li"
           className="commit-summary-meta-item without-truncation lines-added"
-          title={linesAddedTitle}
+          tooltip={linesAddedTitle}
         >
           +{linesAdded}
-        </li>
-        <li
+        </TooltippedContent>
+        <TooltippedContent
+          tagName="li"
           className="commit-summary-meta-item without-truncation lines-deleted"
-          title={linesDeletedTitle}
+          tooltip={linesDeletedTitle}
         >
           -{linesDeleted}
-        </li>
+        </TooltippedContent>
       </>
     )
   }

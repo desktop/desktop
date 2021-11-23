@@ -92,7 +92,6 @@ import { executeMenuItem } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
-  ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
@@ -114,6 +113,7 @@ import {
 } from '../../models/multi-commit-operation'
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
+import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 
 /**
  * An error handler function.
@@ -2416,6 +2416,63 @@ export class Dispatcher {
   }
 
   /**
+   * Populates Actions workflow logs for provided checkruns if applicable
+   */
+  public getActionsWorkflowRunLogs(
+    repository: GitHubRepository,
+    ref: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
+      repository,
+      ref,
+      checkRuns
+    )
+  }
+
+  /**
+   * Populates Actions workflow log and job url's for provided checkruns if applicable
+   */
+  public getCheckRunActionsJobsAndLogURLS(
+    repository: GitHubRepository,
+    ref: string,
+    branchName: string,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<IRefCheck>> {
+    return this.commitStatusStore.getCheckRunActionsJobsAndLogURLS(
+      repository,
+      ref,
+      branchName,
+      checkRuns
+    )
+  }
+
+  /**
+   * Triggers GitHub to rerequest a list of check suites, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuites(
+    repository: GitHubRepository,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<void> {
+    // Get unique set of check suite ids
+    const checkSuiteIds = new Set<number | null>([
+      ...checkRuns.map(cr => cr.checkSuiteId),
+    ])
+
+    const promises = new Array<Promise<boolean>>()
+
+    for (const id of checkSuiteIds) {
+      if (id === null) {
+        continue
+      }
+      promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
+    }
+
+    await Promise.all(promises)
+  }
+
+  /**
    * Creates a stash for the current branch. Note that this will
    * override any stash that already exists for the current branch.
    *
@@ -3661,5 +3718,13 @@ export class Dispatcher {
       [],
       currentBranch.tip.sha
     )
+  }
+
+  public setShowCIStatusPopover(showCIStatusPopover: boolean) {
+    this.appStore._setShowCIStatusPopover(showCIStatusPopover)
+  }
+
+  public _toggleCIStatusPopover() {
+    this.appStore._toggleCIStatusPopover()
   }
 }

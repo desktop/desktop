@@ -17,3 +17,19 @@ export function rectEquals(x: ClientRect, y: ClientRect) {
     x.height === y.height
   )
 }
+
+/**
+ * Returns true if `y` is entirely contained within `x`
+ */
+export function rectContains(x: ClientRect, y: ClientRect) {
+  if (x === y) {
+    return true
+  }
+
+  return (
+    y.top >= x.top &&
+    y.left >= x.left &&
+    y.bottom <= x.bottom &&
+    y.right <= x.right
+  )
+}
