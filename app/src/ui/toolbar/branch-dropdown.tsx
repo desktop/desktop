@@ -243,11 +243,12 @@ export class BranchDropdown extends React.Component<
 
     const { target } = event
     const prBadgeElem = document.getElementById('pr-badge')
+    const rerunDialog = document.getElementById('rerun-check-runs')
     if (
-      prBadgeElem !== null &&
       target !== null &&
       target instanceof Node &&
-      prBadgeElem.contains(target)
+      ((prBadgeElem !== null && prBadgeElem.contains(target)) ||
+        (rerunDialog !== null && rerunDialog.contains(target)))
     ) {
       return
     }
