@@ -168,11 +168,7 @@ export class CICheckRunPopover extends React.PureComponent<
 
     /*
       Until we retrieve the actions workflows, we don't know if a check run has
-      action logs to output, thus, we want to show loading until then. However,
-      once the workflows have been retrieved and since the logs retrieval and
-      parsing can be noticeably time consuming. We go ahead and flip a flag so
-      that we know we can go ahead and display the checkrun `output` content if
-      a check run does not have action logs to retrieve/parse.
+      action logs to output, thus, we want to show loading until then.
     */
     const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsWorkflowRuns(
       this.props.repository,
