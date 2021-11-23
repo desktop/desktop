@@ -18,6 +18,7 @@ interface ICICheckRunRerunDialogProps {
 
 interface ICICheckRunRerunDialogState {
   readonly loadingCheckSuites: boolean
+  readonly loadingRerun: boolean
   readonly rerunnable: ReadonlyArray<IRefCheck>
   readonly nonRerunnable: ReadonlyArray<IRefCheck>
 }
@@ -31,7 +32,12 @@ export class CICheckRunRerunDialog extends React.Component<
 > {
   public constructor(props: ICICheckRunRerunDialogProps) {
     super(props)
-    this.state = { loadingCheckSuites: true, rerunnable: [], nonRerunnable: [] }
+    this.state = {
+      loadingCheckSuites: true,
+      loadingRerun: false,
+      rerunnable: [],
+      nonRerunnable: [],
+    }
     this.determineRerunnability()
   }
 
@@ -92,23 +98,36 @@ export class CICheckRunRerunDialog extends React.Component<
 
   private renderRerunnableJobsList = () => {
     if (this.state.loadingCheckSuites) {
-      return <>Determining rerunability...</>
+      return <>Please wait. Determining which checks can be rerun.</>
     }
 
+    const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
+    const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
     return (
       <>
         <div className="non-re-run-info">
-          There are {this.state.nonRerunnable.length} checks that cannot be
-          rerun. The following checks that will be rerun.
+          {this.state.rerunnable.length === 0
+            ? `There are no checks that can be rerun. `
+            : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be rerun. `}
+          {this.state.nonRerunnable.length > 0
+            ? `A check run cannot be rerun if the check is more than one month old,
+          the check has not completed, or the check is not configured to be
+          rerun. `
+            : null}
+          {this.state.rerunnable.length > 0
+            ? 'The following checks will be rerun.'
+            : null}
         </div>
 
         <div className="ci-check-run-list check-run-rerun-list">
-          <CICheckRunList
-            checkRuns={this.state.rerunnable}
-            loadingActionLogs={false}
-            loadingActionWorkflows={false}
-            selectable={true}
-          />
+          {this.state.rerunnable.length > 0 ? (
+            <CICheckRunList
+              checkRuns={this.state.rerunnable}
+              loadingActionLogs={false}
+              loadingActionWorkflows={false}
+              selectable={true}
+            />
+          ) : null}
         </div>
       </>
     )
@@ -121,11 +140,13 @@ export class CICheckRunRerunDialog extends React.Component<
         title={__DARWIN__ ? 'Re-run checks' : 'Re-run checks'}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
+        loading={this.state.loadingCheckSuites || this.state.loadingRerun}
       >
         <DialogContent>{this.renderRerunnableJobsList()}</DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Re-run checks' : 'Re-run checks'}
+            okButtonDisabled={this.state.rerunnable.length === 0}
           />
         </DialogFooter>
       </Dialog>
