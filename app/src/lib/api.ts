@@ -648,6 +648,7 @@ function toGitHubIsoDateString(date: Date) {
 }
 
 interface IAPIAliveSignedChannel {
+  readonly channel_name: string
   readonly signed_channel: string
 }
 
@@ -685,11 +686,11 @@ export class API {
     this.token = token
   }
 
-  public async getAliveDesktopChannel(): Promise<string | null> {
+  public async getAliveDesktopChannel(): Promise<IAPIAliveSignedChannel | null> {
     try {
       const res = await this.request('GET', '/desktop_internal/live-channel')
       const signedChannel = await parsedResponse<IAPIAliveSignedChannel>(res)
-      return signedChannel.signed_channel
+      return signedChannel
     } catch (e) {
       log.warn(`Alive channel request failed: ${e}`)
       return null

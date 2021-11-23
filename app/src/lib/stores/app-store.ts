@@ -286,6 +286,7 @@ import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
+import { AliveStore } from './alive-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -476,7 +477,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly repositoriesStore: RepositoriesStore,
     private readonly pullRequestCoordinator: PullRequestCoordinator,
     private readonly repositoryStateCache: RepositoryStateCache,
-    private readonly apiRepositoriesStore: ApiRepositoriesStore
+    private readonly apiRepositoriesStore: ApiRepositoriesStore,
+    private readonly aliveStore: AliveStore
   ) {
     super()
 
@@ -541,6 +543,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }, InitialRepositoryIndicatorTimeout)
 
     API.onTokenInvalidated(this.onTokenInvalidated)
+
+    this.aliveStore.onNotificationReceived(e => {
+      const eventData = e.data as any
+
+      const notification = new remote.Notification({
+        title: 'Notification from Alive',
+        body: eventData.reason,
+      })
+
+      notification.show()
+    })
   }
 
   private onTokenInvalidated = (endpoint: string) => {
