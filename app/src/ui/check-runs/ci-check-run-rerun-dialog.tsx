@@ -5,7 +5,8 @@ import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { CICheckRunList } from './ci-check-run-list'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
-import { IAPICheckSuite } from '../../lib/api'
+import { APICheckStatus, IAPICheckSuite } from '../../lib/api'
+import moment from 'moment'
 
 interface ICICheckRunRerunDialogProps {
   readonly dispatcher: Dispatcher
@@ -64,7 +65,13 @@ export class CICheckRunRerunDialog extends React.Component<
         continue
       }
 
-      if (cs.rerequestable) {
+      const created = moment(cs.created_at)
+      const monthsSinceCreated = moment().diff(created, 'months')
+      if (
+        cs.rerequestable &&
+        monthsSinceCreated < 1 && // Must be less than a month old
+        cs.status === APICheckStatus.Completed // Must be completed
+      ) {
         rerequestableCheckSuiteIds.push(cs.id)
       }
     }

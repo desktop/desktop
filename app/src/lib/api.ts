@@ -364,6 +364,8 @@ export interface IAPICheckSuite {
   readonly id: number
   readonly rerequestable: boolean
   readonly runs_rerequestable: boolean
+  readonly status: APICheckStatus
+  readonly created_at: string
 }
 
 export interface IAPIRefCheckRuns {
