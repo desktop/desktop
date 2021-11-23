@@ -326,4 +326,5 @@ export type Popup =
       type: PopupType.CICheckRunRerun
       checkRuns: ReadonlyArray<IRefCheck>
       repository: GitHubRepository
+      prRef: string
     }

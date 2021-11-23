@@ -4,7 +4,12 @@ import QuickLRU from 'quick-lru'
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
+import {
+  API,
+  APICheckStatus,
+  getAccountForEndpoint,
+  IAPICheckSuite,
+} from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import {
   ICombinedRefCheck,
@@ -234,6 +239,44 @@ export class CommitStatusStore {
 
       this.queue.add(key)
     }
+  }
+
+  public async manualRefreshSubscription(
+    repository: GitHubRepository,
+    ref: string,
+    pendingChecks: ReadonlyArray<IRefCheck>
+  ) {
+    const key = getCacheKeyForRepository(repository, ref)
+    const subscription = this.subscriptions.get(key)
+
+    if (subscription === undefined) {
+      return
+    }
+
+    const cache = this.cache.get(key)?.check
+    if (cache === undefined || cache === null) {
+      return
+    }
+
+    const updatedChecks: IRefCheck[] = []
+    for (const check of cache.checks) {
+      const matchingCheck = pendingChecks.find(c => check.id === c.id)
+      if (matchingCheck === undefined) {
+        updatedChecks.push(check)
+        continue
+      }
+
+      updatedChecks.push({
+        ...check,
+        status: APICheckStatus.InProgress,
+        conclusion: null,
+        actionJobSteps: undefined,
+      })
+    }
+
+    const check = createCombinedCheckFromChecks(updatedChecks)
+    this.cache.set(key, { check, fetchedAt: new Date() })
+    subscription.callbacks.forEach(cb => cb(check))
   }
 
   private async refreshSubscription(key: string) {

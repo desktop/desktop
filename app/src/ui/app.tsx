@@ -2074,6 +2074,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             checkRuns={popup.checkRuns}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            prRef={popup.prRef}
             onDismissed={onPopupDismissedFn}
           />
         )

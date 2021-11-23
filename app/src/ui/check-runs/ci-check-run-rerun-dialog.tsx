@@ -11,8 +11,13 @@ import moment from 'moment'
 interface ICICheckRunRerunDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: GitHubRepository
+
   /** List of all the check runs (some of which are not rerunnable) */
   readonly checkRuns: ReadonlyArray<IRefCheck>
+
+  /** The git reference of the pr */
+  readonly prRef: string
+
   readonly onDismissed: () => void
 }
 
@@ -42,10 +47,15 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   private onSubmit = async () => {
-    this.props.dispatcher.rerequestCheckSuites(
-      this.props.repository,
+    const { dispatcher, repository, prRef } = this.props
+    this.setState({ loadingRerun: true })
+    await dispatcher.rerequestCheckSuites(repository, this.state.rerunnable)
+    await dispatcher.manualRefreshSubscription(
+      repository,
+      prRef,
       this.state.rerunnable
     )
+    this.props.onDismissed()
   }
 
   private determineRerunnability = async () => {

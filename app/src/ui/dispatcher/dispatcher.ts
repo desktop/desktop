@@ -2417,6 +2417,21 @@ export class Dispatcher {
   }
 
   /**
+   * Invoke a manual refresh of the status for a particular ref
+   */
+  public manualRefreshSubscription(
+    repository: GitHubRepository,
+    ref: string,
+    pendingChecks: ReadonlyArray<IRefCheck>
+  ): Promise<void> {
+    return this.commitStatusStore.manualRefreshSubscription(
+      repository,
+      ref,
+      pendingChecks
+    )
+  }
+
+  /**
    * Populates Actions workflow logs for provided checkruns if applicable
    */
   public getActionsWorkflowRunLogs(
@@ -2455,7 +2470,7 @@ export class Dispatcher {
   public async rerequestCheckSuites(
     repository: GitHubRepository,
     checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<void> {
+  ): Promise<ReadonlyArray<boolean>> {
     // Get unique set of check suite ids
     const checkSuiteIds = new Set<number | null>([
       ...checkRuns.map(cr => cr.checkSuiteId),
@@ -2470,7 +2485,7 @@ export class Dispatcher {
       promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
     }
 
-    await Promise.all(promises)
+    return Promise.all(promises)
   }
 
   /**
