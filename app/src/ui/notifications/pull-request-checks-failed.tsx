@@ -272,7 +272,7 @@ export class PullRequestChecksFailed extends React.Component<
     return (
       <div className="ci-check-rerun">
         <Button onClick={this.rerunJobs} disabled={checks.length === 0}>
-          <Octicon symbol={syncClockwise} /> Re-run jobs
+          <Octicon symbol={syncClockwise} /> Re-run checks
         </Button>
       </div>
     )

@@ -305,7 +305,7 @@ export class CICheckRunPopover extends React.PureComponent<
         onClick={this.rerunJobs}
         disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
       >
-        <Octicon symbol={syncClockwise} /> Re-run jobs
+        <Octicon symbol={syncClockwise} /> Re-run checks
       </Button>
     )
   }

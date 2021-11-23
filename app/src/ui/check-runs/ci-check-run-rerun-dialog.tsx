@@ -89,17 +89,21 @@ export class CICheckRunRerunDialog extends React.Component<
     }
 
     return (
-      <div className="ci-check-run-list check-run-rerun-list">
-        <CICheckRunList
-          checkRuns={this.state.rerunnable}
-          loadingActionLogs={false}
-          loadingActionWorkflows={false}
-          selectable={true}
-        />
-        <div>
-          There are {this.state.nonRerunnable.length} jobs that cannot be rerun.
+      <>
+        <div className="non-re-run-info">
+          There are {this.state.nonRerunnable.length} checks that cannot be
+          rerun. The following checks that will be rerun.
         </div>
-      </div>
+
+        <div className="ci-check-run-list check-run-rerun-list">
+          <CICheckRunList
+            checkRuns={this.state.rerunnable}
+            loadingActionLogs={false}
+            loadingActionWorkflows={false}
+            selectable={true}
+          />
+        </div>
+      </>
     )
   }
 
@@ -107,14 +111,14 @@ export class CICheckRunRerunDialog extends React.Component<
     return (
       <Dialog
         id="rerun-check-runs"
-        title={__DARWIN__ ? 'Re-run Jobs' : 'Re-run jobs'}
+        title={__DARWIN__ ? 'Re-run checks' : 'Re-run checks'}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>{this.renderRerunnableJobsList()}</DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Re-run Jobs' : 'Re-run jobs'}
+            okButtonText={__DARWIN__ ? 'Re-run checks' : 'Re-run checks'}
           />
         </DialogFooter>
       </Dialog>

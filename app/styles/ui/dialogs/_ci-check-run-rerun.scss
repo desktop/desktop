@@ -1,7 +1,14 @@
 #rerun-check-runs {
+  .dialog-content {
+    padding: 0;
+  }
+
   .check-run-rerun-list {
     max-height: 300px;
-    border: var(--base-border);
-    border-radius: var(--border-radius);
+  }
+
+  .non-re-run-info {
+    padding: var(--spacing);
+    border-bottom: var(--base-border);
   }
 }
