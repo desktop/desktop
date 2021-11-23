@@ -276,11 +276,12 @@ export class CICheckRunPopover extends React.PureComponent<
     return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
-  private rerunJobs = () => {
+  private rerunChecks = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CICheckRunRerun,
       checkRuns: this.state.checkRuns,
       repository: this.props.repository,
+      prRef: this.getCommitRef(this.props.prNumber),
     })
   }
 
@@ -302,7 +303,7 @@ export class CICheckRunPopover extends React.PureComponent<
     const { checkRuns } = this.state
     return (
       <Button
-        onClick={this.rerunJobs}
+        onClick={this.rerunChecks}
         disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
       >
         <Octicon symbol={syncClockwise} /> Re-run checks

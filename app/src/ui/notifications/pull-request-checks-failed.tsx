@@ -271,14 +271,14 @@ export class PullRequestChecksFailed extends React.Component<
     const { checks } = this.state
     return (
       <div className="ci-check-rerun">
-        <Button onClick={this.rerunJobs} disabled={checks.length === 0}>
+        <Button onClick={this.rerunChecks} disabled={checks.length === 0}>
           <Octicon symbol={syncClockwise} /> Re-run checks
         </Button>
       </div>
     )
   }
 
-  private rerunJobs = () => {
+  private rerunChecks = () => {
     this.props.dispatcher.rerequestCheckSuites(
       this.props.repository.gitHubRepository,
       this.state.checks
