@@ -98,10 +98,6 @@ export class CICheckRunList extends React.PureComponent<
     this.props.onCheckRunClick?.(checkRun)
   }
 
-  private onViewCheckExternally = (checkRun: IRefCheck) => {
-    this.props.onViewCheckDetails?.(checkRun)
-  }
-
   private renderListItems = (
     checkRuns: ReadonlyArray<IRefCheck> | undefined
   ) => {
@@ -127,7 +123,7 @@ export class CICheckRunList extends React.PureComponent<
             // Only expand check runs if the list is not selectable
             isCheckRunExpanded={!selectable && checkRunExpanded}
             onCheckRunExpansionToggleClick={this.onCheckRunClick}
-            onViewCheckExternally={this.onViewCheckExternally}
+            onViewCheckExternally={this.props.onViewCheckDetails}
             onViewJobStep={this.props.onViewJobStep}
           />
         )
