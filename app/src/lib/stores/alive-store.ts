@@ -101,6 +101,12 @@ export class AliveStore {
     this.subscriptions = this.subscriptions.filter(
       s => !accountEquals(s.account, account)
     )
+
+    this.sessionPerEndpoint.delete(account.endpoint)
+
+    // TODO: shutdown the session (close its websocket)
+
+    console.log('Unubscribed from Alive channel!')
   }
 
   private subscribeToAccount = async (account: Account) => {
