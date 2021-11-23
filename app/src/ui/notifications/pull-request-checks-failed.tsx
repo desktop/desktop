@@ -8,7 +8,7 @@ import { CICheckRunList } from '../check-runs/ci-check-run-list'
 import {
   IRefCheck,
   getLatestPRWorkflowRunsLogsForCheckRun,
-  getCheckRunActionsJobsAndLogURLS,
+  getCheckRunActionsWorkflowRuns,
   isFailure,
   getCheckRunStepURL,
 } from '../../lib/ci-checks/ci-checks'
@@ -311,7 +311,7 @@ export class PullRequestChecksFailed extends React.Component<
       that we know we can go ahead and display the checkrun `output` content if
       a check run does not have action logs to retrieve/parse.
     */
-    const checkRunsWithActionsUrls = await getCheckRunActionsJobsAndLogURLS(
+    const checkRunsWithActionsUrls = await getCheckRunActionsWorkflowRuns(
       api,
       gitHubRepository.owner.login,
       gitHubRepository.name,
