@@ -174,7 +174,7 @@ export class CICheckRunPopover extends React.PureComponent<
       that we know we can go ahead and display the checkrun `output` content if
       a check run does not have action logs to retrieve/parse.
     */
-    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsJobsAndLogURLS(
+    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsWorkflowRuns(
       this.props.repository,
       this.getCommitRef(this.props.prNumber),
       this.props.branchName,

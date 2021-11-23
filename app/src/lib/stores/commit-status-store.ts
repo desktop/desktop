@@ -19,7 +19,7 @@ import {
   getLatestCheckRunsByName,
   apiStatusToRefCheck,
   getLatestPRWorkflowRunsLogsForCheckRun,
-  getCheckRunActionsJobsAndLogURLS,
+  getCheckRunActionsWorkflowRuns,
 } from '../ci-checks/ci-checks'
 
 interface ICommitStatusCacheEntry {
@@ -401,10 +401,10 @@ export class CommitStatusStore {
   }
 
   /**
-   * Retrieve GitHub Actions workflows and populates the job and log url if
-   * applicable to the checkruns
+   * Retrieve GitHub Actions workflows and maps them to the check runs if
+   * applicable
    */
-  public async getCheckRunActionsJobsAndLogURLS(
+  public async getCheckRunActionsWorkflowRuns(
     repository: GitHubRepository,
     ref: string,
     branchName: string,
@@ -423,7 +423,7 @@ export class CommitStatusStore {
     }
 
     const api = API.fromAccount(account)
-    return getCheckRunActionsJobsAndLogURLS(
+    return getCheckRunActionsWorkflowRuns(
       api,
       owner,
       name,

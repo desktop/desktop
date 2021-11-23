@@ -2447,15 +2447,16 @@ export class Dispatcher {
   }
 
   /**
-   * Populates Actions workflow log and job url's for provided checkruns if applicable
+   * Retrieve GitHub Actions workflows and maps them to the check runs if
+   * applicable
    */
-  public getCheckRunActionsJobsAndLogURLS(
+  public getCheckRunActionsWorkflowRuns(
     repository: GitHubRepository,
     ref: string,
     branchName: string,
     checkRuns: ReadonlyArray<IRefCheck>
   ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getCheckRunActionsJobsAndLogURLS(
+    return this.commitStatusStore.getCheckRunActionsWorkflowRuns(
       repository,
       ref,
       branchName,
