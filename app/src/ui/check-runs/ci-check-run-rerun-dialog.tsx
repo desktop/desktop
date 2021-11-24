@@ -140,13 +140,13 @@ export class CICheckRunRerunDialog extends React.Component<
         <Octicon symbol={OcticonSymbol.alert} />
 
         {this.state.rerunnable.length === 0
-          ? `There are no checks that can be rerun. `
-          : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be rerun. `}
+          ? `There are no checks that can be re-run. `
+          : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be re-run. `}
 
         {this.state.nonRerunnable.length > 0
-          ? `A check run cannot be rerun if the check is more than one month old,
+          ? `A check run cannot be re-run if the check is more than one month old,
           the check has not completed, or the check is not configured to be
-          rerun.`
+          re-run.`
           : null}
       </Row>
     )
