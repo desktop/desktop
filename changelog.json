@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.9.5-beta3": [
-      "[Added] Warn when hidden bidi characters are present in diffs - #13343",
+      "[Improved] Warn users when files contain bidirectional Unicode text - #13343",
       "[Improved] Group CI check runs by runner app and event - #13348, #13349, #13344"
     ],
     "2.9.5-beta2": [
