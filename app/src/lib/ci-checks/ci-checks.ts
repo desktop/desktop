@@ -615,7 +615,7 @@ export function getCheckRunsGroupedByActionWorkflowNameAndEvent(
 
   sortedGroupNames.forEach(gn => {
     const group = groups.get(gn)
-    if (group) {
+    if (group !== undefined) {
       const sortedGroup = group.sort((a, b) => a.name.localeCompare(b.name))
       groups.set(gn, sortedGroup)
     }
