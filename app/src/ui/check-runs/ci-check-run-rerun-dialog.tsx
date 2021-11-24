@@ -165,7 +165,7 @@ export class CICheckRunRerunDialog extends React.Component<
         <DialogFooter>
           {this.renderRerunInfo()}
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Re-run checks' : 'Re-run checks'}
+            okButtonText={__DARWIN__ ? 'Re-run Checks' : 'Re-run checks'}
             okButtonDisabled={this.state.rerunnable.length === 0}
           />
         </DialogFooter>
