@@ -856,18 +856,40 @@ export class Dispatcher {
     )
   }
 
-  /** Switch between amending the most recent commit and not. */
-  public async setAmendingRepository(
+  /** Start amending the most recent commit. */
+  public async startAmendingRepository(
     repository: Repository,
-    amending: boolean
+    commit: Commit,
+    isLocalCommit: boolean,
+    continueWithForcePush: boolean = false
   ) {
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { tip } = repositoryState.branchesState
+
+    if (
+      !continueWithForcePush &&
+      !isLocalCommit &&
+      tip.kind === TipState.Valid
+    ) {
+      return this.showPopup({
+        type: PopupType.WarnForcePush,
+        operation: 'Amend',
+        onBegin: () => {
+          this.startAmendingRepository(repository, commit, isLocalCommit, true)
+        },
+      })
+    }
+
     await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
 
-    this.appStore._setAmendingRepository(repository, amending)
+    this.appStore._setRepositoryCommitToAmend(repository, commit)
 
-    if (amending) {
-      this.statsStore.recordAmendCommitStarted()
-    }
+    this.statsStore.recordAmendCommitStarted()
+  }
+
+  /** Stop amending the most recent commit. */
+  public async stopAmendingRepository(repository: Repository) {
+    this.appStore._setRepositoryCommitToAmend(repository, null)
   }
 
   /** Undo the given commit. */

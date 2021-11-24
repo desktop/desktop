@@ -143,6 +143,7 @@ import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
 import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-operation'
 import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { PullRequestChecksFailed } from './notifications/pull-request-checks-failed'
+import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2066,8 +2067,34 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.WarnForcePush: {
+        const { askForConfirmationOnForcePush } = this.state
+        return (
+          <WarnForcePushDialog
+            key="warn-force-push"
+            dispatcher={this.props.dispatcher}
+            operation={popup.operation}
+            askForConfirmationOnForcePush={askForConfirmationOnForcePush}
+            onBegin={this.getWarnForcePushDialogOnBegin(
+              popup.onBegin,
+              onPopupDismissedFn
+            )}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
+    }
+  }
+
+  private getWarnForcePushDialogOnBegin(
+    onBegin: () => void,
+    onPopupDismissedFn: () => void
+  ) {
+    return () => {
+      onBegin()
+      onPopupDismissedFn()
     }
   }
 

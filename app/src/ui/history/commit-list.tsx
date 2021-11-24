@@ -63,7 +63,7 @@ interface ICommitListProps {
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
 
-  readonly onAmendCommit?: () => void
+  readonly onAmendCommit?: (commit: Commit, isLocalCommit: boolean) => void
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
@@ -217,7 +217,7 @@ export class CommitList extends React.Component<
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
         canBeUndone={this.props.canUndoCommits && isLocal && row === 0}
-        canBeAmended={this.props.canAmendCommits && isLocal && row === 0}
+        canBeAmended={this.props.canAmendCommits && row === 0}
         canBeResetTo={this.props.canResetToCommits && isResettableCommit}
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(

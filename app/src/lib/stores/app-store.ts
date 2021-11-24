@@ -2672,7 +2672,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.repositoryStateCache.update(repository, () => {
           return {
-            isAmending: false,
+            commitToAmend: null,
           }
         })
 
@@ -4268,10 +4268,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
-  public _setAmendingRepository(repository: Repository, amending: boolean) {
+  public _setRepositoryCommitToAmend(
+    repository: Repository,
+    commit: Commit | null
+  ) {
     this.repositoryStateCache.update(repository, () => {
       return {
-        isAmending: amending,
+        commitToAmend: commit,
       }
     })
 

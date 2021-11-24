@@ -77,6 +77,7 @@ export enum PopupType {
   AddSSHHost,
   SSHKeyPassphrase,
   PullRequestChecksFailed,
+  WarnForcePush,
 }
 
 export type Popup =
@@ -319,4 +320,9 @@ export type Popup =
       commitMessage: string
       commitSha: string
       checks: ReadonlyArray<IRefCheck>
+    }
+  | {
+      type: PopupType.WarnForcePush
+      operation: string
+      onBegin: () => void
     }

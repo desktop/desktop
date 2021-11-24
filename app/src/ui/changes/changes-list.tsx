@@ -144,7 +144,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
-  readonly isAmending: boolean
+  readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
 
   /**
@@ -617,7 +617,7 @@ export class ChangesList extends React.Component<
       repositoryAccount,
       dispatcher,
       isCommitting,
-      isAmending,
+      commitToAmend,
       currentBranchProtected,
     } = this.props
 
@@ -679,7 +679,7 @@ export class ChangesList extends React.Component<
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
-        commitToAmend={isAmending ? this.props.mostRecentLocalCommit : null}
+        commitToAmend={commitToAmend}
         showCoAuthoredBy={this.props.showCoAuthoredBy}
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
