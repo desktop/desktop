@@ -75,14 +75,12 @@ export class CICheckRunList extends React.PureComponent<
         ? getCheckRunsGroupedByActionWorkflowNameAndEvent(props.checkRuns)
         : currentState.checkRunGroups
 
-    let checkRunExpanded = currentState?.checkRunExpanded ?? null
+    let checkRunExpanded = null
 
     // If there is a failure, we want the first check run with a failure, to
     // be opened so the user doesn't have to click through to find it.
-    let firstFailure: IRefCheck | undefined
-    checkRunExpanded = null
     for (const group of checkRunGroups.values()) {
-      firstFailure = group.find(
+      const firstFailure = group.find(
         cr => isFailure(cr) && cr.actionJobSteps !== undefined
       )
       if (firstFailure !== undefined) {
