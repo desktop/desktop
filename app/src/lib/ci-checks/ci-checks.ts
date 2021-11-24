@@ -574,6 +574,7 @@ export function getCheckRunStepURL(
 /**
  * Groups check runs by their actions workflow name and actions workflow event type.
  * Event type only gets grouped if there are more than one event.
+ * Also sorts the check runs in the groups by their names.
  *
  * @param checkRuns
  * @returns A map of grouped check runs.
@@ -588,7 +589,7 @@ export function getCheckRunsGroupedByActionWorkflowNameAndEvent(
   )
   const checkRunsHaveMultipleEventTypes = checkRunEvents.size > 1
 
-  const groups = new Map<string, ReadonlyArray<IRefCheck>>()
+  const groups = new Map<string, IRefCheck[]>()
   for (const checkRun of checkRuns) {
     let group = checkRun.actionsWorkflow?.name || 'Other'
 
@@ -609,6 +610,16 @@ export function getCheckRunsGroupedByActionWorkflowNameAndEvent(
       existingGroup !== undefined ? [...existingGroup, checkRun] : [checkRun]
     groups.set(group, newGroup)
   }
+
+  const sortedGroupNames = getCheckRunGroupNames(groups)
+
+  sortedGroupNames.forEach(gn => {
+    const group = groups.get(gn)
+    if (group !== undefined) {
+      const sortedGroup = group.sort((a, b) => a.name.localeCompare(b.name))
+      groups.set(gn, sortedGroup)
+    }
+  })
 
   return groups
 }
