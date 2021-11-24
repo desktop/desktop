@@ -66,10 +66,7 @@ export class CICheckRunList extends React.PureComponent<
   ): ICICheckRunListState {
     let checkRunExpanded = currentState?.checkRunExpanded ?? null
 
-    if (
-      (currentState === null || !currentState.hasUserToggledCheckRun) &&
-      !this.props.notExpandable
-    ) {
+    if (currentState?.hasUserToggledCheckRun !== true && !this.props.notExpandable) {
       // If there is a failure, we want the first check run with a failure, to
       // be opened so the user doesn't have to click through to find it.
       // Otherwise, just open the first one. (Only actions type can be expanded.)
