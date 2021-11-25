@@ -865,8 +865,10 @@ export class Dispatcher {
   ) {
     const repositoryState = this.repositoryStateManager.get(repository)
     const { tip } = repositoryState.branchesState
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
 
     if (
+      askForConfirmationOnForcePush &&
       !continueWithForcePush &&
       !isLocalCommit &&
       tip.kind === TipState.Valid
@@ -1062,23 +1064,26 @@ export class Dispatcher {
 
   /**
    * Update the per-repository list of branches that can be force-pushed
-   * after a rebase is completed.
+   * after a rebase or amend is completed.
    */
-  private addRebasedBranchToForcePushList = (
+  private addBranchToForcePushList = (
     repository: Repository,
     tipWithBranch: IValidBranch,
-    beforeRebaseSha: string
+    beforeChangeSha: string
   ) => {
-    this.appStore._addRebasedBranchToForcePushList(
+    this.appStore._addBranchToForcePushList(
       repository,
       tipWithBranch,
-      beforeRebaseSha
+      beforeChangeSha
     )
   }
 
   private dropCurrentBranchFromForcePushList = (repository: Repository) => {
     const currentState = this.repositoryStateManager.get(repository)
-    const { rebasedBranches, tip } = currentState.branchesState
+    const {
+      forcePushBranches: rebasedBranches,
+      tip,
+    } = currentState.branchesState
 
     if (tip.kind !== TipState.Valid) {
       return
@@ -1088,7 +1093,7 @@ export class Dispatcher {
     updatedMap.delete(tip.branch.nameWithoutRemote)
 
     this.repositoryStateManager.updateBranchesState(repository, () => ({
-      rebasedBranches: updatedMap,
+      forcePushBranches: updatedMap,
     }))
   }
 
@@ -3506,7 +3511,7 @@ export class Dispatcher {
       originalBranchTip !== null &&
       kind !== MultiCommitOperationKind.CherryPick
     ) {
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+      this.addBranchToForcePushList(repository, tip, originalBranchTip)
     }
 
     this.statsStore.recordOperationSuccessful(kind)

@@ -25,16 +25,16 @@ export function isCurrentBranchForcePush(
     return false
   }
 
-  const { tip, rebasedBranches } = branchesState
+  const { tip, forcePushBranches } = branchesState
   const { ahead, behind } = aheadBehind
 
-  let branchWasRebased = false
+  let canForcePushBranch = false
   if (tip.kind === TipState.Valid) {
     const localBranchName = tip.branch.nameWithoutRemote
     const { sha } = tip.branch.tip
-    const foundEntry = rebasedBranches.get(localBranchName)
-    branchWasRebased = foundEntry === sha
+    const foundEntry = forcePushBranches.get(localBranchName)
+    canForcePushBranch = foundEntry === sha
   }
 
-  return branchWasRebased && behind > 0 && ahead > 0
+  return canForcePushBranch && behind > 0 && ahead > 0
 }

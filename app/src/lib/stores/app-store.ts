@@ -2683,11 +2683,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         // Do not await for refreshing the repository, otherwise this will block
         // the commit button unnecessarily for a long time in big repos.
-        this._refreshRepository(repository)
+        this._refreshRepositoryAfterCommit(
+          repository,
+          result,
+          state.commitToAmend
+        )
       }
 
       return result !== undefined
     })
+  }
+
+  private async _refreshRepositoryAfterCommit(
+    repository: Repository,
+    newCommitSha: string,
+    amendedCommit: Commit | null
+  ) {
+    await this._refreshRepository(repository)
+
+    const amendedCommitSha = amendedCommit?.sha
+
+    if (amendedCommitSha !== undefined && newCommitSha !== amendedCommitSha) {
+      const newState = this.repositoryStateCache.get(repository)
+      const newTip = newState.branchesState.tip
+      if (newTip.kind === TipState.Valid) {
+        this._addBranchToForcePushList(repository, newTip, amendedCommitSha)
+      }
+    }
   }
 
   private async _recordCommitStats(
@@ -6561,7 +6583,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       stateAfter.branchesState.tip.kind === TipState.Valid &&
       kind !== MultiCommitOperationKind.CherryPick
     ) {
-      this._addRebasedBranchToForcePushList(
+      this._addBranchToForcePushList(
         repository,
         stateAfter.branchesState.tip,
         tip.branch.tip.sha
@@ -6574,28 +6596,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _addRebasedBranchToForcePushList = (
+  public _addBranchToForcePushList = (
     repository: Repository,
     tipWithBranch: IValidBranch,
-    beforeRebaseSha: string
+    beforeChangeSha: string
   ) => {
     // if the commit id of the branch is unchanged, it can be excluded from
     // this list
-    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
+    if (tipWithBranch.branch.tip.sha === beforeChangeSha) {
       return
     }
 
     const currentState = this.repositoryStateCache.get(repository)
-    const { rebasedBranches } = currentState.branchesState
+    const { forcePushBranches } = currentState.branchesState
 
-    const updatedMap = new Map<string, string>(rebasedBranches)
+    const updatedMap = new Map<string, string>(forcePushBranches)
     updatedMap.set(
       tipWithBranch.branch.nameWithoutRemote,
       tipWithBranch.branch.tip.sha
     )
 
     this.repositoryStateCache.updateBranchesState(repository, () => ({
-      rebasedBranches: updatedMap,
+      forcePushBranches: updatedMap,
     }))
   }
 

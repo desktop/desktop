@@ -540,8 +540,8 @@ export interface IBranchesState {
    */
   readonly pullWithRebase?: boolean
 
-  /** Tracking branches that have been rebased within Desktop */
-  readonly rebasedBranches: ReadonlyMap<string, string>
+  /** Tracking branches that have been allowed to be force-pushed within Desktop */
+  readonly forcePushBranches: ReadonlyMap<string, string>
 }
 
 export interface ICommitSelection {

@@ -199,7 +199,7 @@ function getInitialRepositoryState(): IRepositoryState {
       openPullRequests: new Array<PullRequest>(),
       currentPullRequest: null,
       isLoadingPullRequests: false,
-      rebasedBranches: new Map<string, string>(),
+      forcePushBranches: new Map<string, string>(),
     },
     compareState: {
       formState: {
