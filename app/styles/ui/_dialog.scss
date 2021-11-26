@@ -147,6 +147,7 @@ dialog {
       margin: 0;
       padding: 0;
       margin-right: var(--spacing);
+      width: 100%;
 
       @include ellipsis;
     }

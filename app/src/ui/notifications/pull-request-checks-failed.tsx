@@ -98,31 +98,42 @@ export class PullRequestChecksFailed extends React.Component<
 
     const { pullRequest } = this.props
 
-    const dialogTitle = (
-      <span className="custom-title">
-        <Octicon
-          className={pullRequest.draft ? 'draft' : undefined}
-          symbol={OcticonSymbol.gitPullRequest}
-        />
-        <span className="pr-title">{pullRequest.title}</span>{' '}
-        <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
-      </span>
-    )
-
     const loadingChecksInfo = this.loadingChecksInfo
+
+    const failedChecks = this.state.checks.filter(isFailure)
+    const pluralChecks = failedChecks.length > 1 ? 'checks' : 'check'
+
+    const header = (
+      <div className="ci-check-run-dialog-header">
+        <Octicon symbol={OcticonSymbol.xCircleFill} />
+        <div className="title-container">
+          <span className="summary">
+            {failedChecks.length} {pluralChecks} failed in your pull request
+          </span>
+          <span className="pr-title">
+            <Octicon
+              className={pullRequest.draft ? 'draft' : undefined}
+              symbol={OcticonSymbol.gitPullRequest}
+            />
+            <span className="pr-title">{pullRequest.title}</span>{' '}
+            <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
+          </span>
+        </div>
+        {this.renderRerunButton()}
+      </div>
+    )
 
     return (
       <Dialog
         id="pull-request-checks-failed"
         type="normal"
-        title={dialogTitle}
+        title={header}
         dismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={loadingChecksInfo || this.state.switchingToPullRequest}
       >
         <DialogContent>
-          <Row>{this.renderSummary()}</Row>
           <Row>
             <div className="ci-check-run-dialog-container">
               {this.renderCheckRunHeader()}
@@ -134,12 +145,15 @@ export class PullRequestChecksFailed extends React.Component<
           </Row>
         </DialogContent>
         <DialogFooter>
-          <OkCancelButtonGroup
-            onCancelButtonClick={this.props.onDismissed}
-            cancelButtonText="Dismiss"
-            okButtonText={okButtonTitle}
-            onOkButtonClick={this.onSubmit}
-          />
+          <Row>
+            {this.renderSummary()}
+            <OkCancelButtonGroup
+              onCancelButtonClick={this.props.onDismissed}
+              cancelButtonText="Dismiss"
+              okButtonText={okButtonTitle}
+              onOkButtonClick={this.onSubmit}
+            />
+          </Row>
         </DialogFooter>
       </Dialog>
     )
@@ -147,12 +161,11 @@ export class PullRequestChecksFailed extends React.Component<
 
   private renderSummary() {
     const failedChecks = this.state.checks.filter(isFailure)
-    const pluralChecks = failedChecks.length > 1 ? 'checks' : 'check'
     const pluralThem = failedChecks.length > 1 ? 'them' : 'it'
     return (
       <span className="summary">
-        {failedChecks.length} {pluralChecks} failed in your pull request. Do you
-        want to switch to that Pull Request now and start fixing {pluralThem}?
+        Do you want to switch to that Pull Request now and start fixing{' '}
+        {pluralThem}?
       </span>
     )
   }
@@ -170,7 +183,6 @@ export class PullRequestChecksFailed extends React.Component<
           <Octicon symbol={OcticonSymbol.gitCommit} />
         </span>{' '}
         <span className="sha">{this.props.commitSha.slice(0, 9)}</span>
-        {this.renderRerunButton()}
       </div>
     )
   }
