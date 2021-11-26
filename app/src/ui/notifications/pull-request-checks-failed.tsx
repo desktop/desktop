@@ -19,7 +19,6 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
-import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
 
@@ -28,7 +27,6 @@ const BlankSlateImage = encodePathAsUrl(
   __dirname,
   'static/empty-no-pull-requests.svg'
 )
-const MaxCommitMessageLength = 72
 
 interface IPullRequestChecksFailedProps {
   readonly dispatcher: Dispatcher
@@ -107,14 +105,10 @@ export class PullRequestChecksFailed extends React.Component<
       <div className="ci-check-run-dialog-header">
         <Octicon symbol={OcticonSymbol.xCircleFill} />
         <div className="title-container">
-          <span className="summary">
+          <div className="summary">
             {failedChecks.length} {pluralChecks} failed in your pull request
-          </span>
+          </div>
           <span className="pr-title">
-            <Octicon
-              className={pullRequest.draft ? 'draft' : undefined}
-              symbol={OcticonSymbol.gitPullRequest}
-            />
             <span className="pr-title">{pullRequest.title}</span>{' '}
             <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
           </span>
@@ -136,7 +130,6 @@ export class PullRequestChecksFailed extends React.Component<
         <DialogContent>
           <Row>
             <div className="ci-check-run-dialog-container">
-              {this.renderCheckRunHeader()}
               <div className="ci-check-run-content">
                 {this.renderCheckRunJobs()}
                 {this.renderCheckRunSteps()}
@@ -163,26 +156,11 @@ export class PullRequestChecksFailed extends React.Component<
     const failedChecks = this.state.checks.filter(isFailure)
     const pluralThem = failedChecks.length > 1 ? 'them' : 'it'
     return (
-      <span className="summary">
-        Do you want to switch to that Pull Request now and start fixing{' '}
-        {pluralThem}?
-      </span>
-    )
-  }
-
-  private renderCheckRunHeader() {
-    return (
-      <div className="ci-check-run-header">
-        <span className="message">
-          {truncateWithEllipsis(
-            this.props.commitMessage,
-            MaxCommitMessageLength
-          )}
+      <div className="footer-question">
+        <span>
+          Do you want to switch to that Pull Request now and start fixing{' '}
+          {pluralThem}?
         </span>
-        <span aria-hidden="true">
-          <Octicon symbol={OcticonSymbol.gitCommit} />
-        </span>{' '}
-        <span className="sha">{this.props.commitSha.slice(0, 9)}</span>
       </div>
     )
   }

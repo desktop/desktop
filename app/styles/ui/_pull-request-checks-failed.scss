@@ -41,13 +41,17 @@
     }
   }
 
-  .summary {
-    font-size: var(--font-size-md);
+  .footer-question {
     flex-grow: 1;
+
+    span {
+      vertical-align: sub;
+    }
   }
 
   .dialog-content {
     padding: 0;
+
     .ci-check-run-dialog-container {
       height: 300px;
       width: 100%;
@@ -55,32 +59,6 @@
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
-
-      .ci-check-run-header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        padding: var(--spacing);
-        border-bottom: var(--base-border);
-
-        .message {
-          margin-right: var(--spacing);
-          font-weight: bold;
-        }
-
-        .octicon {
-          margin-right: var(--spacing-third);
-          vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-        }
-
-        .sha {
-          user-select: text;
-        }
-
-        .ci-check-rerun {
-          margin-left: auto;
-        }
-      }
 
       .ci-check-run-content {
         display: flex;
