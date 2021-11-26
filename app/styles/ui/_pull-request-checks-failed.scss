@@ -79,6 +79,14 @@
         .focus-within .ci-check-list-item.list-item.selected .octicon {
           color: var(--text-color);
         }
+
+        .ci-check-run-list-group-header {
+          padding-left: var(--spacing-double);
+        }
+
+        .ci-check-list-item {
+          padding-left: var(--spacing);
+        }
       }
 
       .ci-check-run-job-steps-container {
@@ -95,7 +103,7 @@
 
         .no-steps-to-display {
           display: flex;
-          padding: var(--spacing);
+          padding: var(--spacing-double);
           align-items: center;
           height: 100%;
 
