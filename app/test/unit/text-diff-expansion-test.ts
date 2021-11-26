@@ -59,6 +59,7 @@ async function prepareDiff(
     text: diff.contents,
     hunks: diff.hunks,
     maxLineNumber: diff.maxLineNumber,
+    hasHiddenBidiChars: diff.hasHiddenBidiChars,
   }
 
   const resultDiff = getTextDiffWithBottomDummyHunk(

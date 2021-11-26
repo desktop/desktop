@@ -12,6 +12,7 @@ import {
 import JSZip from 'jszip'
 import moment from 'moment'
 import { enableCICheckRunsLogs } from '../feature-flag'
+import { GitHubRepository } from '../../models/github-repository'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -541,24 +542,112 @@ export function getFormattedCheckRunDuration(
     .format('d[d] h[h] m[m] s[s]', { largest: 4 })
 }
 
-/** Get check run display name
+/**
+ * Generates the URL pointing to the details of a given check run. If that check
+ * run has no specific URL, returns the URL of the associated pull request.
  *
- * Goal: Action Workflow Name / workflow run name
- * If no workflow run name (non-actions check), then just return the name.
+ * @param checkRun Check run to generate the URL for
+ * @param step Check run step to generate the URL for
+ * @param repository Repository to which the check run belongs
+ * @param pullRequestNumber Number of PR associated with the check run
  */
-export function getCheckRunDisplayName(
+export function getCheckRunStepURL(
   checkRun: IRefCheck,
-  showEvent: boolean
-): string {
-  if (checkRun.actionsWorkflow !== undefined) {
-    const { name, event } = checkRun.actionsWorkflow
-    return showEvent
-      ? `${name} / ${checkRun.name} (${event})`
-      : `${name} / ${checkRun.name}`
+  step: IAPIWorkflowJobStep,
+  repository: GitHubRepository,
+  pullRequestNumber: number
+): string | null {
+  if (checkRun.htmlUrl === null && repository.htmlURL === null) {
+    // A check run may not have a url depending on how it is setup.
+    // However, the repository should have one; Thus, we shouldn't hit this
+    return null
   }
-  const wfName =
-    checkRun.appName === 'GitHub Code Scanning'
-      ? 'Code scanning results' // seems this is hardcoded on dotcom too :/
-      : undefined
-  return wfName !== undefined ? `${wfName} / ${checkRun.name}` : checkRun.name
+
+  const url =
+    checkRun.htmlUrl !== null
+      ? `${checkRun.htmlUrl}/#step:${step.number}:1`
+      : `${repository.htmlURL}/pull/${pullRequestNumber}`
+
+  return url
+}
+
+/**
+ * Groups check runs by their actions workflow name and actions workflow event type.
+ * Event type only gets grouped if there are more than one event.
+ * Also sorts the check runs in the groups by their names.
+ *
+ * @param checkRuns
+ * @returns A map of grouped check runs.
+ */
+export function getCheckRunsGroupedByActionWorkflowNameAndEvent(
+  checkRuns: ReadonlyArray<IRefCheck>
+): Map<string, ReadonlyArray<IRefCheck>> {
+  const checkRunEvents = new Set(
+    checkRuns
+      .map(c => c.actionsWorkflow?.event)
+      .filter(c => c !== undefined && c.trim() !== '')
+  )
+  const checkRunsHaveMultipleEventTypes = checkRunEvents.size > 1
+
+  const groups = new Map<string, IRefCheck[]>()
+  for (const checkRun of checkRuns) {
+    let group = checkRun.actionsWorkflow?.name || 'Other'
+
+    if (
+      checkRunsHaveMultipleEventTypes &&
+      checkRun.actionsWorkflow !== undefined &&
+      checkRun.actionsWorkflow.event.trim() !== ''
+    ) {
+      group = `${group} (${checkRun.actionsWorkflow.event})`
+    }
+
+    if (group === 'Other' && checkRun.appName === 'GitHub Code Scanning') {
+      group = 'Code scanning results'
+    }
+
+    const existingGroup = groups.get(group)
+    const newGroup =
+      existingGroup !== undefined ? [...existingGroup, checkRun] : [checkRun]
+    groups.set(group, newGroup)
+  }
+
+  const sortedGroupNames = getCheckRunGroupNames(groups)
+
+  sortedGroupNames.forEach(gn => {
+    const group = groups.get(gn)
+    if (group !== undefined) {
+      const sortedGroup = group.sort((a, b) => a.name.localeCompare(b.name))
+      groups.set(gn, sortedGroup)
+    }
+  })
+
+  return groups
+}
+
+/**
+ * Gets the check run group names from the map and sorts them alphebetically with Other being last.
+ */
+export function getCheckRunGroupNames(
+  checkRunGroups: Map<string, ReadonlyArray<IRefCheck>>
+): ReadonlyArray<string> {
+  const groupNames = [...checkRunGroups.keys()]
+
+  // Sort names with 'Other' always last.
+  groupNames.sort((a, b) => {
+    if (a === 'Other' && b !== 'Other') {
+      return 1
+    }
+
+    if (a !== 'Other' && b === 'Other') {
+      return -1
+    }
+
+    if (a === 'Other' && b === 'Other') {
+      return 0
+    }
+
+    return a.localeCompare(b)
+  })
+
+  return groupNames
 }
