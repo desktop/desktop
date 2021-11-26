@@ -24,7 +24,7 @@ class SyncListenerSet<TDetails> {
 
   public constructor(
     private readonly subscribe: (
-      listener: ((details: TDetails) => void) | null
+      listener: SyncListener<TDetails> | null
     ) => void
   ) {}
 
