@@ -221,6 +221,13 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'Microsoft Corporation',
   },
   {
+    name: 'Microsoft Visual Studio Community 2017',
+    registryKeys: [Wow64LocalMachineUninstallKey('71fbddf9')],
+    executableShimPaths: [['Common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Community 2017',
+    publisher: 'Microsoft Corporation',
+  },
+  {
     name: 'Sublime Text',
     registryKeys: [
       // Sublime Text 4 (and newer?)
