@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.9.5-beta4": [
+      "[Fixed] Enable scroll in unified diff - #13393",
+      "[Improved] Adds a re-run dialog to inform user which check runs will be re-run - #13369"
+    ],
     "2.9.5-beta3": [
       "[Improved] Warn users when files contain bidirectional Unicode text - #13343",
       "[Improved] Group CI check runs by runner app and event - #13348, #13349, #13344"
