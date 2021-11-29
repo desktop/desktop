@@ -39,7 +39,9 @@
 
   .toolbar-dropdown {
     &.branch-button {
-      width: 230px;
+      min-width: 230px;
+      max-width: 460px;
+      width:25%;
     }
   }
 
