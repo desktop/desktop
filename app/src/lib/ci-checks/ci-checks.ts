@@ -391,9 +391,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
       jobsCache.get(wfId) ?? (await api.fetchWorkflowRunJobs(owner, repo, wfId))
     jobsCache.set(wfId, workFlowRunJobs)
 
-    // Here check run and jobs only share their names.
-    // Thus, unfortunately cannot match on a numerical id.
-    const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
+    const matchingJob = workFlowRunJobs?.jobs.find(j => j.id === cr.id)
     if (matchingJob === undefined) {
       mappedCheckRuns.push(cr)
       continue
@@ -650,4 +648,30 @@ export function getCheckRunGroupNames(
   })
 
   return groupNames
+}
+
+export function manuallySetChecksToPending(
+  cachedChecks: ReadonlyArray<IRefCheck>,
+  pendingChecks: ReadonlyArray<IRefCheck>
+): ICombinedRefCheck | null {
+  const updatedChecks: IRefCheck[] = []
+  for (const check of cachedChecks) {
+    const matchingCheck = pendingChecks.find(c => check.id === c.id)
+    if (matchingCheck === undefined) {
+      updatedChecks.push(check)
+      continue
+    }
+
+    updatedChecks.push({
+      ...check,
+      status: APICheckStatus.InProgress,
+      conclusion: null,
+      actionJobSteps: check.actionJobSteps?.map(js => ({
+        ...js,
+        status: APICheckStatus.InProgress,
+        conclusion: null,
+      })),
+    })
+  }
+  return createCombinedCheckFromChecks(updatedChecks)
 }

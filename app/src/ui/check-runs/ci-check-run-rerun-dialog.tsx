@@ -10,6 +10,12 @@ import moment from 'moment'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from './../octicons/octicons.generated'
 import { Row } from '../lib/row'
+import { encodePathAsUrl } from '../../lib/path'
+
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 
 interface ICICheckRunRerunDialogProps {
   readonly dispatcher: Dispatcher
@@ -111,7 +117,15 @@ export class CICheckRunRerunDialog extends React.Component<
 
   private renderRerunnableJobsList = () => {
     if (this.state.loadingCheckSuites) {
-      return <>Please wait. Determining which checks can be rerun.</>
+      return (
+        <div className="loading-rerun-checks">
+          <img src={BlankSlateImage} className="blankslate-image" />
+          <div className="title">Please wait</div>
+          <div className="call-to-action">
+            Determining which checks can be re-run.
+          </div>
+        </div>
+      )
     }
 
     return (
