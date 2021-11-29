@@ -15,6 +15,7 @@ import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import _ from 'lodash'
 import { encodePathAsUrl } from '../../lib/path'
+import { PopupType } from '../../models/popup'
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
   'static/empty-no-pull-requests.svg'
@@ -167,13 +168,9 @@ export class CICheckRunPopover extends React.PureComponent<
 
     /*
       Until we retrieve the actions workflows, we don't know if a check run has
-      action logs to output, thus, we want to show loading until then. However,
-      once the workflows have been retrieved and since the logs retrieval and
-      parsing can be noticeably time consuming. We go ahead and flip a flag so
-      that we know we can go ahead and display the checkrun `output` content if
-      a check run does not have action logs to retrieve/parse.
+      action logs to output, thus, we want to show loading until then.
     */
-    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsJobsAndLogURLS(
+    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsWorkflowRuns(
       this.props.repository,
       this.getCommitRef(this.props.prNumber),
       this.props.branchName,
@@ -275,11 +272,13 @@ export class CICheckRunPopover extends React.PureComponent<
     return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
-  private rerunJobs = () => {
-    this.props.dispatcher.rerequestCheckSuites(
-      this.props.repository,
-      this.state.checkRuns
-    )
+  private rerunChecks = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CICheckRunRerun,
+      checkRuns: this.state.checkRuns,
+      repository: this.props.repository,
+      prRef: this.getCommitRef(this.props.prNumber),
+    })
   }
 
   private getPopoverPositioningStyles = (): React.CSSProperties => {
@@ -299,8 +298,11 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     return (
-      <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
-        <Octicon symbol={syncClockwise} /> Re-run jobs
+      <Button
+        onClick={this.rerunChecks}
+        disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
+      >
+        <Octicon symbol={syncClockwise} /> Re-run checks
       </Button>
     )
   }

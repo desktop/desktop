@@ -32,7 +32,7 @@ interface ICICheckRunListItemProps {
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
-  readonly onViewCheckExternally: (checkRun: IRefCheck) => void
+  readonly onViewCheckExternally?: (checkRun: IRefCheck) => void
 
   /** Callback to open a job steps link on dotcom*/
   readonly onViewJobStep?: (
@@ -50,7 +50,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private onViewCheckExternally = () => {
-    this.props.onViewCheckExternally(this.props.checkRun)
+    this.props.onViewCheckExternally?.(this.props.checkRun)
   }
 
   private onViewJobStep = (step: IAPIWorkflowJobStep) => {
@@ -104,7 +104,14 @@ export class CICheckRunListItem extends React.PureComponent<
           tagName="div"
           direction={TooltipDirection.NORTH}
         >
-          <span onClick={this.onViewCheckExternally}>{name}</span>
+          <span
+            className={classNames({
+              isLink: this.props.onViewCheckExternally !== undefined,
+            })}
+            onClick={this.onViewCheckExternally}
+          >
+            {name}
+          </span>
         </TooltippedContent>
 
         <div className="ci-check-description">{description}</div>

@@ -22,8 +22,11 @@ interface ICICheckRunListProps {
   /** Whether check runs can be selected. Default: false */
   readonly selectable?: boolean
 
+  /** Whether check runs can be expanded. Default: false */
+  readonly notExpandable?: boolean
+
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
-  readonly onViewCheckDetails: (checkRun: IRefCheck) => void
+  readonly onViewCheckDetails?: (checkRun: IRefCheck) => void
 
   /** Callback when a check run is clicked */
   readonly onCheckRunClick?: (checkRun: IRefCheck) => void
@@ -66,7 +69,7 @@ export class CICheckRunList extends React.PureComponent<
   ): ICICheckRunListState {
     // If the user has expanded something and then a load occurs, we don't want
     // to reset their position.
-    if (currentState !== null && currentState.hasUserToggledCheckRun) {
+    if (currentState?.hasUserToggledCheckRun === true) {
       return currentState
     }
 
@@ -74,18 +77,19 @@ export class CICheckRunList extends React.PureComponent<
       currentState === null
         ? getCheckRunsGroupedByActionWorkflowNameAndEvent(props.checkRuns)
         : currentState.checkRunGroups
-
     let checkRunExpanded = null
 
-    // If there is a failure, we want the first check run with a failure, to
-    // be opened so the user doesn't have to click through to find it.
-    for (const group of checkRunGroups.values()) {
-      const firstFailure = group.find(
-        cr => isFailure(cr) && cr.actionJobSteps !== undefined
-      )
-      if (firstFailure !== undefined) {
-        checkRunExpanded = firstFailure.id.toString()
-        break
+    if (this.props.notExpandable !== true) {
+      // If there is a failure, we want the first check run with a failure, to
+      // be opened so the user doesn't have to click through to find it.
+      for (const group of checkRunGroups.values()) {
+        const firstFailure = group.find(
+          cr => isFailure(cr) && cr.actionJobSteps !== undefined
+        )
+        if (firstFailure !== undefined) {
+          checkRunExpanded = firstFailure.id.toString()
+          break
+        }
       }
     }
 
@@ -97,6 +101,10 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private onCheckRunClick = (checkRun: IRefCheck): void => {
+    if (this.props.notExpandable === true) {
+      return
+    }
+
     // If the list is selectable, we don't want to toggle when the selected
     // item is clicked again.
     const checkRunExpanded =

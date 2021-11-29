@@ -440,7 +440,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
  * @param branchName Name of the branch to which the check runs belong
  * @param checkRuns List of check runs to augment
  */
-export async function getCheckRunActionsJobsAndLogURLS(
+export async function getCheckRunActionsWorkflowRuns(
   api: API,
   owner: string,
   repo: string,
@@ -458,7 +458,7 @@ export async function getCheckRunActionsJobsAndLogURLS(
     return checkRuns
   }
 
-  return getCheckRunWithActionsJobAndLogURLs(checkRuns, latestWorkflowRuns)
+  return mapActionWorkflowsRunsToCheckRuns(checkRuns, latestWorkflowRuns)
 }
 
 // Gets only the latest PR workflow runs hashed by name
@@ -499,7 +499,7 @@ async function getLatestPRWorkflowRuns(
   return Array.from(wrMap.values())
 }
 
-function getCheckRunWithActionsJobAndLogURLs(
+function mapActionWorkflowsRunsToCheckRuns(
   checkRuns: ReadonlyArray<IRefCheck>,
   actionWorkflowRuns: ReadonlyArray<IAPIWorkflowRun>
 ): ReadonlyArray<IRefCheck> {
