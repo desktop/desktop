@@ -342,8 +342,7 @@ export class CommitStatusStore {
     if (
       existingChecks !== undefined &&
       existingChecks.check !== null &&
-      existingChecks.check.checks.find(c => c.actionsWorkflow !== undefined) !==
-        undefined &&
+      existingChecks.check.checks.some(c => c.actionsWorkflow !== undefined) &&
       _.xor(
         existingChecks.check.checks.map(cr => cr.id),
         checks.map(cr => cr.id)
@@ -408,6 +407,11 @@ export class CommitStatusStore {
       if (cache !== undefined) {
         this.cache.set(key, {
           ...cache,
+          // The commit status store is set to only retreive on a refresh
+          // trigger if the subscription has not been fetched for 60 minutes
+          // (cache/api limit). This sets this sub back to 61 so that on next
+          // refresh triggered, it will be reretreived, as this time, it will be
+          // different given the branch name is provided.
           fetchedAt: moment(new Date()).subtract(61, 'minutes').toDate(),
         })
       }
