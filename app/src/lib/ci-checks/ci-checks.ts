@@ -649,3 +649,29 @@ export function getCheckRunGroupNames(
 
   return groupNames
 }
+
+export function manuallySetChecksToPending(
+  cachedChecks: ReadonlyArray<IRefCheck>,
+  pendingChecks: ReadonlyArray<IRefCheck>
+): ICombinedRefCheck | null {
+  const updatedChecks: IRefCheck[] = []
+  for (const check of cachedChecks) {
+    const matchingCheck = pendingChecks.find(c => check.id === c.id)
+    if (matchingCheck === undefined) {
+      updatedChecks.push(check)
+      continue
+    }
+
+    updatedChecks.push({
+      ...check,
+      status: APICheckStatus.InProgress,
+      conclusion: null,
+      actionJobSteps: check.actionJobSteps?.map(js => ({
+        ...js,
+        status: APICheckStatus.InProgress,
+        conclusion: null,
+      })),
+    })
+  }
+  return createCombinedCheckFromChecks(updatedChecks)
+}

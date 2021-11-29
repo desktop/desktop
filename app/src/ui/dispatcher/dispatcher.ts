@@ -2394,9 +2394,10 @@ export class Dispatcher {
    */
   public tryGetCommitStatus(
     repository: GitHubRepository,
-    ref: string
+    ref: string,
+    branchName?: string
   ): ICombinedRefCheck | null {
-    return this.commitStatusStore.tryGetStatus(repository, ref)
+    return this.commitStatusStore.tryGetStatus(repository, ref, branchName)
   }
 
   /**
@@ -2407,13 +2408,21 @@ export class Dispatcher {
    *                   fetch status.
    * @param callback   A callback which will be invoked whenever the
    *                   store updates a commit status for the given ref.
+   * @param branchName If we want to retrieve action workflow checks with the
+   *                   sub, we provide the branch name for it.
    */
   public subscribeToCommitStatus(
     repository: GitHubRepository,
     ref: string,
-    callback: StatusCallBack
+    callback: StatusCallBack,
+    branchName?: string
   ): IDisposable {
-    return this.commitStatusStore.subscribe(repository, ref, callback)
+    return this.commitStatusStore.subscribe(
+      repository,
+      ref,
+      callback,
+      branchName
+    )
   }
 
   /**
@@ -2428,39 +2437,6 @@ export class Dispatcher {
       repository,
       ref,
       pendingChecks
-    )
-  }
-
-  /**
-   * Populates Actions workflow logs for provided checkruns if applicable
-   */
-  public getActionsWorkflowRunLogs(
-    repository: GitHubRepository,
-    ref: string,
-    checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
-      repository,
-      ref,
-      checkRuns
-    )
-  }
-
-  /**
-   * Retrieve GitHub Actions workflows and maps them to the check runs if
-   * applicable
-   */
-  public getCheckRunActionsWorkflowRuns(
-    repository: GitHubRepository,
-    ref: string,
-    branchName: string,
-    checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getCheckRunActionsWorkflowRuns(
-      repository,
-      ref,
-      branchName,
-      checkRuns
     )
   }
 
