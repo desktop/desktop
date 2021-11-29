@@ -4,7 +4,12 @@ import QuickLRU from 'quick-lru'
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, getAccountForEndpoint } from '../api'
+import {
+  API,
+  APICheckStatus,
+  getAccountForEndpoint,
+  IAPICheckSuite,
+} from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 import {
   ICombinedRefCheck,
@@ -14,7 +19,7 @@ import {
   getLatestCheckRunsByName,
   apiStatusToRefCheck,
   getLatestPRWorkflowRunsLogsForCheckRun,
-  getCheckRunActionsJobsAndLogURLS,
+  getCheckRunActionsWorkflowRuns,
 } from '../ci-checks/ci-checks'
 
 interface ICommitStatusCacheEntry {
@@ -236,6 +241,44 @@ export class CommitStatusStore {
     }
   }
 
+  public async manualRefreshSubscription(
+    repository: GitHubRepository,
+    ref: string,
+    pendingChecks: ReadonlyArray<IRefCheck>
+  ) {
+    const key = getCacheKeyForRepository(repository, ref)
+    const subscription = this.subscriptions.get(key)
+
+    if (subscription === undefined) {
+      return
+    }
+
+    const cache = this.cache.get(key)?.check
+    if (cache === undefined || cache === null) {
+      return
+    }
+
+    const updatedChecks: IRefCheck[] = []
+    for (const check of cache.checks) {
+      const matchingCheck = pendingChecks.find(c => check.id === c.id)
+      if (matchingCheck === undefined) {
+        updatedChecks.push(check)
+        continue
+      }
+
+      updatedChecks.push({
+        ...check,
+        status: APICheckStatus.InProgress,
+        conclusion: null,
+        actionJobSteps: undefined,
+      })
+    }
+
+    const check = createCombinedCheckFromChecks(updatedChecks)
+    this.cache.set(key, { check, fetchedAt: new Date() })
+    subscription.callbacks.forEach(cb => cb(check))
+  }
+
   private async refreshSubscription(key: string) {
     // Make sure it's still a valid subscription that
     // someone might care about before fetching
@@ -358,10 +401,10 @@ export class CommitStatusStore {
   }
 
   /**
-   * Retrieve GitHub Actions workflows and populates the job and log url if
-   * applicable to the checkruns
+   * Retrieve GitHub Actions workflows and maps them to the check runs if
+   * applicable
    */
-  public async getCheckRunActionsJobsAndLogURLS(
+  public async getCheckRunActionsWorkflowRuns(
     repository: GitHubRepository,
     ref: string,
     branchName: string,
@@ -380,7 +423,7 @@ export class CommitStatusStore {
     }
 
     const api = API.fromAccount(account)
-    return getCheckRunActionsJobsAndLogURLS(
+    return getCheckRunActionsWorkflowRuns(
       api,
       owner,
       name,
@@ -427,5 +470,19 @@ export class CommitStatusStore {
 
     const api = API.fromAccount(account)
     return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
+  }
+
+  public async fetchCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return null
+    }
+
+    const api = API.fromAccount(account)
+    return api.fetchCheckSuite(owner.login, name, checkSuiteId)
   }
 }

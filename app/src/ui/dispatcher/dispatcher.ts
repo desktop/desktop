@@ -5,6 +5,7 @@ import {
   IAPIOrganization,
   IAPIPullRequest,
   IAPIFullRepository,
+  IAPICheckSuite,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -2416,6 +2417,21 @@ export class Dispatcher {
   }
 
   /**
+   * Invoke a manual refresh of the status for a particular ref
+   */
+  public manualRefreshSubscription(
+    repository: GitHubRepository,
+    ref: string,
+    pendingChecks: ReadonlyArray<IRefCheck>
+  ): Promise<void> {
+    return this.commitStatusStore.manualRefreshSubscription(
+      repository,
+      ref,
+      pendingChecks
+    )
+  }
+
+  /**
    * Populates Actions workflow logs for provided checkruns if applicable
    */
   public getActionsWorkflowRunLogs(
@@ -2431,15 +2447,16 @@ export class Dispatcher {
   }
 
   /**
-   * Populates Actions workflow log and job url's for provided checkruns if applicable
+   * Retrieve GitHub Actions workflows and maps them to the check runs if
+   * applicable
    */
-  public getCheckRunActionsJobsAndLogURLS(
+  public getCheckRunActionsWorkflowRuns(
     repository: GitHubRepository,
     ref: string,
     branchName: string,
     checkRuns: ReadonlyArray<IRefCheck>
   ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getCheckRunActionsJobsAndLogURLS(
+    return this.commitStatusStore.getCheckRunActionsWorkflowRuns(
       repository,
       ref,
       branchName,
@@ -2454,7 +2471,7 @@ export class Dispatcher {
   public async rerequestCheckSuites(
     repository: GitHubRepository,
     checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<void> {
+  ): Promise<ReadonlyArray<boolean>> {
     // Get unique set of check suite ids
     const checkSuiteIds = new Set<number | null>([
       ...checkRuns.map(cr => cr.checkSuiteId),
@@ -2469,7 +2486,17 @@ export class Dispatcher {
       promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
     }
 
-    await Promise.all(promises)
+    return Promise.all(promises)
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    return this.commitStatusStore.fetchCheckSuite(repository, checkSuiteId)
   }
 
   /**

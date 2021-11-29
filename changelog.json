@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.9.5-beta3": [
+      "[Improved] Warn users when files contain bidirectional Unicode text - #13343",
+      "[Improved] Group CI check runs by runner app and event - #13348, #13349, #13344"
+    ],
     "2.9.5-beta2": [
       "[Added] View the check runs for the checked out pull request.",
       "[Fixed] Fix click area to select hunk on both sides of diff - #13325. Thanks @jwbth!"

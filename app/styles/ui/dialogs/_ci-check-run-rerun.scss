@@ -1,0 +1,22 @@
+#rerun-check-runs {
+  .dialog-content {
+    padding: 0;
+  }
+
+  .check-run-rerun-list {
+    max-height: 300px;
+
+    .ci-check-run-list-group-header {
+      padding-left: 15px;
+    }
+
+    .ci-check-list-item {
+      padding-left: var(--spacing);
+    }
+  }
+
+  .non-re-run-info {
+    max-width: 400px;
+    margin-bottom: var(--spacing-double);
+  }
+}

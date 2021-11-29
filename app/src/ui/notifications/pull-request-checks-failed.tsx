@@ -8,7 +8,7 @@ import { CICheckRunList } from '../check-runs/ci-check-run-list'
 import {
   IRefCheck,
   getLatestPRWorkflowRunsLogsForCheckRun,
-  getCheckRunActionsJobsAndLogURLS,
+  getCheckRunActionsWorkflowRuns,
   isFailure,
   getCheckRunStepURL,
 } from '../../lib/ci-checks/ci-checks'
@@ -271,14 +271,14 @@ export class PullRequestChecksFailed extends React.Component<
     const { checks } = this.state
     return (
       <div className="ci-check-rerun">
-        <Button onClick={this.rerunJobs} disabled={checks.length === 0}>
-          <Octicon symbol={syncClockwise} /> Re-run jobs
+        <Button onClick={this.rerunChecks} disabled={checks.length === 0}>
+          <Octicon symbol={syncClockwise} /> Re-run checks
         </Button>
       </div>
     )
   }
 
-  private rerunJobs = () => {
+  private rerunChecks = () => {
     this.props.dispatcher.rerequestCheckSuites(
       this.props.repository.gitHubRepository,
       this.state.checks
@@ -311,7 +311,7 @@ export class PullRequestChecksFailed extends React.Component<
       that we know we can go ahead and display the checkrun `output` content if
       a check run does not have action logs to retrieve/parse.
     */
-    const checkRunsWithActionsUrls = await getCheckRunActionsJobsAndLogURLS(
+    const checkRunsWithActionsUrls = await getCheckRunActionsWorkflowRuns(
       api,
       gitHubRepository.owner.login,
       gitHubRepository.name,
