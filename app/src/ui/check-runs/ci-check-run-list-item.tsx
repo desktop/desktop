@@ -28,6 +28,9 @@ interface ICICheckRunListItemProps {
   /** Whether the list item is selected */
   readonly selected: boolean
 
+  /** Whether check runs can be expanded. Default: false */
+  readonly notExpandable?: boolean
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
@@ -74,9 +77,18 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckJobStepToggle = (): JSX.Element | null => {
-    const { checkRun, isCheckRunExpanded, selectable } = this.props
+    const {
+      checkRun,
+      isCheckRunExpanded,
+      selectable,
+      notExpandable,
+    } = this.props
 
-    if (checkRun.actionJobSteps === undefined || selectable) {
+    if (
+      checkRun.actionJobSteps === undefined ||
+      selectable ||
+      notExpandable === true
+    ) {
       return null
     }
 

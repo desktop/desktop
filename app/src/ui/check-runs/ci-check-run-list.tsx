@@ -143,6 +143,7 @@ export class CICheckRunList extends React.PureComponent<
           selected={selectable && checkRunExpanded}
           // Only expand check runs if the list is not selectable
           isCheckRunExpanded={!selectable && checkRunExpanded}
+          notExpandable={this.props.notExpandable}
           onCheckRunExpansionToggleClick={this.onCheckRunClick}
           onViewCheckExternally={this.props.onViewCheckDetails}
           onViewJobStep={this.props.onViewJobStep}
