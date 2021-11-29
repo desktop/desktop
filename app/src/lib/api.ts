@@ -15,7 +15,6 @@ import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
 import JSZip from 'jszip'
-import { getGUID } from './stats'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -690,11 +689,7 @@ export class API {
 
   public async getAliveWebSocket(): Promise<string | null> {
     try {
-      const res = await this.request(
-        'GET',
-        // TODO: use a proper session ID that's unique per launch
-        `/live_internal/websocket-url?session_id=${getGUID()}`
-      )
+      const res = await this.request('GET', `/live_internal/websocket-url`)
       const websocket = await parsedResponse<IAPIAliveWebSocket>(res)
       return websocket.url
     } catch (e) {
