@@ -104,7 +104,7 @@ export class AliveStore {
 
     this.sessionPerEndpoint.delete(account.endpoint)
 
-    // TODO: shutdown the session (close its websocket)
+    endpointSession.session.offline()
 
     console.log('Unubscribed from Alive channel!')
   }
