@@ -142,12 +142,16 @@ dialog {
       margin-right: var(--spacing);
     }
 
+    .spin {
+      margin-left: var(--spacing);
+    }
+
     h1 {
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
       margin: 0;
       padding: 0;
-      margin-right: var(--spacing);
+      width: 100%;
 
       @include ellipsis;
     }
