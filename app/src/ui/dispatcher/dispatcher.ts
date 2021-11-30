@@ -3730,4 +3730,20 @@ export class Dispatcher {
   public _toggleCIStatusPopover() {
     this.appStore._toggleCIStatusPopover()
   }
+
+  public recordCheckRunsPopoverOpened() {
+    this.statsStore.recordCheckRunsPopoverOpened()
+  }
+
+  public recordCheckViewedOnline() {
+    this.statsStore.recordCheckViewedOnline()
+  }
+
+  public recordCheckJobStepViewedOnline() {
+    this.statsStore.recordCheckJobStepViewedOnline()
+  }
+
+  public recordRerunChecks() {
+    this.statsStore.recordRerunChecks()
+  }
 }

@@ -174,6 +174,10 @@ const DefaultDailyMeasures: IDailyMeasures = {
   squashMergeSuccessfulCount: 0,
   squashMergeInvokedCount: 0,
   resetToCommitCount: 0,
+  opensCheckRunsPopover: 0,
+  viewsCheckOnline: 0,
+  viewsCheckJobStepOnline: 0,
+  rerunsChecks: 0,
 }
 
 interface IOnboardingStats {
@@ -1702,6 +1706,30 @@ export class StatsStore implements IStatsStore {
   public recordSquashMergeInvokedCount(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       squashMergeInvokedCount: m.squashMergeInvokedCount + 1,
+    }))
+  }
+
+  public recordCheckRunsPopoverOpened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      opensCheckRunsPopover: m.opensCheckRunsPopover + 1,
+    }))
+  }
+
+  public recordCheckViewedOnline(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      viewsCheckOnline: m.viewsCheckOnline + 1,
+    }))
+  }
+
+  public recordCheckJobStepViewedOnline(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      viewsCheckJobStepOnline: m.viewsCheckJobStepOnline + 1,
+    }))
+  }
+
+  public recordRerunChecks(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rerunsChecks: m.rerunsChecks + 1,
     }))
   }
 

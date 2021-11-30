@@ -276,6 +276,8 @@ export class BranchDropdown extends React.Component<
       return null
     }
 
+    this.props.dispatcher.recordCheckRunsPopoverOpened()
+
     return (
       <CICheckRunPopover
         prNumber={pr.pullRequestNumber}
