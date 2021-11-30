@@ -3725,14 +3725,13 @@ export class Dispatcher {
 
   public setShowCIStatusPopover(showCIStatusPopover: boolean) {
     this.appStore._setShowCIStatusPopover(showCIStatusPopover)
+    if (showCIStatusPopover) {
+      this.statsStore.recordCheckRunsPopoverOpened()
+    }
   }
 
   public _toggleCIStatusPopover() {
     this.appStore._toggleCIStatusPopover()
-  }
-
-  public recordCheckRunsPopoverOpened() {
-    this.statsStore.recordCheckRunsPopoverOpened()
   }
 
   public recordCheckViewedOnline() {
