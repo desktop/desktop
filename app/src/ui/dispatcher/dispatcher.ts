@@ -5,6 +5,7 @@ import {
   IAPIOrganization,
   IAPIPullRequest,
   IAPIFullRepository,
+  IAPICheckSuite,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -2420,9 +2421,10 @@ export class Dispatcher {
    */
   public tryGetCommitStatus(
     repository: GitHubRepository,
-    ref: string
+    ref: string,
+    branchName?: string
   ): ICombinedRefCheck | null {
-    return this.commitStatusStore.tryGetStatus(repository, ref)
+    return this.commitStatusStore.tryGetStatus(repository, ref, branchName)
   }
 
   /**
@@ -2433,44 +2435,35 @@ export class Dispatcher {
    *                   fetch status.
    * @param callback   A callback which will be invoked whenever the
    *                   store updates a commit status for the given ref.
+   * @param branchName If we want to retrieve action workflow checks with the
+   *                   sub, we provide the branch name for it.
    */
   public subscribeToCommitStatus(
     repository: GitHubRepository,
     ref: string,
-    callback: StatusCallBack
+    callback: StatusCallBack,
+    branchName?: string
   ): IDisposable {
-    return this.commitStatusStore.subscribe(repository, ref, callback)
-  }
-
-  /**
-   * Populates Actions workflow logs for provided checkruns if applicable
-   */
-  public getActionsWorkflowRunLogs(
-    repository: GitHubRepository,
-    ref: string,
-    checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
+    return this.commitStatusStore.subscribe(
       repository,
       ref,
-      checkRuns
+      callback,
+      branchName
     )
   }
 
   /**
-   * Populates Actions workflow log and job url's for provided checkruns if applicable
+   * Invoke a manual refresh of the status for a particular ref
    */
-  public getCheckRunActionsJobsAndLogURLS(
+  public manualRefreshSubscription(
     repository: GitHubRepository,
     ref: string,
-    branchName: string,
-    checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getCheckRunActionsJobsAndLogURLS(
+    pendingChecks: ReadonlyArray<IRefCheck>
+  ): Promise<void> {
+    return this.commitStatusStore.manualRefreshSubscription(
       repository,
       ref,
-      branchName,
-      checkRuns
+      pendingChecks
     )
   }
 
@@ -2481,7 +2474,7 @@ export class Dispatcher {
   public async rerequestCheckSuites(
     repository: GitHubRepository,
     checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<void> {
+  ): Promise<ReadonlyArray<boolean>> {
     // Get unique set of check suite ids
     const checkSuiteIds = new Set<number | null>([
       ...checkRuns.map(cr => cr.checkSuiteId),
@@ -2496,7 +2489,17 @@ export class Dispatcher {
       promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
     }
 
-    await Promise.all(promises)
+    return Promise.all(promises)
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    return this.commitStatusStore.fetchCheckSuite(repository, checkSuiteId)
   }
 
   /**

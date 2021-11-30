@@ -28,11 +28,14 @@ interface ICICheckRunListItemProps {
   /** Whether the list item is selected */
   readonly selected: boolean
 
+  /** Whether check runs can be expanded. Default: false */
+  readonly notExpandable?: boolean
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
-  readonly onViewCheckExternally: (checkRun: IRefCheck) => void
+  readonly onViewCheckExternally?: (checkRun: IRefCheck) => void
 
   /** Callback to open a job steps link on dotcom*/
   readonly onViewJobStep?: (
@@ -50,7 +53,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private onViewCheckExternally = () => {
-    this.props.onViewCheckExternally(this.props.checkRun)
+    this.props.onViewCheckExternally?.(this.props.checkRun)
   }
 
   private onViewJobStep = (step: IAPIWorkflowJobStep) => {
@@ -74,9 +77,18 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckJobStepToggle = (): JSX.Element | null => {
-    const { checkRun, isCheckRunExpanded, selectable } = this.props
+    const {
+      checkRun,
+      isCheckRunExpanded,
+      selectable,
+      notExpandable,
+    } = this.props
 
-    if (checkRun.actionJobSteps === undefined || selectable) {
+    if (
+      checkRun.actionJobSteps === undefined ||
+      selectable ||
+      notExpandable === true
+    ) {
       return null
     }
 
@@ -104,7 +116,14 @@ export class CICheckRunListItem extends React.PureComponent<
           tagName="div"
           direction={TooltipDirection.NORTH}
         >
-          <span onClick={this.onViewCheckExternally}>{name}</span>
+          <span
+            className={classNames({
+              isLink: this.props.onViewCheckExternally !== undefined,
+            })}
+            onClick={this.onViewCheckExternally}
+          >
+            {name}
+          </span>
         </TooltippedContent>
 
         <div className="ci-check-description">{description}</div>

@@ -18,6 +18,7 @@
 @import 'dialogs/thank-you';
 @import 'dialogs/commit-message';
 @import 'dialogs/choose-branch';
+@import 'dialogs/ci-check-run-rerun';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -141,12 +142,16 @@ dialog {
       margin-right: var(--spacing);
     }
 
+    .spin {
+      margin-left: var(--spacing);
+    }
+
     h1 {
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
       margin: 0;
       padding: 0;
-      margin-right: var(--spacing);
+      width: 100%;
 
       @include ellipsis;
     }

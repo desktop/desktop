@@ -19,6 +19,7 @@ import { RepositorySettingsTab } from '../ui/repository-settings/repository-sett
 import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
+import { GitHubRepository } from './github-repository'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -77,6 +78,7 @@ export enum PopupType {
   AddSSHHost,
   SSHKeyPassphrase,
   PullRequestChecksFailed,
+  CICheckRunRerun,
   WarnForcePush,
 }
 
@@ -322,7 +324,9 @@ export type Popup =
       checks: ReadonlyArray<IRefCheck>
     }
   | {
-      type: PopupType.WarnForcePush
-      operation: string
-      onBegin: () => void
+      type: PopupType.CICheckRunRerun
+      checkRuns: ReadonlyArray<IRefCheck>
+      repository: GitHubRepository
+      prRef: string
     }
+  | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }

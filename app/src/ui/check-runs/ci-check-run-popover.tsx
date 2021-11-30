@@ -10,11 +10,11 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
-import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
+import { IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
-import _ from 'lodash'
 import { encodePathAsUrl } from '../../lib/path'
+import { PopupType } from '../../models/popup'
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
   'static/empty-no-pull-requests.svg'
@@ -41,7 +41,6 @@ interface ICICheckRunPopoverProps {
 }
 
 interface ICICheckRunPopoverState {
-  readonly combinedConclusion: APICheckConclusion | null
   readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunSummary: string
   readonly loadingActionLogs: boolean
@@ -58,47 +57,22 @@ export class CICheckRunPopover extends React.PureComponent<
   public constructor(props: ICICheckRunPopoverProps) {
     super(props)
 
-    const combinedCheck = props.dispatcher.tryGetCommitStatus(
-      this.props.repository,
-      this.getCommitRef(this.props.prNumber)
-    )
-
     this.state = {
-      combinedConclusion:
-        combinedCheck !== null ? combinedCheck.conclusion : null,
-      checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
-      checkRunSummary: this.getCombinedCheckSummary(combinedCheck),
+      checkRuns: [],
+      checkRunSummary: '',
       loadingActionLogs: true,
       loadingActionWorkflows: true,
-    }
-  }
-
-  public componentDidUpdate(prevProps: ICICheckRunPopoverProps) {
-    // Re-subscribe if we're being reused to show a different status.
-    if (
-      this.props.repository.hash !== prevProps.repository.hash ||
-      this.getCommitRef(this.props.prNumber) !==
-        this.getCommitRef(prevProps.prNumber)
-    ) {
-      const combinedCheck = this.props.dispatcher.tryGetCommitStatus(
-        this.props.repository,
-        this.getCommitRef(this.props.prNumber)
-      )
-
-      this.setState({
-        checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
-      })
-      this.subscribe()
     }
   }
 
   public componentDidMount() {
     const combinedCheck = this.props.dispatcher.tryGetCommitStatus(
       this.props.repository,
-      this.getCommitRef(this.props.prNumber)
+      this.getCommitRef(this.props.prNumber),
+      this.props.branchName
     )
-    this.onStatus(combinedCheck)
 
+    this.onStatus(combinedCheck)
     this.subscribe()
   }
 
@@ -112,7 +86,8 @@ export class CICheckRunPopover extends React.PureComponent<
     this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
       this.props.repository,
       this.getCommitRef(this.props.prNumber),
-      this.onStatus
+      this.onStatus,
+      this.props.branchName
     )
   }
 
@@ -124,88 +99,13 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   private onStatus = async (check: ICombinedRefCheck | null) => {
-    const statusChecks = check !== null ? check.checks : []
-
-    const {
-      combinedConclusion,
-      checkRuns: currentCheckRuns,
-      loadingActionWorkflows,
-    } = this.state
-
-    // If the checks haven't changed since last status refresh, don't reretrieve logs.
-    if (
-      // Already loading, it is the first iteration and we need to continue to retrieve the logs.
-      !loadingActionWorkflows &&
-      // This is for typing. If check is null, state will be set in next statement.
-      check !== null &&
-      // If check run conclusion is null, then it is pending and we don't want to stop retrieval of latest logs
-      check.conclusion !== null &&
-      // If not same conclusion, then need to get updated logs.
-      check.conclusion === combinedConclusion &&
-      // If same conclusion, we see if checkrun ids are the same in the two arrays.
-      _.xor(
-        currentCheckRuns.map(cr => cr.id),
-        statusChecks.map(cr => cr.id)
-      ).length === 0
-    ) {
-      return
-    }
-
-    if (statusChecks.length === 0) {
-      this.setState({
-        checkRuns: statusChecks,
-        loadingActionLogs: false,
-        loadingActionWorkflows: false,
-      })
-      return
-    }
-
+    const checkRuns = check !== null ? check.checks : []
     this.setState({
-      loadingActionLogs: true,
-      loadingActionWorkflows: true,
+      checkRuns: [...checkRuns],
+      checkRunSummary: this.getCombinedCheckSummary(check),
+      loadingActionWorkflows: check === null,
+      loadingActionLogs: check === null,
     })
-
-    /*
-      Until we retrieve the actions workflows, we don't know if a check run has
-      action logs to output, thus, we want to show loading until then. However,
-      once the workflows have been retrieved and since the logs retrieval and
-      parsing can be noticeably time consuming. We go ahead and flip a flag so
-      that we know we can go ahead and display the checkrun `output` content if
-      a check run does not have action logs to retrieve/parse.
-    */
-    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsJobsAndLogURLS(
-      this.props.repository,
-      this.getCommitRef(this.props.prNumber),
-      this.props.branchName,
-      statusChecks
-    )
-
-    // When the component unmounts, this is set to null. This check will help us
-    // prevent using set state on an unmounted component it it is unmounted
-    // before above api returns.
-    if (this.statusSubscription === null) {
-      return
-    }
-
-    this.setState({
-      checkRuns: checkRunsWithActionsUrls,
-      loadingActionWorkflows: false,
-    })
-
-    const checkRuns = await this.props.dispatcher.getActionsWorkflowRunLogs(
-      this.props.repository,
-      this.getCommitRef(this.props.prNumber),
-      checkRunsWithActionsUrls
-    )
-
-    // When the component unmounts, this is set to null. This check will help us
-    // prevent using set state on an unmounted component it it is unmounted
-    // before above api returns.
-    if (this.statusSubscription === null) {
-      return
-    }
-
-    this.setState({ checkRuns, loadingActionLogs: false })
   }
 
   private onViewCheckDetails = (checkRun: IRefCheck): void => {
@@ -275,11 +175,13 @@ export class CICheckRunPopover extends React.PureComponent<
     return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
-  private rerunJobs = () => {
-    this.props.dispatcher.rerequestCheckSuites(
-      this.props.repository,
-      this.state.checkRuns
-    )
+  private rerunChecks = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CICheckRunRerun,
+      checkRuns: this.state.checkRuns,
+      repository: this.props.repository,
+      prRef: this.getCommitRef(this.props.prNumber),
+    })
   }
 
   private getPopoverPositioningStyles = (): React.CSSProperties => {
@@ -299,8 +201,11 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     return (
-      <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
-        <Octicon symbol={syncClockwise} /> Re-run jobs
+      <Button
+        onClick={this.rerunChecks}
+        disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
+      >
+        <Octicon symbol={syncClockwise} /> Re-run checks
       </Button>
     )
   }

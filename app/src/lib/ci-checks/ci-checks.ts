@@ -391,9 +391,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
       jobsCache.get(wfId) ?? (await api.fetchWorkflowRunJobs(owner, repo, wfId))
     jobsCache.set(wfId, workFlowRunJobs)
 
-    // Here check run and jobs only share their names.
-    // Thus, unfortunately cannot match on a numerical id.
-    const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
+    const matchingJob = workFlowRunJobs?.jobs.find(j => j.id === cr.id)
     if (matchingJob === undefined) {
       mappedCheckRuns.push(cr)
       continue
@@ -440,7 +438,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
  * @param branchName Name of the branch to which the check runs belong
  * @param checkRuns List of check runs to augment
  */
-export async function getCheckRunActionsJobsAndLogURLS(
+export async function getCheckRunActionsWorkflowRuns(
   api: API,
   owner: string,
   repo: string,
@@ -458,7 +456,7 @@ export async function getCheckRunActionsJobsAndLogURLS(
     return checkRuns
   }
 
-  return getCheckRunWithActionsJobAndLogURLs(checkRuns, latestWorkflowRuns)
+  return mapActionWorkflowsRunsToCheckRuns(checkRuns, latestWorkflowRuns)
 }
 
 // Gets only the latest PR workflow runs hashed by name
@@ -499,7 +497,7 @@ async function getLatestPRWorkflowRuns(
   return Array.from(wrMap.values())
 }
 
-function getCheckRunWithActionsJobAndLogURLs(
+function mapActionWorkflowsRunsToCheckRuns(
   checkRuns: ReadonlyArray<IRefCheck>,
   actionWorkflowRuns: ReadonlyArray<IAPIWorkflowRun>
 ): ReadonlyArray<IRefCheck> {
@@ -574,6 +572,7 @@ export function getCheckRunStepURL(
 /**
  * Groups check runs by their actions workflow name and actions workflow event type.
  * Event type only gets grouped if there are more than one event.
+ * Also sorts the check runs in the groups by their names.
  *
  * @param checkRuns
  * @returns A map of grouped check runs.
@@ -588,7 +587,7 @@ export function getCheckRunsGroupedByActionWorkflowNameAndEvent(
   )
   const checkRunsHaveMultipleEventTypes = checkRunEvents.size > 1
 
-  const groups = new Map<string, ReadonlyArray<IRefCheck>>()
+  const groups = new Map<string, IRefCheck[]>()
   for (const checkRun of checkRuns) {
     let group = checkRun.actionsWorkflow?.name || 'Other'
 
@@ -609,6 +608,16 @@ export function getCheckRunsGroupedByActionWorkflowNameAndEvent(
       existingGroup !== undefined ? [...existingGroup, checkRun] : [checkRun]
     groups.set(group, newGroup)
   }
+
+  const sortedGroupNames = getCheckRunGroupNames(groups)
+
+  sortedGroupNames.forEach(gn => {
+    const group = groups.get(gn)
+    if (group !== undefined) {
+      const sortedGroup = group.sort((a, b) => a.name.localeCompare(b.name))
+      groups.set(gn, sortedGroup)
+    }
+  })
 
   return groups
 }
@@ -639,4 +648,30 @@ export function getCheckRunGroupNames(
   })
 
   return groupNames
+}
+
+export function manuallySetChecksToPending(
+  cachedChecks: ReadonlyArray<IRefCheck>,
+  pendingChecks: ReadonlyArray<IRefCheck>
+): ICombinedRefCheck | null {
+  const updatedChecks: IRefCheck[] = []
+  for (const check of cachedChecks) {
+    const matchingCheck = pendingChecks.find(c => check.id === c.id)
+    if (matchingCheck === undefined) {
+      updatedChecks.push(check)
+      continue
+    }
+
+    updatedChecks.push({
+      ...check,
+      status: APICheckStatus.InProgress,
+      conclusion: null,
+      actionJobSteps: check.actionJobSteps?.map(js => ({
+        ...js,
+        status: APICheckStatus.InProgress,
+        conclusion: null,
+      })),
+    })
+  }
+  return createCombinedCheckFromChecks(updatedChecks)
 }
