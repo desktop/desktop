@@ -671,7 +671,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onStopAmending = () => {
-    this.props.dispatcher.setAmendingRepository(this.props.repository, false)
+    this.props.dispatcher.stopAmendingRepository(this.props.repository)
   }
 
   private renderSubmitButton() {

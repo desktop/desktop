@@ -234,7 +234,7 @@ export class RepositoryView extends React.Component<
         availableWidth={availableWidth}
         gitHubUserStore={this.props.gitHubUserStore}
         isCommitting={this.props.state.isCommitting}
-        isAmending={this.props.state.isAmending}
+        commitToAmend={this.props.state.commitToAmend}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
         focusCommitMessage={this.props.focusCommitMessage}
         askForConfirmationOnDiscardChanges={
@@ -558,8 +558,12 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.revertCommit(this.props.repository, commit)
   }
 
-  private onAmendCommit = () => {
-    this.props.dispatcher.setAmendingRepository(this.props.repository, true)
+  private onAmendCommit = (commit: Commit, isLocalCommit: boolean) => {
+    this.props.dispatcher.startAmendingRepository(
+      this.props.repository,
+      commit,
+      isLocalCommit
+    )
   }
 
   public componentDidMount() {
