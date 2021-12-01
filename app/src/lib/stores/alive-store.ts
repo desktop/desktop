@@ -9,6 +9,17 @@ function accountIncluded(account: Account, accounts: ReadonlyArray<Account>) {
   return accounts.find(a => accountEquals(a, account))
 }
 
+export interface IDesktopChecksFailedAliveEvent {
+  readonly type: 'pr-checks-failed'
+  readonly timestamp: number
+  readonly owner: string
+  readonly repo: string
+  readonly pull_request_number: number
+  readonly check_suite_id: number
+  readonly commit_sha: string
+}
+
+export type DesktopAliveEvent = IDesktopChecksFailedAliveEvent
 interface IAliveSubscription {
   readonly account: Account
   readonly subscription: Subscription<AliveStore>
@@ -144,10 +155,12 @@ export class AliveStore {
       return
     }
 
-    this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, event)
+    // TODO: parse this safely
+    const desktopEvent = event.data as any
+    this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, desktopEvent)
   }
 
-  public onNotificationReceived(callback: (event: AliveEvent) => void) {
+  public onNotificationReceived(callback: (event: DesktopAliveEvent) => void) {
     this.emitter.on(this.ALIVE_EVENT_RECEIVED_EVENT, callback)
   }
 }

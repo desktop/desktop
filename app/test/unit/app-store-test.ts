@@ -44,6 +44,7 @@ import { getStatusOrThrow } from '../helpers/status'
 import { AppFileStatusKind } from '../../src/models/status'
 import { ManualConflictResolution } from '../../src/models/manual-conflict-resolution'
 import { AliveStore } from '../../src/lib/stores/alive-store'
+import { NotificationsStore } from '../../src/lib/stores/notifications-store'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -81,6 +82,12 @@ describe('AppStore', () => {
 
     const aliveStore = new AliveStore(accountsStore)
 
+    const notificationsStore = new NotificationsStore(
+      accountsStore,
+      aliveStore,
+      pullRequestCoordinator
+    )
+
     const appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -92,7 +99,7 @@ describe('AppStore', () => {
       pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore,
-      aliveStore
+      notificationsStore
     )
 
     return { appStore, repositoriesStore }

@@ -31,6 +31,7 @@ import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-stor
 import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 import { AheadBehindStore } from '../../src/lib/stores/ahead-behind-store'
 import { AliveStore } from '../../src/lib/stores/alive-store'
+import { NotificationsStore } from '../../src/lib/stores/notifications-store'
 
 describe('App', () => {
   let appStore: AppStore
@@ -77,6 +78,12 @@ describe('App', () => {
 
     const aliveStore = new AliveStore(accountsStore)
 
+    const notificationsStore = new NotificationsStore(
+      accountsStore,
+      aliveStore,
+      pullRequestCoordinator
+    )
+
     appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -88,7 +95,7 @@ describe('App', () => {
       pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore,
-      aliveStore
+      notificationsStore
     )
 
     dispatcher = new InMemoryDispatcher(
