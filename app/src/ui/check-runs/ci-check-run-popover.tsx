@@ -8,6 +8,7 @@ import {
   IRefCheck,
   getCheckRunStepURL,
   getCheckStatusCountMap,
+  FailingCheckConclusions,
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
@@ -285,12 +286,7 @@ export class CICheckRunPopover extends React.PureComponent<
       !checkRuns.some(
         v =>
           v.conclusion !== null &&
-          [
-            APICheckConclusion.Failure,
-            APICheckConclusion.Canceled,
-            APICheckConclusion.ActionRequired,
-            APICheckConclusion.TimedOut,
-          ].includes(v.conclusion)
+          FailingCheckConclusions.includes(v.conclusion)
       )
 
     const allSuccess =
@@ -304,12 +300,7 @@ export class CICheckRunPopover extends React.PureComponent<
       !checkRuns.some(
         v =>
           v.conclusion === null ||
-          ![
-            APICheckConclusion.Failure,
-            APICheckConclusion.Canceled,
-            APICheckConclusion.ActionRequired,
-            APICheckConclusion.TimedOut,
-          ].includes(v.conclusion)
+          !FailingCheckConclusions.includes(v.conclusion)
       )
 
     return (
