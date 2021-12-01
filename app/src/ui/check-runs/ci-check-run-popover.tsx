@@ -17,6 +17,7 @@ import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Donut } from '../octicons/donut'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -260,18 +261,7 @@ export class CICheckRunPopover extends React.PureComponent<
       )
     }
 
-    const { paths, className, height, width } = donutSVG(
-      getCheckStatusCountMap(this.state.checkRuns)
-    )
-    const svgPaths = paths.map((p, i) => {
-      return <path key={i} className={p.name} d={p.path} />
-    })
-    const viewBox = `0 0 ${width} ${height}`
-    return (
-      <svg className={className} version="1.1" viewBox={viewBox} tabIndex={-1}>
-        {svgPaths}
-      </svg>
-    )
+    return <Donut valueMap={getCheckStatusCountMap(this.state.checkRuns)} />
   }
 
   public render() {
@@ -319,75 +309,4 @@ export class CICheckRunPopover extends React.PureComponent<
       </div>
     )
   }
-}
-
-function donutSVG(
-  donutValuesMap: Map<string, number>,
-  outerRadius: number = 15,
-  innerRadius: number = 9
-) {
-  const diameter = outerRadius * 2
-  const sum = [...donutValuesMap.values()].reduce((sum, v) => sum + v)
-
-  const cx = diameter / 2
-  const cy = cx
-
-  const paths: { name: string; path: string }[] = []
-  let cumulative = 0
-
-  for (const [name, value] of [...donutValuesMap.entries()]) {
-    if (value === 0) {
-      continue
-    }
-
-    const portion = value / sum
-
-    if (portion === 1) {
-      const x2 = cx - 0.01
-      const y1 = cy - outerRadius
-      const y2 = cy - innerRadius
-      const d = ['M', cx, y1]
-      d.push('A', outerRadius, outerRadius, 0, 1, 1, x2, y1)
-      d.push('L', x2, y2)
-      d.push('A', innerRadius, innerRadius, 0, 1, 0, cx, y2)
-      paths.push({ name, path: d.join(' ') })
-      continue
-    }
-
-    const cumulative_plus_value = cumulative + value
-
-    const d = ['M', ...scale(cumulative, outerRadius, cx, sum)]
-    d.push('A', outerRadius, outerRadius, 0)
-    d.push(portion > 0.5 ? 1 : 0)
-    d.push(1)
-    d.push(...scale(cumulative_plus_value, outerRadius, cx, sum))
-    d.push('L')
-
-    d.push(...scale(cumulative_plus_value, innerRadius, cx, sum))
-    d.push('A', innerRadius, innerRadius, 0)
-    d.push(portion > 0.5 ? 1 : 0)
-    d.push(0)
-    d.push(...scale(cumulative, innerRadius, cx, sum))
-
-    cumulative += value
-
-    paths.push({ name, path: d.join(' ') })
-  }
-
-  return {
-    paths,
-    height: diameter,
-    width: diameter,
-    className: 'donut-chart',
-  }
-}
-
-function scale(
-  value: number,
-  radius: number,
-  cxy: number,
-  sum: number
-): ReadonlyArray<number> {
-  const radians = (value / sum) * Math.PI * 2 - Math.PI / 2
-  return [radius * Math.cos(radians) + cxy, radius * Math.sin(radians) + cxy]
 }
