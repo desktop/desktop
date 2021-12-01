@@ -224,54 +224,128 @@ export class CICheckRunPopover extends React.PureComponent<
     )
   }
 
-  private renderCompletenessIndicator(): JSX.Element {
-    if (this.state.checkRuns.length === 0) {
+  private renderCompletenessIndicator(
+    allSuccess: boolean,
+    allFailure: boolean,
+    loading: boolean
+  ): JSX.Element {
+    if (loading) {
       return <Octicon symbol={syncClockwise} className="spin" />
     }
 
-    const allSucccess = !this.state.checkRuns.some(
-      v => v.conclusion !== APICheckConclusion.Success
-    )
-    if (allSucccess) {
-      return (
-        <Octicon
-          className={'completeness-indicator-success'}
-          symbol={OcticonSymbol.checkCircleFill}
-        />
-      )
-    }
-
-    const allFailure = !this.state.checkRuns.some(
-      v =>
-        v.conclusion === null ||
-        ![
-          APICheckConclusion.Failure,
-          APICheckConclusion.Canceled,
-          APICheckConclusion.ActionRequired,
-          APICheckConclusion.TimedOut,
-        ].includes(v.conclusion)
-    )
-
-    if (allFailure) {
-      return (
-        <Octicon
-          className={'completeness-indicator-error'}
-          symbol={OcticonSymbol.xCircleFill}
-        />
-      )
+    switch (true) {
+      case allSuccess:
+        return (
+          <Octicon
+            className={'completeness-indicator-success'}
+            symbol={OcticonSymbol.checkCircleFill}
+          />
+        )
+      case allFailure: {
+        return (
+          <Octicon
+            className={'completeness-indicator-error'}
+            symbol={OcticonSymbol.xCircleFill}
+          />
+        )
+      }
     }
 
     return <Donut valueMap={getCheckStatusCountMap(this.state.checkRuns)} />
   }
 
-  public render() {
-    const {
-      checkRunSummary,
-      checkRuns,
-      loadingActionLogs,
-      loadingActionWorkflows,
-    } = this.state
+  private getTitle(
+    allSuccess: boolean,
+    allFailure: boolean,
+    somePending: boolean,
+    loading: boolean
+  ): JSX.Element {
+    switch (true) {
+      case loading:
+        return <>Checks Summary</>
+      case somePending:
+        return (
+          <span className="pending">Some checks haven't completed yet</span>
+        )
+      case allFailure:
+        return <span className="failure">All checks have failed</span>
+      case allSuccess:
+        return <>All checks have passed</>
+    }
 
+    return <span className="failure">Some checks were not successful</span>
+  }
+
+  private renderHeader = (): JSX.Element => {
+    const { checkRunSummary, checkRuns, loadingActionWorkflows } = this.state
+
+    const somePending =
+      !loadingActionWorkflows && checkRuns.some(v => v.conclusion === null) // quick return - don't loop if loading
+
+    const allSuccess =
+      !loadingActionWorkflows && // quick return: if loading, no list
+      !somePending && // quick return: if some pending, can't all be success
+      !checkRuns.some(v => v.conclusion !== APICheckConclusion.Success)
+
+    const allFailure =
+      !loadingActionWorkflows && // quick return if loading, no list
+      !somePending && // quick return: if some failing, can't all be failure
+      !checkRuns.some(
+        v =>
+          v.conclusion === null ||
+          ![
+            APICheckConclusion.Failure,
+            APICheckConclusion.Canceled,
+            APICheckConclusion.ActionRequired,
+            APICheckConclusion.TimedOut,
+          ].includes(v.conclusion)
+      )
+
+    return (
+      <div className="ci-check-run-list-header">
+        <div className="completeness-indicator">
+          {this.renderCompletenessIndicator(
+            allSuccess,
+            allFailure,
+            loadingActionWorkflows
+          )}
+        </div>
+        <div className="ci-check-run-list-title-container">
+          <div className="title">
+            {this.getTitle(
+              allSuccess,
+              allFailure,
+              somePending,
+              loadingActionWorkflows
+            )}
+          </div>
+          <div className="check-run-list-summary">{checkRunSummary}</div>
+        </div>
+        {this.renderRerunButton()}
+      </div>
+    )
+  }
+
+  public renderList = (): JSX.Element => {
+    const { checkRuns, loadingActionLogs, loadingActionWorkflows } = this.state
+    if (loadingActionWorkflows) {
+      return this.renderCheckRunLoadings()
+    }
+
+    return (
+      <div className="ci-check-run-list" style={this.getListHeightStyles()}>
+        <CICheckRunList
+          checkRuns={checkRuns}
+          loadingActionLogs={loadingActionLogs}
+          loadingActionWorkflows={loadingActionWorkflows}
+          onViewCheckDetails={this.onViewCheckDetails}
+          onViewJobStep={this.onViewJobStep}
+        />
+      </div>
+    )
+  }
+
+  public render() {
     return (
       <div className="ci-check-list-popover">
         <Popover
@@ -279,32 +353,8 @@ export class CICheckRunPopover extends React.PureComponent<
           onClickOutside={this.props.closePopover}
           style={this.getPopoverPositioningStyles()}
         >
-          <div className="ci-check-run-list-header">
-            <div className="completeness-indicator">
-              {this.renderCompletenessIndicator()}
-            </div>
-            <div className="ci-check-run-list-title-container">
-              <div className="title">Checks Summary</div>
-              <div className="check-run-list-summary">{checkRunSummary}</div>
-            </div>
-            {this.renderRerunButton()}
-          </div>
-          {!loadingActionLogs ? (
-            <div
-              className="ci-check-run-list"
-              style={this.getListHeightStyles()}
-            >
-              <CICheckRunList
-                checkRuns={checkRuns}
-                loadingActionLogs={loadingActionLogs}
-                loadingActionWorkflows={loadingActionWorkflows}
-                onViewCheckDetails={this.onViewCheckDetails}
-                onViewJobStep={this.onViewJobStep}
-              />
-            </div>
-          ) : (
-            this.renderCheckRunLoadings()
-          )}
+          {this.renderHeader()}
+          {this.renderList()}
         </Popover>
       </div>
     )

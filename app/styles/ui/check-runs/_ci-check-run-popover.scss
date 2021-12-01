@@ -2,7 +2,7 @@
   .popover-component {
     position: absolute;
     padding: 0px;
-    width: 375px;
+    width: 425px;
     top: 60;
     margin-left: -270px;
   }
@@ -21,6 +21,14 @@
       align-items: center;
       .title {
         font-weight: var(--font-weight-semibold);
+
+        .failure {
+          color: $red-500;
+        }
+
+        .pending {
+          color: $yellow-700;
+        }
       }
 
       .check-run-list-summary {
