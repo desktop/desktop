@@ -12,9 +12,7 @@
     border-bottom: var(--base-border);
     display: flex;
     font-size: var(--font-size-md);
-    padding: var(--spacing);
-    padding-top: var(--spacing-half);
-    padding-right: var(--spacing-half);
+    padding: var(--spacing-half);
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
 
@@ -29,6 +27,58 @@
         color: var(--text-secondary-color);
         font-weight: var(--text-secondary-color);
         font-size: var(--font-size-sm);
+      }
+    }
+
+    .completeness-indicator {
+      margin-right: var(--spacing);
+
+      .octicon,
+      .donut-chart {
+        display: block;
+        margin-top: var(--spacing-half);
+        margin-bottom: var(--spacing-half);
+        margin-right: auto;
+        margin-left: auto;
+        width: 30px;
+        height: 30px;
+      }
+
+      .completeness-indicator-success {
+        color: $green-500;
+      }
+
+      .completeness-indicator-error {
+        color: $red-500;
+      }
+
+      .donut-chart {
+        > .error,
+        > .cancelled,
+        > .action_required,
+        > .timed_out,
+        > .failure {
+          fill: $red-500;
+        }
+
+        > .expected,
+        > .queued,
+        > .in_progress,
+        > .waiting,
+        > .requested,
+        > .pending {
+          fill: $yellow-700;
+        }
+
+        > .success {
+          fill: $green-500;
+        }
+
+        > .neutral,
+        > .stale,
+        > .skipped {
+          fill: $gray-400;
+        }
       }
     }
   }
