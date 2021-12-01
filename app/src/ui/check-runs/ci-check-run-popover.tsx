@@ -257,13 +257,13 @@ export class CICheckRunPopover extends React.PureComponent<
   private getTitle(
     allSuccess: boolean,
     allFailure: boolean,
-    somePending: boolean,
+    somePendingNoFailures: boolean,
     loading: boolean
   ): JSX.Element {
     switch (true) {
       case loading:
         return <>Checks Summary</>
-      case somePending:
+      case somePendingNoFailures:
         return (
           <span className="pending">Some checks haven't completed yet</span>
         )
@@ -279,17 +279,28 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderHeader = (): JSX.Element => {
     const { checkRunSummary, checkRuns, loadingActionWorkflows } = this.state
 
-    const somePending =
-      !loadingActionWorkflows && checkRuns.some(v => v.conclusion === null) // quick return - don't loop if loading
+    const somePendingNoFailures =
+      !loadingActionWorkflows &&
+      checkRuns.some(v => v.conclusion === null) &&
+      !checkRuns.some(
+        v =>
+          v.conclusion !== null &&
+          [
+            APICheckConclusion.Failure,
+            APICheckConclusion.Canceled,
+            APICheckConclusion.ActionRequired,
+            APICheckConclusion.TimedOut,
+          ].includes(v.conclusion)
+      )
 
     const allSuccess =
       !loadingActionWorkflows && // quick return: if loading, no list
-      !somePending && // quick return: if some pending, can't all be success
+      !somePendingNoFailures && // quick return: if some pending, can't all be success
       !checkRuns.some(v => v.conclusion !== APICheckConclusion.Success)
 
     const allFailure =
       !loadingActionWorkflows && // quick return if loading, no list
-      !somePending && // quick return: if some failing, can't all be failure
+      !somePendingNoFailures && // quick return: if some failing, can't all be failure
       !checkRuns.some(
         v =>
           v.conclusion === null ||
@@ -315,7 +326,7 @@ export class CICheckRunPopover extends React.PureComponent<
             {this.getTitle(
               allSuccess,
               allFailure,
-              somePending,
+              somePendingNoFailures,
               loadingActionWorkflows
             )}
           </div>
