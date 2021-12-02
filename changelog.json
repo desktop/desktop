@@ -1,5 +1,14 @@
 {
   "releases": {
+    "2.9.5": [
+      "[Added] Add custom tooltips for quicker and more helpful information - #6384",
+      "[Added] Support PyCharm as an external editor - #13270. Thanks @stevetaggart!",
+      "[Fixed] Prevent inactive selected state from disappearing on lists - #13115",
+      "[Fixed] Fix click area to select hunk on both sides of diff - #13325. Thanks @jwbth!",
+      "[Fixed] Replace dialog animations with fade when user prefers reduced motion - #12976 #2768",
+      "[Improved] Warn users when files contain bidirectional Unicode text - #13343",
+      "[Improved] Change wording for default branch name option - #13223. Thanks @Rexogamer!"
+    ],
     "2.9.5-beta4": [
       "[Fixed] Enable scroll in unified diff - #13393",
       "[Improved] Adds a re-run dialog to inform user which check runs will be re-run - #13369"
