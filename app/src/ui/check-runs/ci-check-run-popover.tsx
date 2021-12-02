@@ -62,9 +62,14 @@ export class CICheckRunPopover extends React.PureComponent<
   public constructor(props: ICICheckRunPopoverProps) {
     super(props)
 
+    const cachedStatus = this.props.dispatcher.tryGetCommitStatus(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber)
+    )
+
     this.state = {
-      checkRuns: [],
-      checkRunSummary: '',
+      checkRuns: cachedStatus?.checks ?? [],
+      checkRunSummary: this.getCombinedCheckSummary(cachedStatus),
       loadingActionLogs: true,
       loadingActionWorkflows: true,
     }
@@ -104,12 +109,18 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   private onStatus = async (check: ICombinedRefCheck | null) => {
-    const checkRuns = check !== null ? check.checks : []
+    if (check === null) {
+      // Either this is on load -> we just want to continue to show loader
+      // status/cached header or while user has it open and we ant to continue
+      // to show last cache value to user closes popover
+      return
+    }
+
     this.setState({
-      checkRuns: [...checkRuns],
+      checkRuns: [...check.checks],
       checkRunSummary: this.getCombinedCheckSummary(check),
-      loadingActionWorkflows: check === null,
-      loadingActionLogs: check === null,
+      loadingActionWorkflows: false,
+      loadingActionLogs: false,
     })
   }
 
@@ -278,45 +289,13 @@ export class CICheckRunPopover extends React.PureComponent<
     return <span className="failure">Some checks were not successful</span>
   }
 
-  /**
-   * The check runs prior to retrieving action workflows will be the same for
-   * the header info, thus, if we are in loading state, go ahead and try to get
-   * the cached status to show the header to reduce loading flashing in header.
-   */
-  private getStateForHeader(): ICICheckRunPopoverState {
-    const { loadingActionWorkflows } = this.state
-    if (!loadingActionWorkflows) {
-      return this.state
-    }
-
-    const cachedStatus = this.props.dispatcher.tryGetCommitStatus(
-      this.props.repository,
-      this.getCommitRef(this.props.prNumber)
-    )
-    if (
-      cachedStatus?.checks === undefined ||
-      cachedStatus.checks.length === 1
-    ) {
-      return this.state
-    }
-
-    return {
-      checkRunSummary: this.getCombinedCheckSummary(cachedStatus),
-      checkRuns: cachedStatus.checks,
-      loadingActionWorkflows: false,
-      loadingActionLogs: false,
-    }
-  }
-
   private renderHeader = (): JSX.Element => {
-    const {
-      loadingActionWorkflows,
-      checkRuns,
-      checkRunSummary,
-    } = this.getStateForHeader()
+    const { loadingActionWorkflows, checkRuns, checkRunSummary } = this.state
+    // Only show loading header status, if there are no cached check runs to display.
+    const loading = loadingActionWorkflows && checkRuns.length === 0
 
     const somePendingNoFailures =
-      !loadingActionWorkflows &&
+      !loading &&
       checkRuns.some(v => v.conclusion === null) &&
       !checkRuns.some(
         v =>
@@ -325,12 +304,12 @@ export class CICheckRunPopover extends React.PureComponent<
       )
 
     const allSuccess =
-      !loadingActionWorkflows && // quick return: if loading, no list
+      !loading && // quick return: if loading, no list
       !somePendingNoFailures && // quick return: if some pending, can't all be success
       !checkRuns.some(v => v.conclusion !== APICheckConclusion.Success)
 
     const allFailure =
-      !loadingActionWorkflows && // quick return if loading, no list
+      !loading && // quick return if loading, no list
       !somePendingNoFailures && // quick return: if some failing, can't all be failure
       !checkRuns.some(
         v =>
@@ -344,7 +323,7 @@ export class CICheckRunPopover extends React.PureComponent<
           {this.renderCompletenessIndicator(
             allSuccess,
             allFailure,
-            loadingActionWorkflows,
+            loading,
             checkRuns
           )}
         </div>
@@ -354,7 +333,7 @@ export class CICheckRunPopover extends React.PureComponent<
               allSuccess,
               allFailure,
               somePendingNoFailures,
-              loadingActionWorkflows
+              loading
             )}
           </div>
           <div className="check-run-list-summary">{checkRunSummary}</div>
