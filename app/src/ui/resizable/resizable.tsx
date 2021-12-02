@@ -51,7 +51,7 @@ export class Resizable extends React.Component<IResizableProps> {
    * Handler for when the user moves the mouse while dragging
    */
   private handleDragMove = (e: MouseEvent) => {
-    if (this.startWidth == null || this.startX == null) {
+    if (this.startWidth === null || this.startX === null) {
       return
     }
 
