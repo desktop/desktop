@@ -550,6 +550,20 @@ app.on('ready', () => {
   )
 
   ipcMain.on(
+    'move-to-trash',
+    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
+      let error: Error | null = null
+      try {
+        await shell.trashItem(path)
+      } catch (e) {
+        log.error(`Call to trashItem failed: '${e}'`)
+        error = e
+      }
+      event.sender.send('move-to-trash-result', { error })
+    }
+  )
+
+  ipcMain.on(
     'show-item-in-folder',
     (event: Electron.IpcMainEvent, { path }: { path: string }) => {
       Fs.stat(path, err => {

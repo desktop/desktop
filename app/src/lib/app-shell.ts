@@ -35,7 +35,25 @@ export interface IAppShell {
 }
 
 export const shell: IAppShell = {
-  moveItemToTrash: electronShell.trashItem,
+  moveItemToTrash: path => {
+    return new Promise<void>((resolve, reject) => {
+      ipcRenderer.once(
+        'move-to-trash-result',
+        (
+          event: Electron.IpcRendererEvent,
+          { error }: { error: Error | null }
+        ) => {
+          if (error === null) {
+            resolve()
+          } else {
+            reject(error)
+          }
+        }
+      )
+
+      ipcRenderer.send('move-to-trash', { path })
+    })
+  },
   beep: electronShell.beep,
   openExternal: path => {
     return new Promise<boolean>((resolve, reject) => {
