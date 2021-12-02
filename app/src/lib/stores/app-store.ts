@@ -1873,21 +1873,50 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.refresh()
   }
 
+  /**
+   * Calculate the constraints of our resizable panes whenever the window
+   * dimensions change.
+   */
   private updateResizableConstraints() {
+    // Start with all the available width
     let available = window.innerWidth
-    this.sidebarWidth = { ...this.sidebarWidth, min: 200, max: available - 460 }
+
+    // The combined width of the branch dropdown and the push pull fetch button
+    const toolbarButtonsWidth = 460
+
+    // Working our way from left to right (i.e. giving priority to the leftmost
+    // pane when we need to constrain the width)
+    this.sidebarWidth = {
+      ...this.sidebarWidth,
+      // 220 is the smallest width that will still fit the placeholder text in
+      // the branch selector textbox of the history tab
+      min: 220,
+      // Since the repository list toolbar button width is tied to the width of
+      // the sidebar we can't let it push the branch, and push/pull/fetch
+      // buttons off screen.
+      max: available - toolbarButtonsWidth,
+    }
+
+    // Now calculate the width we have left to distribute for the other panes
     available -= clamp(this.sidebarWidth)
+
+    // This is a pretty silly width for a diff but it will fit ~9 chars per line
+    // in unified mode after subtracting the width of the unified gutter and ~4
+    // chars per side in split diff mode. No one would want to use it this way
+    // but it doesn't break the layout and it allows users to temporarily
+    // maximize the width of the file list to see long path names.
+    const diffPaneMinWidth = 150
 
     this.commitSummaryWidth = {
       ...this.commitSummaryWidth,
-      min: 200,
-      max: available - 200,
+      min: 100,
+      max: available - diffPaneMinWidth,
     }
 
     this.stashedFilesWidth = {
       ...this.stashedFilesWidth,
-      min: 200,
-      max: available - 200,
+      min: 100,
+      max: available - diffPaneMinWidth,
     }
   }
 
