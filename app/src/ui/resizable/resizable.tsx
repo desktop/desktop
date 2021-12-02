@@ -1,4 +1,8 @@
 import * as React from 'react'
+import { clamp } from '../../lib/clamp'
+
+const DefaultMaxWidth = 350
+const DefaultMinWidth = 200
 
 /**
  * Component abstracting a resizable panel.
@@ -7,12 +11,6 @@ import * as React from 'react'
  * onResize and onReset event and update the width prop accordingly.
  */
 export class Resizable extends React.Component<IResizableProps, {}> {
-  public static defaultProps: IResizableProps = {
-    width: 250,
-    maximumWidth: 350,
-    minimumWidth: 200,
-  }
-
   private startWidth: number | null = null
   private startX: number | null = null
 
@@ -31,10 +29,9 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * maximum widths as determined by props
    */
   private clampWidth(width: number) {
-    return Math.max(
-      this.props.minimumWidth!,
-      Math.min(this.props.maximumWidth!, width)
-    )
+    const minWidth = this.props.minimumWidth ?? DefaultMinWidth
+    const maxWidth = this.props.maximumWidth ?? DefaultMaxWidth
+    return clamp(width, minWidth, maxWidth)
   }
 
   /**
