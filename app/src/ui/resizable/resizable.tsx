@@ -39,7 +39,7 @@ export class Resizable extends React.Component<IResizableProps> {
    */
   private handleDragStart = (e: React.MouseEvent<any>) => {
     this.startX = e.clientX
-    this.startWidth = this.getCurrentWidth() || null
+    this.startWidth = this.getCurrentWidth()
 
     document.addEventListener('mousemove', this.handleDragMove)
     document.addEventListener('mouseup', this.handleDragStop)
