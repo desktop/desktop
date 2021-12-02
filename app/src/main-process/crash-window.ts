@@ -39,6 +39,8 @@ export class CrashWindow {
         nodeIntegration: true,
         spellcheck: false,
         enableRemoteModule: true,
+        contextIsolation: false,
+        worldSafeExecuteJavaScript: false,
       },
     }
 
