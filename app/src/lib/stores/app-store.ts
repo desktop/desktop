@@ -5269,7 +5269,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         try {
           await shell.moveItemToTrash(repository.path)
         } catch (error) {
-          log.error(error)
+          log.error('Failed moving repository to trash`, error)
 
           this.emitError(
             new Error(
