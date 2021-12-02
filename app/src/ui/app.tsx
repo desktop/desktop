@@ -2414,11 +2414,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const tooltip = repository && !isOpen ? repository.path : undefined
 
-    const foldoutWidth = clamp(
-      this.state.sidebarWidth.value,
-      this.state.sidebarWidth.min,
-      this.state.sidebarWidth.max
-    )
+    const foldoutWidth = clamp(this.state.sidebarWidth)
 
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
@@ -2638,11 +2634,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const width = clamp(
-      this.state.sidebarWidth.value,
-      this.state.sidebarWidth.min,
-      this.state.sidebarWidth.max
-    )
+    const width = clamp(this.state.sidebarWidth)
 
     return (
       <Toolbar id="desktop-app-toolbar">

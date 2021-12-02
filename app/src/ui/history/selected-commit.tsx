@@ -227,12 +227,7 @@ export class SelectedCommit extends React.Component<
     const { commitSummaryWidth } = this.props
 
     // -1 for right hand side border
-    const availableWidth =
-      clamp(
-        commitSummaryWidth.value,
-        commitSummaryWidth.min,
-        commitSummaryWidth.max
-      ) - 1
+    const availableWidth = clamp(commitSummaryWidth) - 1
 
     return (
       <FileList

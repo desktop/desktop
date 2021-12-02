@@ -1876,11 +1876,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private updateResizableConstraints() {
     let available = window.innerWidth
     this.sidebarWidth = { ...this.sidebarWidth, min: 200, max: available - 460 }
-    available -= clamp(
-      this.sidebarWidth.value,
-      this.sidebarWidth.min ?? 0,
-      this.sidebarWidth.max ?? Infinity
-    )
+    available -= clamp(this.sidebarWidth)
 
     this.commitSummaryWidth = {
       ...this.commitSummaryWidth,
