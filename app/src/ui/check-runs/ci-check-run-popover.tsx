@@ -228,7 +228,8 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderCompletenessIndicator(
     allSuccess: boolean,
     allFailure: boolean,
-    loading: boolean
+    loading: boolean,
+    checkRuns: ReadonlyArray<IRefCheck>
   ): JSX.Element {
     if (loading) {
       return <Octicon symbol={syncClockwise} className="spin" />
@@ -252,7 +253,7 @@ export class CICheckRunPopover extends React.PureComponent<
       }
     }
 
-    return <Donut valueMap={getCheckStatusCountMap(this.state.checkRuns)} />
+    return <Donut valueMap={getCheckStatusCountMap(checkRuns)} />
   }
 
   private getTitle(
@@ -277,8 +278,42 @@ export class CICheckRunPopover extends React.PureComponent<
     return <span className="failure">Some checks were not successful</span>
   }
 
+  /**
+   * The check runs prior to retrieving action workflows will be the same for
+   * the header info, thus, if we are in loading state, go ahead and try to get
+   * the cached status to show the header to reduce loading flashing in header.
+   */
+  private getStateForHeader(): ICICheckRunPopoverState {
+    const { loadingActionWorkflows } = this.state
+    if (!loadingActionWorkflows) {
+      return this.state
+    }
+
+    const cachedStatus = this.props.dispatcher.tryGetCommitStatus(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber)
+    )
+    if (
+      cachedStatus?.checks === undefined ||
+      cachedStatus.checks.length === 1
+    ) {
+      return this.state
+    }
+
+    return {
+      checkRunSummary: this.getCombinedCheckSummary(cachedStatus),
+      checkRuns: cachedStatus.checks,
+      loadingActionWorkflows: false,
+      loadingActionLogs: false,
+    }
+  }
+
   private renderHeader = (): JSX.Element => {
-    const { checkRunSummary, checkRuns, loadingActionWorkflows } = this.state
+    const {
+      loadingActionWorkflows,
+      checkRuns,
+      checkRunSummary,
+    } = this.getStateForHeader()
 
     const somePendingNoFailures =
       !loadingActionWorkflows &&
@@ -309,7 +344,8 @@ export class CICheckRunPopover extends React.PureComponent<
           {this.renderCompletenessIndicator(
             allSuccess,
             allFailure,
-            loadingActionWorkflows
+            loadingActionWorkflows,
+            checkRuns
           )}
         </div>
         <div className="ci-check-run-list-title-container">
