@@ -29,9 +29,8 @@ export class Resizable extends React.Component<IResizableProps> {
    * maximum widths as determined by props
    */
   private clampWidth(width: number) {
-    const minWidth = this.props.minimumWidth ?? DefaultMinWidth
-    const maxWidth = this.props.maximumWidth ?? DefaultMaxWidth
-    return clamp(width, minWidth, maxWidth)
+    const { minimumWidth: min, maximumWidth: max } = this.props
+    return clamp(width, min ?? DefaultMinWidth, max ?? DefaultMaxWidth)
   }
 
   /**
