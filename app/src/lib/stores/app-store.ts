@@ -1878,27 +1878,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * dimensions change.
    */
   private updateResizableConstraints() {
-    // Start with all the available width
-    let available = window.innerWidth
-
     // The combined width of the branch dropdown and the push pull fetch button
+    // Since the repository list toolbar button width is tied to the width of
+    // the sidebar we can't let it push the branch, and push/pull/fetch buttons
+    // off screen.
     const toolbarButtonsWidth = 460
+    // Start with all the available width
+    let available = window.innerWidth - toolbarButtonsWidth
 
     // Working our way from left to right (i.e. giving priority to the leftmost
     // pane when we need to constrain the width)
-    this.sidebarWidth = {
-      ...this.sidebarWidth,
-      // 220 is the smallest width that will still fit the placeholder text in
-      // the branch selector textbox of the history tab
-      min: 220,
-      // Since the repository list toolbar button width is tied to the width of
-      // the sidebar we can't let it push the branch, and push/pull/fetch
-      // buttons off screen.
-      max: available - toolbarButtonsWidth,
-    }
+    //
+    // 220 was determined as the minimum value since it is the smallest width
+    // that will still fit the placeholder text in the branch selector textbox
+    // of the history tab
+    this.sidebarWidth = constrain(this.sidebarWidth, 220, available)
 
     // Now calculate the width we have left to distribute for the other panes
-    available -= clamp(this.sidebarWidth)
+    const actualSidebarWidth = clamp(this.sidebarWidth)
+    available -= actualSidebarWidth
 
     // This is a pretty silly width for a diff but it will fit ~9 chars per line
     // in unified mode after subtracting the width of the unified gutter and ~4
@@ -1906,18 +1904,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // but it doesn't break the layout and it allows users to temporarily
     // maximize the width of the file list to see long path names.
     const diffPaneMinWidth = 150
+    available -= diffPaneMinWidth
 
-    this.commitSummaryWidth = {
-      ...this.commitSummaryWidth,
-      min: 100,
-      max: available - diffPaneMinWidth,
-    }
-
-    this.stashedFilesWidth = {
-      ...this.stashedFilesWidth,
-      min: 100,
-      max: available - diffPaneMinWidth,
-    }
+    this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, available)
+    this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, available)
   }
 
   private updateSelectedExternalEditor(
@@ -6908,4 +6898,12 @@ function isLocalChangesOverwrittenError(error: Error): boolean {
     error instanceof GitError &&
     error.result.gitError === DugiteError.LocalChangesOverwritten
   )
+}
+
+function constrain(
+  value: IConstrainedValue,
+  min: number,
+  max: number
+): IConstrainedValue {
+  return { value: value.value, min, max }
 }
