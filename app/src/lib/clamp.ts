@@ -9,8 +9,8 @@ export function clamp(value: number, min: number, max: number): number
 export function clamp(value: IConstrainedValue): number
 export function clamp(
   value: IConstrainedValue | number,
-  max?: number,
-  min?: number
+  min?: number,
+  max?: number
 ): number {
   if (typeof value !== 'number') {
     return clamp(value.value, value.min, value.max)
