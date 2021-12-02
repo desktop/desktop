@@ -105,7 +105,7 @@
     "sass": "^1.27.0",
     "sass-loader": "^10.0.3",
     "semver": "^5.5.0",
-    "spectron": "^13.0.0",
+    "spectron": "^15.0.0",
     "split2": "^3.2.2",
     "stop-build": "^1.1.0",
     "style-loader": "^0.21.0",
