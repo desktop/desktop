@@ -18,7 +18,7 @@ import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { Donut } from '../octicons/donut'
+import { Donut } from '../donut'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
