@@ -57,10 +57,14 @@ export class Resizable extends React.Component<IResizableProps> {
 
     const deltaX = e.clientX - this.startX
     const newWidth = this.startWidth + deltaX
-    const newWidthClamped = this.clampWidth(newWidth)
 
-    this.props.onResize(newWidthClamped)
+    this.props.onResize(this.clampWidth(newWidth))
     e.preventDefault()
+  }
+
+  private unsubscribeFromGlobalEvents() {
+    document.removeEventListener('mousemove', this.handleDragMove)
+    document.removeEventListener('mouseup', this.handleDragStop)
   }
 
   /**
@@ -68,9 +72,7 @@ export class Resizable extends React.Component<IResizableProps> {
    * a resize operation.
    */
   private handleDragStop = (e: MouseEvent) => {
-    document.removeEventListener('mousemove', this.handleDragMove)
-    document.removeEventListener('mouseup', this.handleDragStop)
-
+    this.unsubscribeFromGlobalEvents()
     e.preventDefault()
   }
 
