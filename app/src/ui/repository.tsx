@@ -212,12 +212,7 @@ export class RepositoryView extends React.Component<
         : null) || null
 
     // -1 Because of right hand side border
-    const availableWidth =
-      clamp(
-        this.props.sidebarWidth.value,
-        this.props.sidebarWidth.min,
-        this.props.sidebarWidth.max
-      ) - 1
+    const availableWidth = clamp(this.props.sidebarWidth) - 1
 
     const scrollTop =
       this.previousSection === RepositorySectionTab.History
