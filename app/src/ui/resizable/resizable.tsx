@@ -60,10 +60,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
     const newWidth = this.startWidth + deltaX
     const newWidthClamped = this.clampWidth(newWidth)
 
-    if (this.props.onResize) {
-      this.props.onResize(newWidthClamped)
-    }
-
+    this.props.onResize(newWidthClamped)
     e.preventDefault()
   }
 
@@ -78,18 +75,6 @@ export class Resizable extends React.Component<IResizableProps, {}> {
     e.preventDefault()
   }
 
-  /**
-   * Handler for when the resize handle is double clicked.
-   *
-   * Resets the panel width to its default value and clears
-   * any persisted value.
-   */
-  private handleDoubleClick = () => {
-    if (this.props.onReset) {
-      this.props.onReset()
-    }
-  }
-
   public render() {
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
@@ -102,7 +87,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
         {this.props.children}
         <div
           onMouseDown={this.handleDragStart}
-          onDoubleClick={this.handleDoubleClick}
+          onDoubleClick={this.props.onReset}
           className="resize-handle"
         />
       </div>
@@ -133,12 +118,12 @@ export interface IResizableProps {
    * Handler called when the width of the component has changed
    * through an explicit resize event (dragging the handle).
    */
-  readonly onResize?: (newWidth: number) => void
+  readonly onResize: (newWidth: number) => void
 
   /**
    * Handler called when the resizable component has been
    * reset (ie restored to its original width by double clicking
    * on the resize handle).
    */
-  readonly onReset?: () => void
+  readonly onReset: () => void
 }
