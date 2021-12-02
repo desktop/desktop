@@ -224,10 +224,8 @@ export class SelectedCommit extends React.Component<
       return <div className="fill-window">No files in commit</div>
     }
 
-    const { commitSummaryWidth } = this.props
-
     // -1 for right hand side border
-    const availableWidth = clamp(commitSummaryWidth) - 1
+    const availableWidth = clamp(this.props.commitSummaryWidth) - 1
 
     return (
       <FileList
