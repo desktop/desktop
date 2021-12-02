@@ -163,13 +163,13 @@ export interface IAppState {
    * because it's used in the toolbar as well as the
    * repository.
    */
-  readonly sidebarWidth: number
+  readonly sidebarWidth: IConstrainedValue
 
   /** The width of the commit summary column in the history view */
-  readonly commitSummaryWidth: number
+  readonly commitSummaryWidth: IConstrainedValue
 
   /** The width of the files list in the stash view */
-  readonly stashedFilesWidth: number
+  readonly stashedFilesWidth: IConstrainedValue
 
   /**
    * Used to highlight access keys throughout the app when the
@@ -864,4 +864,13 @@ export type MultiCommitOperationConflictState = {
    * stored in state.
    */
   readonly theirBranch?: string
+}
+
+/**
+ * Yeah this is a terrible name.
+ */
+export interface IConstrainedValue {
+  readonly value: number
+  readonly max: number
+  readonly min: number
 }

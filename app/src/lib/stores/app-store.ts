@@ -106,6 +106,7 @@ import {
   isCherryPickConflictState,
   isMergeConflictState,
   IMultiCommitOperationState,
+  IConstrainedValue,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -284,6 +285,7 @@ import { reorder } from '../git/reorder'
 import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
+import { clamp } from '../clamp'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -398,9 +400,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private appIsFocused: boolean = false
 
-  private sidebarWidth: number = defaultSidebarWidth
-  private commitSummaryWidth: number = defaultCommitSummaryWidth
-  private stashedFilesWidth: number = defaultStashedFilesWidth
+  private sidebarWidth: IConstrainedValue = {
+    value: defaultSidebarWidth,
+    min: 0,
+    max: Infinity,
+  }
+  private commitSummaryWidth: IConstrainedValue = {
+    value: defaultCommitSummaryWidth,
+    min: 0,
+    max: Infinity,
+  }
+  private stashedFilesWidth: IConstrainedValue = {
+    value: defaultStashedFilesWidth,
+    min: 0,
+    max: Infinity,
+  }
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
@@ -502,6 +516,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.windowState = getWindowState(browserWindow)
 
     this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
+    window.addEventListener('resize', () => {
+      this.updateResizableConstraints()
+      this.emitUpdate()
+    })
 
     this.wireupIpcEventHandlers(browserWindow)
     this.wireupStoreEventHandlers()
@@ -760,6 +778,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.windowZoomFactor = zoomFactor
 
     if (zoomFactor !== current) {
+      this.updateResizableConstraints()
       this.emitUpdate()
     }
   }
@@ -1750,15 +1769,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
-    this.sidebarWidth = getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
-    this.commitSummaryWidth = getNumber(
-      commitSummaryWidthConfigKey,
-      defaultCommitSummaryWidth
-    )
-    this.stashedFilesWidth = getNumber(
-      stashedFilesWidthConfigKey,
-      defaultStashedFilesWidth
-    )
+    this.sidebarWidth = {
+      ...this.sidebarWidth,
+      value: getNumber(sidebarWidthConfigKey, defaultSidebarWidth),
+    }
+    this.commitSummaryWidth = {
+      ...this.sidebarWidth,
+      value: getNumber(commitSummaryWidthConfigKey, defaultCommitSummaryWidth),
+    }
+    this.stashedFilesWidth = {
+      ...this.sidebarWidth,
+      value: getNumber(stashedFilesWidthConfigKey, defaultStashedFilesWidth),
+    }
+
+    this.updateResizableConstraints()
 
     this.askToMoveToApplicationsFolderSetting = getBoolean(
       askToMoveToApplicationsFolderKey,
@@ -1847,6 +1871,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+  }
+
+  private updateResizableConstraints() {
+    let available = window.innerWidth
+    this.sidebarWidth = { ...this.sidebarWidth, min: 200, max: available - 460 }
+    available -= clamp(
+      this.sidebarWidth.value,
+      this.sidebarWidth.min ?? 0,
+      this.sidebarWidth.max ?? Infinity
+    )
+
+    this.commitSummaryWidth = {
+      ...this.commitSummaryWidth,
+      min: 200,
+      max: available - 200,
+    }
+
+    this.stashedFilesWidth = {
+      ...this.stashedFilesWidth,
+      min: 200,
+      max: available - 200,
+    }
   }
 
   private updateSelectedExternalEditor(
@@ -4523,32 +4569,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setSidebarWidth(width: number): Promise<void> {
-    this.sidebarWidth = width
+    this.sidebarWidth = { ...this.sidebarWidth, value: width }
     setNumber(sidebarWidthConfigKey, width)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _resetSidebarWidth(): Promise<void> {
-    this.sidebarWidth = defaultSidebarWidth
+    this.sidebarWidth = { ...this.sidebarWidth, value: defaultSidebarWidth }
     localStorage.removeItem(sidebarWidthConfigKey)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _setCommitSummaryWidth(width: number): Promise<void> {
-    this.commitSummaryWidth = width
+    this.commitSummaryWidth = { ...this.commitSummaryWidth, value: width }
     setNumber(commitSummaryWidthConfigKey, width)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _resetCommitSummaryWidth(): Promise<void> {
-    this.commitSummaryWidth = defaultCommitSummaryWidth
+    this.commitSummaryWidth = {
+      ...this.commitSummaryWidth,
+      value: defaultCommitSummaryWidth,
+    }
     localStorage.removeItem(commitSummaryWidthConfigKey)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6010,16 +6063,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _setStashedFilesWidth(width: number): Promise<void> {
-    this.stashedFilesWidth = width
+    this.stashedFilesWidth = { ...this.stashedFilesWidth, value: width }
     setNumber(stashedFilesWidthConfigKey, width)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _resetStashedFilesWidth(): Promise<void> {
-    this.stashedFilesWidth = defaultStashedFilesWidth
+    this.stashedFilesWidth = {
+      ...this.stashedFilesWidth,
+      value: defaultStashedFilesWidth,
+    }
     localStorage.removeItem(stashedFilesWidthConfigKey)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
