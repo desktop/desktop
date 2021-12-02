@@ -10,7 +10,7 @@ const DefaultMinWidth = 200
  * Note: this component is pure, consumers must subscribe to the
  * onResize and onReset event and update the width prop accordingly.
  */
-export class Resizable extends React.Component<IResizableProps, {}> {
+export class Resizable extends React.Component<IResizableProps> {
   private startWidth: number | null = null
   private startX: number | null = null
 
