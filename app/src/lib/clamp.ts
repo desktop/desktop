@@ -16,9 +16,9 @@ export function clamp(
     return clamp(value.value, value.min, value.max)
   }
 
-  // These condition could only occur at runtime if someone called
-  // clamp(1234). That's pretty nonsensical so we'll assume that if
-  // we're called without min/max we'll just be an identify function.
+  // This condition could only occur at runtime if someone called clamp(1234).
+  // That's pretty nonsensical so we'll assume that if we're called without
+  // min/max we'll just be an identify function.
   min = min ?? -Infinity
   max = max ?? Infinity
 
