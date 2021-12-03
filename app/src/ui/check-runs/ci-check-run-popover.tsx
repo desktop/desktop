@@ -6,11 +6,24 @@ import {
   getCheckRunConclusionAdjective,
   ICombinedRefCheck,
   IRefCheck,
-} from '../../lib/stores/commit-status-store'
+  getCheckRunStepURL,
+  getCheckStatusCountMap,
+  FailingCheckConclusions,
+} from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
+import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
+import { encodePathAsUrl } from '../../lib/path'
+import { PopupType } from '../../models/popup'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Donut } from '../donut'
+
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 
 interface ICICheckRunPopoverProps {
   readonly dispatcher: Dispatcher
@@ -23,6 +36,10 @@ interface ICICheckRunPopoverProps {
 
   /** The pull request's number. */
   readonly prNumber: number
+
+  /** The bottom of the pull request badge so we can position popover relative
+   * to it. */
+  readonly badgeBottom: number
 
   /** Callback for when popover closes */
   readonly closePopover: (event?: MouseEvent) => void
@@ -45,41 +62,27 @@ export class CICheckRunPopover extends React.PureComponent<
   public constructor(props: ICICheckRunPopoverProps) {
     super(props)
 
-    const combinedCheck = props.dispatcher.tryGetCommitStatus(
+    const cachedStatus = this.props.dispatcher.tryGetCommitStatus(
       this.props.repository,
       this.getCommitRef(this.props.prNumber)
     )
 
     this.state = {
-      checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
-      checkRunSummary: this.getCombinedCheckSummary(combinedCheck),
+      checkRuns: cachedStatus?.checks ?? [],
+      checkRunSummary: this.getCombinedCheckSummary(cachedStatus),
       loadingActionLogs: true,
       loadingActionWorkflows: true,
-    }
-
-    this.onStatus(combinedCheck)
-  }
-
-  public componentDidUpdate(prevProps: ICICheckRunPopoverProps) {
-    // Re-subscribe if we're being reused to show a different status.
-    if (
-      this.props.repository.hash !== prevProps.repository.hash ||
-      this.getCommitRef(this.props.prNumber) !==
-        this.getCommitRef(prevProps.prNumber)
-    ) {
-      const combinedCheck = this.props.dispatcher.tryGetCommitStatus(
-        this.props.repository,
-        this.getCommitRef(this.props.prNumber)
-      )
-
-      this.setState({
-        checkRuns: combinedCheck !== null ? combinedCheck.checks : [],
-      })
-      this.subscribe()
     }
   }
 
   public componentDidMount() {
+    const combinedCheck = this.props.dispatcher.tryGetCommitStatus(
+      this.props.repository,
+      this.getCommitRef(this.props.prNumber),
+      this.props.branchName
+    )
+
+    this.onStatus(combinedCheck)
     this.subscribe()
   }
 
@@ -93,7 +96,8 @@ export class CICheckRunPopover extends React.PureComponent<
     this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
       this.props.repository,
       this.getCommitRef(this.props.prNumber),
-      this.onStatus
+      this.onStatus,
+      this.props.branchName
     )
   }
 
@@ -105,61 +109,28 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   private onStatus = async (check: ICombinedRefCheck | null) => {
-    const statusChecks = check !== null ? check.checks : []
-
-    if (statusChecks.length === 0) {
-      this.setState({
-        checkRuns: statusChecks,
-        loadingActionLogs: false,
-        loadingActionWorkflows: false,
-      })
-      return
-    }
-
-    /*
-      Until we retrieve the actions workflows, we don't know if a check run has
-      action logs to output, thus, we want to show loading until then. However,
-      once the workflows have been retrieved and since the logs retrieval and
-      parsing can be noticeably time consuming. We go ahead and flip a flag so
-      that we know we can go ahead and display the checkrun `output` content if
-      a check run does not have action logs to retrieve/parse.
-    */
-    const checkRunsWithActionsUrls = await this.props.dispatcher.getCheckRunActionsJobsAndLogURLS(
-      this.props.repository,
-      this.getCommitRef(this.props.prNumber),
-      this.props.branchName,
-      statusChecks
-    )
-
-    // When the component unmounts, this is set to null. This check will help us
-    // prevent using set state on an unmounted component it it is unmounted
-    // before above api returns.
-    if (this.statusSubscription === null) {
+    if (check === null) {
+      // Either this is on load -> we just want to continue to show loader
+      // status/cached header or while user has it open and we ant to continue
+      // to show last cache value to user closes popover
       return
     }
 
     this.setState({
-      checkRuns: checkRunsWithActionsUrls,
+      checkRuns: [...check.checks],
+      checkRunSummary: this.getCombinedCheckSummary(check),
       loadingActionWorkflows: false,
+      loadingActionLogs: false,
     })
+  }
 
-    const checkRuns = await this.props.dispatcher.getActionsWorkflowRunLogs(
-      this.props.repository,
-      this.getCommitRef(this.props.prNumber),
-      checkRunsWithActionsUrls
-    )
-
-    // When the component unmounts, this is set to null. This check will help us
-    // prevent using set state on an unmounted component it it is unmounted
-    // before above api returns.
-    if (this.statusSubscription === null) {
+  private onViewCheckDetails = (checkRun: IRefCheck): void => {
+    if (checkRun.htmlUrl === null && this.props.repository.htmlURL === null) {
+      // A check run may not have a url depending on how it is setup.
+      // However, the repository should have one; Thus, we shouldn't hit this
       return
     }
 
-    this.setState({ checkRuns, loadingActionLogs: false })
-  }
-
-  private viewCheckRunsOnGitHub = (checkRun: IRefCheck): void => {
     // Some checks do not provide htmlURLS like ones for the legacy status
     // object as they do not have a view in the checks screen. In that case we
     // will just open the PR and they can navigate from there... a little
@@ -167,11 +138,23 @@ export class CICheckRunPopover extends React.PureComponent<
     const url =
       checkRun.htmlUrl ??
       `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
-    if (url === null) {
-      // The repository should have a htmlURL.
-      return
-    }
+
     this.props.dispatcher.openInBrowser(url)
+    this.props.dispatcher.recordCheckViewedOnline()
+  }
+
+  private onViewJobStep = (
+    checkRun: IRefCheck,
+    step: IAPIWorkflowJobStep
+  ): void => {
+    const { repository, prNumber, dispatcher } = this.props
+
+    const url = getCheckRunStepURL(checkRun, step, repository, prNumber)
+
+    if (url !== null) {
+      dispatcher.openInBrowser(url)
+      this.props.dispatcher.recordCheckJobStepViewedOnline()
+    }
   }
 
   private getCommitRef(prNumber: number): string {
@@ -210,58 +193,187 @@ export class CICheckRunPopover extends React.PureComponent<
     return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
-  private rerunJobs = () => {
-    // Get unique set of check suite ids
-    const checkSuiteIds = new Set<number | null>([
-      ...this.state.checkRuns.map(cr => cr.checkSuiteId),
-    ])
+  private rerunChecks = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CICheckRunRerun,
+      checkRuns: this.state.checkRuns,
+      repository: this.props.repository,
+      prRef: this.getCommitRef(this.props.prNumber),
+    })
+  }
 
-    for (const id of checkSuiteIds) {
-      if (id === null) {
-        continue
-      }
-      this.props.dispatcher.rerequestCheckSuite(this.props.repository, id)
+  private getPopoverPositioningStyles = (): React.CSSProperties => {
+    const top = this.props.badgeBottom + 10
+    return { top, maxHeight: `calc(100% - ${top + 10}px)` }
+  }
+
+  private getListHeightStyles = (): React.CSSProperties => {
+    const headerHeight = 55
+    return {
+      maxHeight: `${
+        window.innerHeight - (this.props.badgeBottom + headerHeight + 20)
+      }px`,
     }
   }
 
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     return (
-      <div className="ci-check-rerun">
-        <Button onClick={this.rerunJobs} disabled={checkRuns.length === 0}>
-          <Octicon symbol={syncClockwise} /> Re-run jobs
-        </Button>
+      <Button
+        onClick={this.rerunChecks}
+        disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
+      >
+        <Octicon symbol={syncClockwise} /> Re-run checks
+      </Button>
+    )
+  }
+
+  private renderCheckRunLoadings(): JSX.Element {
+    return (
+      <div className="loading-check-runs">
+        <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="title">Stand By</div>
+        <div className="call-to-action">Check runs incoming!</div>
+      </div>
+    )
+  }
+
+  private renderCompletenessIndicator(
+    allSuccess: boolean,
+    allFailure: boolean,
+    loading: boolean,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): JSX.Element {
+    if (loading) {
+      return <Octicon symbol={syncClockwise} className="spin" />
+    }
+
+    switch (true) {
+      case allSuccess:
+        return (
+          <Octicon
+            className={'completeness-indicator-success'}
+            symbol={OcticonSymbol.checkCircleFill}
+          />
+        )
+      case allFailure: {
+        return (
+          <Octicon
+            className={'completeness-indicator-error'}
+            symbol={OcticonSymbol.xCircleFill}
+          />
+        )
+      }
+    }
+
+    return <Donut valueMap={getCheckStatusCountMap(checkRuns)} />
+  }
+
+  private getTitle(
+    allSuccess: boolean,
+    allFailure: boolean,
+    somePendingNoFailures: boolean,
+    loading: boolean
+  ): JSX.Element {
+    switch (true) {
+      case loading:
+        return <>Checks Summary</>
+      case somePendingNoFailures:
+        return (
+          <span className="pending">Some checks haven't completed yet</span>
+        )
+      case allFailure:
+        return <span className="failure">All checks have failed</span>
+      case allSuccess:
+        return <>All checks have passed</>
+    }
+
+    return <span className="failure">Some checks were not successful</span>
+  }
+
+  private renderHeader = (): JSX.Element => {
+    const { loadingActionWorkflows, checkRuns, checkRunSummary } = this.state
+    // Only show loading header status, if there are no cached check runs to display.
+    const loading = loadingActionWorkflows && checkRuns.length === 0
+
+    const somePendingNoFailures =
+      !loading &&
+      checkRuns.some(v => v.conclusion === null) &&
+      !checkRuns.some(
+        v =>
+          v.conclusion !== null &&
+          FailingCheckConclusions.includes(v.conclusion)
+      )
+
+    const allSuccess =
+      !loading && // quick return: if loading, no list
+      !somePendingNoFailures && // quick return: if some pending, can't all be success
+      !checkRuns.some(v => v.conclusion !== APICheckConclusion.Success)
+
+    const allFailure =
+      !loading && // quick return if loading, no list
+      !somePendingNoFailures && // quick return: if some failing, can't all be failure
+      !checkRuns.some(
+        v =>
+          v.conclusion === null ||
+          !FailingCheckConclusions.includes(v.conclusion)
+      )
+
+    return (
+      <div className="ci-check-run-list-header">
+        <div className="completeness-indicator">
+          {this.renderCompletenessIndicator(
+            allSuccess,
+            allFailure,
+            loading,
+            checkRuns
+          )}
+        </div>
+        <div className="ci-check-run-list-title-container">
+          <div className="title">
+            {this.getTitle(
+              allSuccess,
+              allFailure,
+              somePendingNoFailures,
+              loading
+            )}
+          </div>
+          <div className="check-run-list-summary">{checkRunSummary}</div>
+        </div>
+        {this.renderRerunButton()}
+      </div>
+    )
+  }
+
+  public renderList = (): JSX.Element => {
+    const { checkRuns, loadingActionLogs, loadingActionWorkflows } = this.state
+    if (loadingActionWorkflows) {
+      return this.renderCheckRunLoadings()
+    }
+
+    return (
+      <div className="ci-check-run-list" style={this.getListHeightStyles()}>
+        <CICheckRunList
+          checkRuns={checkRuns}
+          loadingActionLogs={loadingActionLogs}
+          loadingActionWorkflows={loadingActionWorkflows}
+          onViewCheckDetails={this.onViewCheckDetails}
+          onViewJobStep={this.onViewJobStep}
+        />
       </div>
     )
   }
 
   public render() {
-    const {
-      checkRunSummary,
-      checkRuns,
-      loadingActionLogs,
-      loadingActionWorkflows,
-    } = this.state
-
     return (
       <div className="ci-check-list-popover">
         <Popover
           caretPosition={PopoverCaretPosition.Top}
           onClickOutside={this.props.closePopover}
+          style={this.getPopoverPositioningStyles()}
         >
-          <div className="ci-check-run-list-header">
-            <div className="ci-check-run-list-title-container">
-              <div className="title">Checks Summary</div>
-              <div className="check-run-list-summary">{checkRunSummary}</div>
-            </div>
-            {this.renderRerunButton()}
-          </div>
-          <CICheckRunList
-            checkRuns={checkRuns}
-            loadingActionLogs={loadingActionLogs}
-            loadingActionWorkflows={loadingActionWorkflows}
-            onViewOnGitHub={this.viewCheckRunsOnGitHub}
-          />
+          {this.renderHeader()}
+          {this.renderList()}
         </Popover>
       </div>
     )

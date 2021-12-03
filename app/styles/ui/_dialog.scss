@@ -18,6 +18,7 @@
 @import 'dialogs/thank-you';
 @import 'dialogs/commit-message';
 @import 'dialogs/choose-branch';
+@import 'dialogs/ci-check-run-rerun';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -49,6 +50,22 @@ dialog {
 
   min-width: 400px;
   max-width: 600px;
+
+  // Substitute the appear/exit animations with a fade in fade out effect if the
+  // user prefers reduced motion.
+  //
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+  @media (prefers-reduced-motion) {
+    transition: opacity 100ms ease-in !important;
+    transform: none !important;
+
+    &.modal-enter {
+      opacity: 0 !important;
+    }
+    &.modal-enter-active {
+      opacity: 1 !important;
+    }
+  }
 
   // The modal class here is the transition name for the react css transition
   // group which allows us to apply an animation when the popup appears.
@@ -125,12 +142,16 @@ dialog {
       margin-right: var(--spacing);
     }
 
+    .spin {
+      margin-left: var(--spacing);
+    }
+
     h1 {
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
       margin: 0;
       padding: 0;
-      margin-right: var(--spacing);
+      width: 100%;
 
       @include ellipsis;
     }
@@ -426,6 +447,11 @@ dialog {
 
   &#lfs-attribute-mismatch {
     width: 400px;
+  }
+
+  &#pull-request-checks-failed {
+    max-width: none;
+    width: 910px;
   }
 
   &#workflow-push-rejected {

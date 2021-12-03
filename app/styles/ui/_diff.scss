@@ -4,6 +4,7 @@
 .diff-code-mirror {
   flex-grow: 1;
   min-width: 0;
+  overflow-y: auto;
 }
 
 .diff-code-mirror .CodeMirror {
@@ -761,6 +762,7 @@
 
 .seamless-diff-switcher {
   display: flex;
+  flex-direction: column;
   flex-grow: 1;
   min-width: 0;
   overflow: hidden;
@@ -773,6 +775,22 @@
     display: none;
     opacity: 0;
     pointer-events: none;
+  }
+
+  .hidden-bidi-chars-warning {
+    background-color: var(--file-warning-background-color);
+    padding: var(--spacing) var(--spacing-double);
+    border-bottom: var(--file-warning-border-color) solid 1px;
+
+    .octicon {
+      margin-right: var(--spacing);
+      color: var(--file-warning-color);
+      vertical-align: text-bottom;
+    }
+
+    a.link-button-component {
+      display: unset;
+    }
   }
 
   // When loading a diff

@@ -54,9 +54,9 @@ import {
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { HideWhitespaceWarning } from './hide-whitespace-warning'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverCaretPosition } from '../lib/popover'
+import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -1265,10 +1265,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       }
     }
 
-    if (this.props.hideWhitespaceInDiff) {
-      marker.title = HideWhitespaceWarning
-    }
-
     const hunkExpandWholeHandle = marker.getElementsByClassName(
       'hunk-expand-whole-handle'
     )[0]
@@ -1553,24 +1549,28 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   public render() {
+    const { diff } = this.state
     const doc = this.getCodeMirrorDocument(
-      this.state.diff.text,
+      diff.text,
       this.getNoNewlineIndicatorLines(this.state.diff.hunks)
     )
 
     return (
-      <CodeMirrorHost
-        className="diff-code-mirror"
-        value={doc}
-        options={defaultEditorOptions}
-        isSelectionEnabled={this.isSelectionEnabled}
-        onSwapDoc={this.onSwapDoc}
-        onAfterSwapDoc={this.onAfterSwapDoc}
-        onViewportChange={this.onViewportChange}
-        ref={this.getAndStoreCodeMirrorInstance}
-        onContextMenu={this.onContextMenu}
-        onCopy={this.onCopy}
-      />
+      <>
+        {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
+        <CodeMirrorHost
+          className="diff-code-mirror"
+          value={doc}
+          options={defaultEditorOptions}
+          isSelectionEnabled={this.isSelectionEnabled}
+          onSwapDoc={this.onSwapDoc}
+          onAfterSwapDoc={this.onAfterSwapDoc}
+          onViewportChange={this.onViewportChange}
+          ref={this.getAndStoreCodeMirrorInstance}
+          onContextMenu={this.onContextMenu}
+          onCopy={this.onCopy}
+        />
+      </>
     )
   }
 }

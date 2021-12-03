@@ -7,7 +7,6 @@ import { getBoolean, setBoolean } from '../../lib/local-storage'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { RepositorySectionTab } from '../../lib/app-state'
-import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 interface IDiffOptionsProps {
   readonly sourceTab: RepositorySectionTab
@@ -166,7 +165,10 @@ export class DiffOptions extends React.Component<
           }
         />
         {this.props.sourceTab === RepositorySectionTab.Changes && (
-          <p className="secondary-text">{HideWhitespaceWarning}</p>
+          <p className="secondary-text">
+            Interacting with individual lines or hunks will be disabled while
+            hiding whitespace.
+          </p>
         )}
       </section>
     )

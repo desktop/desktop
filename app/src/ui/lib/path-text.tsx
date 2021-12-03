@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { clamp } from '../../lib/clamp'
+import { Tooltip } from './tooltip'
+import { createObservableRef } from './observable-ref'
 
 interface IPathTextProps {
   /**
@@ -241,7 +243,7 @@ export class PathText extends React.PureComponent<
   IPathTextProps,
   IPathTextState
 > {
-  private pathElement: HTMLDivElement | null = null
+  private pathElementRef = createObservableRef<HTMLDivElement>()
   private pathInnerElement: HTMLSpanElement | null = null
 
   public constructor(props: IPathTextProps) {
@@ -275,14 +277,10 @@ export class PathText extends React.PureComponent<
     const dialogElement = event.target
     if (
       dialogElement instanceof Element &&
-      dialogElement.contains(this.pathElement)
+      dialogElement.contains(this.pathElementRef.current)
     ) {
       this.resizeIfNecessary()
     }
-  }
-
-  private onPathElementRef = (element: HTMLDivElement | null) => {
-    this.pathElement = element
   }
 
   private onPathInnerElementRef = (element: HTMLSpanElement | null) => {
@@ -296,31 +294,35 @@ export class PathText extends React.PureComponent<
       ) : null
 
     const truncated = this.state.length < this.state.normalizedPath.length
-    const title = truncated ? this.state.normalizedPath : undefined
 
     return (
-      <div
-        className="path-text-component"
-        ref={this.onPathElementRef}
-        title={title}
-      >
+      <div className="path-text-component" ref={this.pathElementRef}>
         <span ref={this.onPathInnerElementRef}>
           {directoryElement}
           <span className="filename">{this.state.fileText}</span>
         </span>
+        {truncated && (
+          <Tooltip
+            target={this.pathElementRef}
+            interactive={true}
+            className="selectable"
+          >
+            {this.state.normalizedPath}
+          </Tooltip>
+        )}
       </div>
     )
   }
 
   private resizeIfNecessary() {
-    if (!this.pathElement || !this.pathInnerElement) {
+    if (!this.pathElementRef.current || !this.pathInnerElement) {
       return
     }
 
     const computedAvailableWidth =
       this.props.availableWidth !== undefined
         ? this.props.availableWidth
-        : this.pathElement.getBoundingClientRect().width
+        : this.pathElementRef.current.getBoundingClientRect().width
 
     const availableWidth = Math.max(computedAvailableWidth, 0)
 

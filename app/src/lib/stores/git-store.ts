@@ -1460,10 +1460,10 @@ export class GitStore extends BaseStore {
       const foundSubmodule = submodules.some(s => s.path === file.path)
 
       if (file.status.kind !== AppFileStatusKind.Deleted && !foundSubmodule) {
-        // N.B. moveItemToTrash is synchronous can take a fair bit of time
-        // which is why we're running it inside this work queue that spreads
-        // out the calls across as many animation frames as it needs to.
-        this.shell.moveItemToTrash(
+        // N.B. moveItemToTrash can take a fair bit of time which is why we're
+        // running it inside this work queue that spreads out the calls across
+        // as many animation frames as it needs to.
+        await this.shell.moveItemToTrash(
           Path.resolve(this.repository.path, file.path)
         )
       }

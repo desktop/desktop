@@ -5,6 +5,7 @@ import { Octicon, iconForStatus } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { mapStatus } from '../../lib/status'
 import { WorkingDirectoryFileChange } from '../../models/status'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface IChangedFileProps {
   readonly file: WorkingDirectoryFileChange
@@ -75,6 +76,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
+          tooltipDirection={TooltipDirection.EAST}
         />
       </div>
     )

@@ -281,6 +281,10 @@ app.on('ready', () => {
 
   createWindow()
 
+  // Ensures auth-related headers won't traverse http redirects to hosts
+  // on different origins than the originating request.
+  installSameOriginFilter(session.defaultSession.webRequest)
+
   Menu.setApplicationMenu(
     buildDefaultMenu({
       selectedShell: null,
@@ -434,10 +438,6 @@ app.on('ready', () => {
         Menu.setApplicationMenu(currentMenu)
         mainWindow.sendAppMenu()
       }
-
-      // Ensures auth-related headers won't traverse http redirects to hosts
-      // on different origins than the originating request.
-      installSameOriginFilter(session.defaultSession.webRequest)
     }
   )
 

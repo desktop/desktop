@@ -4,7 +4,7 @@ import * as Path from 'path'
 import { Repository } from '../models/repository'
 
 export interface IAppShell {
-  readonly moveItemToTrash: (path: string) => boolean
+  readonly moveItemToTrash: (path: string) => Promise<void>
   readonly beep: () => void
   readonly openExternal: (path: string) => Promise<boolean>
   /**
@@ -35,7 +35,7 @@ export interface IAppShell {
 }
 
 export const shell: IAppShell = {
-  moveItemToTrash: electronShell.moveItemToTrash,
+  moveItemToTrash: electronShell.trashItem,
   beep: electronShell.beep,
   openExternal: path => {
     return new Promise<boolean>((resolve, reject) => {

@@ -5,6 +5,7 @@ import {
   IAPIOrganization,
   IAPIPullRequest,
   IAPIFullRepository,
+  IAPICheckSuite,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -92,8 +93,6 @@ import { executeMenuItem } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
-  ICombinedRefCheck,
-  IRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
@@ -115,6 +114,7 @@ import {
 } from '../../models/multi-commit-operation'
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
+import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 
 /**
  * An error handler function.
@@ -857,18 +857,42 @@ export class Dispatcher {
     )
   }
 
-  /** Switch between amending the most recent commit and not. */
-  public async setAmendingRepository(
+  /** Start amending the most recent commit. */
+  public async startAmendingRepository(
     repository: Repository,
-    amending: boolean
+    commit: Commit,
+    isLocalCommit: boolean,
+    continueWithForcePush: boolean = false
   ) {
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { tip } = repositoryState.branchesState
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    if (
+      askForConfirmationOnForcePush &&
+      !continueWithForcePush &&
+      !isLocalCommit &&
+      tip.kind === TipState.Valid
+    ) {
+      return this.showPopup({
+        type: PopupType.WarnForcePush,
+        operation: 'Amend',
+        onBegin: () => {
+          this.startAmendingRepository(repository, commit, isLocalCommit, true)
+        },
+      })
+    }
+
     await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
 
-    this.appStore._setAmendingRepository(repository, amending)
+    this.appStore._setRepositoryCommitToAmend(repository, commit)
 
-    if (amending) {
-      this.statsStore.recordAmendCommitStarted()
-    }
+    this.statsStore.recordAmendCommitStarted()
+  }
+
+  /** Stop amending the most recent commit. */
+  public async stopAmendingRepository(repository: Repository) {
+    this.appStore._setRepositoryCommitToAmend(repository, null)
   }
 
   /** Undo the given commit. */
@@ -1041,23 +1065,26 @@ export class Dispatcher {
 
   /**
    * Update the per-repository list of branches that can be force-pushed
-   * after a rebase is completed.
+   * after a rebase or amend is completed.
    */
-  private addRebasedBranchToForcePushList = (
+  private addBranchToForcePushList = (
     repository: Repository,
     tipWithBranch: IValidBranch,
-    beforeRebaseSha: string
+    beforeChangeSha: string
   ) => {
-    this.appStore._addRebasedBranchToForcePushList(
+    this.appStore._addBranchToForcePushList(
       repository,
       tipWithBranch,
-      beforeRebaseSha
+      beforeChangeSha
     )
   }
 
   private dropCurrentBranchFromForcePushList = (repository: Repository) => {
     const currentState = this.repositoryStateManager.get(repository)
-    const { rebasedBranches, tip } = currentState.branchesState
+    const {
+      forcePushBranches: rebasedBranches,
+      tip,
+    } = currentState.branchesState
 
     if (tip.kind !== TipState.Valid) {
       return
@@ -1067,7 +1094,7 @@ export class Dispatcher {
     updatedMap.delete(tip.branch.nameWithoutRemote)
 
     this.repositoryStateManager.updateBranchesState(repository, () => ({
-      rebasedBranches: updatedMap,
+      forcePushBranches: updatedMap,
     }))
   }
 
@@ -2394,9 +2421,10 @@ export class Dispatcher {
    */
   public tryGetCommitStatus(
     repository: GitHubRepository,
-    ref: string
+    ref: string,
+    branchName?: string
   ): ICombinedRefCheck | null {
-    return this.commitStatusStore.tryGetStatus(repository, ref)
+    return this.commitStatusStore.tryGetStatus(repository, ref, branchName)
   }
 
   /**
@@ -2407,56 +2435,71 @@ export class Dispatcher {
    *                   fetch status.
    * @param callback   A callback which will be invoked whenever the
    *                   store updates a commit status for the given ref.
+   * @param branchName If we want to retrieve action workflow checks with the
+   *                   sub, we provide the branch name for it.
    */
   public subscribeToCommitStatus(
     repository: GitHubRepository,
     ref: string,
-    callback: StatusCallBack
+    callback: StatusCallBack,
+    branchName?: string
   ): IDisposable {
-    return this.commitStatusStore.subscribe(repository, ref, callback)
-  }
-
-  /**
-   * Populates Actions workflow logs for provided checkruns if applicable
-   */
-  public getActionsWorkflowRunLogs(
-    repository: GitHubRepository,
-    ref: string,
-    checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getLatestPRWorkflowRunsLogsForCheckRun(
+    return this.commitStatusStore.subscribe(
       repository,
       ref,
-      checkRuns
+      callback,
+      branchName
     )
   }
 
   /**
-   * Populates Actions workflow log and job url's for provided checkruns if applicable
+   * Invoke a manual refresh of the status for a particular ref
    */
-  public getCheckRunActionsJobsAndLogURLS(
+  public manualRefreshSubscription(
     repository: GitHubRepository,
     ref: string,
-    branchName: string,
-    checkRuns: ReadonlyArray<IRefCheck>
-  ): Promise<ReadonlyArray<IRefCheck>> {
-    return this.commitStatusStore.getCheckRunActionsJobsAndLogURLS(
+    pendingChecks: ReadonlyArray<IRefCheck>
+  ): Promise<void> {
+    return this.commitStatusStore.manualRefreshSubscription(
       repository,
       ref,
-      branchName,
-      checkRuns
+      pendingChecks
     )
   }
 
   /**
-   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * Triggers GitHub to rerequest a list of check suites, without pushing new
    * code to a repository.
    */
-  public rerequestCheckSuite(
+  public async rerequestCheckSuites(
+    repository: GitHubRepository,
+    checkRuns: ReadonlyArray<IRefCheck>
+  ): Promise<ReadonlyArray<boolean>> {
+    // Get unique set of check suite ids
+    const checkSuiteIds = new Set<number | null>([
+      ...checkRuns.map(cr => cr.checkSuiteId),
+    ])
+
+    const promises = new Array<Promise<boolean>>()
+
+    for (const id of checkSuiteIds) {
+      if (id === null) {
+        continue
+      }
+      promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
+    }
+
+    return Promise.all(promises)
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
     repository: GitHubRepository,
     checkSuiteId: number
-  ): Promise<boolean> {
-    return this.commitStatusStore.rerequestCheckSuite(repository, checkSuiteId)
+  ): Promise<IAPICheckSuite | null> {
+    return this.commitStatusStore.fetchCheckSuite(repository, checkSuiteId)
   }
 
   /**
@@ -3471,7 +3514,7 @@ export class Dispatcher {
       originalBranchTip !== null &&
       kind !== MultiCommitOperationKind.CherryPick
     ) {
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+      this.addBranchToForcePushList(repository, tip, originalBranchTip)
     }
 
     this.statsStore.recordOperationSuccessful(kind)
@@ -3705,5 +3748,28 @@ export class Dispatcher {
       [],
       currentBranch.tip.sha
     )
+  }
+
+  public setShowCIStatusPopover(showCIStatusPopover: boolean) {
+    this.appStore._setShowCIStatusPopover(showCIStatusPopover)
+    if (showCIStatusPopover) {
+      this.statsStore.recordCheckRunsPopoverOpened()
+    }
+  }
+
+  public _toggleCIStatusPopover() {
+    this.appStore._toggleCIStatusPopover()
+  }
+
+  public recordCheckViewedOnline() {
+    this.statsStore.recordCheckViewedOnline()
+  }
+
+  public recordCheckJobStepViewedOnline() {
+    this.statsStore.recordCheckJobStepViewedOnline()
+  }
+
+  public recordRerunChecks() {
+    this.statsStore.recordRerunChecks()
   }
 }
