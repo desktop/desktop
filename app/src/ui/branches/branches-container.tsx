@@ -58,6 +58,7 @@ interface IBranchesContainerState {
   readonly selectedPullRequest: PullRequest | null
   readonly selectedBranch: Branch | null
   readonly branchFilterText: string
+  readonly pullRequestBeingViewed: PullRequest | null
 }
 
 /** The unified Branches and Pull Requests component. */
@@ -87,6 +88,7 @@ export class BranchesContainer extends React.Component<
       selectedPullRequest: props.currentPullRequest,
       currentPullRequest: props.currentPullRequest,
       branchFilterText: '',
+      pullRequestBeingViewed: null,
     }
   }
 
@@ -102,16 +104,28 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderPullRequestQuickView = (): JSX.Element | null => {
-    if (!enablePullRequestQuickView()) {
+    if (
+      !enablePullRequestQuickView() ||
+      this.state.pullRequestBeingViewed === null
+    ) {
       return null
     }
 
     return (
       <PullRequestQuickView
         dispatcher={this.props.dispatcher}
-        repository={this.props.pullRequests[0].base.gitHubRepository}
+        pullRequest={this.state.pullRequestBeingViewed}
+        onMouseLeave={this.onMouseLeavePullRequestQuickView}
       />
     )
+  }
+
+  private onMouseLeavePullRequestQuickView = () => {
+    /*
+    this.setState({
+      pullRequestBeingViewed: null,
+    })
+    */
   }
 
   private renderMergeButtonRow() {
@@ -291,8 +305,35 @@ export class BranchesContainer extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        onMouseEnterPullRequest={this.onMouseEnterPullRequestListItem}
+        onMouseLeavePullRequest={this.onMouseLeavePullRequestListItem}
       />
     )
+  }
+
+  private onMouseEnterPullRequestListItem = (
+    pullRequestBeingViewed: PullRequest
+  ) => {
+    this.setState({ pullRequestBeingViewed })
+  }
+
+  private onMouseLeavePullRequestListItem = async (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    // If we leave a list item, onto the pull request quick view, we don't want
+    // to close the quick view
+    const { relatedTarget } = event
+    const prQuickView = document.getElementById('pull-request-quick-view')
+    if (
+      relatedTarget !== null &&
+      relatedTarget instanceof Node &&
+      prQuickView !== null &&
+      prQuickView.contains(relatedTarget)
+    ) {
+      return
+    }
+
+    this.setState({ pullRequestBeingViewed: null })
   }
 
   private onTabClicked = (tab: BranchesTab) => {
