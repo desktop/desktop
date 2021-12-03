@@ -675,3 +675,30 @@ export function manuallySetChecksToPending(
   }
   return createCombinedCheckFromChecks(updatedChecks)
 }
+
+/**
+ * Groups and totals the checks by their conclusion if not null and otherwise by their status.
+ *
+ * @param checks
+ * @returns Returns a map with key of conclusions or status and values of count of that conclustion or status
+ */
+export function getCheckStatusCountMap(checks: ReadonlyArray<IRefCheck>) {
+  const countByStatus = new Map<string, number>()
+  checks.forEach(check => {
+    const key = check.conclusion ?? check.status
+    const currentCount: number = countByStatus.get(key) ?? 0
+    countByStatus.set(key, currentCount + 1)
+  })
+
+  return countByStatus
+}
+
+/**
+ * An array of check conclusions that are considerd a failure.
+ */
+export const FailingCheckConclusions = [
+  APICheckConclusion.Failure,
+  APICheckConclusion.Canceled,
+  APICheckConclusion.ActionRequired,
+  APICheckConclusion.TimedOut,
+]

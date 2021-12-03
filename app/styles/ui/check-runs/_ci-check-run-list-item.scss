@@ -25,6 +25,10 @@
     }
   }
 
+  .ci-check-status-symbol {
+    margin: 0 var(--spacing-half);
+  }
+
   .ci-check-status-symbol,
   .job-step-toggled-indicator {
     padding: var(--spacing);
