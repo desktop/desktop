@@ -28,6 +28,8 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
+import { enablePullRequestQuickView } from '../../lib/feature-flag'
+import { PullRequestQuickView } from '../pull-request-quick-view'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -94,7 +96,21 @@ export class BranchesContainer extends React.Component<
         {this.renderTabBar()}
         {this.renderSelectedTab()}
         {this.renderMergeButtonRow()}
+        {this.renderPullRequestQuickView()}
       </div>
+    )
+  }
+
+  private renderPullRequestQuickView = (): JSX.Element | null => {
+    if (!enablePullRequestQuickView()) {
+      return null
+    }
+
+    return (
+      <PullRequestQuickView
+        dispatcher={this.props.dispatcher}
+        repository={this.props.pullRequests[0].base.gitHubRepository}
+      />
     )
   }
 
