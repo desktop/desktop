@@ -1884,7 +1884,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // off screen.
     const toolbarButtonsWidth = 460
     // Start with all the available width
-    let available = window.innerWidth - toolbarButtonsWidth
+    let available = window.innerWidth
 
     // Working our way from left to right (i.e. giving priority to the leftmost
     // pane when we need to constrain the width)
@@ -1892,11 +1892,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // 220 was determined as the minimum value since it is the smallest width
     // that will still fit the placeholder text in the branch selector textbox
     // of the history tab
-    this.sidebarWidth = constrain(this.sidebarWidth, 220, available)
+    const maxSidebarWidth = available - toolbarButtonsWidth
+    this.sidebarWidth = constrain(this.sidebarWidth, 220, maxSidebarWidth)
 
     // Now calculate the width we have left to distribute for the other panes
-    const actualSidebarWidth = clamp(this.sidebarWidth)
-    available -= actualSidebarWidth
+    available -= clamp(this.sidebarWidth)
 
     // This is a pretty silly width for a diff but it will fit ~9 chars per line
     // in unified mode after subtracting the width of the unified gutter and ~4
