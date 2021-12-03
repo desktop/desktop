@@ -46,6 +46,14 @@ export interface IPullRequestListItemProps {
 
   /** When a drag element has landed on a pull request */
   readonly onDropOntoPullRequest: (prNumber: number) => void
+
+  /** When mouse enters a PR */
+  readonly onMouseEnter: (prNumber: number) => void
+
+  /** When mouse leaves a PR */
+  readonly onMouseLeave: (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => void
 }
 
 interface IPullRequestListItemState {
@@ -82,14 +90,18 @@ export class PullRequestListItem extends React.Component<
         branchName: this.props.title,
       })
     }
+    this.props.onMouseEnter(this.props.number)
   }
 
-  private onMouseLeave = () => {
+  private onMouseLeave = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     if (dragAndDropManager.isDragInProgress) {
       this.setState({ isDragInProgress: false })
 
       dragAndDropManager.emitLeaveDropTarget()
     }
+    this.props.onMouseLeave(event)
   }
 
   private onMouseUp = () => {
