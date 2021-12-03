@@ -1883,6 +1883,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // the sidebar we can't let it push the branch, and push/pull/fetch buttons
     // off screen.
     const toolbarButtonsWidth = 460
+
     // Start with all the available width
     let available = window.innerWidth
 
@@ -1904,10 +1905,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // but it doesn't break the layout and it allows users to temporarily
     // maximize the width of the file list to see long path names.
     const diffPaneMinWidth = 150
-    available -= diffPaneMinWidth
+    const filesMax = available - diffPaneMinWidth
 
-    this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, available)
-    this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, available)
+    this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, filesMax)
+    this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, filesMax)
   }
 
   private updateSelectedExternalEditor(
