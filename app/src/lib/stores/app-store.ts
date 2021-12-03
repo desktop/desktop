@@ -400,21 +400,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private appIsFocused: boolean = false
 
-  private sidebarWidth: IConstrainedValue = {
-    value: defaultSidebarWidth,
-    min: 0,
-    max: Infinity,
-  }
-  private commitSummaryWidth: IConstrainedValue = {
-    value: defaultCommitSummaryWidth,
-    min: 0,
-    max: Infinity,
-  }
-  private stashedFilesWidth: IConstrainedValue = {
-    value: defaultStashedFilesWidth,
-    min: 0,
-    max: Infinity,
-  }
+  private sidebarWidth = constrain(defaultSidebarWidth)
+  private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
+  private stashedFilesWidth = constrain(defaultStashedFilesWidth)
+
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
@@ -1769,18 +1758,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
-    this.sidebarWidth = {
-      ...this.sidebarWidth,
-      value: getNumber(sidebarWidthConfigKey, defaultSidebarWidth),
-    }
-    this.commitSummaryWidth = {
-      ...this.sidebarWidth,
-      value: getNumber(commitSummaryWidthConfigKey, defaultCommitSummaryWidth),
-    }
-    this.stashedFilesWidth = {
-      ...this.sidebarWidth,
-      value: getNumber(stashedFilesWidthConfigKey, defaultStashedFilesWidth),
-    }
+    this.sidebarWidth = constrain(
+      getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
+    )
+    this.commitSummaryWidth = constrain(
+      getNumber(commitSummaryWidthConfigKey, defaultCommitSummaryWidth)
+    )
+    this.stashedFilesWidth = constrain(
+      getNumber(stashedFilesWidthConfigKey, defaultStashedFilesWidth)
+    )
 
     this.updateResizableConstraints()
 
@@ -6902,9 +6888,9 @@ function isLocalChangesOverwrittenError(error: Error): boolean {
 }
 
 function constrain(
-  value: IConstrainedValue,
-  min: number,
-  max: number
+  value: IConstrainedValue | number,
+  min = -Infinity,
+  max = Infinity
 ): IConstrainedValue {
-  return { value: value.value, min, max }
+  return { value: typeof value === 'number' ? value : value.value, min, max }
 }
