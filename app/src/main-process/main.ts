@@ -526,9 +526,12 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on(
+  ipcMain.handle(
     'open-external',
-    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
+    async (
+      event: Electron.IpcMainInvokeEvent,
+      path: string
+    ): Promise<boolean> => {
       const pathLowerCase = path.toLowerCase()
       if (
         pathLowerCase.startsWith('http://') ||
@@ -537,29 +540,20 @@ app.on('ready', () => {
         log.info(`opening in browser: ${path}`)
       }
 
-      let result
       try {
         await shell.openExternal(path)
-        result = true
+        return true
       } catch (e) {
         log.error(`Call to openExternal failed: '${e}'`)
-        result = false
+        return false
       }
-      event.sender.send('open-external-result', { result })
     }
   )
 
-  ipcMain.on(
+  ipcMain.handle(
     'move-to-trash',
-    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
-      let error: Error | null = null
-      try {
-        await shell.trashItem(path)
-      } catch (e) {
-        log.error(`Call to trashItem failed: '${e}'`)
-        error = e
-      }
-      event.sender.send('move-to-trash-result', { error })
+    (event: Electron.IpcMainInvokeEvent, path: string): Promise<void> => {
+      return shell.trashItem(path)
     }
   )
 

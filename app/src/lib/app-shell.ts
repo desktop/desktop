@@ -39,36 +39,11 @@ export const shell: IAppShell = {
   // on Windows. Therefore, we must invoke it from the main process. See
   // https://github.com/electron/electron/issues/29598
   moveItemToTrash: path => {
-    return new Promise<void>((resolve, reject) => {
-      ipcRenderer.once(
-        'move-to-trash-result',
-        (
-          event: Electron.IpcRendererEvent,
-          { error }: { error: Error | null }
-        ) => {
-          if (error === null) {
-            resolve()
-          } else {
-            reject(error)
-          }
-        }
-      )
-
-      ipcRenderer.send('move-to-trash', { path })
-    })
+    return ipcRenderer.invoke('move-to-trash', path)
   },
   beep: electronShell.beep,
   openExternal: path => {
-    return new Promise<boolean>((resolve, reject) => {
-      ipcRenderer.once(
-        'open-external-result',
-        (event: Electron.IpcRendererEvent, { result }: { result: boolean }) => {
-          resolve(result)
-        }
-      )
-
-      ipcRenderer.send('open-external', { path })
-    })
+    return ipcRenderer.invoke('open-external', path)
   },
   showItemInFolder: path => {
     ipcRenderer.send('show-item-in-folder', { path })
