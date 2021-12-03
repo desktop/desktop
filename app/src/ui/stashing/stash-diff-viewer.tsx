@@ -101,11 +101,7 @@ export class StashDiffViewer extends React.PureComponent<
         />
       ) : null
 
-    const availableWidth = clamp(
-      fileListWidth.value,
-      fileListWidth.min,
-      fileListWidth.max
-    )
+    const availableWidth = clamp(fileListWidth)
 
     return (
       <section id="stash-diff-viewer">
