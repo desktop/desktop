@@ -2,9 +2,9 @@
   .popover-component {
     position: absolute;
     padding: 0px;
-    width: 440px;
+    width: 375px;
     top: 60;
-    margin-left: -302px;
+    margin-left: -270px;
   }
 
   .ci-check-run-list-header {
@@ -13,6 +13,8 @@
     display: flex;
     font-size: var(--font-size-md);
     padding: var(--spacing);
+    padding-top: var(--spacing-half);
+    padding-right: var(--spacing-half);
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
 
@@ -21,14 +23,6 @@
       align-items: center;
       .title {
         font-weight: var(--font-weight-semibold);
-
-        .failure {
-          color: $red-500;
-        }
-
-        .pending {
-          color: $yellow-700;
-        }
       }
 
       .check-run-list-summary {
@@ -37,62 +31,10 @@
         font-size: var(--font-size-sm);
       }
     }
-
-    .completeness-indicator {
-      margin-right: var(--spacing);
-
-      .octicon,
-      .donut {
-        display: block;
-        margin-top: var(--spacing-half);
-        margin-bottom: var(--spacing-half);
-        margin-right: auto;
-        margin-left: auto;
-        width: 30px;
-        height: 30px;
-      }
-
-      .completeness-indicator-success {
-        color: $green-500;
-      }
-
-      .completeness-indicator-error {
-        color: $red-500;
-      }
-
-      .donut {
-        > .error,
-        > .cancelled,
-        > .action_required,
-        > .timed_out,
-        > .failure {
-          fill: $red-500;
-        }
-
-        > .expected,
-        > .queued,
-        > .in_progress,
-        > .waiting,
-        > .requested,
-        > .pending {
-          fill: $yellow-700;
-        }
-
-        > .success {
-          fill: $green-500;
-        }
-
-        > .neutral,
-        > .stale,
-        > .skipped {
-          fill: $gray-400;
-        }
-      }
-    }
   }
 
   .loading-check-runs {
-    width: 100%;
+    width: 365px;
     display: flex;
     flex-direction: column;
     align-items: center;
