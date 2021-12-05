@@ -45,21 +45,22 @@ export class RepositoryStateCache {
     const newValues = fn(currentState)
     const newState = merge(currentState, newValues)
 
-    const isSameLastLocalCommit =
-      currentState.localCommitSHAs.length > 0 &&
-      newState.localCommitSHAs.length > 0 &&
-      currentState.localCommitSHAs[0] === newState.localCommitSHAs[0]
+    const currentTip = currentState.branchesState.tip
+    const newTip = newState.branchesState.tip
 
-    // Only keep the "is amending" state if the last local commit hasn't changed
-    // and there is no "fixing conflicts" state.
-    const newIsAmending =
-      newState.isAmending &&
-      isSameLastLocalCommit &&
+    // Only keep the "is amending" state if the head commit hasn't changed, it
+    // matches the commit to amend, and there is no "fixing conflicts" state.
+    const isAmending =
+      newState.commitToAmend !== null &&
+      newTip.kind === TipState.Valid &&
+      currentTip.kind === TipState.Valid &&
+      currentTip.branch.tip.sha === newTip.branch.tip.sha &&
+      newTip.branch.tip.sha === newState.commitToAmend.sha &&
       newState.changesState.conflictState === null
 
     this.repositoryState.set(repository.hash, {
       ...newState,
-      isAmending: newIsAmending,
+      commitToAmend: isAmending ? newState.commitToAmend : null,
     })
   }
 
@@ -198,7 +199,7 @@ function getInitialRepositoryState(): IRepositoryState {
       openPullRequests: new Array<PullRequest>(),
       currentPullRequest: null,
       isLoadingPullRequests: false,
-      rebasedBranches: new Map<string, string>(),
+      forcePushBranches: new Map<string, string>(),
     },
     compareState: {
       formState: {
@@ -222,7 +223,7 @@ function getInitialRepositoryState(): IRepositoryState {
     remote: null,
     isPushPullFetchInProgress: false,
     isCommitting: false,
-    isAmending: false,
+    commitToAmend: null,
     lastFetched: null,
     checkoutProgress: null,
     pushPullFetchProgress: null,

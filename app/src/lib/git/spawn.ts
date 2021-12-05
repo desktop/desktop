@@ -9,7 +9,7 @@ type ProcessOutput = {
   /** The contents of stderr received from the spawned process */
   error: Buffer
   /** The exit code returned by the spawned process */
-  exitCode: number
+  exitCode: number | null
 }
 
 /**
@@ -101,7 +101,7 @@ export async function spawnAndComplete(
             // the process terminates
             const exitCodes = successExitCodes || new Set([0])
 
-            if (exitCodes.has(code) || signal) {
+            if ((code !== null && exitCodes.has(code)) || signal) {
               resolve({
                 output: stdout,
                 error: stderr,

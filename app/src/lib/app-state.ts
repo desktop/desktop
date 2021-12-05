@@ -289,6 +289,11 @@ export interface IAppState {
    * order for external contributions in latest release.
    */
   readonly lastThankYou: ILastThankYou | undefined
+
+  /**
+   * Whether or not the CI status popover is visible.
+   */
+  readonly showCIStatusPopover: boolean
 }
 
 export enum FoldoutType {
@@ -442,8 +447,8 @@ export interface IRepositoryState {
   /** Is a commit in progress? */
   readonly isCommitting: boolean
 
-  /** Is an amend in progress? */
-  readonly isAmending: boolean
+  /** Commit being amended, or null if none. */
+  readonly commitToAmend: Commit | null
 
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
@@ -535,8 +540,8 @@ export interface IBranchesState {
    */
   readonly pullWithRebase?: boolean
 
-  /** Tracking branches that have been rebased within Desktop */
-  readonly rebasedBranches: ReadonlyMap<string, string>
+  /** Tracking branches that have been allowed to be force-pushed within Desktop */
+  readonly forcePushBranches: ReadonlyMap<string, string>
 }
 
 export interface ICommitSelection {

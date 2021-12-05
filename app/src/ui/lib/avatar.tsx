@@ -5,6 +5,7 @@ import { generateGravatarUrl } from '../../lib/gravatar'
 import { Octicon } from '../octicons'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
+import { TooltipDirection } from './tooltip'
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -221,7 +222,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         className="avatar-container"
         tooltipClassName={this.props.title ? undefined : 'user-info'}
         tooltip={title}
-        direction="n"
+        direction={TooltipDirection.NORTH}
         tagName="div"
       >
         {img}

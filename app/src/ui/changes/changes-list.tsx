@@ -41,7 +41,7 @@ import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
-import { Tooltip } from '../lib/tooltip'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -145,7 +145,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
-  readonly isAmending: boolean
+  readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
 
   /**
@@ -618,7 +618,7 @@ export class ChangesList extends React.Component<
       repositoryAccount,
       dispatcher,
       isCommitting,
-      isAmending,
+      commitToAmend,
       currentBranchProtected,
     } = this.props
 
@@ -681,7 +681,7 @@ export class ChangesList extends React.Component<
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
-        commitToAmend={isAmending ? this.props.mostRecentLocalCommit : null}
+        commitToAmend={commitToAmend}
         showCoAuthoredBy={this.props.showCoAuthoredBy}
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
@@ -782,7 +782,7 @@ export class ChangesList extends React.Component<
           onContextMenu={this.onContextMenu}
           ref={this.headerRef}
         >
-          <Tooltip target={this.headerRef} direction="n">
+          <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
             {selectedChangesDescription}
           </Tooltip>
           <Checkbox

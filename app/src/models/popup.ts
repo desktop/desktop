@@ -18,6 +18,8 @@ import { ITextDiff, DiffSelection } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
+import { IRefCheck } from '../lib/ci-checks/ci-checks'
+import { GitHubRepository } from './github-repository'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -75,6 +77,9 @@ export enum PopupType {
   InvalidatedToken,
   AddSSHHost,
   SSHKeyPassphrase,
+  PullRequestChecksFailed,
+  CICheckRunRerun,
+  WarnForcePush,
 }
 
 export type Popup =
@@ -309,3 +314,19 @@ export type Popup =
         storePassphrase: boolean
       ) => void
     }
+  | {
+      type: PopupType.PullRequestChecksFailed
+      repository: RepositoryWithGitHubRepository
+      pullRequest: PullRequest
+      needsSelectRepository: boolean
+      commitMessage: string
+      commitSha: string
+      checks: ReadonlyArray<IRefCheck>
+    }
+  | {
+      type: PopupType.CICheckRunRerun
+      checkRuns: ReadonlyArray<IRefCheck>
+      repository: GitHubRepository
+      prRef: string
+    }
+  | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }

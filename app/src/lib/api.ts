@@ -317,7 +317,7 @@ export enum APICheckConclusion {
  */
 export interface IAPIRefStatusItem {
   readonly state: APIRefState
-  readonly target_url: string
+  readonly target_url: string | null
   readonly description: string
   readonly context: string
   readonly id: number
@@ -336,12 +336,12 @@ export interface IAPIRefCheckRun {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly name: string
-  readonly output: IAPIRefCheckRunOutput
   readonly check_suite: IAPIRefCheckRunCheckSuite
   readonly app: IAPIRefCheckRunApp
   readonly completed_at: string
   readonly started_at: string
   readonly html_url: string
+  readonly pull_requests: ReadonlyArray<IAPIPullRequest>
 }
 
 // NB. Only partially mapped
@@ -358,6 +358,14 @@ export interface IAPIRefCheckRunOutput {
 
 export interface IAPIRefCheckRunCheckSuite {
   readonly id: number
+}
+
+export interface IAPICheckSuite {
+  readonly id: number
+  readonly rerequestable: boolean
+  readonly runs_rerequestable: boolean
+  readonly status: APICheckStatus
+  readonly created_at: string
 }
 
 export interface IAPIRefCheckRuns {
@@ -382,6 +390,7 @@ export interface IAPIWorkflowRun {
   readonly name: string
   readonly rerun_url: string
   readonly check_suite_id: number
+  readonly event: string
 }
 
 export interface IAPIWorkflowJobs {
@@ -1107,6 +1116,28 @@ export class API {
     }
 
     return false
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}`
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPICheckSuite>(response)
+    } catch (_) {
+      log.debug(
+        `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return null
   }
 
   /**

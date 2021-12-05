@@ -18,6 +18,7 @@ import { DiffExpansionKind } from './text-diff-expansion'
 import { PopoverCaretPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -204,12 +205,12 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContentFromString('')}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after">
               {this.renderLineNumber(lineNumber, isSelected)}
               {this.renderContent(row.data)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
@@ -241,12 +242,12 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContent(row.data)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after">
               {this.renderLineNumber()}
               {this.renderContentFromString('')}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
@@ -259,12 +260,12 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContent(before)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
               {this.renderLineNumber(after.lineNumber, after.isSelected)}
               {this.renderContent(after)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
+            {this.renderHunkHandle()}
           </div>
         )
       }
@@ -371,7 +372,10 @@ export class SideBySideDiffRow extends React.Component<
         style={{ width: this.props.lineNumberWidth }}
         onContextMenu={this.props.onContextMenuExpandHunk}
       >
-        <TooltippedContent direction="s" tooltip={elementInfo.title}>
+        <TooltippedContent
+          direction={TooltipDirection.SOUTH}
+          tooltip={elementInfo.title}
+        >
           <Octicon symbol={elementInfo.icon} />
         </TooltippedContent>
       </div>

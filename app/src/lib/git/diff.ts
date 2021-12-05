@@ -284,6 +284,7 @@ export async function convertDiff(
     hunks: diff.hunks,
     lineEndingsChange,
     maxLineNumber: diff.maxLineNumber,
+    hasHiddenBidiChars: diff.hasHiddenBidiChars,
   }
 }
 
@@ -387,6 +388,7 @@ function buildDiff(
       hunks: diff.hunks,
       lineEndingsChange,
       maxLineNumber: diff.maxLineNumber,
+      hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
     return Promise.resolve(largeTextDiff)
