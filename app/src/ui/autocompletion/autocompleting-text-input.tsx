@@ -44,7 +44,7 @@ interface IAutocompletingTextInputProps<ElementType> {
 
   /** Optional hint icon on the right side of the component, with details shown on hover. */
   readonly hint?: {
-    symbol: OcticonSymbolType,
+    symbol: OcticonSymbolType
     tooltip: JSX.Element | string
   }
 
@@ -111,10 +111,10 @@ interface IAutocompletingTextInputState<T> {
 /** A text area which provides autocompletions as the user types. */
 export abstract class AutocompletingTextInput<
   ElementType extends HTMLInputElement | HTMLTextAreaElement
-  > extends React.Component<
+> extends React.Component<
   IAutocompletingTextInputProps<ElementType>,
   IAutocompletingTextInputState<Object>
-  > {
+> {
   private element: ElementType | null = null
 
   /** The identifier for each autocompletion request. */
@@ -155,7 +155,8 @@ export abstract class AutocompletingTextInput<
         direction={TooltipDirection.NORTH}
         className="hint"
         tooltipClassName="input-hint-tooltip"
-      ><Octicon symbol={this.props.hint.symbol} />
+      >
+        <Octicon symbol={this.props.hint.symbol} />
       </TooltippedContent>
     ) : null
   }
@@ -340,7 +341,7 @@ export abstract class AutocompletingTextInput<
       {
         'text-box-component': tagName === 'input',
         'text-area-component': tagName === 'textarea',
-        'with-hint': !!this.props.hint
+        'with-hint': !!this.props.hint,
       }
     )
     return (
@@ -432,8 +433,8 @@ export abstract class AutocompletingTextInput<
 
     const selectedRow = currentAutoCompletionState.selectedItem
       ? currentAutoCompletionState.items.indexOf(
-        currentAutoCompletionState.selectedItem
-      )
+          currentAutoCompletionState.selectedItem
+        )
       : -1
 
     const direction = this.getMovementDirection(event)

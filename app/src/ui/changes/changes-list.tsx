@@ -103,7 +103,6 @@ function getIncludeAllValue(
 interface IChangesListProps {
   readonly repository: Repository
   readonly repositoryAccount: Account | null
-  readonly emoji: Map<string, string>
   readonly workingDirectory: WorkingDirectoryStatus
   readonly mostRecentLocalCommit: Commit | null
   /**
@@ -676,7 +675,6 @@ export class ChangesList extends React.Component<
         repository={repository}
         repositoryAccount={repositoryAccount}
         dispatcher={dispatcher}
-        emoji={this.props.emoji}
         commitMessage={this.props.commitMessage}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}

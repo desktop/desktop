@@ -36,9 +36,7 @@ import { setGlobalConfigValue } from '../../lib/git/config'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isAccountEmail } from '../../lib/is-account-email'
-import {
-  IdealSummaryLength,
-} from '../../lib/wrap-rich-text-commit-message'
+import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 
 const addAuthorIcon = {
@@ -69,7 +67,6 @@ interface ICommitMessageProps {
   readonly repository: Repository
   readonly repositoryAccount?: Account | null
   readonly dispatcher: Dispatcher
-  readonly emoji: Map<string, string>
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting?: boolean
   readonly commitToAmend: Commit | null
@@ -478,8 +475,8 @@ export class CommitMessage extends React.Component<
         ? 'Remove Co-Authors'
         : 'Remove co-authors'
       : __DARWIN__
-        ? 'Add Co-Authors'
-        : 'Add co-authors'
+      ? 'Add Co-Authors'
+      : 'Add co-authors'
   }
 
   private getAddRemoveCoAuthorsMenuItem(): IMenuItem {
@@ -760,9 +757,10 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
-    const summaryLengthState: SummaryLengthState = this.state.summary.length > IdealSummaryLength
-      ? SummaryLengthState.Excessive
-      : SummaryLengthState.Ideal
+    const summaryLengthState: SummaryLengthState =
+      this.state.summary.length > IdealSummaryLength
+        ? SummaryLengthState.Excessive
+        : SummaryLengthState.Ideal
     const isLengthHintShown = summaryLengthState !== SummaryLengthState.Ideal
 
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
@@ -778,7 +776,7 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
-        <div className='summary'>
+        <div className="summary">
           {this.renderAvatar()}
 
           <AutocompletingInput
@@ -792,7 +790,25 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
-            hint={!isLengthHintShown ? undefined : { symbol: OcticonSymbol.lightBulb, tooltip: <><strong className="title">Great commit summaries contain fewer than 50 characters</strong><br /><span className="description">Place extra information in the description field.</span></> }}
+            hint={
+              !isLengthHintShown
+                ? undefined
+                : {
+                    symbol: OcticonSymbol.lightBulb,
+                    tooltip: (
+                      <>
+                        <span className="title">
+                          Great commit summaries contain fewer than 50
+                          characters
+                        </span>
+                        <br />
+                        <span className="description">
+                          Place extra information in the description field.
+                        </span>
+                      </>
+                    ),
+                  }
+            }
           />
         </div>
 
