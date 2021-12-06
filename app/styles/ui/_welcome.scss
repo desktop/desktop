@@ -1,4 +1,9 @@
 #welcome {
+  // Override the height of some components to make them bigger. The new height
+  // is platform specific and defined as --welcome-item-height
+  --text-field-height: var(--welcome-item-height);
+  --button-height: var(--welcome-item-height);
+
   align-items: stretch;
   justify-content: center;
   flex-direction: row;
@@ -62,13 +67,19 @@
   }
 
   input,
-  button {
+  button,
+  select {
     font-size: var(--font-size-md);
-    height: auto;
   }
 
   input {
     padding: var(--spacing-half);
+  }
+
+  select {
+    // We need to tweak the horizontal padding a bit here to fit correctly with
+    // the bigger size
+    padding: 0 1px;
   }
 
   button {
@@ -227,6 +238,16 @@
   }
 }
 
+.welcome-start-disclaimer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 var(--spacing-quad) var(--spacing-quad) var(--spacing-quad);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary-color);
+}
+
 .welcome-content {
   justify-content: center;
   max-width: 500px;
@@ -236,4 +257,16 @@
 .forgot-password-link {
   align-self: center;
   margin-left: var(--spacing);
+}
+
+@include win32-context {
+  #welcome {
+    --welcome-item-height: 31.5px;
+  }
+}
+
+@include darwin-context {
+  #welcome {
+    --welcome-item-height: 29px;
+  }
 }

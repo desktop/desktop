@@ -1,9 +1,11 @@
-import { DiffHunk, DiffLine } from '../../models/diff'
+import { DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
 
 import 'codemirror/mode/javascript/javascript'
+import { enableTextDiffExpansion } from '../../lib/feature-flag'
+import { DefaultDiffExpansionStep } from './text-diff-expansion'
 
 export interface IDiffSyntaxModeOptions {
   /**
@@ -28,7 +30,9 @@ export interface IDiffSyntaxModeSpec extends IDiffSyntaxModeOptions {
   readonly name: 'github-diff-syntax'
 }
 
-const TokenNames: { [key: string]: string | null } = {
+type DiffSyntaxToken = 'diff-add' | 'diff-delete' | 'diff-hunk' | 'diff-context'
+
+const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
   '+': 'diff-add',
   '-': 'diff-delete',
   '@': 'diff-hunk',
@@ -37,12 +41,17 @@ const TokenNames: { [key: string]: string | null } = {
 
 interface IState {
   diffLineIndex: number
+  previousHunkOldEndLine: number | null
 }
 
 function skipLine(stream: CodeMirror.StringStream, state: IState) {
   stream.skipToEnd()
   state.diffLineIndex++
   return null
+}
+
+function getBaseDiffLineStyle(token: DiffSyntaxToken) {
+  return `line-${token} line-background-${token}`
 }
 
 /**
@@ -106,13 +115,32 @@ export class DiffSyntaxMode {
   }
 
   public startState(): IState {
-    return { diffLineIndex: 0 }
+    return { diffLineIndex: 0, previousHunkOldEndLine: null }
   }
 
-  // Should never happen except for blank diffs but
-  // let's play along
   public blankLine(state: IState) {
+    // If we run into a blank line and we don't have hunks yet, and given we
+    // should never get blank diffs, let's assume we're in the last line of a
+    // diff that was just loaded, but for which we haven't run the highlighter
+    // yet. If we don't do this, that last line will be formatted wrongly.
+    if (this.hunks === undefined) {
+      return getBaseDiffLineStyle('diff-hunk')
+    }
+
+    // A line might be empty in a non-blank diff for the only line of the
+    // dummy hunk we put at the bottom of the diff to allow users to expand
+    // the visible contents.
+    if (this.hunks.length > 0) {
+      const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
+      if (diffLine?.type === DiffLineType.Hunk) {
+        return getBaseDiffLineStyle('diff-hunk')
+      }
+    }
+
+    // Should never happen except for blank diffs but
+    // let's play along
     state.diffLineIndex++
+    return undefined
   }
 
   public token = (
@@ -128,9 +156,50 @@ export class DiffSyntaxMode {
         state.diffLineIndex++
       }
 
-      const token = index ? TokenNames[index] : null
+      if (index === null) {
+        return null
+      }
 
-      return token ? `line-${token} line-background-${token}` : null
+      const token = TokenNames[index] ?? null
+
+      if (token === null) {
+        return null
+      }
+
+      let result = getBaseDiffLineStyle(token)
+
+      // If it's a hunk header line, we want to make a few extra checks
+      // depending on the distance to the previous hunk.
+      if (index === '@' && enableTextDiffExpansion()) {
+        // First we grab the numbers in the hunk header
+        const matches = stream.match(/\@ -(\d+),(\d+) \+\d+,\d+ \@\@/)
+        if (matches !== null) {
+          const oldStartLine = parseInt(matches[1])
+          const oldLineCount = parseInt(matches[2])
+
+          // If there is a hunk above and the distance with this one is bigger
+          // than the expansion "step", return an additional class name that
+          // will be used to make that line taller to fit the expansion buttons.
+          if (
+            state.previousHunkOldEndLine !== null &&
+            oldStartLine - state.previousHunkOldEndLine >
+              DefaultDiffExpansionStep
+          ) {
+            result += ` line-${token}-expandable-both`
+          }
+
+          // Finally we update the state with the index of the last line of the
+          // current hunk.
+          state.previousHunkOldEndLine = oldStartLine + oldLineCount
+        }
+
+        // Check again if we reached the EOL after matching the regex
+        if (stream.eol()) {
+          state.diffLineIndex++
+        }
+      }
+
+      return result
     }
 
     // This happens when the mode is running without tokens, in this

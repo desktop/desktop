@@ -5,12 +5,15 @@ import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
+import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
 
 interface IAdvancedPreferencesProps {
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
-  readonly onOptOutofReportingchanged: (checked: boolean) => void
+  readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
+  readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
   ) => void
@@ -20,6 +23,7 @@ interface IAdvancedPreferencesProps {
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly canUseWindowsSSH: boolean
 }
 
 export class Advanced extends React.Component<
@@ -32,7 +36,16 @@ export class Advanced extends React.Component<
     this.state = {
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
+      canUseWindowsSSH: false,
     }
+  }
+
+  public componentDidMount() {
+    this.checkSSHAvailability()
+  }
+
+  private async checkSSHAvailability() {
+    this.setState({ canUseWindowsSSH: await isWindowsOpenSSHAvailable() })
   }
 
   private onReportingOptOutChanged = (
@@ -41,7 +54,7 @@ export class Advanced extends React.Component<
     const value = !event.currentTarget.checked
 
     this.setState({ optOutOfUsageTracking: value })
-    this.props.onOptOutofReportingchanged(value)
+    this.props.onOptOutofReportingChanged(value)
   }
 
   private onUncommittedChangesStrategyChanged = (
@@ -55,6 +68,12 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
+  }
+
+  private onUseWindowsOpenSSHChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -118,6 +137,7 @@ export class Advanced extends React.Component<
             list. Disabling this may improve performance with many repositories.
           </p>
         </div>
+        {this.renderSSHSettings()}
         <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
@@ -131,6 +151,25 @@ export class Advanced extends React.Component<
           />
         </div>
       </DialogContent>
+    )
+  }
+
+  private renderSSHSettings() {
+    if (!this.state.canUseWindowsSSH) {
+      return null
+    }
+
+    return (
+      <div className="advanced-section">
+        <h2>SSH</h2>
+        <Checkbox
+          label="Use system OpenSSH (recommended)"
+          value={
+            this.props.useWindowsOpenSSH ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onUseWindowsOpenSSHChanged}
+        />
+      </div>
     )
   }
 }

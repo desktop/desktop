@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { shell } from '../../lib/app-shell'
 import classNames from 'classnames'
+import { Tooltip } from './tooltip'
+import { createObservableRef } from './observable-ref'
 
 interface ILinkButtonProps {
   /** A URI to open on click. */
@@ -28,18 +30,22 @@ interface ILinkButtonProps {
  * Provide `children` elements for the title of the rendered hyperlink.
  */
 export class LinkButton extends React.Component<ILinkButtonProps, {}> {
+  private readonly anchorRef = createObservableRef<HTMLAnchorElement>()
+
   public render() {
     const href = this.props.uri || ''
     const className = classNames('link-button-component', this.props.className)
+    const { title } = this.props
 
     return (
       <a
+        ref={this.anchorRef}
         className={className}
         href={href}
         onClick={this.onClick}
-        title={this.props.title}
         tabIndex={this.props.tabIndex}
       >
+        {title && <Tooltip target={this.anchorRef}>{title}</Tooltip>}
         {this.props.children}
       </a>
     )

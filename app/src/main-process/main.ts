@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell, session } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
 
@@ -28,21 +28,9 @@ import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
+import { installSameOriginFilter } from './same-origin-filter'
 
 app.setAppLogsPath()
-
-/**
- * While testing Electron 9 on Windows we were seeing fairly
- * consistent hangs that seem similar to the following issues
- *
- * https://github.com/electron/electron/issues/24173
- * https://github.com/electron/electron/issues/23910
- * https://github.com/electron/electron/issues/24338
- *
- * TODO: Try removing when upgrading to Electron vNext
- */
-app.allowRendererProcessReuse = false
-
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
@@ -293,6 +281,10 @@ app.on('ready', () => {
 
   createWindow()
 
+  // Ensures auth-related headers won't traverse http redirects to hosts
+  // on different origins than the originating request.
+  installSameOriginFilter(session.defaultSession.webRequest)
+
   Menu.setApplicationMenu(
     buildDefaultMenu({
       selectedShell: null,
@@ -534,9 +526,12 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on(
+  ipcMain.handle(
     'open-external',
-    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
+    async (
+      event: Electron.IpcMainInvokeEvent,
+      path: string
+    ): Promise<boolean> => {
       const pathLowerCase = path.toLowerCase()
       if (
         pathLowerCase.startsWith('http://') ||
@@ -545,15 +540,20 @@ app.on('ready', () => {
         log.info(`opening in browser: ${path}`)
       }
 
-      let result
       try {
         await shell.openExternal(path)
-        result = true
+        return true
       } catch (e) {
         log.error(`Call to openExternal failed: '${e}'`)
-        result = false
+        return false
       }
-      event.sender.send('open-external-result', { result })
+    }
+  )
+
+  ipcMain.handle(
+    'move-to-trash',
+    (event: Electron.IpcMainInvokeEvent, path: string): Promise<void> => {
+      return shell.trashItem(path)
     }
   )
 

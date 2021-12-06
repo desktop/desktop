@@ -6,6 +6,9 @@ export const remote = {
   app: {
     on: jest.fn(),
   },
+  getCurrentWebContents: jest.fn().mockImplementation(() => ({
+    on: jest.fn().mockImplementation(() => true),
+  })),
   getCurrentWindow: jest.fn().mockImplementation(() => ({
     isFullScreen: jest.fn().mockImplementation(() => true),
     webContents: {

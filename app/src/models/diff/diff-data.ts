@@ -53,6 +53,10 @@ interface ITextDiffData {
   readonly hunks: ReadonlyArray<DiffHunk>
   /** A warning from Git that the line endings have changed in this file and will affect the commit */
   readonly lineEndingsChange?: LineEndingsChange
+  /** The largest line number in the diff  */
+  readonly maxLineNumber: number
+  /** Whether or not the diff has invisible bidi characters */
+  readonly hasHiddenBidiChars: boolean
 }
 
 export interface ITextDiff extends ITextDiffData {

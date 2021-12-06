@@ -168,7 +168,7 @@ describe('AppStore', () => {
       let state = getAppState(appStore)
       expect(state.localCommitSHAs).toHaveLength(1)
 
-      await appStore._undoCommit(repository, firstCommit!)
+      await appStore._undoCommit(repository, firstCommit!, false)
 
       state = getAppState(appStore)
       expect(state.localCommitSHAs).toHaveLength(0)

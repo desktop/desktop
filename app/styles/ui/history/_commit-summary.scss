@@ -71,6 +71,14 @@
   &-title,
   &-meta {
     padding: var(--spacing);
+
+    .lines-added {
+      color: var(--color-new);
+    }
+
+    .lines-deleted {
+      color: var(--color-deleted);
+    }
   }
 
   &-title {
@@ -79,6 +87,10 @@
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
   }
 
   &-description-container {

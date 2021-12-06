@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
-import { ExternalEditor } from '../../lib/editors'
 import { Dispatcher } from '../dispatcher'
 import { TabBar, TabBarType } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -16,16 +15,20 @@ import {
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
-import { gitAuthorNameIsValid } from './identifier-rules'
+import {
+  gitAuthorNameIsValid,
+  InvalidGitAuthorNameMessage,
+} from '../lib/identifier-rules'
 import { Appearance } from './appearance'
-import { ApplicationTheme } from '../lib/application-theme'
+import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
 import {
   UncommittedChangesStrategy,
   defaultUncommittedChangesStrategy,
 } from '../../models/uncommitted-changes-strategy'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import {
   isConfigFileLockError,
   parseConfigLockFilePathFromError,
@@ -36,22 +39,25 @@ import {
   getDefaultBranch,
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
+import { Repository } from '../../models/repository'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
+  readonly repository: Repository | null
   readonly onDismissed: () => void
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
-  readonly automaticallySwitchTheme: boolean
+  readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
 }
 
@@ -64,13 +70,14 @@ interface IPreferencesState {
   readonly initialCommitterEmail: string | null
   readonly initialDefaultBranch: string | null
   readonly disallowedCharactersMessage: string | null
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
-  readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly availableEditors: ReadonlyArray<string>
+  readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   /**
@@ -102,6 +109,7 @@ export class Preferences extends React.Component<
       initialDefaultBranch: null,
       disallowedCharactersMessage: null,
       availableEditors: [],
+      useWindowsOpenSSH: false,
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
@@ -154,6 +162,7 @@ export class Preferences extends React.Component<
       initialCommitterName,
       initialCommitterEmail,
       initialDefaultBranch,
+      useWindowsOpenSSH: this.props.useWindowsOpenSSH,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
@@ -283,6 +292,8 @@ export class Preferences extends React.Component<
               name={this.state.committerName}
               email={this.state.committerEmail}
               defaultBranch={this.state.defaultBranch}
+              dotComAccount={this.props.dotComAccount}
+              enterpriseAccount={this.props.enterpriseAccount}
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
@@ -295,11 +306,9 @@ export class Preferences extends React.Component<
         View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
+            customTheme={this.props.customTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
-            automaticallySwitchTheme={this.props.automaticallySwitchTheme}
-            onAutomaticallySwitchThemeChanged={
-              this.onAutomaticallySwitchThemeChanged
-            }
+            onCustomThemeChanged={this.onCustomThemeChanged}
           />
         )
         break
@@ -321,10 +330,12 @@ export class Preferences extends React.Component<
       case PreferencesTab.Advanced: {
         View = (
           <Advanced
+            useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
-            onOptOutofReportingchanged={this.onOptOutofReportingChanged}
+            onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
+            onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
             }
@@ -356,6 +367,10 @@ export class Preferences extends React.Component<
     this.props.dispatcher.postError(e)
   }
 
+  private onUseWindowsOpenSSHChanged = (useWindowsOpenSSH: boolean) => {
+    this.setState({ useWindowsOpenSSH })
+  }
+
   private onOptOutofReportingChanged = (value: boolean) => {
     this.setState({ optOutOfUsageTracking: value })
   }
@@ -383,7 +398,7 @@ export class Preferences extends React.Component<
       committerName,
       disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
         ? null
-        : 'Name is invalid, it consists only of disallowed characters.',
+        : InvalidGitAuthorNameMessage,
     })
   }
 
@@ -395,7 +410,7 @@ export class Preferences extends React.Component<
     this.setState({ defaultBranch })
   }
 
-  private onSelectedEditorChanged = (editor: ExternalEditor) => {
+  private onSelectedEditorChanged = (editor: string) => {
     this.setState({ selectedExternalEditor: editor })
   }
 
@@ -407,12 +422,8 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setSelectedTheme(theme)
   }
 
-  private onAutomaticallySwitchThemeChanged = (
-    automaticallySwitchTheme: boolean
-  ) => {
-    this.props.dispatcher.onAutomaticallySwitchThemeChanged(
-      automaticallySwitchTheme
-    )
+  private onCustomThemeChanged = (theme: ICustomTheme) => {
+    this.props.dispatcher.setCustomTheme(theme)
   }
 
   private renderFooter() {
@@ -443,12 +454,20 @@ export class Preferences extends React.Component<
 
   private onSave = async () => {
     try {
+      let shouldRefreshAuthor = false
+
       if (this.state.committerName !== this.state.initialCommitterName) {
         await setGlobalConfigValue('user.name', this.state.committerName)
+        shouldRefreshAuthor = true
       }
 
       if (this.state.committerEmail !== this.state.initialCommitterEmail) {
         await setGlobalConfigValue('user.email', this.state.committerEmail)
+        shouldRefreshAuthor = true
+      }
+
+      if (this.props.repository !== null && shouldRefreshAuthor) {
+        this.props.dispatcher.refreshAuthor(this.props.repository)
       }
 
       // If the entered default branch is empty, we don't store it and keep
@@ -490,6 +509,8 @@ export class Preferences extends React.Component<
       this.props.dispatcher.postError(e)
       return
     }
+
+    this.props.dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
 
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,

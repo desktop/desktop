@@ -2,10 +2,12 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { BrowserRedirectMessage } from '../lib/authentication-form'
+import { SamplesURL } from '../../lib/stats'
 
 /**
  * The URL to the sign-up page on GitHub.com. Used in conjunction
@@ -30,8 +32,8 @@ export class Start extends React.Component<IStartProps, {}> {
           <>
             <p className="welcome-text">
               GitHub Desktop is a seamless way to contribute to projects on
-              GitHub and GitHub Enterprise Server. Sign in below to get started
-              with your existing projects.
+              GitHub and GitHub Enterprise. Sign in below to get started with
+              your existing projects.
             </p>
             <p className="welcome-text">
               New to GitHub?{' '}
@@ -62,7 +64,7 @@ export class Start extends React.Component<IStartProps, {}> {
             <Button onClick={this.cancelBrowserAuth}>Cancel</Button>
           ) : (
             <Button onClick={this.signInToEnterprise}>
-              Sign in to GitHub Enterprise Server
+              Sign in to GitHub Enterprise
             </Button>
           )}
         </div>
@@ -70,6 +72,21 @@ export class Start extends React.Component<IStartProps, {}> {
           <LinkButton className="skip-button" onClick={this.skip}>
             Skip this step
           </LinkButton>
+        </div>
+        <div className="welcome-start-disclaimer-container">
+          By creating an account, you agree to the{' '}
+          <LinkButton uri={'https://github.com/site/terms'}>
+            Terms of Service
+          </LinkButton>
+          . For more information about GitHub's privacy practices, see the{' '}
+          <LinkButton uri={'https://github.com/site/privacy'}>
+            GitHub Privacy Statement
+          </LinkButton>
+          .<br />
+          <br />
+          GitHub Desktop sends usage metrics to improve the product and inform
+          feature decisions. Read more about what metrics are sent and how we
+          use them <LinkButton uri={SamplesURL}>here</LinkButton>.
         </div>
       </div>
     )

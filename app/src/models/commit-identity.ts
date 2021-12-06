@@ -5,9 +5,9 @@
 export class CommitIdentity {
   /**
    * Parses a Git ident string (GIT_AUTHOR_IDENT or GIT_COMMITTER_IDENT)
-   * into a commit identity. Returns null if string could not be parsed.
+   * into a commit identity. Throws an error if identify string is invalid.
    */
-  public static parseIdentity(identity: string): CommitIdentity | null {
+  public static parseIdentity(identity: string): CommitIdentity {
     // See fmt_ident in ident.c:
     //  https://github.com/git/git/blob/3ef7618e6/ident.c#L346
     //
@@ -22,7 +22,7 @@ export class CommitIdentity {
     //
     const m = identity.match(/^(.*?) <(.*?)> (\d+) (\+|-)?(\d{2})(\d{2})/)
     if (!m) {
-      return null
+      throw new Error(`Couldn't parse identity ${identity}`)
     }
 
     const name = m[1]
@@ -30,6 +30,10 @@ export class CommitIdentity {
     // The date is specified as seconds from the epoch,
     // Date() expects milliseconds since the epoch.
     const date = new Date(parseInt(m[3], 10) * 1000)
+
+    if (isNaN(date.valueOf())) {
+      throw new Error(`Couldn't parse identity ${identity}, invalid date`)
+    }
 
     // The RAW option never uses alphanumeric timezone identifiers and in my
     // testing I've never found it to omit the leading + for a positive offset

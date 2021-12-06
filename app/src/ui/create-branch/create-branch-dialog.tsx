@@ -24,17 +24,39 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
 import { GitHubRepository } from '../../models/github-repository'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
+import { CommitOneLine } from '../../models/commit'
 
 interface ICreateBranchProps {
   readonly repository: Repository
+  readonly targetCommit?: CommitOneLine
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
+  readonly onBranchCreatedFromCommit?: () => void
   readonly onDismissed: () => void
+  /**
+   * If provided, the branch creation is handled by the given method.
+   *
+   * It is also responsible for dismissing the popup.
+   */
+  readonly createBranch?: (
+    name: string,
+    startPoint: string | null,
+    noTrack: boolean
+  ) => void
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
   readonly defaultBranch: Branch | null
   readonly upstreamDefaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
+  /**
+   * If provided, use as the okButtonText
+   */
+  readonly okButtonText?: string
+
+  /**
+   * If provided, use as the header
+   */
+  readonly headerText?: string
 }
 
 interface ICreateBranchState {
@@ -118,8 +140,16 @@ export class CreateBranch extends React.Component<
       : this.props.tip
 
     const tipKind = tip.kind
+    const targetCommit = this.props.targetCommit
 
-    if (tip.kind === TipState.Detached) {
+    if (targetCommit !== undefined) {
+      return (
+        <p>
+          Your new branch will be based on the commit '{targetCommit.summary}' (
+          {targetCommit.sha.substr(0, 7)}) from your repository.
+        </p>
+      )
+    } else if (tip.kind === TipState.Detached) {
       return (
         <p>
           You do not currently have any branch checked out (your HEAD reference
@@ -173,7 +203,7 @@ export class CreateBranch extends React.Component<
     return (
       <Dialog
         id="create-branch"
-        title={__DARWIN__ ? 'Create a Branch' : 'Create a branch'}
+        title={this.getHeaderText()}
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
         loading={this.state.isCreatingBranch}
@@ -198,12 +228,28 @@ export class CreateBranch extends React.Component<
 
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Create Branch' : 'Create branch'}
+            okButtonText={this.getOkButtonText()}
             okButtonDisabled={disabled}
           />
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private getHeaderText = (): string => {
+    if (this.props.headerText !== undefined) {
+      return this.props.headerText
+    }
+
+    return __DARWIN__ ? 'Create a Branch' : 'Create a branch'
+  }
+
+  private getOkButtonText = (): string => {
+    if (this.props.okButtonText !== undefined) {
+      return this.props.okButtonText
+    }
+
+    return __DARWIN__ ? 'Create Branch' : 'Create branch'
   }
 
   private onBranchNameChange = (name: string) => {
@@ -232,7 +278,9 @@ export class CreateBranch extends React.Component<
 
     const { defaultBranch, upstreamDefaultBranch, repository } = this.props
 
-    if (this.state.startPoint === StartPoint.DefaultBranch) {
+    if (this.props.targetCommit !== undefined) {
+      startPoint = this.props.targetCommit.sha
+    } else if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
       if (!defaultBranch) {
@@ -243,8 +291,7 @@ export class CreateBranch extends React.Component<
       }
 
       startPoint = defaultBranch.name
-    }
-    if (this.state.startPoint === StartPoint.UpstreamDefaultBranch) {
+    } else if (this.state.startPoint === StartPoint.UpstreamDefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
       if (!upstreamDefaultBranch) {
@@ -260,8 +307,15 @@ export class CreateBranch extends React.Component<
 
     if (name.length > 0) {
       this.setState({ isCreatingBranch: true })
+
+      // If createBranch is provided, use it instead of dispatcher
+      if (this.props.createBranch !== undefined) {
+        this.props.createBranch(name, startPoint, noTrack)
+        return
+      }
+
       const timer = startTimer('create branch', repository)
-      await this.props.dispatcher.createBranch(
+      const branch = await this.props.dispatcher.createBranch(
         repository,
         name,
         startPoint,
@@ -269,6 +323,16 @@ export class CreateBranch extends React.Component<
       )
       timer.done()
       this.props.onDismissed()
+
+      // If the operation was successful and the branch was created from a
+      // commit, invoke the callback.
+      if (
+        branch !== undefined &&
+        this.props.targetCommit !== undefined &&
+        this.props.onBranchCreatedFromCommit !== undefined
+      ) {
+        this.props.onBranchCreatedFromCommit()
+      }
     }
   }
 

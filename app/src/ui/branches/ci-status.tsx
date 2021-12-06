@@ -1,13 +1,16 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import classNames from 'classnames'
 import { GitHubRepository } from '../../models/github-repository'
 import { IDisposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
 import {
   ICombinedRefCheck,
+  IRefCheck,
   isSuccess,
-} from '../../lib/stores/commit-status-store'
+} from '../../lib/ci-checks/ci-checks'
+import { IAPIWorkflowJobStep } from '../../lib/api'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
@@ -20,6 +23,9 @@ interface ICIStatusProps {
 
   /** The commit ref (can be a SHA or a Git ref) for which to fetch status. */
   readonly commitRef: string
+
+  /** A callback to bubble up whether there is a check displayed */
+  readonly onCheckChange?: (check: ICombinedRefCheck | null) => void
 }
 
 interface ICIStatusState {
@@ -35,12 +41,14 @@ export class CIStatus extends React.PureComponent<
 
   public constructor(props: ICIStatusProps) {
     super(props)
+    const check = props.dispatcher.tryGetCommitStatus(
+      this.props.repository,
+      this.props.commitRef
+    )
     this.state = {
-      check: props.dispatcher.tryGetCommitStatus(
-        this.props.repository,
-        this.props.commitRef
-      ),
+      check,
     }
+    this.props.onCheckChange?.(check)
   }
 
   private subscribe() {
@@ -85,6 +93,10 @@ export class CIStatus extends React.PureComponent<
   }
 
   private onStatus = (check: ICombinedRefCheck | null) => {
+    if (this.props.onCheckChange !== undefined) {
+      this.props.onCheckChange(check)
+    }
+
     this.setState({ check })
   }
 
@@ -109,7 +121,9 @@ export class CIStatus extends React.PureComponent<
   }
 }
 
-function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbol {
+export function getSymbolForCheck(
+  check: ICombinedRefCheck | IRefCheck | IAPIWorkflowJobStep
+): OcticonSymbolType {
   switch (check.conclusion) {
     case 'timed_out':
       return OcticonSymbol.x
@@ -133,7 +147,9 @@ function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbol {
   return OcticonSymbol.dotFill
 }
 
-function getClassNameForCheck(check: ICombinedRefCheck): string {
+export function getClassNameForCheck(
+  check: ICombinedRefCheck | IRefCheck | IAPIWorkflowJobStep
+): string {
   switch (check.conclusion) {
     case 'timed_out':
       return 'timed-out'
@@ -150,6 +166,29 @@ function getClassNameForCheck(check: ICombinedRefCheck): string {
 
   // Pending
   return 'pending'
+}
+
+export function getSymbolForLogStep(
+  logStep: IAPIWorkflowJobStep
+): OcticonSymbolType {
+  switch (logStep.conclusion) {
+    case 'success':
+      return OcticonSymbol.checkCircleFill
+    case 'failure':
+      return OcticonSymbol.xCircleFill
+  }
+
+  return getSymbolForCheck(logStep)
+}
+
+export function getClassNameForLogStep(logStep: IAPIWorkflowJobStep): string {
+  switch (logStep.conclusion) {
+    case 'failure':
+      return logStep.conclusion
+  }
+
+  // Pending
+  return ''
 }
 
 /**

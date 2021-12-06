@@ -4,7 +4,7 @@ You will need to install these tools on your machine:
 
  - Node.js
  - Yarn
- - Python 2
+ - Python 3
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ## Node.js
@@ -70,10 +70,10 @@ relevant to Desktop.
 macOS comes with Python pre-installed, and it happens to be the right version, so you're probably fine! But let's be sure. Open a terminal and run this command inside the Desktop source directory:
 
 ```shellsession
-$ python --version
+$ python3 --version
 ```
 
-If you see the output `Python 2.7.x`, you're good to go!
+If you see the output `Python 3.9.x`, you're good to go!
 
 ### I need to use different versions of Python in different projects!
 
@@ -87,13 +87,13 @@ For this, we recommend [pyenv](https://github.com/pyenv/pyenv). (It's the only g
 pyenv install
 ```
 
-3. Verify you have the right version by running `python --version` again:
+3. Verify you have the right version by running `python3 --version` again:
 
 ```shellsession
-$ python --version
+$ python3 --version
 ```
 
-If you see the output `Python 2.7.x`, you're good to go!
+If you see the output `Python 3.9.x`, you're good to go!
 
 ## Xcode Command Line Tools
 

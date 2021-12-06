@@ -41,6 +41,12 @@ export interface IDailyMeasures {
   /** The number of commits created with one or more co-authors. */
   readonly coAuthoredCommits: number
 
+  /** The number of commits undone by the user with a dirty working directory. */
+  readonly commitsUndoneWithChanges: number
+
+  /** The number of commits undone by the user with a clean working directory. */
+  readonly commitsUndoneWithoutChanges: number
+
   /** The number of times a branch is compared to an arbitrary branch */
   readonly branchComparisons: number
 
@@ -71,10 +77,10 @@ export interface IDailyMeasures {
   /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
   readonly dotcomForcePushCount: number
 
-  /** The number of times the user pushed to a GitHub Enterprise Server instance */
+  /** The number of times the user pushed to a GitHub Enterprise instance */
   readonly enterprisePushCount: number
 
-  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise Server instance */
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
   readonly enterpriseForcePushCount: number
 
   /** The number of times the users pushes to a generic remote */
@@ -112,14 +118,14 @@ export interface IDailyMeasures {
 
   /**
    * The number of times the user made a commit to a repo hosted on
-   * a GitHub Enterprise Server instance
+   * a GitHub Enterprise instance
    */
   readonly enterpriseCommits: number
 
   /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 
-  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
+  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise repository */
   readonly commitsToProtectedBranch: number
 
   /** The number of times the user made a commit to a repository with branch protections enabled */
@@ -355,6 +361,108 @@ export interface IDailyMeasures {
 
   /** Number of times the user has encountered an unhandled rejection */
   readonly unhandledRejectionCount: number
+
+  /** The number of times a successful cherry pick occurs */
+  readonly cherryPickSuccessfulCount: number
+
+  /** The number of times a cherry pick is initiated through drag and drop */
+  readonly cherryPickViaDragAndDropCount: number
+
+  /** The number of times a cherry pick is initiated through the context menu */
+  readonly cherryPickViaContextMenuCount: number
+
+  /** The number of times a drag operation was started and canceled */
+  readonly dragStartedAndCanceledCount: number
+
+  /** The number of times conflicts encountered during a cherry pick  */
+  readonly cherryPickConflictsEncounteredCount: number
+
+  /** The number of times cherry pick ended successfully after conflicts  */
+  readonly cherryPickSuccessfulWithConflictsCount: number
+
+  /** The number of times cherry pick of multiple commits initiated  */
+  readonly cherryPickMultipleCommitsCount: number
+
+  /** The number of times a cherry pick was undone  */
+  readonly cherryPickUndoneCount: number
+
+  /** The number of times a branch was created during a cherry-pick */
+  readonly cherryPickBranchCreatedCount: number
+
+  /** The number of times the user started amending a commit */
+  readonly amendCommitStartedCount: number
+
+  /** The number of times the user amended a commit with file changes */
+  readonly amendCommitSuccessfulWithFileChangesCount: number
+
+  /** The number of times the user amended a commit without file changes */
+  readonly amendCommitSuccessfulWithoutFileChangesCount: number
+
+  /** The number of times a successful reorder occurs */
+  readonly reorderSuccessfulCount: number
+
+  /** The number of times a reorder is initiated */
+  readonly reorderStartedCount: number
+
+  /** The number of times conflicts encountered during a reorder  */
+  readonly reorderConflictsEncounteredCount: number
+
+  /** The number of times reorder ended successfully after conflicts  */
+  readonly reorderSuccessfulWithConflictsCount: number
+
+  /** The number of times reorder of multiple commits initiated  */
+  readonly reorderMultipleCommitsCount: number
+
+  /** The number of times a reorder was undone  */
+  readonly reorderUndoneCount: number
+
+  /** The number of times conflicts encountered during a squash */
+  readonly squashConflictsEncounteredCount: number
+
+  /** The number of times squash of multiple commits invoked  */
+  readonly squashMultipleCommitsInvokedCount: number
+
+  /** The number of times a successful squash occurs */
+  readonly squashSuccessfulCount: number
+
+  /** The number of times squash ended successfully after conflicts  */
+  readonly squashSuccessfulWithConflictsCount: number
+
+  /** The number of times a squash is initiated through the context menu */
+  readonly squashViaContextMenuInvokedCount: number
+
+  /** The number of times a squash is initiated through drag and drop */
+  readonly squashViaDragAndDropInvokedCount: number
+
+  /** The number of times a squash was undone  */
+  readonly squashUndoneCount: number
+
+  /** The number of times the `Branch -> Squash and Merge Into Current Branch` menu item is used */
+  readonly squashMergeIntoCurrentBranchMenuCount: number
+
+  /** The number of times squash merge ended successfully after conflicts  */
+  readonly squashMergeSuccessfulWithConflictsCount: number
+
+  /** The number of times a successful squash merge occurs */
+  readonly squashMergeSuccessfulCount: number
+
+  /** The number of times a squash merge is initiated */
+  readonly squashMergeInvokedCount: number
+
+  /** The number of times the user reset to a previous commit. */
+  readonly resetToCommitCount: number
+
+  /** The number of times the user opens the check run popover. */
+  readonly opensCheckRunsPopover: number
+
+  /** The number of times the user clicks link to view a check online */
+  readonly viewsCheckOnline: number
+
+  /** The number of times the user clicks link to view a check job step online */
+  readonly viewsCheckJobStepOnline: number
+
+  /** The number of times the user reruns checks */
+  readonly rerunsChecks: number
 }
 
 export class StatsDatabase extends Dexie {

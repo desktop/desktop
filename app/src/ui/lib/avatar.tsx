@@ -2,8 +2,10 @@ import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
 import { shallowEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
-import { OcticonSymbol, Octicon } from '../octicons'
+import { Octicon } from '../octicons'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { TooltippedContent } from './tooltipped-content'
+import { TooltipDirection } from './tooltip'
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -14,7 +16,7 @@ interface IAvatarProps {
    * Defaults to the name and email if undefined and is
    * skipped completely if title is null
    */
-  readonly title?: string | null
+  readonly title?: string | JSX.Element | null
 
   /**
    * The what dimensions of avatar the component should
@@ -35,11 +37,12 @@ const avatarEndpoint = 'https://avatars.githubusercontent.com'
  * The octicon has been tweaked to add some padding and so that it scales nicely in
  * a square aspect ratio.
  */
-const DefaultAvatarSymbol = new OcticonSymbol(
-  16,
-  16,
-  'M13 13.145a.844.844 0 0 1-.832.855H3.834A.846.846 0 0 1 3 13.142v-.856c0-2.257 3.333-3.429 3.333-3.429s.191-.35 0-.857c-.7-.531-.786-1.363-.833-3.429C5.644 2.503 7.056 2 8 2s2.356.502 2.5 2.571C10.453 6.637 10.367 7.47 9.667 8c-.191.506 0 .857 0 .857S13 10.03 13 12.286v.859z'
-)
+const DefaultAvatarSymbol = {
+  w: 16,
+  h: 16,
+  d:
+    'M13 13.145a.844.844 0 0 1-.832.855H3.834A.846.846 0 0 1 3 13.142v-.856c0-2.257 3.333-3.429 3.333-3.429s.191-.35 0-.857c-.7-.531-.786-1.363-.833-3.429C5.644 2.503 7.056 2 8 2s2.356.502 2.5 2.571C10.453 6.637 10.367 7.47 9.667 8c-.191.506 0 .857 0 .857S13 10.03 13 12.286v.859z',
+}
 
 /**
  * A regular expression meant to match both the legacy format GitHub.com
@@ -85,7 +88,7 @@ function getAvatarUrlCandidates(
       }
     }
   } else if (endpoint !== null) {
-    // We're dealing with a repository hosted on GitHub Enterprise Server
+    // We're dealing with a repository hosted on GitHub Enterprise
     // so we're unable to get to the avatar by requesting the avatarURL due
     // to the private mode (see https://github.com/desktop/desktop/issues/821).
     // So we have no choice but to fall back to gravatar for now.
@@ -150,20 +153,29 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
   }
 
-  private getTitle(): string | undefined {
+  private getTitle(): string | JSX.Element | undefined {
     if (this.props.title === null) {
       return undefined
     }
 
-    if (this.props.title === undefined) {
+    if (this.props.title !== undefined) {
       return this.props.title
     }
 
     const user = this.props.user
     if (user) {
-      const name = user.name
-      if (name) {
-        return `${name} <${user.email}>`
+      if (user.name) {
+        return (
+          <>
+            <Avatar title={null} user={user} />
+            <div>
+              <div>
+                <strong>{user.name}</strong>
+              </div>
+              <div>{user.email}</div>
+            </div>
+          </>
+        )
       } else {
         return user.email
       }
@@ -180,8 +192,9 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public render() {
     const title = this.getTitle()
-    const ariaLabel = this.props.user
-      ? `Avatar for ${this.props.user.name || this.props.user.email}`
+    const { user } = this.props
+    const alt = user
+      ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
 
     if (this.state.candidates.length === 0) {
@@ -197,14 +210,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const src = this.state.candidates[0]
 
     const img = (
-      <img
-        className="avatar"
-        title={title}
-        src={src}
-        alt={title}
-        aria-label={ariaLabel}
-        onError={this.onImageError}
-      />
+      <img className="avatar" src={src} alt={alt} onError={this.onImageError} />
     )
 
     if (title === undefined) {
@@ -212,9 +218,15 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
 
     return (
-      <span title={title} className="avatar-container">
+      <TooltippedContent
+        className="avatar-container"
+        tooltipClassName={this.props.title ? undefined : 'user-info'}
+        tooltip={title}
+        direction={TooltipDirection.NORTH}
+        tagName="div"
+      >
         {img}
-      </span>
+      </TooltippedContent>
     )
   }
 

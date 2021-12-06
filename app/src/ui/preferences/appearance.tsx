@@ -1,19 +1,30 @@
 import * as React from 'react'
-import { supportsDarkMode, isDarkModeEnabled } from '../lib/dark-theme'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import {
+  ApplicationTheme,
+  supportsSystemThemeChanges,
+  getCurrentlyAppliedTheme,
+  ICustomTheme,
+} from '../lib/application-theme'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import {
   VerticalSegmentedControl,
   ISegmentedItem,
 } from '../lib/vertical-segmented-control'
-import { ApplicationTheme } from '../lib/application-theme'
+import { CustomThemeSelector } from './custom-theme-selector'
+import { enableHighContrastTheme } from '../../lib/feature-flag'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
+  readonly customTheme?: ICustomTheme
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
-  readonly automaticallySwitchTheme: boolean
-  readonly onAutomaticallySwitchThemeChanged: (checked: boolean) => void
+  readonly onCustomThemeChanged: (theme: ICustomTheme) => void
+}
+
+const systemTheme: ISegmentedItem<ApplicationTheme> = {
+  title: 'System',
+  description: 'Automatically switch theme to match system theme.',
+  key: ApplicationTheme.System,
 }
 
 const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
@@ -27,66 +38,54 @@ const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
     description: 'GitHub Desktop is for you too, creatures of the night',
     key: ApplicationTheme.Dark,
   },
+  ...(enableHighContrastTheme()
+    ? [
+        {
+          title: 'High Contrast',
+          description: 'Customizable High Contrast Theme',
+          key: ApplicationTheme.HighContrast,
+        },
+      ]
+    : []),
+  ...(supportsSystemThemeChanges() ? [systemTheme] : []),
 ]
 
 export class Appearance extends React.Component<IAppearanceProps, {}> {
-  private onSelectedThemeChanged = (value: ApplicationTheme) => {
-    this.props.onSelectedThemeChanged(value)
-    this.props.onAutomaticallySwitchThemeChanged(false)
+  private onSelectedThemeChanged = (theme: ApplicationTheme) => {
+    this.props.onSelectedThemeChanged(theme)
   }
 
-  private onAutomaticallySwitchThemeChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-
-    if (value) {
-      this.onSelectedThemeChanged(
-        isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
-      )
-    }
-
-    this.props.onAutomaticallySwitchThemeChanged(value)
+  private onCustomThemeChanged = (theme: ICustomTheme) => {
+    this.props.onCustomThemeChanged(theme)
   }
 
   public render() {
-    return (
-      <DialogContent>
-        {this.renderThemeOptions()}
-        {this.renderAutoSwitcherOption()}
-      </DialogContent>
-    )
-  }
+    let selectedTheme = this.props.selectedTheme
 
-  public renderThemeOptions() {
-    return (
-      <Row>
-        <VerticalSegmentedControl
-          items={themes}
-          selectedKey={this.props.selectedTheme}
-          onSelectionChanged={this.onSelectedThemeChanged}
-        />
-      </Row>
-    )
-  }
-
-  public renderAutoSwitcherOption() {
-    if (!supportsDarkMode()) {
-      return null
+    if (
+      this.props.selectedTheme === ApplicationTheme.System &&
+      !supportsSystemThemeChanges()
+    ) {
+      selectedTheme = getCurrentlyAppliedTheme()
     }
 
     return (
-      <Row>
-        <Checkbox
-          label="Automatically switch theme to match system theme."
-          value={
-            this.props.automaticallySwitchTheme
-              ? CheckboxValue.On
-              : CheckboxValue.Off
-          }
-          onChange={this.onAutomaticallySwitchThemeChanged}
-        />
-      </Row>
+      <DialogContent>
+        <Row>
+          <VerticalSegmentedControl
+            items={themes}
+            selectedKey={selectedTheme}
+            onSelectionChanged={this.onSelectedThemeChanged}
+          />
+        </Row>
+        <Row>
+          <CustomThemeSelector
+            onCustomThemeChanged={this.onCustomThemeChanged}
+            selectedTheme={selectedTheme}
+            customTheme={this.props.customTheme}
+          />
+        </Row>
+      </DialogContent>
     )
   }
 }

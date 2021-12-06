@@ -18,6 +18,7 @@ export enum Shell {
   Cygwin = 'Cygwin',
   WSL = 'WSL',
   WindowTerminal = 'Windows Terminal',
+  FluentTerminal = 'Fluent Terminal',
   Alacritty = 'Alacritty',
 }
 
@@ -102,6 +103,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.WindowTerminal,
       path: windowsTerminal,
+    })
+  }
+
+  const fluentTerminal = await findFluentTerminal()
+  if (fluentTerminal != null) {
+    shells.push({
+      shell: Shell.FluentTerminal,
+      path: fluentTerminal,
     })
   }
   return shells
@@ -361,6 +370,26 @@ async function findWindowsTerminal(): Promise<string | null> {
   return null
 }
 
+async function findFluentTerminal(): Promise<string | null> {
+  // Fluent Terminal has a link at
+  // C:\Users\<User>\AppData\Local\Microsoft\WindowsApps\flute.exe
+  const localAppData = process.env.LocalAppData
+  if (localAppData != null) {
+    const fluentTerminalpath = Path.join(
+      localAppData,
+      '\\Microsoft\\WindowsApps\\flute.exe'
+    )
+    if (await pathExists(fluentTerminalpath)) {
+      return fluentTerminalpath
+    } else {
+      log.debug(
+        `[Fluent Terminal] flute.exe doest not exist at '${fluentTerminalpath}'`
+      )
+    }
+  }
+  return null
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -369,31 +398,18 @@ export function launch(
 
   switch (shell) {
     case Shell.PowerShell:
-      const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn(
-        'START',
-        [
-          '"PowerShell"',
-          `"${foundShell.path}"`,
-          '-NoExit',
-          '-Command',
-          psCommand,
-        ],
-        {
-          shell: true,
-          cwd: path,
-        }
-      )
+      return spawn('START', ['"PowerShell"', `"${foundShell.path}"`], {
+        shell: true,
+        cwd: path,
+      })
     case Shell.PowerShellCore:
-      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
       return spawn(
         'START',
         [
           '"PowerShell Core"',
           `"${foundShell.path}"`,
-          '-NoExit',
-          '-Command',
-          psCoreCommand,
+          '-WorkingDirectory',
+          `"${path}"`,
         ],
         {
           shell: true,
@@ -450,6 +466,10 @@ export function launch(
       const windowsTerminalPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${windowsTerminalPath}`)
       return spawn(windowsTerminalPath, ['-d .'], { shell: true, cwd: path })
+    case Shell.FluentTerminal:
+      const fluentTerminalPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${fluentTerminalPath}`)
+      return spawn(fluentTerminalPath, ['new'], { shell: true, cwd: path })
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }

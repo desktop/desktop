@@ -1,45 +1,17 @@
 import * as React from 'react'
-
-import { encodePathAsUrl } from '../../lib/path'
-
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
-
 import { updateStore } from '../lib/update-store'
 import { LinkButton } from '../lib/link-button'
-
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-
 import { RichText } from '../lib/rich-text'
-import { Repository } from '../../models/repository'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import { ReleaseNotesUri } from '../lib/releases'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { GitHubRepository } from '../../models/github-repository'
-import { Owner } from '../../models/owner'
-
-// HACK: This is needed because the `Rich`Text` component
-// needs to know what repo to link issues against.
-// Since release notes are Desktop specific, we can't
-// rely on the repo info we keep in state, so we've
-// stubbed out this repo
-const desktopOwner = new Owner('desktop', getDotComAPIEndpoint(), -1)
-const desktopUrl = 'https://github.com/desktop/desktop'
-const desktopRepository = new Repository(
-  '',
-  -1,
-  new GitHubRepository('desktop', desktopOwner, -1, false, desktopUrl),
-  true
-)
-
-const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
-  __dirname,
-  'static/release-note-header-left.svg'
-)
-const ReleaseNoteHeaderRightUri = encodePathAsUrl(
-  __dirname,
-  'static/release-note-header-right.svg'
-)
+import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
+import {
+  ReleaseNoteHeaderLeftUri,
+  ReleaseNoteHeaderRightUri,
+} from '../../lib/release-notes'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -68,7 +40,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
             text={entry.message}
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
-            repository={desktopRepository}
+            repository={DesktopFakeRepository}
           />
         </li>
       )

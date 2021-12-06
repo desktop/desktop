@@ -5,23 +5,28 @@ import {
 } from './repository'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
-import { ReleaseSummary } from './release-notes'
+import { ReleaseNote, ReleaseSummary } from './release-notes'
 import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { ICommitContext } from './commit'
+import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
 import { ITextDiff, DiffSelection } from './diff'
+import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
+import { ICommitMessage } from './commit-message'
+import { IAuthor } from './author'
+import { IRefCheck } from '../lib/ci-checks/ci-checks'
+import { GitHubRepository } from './github-repository'
 
 export enum PopupType {
   RenameBranch = 1,
   DeleteBranch,
+  DeleteRemoteBranch,
   ConfirmDiscardChanges,
   Preferences,
-  MergeBranch,
   RepositorySettings,
   AddRepository,
   CreateRepository,
@@ -45,13 +50,9 @@ export enum PopupType {
   UpstreamAlreadyExists,
   ReleaseNotes,
   DeletePullRequest,
-  MergeConflicts,
-  AbortMerge,
   OversizedFiles,
-  UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
-  RebaseFlow,
   ConfirmForcePush,
   StashAndSwitchBranch,
   ConfirmOverwriteStash,
@@ -66,6 +67,19 @@ export enum PopupType {
   LocalChangesOverwritten,
   ChooseForkSettings,
   ConfirmDiscardSelection,
+  MoveToApplicationsFolder,
+  ChangeRepositoryAlias,
+  ThankYou,
+  CommitMessage,
+  MultiCommitOperation,
+  WarnLocalChangesBeforeUndo,
+  WarningBeforeReset,
+  InvalidatedToken,
+  AddSSHHost,
+  SSHKeyPassphrase,
+  PullRequestChecksFailed,
+  CICheckRunRerun,
+  WarnForcePush,
 }
 
 export type Popup =
@@ -75,6 +89,11 @@ export type Popup =
       repository: Repository
       branch: Branch
       existsOnRemote: boolean
+    }
+  | {
+      type: PopupType.DeleteRemoteBranch
+      repository: Repository
+      branch: Branch
     }
   | {
       type: PopupType.ConfirmDiscardChanges
@@ -92,11 +111,10 @@ export type Popup =
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | {
-      type: PopupType.MergeBranch
+      type: PopupType.RepositorySettings
       repository: Repository
-      branch?: Branch
+      initialSelectedTab?: RepositorySettingsTab
     }
-  | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
   | {
@@ -107,6 +125,7 @@ export type Popup =
       type: PopupType.CreateBranch
       repository: Repository
       initialName?: string
+      targetCommit?: CommitOneLine
     }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
@@ -135,7 +154,7 @@ export type Popup =
   | {
       type: PopupType.ExternalEditorFailed
       message: string
-      suggestAtom?: boolean
+      suggestDefaultEditor?: boolean
       openPreferences?: boolean
     }
   | { type: PopupType.OpenShellFailed; message: string }
@@ -157,24 +176,11 @@ export type Popup =
       pullRequest: PullRequest
     }
   | {
-      type: PopupType.MergeConflicts
-      repository: Repository
-      ourBranch: string
-      theirBranch?: string
-    }
-  | {
-      type: PopupType.AbortMerge
-      repository: Repository
-      ourBranch: string
-      theirBranch?: string
-    }
-  | {
       type: PopupType.OversizedFiles
       oversizedFiles: ReadonlyArray<string>
       context: ICommitContext
       repository: Repository
     }
-  | { type: PopupType.UsageReportingChanges }
   | {
       type: PopupType.CommitConflictsWarning
       /** files that were selected for committing that are also conflicted */
@@ -192,10 +198,6 @@ export type Popup =
       type: PopupType.ConfirmForcePush
       repository: Repository
       upstreamBranch: string
-    }
-  | {
-      type: PopupType.RebaseFlow
-      repository: Repository
     }
   | {
       type: PopupType.StashAndSwitchBranch
@@ -258,3 +260,73 @@ export type Popup =
       retryAction: RetryAction
       files: ReadonlyArray<string>
     }
+  | { type: PopupType.MoveToApplicationsFolder }
+  | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
+  | {
+      type: PopupType.ThankYou
+      userContributions: ReadonlyArray<ReleaseNote>
+      friendlyName: string
+      latestVersion: string | null
+    }
+  | {
+      type: PopupType.CommitMessage
+      coAuthors: ReadonlyArray<IAuthor>
+      showCoAuthoredBy: boolean
+      commitMessage: ICommitMessage | null
+      dialogTitle: string
+      dialogButtonText: string
+      prepopulateCommitSummary: boolean
+      repository: Repository
+      onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
+    }
+  | {
+      type: PopupType.MultiCommitOperation
+      repository: Repository
+    }
+  | {
+      type: PopupType.WarnLocalChangesBeforeUndo
+      repository: Repository
+      commit: Commit
+      isWorkingDirectoryClean: boolean
+    }
+  | {
+      type: PopupType.WarningBeforeReset
+      repository: Repository
+      commit: Commit
+    }
+  | {
+      type: PopupType.InvalidatedToken
+      account: Account
+    }
+  | {
+      type: PopupType.AddSSHHost
+      host: string
+      ip: string
+      keyType: string
+      fingerprint: string
+      onSubmit: (addHost: boolean) => void
+    }
+  | {
+      type: PopupType.SSHKeyPassphrase
+      keyPath: string
+      onSubmit: (
+        passphrase: string | undefined,
+        storePassphrase: boolean
+      ) => void
+    }
+  | {
+      type: PopupType.PullRequestChecksFailed
+      repository: RepositoryWithGitHubRepository
+      pullRequest: PullRequest
+      needsSelectRepository: boolean
+      commitMessage: string
+      commitSha: string
+      checks: ReadonlyArray<IRefCheck>
+    }
+  | {
+      type: PopupType.CICheckRunRerun
+      checkRuns: ReadonlyArray<IRefCheck>
+      repository: GitHubRepository
+      prRef: string
+    }
+  | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }

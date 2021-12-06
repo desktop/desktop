@@ -29,6 +29,7 @@ import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
+import { AheadBehindStore } from '../../src/lib/stores/ahead-behind-store'
 
 describe('App', () => {
   let appStore: AppStore
@@ -37,6 +38,7 @@ describe('App', () => {
   let repositoryStateManager: RepositoryStateCache
   let githubUserStore: GitHubUserStore
   let issuesStore: IssuesStore
+  let aheadBehindStore: AheadBehindStore
 
   beforeEach(async () => {
     const db = new TestGitHubUserDatabase()
@@ -70,6 +72,7 @@ describe('App', () => {
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
     const commitStatusStore = new CommitStatusStore(accountsStore)
+    aheadBehindStore = new AheadBehindStore()
 
     appStore = new AppStore(
       githubUserStore,
@@ -100,6 +103,7 @@ describe('App', () => {
         repositoryStateManager={repositoryStateManager}
         issuesStore={issuesStore}
         gitHubUserStore={githubUserStore}
+        aheadBehindStore={aheadBehindStore}
         startTime={0}
       />
     ) as unknown) as React.Component<any, any>

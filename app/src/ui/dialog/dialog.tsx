@@ -53,7 +53,7 @@ interface IDialogProps {
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
    */
-  readonly onDismissed: () => void
+  readonly onDismissed?: () => void
 
   /**
    * An optional id for the rendered dialog element.
@@ -585,7 +585,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         error: this.props.type === 'error',
         warning: this.props.type === 'warning',
       },
-      this.props.className
+      this.props.className,
+      'tooltip-host'
     )
 
     return (

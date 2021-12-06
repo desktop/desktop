@@ -38,6 +38,9 @@ export class CrashWindow {
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
         spellcheck: false,
+        enableRemoteModule: true,
+        contextIsolation: false,
+        worldSafeExecuteJavaScript: false,
       },
     }
 

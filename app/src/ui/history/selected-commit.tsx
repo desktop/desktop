@@ -28,13 +28,18 @@ import { showContextualMenu } from '../main-process-proxy'
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { IMenuItem } from '../../lib/menu-item'
+import { IChangesetData } from '../../lib/git'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
+  readonly isLocalRepository: boolean
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommit: Commit | null
-  readonly changedFiles: ReadonlyArray<CommittedFileChange>
+  readonly isLocal: boolean
+  readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
   readonly currentDiff: IDiff | null
   readonly commitSummaryWidth: number
@@ -48,6 +53,7 @@ interface ISelectedCommitProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenInExternalEditor: (path: string) => void
+  readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
   readonly hideWhitespaceInDiff: boolean
 
   /** Whether we should display side by side diffs. */
@@ -67,6 +73,12 @@ interface ISelectedCommitProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  /** Whether multiple commits are selected. */
+  readonly areMultipleCommitsSelected: boolean
+
+  /** Whether or not to show the drag overlay */
+  readonly showDragOverlay: boolean
 }
 
 interface ISelectedCommitState {
@@ -126,7 +138,7 @@ export class SelectedCommit extends React.Component<
     if (file == null) {
       // don't show both 'empty' messages
       const message =
-        this.props.changedFiles.length === 0 ? '' : 'No file selected'
+        this.props.changesetData.files.length === 0 ? '' : 'No file selected'
 
       return (
         <div className="panel blankslate" id="diff">
@@ -146,6 +158,7 @@ export class SelectedCommit extends React.Component<
         showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.props.onOpenBinaryFile}
         onChangeImageDiffType={this.props.onChangeImageDiffType}
+        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
       />
     )
   }
@@ -154,7 +167,7 @@ export class SelectedCommit extends React.Component<
     return (
       <CommitSummary
         commit={commit}
-        files={this.props.changedFiles}
+        changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
         onExpandChanged={this.onExpandChanged}
@@ -184,7 +197,7 @@ export class SelectedCommit extends React.Component<
   }
 
   private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {
-    this.props.dispatcher.onHideWhitespaceInDiffChanged(
+    return this.props.dispatcher.onHideWhitespaceInHistoryDiffChanged(
       hideWhitespaceInDiff,
       this.props.repository,
       this.props.selectedFile as CommittedFileChange
@@ -204,7 +217,7 @@ export class SelectedCommit extends React.Component<
   }
 
   private renderFileList() {
-    const files = this.props.changedFiles
+    const files = this.props.changesetData.files
     if (files.length === 0) {
       return <div className="fill-window">No files in commit</div>
     }
@@ -236,6 +249,10 @@ export class SelectedCommit extends React.Component<
   public render() {
     const commit = this.props.selectedCommit
 
+    if (this.props.areMultipleCommitsSelected) {
+      return this.renderMultipleCommitsSelected()
+    }
+
     if (commit == null) {
       return <NoCommitSelected />
     }
@@ -255,6 +272,40 @@ export class SelectedCommit extends React.Component<
           </Resizable>
           {this.renderDiff()}
         </div>
+        {this.renderDragOverlay()}
+      </div>
+    )
+  }
+
+  private renderDragOverlay(): JSX.Element | null {
+    if (!this.props.showDragOverlay) {
+      return null
+    }
+
+    return <div id="drag-overlay-background"></div>
+  }
+
+  private renderMultipleCommitsSelected(): JSX.Element {
+    const BlankSlateImage = encodePathAsUrl(
+      __dirname,
+      'static/empty-no-commit.svg'
+    )
+
+    return (
+      <div id="multiple-commits-selected" className="blankslate">
+        <div className="panel blankslate">
+          <img src={BlankSlateImage} className="blankslate-image" />
+          <div>
+            <p>Unable to display diff when multiple commits are selected.</p>
+            <div>You can:</div>
+            <ul>
+              <li>Select a single commit to view a diff.</li>
+              <li>Drag the commits to the branch menu to cherry-pick them.</li>
+              <li>Right click on multiple commits to see options.</li>
+            </ul>
+          </div>
+        </div>
+        {this.renderDragOverlay()}
       </div>
     )
   }
@@ -286,11 +337,7 @@ export class SelectedCommit extends React.Component<
       ? `Open in ${this.props.externalEditorLabel}`
       : DefaultEditorLabel
 
-    const items = [
-      {
-        label: CopyFilePathLabel,
-        action: () => clipboard.writeText(fullPath),
-      },
+    const items: IMenuItem[] = [
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, file.path),
@@ -299,15 +346,46 @@ export class SelectedCommit extends React.Component<
       {
         label: openInExternalEditor,
         action: () => this.props.onOpenInExternalEditor(fullPath),
-        enabled: isSafeExtension && fileExistsOnDisk,
+        enabled: fileExistsOnDisk,
       },
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.onOpenItem(file.path),
         enabled: isSafeExtension && fileExistsOnDisk,
       },
+      { type: 'separator' },
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
     ]
+
+    let viewOnGitHubLabel = 'View on GitHub'
+    const gitHubRepository = this.props.repository.gitHubRepository
+
+    if (
+      gitHubRepository &&
+      gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      viewOnGitHubLabel = 'View on GitHub Enterprise'
+    }
+
+    items.push({
+      label: viewOnGitHubLabel,
+      action: () => this.onViewOnGitHub(file),
+      enabled:
+        !this.props.isLocal &&
+        !!gitHubRepository &&
+        !!this.props.selectedCommit,
+    })
+
     showContextualMenu(items)
+  }
+
+  private onViewOnGitHub = (file: CommittedFileChange) => {
+    if (this.props.selectedCommit && this.props.onViewCommitOnGitHub) {
+      this.props.onViewCommitOnGitHub(this.props.selectedCommit.sha, file.path)
+    }
   }
 }
 

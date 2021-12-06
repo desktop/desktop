@@ -77,6 +77,12 @@ import 'wicg-focus-ring'
 import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import {
+  ApplicationTheme,
+  supportsSystemThemeChanges,
+} from './lib/application-theme'
+import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
 
 if (__DEV__) {
   installDevGlobals()
@@ -175,9 +181,10 @@ const sendErrorWithContext = (
         extra.windowState = currentState.windowState
         extra.accounts = `${currentState.accounts.length}`
 
-        if (__DARWIN__) {
-          extra.automaticallySwitchTheme = `${currentState.automaticallySwitchTheme}`
-        }
+        extra.automaticallySwitchTheme = `${
+          currentState.selectedTheme === ApplicationTheme.System &&
+          supportsSystemThemeChanges()
+        }`
       }
     } catch (err) {
       /* ignore */
@@ -249,6 +256,7 @@ const repositoryStateManager = new RepositoryStateCache()
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
 const commitStatusStore = new CommitStatusStore(accountsStore)
+const aheadBehindStore = new AheadBehindStore()
 
 const appStore = new AppStore(
   gitHubUserStore,
@@ -294,6 +302,9 @@ document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
+// The trampoline UI helper needs a reference to the dispatcher before it's used
+trampolineUIHelper.setDispatcher(dispatcher)
+
 ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()
 
@@ -331,6 +342,7 @@ ReactDOM.render(
     repositoryStateManager={repositoryStateManager}
     issuesStore={issuesStore}
     gitHubUserStore={gitHubUserStore}
+    aheadBehindStore={aheadBehindStore}
     startTime={startTime}
   />,
   document.getElementById('desktop-app-container')!

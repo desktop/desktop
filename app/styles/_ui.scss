@@ -6,9 +6,11 @@
 @import 'ui/window/focus';
 @import 'ui/window/zoom-info';
 @import 'ui/window/toast-notification';
+@import 'ui/window/tooltips';
 @import 'ui/file-list';
 @import 'ui/octicons';
 @import 'ui/list';
+@import 'ui/list-item-insertion-overlay';
 @import 'ui/repository-list';
 @import 'ui/changes';
 @import 'ui/cloning-repository-view';
@@ -82,3 +84,14 @@
 @import 'ui/local-changes-overwritten';
 @import 'ui/side-by-side-diff';
 @import 'ui/diff-options';
+@import 'ui/commit-message-avatar';
+@import 'ui/popover';
+@import 'ui/drag-elements';
+@import 'ui/drag-overlay';
+@import 'ui/dropdown-select-button';
+@import 'ui/check-runs/_ci-check-run-list-item';
+@import 'ui/check-runs/_ci-check-run-list';
+@import 'ui/check-runs/_ci-check-run-popover';
+@import 'ui/check-runs/ci-check-run-job-steps';
+@import 'ui/_pull-request-checks-failed';
+@import 'ui/_sandboxed-markdown';

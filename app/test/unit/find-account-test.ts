@@ -109,7 +109,7 @@ describe('findAccountForRemoteURL', () => {
     expect(account!.login).toBe('joan')
   })
 
-  it('finds the account for GitHub Enterprise Server endpoint', async () => {
+  it('finds the account for GitHub Enterprise endpoint', async () => {
     const account = await findAccountForRemoteURL(
       'https://github.mycompany.com/inkscape/inkscape.git',
       accounts,

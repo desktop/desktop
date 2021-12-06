@@ -1,9 +1,11 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { clamp } from '../../lib/clamp'
+import { createObservableRef } from '../lib/observable-ref'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -25,7 +27,7 @@ export interface IToolbarButtonProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbol
+  readonly icon?: OcticonSymbolType
 
   /** The class name for the icon element. */
   readonly iconClassName?: string
@@ -104,6 +106,7 @@ export interface IToolbarButtonProps {
  * A general purpose toolbar button
  */
 export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
+  public wrapperRef = createObservableRef<HTMLDivElement>()
   public innerButton: Button | null = null
 
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -136,6 +139,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
   }
 
   public render() {
+    const { tooltip } = this.props
     const icon = this.props.icon ? (
       <Octicon
         symbol={this.props.icon}
@@ -166,8 +170,13 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
       <div
         className={className}
         onKeyDown={this.props.onKeyDown}
-        title={this.props.tooltip}
+        ref={this.wrapperRef}
       >
+        {tooltip && (
+          <Tooltip target={this.wrapperRef} direction={TooltipDirection.SOUTH}>
+            {tooltip}
+          </Tooltip>
+        )}
         <Button
           onClick={this.onClick}
           ref={this.onButtonRef}

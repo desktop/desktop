@@ -12,7 +12,7 @@ import {
 } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
-import { IRemote, ForkedRemotePrefix } from '../../models/remote'
+import { IRemote } from '../../models/remote'
 import { IFetchProgress, IRevertProgress } from '../../models/progress'
 import {
   ICommitMessage,
@@ -91,6 +91,7 @@ import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { stat } from 'fs-extra'
+import { findForkedRemotesToPrune } from './helpers/find-forked-remotes-to-prune'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -200,44 +201,13 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load the next batch of history, starting from the last loaded commit. */
-  public async loadNextHistoryBatch() {
-    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
-      return
-    }
-
-    if (!this.history.length) {
-      return
-    }
-
-    const lastSHA = this.history[this.history.length - 1]
-    const requestKey = `history/${lastSHA}`
-    if (this.requestsInFight.has(requestKey)) {
-      return
-    }
-
-    this.requestsInFight.add(requestKey)
-
-    const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
-    )
-    if (!commits) {
-      return
-    }
-
-    this._history = this._history.concat(commits.map(c => c.sha))
-    this.storeCommits(commits)
-    this.requestsInFight.delete(requestKey)
-    this.emitUpdate()
-  }
-
   /** Load a batch of commits from the repository, using a given commitish object as the starting point */
-  public async loadCommitBatch(commitish: string) {
+  public async loadCommitBatch(commitish: string, skip: number) {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
       return null
     }
 
-    const requestKey = `history/compare/${commitish}`
+    const requestKey = `history/compare/${commitish}/skip/${skip}`
     if (this.requestsInFight.has(requestKey)) {
       return null
     }
@@ -245,7 +215,7 @@ export class GitStore extends BaseStore {
     this.requestsInFight.add(requestKey)
 
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, commitish, CommitBatchSize)
+      getCommits(this.repository, commitish, CommitBatchSize, skip)
     )
 
     this.requestsInFight.delete(requestKey)
@@ -569,10 +539,15 @@ export class GitStore extends BaseStore {
       return
     }
 
-    const branchesByName = this._allBranches.reduce(
-      (map, branch) => map.set(branch.name, branch),
-      new Map<string, Branch>()
-    )
+    const branchesByName = new Map<string, Branch>()
+
+    for (const branch of this._allBranches) {
+      // This is slightly redundant as remote branches should never show up as
+      // having been checked out in the reflog but it makes the intention clear.
+      if (branch.type === BranchType.Local) {
+        branchesByName.set(branch.name, branch)
+      }
+    }
 
     const recentBranches = new Array<Branch>()
     for (const name of recentBranchNames) {
@@ -641,7 +616,7 @@ export class GitStore extends BaseStore {
       )
     } else {
       localCommits = await this.performFailableOperation(() =>
-        getCommits(this.repository, 'HEAD', CommitBatchSize, [
+        getCommits(this.repository, 'HEAD', CommitBatchSize, undefined, [
           '--not',
           '--remotes',
         ])
@@ -980,7 +955,10 @@ export class GitStore extends BaseStore {
     // any new commits available
     if (this.tip.kind === TipState.Valid) {
       const currentBranch = this.tip.branch
-      if (currentBranch.remote !== null && currentBranch.upstream !== null) {
+      if (
+        currentBranch.upstreamRemoteName !== null &&
+        currentBranch.upstream !== null
+      ) {
         const range = revSymmetricDifference(
           currentBranch.name,
           currentBranch.upstream
@@ -1101,7 +1079,8 @@ export class GitStore extends BaseStore {
           currentBranch,
           status.currentUpstreamBranch || null,
           branchTipCommit,
-          BranchType.Local
+          BranchType.Local,
+          `refs/heads/${currentBranch}`
         )
         this._tip = { kind: TipState.Valid, branch }
       } else if (currentTip) {
@@ -1240,8 +1219,9 @@ export class GitStore extends BaseStore {
     this._defaultRemote = findDefaultRemote(remotes)
 
     const currentRemoteName =
-      this.tip.kind === TipState.Valid && this.tip.branch.remote !== null
-        ? this.tip.branch.remote
+      this.tip.kind === TipState.Valid &&
+      this.tip.branch.upstreamRemoteName !== null
+        ? this.tip.branch.upstreamRemoteName
         : null
 
     // Load the remote that the current branch is tracking. If the branch
@@ -1426,7 +1406,10 @@ export class GitStore extends BaseStore {
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<MergeResult | undefined> {
+  public merge(
+    branch: Branch,
+    isSquash: boolean = false
+  ): Promise<MergeResult | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
         `unable to merge as tip state is '${this.tip.kind}' and the application expects the repository to be on a branch currently`
@@ -1435,19 +1418,22 @@ export class GitStore extends BaseStore {
 
     const currentBranch = this.tip.branch.name
 
-    return this.performFailableOperation(() => merge(this.repository, branch), {
-      gitContext: {
-        kind: 'merge',
-        currentBranch,
-        theirBranch: branch,
-      },
-      retryAction: {
-        type: RetryActionType.Merge,
-        currentBranch,
-        theirBranch: branch,
-        repository: this.repository,
-      },
-    })
+    return this.performFailableOperation(
+      () => merge(this.repository, branch.name, isSquash),
+      {
+        gitContext: {
+          kind: 'merge',
+          currentBranch,
+          theirBranch: branch.name,
+        },
+        retryAction: {
+          type: RetryActionType.Merge,
+          currentBranch,
+          theirBranch: branch,
+          repository: this.repository,
+        },
+      }
+    )
   }
 
   /** Changes the URL for the remote that matches the given name  */
@@ -1474,10 +1460,10 @@ export class GitStore extends BaseStore {
       const foundSubmodule = submodules.some(s => s.path === file.path)
 
       if (file.status.kind !== AppFileStatusKind.Deleted && !foundSubmodule) {
-        // N.B. moveItemToTrash is synchronous can take a fair bit of time
-        // which is why we're running it inside this work queue that spreads
-        // out the calls across as many animation frames as it needs to.
-        this.shell.moveItemToTrash(
+        // N.B. moveItemToTrash can take a fair bit of time which is why we're
+        // running it inside this work queue that spreads out the calls across
+        // as many animation frames as it needs to.
+        await this.shell.moveItemToTrash(
           Path.resolve(this.repository.path, file.path)
         )
       }
@@ -1642,18 +1628,12 @@ export class GitStore extends BaseStore {
 
   public async pruneForkedRemotes(openPRs: ReadonlyArray<PullRequest>) {
     const remotes = await getRemotes(this.repository)
-    const prRemotes = new Set<string>()
 
-    for (const pr of openPRs) {
-      if (pr.head.gitHubRepository.cloneURL !== null) {
-        prRemotes.add(pr.head.gitHubRepository.cloneURL)
-      }
-    }
+    const branches = this.allBranches
+    const remotesToPrune = findForkedRemotesToPrune(remotes, openPRs, branches)
 
-    for (const r of remotes) {
-      if (r.name.startsWith(ForkedRemotePrefix) && !prRemotes.has(r.url)) {
-        await removeRemote(this.repository, r.name)
-      }
+    for (const remote of remotesToPrune) {
+      await removeRemote(this.repository, remote.name)
     }
   }
 }

@@ -17,7 +17,10 @@ import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
 
-const DesktopLogo = encodePathAsUrl(__dirname, 'static/logo-64x64@2x.png')
+const logoPath = __DARWIN__
+  ? 'static/logo-64x64@2x.png'
+  : 'static/windows-logo-64x64@2x.png'
+const DesktopLogo = encodePathAsUrl(__dirname, logoPath)
 
 interface IAboutProps {
   /**
@@ -35,6 +38,11 @@ interface IAboutProps {
    * The currently installed (and running) version of the app.
    */
   readonly applicationVersion: string
+
+  /**
+   * The currently installed (and running) architecture of the app.
+   */
+  readonly applicationArchitecture: string
 
   /** A function to call to kick off an update check. */
   readonly onCheckForUpdates: () => void
@@ -255,8 +263,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </Row>
           <h2>{name}</h2>
           <p className="no-padding">
-            <span className="selectable-text">{versionText}</span> (
-            {releaseNotesLink})
+            <span className="selectable-text">
+              {versionText} ({this.props.applicationArchitecture})
+            </span>{' '}
+            ({releaseNotesLink})
           </p>
           <p className="no-padding">
             <LinkButton onClick={this.props.onShowTermsAndConditions}>

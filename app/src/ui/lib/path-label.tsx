@@ -1,7 +1,8 @@
 import * as React from 'react'
 
 import { AppFileStatus, AppFileStatusKind } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { PathText } from './path-text'
 
 interface IPathLabelProps {

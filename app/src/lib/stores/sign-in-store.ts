@@ -29,7 +29,7 @@ function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
 }
 
-const EnterpriseTooOldMessage = `The GitHub Enterprise Server version does not support GitHub Desktop. Talk to your server's administrator about upgrading to the latest version of GitHub Enterprise Server.`
+const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support GitHub Desktop. Talk to your server's administrator about upgrading to the latest version of GitHub Enterprise.`
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -80,7 +80,7 @@ export interface ISignInState {
 
 /**
  * State interface representing the endpoint entry step.
- * This is the initial step in the Enterprise Server sign in
+ * This is the initial step in the Enterprise sign in
  * flow and is not present when signing in to GitHub.com
  */
 export interface IEndpointEntryState extends ISignInState {
@@ -92,7 +92,7 @@ export interface IEndpointEntryState extends ISignInState {
  * the user provides credentials and/or initiates a browser
  * OAuth sign in process. This step occurs as the first step
  * when signing in to GitHub.com and as the second step when
- * signing in to a GitHub Enterprise Server instance.
+ * signing in to a GitHub Enterprise instance.
  */
 export interface IAuthenticationState extends ISignInState {
   readonly kind: SignInStep.Authentication
@@ -101,7 +101,7 @@ export interface IAuthenticationState extends ISignInState {
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise Server
+   * URL when signing in against a GitHub Enterprise
    * instance.
    */
   readonly endpoint: string
@@ -109,7 +109,7 @@ export interface IAuthenticationState extends ISignInState {
   /**
    * A value indicating whether or not the endpoint supports
    * basic authentication (i.e. username and password). All
-   * GitHub Enterprise Server instances support OAuth (or web
+   * GitHub Enterprise instances support OAuth (or web
    * flow sign-in).
    */
   readonly supportsBasicAuth: boolean
@@ -124,7 +124,7 @@ export interface IAuthenticationState extends ISignInState {
  * State interface representing the TwoFactorAuthentication
  * step where the user provides an OTP token. This step
  * occurs after the authentication step both for GitHub.com,
- * and GitHub Enterprise Server when the user has enabled two
+ * and GitHub Enterprise when the user has enabled two
  * factor authentication on the host.
  */
 export interface ITwoFactorAuthenticationState extends ISignInState {
@@ -134,7 +134,7 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise Server
+   * URL when signing in against a GitHub Enterprise
    * instance.
    */
   readonly endpoint: string
@@ -193,7 +193,7 @@ const ServerMetaDataTimeout = 2000
 
 /**
  * A store encapsulating all logic related to signing in a user
- * to GitHub.com, or a GitHub Enterprise Server instance.
+ * to GitHub.com, or a GitHub Enterprise instance.
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
@@ -267,7 +267,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     }
 
     throw new Error(
-      `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
+      `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct, that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
     )
   }
 
@@ -488,7 +488,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   /**
-   * Initiate a sign in flow for a GitHub Enterprise Server instance.
+   * Initiate a sign in flow for a GitHub Enterprise instance.
    * This will put the store in the EndpointEntry step ready to
    * receive the url to the enterprise instance.
    */
@@ -532,11 +532,11 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       let error = e
       if (e.name === InvalidURLErrorName) {
         error = new Error(
-          `The GitHub Enterprise Server instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`
+          `The GitHub Enterprise instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`
         )
       } else if (e.name === InvalidProtocolErrorName) {
         error = new Error(
-          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise Server instances.'
+          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.'
         )
       }
 

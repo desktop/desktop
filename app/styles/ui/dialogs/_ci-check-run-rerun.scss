@@ -1,0 +1,45 @@
+#rerun-check-runs {
+  .dialog-content {
+    padding: 0;
+  }
+
+  .check-run-rerun-list {
+    max-height: 300px;
+
+    .ci-check-run-list-group-header {
+      padding-left: 15px;
+    }
+
+    .ci-check-list-item {
+      padding-left: var(--spacing);
+    }
+  }
+
+  .non-re-run-info {
+    max-width: 400px;
+    margin-bottom: var(--spacing-double);
+  }
+
+  .loading-rerun-checks {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--spacing);
+    padding-bottom: var(--spacing-double);
+
+    .blankslate-image {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .call-to-action {
+      font-size: var(--font-size-sm);
+    }
+  }
+}

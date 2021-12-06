@@ -106,6 +106,7 @@ export async function checkoutBranch(
   )
 
   await git(args, repository.path, 'checkoutBranch', opts)
+
   // we return `true` here so `GitStore.performFailableGitOperation`
   // will return _something_ differentiable from `undefined` if this succeeds
   return true
@@ -120,23 +121,6 @@ export async function checkoutPaths(
     ['checkout', 'HEAD', '--', ...paths],
     repository.path,
     'checkoutPaths'
-  )
-}
-
-/**
- * Create and checkout the given branch.
- *
- * @param repository The repository.
- * @param branchName The branch to create and checkout.
- */
-export async function createAndCheckoutBranch(
-  repository: Repository,
-  branchName: string
-): Promise<void> {
-  await git(
-    ['checkout', '-b', branchName],
-    repository.path,
-    'createAndCheckoutBranch'
   )
 }
 

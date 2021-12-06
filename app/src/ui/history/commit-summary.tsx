@@ -1,27 +1,27 @@
 import * as React from 'react'
 import classNames from 'classnames'
 
-import { FileChange } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import {
-  enableGitTagsDisplay,
-  enableSideBySideDiffs,
-} from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
+import { RepositorySectionTab } from '../../lib/app-state'
+import { IChangesetData } from '../../lib/git'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { clipboard } from 'electron'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly commit: Commit
-  readonly files: ReadonlyArray<FileChange>
+  readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
   /**
@@ -43,7 +43,7 @@ interface ICommitSummaryProps {
 
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
-  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
 
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
@@ -154,13 +154,6 @@ export class CommitSummary extends React.Component<
         }
       })
     }
-  }
-
-  private onHideWhitespaceInDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {
@@ -300,7 +293,7 @@ export class CommitSummary extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.files.length
+    const fileCount = this.props.changesetData.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.commit.shortSha
@@ -312,14 +305,23 @@ export class CommitSummary extends React.Component<
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
+    const hasEmptySummary = this.state.summary.length === 0
+    const commitSummary = hasEmptySummary
+      ? 'Empty commit message'
+      : this.state.summary
+
+    const summaryClassNames = classNames('commit-summary-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
     return (
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
           <RichText
-            className="commit-summary-title"
+            className={summaryClassNames}
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.state.summary}
+            text={commitSummary}
           />
 
           <ul className="commit-summary-meta">
@@ -338,61 +340,45 @@ export class CommitSummary extends React.Component<
               className="commit-summary-meta-item without-truncation"
               aria-label="SHA"
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.gitCommit} />
-              </span>
-              <span className="sha">{shortSHA}</span>
+              <Octicon symbol={OcticonSymbol.gitCommit} />
+              <TooltippedContent
+                className="sha"
+                tooltip={this.renderShaTooltip()}
+                tooltipClassName="sha-hint"
+                interactive={true}
+                direction={TooltipDirection.SOUTH}
+              >
+                {shortSHA}
+              </TooltippedContent>
             </li>
 
             <li
               className="commit-summary-meta-item without-truncation"
               title={filesDescription}
             >
-              <span aria-hidden="true">
-                <Octicon symbol={OcticonSymbol.diff} />
-              </span>
-
+              <Octicon symbol={OcticonSymbol.diff} />
               {filesDescription}
             </li>
+            {this.renderLinesChanged()}
             {this.renderTags()}
 
-            {enableSideBySideDiffs() || (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title="Hide Whitespace"
-              >
-                <Checkbox
-                  label="Hide Whitespace"
-                  value={
-                    this.props.hideWhitespaceInDiff
-                      ? CheckboxValue.On
-                      : CheckboxValue.Off
-                  }
-                  onChange={this.onHideWhitespaceInDiffChanged}
-                />
-              </li>
-            )}
-
-            {enableSideBySideDiffs() && (
-              <>
-                <li
-                  className="commit-summary-meta-item without-truncation"
-                  title="Split View"
-                >
-                  <DiffOptions
-                    onHideWhitespaceChangesChanged={
-                      this.props.onHideWhitespaceInDiffChanged
-                    }
-                    hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                    showSideBySideDiff={this.props.showSideBySideDiff}
-                    onShowSideBySideDiffChanged={
-                      this.props.onShowSideBySideDiffChanged
-                    }
-                    onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-                  />
-                </li>
-              </>
-            )}
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title="Diff Options"
+            >
+              <DiffOptions
+                sourceTab={RepositorySectionTab.History}
+                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                onHideWhitespaceChangesChanged={
+                  this.props.onHideWhitespaceInDiffChanged
+                }
+                showSideBySideDiff={this.props.showSideBySideDiff}
+                onShowSideBySideDiffChanged={
+                  this.props.onShowSideBySideDiffChanged
+                }
+                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+              />
+            </li>
           </ul>
         </div>
 
@@ -401,11 +387,53 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  private renderTags() {
-    if (!enableGitTagsDisplay()) {
+  private renderShaTooltip() {
+    return (
+      <>
+        <code>{this.props.commit.sha}</code>
+        <button onClick={this.onCopyShaButtonClick}>Copy</button>
+      </>
+    )
+  }
+
+  private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    clipboard.writeText(this.props.commit.sha)
+  }
+
+  private renderLinesChanged() {
+    const linesAdded = this.props.changesetData.linesAdded
+    const linesDeleted = this.props.changesetData.linesDeleted
+    if (linesAdded + linesDeleted === 0) {
       return null
     }
 
+    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
+    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
+    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
+    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
+
+    return (
+      <>
+        <TooltippedContent
+          tagName="li"
+          className="commit-summary-meta-item without-truncation lines-added"
+          tooltip={linesAddedTitle}
+        >
+          +{linesAdded}
+        </TooltippedContent>
+        <TooltippedContent
+          tagName="li"
+          className="commit-summary-meta-item without-truncation lines-deleted"
+          tooltip={linesDeletedTitle}
+        >
+          -{linesDeleted}
+        </TooltippedContent>
+      </>
+    )
+  }
+
+  private renderTags() {
     const tags = this.props.commit.tags || []
 
     if (tags.length === 0) {

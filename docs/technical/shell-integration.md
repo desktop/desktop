@@ -32,6 +32,7 @@ These shells are currently supported:
  - [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) (beta)
  - [Windows Terminal](https://github.com/microsoft/terminal)
  - [Alacritty](https://github.com/alacritty/alacritty)
+ - [Fluent Terminal](https://github.com/felixse/FluentTerminal)
 
 These are defined in an enum at the top of the file:
 
@@ -148,6 +149,7 @@ These shells are currently supported:
  - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Kitty](https://sw.kovidgoyal.net/kitty/)
  - [Alacritty](https://github.com/alacritty/alacritty)
+ - [WezTerm](https://github.com/wez/wezterm)
 
 These are defined in an enum at the top of the file:
 

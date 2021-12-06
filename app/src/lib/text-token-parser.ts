@@ -180,7 +180,7 @@ export class Tokenizer {
     // to ensure this isn't part of an email address, peek at the previous
     // character - if something is found and it's not whitespace, bail out
     const lastItem = this.getLastProcessedChar()
-    if (lastItem && lastItem !== ' ') {
+    if (lastItem && !/\s/.test(lastItem)) {
       return null
     }
 
@@ -212,7 +212,7 @@ export class Tokenizer {
     // to ensure this isn't just the part of some word - if something is
     // found and it's not whitespace, bail out
     const lastItem = this.getLastProcessedChar()
-    if (lastItem && lastItem !== ' ') {
+    if (lastItem && !/\s/.test(lastItem)) {
       return null
     }
 

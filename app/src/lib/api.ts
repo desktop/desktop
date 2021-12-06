@@ -13,8 +13,17 @@ import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
+import { Emitter } from 'event-kit'
+import JSZip from 'jszip'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
+const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
+const envAdditionalCookies =
+  process.env['DESKTOP_GITHUB_DOTCOM_ADDITIONAL_COOKIES']
+
+if (envAdditionalCookies !== undefined) {
+  document.cookie += '; ' + envAdditionalCookies
+}
 
 /**
  * Optional set of configurable settings for the fetchAll method
@@ -76,7 +85,7 @@ const DotComOAuthScopes = ['repo', 'user', 'workflow']
 
 /**
  * The OAuth scopes we want to request from GitHub
- * Enterprise Server.
+ * Enterprise.
  */
 const EnterpriseOAuthScopes = ['repo', 'user']
 
@@ -103,6 +112,18 @@ export interface IAPIRepository {
   readonly pushed_at: string
   readonly has_issues: boolean
   readonly archived: boolean
+}
+
+/** Information needed to clone a repository. */
+export interface IAPIRepositoryCloneInfo {
+  /** Canonical clone URL of the repository. */
+  readonly url: string
+
+  /**
+   * Default branch of the repository, if any. This is usually either retrieved
+   * from the API for GitHub repositories, or undefined for other repositories.
+   */
+  readonly defaultBranch?: string
 }
 
 export interface IAPIFullRepository extends IAPIRepository {
@@ -272,18 +293,23 @@ export interface IAPIIssue {
 export type APIRefState = 'failure' | 'pending' | 'success' | 'error'
 
 /** The overall status of a check run */
-export type APICheckStatus = 'queued' | 'in_progress' | 'completed'
+export enum APICheckStatus {
+  Queued = 'queued',
+  InProgress = 'in_progress',
+  Completed = 'completed',
+}
 
 /** The conclusion of a completed check run */
-export type APICheckConclusion =
-  | 'action_required'
-  | 'cancelled'
-  | 'timed_out'
-  | 'failure'
-  | 'neutral'
-  | 'success'
-  | 'skipped'
-  | 'stale'
+export enum APICheckConclusion {
+  ActionRequired = 'action_required',
+  Canceled = 'cancelled',
+  TimedOut = 'timed_out',
+  Failure = 'failure',
+  Neutral = 'neutral',
+  Success = 'success',
+  Skipped = 'skipped',
+  Stale = 'stale',
+}
 
 /**
  * The API response for a combined view of a commit
@@ -291,7 +317,7 @@ export type APICheckConclusion =
  */
 export interface IAPIRefStatusItem {
   readonly state: APIRefState
-  readonly target_url: string
+  readonly target_url: string | null
   readonly description: string
   readonly context: string
   readonly id: number
@@ -310,22 +336,88 @@ export interface IAPIRefCheckRun {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly name: string
-  readonly output: IAPIRefCheckRunOutput
   readonly check_suite: IAPIRefCheckRunCheckSuite
+  readonly app: IAPIRefCheckRunApp
+  readonly completed_at: string
+  readonly started_at: string
+  readonly html_url: string
+  readonly pull_requests: ReadonlyArray<IAPIPullRequest>
+}
+
+// NB. Only partially mapped
+export interface IAPIRefCheckRunApp {
+  readonly name: string
 }
 
 // NB. Only partially mapped
 export interface IAPIRefCheckRunOutput {
   readonly title: string | null
+  readonly summary: string | null
+  readonly text: string | null
 }
 
 export interface IAPIRefCheckRunCheckSuite {
   readonly id: number
 }
 
+export interface IAPICheckSuite {
+  readonly id: number
+  readonly rerequestable: boolean
+  readonly runs_rerequestable: boolean
+  readonly status: APICheckStatus
+  readonly created_at: string
+}
+
 export interface IAPIRefCheckRuns {
   readonly total_count: number
   readonly check_runs: IAPIRefCheckRun[]
+}
+
+interface IAPIWorkflowRuns {
+  readonly total_count: number
+  readonly workflow_runs: ReadonlyArray<IAPIWorkflowRun>
+}
+// NB. Only partially mapped
+export interface IAPIWorkflowRun {
+  readonly id: number
+  /**
+   * The workflow_id is the id of the workflow not the individual run.
+   **/
+  readonly workflow_id: number
+  readonly cancel_url: string
+  readonly created_at: string
+  readonly logs_url: string
+  readonly name: string
+  readonly rerun_url: string
+  readonly check_suite_id: number
+  readonly event: string
+}
+
+export interface IAPIWorkflowJobs {
+  readonly total_count: number
+  readonly jobs: IAPIWorkflowJob[]
+}
+
+// NB. Only partially mapped
+export interface IAPIWorkflowJob {
+  readonly id: number
+  readonly name: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
+  readonly html_url: string
+}
+
+export interface IAPIWorkflowJobStep {
+  readonly name: string
+  readonly number: number
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly log: string
 }
 
 /** Protected branch information returned by the GitHub API */
@@ -557,6 +649,18 @@ function toGitHubIsoDateString(date: Date) {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
+  private static readonly TOKEN_INVALIDATED_EVENT = 'token-invalidated'
+
+  private static readonly emitter = new Emitter()
+
+  public static onTokenInvalidated(callback: (endpoint: string) => void) {
+    API.emitter.on(API.TOKEN_INVALIDATED_EVENT, callback)
+  }
+
+  private static emitTokenInvalidated(endpoint: string) {
+    API.emitter.emit(API.TOKEN_INVALIDATED_EVENT, endpoint)
+  }
+
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
@@ -590,8 +694,11 @@ export class API {
   }
 
   /**
-   * Fetch the canonical clone URL for a repository, respecting the protocol
-   * preference if provided.
+   * Fetch info needed to clone a repository. That includes:
+   *  - The canonical clone URL for a repository, respecting the protocol
+   *    preference if provided.
+   *  - The default branch of the repository, in case the repository is empty.
+   *    Only available for GitHub repositories.
    *
    * Returns null if the request returned a 404 (NotFound). NotFound doesn't
    * necessarily mean that the repository doesn't exist, it could exist and
@@ -606,19 +713,26 @@ export class API {
    * @param name     The repository name (node in https://github.com/nodejs/node)
    * @param protocol The preferred Git protocol (https or ssh)
    */
-  public async fetchRepositoryCloneUrl(
+  public async fetchRepositoryCloneInfo(
     owner: string,
     name: string,
     protocol: GitProtocol | undefined
-  ): Promise<string | null> {
-    const response = await this.request('GET', `repos/${owner}/${name}`)
+  ): Promise<IAPIRepositoryCloneInfo | null> {
+    const response = await this.request('GET', `repos/${owner}/${name}`, {
+      // Make sure we don't run into cache issues when fetching the repositories,
+      // specially after repositories have been renamed.
+      reloadCache: true,
+    })
 
     if (response.status === HttpStatusCode.NotFound) {
       return null
     }
 
     const repo = await parsedResponse<IAPIRepository>(response)
-    return protocol === 'ssh' ? repo.ssh_url : repo.clone_url
+    return {
+      url: protocol === 'ssh' ? repo.ssh_url : repo.clone_url,
+      defaultBranch: repo.default_branch,
+    }
   }
 
   /** Fetch all repos a user has access to. */
@@ -631,7 +745,7 @@ export class API {
       // Ordinarily you'd be correct but turns out there's super
       // rare circumstances where a user has been deleted but the
       // repository hasn't. Such cases are usually addressed swiftly
-      // but in some cases like GitHub Enterprise Server instances
+      // but in some cases like GitHub Enterprise instances
       // they can linger for longer than we'd like so we'll make
       // sure to exclude any such dangling repository, chances are
       // they won't be cloneable anyway.
@@ -687,9 +801,11 @@ export class API {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
       const response = await this.request('POST', apiPath, {
-        name,
-        description,
-        private: private_,
+        body: {
+          name,
+          description,
+          private: private_,
+        },
       })
 
       return await parsedResponse<IAPIFullRepository>(response)
@@ -890,7 +1006,7 @@ export class API {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
 
-    const response = await this.request('GET', path, undefined, headers)
+    const response = await this.request('GET', path, { customHeaders: headers })
 
     try {
       return await parsedResponse<IAPIRefCheckRuns>(response)
@@ -901,6 +1017,127 @@ export class API {
       )
       return null
     }
+  }
+
+  /**
+   * List workflow runs for a repository filtered by branch and event type of
+   * pull_request
+   */
+  public async fetchPRWorkflowRuns(
+    owner: string,
+    name: string,
+    branchName: string
+  ): Promise<IAPIWorkflowRuns | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${encodeURIComponent(
+      branchName
+    )}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      return await parsedResponse<IAPIWorkflowRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * List workflow run jobs for a given workflow run
+   */
+  public async fetchWorkflowRunJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<IAPIWorkflowJobs | null> {
+    const path = `repos/${owner}/${name}/actions/runs/${workflowRunId}/jobs`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, {
+      customHeaders,
+    })
+    try {
+      return await parsedResponse<IAPIWorkflowJobs>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Get JSZip for a workflow run log archive.
+   *
+   * If it fails to retrieve or parse the zip file, it will return null.
+   */
+  public async fetchWorkflowRunJobLogs(logsUrl: string): Promise<JSZip | null> {
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', logsUrl, {
+      customHeaders,
+    })
+
+    try {
+      const zipBlob = await response.blob()
+      return new JSZip().loadAsync(zipBlob)
+    } catch (e) {
+      // Sometimes a workflow provides a log url, but still returns a 404
+      // because a log file doesn't make sense for the workflow. Thus, we just
+      // want to fail without raising an error.
+    }
+
+    return null
+  }
+
+  /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
+    const response = await this.request('POST', path)
+
+    try {
+      return response.ok
+    } catch (_) {
+      log.debug(
+        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return false
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}`
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPICheckSuite>(response)
+    } catch (_) {
+      log.debug(
+        `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return null
   }
 
   /**
@@ -922,7 +1159,9 @@ export class API {
     }
 
     try {
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
       return await parsedResponse<IAPIPushControl>(response)
     } catch (err) {
       log.info(
@@ -993,13 +1232,39 @@ export class API {
   }
 
   /** Make an authenticated request to the client's endpoint with its token. */
-  private request(
+  private async request(
     method: HTTPMethod,
     path: string,
-    body?: Object,
-    customHeaders?: Object
+    options: {
+      body?: Object
+      customHeaders?: Object
+      reloadCache?: boolean
+    } = {}
   ): Promise<Response> {
-    return request(this.endpoint, this.token, method, path, body, customHeaders)
+    const response = await request(
+      this.endpoint,
+      this.token,
+      method,
+      path,
+      options.body,
+      options.customHeaders,
+      options.reloadCache
+    )
+
+    // Only consider invalid token when the status is 401 and the response has
+    // the X-GitHub-Request-Id header, meaning it comes from GH(E) and not from
+    // any kind of proxy/gateway. For more info see #12943
+    // We're also not considering a token has been invalidated when the reason
+    // behind a 401 is the fact that any kind of 2 factor auth is required.
+    if (
+      response.status === 401 &&
+      response.headers.has('X-GitHub-Request-Id') &&
+      !response.headers.has('X-GitHub-OTP')
+    ) {
+      API.emitTokenInvalidated(this.endpoint)
+    }
+
+    return response
   }
 
   /**
@@ -1042,7 +1307,9 @@ export class API {
 
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
 
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchMentionables: '${path}' returned a 404`)
@@ -1307,10 +1574,14 @@ export function getEndpointForRepository(url: string): string {
  * http://github.mycompany.com/api -> http://github.mycompany.com/
  */
 export function getHTMLURL(endpoint: string): string {
+  if (envHTMLURL !== undefined) {
+    return envHTMLURL
+  }
+
   // In the case of GitHub.com, the HTML site lives on the parent domain.
   //  E.g., https://api.github.com -> https://github.com
   //
-  // Whereas with Enterprise Server, it lives on the same domain but without the
+  // Whereas with Enterprise, it lives on the same domain but without the
   // API path:
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //

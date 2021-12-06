@@ -89,7 +89,7 @@ export function groupRepositories(
       const { aheadBehind, changedFilesCount } =
         localRepositoryStateLookup.get(r.id) || fallbackValue
       const repositoryText =
-        r instanceof Repository ? [r.name, nameOf(r)] : [r.name]
+        r instanceof Repository ? [r.alias ?? r.name, nameOf(r)] : [r.name]
 
       return {
         text: repositoryText,
@@ -132,8 +132,10 @@ export function makeRecentRepositoriesGroup(
   for (const id of recentRepositories) {
     const repository = repositories.find(r => r.id === id)
     if (repository !== undefined) {
-      const existingCount = names.get(repository.name) || 0
-      names.set(repository.name, existingCount + 1)
+      const alias = repository instanceof Repository ? repository.alias : null
+      const name = alias ?? repository.name
+      const existingCount = names.get(name) || 0
+      names.set(name, existingCount + 1)
     }
   }
 
@@ -147,11 +149,13 @@ export function makeRecentRepositoriesGroup(
 
     const { aheadBehind, changedFilesCount } =
       localRepositoryStateLookup.get(id) || fallbackValue
+    const repositoryAlias =
+      repository instanceof Repository ? repository.alias : null
     const repositoryText =
       repository instanceof Repository
-        ? [repository.name, nameOf(repository)]
+        ? [repositoryAlias ?? repository.name, nameOf(repository)]
         : [repository.name]
-    const nameCount = names.get(repository.name) || 0
+    const nameCount = names.get(repositoryAlias ?? repository.name) || 0
     items.push({
       text: repositoryText,
       id: id.toString(),

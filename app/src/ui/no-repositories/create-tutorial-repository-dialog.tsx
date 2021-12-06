@@ -11,7 +11,7 @@ import { friendlyEndpointName } from '../../lib/friendly-endpoint-name'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
-   * The GitHub.com, or GitHub Enterprise Server account that will
+   * The GitHub.com, or GitHub Enterprise account that will
    * be the owner of the tutorial repository.
    */
   readonly account: Account

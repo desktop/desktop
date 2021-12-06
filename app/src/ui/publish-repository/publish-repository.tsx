@@ -8,7 +8,8 @@ import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryPublicationSettings } from '../../models/publish-settings'
 
 interface IPublishRepositoryProps {

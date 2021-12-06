@@ -49,12 +49,6 @@ findYarnVersion(path => {
     process.exit(result.status || 1)
   }
 
-  result = spawnSync('node', [path, 'compile:tslint'], options)
-
-  if (result.status !== 0) {
-    process.exit(result.status || 1)
-  }
-
   result = spawnSync('node', [path, 'compile:script'], options)
 
   if (result.status !== 0) {

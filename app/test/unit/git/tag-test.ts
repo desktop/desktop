@@ -166,7 +166,7 @@ describe('git/tag', () => {
 
       await checkoutBranch(repository, account, branch!)
       const commitSha = await createCommit(repository, 'a commit', files)
-      await createTag(repository, 'my-new-tag', commitSha!)
+      await createTag(repository, 'my-new-tag', commitSha)
 
       expect(
         await fetchTagsToPush(repository, account, originRemote, 'master')

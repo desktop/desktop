@@ -2,6 +2,7 @@ import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { ICloneProgress } from '../../models/progress'
 import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
+import { getDefaultBranch } from '../helpers/default-branch'
 import { envForRemoteOperation } from './environment'
 
 /**
@@ -34,7 +35,15 @@ export async function clone(
 
   const env = await envForRemoteOperation(options.account, url)
 
-  const args = [...networkArguments, 'clone', '--recursive']
+  const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
+
+  const args = [
+    ...networkArguments,
+    '-c',
+    `init.defaultBranch=${defaultBranch}`,
+    'clone',
+    '--recursive',
+  ]
 
   let opts: IGitExecutionOptions = { env }
 

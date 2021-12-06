@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../../octicons'
+import { Octicon } from '../../octicons'
+import * as OcticonSymbol from '../../octicons/octicons.generated'
 import { LinkButton } from '../link-button'
 
 export function renderUnmergedFilesSummary(conflictedFilesCount: number) {

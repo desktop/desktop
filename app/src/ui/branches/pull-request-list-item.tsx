@@ -1,12 +1,15 @@
 import * as React from 'react'
 import moment from 'moment'
 import classNames from 'classnames'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { CIStatus } from './ci-status'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DropTargetType } from '../../models/drag-drop'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -40,12 +43,25 @@ export interface IPullRequestListItemProps {
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+
+  /** When a drag element has landed on a pull request */
+  readonly onDropOntoPullRequest: (prNumber: number) => void
+}
+
+interface IPullRequestListItemState {
+  readonly isDragInProgress: boolean
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
 export class PullRequestListItem extends React.Component<
-  IPullRequestListItemProps
+  IPullRequestListItemProps,
+  IPullRequestListItemState
 > {
+  public constructor(props: IPullRequestListItemProps) {
+    super(props)
+    this.state = { isDragInProgress: false }
+  }
+
   private getSubtitle() {
     if (this.props.loading === true) {
       return undefined
@@ -57,6 +73,33 @@ export class PullRequestListItem extends React.Component<
     return this.props.draft ? `${subtitle} • Draft` : subtitle
   }
 
+  private onMouseEnter = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: true })
+
+      dragAndDropManager.emitEnterDropTarget({
+        type: DropTargetType.Branch,
+        branchName: this.props.title,
+      })
+    }
+  }
+
+  private onMouseLeave = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: false })
+
+      dragAndDropManager.emitLeaveDropTarget()
+    }
+  }
+
+  private onMouseUp = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: false })
+
+      this.props.onDropOntoPullRequest(this.props.number)
+    }
+  }
+
   public render() {
     const title = this.props.loading === true ? undefined : this.props.title
     const subtitle = this.getSubtitle()
@@ -65,11 +108,19 @@ export class PullRequestListItem extends React.Component<
       loading: this.props.loading === true,
       open: !this.props.draft,
       draft: this.props.draft,
+      'drop-target': this.state.isDragInProgress,
     })
 
     return (
-      <div className={className}>
-        <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+      <div
+        className={className}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onMouseUp={this.onMouseUp}
+      >
+        <div>
+          <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+        </div>
         <div className="info">
           <div className="title" title={title}>
             <HighlightText text={title || ''} highlight={matches.title} />

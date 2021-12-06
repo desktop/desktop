@@ -192,6 +192,16 @@ Once your app updates and you see the visible changes in your app and there are 
 
 Also it might make sense to continue to monitor Haystack in the background for the next 24 hours.
 
+## Retrying a Failed Release
+
+Sometimes deployments will fail for any reason: one of the CI jobs times out, uploading the builds fails…
+
+When that happens, we should never just re-run the CI jobs, because that could cause problems with the updates of the Windows app.
+
+Instead, we have two options:
+1. Delete the failed release from Central (and its `release-${version}-${channel}` tag, if it exists), and then create a new release from the same branch as usual.
+2. Just create a new version (bumping the version number) and release it instead.
+
 ## Stopping a Release Mid-flight
 
 So let's say you kicked off a release with chatops on accident. Here's how you fix that.
@@ -199,9 +209,8 @@ So let's say you kicked off a release with chatops on accident. Here's how you f
 When you kicked off the release, a branch with the prefix `__release-${channel}-` was created in the GitHub repo. Use that branch name to find the proper CI jobs below.
 
 1. Delete the pending release from Central
-2. Cancel the Appveyor release job
-3. Cancel the CircleCI release job
-4. Delete the CI release job branch from GitHub
-5. Breathe a sigh of relief
+2. Cancel the GitHub Action release job
+3. Delete the CI release job branch from GitHub
+4. Breathe a sigh of relief
 
 You don't need to do anything with your manually created release branch, that you referred to in the chatops command. Feel free to re-use it.

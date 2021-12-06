@@ -4,7 +4,7 @@ You will need to install these tools on your machine:
 
  - Node.js
  - Yarn
- - Python 2
+ - Python 3
  - Electron dependencies
 
 ## Node.js
@@ -32,10 +32,10 @@ If you're not familiar with `yarn`, please read [this document](./working-with-p
 to help familiarize yourself with how to do the common package tasks that are
 relevant to Desktop.
 
-## Python 2
+## Python 3
 
 Refer to your distributions package manager to obtain the latest version of the
-Python 2 series.
+Python 3 series.
 
 ## Electron dependencies
 

@@ -3,7 +3,8 @@ import { IStashEntry } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IStashDiffHeaderProps {

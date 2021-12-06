@@ -15,6 +15,8 @@ import {
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
+import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
+import { DragData, DragType } from '../../../models/drag-drop'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -174,6 +176,15 @@ interface IListProps {
   readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
   /**
+   * A handler called whenever the user drops items on the list to be inserted.
+   *
+   * @param row - The index of the row where the user intends to insert the new
+   *              items.
+   * @param data -  The data dropped by the user.
+   */
+  readonly onDropDataInsertion?: (row: number, data: DragData) => void
+
+  /**
    * An optional handler called to determine whether a given row is
    * selectable or not. Reasons for why a row might not be selectable
    * includes it being a group header or the item being disabled.
@@ -196,6 +207,9 @@ interface IListProps {
 
   /** Whether or not selection should follow pointer device */
   readonly selectOnHover?: boolean
+
+  /** Type of elements that can be inserted in the list via drag & drop. Optional. */
+  readonly insertionDragType?: DragType
 
   /**
    * Whether or not to explicitly move focus to a row if it was selected
@@ -796,7 +810,20 @@ export class List extends React.Component<IListProps, IListState> {
     // We only need to keep a reference to the focused element
     const ref = focused ? this.onFocusedItemRef : undefined
 
-    const element = this.props.rowRenderer(params.rowIndex)
+    const row = this.props.rowRenderer(rowIndex)
+
+    const element =
+      this.props.insertionDragType !== undefined ? (
+        <ListItemInsertionOverlay
+          onDropDataInsertion={this.props.onDropDataInsertion}
+          itemIndex={rowIndex}
+          dragType={this.props.insertionDragType}
+        >
+          {row}
+        </ListItemInsertionOverlay>
+      ) : (
+        row
+      )
 
     const id = this.state.rowIdPrefix
       ? `${this.state.rowIdPrefix}-${rowIndex}`
@@ -814,6 +841,7 @@ export class List extends React.Component<IListProps, IListState> {
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
+        onRowMouseUp={this.onRowMouseUp}
         onRowMouseOver={this.onRowMouseOver}
         style={params.style}
         tabIndex={tabIndex}
@@ -1066,6 +1094,16 @@ export class List extends React.Component<IListProps, IListState> {
           })
         }
       } else if (
+        (this.props.selectionMode === 'range' ||
+          this.props.selectionMode === 'multi') &&
+        this.props.selectedRows.length > 1 &&
+        this.props.selectedRows.includes(row)
+      ) {
+        // Do nothing. Multiple rows are already selected. We assume the user is
+        // pressing down on multiple and may desire to start dragging. We will
+        // invoke the single selection `onRowMouseUp` if they let go here and no
+        // special keys are being pressed.
+      } else if (
         this.props.selectedRows.length !== 1 ||
         (this.props.selectedRows.length === 1 &&
           row !== this.props.selectedRows[0])
@@ -1074,30 +1112,70 @@ export class List extends React.Component<IListProps, IListState> {
          * if no special key is pressed, and that the selection is different,
          * single selection occurs
          */
-        if (this.props.onSelectionChanged) {
-          this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
-        }
-
-        if (this.props.onSelectedRangeChanged) {
-          this.props.onSelectedRangeChanged(row, row, {
-            kind: 'mouseclick',
-            event,
-          })
-        }
-
-        if (this.props.onSelectedRowChanged) {
-          const { rowCount } = this.props
-
-          if (row < 0 || row >= rowCount) {
-            log.debug(
-              `[List.onRowMouseDown] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds of the array [0, ${rowCount}]`
-            )
-            return
-          }
-
-          this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
-        }
+        this.selectSingleRowAfterMouseEvent(row, event)
       }
+    }
+  }
+
+  private onRowMouseUp = (row: number, event: React.MouseEvent<any>) => {
+    if (!this.canSelectRow(row)) {
+      return
+    }
+
+    // macOS allow emulating a right click by holding down the ctrl key while
+    // performing a "normal" click.
+    const isRightClick =
+      event.button === 2 || (__DARWIN__ && event.button === 0 && event.ctrlKey)
+
+    // prevent the right-click event from changing the selection if not necessary
+    if (isRightClick && this.props.selectedRows.includes(row)) {
+      return
+    }
+
+    const multiSelectKey = __DARWIN__ ? event.metaKey : event.ctrlKey
+
+    if (
+      !event.shiftKey &&
+      !multiSelectKey &&
+      this.props.selectedRows.length > 1 &&
+      this.props.selectedRows.includes(row) &&
+      (this.props.selectionMode === 'range' ||
+        this.props.selectionMode === 'multi')
+    ) {
+      // No special keys are depressed and multiple rows were selected. The
+      // onRowMouseDown event was ignored for this scenario because the user may
+      // desire to started dragging multiple. However, if they let go, we want a
+      // new single selection to occur.
+      this.selectSingleRowAfterMouseEvent(row, event)
+    }
+  }
+
+  private selectSingleRowAfterMouseEvent(
+    row: number,
+    event: React.MouseEvent<any>
+  ): void {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
+    }
+
+    if (this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(row, row, {
+        kind: 'mouseclick',
+        event,
+      })
+    }
+
+    if (this.props.onSelectedRowChanged) {
+      const { rowCount } = this.props
+
+      if (row < 0 || row >= rowCount) {
+        log.debug(
+          `[List.selectSingleRowAfterMouseEvent] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds of the array [0, ${rowCount}]`
+        )
+        return
+      }
+
+      this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
     }
   }
 

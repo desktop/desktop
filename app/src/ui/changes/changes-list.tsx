@@ -13,6 +13,7 @@ import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Repository } from '../../models/repository'
+import { Account } from '../../models/account'
 import { IAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -30,20 +31,24 @@ import { showContextualMenu } from '../main-process-proxy'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
-import { ICommitContext } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
+import { createObservableRef } from '../lib/observable-ref'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 const RowHeight = 29
-const StashIcon = new OcticonSymbol(
-  16,
-  16,
-  'M10.5 1.286h-9a.214.214 0 0 0-.214.214v9a.214.214 0 0 0 .214.214h9a.214.214 0 0 0 ' +
+const StashIcon: OcticonSymbol.OcticonSymbolType = {
+  w: 16,
+  h: 16,
+  d:
+    'M10.5 1.286h-9a.214.214 0 0 0-.214.214v9a.214.214 0 0 0 .214.214h9a.214.214 0 0 0 ' +
     '.214-.214v-9a.214.214 0 0 0-.214-.214zM1.5 0h9A1.5 1.5 0 0 1 12 1.5v9a1.5 1.5 0 0 1-1.5 ' +
     '1.5h-9A1.5 1.5 0 0 1 0 10.5v-9A1.5 1.5 0 0 1 1.5 0zm5.712 7.212a1.714 1.714 0 1 ' +
     '1-2.424-2.424 1.714 1.714 0 0 1 2.424 2.424zM2.015 12.71c.102.729.728 1.29 1.485 ' +
@@ -51,8 +56,8 @@ const StashIcon = new OcticonSymbol(
     '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H2.015zm2 2c.102.729.728 ' +
     '1.29 1.485 1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
     '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H4.015z',
-  'evenodd'
-)
+  fr: 'evenodd',
+}
 
 const GitIgnoreFileName = '.gitignore'
 
@@ -97,7 +102,9 @@ function getIncludeAllValue(
 
 interface IChangesListProps {
   readonly repository: Repository
+  readonly repositoryAccount: Account | null
   readonly workingDirectory: WorkingDirectoryStatus
+  readonly mostRecentLocalCommit: Commit | null
   /**
    * An object containing the conflicts in the working directory.
    * When null it means that there are no conflicts.
@@ -137,6 +144,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
 
   /**
@@ -186,6 +194,8 @@ interface IChangesListProps {
    * arrow pointing at the commit summary box
    */
   readonly shouldNudgeToCommit: boolean
+
+  readonly commitSpellcheckEnabled: boolean
 }
 
 interface IChangesState {
@@ -212,6 +222,8 @@ export class ChangesList extends React.Component<
   IChangesListProps,
   IChangesState
 > {
+  private headerRef = createObservableRef<HTMLDivElement>()
+
   public constructor(props: IChangesListProps) {
     super(props)
     this.state = {
@@ -501,8 +513,7 @@ export class ChangesList extends React.Component<
         })
       })
 
-    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
-
+    const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(
       { type: 'separator' },
       this.getCopyPathMenuItem(file),
@@ -511,7 +522,7 @@ export class ChangesList extends React.Component<
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled,
+        enabled: enabled && isSafeExtension,
       }
     )
 
@@ -534,7 +545,7 @@ export class ChangesList extends React.Component<
       })
     }
 
-    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
+    const enabled = status.kind !== AppFileStatusKind.Deleted
 
     items.push(
       this.getCopyPathMenuItem(file),
@@ -543,7 +554,7 @@ export class ChangesList extends React.Component<
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled,
+        enabled: enabled && isSafeExtension,
       }
     )
 
@@ -603,8 +614,10 @@ export class ChangesList extends React.Component<
       rebaseConflictState,
       workingDirectory,
       repository,
+      repositoryAccount,
       dispatcher,
       isCommitting,
+      commitToAmend,
       currentBranchProtected,
     } = this.props
 
@@ -658,12 +671,15 @@ export class ChangesList extends React.Component<
         branch={this.props.branch}
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
+        anyFilesAvailable={fileCount > 0}
         repository={repository}
+        repositoryAccount={repositoryAccount}
         dispatcher={dispatcher}
         commitMessage={this.props.commitMessage}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
+        commitToAmend={commitToAmend}
         showCoAuthoredBy={this.props.showCoAuthoredBy}
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
@@ -675,6 +691,9 @@ export class ChangesList extends React.Component<
         showBranchProtected={fileCount > 0 && currentBranchProtected}
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
+        commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+        persistCoAuthors={true}
+        persistCommitMessage={true}
       />
     )
   }
@@ -734,33 +753,36 @@ export class ChangesList extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.workingDirectory.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesPlural}`
+    const { workingDirectory, rebaseConflictState, isCommitting } = this.props
+    const { files } = workingDirectory
 
-    const selectedChangeCount = this.props.workingDirectory.files.filter(
+    const filesPlural = files.length === 1 ? 'file' : 'files'
+    const filesDescription = `${files.length} changed ${filesPlural}`
+
+    const selectedChangeCount = files.filter(
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
     const selectedFilesPlural = selectedChangeCount === 1 ? 'file' : 'files'
-    const selectedChangesDescription = `${selectedChangeCount} changed ${selectedFilesPlural} selected`
+    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${selectedFilesPlural} selected`
 
     const includeAllValue = getIncludeAllValue(
-      this.props.workingDirectory,
-      this.props.rebaseConflictState
+      workingDirectory,
+      rebaseConflictState
     )
 
     const disableAllCheckbox =
-      fileCount === 0 ||
-      this.props.isCommitting ||
-      this.props.rebaseConflictState !== null
+      files.length === 0 || isCommitting || rebaseConflictState !== null
 
     return (
       <div className="changes-list-container file-list">
         <div
           className="header"
           onContextMenu={this.onContextMenu}
-          title={selectedChangesDescription}
+          ref={this.headerRef}
         >
+          <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
+            {selectedChangesDescription}
+          </Tooltip>
           <Checkbox
             label={filesDescription}
             value={includeAllValue}
@@ -770,13 +792,16 @@ export class ChangesList extends React.Component<
         </div>
         <List
           id="changes-list"
-          rowCount={this.props.workingDirectory.files.length}
+          rowCount={files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
           selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
-          invalidationProps={this.props.workingDirectory}
+          invalidationProps={{
+            workingDirectory: workingDirectory,
+            isCommitting: isCommitting,
+          }}
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
