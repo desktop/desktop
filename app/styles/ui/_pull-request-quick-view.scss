@@ -7,6 +7,7 @@
     margin: var(--spacing-double);
     min-width: 400px;
     border-radius: var(--border-radius);
+    overflow: hidden;
 
     .header {
       display: flex;
@@ -22,6 +23,8 @@
 
     .pull-request {
       padding: var(--spacing-double);
+      max-height: 500px;
+      overflow: scroll;
 
       .status {
         background-color: var(--pr-open-icon-color);
