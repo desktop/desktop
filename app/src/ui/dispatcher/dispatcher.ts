@@ -2695,7 +2695,7 @@ export class Dispatcher {
   }
 
   /** Initializes multi commit operation state for cherry pick if it is null */
-  public resetMultiCommitOperationStateCherryPick(
+  public initializeMultiCommitOperationStateCherryPick(
     repository: Repository,
     targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>,
@@ -2731,7 +2731,7 @@ export class Dispatcher {
   ): Promise<void> {
     // If uncommitted changes are stashed, we had to clear the multi commit
     // operation in case user hit cancel. (This method only sets it, if it null)
-    this.resetMultiCommitOperationStateCherryPick(
+    this.initializeMultiCommitOperationStateCherryPick(
       repository,
       targetBranch,
       commits,
@@ -2835,7 +2835,7 @@ export class Dispatcher {
 
     // If uncommitted changes are stashed, we had to clear the multi commit
     // operation in case user hit cancel. (This method only sets it, if it null)
-    this.resetMultiCommitOperationStateCherryPick(
+    this.initializeMultiCommitOperationStateCherryPick(
       repository,
       targetBranch,
       commits,
