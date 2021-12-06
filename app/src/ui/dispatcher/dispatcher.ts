@@ -565,7 +565,7 @@ export class Dispatcher {
       },
       null,
       commits,
-      null
+      targetBranch
     )
 
     this.repositoryStateManager.updateMultiCommitOperationState(
