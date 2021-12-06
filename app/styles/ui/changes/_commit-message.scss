@@ -16,15 +16,6 @@
     flex-direction: row;
     position: relative;
 
-    &.with-length-hint {
-      .hint-component {
-        margin-right: 4px;
-      }
-      input {
-        padding-right: 20px;
-      }
-    }
-
     .summary-field {
       flex: 1;
       margin-bottom: var(--spacing);

@@ -38,11 +38,8 @@ import { RepositorySettingsTab } from '../repository-settings/repository-setting
 import { isAccountEmail } from '../../lib/is-account-email'
 import {
   IdealSummaryLength,
-  wrapRichTextCommitMessage,
 } from '../../lib/wrap-rich-text-commit-message'
-import { Hint } from '../lib/hint'
-import { Tokenizer } from '../../lib/text-token-parser'
-import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'e
+import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 
 const addAuthorIcon = {
   w: 18,
@@ -129,18 +126,13 @@ interface ICommitMessageState {
 
   /** when not persisting, we need to store locally */
   readonly coAuthors: ReadonlyArray<IAuthor>
-
-  /** Tokenizer used for detecting if the summary is going to be wrapped. */
-  readonly tokenizer: Tokenizer
 }
 
 enum SummaryLengthState {
   /** The summary is under IdealSummaryLength - nothing to complain about. */
-  Ideal,
-  /** The summary is over IdealSummaryLength but under MaxSummaryLength - not great but alright. */
-  Excessive,
-  /** The summary is over MaxSummaryLength - characters going over the maximum will be moved to the description. */
-  Overflowing,
+  Ideal = 0,
+  /** The summary is over IdealSummaryLength but under MaxSummaryLength - it MAY be too long. */
+  Excessive = 1,
 }
 
 function findUserAutoCompleteProvider(
@@ -181,7 +173,6 @@ export class CommitMessage extends React.Component<
       descriptionObscured: false,
       showCoAuthoredBy: props.showCoAuthoredBy,
       coAuthors: props.coAuthors,
-      tokenizer: new Tokenizer(props.emoji, props.repository)
     }
   }
 
@@ -487,8 +478,8 @@ export class CommitMessage extends React.Component<
         ? 'Remove Co-Authors'
         : 'Remove co-authors'
       : __DARWIN__
-      ? 'Add Co-Authors'
-      : 'Add co-authors'
+        ? 'Add Co-Authors'
+        : 'Add co-authors'
   }
 
   private getAddRemoveCoAuthorsMenuItem(): IMenuItem {
@@ -769,22 +760,10 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
-    const { body: summaryOverflowTokens } = wrapRichTextCommitMessage(
-      this.state.summary,
-      '',
-      this.state.tokenizer
-    )
-    const summaryLengthState: SummaryLengthState =
-    summaryOverflowTokens.length > 0
-        ? SummaryLengthState.Overflowing
-        : this.state.summary.length > IdealSummaryLength
-        ? SummaryLengthState.Excessive
-        : SummaryLengthState.Ideal
+    const summaryLengthState: SummaryLengthState = this.state.summary.length > IdealSummaryLength
+      ? SummaryLengthState.Excessive
+      : SummaryLengthState.Ideal
     const isLengthHintShown = summaryLengthState !== SummaryLengthState.Ideal
-
-    const summaryWrapperClassName = classNames('summary', {
-      'with-length-hint': isLengthHintShown,
-    })
 
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge === true,
@@ -799,7 +778,7 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
-        <div className={summaryWrapperClassName}>
+        <div className='summary'>
           {this.renderAvatar()}
 
           <AutocompletingInput
@@ -813,26 +792,8 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
+            hint={!isLengthHintShown ? undefined : { symbol: OcticonSymbol.lightBulb, tooltip: <><strong className="title">Great commit summaries contain fewer than 50 characters</strong><br /><span className="description">Place extra information in the description field.</span></> }}
           />
-          {isLengthHintShown && (
-            <Hint
-              symbol={
-                summaryLengthState === SummaryLengthState.Overflowing
-                  ? OcticonSymbol.alert
-                  : OcticonSymbol.lightBulb
-              }
-              title={
-                summaryLengthState === SummaryLengthState.Overflowing
-                  ? 'This summary is too long to be kept in one piece'
-                  : 'Great commit summaries contain fewer than 50 characters'
-              }
-              description={
-                summaryLengthState === SummaryLengthState.Overflowing
-                  ? "Commit summaries generally are limited to 72 characters. The overflowing part will be moved into the commit's description."
-                  : 'Place extra information in the description field.'
-              }
-            />
-          )}
         </div>
 
         <FocusContainer

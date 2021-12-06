@@ -104,7 +104,7 @@ body > .tooltip,
     user-select: text;
     cursor: text;
   }
-
+  
   &.sha-hint {
     max-width: 500px;
 
@@ -159,5 +159,14 @@ body > .tooltip,
       height: 32px;
       margin-right: var(--spacing);
     }
+  }
+
+  .title {
+    font-weight: 500;
+    white-space: pre;
+  }
+  
+  .description {
+    opacity: 0.7;
   }
 }

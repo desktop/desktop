@@ -4,6 +4,30 @@
   position: relative;
   display: flex;
   flex-direction: column;
+
+  &.with-hint input {
+    padding-right: 20px;
+  }
+
+  .hint {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 16px;
+    margin-right: 4px;
+    height: var(--text-field-height);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  
+    .octicon {
+      height: 12px;
+    }
+  }
+}
+
+.input-hint-tooltip {
+  max-width: none !important;
 }
 
 .CodeMirror-hints {
