@@ -493,6 +493,7 @@ export interface IAPIPullRequest {
   readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
+  readonly body: string
   readonly state: 'open' | 'closed'
   readonly draft?: boolean
 }
