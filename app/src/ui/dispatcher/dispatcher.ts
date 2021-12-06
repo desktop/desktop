@@ -2667,6 +2667,34 @@ export class Dispatcher {
     log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
   }
 
+  /** Initializes multi commit operation state for cherry pick if it is null */
+  public initializeMultiCommitOperationStateCherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
+  ): void {
+    if (
+      this.repositoryStateManager.get(repository).multiCommitOperationState !==
+      null
+    ) {
+      return
+    }
+
+    this.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.CherryPick,
+        sourceBranch,
+        branchCreated: false,
+        commits,
+      },
+      targetBranch,
+      commits,
+      sourceBranch?.tip.sha ?? null
+    )
+  }
+
   /** Starts a cherry pick of the given commits onto the target branch */
   public async cherryPick(
     repository: Repository,
@@ -2674,6 +2702,15 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>,
     sourceBranch: Branch | null
   ): Promise<void> {
+    // If uncommitted changes are stashed, we had to clear the multi commit
+    // operation in case user hit cancel. (This method only sets it, if it null)
+    this.initializeMultiCommitOperationStateCherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
+
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchMultiCommitOperationToShowProgress(repository)
     this.markDragAndDropIntroAsSeen(DragAndDropIntroType.CherryPick)
@@ -2769,6 +2806,14 @@ export class Dispatcher {
       return
     }
 
+    // If uncommitted changes are stashed, we had to clear the multi commit
+    // operation in case user hit cancel. (This method only sets it, if it null)
+    this.initializeMultiCommitOperationStateCherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
     this.appStore._setMultiCommitOperationTargetBranch(repository, targetBranch)
     this.appStore._setCherryPickBranchCreated(repository, true)
     this.statsStore.recordCherryPickBranchCreatedCount()
