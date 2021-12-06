@@ -173,7 +173,7 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     const styleSheet = await this.getInlineStyleSheet()
 
-    const parsedMarkdown = marked(this.props.markdown, {
+    const parsedMarkdown = marked(this.props.markdown ?? '', {
       gfm: true,
     })
 
