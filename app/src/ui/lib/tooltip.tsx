@@ -217,6 +217,9 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
         measure: false,
         id: this.state.id ?? createUniqueId('tooltip'),
       })
+      this.state.target?.dispatchEvent(
+        new CustomEvent('tooltip-shown', { bubbles: true })
+      )
       this.resizeObserver.observe(elem)
       if (this.props.interactive === true) {
         elem.addEventListener('mouseenter', this.onTooltipMouseEnter)
@@ -270,6 +273,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('mousedown', this.onTargetMouseDown)
     elem.addEventListener('focus', this.onTargetFocus)
     elem.addEventListener('blur', this.onTargetBlur)
+    elem.addEventListener('tooltip-shown', this.onTooltipShown)
+    elem.addEventListener('tooltip-hidden', this.onTooltipHidden)
   }
 
   private removeTooltip(prevTarget: TooltipTarget | null) {
@@ -314,6 +319,35 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   private onTargetBlur = (event: FocusEvent) => {
     if (!this.mouseOverTarget && !this.mouseOverTooltip) {
       this.beginHideTooltip()
+    }
+  }
+
+  /**
+   * Event handler for the custom event 'tooltip-shown'
+   *
+   * Whenever a tooltip is shown for a target it dispatches the 'tooltip-shown'
+   * event on that target element which then bubbles upwards. We use this to
+   * know when a tooltip is shown for a child component of a tooltip target
+   * such that we can close the parent tooltip.
+   */
+  private onTooltipShown = (event: Event) => {
+    if (event.target !== this.state.target && this.state.show) {
+      this.hideTooltip()
+    }
+  }
+
+  /**
+   * Event handler for the custom event 'tooltip-hidden'
+   *
+   * Whenever a tooltip is shown for a target it dispatches the 'tooltip-shown'
+   * event on that target element which then bubbles upwards. We use this to
+   * know when a tooltip for a child component gets hidden such that we can
+   * show the parent components tooltip again should the mouse still be over
+   * the tooltip target.
+   */
+  private onTooltipHidden = (event: Event) => {
+    if (event.target !== this.state.target && this.mouseOverTarget) {
+      this.beginShowTooltip()
     }
   }
 
@@ -396,6 +430,13 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   private hideTooltip = () => {
     this.cancelShowTooltip()
     this.cancelHideTooltip()
+
+    if (this.state.show) {
+      this.state.target?.dispatchEvent(
+        new CustomEvent('tooltip-hidden', { bubbles: true })
+      )
+    }
+
     this.setState({ show: false, measure: false })
   }
 
