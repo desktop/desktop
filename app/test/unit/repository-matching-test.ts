@@ -172,7 +172,6 @@ describe('repository-matching', () => {
       issuesEnabled: true,
       isArchived: false,
       permissions: null,
-      isGHE: false,
     }
 
     it('returns true for exact match', () => {

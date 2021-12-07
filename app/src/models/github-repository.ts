@@ -58,11 +58,6 @@ export class GitHubRepository {
   public get fork(): boolean {
     return !!this.parent
   }
-
-  /** Is the repository a GHE repository */
-  public get isGHE(): boolean {
-    return this.owner.endpoint.startsWith('https://ghe.io/')
-  }
 }
 
 /**
