@@ -5,10 +5,15 @@ What GitHub Desktop issue does this PR address? (for example, #1234)
 Closes #[issue number]
 
 ## Description
-
+<!--
+What changes did you make to the code?
+-->
 -
 
 ### Screenshots
+<!--
+Insert your screenshots here
+-->
 
 <!--
 If this PR touches the UI layer of the app, please include screenshots or animated gifs to show the changes.
