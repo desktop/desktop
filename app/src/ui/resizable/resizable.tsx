@@ -1,4 +1,8 @@
 import * as React from 'react'
+import { clamp } from '../../lib/clamp'
+
+const DefaultMaxWidth = 350
+const DefaultMinWidth = 200
 
 /**
  * Component abstracting a resizable panel.
@@ -6,13 +10,7 @@ import * as React from 'react'
  * Note: this component is pure, consumers must subscribe to the
  * onResize and onReset event and update the width prop accordingly.
  */
-export class Resizable extends React.Component<IResizableProps, {}> {
-  public static defaultProps: IResizableProps = {
-    width: 250,
-    maximumWidth: 350,
-    minimumWidth: 200,
-  }
-
+export class Resizable extends React.Component<IResizableProps> {
   private startWidth: number | null = null
   private startX: number | null = null
 
@@ -31,10 +29,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * maximum widths as determined by props
    */
   private clampWidth(width: number) {
-    return Math.max(
-      this.props.minimumWidth!,
-      Math.min(this.props.maximumWidth!, width)
-    )
+    const { minimumWidth: min, maximumWidth: max } = this.props
+    return clamp(width, min ?? DefaultMinWidth, max ?? DefaultMaxWidth)
   }
 
   /**
@@ -43,7 +39,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    */
   private handleDragStart = (e: React.MouseEvent<any>) => {
     this.startX = e.clientX
-    this.startWidth = this.getCurrentWidth() || null
+    this.startWidth = this.getCurrentWidth()
 
     document.addEventListener('mousemove', this.handleDragMove)
     document.addEventListener('mouseup', this.handleDragStop)
@@ -55,19 +51,20 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * Handler for when the user moves the mouse while dragging
    */
   private handleDragMove = (e: MouseEvent) => {
-    if (this.startWidth == null || this.startX == null) {
+    if (this.startWidth === null || this.startX === null) {
       return
     }
 
     const deltaX = e.clientX - this.startX
     const newWidth = this.startWidth + deltaX
-    const newWidthClamped = this.clampWidth(newWidth)
 
-    if (this.props.onResize) {
-      this.props.onResize(newWidthClamped)
-    }
-
+    this.props.onResize(this.clampWidth(newWidth))
     e.preventDefault()
+  }
+
+  private unsubscribeFromGlobalEvents() {
+    document.removeEventListener('mousemove', this.handleDragMove)
+    document.removeEventListener('mouseup', this.handleDragStop)
   }
 
   /**
@@ -75,22 +72,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * a resize operation.
    */
   private handleDragStop = (e: MouseEvent) => {
-    document.removeEventListener('mousemove', this.handleDragMove)
-    document.removeEventListener('mouseup', this.handleDragStop)
-
+    this.unsubscribeFromGlobalEvents()
     e.preventDefault()
-  }
-
-  /**
-   * Handler for when the resize handle is double clicked.
-   *
-   * Resets the panel width to its default value and clears
-   * any persisted value.
-   */
-  private handleDoubleClick = () => {
-    if (this.props.onReset) {
-      this.props.onReset()
-    }
   }
 
   public render() {
@@ -105,7 +88,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
         {this.props.children}
         <div
           onMouseDown={this.handleDragStart}
-          onDoubleClick={this.handleDoubleClick}
+          onDoubleClick={this.props.onReset}
           className="resize-handle"
         />
       </div>
@@ -136,12 +119,12 @@ export interface IResizableProps {
    * Handler called when the width of the component has changed
    * through an explicit resize event (dragging the handle).
    */
-  readonly onResize?: (newWidth: number) => void
+  readonly onResize: (newWidth: number) => void
 
   /**
    * Handler called when the resizable component has been
    * reset (ie restored to its original width by double clicking
    * on the resize handle).
    */
-  readonly onReset?: () => void
+  readonly onReset: () => void
 }
