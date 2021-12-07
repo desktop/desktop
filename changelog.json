@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.9.6-beta2": [
+      "[Fixed] Stashing dialog no longer hangs when intiating cherry-pick - #13419",
+      "[Fixed] Rebase no longer hangs after conflicts resolved when intiated through pull conflict error - #13204",
+      "[Fixed] Discarding files and repositories successfully moves items to trash - #13433",
+      "[Improved] Added check runs overall completeness indicator in check run popover header - #13423"
+    ],
     "2.9.6-beta1": [
       "[Improved] Upgrade to Electron 13.6.2 - #12978",
       "[Improved] Allow amending pushed commits - #13384"
