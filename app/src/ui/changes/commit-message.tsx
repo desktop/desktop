@@ -732,7 +732,7 @@ export class CommitMessage extends React.Component<
       >
         <>
           {loading}
-          <span>{commitButton}</span>
+          {commitButton}
         </>
       </Button>
     )
