@@ -106,6 +106,7 @@ import {
   isCherryPickConflictState,
   isMergeConflictState,
   IMultiCommitOperationState,
+  IConstrainedValue,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -284,6 +285,7 @@ import { reorder } from '../git/reorder'
 import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
+import { clamp } from '../clamp'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -398,9 +400,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private appIsFocused: boolean = false
 
-  private sidebarWidth: number = defaultSidebarWidth
-  private commitSummaryWidth: number = defaultCommitSummaryWidth
-  private stashedFilesWidth: number = defaultStashedFilesWidth
+  private sidebarWidth = constrain(defaultSidebarWidth)
+  private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
+  private stashedFilesWidth = constrain(defaultStashedFilesWidth)
+
   private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
@@ -502,6 +505,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.windowState = getWindowState(browserWindow)
 
     this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
+    window.addEventListener('resize', () => {
+      this.updateResizableConstraints()
+      this.emitUpdate()
+    })
 
     this.wireupIpcEventHandlers(browserWindow)
     this.wireupStoreEventHandlers()
@@ -760,6 +767,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.windowZoomFactor = zoomFactor
 
     if (zoomFactor !== current) {
+      this.updateResizableConstraints()
       this.emitUpdate()
     }
   }
@@ -1750,15 +1758,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
-    this.sidebarWidth = getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
-    this.commitSummaryWidth = getNumber(
-      commitSummaryWidthConfigKey,
-      defaultCommitSummaryWidth
+    this.sidebarWidth = constrain(
+      getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
     )
-    this.stashedFilesWidth = getNumber(
-      stashedFilesWidthConfigKey,
-      defaultStashedFilesWidth
+    this.commitSummaryWidth = constrain(
+      getNumber(commitSummaryWidthConfigKey, defaultCommitSummaryWidth)
     )
+    this.stashedFilesWidth = constrain(
+      getNumber(stashedFilesWidthConfigKey, defaultStashedFilesWidth)
+    )
+
+    this.updateResizableConstraints()
 
     this.askToMoveToApplicationsFolderSetting = getBoolean(
       askToMoveToApplicationsFolderKey,
@@ -1847,6 +1857,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+  }
+
+  /**
+   * Calculate the constraints of our resizable panes whenever the window
+   * dimensions change.
+   */
+  private updateResizableConstraints() {
+    // The combined width of the branch dropdown and the push pull fetch button
+    // Since the repository list toolbar button width is tied to the width of
+    // the sidebar we can't let it push the branch, and push/pull/fetch buttons
+    // off screen.
+    const toolbarButtonsWidth = 460
+
+    // Start with all the available width
+    let available = window.innerWidth
+
+    // Working our way from left to right (i.e. giving priority to the leftmost
+    // pane when we need to constrain the width)
+    //
+    // 220 was determined as the minimum value since it is the smallest width
+    // that will still fit the placeholder text in the branch selector textbox
+    // of the history tab
+    const maxSidebarWidth = available - toolbarButtonsWidth
+    this.sidebarWidth = constrain(this.sidebarWidth, 220, maxSidebarWidth)
+
+    // Now calculate the width we have left to distribute for the other panes
+    available -= clamp(this.sidebarWidth)
+
+    // This is a pretty silly width for a diff but it will fit ~9 chars per line
+    // in unified mode after subtracting the width of the unified gutter and ~4
+    // chars per side in split diff mode. No one would want to use it this way
+    // but it doesn't break the layout and it allows users to temporarily
+    // maximize the width of the file list to see long path names.
+    const diffPaneMinWidth = 150
+    const filesMax = available - diffPaneMinWidth
+
+    this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, filesMax)
+    this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, filesMax)
   }
 
   private updateSelectedExternalEditor(
@@ -4523,32 +4571,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setSidebarWidth(width: number): Promise<void> {
-    this.sidebarWidth = width
+    this.sidebarWidth = { ...this.sidebarWidth, value: width }
     setNumber(sidebarWidthConfigKey, width)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _resetSidebarWidth(): Promise<void> {
-    this.sidebarWidth = defaultSidebarWidth
+    this.sidebarWidth = { ...this.sidebarWidth, value: defaultSidebarWidth }
     localStorage.removeItem(sidebarWidthConfigKey)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _setCommitSummaryWidth(width: number): Promise<void> {
-    this.commitSummaryWidth = width
+    this.commitSummaryWidth = { ...this.commitSummaryWidth, value: width }
     setNumber(commitSummaryWidthConfigKey, width)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _resetCommitSummaryWidth(): Promise<void> {
-    this.commitSummaryWidth = defaultCommitSummaryWidth
+    this.commitSummaryWidth = {
+      ...this.commitSummaryWidth,
+      value: defaultCommitSummaryWidth,
+    }
     localStorage.removeItem(commitSummaryWidthConfigKey)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6012,16 +6067,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _setStashedFilesWidth(width: number): Promise<void> {
-    this.stashedFilesWidth = width
+    this.stashedFilesWidth = { ...this.stashedFilesWidth, value: width }
     setNumber(stashedFilesWidthConfigKey, width)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
   public _resetStashedFilesWidth(): Promise<void> {
-    this.stashedFilesWidth = defaultStashedFilesWidth
+    this.stashedFilesWidth = {
+      ...this.stashedFilesWidth,
+      value: defaultStashedFilesWidth,
+    }
     localStorage.removeItem(stashedFilesWidthConfigKey)
+    this.updateResizableConstraints()
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6827,4 +6887,12 @@ function isLocalChangesOverwrittenError(error: Error): boolean {
     error instanceof GitError &&
     error.result.gitError === DugiteError.LocalChangesOverwritten
   )
+}
+
+function constrain(
+  value: IConstrainedValue | number,
+  min = -Infinity,
+  max = Infinity
+): IConstrainedValue {
+  return { value: typeof value === 'number' ? value : value.value, min, max }
 }

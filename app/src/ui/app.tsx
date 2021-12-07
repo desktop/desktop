@@ -145,6 +145,7 @@ import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { PullRequestChecksFailed } from './notifications/pull-request-checks-failed'
 import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
+import { clamp } from '../lib/clamp'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2413,11 +2414,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const tooltip = repository && !isOpen ? repository.path : undefined
 
+    const foldoutWidth = clamp(this.state.sidebarWidth)
+
     const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
-      width: this.state.sidebarWidth,
-      minWidth: this.state.sidebarWidth,
+      width: foldoutWidth,
+      minWidth: foldoutWidth,
       height: '100%',
       top: 0,
     }
@@ -2631,12 +2634,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const width = clamp(this.state.sidebarWidth)
+
     return (
       <Toolbar id="desktop-app-toolbar">
-        <div
-          className="sidebar-section"
-          style={{ width: this.state.sidebarWidth }}
-        >
+        <div className="sidebar-section" style={{ width }}>
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
