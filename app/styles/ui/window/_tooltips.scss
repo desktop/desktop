@@ -161,11 +161,13 @@ body > .tooltip,
     }
   }
 
-  .title {
-    white-space: pre;
-  }
+  &.length-hint-tooltip .tooltip-content {
+    .title {
+      white-space: pre;
+    }
 
-  .description {
-    color: var(--text-secondary-color);
+    .description {
+      opacity: 0.7;
+    }
   }
 }

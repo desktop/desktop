@@ -38,6 +38,8 @@ import { RepositorySettingsTab } from '../repository-settings/repository-setting
 import { isAccountEmail } from '../../lib/is-account-email'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 const addAuthorIcon = {
   w: 18,
@@ -123,13 +125,6 @@ interface ICommitMessageState {
 
   /** when not persisting, we need to store locally */
   readonly coAuthors: ReadonlyArray<IAuthor>
-}
-
-enum SummaryLengthState {
-  /** The summary is under IdealSummaryLength - nothing to complain about. */
-  Ideal = 0,
-  /** The summary is over IdealSummaryLength but under MaxSummaryLength - it MAY be too long. */
-  Excessive = 1,
 }
 
 function findUserAutoCompleteProvider(
@@ -747,6 +742,30 @@ export class CommitMessage extends React.Component<
     )
   }
 
+  private renderSummaryLengthHint(): JSX.Element | null {
+    return (
+      <TooltippedContent
+        delay={0}
+        tooltip={
+          <>
+            <span className="title">
+              Great commit summaries contain fewer than 50 characters
+            </span>
+            <br />
+            <span className="description">
+              Place extra information in the description field.
+            </span>
+          </>
+        }
+        direction={TooltipDirection.NORTH}
+        className="length-hint"
+        tooltipClassName="length-hint-tooltip"
+      >
+        <Octicon symbol={OcticonSymbol.lightBulb} />
+      </TooltippedContent>
+    )
+  }
+
   public render() {
     const className = classNames({
       'with-action-bar': this.isActionBarEnabled,
@@ -757,12 +776,10 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
-    const summaryLengthState: SummaryLengthState =
-      this.state.summary.length > IdealSummaryLength
-        ? SummaryLengthState.Excessive
-        : SummaryLengthState.Ideal
-    const isLengthHintShown = summaryLengthState !== SummaryLengthState.Ideal
-
+    const showSummaryLengthHint = this.state.summary.length > IdealSummaryLength
+    const summaryClassName = classNames('summary', {
+      'with-length-hint': showSummaryLengthHint,
+    })
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge === true,
     })
@@ -776,7 +793,7 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
-        <div className="summary">
+        <div className={summaryClassName}>
           {this.renderAvatar()}
 
           <AutocompletingInput
@@ -790,26 +807,8 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
-            hint={
-              !isLengthHintShown
-                ? undefined
-                : {
-                    symbol: OcticonSymbol.lightBulb,
-                    tooltip: (
-                      <>
-                        <span className="title">
-                          Great commit summaries contain fewer than 50
-                          characters
-                        </span>
-                        <br />
-                        <span className="description">
-                          Place extra information in the description field.
-                        </span>
-                      </>
-                    ),
-                  }
-            }
           />
+          {showSummaryLengthHint && this.renderSummaryLengthHint()}
         </div>
 
         <FocusContainer

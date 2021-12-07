@@ -16,9 +16,7 @@ interface IRange {
 
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../main-process-proxy'
-import { Octicon, OcticonSymbolType } from '../octicons'
-import { TooltippedContent } from '../lib/tooltipped-content'
-import { TooltipDirection } from '../lib/tooltip'
+import { OcticonSymbolType } from '../octicons'
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -145,20 +143,6 @@ export abstract class AutocompletingTextInput<
         {state.provider.renderItem(item)}
       </div>
     )
-  }
-
-  private renderHint(): JSX.Element | null {
-    return this.props.hint ? (
-      <TooltippedContent
-        delay={0}
-        tooltip={this.props.hint.tooltip}
-        direction={TooltipDirection.NORTH}
-        className="hint"
-        tooltipClassName="input-hint-tooltip"
-      >
-        <Octicon symbol={this.props.hint.symbol} />
-      </TooltippedContent>
-    ) : null
   }
 
   private renderAutocompletions() {
@@ -341,14 +325,12 @@ export abstract class AutocompletingTextInput<
       {
         'text-box-component': tagName === 'input',
         'text-area-component': tagName === 'textarea',
-        'with-hint': !!this.props.hint,
       }
     )
     return (
       <div className={className}>
         {this.renderAutocompletions()}
         {this.renderTextInput()}
-        {this.renderHint()}
       </div>
     )
   }
