@@ -218,6 +218,10 @@ export class CICheckRunPopover extends React.PureComponent<
 
   private renderRerunButton = () => {
     const { checkRuns } = this.state
+    if (this.props.repository.isGHE) {
+      return null
+    }
+
     return (
       <Button
         onClick={this.rerunChecks}
@@ -320,7 +324,7 @@ export class CICheckRunPopover extends React.PureComponent<
       )
 
     return (
-      <div className="ci-check-run-list-header">
+      <div className="ci-check-run-list-header" tabIndex={0}>
         <div className="completeness-indicator">
           {this.renderCompletenessIndicator(
             allSuccess,
