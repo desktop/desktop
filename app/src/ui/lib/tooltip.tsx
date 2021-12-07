@@ -26,7 +26,7 @@ const InteractiveTooltipHideDelay = 250
 // would be. What we really care about though is the basic methods from Element
 // like setAttribute etc coupled with the pointer-specific events from
 // HTMLElement like mouseenter, mouseleave etc. So we make our own type here.
-type TooltipTarget = Element & GlobalEventHandlers
+export type TooltipTarget = Element & GlobalEventHandlers
 
 export interface ITooltipProps<T> {
   /**
@@ -85,6 +85,22 @@ export interface ITooltipProps<T> {
    * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
    */
   readonly onlyWhenOverflowed?: boolean
+
+  /**
+   * Optional, custom overrided of the Tooltip components internal logic for
+   * determining whether the tooltip target is overflowed or not.
+   *
+   * The internal overflow logic is simple and relies on the target itself
+   * having the `text-overflow` CSS rule applied to it. In some scenarios
+   * consumers may have a deep child element which is the one that should be
+   * tested for overflow while still having the parent element be the pointer
+   * device hit area.
+   *
+   * Consumers may pass a boolean if the overflowed state is known at render
+   * time or they may pass a function which gets executed just before showing
+   * the tooltip.
+   */
+  readonly isTargetOverflowed?: ((target: TooltipTarget) => boolean) | boolean
 }
 
 interface ITooltipState {
@@ -309,6 +325,25 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     )
   }
 
+  private isTargetOverflowed() {
+    const { isTargetOverflowed } = this.props
+    const { target } = this.state
+
+    if (target === null) {
+      return false
+    }
+
+    if (isTargetOverflowed === undefined) {
+      return target.scrollWidth > target.clientWidth
+    }
+
+    if (typeof isTargetOverflowed === 'boolean') {
+      return isTargetOverflowed
+    }
+
+    return isTargetOverflowed(target)
+  }
+
   private showTooltip = () => {
     this.cancelShowTooltip()
 
@@ -317,10 +352,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       return
     }
 
-    if (this.props.onlyWhenOverflowed) {
-      if (!isOverflowed(target)) {
-        return
-      }
+    if (this.props.onlyWhenOverflowed && !this.isTargetOverflowed()) {
+      return
     }
 
     this.setState({
@@ -571,5 +604,3 @@ const tooltipHostFor = (target: Element | undefined | null) =>
   target?.closest('.tooltip-host') ?? document.body
 
 const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation()
-
-const isOverflowed = (elem: Element) => elem.scrollWidth > elem.clientWidth
