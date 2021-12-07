@@ -1,7 +1,7 @@
 # [GitHub Desktop](https://desktop.github.com)
 
-GitHub Desktop is an open source [Electron](https://www.electronjs.org/)-based
-GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
+[GitHub Desktop](https://desktop.github.com/) is an open source [Electron](https://www.electronjs.org/)-based
+Official GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
 uses [React](https://reactjs.org/).
 
 ![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
@@ -17,6 +17,8 @@ Download the official installer for your operating system:
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
+
+For more information on Github Desktop please visit this [article](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/getting-started-with-github-desktop)
 
 **NOTE**: there is no current migration path to import your existing
 repositories into the new application - you can drag-and-drop your repositories
@@ -81,6 +83,9 @@ familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
 If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
+
+# Purpose
+The purpose of Github Destop is that, it allows you to collaboarate with your team, using some of the best practices. 
 
 ## More Resources
 
