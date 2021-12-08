@@ -3,7 +3,11 @@ name: "\U0001F41B Bug report"
 about: Report a bug while using GitHub Desktop. The full template is required.
 title: ''
 labels: ''
-assignees: ''
+assignees:
+- steveward
+- tidy-dev
+- sergiou87
+- niik
 
 ---
 
