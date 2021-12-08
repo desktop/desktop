@@ -68,6 +68,12 @@ export interface IButtonProps {
 
   readonly role?: string
   readonly ariaExpanded?: boolean
+
+  /**
+   * Whether to only show the tooltip when the tooltip target overflows its
+   * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
+   */
+  readonly onlyShowTooltipWhenOverflowed?: boolean
 }
 
 /**
@@ -126,6 +132,7 @@ export class Button extends React.Component<IButtonProps, {}> {
             direction={TooltipDirection.NORTH}
             // Show the tooltip immediately on hover if the button is disabled
             delay={disabled && tooltip ? 0 : undefined}
+            onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
           >
             {tooltip}
           </Tooltip>
