@@ -131,7 +131,14 @@ export class PullRequestListItem extends React.Component<
         onMouseUp={this.onMouseUp}
       >
         <div>
-          <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+          <Octicon
+            className="icon"
+            symbol={
+              this.props.draft
+                ? OcticonSymbol.gitPullRequestDraft
+                : OcticonSymbol.gitPullRequest
+            }
+          />
         </div>
         <div className="info">
           <div className="title" title={title}>
