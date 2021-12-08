@@ -2105,6 +2105,13 @@ export class Dispatcher {
   }
 
   /**
+   * Show the provided pull request on github.com
+   */
+  public async showPullRequestByPR(pr: PullRequest): Promise<void> {
+    return this.appStore._showPullRequestByPR(pr)
+  }
+
+  /**
    * Immediately open the Create Pull Request page on GitHub.
    *
    * See the createPullRequest method for more details.
