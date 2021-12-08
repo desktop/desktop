@@ -7,6 +7,11 @@ assignees: ''
 
 ---
 
+""" 
+If you are facing any issues with the instalation, or performance and have a antivirus software installed, we recommend you turn it off, before creating a issue thread in this repository. 
+"""
+
+
 ### Describe the bug
 Write a clear and concise description of what the bug is.
 
