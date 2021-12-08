@@ -11,9 +11,6 @@ A summary of the changes made along with any other information that would be hel
 -
 
 ### Screenshots
-<!--
-Insert your screenshots here
--->
 
 <!--
 If this PR touches the UI layer of the app, please include screenshots or animated gifs to show the changes.
