@@ -6,7 +6,7 @@ Closes #[issue number]
 
 ## Description
 <!--
-What changes did you make to the code?
+A summary of the changes made along with any other information that would be helpful to a reviewer such as potential tradeoffs or alternative approaches you considered.
 -->
 -
 
