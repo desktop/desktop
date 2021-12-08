@@ -84,9 +84,6 @@ resources relevant to the project.
 
 If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
 
-# Purpose
-The purpose of Github Destop is that, it allows you to collaboarate with your team, using some of the best practices. 
-
 ## More Resources
 
 See [desktop.github.com](https://desktop.github.com) for more product-oriented
