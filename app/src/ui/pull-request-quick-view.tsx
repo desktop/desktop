@@ -19,8 +19,6 @@ export class PullRequestQuickView extends React.Component<
   IPullRequestQuickViewProps,
   {}
 > {
-  private baseHref = 'https://github.com/'
-
   private renderHeader = (): JSX.Element => {
     return (
       <header className="header">
@@ -54,7 +52,10 @@ export class PullRequestQuickView extends React.Component<
             repository={base.gitHubRepository}
           />
         </div>
-        <SandboxedMarkdown markdown={displayBody} baseHref={this.baseHref} />
+        <SandboxedMarkdown
+          markdown={displayBody}
+          baseHref={base.gitHubRepository.htmlURL}
+        />
       </div>
     )
   }
