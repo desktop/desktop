@@ -18,6 +18,7 @@ import { enableRepositoryAliases } from '../../lib/feature-flag'
 import classNames from 'classnames'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip } from '../lib/tooltip'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -283,12 +284,12 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
 
 const renderChangesIndicator = () => {
   return (
-    <div
+    <TooltippedContent
       className="change-indicator-wrapper"
-      title="There are uncommitted changes in this repository"
+      tooltip="There are uncommitted changes in this repository"
     >
       <Octicon symbol={OcticonSymbol.dotFill} />
-    </div>
+    </TooltippedContent>
   )
 }
 
