@@ -18,7 +18,6 @@ Download the official installer for your operating system:
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
 
-See our [getting started documentation](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/getting-started-with-github-desktop) for more information on how to set up, authenticate, and configure GitHub Desktop.
 
 **NOTE**: there is no current migration path to import your existing
 repositories into the new application - you can drag-and-drop your repositories
@@ -88,6 +87,9 @@ If you're looking for something to work on, check out the [help wanted](https://
 
 See [desktop.github.com](https://desktop.github.com) for more product-oriented
 information about GitHub Desktop.
+
+
+See our [getting started documentation](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/getting-started-with-github-desktop) for more information on how to set up, authenticate, and configure GitHub Desktop.
 
 ## License
 
