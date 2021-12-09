@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { clamp } from '../lib/clamp'
 import { PullRequest } from '../models/pull-request'
 import { PullRequestBadge } from './branches'
 import { Dispatcher } from './dispatcher'
@@ -95,12 +96,13 @@ export class PullRequestQuickView extends React.Component<
       return { bottom: window.innerHeight - prListItemTop - heightPRListItem }
     }
 
-    // If not enough room to display aligned top or bottom, attempt to center on
-    // pr list item (won't be centered but close for prs with a body < max
-    // height)
+    // If not enough room to display aligned top or bottom, attempt to center
+    // with a minimum top/bottom pr list item (won't be centered but close for
+    // prs with a body < max height)
     const middlePrListItem = prListItemTop + heightPRListItem / 2
     const middleQuickView = maxQuickViewHeight / 2
-    return { top: middlePrListItem - middleQuickView }
+    const maxTop = window.innerHeight - topOfPRList - maxQuickViewHeight
+    return { top: clamp(middlePrListItem - middleQuickView, 0, maxTop) }
   }
 
   public render() {
