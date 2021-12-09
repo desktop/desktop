@@ -58,7 +58,10 @@ interface IBranchesContainerState {
   readonly selectedPullRequest: PullRequest | null
   readonly selectedBranch: Branch | null
   readonly branchFilterText: string
-  readonly pullRequestBeingViewed: PullRequest | null
+  readonly pullRequestBeingViewed: {
+    pr: PullRequest
+    prListItemTop: number
+  } | null
 }
 
 /** The unified Branches and Pull Requests component. */
@@ -111,10 +114,13 @@ export class BranchesContainer extends React.Component<
       return null
     }
 
+    const { pr, prListItemTop } = this.state.pullRequestBeingViewed
+
     return (
       <PullRequestQuickView
         dispatcher={this.props.dispatcher}
-        pullRequest={this.state.pullRequestBeingViewed}
+        pullRequest={pr}
+        pullRequestItemTop={prListItemTop}
         onMouseLeave={this.onMouseLeavePullRequestQuickView}
       />
     )
@@ -312,9 +318,10 @@ export class BranchesContainer extends React.Component<
   }
 
   private onMouseEnterPullRequestListItem = (
-    pullRequestBeingViewed: PullRequest
+    pr: PullRequest,
+    prListItemTop: number
   ) => {
-    this.setState({ pullRequestBeingViewed })
+    this.setState({ pullRequestBeingViewed: { pr, prListItemTop } })
   }
 
   private onMouseLeavePullRequestListItem = async (
