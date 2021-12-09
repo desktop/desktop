@@ -84,22 +84,33 @@ export class PullRequestQuickView extends React.Component<
     // dom searching.
     const heightPRListItem = 47
 
+    // We want to make sure that the quick view is always visible and highest
+    // being aligned to top of branch/pr dropdown (which is 0 since this is a
+    // child element of the branch dropdown)
+    const minTop = 0
+    const maxTop = window.innerHeight - topOfPRList - quickViewHeight
+
     // Check if it has room to display aligned to top (likely top half of list)
     if (window.innerHeight - prListItemTop > quickViewHeight) {
-      return { top: prListItemTop - topOfPRList }
+      const alignedTop = prListItemTop - topOfPRList
+      return { top: clamp(alignedTop, minTop, maxTop) }
     }
 
     // Can't align to top -> likely bottom half of list check if has room to display aligned to bottom.
     if (prListItemTop - quickViewHeight > 0) {
-      return { bottom: window.innerHeight - prListItemTop - heightPRListItem }
+      const alignedBottom =
+        window.innerHeight - prListItemTop - heightPRListItem
+      return { bottom: clamp(alignedBottom, minTop, maxTop) }
     }
 
-    // If not enough room to display aligned top or bottom, attempt to center
-    // with a minimum top/bottom pr list item
+    // If not enough room to display aligned top or bottom, attempt to center on
+    // list item. For short height screens with max height quick views, this
+    // will likely end up being clamped so will be anchored to top or bottom
+    // depending on position in list.
     const middlePrListItem = prListItemTop + heightPRListItem / 2
     const middleQuickView = quickViewHeight / 2
-    const maxTop = window.innerHeight - topOfPRList - quickViewHeight
-    return { top: clamp(middlePrListItem - middleQuickView, 0, maxTop) }
+    const alignedMiddle = middlePrListItem - middleQuickView
+    return { top: clamp(alignedMiddle, minTop, maxTop) }
   }
 
   private onQuickViewRef = (quickViewRef: HTMLDivElement) => {
