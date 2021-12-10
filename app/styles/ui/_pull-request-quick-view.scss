@@ -4,7 +4,7 @@
 
   .pull-request-quick-view-contents {
     background-color: var(--background-color);
-    margin: 0 var(--spacing-double);
+    margin: 0 var(--spacing);
     min-width: 400px;
     border-radius: var(--border-radius);
 
@@ -57,23 +57,25 @@
   .pull-request-pointer {
     position: absolute;
     top: 23px;
-    left: 4px;
+    left: -6px;
     pointer-events: none;
 
-    span {
+    &::before,
+    &::after {
       display: inline-block;
       position: absolute;
+      content: '';
+    }
 
-      &:first-child {
-        border: 8px solid transparent;
-        border-right-color: var(--box-border-color);
-      }
+    &::before {
+      border: 8px solid transparent;
+      border-right-color: var(--box-border-color);
+    }
 
-      &:last-child {
-        border: 7px solid transparent;
-        border-right-color: var(--background-color);
-        left: 2px;
-      }
+    &::after {
+      border: 7px solid transparent;
+      border-right-color: var(--background-color);
+      left: 2px;
     }
   }
 }
