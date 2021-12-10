@@ -51,7 +51,8 @@ export class PullRequestQuickView extends React.Component<
 
   public componentDidUpdate = (prevProps: IPullRequestQuickViewProps) => {
     if (
-      prevProps.pullRequest.body === this.props.pullRequest.body ||
+      prevProps.pullRequest.pullRequestNumber ===
+        this.props.pullRequest.pullRequestNumber ||
       this.quickViewRef === null
     ) {
       return
