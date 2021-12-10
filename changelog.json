@@ -2,7 +2,7 @@
   "releases": {
     "2.9.6-beta3": [
       "[Fixed] Tooltips touchups and polish - #13452 #13449",
-      "[Fixed] Dynamic constraints for resizable components - #2745",
+      "[Improved] Add dynamic constraints for resizable components - #2745",
       "[Improved] Remove re-run button for repositories that cannot re-run checks. - #13460"
     ],
     "2.9.6-beta2": [
