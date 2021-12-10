@@ -216,10 +216,7 @@ export class PullRequestQuickView extends React.Component<
             this.state.position,
             this.quickViewHeight
           )}
-        >
-          <span></span>
-          <span></span>
-        </div>
+        ></div>
       </div>
     )
   }
