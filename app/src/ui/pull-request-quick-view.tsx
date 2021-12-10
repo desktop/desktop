@@ -105,9 +105,9 @@ export class PullRequestQuickView extends React.Component<
 
     // Can't align to top -> likely bottom half of list check if has room to display aligned to bottom.
     if (prListItemTop - quickViewHeight > 0) {
-      const alignedBottom =
-        window.innerHeight - prListItemTop - heightPRListItem
-      return { bottom: clamp(alignedBottom, minTop, maxTop) }
+      const alignedTop = prListItemTop - topOfPRList
+      const alignedBottom = alignedTop - quickViewHeight + heightPRListItem
+      return { top: clamp(alignedBottom, minTop, maxTop) }
     }
 
     // If not enough room to display aligned top or bottom, attempt to center on
