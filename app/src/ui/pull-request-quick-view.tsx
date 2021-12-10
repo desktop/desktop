@@ -44,7 +44,7 @@ export class PullRequestQuickView extends React.Component<
     this.state = {
       position: this.calculatePosition(
         props.pullRequestItemTop,
-        maxQuickViewHeight
+        this.quickViewHeight
       ),
     }
   }
@@ -61,13 +61,17 @@ export class PullRequestQuickView extends React.Component<
     this.setState({
       position: this.calculatePosition(
         this.props.pullRequestItemTop,
-        this.quickViewRef.clientHeight
+        this.quickViewHeight
       ),
     })
   }
 
   private viewOnGitHub = () => {
     this.props.dispatcher.showPullRequestByPR(this.props.pullRequest)
+  }
+
+  private get quickViewHeight(): number {
+    return this.quickViewRef?.clientHeight ?? maxQuickViewHeight
   }
 
   /**
@@ -119,6 +123,40 @@ export class PullRequestQuickView extends React.Component<
     const middleQuickView = quickViewHeight / 2
     const alignedMiddle = middlePrListItem - middleQuickView
     return { top: clamp(alignedMiddle, minTop, maxTop) }
+  }
+
+  private getPointerPosition(
+    position: React.CSSProperties | undefined,
+    quickViewHeight: number
+  ): React.CSSProperties | undefined {
+    // 23 = half a pr list item.
+    const defaultTop = { top: 20 }
+    if (position === undefined) {
+      return defaultTop
+    }
+
+    const { top, bottom } = position
+    const quickViewTopZero = this.getTopPRList()
+    const prListItemTopWRTQuickViewTopZero =
+      this.props.pullRequestItemTop - quickViewTopZero
+
+    let quickViewTop
+    if (top !== undefined) {
+      quickViewTop = parseInt(top.toString())
+    } else if (bottom !== undefined) {
+      const bottomAsNum = parseInt(bottom.toString())
+      quickViewTop = bottomAsNum - quickViewHeight + quickViewTopZero
+    }
+
+    if (quickViewTop === undefined) {
+      return defaultTop
+    }
+
+    const prListItemPositionWRToQuickViewTop =
+      prListItemTopWRTQuickViewTopZero - quickViewTop
+    const centerPointOnListItem =
+      prListItemPositionWRToQuickViewTop + defaultTop.top
+    return { top: centerPointOnListItem }
   }
 
   private onQuickViewRef = (quickViewRef: HTMLDivElement) => {
@@ -202,6 +240,16 @@ export class PullRequestQuickView extends React.Component<
         <div className="pull-request-quick-view-contents">
           {this.renderHeader()}
           {this.renderPR()}
+        </div>
+        <div
+          className="pull-request-pointer"
+          style={this.getPointerPosition(
+            this.state.position,
+            this.quickViewHeight
+          )}
+        >
+          <span></span>
+          <span></span>
         </div>
       </div>
     )
