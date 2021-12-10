@@ -7,7 +7,6 @@
     margin: 0 var(--spacing-double);
     min-width: 400px;
     border-radius: var(--border-radius);
-    overflow: hidden;
 
     .header {
       display: flex;
@@ -47,6 +46,29 @@
         .pr-badge {
           display: inline-flex;
         }
+      }
+    }
+  }
+
+  .pull-request-pointer {
+    position: absolute;
+    top: 23px;
+    left: 4px;
+    pointer-events: none;
+
+    span {
+      display: inline-block;
+      position: absolute;
+
+      &:first-child {
+        border: 8px solid transparent;
+        border-right-color: var(--box-border-color);
+      }
+
+      &:last-child {
+        border: 7px solid transparent;
+        border-right-color: var(--background-color);
+        left: 2px;
       }
     }
   }
