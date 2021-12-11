@@ -12,11 +12,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
-import {
-  APICheckConclusion,
-  getDotComAPIEndpoint,
-  IAPIWorkflowJobStep,
-} from '../../lib/api'
+import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
@@ -222,10 +218,6 @@ export class CICheckRunPopover extends React.PureComponent<
 
   private renderRerunButton = () => {
     const { checkRuns } = this.state
-    if (this.props.repository.endpoint !== getDotComAPIEndpoint()) {
-      return null
-    }
-
     return (
       <Button
         onClick={this.rerunChecks}
@@ -328,7 +320,7 @@ export class CICheckRunPopover extends React.PureComponent<
       )
 
     return (
-      <div className="ci-check-run-list-header" tabIndex={0}>
+      <div className="ci-check-run-list-header">
         <div className="completeness-indicator">
           {this.renderCompletenessIndicator(
             allSuccess,
