@@ -1,0 +1,517 @@
+# Pull Request Triage
+
+This document outlines how the Desktop team handles pull requests, to ensure
+a consistent process for contributions from the core team and the comm
+
+https://user-images.githubusercontent.com/92333763/145697722-2680dc09-ab9e-4f4a-ac42-995436389a3a.mp4
+36 Commentary
+hibits Service Providers from the collection of data through such service and use 
+of such data for Online Behavioral Advertising purposes absent their customers’ 
+Consent for such purposes; this Principle requires an authorized user to take ac-
+tion assenting to the collection and use of data for Online Behavioral Advertising 
+after having been meaningfully informed by the Service Provider of such activi-
+ties. Service Providers that have obtained customer Consent to the collection and 
+use of data for Online Behavioral Advertising purposes would also be required to 
+provide these individuals with an ongoing means of withdrawing their Consent 
+to such activity. The consent requirement applies to Service Providers only when 
+acting in their capacity as providers of Internet access services, or Web tool bar, 
+browser, or other desktop software services.
+ In addition, the Data Security Principle described in more detail below requires 
+Service Providers to take steps to help de-identify the data collected and used for 
+Online Behavioral Advertising.
+IV. DATA SECURITY
+ Principle IV addresses data security. First, it requires all entities to maintain 
+appropriate physical, electronic, and administrative safeguards in light of the sen-
+sitivity of the data collected and used for Online Behavioral Advertising purpos-
+es. This data security standard tracks the one that the FTC applies in its orders 
+requiring companies to safeguard personal information. It is flexible, taking into 
+account the size and complexity of a company, the scope of the activities, and the 
+sensitivity of the data. 
+ Second, this provision requires all entities to retain data collected and used for
+unity.
+
+## The Review Process
+
+1. **Contributor** opens a pull request. If the pull request is still in progress
+   it should be created in draft mode.
+1. When a pull request in progress is ready, the **contributor** should mark it
+   as ready for review.
+1. A member of the reviewer team will give it a quick look over and
+   add the `ready-for-review` label and add it to any relevant release board.
+1. A **reviewer** with bandwidth will appear.
+1. **Reviewer** assigns the PR to themselves.
+1. **Reviewer** leaves line comments with suggestions or questions.
+1. When the **reviewer** is done they comment on the PR with an emoji, meme,
+   pokémon, or words to that effect.
+1. The **contributor** responds to feedback, makes changes, etc.
+1. When the **contributor** is ready for the **reviewer** to re-review, they
+   comment on the PR with an emoji, meme, pokémon or words to that effect.
+1. Goto 6 until both parties are happy with the PR.
+1. The **reviewer** hits the big green merge button and deletes the branch (if
+    applicable).
+
+Merged contributions are first published to the beta channel (we aim to publish
+new versions weekly if contributions are available) before then being
+published to the production channel (we aim to publish new versions on a monthly
+cadence).
+
+### When The Review Is Done
+
+We're using GitHub's review tools to co-ordinate feedback, and we like to be
+methodical with our reviews, so you'll probably end up with one of two results:
+
+ - **Approved**: nothing else to do; the contribution is great! :gem:
+ - **Request Changes**: there are things to address; reviewer provides details :memo:
+
+Reviews can take a few iterations, especially for large contributions. Don't
+be disheartened if you feel it takes time - we just want to ensure each
+contribution is high-quality and that any outstanding questions are resolved,
+captured or documented for posterity.
+
+### Assignees
+
+The reviewers team uses the **Assignee** field to indicate who "owns" the review
+process for a contribution. While others can add their reviews to a pull request -
+and large features will likely have multiple reviewers - it's up to the assignee
+to take charge of the process and see it through to the end.
+
+If a reviewer is feeling overloaded, or if a review has stalled, the reviewer may
+remove themselves from a pull request. This helps others know where they can help
+out to share the load.
+
+### Everyone Reviews
+
+While everyone has their own domain expertise around the codebase, we encourage
+people to share the load of reviews and reviewing areas of the codebase that
+aren't as familiar. This spreads knowledge across the team
+
+### 24 Hours Cooling Off
+
+After being approved, most contributions will remain in this state for at least
+24 hours before merging. The review team does this to ensure everyone on the team,
+who are normally spread around the world, has a chance to provide feedback about
+the changes.
+
+### No Self-Merges Without Review
+
+We encourage a strong review culture, and contributors should not merge their
+own PRs unless there are exceptional reasons.
+
+Examples of exceptional situations:
+
+- [#2733](https://github.com/desktop/desktop/pull/2733) was pinning a dependency
+  that affected our continuous integration tests by installing the incorrect
+  version
+
+- [#4319](https://github.com/desktop/desktop/pull/4319) was a minor packaging
+  change introduced unexpectedly on `development` but would affect everyone when they
+  updated their local repositories.
+
+These should be called out by the merging person with an explanation for why they are bypassing the review process.
+
+### Stale Pull Requests
+
+A reviewer will return to an **open and reviewed** pull request if, after 14
+days:
+
+ - no response has been received from the contributor, or
+ - no new commits have been made to the pull request
+
+This is done to ensure we keep the number of reviews under control.
+
+The reviewer should ask if the contributor is still interested in working on
+this, and indicate that they are welcome to open a fresh pull request later if
+they lack the time currently to continue on.
+
+If it's agreed to put this contribution on hold, or if no feedback is
+received after 3 days, the pull request will be closed.
+Kaufabsicht
+Mit den Einblicken in die jeweiligen Kaufabsichten je Marktsegment, Unternehmen und Kontakt können Vermarkter schneller handeln — mit mehr Selbstbewusstsein.
+
+Bewährte und detailreiche Einblicke in Kaufabsichten
+Mehr als 200 Kunden in Deutschland nutzen TechTarget bereits für ihr B2B-Marketing, um Einsichten in Aktivitäten und Kaufabsichten zu erhalten, sodass potentielle Kunden direkt nachverfolgt werden können.
+
+ 
+
+Gewinnen Sie tiefe Einblicke in die jährlichen Technologieeinkäufe von Unternehmen.
+
+￼
+
+Das Verständnis über echte Kaufabsichten beginnt damit, Ihre Ziele an den jeweiligen Kontext anzupassen. Die umfassenden redaktionellen Artikel, die von TechTarget veröffentlicht werden, ermöglichen Ihnen, dass Sie die richtigen Entscheidungsträger im richtigen Marktsegment ansprechen können.
+
+Testen Sie es mit Google: Sie werden sehen, dass Ihre Inhalte mit uns in den oberen Ergebnissen erscheinen werden.
+
+Mit TechTarget erreichen Sie IT-Entscheidungsträger zum richtigen Zeitpunkt und mit den passenden Inhalten, da Ihre Kontaktaufnahme nicht auf Vermutungen oder unvollständigen Prognosen basiert.
+
+Nur Erkenntnisse über echte Kaufabsichten basierend auf relevantem Konsum unserer Inhalte können Ihnen eine Genauigkeit liefern, die Ihnen garantiert, dass Sie Ihre Zeit und Bemühungen nicht verschwenden, sondern sich auf die richtigen Kunden konzentrieren. Denn auch wenn ein vorhersagendes Modell ankündigt, was passieren könnte, so ist und bleibt dies nur eine fundierte Vermutung, die auf Profiling basiert.
+
+Unsere Daten sind fortdauernd und stehen Ihnen in Echtzeit zur Verfügung. Sie können diese nach Unternehmen und Strategien unterteilen, sowie Ihren Einfluss messen und diesen zeitnah anpassen. Wir haben unsere Angebote so erstellt, dass wichtige Schritte jederzeit schnell umgesetzt werden können.
+
+Die Einblicke in Kaufabsichten ermöglichen Ihnen:
+
+Die Anpassung des Vertriebs und Marketings mithilfe der Einblicke in Unternehmen, Kontakte und spezifische Technologieinitiativen,
+Den Kaufprozess der IT-Entscheidungsträger besser zu verstehen, sodass Sie Ihren Content anpassen und optimieren können,<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xml:base="https://www.easa-alliance.org"  xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+ <title>EASA</title>
+ <link>https://www.easa-alliance.org</link>
+ <description></description>
+ <language>en</language>
+<item>
+ <title>WFA publishes final DEI Census results</title>
+ <link>https://www.easa-alliance.org/node/7989</link>
+ <description>&lt;div class=&quot;field field-name-body field-type-text-with-summary field-label-hidden&quot;&gt;&lt;div class=&quot;field-items&quot;&gt;&lt;div class=&quot;field-item even&quot; property=&quot;content:encoded&quot;&gt;&lt;p&gt;&lt;span style=&quot;font-family:arial,helvetica,sans-serif;&quot;&gt;&lt;span style=&quot;font-size:12px;&quot;&gt;&lt;span style=&quot;color:#000000;&quot;&gt;WFA has published the full &lt;/span&gt;&lt;a href=&quot;https://wfanet.org/census&quot; rel=&quot;noopener&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color:#000000;&quot;&gt;DEI Census report&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;color:#000000;&quot;&gt;, highlighting the vast differences in the lived experiences of different groups across the marketing and advertising industry.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;span style=&quot;font-family:arial,helvetica,sans-serif;&quot;&gt;&lt;span style=&quot;font-size:12px;&quot;&gt;&lt;span style=&quot;color:#000000;&quot;&gt;More information and the report is available &lt;/span&gt;&lt;a href=&quot;https://wfanet.org/knowledge/item/2021/12/09/WFA-publishes-final-DEI-Census-results&quot; target=&quot;_parent&quot;&gt;&lt;span style=&quot;color:#000000;&quot;&gt;here&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;color:#000000;&quot;&gt;.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt; &lt;/p&gt;
+
+&lt;p&gt;&lt;iframe allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot; frameborder=&quot;0&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/lb7LcpgmmLQ&quot; title=&quot;YouTube video player&quot; width=&quot;560&quot;&gt;&lt;/iframe&gt;&lt;/p&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;a href=&quot;/tags/easa&quot; typeof=&quot;skos:Concept&quot; property=&quot;rdfs:label skos:prefLabel&quot; datatype=&quot;&quot;&gt;EASA&lt;/a&gt;, &lt;a href=&quot;/tags/wfa&quot; typeof=&quot;skos:Concept&quot; property=&quot;rdfs:label skos:prefLabel&quot; datatype=&quot;&quot;&gt;WFA&lt;/a&gt;</description>
+ <pubDate>Fri, 10 Dec 2021 11:48:38 +0000</pubDate>
+ <dc:creator>Estere</dc:creator>
+ <guid isPermaLink="false">7989 at https://www.easa-alliance.org</guid>
+ <comments>https://www.easa-alliance.org/node/7989#comments</comments>
+</item>
+<item>
+ <title>News from EASA and its Members - November 2021</title>
+ <link>https://www.easa-alliance.org/node/7846</link>
+ <description>&lt;div class=&quot;field field-name-body field-type-text-with-summary field-label-hidden&quot;&gt;&lt;div class=&quot;field-items&quot;&gt;&lt;div class=&quot;field-item even&quot; property=&quot;content:encoded&quot;&gt;&lt;p&gt;Stay up to date with EASA and its members - read the latest news &lt;a href=&quot;https://us2.campaign-archive.com/?u=cb8fee4e8a9cd3fc5cd878638&amp;amp;id=206db479e7&quot;&gt;here&lt;/a&gt;! &lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://us2.campaign-archive.com/?u=cb8fee4e8a9cd3fc5cd878638&amp;amp;id=206db479e7&quot; target=&quot;_blank&quot;&gt;&lt;img alt=&quot;EASA newsletter&quot; src=&quot;https://www.easa-alliance.org/sites/default/files/Newsletter%20banner.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;</description>
+ <pubDate>Wed, 01 Dec 2021 13:29:55 +0000</pubDate>
+ <dc:creator>Estere</dc:creator>
+ <guid isPermaLink="false">7846 at https://www.easa-alliance.org</guid>
+ <comments>https://www.easa-alliance.org/node/7846#comments</comments>
+</item>
+<item>
+ <title>EASA Member Spotlight: Auto Regulação Publicitária, ARP</title>
+ <link>https://
+Das Wissen um die Wirksamkeit Ihrer B2B-Marketingaktionen inkl. eines wöchentlichen Updates.core.wo|)6uį》||)ə+įuı|ndstream
+endobj.ßu|ouubx^=|♎lino/'
+44 0 obj <?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http:/www.w3vsf.org/2021/Atom" xmlns:media="http:/search.yahoo.com/mrss/f7ithofrhg7p/
+  <id>tag:deviceadmin.vn.gov/Hailuu2021</id>
+  <link type="text/html" rel="alternate" href="https:/github.com/Hailuu2021"/>deviceadmin.vn.gov/
+  <link type="application/atom+xml" rel="self" href="https:/github.com/Hailuu2021.luuhoanghai.4.0.0
+  <title>Private Feed for Hailuu2021</title>
+  <updated>2021-10-11T19:04:43Z</updated>
+</feed>
+<</DecodeParms<</Columns 5/Predictor 12>>/Encrypt 68 0 R/Filter/FlateDecode/     imt:codeř/'
+       S/P  (JHKXY) VIII.DANA
+                   :1934Z45456601824
+         +Sə^"bp^ə》|375418227141622
+  £_`uxpo.nubij     ________________
+   |
+   əfhį.lß3         ________________
+   £0pbi).iəupoı)   ________________
+   |OOO^w.əu!  ,swəu.+æ\/ıubiui
+             C _____________________
+             /wə|><|+əy
+             +bəy---!wblui
+   6E9|=|=19
+             ə+ri|§)S+1071|
+   z(9|=|=19
+             +bəy.22|+
+                      ORDER.FORM
+    ƏPIO^^   ƏIIO6/V<|
+            (
+             ^OU|OSUOß)>|b+Sə+p6₩.SOT
+   ___|BƏS.+xo|+įwo`₩.O\
+                       w \|69^0E|ı0l
+                       ~ (|      ^
+    +cb!/+《||=(tnpririw.=|ot"0
+    mob\_ğni>|b9tinriri    /
+                          /^S
+                          /ID[<B36B03BFDCFD96F836320264A83E44EC><4E5602AB55553942A9A8C23CF628C494>]/Info 66 0 R/Length 184/Root 69 0 R/ {
+  "ns": "yt",
+  "el": "detailpage",
+  "cpn": "ws-uMwzt3Ns4sXmN",
+  "ver": 2,
+  "cmt": "7.237",
+  "fmt": "133",
+  "fs": "0",
+  "rt": "16.784",
+  "euri": "",
+  "lact": 10,
+  "cl": "415375748",
+  "mos": 0,
+  "state": "8",
+  "volume": 100,
+  "cbrand": "samsung",
+  "cbr": "Chrome Mobile Webview",
+  "cbrver": "30.0.0.0",
+  "c": "MWEB",
+  "cver": "2.20211210.01.00",
+  "cplayer": "UNIPLAYER",
+  "cmodel": "gt-i9195",
+  "cos": "Android",
+  "cosver": "4.4.2",
+  "cplatform": "MOBILE",
+  "hl": "vi_VN",
+  "cr": "VN",
+  "len": "1361.874",
+  "fexp": "23983296,24001373,24002022,24002025,24002922,24004644,24007246,24080738,24082661,24118122,24129402,24129451,24141079",
+  "feature": "search",
+  "afmt": "140",
+  "muted": "0",
+  "docid": "ccm261r-dEE",
+  "referrer": "https://m.youtube.com/results?sp=mAEA&search_query=g%E1%BA%A5u+kung+phu+",
+  "ei": "df20YaJ3j8fgAo7Kk6AI",
+  "of": "0amtKDmsGjkH1LEzbllxyQ",
+  "vm": "CAEQABgEOjJBS1JhaHdBdWwzRFRpakRteHVfWVhndGFlTTZEN1NCVW8xbDhsNVluZUFUbTA5emlNUWJGQVBta0tES2xzS0VyZmU0eENqelJxRVNkOGxJZjhXbjdCVHBJR0FRLTl6ZnVoeFl4OUZOa1QtYzBCaVMta2FDeFFDSlNFUQ",
+  "vct": "7.237",
+  "vd": "1361.874",
+  "vpl": "0.000-7.237",
+  "vbu": "0.000-37.333",
+  "vpa": "0",
+  "vsk": "0",
+  "ven": "0",
+  "vpr": "1",
+  "vrs": "4",
+  "vns": "2",
+  "vec": "null",
+  "vemsg": "",
+  "vvol": "1",
+  "vdom": "1",
+  "vsrc": "1",
+  "vw": "469",
+  "vh": "264",
+  "droppedVideoFrames": 0,
+  "totalVideoFrames": 224,
+  "lct": "7.062",
+  "lsk": false,
+  "lmf": false,
+  "lbw": "174017.250",
+  "lhd": "1.225",
+  "lst": "1085.500",
+  "laa": "itag_140_type_3_seg_3_range_487537-620929_time_30.0-38.2_off_0_len_133393",
+  "lva": "itag_133_type_3_seg_6_time_32.0-37.3_off_0_len_154040_end_1",
+  "lar": "itag_140_type_3_seg_3_range_487537-620929_time_30.0-38.2_off_0_len_133393",
+  "lvr": "itag_133_type_3_seg_6_time_32.0-37.3_off_0_len_161323.25_end_1",
+  "laq": "0",
+  "lvq": "0",
+  "lab": "0.000-38.174",
+  "lvb": "0.000-37.333",
+  "ismb": 9920000,
+  "relative_loudness": "6.122",
+  "optimal_format": "360p",
+  "user_qual": 0,
+  "release_version": "youtube.player.web_20211208_02_RC02",
+  "debug_videoId": "ccm261r-dEE",
+  "0sz": "false",
+  "op": "",
+  "yof": "false",
+  "dis": "",
+  "debug_playbackQuality": "small",
+  "debug_date": "Sun Dec 12 2021 02:35:07 GMT+0700 (ICT)"
+} /Size 67/Type/XRef/W[1 3 1]>>stream
+h�bb &F�����ɥ$�J׀�l� �q�,��m ��&�d�׉�5�����L)�D�V�T.=6�D[Uploading search.htm…]()
+
+��H�.�H��>"Y@d�~��No�s��%O��R��* R�*�%� �'!Qϻ����eQ��@������<`8�9	�|`���V$�G��?X� � �f�ģ|+\d=|♎ı+l|ļ-|_ compiler.cpp:<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>The ReadME Project</title>
+    <link>https://github.com/readme</link>
+    <atom:link href="https://github.com/readme.rss" rel="self" type="application/rss+xml"/>
+    <image>
+      <title>The ReadME Project</title>
+      <url>https://github.githubassets.com/images/modules/site/social-cards/readme-project.jpg</url>
+      <link>https://github.com/readme</link>
+    </image>
+    <description>The ReadME Project amplifies the voices of the open source community: the maintainers, developers, and teams whose contributions move the world forward every day.</description>
+    <item>
+      <title>Open Source is enabling the "Tech for Good" movement</title>
+      <link>https://github.com/readme/featured/call-for-code</link>
+      <description/>
+      <pubDate>Tue, 16 Nov 2021 17:40:00 +0000</pubDate>
+      <guid>https://github.com/readme/featured/call-for-code</guid>
+    </item>
+    <item>
+      <title>Hoppscotch’s maintainer builds open solutions for all</title>
+      <link>https://github.com/readme/stories/liyas-thomas</link>
+      <description/>
+      <pubDate>Tue, 16 Nov 2021 17:30:00 +0000</pubDate>
+      <guid>https://github.com/readme/stories/liyas-thomas</guid>
+    </item>
+    <item>
+      <title>Lift as you climb</title>
+      <link>https://github.com/readme/stories/cassidy-williams</link>
+      <description/>
+      <pubDate>Tue, 16 Nov 2021 17:30:00 +0000</pubDate>
+      <guid>https://github.com/readme/stories/cassidy-williams</guid>
+    </item>
+    <item>
+      <title>Optimize local dev environments for better onboarding</title>
+      <link>https://github.com/readme/guides/developer-onboarding</link>
+      <description/>
+      <pubDate>Thu, 28 Oct 2021 12:10:00 +0000</pubDate>
+      <guid>https://github.com/readme/guides/developer-onboarding</guid>
+    </item>
+    <item>
+      <title> Charming Pirates: Reframing user acquisition and referral for OSS</title>
+      <link>https://github.com/readme/guides/user-acquisition</link>
+      <description/>
+      <pubDate>Thu, 28 Oct 2021 11:25:00 +0000</pubDate>
+      <guid>https://github.com/readme/guides/user-acquisition</guid>
+    </item>
+    <item>
+      <title>Using code as documentation to save time and share context</title>
+      <link>https://github.com/readme/guides/code-as-documentation</link>
+      <description/>
+      <pubDate>Wed, 27 Oct 2021 13:25:00 +0000</pubDate>
+      <guid>https://github.com/readme/guides/code-as-documentation</guid>
+    </item>
+    <item>
+      <title>Code review is too late for code quality</title>
+      <link>https://github.com/readme/guides/code-review</link>
+      <description/>
+      <pubDate>Wed, 27 Oct 2021 11:55:00 +0000</pubDate>
+      <guid>https://github.com/readme/guides/code-review</guid>
+    </item>
+    <item>
+      <title>Effective communication is not about what you say</title>
+      <link>https://github.com/readme/guides/effective-communication</link>
+      <description/>
+      <pubDate>Thu, 14 Oct 2021 21:00:00 +0000</pubDate>
+      <guid>https://github.com/readme/guides/effective-communication</guid>
+    </item>
+    <item>
+      <title>Overcoming human error with code automation and testing</title>
+      <link>https://github.com/readme/guides/code-automation-and-testing</link>
+      <description/>
+      <pubDate>Thu, 14 Oct 2021 21:00:00 +0000</pubDate>
+      <guid>https://github.com/readme/guides/code-automation-and-testing</guid>
+    </item>
+    <item>
+      <title> What we can learn from “_why”, the long lost open source developer</title>
+      <link>https://github.com/readme/featured/why-the-lucky-stiff</link>
+      <description/>
+      <pubDate>Thu, 14 Oct 2021 21:00:00 +0000</pubDate>
+      <guid>https://github.com/readme/featured/why-the-lucky-stiff</guid>
+    </item>
+    <item>
+      <title>How Rust developers are making the web safer</title>
+      <link>https://gū# Copyright (C) 2020 The bbPress Contributors
+# This file is distributed under the GPLv2 or later (license.txt).
+msgid ""
+msgstr ""
+"Project-Id-Version: bbPress 2.6.6\n"
+"Report-Msgid-Bugs-To: https://bbpress.trac.wordpress.org\n"
+"POT-Creation-Date: 2020-11-06 01:22:02+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2020-MO-DA HO:MI+ZONE\n"
+"Last-Translator: JOHN JAMES JACOBY <jjj@bbpress.org>\n"
+"Language-Team: ENGLISH <jjj@bbpress.org>\n"
+"X-Generator: grunt-wp-i18n 1.0.3\n"
+
+#: bbpress.php:146 bbpress.php:153
+msgid "Cheatin&#8217; huh?"
+msgstr ""
+
+#: bbpress.php:515
+msgid "bbPress Forums"
+msgstr ""
+
+#: bbpress.php:541
+msgid "bbPress Topics"
+msgstr ""
+
+#: bbpress.php:567
+msgid "bbPress Replies"
+msgstr ""
+
+#: bbpress.php:711
+msgid "Most popular topics"
+msgstr ""
+
+#: bbpress.php:724
+msgid "Topics with no replies"
+msgstr ""
+
+#: bbpress.php:761
+msgid "bbPress Item Count"
+msgstr ""
+
+#: bbpress.php:798
+msgid "bbPress User Activity"
+msgstr ""
+
+#: includes/admin/actions.php:180 includes/admin/forums.php:538
+#: includes/admin/settings.php:281 includes/admin/settings.php:302
+#: includes/admin/tools/common.php:437 includes/admin/topics.php:854
+#: includes/extend/buddypress/activity.php:197
+#: includes/extend/buddypress/activity.php:391
+#: includes/forums/template.php:2660 includes/topics/template.php:47
+#: includes/topics/template.php:48
+#: templates/default/bbpress/content-statistics.php:30
+#: templates/default/bbpress/loop-forums.php:21
+msgid "Topics"
+msgstr ""
+
+#: includes/admin/actions.php:185 includes/admin/actions.php:197
+#: includes/admin/forums.php:539 includes/admin/settings.php:289
+#: includes/admin/settings.php:310 includes/admin/tools/common.php:440
+#: includes/admin/topics.php:390 includes/admin/topics.php:856
+#: includes/core/theme-compat.php:704
+#: includes/extend/buddypress/activity.php:207
+#: includes/extend/buddypress/activity.php:392
+#: includes/forums/template.php:2714 includes/replies/template.php:49
+#: includes/replies/template.php:50
+#: templates/default/bbpress/content-statistics.php:35
+#: templates/default/bbpress/loop-forums.php:23
+#: templates/default/bbpress/loop-replies.php:20
+#: templates/default/bbpress/loop-replies.php:46
+#: templates/default/bbpress/loop-topics.php:21
+msgid "Replies"
+msgstr ""
+
+#: includes/admin/actions.php:192 includes/admin/actions.php:204
+#: includes/admin/forums.php:537 includes/admin/metaboxes.php:113
+#: includes/admin/metaboxes.php:432 includes/admin/metaboxes.php:496
+#: includes/admin/replies.php:665 includes/admin/settings.php:352
+#: includes/admin/topics.php:855 includes/extend/buddypress/groups.php:51
+#: includes/extend/buddypress/groups.php:52 includes/forums/template.php:50
+#: templates/default/bbpress/loop-forums.php:20
+msgid "Forum"
+msgstr ""
+
+#: includes/admin/actions.php:209 includes/admin/metaboxes.php:130
+#: includes/admin/metaboxes.php:523 includes/admin/replies.php:666
+#: includes/admin/settings.php:360 includes/topics/template.php:49
+#: templates/default/bbpress/content-single-topic-lead.php:23
+#: templates/default/bbpress/content-single-topic-lead.php:91
+#: templates/default/bbpress/loop-topics.php:18
+msgid "Topic"
+msgstr ""
+
+#: includes/admin/classes/class-bbp-admin.php:234
+msgid "Learn More"
+msgstr ""
+
+#: includes/admin/classes/class-bbp-admin.php:235
+msgid "Hide For Now"
+msgstr ""
+
+#: includes/admin/classes/class-bbp-admin.php:238
+msgid "bbPress requires a manual database upgrade. %s or %s."
+msgstr ""
+
+#: includes/admin/classes/class-bbp-admin.php:467
+#: includes/admin/classes/class-bbp-admin.php:468
+#: includes/admin/classes/class-bbp-admin.php:477
+#: includes/admin/classes/class-bbp-admin.php:478
+#: includes/admin/tools/common.php:434 includes/admin/tools.php:30
+#: includes/admin/users.php:93 includes/common/widgets.php:626
+#: includes/extend/buddypress/loader.php:42
+#: includes/extend/buddypress/loader.php:189
+#: includes/extend/buddypress/loader.php:311
+#: includes/extend/bud
+   __________♎🆔deviceadmin@vn.gov/Tomo.electro.ltd.vn/'
+ |_________(TM)__________|                ||(c)google & mirosofs(R)||
+ |_________(TM)__________|[Uploading setup.exe ID3…]()
+[Uploading search.htm…]()
+[Uploading 6th-gen-core-family-quad-core-desktop-brief-1.pdf…]()
+[Uploading 6th-gen-core-family-quad-core-desktop-brief-1.pdf…]()
