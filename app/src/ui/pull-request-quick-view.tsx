@@ -21,7 +21,7 @@ export class PullRequestQuickView extends React.Component<
 > {
   private baseHref = 'https://github.com/'
 
-  private renderHeader = (): JSX.Element => {
+  private renderHeader = () => {
     return (
       <header className="header">
         <Octicon symbol={OcticonSymbol.listUnordered} />
