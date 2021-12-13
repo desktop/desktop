@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.9.6": [
+      "[Added] View and re-run the check runs for the checked out pull request.",
+      "[Fixed] Tooltip improvements and polish - #13452 #13449",
+      "[Fixed] Stashing dialog no longer hangs when initiating cherry-pick in some circumstances - #13419",
+      "[Fixed] Rebase no longer hangs after conflicts resolved when initiated through pull conflict error - #13204",
+      "[Improved] Allow amending pushed commits - #13384"
+    ],
     "2.9.5": [
       "[Added] Add custom tooltips for quicker and more helpful information - #6384",
       "[Added] Support PyCharm as an external editor - #13270. Thanks @stevetaggart!",
