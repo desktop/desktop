@@ -1,0 +1,64 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: (Enter short, one sentence summary of bug here)"
+labels: ["bug"]
+assignees:
+  -
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        
+  - type: checkboxes
+    id: no-issues-relating-to-this
+    attributes:
+      label: Duplicate Issues
+      description: Check to make sure there are no existing posts about your problem in the 'issues' section.
+      options:
+        - label: There are **no existing posts relating to my problem**
+          required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell me, what did you expect to happen?
+      placeholder: Tell me what you see!
+      value: "Well, I was trying to ... but then ..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Release version
+      description: What version of this program are you using?
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: This will allow me to figure out where the issue originates.
+      placeholder: Step 1, Step 2, Step 3...
+      value: |
+             1. 
+             2. 
+             3. 
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: What platform are you seeing this problem on?
+      description: Sometimes, problems can be platform-specific.
+      multiple: false
+      options:
+        - Windows
+        - MacOS
+        - Linux (can also be ChromeOS)
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Copy and paste from tracebacks, aka any error message text that appears during a program crash
+      render: shell
