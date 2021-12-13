@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.9.6-beta3": [
+      "[Fixed] Tooltip improvements and polish - #13452 #13449",
+      "[Improved] Add dynamic constraints for resizable components - #2745",
+      "[Improved] Remove re-run button for repositories that cannot re-run checks. - #13460"
+    ],
     "2.9.6-beta2": [
       "[Fixed] Stashing dialog no longer hangs when intiating cherry-pick - #13419",
       "[Fixed] Rebase no longer hangs after conflicts resolved when intiated through pull conflict error - #13204",
