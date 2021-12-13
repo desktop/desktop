@@ -34,7 +34,7 @@ export class PullRequestQuickView extends React.Component<
     )
   }
 
-  private renderPR = (): JSX.Element => {
+  private renderPR = () => {
     const { title, pullRequestNumber, base, body } = this.props.pullRequest
     const displayBody =
       body !== undefined && body !== null && body.trim() !== ''
