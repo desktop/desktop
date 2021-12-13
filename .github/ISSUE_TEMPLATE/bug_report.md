@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+<!---
+Before you create a issue, if you have a antivirus software installed, please disable it, run the program again and if you still get the error, report it here
+!--->
+
 ### Describe the bug
 Write a clear and concise description of what the bug is.
 
