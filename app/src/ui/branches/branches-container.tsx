@@ -80,6 +80,10 @@ export class BranchesContainer extends React.Component<
     return null
   }
 
+  private pullRequestQuickViewRef: React.RefObject<
+    HTMLDivElement
+  > = React.createRef()
+
   public constructor(props: IBranchesContainerProps) {
     super(props)
 
@@ -113,6 +117,7 @@ export class BranchesContainer extends React.Component<
 
     return (
       <PullRequestQuickView
+        ref={this.pullRequestQuickViewRef}
         dispatcher={this.props.dispatcher}
         pullRequest={this.state.pullRequestBeingViewed}
         onMouseLeave={this.onMouseLeavePullRequestQuickView}
@@ -321,7 +326,7 @@ export class BranchesContainer extends React.Component<
     // If we leave a list item, onto the pull request quick view, we don't want
     // to close the quick view
     const { relatedTarget } = event
-    const prQuickView = document.getElementById('pull-request-quick-view')
+    const prQuickView = this.pullRequestQuickViewRef.current
     if (
       relatedTarget !== null &&
       relatedTarget instanceof Node &&
