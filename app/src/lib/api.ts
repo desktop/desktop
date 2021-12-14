@@ -687,7 +687,7 @@ export class API {
 
   public async getAliveDesktopChannel(): Promise<IAPIAliveSignedChannel | null> {
     try {
-      const res = await this.request('GET', '/desktop_internal/live-channel')
+      const res = await this.request('GET', '/desktop_internal/alive-channel')
       const signedChannel = await parsedResponse<IAPIAliveSignedChannel>(res)
       return signedChannel
     } catch (e) {
@@ -698,11 +698,11 @@ export class API {
 
   public async getAliveWebSocket(): Promise<string | null> {
     try {
-      const res = await this.request('GET', `/live_internal/websocket-url`)
+      const res = await this.request('GET', `/alive_internal/websocket-url`)
       const websocket = await parsedResponse<IAPIAliveWebSocket>(res)
       return websocket.url
     } catch (e) {
-      log.warn(`Alive channel request failed: ${e}`)
+      log.warn(`Alive web socket request failed: ${e}`)
       return null
     }
   }
