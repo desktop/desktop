@@ -16,10 +16,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@github/alive-client@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@github/alive-client/-/alive-client-0.0.1.tgz#90fbfca1166e9c1fdd3a55c38bfd87c80f07f94a"
-  integrity sha512-5kVT7zRhoi11XJnuJ9OWckZeWles+XzKMXj4WhFfVqWjSpTnyu7bTLjRRIPEmd7mnmwGEcbtbofYiZ125SMn2Q==
+"@github/alive-client@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@github/alive-client/-/alive-client-0.0.2.tgz#77ccf103483f87930ca25ee8d69c4ab7b86be53f"
+  integrity sha512-wu4DSxv1rUchaf2Z+NWxYCYhk16k/syXFWCNDhBrriRqjguLrCFclzkOMYf7KqwuYAw1/Xd17WSGjzGOletMIQ==
   dependencies:
     "@github/multimap" "^1.0.0"
     "@github/stable-socket" "^1.1.0"

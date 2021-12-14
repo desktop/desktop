@@ -1,8 +1,7 @@
 import { AccountsStore } from './accounts-store'
 import { Account, accountEquals } from '../../models/account'
 import { API } from '../api'
-import AliveSession, { AliveEvent } from '../alive/alive-session'
-import { Subscription } from '../alive/subscription-set'
+import { AliveSession, AliveEvent, Subscription } from '@github/alive-client'
 import { Emitter } from 'event-kit'
 
 function accountIncluded(account: Account, accounts: ReadonlyArray<Account>) {
@@ -80,7 +79,7 @@ export class AliveStore {
 
     const aliveSession = new AliveSession(
       webSocketUrl,
-      webSocketUrl,
+      api.getAliveWebSocket,
       false,
       this.notify
     )
