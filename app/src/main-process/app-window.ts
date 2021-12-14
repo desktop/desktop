@@ -48,6 +48,8 @@ export class AppWindow {
         nodeIntegration: true,
         enableRemoteModule: true,
         spellcheck: true,
+        contextIsolation: false,
+        worldSafeExecuteJavaScript: false,
       },
       acceptFirstMouse: true,
     }

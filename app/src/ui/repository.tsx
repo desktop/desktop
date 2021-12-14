@@ -14,6 +14,7 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ChangesSelectionKind,
+  IConstrainedValue,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
@@ -35,18 +36,16 @@ import {
   AvailableDragAndDropIntroKeys,
 } from './history/drag-and-drop-intro'
 import { MultiCommitOperationKind } from '../models/multi-commit-operation'
-
-/** The widest the sidebar can be with the minimum window size. */
-const MaxSidebarWidth = 495
+import { clamp } from '../lib/clamp'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
-  readonly sidebarWidth: number
-  readonly commitSummaryWidth: number
-  readonly stashedFilesWidth: number
+  readonly sidebarWidth: IConstrainedValue
+  readonly commitSummaryWidth: IConstrainedValue
+  readonly stashedFilesWidth: IConstrainedValue
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
@@ -213,7 +212,7 @@ export class RepositoryView extends React.Component<
         : null) || null
 
     // -1 Because of right hand side border
-    const availableWidth = this.props.sidebarWidth - 1
+    const availableWidth = clamp(this.props.sidebarWidth) - 1
 
     const scrollTop =
       this.previousSection === RepositorySectionTab.History
@@ -234,7 +233,7 @@ export class RepositoryView extends React.Component<
         availableWidth={availableWidth}
         gitHubUserStore={this.props.gitHubUserStore}
         isCommitting={this.props.state.isCommitting}
-        isAmending={this.props.state.isAmending}
+        commitToAmend={this.props.state.commitToAmend}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
         focusCommitMessage={this.props.focusCommitMessage}
         askForConfirmationOnDiscardChanges={
@@ -338,10 +337,11 @@ export class RepositoryView extends React.Component<
       <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
         <Resizable
           id="repository-sidebar"
-          width={this.props.sidebarWidth}
+          width={this.props.sidebarWidth.value}
+          maximumWidth={this.props.sidebarWidth.max}
+          minimumWidth={this.props.sidebarWidth.min}
           onReset={this.handleSidebarWidthReset}
           onResize={this.handleSidebarResize}
-          maximumWidth={MaxSidebarWidth}
         >
           {this.renderTabs()}
           {this.renderSidebarContents()}
@@ -558,8 +558,12 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.revertCommit(this.props.repository, commit)
   }
 
-  private onAmendCommit = () => {
-    this.props.dispatcher.setAmendingRepository(this.props.repository, true)
+  private onAmendCommit = (commit: Commit, isLocalCommit: boolean) => {
+    this.props.dispatcher.startAmendingRepository(
+      this.props.repository,
+      commit,
+      isLocalCommit
+    )
   }
 
   public componentDidMount() {

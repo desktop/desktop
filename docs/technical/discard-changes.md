@@ -14,7 +14,7 @@ The `Discard Changes` flow is composed of multiple steps.
 
 ### Moving Files to Trash
 
-Electron provides the [`shell.moveItemToTrash(fullPath)`](https://electronjs.org/docs/api/shell#shellmoveitemtotrashfullpath)
+Electron provides the [`shell.trashItem(fullPath)`](https://www.electronjs.org/docs/api/shell#shelltrashitempath)
 API to manage moving files into the OS-specific trash.
 
 Desktop uses this API to move _all new or modified files_ out from the

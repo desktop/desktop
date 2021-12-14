@@ -79,6 +79,7 @@ export enum PopupType {
   SSHKeyPassphrase,
   PullRequestChecksFailed,
   CICheckRunRerun,
+  WarnForcePush,
 }
 
 export type Popup =
@@ -328,3 +329,4 @@ export type Popup =
       repository: GitHubRepository
       prRef: string
     }
+  | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }

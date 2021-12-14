@@ -857,18 +857,42 @@ export class Dispatcher {
     )
   }
 
-  /** Switch between amending the most recent commit and not. */
-  public async setAmendingRepository(
+  /** Start amending the most recent commit. */
+  public async startAmendingRepository(
     repository: Repository,
-    amending: boolean
+    commit: Commit,
+    isLocalCommit: boolean,
+    continueWithForcePush: boolean = false
   ) {
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { tip } = repositoryState.branchesState
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    if (
+      askForConfirmationOnForcePush &&
+      !continueWithForcePush &&
+      !isLocalCommit &&
+      tip.kind === TipState.Valid
+    ) {
+      return this.showPopup({
+        type: PopupType.WarnForcePush,
+        operation: 'Amend',
+        onBegin: () => {
+          this.startAmendingRepository(repository, commit, isLocalCommit, true)
+        },
+      })
+    }
+
     await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
 
-    this.appStore._setAmendingRepository(repository, amending)
+    this.appStore._setRepositoryCommitToAmend(repository, commit)
 
-    if (amending) {
-      this.statsStore.recordAmendCommitStarted()
-    }
+    this.statsStore.recordAmendCommitStarted()
+  }
+
+  /** Stop amending the most recent commit. */
+  public async stopAmendingRepository(repository: Repository) {
+    this.appStore._setRepositoryCommitToAmend(repository, null)
   }
 
   /** Undo the given commit. */
@@ -1041,23 +1065,26 @@ export class Dispatcher {
 
   /**
    * Update the per-repository list of branches that can be force-pushed
-   * after a rebase is completed.
+   * after a rebase or amend is completed.
    */
-  private addRebasedBranchToForcePushList = (
+  private addBranchToForcePushList = (
     repository: Repository,
     tipWithBranch: IValidBranch,
-    beforeRebaseSha: string
+    beforeChangeSha: string
   ) => {
-    this.appStore._addRebasedBranchToForcePushList(
+    this.appStore._addBranchToForcePushList(
       repository,
       tipWithBranch,
-      beforeRebaseSha
+      beforeChangeSha
     )
   }
 
   private dropCurrentBranchFromForcePushList = (repository: Repository) => {
     const currentState = this.repositoryStateManager.get(repository)
-    const { rebasedBranches, tip } = currentState.branchesState
+    const {
+      forcePushBranches: rebasedBranches,
+      tip,
+    } = currentState.branchesState
 
     if (tip.kind !== TipState.Valid) {
       return
@@ -1067,7 +1094,7 @@ export class Dispatcher {
     updatedMap.delete(tip.branch.nameWithoutRemote)
 
     this.repositoryStateManager.updateBranchesState(repository, () => ({
-      rebasedBranches: updatedMap,
+      forcePushBranches: updatedMap,
     }))
   }
 
@@ -3532,7 +3559,7 @@ export class Dispatcher {
       originalBranchTip !== null &&
       kind !== MultiCommitOperationKind.CherryPick
     ) {
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+      this.addBranchToForcePushList(repository, tip, originalBranchTip)
     }
 
     this.statsStore.recordOperationSuccessful(kind)
@@ -3770,9 +3797,24 @@ export class Dispatcher {
 
   public setShowCIStatusPopover(showCIStatusPopover: boolean) {
     this.appStore._setShowCIStatusPopover(showCIStatusPopover)
+    if (showCIStatusPopover) {
+      this.statsStore.recordCheckRunsPopoverOpened()
+    }
   }
 
   public _toggleCIStatusPopover() {
     this.appStore._toggleCIStatusPopover()
+  }
+
+  public recordCheckViewedOnline() {
+    this.statsStore.recordCheckViewedOnline()
+  }
+
+  public recordCheckJobStepViewedOnline() {
+    this.statsStore.recordCheckJobStepViewedOnline()
+  }
+
+  public recordRerunChecks() {
+    this.statsStore.recordRerunChecks()
   }
 }
