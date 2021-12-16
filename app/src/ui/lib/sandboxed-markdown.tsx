@@ -19,6 +19,9 @@ interface ISandboxedMarkdownProps {
    * this will not fire.
    */
   readonly onMarkdownLinkClicked?: (url: string) => void
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 /**

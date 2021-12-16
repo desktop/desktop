@@ -2576,6 +2576,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
         showCIStatusPopover={this.state.showCIStatusPopover}
+        emoji={this.state.emoji}
       />
     )
   }

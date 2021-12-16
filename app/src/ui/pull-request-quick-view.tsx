@@ -16,6 +16,9 @@ interface IPullRequestQuickViewProps {
 
   /** When mouse leaves the PR quick view */
   readonly onMouseLeave: () => void
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 export class PullRequestQuickView extends React.Component<
@@ -57,7 +60,11 @@ export class PullRequestQuickView extends React.Component<
             repository={base.gitHubRepository}
           />
         </div>
-        <SandboxedMarkdown markdown={displayBody} baseHref={this.baseHref} />
+        <SandboxedMarkdown
+          markdown={displayBody}
+          baseHref={this.baseHref}
+          emoji={this.props.emoji}
+        />
       </div>
     )
   }
