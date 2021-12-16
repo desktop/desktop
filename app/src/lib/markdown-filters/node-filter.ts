@@ -1,3 +1,5 @@
+import { EmojiFilter } from './emoji-filter'
+
 export interface INodeFilter {
   /**
    * Creates a document tree walker filtered to the nodes relevant to the node filter.
@@ -19,6 +21,19 @@ export interface INodeFilter {
    * emoji, the conversion to base 64 data uri is asynchronous
    * */
   filter(node: Node): Promise<ReadonlyArray<Node> | null>
+}
+
+/**
+ * Builds an array of node filters to apply to markdown html. Referring to it as pipe
+ * because they will be applied in the order they are entered in the returned
+ * array. This is important as some filters impact others.
+ *
+ * @param emoji Map from the emoji shortcut (e.g., :+1:) to the image's local path.
+ */
+export function buildCustomMarkDownFilterPipe(
+  emoji: Map<string, string>
+): ReadonlyArray<INodeFilter> {
+  return [new EmojiFilter(emoji)]
 }
 
 /**
