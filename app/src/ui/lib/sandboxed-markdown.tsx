@@ -3,9 +3,13 @@ import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import marked from 'marked'
 import DOMPurify from 'dompurify'
+import {
+  applyNodeFilters,
+  buildCustomMarkDownNodeFilterPipe,
+} from '../../lib/markdown-filters/node-filter'
 
 interface ISandboxedMarkdownProps {
-  /** A string of unparsed markdownm to display */
+  /** A string of unparsed markdown to display */
   readonly markdown: string
 
   /** The baseHref of the markdown content for when the markdown has relative links */
@@ -182,6 +186,8 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     const sanitizedHTML = DOMPurify.sanitize(parsedMarkdown)
 
+    const filteredHTML = await this.applyCustomMarkdownFilters(sanitizedHTML)
+
     const src = `
       <html>
         <head>
@@ -189,7 +195,7 @@ export class SandboxedMarkdown extends React.PureComponent<
           ${styleSheet}
         </head>
         <body class="markdown-body">
-          ${sanitizedHTML}
+          ${filteredHTML}
         </body>
       </html>
     `
@@ -203,6 +209,17 @@ export class SandboxedMarkdown extends React.PureComponent<
     // parent dom and we want all rendering to be isolated to our sandboxed iframe.
     // -- https://csplite.com/csp/test188/
     this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
+  }
+
+  /**
+   * Applies custom markdown filters to parsed markdown html. This is done
+   * through converting the markdown html into a DOM document and then
+   * traversing the nodes to apply custom filters such as emoji, issue, username
+   * mentions, etc.
+   */
+  private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
+    const nodeFilters = buildCustomMarkDownNodeFilterPipe(this.props.emoji)
+    return applyNodeFilters(nodeFilters, parsedMarkdown)
   }
 
   public render() {

@@ -30,7 +30,7 @@ export interface INodeFilter {
  *
  * @param emoji Map from the emoji shortcut (e.g., :+1:) to the image's local path.
  */
-export function buildCustomMarkDownFilterPipe(
+export function buildCustomMarkDownNodeFilterPipe(
   emoji: Map<string, string>
 ): ReadonlyArray<INodeFilter> {
   return [new EmojiFilter(emoji)]
