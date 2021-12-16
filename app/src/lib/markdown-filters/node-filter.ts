@@ -5,7 +5,7 @@ export interface INodeFilter {
    * Creates a document tree walker filtered to the nodes relevant to the node filter.
    *
    * Examples:
-   * 1) An Emoji filter operates on all text nodes.
+   * 1) An Emoji filter operates on all text nodes, but not inside pre or code tags.
    * 2) The issue mention filter operates on all text nodes, but not inside pre, code, or anchor tags
    */
   createFilterTreeWalker(doc: Document): TreeWalker

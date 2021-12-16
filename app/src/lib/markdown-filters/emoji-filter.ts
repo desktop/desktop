@@ -26,10 +26,17 @@ export class EmojiFilter implements INodeFilter {
   }
 
   /**
-   * Emoji filter iterates on all text nodes.
+   * Emoji filter iterates on all text nodes that are not inside a pre or code tag.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return document.createTreeWalker(doc, NodeFilter.SHOW_TEXT, null)
+    return document.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        return node.parentNode !== null &&
+          ['CODE', 'PRE'].includes(node.parentNode.nodeName)
+          ? NodeFilter.FILTER_SKIP
+          : NodeFilter.FILTER_ACCEPT
+      },
+    })
   }
 
   /**
