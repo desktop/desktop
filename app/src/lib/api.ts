@@ -11,7 +11,7 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
-import username from 'username'
+import { username } from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
 import JSZip from 'jszip'
@@ -1540,13 +1540,13 @@ export async function fetchMetadata(
 
 /** The note used for created authorizations. */
 async function getNote(): Promise<string> {
-  let localUsername = 'unknown'
-  try {
-    localUsername = await username()
-  } catch (e) {
+  let localUsername = await username()
+
+  if (localUsername === undefined) {
+    localUsername = 'unknown'
+
     log.error(
-      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`,
-      e
+      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`
     )
   }
 
