@@ -38,7 +38,7 @@ export class PullRequestQuickView extends React.Component<
     )
   }
 
-  private renderPRStatus(isDraft: boolean): JSX.Element {
+  private renderPRStatus(isDraft: boolean) {
     return (
       <div className={classNames('status', { draft: isDraft })}>
         <Octicon
