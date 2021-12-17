@@ -108,14 +108,14 @@ function checkConstraint(
   epMatchesType: boolean,
   epVersion?: semver.SemVer
 ) {
+  // Denial of endpoint type regardless of version
+  if (epConstraint === false) {
+    return false
+  }
+
   // Approval of endpoint type regardless of version
   if (epConstraint === true) {
     return epMatchesType
-  }
-
-  // Denial of endpoint type regardless of version
-  if (epConstraint === false) {
-    return !epMatchesType
   }
 
   // Version number constraint
