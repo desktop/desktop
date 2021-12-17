@@ -39,9 +39,14 @@ const assumedGHESVersion = new semver.SemVer('3.1.0')
  */
 const assumedGHAEVersion = new semver.SemVer('3.3.0')
 
+/** Stores raw x-github-enterprise-version headers keyed on endpoint */
 const rawVersionCache = new Map<string, string>()
-const versionCache = new Map<string, semver.SemVer>()
-const endpointVersionKey = (ep: string) => `endpoint-version/${ep}`
+
+/** Stores parsed x-github-enterprise-version headers keyed on endpoint */
+const versionCache = new Map<string, semver.SemVer | null>()
+
+/** Get the cache key for a given endpoint address */
+const endpointVersionKey = (ep: string) => `endpoint-version:${ep}`
 
 /**
  * Whether or not the given endpoint URI matches GitHub.com's
@@ -61,7 +66,7 @@ export const isGHAE = (ep: string) => /^https:\/\/\w+\.ghe\.com$/i.test(ep)
 
 /**
  * Whether or not the given endpoint URI appears to point to a GitHub Enterprise
- * servicer instance
+ * Server instance
  */
 export const isGHES = (ep: string) => !isDotCom(ep) && !isGHAE(ep)
 
