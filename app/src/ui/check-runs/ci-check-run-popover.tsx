@@ -12,7 +12,11 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
-import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
+import {
+  APICheckConclusion,
+  getDotComAPIEndpoint,
+  IAPIWorkflowJobStep,
+} from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
@@ -204,7 +208,7 @@ export class CICheckRunPopover extends React.PureComponent<
 
   private getPopoverPositioningStyles = (): React.CSSProperties => {
     const top = this.props.badgeBottom + 10
-    return { top, maxHeight: `calc(100% - ${top + 10}px)` }
+    return { top }
   }
 
   private getListHeightStyles = (): React.CSSProperties => {
@@ -218,6 +222,10 @@ export class CICheckRunPopover extends React.PureComponent<
 
   private renderRerunButton = () => {
     const { checkRuns } = this.state
+    if (this.props.repository.endpoint !== getDotComAPIEndpoint()) {
+      return null
+    }
+
     return (
       <Button
         onClick={this.rerunChecks}
@@ -320,7 +328,7 @@ export class CICheckRunPopover extends React.PureComponent<
       )
 
     return (
-      <div className="ci-check-run-list-header">
+      <div className="ci-check-run-list-header" tabIndex={0}>
         <div className="completeness-indicator">
           {this.renderCompletenessIndicator(
             allSuccess,
@@ -352,7 +360,10 @@ export class CICheckRunPopover extends React.PureComponent<
     }
 
     return (
-      <div className="ci-check-run-list" style={this.getListHeightStyles()}>
+      <div
+        className="ci-check-run-list-container"
+        style={this.getListHeightStyles()}
+      >
         <CICheckRunList
           checkRuns={checkRuns}
           loadingActionLogs={loadingActionLogs}

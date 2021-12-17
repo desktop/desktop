@@ -80,6 +80,8 @@ export class BranchesContainer extends React.Component<
     return null
   }
 
+  private pullRequestQuickViewTimerId: number | null = null
+
   public constructor(props: IBranchesContainerProps) {
     super(props)
 
@@ -90,6 +92,10 @@ export class BranchesContainer extends React.Component<
       branchFilterText: '',
       pullRequestBeingViewed: null,
     }
+  }
+
+  public componentWillUnmount = () => {
+    this.clearPullRequestQuickViewTimer()
   }
 
   public render() {
@@ -115,17 +121,21 @@ export class BranchesContainer extends React.Component<
       <PullRequestQuickView
         dispatcher={this.props.dispatcher}
         pullRequest={this.state.pullRequestBeingViewed}
+        onMouseEnter={this.onMouseEnterPullRequestQuickView}
         onMouseLeave={this.onMouseLeavePullRequestQuickView}
       />
     )
   }
 
+  private onMouseEnterPullRequestQuickView = () => {
+    this.clearPullRequestQuickViewTimer()
+  }
+
   private onMouseLeavePullRequestQuickView = () => {
-    /*
     this.setState({
       pullRequestBeingViewed: null,
     })
-    */
+    this.clearPullRequestQuickViewTimer()
   }
 
   private renderMergeButtonRow() {
@@ -314,26 +324,20 @@ export class BranchesContainer extends React.Component<
   private onMouseEnterPullRequestListItem = (
     pullRequestBeingViewed: PullRequest
   ) => {
-    this.setState({ pullRequestBeingViewed })
+    this.clearPullRequestQuickViewTimer()
+    this.setState({ pullRequestBeingViewed: null })
+    this.pullRequestQuickViewTimerId = window.setTimeout(
+      () => this.setState({ pullRequestBeingViewed }),
+      250
+    )
   }
 
-  private onMouseLeavePullRequestListItem = async (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {
-    // If we leave a list item, onto the pull request quick view, we don't want
-    // to close the quick view
-    const { relatedTarget } = event
-    const prQuickView = document.getElementById('pull-request-quick-view')
-    if (
-      relatedTarget !== null &&
-      relatedTarget instanceof Node &&
-      prQuickView !== null &&
-      prQuickView.contains(relatedTarget)
-    ) {
-      return
-    }
-
-    this.setState({ pullRequestBeingViewed: null })
+  private onMouseLeavePullRequestListItem = async () => {
+    this.clearPullRequestQuickViewTimer()
+    this.pullRequestQuickViewTimerId = window.setTimeout(
+      () => this.setState({ pullRequestBeingViewed: null }),
+      500
+    )
   }
 
   private onTabClicked = (tab: BranchesTab) => {
@@ -464,5 +468,14 @@ export class BranchesContainer extends React.Component<
     if (dragAndDropManager.isDragOfType(DragType.Commit)) {
       this.props.dispatcher.recordDragStartedAndCanceled()
     }
+  }
+
+  private clearPullRequestQuickViewTimer = () => {
+    if (this.pullRequestQuickViewTimerId === null) {
+      return
+    }
+
+    window.clearTimeout(this.pullRequestQuickViewTimerId)
+    this.pullRequestQuickViewTimerId = null
   }
 }
