@@ -12,6 +12,8 @@ interface IPullRequestQuickViewProps {
   readonly dispatcher: Dispatcher
   readonly pullRequest: PullRequest
 
+  readonly pullRequestItemTop: number
+
   /** When mouse leaves the PR quick view */
   readonly onMouseEnter: () => void
 
