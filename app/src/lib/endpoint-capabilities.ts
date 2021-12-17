@@ -132,11 +132,11 @@ function checkConstraint(
  */
 export const endpointSatisfies = (
   { dotcom, ae, es }: VersionConstraint,
-  endpointVersion?: semver.SemVer
+  getVersion = getEndpointVersion
 ) => (ep: string) =>
   checkConstraint(dotcom, isDotCom(ep)) ||
   checkConstraint(ae, isGHAE(ep), assumedGHAEVersion) ||
-  checkConstraint(es, isGHES(ep), endpointVersion ?? getEndpointVersion(ep))
+  checkConstraint(es, isGHES(ep), getVersion(ep) ?? assumedGHESVersion)
 
 /**
  * Whether or not the endpoint supports the internal GitHub Enterprise Server
