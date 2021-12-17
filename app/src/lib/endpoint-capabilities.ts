@@ -2,7 +2,7 @@ import * as semver from 'semver'
 import { getDotComAPIEndpoint } from './api'
 import { assertNonNullable } from './fatal-error'
 
-type VersionConstraint = {
+export type VersionConstraint = {
   /** Whether this constrain will be satisfied when using GitHub.com */
   dotcom: boolean
   /**
