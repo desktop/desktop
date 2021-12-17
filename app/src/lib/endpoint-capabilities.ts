@@ -62,7 +62,8 @@ export const isDotCom = (ep: string) => ep === getDotComAPIEndpoint()
  * Whether or not the given endpoint URI appears to point to a GitHub AE
  * instance
  */
-export const isGHAE = (ep: string) => /^https:\/\/\w+\.ghe\.com$/i.test(ep)
+export const isGHAE = (ep: string) =>
+  /^https:\/\/[a-z0-9-]+\.ghe\.com$/i.test(ep)
 
 /**
  * Whether or not the given endpoint URI appears to point to a GitHub Enterprise
