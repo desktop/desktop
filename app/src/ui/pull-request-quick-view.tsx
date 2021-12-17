@@ -69,7 +69,7 @@ export class PullRequestQuickView extends React.Component<
   public render() {
     return (
       <div
-        id="pull-request-quick-view"
+        className="pull-request-quick-view"
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
       >
