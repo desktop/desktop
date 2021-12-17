@@ -48,7 +48,7 @@ export interface IPullRequestListItemProps {
   readonly onDropOntoPullRequest: (prNumber: number) => void
 
   /** When mouse enters a PR */
-  readonly onMouseEnter: (prNumber: number) => void
+  readonly onMouseEnter: (prNumber: number, prListItemTop: number) => void
 
   /** When mouse leaves a PR */
   readonly onMouseLeave: (
@@ -81,7 +81,7 @@ export class PullRequestListItem extends React.Component<
     return this.props.draft ? `${subtitle} • Draft` : subtitle
   }
 
-  private onMouseEnter = () => {
+  private onMouseEnter = (e: React.MouseEvent) => {
     if (dragAndDropManager.isDragInProgress) {
       this.setState({ isDragInProgress: true })
 
@@ -90,7 +90,8 @@ export class PullRequestListItem extends React.Component<
         branchName: this.props.title,
       })
     }
-    this.props.onMouseEnter(this.props.number)
+    const { top } = e.currentTarget.getBoundingClientRect()
+    this.props.onMouseEnter(this.props.number, top)
   }
 
   private onMouseLeave = (
@@ -131,7 +132,14 @@ export class PullRequestListItem extends React.Component<
         onMouseUp={this.onMouseUp}
       >
         <div>
-          <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+          <Octicon
+            className="icon"
+            symbol={
+              this.props.draft
+                ? OcticonSymbol.gitPullRequestDraft
+                : OcticonSymbol.gitPullRequest
+            }
+          />
         </div>
         <div className="info">
           <div className="title" title={title}>
