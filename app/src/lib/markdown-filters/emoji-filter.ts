@@ -1,7 +1,6 @@
 import { fatalError } from '../fatal-error'
 import { INodeFilter } from './node-filter'
 import * as FSE from 'fs-extra'
-import { escapeRegExp } from '../helpers/regex'
 import uri2path from 'file-uri-to-path'
 
 /**
@@ -17,7 +16,6 @@ import uri2path from 'file-uri-to-path'
  * no longer have access to the local file paths.
  */
 export class EmojiFilter implements INodeFilter {
-  private readonly emojiRegex: RegExp
   private readonly emojiFilePath: Map<string, string>
   private readonly emojiBase64URICache: Map<string, string> = new Map()
 
@@ -26,7 +24,6 @@ export class EmojiFilter implements INodeFilter {
    */
   public constructor(emojiFilePath: Map<string, string>) {
     this.emojiFilePath = emojiFilePath
-    this.emojiRegex = this.buildEmojiRegExp(emojiFilePath)
   }
 
   /**
@@ -62,7 +59,10 @@ export class EmojiFilter implements INodeFilter {
     }
 
     let text = node.textContent
-    const emojiMatches = text.match(this.emojiRegex)
+    // Matches groups of one or more (+) non white space (\S) characters between two :'s
+    // Lazy quantifier ? so :emoji:notemoji:emoji: is not one complete match, but :emoji: and :emoji: will be.
+    const emojiRegex: RegExp = /(:\S+?:)/g
+    const emojiMatches = text.match(emojiRegex)
     if (emojiMatches === null) {
       return null
     }
@@ -120,19 +120,5 @@ export class EmojiFilter implements INodeFilter {
     this.emojiBase64URICache.set(filePath, uri)
 
     return uri
-  }
-
-  /**
-   * Builds a regular expression that is looking for all group of characters
-   * that represents any emoji ref (or map key) in the provided map.
-   *
-   * @param emoji Map from the emoji ref (e.g., :+1:) to the image's local path.
-   */
-  private buildEmojiRegExp(emoji: Map<string, string>): RegExp {
-    const emojiGroups = [...emoji.keys()]
-      .map(emoji => escapeRegExp(emoji))
-      .join('|')
-      .slice(0, -1)
-    return new RegExp('(' + emojiGroups + ')', 'g')
   }
 }
