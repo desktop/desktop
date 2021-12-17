@@ -39,6 +39,10 @@
         .state {
           margin-left: var(--spacing-half);
         }
+
+        &.draft {
+          background-color: var(--pr-draft-icon-color);
+        }
       }
 
       .title {
