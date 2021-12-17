@@ -27,7 +27,8 @@ function createSamplePullRequest(gitHubRepository: GitHubRepository) {
       gitHubRepository,
     },
     'shiftkey',
-    false
+    false,
+    'something body'
   )
 }
 

@@ -32,6 +32,7 @@ export class PullRequest {
     public readonly head: PullRequestRef,
     public readonly base: PullRequestRef,
     public readonly author: string,
-    public readonly draft: boolean
+    public readonly draft: boolean,
+    public readonly body: string
   ) {}
 }
