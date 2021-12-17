@@ -72,41 +72,35 @@ export const isGHAE = (ep: string) =>
 export const isGHES = (ep: string) => !isDotCom(ep) && !isGHAE(ep)
 
 function getEndpointVersion(endpoint: string) {
-  const cached = versionCache.get(endpoint)
+  const key = endpointVersionKey(endpoint)
+  const cached = versionCache.get(key)
+
   if (cached !== undefined) {
     return cached
   }
 
-  const key = endpointVersionKey(endpoint)
-  const raw = localStorage.get(key)
-  const parsed = semver.parse(raw)
+  const raw = localStorage.getItem(key)
+  const parsed = raw === null ? null : semver.parse(raw)
 
   if (parsed !== null) {
-    rawVersionCache.set(endpoint, raw)
-    versionCache.set(endpoint, parsed)
+    versionCache.set(key, parsed)
   }
 
-  return parsed ?? assumedGHESVersion
+  return parsed
 }
 
 /**
  * Update the known version number for a given endpoint
  */
 export function updateEndpointVersion(endpoint: string, version: string) {
-  if (rawVersionCache.get(endpointVersionKey(endpoint)) === version) {
-    return
-  }
-
-  const parsed = semver.parse(version)
-
-  if (parsed === null) {
-    return
-  }
-
   const key = endpointVersionKey(endpoint)
-  localStorage.setItem(key, version)
-  rawVersionCache.set(key, version)
-  versionCache.set(key, parsed)
+
+  if (rawVersionCache.get(key) !== version) {
+    const parsed = semver.parse(version)
+    localStorage.setItem(key, version)
+    rawVersionCache.set(key, version)
+    versionCache.set(key, parsed)
+  }
 }
 
 function checkConstraint(
