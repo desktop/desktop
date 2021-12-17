@@ -1,5 +1,8 @@
 import { fatalError } from '../fatal-error'
 import { INodeFilter } from './node-filter'
+import * as FSE from 'fs-extra'
+import { escapeRegExp } from '../helpers/regex'
+import uri2path from 'file-uri-to-path'
 
 /**
  * The Emoji Markdown filter will take a text node and create multiple text and
@@ -29,7 +32,7 @@ export class EmojiFilter implements INodeFilter {
    * Emoji filter iterates on all text nodes that are not inside a pre or code tag.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return document.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
+    return doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
         return node.parentNode !== null &&
           ['CODE', 'PRE'].includes(node.parentNode.nodeName)
@@ -119,40 +122,8 @@ export class EmojiFilter implements INodeFilter {
 /**
  * Method to obtain an images base 64 data uri from it's file path.
  */
-function getBase64FromImageUrl(url: string): Promise<string> {
-  return new Promise(resolve => {
-    const img = new Image()
-    img.src = url
-
-    img.onload = function (e) {
-      const image = e.currentTarget
-      if (!(image instanceof Image)) {
-        resolve('')
-        return
-      }
-
-      const canvas = document.createElement('canvas')
-      canvas.width = image.width
-      canvas.height = image.height
-
-      const ctx = canvas.getContext('2d')
-
-      if (ctx === null) {
-        resolve('')
-        return
-      }
-      ctx.drawImage(image, 0, 0)
-
-      resolve(canvas.toDataURL())
-    }
-  })
-}
-
-/**
- * Add backslash in front of regular expression special characters
- *
- * See Escaping in https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
- */
-function escapeRegExp(str: string) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
+async function getBase64FromImageUrl(filePath: string): Promise<string> {
+  const imageBuffer = await FSE.readFile(uri2path(filePath))
+  const b64src = imageBuffer.toString('base64')
+  return `data:image/png;base64,${b64src}`
 }
