@@ -145,7 +145,7 @@ export function enableSSHAskPass(): boolean {
 
 /** Should we show ci check runs? */
 export function enableCICheckRuns(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should ci check runs show logs? */
