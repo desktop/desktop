@@ -67,7 +67,10 @@ interface IPullRequestListProps {
   readonly isLoadingPullRequests: boolean
 
   /** When mouse enters a PR */
-  readonly onMouseEnterPullRequest: (prNumber: PullRequest) => void
+  readonly onMouseEnterPullRequest: (
+    prNumber: PullRequest,
+    prListItemTop: number
+  ) => void
 
   /** When mouse leaves a PR */
   readonly onMouseLeavePullRequest: (
@@ -187,7 +190,10 @@ export class PullRequestList extends React.Component<
     )
   }
 
-  private onMouseEnterPullRequest = (prNumber: number) => {
+  private onMouseEnterPullRequest = (
+    prNumber: number,
+    prListItemTop: number
+  ) => {
     const { pullRequests } = this.props
 
     // If not the currently checked out pull request, find the full pull request
@@ -198,7 +204,7 @@ export class PullRequestList extends React.Component<
       return
     }
 
-    this.props.onMouseEnterPullRequest(pr)
+    this.props.onMouseEnterPullRequest(pr, prListItemTop)
   }
 
   private onMouseLeavePullRequest = (
