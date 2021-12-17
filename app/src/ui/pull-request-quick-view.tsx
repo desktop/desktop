@@ -23,8 +23,6 @@ export class PullRequestQuickView extends React.Component<
   IPullRequestQuickViewProps,
   {}
 > {
-  private baseHref = 'https://github.com/'
-
   private viewOnGitHub = () => {
     this.props.dispatcher.showPullRequestByPR(this.props.pullRequest)
   }
@@ -82,7 +80,10 @@ export class PullRequestQuickView extends React.Component<
             repository={base.gitHubRepository}
           />
         </div>
-        <SandboxedMarkdown markdown={displayBody} baseHref={this.baseHref} />
+        <SandboxedMarkdown
+          markdown={displayBody}
+          baseHref={base.gitHubRepository.htmlURL}
+        />
       </div>
     )
   }
