@@ -22,12 +22,16 @@ export class PullRequestQuickView extends React.Component<
   IPullRequestQuickViewProps,
   {}
 > {
+  private viewOnGitHub = () => {
+    this.props.dispatcher.showPullRequestByPR(this.props.pullRequest)
+  }
+
   private renderHeader = () => {
     return (
       <header className="header">
         <Octicon symbol={OcticonSymbol.listUnordered} />
         <div className="action-needed">Review requested</div>
-        <Button className="button-with-icon">
+        <Button className="button-with-icon" onClick={this.viewOnGitHub}>
           View on GitHub
           <Octicon symbol={OcticonSymbol.linkExternal} />
         </Button>

@@ -5627,13 +5627,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (currentPullRequest === null) {
       return
     }
-    const { htmlURL: baseRepoUrl } = currentPullRequest.base.gitHubRepository
+
+    return this._showPullRequestByPR(currentPullRequest)
+  }
+
+  public async _showPullRequestByPR(pr: PullRequest): Promise<void> {
+    const { htmlURL: baseRepoUrl } = pr.base.gitHubRepository
 
     if (baseRepoUrl === null) {
       return
     }
 
-    const showPrUrl = `${baseRepoUrl}/pull/${currentPullRequest.pullRequestNumber}`
+    const showPrUrl = `${baseRepoUrl}/pull/${pr.pullRequestNumber}`
 
     await this._openInBrowser(showPrUrl)
   }
