@@ -76,22 +76,17 @@ async function applyNodeFilter(
   const walker = nodeFilter.createFilterTreeWalker(mdDoc)
 
   let textNode = walker.nextNode()
-  const replacementMap = new Map<Node, ReadonlyArray<Node>>()
   while (textNode !== null) {
     const replacementNodes = await nodeFilter.filter(textNode)
-    if (replacementNodes !== null) {
-      replacementMap.set(textNode, replacementNodes)
-    }
+    const currentNode = textNode
     textNode = walker.nextNode()
-  }
-
-  for (const [toReplace, replacements] of replacementMap.entries()) {
-    const { parentElement } = toReplace
-    if (parentElement === null) {
-      // Shouldn't happen since all the toReplace are at a minimum children of mdDoc
+    if (replacementNodes === null) {
       continue
     }
-    parentElement.append(...replacements)
-    parentElement.removeChild(toReplace)
+
+    for (const replacementNode of replacementNodes) {
+      currentNode.parentNode?.insertBefore(replacementNode, currentNode)
+    }
+    currentNode.parentNode?.removeChild(currentNode)
   }
 }
