@@ -55,11 +55,7 @@ export async function applyNodeFilters(
     await applyNodeFilter(nodeFilter, mdDoc)
   }
 
-  // https://developer.mozilla.org/en-US/docs/Web/API/XMLSerializer
-  // Note: This will convert html special entities into their html refs ("<"
-  // becomes "&lt"); You can't inject html in to the provided DOM document as a
-  // string, it must be a node element.
-  return new XMLSerializer().serializeToString(mdDoc)
+  return mdDoc.documentElement.innerHTML
 }
 
 /**
