@@ -15,6 +15,7 @@ import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
 import JSZip from 'jszip'
+import { updateEndpointVersion } from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -1264,6 +1265,8 @@ export class API {
       API.emitTokenInvalidated(this.endpoint)
     }
 
+    tryUpdateEndpointVersionFromResponse(this.endpoint, response)
+
     return response
   }
 
@@ -1416,6 +1419,8 @@ export async function createAuthorization(
     }
   )
 
+  tryUpdateEndpointVersionFromResponse(endpoint, response)
+
   try {
     const result = await parsedResponse<IAPIAuthorization>(response)
     if (result) {
@@ -1521,6 +1526,8 @@ export async function fetchMetadata(
     const response = await request(endpoint, null, 'GET', 'meta', undefined, {
       'Content-Type': 'application/json',
     })
+
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
 
     const result = await parsedResponse<IServerMetadata>(response)
     if (!result || result.verifiable_password_authentication === undefined) {
@@ -1653,6 +1660,8 @@ export async function requestOAuthToken(
         code: code,
       }
     )
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
     const result = await parsedResponse<IAPIAccessToken>(response)
     return result.access_token
   } catch (e) {
@@ -1665,4 +1674,14 @@ function getOAuthScopesForEndpoint(endpoint: string) {
   return endpoint === getDotComAPIEndpoint()
     ? DotComOAuthScopes
     : EnterpriseOAuthScopes
+}
+
+function tryUpdateEndpointVersionFromResponse(
+  endpoint: string,
+  response: Response
+) {
+  const gheVersion = response.headers.get('x-github-enterprise-version')
+  if (gheVersion !== null) {
+    updateEndpointVersion(endpoint, gheVersion)
+  }
 }
