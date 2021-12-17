@@ -12,17 +12,14 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { Button } from '../lib/button'
-import {
-  APICheckConclusion,
-  getDotComAPIEndpoint,
-  IAPIWorkflowJobStep,
-} from '../../lib/api'
+import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Donut } from '../donut'
+import { supportsRerunningChecks } from '../../lib/endpoint-capabilities'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -222,7 +219,7 @@ export class CICheckRunPopover extends React.PureComponent<
 
   private renderRerunButton = () => {
     const { checkRuns } = this.state
-    if (this.props.repository.endpoint !== getDotComAPIEndpoint()) {
+    if (!supportsRerunningChecks(this.props.repository.endpoint)) {
       return null
     }
 
