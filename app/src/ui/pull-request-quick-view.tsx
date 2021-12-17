@@ -13,6 +13,9 @@ interface IPullRequestQuickViewProps {
   readonly pullRequest: PullRequest
 
   /** When mouse leaves the PR quick view */
+  readonly onMouseEnter: () => void
+
+  /** When mouse leaves the PR quick view */
   readonly onMouseLeave: () => void
 }
 
@@ -22,7 +25,7 @@ export class PullRequestQuickView extends React.Component<
 > {
   private baseHref = 'https://github.com/'
 
-  private renderHeader = (): JSX.Element => {
+  private renderHeader = () => {
     return (
       <header className="header">
         <Octicon symbol={OcticonSymbol.listUnordered} />
@@ -51,7 +54,7 @@ export class PullRequestQuickView extends React.Component<
     )
   }
 
-  private renderPR = (): JSX.Element => {
+  private renderPR = () => {
     const {
       title,
       pullRequestNumber,
@@ -86,7 +89,11 @@ export class PullRequestQuickView extends React.Component<
 
   public render() {
     return (
-      <div id="pull-request-quick-view" onMouseLeave={this.onMouseLeave}>
+      <div
+        className="pull-request-quick-view"
+        onMouseEnter={this.props.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+      >
         <div className="pull-request-quick-view-contents">
           {this.renderHeader()}
           {this.renderPR()}
