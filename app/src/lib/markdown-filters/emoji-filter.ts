@@ -18,14 +18,15 @@ import uri2path from 'file-uri-to-path'
  */
 export class EmojiFilter implements INodeFilter {
   private readonly emojiRegex: RegExp
-  private readonly emoji: Map<string, string>
+  private readonly emojiFilePath: Map<string, string>
+  private readonly emojiBase64URICache: Map<string, string> = new Map()
 
   /**
    * @param emoji Map from the emoji ref (e.g., :+1:) to the image's local path.
    */
-  public constructor(emoji: Map<string, string>) {
-    this.emoji = emoji
-    this.emojiRegex = this.buildEmojiRegExp(emoji)
+  public constructor(emojiFilePath: Map<string, string>) {
+    this.emojiFilePath = emojiFilePath
+    this.emojiRegex = this.buildEmojiRegExp(emojiFilePath)
   }
 
   /**
@@ -69,7 +70,7 @@ export class EmojiFilter implements INodeFilter {
     const nodes: Array<Text | HTMLImageElement> = []
     for (let i = 0; i < emojiMatches.length; i++) {
       const emojiKey = emojiMatches[i]
-      const emojiPath = this.emoji.get(emojiKey)
+      const emojiPath = this.emojiFilePath.get(emojiKey)
       if (emojiPath === undefined) {
         continue
       }
@@ -97,11 +98,28 @@ export class EmojiFilter implements INodeFilter {
    * Method to build an emoji image node to insert in place of the emoji ref
    */
   private async createEmojiNode(emojiPath: string) {
-    const dataURI = await getBase64FromImageUrl(emojiPath)
+    const dataURI = await this.getBase64FromImageUrl(emojiPath)
     const emojiImg = new Image()
     emojiImg.classList.add('emoji')
     emojiImg.src = dataURI
     return emojiImg
+  }
+
+  /**
+   * Method to obtain an images base 64 data uri from it's file path.
+   * - It checks cache, if not, reads from file, then stores in cache.
+   */
+  private async getBase64FromImageUrl(filePath: string): Promise<string> {
+    const cached = this.emojiBase64URICache.get(filePath)
+    if (cached !== undefined) {
+      return cached
+    }
+    const imageBuffer = await FSE.readFile(uri2path(filePath))
+    const b64src = imageBuffer.toString('base64')
+    const uri = `data:image/png;base64,${b64src}`
+    this.emojiBase64URICache.set(filePath, uri)
+
+    return uri
   }
 
   /**
@@ -117,13 +135,4 @@ export class EmojiFilter implements INodeFilter {
       .slice(0, -1)
     return new RegExp('(' + emojiGroups + ')', 'g')
   }
-}
-
-/**
- * Method to obtain an images base 64 data uri from it's file path.
- */
-async function getBase64FromImageUrl(filePath: string): Promise<string> {
-  const imageBuffer = await FSE.readFile(uri2path(filePath))
-  const b64src = imageBuffer.toString('base64')
-  return `data:image/png;base64,${b64src}`
 }
