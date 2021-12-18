@@ -71,6 +71,10 @@ const editors: ILinuxExternalEditor[] = [
     name: 'GNOME Text Editor',
     paths: ['/usr/bin/gedit'],
   },
+  {
+    name: 'Notepadqq',
+    paths: ['/usr/bin/notepadqq'],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
