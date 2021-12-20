@@ -32,6 +32,9 @@ interface IRepositoryListItemProps {
   /** Called when the repository should be shown in Finder/Explorer/File Manager. */
   readonly onShowRepository: (repository: Repositoryish) => void
 
+  /** Called when the repository should be opened on GitHub in the default web browser. */
+  readonly onViewOnGitHub: (repository: Repositoryish) => void
+
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
 
@@ -165,6 +168,10 @@ export class RepositoryListItem extends React.Component<
       },
       { type: 'separator' },
       {
+        label: 'View on GitHub',
+        action: this.viewOnGitHub,
+      },
+      {
         label: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
         enabled: !missing,
@@ -222,6 +229,10 @@ export class RepositoryListItem extends React.Component<
 
   private showRepository = () => {
     this.props.onShowRepository(this.props.repository)
+  }
+
+  private viewOnGitHub = () => {
+    this.props.onViewOnGitHub(this.props.repository)
   }
 
   private openInShell = () => {
