@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell, session } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell, session, dialog } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
 
@@ -165,6 +165,7 @@ if (!handlingSquirrelEvent) {
   })
 
   if (isDuplicateInstance) {
+    dialog.showMessageBox("Another instance of Github Desktop is already running");
     app.quit()
   }
 }
