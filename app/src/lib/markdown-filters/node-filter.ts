@@ -1,4 +1,5 @@
 import { EmojiFilter } from './emoji-filter'
+import { IssueMentionFilter } from './issue-mention-filter'
 
 export interface INodeFilter {
   /**
@@ -33,7 +34,7 @@ export interface INodeFilter {
 export function buildCustomMarkDownNodeFilterPipe(
   emoji: Map<string, string>
 ): ReadonlyArray<INodeFilter> {
-  return [new EmojiFilter(emoji)]
+  return [new EmojiFilter(emoji), new IssueMentionFilter()]
 }
 
 /**
