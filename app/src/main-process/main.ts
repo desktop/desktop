@@ -89,9 +89,8 @@ if (__DEV__) {
 // Also support Desktop Classic's protocols.
 if (__DARWIN__) {
   possibleProtocols.add('github-mac')
-} else if (__WIN32__) {
-  possibleProtocols.add('github-windows')
 }
+possibleProtocols.add('github-windows')
 
 app.on('window-all-closed', () => {
   // If we don't subscribe to this event and all windows are closed, the default
