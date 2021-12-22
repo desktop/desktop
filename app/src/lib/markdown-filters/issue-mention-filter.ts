@@ -4,13 +4,30 @@ import { fatalError } from '../fatal-error'
 import { INodeFilter } from './node-filter'
 
 /**
- * The Issue Mention filter matches for issue references in user-supplied
- * content one of two formats:
+ * The Issue Mention filter matches for text issue references. For this purpose,
+ * issues, pull requests, and discussions all share reference patterns and
+ * therefore are all filtered.
  *
- *  1. As a plain text reference, like #1234, gh-1234, /issues/1234, /pull/1234, or /discussions/1234
- *      Note: gh- is a legacy marker before #.
+ * Examples:  #1234, gh-1234, /issues/1234, /pull/1234, or /discussions/1234,
+ * desktop/dugite#1, desktop/dugite/issues/1234
  *
- *  2. TO DO - anchor tags with links
+ * Each references is made up of {nameOrNWO}{marker}{number} and must be
+ * preceded by a non-word character.
+ *   - nameOrNWO: Optional. If both owner/repo is provided, it can be used to
+ *                specify an issue outside of the parent repository. Redundant
+ *                references will be trimmed. Single owners can be redundant,
+ *                but single repo names are treated as non-matches.
+ *
+ *                Example: When viewing from the tidy-dev/foo repo,
+ *                  a. tidy-dev/foo#1 becomes linked as #1.
+ *                  b. tidy-dev#1 becomes linked as #1,
+ *                  c. foo#1 is not linked and is a non-match.
+ *                  d. desktop/desktop#1 is linked and stays desktop/desktop#1
+ *                     (assuming the user has access to this external repo)
+ *
+ *   - marker: Required #, gh-, /issues/, /pull/, or /discussions/
+ *   - number: Required and must be digits followed by a word bounding
+ *             character. (whitespace or period)
  *
  */
 export class IssueMentionFilter implements INodeFilter {
@@ -45,7 +62,7 @@ export class IssueMentionFilter implements INodeFilter {
    * 3) The issue marker must be followed by a number
    * 4) The number must end in a word bounding character. Additionally, the
    *    issue reference match may be such that the marker may be preceded by a
-   *    repo references of owner/repo or repo/
+   *    repo references of owner/repo or owner
    * */
   private readonly issueReferenceWithLeader = new RegExp(
     this.leader + this.nameOrNWO + '?' + this.marker + this.number,
@@ -76,7 +93,8 @@ export class IssueMentionFilter implements INodeFilter {
 
   /**
    * Takes a text node and creates multiple text and image nodes by inserting
-   * anchor tags where the references are.
+   * anchor tags where the references are if the references can be verified as
+   * an issue, pull request, or discussion.
    *
    * Example:
    * Node = "Issue #1234 is the same thing"

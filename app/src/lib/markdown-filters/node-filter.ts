@@ -39,8 +39,8 @@ export function buildCustomMarkDownNodeFilterPipe(
   dispatcher: Dispatcher
 ): ReadonlyArray<INodeFilter> {
   return [
-    new EmojiFilter(emoji),
     new IssueMentionFilter(dispatcher, repository),
+    new EmojiFilter(emoji),
   ]
 }
 
