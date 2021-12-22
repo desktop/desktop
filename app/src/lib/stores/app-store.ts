@@ -6838,7 +6838,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async fetchIssueOrDiscussionURL(
     repository: GitHubRepository,
-    issueNumber: string
+    issueNumber: string,
+    owner?: string,
+    repo?: string
   ): Promise<string | null> {
     const account = getAccountForEndpoint(this.accounts, repository.endpoint)
     if (account === null) {
@@ -6847,8 +6849,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const api = API.fromAccount(account)
 
     return api.fetchIssueOrDiscussionUrl(
-      repository.owner.login,
-      repository.name,
+      owner ?? repository.owner.login,
+      repo ?? repository.name,
       issueNumber
     )
   }

@@ -3827,8 +3827,15 @@ export class Dispatcher {
 
   public fetchIssueOrDiscussionURL(
     repository: GitHubRepository,
-    issueNumber: string
+    issueNumber: string,
+    owner?: string,
+    repo?: string
   ): Promise<string | null> {
-    return this.appStore.fetchIssueOrDiscussionURL(repository, issueNumber)
+    return this.appStore.fetchIssueOrDiscussionURL(
+      repository,
+      issueNumber,
+      owner,
+      repo
+    )
   }
 }
