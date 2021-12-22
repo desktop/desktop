@@ -16,6 +16,7 @@ changes from the original, just a note that this will not match 1-1)
 	line-height: 1.5;
 	word-wrap: break-word;
 	margin: 0;
+	white-space: pre-line;
 }
 
 .markdown-body::before {
