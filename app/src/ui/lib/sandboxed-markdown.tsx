@@ -7,6 +7,8 @@ import {
   applyNodeFilters,
   buildCustomMarkDownNodeFilterPipe,
 } from '../../lib/markdown-filters/node-filter'
+import { Dispatcher } from '../dispatcher'
+import { GitHubRepository } from '../../models/github-repository'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -26,6 +28,11 @@ interface ISandboxedMarkdownProps {
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  /** The GitHub repository to use when looking up commit status. */
+  readonly repository: GitHubRepository
+
+  readonly dispatcher: Dispatcher
 }
 
 /**
@@ -240,7 +247,12 @@ export class SandboxedMarkdown extends React.PureComponent<
    * mentions, etc.
    */
   private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
-    const nodeFilters = buildCustomMarkDownNodeFilterPipe(this.props.emoji)
+    const { emoji, dispatcher, repository } = this.props
+    const nodeFilters = buildCustomMarkDownNodeFilterPipe(
+      emoji,
+      repository,
+      dispatcher
+    )
     return applyNodeFilters(nodeFilters, parsedMarkdown)
   }
 

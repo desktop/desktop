@@ -185,9 +185,16 @@ export class PullRequestQuickView extends React.Component<
           markdown={displayBody}
           emoji={this.props.emoji}
           baseHref={base.gitHubRepository.htmlURL}
+          repository={base.gitHubRepository}
+          dispatcher={this.props.dispatcher}
+          onMarkdownLinkClicked={this.onMarkdownLinkClicked}
         />
       </div>
     )
+  }
+
+  private onMarkdownLinkClicked = (url: string) => {
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private onMouseLeave = () => {

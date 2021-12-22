@@ -1,3 +1,5 @@
+import { GitHubRepository } from '../../models/github-repository'
+import { Dispatcher } from '../../ui/dispatcher'
 import { EmojiFilter } from './emoji-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
 
@@ -32,9 +34,14 @@ export interface INodeFilter {
  * @param emoji Map from the emoji shortcut (e.g., :+1:) to the image's local path.
  */
 export function buildCustomMarkDownNodeFilterPipe(
-  emoji: Map<string, string>
+  emoji: Map<string, string>,
+  repository: GitHubRepository,
+  dispatcher: Dispatcher
 ): ReadonlyArray<INodeFilter> {
-  return [new EmojiFilter(emoji), new IssueMentionFilter()]
+  return [
+    new EmojiFilter(emoji),
+    new IssueMentionFilter(dispatcher, repository),
+  ]
 }
 
 /**

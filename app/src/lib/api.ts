@@ -287,6 +287,7 @@ export interface IAPIIssue {
   readonly title: string
   readonly state: 'open' | 'closed'
   readonly updated_at: string
+  readonly html_url: string
 }
 
 /** The combined state of a ref. */
@@ -872,6 +873,69 @@ export class API {
       log.warn(`fetchIssues: failed for repository ${owner}/${name}`, e)
       throw e
     }
+  }
+
+  public async fetchIssueOrDiscussionUrl(
+    owner: string,
+    name: string,
+    issueOrDiscussionNumber: string
+  ): Promise<string | null> {
+    const headers = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const url = `repos/${owner}/${name}/issues/${issueOrDiscussionNumber}`
+    try {
+      const response = await this.request('GET', url, {
+        customHeaders: headers,
+      })
+
+      return (await parsedResponse<IAPIIssue>(response)).html_url
+    } catch (e) {}
+
+    return this.fetchDiscussionURL(owner, name, issueOrDiscussionNumber)
+  }
+
+  public async fetchDiscussionURL(
+    owner: string,
+    name: string,
+    issueOrDiscussionNumber: string
+  ): Promise<string | null> {
+    const headers = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const url = `graphql`
+    try {
+      const response = await this.request('POST', url, {
+        body: {
+          query: `{
+                  repository(owner: "${owner}", name: "${name}") {
+                    discussion(number: ${issueOrDiscussionNumber})  {
+                      url
+                    }
+                  }
+                }`,
+        },
+        customHeaders: headers,
+      })
+
+      const {
+        data: {
+          repository: { discussion },
+        },
+      } = await parsedResponse<{
+        data: {
+          repository: {
+            discussion: {
+              url: string
+            }
+          }
+        }
+      }>(response)
+
+      return discussion.url
+    } catch (e) {}
+
+    return null
   }
 
   /** Fetch all open pull requests in the given repository. */

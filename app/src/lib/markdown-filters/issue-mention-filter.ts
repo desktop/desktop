@@ -1,3 +1,5 @@
+import { GitHubRepository } from '../../models/github-repository'
+import { Dispatcher } from '../../ui/dispatcher'
 import { fatalError } from '../fatal-error'
 import { INodeFilter } from './node-filter'
 
@@ -50,8 +52,12 @@ export class IssueMentionFilter implements INodeFilter {
     'ig'
   )
 
-  public constructor() {
-    // Todo... probably need something to look up issue references
+  private readonly dispatcher: Dispatcher
+  private readonly repository: GitHubRepository
+
+  public constructor(dispatcher: Dispatcher, repository: GitHubRepository) {
+    this.dispatcher = dispatcher
+    this.repository = repository
   }
 
   /**
@@ -70,7 +76,7 @@ export class IssueMentionFilter implements INodeFilter {
 
   /**
    * Takes a text node and creates multiple text and image nodes by inserting
-   * anchor tags  where the references are.
+   * anchor tags where the references are.
    *
    * Example:
    * Node = "Issue #1234 is the same thing"
@@ -97,7 +103,7 @@ export class IssueMentionFilter implements INodeFilter {
         continue
       }
 
-      const { marker, refNumber } = match.groups
+      const { marker, refNumber, nameOrNWO } = match.groups
       if (marker === undefined || refNumber === undefined) {
         continue
       }
@@ -106,7 +112,9 @@ export class IssueMentionFilter implements INodeFilter {
       const textNodeBefore = document.createTextNode(textBefore)
       nodes.push(textNodeBefore)
 
-      nodes.push(await this.createIssueAnchorElement(marker, refNumber))
+      nodes.push(
+        await this.createIssueAnchorElement(marker, refNumber, nameOrNWO)
+      )
 
       lastMatchEndingPosition = match.index + marker.length + refNumber.length
     }
@@ -120,14 +128,27 @@ export class IssueMentionFilter implements INodeFilter {
   }
 
   /**
-   * Method to create the issue mention anchor
-   *
-   * TODO: Determine if refNumber is an issue reference and build current href (issue vs pull vs discussion)
+   * Method to create the issue mention anchor or returns a text node with the ref if unable.
    */
-  private async createIssueAnchorElement(marker: string, refNumber: string) {
+  private async createIssueAnchorElement(
+    marker: string,
+    refNumber: string,
+    nwo?: string
+  ) {
+    // TODO: build a cache... so we don't retrieve same issue many times
+    const issueOrDiscussionURL = await this.dispatcher.fetchIssueOrDiscussionURL(
+      this.repository,
+      refNumber
+    )
+    const anchorText = `${marker}${refNumber}`
+
+    if (issueOrDiscussionURL === null) {
+      return document.createTextNode(anchorText)
+    }
+
     const anchor = document.createElement('a')
-    anchor.href = `https://github.com/desktop/desktop/issues/${refNumber}`
-    anchor.textContent = `${marker}${refNumber}`
+    anchor.textContent = anchorText
+    anchor.href = issueOrDiscussionURL
     return anchor
   }
 }

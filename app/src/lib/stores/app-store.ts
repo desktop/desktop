@@ -6835,6 +6835,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showCIStatusPopover = !this.showCIStatusPopover
     this.emitUpdate()
   }
+
+  public async fetchIssueOrDiscussionURL(
+    repository: GitHubRepository,
+    issueNumber: string
+  ): Promise<string | null> {
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return null
+    }
+    const api = API.fromAccount(account)
+
+    return api.fetchIssueOrDiscussionUrl(
+      repository.owner.login,
+      repository.name,
+      issueNumber
+    )
+  }
 }
 
 /**

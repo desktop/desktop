@@ -3824,4 +3824,11 @@ export class Dispatcher {
   public recordRerunChecks() {
     this.statsStore.recordRerunChecks()
   }
+
+  public fetchIssueOrDiscussionURL(
+    repository: GitHubRepository,
+    issueNumber: string
+  ): Promise<string | null> {
+    return this.appStore.fetchIssueOrDiscussionURL(repository, issueNumber)
+  }
 }
