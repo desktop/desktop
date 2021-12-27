@@ -157,3 +157,8 @@ export function enableCICheckRunsLogs(): boolean {
 export function enablePreviousTagSuggestions(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we show a pull-requests quick view? */
+export function enablePullRequestQuickView(): boolean {
+  return enableDevelopmentFeatures()
+}

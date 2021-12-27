@@ -28,6 +28,8 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
+import { enablePullRequestQuickView } from '../../lib/feature-flag'
+import { PullRequestQuickView } from '../pull-request-quick-view'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -56,6 +58,10 @@ interface IBranchesContainerState {
   readonly selectedPullRequest: PullRequest | null
   readonly selectedBranch: Branch | null
   readonly branchFilterText: string
+  readonly pullRequestBeingViewed: {
+    pr: PullRequest
+    prListItemTop: number
+  } | null
 }
 
 /** The unified Branches and Pull Requests component. */
@@ -77,6 +83,8 @@ export class BranchesContainer extends React.Component<
     return null
   }
 
+  private pullRequestQuickViewTimerId: number | null = null
+
   public constructor(props: IBranchesContainerProps) {
     super(props)
 
@@ -85,7 +93,12 @@ export class BranchesContainer extends React.Component<
       selectedPullRequest: props.currentPullRequest,
       currentPullRequest: props.currentPullRequest,
       branchFilterText: '',
+      pullRequestBeingViewed: null,
     }
+  }
+
+  public componentWillUnmount = () => {
+    this.clearPullRequestQuickViewTimer()
   }
 
   public render() {
@@ -94,8 +107,41 @@ export class BranchesContainer extends React.Component<
         {this.renderTabBar()}
         {this.renderSelectedTab()}
         {this.renderMergeButtonRow()}
+        {this.renderPullRequestQuickView()}
       </div>
     )
+  }
+
+  private renderPullRequestQuickView = (): JSX.Element | null => {
+    if (
+      !enablePullRequestQuickView() ||
+      this.state.pullRequestBeingViewed === null
+    ) {
+      return null
+    }
+
+    const { pr, prListItemTop } = this.state.pullRequestBeingViewed
+
+    return (
+      <PullRequestQuickView
+        dispatcher={this.props.dispatcher}
+        pullRequest={pr}
+        pullRequestItemTop={prListItemTop}
+        onMouseEnter={this.onMouseEnterPullRequestQuickView}
+        onMouseLeave={this.onMouseLeavePullRequestQuickView}
+      />
+    )
+  }
+
+  private onMouseEnterPullRequestQuickView = () => {
+    this.clearPullRequestQuickViewTimer()
+  }
+
+  private onMouseLeavePullRequestQuickView = () => {
+    this.setState({
+      pullRequestBeingViewed: null,
+    })
+    this.clearPullRequestQuickViewTimer()
   }
 
   private renderMergeButtonRow() {
@@ -275,7 +321,29 @@ export class BranchesContainer extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        onMouseEnterPullRequest={this.onMouseEnterPullRequestListItem}
+        onMouseLeavePullRequest={this.onMouseLeavePullRequestListItem}
       />
+    )
+  }
+
+  private onMouseEnterPullRequestListItem = (
+    pr: PullRequest,
+    prListItemTop: number
+  ) => {
+    this.clearPullRequestQuickViewTimer()
+    this.setState({ pullRequestBeingViewed: null })
+    this.pullRequestQuickViewTimerId = window.setTimeout(
+      () => this.setState({ pullRequestBeingViewed: { pr, prListItemTop } }),
+      250
+    )
+  }
+
+  private onMouseLeavePullRequestListItem = async () => {
+    this.clearPullRequestQuickViewTimer()
+    this.pullRequestQuickViewTimerId = window.setTimeout(
+      () => this.setState({ pullRequestBeingViewed: null }),
+      500
     )
   }
 
@@ -407,5 +475,14 @@ export class BranchesContainer extends React.Component<
     if (dragAndDropManager.isDragOfType(DragType.Commit)) {
       this.props.dispatcher.recordDragStartedAndCanceled()
     }
+  }
+
+  private clearPullRequestQuickViewTimer = () => {
+    if (this.pullRequestQuickViewTimerId === null) {
+      return
+    }
+
+    window.clearTimeout(this.pullRequestQuickViewTimerId)
+    this.pullRequestQuickViewTimerId = null
   }
 }
