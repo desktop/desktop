@@ -19,7 +19,7 @@ You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
 
 
-**NOTE**: there is no current migration path to import your existing
+**NOTE**: There is no current migration path to import your existing
 repositories into the new application - you can drag-and-drop your repositories
 from disk onto the application to get started.
 
