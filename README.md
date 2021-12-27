@@ -18,7 +18,7 @@ Download the official installer for your operating system:
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
 
-There is no way of downloading the official Github Desktop on Linux for now, but there are some community releases that give you the option to download it on Linux, please check out the community guidelines section.
+Linux is not officially supported; however, you can find installers created for Linux from a fork of GitHub Desktop in the [Community Releases](https://github.com/desktop/desktop#community-releases) section.
 
 **NOTE**: there is no current migration path to import your existing
 repositories into the new application - you can drag-and-drop your repositories
