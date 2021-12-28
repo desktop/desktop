@@ -6848,10 +6848,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     const api = API.fromAccount(account)
 
-    return api.fetchIssueOrDiscussionUrl(
-      owner ?? repository.owner.login,
-      repo ?? repository.name,
-      issueNumber
+    const matchingIssue = await this.issuesStore.getIssue(
+      repository,
+      parseInt(issueNumber, 10)
+    )
+
+    return (
+      matchingIssue?.html_url ??
+      api.fetchIssueOrDiscussionUrl(
+        owner ?? repository.owner.login,
+        repo ?? repository.name,
+        issueNumber
+      )
     )
   }
 }

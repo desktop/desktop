@@ -7,6 +7,7 @@ export interface IIssue {
   readonly number: number
   readonly title: string
   readonly updated_at?: string
+  readonly html_url?: string
 }
 
 export class IssuesDatabase extends BaseDatabase {

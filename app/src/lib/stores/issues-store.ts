@@ -195,6 +195,17 @@ export class IssuesStore {
       .map(h => h.hit)
   }
 
+  public async getIssue(
+    repository: GitHubRepository,
+    issueNumber: number
+  ): Promise<IIssue | undefined> {
+    return this.db.issues
+      .where('[gitHubRepositoryID+number]')
+      .equals([repository.dbID, issueNumber])
+      .limit(1)
+      .first()
+  }
+
   private setQueryCache(
     repository: GitHubRepository,
     issues: ReadonlyArray<IIssueHit>
