@@ -1,13 +1,12 @@
-import { GitHubRepository } from '../../models/github-repository'
-import { Dispatcher } from '../../ui/dispatcher'
 import { getHTMLURL } from '../api'
 import { fatalError } from '../fatal-error'
 import { escapeRegExp } from '../helpers/regex'
-import { INodeFilter } from './node-filter'
+import { BaseIssueFilter } from './base-issue-filter'
 
 /**
- * The Issue Link Mention filter matches the target and text of a link that is an
- * issue, pull request, or discussion and changes the test to a uniform reference.
+ * The Issue Link filter matches the target and text of an anchor element that
+ * is an issue, pull request, or discussion and changes the text to a uniform
+ * reference.
  *
  * Example:
  * <a href="https://github.com/github/github/issues/99872">https://github.com/github/github/issues/99872</a>
@@ -15,29 +14,17 @@ import { INodeFilter } from './node-filter'
  * <a href="https://github.com/github/github/issues/99872">#99872</a>
  *
  * Additionally if a link has an anchor tag such as #discussioncomment-1858985.
- * We will append a relevant description in parenthesis.
+ * We will append a relevant description.
  *
  * The intention behind this node filter is for use after the markdown parser
  * that has taken raw urls and auto tagged them them as anchor elements.
  */
-export class IssueLinkFilter implements INodeFilter {
-  /** App dispatcher used to retrieve/verify issue, pull request, and discussion urls. */
-  private readonly dispatcher: Dispatcher
-
-  /** The parent github repository of which the content the filter is being applied to belongs  */
-  private readonly repository: GitHubRepository
-
+export class IssueLinkFilter extends BaseIssueFilter {
+  /** A regexp that searches for the owner/name pattern in issue href */
   private readonly nameWithOwner = /(?<nameWithOwner>\w+(?:-\w+)*\/[.\w-]+)/
 
+  /** A regexp that searches for the number and #anchor of an issue reference */
   private readonly numberWithAnchor = /(?<refNumber>\d+)(?<anchor>#[\w-]+)?\b/
-
-  /** Cache of retrieved url references such that we don't keep repeating api calls */
-  private readonly referencesUrlCache: Map<string, string | null> = new Map()
-
-  public constructor(dispatcher: Dispatcher, repository: GitHubRepository) {
-    this.dispatcher = dispatcher
-    this.repository = repository
-  }
 
   /**
    * Issue link mention filter iterates on all anchor elements that are not
@@ -176,83 +163,6 @@ export class IssueLinkFilter implements INodeFilter {
     )
 
     return [newNode]
-  }
-
-  /**
-   * The ownerOrOwnerRepo may be of the form owner or owner/repo.
-   * 1) If owner/repo and they don't both match the current repo, then we return
-   *    them as to distinguish them as a different from the current repo for the
-   *    reference url.
-   * 2) If (owner) and the owner !== current repo owner, it is an invalid
-   *    references - return null.
-   * 3) Otherwise, return [] as it is an valid references, but, in the current
-   *    repo and is redundant owner/repo info.
-   */
-  private resolveOwnerRepo(
-    ownerOrOwnerRepo: string | undefined
-  ): ReadonlyArray<string> | null {
-    if (ownerOrOwnerRepo === undefined) {
-      return []
-    }
-
-    const ownerAndRepo = ownerOrOwnerRepo.split('/')
-    if (ownerAndRepo.length > 3) {
-      // Invalid data
-      return null
-    }
-
-    // If owner and repo are provided, we only care if they differ from the current repo.
-    if (
-      ownerAndRepo.length === 2 &&
-      (ownerAndRepo[0] !== this.repository.owner.login ||
-        ownerAndRepo[1] !== this.repository.name)
-    ) {
-      return ownerAndRepo
-    }
-
-    if (
-      ownerAndRepo.length === 1 &&
-      ownerAndRepo[0] !== this.repository.owner.login
-    ) {
-      return null
-    }
-
-    return []
-  }
-
-  /** Checks a references url cache and if not present, retrieves it and sets cache if not null */
-  private async getReferencesURL(
-    refNumber: string,
-    ownerOrOwnerRepo?: string
-  ): Promise<string | null> {
-    let refKey = `${refNumber}`
-
-    const ownerRepo = this.resolveOwnerRepo(ownerOrOwnerRepo)
-    if (ownerRepo === null) {
-      // We had in invalid reference due to owner/repo prefacing the issue
-      // references.
-      return null
-    }
-
-    const keyOwnerRepoPreface = ownerRepo.length === 2 ? ownerOrOwnerRepo : ''
-    refKey = `${keyOwnerRepoPreface}${refKey}`
-
-    const cachedReferenceUrl = this.referencesUrlCache.get(refKey)
-    if (cachedReferenceUrl !== undefined) {
-      return cachedReferenceUrl
-    }
-
-    const [owner, repo] = ownerRepo
-    const referencesURL = await this.dispatcher.fetchIssueOrDiscussionURL(
-      this.repository,
-      refNumber,
-      owner,
-      repo
-    )
-
-    this.referencesUrlCache.set(refKey, referencesURL)
-
-    return referencesURL
   }
 
   /** Creates a standard issue references and description.
