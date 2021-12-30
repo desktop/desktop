@@ -26,6 +26,11 @@ export class IssueLinkFilter extends BaseIssueFilter {
   /** A regexp that searches for the number and #anchor of an issue reference */
   private readonly numberWithAnchor = /(?<refNumber>\d+)(?<anchor>#[\w-]+)?\b/
 
+  /** A regexp that matches a full issue, pull request, or discussion url including the anchor */
+  private get issueUrl(): RegExp {
+    return this.getFullURLRegexp(/(?:issues|pull|discussions)/)
+  }
+
   /**
    * Issue link mention filter iterates on all anchor elements that are not
    * inside a pre, code, or anchor tag and resemble an issue, pull request, or
@@ -77,27 +82,10 @@ export class IssueLinkFilter extends BaseIssueFilter {
       return false
     }
 
-    const isIssue = this.getFullUrlIssueMentionRegexp().test(anchor.href)
-    if (isIssue) {
-      return true
-    }
-
-    const isDiscussion = this.getFullUrlDiscussionMentionRegexp().test(
-      anchor.href
-    )
-
-    return isDiscussion
+    return this.issueUrl.test(anchor.href)
   }
 
-  private getFullUrlIssueMentionRegexp(): RegExp {
-    return this.getFullURLMentionRegexp(/(?:issues|pull)/)
-  }
-
-  private getFullUrlDiscussionMentionRegexp(): RegExp {
-    return this.getFullURLMentionRegexp(/(?:discussions)/)
-  }
-
-  private getFullURLMentionRegexp(mentionTypeRegex: RegExp) {
+  private getFullURLRegexp(mentionTypeRegex: RegExp) {
     const gitHubURL = getHTMLURL(this.repository.endpoint)
     return new RegExp(
       escapeRegExp(gitHubURL) +
@@ -128,28 +116,15 @@ export class IssueLinkFilter extends BaseIssueFilter {
 
     const { textContent: text } = node
     if (text === null) {
-      // Based on tree walker criteria, this shouldn't happen and is just a
-      // typing check.
       return null
     }
 
-    // let lastMatchEndingPosition = 0
-    // const nodes: Array<Text | HTMLAnchorElement> = []
-    // Is either an issue or a discussion
-    const isIssue = this.getFullUrlIssueMentionRegexp().test(text)
-    const match = isIssue
-      ? text.match(this.getFullUrlIssueMentionRegexp())
-      : text.match(this.getFullUrlDiscussionMentionRegexp())
-
+    const match = text.match(this.issueUrl)
     if (match === null || match.groups === undefined) {
       return null
     }
 
     const { nameWithOwner, refNumber, anchor } = match.groups
-    if (nameWithOwner === undefined || refNumber === undefined) {
-      return null
-    }
-
     const referenceURL = await this.getReferencesURL(refNumber, nameWithOwner)
 
     if (referenceURL === null) {
@@ -165,7 +140,8 @@ export class IssueLinkFilter extends BaseIssueFilter {
     return [newNode]
   }
 
-  /** Creates a standard issue references and description.
+  /**
+   * Creates a standard issue references and description.
    *
    * Examples:
    *  Issue 1 => #1
@@ -175,7 +151,7 @@ export class IssueLinkFilter extends BaseIssueFilter {
     const text = `#${refNumber}`
     const anchorDescription = this.getAnchorDescription(anchor)
 
-    return `${text}${anchorDescription}`
+    return `${text} ${anchorDescription}`
   }
 
   private getAnchorDescription(anchor: string | undefined) {
