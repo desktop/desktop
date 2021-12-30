@@ -1,6 +1,7 @@
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../../ui/dispatcher'
 import { EmojiFilter } from './emoji-filter'
+import { IssueLinkFilter } from './issue-link-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
 
 export interface INodeFilter {
@@ -40,6 +41,7 @@ export function buildCustomMarkDownNodeFilterPipe(
 ): ReadonlyArray<INodeFilter> {
   return [
     new IssueMentionFilter(dispatcher, repository),
+    new IssueLinkFilter(dispatcher, repository),
     new EmojiFilter(emoji),
   ]
 }
