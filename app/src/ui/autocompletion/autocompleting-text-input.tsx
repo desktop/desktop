@@ -16,7 +16,6 @@ interface IRange {
 
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../main-process-proxy'
-import { OcticonSymbolType } from '../octicons'
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -39,12 +38,6 @@ interface IAutocompletingTextInputProps<ElementType> {
 
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
-
-  /** Optional hint icon on the right side of the component, with details shown on hover. */
-  readonly hint?: {
-    symbol: OcticonSymbolType
-    tooltip: JSX.Element | string
-  }
 
   /**
    * Called when the user changes the value in the input field.

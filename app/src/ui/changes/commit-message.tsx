@@ -748,13 +748,12 @@ export class CommitMessage extends React.Component<
         delay={0}
         tooltip={
           <>
-            <span className="title">
+            <div className="title">
               Great commit summaries contain fewer than 50 characters
-            </span>
-            <br />
-            <span className="description">
+            </div>
+            <div className="description">
               Place extra information in the description field.
-            </span>
+            </div>
           </>
         }
         direction={TooltipDirection.NORTH}
