@@ -11,7 +11,7 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
-import { username } from 'username'
+import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
 import JSZip from 'jszip'
