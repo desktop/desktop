@@ -16,7 +16,6 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
 import { RetryActionType } from '../../models/retry-actions'
 import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
@@ -452,11 +451,6 @@ export async function refusedWorkflowUpdate(
     return error
   }
 
-  // DotCom only for now.
-  if (repository.gitHubRepository.endpoint !== getDotComAPIEndpoint()) {
-    return error
-  }
-
   const match = rejectedPathRe.exec(error.message)
 
   if (!match) {
@@ -467,6 +461,7 @@ export async function refusedWorkflowUpdate(
     type: PopupType.PushRejectedDueToMissingWorkflowScope,
     rejectedPath: match[1],
     repository,
+    endpoint: repository.gitHubRepository.endpoint,
   })
 
   return null

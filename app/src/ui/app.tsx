@@ -1811,6 +1811,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             rejectedPath={popup.rejectedPath}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            endpoint={popup.endpoint}
           />
         )
       case PopupType.SAMLReauthRequired:

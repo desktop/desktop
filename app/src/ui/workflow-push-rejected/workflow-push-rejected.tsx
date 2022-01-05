@@ -4,6 +4,7 @@ import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
 import { Repository } from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 
 const okButtonText = __DARWIN__ ? 'Continue in Browser' : 'Continue in browser'
 
@@ -11,6 +12,7 @@ interface IWorkflowPushRejectedDialogProps {
   readonly rejectedPath: string
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  readonly endpoint: string
 
   readonly onDismissed: () => void
 }
@@ -61,10 +63,17 @@ export class WorkflowPushRejectedDialog extends React.Component<
 
   private onSignIn = async () => {
     this.setState({ loading: true })
+    const { repository, endpoint, dispatcher } = this.props
 
-    await this.props.dispatcher.requestBrowserAuthenticationToDotcom()
+    if (endpoint === getDotComAPIEndpoint()) {
+      await dispatcher.requestBrowserAuthenticationToDotcom()
+    } else {
+      await dispatcher.beginEnterpriseSignIn()
+      await dispatcher.setSignInEndpoint(getHTMLURL(endpoint))
+      await dispatcher.requestBrowserAuthentication()
+    }
 
-    this.props.dispatcher.push(this.props.repository)
+    dispatcher.push(repository)
     this.props.onDismissed()
   }
 }
