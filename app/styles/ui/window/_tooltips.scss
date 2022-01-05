@@ -160,4 +160,17 @@ body > .tooltip,
       margin-right: var(--spacing);
     }
   }
+
+  &.length-hint-tooltip {
+    max-width: none;
+    .tooltip-content {
+      .title {
+        white-space: pre;
+      }
+
+      .description {
+        opacity: 0.7;
+      }
+    }
+  }
 }

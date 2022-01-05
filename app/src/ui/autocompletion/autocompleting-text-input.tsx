@@ -323,7 +323,6 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className}>
         {this.renderAutocompletions()}
-
         {this.renderTextInput()}
       </div>
     )
