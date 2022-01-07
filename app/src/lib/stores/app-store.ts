@@ -287,7 +287,6 @@ import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
 import { IRefCheck } from '../ci-checks/ci-checks'
-import { AliveStore } from './alive-store'
 import { NotificationsStore } from './notifications-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -871,6 +870,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
+      notificationsEnabled: this.notificationsStore.getNotificationsEnabled(),
     }
   }
 
@@ -3179,6 +3179,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(UseWindowsOpenSSHKey, useWindowsOpenSSH)
     this.useWindowsOpenSSH = useWindowsOpenSSH
 
+    this.emitUpdate()
+  }
+
+  public _setNotificationsEnabled(notificationsEnabled: boolean) {
+    this.notificationsStore.setNotificationsEnabled(notificationsEnabled)
     this.emitUpdate()
   }
 

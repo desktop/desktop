@@ -23,6 +23,7 @@ import {
   DesktopAliveEvent,
   IDesktopChecksFailedAliveEvent,
 } from './alive-store'
+import { setBoolean, getBoolean } from '../local-storage'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -31,6 +32,12 @@ type OnChecksFailedCallback = (
   commitSha: string,
   checkRuns: ReadonlyArray<IRefCheck>
 ) => void
+
+/**
+ * The localStorage key for whether the user has enabled high-signal
+ * notifications.
+ */
+const NotificationsEnabledKey = 'high-signal-notifications-enabled'
 
 export class NotificationsStore {
   private repository: RepositoryWithGitHubRepository | null = null
@@ -43,7 +50,23 @@ export class NotificationsStore {
     private readonly aliveStore: AliveStore,
     private readonly pullRequestCoordinator: PullRequestCoordinator
   ) {
+    this.aliveStore.setEnabled(this.getNotificationsEnabled())
     this.aliveStore.onNotificationReceived(this.onAliveEventReceived)
+  }
+
+  public setNotificationsEnabled(enabled: boolean) {
+    const previousValue = getBoolean(NotificationsEnabledKey, true)
+
+    if (previousValue === enabled) {
+      return
+    }
+
+    setBoolean(NotificationsEnabledKey, enabled)
+    this.aliveStore.setEnabled(enabled)
+  }
+
+  public getNotificationsEnabled() {
+    return getBoolean(NotificationsEnabledKey, true)
   }
 
   private onAliveEventReceived = async (e: DesktopAliveEvent) => {

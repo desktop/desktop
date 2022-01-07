@@ -3,6 +3,7 @@ import { Account, accountEquals } from '../../models/account'
 import { API } from '../api'
 import { AliveSession, AliveEvent, Subscription } from '@github/alive-client'
 import { Emitter } from 'event-kit'
+import { enableHighSignalNotifications } from '../feature-flag'
 
 function accountIncluded(account: Account, accounts: ReadonlyArray<Account>) {
   return accounts.find(a => accountEquals(a, account))
@@ -35,20 +36,53 @@ export class AliveStore {
   private sessionPerEndpoint: Map<string, IAliveEndpointSession> = new Map()
   private subscriptions: Array<IAliveSubscription> = []
   private readonly emitter = new Emitter()
+  private enabled: boolean = false
 
   public constructor(private readonly accountsStore: AccountsStore) {
     this.accountsStore.onDidUpdate(this.subscribeToAccounts)
   }
 
+  public setEnabled(enabled: boolean) {
+    if (this.enabled === enabled) {
+      return
+    }
+
+    this.enabled = enabled
+
+    if (enabled) {
+      this.subscribeToAllAccounts()
+    } else {
+      this.unsubscribeFromAllAccounts()
+    }
+  }
+
+  private async subscribeToAllAccounts() {
+    const accounts = await this.accountsStore.getAll()
+    this.subscribeToAccounts(accounts)
+  }
+
+  private unsubscribeFromAllAccounts() {
+    const subscribedAccounts = this.subscriptions.map(s => s.account)
+    for (const account of subscribedAccounts) {
+      this.unsubscribeFromAccount(account)
+    }
+  }
+
   private subscribeToAccounts = (accounts: ReadonlyArray<Account>) => {
+    if (!this.enabled || !enableHighSignalNotifications()) {
+      return
+    }
+
     const subscribedAccounts = this.subscriptions.map(s => s.account)
 
+    // Clear subscriptions for accounts that are no longer in the list
     for (const account of subscribedAccounts) {
       if (!accountIncluded(account, accounts)) {
         this.unsubscribeFromAccount(account)
       }
     }
 
+    // Subscribe to new accounts
     for (const account of accounts) {
       if (!accountIncluded(account, subscribedAccounts)) {
         this.subscribeToAccount(account)
