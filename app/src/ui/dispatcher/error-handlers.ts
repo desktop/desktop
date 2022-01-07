@@ -447,7 +447,7 @@ export async function refusedWorkflowUpdate(
     return error
   }
 
-  if (repository.gitHubRepository === null) {
+  if (!isRepositoryWithGitHubRepository(repository)) {
     return error
   }
 
@@ -461,7 +461,6 @@ export async function refusedWorkflowUpdate(
     type: PopupType.PushRejectedDueToMissingWorkflowScope,
     rejectedPath: match[1],
     repository,
-    endpoint: repository.gitHubRepository.endpoint,
   })
 
   return null

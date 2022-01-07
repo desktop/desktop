@@ -2,18 +2,16 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
-import { Repository } from '../../models/repository'
+import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 const okButtonText = __DARWIN__ ? 'Continue in Browser' : 'Continue in browser'
 
 interface IWorkflowPushRejectedDialogProps {
   readonly rejectedPath: string
-  readonly repository: Repository
+  readonly repository: RepositoryWithGitHubRepository
   readonly dispatcher: Dispatcher
-  readonly endpoint: string
-
   readonly onDismissed: () => void
 }
 interface IWorkflowPushRejectedDialogState {
@@ -63,14 +61,13 @@ export class WorkflowPushRejectedDialog extends React.Component<
 
   private onSignIn = async () => {
     this.setState({ loading: true })
-    const { repository, endpoint, dispatcher } = this.props
+    const { repository, dispatcher } = this.props
+    const { endpoint } = repository.gitHubRepository
 
     if (endpoint === getDotComAPIEndpoint()) {
       await dispatcher.requestBrowserAuthenticationToDotcom()
     } else {
-      await dispatcher.beginEnterpriseSignIn()
-      await dispatcher.setSignInEndpoint(getHTMLURL(endpoint))
-      await dispatcher.requestBrowserAuthentication()
+      await dispatcher.requestBrowserAuthenticationToEnterprise(endpoint)
     }
 
     dispatcher.push(repository)

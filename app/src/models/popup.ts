@@ -225,8 +225,7 @@ export type Popup =
   | {
       type: PopupType.PushRejectedDueToMissingWorkflowScope
       rejectedPath: string
-      repository: Repository
-      endpoint: string
+      repository: RepositoryWithGitHubRepository
     }
   | {
       type: PopupType.SAMLReauthRequired
