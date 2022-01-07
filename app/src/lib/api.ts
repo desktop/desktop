@@ -1534,7 +1534,7 @@ export async function fetchMetadata(
 
 /** The note used for created authorizations. */
 async function getNote(): Promise<string> {
-  let localUsername = await username().catch(_ => undefined)
+  let localUsername = await username()
 
   if (localUsername === undefined) {
     localUsername = 'unknown'
