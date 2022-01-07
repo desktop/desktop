@@ -1687,6 +1687,12 @@ export class Dispatcher {
     // up-to-date before performing the "Clone in Desktop" steps
     await this.appStore._refreshRepository(repository)
 
+    // if the repo has a remote, fetch before switching branches to ensure
+    // the checkout will be successful
+    if (isRepositoryWithGitHubRepository(repository)) {
+      await this.appStore._fetchDefaultRemote(repository)
+    }
+
     await this.checkoutLocalBranch(repository, branchName)
 
     return repository
