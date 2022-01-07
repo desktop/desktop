@@ -696,14 +696,23 @@ export class API {
     }
   }
 
-  public async getAliveWebSocket(): Promise<string | null> {
+  /**
+   * Retrieves the URL for the Alive websocket.
+   *
+   * @returns The websocket URL if the request succeeded, null if the request
+   * failed with 404, otherwise it will throw an error.
+   */
+  public async getAliveWebSocketURL(): Promise<string | null> {
     try {
-      const res = await this.request('GET', `/alive_internal/websocket-url`)
+      const res = await this.request('GET', '/alive_internal/websocket-url')
+      if (res.status === HttpStatusCode.NotFound) {
+        return null
+      }
       const websocket = await parsedResponse<IAPIAliveWebSocket>(res)
       return websocket.url
     } catch (e) {
       log.warn(`Alive web socket request failed: ${e}`)
-      return null
+      throw e
     }
   }
 

@@ -105,7 +105,7 @@ export class AliveStore {
     }
 
     const api = API.fromAccount(account)
-    const webSocketUrl = await api.getAliveWebSocket()
+    const webSocketUrl = await api.getAliveWebSocketURL()
 
     if (webSocketUrl === null) {
       return null
@@ -113,7 +113,7 @@ export class AliveStore {
 
     const aliveSession = new AliveSession(
       webSocketUrl,
-      api.getAliveWebSocket,
+      api.getAliveWebSocketURL,
       false,
       this.notify
     )
