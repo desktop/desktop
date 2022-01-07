@@ -61,14 +61,18 @@ export class WorkflowPushRejectedDialog extends React.Component<
 
   private onSignIn = async () => {
     this.setState({ loading: true })
+
     const { repository, dispatcher } = this.props
     const { endpoint } = repository.gitHubRepository
 
     if (endpoint === getDotComAPIEndpoint()) {
-      await dispatcher.requestBrowserAuthenticationToDotcom()
+      await dispatcher.beginDotComSignIn()
     } else {
-      await dispatcher.requestBrowserAuthenticationToEnterprise(endpoint)
+      await dispatcher.beginEnterpriseSignIn()
+      await dispatcher.setSignInEndpoint(endpoint)
     }
+
+    await dispatcher.requestBrowserAuthentication()
 
     dispatcher.push(repository)
     this.props.onDismissed()
