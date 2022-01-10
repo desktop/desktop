@@ -127,7 +127,7 @@ function checkConstraint(
  * Returns a predicate which verifies whether a given endpoint matches the
  * provided constraints.
  *
- * Note: NOT ment for direct consumption, only exported for testability reasons.
+ * Note: NOT meant for direct consumption, only exported for testability reasons.
  *       Consumers should use the various `supports*` methods instead.
  */
 export const endpointSatisfies = (
