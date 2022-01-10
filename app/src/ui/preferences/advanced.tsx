@@ -192,7 +192,7 @@ export class Advanced extends React.Component<
       <div className="advanced-section">
         <h2>Notifications</h2>
         <Checkbox
-          label="Enable high-signal notifications"
+          label="Enable notifications"
           value={
             this.props.notificationsEnabled
               ? CheckboxValue.On
@@ -201,8 +201,8 @@ export class Advanced extends React.Component<
           onChange={this.onNotificationsEnabledChanged}
         />
         <p className="git-settings-description">
-          Allows the display of notifications when relevant events take place in
-          the current repository.
+          Allows the display of notifications when high-signal events take place
+          in the current repository.
         </p>
       </div>
     )
