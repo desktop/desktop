@@ -5,6 +5,7 @@ import { AliveSession, AliveEvent, Subscription } from '@github/alive-client'
 import { Emitter } from 'event-kit'
 import { enableHighSignalNotifications } from '../feature-flag'
 
+/** Checks whether or not an account is included in a list of accounts. */
 function accountIncluded(account: Account, accounts: ReadonlyArray<Account>) {
   return accounts.find(a => accountEquals(a, account))
 }
@@ -19,6 +20,7 @@ export interface IDesktopChecksFailedAliveEvent {
   readonly commit_sha: string
 }
 
+/** Represents an Alive event relevant to Desktop. */
 export type DesktopAliveEvent = IDesktopChecksFailedAliveEvent
 interface IAliveSubscription {
   readonly account: Account
@@ -30,18 +32,33 @@ interface IAliveEndpointSession {
   readonly webSocketUrl: string
 }
 
+/**
+ * This class manages the subscriptions to Alive channels as the user signs in
+ * and out of their GH or GHE accounts.
+ */
 export class AliveStore {
   private readonly ALIVE_EVENT_RECEIVED_EVENT = 'alive-event-received'
 
-  private sessionPerEndpoint: Map<string, IAliveEndpointSession> = new Map()
-  private subscriptions: Array<IAliveSubscription> = []
+  private readonly sessionPerEndpoint: Map<
+    string,
+    IAliveEndpointSession
+  > = new Map()
   private readonly emitter = new Emitter()
+  private subscriptions: Array<IAliveSubscription> = []
   private enabled: boolean = false
 
   public constructor(private readonly accountsStore: AccountsStore) {
     this.accountsStore.onDidUpdate(this.subscribeToAccounts)
   }
 
+  /**
+   * Enable or disable Alive subscriptions.
+   *
+   * When enabled, it will immediately try to subscribe to the Alive channel for
+   * all accounts currently signed in.
+   *
+   * When disabled, it will immediately unsubscribe from all Alive channels.
+   */
   public setEnabled(enabled: boolean) {
     if (this.enabled === enabled) {
       return
@@ -54,6 +71,11 @@ export class AliveStore {
     } else {
       this.unsubscribeFromAllAccounts()
     }
+  }
+
+  /** Listen to Alive events received. */
+  public onAliveEventReceived(callback: (event: DesktopAliveEvent) => void) {
+    this.emitter.on(this.ALIVE_EVENT_RECEIVED_EVENT, callback)
   }
 
   private async subscribeToAllAccounts() {
@@ -191,9 +213,5 @@ export class AliveStore {
     // TODO: parse this safely
     const desktopEvent = event.data as any
     this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, desktopEvent)
-  }
-
-  public onNotificationReceived(callback: (event: DesktopAliveEvent) => void) {
-    this.emitter.on(this.ALIVE_EVENT_RECEIVED_EVENT, callback)
   }
 }

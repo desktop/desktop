@@ -6871,6 +6871,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       checks,
     }
 
+    // If the repository doesn't match the one from the notification, just show
+    // the popup which will suggest to switch to that repo.
     if (
       selectedRepository === null ||
       selectedRepository.hash !== repository.hash
@@ -6889,7 +6891,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._setShowCIStatusPopover(true)
     } else {
       // If there is no current branch or it's different than the PR branch,
-      // show the checks failed dialog.
+      // show the checks failed dialog, but it won't offer to switch to the
+      // repository.
       this._showPopup({
         ...popup,
         needsSelectRepository: false,

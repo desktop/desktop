@@ -39,6 +39,10 @@ type OnChecksFailedCallback = (
  */
 const NotificationsEnabledKey = 'high-signal-notifications-enabled'
 
+/**
+ * This class manages the coordination between Alive events and actual OS-level
+ * notifications.
+ */
 export class NotificationsStore {
   private repository: RepositoryWithGitHubRepository | null = null
   private onChecksFailedCallback: OnChecksFailedCallback | null = null
@@ -51,9 +55,10 @@ export class NotificationsStore {
     private readonly pullRequestCoordinator: PullRequestCoordinator
   ) {
     this.aliveStore.setEnabled(this.getNotificationsEnabled())
-    this.aliveStore.onNotificationReceived(this.onAliveEventReceived)
+    this.aliveStore.onAliveEventReceived(this.onAliveEventReceived)
   }
 
+  /** Enables or disables high-signal notifications entirely. */
   public setNotificationsEnabled(enabled: boolean) {
     const previousValue = getBoolean(NotificationsEnabledKey, true)
 
@@ -76,17 +81,7 @@ export class NotificationsStore {
     }
   }
 
-  private unsubscribe() {
-    this.repository = null
-  }
-
-  private subscribe(repository: RepositoryWithGitHubRepository) {
-    this.unsubscribe()
-
-    this.repository = repository
-  }
-
-  public async handleChecksFailedEvent(event: IDesktopChecksFailedAliveEvent) {
+  private async handleChecksFailedEvent(event: IDesktopChecksFailedAliveEvent) {
     const repository = this.repository
     if (repository === null) {
       return
@@ -147,14 +142,18 @@ export class NotificationsStore {
     )
   }
 
+  /**
+   * Makes the store to keep track of the currently selected repository. Only
+   * notifications for the currently selected repository will be shown.
+   */
   public selectRepository(repository: Repository) {
-    this.unsubscribe()
+    this.repository = null
 
     if (!isRepositoryWithGitHubRepository(repository)) {
       return
     }
 
-    this.subscribe(repository)
+    this.repository = repository
   }
 
   private async getAccountForRepository(repository: GitHubRepository) {
@@ -262,6 +261,7 @@ export class NotificationsStore {
     return check.checks
   }
 
+  /** Observe when the user reacted to a "Checks Failed" notification. */
   public onChecksFailedNotification(callback: OnChecksFailedCallback) {
     this.onChecksFailedCallback = callback
   }
