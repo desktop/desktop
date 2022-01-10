@@ -49,7 +49,7 @@ export class EmojiFilter implements INodeFilter {
    * Example: A text node of "That is great! :+1: Good Job!" Becomes three
    * nodes: ["That is great! ",<img src="data uri for :+1:>, " Good Job!"]
    *
-   * Note: Emoji filter requires text nodes; otherwise we may inadvertently replace non text elements
+   * Note: Emoji filter requires text nodes; otherwise we may inadvertently replace non text elements.
    */
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
     let text = node.textContent
