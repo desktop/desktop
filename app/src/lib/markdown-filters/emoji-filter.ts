@@ -75,12 +75,15 @@ export class EmojiFilter implements INodeFilter {
         continue
       }
 
+      const emojiImg = await this.createEmojiNode(emojiPath)
+      if (emojiImg == null) {
+        continue
+      }
+
       const emojiPosition = text.indexOf(emojiMatches[0])
       const textBeforeEmoji = text.slice(0, emojiPosition)
       const textNodeBeforeEmoji = document.createTextNode(textBeforeEmoji)
       nodes.push(textNodeBeforeEmoji)
-
-      const emojiImg = await this.createEmojiNode(emojiPath)
       nodes.push(emojiImg)
 
       text = text.slice(emojiPosition + emojiKey.length)
@@ -95,14 +98,20 @@ export class EmojiFilter implements INodeFilter {
   }
 
   /**
-   * Method to build an emoji image node to insert in place of the emoji ref
+   * Method to build an emoji image node to insert in place of the emoji ref.
+   * If we fail to create the image element, returns null.
    */
-  private async createEmojiNode(emojiPath: string) {
-    const dataURI = await this.getBase64FromImageUrl(emojiPath)
-    const emojiImg = new Image()
-    emojiImg.classList.add('emoji')
-    emojiImg.src = dataURI
-    return emojiImg
+  private async createEmojiNode(
+    emojiPath: string
+  ): Promise<HTMLImageElement | null> {
+    try {
+      const dataURI = await this.getBase64FromImageUrl(emojiPath)
+      const emojiImg = new Image()
+      emojiImg.classList.add('emoji')
+      emojiImg.src = dataURI
+      return emojiImg
+    } catch (e) {}
+    return null
   }
 
   /**
