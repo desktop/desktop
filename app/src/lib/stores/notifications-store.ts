@@ -147,13 +147,9 @@ export class NotificationsStore {
    * notifications for the currently selected repository will be shown.
    */
   public selectRepository(repository: Repository) {
-    this.repository = null
-
-    if (!isRepositoryWithGitHubRepository(repository)) {
-      return
-    }
-
-    this.repository = repository
+    this.repository = isRepositoryWithGitHubRepository(repository)
+      ? repository
+      : null
   }
 
   private async getAccountForRepository(repository: GitHubRepository) {
