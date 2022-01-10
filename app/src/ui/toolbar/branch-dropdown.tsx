@@ -18,6 +18,7 @@ import classNames from 'classnames'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
 import { CICheckRunPopover } from '../check-runs/ci-check-run-popover'
+import { TooltipTarget } from '../lib/tooltip'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -141,8 +142,7 @@ export class BranchDropdown extends React.Component<
       icon = OcticonSymbol.gitCommit
       description = 'Detached HEAD'
     } else if (tip.kind === TipState.Valid) {
-      title = tip.branch.name
-      tooltip = `Current branch is ${title}`
+      title = tooltip = tip.branch.name
     } else {
       return assertNever(tip, `Unknown tip state: ${tipKind}`)
     }
@@ -158,6 +158,7 @@ export class BranchDropdown extends React.Component<
         description = `${description} (${friendlyProgress}%)`
       }
 
+      tooltip = `Switching to ${checkoutProgress.targetBranch}`
       progressValue = checkoutProgress.value
       icon = syncClockwise
       iconClassName = 'spin'
@@ -168,6 +169,7 @@ export class BranchDropdown extends React.Component<
       icon = OcticonSymbol.gitBranch
       canOpen = false
       disabled = true
+      tooltip = `Rebasing ${conflictState.targetBranch}`
     }
 
     const isOpen = this.props.isOpen
@@ -193,6 +195,8 @@ export class BranchDropdown extends React.Component<
           progressValue={progressValue}
           buttonClassName={buttonClassName}
           onMouseEnter={this.onMouseEnter}
+          onlyShowTooltipWhenOverflowed={true}
+          isOverflowed={isDescriptionOverflowed}
         >
           {this.renderPullRequestInfo()}
         </ToolbarDropdown>
@@ -243,11 +247,12 @@ export class BranchDropdown extends React.Component<
 
     const { target } = event
     const prBadgeElem = document.getElementById('pr-badge')
+    const rerunDialog = document.getElementById('rerun-check-runs')
     if (
-      prBadgeElem !== null &&
       target !== null &&
       target instanceof Node &&
-      prBadgeElem.contains(target)
+      ((prBadgeElem !== null && prBadgeElem.contains(target)) ||
+        (rerunDialog !== null && rerunDialog.contains(target)))
     ) {
       return
     }
@@ -304,4 +309,9 @@ export class BranchDropdown extends React.Component<
       />
     )
   }
+}
+
+const isDescriptionOverflowed = (target: TooltipTarget) => {
+  const elem = target.querySelector('.title') ?? target
+  return elem.scrollWidth > elem.clientWidth
 }

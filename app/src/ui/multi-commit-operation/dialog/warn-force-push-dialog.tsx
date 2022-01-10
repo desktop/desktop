@@ -12,6 +12,7 @@ interface IWarnForcePushProps {
    *  - Rebase
    *  - Squash
    *  - Reorder
+   *  - Amend
    */
   readonly operation: string
   readonly dispatcher: Dispatcher

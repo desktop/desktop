@@ -5,7 +5,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { clamp } from '../../lib/clamp'
 import { createObservableRef } from '../lib/observable-ref'
-import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { Tooltip, TooltipDirection, TooltipTarget } from '../lib/tooltip'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -100,6 +100,28 @@ export interface IToolbarButtonProps {
 
   readonly role?: string
   readonly ariaExpanded?: boolean
+
+  /**
+   * Whether to only show the tooltip when the tooltip target overflows its
+   * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
+   */
+  readonly onlyShowTooltipWhenOverflowed?: boolean
+
+  /**
+   * Optional, custom overrided of the Tooltip components internal logic for
+   * determining whether the tooltip target is overflowed or not.
+   *
+   * The internal overflow logic is simple and relies on the target itself
+   * having the `text-overflow` CSS rule applied to it. In some scenarios
+   * consumers may have a deep child element which is the one that should be
+   * tested for overflow while still having the parent element be the pointer
+   * device hit area.
+   *
+   * Consumers may pass a boolean if the overflowed state is known at render
+   * time or they may pass a function which gets executed just before showing
+   * the tooltip.
+   */
+  readonly isOverflowed?: ((target: TooltipTarget) => boolean) | boolean
 }
 
 /**
@@ -173,7 +195,12 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
         ref={this.wrapperRef}
       >
         {tooltip && (
-          <Tooltip target={this.wrapperRef} direction={TooltipDirection.SOUTH}>
+          <Tooltip
+            target={this.wrapperRef}
+            direction={TooltipDirection.SOUTH}
+            onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
+            isTargetOverflowed={this.props.isOverflowed}
+          >
             {tooltip}
           </Tooltip>
         )}

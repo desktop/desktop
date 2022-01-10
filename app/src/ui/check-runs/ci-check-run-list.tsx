@@ -22,8 +22,11 @@ interface ICICheckRunListProps {
   /** Whether check runs can be selected. Default: false */
   readonly selectable?: boolean
 
+  /** Whether check runs can be expanded. Default: false */
+  readonly notExpandable?: boolean
+
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
-  readonly onViewCheckDetails: (checkRun: IRefCheck) => void
+  readonly onViewCheckDetails?: (checkRun: IRefCheck) => void
 
   /** Callback when a check run is clicked */
   readonly onCheckRunClick?: (checkRun: IRefCheck) => void
@@ -48,7 +51,6 @@ export class CICheckRunList extends React.PureComponent<
 > {
   public constructor(props: ICICheckRunListProps) {
     super(props)
-
     this.state = this.setupStateAfterCheckRunPropChange(this.props, null)
   }
 
@@ -57,7 +59,29 @@ export class CICheckRunList extends React.PureComponent<
       checkRunExpanded,
       hasUserToggledCheckRun,
     } = this.setupStateAfterCheckRunPropChange(this.props, this.state)
-    this.setState({ checkRunExpanded, hasUserToggledCheckRun })
+
+    let foundDiffStatus = false
+    for (const prevCR of prevProps.checkRuns) {
+      const diffStatus = this.props.checkRuns.find(
+        cr => cr.id === prevCR.id && cr.status !== prevCR.status
+      )
+      if (diffStatus !== undefined) {
+        foundDiffStatus = true
+        break
+      }
+    }
+
+    if (foundDiffStatus) {
+      this.setState({
+        checkRunExpanded,
+        hasUserToggledCheckRun,
+        checkRunGroups: getCheckRunsGroupedByActionWorkflowNameAndEvent(
+          this.props.checkRuns
+        ),
+      })
+    } else {
+      this.setState({ checkRunExpanded, hasUserToggledCheckRun })
+    }
   }
 
   private setupStateAfterCheckRunPropChange(
@@ -66,26 +90,26 @@ export class CICheckRunList extends React.PureComponent<
   ): ICICheckRunListState {
     // If the user has expanded something and then a load occurs, we don't want
     // to reset their position.
-    if (currentState !== null && currentState.hasUserToggledCheckRun) {
+    if (currentState?.hasUserToggledCheckRun === true) {
       return currentState
     }
 
-    const checkRunGroups =
-      currentState === null
-        ? getCheckRunsGroupedByActionWorkflowNameAndEvent(props.checkRuns)
-        : currentState.checkRunGroups
-
+    const checkRunGroups = getCheckRunsGroupedByActionWorkflowNameAndEvent(
+      props.checkRuns
+    )
     let checkRunExpanded = null
 
-    // If there is a failure, we want the first check run with a failure, to
-    // be opened so the user doesn't have to click through to find it.
-    for (const group of checkRunGroups.values()) {
-      const firstFailure = group.find(
-        cr => isFailure(cr) && cr.actionJobSteps !== undefined
-      )
-      if (firstFailure !== undefined) {
-        checkRunExpanded = firstFailure.id.toString()
-        break
+    if (this.props.notExpandable !== true) {
+      // If there is a failure, we want the first check run with a failure, to
+      // be opened so the user doesn't have to click through to find it.
+      for (const group of checkRunGroups.values()) {
+        const firstFailure = group.find(
+          cr => isFailure(cr) && cr.actionJobSteps !== undefined
+        )
+        if (firstFailure !== undefined) {
+          checkRunExpanded = firstFailure.id.toString()
+          break
+        }
       }
     }
 
@@ -97,6 +121,10 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   private onCheckRunClick = (checkRun: IRefCheck): void => {
+    if (this.props.notExpandable === true) {
+      return
+    }
+
     // If the list is selectable, we don't want to toggle when the selected
     // item is clicked again.
     const checkRunExpanded =
@@ -135,6 +163,7 @@ export class CICheckRunList extends React.PureComponent<
           selected={selectable && checkRunExpanded}
           // Only expand check runs if the list is not selectable
           isCheckRunExpanded={!selectable && checkRunExpanded}
+          notExpandable={this.props.notExpandable}
           onCheckRunExpansionToggleClick={this.onCheckRunClick}
           onViewCheckExternally={this.props.onViewCheckDetails}
           onViewJobStep={this.props.onViewJobStep}
@@ -167,8 +196,6 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public render() {
-    return (
-      <div className="ci-check-run-list-container">{this.renderList()}</div>
-    )
+    return <div className="ci-check-run-list">{this.renderList()}</div>
   }
 }

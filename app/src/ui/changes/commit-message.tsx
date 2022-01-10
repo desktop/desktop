@@ -671,7 +671,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onStopAmending = () => {
-    this.props.dispatcher.setAmendingRepository(this.props.repository, false)
+    this.props.dispatcher.stopAmendingRepository(this.props.repository)
   }
 
   private renderSubmitButton() {
@@ -729,10 +729,11 @@ export class CommitMessage extends React.Component<
         onClick={this.onSubmit}
         disabled={!buttonEnabled}
         tooltip={tooltip}
+        onlyShowTooltipWhenOverflowed={buttonEnabled}
       >
         <>
           {loading}
-          <span>{commitButton}</span>
+          {commitButton}
         </>
       </Button>
     )

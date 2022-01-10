@@ -15,6 +15,7 @@ import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
 import JSZip from 'jszip'
+import { updateEndpointVersion } from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -358,6 +359,14 @@ export interface IAPIRefCheckRunOutput {
 
 export interface IAPIRefCheckRunCheckSuite {
   readonly id: number
+}
+
+export interface IAPICheckSuite {
+  readonly id: number
+  readonly rerequestable: boolean
+  readonly runs_rerequestable: boolean
+  readonly status: APICheckStatus
+  readonly created_at: string
 }
 
 export interface IAPIRefCheckRuns {
@@ -1111,6 +1120,28 @@ export class API {
   }
 
   /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}`
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPICheckSuite>(response)
+    } catch (_) {
+      log.debug(
+        `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return null
+  }
+
+  /**
    * Get branch protection info to determine if a user can push to a given branch.
    *
    * Note: if request fails, the default returned value assumes full access for the user
@@ -1233,6 +1264,8 @@ export class API {
     ) {
       API.emitTokenInvalidated(this.endpoint)
     }
+
+    tryUpdateEndpointVersionFromResponse(this.endpoint, response)
 
     return response
   }
@@ -1386,6 +1419,8 @@ export async function createAuthorization(
     }
   )
 
+  tryUpdateEndpointVersionFromResponse(endpoint, response)
+
   try {
     const result = await parsedResponse<IAPIAuthorization>(response)
     if (result) {
@@ -1491,6 +1526,8 @@ export async function fetchMetadata(
     const response = await request(endpoint, null, 'GET', 'meta', undefined, {
       'Content-Type': 'application/json',
     })
+
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
 
     const result = await parsedResponse<IServerMetadata>(response)
     if (!result || result.verifiable_password_authentication === undefined) {
@@ -1623,6 +1660,8 @@ export async function requestOAuthToken(
         code: code,
       }
     )
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
     const result = await parsedResponse<IAPIAccessToken>(response)
     return result.access_token
   } catch (e) {
@@ -1635,4 +1674,14 @@ function getOAuthScopesForEndpoint(endpoint: string) {
   return endpoint === getDotComAPIEndpoint()
     ? DotComOAuthScopes
     : EnterpriseOAuthScopes
+}
+
+function tryUpdateEndpointVersionFromResponse(
+  endpoint: string,
+  response: Response
+) {
+  const gheVersion = response.headers.get('x-github-enterprise-version')
+  if (gheVersion !== null) {
+    updateEndpointVersion(endpoint, gheVersion)
+  }
 }

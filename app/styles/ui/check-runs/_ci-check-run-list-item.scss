@@ -11,18 +11,22 @@
     z-index: var(--list-sticky-header-second-level-z-index);
   }
 
-  &.selected .ci-check-name span {
+  &.selected .ci-check-name span.isLink {
     &:hover {
       color: var(--link-button-selected-hover-color);
       cursor: pointer !important;
     }
   }
 
-  &:not(.selected) .ci-check-name span {
+  &:not(.selected) .ci-check-name span.isLink {
     &:hover {
       color: var(--link-button-color);
       cursor: pointer !important;
     }
+  }
+
+  .ci-check-status-symbol {
+    margin: 0 var(--spacing-half);
   }
 
   .ci-check-status-symbol,

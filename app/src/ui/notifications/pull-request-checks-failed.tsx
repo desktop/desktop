@@ -8,7 +8,7 @@ import { CICheckRunList } from '../check-runs/ci-check-run-list'
 import {
   IRefCheck,
   getLatestPRWorkflowRunsLogsForCheckRun,
-  getCheckRunActionsJobsAndLogURLS,
+  getCheckRunActionsWorkflowRuns,
   isFailure,
   getCheckRunStepURL,
 } from '../../lib/ci-checks/ci-checks'
@@ -19,7 +19,6 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
-import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
 
@@ -28,7 +27,6 @@ const BlankSlateImage = encodePathAsUrl(
   __dirname,
   'static/empty-no-pull-requests.svg'
 )
-const MaxCommitMessageLength = 72
 
 interface IPullRequestChecksFailedProps {
   readonly dispatcher: Dispatcher
@@ -98,34 +96,40 @@ export class PullRequestChecksFailed extends React.Component<
 
     const { pullRequest } = this.props
 
-    const dialogTitle = (
-      <span className="custom-title">
-        <Octicon
-          className={pullRequest.draft ? 'draft' : undefined}
-          symbol={OcticonSymbol.gitPullRequest}
-        />
-        <span className="pr-title">{pullRequest.title}</span>{' '}
-        <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
-      </span>
-    )
-
     const loadingChecksInfo = this.loadingChecksInfo
+
+    const failedChecks = this.state.checks.filter(isFailure)
+    const pluralChecks = failedChecks.length > 1 ? 'checks' : 'check'
+
+    const header = (
+      <div className="ci-check-run-dialog-header">
+        <Octicon symbol={OcticonSymbol.xCircleFill} />
+        <div className="title-container">
+          <div className="summary">
+            {failedChecks.length} {pluralChecks} failed in your pull request
+          </div>
+          <span className="pr-title">
+            <span className="pr-title">{pullRequest.title}</span>{' '}
+            <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
+          </span>
+        </div>
+        {this.renderRerunButton()}
+      </div>
+    )
 
     return (
       <Dialog
         id="pull-request-checks-failed"
         type="normal"
-        title={dialogTitle}
+        title={header}
         dismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={loadingChecksInfo || this.state.switchingToPullRequest}
       >
         <DialogContent>
-          <Row>{this.renderSummary()}</Row>
           <Row>
             <div className="ci-check-run-dialog-container">
-              {this.renderCheckRunHeader()}
               <div className="ci-check-run-content">
                 {this.renderCheckRunJobs()}
                 {this.renderCheckRunSteps()}
@@ -134,12 +138,15 @@ export class PullRequestChecksFailed extends React.Component<
           </Row>
         </DialogContent>
         <DialogFooter>
-          <OkCancelButtonGroup
-            onCancelButtonClick={this.props.onDismissed}
-            cancelButtonText="Dismiss"
-            okButtonText={okButtonTitle}
-            onOkButtonClick={this.onSubmit}
-          />
+          <Row>
+            {this.renderSummary()}
+            <OkCancelButtonGroup
+              onCancelButtonClick={this.props.onDismissed}
+              cancelButtonText="Dismiss"
+              okButtonText={okButtonTitle}
+              onOkButtonClick={this.onSubmit}
+            />
+          </Row>
         </DialogFooter>
       </Dialog>
     )
@@ -147,30 +154,13 @@ export class PullRequestChecksFailed extends React.Component<
 
   private renderSummary() {
     const failedChecks = this.state.checks.filter(isFailure)
-    const pluralChecks = failedChecks.length > 1 ? 'checks' : 'check'
     const pluralThem = failedChecks.length > 1 ? 'them' : 'it'
     return (
-      <span className="summary">
-        {failedChecks.length} {pluralChecks} failed in your pull request. Do you
-        want to switch to that Pull Request now and start fixing {pluralThem}?
-      </span>
-    )
-  }
-
-  private renderCheckRunHeader() {
-    return (
-      <div className="ci-check-run-header">
-        <span className="message">
-          {truncateWithEllipsis(
-            this.props.commitMessage,
-            MaxCommitMessageLength
-          )}
+      <div className="footer-question">
+        <span>
+          Do you want to switch to that Pull Request now and start fixing{' '}
+          {pluralThem}?
         </span>
-        <span aria-hidden="true">
-          <Octicon symbol={OcticonSymbol.gitCommit} />
-        </span>{' '}
-        <span className="sha">{this.props.commitSha.slice(0, 9)}</span>
-        {this.renderRerunButton()}
       </div>
     )
   }
@@ -271,14 +261,14 @@ export class PullRequestChecksFailed extends React.Component<
     const { checks } = this.state
     return (
       <div className="ci-check-rerun">
-        <Button onClick={this.rerunJobs} disabled={checks.length === 0}>
-          <Octicon symbol={syncClockwise} /> Re-run jobs
+        <Button onClick={this.rerunChecks} disabled={checks.length === 0}>
+          <Octicon symbol={syncClockwise} /> Re-run checks
         </Button>
       </div>
     )
   }
 
-  private rerunJobs = () => {
+  private rerunChecks = () => {
     this.props.dispatcher.rerequestCheckSuites(
       this.props.repository.gitHubRepository,
       this.state.checks
@@ -311,7 +301,7 @@ export class PullRequestChecksFailed extends React.Component<
       that we know we can go ahead and display the checkrun `output` content if
       a check run does not have action logs to retrieve/parse.
     */
-    const checkRunsWithActionsUrls = await getCheckRunActionsJobsAndLogURLS(
+    const checkRunsWithActionsUrls = await getCheckRunActionsWorkflowRuns(
       api,
       gitHubRepository.owner.login,
       gitHubRepository.name,

@@ -391,9 +391,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
       jobsCache.get(wfId) ?? (await api.fetchWorkflowRunJobs(owner, repo, wfId))
     jobsCache.set(wfId, workFlowRunJobs)
 
-    // Here check run and jobs only share their names.
-    // Thus, unfortunately cannot match on a numerical id.
-    const matchingJob = workFlowRunJobs?.jobs.find(j => j.name === cr.name)
+    const matchingJob = workFlowRunJobs?.jobs.find(j => j.id === cr.id)
     if (matchingJob === undefined) {
       mappedCheckRuns.push(cr)
       continue
@@ -440,7 +438,7 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
  * @param branchName Name of the branch to which the check runs belong
  * @param checkRuns List of check runs to augment
  */
-export async function getCheckRunActionsJobsAndLogURLS(
+export async function getCheckRunActionsWorkflowRuns(
   api: API,
   owner: string,
   repo: string,
@@ -458,7 +456,7 @@ export async function getCheckRunActionsJobsAndLogURLS(
     return checkRuns
   }
 
-  return getCheckRunWithActionsJobAndLogURLs(checkRuns, latestWorkflowRuns)
+  return mapActionWorkflowsRunsToCheckRuns(checkRuns, latestWorkflowRuns)
 }
 
 // Gets only the latest PR workflow runs hashed by name
@@ -499,7 +497,7 @@ async function getLatestPRWorkflowRuns(
   return Array.from(wrMap.values())
 }
 
-function getCheckRunWithActionsJobAndLogURLs(
+function mapActionWorkflowsRunsToCheckRuns(
   checkRuns: ReadonlyArray<IRefCheck>,
   actionWorkflowRuns: ReadonlyArray<IAPIWorkflowRun>
 ): ReadonlyArray<IRefCheck> {
@@ -651,3 +649,56 @@ export function getCheckRunGroupNames(
 
   return groupNames
 }
+
+export function manuallySetChecksToPending(
+  cachedChecks: ReadonlyArray<IRefCheck>,
+  pendingChecks: ReadonlyArray<IRefCheck>
+): ICombinedRefCheck | null {
+  const updatedChecks: IRefCheck[] = []
+  for (const check of cachedChecks) {
+    const matchingCheck = pendingChecks.find(c => check.id === c.id)
+    if (matchingCheck === undefined) {
+      updatedChecks.push(check)
+      continue
+    }
+
+    updatedChecks.push({
+      ...check,
+      status: APICheckStatus.InProgress,
+      conclusion: null,
+      actionJobSteps: check.actionJobSteps?.map(js => ({
+        ...js,
+        status: APICheckStatus.InProgress,
+        conclusion: null,
+      })),
+    })
+  }
+  return createCombinedCheckFromChecks(updatedChecks)
+}
+
+/**
+ * Groups and totals the checks by their conclusion if not null and otherwise by their status.
+ *
+ * @param checks
+ * @returns Returns a map with key of conclusions or status and values of count of that conclustion or status
+ */
+export function getCheckStatusCountMap(checks: ReadonlyArray<IRefCheck>) {
+  const countByStatus = new Map<string, number>()
+  checks.forEach(check => {
+    const key = check.conclusion ?? check.status
+    const currentCount: number = countByStatus.get(key) ?? 0
+    countByStatus.set(key, currentCount + 1)
+  })
+
+  return countByStatus
+}
+
+/**
+ * An array of check conclusions that are considerd a failure.
+ */
+export const FailingCheckConclusions = [
+  APICheckConclusion.Failure,
+  APICheckConclusion.Canceled,
+  APICheckConclusion.ActionRequired,
+  APICheckConclusion.TimedOut,
+]

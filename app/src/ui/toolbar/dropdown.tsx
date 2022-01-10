@@ -7,6 +7,7 @@ import { rectEquals } from '../lib/rect'
 import classNames from 'classnames'
 import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
+import { TooltipTarget } from '../lib/tooltip'
 
 export type DropdownState = 'open' | 'closed'
 
@@ -140,6 +141,28 @@ export interface IToolbarDropdownProps {
 
   /** Classes to be appended to `ToolbarButton` component */
   readonly buttonClassName?: string
+
+  /**
+   * Whether to only show the tooltip when the tooltip target overflows its
+   * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
+   */
+  readonly onlyShowTooltipWhenOverflowed?: boolean
+
+  /**
+   * Optional, custom overrided of the Tooltip components internal logic for
+   * determining whether the tooltip target is overflowed or not.
+   *
+   * The internal overflow logic is simple and relies on the target itself
+   * having the `text-overflow` CSS rule applied to it. In some scenarios
+   * consumers may have a deep child element which is the one that should be
+   * tested for overflow while still having the parent element be the pointer
+   * device hit area.
+   *
+   * Consumers may pass a boolean if the overflowed state is known at render
+   * time or they may pass a function which gets executed just before showing
+   * the tooltip.
+   */
+  readonly isOverflowed?: ((target: TooltipTarget) => boolean) | boolean
 }
 
 interface IToolbarDropdownState {
@@ -364,6 +387,10 @@ export class ToolbarDropdown extends React.Component<
           tabIndex={this.props.tabIndex}
           progressValue={this.props.progressValue}
           role={this.props.buttonRole}
+          onlyShowTooltipWhenOverflowed={
+            this.props.onlyShowTooltipWhenOverflowed
+          }
+          isOverflowed={this.props.isOverflowed}
         >
           {this.props.children}
           {this.renderDropdownArrow()}
