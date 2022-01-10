@@ -755,7 +755,6 @@ export class CommitMessage extends React.Component<
 
     return (
       <div
-        id="commit-message"
         role="group"
         aria-label="Create commit"
         className={className}
