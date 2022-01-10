@@ -296,8 +296,8 @@ changes from the original, just a note that this will not match 1-1)
 	max-width: none;
 	vertical-align: text-top;
 	background-color: transparent;
-	height: var(--font-size);
-	width: var(--font-size);
+	height: 1em;
+	width: auto;
 }
 
 .markdown-body span.frame {
