@@ -30,6 +30,8 @@ import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { installSameOriginFilter } from './same-origin-filter'
 import { OrderedWebRequest } from './ordered-webrequest'
+import { EndpointToken } from '../lib/endpoint-token'
+import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -282,9 +284,16 @@ app.on('ready', () => {
 
   createWindow()
 
+  const orderedWebRequest = new OrderedWebRequest(
+    session.defaultSession.webRequest
+  )
+
   // Ensures auth-related headers won't traverse http redirects to hosts
   // on different origins than the originating request.
-  installSameOriginFilter(session.defaultSession.webRequest)
+  installSameOriginFilter(orderedWebRequest)
+
+  // Adds an authorization header for requests of avatars on GHES
+  const updateAccounts = installAuthenticatedAvatarFilter(orderedWebRequest)
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -293,6 +302,10 @@ app.on('ready', () => {
       askForConfirmationOnRepositoryRemoval: false,
       askForConfirmationOnForcePush: false,
     })
+  )
+
+  ipcMain.on('update-accounts', (_, accounts: ReadonlyArray<EndpointToken>) =>
+    updateAccounts(accounts)
   )
 
   ipcMain.on(

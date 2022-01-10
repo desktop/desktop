@@ -76,6 +76,7 @@ import {
 import {
   getAppMenu,
   updatePreferredAppMenuItemLabels,
+  updateAccounts,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -286,6 +287,7 @@ import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
+import { EndpointToken } from '../endpoint-token'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -689,6 +691,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
+      const endpointTokens = accounts.map<EndpointToken>(
+        ({ endpoint, token }) => ({ endpoint, token })
+      )
+
+      updateAccounts(endpointTokens)
+
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))

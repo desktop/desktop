@@ -4,6 +4,7 @@ import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { MenuLabelsEvent } from '../models/menu-labels'
+import { EndpointToken } from '../lib/endpoint-token'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -255,4 +256,8 @@ export function sendErrorReport(
 ) {
   const event = { error: getIpcFriendlyError(error), extra, nonFatal }
   ipcRenderer.send('send-error-report', event)
+}
+
+export function updateAccounts(accounts: ReadonlyArray<EndpointToken>) {
+  ipcRenderer.send('update-accounts', accounts)
 }
