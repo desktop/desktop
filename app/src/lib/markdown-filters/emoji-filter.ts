@@ -67,7 +67,7 @@ export class EmojiFilter implements INodeFilter {
       return null
     }
 
-    const nodes: Array<Text | HTMLImageElement> = []
+    const nodes = new Array<Text | HTMLImageElement>()
     for (let i = 0; i < emojiMatches.length; i++) {
       const emojiKey = emojiMatches[i]
       const emojiPath = this.emojiFilePath.get(emojiKey)
@@ -76,7 +76,7 @@ export class EmojiFilter implements INodeFilter {
       }
 
       const emojiImg = await this.createEmojiNode(emojiPath)
-      if (emojiImg == null) {
+      if (emojiImg === null) {
         continue
       }
 
