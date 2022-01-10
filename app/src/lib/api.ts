@@ -685,6 +685,10 @@ export class API {
     this.token = token
   }
 
+  /**
+   * Retrieves the name of the Alive channel used by Desktop to receive
+   * high-signal notifications.
+   */
   public async getAliveDesktopChannel(): Promise<IAPIAliveSignedChannel | null> {
     try {
       const res = await this.request('GET', '/desktop_internal/alive-channel')
@@ -701,6 +705,9 @@ export class API {
    *
    * @returns The websocket URL if the request succeeded, null if the request
    * failed with 404, otherwise it will throw an error.
+   *
+   * This behavior is expected by the AliveSession class constructor, to prevent
+   * it from hitting the endpoint many times if it's disabled.
    */
   public async getAliveWebSocketURL(): Promise<string | null> {
     try {
