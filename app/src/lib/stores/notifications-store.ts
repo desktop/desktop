@@ -187,16 +187,12 @@ export class NotificationsStore {
     const pluralChecks =
       numberOfFailedChecks === 1 ? 'check was' : 'checks were'
 
-    const NOTIFICATION_TITLE = 'Pull Request checks failed'
-    const NOTIFICATION_BODY = `${pullRequest.title} #${
-      pullRequest.pullRequestNumber
-    } (${sha.slice(
-      0,
-      9
-    )})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
+    const shortSHA = sha.slice(0, 9)
+    const title = 'Pull Request checks failed'
+    const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
     const notification = new remote.Notification({
-      title: NOTIFICATION_TITLE,
-      body: NOTIFICATION_BODY,
+      title,
+      body,
     })
 
     notification.on('click', () => {
