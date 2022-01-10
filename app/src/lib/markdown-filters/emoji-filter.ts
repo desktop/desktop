@@ -141,7 +141,6 @@ export class EmojiFilter implements INodeFilter {
     const emojiGroups = [...emoji.keys()]
       .map(emoji => escapeRegExp(emoji))
       .join('|')
-      .slice(0, -1)
     return new RegExp('(' + emojiGroups + ')', 'g')
   }
 }
