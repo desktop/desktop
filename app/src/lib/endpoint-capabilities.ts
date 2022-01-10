@@ -37,7 +37,7 @@ const assumedGHESVersion = new semver.SemVer('3.1.0')
  * This should correspond loosely with the most recent GHES series and
  * needs to be updated manually.
  */
-const assumedGHAEVersion = new semver.SemVer('3.3.0')
+const assumedGHAEVersion = new semver.SemVer('3.2.0')
 
 /** Stores raw x-github-enterprise-version headers keyed on endpoint */
 const rawVersionCache = new Map<string, string>()
