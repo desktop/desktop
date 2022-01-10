@@ -80,7 +80,7 @@ export class EmojiFilter implements INodeFilter {
         continue
       }
 
-      const emojiPosition = text.indexOf(emojiMatches[0])
+      const emojiPosition = text.indexOf(emojiKey)
       const textBeforeEmoji = text.slice(0, emojiPosition)
       const textNodeBeforeEmoji = document.createTextNode(textBeforeEmoji)
       nodes.push(textNodeBeforeEmoji)
