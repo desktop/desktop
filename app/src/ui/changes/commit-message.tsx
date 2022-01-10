@@ -740,7 +740,7 @@ export class CommitMessage extends React.Component<
   }
 
   public render() {
-    const className = classNames({
+    const className = classNames('commit-message-component', {
       'with-action-bar': this.isActionBarEnabled,
       'with-co-authors': this.isCoAuthorInputVisible,
     })

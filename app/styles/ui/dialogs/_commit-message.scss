@@ -2,12 +2,13 @@ dialog#commit-message-dialog {
   .dialog-content {
     padding: 0;
   }
-  #commit-message,
-  #commit-warning {
+
+  .commit-message-component,
+  .commit-warning-component {
     background-color: inherit;
   }
 
-  #commit-warning {
+  .commit-warning-component {
     .warning-icon-container {
       .warning-icon,
       .information-icon {
