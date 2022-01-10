@@ -205,7 +205,7 @@ export class CICheckRunPopover extends React.PureComponent<
 
   private getPopoverPositioningStyles = (): React.CSSProperties => {
     const top = this.props.badgeBottom + 10
-    return { top, maxHeight: `calc(100% - ${top + 10}px)` }
+    return { top }
   }
 
   private getListHeightStyles = (): React.CSSProperties => {
@@ -357,7 +357,10 @@ export class CICheckRunPopover extends React.PureComponent<
     }
 
     return (
-      <div className="ci-check-run-list" style={this.getListHeightStyles()}>
+      <div
+        className="ci-check-run-list-container"
+        style={this.getListHeightStyles()}
+      >
         <CICheckRunList
           checkRuns={checkRuns}
           loadingActionLogs={loadingActionLogs}

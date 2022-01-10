@@ -81,14 +81,8 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
 
 type GitHubAccountType = 'User' | 'Organization'
 
-/** The OAuth scopes we want to request from GitHub.com. */
-const DotComOAuthScopes = ['repo', 'user', 'workflow']
-
-/**
- * The OAuth scopes we want to request from GitHub
- * Enterprise.
- */
-const EnterpriseOAuthScopes = ['repo', 'user']
+/** The OAuth scopes we want to request */
+const oauthScopes = ['repo', 'user', 'workflow']
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -494,6 +488,7 @@ export interface IAPIPullRequest {
   readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
+  readonly body: string
   readonly state: 'open' | 'closed'
   readonly draft?: boolean
 }
@@ -1406,7 +1401,7 @@ export async function createAuthorization(
     'POST',
     'authorizations',
     {
-      scopes: getOAuthScopesForEndpoint(endpoint),
+      scopes: oauthScopes,
       client_id: ClientID,
       client_secret: ClientSecret,
       note: note,
@@ -1546,13 +1541,13 @@ export async function fetchMetadata(
 
 /** The note used for created authorizations. */
 async function getNote(): Promise<string> {
-  let localUsername = 'unknown'
-  try {
-    localUsername = await username()
-  } catch (e) {
+  let localUsername = await username()
+
+  if (localUsername === undefined) {
+    localUsername = 'unknown'
+
     log.error(
-      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`,
-      e
+      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`
     )
   }
 
@@ -1638,7 +1633,7 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scopes = getOAuthScopesForEndpoint(endpoint)
+  const scopes = oauthScopes
   const scope = encodeURIComponent(scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
@@ -1668,12 +1663,6 @@ export async function requestOAuthToken(
     log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
     return null
   }
-}
-
-function getOAuthScopesForEndpoint(endpoint: string) {
-  return endpoint === getDotComAPIEndpoint()
-    ? DotComOAuthScopes
-    : EnterpriseOAuthScopes
 }
 
 function tryUpdateEndpointVersionFromResponse(

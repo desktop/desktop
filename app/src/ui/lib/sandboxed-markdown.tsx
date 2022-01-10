@@ -124,8 +124,23 @@ export class SandboxedMarkdown extends React.PureComponent<
     ) {
       return
     }
-    const docEl = frameRef.contentDocument.documentElement
-    const divHeight = docEl.clientHeight
+
+    /*
+     * We added an additional wrapper div#content around the markdown to
+     * determine a more accurate scroll height as the iframe's document or body
+     * element was not adjusting it's height dynamically when new content was
+     * provided.
+     */
+    const docEl = frameRef.contentDocument.documentElement.querySelector(
+      '#content'
+    )
+    if (docEl === null) {
+      return
+    }
+
+    // Not sure why the content height != body height exactly. But, 50px seems
+    // to prevent scrollbar/content cut off.
+    const divHeight = docEl.clientHeight + 50
     this.frameContainingDivRef.style.height = `${divHeight}px`
   }
 
@@ -173,7 +188,7 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     const styleSheet = await this.getInlineStyleSheet()
 
-    const parsedMarkdown = marked(this.props.markdown, {
+    const parsedMarkdown = marked(this.props.markdown ?? '', {
       gfm: true,
     })
 
@@ -186,7 +201,9 @@ export class SandboxedMarkdown extends React.PureComponent<
           ${styleSheet}
         </head>
         <body class="markdown-body">
+          <div id="content">
           ${sanitizedHTML}
+          </div
         </body>
       </html>
     `
@@ -194,6 +211,11 @@ export class SandboxedMarkdown extends React.PureComponent<
     // We used this `Buffer.toString('base64')` approach because `btoa` could not
     // convert non-latin strings that existed in the markedjs.
     const b64src = Buffer.from(src, 'utf8').toString('base64')
+
+    if (this.frameRef === null) {
+      // If frame is destroyed before markdown parsing completes, frameref will be null.
+      return
+    }
 
     // We are using `src` and data uri as opposed to an html string in the
     // `srcdoc` property because the `srcdoc` property renders the html in the

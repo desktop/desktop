@@ -65,6 +65,17 @@ interface IPullRequestListProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** When mouse enters a PR */
+  readonly onMouseEnterPullRequest: (
+    prNumber: PullRequest,
+    prListItemTop: number
+  ) => void
+
+  /** When mouse leaves a PR */
+  readonly onMouseLeavePullRequest: (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => void
 }
 
 interface IPullRequestListState {
@@ -173,8 +184,33 @@ export class PullRequestList extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
         onDropOntoPullRequest={this.onDropOntoPullRequest}
+        onMouseEnter={this.onMouseEnterPullRequest}
+        onMouseLeave={this.onMouseLeavePullRequest}
       />
     )
+  }
+
+  private onMouseEnterPullRequest = (
+    prNumber: number,
+    prListItemTop: number
+  ) => {
+    const { pullRequests } = this.props
+
+    // If not the currently checked out pull request, find the full pull request
+    // object to start the cherry-pick
+    const pr = pullRequests.find(pr => pr.pullRequestNumber === prNumber)
+    if (pr === undefined) {
+      log.error('[onMouseEnterPullReqest] - Could not find pull request.')
+      return
+    }
+
+    this.props.onMouseEnterPullRequest(pr, prListItemTop)
+  }
+
+  private onMouseLeavePullRequest = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    this.props.onMouseLeavePullRequest(event)
   }
 
   private onDropOntoPullRequest = (prNumber: number) => {

@@ -145,7 +145,7 @@ export function enableSSHAskPass(): boolean {
 
 /** Should we show ci check runs? */
 export function enableCICheckRuns(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should ci check runs show logs? */
@@ -156,4 +156,9 @@ export function enableCICheckRunsLogs(): boolean {
 /** Should we show previous tags as suggestions? */
 export function enablePreviousTagSuggestions(): boolean {
   return enableBetaFeatures()
+}
+
+/** Should we show a pull-requests quick view? */
+export function enablePullRequestQuickView(): boolean {
+  return enableDevelopmentFeatures()
 }

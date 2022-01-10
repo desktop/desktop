@@ -26,7 +26,8 @@ function createSamplePullRequest(
       gitHubRepository,
     },
     userName,
-    false
+    false,
+    'sample body'
   )
 }
 
