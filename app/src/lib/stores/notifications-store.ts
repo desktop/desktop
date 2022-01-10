@@ -155,7 +155,6 @@ export class NotificationsStore {
   private async getAccountForRepository(repository: GitHubRepository) {
     const { endpoint } = repository
 
-    // TODO: make this in a cleaner way
     const accounts = await this.accountsStore.getAll()
     return accounts.find(a => a.endpoint === endpoint) ?? null
   }
