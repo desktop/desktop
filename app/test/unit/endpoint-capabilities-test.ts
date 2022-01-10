@@ -23,11 +23,19 @@ describe('endpoint-capabilities', () => {
       expect(testGHAE(true)).toBeTrue()
     })
 
+    // GHAE doesn't advertise the installed version so we'll assume its
+    // capabilities match that of a recent supported version of GHES. This is
+    // defined in the `assumedGHAEVersion` constant in endpoint-capabilities.ts
+    // and needs to be updated periodically.
     it('assumes GHAE versions', () => {
       expect(testGHAE('>= 3.3.1')).toBeFalse()
       expect(testGHAE('>= 3.3.0')).toBeTrue()
     })
 
+    // If we can't determine the actual version of a GitHub Enterprise Server
+    // instance we'll assume it's running the oldest still supported version
+    // of GHES. This is defined in the `assumedGHESVersion` constant in
+    // endpoint-capabilities.ts and needs to be updated periodically.
     it('assumes GHES versions', () => {
       expect(testGHES('>= 3.1.1')).toBeFalse()
       expect(testGHES('>= 3.1.0')).toBeTrue()
