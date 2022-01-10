@@ -156,6 +156,8 @@ export class RepositoryListItem extends React.Component<
 
     const repository = this.props.repository
     const missing = repository instanceof Repository && repository.missing
+    const github =
+      repository instanceof Repository && repository.gitHubRepository != null
     const openInExternalEditor = this.props.externalEditorLabel
       ? `Open in ${this.props.externalEditorLabel}`
       : DefaultEditorLabel
@@ -170,6 +172,7 @@ export class RepositoryListItem extends React.Component<
       {
         label: 'View on GitHub',
         action: this.viewOnGitHub,
+        enabled: github,
       },
       {
         label: `Open in ${this.props.shellLabel}`,
