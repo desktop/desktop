@@ -1,4 +1,3 @@
-import { fatalError } from '../fatal-error'
 import { INodeFilter } from './node-filter'
 import * as FSE from 'fs-extra'
 import { escapeRegExp } from '../helpers/regex'
@@ -49,19 +48,19 @@ export class EmojiFilter implements INodeFilter {
    *
    * Example: A text node of "That is great! :+1: Good Job!" Becomes three
    * nodes: ["That is great! ",<img src="data uri for :+1:>, " Good Job!"]
+   *
+   * Note: Emoji filter requires text nodes; otherwise we may inadvertently replace non text elements
    */
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
-    if (!(node instanceof Text)) {
-      fatalError(
-        'Emoji filter requires text nodes; otherwise we may inadvertently replace non text elements.'
-      )
-    }
-
-    if (node.textContent === null || !node.textContent.includes(':')) {
+    let text = node.textContent
+    if (
+      node.nodeType !== node.TEXT_NODE ||
+      text === null ||
+      !text.includes(':')
+    ) {
       return null
     }
 
-    let text = node.textContent
     const emojiMatches = text.match(this.emojiRegex)
     if (emojiMatches === null) {
       return null
