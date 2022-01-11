@@ -2,6 +2,7 @@ module.exports = {
   roots: ['<rootDir>/src/', '<rootDir>/test/'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
+    '\\.m?jsx?$': 'jest-esm-transformer',
   },
   testMatch: ['**/unit/**/*-test.ts{,x}'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
@@ -21,9 +22,5 @@ module.exports = {
   ],
   reporters: ['default', '<rootDir>../script/jest-actions-reporter.js'],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
-  globals: {
-    'ts-jest': {
-      useBabelrc: true,
-    },
-  },
+  transformIgnorePatterns: ['node_modules/temp'],
 }
