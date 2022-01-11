@@ -41,7 +41,11 @@ export class PullRequestQuickView extends React.Component<
   IPullRequestQuickViewProps,
   IPullRequestQuickViewState
 > {
-  private quickViewRef: HTMLDivElement | null = null
+  private quickViewRef = React.createRef<HTMLDivElement>()
+
+  private get quickViewHeight(): number {
+    return this.quickViewRef.current?.clientHeight ?? maxQuickViewHeight
+  }
 
   public constructor(props: IPullRequestQuickViewProps) {
     super(props)
@@ -57,8 +61,7 @@ export class PullRequestQuickView extends React.Component<
   public componentDidUpdate = (prevProps: IPullRequestQuickViewProps) => {
     if (
       prevProps.pullRequest.pullRequestNumber ===
-        this.props.pullRequest.pullRequestNumber ||
-      this.quickViewRef === null
+      this.props.pullRequest.pullRequestNumber
     ) {
       return
     }
@@ -79,12 +82,12 @@ export class PullRequestQuickView extends React.Component<
     this.updateQuickViewPosition()
   }
 
-  private viewOnGitHub = () => {
+  private onViewOnGitHub = () => {
     this.props.dispatcher.showPullRequestByPR(this.props.pullRequest)
   }
 
-  private get quickViewHeight(): number {
-    return this.quickViewRef?.clientHeight ?? maxQuickViewHeight
+  private onMouseLeave = () => {
+    this.props.onMouseLeave()
   }
 
   /**
@@ -145,16 +148,12 @@ export class PullRequestQuickView extends React.Component<
     return { top: centerPointOnListItem }
   }
 
-  private onQuickViewRef = (quickViewRef: HTMLDivElement) => {
-    this.quickViewRef = quickViewRef
-  }
-
   private renderHeader = (): JSX.Element => {
     return (
       <header className="header">
         <Octicon symbol={OcticonSymbol.listUnordered} />
         <div className="action-needed">Review requested</div>
-        <Button className="button-with-icon" onClick={this.viewOnGitHub}>
+        <Button className="button-with-icon" onClick={this.onViewOnGitHub}>
           View on GitHub
           <Octicon symbol={OcticonSymbol.linkExternal} />
         </Button>
@@ -211,10 +210,6 @@ export class PullRequestQuickView extends React.Component<
     )
   }
 
-  private onMouseLeave = () => {
-    this.props.onMouseLeave()
-  }
-
   public render() {
     const { top } = this.state
     return (
@@ -223,7 +218,7 @@ export class PullRequestQuickView extends React.Component<
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         style={{ top }}
-        ref={this.onQuickViewRef}
+        ref={this.quickViewRef}
       >
         <div className="pull-request-quick-view-contents">
           {this.renderHeader()}
