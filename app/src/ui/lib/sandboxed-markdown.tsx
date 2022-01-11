@@ -19,6 +19,10 @@ interface ISandboxedMarkdownProps {
    * this will not fire.
    */
   readonly onMarkdownLinkClicked?: (url: string) => void
+
+  /** A callback for after the markdown has been parsed and the contents have
+   * been mounted to the iframe */
+  readonly onMarkdownParsed?: () => void
 }
 
 /**
@@ -142,6 +146,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     // to prevent scrollbar/content cut off.
     const divHeight = docEl.clientHeight + 50
     this.frameContainingDivRef.style.height = `${divHeight}px`
+    this.props.onMarkdownParsed?.()
   }
 
   /**
