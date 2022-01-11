@@ -14,8 +14,10 @@ import classNames from 'classnames'
  * body and 56 for header)
  */
 const maxQuickViewHeight = 556
-// This is currently staticly defined so not bothering to attain it from
-// dom searching.
+/**
+ * This is currently statically defined so not bothering to attain it from dom
+ * searching.
+ */
 const heightPRListItem = 47
 
 interface IPullRequestQuickViewProps {
@@ -71,6 +73,10 @@ export class PullRequestQuickView extends React.Component<
         this.quickViewHeight
       ),
     })
+  }
+
+  private onMarkdownParsed = () => {
+    this.updateQuickViewPosition()
   }
 
   private viewOnGitHub = () => {
@@ -130,9 +136,8 @@ export class PullRequestQuickView extends React.Component<
   }
 
   private getPointerPosition(top: number): React.CSSProperties {
-    const quickViewTopZero = this.getTopPRList()
     const prListItemTopWRTQuickViewTopZero =
-      this.props.pullRequestItemTop - quickViewTopZero
+      this.props.pullRequestItemTop - this.getTopPRList()
     const prListItemPositionWRToQuickViewTop =
       prListItemTopWRTQuickViewTopZero - top
     const centerPointOnListItem =
@@ -142,7 +147,6 @@ export class PullRequestQuickView extends React.Component<
 
   private onQuickViewRef = (quickViewRef: HTMLDivElement) => {
     this.quickViewRef = quickViewRef
-    this.updateQuickViewPosition()
   }
 
   private renderHeader = (): JSX.Element => {
@@ -201,6 +205,7 @@ export class PullRequestQuickView extends React.Component<
         <SandboxedMarkdown
           markdown={displayBody}
           baseHref={base.gitHubRepository.htmlURL}
+          onMarkdownParsed={this.onMarkdownParsed}
         />
       </div>
     )
