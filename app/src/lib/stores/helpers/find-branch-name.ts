@@ -2,6 +2,7 @@ import { Tip, TipState } from '../../../models/tip'
 import { IRemote } from '../../../models/remote'
 import { GitHubRepository } from '../../../models/github-repository'
 import { urlMatchesCloneURL } from '../../repository-matching'
+import { Branch, BranchType } from '../../../models/branch'
 
 /**
  * Function to determine which branch name to use when looking for branch
@@ -30,4 +31,25 @@ export function findRemoteBranchName(
   }
 
   return tip.branch.nameWithoutRemote
+}
+
+/**
+ * Attempts to find a local branch which is set up to track the given branch
+ * on the given remote. If that fails attempts to locate the remote branch
+ * itself.
+ *
+ * @param remote      The remote where the upstream branch resides
+ * @param branchName  The name of the upstream branch (i.e. `feature-a`)
+ */
+export function findTrackingOrRemoteBranch(
+  branches: ReadonlyArray<Branch>,
+  remote: IRemote,
+  branchName: string
+) {
+  const ref = `${remote.name}/${branchName}`
+
+  return (
+    branches.find(x => x.type === BranchType.Local && x.upstream === ref) ??
+    branches.find(x => x.type === BranchType.Remote && x.name === branchName)
+  )
 }

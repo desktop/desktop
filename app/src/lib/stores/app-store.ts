@@ -234,7 +234,10 @@ import {
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
-import { findRemoteBranchName } from './helpers/find-branch-name'
+import {
+  findRemoteBranchName,
+  findTrackingOrRemoteBranch,
+} from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
 import {
   TutorialStep,
@@ -5807,7 +5810,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     headCloneUrl: string,
     headRefName: string
   ): Promise<Branch | undefined> {
-    const gitStore = this.gitStoreCache.get(repository)
+    const state = this.gitStoreCache.get(repository)
+    const { allBranches: branches, defaultRemote, upstreamRemote } = state
     const remotes = await getRemotes(repository)
 
     // Find an existing remote (regardless if set up by us or outside of
@@ -5829,35 +5833,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const remoteRef = `${remote.name}/${headRefName}`
-
-    // Start by trying to find a local branch that is tracking the remote ref.
-    let existingBranch = gitStore.allBranches.find(
-      x => x.type === BranchType.Local && x.upstream === remoteRef
+    let existingBranch = findTrackingOrRemoteBranch(
+      branches,
+      remote,
+      headRefName
     )
 
     // If we found one, let's check it out and get out of here, quick
-    if (existingBranch !== undefined) {
+    if (existingBranch?.type === BranchType.Local) {
       return existingBranch
     }
-
-    const findRemoteBranch = (name: string) =>
-      gitStore.allBranches.find(
-        x => x.type === BranchType.Remote && x.name === name
-      )
-
-    // No such luck, let's see if we can at least find the remote branch then
-    existingBranch = findRemoteBranch(remoteRef)
 
     // It's quite possible that the PR was created after our last fetch of the
     // remote so let's fetch it and then try again.
     if (existingBranch === undefined) {
       try {
         await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-        existingBranch = findRemoteBranch(remoteRef)
       } catch (e) {
-        log.error(`Failed fetching remote ${remote?.name}`, e)
+        log.error(`Failed fetching remote ${remote.name}`, e)
       }
+      existingBranch = findTrackingOrRemoteBranch(branches, remote, headRefName)
     }
 
     if (existingBranch === undefined) {
@@ -5871,18 +5866,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // This would be a race condition if we ever hit it since we just checked
+    // that there wasn't a local tracking branch before fetching.
+    if (existingBranch.type === BranchType.Local) {
+      return existingBranch
+    }
+
     // For fork remotes we checkout the ref as pr/[123] instead of using the
     // head ref name since many PRs from forks are created from their default
     // branch so we'll have a very high likelihood of a conflicting local branch
     const isForkRemote =
-      remote.name !== gitStore.defaultRemote?.name &&
-      remote.name !== gitStore.upstreamRemote?.name
+      remote.name !== defaultRemote?.name &&
+      remote.name !== upstreamRemote?.name
 
     if (isForkRemote) {
       return await this._createBranch(
         repository,
         `pr/${prNumber}`,
-        remoteRef,
+        `${remote.name}/${headRefName}`,
         false
       )
     }
