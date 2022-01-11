@@ -56,6 +56,9 @@ interface IBranchDropdownProps {
   readonly shouldNudge: boolean
 
   readonly showCIStatusPopover: boolean
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 interface IBranchDropdownState {
   readonly badgeBottom: number
@@ -94,6 +97,7 @@ export class BranchDropdown extends React.Component<
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        emoji={this.props.emoji}
       />
     )
   }
