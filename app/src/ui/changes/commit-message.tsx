@@ -767,7 +767,7 @@ export class CommitMessage extends React.Component<
   }
 
   public render() {
-    const className = classNames({
+    const className = classNames('commit-message-component', {
       'with-action-bar': this.isActionBarEnabled,
       'with-co-authors': this.isCoAuthorInputVisible,
     })
@@ -786,7 +786,6 @@ export class CommitMessage extends React.Component<
 
     return (
       <div
-        id="commit-message"
         role="group"
         aria-label="Create commit"
         className={className}
