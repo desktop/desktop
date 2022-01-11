@@ -1,3 +1,4 @@
+import memoizeOne from 'memoize-one'
 import { EmojiFilter } from './emoji-filter'
 
 export interface INodeFilter {
@@ -24,28 +25,17 @@ export interface INodeFilter {
 }
 
 /**
- * The custom markdown filters should not change once they have been
- * instantiated for the first time in the app. Thus, we will store a cache to
- * serve up after the first instantiation.
- */
-let customMarkDownNodeFilterPipe: ReadonlyArray<INodeFilter>
-
-/**
  * Builds an array of node filters to apply to markdown html. Referring to it as pipe
  * because they will be applied in the order they are entered in the returned
  * array. This is important as some filters impact others.
  *
  * @param emoji Map from the emoji shortcut (e.g., :+1:) to the image's local path.
  */
-export function buildCustomMarkDownNodeFilterPipe(
-  emoji: Map<string, string>
-): ReadonlyArray<INodeFilter> {
-  if (customMarkDownNodeFilterPipe === undefined) {
-    customMarkDownNodeFilterPipe = [new EmojiFilter(emoji)]
-  }
-
-  return customMarkDownNodeFilterPipe
-}
+export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
+  (emoji: Map<string, string>): ReadonlyArray<INodeFilter> => [
+    new EmojiFilter(emoji),
+  ]
+)
 
 /**
  * Method takes an array of node filters and applies them to a markdown string.
