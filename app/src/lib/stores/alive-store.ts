@@ -189,7 +189,7 @@ export class AliveStore {
       topic: {
         name: channelInfo.channel_name,
         signed: channelInfo.signed_channel,
-        offset: '', // TODO: do we need to set an offset?
+        offset: '',
       },
     }
 
