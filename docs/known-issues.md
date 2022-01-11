@@ -140,7 +140,7 @@ are unable to find another cygwin DLL.
 
 Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by Git for Windows to emulate process forking.
 
-**Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or explicitly allow all executables under `<Git>\usr\bin` which depend on MSYS2.
+**Not supported:** this is an upstream limitation of MSYS2, and it is recommended that you either disable Mandatory ASLR or explicitly allow all executables under `<Git>\usr\bin` which depend on MSYS2.
 
 ### I get a black screen when launching Desktop
 
