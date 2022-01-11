@@ -32,6 +32,7 @@ import {
   getCommitsBetweenCommits,
   getBranches,
   getRebaseSnapshot,
+  getRemotes,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -47,6 +48,7 @@ import {
 import {
   matchExistingRepository,
   urlsMatch,
+  urlMatchesRemote,
 } from '../../lib/repository-matching'
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
@@ -115,6 +117,7 @@ import {
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
+import { findTrackingOrRemoteBranch } from '../../lib/stores/helpers/find-branch-name'
 
 /**
  * An error handler function.
@@ -1687,14 +1690,51 @@ export class Dispatcher {
     // up-to-date before performing the "Clone in Desktop" steps
     await this.appStore._refreshRepository(repository)
 
-    // if the repo has a remote, fetch before switching branches to ensure
-    // the checkout will be successful
-    if (isRepositoryWithGitHubRepository(repository)) {
-      await this.appStore._fetchDefaultRemote(repository)
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const { allBranches } = branchesState
+
+    const remotes = await getRemotes(repository)
+
+    // `openOrCloneRepository` could have found a repository by its upstream
+    // or origin remote url but we're looking for a branch in a specific remote
+    const remote = remotes.find(r => urlMatchesRemote(url, r))
+
+    // If we can't find a remote we're likely being called by a local script
+    // (such as the Desktop CLI tools) or something which wants us to check
+    // out a local branch.
+    if (remote === undefined) {
+      await this.checkoutLocalBranch(repository, branchName)
+      return repository
     }
 
-    await this.checkoutLocalBranch(repository, branchName)
+    // Try to find a local branch tracking the specific remote branch or
+    // the remote branch itself
+    let existing = findTrackingOrRemoteBranch(allBranches, remote, branchName)
 
+    // If we found either we can just go ahead and check it out
+    if (existing !== undefined) {
+      return this.checkoutBranch(repository, existing)
+    }
+
+    // If we didn't find it it's possible it was just created and we need to
+    // fetch to find it.
+    await this.appStore._fetchRemote(
+      repository,
+      remote,
+      FetchType.UserInitiatedTask
+    )
+
+    // Let's try again
+    existing = findTrackingOrRemoteBranch(allBranches, remote, branchName)
+
+    if (existing !== undefined) {
+      return this.checkoutBranch(repository, existing)
+    }
+
+    // We failed finding a branch specifically on the remote, let's fall back
+    // on the legacy behavior of just finding any branch name which match for
+    // backwards compatibility reasons.
+    await this.checkoutLocalBranch(repository, branchName)
     return repository
   }
 

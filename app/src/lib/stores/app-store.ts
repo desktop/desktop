@@ -289,7 +289,6 @@ import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
-import { findDefaultRemote } from './helpers/find-default-remote'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -4471,7 +4470,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Note that this method will not perform the fetch of the specified remote
    * if _any_ fetches or pulls are currently in-progress.
    */
-  private _fetchRemote(
+  public _fetchRemote(
     repository: Repository,
     remote: IRemote,
     fetchType: FetchType
@@ -5781,25 +5780,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (prBranch !== undefined) {
       await this._checkoutBranch(repository, prBranch)
       this.statsStore.recordPRBranchCheckout()
-    }
-  }
-
-  /**
-   *
-   * Fetches from "origin" or the first alphabetical remote if "origin" doesn't exist.
-   * This function is a no-op if no remote is configured.
-   */
-  public async _fetchDefaultRemote(
-    repository: RepositoryWithGitHubRepository
-  ): Promise<void> {
-    const remotes = await getRemotes(repository)
-    const defaultRemote = findDefaultRemote(remotes)
-    if (defaultRemote) {
-      await this._fetchRemote(
-        repository,
-        defaultRemote,
-        FetchType.UserInitiatedTask
-      )
     }
   }
 
