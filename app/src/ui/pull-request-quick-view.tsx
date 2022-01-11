@@ -14,6 +14,9 @@ import classNames from 'classnames'
  * body and 56 for header)
  */
 const maxQuickViewHeight = 556
+// This is currently staticly defined so not bothering to attain it from
+// dom searching.
+const heightPRListItem = 47
 
 interface IPullRequestQuickViewProps {
   readonly dispatcher: Dispatcher
@@ -29,7 +32,7 @@ interface IPullRequestQuickViewProps {
 }
 
 interface IPullRequestQuickViewState {
-  readonly position: React.CSSProperties | undefined
+  readonly top: number
 }
 
 export class PullRequestQuickView extends React.Component<
@@ -42,7 +45,7 @@ export class PullRequestQuickView extends React.Component<
     super(props)
 
     this.state = {
-      position: this.calculatePosition(
+      top: this.calculatePosition(
         props.pullRequestItemTop,
         this.quickViewHeight
       ),
@@ -58,8 +61,12 @@ export class PullRequestQuickView extends React.Component<
       return
     }
 
+    this.updateQuickViewPosition()
+  }
+
+  private updateQuickViewPosition = () => {
     this.setState({
-      position: this.calculatePosition(
+      top: this.calculatePosition(
         this.props.pullRequestItemTop,
         this.quickViewHeight
       ),
@@ -90,11 +97,8 @@ export class PullRequestQuickView extends React.Component<
   private calculatePosition(
     prListItemTop: number,
     quickViewHeight: number
-  ): React.CSSProperties | undefined {
+  ): number {
     const topOfPRList = this.getTopPRList()
-    // This is currently staticly defined so not bothering to attain it from
-    // dom searching.
-    const heightPRListItem = 47
 
     // We want to make sure that the quick view is always visible and highest
     // being aligned to top of branch/pr dropdown (which is 0 since this is a
@@ -105,14 +109,14 @@ export class PullRequestQuickView extends React.Component<
     // Check if it has room to display aligned to top (likely top half of list)
     if (window.innerHeight - prListItemTop > quickViewHeight) {
       const alignedTop = prListItemTop - topOfPRList
-      return { top: clamp(alignedTop, minTop, maxTop) }
+      return clamp(alignedTop, minTop, maxTop)
     }
 
     // Can't align to top -> likely bottom half of list check if has room to display aligned to bottom.
     if (prListItemTop - quickViewHeight > 0) {
       const alignedTop = prListItemTop - topOfPRList
       const alignedBottom = alignedTop - quickViewHeight + heightPRListItem
-      return { top: clamp(alignedBottom, minTop, maxTop) }
+      return clamp(alignedBottom, minTop, maxTop)
     }
 
     // If not enough room to display aligned top or bottom, attempt to center on
@@ -122,45 +126,23 @@ export class PullRequestQuickView extends React.Component<
     const middlePrListItem = prListItemTop + heightPRListItem / 2
     const middleQuickView = quickViewHeight / 2
     const alignedMiddle = middlePrListItem - middleQuickView
-    return { top: clamp(alignedMiddle, minTop, maxTop) }
+    return clamp(alignedMiddle, minTop, maxTop)
   }
 
-  private getPointerPosition(
-    position: React.CSSProperties | undefined,
-    quickViewHeight: number
-  ): React.CSSProperties | undefined {
-    // 23 = half a pr list item.
-    const defaultTop = { top: 20 }
-    if (position === undefined) {
-      return defaultTop
-    }
-
-    const { top, bottom } = position
+  private getPointerPosition(top: number): React.CSSProperties {
     const quickViewTopZero = this.getTopPRList()
     const prListItemTopWRTQuickViewTopZero =
       this.props.pullRequestItemTop - quickViewTopZero
-
-    let quickViewTop
-    if (top !== undefined) {
-      quickViewTop = parseInt(top.toString())
-    } else if (bottom !== undefined) {
-      const bottomAsNum = parseInt(bottom.toString())
-      quickViewTop = bottomAsNum - quickViewHeight + quickViewTopZero
-    }
-
-    if (quickViewTop === undefined) {
-      return defaultTop
-    }
-
     const prListItemPositionWRToQuickViewTop =
-      prListItemTopWRTQuickViewTopZero - quickViewTop
+      prListItemTopWRTQuickViewTopZero - top
     const centerPointOnListItem =
-      prListItemPositionWRToQuickViewTop + defaultTop.top
+      prListItemPositionWRToQuickViewTop + heightPRListItem / 2
     return { top: centerPointOnListItem }
   }
 
   private onQuickViewRef = (quickViewRef: HTMLDivElement) => {
     this.quickViewRef = quickViewRef
+    this.updateQuickViewPosition()
   }
 
   private renderHeader = (): JSX.Element => {
@@ -229,12 +211,13 @@ export class PullRequestQuickView extends React.Component<
   }
 
   public render() {
+    const { top } = this.state
     return (
       <div
         className="pull-request-quick-view"
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
-        style={this.state.position}
+        style={{ top }}
         ref={this.onQuickViewRef}
       >
         <div className="pull-request-quick-view-contents">
@@ -243,10 +226,7 @@ export class PullRequestQuickView extends React.Component<
         </div>
         <div
           className="pull-request-pointer"
-          style={this.getPointerPosition(
-            this.state.position,
-            this.quickViewHeight
-          )}
+          style={this.getPointerPosition(top)}
         ></div>
       </div>
     )
