@@ -87,6 +87,7 @@ describe('AppStore', () => {
       aliveStore,
       pullRequestCoordinator
     )
+    notificationsStore.setNotificationsEnabled(false)
 
     const appStore = new AppStore(
       githubUserStore,
