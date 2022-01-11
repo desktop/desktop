@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.7-test1": ["[Improved] Test new builds without Babel"],
     "2.9.6": [
       "[Added] View and re-run the check runs for the checked out pull request.",
       "[Fixed] Tooltip improvements and polish - #13452 #13449",
