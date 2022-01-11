@@ -1148,13 +1148,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private viewRepositoryOnGitHub() {
     const repository = this.getRepository()
 
-    if (repository instanceof Repository) {
-      const url = getGitHubHtmlUrl(repository)
-
-      if (url) {
-        this.props.dispatcher.openInBrowser(url)
-      }
-    }
+    this.viewOnGitHub(repository)
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */
@@ -2334,7 +2328,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private viewOnGitHub = (repository: Repository | CloningRepository) => {
+  private viewOnGitHub = (
+    repository: Repository | CloningRepository | null
+  ) => {
     if (!(repository instanceof Repository)) {
       return
     }
