@@ -210,8 +210,9 @@ export class AliveStore {
       return
     }
 
-    // TODO: parse this safely
-    const desktopEvent = event.data as any
-    this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, desktopEvent)
+    const data = (event.data as any) as DesktopAliveEvent
+    if (data.type === 'pr-checks-failed') {
+      this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, data)
+    }
   }
 }
