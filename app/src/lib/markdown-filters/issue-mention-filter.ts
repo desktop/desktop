@@ -43,7 +43,7 @@ export class IssueMentionFilter implements INodeFilter {
   /** A regular expression to match a group possible of preceding markers are
    * gh-, #, /issues/, /pull/, or /discussions/ followed by a digit
    */
-  private readonly marker = /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/
+  private readonly marker = /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/i
 
   /**
    * A regular expression string of a lookbehind is used so that valid matches
@@ -112,11 +112,10 @@ export class IssueMentionFilter implements INodeFilter {
    */
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
     const { textContent: text } = node
-    const markerRegexp = new RegExp(this.marker, 'i')
     if (
       node.nodeType !== node.TEXT_NODE ||
       text === null ||
-      !markerRegexp.test(text)
+      !this.marker.test(text)
     ) {
       return null
     }
