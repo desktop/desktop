@@ -221,7 +221,7 @@ export class IssueMentionFilter implements INodeFilter {
     }
 
     // Invalid - If it is only something/#1 and that `something` isn't the
-    // current repositories owner login, then we is not an actual, 'relative to
+    // current repositories owner login, then it is not an actual, 'relative to
     // this user', issue ref.
     if (
       ownerAndRepo.length === 1 &&
