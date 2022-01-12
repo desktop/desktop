@@ -151,6 +151,10 @@ export class PullRequestQuickView extends React.Component<
     return { top: centerPointOnListItem }
   }
 
+  private onMarkdownLinkClicked = (url: string) => {
+    this.props.dispatcher.openInBrowser(url)
+  }
+
   private renderHeader = (): JSX.Element => {
     return (
       <header className="header">
@@ -208,6 +212,8 @@ export class PullRequestQuickView extends React.Component<
           markdown={displayBody}
           emoji={this.props.emoji}
           baseHref={base.gitHubRepository.htmlURL}
+          repository={base.gitHubRepository}
+          onMarkdownLinkClicked={this.onMarkdownLinkClicked}
           onMarkdownParsed={this.onMarkdownParsed}
         />
       </div>
