@@ -7,6 +7,7 @@ import {
   applyNodeFilters,
   buildCustomMarkDownNodeFilterPipe,
 } from '../../lib/markdown-filters/node-filter'
+import { GitHubRepository } from '../../models/github-repository'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -26,6 +27,9 @@ interface ISandboxedMarkdownProps {
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  /** The GitHub repository to use when looking up commit status. */
+  readonly repository: GitHubRepository
 }
 
 /**

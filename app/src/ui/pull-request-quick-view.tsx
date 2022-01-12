@@ -185,6 +185,7 @@ export class PullRequestQuickView extends React.Component<
           markdown={displayBody}
           emoji={this.props.emoji}
           baseHref={base.gitHubRepository.htmlURL}
+          repository={base.gitHubRepository}
         />
       </div>
     )
