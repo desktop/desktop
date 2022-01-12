@@ -34,7 +34,7 @@ export const CommitWarning: React.FunctionComponent<{
   readonly icon: CommitWarningIcon
 }> = props => {
   return (
-    <div id="commit-warning" onContextMenu={ignoreContextMenu}>
+    <div className="commit-warning-component" onContextMenu={ignoreContextMenu}>
       <div className="warning-icon-container">{renderIcon(props.icon)}</div>
       <div className="warning-message">{props.children}</div>
     </div>

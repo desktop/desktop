@@ -3,9 +3,13 @@ import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import marked from 'marked'
 import DOMPurify from 'dompurify'
+import {
+  applyNodeFilters,
+  buildCustomMarkDownNodeFilterPipe,
+} from '../../lib/markdown-filters/node-filter'
 
 interface ISandboxedMarkdownProps {
-  /** A string of unparsed markdownm to display */
+  /** A string of unparsed markdown to display */
   readonly markdown: string
 
   /** The baseHref of the markdown content for when the markdown has relative links */
@@ -19,6 +23,12 @@ interface ISandboxedMarkdownProps {
    * this will not fire.
    */
   readonly onMarkdownLinkClicked?: (url: string) => void
+
+  /** A callback for after the markdown has been parsed and the contents have
+   * been mounted to the iframe */
+  readonly onMarkdownParsed?: () => void
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 /**
@@ -142,6 +152,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     // to prevent scrollbar/content cut off.
     const divHeight = docEl.clientHeight + 50
     this.frameContainingDivRef.style.height = `${divHeight}px`
+    this.props.onMarkdownParsed?.()
   }
 
   /**
@@ -189,10 +200,18 @@ export class SandboxedMarkdown extends React.PureComponent<
     const styleSheet = await this.getInlineStyleSheet()
 
     const parsedMarkdown = marked(this.props.markdown ?? '', {
+      // https://marked.js.org/using_advanced  If true, use approved GitHub
+      // Flavored Markdown (GFM) specification.
       gfm: true,
+      // https://marked.js.org/using_advanced, If true, add <br> on a single
+      // line break (copies GitHub behavior on comments, but not on rendered
+      // markdown files). Requires gfm be true.
+      breaks: true,
     })
 
     const sanitizedHTML = DOMPurify.sanitize(parsedMarkdown)
+
+    const filteredHTML = await this.applyCustomMarkdownFilters(sanitizedHTML)
 
     const src = `
       <html>
@@ -202,8 +221,8 @@ export class SandboxedMarkdown extends React.PureComponent<
         </head>
         <body class="markdown-body">
           <div id="content">
-          ${sanitizedHTML}
-          </div
+          ${filteredHTML}
+          </div>
         </body>
       </html>
     `
@@ -222,6 +241,17 @@ export class SandboxedMarkdown extends React.PureComponent<
     // parent dom and we want all rendering to be isolated to our sandboxed iframe.
     // -- https://csplite.com/csp/test188/
     this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
+  }
+
+  /**
+   * Applies custom markdown filters to parsed markdown html. This is done
+   * through converting the markdown html into a DOM document and then
+   * traversing the nodes to apply custom filters such as emoji, issue, username
+   * mentions, etc.
+   */
+  private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
+    const nodeFilters = buildCustomMarkDownNodeFilterPipe(this.props.emoji)
+    return applyNodeFilters(nodeFilters, parsedMarkdown)
   }
 
   public render() {

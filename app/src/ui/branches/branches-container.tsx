@@ -46,6 +46,9 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 interface IBranchesContainerState {
@@ -125,6 +128,7 @@ export class BranchesContainer extends React.Component<
     return (
       <PullRequestQuickView
         dispatcher={this.props.dispatcher}
+        emoji={this.props.emoji}
         pullRequest={pr}
         pullRequestItemTop={prListItemTop}
         onMouseEnter={this.onMouseEnterPullRequestQuickView}

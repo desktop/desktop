@@ -4,10 +4,9 @@
 
   .pull-request-quick-view-contents {
     background-color: var(--background-color);
-    margin: 0 var(--spacing-double);
+    margin: 0 var(--spacing);
     min-width: 400px;
     border-radius: var(--border-radius);
-    overflow: hidden;
 
     .header {
       display: flex;
@@ -52,6 +51,32 @@
           display: inline-flex;
         }
       }
+    }
+  }
+
+  .pull-request-pointer {
+    position: absolute;
+    top: 23px;
+    left: -6px;
+    pointer-events: none;
+    margin-top: -7px;
+
+    &::before,
+    &::after {
+      display: inline-block;
+      position: absolute;
+      content: '';
+    }
+
+    &::before {
+      border: 8px solid transparent;
+      border-right-color: var(--box-border-color);
+    }
+
+    &::after {
+      border: 7px solid transparent;
+      border-right-color: var(--background-color);
+      left: 2px;
     }
   }
 }
