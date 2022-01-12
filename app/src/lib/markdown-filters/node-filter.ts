@@ -1,5 +1,8 @@
 import memoizeOne from 'memoize-one'
+import { GitHubRepository } from '../../models/github-repository'
 import { EmojiFilter } from './emoji-filter'
+import { IssueLinkFilter } from './issue-link-filter'
+import { IssueMentionFilter } from './issue-mention-filter'
 
 export interface INodeFilter {
   /**
@@ -32,7 +35,12 @@ export interface INodeFilter {
  * @param emoji Map from the emoji shortcut (e.g., :+1:) to the image's local path.
  */
 export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
-  (emoji: Map<string, string>): ReadonlyArray<INodeFilter> => [
+  (
+    emoji: Map<string, string>,
+    repository: GitHubRepository
+  ): ReadonlyArray<INodeFilter> => [
+    new IssueMentionFilter(repository),
+    new IssueLinkFilter(repository),
     new EmojiFilter(emoji),
   ]
 )

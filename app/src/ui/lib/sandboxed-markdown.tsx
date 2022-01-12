@@ -244,7 +244,10 @@ export class SandboxedMarkdown extends React.PureComponent<
    * mentions, etc.
    */
   private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
-    const nodeFilters = buildCustomMarkDownNodeFilterPipe(this.props.emoji)
+    const nodeFilters = buildCustomMarkDownNodeFilterPipe(
+      this.props.emoji,
+      this.props.repository
+    )
     return applyNodeFilters(nodeFilters, parsedMarkdown)
   }
 
