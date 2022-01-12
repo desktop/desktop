@@ -66,6 +66,13 @@ export interface IToolbarDropdownProps {
   readonly dropdownContentRenderer: () => JSX.Element | null
 
   /**
+   * A callback which is invoked when the button's context menu 
+   * is activated. The source event is passed along and can be
+   * used to prevent the default action or stop the event from bubbling.
+   */
+  readonly onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
    * A function that's called whenever something is dragged over the
    * dropdown.
    */
@@ -175,7 +182,7 @@ interface IToolbarDropdownState {
 export class ToolbarDropdown extends React.Component<
   IToolbarDropdownProps,
   IToolbarDropdownState
-> {
+  > {
   private innerButton: ToolbarButton | null = null
   private focusTrapOptions: FocusTrapOptions
 
@@ -236,6 +243,12 @@ export class ToolbarDropdown extends React.Component<
     const source = !event.clientX && !event.clientY ? 'keyboard' : 'pointer'
 
     this.props.onDropdownStateChanged(newState, source)
+  }
+
+  private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (this.props.onContextMenu) {
+      this.props.onContextMenu(event)
+    }
   }
 
   private updateClientRectIfNecessary() {
@@ -380,6 +393,7 @@ export class ToolbarDropdown extends React.Component<
           description={this.props.description}
           tooltip={this.props.tooltip}
           onClick={this.onClick}
+          onContextMenu={this.onContextMenu}
           onMouseEnter={this.props.onMouseEnter}
           style={this.props.style}
           iconClassName={this.props.iconClassName}
