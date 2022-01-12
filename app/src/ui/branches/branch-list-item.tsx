@@ -1,4 +1,3 @@
-import { clipboard } from 'electron'
 import * as React from 'react'
 
 import { IMatches } from '../../lib/fuzzy-find'
@@ -7,12 +6,12 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
 import { showContextualMenu } from '../main-process-proxy'
-import { IMenuItem } from '../../lib/menu-item'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { RelativeTime } from '../relative-time'
 import classNames from 'classnames'
+import { createBranchContextMenuItems } from './branch-list-item-context-menu'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -54,7 +53,7 @@ interface IBranchListItemState {
 export class BranchListItem extends React.Component<
   IBranchListItemProps,
   IBranchListItemState
-> {
+  > {
   public constructor(props: IBranchListItemProps) {
     super(props)
     this.state = { isDragInProgress: false }
@@ -74,29 +73,12 @@ export class BranchListItem extends React.Component<
       return
     }
 
-    const items: Array<IMenuItem> = []
-
-    if (onRenameBranch !== undefined) {
-      items.push({
-        label: 'Rename…',
-        action: () => onRenameBranch(name),
-        enabled: isLocal,
-      })
-    }
-
-    items.push({
-      label: __DARWIN__ ? 'Copy Branch Name' : 'Copy branch name',
-      action: () => clipboard.writeText(name),
-    })
-
-    items.push({ type: 'separator' })
-
-    if (onDeleteBranch !== undefined) {
-      items.push({
-        label: 'Delete…',
-        action: () => onDeleteBranch(name),
-      })
-    }
+    const items = createBranchContextMenuItems(
+      name,
+      isLocal,
+      onRenameBranch,
+      onDeleteBranch
+    )
 
     showContextualMenu(items)
   }
