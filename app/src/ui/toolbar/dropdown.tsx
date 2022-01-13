@@ -66,7 +66,7 @@ export interface IToolbarDropdownProps {
   readonly dropdownContentRenderer: () => JSX.Element | null
 
   /**
-   * A callback which is invoked when the button's context menu 
+   * A callback which is invoked when the button's context menu
    * is activated. The source event is passed along and can be
    * used to prevent the default action or stop the event from bubbling.
    */
@@ -182,7 +182,7 @@ interface IToolbarDropdownState {
 export class ToolbarDropdown extends React.Component<
   IToolbarDropdownProps,
   IToolbarDropdownState
-  > {
+> {
   private innerButton: ToolbarButton | null = null
   private focusTrapOptions: FocusTrapOptions
 

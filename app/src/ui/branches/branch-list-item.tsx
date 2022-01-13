@@ -53,7 +53,7 @@ interface IBranchListItemState {
 export class BranchListItem extends React.Component<
   IBranchListItemProps,
   IBranchListItemState
-  > {
+> {
   public constructor(props: IBranchListItemProps) {
     super(props)
     this.state = { isDragInProgress: false }

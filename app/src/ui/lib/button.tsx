@@ -14,7 +14,7 @@ export interface IButtonProps {
 
   /**
    * A callback which is invoked when the button's context menu
-   * is activated using a pointer device or keyboard. The source 
+   * is activated using a pointer device or keyboard. The source
    * event is passed along and can be used to prevent the default
    * action or stop the event from bubbling.
    */

@@ -74,7 +74,7 @@ interface IBranchDropdownState {
 export class BranchDropdown extends React.Component<
   IBranchDropdownProps,
   IBranchDropdownState
-  > {
+> {
   public constructor(props: IBranchDropdownProps) {
     super(props)
     this.state = {
@@ -228,7 +228,9 @@ export class BranchDropdown extends React.Component<
     }
   }
 
-  private createContextMenuItems = (event: React.MouseEvent<HTMLButtonElement>): void => {
+  private createContextMenuItems = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ): void => {
     event.preventDefault()
 
     const repositoryState = this.props.repositoryState
@@ -252,7 +254,9 @@ export class BranchDropdown extends React.Component<
   }
 
   private getBranchWithName(branchName: string): Branch | undefined {
-    return this.props.repositoryState.branchesState.allBranches.find(branch => branch.name === branchName)
+    return this.props.repositoryState.branchesState.allBranches.find(
+      branch => branch.name === branchName
+    )
   }
 
   private onRenameBranch = (branchName: string) => {

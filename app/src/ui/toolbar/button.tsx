@@ -40,7 +40,7 @@ export interface IToolbarButtonProps {
 
   /**
    * An optional event handler for when the button's context menu
-   * is activated by a pointer event or by hitting the menu key 
+   * is activated by a pointer event or by hitting the menu key
    * while focused.
    */
   readonly onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void

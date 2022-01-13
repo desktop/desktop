@@ -73,7 +73,7 @@ interface IBranchesContainerState {
 export class BranchesContainer extends React.Component<
   IBranchesContainerProps,
   IBranchesContainerState
-  > {
+> {
   public static getDerivedStateFromProps(
     props: IBranchesContainerProps,
     state: IBranchesContainerProps
