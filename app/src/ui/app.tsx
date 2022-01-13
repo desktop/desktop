@@ -55,7 +55,11 @@ import {
 } from './toolbar'
 import { iconForRepository, OcticonSymbolType } from './octicons'
 import * as OcticonSymbol from './octicons/octicons.generated'
-import { showCertificateTrustDialog, sendReady } from './main-process-proxy'
+import {
+  showCertificateTrustDialog,
+  sendReady,
+  showContextualMenu,
+} from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
@@ -146,6 +150,7 @@ import { PullRequestChecksFailed } from './notifications/pull-request-checks-fai
 import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 import { clamp } from '../lib/clamp'
+import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2441,11 +2446,53 @@ export class App extends React.Component<IAppProps, IAppState> {
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
         tooltip={tooltip}
         foldoutStyle={foldoutStyle}
+        onContextMenu={this.onContextMenu}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
         dropdownState={currentState}
       />
     )
+  }
+
+  private onContextMenu = () => {
+    const selection = this.state.selectedState
+
+    const repository = selection ? selection.repository : null
+    if (!repository) {
+      return
+    }
+
+    const externalEditorLabel = this.state.selectedExternalEditor
+      ? this.state.selectedExternalEditor
+      : undefined
+
+    const onChangeRepositoryAlias = (repository: Repository) => {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ChangeRepositoryAlias,
+        repository,
+      })
+    }
+
+    const onRemoveRepositoryAlias = (repository: Repository) => {
+      this.props.dispatcher.changeRepositoryAlias(repository, null)
+    }
+
+    const items = generateRepositoryListContextMenu({
+      onRemoveRepository: this.removeRepository,
+      onShowRepository: this.showRepository,
+      onOpenInShell: this.openInShell,
+      onOpenInExternalEditor: this.openInExternalEditor,
+      askForConfirmationOnRemoveRepository: this.state
+        .askForConfirmationOnRepositoryRemoval,
+      externalEditorLabel: externalEditorLabel,
+      onChangeRepositoryAlias: onChangeRepositoryAlias,
+      onRemoveRepositoryAlias: onRemoveRepositoryAlias,
+      onViewOnGitHub: this.viewOnGitHub,
+      repository: repository,
+      shellLabel: this.state.selectedShell,
+    })
+
+    showContextualMenu(items)
   }
 
   private renderPushPullToolbarButton() {
