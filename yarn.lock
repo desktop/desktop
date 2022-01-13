@@ -542,6 +542,11 @@
   resolved "https://registry.yarnpkg.com/@electron/remote/-/remote-1.2.2.tgz#4c390a2e669df47af973c09eec106162a296c323"
   integrity sha512-PfnXpQGWh4vpX866NNucJRnNOzDRZcsLcLaT32fUth9k0hccsohfxprqEDYLzRg+ZK2xRrtyUN5wYYoHimMCJg==
 
+"@electron/remote@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@electron/remote/-/remote-2.0.1.tgz#810cbc595a21f0f94641eb2d7e8264063a3f84de"
+  integrity sha512-bGX4/yB2bPZwXm1DsxgoABgH0Cz7oFtXJgkerB8VrStYdTyvhGAULzNLRn9rVmeAuC3VUDXaXpZIlZAZHpsLIA==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -4270,10 +4275,10 @@ electron-winstaller@*, electron-winstaller@^5.0.0:
     lodash.template "^4.2.2"
     temp "^0.9.0"
 
-electron@=13.6.2:
-  version "13.6.2"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-13.6.2.tgz#878e01d78cd442a8ec28340b271608ba5b7c7ebd"
-  integrity sha512-ZXx9t68yXftvNZVnQ7v2XHcnH+MPUF6LNStoz4MMXuWpkF9gq3qwjcYSqnbM4wiVkvWVHIyYvt1yemmStza9dQ==
+electron@=14.0.0:
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-14.0.0.tgz#a096484bfbf71d87fc0fa85a943a7869d6b9bf94"
+  integrity sha512-O6EI7L1BPIrTpEIFefjjmdbmSn9LtE4mmrv4dfpV4Mqaa8uKuNYQogwZPEvSwaBexb69eb1LQ25n+f+kBcjiRQ==
   dependencies:
     "@electron/get" "^1.0.1"
     "@types/node" "^14.6.2"
