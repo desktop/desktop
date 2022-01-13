@@ -83,6 +83,8 @@ import {
   supportsSystemThemeChanges,
 } from './lib/application-theme'
 import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
+import { AliveStore } from '../lib/stores/alive-store'
+import { NotificationsStore } from '../lib/stores/notifications-store'
 
 if (__DEV__) {
   installDevGlobals()
@@ -258,6 +260,14 @@ const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 const commitStatusStore = new CommitStatusStore(accountsStore)
 const aheadBehindStore = new AheadBehindStore()
 
+const aliveStore = new AliveStore(accountsStore)
+
+const notificationsStore = new NotificationsStore(
+  accountsStore,
+  aliveStore,
+  pullRequestCoordinator
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -268,7 +278,8 @@ const appStore = new AppStore(
   repositoriesStore,
   pullRequestCoordinator,
   repositoryStateManager,
-  apiRepositoriesStore
+  apiRepositoriesStore,
+  notificationsStore
 )
 
 appStore.onDidUpdate(state => {

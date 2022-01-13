@@ -641,6 +641,15 @@ function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
+interface IAPIAliveSignedChannel {
+  readonly channel_name: string
+  readonly signed_channel: string
+}
+
+interface IAPIAliveWebSocket {
+  readonly url: string
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -669,6 +678,44 @@ export class API {
   public constructor(endpoint: string, token: string) {
     this.endpoint = endpoint
     this.token = token
+  }
+
+  /**
+   * Retrieves the name of the Alive channel used by Desktop to receive
+   * high-signal notifications.
+   */
+  public async getAliveDesktopChannel(): Promise<IAPIAliveSignedChannel | null> {
+    try {
+      const res = await this.request('GET', '/desktop_internal/alive-channel')
+      const signedChannel = await parsedResponse<IAPIAliveSignedChannel>(res)
+      return signedChannel
+    } catch (e) {
+      log.warn(`Alive channel request failed: ${e}`)
+      return null
+    }
+  }
+
+  /**
+   * Retrieves the URL for the Alive websocket.
+   *
+   * @returns The websocket URL if the request succeeded, null if the request
+   * failed with 404, otherwise it will throw an error.
+   *
+   * This behavior is expected by the AliveSession class constructor, to prevent
+   * it from hitting the endpoint many times if it's disabled.
+   */
+  public async getAliveWebSocketURL(): Promise<string | null> {
+    try {
+      const res = await this.request('GET', '/alive_internal/websocket-url')
+      if (res.status === HttpStatusCode.NotFound) {
+        return null
+      }
+      const websocket = await parsedResponse<IAPIAliveWebSocket>(res)
+      return websocket.url
+    } catch (e) {
+      log.warn(`Alive web socket request failed: ${e}`)
+      throw e
+    }
   }
 
   /** Fetch a repo by its owner and name. */
