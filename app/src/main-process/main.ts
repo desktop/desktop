@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell, session } from 'electron'
+import { app, Menu, ipcMain, shell, session, BrowserWindow } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
 
@@ -29,6 +29,8 @@ import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { installSameOriginFilter } from './same-origin-filter'
+import * as remoteMain from '@electron/remote/main'
+remoteMain.initialize()
 
 app.setAppLogsPath()
 enableSourceMaps()
