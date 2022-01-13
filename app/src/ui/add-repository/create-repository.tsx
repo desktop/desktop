@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import * as React from 'react'
 import * as Path from 'path'
 import * as FSE from 'fs-extra'

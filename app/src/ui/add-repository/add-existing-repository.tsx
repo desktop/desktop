@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { Dispatcher } from '../dispatcher'
 import { isGitRepository } from '../../lib/git'
 import { isBareRepository } from '../../lib/git'

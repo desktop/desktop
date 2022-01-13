@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { Disposable, IDisposable } from 'event-kit'
 
 import {

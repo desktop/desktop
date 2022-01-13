@@ -1,6 +1,6 @@
 import * as React from 'react'
 import memoizeOne from 'memoize-one'
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
 import { Octicon } from '../octicons/octicon'

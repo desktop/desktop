@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
+import * as remote from '@electron/remote'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import {

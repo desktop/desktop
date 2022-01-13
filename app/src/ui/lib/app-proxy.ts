@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 
 let app: Electron.App | null = null
 let version: string | null = null

@@ -6,7 +6,8 @@ import * as Path from 'path'
 
 import * as moment from 'moment'
 
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
+import * as remote from '@electron/remote'
 
 import { App } from './app'
 import {

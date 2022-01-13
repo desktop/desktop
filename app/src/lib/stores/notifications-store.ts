@@ -3,7 +3,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { PullRequest } from '../../models/pull-request'
 import { API, APICheckConclusion } from '../api'
 import {

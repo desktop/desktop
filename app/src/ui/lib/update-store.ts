@@ -1,5 +1,4 @@
-import { remote } from 'electron'
-
+import * as remote from '@electron/remote'
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
 const autoUpdater = remote.autoUpdater
