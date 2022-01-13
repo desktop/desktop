@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
+import { getCurrentWindow } from '@electron/remote'
 import {
   WindowState,
   getWindowState,
@@ -34,7 +35,7 @@ interface IWindowControlState {
  */
 export class WindowControls extends React.Component<{}, IWindowControlState> {
   public componentWillMount() {
-    this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
+    this.setState({ windowState: getWindowState(getCurrentWindow()) })
 
     ipcRenderer.on(windowStateChannelName, this.onWindowStateChanged)
   }
@@ -58,19 +59,19 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
   }
 
   private onMinimize = () => {
-    remote.getCurrentWindow().minimize()
+    getCurrentWindow().minimize()
   }
 
   private onMaximize = () => {
-    remote.getCurrentWindow().maximize()
+    getCurrentWindow().maximize()
   }
 
   private onRestore = () => {
-    remote.getCurrentWindow().unmaximize()
+    getCurrentWindow().unmaximize()
   }
 
   private onClose = () => {
-    remote.getCurrentWindow().close()
+    getCurrentWindow().close()
   }
 
   private renderButton(

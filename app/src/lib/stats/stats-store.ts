@@ -22,7 +22,7 @@ import {
 } from '../local-storage'
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
-import { remote } from 'electron'
+import { app } from '@electron/remote'
 import { Architecture, getArchitecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 
@@ -514,14 +514,14 @@ export class StatsStore implements IStatsStore {
 
     // isInApplicationsFolder is undefined when not running on Darwin
     const launchedFromApplicationsFolder =
-      remote.app.isInApplicationsFolder?.() ?? null
+      app.isInApplicationsFolder?.() ?? null
 
     return {
       eventType: 'usage',
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
-      architecture: getArchitecture(remote.app),
+      architecture: getArchitecture(app),
       theme: getPersistedThemeName(),
       selectedTerminalEmulator,
       selectedTextEditor,

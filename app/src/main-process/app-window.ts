@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
+import { ipcMain, Menu, app, dialog, BrowserWindow } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
@@ -46,10 +46,8 @@ export class AppWindow {
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
-        enableRemoteModule: true,
         spellcheck: true,
         contextIsolation: false,
-        worldSafeExecuteJavaScript: false,
       },
       acceptFirstMouse: true,
     }
@@ -63,6 +61,8 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+    require('@electron/remote/main').enable(this.window.webContents)
+
     savedWindowState.manage(this.window)
     this.shouldMaximizeOnShow = savedWindowState.isMaximized
 

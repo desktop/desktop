@@ -3,7 +3,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { remote } from 'electron'
+import { Notification } from '@electron/remote'
 import { PullRequest } from '../../models/pull-request'
 import { API, APICheckConclusion } from '../api'
 import {
@@ -190,7 +190,7 @@ export class NotificationsStore {
     const shortSHA = sha.slice(0, 9)
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
-    const notification = new remote.Notification({
+    const notification = new Notification({
       title,
       body,
     })

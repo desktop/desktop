@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as React from 'react'
 
-import { remote } from 'electron'
+import { getCurrentWindow, dialog } from '@electron/remote'
 import { readdir } from 'fs-extra'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
@@ -512,8 +512,8 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseWithOpenDialog = async (): Promise<string | undefined> => {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const window = getCurrentWindow()
+    const { filePaths } = await dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 
@@ -536,10 +536,10 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseWithSaveDialog = async (): Promise<string | undefined> => {
-    const window = remote.getCurrentWindow()
+    const window = getCurrentWindow()
     const tabState = this.getSelectedTabState()
 
-    const { canceled, filePath } = await remote.dialog.showSaveDialog(window, {
+    const { canceled, filePath } = await dialog.showSaveDialog(window, {
       buttonLabel: 'Select',
       nameFieldLabel: 'Clone As:',
       showsTagField: false,

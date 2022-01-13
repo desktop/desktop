@@ -6,8 +6,8 @@ import * as Path from 'path'
 
 import * as moment from 'moment'
 
-import { ipcRenderer, remote } from 'electron'
-
+import { ipcRenderer } from 'electron'
+import { getCurrentWindow } from '@electron/remote'
 import { App } from './app'
 import {
   Dispatcher,
@@ -311,7 +311,7 @@ dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
 document.body.classList.add(`platform-${process.platform}`)
 
-dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+dispatcher.setAppFocusState(getCurrentWindow().isFocused())
 
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)

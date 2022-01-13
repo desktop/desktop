@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import { nativeTheme, app } from '@electron/remote'
 import {
   ApplicableTheme,
   getCurrentlyAppliedTheme,
@@ -14,7 +14,7 @@ class ThemeChangeMonitor implements IDisposable {
   }
 
   public dispose() {
-    remote.nativeTheme.removeAllListeners()
+    nativeTheme.removeAllListeners()
   }
 
   private subscribe = () => {
@@ -22,7 +22,7 @@ class ThemeChangeMonitor implements IDisposable {
       return
     }
 
-    remote.nativeTheme.addListener('updated', this.onThemeNotificationUpdated)
+    nativeTheme.addListener('updated', this.onThemeNotificationUpdated)
   }
 
   private onThemeNotificationUpdated = (event: string, userInfo: any) => {
@@ -43,6 +43,6 @@ class ThemeChangeMonitor implements IDisposable {
 export const themeChangeMonitor = new ThemeChangeMonitor()
 
 // this ensures we cleanup any existing subscription on exit
-remote.app.on('will-quit', () => {
+app.on('will-quit', () => {
   themeChangeMonitor.dispose()
 })

@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import { app, getCurrentWindow, dialog } from '@electron/remote'
 import { Disposable, IDisposable } from 'event-kit'
 
 import {
@@ -1367,7 +1367,7 @@ export class Dispatcher {
   }
 
   public moveToApplicationsFolder() {
-    remote.app.moveToApplicationsFolder?.()
+    app.moveToApplicationsFolder?.()
   }
 
   /**
@@ -1533,8 +1533,8 @@ export class Dispatcher {
    * Update the location of an existing repository and clear the missing flag.
    */
   public async relocateRepository(repository: Repository): Promise<void> {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const window = getCurrentWindow()
+    const { filePaths } = await dialog.showOpenDialog(window, {
       properties: ['openDirectory'],
     })
 
@@ -1763,7 +1763,7 @@ export class Dispatcher {
         if (__DARWIN__) {
           // workaround for user reports that the application doesn't receive focus
           // after completing the OAuth signin in the browser
-          const window = remote.getCurrentWindow()
+          const window = getCurrentWindow()
           if (!window.isFocused()) {
             log.info(
               `refocusing the main window after the OAuth flow is completed`

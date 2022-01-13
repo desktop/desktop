@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
@@ -38,9 +38,7 @@ export class CrashWindow {
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
         spellcheck: false,
-        enableRemoteModule: true,
         contextIsolation: false,
-        worldSafeExecuteJavaScript: false,
       },
     }
 

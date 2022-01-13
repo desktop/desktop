@@ -1,6 +1,6 @@
 import * as React from 'react'
 import memoizeOne from 'memoize-one'
-import { remote } from 'electron'
+import { systemPreferences, getCurrentWindow } from '@electron/remote'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
 import { Octicon } from '../octicons/octicon'
@@ -52,11 +52,11 @@ export class TitleBar extends React.Component<ITitleBarProps> {
   })
 
   private onTitlebarDoubleClickDarwin = () => {
-    const actionOnDoubleClick = remote.systemPreferences.getUserDefault(
+    const actionOnDoubleClick = systemPreferences.getUserDefault(
       'AppleActionOnDoubleClick',
       'string'
     )
-    const mainWindow = remote.getCurrentWindow()
+    const mainWindow = getCurrentWindow()
 
     switch (actionOnDoubleClick) {
       case 'Maximize':
