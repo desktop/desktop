@@ -2,7 +2,18 @@ dialog#commit-message-dialog {
   .dialog-content {
     padding: 0;
   }
-  #commit-message {
+
+  .commit-message-component,
+  .commit-warning-component {
     background-color: inherit;
+  }
+
+  .commit-warning-component {
+    .warning-icon-container {
+      .warning-icon,
+      .information-icon {
+        background-color: var(--background-color);
+      }
+    }
   }
 }

@@ -14,6 +14,11 @@ import classNames from 'classnames'
  * body and 56 for header)
  */
 const maxQuickViewHeight = 556
+/**
+ * This is currently statically defined so not bothering to attain it from dom
+ * searching.
+ */
+const heightPRListItem = 47
 
 interface IPullRequestQuickViewProps {
   readonly dispatcher: Dispatcher
@@ -32,22 +37,26 @@ interface IPullRequestQuickViewProps {
 }
 
 interface IPullRequestQuickViewState {
-  readonly position: React.CSSProperties | undefined
+  readonly top: number
 }
 
 export class PullRequestQuickView extends React.Component<
   IPullRequestQuickViewProps,
   IPullRequestQuickViewState
 > {
-  private quickViewRef: HTMLDivElement | null = null
+  private quickViewRef = React.createRef<HTMLDivElement>()
+
+  private get quickViewHeight(): number {
+    return this.quickViewRef.current?.clientHeight ?? maxQuickViewHeight
+  }
 
   public constructor(props: IPullRequestQuickViewProps) {
     super(props)
 
     this.state = {
-      position: this.calculatePosition(
+      top: this.calculatePosition(
         props.pullRequestItemTop,
-        maxQuickViewHeight
+        this.quickViewHeight
       ),
     }
   }
@@ -55,22 +64,33 @@ export class PullRequestQuickView extends React.Component<
   public componentDidUpdate = (prevProps: IPullRequestQuickViewProps) => {
     if (
       prevProps.pullRequest.pullRequestNumber ===
-        this.props.pullRequest.pullRequestNumber ||
-      this.quickViewRef === null
+      this.props.pullRequest.pullRequestNumber
     ) {
       return
     }
 
+    this.updateQuickViewPosition()
+  }
+
+  private updateQuickViewPosition = () => {
     this.setState({
-      position: this.calculatePosition(
+      top: this.calculatePosition(
         this.props.pullRequestItemTop,
-        this.quickViewRef.clientHeight
+        this.quickViewHeight
       ),
     })
   }
 
-  private viewOnGitHub = () => {
+  private onMarkdownParsed = () => {
+    this.updateQuickViewPosition()
+  }
+
+  private onViewOnGitHub = () => {
     this.props.dispatcher.showPullRequestByPR(this.props.pullRequest)
+  }
+
+  private onMouseLeave = () => {
+    this.props.onMouseLeave()
   }
 
   /**
@@ -89,11 +109,8 @@ export class PullRequestQuickView extends React.Component<
   private calculatePosition(
     prListItemTop: number,
     quickViewHeight: number
-  ): React.CSSProperties | undefined {
+  ): number {
     const topOfPRList = this.getTopPRList()
-    // This is currently staticly defined so not bothering to attain it from
-    // dom searching.
-    const heightPRListItem = 47
 
     // We want to make sure that the quick view is always visible and highest
     // being aligned to top of branch/pr dropdown (which is 0 since this is a
@@ -104,14 +121,14 @@ export class PullRequestQuickView extends React.Component<
     // Check if it has room to display aligned to top (likely top half of list)
     if (window.innerHeight - prListItemTop > quickViewHeight) {
       const alignedTop = prListItemTop - topOfPRList
-      return { top: clamp(alignedTop, minTop, maxTop) }
+      return clamp(alignedTop, minTop, maxTop)
     }
 
     // Can't align to top -> likely bottom half of list check if has room to display aligned to bottom.
     if (prListItemTop - quickViewHeight > 0) {
       const alignedTop = prListItemTop - topOfPRList
       const alignedBottom = alignedTop - quickViewHeight + heightPRListItem
-      return { top: clamp(alignedBottom, minTop, maxTop) }
+      return clamp(alignedBottom, minTop, maxTop)
     }
 
     // If not enough room to display aligned top or bottom, attempt to center on
@@ -121,11 +138,21 @@ export class PullRequestQuickView extends React.Component<
     const middlePrListItem = prListItemTop + heightPRListItem / 2
     const middleQuickView = quickViewHeight / 2
     const alignedMiddle = middlePrListItem - middleQuickView
-    return { top: clamp(alignedMiddle, minTop, maxTop) }
+    return clamp(alignedMiddle, minTop, maxTop)
   }
 
-  private onQuickViewRef = (quickViewRef: HTMLDivElement) => {
-    this.quickViewRef = quickViewRef
+  private getPointerPosition(top: number): React.CSSProperties {
+    const prListItemTopWRTQuickViewTopZero =
+      this.props.pullRequestItemTop - this.getTopPRList()
+    const prListItemPositionWRToQuickViewTop =
+      prListItemTopWRTQuickViewTopZero - top
+    const centerPointOnListItem =
+      prListItemPositionWRToQuickViewTop + heightPRListItem / 2
+    return { top: centerPointOnListItem }
+  }
+
+  private onMarkdownLinkClicked = (url: string) => {
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private renderHeader = (): JSX.Element => {
@@ -133,7 +160,7 @@ export class PullRequestQuickView extends React.Component<
       <header className="header">
         <Octicon symbol={OcticonSymbol.listUnordered} />
         <div className="action-needed">Review requested</div>
-        <Button className="button-with-icon" onClick={this.viewOnGitHub}>
+        <Button className="button-with-icon" onClick={this.onViewOnGitHub}>
           View on GitHub
           <Octicon symbol={OcticonSymbol.linkExternal} />
         </Button>
@@ -185,28 +212,32 @@ export class PullRequestQuickView extends React.Component<
           markdown={displayBody}
           emoji={this.props.emoji}
           baseHref={base.gitHubRepository.htmlURL}
+          repository={base.gitHubRepository}
+          onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+          onMarkdownParsed={this.onMarkdownParsed}
         />
       </div>
     )
   }
 
-  private onMouseLeave = () => {
-    this.props.onMouseLeave()
-  }
-
   public render() {
+    const { top } = this.state
     return (
       <div
         className="pull-request-quick-view"
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
-        style={this.state.position}
-        ref={this.onQuickViewRef}
+        style={{ top }}
+        ref={this.quickViewRef}
       >
         <div className="pull-request-quick-view-contents">
           {this.renderHeader()}
           {this.renderPR()}
         </div>
+        <div
+          className="pull-request-pointer"
+          style={this.getPointerPosition(top)}
+        ></div>
       </div>
     )
   }

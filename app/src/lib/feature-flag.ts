@@ -162,3 +162,8 @@ export function enablePreviousTagSuggestions(): boolean {
 export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we enable high-signal notifications? */
+export function enableHighSignalNotifications(): boolean {
+  return enableDevelopmentFeatures()
+}
