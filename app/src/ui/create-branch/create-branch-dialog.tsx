@@ -443,7 +443,7 @@ export class CreateBranch extends React.Component<
     if (isRepositoryWithForkedGitHubRepository(this.props.repository)) {
       return (
         <p>
-          Fork behaviour can be changed from {' '}
+          Fork behavior can be changed from{' '}
           <LinkButton onClick={this.onForkSettingsClick}>
             the repository settings
           </LinkButton>
