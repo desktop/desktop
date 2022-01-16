@@ -25,6 +25,8 @@ import { startTimer } from '../lib/timing'
 import { GitHubRepository } from '../../models/github-repository'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { CommitOneLine } from '../../models/commit'
+import { PopupType } from '../../models/popup'
+import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -422,8 +424,18 @@ export class CreateBranch extends React.Component<
         this.state.startPoint === StartPoint.UpstreamDefaultBranch
           ? this.state.startPoint
           : StartPoint.CurrentBranch
-
-      return this.renderOptions(items, selectedValue)
+      return (
+        <div>
+          <p>
+            Fork behaviour can be changed from {' '}
+            <LinkButton onClick={this.onForkSettingsClick}>
+              the repository settings
+            </LinkButton>
+            .
+          </p>
+          {this.renderOptions(items, selectedValue)}
+        </div>
+      )
     }
   }
 
@@ -441,6 +453,14 @@ export class CreateBranch extends React.Component<
       />
     </Row>
   )
+
+  private onForkSettingsClick = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.RepositorySettings,
+      repository: this.props.repository,
+      initialSelectedTab: RepositorySettingsTab.ForkSettings,
+    })
+  }
 }
 
 /** Reusable snippet */
