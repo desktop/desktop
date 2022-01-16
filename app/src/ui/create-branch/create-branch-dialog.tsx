@@ -27,6 +27,7 @@ import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { CommitOneLine } from '../../models/commit'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
+import { isRepositoryWithForkedGitHubRepository } from '../../models/repository'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -378,7 +379,12 @@ export class CreateBranch extends React.Component<
           ? this.state.startPoint
           : StartPoint.CurrentBranch
 
-      return this.renderOptions(items, selectedValue)
+      return (
+        <div>
+          {this.renderForkLink()}
+          {this.renderOptions(items, selectedValue)}
+        </div>
+      )
     }
   }
 
@@ -426,16 +432,26 @@ export class CreateBranch extends React.Component<
           : StartPoint.CurrentBranch
       return (
         <div>
-          <p>
-            Fork behaviour can be changed from {' '}
-            <LinkButton onClick={this.onForkSettingsClick}>
-              the repository settings
-            </LinkButton>
-            .
-          </p>
+          {this.renderForkLink()}
           {this.renderOptions(items, selectedValue)}
         </div>
       )
+    }
+  }
+
+  private renderForkLink = () => {
+    if (isRepositoryWithForkedGitHubRepository(this.props.repository)) {
+      return (
+        <p>
+          Fork behaviour can be changed from {' '}
+          <LinkButton onClick={this.onForkSettingsClick}>
+            the repository settings
+          </LinkButton>
+          .
+        </p>
+      )
+    } else {
+      return
     }
   }
 
