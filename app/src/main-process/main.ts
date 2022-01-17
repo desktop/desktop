@@ -28,7 +28,7 @@ import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
-import { installSameOriginFilter } from './same-origin-filter'
+import { installWebRequestFilters } from './install-web-request-filters'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -283,7 +283,7 @@ app.on('ready', () => {
 
   // Ensures auth-related headers won't traverse http redirects to hosts
   // on different origins than the originating request.
-  installSameOriginFilter(session.defaultSession.webRequest)
+  installWebRequestFilters(session.defaultSession.webRequest)
 
   Menu.setApplicationMenu(
     buildDefaultMenu({

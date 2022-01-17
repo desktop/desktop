@@ -1,7 +1,9 @@
 import { WebRequest } from 'electron/main'
 
 /**
- * Installs a web request filter to prevent cross domain leaks of auth headers
+ * Installs two web request filters:
+ * - One to prevent cross domain leaks of auth headers
+ * - Another one to override the default Origin used to connect to Alive web sockets
  *
  * GitHub Desktop uses the fetch[1] web API for all of our API requests. When fetch
  * is used in a browser and it encounters an http redirect to another origin
@@ -31,7 +33,7 @@ import { WebRequest } from 'electron/main'
  *
  * @param webRequest
  */
-export function installSameOriginFilter(webRequest: WebRequest) {
+export function installWebRequestFilters(webRequest: WebRequest) {
   // A map between the request ID and the _initial_ request origin
   const requestOrigin = new Map<number, string>()
   const safeProtocols = new Set(['devtools:', 'file:', 'chrome-extension:'])
@@ -53,7 +55,20 @@ export function installSameOriginFilter(webRequest: WebRequest) {
 
   webRequest.onBeforeSendHeaders((details, cb) => {
     const initialOrigin = requestOrigin.get(details.id)
-    const { origin } = new URL(details.url)
+    const { origin, protocol, host } = new URL(details.url)
+
+    // If it's a WebSocket Secure request directed to a github.com subdomain,
+    // probably related to the Alive server, we need to override the `Origin`
+    // header with a valid value.
+    if (protocol === 'wss:' && host.includes('github.com')) {
+      return cb({
+        requestHeaders: {
+          ...details.requestHeaders,
+          // TODO: discuss with Alive team a good Origin value to use here
+          Origin: 'https://desktop.github.com',
+        },
+      })
+    }
 
     if (initialOrigin === undefined || initialOrigin === origin) {
       return cb({ requestHeaders: details.requestHeaders })
