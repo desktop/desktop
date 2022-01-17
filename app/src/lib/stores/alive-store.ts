@@ -46,6 +46,7 @@ export class AliveStore {
   private readonly emitter = new Emitter()
   private subscriptions: Array<IAliveSubscription> = []
   private enabled: boolean = false
+  private accountSubscriptionPromise: Promise<void> | null = null
 
   public constructor(private readonly accountsStore: AccountsStore) {
     this.accountsStore.onDidUpdate(this.subscribeToAccounts)
@@ -83,18 +84,33 @@ export class AliveStore {
     this.subscribeToAccounts(accounts)
   }
 
-  private unsubscribeFromAllAccounts() {
+  private async unsubscribeFromAllAccounts() {
+    // Wait until previous (un)subscriptions finish
+    await this.accountSubscriptionPromise
+
     const subscribedAccounts = this.subscriptions.map(s => s.account)
     for (const account of subscribedAccounts) {
       this.unsubscribeFromAccount(account)
     }
   }
 
-  private subscribeToAccounts = (accounts: ReadonlyArray<Account>) => {
+  private subscribeToAccounts = async (accounts: ReadonlyArray<Account>) => {
     if (!this.enabled || !enableHighSignalNotifications()) {
       return
     }
 
+    // Wait until previous (un)subscriptions finish
+    await this.accountSubscriptionPromise
+
+    this.accountSubscriptionPromise = this._subscribeToAccounts(accounts)
+  }
+
+  /**
+   * This method just wraps the async logic to subscribe to a list of accounts,
+   * so that we can wait until the previous (un)subscriptions finish.
+   * Do not use directly, use `subscribeToAccounts` instead.
+   */
+  private async _subscribeToAccounts(accounts: ReadonlyArray<Account>) {
     const subscribedAccounts = this.subscriptions.map(s => s.account)
 
     // Clear subscriptions for accounts that are no longer in the list
@@ -107,7 +123,7 @@ export class AliveStore {
     // Subscribe to new accounts
     for (const account of accounts) {
       if (!accountIncluded(account, subscribedAccounts)) {
-        this.subscribeToAccount(account)
+        await this.subscribeToAccount(account)
       }
     }
   }
