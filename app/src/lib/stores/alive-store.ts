@@ -195,7 +195,7 @@ export class AliveStore {
 
     endpointSession.session.offline()
 
-    console.log('Unubscribed from Alive channel!')
+    log.info(`Unubscribed '${account.login}' from Alive channel`)
   }
 
   private subscribeToAccount = async (account: Account) => {
@@ -223,11 +223,11 @@ export class AliveStore {
       subscription,
     })
 
-    console.log('Subscribed to Alive channel!')
+    log.info(`Subscribed '${account.login}' to Alive channel`)
   }
 
   private notify = (subscribers: Iterable<AliveStore>, event: AliveEvent) => {
-    console.log('Alive event received:', event)
+    console.log('Alive event received:', event) // TODO: delete this line after testing
 
     if (event.type !== 'message') {
       return
