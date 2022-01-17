@@ -60,7 +60,7 @@ export function installWebRequestFilters(webRequest: WebRequest) {
     // If it's a WebSocket Secure request directed to a github.com subdomain,
     // probably related to the Alive server, we need to override the `Origin`
     // header with a valid value.
-    if (protocol === 'wss:' && host.includes('github.com')) {
+    if (protocol === 'wss:' && /(^|\.)github\.com$/.test(host)) {
       return cb({
         requestHeaders: {
           ...details.requestHeaders,
