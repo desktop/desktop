@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="feComposite">
+        <xs:complexType>
+            <xs:attribute name="in" use="required" />
+            <xs:attribute name="in2" use="required" />
+            <xs:attribute name="result" use="required" />
+            <xs:attribute name="operator" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="feBlend">
+        <xs:complexType>
+            <xs:attribute name="in" use="required" />
+            <xs:attribute name="in2" use="required" />
+            <xs:attribute name="result" use="required" />
+            <xs:attribute name="mode" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="feConvolveMatrix">
+        <xs:complexType>
+            <xs:attribute name="kernelMatrix" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="feComponentTransfer">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="feFuncR" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute name="type" use="required" />
+                        <xs:attribute name="exponent" type="xs:decimal" />
+                        <xs:attribute name="slope" type="xs:decimal" />
+                        <xs:attribute name="intercept" type="xs:decimal" />
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="feFuncG" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute name="type" use="required" />
+                        <xs:attribute name="exponent" type="xs:decimal" />
+                        <xs:attribute name="slope" type="xs:decimal" />
+                        <xs:attribute name="intercept" type="xs:decimal" />
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="feFuncB" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute name="type" use="required" />
+                        <xs:attribute name="exponent" type="xs:decimal" />
+                        <xs:attribute name="slope" type="xs:decimal" />
+                        <xs:attribute name="intercept" type="xs:decimal" />
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="feFuncA" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute name="type" use="required" />
+                        <xs:attribute name="slope" type="xs:decimal" use="required" />
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="result" use="required" />
+            <xs:attribute name="in" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="feMorphology">
+        <xs:complexType>
+            <xs:attribute name="in" use="required" />
+            <xs:attribute name="result" use="required" />
+            <xs:attribute name="operator" use="required" />
+            <xs:attribute name="radius" type="xs:decimal" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="feFuncR">
+        <xs:complexType>
+            <xs:attribute name="type" use="required" />
+            <xs:attribute name="slope" type="xs:integer" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="feFuncG">
+        <xs:complexType>
+            <xs:attribute name="type" use="required" />
+            <xs:attribute name="slope" type="xs:integer" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="feFuncB">
+        <xs:complexType>
+            <xs:attribute name="type" use="required" />
+            <xs:attribute name="slope" type="xs:integer" use="required" />
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

@@ -1,0 +1,34 @@
+<feComponentTransfer in="SourceGraphic" result="brightness0">
+	<feFuncR type="linear" slope="1"/>
+	<feFuncG type="linear" slope="1"/>
+	<feFuncB type="linear" slope="1"/>
+</feComponentTransfer>
+<feComponentTransfer in="brightness0" result="contrast0">
+	<feFuncR type="linear" slope="1" intercept="0.00"/>
+	<feFuncG type="linear" slope="1" intercept="0.00"/>
+	<feFuncB type="linear" slope="1" intercept="0.00"/>
+</feComponentTransfer>
+<feComponentTransfer in="contrast0" result="gamma0">
+	<feFuncR type="gamma" exponent="0"/>
+	<feFuncG type="gamma" exponent="0"/>
+	<feFuncB type="gamma" exponent="0"/>
+</feComponentTransfer>
+<feColorMatrix in="gamma0" result="saturate0" type="saturate" values="1"/>
+<feColorMatrix in="saturate0" result="grayscale0" values="
+	1.00 0.00 0.00 0 0 
+	0.00 1.00 0.00 0 0 
+	0.00 0.00 1.00 0 0 
+	0 0 0 1 0"/>
+<feConvolveMatrix kernelMatrix="
+0 -1 0 
+-1 5 -1 
+0 -1 0"
+
+<feFuncR type="linear" slope="1"/>
+	<feFuncG type="variable" slope="2"/>
+	<feFuncB type="static" slope="3"/>
+
+/>
+
+<feComponentTransfer result="svg-code0">
+</feComponentTransfer>
