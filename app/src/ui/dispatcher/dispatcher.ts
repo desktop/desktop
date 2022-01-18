@@ -1688,10 +1688,8 @@ export class Dispatcher {
     await this.appStore._refreshRepository(repository)
 
     // if the repo has a remote, fetch before switching branches to ensure
-    // the checkout will be successful
-    if (isRepositoryWithGitHubRepository(repository)) {
-      await this.appStore._fetch(repository, FetchType.UserInitiatedTask)
-    }
+    // the checkout will be successful. This operation could be a no-op.
+    await this.appStore._fetch(repository, FetchType.UserInitiatedTask)
 
     await this.checkoutLocalBranch(repository, branchName)
 
