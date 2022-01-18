@@ -145,9 +145,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
   }
 
   private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.onContextMenu) {
-      this.props.onContextMenu(event)
-    }
+    this.props.onContextMenu?.(event)
   }
 
   private onButtonRef = (ref: Button | null) => {
