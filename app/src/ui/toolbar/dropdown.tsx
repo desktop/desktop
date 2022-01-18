@@ -246,9 +246,7 @@ export class ToolbarDropdown extends React.Component<
   }
 
   private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.onContextMenu) {
-      this.props.onContextMenu(event)
-    }
+    this.props.onContextMenu?.(event)
   }
 
   private updateClientRectIfNecessary() {

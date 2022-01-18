@@ -162,9 +162,7 @@ export class Button extends React.Component<IButtonProps, {}> {
   }
 
   private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.onContextMenu) {
-      this.props.onContextMenu(event)
-    }
+    this.props.onContextMenu?.(event)
 
     if (this.props.type === undefined) {
       event.preventDefault()
