@@ -1,0 +1,23 @@
+<feComposite in="svg-code0" in2="svg-code8" result="composite0" operator="xor" /><feBlend in="composite0" in2="composite0" result="blend12" mode="difference" /><feConvolveMatrix kernelMatrix="
+0 -1 0 
+-1 5 -1 
+0 -1 0" /><feComponentTransfer result="svg-code0"></feComponentTransfer><feBlend in="blend12" in2="svg-code0" result="blend2" mode="hard-light" /><feBlend in="blend2" in2="svg-code0" result="blend0" mode="exclusion" /><feComponentTransfer in="composite0" result="gamma0">
+    <feFuncR type="gamma" exponent="1.274" />
+    <feFuncG type="gamma" exponent="0.419" />
+    <feFuncB type="gamma" exponent="1.1" />
+</feComponentTransfer><feBlend in="composite0" in2="gamma0" result="blend1" mode="normal" /><feBlend in="composite0" in2="blend1" result="blend3" mode="multiply" /><feComponentTransfer in="blend3" result="contrast0">
+    <feFuncR type="linear" slope="0.122" intercept="0.44" />
+    <feFuncG type="linear" slope="0.181" intercept="0.41" />
+    <feFuncB type="linear" slope="3.438" intercept="-1.22" />
+</feComponentTransfer><feBlend in="composite0" in2="contrast0" result="blend6" mode="difference" /><feConvolveMatrix kernelMatrix="
+0 -1 0 
+-1 0 -1 
+0 -4 0" /><feComponentTransfer result="svg-code5"></feComponentTransfer><feMorphology in="svg-code5" result="morphology1" operator="dilate" radius="0.552" /><feBlend in="morphology1" in2="morphology1" result="blend4" mode="overlay" /><feBlend in="blend6" in2="blend4" result="blend5" mode="normal" /><feBlend in="blend5" in2="blend5" result="blend7" mode="overlay" /><feBlend in="SourceGraphic" in2="blend7" result="blend8" mode="normal" /><feMorphology in="blend8" result="morphology2" operator="dilate" radius="0.7" /><feConvolveMatrix kernelMatrix="22 4 5
+11 -3 5
+-11 -11 2" /><feComponentTransfer result="svg-code8"></feComponentTransfer><feBlend in="morphology2" in2="svg-code8" result="blend9" mode="hard-light" /><feBlend in="svg-code8" in2="blend9" result="blend11" mode="difference" /><feBlend in="svg-code8" in2="blend11" result="blend13" mode="exclusion" /><feBlend in="composite0" in2="blend13" result="blend14" mode="multiply" /><feComponentTransfer in="blend14" result="gamma2">
+    <feFuncR type="gamma" exponent="3.579" />
+    <feFuncG type="gamma" exponent="1.988" />
+    <feFuncB type="gamma" exponent="2.187" />
+</feComponentTransfer>
+<?xml encoding="SO.GO"?>
+</xml

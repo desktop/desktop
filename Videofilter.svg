@@ -1,0 +1,2909 @@
+<?xml version="1.0" encoding="utf-8"?>
+<System>
+
+
+    <per-triangle-shape name="virtualGround">
+        <margin>0.04</margin>
+        <prenetration>1</prenetration>
+        <priority>1</priority>
+        <shared>public</shared>
+        <tag>ground</tag>
+    </per-triangle-shape>
+
+    <per-vertex-shape name="NPC Root [Root]">
+        <margin>0.04</margin>
+        <prenetration>1</prenetration>
+        <priority>1</priority>
+        <shared>public</shared>
+        <tag>Body</tag>
+    </per-vertex-shape>
+
+
+    <bone name="VirtualGround">
+        <mass>1000000</mass>
+        <inertia x="1" y="1" z="1" />
+        <centerOfMassTransform>
+            <basis x="0" y="0.03" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.3</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>-1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>10000</restitution>
+        <margin-multiplier>10</margin-multiplier>
+    </bone>
+
+    <bone name="NPC Root [Root]">
+        <mass>1000000</mass>
+        <inertia x="1" y="1" z="1" />
+        <centerOfMassTransform>
+            <basis x="0" y="0.03" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.3</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>10000</restitution>
+        <margin-multiplier>10</margin-multiplier>
+    </bone>
+
+    <bone name="NPC R Foot [Rft ]" />
+    <bone name="NPC L Foot [Lft ]" />
+
+
+    <bone name="NPC L Clavicle [LClv]" />
+    <bone name="NPC R Clavicle [RClv]" />
+
+
+    <bone name="NPC L Forearm [LLar]" tag="FarmL" />
+    <bone name="NPC R Forearm [RLar]" tag="FarmR" />
+
+
+    <bone name="NPC L ForearmTwist1 [LLt1]" tag="FarmL" />
+    <bone name="NPC R ForearmTwist1 [RLt1]" tag="FarmR" />
+    <bone name="NPC L ForearmTwist2 [LLt2]" tag="FarmL" />
+    <bone name="NPC R ForearmTwist2 [RLt2]" tag="FarmR" />
+
+
+    <bone name="NPC L UpperArm [LUar]" tag="UarmL" />
+    <bone name="NPC R UpperArm [RUar]" tag="UarmR" />
+
+
+    <bone name="NPC L UpperarmTwist1 [LUt1]" tag="UarmL" />
+    <bone name="NPC R UpperarmTwist1 [RUt1]" tag="UarmR" />
+    <bone name="NPC L UpperarmTwist2 [LUt2]" tag="UarmL" />
+    <bone name="NPC R UpperarmTwist2 [RUt2]" tag="UarmR" />
+
+
+    <bone name="NPC L Hand [LHnd]" />
+    <bone name="NPC R Hand [RHnd]" />
+
+    <bone name="Weapondagger" />
+    <bone name="WeaponSword" />
+    <bone name="WeaponAxe" />
+    <bone name="WeaponMace" />
+    <bone name="WeaponBack" />
+    <bone name="WeaponBow" />
+
+
+    <bone-default>
+        <mass>100000</mass>
+        <inertia x="11" y="40" z="11" />
+        <centerOfMassTransform>
+            <basis x="0" y="0.02" z="0" w="1" />
+            <origin x="0" y="-0.01" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.5</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>0.78</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>1.01</margin-multiplier>
+    </bone-default>
+
+
+    <bone name="Head">
+        <mass>10</mass>
+        <inertia x="1" y="1" z="1" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1.2</linearDamping>
+        <angularDamping>1.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.65</friction>
+        <rollingFriction>0.85</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+
+    <!--        MAIN BODY -      -->
+    <!--   Breasts -->
+
+
+    <bone name="L Breast00">
+        <mass>100</mass>
+        <inertia x="11" y="11" z="11" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0.3" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.7</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.01</margin-multiplier>
+    </bone>
+
+    <bone name="R Breast00">
+        <mass>100</mass>
+        <inertia x="11" y="11" z="11" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0.3" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.7</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.01</margin-multiplier>
+    </bone>
+
+
+    <bone name="L Breast01">
+        <mass>60</mass>
+        <inertia x="30" y="150" z="90" />
+        <centerOfMassTransform>
+            <basis x="0" y="0.3" z="0.3" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.78</linearDamping>
+        <angularDamping>0.87</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>0.7</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>1.31</margin-multiplier>
+    </bone>
+
+    <bone name="R Breast01">
+        <mass>60</mass>
+        <inertia x="300" y="150" z="90" />
+        <centerOfMassTransform>
+            <basis x="0" y="0.3" z="0.3" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.78</linearDamping>
+        <angularDamping>0.87</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>0.7</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>1.31</margin-multiplier>
+    </bone>
+
+
+    <bone name="L Breast02">
+        <mass>100</mass>
+        <inertia x="1" y="2" z="2" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.3" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.01</linearDamping>
+        <angularDamping>0.01</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>0.01</rollingFriction>
+        <restitution>0.1</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+
+    <bone name="R Breast02">
+        <mass>100</mass>
+        <inertia x="1" y="2" z="2" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.3" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.01</linearDamping>
+        <angularDamping>0.01</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>0.01</rollingFriction>
+        <restitution>0.1</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+
+    <stiffspring-constraint bodyA="R Breast02" bodyB="L Breast02">
+        <frameInB>
+            <basis x="0" y="1" z="0" w="3" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="-4" z="-4" />
+        <linearUpperLimit x="4" y="4" z="4" />
+        <angularLowerLimit x="-2" y="-0.5" z="0.0" />
+        <angularUpperLimit x="2" y="3" z="0.8" />
+        <linearStiffness x="0.5" y="0.5" z="0.5" />
+        <angularStiffness x="0.01" y="1.1" z="0.5" />
+        <linearDamping x="0.1" y="0" z="0.3" />
+        <angularDamping x="0" y="0" z="0.1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="1" />
+        <linearBounce x="1" y="1" z="0" />
+        <angularBounce x="7" y="9" z="4" />
+        <minDistanceFactor>0.300</minDistanceFactor>
+        <maxDistanceFactor>3.000</maxDistanceFactor>
+        <stiffness>0.0400</stiffness>
+        <damping>0.100</damping>
+        <equilibrium>0.500</equilibrium>
+
+    </stiffspring-constraint>
+
+    <bone name="L Breast03">
+        <mass>350</mass>
+        <inertia x="200" y="200" z="20" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.54</linearDamping>
+        <angularDamping>0.01</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+    <bone name="R Breast03">
+        <mass>350</mass>
+        <inertia x="200" y="200" z="20" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.54</linearDamping>
+        <angularDamping>0.01</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+    <generic-constraint bodyA="L Breast01" bodyB="L Breast00">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-1" y="-0.2" z="-6" />
+        <linearUpperLimit x="2" y="0.5" z="3" />
+        <angularLowerLimit x="-1.0" y="-0.3" z="0" />
+        <angularUpperLimit x="0.5" y="0.5" z="0.5" />
+        <linearStiffness x="90" y="900" z="120" />
+        <angularStiffness x="0.3" y="0.3" z="0.3" />
+        <linearDamping x="2" y="2" z="20" />
+        <angularDamping x="2" y="2" z="2" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="1.0" y="1.0" z="1.0" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="R Breast01" bodyB="R Breast00">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-1" y="-0.2" z="-6" />
+        <linearUpperLimit x="2" y="0.5" z="3" />
+        <angularLowerLimit x="-1" y="-0.3" z="0" />
+        <angularUpperLimit x="0.5" y="0.5" z="0.5" />
+        <linearStiffness x="90" y="900" z="120" />
+        <angularStiffness x="0.3" y="0.3" z="0.3" />
+        <linearDamping x="2" y="2" z="20" />
+        <angularDamping x="2" y="2" z="2" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="1.0" y="1.0" z="1.0" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="L Breast02" bodyB="L Breast01">
+        <frameInB>
+            <basis x="0" y="0.5" z="1" w="1" />
+            <origin x="0" y="0" z="-0.5" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="0" y="-0.2" z="-4.5" />
+        <linearUpperLimit x="0" y="1" z="1.2" />
+        <angularLowerLimit x="-0.5" y="-0.02" z="-0.1" />
+        <angularUpperLimit x="0.1" y="0.02" z="0.3" />
+        <linearStiffness x="900" y="900" z="900" />
+        <angularStiffness x="0.2" y="0.3" z="0.4" />
+        <linearDamping x="2" y="2" z="14" />
+        <angularDamping x="2" y="2" z="8" />
+        <linearEquilibrium x="0" y="0" z="-1.2" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="1" y="1" z="1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="R Breast02" bodyB="R Breast01">
+        <frameInB>
+            <basis x="0" y="0.5" z="1" w="1" />
+            <origin x="0" y="0" z="-0.5" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="0" y="-0.2" z="-4.5" />
+        <linearUpperLimit x="0" y="1" z="1.2" />
+        <angularLowerLimit x="-0.5" y="-0.02" z="-0.1" />
+        <angularUpperLimit x="0.1" y="0.02" z="0.3" />
+        <linearStiffness x="900" y="900" z="900" />
+        <angularStiffness x="0.2" y="0.3" z="0.4" />
+        <linearDamping x="2" y="2" z="14" />
+        <angularDamping x="2" y="2" z="8" />
+        <linearEquilibrium x="0" y="0" z="-1.2" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="1" y="1" z="1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="L Breast03" bodyB="L Breast02">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="-3" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-10" y="-10" z="-10" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.1" y="-0.02" z="-0.1" />
+        <angularUpperLimit x="0.1" y="0.02" z="0.05" />
+        <linearStiffness x="0" y="0" z="0" />
+        <angularStiffness x="900" y="900" z="900" />
+        <linearDamping x="2" y="2" z="2" />
+        <angularDamping x="2" y="2" z="2" />
+        <linearEquilibrium x="0" y="0" z="-0.8" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="L Breast03" bodyB="L Breast00">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="-3" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-1" y="-0.2" z="-2" />
+        <linearUpperLimit x="1" y="0.5" z="2" />
+        <angularLowerLimit x="-0.1" y="-0.02" z="-0.1" />
+        <angularUpperLimit x="0.1" y="0.02" z="0.05" />
+        <linearStiffness x="0" y="0" z="0" />
+        <angularStiffness x="900" y="900" z="900" />
+        <linearDamping x="2" y="2" z="2" />
+        <angularDamping x="2" y="2" z="2" />
+        <linearEquilibrium x="0" y="0" z="-0.8" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="R Breast03" bodyB="R Breast02">
+        <frameInB>
+            <basis x="0" y="0" z="1" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-1" y="-0.2" z="-2" />
+        <linearUpperLimit x="1" y="0.5" z="2" />
+        <angularLowerLimit x="-0.1" y="-0.02" z="-0.05" />
+        <angularUpperLimit x="0.1" y="0.02" z="0.1" />
+        <linearStiffness x="900" y="900" z="900" />
+        <angularStiffness x="0.5" y="0.4" z="0.3" />
+        <linearDamping x="2" y=" 2" z=" 2" />
+        <angularDamping x=" 2" y=" 2" z=" 2" />
+        <linearEquilibrium x=" 0" y=" 0" z=" -0.8" />
+        <angularEquilibrium x=" 0" y=" 0" z=" 0" />
+        <linearBounce x=" 0.5" y=" 0.3" z=" 0.2" />
+        <angularBounce x=" 0.3" y=" 0.1" z=" 0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA=" R Breast03" bodyB=" R Breast00">
+        <frameInB>
+            <basis x=" 0" y=" 0" z=" 1" w=" 1" />
+            <origin x=" 0" y=" 0" z=" 0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x=" -1" y=" -0.2" z=" -2" />
+        <linearUpperLimit x=" 1" y=" 0.5" z=" 2" />
+        <angularLowerLimit x=" -0.1" y=" -0.02" z=" -0.05" />
+        <angularUpperLimit x=" 0.1" y=" 0.02" z=" 0.1" />
+        <linearStiffness x=" 900" y=" 900" z=" 900" />
+        <angularStiffness x="0.5" y="0.4" z="0.3" />
+        <linearDamping x="2" y="2" z="2" />
+        <angularDamping x="2" y="2" z="2" />
+        <linearEquilibrium x="0" y="0" z="-0.8" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+
+    <stiffspring-constraint bodyA="NPC Spine2 [Spn2]" bodyB="R Breast00">
+        <frameInB>
+            <basis x="0" y="0" z="5" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="-4" z="-4" />
+        <linearUpperLimit x="4" y="4" z="4" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="0.5" y="0.5" z="0.5" />
+        <angularStiffness x="0.5" y="0.1" z="0.2" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0" y="0" z="0" />
+        <angularBounce x="1" y="1" z="1" />
+        <minDistanceFactor>0.500</minDistanceFactor>
+        <maxDistanceFactor>1.000</maxDistanceFactor>
+        <stiffness>0.500</stiffness>
+        <damping>0.400</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="NPC Spine2 [Spn2]" bodyB="L Breast00">
+        <frameInB>
+            <basis x="0" y="0" z="5" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="-4" z="-4" />
+        <linearUpperLimit x="4" y="4" z="4" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="0.5" y="0.5" z="0.5" />
+        <angularStiffness x="0.5" y="0.1" z="0.2" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0" y="0" z="0" />
+        <angularBounce x="1" y="1" z="1" />
+        <minDistanceFactor>0.500</minDistanceFactor>
+        <maxDistanceFactor>1.000</maxDistanceFactor>
+        <stiffness>0.500</stiffness>
+        <damping>0.400</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+
+    <stiffspring-constraint bodyA="L Breast00" bodyB="NPC Spine2 [Spn2]">
+        <frameInB>
+            <basis x="0" y="0" z="5" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="-4" z="-4" />
+        <linearUpperLimit x="4" y="4" z="4" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="0.5" y="0.5" z="0.5" />
+        <angularStiffness x="0.5" y="0.1" z="0.2" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0" y="0" z="0" />
+        <angularBounce x="1" y="1" z="1" />
+        <minDistanceFactor>10.500</minDistanceFactor>
+        <maxDistanceFactor>11.000</maxDistanceFactor>
+        <stiffness>0.500</stiffness>
+        <damping>0.400</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="R Breast00" bodyB="NPC Spine2 [Spn2]">
+        <frameInB>
+            <basis x="0" y="0" z="5" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="-4" z="-4" />
+        <linearUpperLimit x="4" y="4" z="4" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="0.5" y="0.5" z="0.5" />
+        <angularStiffness x="0.5" y="0.1" z="0.2" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0" y="0" z="0" />
+        <angularBounce x="1" y="1" z="1" />
+        <minDistanceFactor>10.500</minDistanceFactor>
+        <maxDistanceFactor>11.000</maxDistanceFactor>
+        <stiffness>0.500</stiffness>
+        <damping>0.400</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+
+    <!--     Fingers
+       -->
+
+
+    <bone name="NPC L Finger02 [LF02]" tag="FingersL" />
+    <bone name="NPC L Finger12 [LF12]" tag="FingersL" />
+    <bone name="NPC L Finger22 [LF22]" tag="FingersL" />
+    <bone name="NPC L Finger32 [LF32]" tag="FingersL" />
+    <bone name="NPC L Finger42 [LF42]" tag="FingersL" />
+
+    <bone name="NPC L Finger02 [LF02]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC L Finger12 [LF12]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC L Finger22 [LF22]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC L Finger32 [LF32]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC L Finger42 [LF42]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+
+    <generic-constraint bodyA="FingersL" bodyB="NPC L Hand [LHnd]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.301" y="-0.301" z="0.301" />
+        <angularUpperLimit x="0.301" y="0.301" z="0.301" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <bone name="NPC R Finger02 [RF02]" tag="FingersR" />
+    <bone name="NPC R Finger12 [RF12]" tag="FingersR" />
+    <bone name="NPC R Finger22 [RF22]" tag="FingersR" />
+    <bone name="NPC R Finger32 [RF32]" tag="FingersR" />
+    <bone name="NPC R Finger42 [RF42]" tag="FingersR" />
+
+    <bone name="NPC R Finger02 [RF02]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC R Finger12 [RF12]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC R Finger22 [RF22]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC R Finger32 [RF32]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC R Finger42 [RF42]">
+        <mass>1000</mass>
+        <inertia x="1000" y="1000" z="1000" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.27"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.2</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+
+    <generic-constraint bodyA="FingersR" bodyB="NPC R Hand [RHnd]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.301" y="-0.01" z="0.301" />
+        <angularUpperLimit x="0.301" y="0.01" z="0.301" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <!--      Arms
+       -->
+
+
+    <bone name="NPC L Clavicle [LClv]">
+        <mass>1000</mass>
+        <inertia x="30" y="30" z="30" />
+        <centerOfMassTransform>
+            <basis x="-5" y="0" z="-2" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.12</linearDamping>
+        <angularDamping>0.43</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>1</margin-multiplier>
+    </bone>
+
+    <bone name="NPC R Clavicle [RClv]">
+        <mass>1000</mass>
+        <inertia x="30" y="30" z="30" />
+        <centerOfMassTransform>
+            <basis x="5" y="0" z="-2" w="1" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.12</linearDamping>
+        <angularDamping>0.43</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.05</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>1</margin-multiplier>
+    </bone>
+
+
+    <generic-constraint bodyA="NPC R UpperarmTwist1 [RUt1]" bodyB="NPC R UpperarmTwist2 [RUt2]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.301" y="-0.01" z="0.301" />
+        <angularUpperLimit x="0.301" y="0.01" z="0.301" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC L UpperarmTwist1 [LUt1]" bodyB="NPC L UpperarmTwist2 [LUt2">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.301" y="-0.01" z="0.301" />
+        <angularUpperLimit x="0.301" y="0.01" z="0.301" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC L Clavicle [LClv]" bodyB="NPC L UpperarmTwist1 [LUt1]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="-4" z="-4" />
+        <linearUpperLimit x="4" y="4" z="4" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="200" y="200" z="200" />
+        <angularStiffness x="500" y="100" z="5000" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0" y="0" z="0" />
+        <angularBounce x="1" y="1" z="1" />
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="NPC R Clavicle [RClv]" bodyB="NPC R UpperarmTwist1 [RUt1]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="-4" z="-4" />
+        <linearUpperLimit x="4" y="4" z="4" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="200" y="200" z="200" />
+        <angularStiffness x="500" y="100" z="5000" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0" y="0" z="0" />
+        <angularBounce x="1" y="1" z="1" />
+    </stiffspring-constraint>
+
+
+    <generic-constraint bodyA="NPC L Clavicle [LClv]" bodyB="UarmL">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="UarmL" bodyB="FarmL">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="FarmL" bodyB="NPC L Hand [LHnd]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="NPC R Clavicle [LClv]" bodyB="UarmR">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="UarmR" bodyB="FarmR">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="FarmR" bodyB="NPC R Hand [RHnd]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-3.07" y="-3.01" z="-3.01" />
+        <linearUpperLimit x="3.07" y="3.01" z="3.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.0" z="-5" />
+        <angularEquilibrium x="0.3" y="0" z="0" />
+    </generic-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC L Hand [LHnd]" bodyB="NPC R Hand [RHnd]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="-75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>13.001</minDistanceFactor>
+        <maxDistanceFactor>13.005</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC R Hand [LHnd]" bodyB="NPC L Hand [RHnd]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="-75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>13.001</minDistanceFactor>
+        <maxDistanceFactor>13.005</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+    <!--      Feet
+       -->
+
+
+    <bone name="NPC R Foot [Rft]">
+        <mass>100000</mass>
+        <inertia x="100" y="10" z="100" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.92</linearDamping>
+        <angularDamping>0.93</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.65</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <bone name="NPC L Foot [Lft]">
+        <mass>100000</mass>
+        <inertia x="100" y="10" z="100" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.92</linearDamping>
+        <angularDamping>0.93</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.65</friction>
+        <rollingFriction>0.05</rollingFriction>
+        <restitution>10</restitution>
+        <margin-multiplier>9.9</margin-multiplier>
+    </bone>
+
+    <stiffspring-constraint bodyA="NPC R Foot [Rft]" bodyB="NPC L Foot [Lft]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="-75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>13.001</minDistanceFactor>
+        <maxDistanceFactor>13.005</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC L Foot [Lft]" bodyB="NPC R Foot [Rft]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="-75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>13.001</minDistanceFactor>
+        <maxDistanceFactor>13.005</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="NPC R Foot [Rft]" bodyB="VirtualGround">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="-75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>0.04</minDistanceFactor>
+        <maxDistanceFactor>3.005</maxDistanceFactor>
+        <stiffness>10.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC L Foot [Lft]" bodyB="VirtualGround">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="-75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>0.04</minDistanceFactor>
+        <maxDistanceFactor>1.005</maxDistanceFactor>
+        <stiffness>10.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="NPC L RearCalf [LrClf]" bodyB="NPC L Foot [Lft]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="0" z="-0" />
+        <linearUpperLimit x="4" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="200" y="200" z="200" />
+        <angularStiffness x="500" y="100" z="5000" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="1" y="1" z="1" />
+        <angularBounce x="1" y="1" z="1" />
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="NPC R RearCalf [RrClf]" bodyB="NPC R Foot [Rft]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-4" y="0" z="-0" />
+        <linearUpperLimit x="4" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="200" y="200" z="200" />
+        <angularStiffness x="500" y="100" z="5000" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="0" z="1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="1" y="1" z="1" />
+        <angularBounce x="1" y="1" z="1" />
+    </stiffspring-constraint>
+
+
+    <!--       CLAVICLES
+       -->
+
+
+
+
+    
+
+
+    <stiffspring-constraint bodyA="L Breast00" bodyB="NPC R Clavicle [RClv]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="-75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>13.001</minDistanceFactor>
+        <maxDistanceFactor>13.005</maxDistanceFactor>
+        <stiffness>10.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+
+    <stiffspring-constraint bodyA="R Breast00" bodyB="NPC L Clavicle [LClv]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="-75" y="-1.01" z="3.001" />
+        <angularUpperLimit x="75" y="3.01" z="-5.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.45" y="0.73" z="0.65" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.5" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>13.001</minDistanceFactor>
+        <maxDistanceFactor>13.005</maxDistanceFactor>
+        <stiffness>10.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+
+
+    <stiffspring-constraint bodyA="Head" bodyB="NPC Spine [Spn2]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>0.301</minDistanceFactor>
+        <maxDistanceFactor>1.09</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+
+    <conetwist-constraint bodyA="NPC Spine [Spn2]" bodyB="Head">
+        <angularOnly>false</angularOnly>
+        <limitZ>0.3.000</limitZ>
+        <limitY>2.000</limitY>
+        <limitX>0.000</limitX>
+        <limitSoftness>20.000</limitSoftness>
+        <biasFactor>0.04</biasFactor>
+        <relaxationFactor>9.000</relaxationFactor>
+    </conetwist-constraint>
+
+
+
+    <conetwist-constraint bodyA="NPC Spine [Spn2]" bodyB="NPC Spine [Spn1]">
+        <angularOnly>false</angularOnly>
+        <limitZ>10.000</limitZ>
+        <limitY>20.000</limitY>
+        <limitX>45.000</limitX>
+        <limitSoftness>0.000</limitSoftness>
+        <biasFactor>0.000</biasFactor>
+        <relaxationFactor>0.000</relaxationFactor>
+    </conetwist-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC Spine [Spn1]" bodyB="NPC Spine [Spn2]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>0.101</minDistanceFactor>
+        <maxDistanceFactor>0.102</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>10.400</equilibrium>
+    </stiffspring-constraint>
+
+
+    <conetwist-constraint bodyA="NPC Spine [Spn0]" bodyB="NPC Spine [Spn1]">
+        <angularOnly>true</angularOnly>
+        <limitZ>45.000</limitZ>
+        <limitY>5.000</limitY>
+        <limitX>0.000</limitX>
+        <limitSoftness>0.000</limitSoftness>
+        <biasFactor>0.04</biasFactor>
+        <relaxationFactor>1.000</relaxationFactor>
+    </conetwist-constraint>
+
+
+
+
+
+    <!--        MAIN BODY - Pelvis Belly  
+       -->
+
+
+    <stiffspring-constraint bodyA="NPC Spine [Spn0]" bodyB="NPC Pelvis [Pelv]">
+        <frameInB>
+            <basis x="0" y="3" z="0" w="111" />
+            <origin x="0" y="3" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.2" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <minDistanceFactor>0.990</minDistanceFactor>
+        <maxDistanceFactor>0.999</maxDistanceFactor>
+        <stiffness>0.890</stiffness>
+        <damping>0.400</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+
+    <bone name="Belly">
+        <mass>10000</mass>
+        <inertia x="1000" y="1000" z="100" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.34"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>11111</linearDamping>
+        <angularDamping>11110.27</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.1</friction>
+        <rollingFriction>0.9</rollingFriction>
+        <restitution>0.12</restitution>
+    </bone>
+
+    <bone name="NPC Belly">
+        <mass>10000</mass>
+        <inertia x="1000" y="1000" z="10" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.17"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>111111</linearDamping>
+        <angularDamping>11110.27</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.1</friction>
+        <rollingFriction>0.9</rollingFriction>
+        <restitution>0.12</restitution>
+    </bone>
+
+    <generic-constraint bodyA="NPC Pelvis [Pelv]" bodyB="NPC Belly">
+        <frameInB>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.3"  />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.1" y="-2" z="-3" />
+        <linearUpperLimit x="0.1" y="2" z="3" />
+        <angularLowerLimit x="0" y="-2" z="-2" />
+        <angularUpperLimit x="0" y="1" z="2" />
+        <linearStiffness x="70" y="250" z="40" />
+        <angularStiffness x="90" y="70" z="40" />
+        <linearDamping x="0" y="0" z="0" />
+        <angularDamping x="0.3" y="0.3" z="0.3" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+
+
+
+    <generic-constraint bodyA="NPC Belly" bodyB="Belly">
+        <frameInB>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.1" y="-2" z="-3" />
+        <linearUpperLimit x="0.1" y="2" z="3" />
+        <angularLowerLimit x="0" y="-2" z="-2" />
+        <angularUpperLimit x="0" y="1" z="2" />
+        <linearStiffness x="70" y="250" z="40" />
+        <angularStiffness x="90" y="70" z="40" />
+        <linearDamping x="0" y="0" z="0" />
+        <angularDamping x="0.3" y="0.3" z="0.3" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <stiffspring-constraint bodyA="Belly" bodyB="NPC Belly">
+        <frameInB>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.3" y="-2" z="-1" />
+        <linearUpperLimit x="0.3" y="0.5" z="0.7" />
+        <angularLowerLimit x="0" y="-2" z="-2" />
+        <angularUpperLimit x="0" y="1" z="2" />
+        <linearStiffness x="0" y="0" z="0" />
+        <angularStiffness x="90" y="70" z="40" />
+        <linearDamping x="0" y="0" z="0" />
+        <angularDamping x="0.15" y="0.6" z="0.35" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="-0.6" z="1.9" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </stiffspring-constraint>
+
+
+    <generic-constraint bodyA="Belly" bodyB="NPC Pelvis [Pelv]">
+        <frameInB>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.1" y="-2" z="-3" />
+        <linearUpperLimit x="0.1" y="2" z="3" />
+        <angularLowerLimit x="0" y="-2" z="-2" />
+        <angularUpperLimit x="0" y="1" z="2" />
+        <linearStiffness x="70" y="250" z="40" />
+        <angularStiffness x="90" y="70" z="40" />
+        <linearDamping x="0" y="0" z="0" />
+        <angularDamping x="0.3" y="0.3" z="0.3" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="Belly" bodyB="L Breast00">
+        <frameInB>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.1" y="-2" z="-3" />
+        <linearUpperLimit x="0.1" y="2" z="3" />
+        <angularLowerLimit x="0" y="-2" z="-2" />
+        <angularUpperLimit x="0" y="1" z="2" />
+        <linearStiffness x="70" y="250" z="40" />
+        <angularStiffness x="90" y="70" z="40" />
+        <linearDamping x="0" y="0" z="0" />
+        <angularDamping x="0.3" y="0.3" z="0.3" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="Belly" bodyB="R Breast00">
+        <frameInB>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.1" y="-2" z="-3" />
+        <linearUpperLimit x="0.1" y="2" z="3" />
+        <angularLowerLimit x="0" y="-2" z="-2" />
+        <angularUpperLimit x="0" y="1" z="2" />
+        <linearStiffness x="70" y="250" z="40" />
+        <angularStiffness x="90" y="70" z="40" />
+        <linearDamping x="0" y="0" z="0" />
+        <angularDamping x="0.3" y="0.3" z="0.3" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    
+    <!--       BUTT  -->
+
+
+    
+
+    <bone name="NPC R PreButt">
+        <mass>10000</mass>
+        <inertia x="100" y="10" z="100" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.85</linearDamping>
+        <angularDamping>0.85</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+    <bone name="NPC L PreButt">
+        <mass>10000</mass>
+        <inertia x="100" y="10" z="100" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.85</linearDamping>
+        <angularDamping>0.85</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+
+    <bone name="NPC L Butt">
+        <mass>10</mass>
+        <inertia x="10" y="10" z="1" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.85</linearDamping>
+        <angularDamping>0.85</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+
+    <bone name="NPC R Butt">
+        <mass>10</mass>
+        <inertia x="10" y="10" z="1" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.85</linearDamping>
+        <angularDamping>0.85</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>5</restitution>
+        <margin-multiplier>0.1</margin-multiplier>
+    </bone>
+
+   
+
+    <generic-constraint bodyA="NPC L Butt" bodyB="NPC L PreButt">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="0" y="0" z="0" />
+        <angularStiffness x="0" y="0" z="0" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="NPC R Butt" bodyB="NPC R PreButt">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="0" y="0" z="0" />
+        <angularStiffness x="0" y="0" z="0" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="NPC R PreButt" bodyB="NPC R Thigh [RThg]">
+        <frameInB>
+            <basis-axis-angle x="65" y="190" z="0" angle="90"  />
+            <origin x="5" y="5" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="5" y="5" z="" />
+        <angularEquilibrium x="0" y="0" z="-30" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC L PreButt" bodyB="NPC L Thigh [LThg]">
+        <frameInB>
+            <basis-axis-angle x="65" y="190" z="0" angle="90"  />
+            <origin x="-5" y="5" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="-5" y="5" z="" />
+        <angularEquilibrium x="0" y="0" z="-30" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <stiffspring-constraint bodyA= "NPC Spine [Spn0]" bodyB= "NPC L PreButt">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA= "NPC Spine [Spn0]" bodyB= "NPC R PreButt">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </stiffspring-constraint>
+
+
+    <generic-constraint bodyA="NPC R PreButt" bodyB="NPC L Butt">
+        <frameInB>
+            <basis-axis-angle x="65" y="190" z="0" angle="90"  />
+            <origin x="-5" y="5" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="-5" y="5" z="" />
+        <angularEquilibrium x="0" y="0" z="-30" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC L PreButt" bodyB="NPC R Butt">
+        <frameInB>
+            <basis-axis-angle x="65" y="190" z="0" angle="90"  />
+            <origin x="-5" y="5" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="-5" y="5" z="" />
+        <angularEquilibrium x="0" y="0" z="-30" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <!--        MAIN BODY - NON SEXUAL  -->
+
+
+    <bone name="NPC L Thigh [LThg]">
+        <mass>1000</mass>
+        <inertia x="5" y="5" z="5" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>1</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>3</restitution>
+    </bone>
+
+    <bone name="NPC L FrontThigh">
+        <mass>1000</mass>
+        <inertia x="5" y="5" z="5" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>1</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>3</restitution>
+    </bone>
+
+    <bone name="NPC R Thigh [RThg]">
+        <mass>1000</mass>
+        <inertia x="5" y="5" z="5" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>1</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>3</restitution>
+    </bone>
+
+    <bone name="NPC R FrontThigh">
+        <mass>1000</mass>
+        <inertia x="5" y="5" z="5" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>1</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>3</restitution>
+    </bone>
+
+    <bone name="NPC L RearThigh">
+        <mass>1000</mass>
+        <inertia x="5" y="5" z="5" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>1</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>3</restitution>
+    </bone>
+
+    <bone name="NPC R RearThigh">
+        <mass>1000</mass>
+        <inertia x="5" y="5" z="5" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="111" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>1</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>1</friction>
+        <rollingFriction>1</rollingFriction>
+        <restitution>3</restitution>
+    </bone>
+
+    <generic-constraint bodyA="NPC L FrontThigh" bodyB="NPC L Thigh [LThg]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="0" y="0" z="0" />
+        <linearUpperLimit x="0" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="800" y="800" z="800" />
+        <angularStiffness x="1000" y="100" z="10000" />
+        <linearDamping x="10" y="10" z="10" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="-1" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="1" y="1" z="1" />
+        <angularBounce x="1" y="1" z="1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC R FrontThigh" bodyB="NPC R Thigh [RThg]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="0" y="0" z="0" />
+        <linearUpperLimit x="0" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="800" y="800" z="800" />
+        <angularStiffness x="1000" y="100" z="10000" />
+        <linearDamping x="10" y="10" z="10" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="-1" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="1" y="1" z="1" />
+        <angularBounce x="1" y="1" z="1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC L RearThigh" bodyB="NPC L PreButt">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="4" y="0" z="1" />
+        <linearUpperLimit x="0" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="16" y="0" z="12" />
+        <angularStiffness x="0" y="0" z="0" />
+        <linearDamping x="1" y="1" z="1" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0.1" y="0.1" z="0.1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="1" y="1" z="1" />
+        <angularBounce x="1" y="1" z="1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC R RearThigh" bodyB="NPC R PreButt">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="4" y="0" z="1" />
+        <linearUpperLimit x="0" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="16" y="0" z="12" />
+        <angularStiffness x="0" y="0" z="0" />
+        <linearDamping x="1" y="1" z="1" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0.1" y="0.1" z="0.1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="1" y="1" z="1" />
+        <angularBounce x="1" y="1" z="1" />
+    </generic-constraint>
+
+    <bone name="NPC L Calf [LClf]">
+        <mass>1000</mass>
+        <inertia x="0.5" y="50" z="50" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0</restitution>
+    </bone>
+
+    <bone name="NPC L RearCalf [LrClf]">
+        <mass>1000</mass>
+        <inertia x="0.5" y="75" z="75" />
+        <centerOfMassTransform>
+            <basis x="2" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="1" />
+        </centerOfMassTransform>
+        <linearDamping>0.8</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.8</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>5</restitution>
+    </bone>
+
+    <bone name="NPC R Calf [RClf]">
+        <mass>1000</mass>
+        <inertia x="0.5" y="50" z="50" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>1</restitution>
+    </bone>
+
+    <bone name="NPC R RearCalf [RrClf]">
+        <mass>1000</mass>
+        <inertia x="0.5" y="75" z="75" />
+        <centerOfMassTransform>
+            <basis x="2" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="1" />
+        </centerOfMassTransform>
+        <linearDamping>0.8</linearDamping>
+        <angularDamping>0</angularDamping>
+        <gravity-factor>1</gravity-factor>
+        <friction>0.8</friction>
+        <rollingFriction>0</rollingFriction>
+        <restitution>5</restitution>
+    </bone>
+
+    <generic-constraint bodyA="NPC L RearCalf [LrClf]" bodyB="NPC L Calf [LClf]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="0" y="0" z="0" />
+        <linearUpperLimit x="0" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="200" y="200" z="200" />
+        <angularStiffness x="500" y="100" z="5000" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="1" />
+        <linearEquilibrium x="0" y="0" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="30" y="30" z="3" />
+        <angularBounce x="90" y="90" z="9" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC R RearCalf [RrClf]" bodyB="NPC R Calf [RClf]">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="0" y="0" z="0" />
+        <linearUpperLimit x="0" y="0" z="0" />
+        <angularLowerLimit x="-0" y="-0" z="-0.0" />
+        <angularUpperLimit x="0" y="0" z="0.0" />
+        <linearStiffness x="200" y="200" z="200" />
+        <angularStiffness x="500" y="100" z="5000" />
+        <linearDamping x="1" y="0" z="2" />
+        <angularDamping x="0" y="0" z="0" />
+        <linearEquilibrium x="0" y="0" z="1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="30" y="30" z="3" />
+        <angularBounce x="90" y="90" z="9" />
+    </generic-constraint>
+     />
+    <stiffspring-constraint bodyA="NPC L FrontThigh" bodyB="NPC L Calf [LClf]">
+        <frameInB>
+            <basis x="0" y="1" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+        <minDistanceFactor>0.301</minDistanceFactor>
+        <maxDistanceFactor>0.600</maxDistanceFactor>
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="NPC R FrontThigh" bodyB="NPC R Calf [RClf]">
+        <frameInB>
+            <basis x="0" y="1" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+        <minDistanceFactor>0.301</minDistanceFactor>
+        <maxDistanceFactor>0.600</maxDistanceFactor>
+    </stiffspring-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC R PreButt" bodyB="NPC R RearThigh">
+        <frameInB>
+            <basis x="0" y="1" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+        <minDistanceFactor>0.301</minDistanceFactor>
+        <maxDistanceFactor>0.600</maxDistanceFactor>
+    </stiffspring-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC L PreButt" bodyB="NPC L RearThigh">
+        <frameInB>
+            <basis x="0" y="1" z="0" w="11" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-2" y="-2" z="-2" />
+        <linearUpperLimit x="10" y="10" z="10" />
+        <angularLowerLimit x="-0.3" y="0" z="-0.3" />
+        <angularUpperLimit x="0.3" y="0" z="0.3" />
+        <linearStiffness x="500" y="500" z="500" />
+        <angularStiffness x="500" y="500" z="500" />
+        <linearDamping x="0.99" y="0.99" z="0.99" />
+        <angularDamping x="0.99" y="0.99" z="0.99" />
+        <linearEquilibrium x="0" y="0" z="-1" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.5" y="0.3" z="0.2" />
+        <angularBounce x="0.3" y="0.1" z="0.1" />
+        <minDistanceFactor>0.301</minDistanceFactor>
+        <maxDistanceFactor>0.600</maxDistanceFactor>
+    </stiffspring-constraint>
+
+
+    <!--        SEXUAL MAIN   -->
+
+
+    <bone-default>
+        <mass>1000</mass>
+        <inertia x="0.3" y="0.5" z="0.3" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0" z="0" angle="0.15"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>0.3</linearDamping>
+        <angularDamping>0.8</angularDamping>
+        <friction>1</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0.01</rollingFriction>
+        <restitution>0.1</restitution>
+        <margin-multiplier>0.3</margin-multiplier>
+    </bone-default>
+
+
+    <bone name="VaginaDeep1">
+        <mass>1000</mass>
+        <inertia x="0.1" y="0.5" z="0.3" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0.09" z="-0.03" angle="0.6"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>9</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>1</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0.4</rollingFriction>
+        <restitution>7.0</restitution>
+        <margin-multiplier>
+					70
+        </margin-multiplier>
+    </bone>
+
+    <bone name="VaginaB1">
+        <mass>10000</mass>
+        <inertia x="0.1" y="0.5" z="0.3" />
+        <centerOfMassTransform>
+            <basis-axis-angle x="0" y="0.09" z="-0.03" angle="0.6"  />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>1</angularDamping>
+        <friction>1</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>1</rollingFriction>
+        <restitution>1.0</restitution>
+        <margin-multiplier>7.4</margin-multiplier>
+    </bone>
+
+    <bone name="VaginaB1" />
+    <bone name="VaginaB" />
+
+    <bone name="VaginaDeep" />
+    <bone name="VaginaDeep1" />
+
+    <bone name="Clitoral1" />
+    <bone name="Clitoral" />
+
+    <bone name="NPC L Pussy02" />
+    <bone name="NPC L Pussy01" />
+
+    <bone name="NPC R Pussy02" />
+    <bone name="NPC R Pussy01" />
+
+
+    <stiffspring-constraint bodyA="Belly" bodyB="Vaginadeep1">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="8.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="10.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="1" y="1.2" z="1" />
+        <angularEquilibrium x="4" y="4" z="4" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.12" y="0.3" z="0.4" />
+        <minDistanceFactor>0.001</minDistanceFactor>
+        <maxDistanceFactor>1.100</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.30</damping>
+        <equilibrium>0.400</equilibrium>
+    </stiffspring-constraint>
+
+    <stiffspring-constraint bodyA="NPC Belly" bodyB="Vagina Deep">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>True</useLinearReferenceFrameA>
+        <linearLowerLimit x="0.07" y="0.01" z="0.01" />
+        <linearUpperLimit x="0.07" y="30.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="-0.001" />
+        <angularUpperLimit x="10.00" y="10.01" z="-30.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="5" y="20" z="7" />
+        <linearBounce x="3.1" y="0.1" z="0.1" />
+        <angularBounce x="3.1" y="1.1" z="-0.3" />
+        <minDistanceFactor>5.001</minDistanceFactor>
+        <maxDistanceFactor>25.1</maxDistanceFactor>
+        <stiffness>0.04</stiffness>
+        <damping>0.04</damping>
+        <equilibrium>10.000</equilibrium>
+    </stiffspring-constraint>
+
+    <conetwist-constraint bodyA="Vagina Deep1" bodyB="NPC Belly">
+        <angularOnly>False</angularOnly>
+        <limitZ>15.000</limitZ>
+        <limitY>5.000</limitY>
+        <limitX>0.000</limitX>
+        <limitSoftness>0.100</limitSoftness>
+        <biasFactor>0.04</biasFactor>
+        <relaxationFactor>10.000</relaxationFactor>
+    </conetwist-constraint>
+
+    <conetwist-constraint bodyA="Vagina Deep" bodyB="Vagina Deep1">
+        <angularOnly>True</angularOnly>
+        <limitZ>15.000</limitZ>
+        <limitY>3.000</limitY>
+        <limitX>45.000</limitX>
+        <limitSoftness>0.900</limitSoftness>
+        <biasFactor>0.04</biasFactor>
+        <relaxationFactor>17.000</relaxationFactor>
+    </conetwist-constraint>
+
+
+    <conetwist-constraint bodyA="Vagina Deep1" bodyB="Vagina Deep">
+        <angularOnly>True</angularOnly>
+        <limitZ>15.000</limitZ>
+        <limitY>3.000</limitY>
+        <limitX>45.000</limitX>
+        <limitSoftness>0.900</limitSoftness>
+        <biasFactor>0.04</biasFactor>
+        <relaxationFactor>17.000</relaxationFactor>
+    </conetwist-constraint>
+
+
+    <generic-constraint bodyA="VaginaDeep1" bodyB="VaginaDeep">
+        <frameInB>
+            <basis x="0" y="-0.5" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="Clitoral1" bodyB="Clitoral">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+        <minDistanceFactor>0.100</minDistanceFactor>
+        <maxDistanceFactor>0.001</maxDistanceFactor>
+        <stiffness>0.300</stiffness>
+        <damping>0.500</damping>
+        <equilibrium>22.000</equilibrium>
+    </generic-constraint>
+
+
+    <!--        ANAL MAIN -->
+
+
+    <bone name="NPC Anus Deep2">
+        <mass>10.0</mass>
+        <inertia x="150" y="180" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC Anus Deep1">
+        <mass>10.0</mass>
+        <inertia x="100" y="500" z="100" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC LT Anus2">
+        <mass>10.0</mass>
+        <inertia x="100" y="50" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC LT Anus1">
+        <mass>100.0</mass>
+        <inertia x="100" y="50" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC RT Anus2">
+        <mass>100.0</mass>
+        <inertia x="100" y="50" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC RT Anus1">
+        <mass>10.0</mass>
+        <inertia x="100" y="50" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC LB Anus2">
+        <mass>10.0</mass>
+        <inertia x="100" y="50" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC RB Anus2">
+        <mass>10.0</mass>
+        <inertia x="150" y="50" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="NPC RB Anus1">
+        <mass>10.0</mass>
+        <inertia x="150" y="50" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+    <bone name="Anal">
+        <mass>10.0</mass>
+        <inertia x="150" y="500" z="150" />
+        <centerOfMassTransform>
+            <basis x="0" y="0" z="0" w="0.15" />
+            <origin x="0" y="0" z="0" />
+        </centerOfMassTransform>
+        <linearDamping>1</linearDamping>
+        <angularDamping>0.3</angularDamping>
+        <friction>0</friction>
+        <gravity-factor>1</gravity-factor>
+        <rollingFriction>0</rollingFriction>
+        <restitution>0.3</restitution>
+        <margin-multiplier>5</margin-multiplier>
+    </bone>
+
+
+    <stiffspring-constraint bodyA="Anus Deep 2" bodyB="NPC Belly">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.2" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+        <minDistanceFactor>0.001</minDistanceFactor>
+        <maxDistanceFactor>0.999</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.00</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+
+    <generic-constraint bodyA="NPC Anus Deep2" bodyB="NPC Anus Deep1">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC RT Anus2" bodyB="Anus Deep1">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.2" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+        <minDistanceFactor>0.001</minDistanceFactor>
+        <maxDistanceFactor>0.999</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.00</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+
+    <generic-constraint bodyA="NPC RT Anus1" bodyB="NPC RT Anus2">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC LT Anus2" bodyB="Anus Deep1">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.2" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+        <minDistanceFactor>0.001</minDistanceFactor>
+        <maxDistanceFactor>0.999</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.00</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+
+    <generic-constraint bodyA="NPC LT Anus2" bodyB="NPC LT Anus1">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <stiffspring-constraint bodyA="NPC LB Anus2" bodyB="Anus Deep1">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>true</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="0.2" z="0" />
+        <angularEquilibrium x="0" y="0" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+        <minDistanceFactor>0.001</minDistanceFactor>
+        <maxDistanceFactor>0.999</maxDistanceFactor>
+        <stiffness>0.001</stiffness>
+        <damping>0.00</damping>
+        <equilibrium>1.000</equilibrium>
+    </stiffspring-constraint>
+
+
+    <generic-constraint bodyA="NPC LB Anus2" bodyB="NPC LB Anus1">
+        <frameInB>
+            <basis x="" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    <generic-constraint bodyA="NPC LB Anus2" bodyB="Anal">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="NPC LB Anus1" bodyB="Anal">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="NPC RB Anus2" bodyB="Anal">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+
+    <generic-constraint bodyA="NPC RB Anus1" bodyB="Anal">
+        <frameInB>
+            <basis x="0" y="0" z="0" w="1" />
+            <origin x="0" y="0" z="0" />
+        </frameInB>
+        <useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+        <linearLowerLimit x="-0.07" y="-0.01" z="-0.01" />
+        <linearUpperLimit x="0.07" y="0.01" z="0.01" />
+        <angularLowerLimit x="-0.001" y="-0.01" z="0.001" />
+        <angularUpperLimit x="0.001" y="0.01" z="0.001" />
+        <linearStiffness x="0.9" y="0.79" z="0.9" />
+        <angularStiffness x="0.95" y="0.73" z="0.95" />
+        <linearDamping x="0.9" y="0.75" z="0.9" />
+        <angularDamping x="0.95" y="0.95" z="0.95" />
+        <linearEquilibrium x="0" y="-10" z="0" />
+        <angularEquilibrium x="0" y="-10" z="0" />
+        <linearBounce x="0.1" y="0.1" z="0.1" />
+        <angularBounce x="0.1" y="0.1" z="0.1" />
+    </generic-constraint>
+
+    <per-triangle-shape name="Body">
+        <margin>0.04</margin>
+        <prenetration>0.04</prenetration>
+        <priority>2</priority>
+        <shared>public</shared>
+    </per-triangle-shape>
+
+    <per-triangle-shape name="WeaponBow">
+        <margin>0.04</margin>
+        <prenetration>0.04</prenetration>
+        <priority>2</priority>
+        <shared>public</shared>
+    </per-triangle-shape>
+
+    <per-triangle-shape name="WeaponBack">
+        <margin>0.04</margin>
+        <prenetration>0.04</prenetration>
+        <priority>2</priority>
+        <shared>public</shared>
+    </per-triangle-shape>
+
+    <per-triangle-shape name="WeaponMace">
+        <margin>0.04</margin>
+        <prenetration>0.04</prenetration>
+        <priority>2</priority>
+        <shared>public</shared>
+    </per-triangle-shape>
+
+    <per-triangle-shape name="WeaponAxe">
+        <margin>0.04</margin>
+        <prenetration>0.04</prenetration>
+        <priority>2</priority>
+        <shared>public</shared>
+    </per-triangle-shape>
+
+    <per-triangle-shape name="WeaponSword">
+        <margin>0.04</margin>
+        <prenetration>0.04</prenetration>
+        <priority>2</priority>
+        <shared>public</shared>
+    </per-triangle-shape>
+
+    <per-triangle-shape name="WeaponDagger">
+        <margin>0.04</margin>
+        <prenetration>0.04</prenetration>
+        <priority>2</priority>
+        <shared>public</shared>
+    </per-triangle-shape>
+    
+
+
+    <feComposite in="svg-code0" in2="svg-code8" result="composite0" operator="xor" />
+    <feBlend in="composite0" in2="composite0" result="blend12" mode="difference" />
+    <feConvolveMatrix kernelMatrix="
+0 -1 0 
+-1 5 -1 
+0 -1 0" />
+    <feComponentTransfer result="svg-code0"></feComponentTransfer>
+    <feBlend in="blend12" in2="svg-code0" result="blend2" mode="hard-light" />
+    <feBlend in="blend2" in2="svg-code0" result="blend0" mode="exclusion" />
+    <feComponentTransfer in="composite0" result="gamma0">
+        <feFuncR type="gamma" exponent="1.274" />
+        <feFuncG type="gamma" exponent="0.419" />
+        <feFuncB type="gamma" exponent="1.1" />
+    </feComponentTransfer>
+    <feBlend in="composite0" in2="gamma0" result="blend1" mode="normal" />
+    <feBlend in="composite0" in2="blend1" result="blend3" mode="multiply" />
+    <feComponentTransfer in="blend3" result="contrast0">
+        <feFuncR type="linear" slope="0.122" intercept="0.44" />
+        <feFuncG type="linear" slope="0.181" intercept="0.41" />
+        <feFuncB type="linear" slope="3.438" intercept="-1.22" />
+    </feComponentTransfer>
+    <feBlend in="composite0" in2="contrast0" result="blend6" mode="difference" />
+    <feConvolveMatrix kernelMatrix="
+0 -1 0 
+-1 0 -1 
+0 -4 0" />
+    <feComponentTransfer result="svg-code5"></feComponentTransfer>
+    <feMorphology in="svg-code5" result="morphology1" operator="dilate" radius="0.552" />
+    <feBlend in="morphology1" in2="morphology1" result="blend4" mode="overlay" />
+    <feBlend in="blend6" in2="blend4" result="blend5" mode="normal" />
+    <feBlend in="blend5" in2="blend5" result="blend7" mode="overlay" />
+    <feBlend in="SourceGraphic" in2="blend7" result="blend8" mode="normal" />
+    <feMorphology in="blend8" result="morphology2" operator="dilate" radius="0.7" />
+    <feConvolveMatrix kernelMatrix="22 4 5
+11 -3 5
+-11 -11 2" />
+    <feComponentTransfer result="svg-code8"></feComponentTransfer>
+    <feBlend in="morphology2" in2="svg-code8" result="blend9" mode="hard-light" />
+    <feBlend in="svg-code8" in2="blend9" result="blend11" mode="difference" />
+    <feBlend in="svg-code8" in2="blend11" result="blend13" mode="exclusion" />
+    <feBlend in="composite0" in2="blend13" result="blend14" mode="multiply" />
+    <feComponentTransfer in="blend14" result="gamma2">
+        <feFuncR type="gamma" exponent="3.579" />
+        <feFuncG type="gamma" exponent="1.988" />
+        <feFuncB type="gamma" exponent="2.187" />
+    </feComponentTransfer>
+
+        <?xml version="1.0" encoding="utf-8"?>
+<Survey Version="1.0" Full="1" MaxQuestionID="1" MaxResponseID="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="new_askia_flexible.xsd">
+     <Languages>
+          <Language ID="2057" Abbr="ENG" Name="English (United Kingdom)" Default="1"/>
+     </Languages>
+       <Questions>
+       </Questions>
+  </Survey>
+
+</System>

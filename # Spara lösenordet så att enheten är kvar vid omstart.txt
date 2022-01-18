@@ -1,0 +1,3 @@
+ # Spara lösenordet så att enheten är kvar vid omstart
+     cmd.exe C cmdkey add`csb1003200185c1665c.file.core.windows.net` user`localhostcsb1003200185c1665c` pass`zvrhd07xOr9RH6WBs7bnhYq2kRftxFPbyzjh72cT6KMeAeNa0rhmVzs0NLQq3bl5swHM1qk4WWLxCByDr06ug==`
+     # Montera enheten
