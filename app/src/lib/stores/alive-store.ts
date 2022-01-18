@@ -227,8 +227,6 @@ export class AliveStore {
   }
 
   private notify = (subscribers: Iterable<AliveStore>, event: AliveEvent) => {
-    console.log('Alive event received:', event) // TODO: delete this line after testing
-
     if (event.type !== 'message') {
       return
     }
