@@ -1,13 +1,18 @@
 import { IMenuItem } from '../../lib/menu-item'
 import { clipboard } from 'electron'
 
-export function createBranchContextMenuItems(
-  name: string,
-  isLocal: boolean,
-  onRenameBranch?: (branchName: string) => void,
+interface IBranchContextMenuConfig {
+  name: string
+  isLocal: boolean
+  onRenameBranch?: (branchName: string) => void
   onDeleteBranch?: (branchName: string) => void
+}
+
+export function generateBranchContextMenuItems(
+  config: IBranchContextMenuConfig
 ): IMenuItem[] {
-  const items: Array<IMenuItem> = []
+  const { name, isLocal, onRenameBranch, onDeleteBranch } = config
+  const items = new Array<IMenuItem>()
 
   if (onRenameBranch !== undefined) {
     items.push({

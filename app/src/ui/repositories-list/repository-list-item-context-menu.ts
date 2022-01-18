@@ -25,11 +25,10 @@ interface IRepositoryListItemContextMenuConfig {
 export const generateRepositoryListContextMenu = (
   config: IRepositoryListItemContextMenuConfig
 ) => {
-  const missing =
-    config.repository instanceof Repository && config.repository.missing
+  const { repository } = config
+  const missing = repository instanceof Repository && repository.missing
   const github =
-    config.repository instanceof Repository &&
-    config.repository.gitHubRepository != null
+    repository instanceof Repository && repository.gitHubRepository != null
   const openInExternalEditor = config.externalEditorLabel
     ? `Open in ${config.externalEditorLabel}`
     : DefaultEditorLabel
@@ -38,33 +37,33 @@ export const generateRepositoryListContextMenu = (
     ...buildAliasMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
-      action: () => clipboard.writeText(config.repository.name),
+      action: () => clipboard.writeText(repository.name),
     },
     { type: 'separator' },
     {
       label: 'View on GitHub',
-      action: () => config.onViewOnGitHub(config.repository),
+      action: () => config.onViewOnGitHub(repository),
       enabled: github,
     },
     {
       label: `Open in ${config.shellLabel}`,
-      action: () => config.onOpenInShell(config.repository),
+      action: () => config.onOpenInShell(repository),
       enabled: !missing,
     },
     {
       label: RevealInFileManagerLabel,
-      action: () => config.onShowRepository(config.repository),
+      action: () => config.onShowRepository(repository),
       enabled: !missing,
     },
     {
       label: openInExternalEditor,
-      action: () => config.onOpenInExternalEditor(config.repository),
+      action: () => config.onOpenInExternalEditor(repository),
       enabled: !missing,
     },
     { type: 'separator' },
     {
       label: config.askForConfirmationOnRemoveRepository ? 'Remove…' : 'Remove',
-      action: () => config.onRemoveRepository(config.repository),
+      action: () => config.onRemoveRepository(repository),
     },
   ]
 
@@ -74,37 +73,24 @@ export const generateRepositoryListContextMenu = (
 const buildAliasMenuItems = (
   config: IRepositoryListItemContextMenuConfig
 ): ReadonlyArray<IMenuItem> => {
-  if (
-    !(config.repository instanceof Repository) ||
-    !enableRepositoryAliases()
-  ) {
+  const { repository } = config
+
+  if (!(repository instanceof Repository) || !enableRepositoryAliases()) {
     return []
   }
 
-  const removeAlias = () => {
-    if (config.repository instanceof Repository) {
-      config.onRemoveRepositoryAlias(config.repository)
-    }
-  }
-
-  const changeAlias = () => {
-    if (config.repository instanceof Repository) {
-      config.onChangeRepositoryAlias(config.repository)
-    }
-  }
-
-  const verb = config.repository.alias == null ? 'Create' : 'Change'
+  const verb = repository.alias == null ? 'Create' : 'Change'
   const items: Array<IMenuItem> = [
     {
       label: __DARWIN__ ? `${verb} Alias` : `${verb} alias`,
-      action: changeAlias,
+      action: () => config.onChangeRepositoryAlias(repository),
     },
   ]
 
-  if (config.repository.alias !== null) {
+  if (repository.alias !== null) {
     items.push({
       label: __DARWIN__ ? 'Remove Alias' : 'Remove alias',
-      action: removeAlias,
+      action: () => config.onRemoveRepositoryAlias(repository),
     })
   }
 

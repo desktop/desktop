@@ -2446,7 +2446,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
         tooltip={tooltip}
         foldoutStyle={foldoutStyle}
-        onContextMenu={this.onContextMenu}
+        onContextMenu={this.onRepositoryToolbarButtonContextMenu}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
         dropdownState={currentState}
@@ -2454,17 +2454,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onContextMenu = () => {
-    const selection = this.state.selectedState
-
-    const repository = selection ? selection.repository : null
-    if (!repository) {
+  private onRepositoryToolbarButtonContextMenu = () => {
+    const repository = this.state.selectedState?.repository
+    if (repository === undefined) {
       return
     }
 
-    const externalEditorLabel = this.state.selectedExternalEditor
-      ? this.state.selectedExternalEditor
-      : undefined
+    const externalEditorLabel = this.state.selectedExternalEditor ?? undefined
 
     const onChangeRepositoryAlias = (repository: Repository) => {
       this.props.dispatcher.showPopup({

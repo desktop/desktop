@@ -11,7 +11,7 @@ import { DragType, DropTargetType } from '../../models/drag-drop'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { RelativeTime } from '../relative-time'
 import classNames from 'classnames'
-import { createBranchContextMenuItems } from './branch-list-item-context-menu'
+import { generateBranchContextMenuItems } from './branch-list-item-context-menu'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -73,12 +73,12 @@ export class BranchListItem extends React.Component<
       return
     }
 
-    const items = createBranchContextMenuItems(
-      name,
-      isLocal,
-      onRenameBranch,
-      onDeleteBranch
-    )
+    const items = generateBranchContextMenuItems({
+      name: name,
+      isLocal: isLocal,
+      onRenameBranch: onRenameBranch,
+      onDeleteBranch: onDeleteBranch,
+    })
 
     showContextualMenu(items)
   }

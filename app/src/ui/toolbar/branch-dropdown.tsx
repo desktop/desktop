@@ -21,7 +21,7 @@ import { CICheckRunPopover } from '../check-runs/ci-check-run-popover'
 import { TooltipTarget } from '../lib/tooltip'
 import { BranchType, Branch } from '../../models/branch'
 import { PopupType } from '../../models/popup'
-import { createBranchContextMenuItems } from '../branches/branch-list-item-context-menu'
+import { generateBranchContextMenuItems } from '../branches/branch-list-item-context-menu'
 import { showContextualMenu } from '../main-process-proxy'
 
 interface IBranchDropdownProps {
@@ -195,7 +195,7 @@ export class BranchDropdown extends React.Component<
           iconClassName={iconClassName}
           title={title}
           description={description}
-          onContextMenu={this.createContextMenuItems}
+          onContextMenu={this.onBranchToolbarButtonContextMenu}
           tooltip={isOpen ? undefined : tooltip}
           onDropdownStateChanged={this.onDropDownStateChanged}
           dropdownContentRenderer={this.renderBranchFoldout}
@@ -228,7 +228,7 @@ export class BranchDropdown extends React.Component<
     }
   }
 
-  private createContextMenuItems = (
+  private onBranchToolbarButtonContextMenu = (
     event: React.MouseEvent<HTMLButtonElement>
   ): void => {
     event.preventDefault()
@@ -243,12 +243,12 @@ export class BranchDropdown extends React.Component<
 
     const isLocal = currentBranch.type === BranchType.Local
 
-    const items = createBranchContextMenuItems(
-      currentBranch.name,
-      isLocal,
-      this.onRenameBranch,
-      this.onDeleteBranch
-    )
+    const items = generateBranchContextMenuItems({
+      name: currentBranch.name,
+      isLocal: isLocal,
+      onRenameBranch: this.onRenameBranch,
+      onDeleteBranch: this.onDeleteBranch,
+    })
 
     showContextualMenu(items)
   }
