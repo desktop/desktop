@@ -192,7 +192,7 @@ const sendErrorWithContext = (
       /* ignore */
     }
 
-    sendErrorReport(error, extra, nonFatal)
+    sendErrorReport(error, extra, nonFatal ?? false)
   }
 }
 
