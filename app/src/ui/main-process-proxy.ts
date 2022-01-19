@@ -40,6 +40,10 @@ export const executeMenuItem = (item: ExecutableMenuItem) =>
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export const executeMenuItemById = sendProxy('execute-menu-item-by-id')
 
+export const showItemInFolder = sendProxy('show-item-in-folder')
+export const showFolderContents = sendProxy('show-folder-contents')
+export const openExternal = invokeProxy('open-external')
+export const moveItemToTrash = invokeProxy('move-to-trash')
 
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
