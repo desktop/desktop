@@ -1,9 +1,10 @@
 import { AccountsStore } from './accounts-store'
 import { Account, accountEquals } from '../../models/account'
-import { API, getDotComAPIEndpoint } from '../api'
+import { API } from '../api'
 import { AliveSession, AliveEvent, Subscription } from '@github/alive-client'
 import { Emitter } from 'event-kit'
 import { enableHighSignalNotifications } from '../feature-flag'
+import { supportsAliveSessions } from '../endpoint-capabilities'
 
 /** Checks whether or not an account is included in a list of accounts. */
 function accountIncluded(account: Account, accounts: ReadonlyArray<Account>) {
@@ -192,8 +193,7 @@ export class AliveStore {
   }
 
   private subscribeToAccount = async (account: Account) => {
-    // For now, Alive is only available for GitHub.com accounts
-    if (account.endpoint !== getDotComAPIEndpoint()) {
+    if (!supportsAliveSessions(account.endpoint)) {
       return
     }
 
