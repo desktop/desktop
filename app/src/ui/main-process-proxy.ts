@@ -39,6 +39,59 @@ export function getCurrentWindowZoomFactor(): Promise<number | undefined> {
   return ipcRenderer.invoke('get-current-window-zoom-factor')
 }
 
+/** Tell the main processor to setup the auto updater */
+export function setupAutoUpdater() {
+  ipcRenderer.send('setup-auto-updater')
+}
+
+/** Tell the main processor to check for app updates */
+export function checkForUpdates(
+  updatesURL: string
+): Promise<Error | undefined | null> {
+  return ipcRenderer.invoke('check-for-updates', updatesURL)
+}
+
+/** Tell the main processor to quit the app and install updates */
+export function quitAndInstallUpdate() {
+  ipcRenderer.send('quit-and-install-updates')
+}
+
+/** Tell the main processor to dispose of auto updater listeners */
+export function disposeAutoUpdater() {
+  ipcRenderer.send('dispose-auto-updater')
+}
+
+/** Subscribes to auto updater error events originating from the main processor */
+export function onAutoUpdaterError(
+  errorHandler: (evt: Electron.IpcRendererEvent, error: Error) => void
+) {
+  ipcRenderer.on('auto-updater-error', errorHandler)
+}
+
+/** Subscribes to auto updater checking for update events originating from the
+ * main processor */
+export function onAutoUpdaterCheckingForUpdate(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-checking-for-update', eventHandler)
+}
+
+/** Subscribes to auto updater update available events originating from the
+ * main processor */
+export function onAutoUpdaterUpdateAvailable(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-update-available', eventHandler)
+}
+
+/** Subscribes to auto updater update not available events originating from the
+ * main processor */
+export function onAutoUpdaterUpdateNotAvailable(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-update-not-available', eventHandler)
+}
+
+/** Subscribes to auto updater update downloaded events originating from the
+ * main processor */
+export function onAutoUpdaterUpdateDownloaded(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-update-downloaded', eventHandler)
+}
+
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
  * given message.

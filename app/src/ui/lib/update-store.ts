@@ -1,10 +1,20 @@
 import * as remote from '@electron/remote'
-import { ipcRenderer } from 'electron'
 const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { sendWillQuitSync } from '../main-process-proxy'
+import {
+  checkForUpdates,
+  disposeAutoUpdater,
+  onAutoUpdaterCheckingForUpdate,
+  onAutoUpdaterError,
+  onAutoUpdaterUpdateAvailable,
+  onAutoUpdaterUpdateDownloaded,
+  onAutoUpdaterUpdateNotAvailable,
+  quitAndInstallUpdate,
+  sendWillQuitSync,
+  setupAutoUpdater,
+} from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { parseError } from '../../lib/squirrel-error-parser'
 
@@ -53,30 +63,15 @@ class UpdateStore {
     }
 
     try {
-      ipcRenderer.on('auto-updater-error', (evt, error) => {
-        this.onAutoUpdaterError(error)
-      })
-
-      ipcRenderer.on('auto-updater-checking-for-update', (evt, error) => {
-        this.onCheckingForUpdate()
-      })
-
-      ipcRenderer.on('auto-updater-update-available', (evt, error) => {
-        this.onUpdateAvailable()
-      })
-
-      ipcRenderer.on('auto-updater-update-not-available', (evt, error) => {
-        this.onUpdateNotAvailable()
-      })
-
-      ipcRenderer.on('auto-updater-update-downloaded', (evt, error) => {
-        this.onUpdateDownloaded()
-      })
-
-      ipcRenderer.invoke('setup-auto-updater')
+      onAutoUpdaterError(this.onAutoUpdaterError)
+      onAutoUpdaterCheckingForUpdate(this.onCheckingForUpdate)
+      onAutoUpdaterUpdateAvailable(this.onUpdateAvailable)
+      onAutoUpdaterUpdateNotAvailable(this.onUpdateNotAvailable)
+      onAutoUpdaterUpdateDownloaded(this.onUpdateDownloaded)
+      setupAutoUpdater()
 
       window.addEventListener('beforeunload', () => {
-        ipcRenderer.invoke('dispose-auto-updater')
+        disposeAutoUpdater()
       })
     } catch (e) {
       this.emitError(e)
@@ -89,7 +84,7 @@ class UpdateStore {
     setNumber(lastSuccessfulCheckKey, now.getTime())
   }
 
-  private onAutoUpdaterError = (error: Error) => {
+  private onAutoUpdaterError = (e: Electron.IpcRendererEvent, error: Error) => {
     this.status = UpdateStatus.UpdateNotAvailable
 
     if (__WIN32__) {
@@ -189,7 +184,7 @@ class UpdateStore {
 
     this.userInitiatedUpdate = !inBackground
 
-    const error = await ipcRenderer.invoke('check-for-updates', updatesURL)
+    const error = await checkForUpdates(updatesURL)
 
     if (error !== null && error !== undefined) {
       this.emitError(error)
@@ -202,7 +197,7 @@ class UpdateStore {
     // before we call the function to quit.
     // eslint-disable-next-line no-sync
     sendWillQuitSync()
-    ipcRenderer.invoke('quit-and-install-updates')
+    quitAndInstallUpdate()
   }
 }
 

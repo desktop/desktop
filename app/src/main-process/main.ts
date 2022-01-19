@@ -465,7 +465,7 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.handle('setup-auto-updater', () => {
+  ipcMain.on('setup-auto-updater', () => {
     mainWindow?.setupAutoUpdater()
   })
 
@@ -473,11 +473,11 @@ app.on('ready', () => {
     return mainWindow?.checkForUpdates(url)
   })
 
-  ipcMain.handle('quit-and-install-updates', (e, url) => {
-    return mainWindow?.quitAndInstallUpdate()
+  ipcMain.on('quit-and-install-updates', (e, url) => {
+    mainWindow?.quitAndInstallUpdate()
   })
 
-  ipcMain.handle('dispose-auto-updater', () => {
+  ipcMain.on('dispose-auto-updater', () => {
     mainWindow?.disposeAutoUpdater()
   })
 
