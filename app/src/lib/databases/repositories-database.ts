@@ -196,6 +196,11 @@ async function createOwnerKey(tx: Dexie.Transaction) {
     const key = getOwnerKey(owner.endpoint, owner.login)
     const existingOwner = ownerByKey.get(key)
 
+    // If we've found a duplicate owner where that only differs by case we
+    // can't know which one of the two is accurate but that doesn't matter
+    // as it will eventually get corrected from fresh API data, we just need
+    // to pick one over the other and update any GitHubRepository still pointing
+    // to the owner to be deleted.
     if (existingOwner !== undefined) {
       assertNonNullable(existingOwner.id, 'Missing existing owner id')
       console.warn('Conflicting owner data', owner, existingOwner)
