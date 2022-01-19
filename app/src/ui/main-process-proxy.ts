@@ -1,10 +1,7 @@
 import { ipcRenderer, remote } from 'electron'
-import { ExecutableMenuItem } from '../models/app-menu'
-import { MenuIDs } from '../models/menu-ids'
-import { IMenuItemState } from '../lib/menu-update'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
-import { MenuLabelsEvent } from '../models/menu-labels'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
+import { ExecutableMenuItem } from '../models/app-menu'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the
@@ -30,26 +27,27 @@ export function sendProxy<T extends keyof RequestChannels>(
   return (...args) => ipcRenderer.send(channel, ...args)
 }
 
-/** Tell the main process to execute (i.e. simulate a click of) the menu item. */
-export function executeMenuItem(item: ExecutableMenuItem) {
-  ipcRenderer.send('execute-menu-item', { id: item.id })
-}
+/** Set the menu item's enabledness. */
+export const updateMenuState = sendProxy('update-menu-state')
+
+/** Tell the main process that the renderer is ready. */
+export const sendReady = sendProxy('renderer-ready')
 
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
-export function executeMenuItemById(id: MenuIDs) {
-  ipcRenderer.send('execute-menu-item', { id })
-}
+export const executeMenuItem = (item: ExecutableMenuItem) =>
+  executeMenuItemById(item.id)
+
+/** Tell the main process to execute (i.e. simulate a click of) the menu item. */
+export const executeMenuItemById = sendProxy('execute-menu-item-by-id')
+
 
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
  * given message.
  */
-export function showCertificateTrustDialog(
-  certificate: Electron.Certificate,
-  message: string
-) {
-  ipcRenderer.send('show-certificate-trust-dialog', { certificate, message })
-}
+export const showCertificateTrustDialog = sendProxy(
+  'show-certificate-trust-dialog'
+)
 
 /**
  * Tell the main process that we're going to quit. This means it should allow
@@ -68,9 +66,7 @@ export function sendWillQuitSync() {
  * The response will be send as a separate event with the name 'app-menu' and
  * will be received by the dispatcher.
  */
-export function getAppMenu() {
-  ipcRenderer.send('get-app-menu')
-}
+export const getAppMenu = sendProxy('get-app-menu')
 
 function findSubmenuItem(
   currentContextualMenuItems: ReadonlyArray<IMenuItem>,
@@ -185,6 +181,8 @@ function getSpellCheckLanguageMenuItem(
   }
 }
 
+const _showContextualMenu = invokeProxy('show-contextual-menu')
+
 /** Show the given menu items in a contextual menu. */
 export async function showContextualMenu(
   items: ReadonlyArray<IMenuItem>,
@@ -216,10 +214,7 @@ export async function showContextualMenu(
   This is a regular context menu that does not need to merge with spellcheck
   items. They can be shown right away.
   */
-  const indices: ReadonlyArray<number> | null = await ipcRenderer.invoke(
-    'show-contextual-menu',
-    serializeMenuItems(items)
-  )
+  const indices = await _showContextualMenu(serializeMenuItems(items))
 
   if (indices !== null) {
     const menuItem = findSubmenuItem(items, indices)
@@ -245,9 +240,9 @@ function serializeMenuItems(
 }
 
 /** Update the menu item labels with the user's preferred apps. */
-export function updatePreferredAppMenuItemLabels(labels: MenuLabelsEvent) {
-  ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
-}
+export const updatePreferredAppMenuItemLabels = sendProxy(
+  'update-preferred-app-menu-item-labels'
+)
 
 function getIpcFriendlyError(error: Error) {
   return {
@@ -257,15 +252,18 @@ function getIpcFriendlyError(error: Error) {
   }
 }
 
+export const _reportUncaughtException = sendProxy('uncaught-exception')
+
 export function reportUncaughtException(error: Error) {
-  ipcRenderer.send('uncaught-exception', getIpcFriendlyError(error))
+  _reportUncaughtException(getIpcFriendlyError(error))
 }
+
+const _sendErrorReport = sendProxy('send-error-report')
 
 export function sendErrorReport(
   error: Error,
-  extra: Record<string, string> = {},
-  nonFatal?: boolean
+  extra: Record<string, string>,
+  nonFatal: boolean
 ) {
-  const event = { error: getIpcFriendlyError(error), extra, nonFatal }
-  ipcRenderer.send('send-error-report', event)
+  _sendErrorReport(getIpcFriendlyError(error), extra, nonFatal)
 }
