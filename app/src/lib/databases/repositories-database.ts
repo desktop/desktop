@@ -5,6 +5,10 @@ import { assertNonNullable } from '../fatal-error'
 
 export interface IDatabaseOwner {
   readonly id?: number
+  /**
+   * A case-insensitive lookup key which uniquely identifies a particular
+   * user on a particular endpoint. See getOwnerKey for more information.
+   */
   readonly key: string
   readonly login: string
   readonly endpoint: string
@@ -162,6 +166,19 @@ async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
     .then(modified => log.info(`ensureNoUndefinedParentID: ${modified}`))
 }
 
+/**
+ * Replace the case-sensitive [endpoint+login] index with a case-insensitive
+ * lookup key in order to allow us to persist the proper case of a login.
+ *
+ * In addition to adding the key this transition will, out of an abundance
+ * of caution, guard against the possibility that the previous table (being
+ * case-sensitive) will contain two rows for the same user (only differing
+ * in case). This can happen if a user changes their login by case only
+ * while one of their repositories is tracked in Desktop or if the Desktop
+ * installation as been constantly transitioned since before we started storing
+ * logins in lower case (https://github.com/desktop/desktop/pull/1242). The
+ * latter scenario is unlikely.
+ */
 async function createOwnerKey(tx: Dexie.Transaction) {
   const ownersTable = tx.table<IDatabaseOwner, number>('owners')
   const ghReposTable = tx.table<IDatabaseGitHubRepository, number>(
