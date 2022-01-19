@@ -2,7 +2,13 @@ import * as React from 'react'
 import { ipcRenderer } from 'electron'
 import { WindowState, windowStateChannelName } from '../../lib/window-state'
 import classNames from 'classnames'
-import { getCurrentWindowState } from '../main-process-proxy'
+import {
+  closeWindow,
+  getCurrentWindowState,
+  maximizeWindow,
+  minimizeWindow,
+  restoreWindow,
+} from '../main-process-proxy'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -63,22 +69,6 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
     this.setState({ windowState })
   }
 
-  private onMinimize = () => {
-    ipcRenderer.invoke('minimize-window')
-  }
-
-  private onMaximize = () => {
-    ipcRenderer.invoke('maximize-window')
-  }
-
-  private onRestore = () => {
-    ipcRenderer.invoke('unmaximize-window')
-  }
-
-  private onClose = () => {
-    ipcRenderer.invoke('close-window')
-  }
-
   private renderButton(
     name: string,
     onClick: React.EventHandler<React.MouseEvent<any>>,
@@ -108,12 +98,12 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
       return <span />
     }
 
-    const min = this.renderButton('minimize', this.onMinimize, minimizePath)
+    const min = this.renderButton('minimize', minimizeWindow, minimizePath)
     const maximizeOrRestore =
       this.state.windowState === 'maximized'
-        ? this.renderButton('restore', this.onRestore, restorePath)
-        : this.renderButton('maximize', this.onMaximize, maximizePath)
-    const close = this.renderButton('close', this.onClose, closePath)
+        ? this.renderButton('restore', restoreWindow, restorePath)
+        : this.renderButton('maximize', maximizeWindow, maximizePath)
+    const close = this.renderButton('close', closeWindow, closePath)
 
     return (
       <div className="window-controls">

@@ -485,19 +485,19 @@ app.on('ready', () => {
     mainWindow?.subscribeNativeThemeUpdated()
   })
 
-  ipcMain.handle('minimize-window', () => {
+  ipcMain.on('minimize-window', () => {
     mainWindow?.minimizeWindow()
   })
 
-  ipcMain.handle('maximize-window', () => {
+  ipcMain.on('maximize-window', () => {
     mainWindow?.maximizeWindow()
   })
 
-  ipcMain.handle('unmaximize-window', () => {
+  ipcMain.on('unmaximize-window', () => {
     mainWindow?.unmaximizeWindow()
   })
 
-  ipcMain.handle('close-window', () => {
+  ipcMain.on('close-window', () => {
     mainWindow?.closeWindow()
   })
 

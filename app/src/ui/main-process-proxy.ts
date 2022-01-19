@@ -102,6 +102,26 @@ export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
 }
 
+/** Tell the main process to minimize the window */
+export function minimizeWindow() {
+  return ipcRenderer.send('minimize-window')
+}
+
+/** Tell the main process to maximize the window */
+export function maximizeWindow() {
+  return ipcRenderer.send('maximize-window')
+}
+
+/** Tell the main process to unmaximize the window */
+export function restoreWindow() {
+  return ipcRenderer.send('unmaximize-window')
+}
+
+/** Tell the main process to close the window */
+export function closeWindow() {
+  return ipcRenderer.send('close-window')
+}
+
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
  * given message.
