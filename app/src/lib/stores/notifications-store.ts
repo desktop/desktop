@@ -204,6 +204,8 @@ export class NotificationsStore {
     })
 
     notification.on('click', () => {
+      remote.getCurrentWindow().focus()
+
       this.onChecksFailedCallback?.(
         repository,
         pullRequest,
