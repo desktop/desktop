@@ -1,6 +1,6 @@
 import { AccountsStore } from './accounts-store'
 import { Account, accountEquals } from '../../models/account'
-import { API } from '../api'
+import { API, getDotComAPIEndpoint } from '../api'
 import { AliveSession, AliveEvent, Subscription } from '@github/alive-client'
 import { Emitter } from 'event-kit'
 import { enableHighSignalNotifications } from '../feature-flag'
@@ -192,6 +192,11 @@ export class AliveStore {
   }
 
   private subscribeToAccount = async (account: Account) => {
+    // For now, Alive is only available for GitHub.com accounts
+    if (account.endpoint !== getDotComAPIEndpoint()) {
+      return
+    }
+
     const endpointSession = await this.createSessionForAccount(account)
     const api = API.fromAccount(account)
     const channelInfo = await api.getAliveDesktopChannel()
