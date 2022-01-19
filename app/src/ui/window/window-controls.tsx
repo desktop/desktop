@@ -1,9 +1,6 @@
 import * as React from 'react'
 import { ipcRenderer } from 'electron'
-import {
-  WindowState,
-  windowStateChannelName,
-} from '../../lib/window-state'
+import { WindowState, windowStateChannelName } from '../../lib/window-state'
 import classNames from 'classnames'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols

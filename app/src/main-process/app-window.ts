@@ -375,20 +375,19 @@ export class AppWindow {
     })
   }
 
-  public minimizeWindow(){
+  public minimizeWindow() {
     this.window.minimize()
   }
 
-  public maximizeWindow(){
+  public maximizeWindow() {
     this.window.maximize()
   }
 
-  public unmaximizeWindow(){
+  public unmaximizeWindow() {
     this.window.unmaximize()
   }
 
-  public closeWindow(){
+  public closeWindow() {
     this.window.close()
   }
-
 }
