@@ -481,7 +481,7 @@ app.on('ready', () => {
     mainWindow?.disposeAutoUpdater()
   })
 
-  ipcMain.handle('subscribe-native-theme-updated', () => {
+  ipcMain.on('subscribe-native-theme-updated', () => {
     mainWindow?.subscribeNativeThemUpdated()
   })
 

@@ -20,7 +20,7 @@ class ThemeChangeMonitor {
 
     ipcRenderer.on('native-theme-updated', this.onThemeNotificationUpdated)
 
-    ipcRenderer.invoke('subscribe-native-theme-updated')
+    ipcRenderer.send('subscribe-native-theme-updated')
   }
 
   private onThemeNotificationUpdated = () => {
