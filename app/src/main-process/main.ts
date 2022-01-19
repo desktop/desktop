@@ -501,6 +501,14 @@ app.on('ready', () => {
     mainWindow?.closeWindow()
   })
 
+  ipcMain.handle('get-current-window-state', () => {
+    return mainWindow?.getCurrentWindowState()
+  })
+
+  ipcMain.handle('get-current-window-zoom-factor', () => {
+    return mainWindow?.getCurrentWindowZoomFactor()
+  })
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.

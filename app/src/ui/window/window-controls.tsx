@@ -2,6 +2,7 @@ import * as React from 'react'
 import { ipcRenderer } from 'electron'
 import { WindowState, windowStateChannelName } from '../../lib/window-state'
 import classNames from 'classnames'
+import { getCurrentWindowState } from '../main-process-proxy'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -31,8 +32,17 @@ interface IWindowControlState {
 export class WindowControls extends React.Component<{}, IWindowControlState> {
   public componentWillMount() {
     this.setState({ windowState: null })
-
+    this.intializeWindowState()
     ipcRenderer.on(windowStateChannelName, this.onWindowStateChanged)
+  }
+
+  private intializeWindowState = async () => {
+    const windowState = await getCurrentWindowState()
+    if (windowState === undefined) {
+      return
+    }
+
+    this.setState({ windowState })
   }
 
   public componentWillUnmount() {

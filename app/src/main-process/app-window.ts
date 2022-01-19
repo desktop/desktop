@@ -12,7 +12,6 @@ import { encodePathAsUrl } from '../lib/path'
 import {
   getWindowState,
   registerWindowStateChangedEvents,
-  sendWindowStateEvent,
 } from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-app-url'
@@ -159,11 +158,6 @@ export class AppWindow {
 
     this.window.webContents.on('did-finish-load', () => {
       this.window.webContents.setVisualZoomLevelLimits(1, 1)
-      this.window.webContents.send(
-        'zoom-factor-changed',
-        this.window.webContents.zoomFactor
-      )
-      sendWindowStateEvent(this.window, getWindowState(this.window))
     })
 
     this.window.webContents.on('did-fail-load', () => {
@@ -395,5 +389,13 @@ export class AppWindow {
 
   public closeWindow() {
     this.window.close()
+  }
+
+  public getCurrentWindowState() {
+    return getWindowState(this.window)
+  }
+
+  public getCurrentWindowZoomFactor() {
+    return this.window.webContents.zoomFactor
   }
 }

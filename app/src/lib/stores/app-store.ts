@@ -75,6 +75,8 @@ import {
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
+  getCurrentWindowState,
+  getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
 } from '../../ui/main-process-proxy'
 import {
@@ -505,6 +507,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
 
+    this.initializeWindowState()
+    this.initializeZoomFactor()
     this.wireupIpcEventHandlers()
     this.wireupStoreEventHandlers()
     getAppMenu()
@@ -540,6 +544,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
     )
+  }
+
+  private initializeWindowState = async () => {
+    const currentWindowState = await getCurrentWindowState()
+    if (currentWindowState === undefined) {
+      return
+    }
+
+    this.windowState = currentWindowState
+  }
+
+  private initializeZoomFactor = async () => {
+    const zoomFactor = await getCurrentWindowZoomFactor()
+    if (zoomFactor === undefined) {
+      return
+    }
+    this.onWindowZoomFactorChanged(zoomFactor)
   }
 
   private onTokenInvalidated = (endpoint: string) => {

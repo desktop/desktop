@@ -5,6 +5,7 @@ import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { MenuLabelsEvent } from '../models/menu-labels'
+import { WindowState } from '../lib/window-state'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -26,6 +27,16 @@ export function executeMenuItem(item: ExecutableMenuItem) {
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export function executeMenuItemById(id: MenuIDs) {
   ipcRenderer.send('execute-menu-item', { id })
+}
+
+/** Tell the main processor to obtain the current window state */
+export function getCurrentWindowState(): Promise<WindowState | undefined> {
+  return ipcRenderer.invoke('get-current-window-state')
+}
+
+/** Tell the main processor to obtain the current window's zoom factor */
+export function getCurrentWindowZoomFactor(): Promise<number | undefined> {
+  return ipcRenderer.invoke('get-current-window-zoom-factor')
 }
 
 /**
