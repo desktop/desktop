@@ -369,13 +369,6 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on('menu-event', (event: Electron.IpcMainEvent, args: any[]) => {
-    const { name }: { name: MenuEvent } = event as any
-    if (mainWindow) {
-      mainWindow.sendMenuEvent(name)
-    }
-  })
-
   /**
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
