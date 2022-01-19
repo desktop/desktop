@@ -1,6 +1,5 @@
 import * as Path from 'path'
 import { ipcRenderer } from 'electron'
-import * as remote from '@electron/remote'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
@@ -184,11 +183,7 @@ import {
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
-import {
-  getWindowState,
-  WindowState,
-  windowStateChannelName,
-} from '../window-state'
+import { WindowState, windowStateChannelName } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -407,7 +402,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
 
-  private windowState: WindowState
+  private windowState: WindowState = 'normal'
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
@@ -505,16 +500,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       error => this.emitError(error)
     )
 
-    const browserWindow = remote.getCurrentWindow()
-    this.windowState = getWindowState(browserWindow)
-
-    this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
     window.addEventListener('resize', () => {
       this.updateResizableConstraints()
       this.emitUpdate()
     })
 
-    this.wireupIpcEventHandlers(browserWindow)
+    this.wireupIpcEventHandlers()
     this.wireupStoreEventHandlers()
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
@@ -653,7 +644,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.updateCurrentTutorialStep(repository)
   }
 
-  private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
+  private wireupIpcEventHandlers() {
     ipcRenderer.on(
       windowStateChannelName,
       (event: Electron.IpcRendererEvent, windowState: WindowState) => {

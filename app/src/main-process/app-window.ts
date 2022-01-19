@@ -9,7 +9,11 @@ import {
 } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
-import { registerWindowStateChangedEvents } from '../lib/window-state'
+import {
+  getWindowState,
+  registerWindowStateChangedEvents,
+  sendWindowStateEvent,
+} from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
@@ -149,6 +153,11 @@ export class AppWindow {
 
     this.window.webContents.on('did-finish-load', () => {
       this.window.webContents.setVisualZoomLevelLimits(1, 1)
+      this.window.webContents.send(
+        'zoom-factor-changed',
+        this.window.webContents.zoomFactor
+      )
+      sendWindowStateEvent(this.window, getWindowState(this.window))
     })
 
     this.window.webContents.on('did-fail-load', () => {

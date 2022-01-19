@@ -57,7 +57,7 @@ export function registerWindowStateChangedEvents(
  * Short hand convenience function for sending a window state change event
  * over the window-state-changed channel to the render process.
  */
-function sendWindowStateEvent(
+export function sendWindowStateEvent(
   window: Electron.BrowserWindow,
   state: WindowState
 ) {
