@@ -1,4 +1,11 @@
-import { ipcMain, Menu, app, dialog, BrowserWindow } from 'electron'
+import {
+  ipcMain,
+  Menu,
+  app,
+  dialog,
+  BrowserWindow,
+  autoUpdater,
+} from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
@@ -309,5 +316,45 @@ export class AppWindow {
 
   public destroy() {
     this.window.destroy()
+  }
+
+  public setupAutoUpdater() {
+    autoUpdater.on('error', (error: Error) => {
+      this.window.webContents.send('auto-updater-error', error)
+    })
+
+    autoUpdater.on('checking-for-update', () => {
+      this.window.webContents.send('auto-updater-checking-for-update')
+    })
+
+    autoUpdater.on('update-available', () => {
+      this.window.webContents.send('auto-updater-update-available')
+    })
+
+    autoUpdater.on('update-not-available', () => {
+      this.window.webContents.send('auto-updater-update-not-available')
+    })
+
+    autoUpdater.on('update-downloaded', () => {
+      this.window.webContents.send('auto-updater-update-downloaded')
+    })
+  }
+
+  public checkForUpdates(url: string) {
+    try {
+      autoUpdater.setFeedURL({ url })
+      autoUpdater.checkForUpdates()
+    } catch (e) {
+      return e
+    }
+    return null
+  }
+
+  public quitAndInstallUpdate() {
+    autoUpdater.quitAndInstall()
+  }
+
+  public disposeAutoUpdater() {
+    autoUpdater.removeAllListeners()
   }
 }

@@ -1,7 +1,5 @@
 import * as remote from '@electron/remote'
-// Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
-// use with `remote`.
-const autoUpdater = remote.autoUpdater
+import { ipcRenderer } from 'electron'
 const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
@@ -54,25 +52,35 @@ class UpdateStore {
       this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
     }
 
-    autoUpdater.on('error', this.onAutoUpdaterError)
-    autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
-    autoUpdater.on('update-available', this.onUpdateAvailable)
-    autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
-    autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
+    try {
+      ipcRenderer.on('auto-updater-error', (evt, error) => {
+        this.onAutoUpdaterError(error)
+      })
 
-    window.addEventListener('beforeunload', () => {
-      autoUpdater.removeListener('error', this.onAutoUpdaterError)
-      autoUpdater.removeListener(
-        'checking-for-update',
-        this.onCheckingForUpdate
-      )
-      autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-      autoUpdater.removeListener(
-        'update-not-available',
-        this.onUpdateNotAvailable
-      )
-      autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
-    })
+      ipcRenderer.on('auto-updater-checking-for-update', (evt, error) => {
+        this.onCheckingForUpdate()
+      })
+
+      ipcRenderer.on('auto-updater-update-available', (evt, error) => {
+        this.onUpdateAvailable()
+      })
+
+      ipcRenderer.on('auto-updater-update-not-available', (evt, error) => {
+        this.onUpdateNotAvailable()
+      })
+
+      ipcRenderer.on('auto-updater-update-downloaded', (evt, error) => {
+        this.onUpdateDownloaded()
+      })
+
+      ipcRenderer.invoke('setup-auto-updater')
+
+      window.addEventListener('beforeunload', () => {
+        ipcRenderer.invoke('dispose-auto-updater')
+      })
+    } catch (e) {
+      this.emitError(e)
+    }
   }
 
   private touchLastChecked() {
@@ -153,7 +161,7 @@ class UpdateStore {
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(inBackground: boolean) {
+  public async checkForUpdates(inBackground: boolean) {
     // An update has been downloaded and the app is waiting to be restarted.
     // Checking for updates again may result in the running app being nuked
     // when it finds a subsequent update.
@@ -181,11 +189,13 @@ class UpdateStore {
 
     this.userInitiatedUpdate = !inBackground
 
-    try {
-      autoUpdater.setFeedURL({ url: updatesURL })
-      autoUpdater.checkForUpdates()
-    } catch (e) {
-      this.emitError(e)
+    const checkedResults = await ipcRenderer.invoke(
+      'check-for-updates',
+      updatesURL
+    )
+
+    if (checkedResults !== null && checkedResults !== undefined) {
+      this.emitError(checkedResults)
     }
   }
 
@@ -195,7 +205,7 @@ class UpdateStore {
     // before we call the function to quit.
     // eslint-disable-next-line no-sync
     sendWillQuitSync()
-    autoUpdater.quitAndInstall()
+    ipcRenderer.invoke('quit-and-install-updates')
   }
 }
 

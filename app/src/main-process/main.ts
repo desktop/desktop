@@ -465,6 +465,22 @@ app.on('ready', () => {
     }
   )
 
+  ipcMain.handle('setup-auto-updater', () => {
+    mainWindow?.setupAutoUpdater()
+  })
+
+  ipcMain.handle('check-for-updates', (e, url) => {
+    return mainWindow?.checkForUpdates(url)
+  })
+
+  ipcMain.handle('quit-and-install-updates', (e, url) => {
+    return mainWindow?.quitAndInstallUpdate()
+  })
+
+  ipcMain.handle('dispose-auto-updater', () => {
+    mainWindow?.disposeAutoUpdater()
+  })
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
