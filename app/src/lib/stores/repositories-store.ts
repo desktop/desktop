@@ -382,9 +382,6 @@ export class RepositoriesStore extends TypedBaseStore<
     // is `userA`). In that case we want to update our database to persist the
     // login with the proper case.
     if (existingOwner === undefined || existingOwner.login !== login) {
-      if (existingOwner !== undefined) {
-        console.log('Updating existing owner: ', existingOwner, login)
-      }
       id = existingOwner?.id
       id = await this.db.owners.put({ id, key, endpoint, login })
     } else {
