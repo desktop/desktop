@@ -181,7 +181,7 @@ const sendErrorWithContext = (
         }
 
         extra.repositoryCount = `${currentState.repositories.length}`
-        extra.windowState = currentState.windowState
+        extra.windowState = currentState.windowState ?? 'Unknown'
         extra.accounts = `${currentState.accounts.length}`
 
         extra.automaticallySwitchTheme = `${
