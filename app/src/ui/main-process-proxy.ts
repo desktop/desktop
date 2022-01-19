@@ -4,17 +4,30 @@ import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { MenuLabelsEvent } from '../models/menu-labels'
+import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 
-/** Set the menu item's enabledness. */
-export function updateMenuState(
-  state: Array<{ id: MenuIDs; state: IMenuItemState }>
-) {
-  ipcRenderer.send('update-menu-state', state)
+/**
+ * Creates a strongly typed proxy method for sending a duplex IPC message to the
+ * main process. The parameter types and return type are infered from the
+ * RequestResponseChannels type which defines the valid duplex channel names.
+ */
+export function invokeProxy<T extends keyof RequestResponseChannels>(
+  channel: T
+): (
+  ...args: Parameters<RequestResponseChannels[T]>
+) => ReturnType<RequestResponseChannels[T]> {
+  return (...args) => ipcRenderer.invoke(channel, ...args) as any
 }
 
-/** Tell the main process that the renderer is ready. */
-export function sendReady(time: number) {
-  ipcRenderer.send('renderer-ready', time)
+/**
+ * Creates a strongly typed proxy method for sending a simplex IPC message to
+ * the main process. The parameter types are infered from the
+ * RequestResponseChannels type which defines the valid duplex channel names.
+ */
+export function sendProxy<T extends keyof RequestChannels>(
+  channel: T
+): (...args: Parameters<RequestChannels[T]>) => void {
+  return (...args) => ipcRenderer.send(channel, ...args)
 }
 
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
