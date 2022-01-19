@@ -1,10 +1,10 @@
-import * as remote from '@electron/remote'
 import {
   ApplicableTheme,
   getCurrentlyAppliedTheme,
   supportsSystemThemeChanges,
 } from './application-theme'
 import { Disposable, Emitter } from 'event-kit'
+import { ipcRenderer } from 'electron'
 
 class ThemeChangeMonitor {
   private readonly emitter = new Emitter()
@@ -18,10 +18,12 @@ class ThemeChangeMonitor {
       return
     }
 
-    remote.nativeTheme.addListener('updated', this.onThemeNotificationUpdated)
+    ipcRenderer.on('native-theme-updated', this.onThemeNotificationUpdated)
+
+    ipcRenderer.invoke('subscribe-native-theme-updated')
   }
 
-  private onThemeNotificationUpdated = (event: string, userInfo: any) => {
+  private onThemeNotificationUpdated = () => {
     const theme = getCurrentlyAppliedTheme()
     this.emitThemeChanged(theme)
   }

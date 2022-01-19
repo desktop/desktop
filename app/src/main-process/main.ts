@@ -481,6 +481,10 @@ app.on('ready', () => {
     mainWindow?.disposeAutoUpdater()
   })
 
+  ipcMain.handle('subscribe-native-theme-updated', () => {
+    mainWindow?.subscribeNativeThemUpdated()
+  })
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
