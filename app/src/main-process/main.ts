@@ -362,8 +362,6 @@ app.on('ready', () => {
     }
   })
 
-  onIpcMainEvent('menu-event', (_, name) => mainWindow?.sendMenuEvent(name))
-
   /**
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
