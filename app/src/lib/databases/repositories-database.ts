@@ -1,9 +1,11 @@
 import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { assertNonNullable } from '../fatal-error'
 
 export interface IDatabaseOwner {
   readonly id?: number
+  readonly key: string
   readonly login: string
   readonly endpoint: string
 }
@@ -124,6 +126,7 @@ export class RepositoriesDatabase extends BaseDatabase {
     })
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
+    this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
   }
 }
 
@@ -157,4 +160,62 @@ async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
     .filter(ghRepo => ghRepo.parentID === undefined)
     .modify({ parentID: null })
     .then(modified => log.info(`ensureNoUndefinedParentID: ${modified}`))
+}
+
+async function createOwnerKey(tx: Dexie.Transaction) {
+  const ownersTable = tx.table<IDatabaseOwner, number>('owners')
+  const ghReposTable = tx.table<IDatabaseGitHubRepository, number>(
+    'gitHubRepositories'
+  )
+  const allOwners = await ownersTable.toArray()
+
+  const ownerByKey = new Map<string, IDatabaseOwner>()
+  const newOwnerIds = new Array<{ from: number; to: number }>()
+  const ownersToDelete = new Array<number>()
+
+  for (const owner of allOwners) {
+    assertNonNullable(owner.id, 'Missing owner id')
+
+    const key = getOwnerKey(owner.endpoint, owner.login)
+    const existingOwner = ownerByKey.get(key)
+
+    if (existingOwner !== undefined) {
+      assertNonNullable(existingOwner.id, 'Missing existing owner id')
+      console.warn('Conflicting owner data', owner, existingOwner)
+      newOwnerIds.push({ from: owner.id, to: existingOwner.id })
+      ownersToDelete.push(owner.id)
+    } else {
+      ownerByKey.set(key, { ...owner, key })
+    }
+  }
+
+  console.log(`Updating ${ownerByKey.size} owners with keys`, [
+    ...ownerByKey.values(),
+  ])
+  await ownersTable.bulkPut([...ownerByKey.values()])
+
+  if (newOwnerIds.length > 0) {
+    console.log(`Updating GitHubRepositories with new owner ids`, newOwnerIds)
+  }
+  for (const mapping of newOwnerIds) {
+    const numberOfUpdatedRepos = await ghReposTable
+      .where('[ownerID+name]')
+      .between([mapping.from], [mapping.from + 1])
+      .modify({ ownerID: mapping.to })
+
+    console.log(
+      `Updated ${numberOfUpdatedRepos} GitHubRepositories with new owner ids`
+    )
+  }
+
+  await ownersTable.bulkDelete(ownersToDelete)
+}
+
+/* Creates a case-insensitive key used to uniquely identify an owner
+ * based on the endpoint and login. Note that the key happens to
+ * match the canonical API url for the user. This has no practical
+ * purpose but can make debugging a little bit easier.
+ */
+export function getOwnerKey(endpoint: string, login: string) {
+  return `${endpoint}/users/${login}`.toLowerCase()
 }
