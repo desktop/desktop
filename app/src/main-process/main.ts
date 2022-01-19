@@ -485,6 +485,22 @@ app.on('ready', () => {
     mainWindow?.subscribeNativeThemUpdated()
   })
 
+  ipcMain.handle('minimize-window', () => {
+    mainWindow?.minimizeWindow()
+  })
+
+  ipcMain.handle('maximize-window', () => {
+    mainWindow?.maximizeWindow()
+  })
+
+  ipcMain.handle('unmaximize-window', () => {
+    mainWindow?.unmaximizeWindow()
+  })
+
+  ipcMain.handle('close-window', () => {
+    mainWindow?.closeWindow()
+  })
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.

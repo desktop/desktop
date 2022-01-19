@@ -374,4 +374,21 @@ export class AppWindow {
       this.window.webContents.send('native-theme-updated')
     })
   }
+
+  public minimizeWindow(){
+    this.window.minimize()
+  }
+
+  public maximizeWindow(){
+    this.window.maximize()
+  }
+
+  public unmaximizeWindow(){
+    this.window.unmaximize()
+  }
+
+  public closeWindow(){
+    this.window.close()
+  }
+
 }
