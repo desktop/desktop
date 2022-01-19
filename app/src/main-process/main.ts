@@ -7,7 +7,7 @@ import * as URL from 'url'
 import { MenuLabelsEvent } from '../models/menu-labels'
 
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, MenuEvent, getAllMenuItems } from './menu'
+import { buildDefaultMenu, getAllMenuItems } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
