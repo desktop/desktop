@@ -184,6 +184,14 @@ export class NotificationsStore {
     const numberOfFailedChecks = checks.filter(
       check => check.conclusion === APICheckConclusion.Failure
     ).length
+
+    // Sometimes we could get a checks-failed event for a PR whose checks just
+    // got restarted, so we won't get failed checks at that point. In that
+    // scenario, just ignore the event and don't show a notification.
+    if (numberOfFailedChecks === 0) {
+      return
+    }
+
     const pluralChecks =
       numberOfFailedChecks === 1 ? 'check was' : 'checks were'
 
