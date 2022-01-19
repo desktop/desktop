@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
+import { BrowserWindow, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
@@ -9,6 +9,7 @@ import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
+import { onIpcMainEvent } from './ipc-main'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -71,7 +72,7 @@ export class AppWindow {
       quitting = true
     })
 
-    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+    onIpcMainEvent('will-quit', event => {
       quitting = true
       event.returnValue = true
     })
@@ -153,13 +154,13 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.once(
+    onIpcMainEvent(
       'renderer-ready',
-      (event: Electron.IpcMainEvent, readyTime: number) => {
+      (_, readyTime) => {
         this._rendererReadyTime = readyTime
-
         this.maybeEmitDidLoad()
-      }
+      },
+      { once: true }
     )
 
     this.window.on('focus', () => this.window.webContents.send('focus'))
