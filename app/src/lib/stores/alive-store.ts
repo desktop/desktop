@@ -149,16 +149,9 @@ export class AliveStore {
       return null
     }
 
-    // Wrap the `api` instance in a function that will be passed to the Alive
-    // session. This function will be called multiple times if the session
-    // needs to reconnect.
-    const getRetryAliveURL = () => {
-      return api.getAliveWebSocketURL()
-    }
-
     const aliveSession = new AliveSession(
       webSocketUrl,
-      getRetryAliveURL,
+      () => api.getAliveWebSocketURL(),
       false,
       this.notify
     )
