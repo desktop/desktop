@@ -29,39 +29,39 @@ export function executeMenuItemById(id: MenuIDs) {
   ipcRenderer.send('execute-menu-item', { id })
 }
 
-/** Tell the main processor to obtain the current window state */
+/** Tell the main process to obtain the current window state */
 export function getCurrentWindowState(): Promise<WindowState | undefined> {
   return ipcRenderer.invoke('get-current-window-state')
 }
 
-/** Tell the main processor to obtain the current window's zoom factor */
+/** Tell the main process to obtain the current window's zoom factor */
 export function getCurrentWindowZoomFactor(): Promise<number | undefined> {
   return ipcRenderer.invoke('get-current-window-zoom-factor')
 }
 
-/** Tell the main processor to setup the auto updater */
+/** Tell the main process to setup the auto updater */
 export function setupAutoUpdater() {
   ipcRenderer.send('setup-auto-updater')
 }
 
-/** Tell the main processor to check for app updates */
+/** Tell the main process to check for app updates */
 export function checkForUpdates(
   updatesURL: string
 ): Promise<Error | undefined | null> {
   return ipcRenderer.invoke('check-for-updates', updatesURL)
 }
 
-/** Tell the main processor to quit the app and install updates */
+/** Tell the main process to quit the app and install updates */
 export function quitAndInstallUpdate() {
   ipcRenderer.send('quit-and-install-updates')
 }
 
-/** Tell the main processor to dispose of auto updater listeners */
+/** Tell the main process to dispose of auto updater listeners */
 export function disposeAutoUpdater() {
   ipcRenderer.send('dispose-auto-updater')
 }
 
-/** Subscribes to auto updater error events originating from the main processor */
+/** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
   errorHandler: (evt: Electron.IpcRendererEvent, error: Error) => void
 ) {
@@ -69,27 +69,37 @@ export function onAutoUpdaterError(
 }
 
 /** Subscribes to auto updater checking for update events originating from the
- * main processor */
+ * main process */
 export function onAutoUpdaterCheckingForUpdate(eventHandler: () => void) {
   ipcRenderer.on('auto-updater-checking-for-update', eventHandler)
 }
 
 /** Subscribes to auto updater update available events originating from the
- * main processor */
+ * main process */
 export function onAutoUpdaterUpdateAvailable(eventHandler: () => void) {
   ipcRenderer.on('auto-updater-update-available', eventHandler)
 }
 
 /** Subscribes to auto updater update not available events originating from the
- * main processor */
+ * main process */
 export function onAutoUpdaterUpdateNotAvailable(eventHandler: () => void) {
   ipcRenderer.on('auto-updater-update-not-available', eventHandler)
 }
 
 /** Subscribes to auto updater update downloaded events originating from the
- * main processor */
+ * main process */
 export function onAutoUpdaterUpdateDownloaded(eventHandler: () => void) {
   ipcRenderer.on('auto-updater-update-downloaded', eventHandler)
+}
+
+/** Tell the main process to subscribe to native theme updated listener */
+export function subscribeNativeThemeUpdated() {
+  ipcRenderer.send('subscribe-native-theme-updated')
+}
+
+/** Subscribes to the native theme updated ecent originating from the main process */
+export function onNativeThemeUpdated(eventHandler: () => void) {
+  ipcRenderer.on('native-theme-updated', eventHandler)
 }
 
 /**

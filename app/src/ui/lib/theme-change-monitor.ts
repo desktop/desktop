@@ -4,7 +4,10 @@ import {
   supportsSystemThemeChanges,
 } from './application-theme'
 import { Disposable, Emitter } from 'event-kit'
-import { ipcRenderer } from 'electron'
+import {
+  onNativeThemeUpdated,
+  subscribeNativeThemeUpdated,
+} from '../main-process-proxy'
 
 class ThemeChangeMonitor {
   private readonly emitter = new Emitter()
@@ -18,9 +21,8 @@ class ThemeChangeMonitor {
       return
     }
 
-    ipcRenderer.on('native-theme-updated', this.onThemeNotificationUpdated)
-
-    ipcRenderer.send('subscribe-native-theme-updated')
+    onNativeThemeUpdated(this.onThemeNotificationUpdated)
+    subscribeNativeThemeUpdated()
   }
 
   private onThemeNotificationUpdated = () => {

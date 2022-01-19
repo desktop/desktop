@@ -469,11 +469,11 @@ app.on('ready', () => {
     mainWindow?.setupAutoUpdater()
   })
 
-  ipcMain.handle('check-for-updates', (e, url) => {
+  ipcMain.handle('check-for-updates', (_, url) => {
     return mainWindow?.checkForUpdates(url)
   })
 
-  ipcMain.on('quit-and-install-updates', (e, url) => {
+  ipcMain.on('quit-and-install-updates', () => {
     mainWindow?.quitAndInstallUpdate()
   })
 
