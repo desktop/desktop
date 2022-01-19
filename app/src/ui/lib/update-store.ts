@@ -189,13 +189,10 @@ class UpdateStore {
 
     this.userInitiatedUpdate = !inBackground
 
-    const checkedResults = await ipcRenderer.invoke(
-      'check-for-updates',
-      updatesURL
-    )
+    const error = await ipcRenderer.invoke('check-for-updates', updatesURL)
 
-    if (checkedResults !== null && checkedResults !== undefined) {
-      this.emitError(checkedResults)
+    if (error !== null && error !== undefined) {
+      this.emitError(error)
     }
   }
 
