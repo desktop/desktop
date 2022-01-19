@@ -369,7 +369,7 @@ export class AppWindow {
     autoUpdater.removeAllListeners()
   }
 
-  public subscribeNativeThemUpdated() {
+  public subscribeNativeThemeUpdated() {
     nativeTheme.addListener('updated', (event: string, userInfo: any) => {
       this.window.webContents.send('native-theme-updated')
     })

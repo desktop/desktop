@@ -482,7 +482,7 @@ app.on('ready', () => {
   })
 
   ipcMain.on('subscribe-native-theme-updated', () => {
-    mainWindow?.subscribeNativeThemUpdated()
+    mainWindow?.subscribeNativeThemeUpdated()
   })
 
   ipcMain.handle('minimize-window', () => {
