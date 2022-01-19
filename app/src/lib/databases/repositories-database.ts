@@ -202,7 +202,9 @@ async function createOwnerKey(tx: Dexie.Transaction) {
     // to the owner to be deleted.
     if (existingOwner !== undefined) {
       assertNonNullable(existingOwner.id, 'Missing existing owner id')
-      console.warn('Conflicting owner data', owner, existingOwner)
+      log.warn(
+        `createOwnerKey: Conflicting owner data ${owner.id} (${owner.login}) and ${existingOwner.id} (${existingOwner.login})`
+      )
       newOwnerIds.push({ from: owner.id, to: existingOwner.id })
       ownersToDelete.push(owner.id)
     } else {
@@ -210,23 +212,16 @@ async function createOwnerKey(tx: Dexie.Transaction) {
     }
   }
 
-  console.log(`Updating ${ownerByKey.size} owners with keys`, [
-    ...ownerByKey.values(),
-  ])
+  log.info(`createOwnerKey: Updating ${ownerByKey.size} owners with keys`)
   await ownersTable.bulkPut([...ownerByKey.values()])
 
-  if (newOwnerIds.length > 0) {
-    console.log(`Updating GitHubRepositories with new owner ids`, newOwnerIds)
-  }
   for (const mapping of newOwnerIds) {
-    const numberOfUpdatedRepos = await ghReposTable
+    const modified = await ghReposTable
       .where('[ownerID+name]')
       .between([mapping.from], [mapping.from + 1])
       .modify({ ownerID: mapping.to })
 
-    console.log(
-      `Updated ${numberOfUpdatedRepos} GitHubRepositories with new owner ids`
-    )
+    log.info(`createOwnerKey: ${modified} repositories got new owner ids`)
   }
 
   await ownersTable.bulkDelete(ownersToDelete)
