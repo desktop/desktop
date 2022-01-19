@@ -5,6 +5,7 @@ import {
   dialog,
   BrowserWindow,
   autoUpdater,
+  nativeTheme,
 } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
@@ -80,6 +81,7 @@ export class AppWindow {
     })
 
     ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+      nativeTheme.removeAllListeners()
       quitting = true
       event.returnValue = true
     })
