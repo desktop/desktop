@@ -517,38 +517,38 @@ export function buildDefaultMenu({
     showLogsItem,
   ]
 
-  if (__DEV__) {
-    helpItems.push(
-      separator,
-      {
-        label: 'Crash main process…',
-        click() {
-          throw new Error('Boomtown!')
+  //if (__DEV__) {
+  helpItems.push(
+    separator,
+    {
+      label: 'Crash main process…',
+      click() {
+        throw new Error('Boomtown!')
+      },
+    },
+    {
+      label: 'Crash renderer process…',
+      click: emit('boomtown'),
+    },
+    {
+      label: 'Show popup',
+      submenu: [
+        {
+          label: 'Release notes',
+          click: emit('show-release-notes-popup'),
         },
-      },
-      {
-        label: 'Crash renderer process…',
-        click: emit('boomtown'),
-      },
-      {
-        label: 'Show popup',
-        submenu: [
-          {
-            label: 'Release notes',
-            click: emit('show-release-notes-popup'),
-          },
-        ],
-      },
-      {
-        label: 'Show notification',
-        click: emit('test-show-notification'),
-      },
-      {
-        label: 'Prune branches',
-        click: emit('test-prune-branches'),
-      }
-    )
-  }
+      ],
+    },
+    {
+      label: 'Show notification',
+      click: emit('test-show-notification'),
+    },
+    {
+      label: 'Prune branches',
+      click: emit('test-prune-branches'),
+    }
+  )
+  //}
 
   if (__DARWIN__) {
     template.push({
