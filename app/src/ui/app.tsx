@@ -146,6 +146,7 @@ import { PullRequestChecksFailed } from './notifications/pull-request-checks-fai
 import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 import { clamp } from '../lib/clamp'
+import { showNotification } from '../lib/stores/helpers/show-notification'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -424,6 +425,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showStashedChanges()
       case 'hide-stashed-changes':
         return this.hideStashedChanges()
+      case 'test-show-notification':
+        return this.testShowNotification()
       case 'test-prune-branches':
         return this.testPruneBranches()
       case 'find-text':
@@ -492,6 +495,18 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
       })
     }
+  }
+
+  private testShowNotification() {
+    if (!__DEV__) {
+      return
+    }
+
+    showNotification(
+      'Test notification',
+      'Click here! This is a test notification',
+      () => this.props.dispatcher.showPopup({ type: PopupType.About })
+    )
   }
 
   private testPruneBranches() {

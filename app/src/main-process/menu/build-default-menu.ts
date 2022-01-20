@@ -540,6 +540,10 @@ export function buildDefaultMenu({
         ],
       },
       {
+        label: 'Show notification',
+        click: emit('test-show-notification'),
+      },
+      {
         label: 'Prune branches',
         click: emit('test-prune-branches'),
       }

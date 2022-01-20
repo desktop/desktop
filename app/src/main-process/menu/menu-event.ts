@@ -36,6 +36,7 @@ export type MenuEvent =
   | 'show-release-notes-popup'
   | 'show-stashed-changes'
   | 'hide-stashed-changes'
+  | 'test-show-notification'
   | 'test-prune-branches'
   | 'find-text'
   | 'create-issue-in-repository-on-github'
