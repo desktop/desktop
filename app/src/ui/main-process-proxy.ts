@@ -1,4 +1,5 @@
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
+import { app, getCurrentWindow, getCurrentWebContents } from '@electron/remote'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
@@ -101,7 +102,7 @@ function mergeDeferredContextMenuItems(
 
   items.push({ type: 'separator' })
 
-  const { webContents } = remote.getCurrentWindow()
+  const { webContents } = getCurrentWindow()
 
   for (const suggestion of dictionarySuggestions) {
     items.push({
@@ -144,7 +145,7 @@ function mergeDeferredContextMenuItems(
 function getSpellCheckLanguageMenuItem(
   session: Electron.session
 ): IMenuItem | null {
-  const userLanguageCode = remote.app.getLocale()
+  const userLanguageCode = app.getLocale()
   const englishLanguageCode = 'en-US'
   const spellcheckLanguageCodes = session.getSpellCheckerLanguages()
 
@@ -186,16 +187,12 @@ export async function showContextualMenu(
   */
   if (deferredContextMenuItems !== null) {
     deferredContextMenuItems = null
-    remote
-      .getCurrentWebContents()
-      .off('context-menu', mergeDeferredContextMenuItems)
+    getCurrentWebContents().off('context-menu', mergeDeferredContextMenuItems)
   }
 
   if (mergeWithSpellcheckSuggestions) {
     deferredContextMenuItems = items
-    remote
-      .getCurrentWebContents()
-      .once('context-menu', mergeDeferredContextMenuItems)
+    getCurrentWebContents().once('context-menu', mergeDeferredContextMenuItems)
     return
   }
 

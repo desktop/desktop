@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
+import { getCurrentWindow } from '@electron/remote'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
 import { encodePathAsUrl } from '../lib/path'
@@ -94,12 +95,12 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     super(props)
 
     this.state = {
-      windowState: getWindowState(remote.getCurrentWindow()),
+      windowState: getWindowState(getCurrentWindow()),
     }
   }
 
   public componentDidMount() {
-    const window = remote.getCurrentWindow()
+    const window = getCurrentWindow()
 
     ipcRenderer.on(windowStateChannelName, () => {
       this.setState({ windowState: getWindowState(window) })

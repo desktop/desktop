@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import { session } from '@electron/remote'
 import { parsePACString } from './parse-pac-string'
 
 export async function resolveGitProxy(
@@ -10,7 +10,7 @@ export async function resolveGitProxy(
   // error (if the URL we're given is null or undefined despite
   // our best type efforts for example).
   // Better safe than sorry.
-  const pacString = await remote.session.defaultSession
+  const pacString = await session.defaultSession
     .resolveProxy(url)
     .catch(err => {
       log.error(`Failed resolving proxy for '${url}'`, err)

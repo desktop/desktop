@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import { app as importedApp } from '@electron/remote'
 
 let app: Electron.App | null = null
 let version: string | null = null
@@ -9,7 +9,7 @@ let documentsPath: string | null = null
 
 function getApp(): Electron.App {
   if (!app) {
-    app = remote.app
+    app = importedApp
   }
 
   return app

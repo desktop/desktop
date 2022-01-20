@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import { nativeTheme } from '@electron/remote'
 import {
   isMacOSMojaveOrLater,
   isWindows10And1809Preview17666OrLater,
@@ -122,7 +122,7 @@ export function getPersistedThemeName(): ApplicationTheme {
 export function setPersistedTheme(theme: ApplicationTheme): void {
   const themeName = getThemeName(theme)
   localStorage.setItem(applicationThemeKey, theme)
-  remote.nativeTheme.themeSource = themeName
+  nativeTheme.themeSource = themeName
 }
 
 /**
@@ -142,5 +142,5 @@ export function supportsSystemThemeChanges(): boolean {
 }
 
 function isDarkModeEnabled(): boolean {
-  return remote.nativeTheme.shouldUseDarkColors
+  return nativeTheme.shouldUseDarkColors
 }

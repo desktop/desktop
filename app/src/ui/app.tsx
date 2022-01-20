@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
+import { app, getCurrentWebContents } from '@electron/remote'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import {
@@ -330,7 +331,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (
       __DEV__ === false &&
       this.state.askToMoveToApplicationsFolderSetting &&
-      remote.app.isInApplicationsFolder?.() === false
+      app.isInApplicationsFolder?.() === false
     ) {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
@@ -534,7 +535,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       document.activeElement != null &&
       document.activeElement.dispatchEvent(event)
     ) {
-      remote.getCurrentWebContents().selectAll()
+      getCurrentWebContents().selectAll()
     }
   }
 

@@ -1,5 +1,6 @@
 import * as Path from 'path'
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
+import { getCurrentWindow } from '@electron/remote'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
@@ -504,7 +505,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       error => this.emitError(error)
     )
 
-    const browserWindow = remote.getCurrentWindow()
+    const browserWindow = getCurrentWindow()
     this.windowState = getWindowState(browserWindow)
 
     this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { remote } from 'electron'
+import { getCurrentWindow, dialog } from '@electron/remote'
 import { Dispatcher } from '../dispatcher'
 import { isGitRepository } from '../../lib/git'
 import { isBareRepository } from '../../lib/git'
@@ -172,8 +172,8 @@ export class AddExistingRepository extends React.Component<
   }
 
   private showFilePicker = async () => {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const window = getCurrentWindow()
+    const { filePaths } = await dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
     if (filePaths.length === 0) {

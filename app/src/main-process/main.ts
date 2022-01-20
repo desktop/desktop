@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell, session } from 'electron'
+import { app, Menu, ipcMain, shell, session, BrowserWindow } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
 
@@ -29,6 +29,8 @@ import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { installWebRequestFilters } from './install-web-request-filters'
+
+require('@electron/remote/main').initialize()
 
 app.setAppLogsPath()
 enableSourceMaps()

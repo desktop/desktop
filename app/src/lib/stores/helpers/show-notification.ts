@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 
 /**
  * Shows a notification with a title, a body, and a function to handle when the

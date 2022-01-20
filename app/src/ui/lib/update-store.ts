@@ -1,8 +1,6 @@
-import { remote } from 'electron'
-
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
-const autoUpdater = remote.autoUpdater
+import { app, autoUpdater } from '@electron/remote'
 const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
@@ -169,7 +167,7 @@ class UpdateStore {
     // the arm64 binary.
     if (
       enableUpdateFromEmulatedX64ToARM64() &&
-      (remote.app.runningUnderRosettaTranslation === true ||
+      (app.runningUnderRosettaTranslation === true ||
         isRunningUnderARM64Translation() === true)
     ) {
       const url = new URL(updatesURL)
