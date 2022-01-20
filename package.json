@@ -57,7 +57,7 @@
     "@electron/remote": "^2.0.1",
     "@primer/octicons": "^10.0.0",
     "@types/lodash": "^4.14.178",
-    "@types/marked": "^3.0.1",
+    "@types/marked": "^4.0.1",
     "@types/plist": "^3.0.2",
     "@types/react-color": "^3.0.4",
     "@typescript-eslint/eslint-plugin": "^3.5.0",

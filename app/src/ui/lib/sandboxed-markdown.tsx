@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
-import marked from 'marked'
+import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import {
   applyNodeFilters,
