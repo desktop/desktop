@@ -93,6 +93,9 @@ if (__DARWIN__) {
   possibleProtocols.add('github-windows')
 }
 
+// Needed for notifications to work on Windows
+app.setAppUserModelId(process.execPath)
+
 app.on('window-all-closed', () => {
   // If we don't subscribe to this event and all windows are closed, the default
   // behavior is to quit the app. We don't want that though, we control that
