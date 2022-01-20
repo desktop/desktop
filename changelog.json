@@ -1,6 +1,6 @@
 {
   "releases": {
-    "2.9.7-test5": ["[New] High-signal notifications"],
+    "2.9.7-test6": ["[New] High-signal notifications"],
     "2.9.6": [
       "[Added] View and re-run the check runs for the checked out pull request.",
       "[Fixed] Tooltip improvements and polish - #13452 #13449",
