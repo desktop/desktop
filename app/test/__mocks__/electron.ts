@@ -5,6 +5,9 @@ export const shell = {
 export const remote = {
   app: {
     on: jest.fn(),
+    client: {
+      waitUntil: jest.fn(),
+    },
   },
   getCurrentWebContents: jest.fn().mockImplementation(() => ({
     on: jest.fn().mockImplementation(() => true),
