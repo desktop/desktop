@@ -9,7 +9,7 @@ import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
-import { onIpcMainEvent } from './ipc-main'
+import * as ipcMain from './ipc-main'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -72,7 +72,7 @@ export class AppWindow {
       quitting = true
     })
 
-    onIpcMainEvent('will-quit', event => {
+    ipcMain.on('will-quit', event => {
       quitting = true
       event.returnValue = true
     })
@@ -154,14 +154,10 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    onIpcMainEvent(
-      'renderer-ready',
-      (_, readyTime) => {
-        this._rendererReadyTime = readyTime
-        this.maybeEmitDidLoad()
-      },
-      { once: true }
-    )
+    ipcMain.once('renderer-ready', (_, readyTime) => {
+      this._rendererReadyTime = readyTime
+      this.maybeEmitDidLoad()
+    })
 
     this.window.on('focus', () => this.window.webContents.send('focus'))
     this.window.on('blur', () => this.window.webContents.send('blur'))

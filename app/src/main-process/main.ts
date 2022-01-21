@@ -24,7 +24,7 @@ import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { installWebRequestFilters } from './install-web-request-filters'
-import { onIpcMainEvent, onIpcMainRequest } from './ipc-main'
+import * as ipcMain from './ipc-main'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -290,7 +290,7 @@ app.on('ready', () => {
     })
   )
 
-  onIpcMainEvent('update-preferred-app-menu-item-labels', (_, labels) => {
+  ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {
     // The current application menu is mutable and we frequently
     // change whether particular items are enabled or not through
     // the update-menu-state IPC event. This menu that we're creating
@@ -366,7 +366,7 @@ app.on('ready', () => {
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
    */
-  onIpcMainEvent('execute-menu-item-by-id', (event, id) => {
+  ipcMain.on('execute-menu-item-by-id', (event, id) => {
     const currentMenu = Menu.getApplicationMenu()
 
     if (currentMenu === null) {
@@ -381,7 +381,7 @@ app.on('ready', () => {
     }
   })
 
-  onIpcMainEvent('update-menu-state', (_, items) => {
+  ipcMain.on('update-menu-state', (_, items) => {
     let sendMenuChangedEvent = false
 
     const currentMenu = Menu.getApplicationMenu()
@@ -422,7 +422,7 @@ app.on('ready', () => {
    * the menu (or submenu) item that was clicked or null if the menu
    * was closed without clicking on any item.
    */
-  onIpcMainRequest('show-contextual-menu', (event, items) => {
+  ipcMain.handle('show-contextual-menu', (event, items) => {
     return new Promise(resolve => {
       const menu = buildContextMenu(items, indices => resolve(indices))
       const window = BrowserWindow.fromWebContents(event.sender) || undefined
@@ -435,9 +435,9 @@ app.on('ready', () => {
    * An event sent by the renderer asking for a copy of the current
    * application menu.
    */
-  onIpcMainEvent('get-app-menu', () => mainWindow?.sendAppMenu())
+  ipcMain.on('get-app-menu', () => mainWindow?.sendAppMenu())
 
-  onIpcMainEvent('show-certificate-trust-dialog', (_, certificate, message) => {
+  ipcMain.on('show-certificate-trust-dialog', (_, certificate, message) => {
     // This API is only implemented for macOS and Windows right now.
     if (__DARWIN__ || __WIN32__) {
       onDidLoad(window => {
@@ -446,24 +446,15 @@ app.on('ready', () => {
     }
   })
 
-  onIpcMainEvent('log', (_, level, message) => writeLog(level, message))
+  ipcMain.on('log', (_, level, message) => writeLog(level, message))
 
-  onIpcMainEvent('uncaught-exception', (_, error) =>
-    handleUncaughtException(error)
-  )
+  ipcMain.on('uncaught-exception', (_, error) => handleUncaughtException(error))
 
-  onIpcMainEvent('send-error-report', (_, error, extra, nonFatal) => {
-    reportError(
-      error,
-      {
-        ...getExtraErrorContext(),
-        ...extra,
-      },
-      nonFatal
-    )
+  ipcMain.on('send-error-report', (_, error, extra, nonFatal) => {
+    reportError(error, { ...getExtraErrorContext(), ...extra }, nonFatal)
   })
 
-  onIpcMainRequest('open-external', async (_, path: string) => {
+  ipcMain.handle('open-external', async (_, path: string) => {
     const pathLowerCase = path.toLowerCase()
     if (
       pathLowerCase.startsWith('http://') ||
@@ -481,9 +472,9 @@ app.on('ready', () => {
     }
   })
 
-  onIpcMainRequest('move-to-trash', (_, path) => shell.trashItem(path))
+  ipcMain.handle('move-to-trash', (_, path) => shell.trashItem(path))
 
-  onIpcMainEvent('show-item-in-folder', (_, path) => {
+  ipcMain.on('show-item-in-folder', (_, path) => {
     Fs.stat(path, err => {
       if (err) {
         log.error(`Unable to find file at '${path}'`, err)
@@ -493,7 +484,7 @@ app.on('ready', () => {
     })
   })
 
-  onIpcMainEvent('show-folder-contents', async (_, path) => {
+  ipcMain.on('show-folder-contents', async (_, path) => {
     const stats = await stat(path).catch(err => {
       log.error(`Unable to retrieve file information for ${path}`, err)
       return null

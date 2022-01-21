@@ -5,21 +5,31 @@ import { IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
 /**
  * Subscribes to the specified IPC channel and provides strong typing of
  * the channel name, and request parameters. This is the equivalent of
- * using ipcMain.on (or ipcMain.once if the once option is specified)
+ * using ipcMain.on.
  */
-export function onIpcMainEvent<T extends keyof RequestChannels>(
+export function on<T extends keyof RequestChannels>(
   channel: T,
   listener: (
     event: IpcMainEvent,
     ...args: Parameters<RequestChannels[T]>
-  ) => void,
-  options?: { once: boolean }
+  ) => void
 ) {
-  if (options?.once === true) {
-    ipcMain.once(channel, (event, ...args) => listener(event, ...(args as any)))
-  } else {
-    ipcMain.on(channel, (event, ...args) => listener(event, ...(args as any)))
-  }
+  ipcMain.on(channel, (event, ...args) => listener(event, ...(args as any)))
+}
+
+/**
+ * Subscribes to the specified IPC channel and provides strong typing of
+ * the channel name, and request parameters. This is the equivalent of
+ * using ipcMain.once
+ */
+export function once<T extends keyof RequestChannels>(
+  channel: T,
+  listener: (
+    event: IpcMainEvent,
+    ...args: Parameters<RequestChannels[T]>
+  ) => void
+) {
+  ipcMain.once(channel, (event, ...args) => listener(event, ...(args as any)))
 }
 
 /**
@@ -27,7 +37,7 @@ export function onIpcMainEvent<T extends keyof RequestChannels>(
  * of the channel name, and request parameters. This is the equivalent of using
  * ipcMain.handle.
  */
-export function onIpcMainRequest<T extends keyof RequestResponseChannels>(
+export function handle<T extends keyof RequestResponseChannels>(
   channel: T,
   listener: (
     event: IpcMainInvokeEvent,
