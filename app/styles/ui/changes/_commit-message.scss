@@ -1,7 +1,7 @@
 @import '../../mixins';
 
 /** A React component holding the commit message entry */
-#commit-message {
+.commit-message-component {
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
@@ -12,6 +12,7 @@
   padding: var(--spacing);
 
   .summary {
+    position: relative;
     display: flex;
     flex-direction: row;
 
@@ -29,6 +30,26 @@
       width: var(--text-field-height);
       height: var(--text-field-height);
       margin-right: var(--spacing-half);
+    }
+
+    &.with-length-hint input {
+      padding-right: 20px;
+    }
+
+    .length-hint {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 16px;
+      margin-right: 4px;
+      height: var(--text-field-height);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .octicon {
+        height: 12px;
+      }
     }
   }
 

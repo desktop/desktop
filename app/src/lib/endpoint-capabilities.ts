@@ -153,3 +153,9 @@ export const supportsRerunningChecks = endpointSatisfies({
   ae: '>= 3.4.0',
   es: '>= 3.4.0',
 })
+
+export const supportsAliveSessions = endpointSatisfies({
+  dotcom: true,
+  ae: false,
+  es: false,
+})

@@ -348,7 +348,27 @@ export class CommitStatusStore {
         checks.map(cr => cr.id)
       ).length === 0
     ) {
-      return null
+      // Apply existing action workflow and job steps from cache to refreshed checks
+      const mapped = new Array<IRefCheck>()
+      for (const cr of checks) {
+        const matchingCheck = existingChecks.check.checks.find(
+          c => c.id === cr.id
+        )
+
+        if (matchingCheck === undefined) {
+          // Shouldn't happen, but if it did just keep what we have
+          mapped.push(cr)
+          continue
+        }
+
+        const { actionsWorkflow, actionJobSteps } = matchingCheck
+        mapped.push({
+          ...cr,
+          actionsWorkflow,
+          actionJobSteps,
+        })
+      }
+      return mapped
     }
 
     const checkRunsWithActionsWorkflows = await this.getCheckRunActionsWorkflowRuns(

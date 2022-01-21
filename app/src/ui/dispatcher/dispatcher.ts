@@ -1687,6 +1687,10 @@ export class Dispatcher {
     // up-to-date before performing the "Clone in Desktop" steps
     await this.appStore._refreshRepository(repository)
 
+    // if the repo has a remote, fetch before switching branches to ensure
+    // the checkout will be successful. This operation could be a no-op.
+    await this.appStore._fetch(repository, FetchType.UserInitiatedTask)
+
     await this.checkoutLocalBranch(repository, branchName)
 
     return repository
@@ -2102,6 +2106,13 @@ export class Dispatcher {
    */
   public showPullRequest(repository: Repository): Promise<void> {
     return this.appStore._showPullRequest(repository)
+  }
+
+  /**
+   * Open a browser and navigate to the provided pull request
+   */
+  public async showPullRequestByPR(pr: PullRequest): Promise<void> {
+    return this.appStore._showPullRequestByPR(pr)
   }
 
   /**
@@ -2674,6 +2685,10 @@ export class Dispatcher {
 
   public setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
     this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
+  }
+
+  public setNotificationsEnabled(notificationsEnabled: boolean) {
+    this.appStore._setNotificationsEnabled(notificationsEnabled)
   }
 
   public recordDiffOptionsViewed() {

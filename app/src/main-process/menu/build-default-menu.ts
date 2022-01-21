@@ -1,4 +1,4 @@
-import { Menu, ipcMain, shell, app } from 'electron'
+import { Menu, shell, app, BrowserWindow } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
@@ -605,12 +605,14 @@ type ClickHandler = (
  * the provided menu event over IPC.
  */
 function emit(name: MenuEvent): ClickHandler {
-  return (menuItem, window) => {
-    if (window) {
-      window.webContents.send('menu-event', { name })
-    } else {
-      ipcMain.emit('menu-event', { name })
-    }
+  return (_, focusedWindow) => {
+    // focusedWindow can be null if the menu item was clicked without the window
+    // being in focus. A simple way to reproduce this is to click on a menu item
+    // while in DevTools. Since Desktop only supports one window at a time we
+    // can be fairly certain that the first BrowserWindow we find is the one we
+    // want.
+    const window = focusedWindow ?? BrowserWindow.getAllWindows()[0]
+    window?.webContents.send('menu-event', { name })
   }
 }
 

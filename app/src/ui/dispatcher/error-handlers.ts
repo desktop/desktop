@@ -16,7 +16,6 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
 import { RetryActionType } from '../../models/retry-actions'
 import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
@@ -448,12 +447,7 @@ export async function refusedWorkflowUpdate(
     return error
   }
 
-  if (repository.gitHubRepository === null) {
-    return error
-  }
-
-  // DotCom only for now.
-  if (repository.gitHubRepository.endpoint !== getDotComAPIEndpoint()) {
+  if (!isRepositoryWithGitHubRepository(repository)) {
     return error
   }
 

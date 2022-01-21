@@ -83,7 +83,13 @@ export class AppWindow {
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
-          app.hide()
+          // https://github.com/desktop/desktop/issues/12838
+          if (this.window.isFullScreen()) {
+            this.window.setFullScreen(false)
+            this.window.once('leave-full-screen', () => app.hide())
+          } else {
+            app.hide()
+          }
         }
       })
     }

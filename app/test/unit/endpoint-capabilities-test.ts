@@ -28,8 +28,8 @@ describe('endpoint-capabilities', () => {
     // defined in the `assumedGHAEVersion` constant in endpoint-capabilities.ts
     // and needs to be updated periodically.
     it('assumes GHAE versions', () => {
-      expect(testGHAE('>= 3.3.1')).toBeFalse()
-      expect(testGHAE('>= 3.3.0')).toBeTrue()
+      expect(testGHAE('>= 3.2.1')).toBeFalse()
+      expect(testGHAE('>= 3.2.0')).toBeTrue()
     })
 
     // If we can't determine the actual version of a GitHub Enterprise Server
