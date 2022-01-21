@@ -61,5 +61,5 @@ function sendWindowStateEvent(
   window: Electron.BrowserWindow,
   state: WindowState
 ) {
-  window.webContents.send(windowStateChannelName, state)
+  window.webContents.send('window-state-changed', state)
 }

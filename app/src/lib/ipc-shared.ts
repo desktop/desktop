@@ -4,6 +4,7 @@ import { ISerializableMenuItem } from './menu-item'
 import { MenuLabelsEvent } from '../models/menu-labels'
 import { MenuEvent } from '../main-process/menu'
 import { LogLevel } from './logging/log-level'
+import { WindowState } from './window-state'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -34,6 +35,8 @@ export type RequestChannels = {
   'menu-event': (name: MenuEvent) => void
   log: (level: LogLevel, message: string) => void
   'will-quit': () => void
+  'window-state-changed': (windowState: WindowState) => void
+  'app-menu': (menu: IMenu) => void
 }
 
 /**
