@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { ipcRenderer, remote } from 'electron'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
