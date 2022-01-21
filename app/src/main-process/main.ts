@@ -32,7 +32,7 @@ import { OrderedWebRequest } from './ordered-webrequest'
 import { EndpointToken } from '../lib/endpoint-token'
 import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
-import { installSameOriginFilter } from './install-web-request-filters'
+import { installSameOriginFilter } from './same-origin-filter'
 
 app.setAppLogsPath()
 enableSourceMaps()
