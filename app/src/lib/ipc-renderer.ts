@@ -1,6 +1,6 @@
 import { RequestResponseChannels, RequestChannels } from './ipc-shared'
 // eslint-disable-next-line no-restricted-imports
-import { ipcRenderer, IpcRendererEvent } from 'electron/renderer'
+import { ipcRenderer, IpcRendererEvent } from 'electron'
 
 /**
  * Send a message to the main process via channel and expect a result
