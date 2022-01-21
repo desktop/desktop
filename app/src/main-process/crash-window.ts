@@ -3,6 +3,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 import * as ipcMain from './ipc-main'
+import * as ipcWebContents from './ipc-webcontents'
 
 const minWidth = 600
 const minHeight = 500
@@ -163,7 +164,7 @@ export class CrashWindow {
       error: friendlyError,
     }
 
-    this.window.webContents.send('error', details)
+    ipcWebContents.send(this.window.webContents, 'error', details)
   }
 
   public destroy() {

@@ -10,6 +10,7 @@ import { now } from './now'
 import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
 import * as ipcMain from './ipc-main'
+import * as ipcWebContents from './ipc-webcontents'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -159,8 +160,12 @@ export class AppWindow {
       this.maybeEmitDidLoad()
     })
 
-    this.window.on('focus', () => this.window.webContents.send('focus'))
-    this.window.on('blur', () => this.window.webContents.send('blur'))
+    this.window.on('focus', () =>
+      ipcWebContents.send(this.window.webContents, 'focus')
+    )
+    this.window.on('blur', () =>
+      ipcWebContents.send(this.window.webContents, 'blur')
+    )
 
     registerWindowStateChangedEvents(this.window)
     this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
@@ -227,19 +232,19 @@ export class AppWindow {
   public sendMenuEvent(name: MenuEvent) {
     this.show()
 
-    this.window.webContents.send('menu-event', name)
+    ipcWebContents.send(this.window.webContents, 'menu-event', name)
   }
 
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
     this.show()
 
-    this.window.webContents.send('url-action', action)
+    ipcWebContents.send(this.window.webContents, 'url-action', action)
   }
 
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchStats) {
-    this.window.webContents.send('launch-timing-stats', stats)
+    ipcWebContents.send(this.window.webContents, 'launch-timing-stats', stats)
   }
 
   /** Send the app menu to the renderer. */
@@ -247,7 +252,7 @@ export class AppWindow {
     const appMenu = Menu.getApplicationMenu()
     if (appMenu) {
       const menu = menuFromElectronMenu(appMenu)
-      this.window.webContents.send('app-menu', menu)
+      ipcWebContents.send(this.window.webContents, 'app-menu', menu)
     }
   }
 
@@ -257,7 +262,13 @@ export class AppWindow {
     error: string,
     url: string
   ) {
-    this.window.webContents.send('certificate-error', certificate, error, url)
+    ipcWebContents.send(
+      this.window.webContents,
+      'certificate-error',
+      certificate,
+      error,
+      url
+    )
   }
 
   public showCertificateTrustDialog(

@@ -1,3 +1,5 @@
+import * as ipcWebContents from '../main-process/ipc-webcontents'
+
 export type WindowState =
   | 'minimized'
   | 'normal'
@@ -58,5 +60,5 @@ function sendWindowStateEvent(
   window: Electron.BrowserWindow,
   state: WindowState
 ) {
-  window.webContents.send('window-state-changed', state)
+  ipcWebContents.send(window.webContents, 'window-state-changed', state)
 }

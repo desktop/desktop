@@ -1,4 +1,5 @@
 import { RequestChannels, RequestResponseChannels } from '../lib/ipc-shared'
+// eslint-disable-next-line no-restricted-imports
 import { ipcMain } from 'electron'
 import { IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
 
