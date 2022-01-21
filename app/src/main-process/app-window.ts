@@ -227,19 +227,19 @@ export class AppWindow {
   public sendMenuEvent(name: MenuEvent) {
     this.show()
 
-    this.window.webContents.send('menu-event', { name })
+    this.window.webContents.send('menu-event', name)
   }
 
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
     this.show()
 
-    this.window.webContents.send('url-action', { action })
+    this.window.webContents.send('url-action', action)
   }
 
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchStats) {
-    this.window.webContents.send('launch-timing-stats', { stats })
+    this.window.webContents.send('launch-timing-stats', stats)
   }
 
   /** Send the app menu to the renderer. */
@@ -247,7 +247,7 @@ export class AppWindow {
     const appMenu = Menu.getApplicationMenu()
     if (appMenu) {
       const menu = menuFromElectronMenu(appMenu)
-      this.window.webContents.send('app-menu', { menu })
+      this.window.webContents.send('app-menu', menu)
     }
   }
 
@@ -257,11 +257,7 @@ export class AppWindow {
     error: string,
     url: string
   ) {
-    this.window.webContents.send('certificate-error', {
-      certificate,
-      error,
-      url,
-    })
+    this.window.webContents.send('certificate-error', certificate, error, url)
   }
 
   public showCertificateTrustDialog(

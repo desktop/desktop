@@ -4,7 +4,11 @@ import { ISerializableMenuItem } from './menu-item'
 import { MenuLabelsEvent } from '../models/menu-labels'
 import { MenuEvent } from '../main-process/menu'
 import { LogLevel } from './logging/log-level'
+import { ICrashDetails } from '../crash/shared'
 import { WindowState } from './window-state'
+import { IMenu } from '../models/app-menu'
+import { ILaunchStats } from './stats'
+import { URLActionType } from './parse-app-url'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -35,8 +39,14 @@ export type RequestChannels = {
   'menu-event': (name: MenuEvent) => void
   log: (level: LogLevel, message: string) => void
   'will-quit': () => void
+  'crash-ready': () => void
+  'crash-quit': () => void
   'window-state-changed': (windowState: WindowState) => void
+  error: (crashDetails: ICrashDetails) => void
+  'zoom-factor-changed': (zoomFactor: number) => void
   'app-menu': (menu: IMenu) => void
+  'launch-timing-stats': (stats: ILaunchStats) => void
+  'url-action': (action: URLActionType) => void
 }
 
 /**
