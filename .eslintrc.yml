@@ -162,6 +162,11 @@ rules:
           message:
             "Please use 'import * as ipcRenderer' from 'ipc-renderer' instead to
             get strongly typed IPC methods."
+        - name: electron
+          importNames: ['ipcMain']
+          message:
+            "Please use 'import * as ipcMain' from 'ipc-main' instead to get
+            strongly typed IPC methods."
         - name: electron/main
           importNames: ['ipcMain']
           message:
