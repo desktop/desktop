@@ -19,6 +19,11 @@ type AsyncListener<TDetails, TResponse> = (
   details: TDetails
 ) => Promise<TResponse>
 
+/*
+ * A proxy class allowing which handles subscribing to, and unsubscribing from,
+ * one of the synchronous events in the WebRequest class such as
+ * onBeforeRedirect
+ */
 class SyncListenerSet<TDetails> {
   private readonly listeners = new Set<SyncListener<TDetails>>()
 
@@ -45,6 +50,11 @@ class SyncListenerSet<TDetails> {
   }
 }
 
+/*
+ * A proxy class allowing which handles subscribing to, and unsubscribing from,
+ * one of the asynchronous events in the WebRequest class such as
+ * onBeforeRequest
+ */
 class AsyncListenerSet<TDetails, TResponse> {
   private readonly listeners = new Set<AsyncListener<TDetails, TResponse>>()
 
@@ -79,6 +89,24 @@ class AsyncListenerSet<TDetails, TResponse> {
   }
 }
 
+/**
+ * A utility class allowing consumers to apply more than one WebRequest filter
+ * concurrently into the main process.
+ *
+ * The WebRequest class in Electron allows us to intercept and modify web
+ * requests from the renderer process. Unfortunately it only allows one filter
+ * to be installed forcing consumers to build monolitchi filters. Using
+ * OrderedWebRequest consumers can instead subscribe to the event they'd like
+ * and OrderedWebRequest will take care of calling them in order and merging the
+ * changes each filter applies.
+ *
+ * Note that OrderedWebRequest is not API compatible with WebRequest and relies
+ * on event listeners being asynchronous methods rather than providing a
+ * callback parameter to listeners.
+ *
+ * For documentation of the various events see the Electron WebRequest API
+ * documentation.
+ */
 export class OrderedWebRequest {
   public readonly onBeforeRedirect: SyncListenerSet<
     OnBeforeRedirectListenerDetails
@@ -122,6 +150,10 @@ export class OrderedWebRequest {
 
         for (const listener of listeners) {
           response = await listener(details)
+
+          // If we encounter a filter which either cancels the request or
+          // provides a redirect url we won't process any of the following
+          // filters.
           if (response.cancel === true || response.redirectURL !== undefined) {
             break
           }
@@ -144,6 +176,13 @@ export class OrderedWebRequest {
           }
 
           if (response.requestHeaders !== undefined) {
+            // I have no idea why there's a discrepancy of types here.
+            // details.requestHeaders is a Record<string, string> but
+            // BeforeSendResponse["requestHeaders"] is a
+            // Record<string, (string) | (string[])>. Chances are this was done
+            // to make it easier for filters but it makes it trickier for us as
+            // we have to ensure the next filter gets headers as a
+            // Record<string, string>
             const requestHeaders = flattenHeaders(response.requestHeaders)
             details = { ...details, requestHeaders }
           }
@@ -174,6 +213,7 @@ export class OrderedWebRequest {
           }
 
           if (response.responseHeaders !== undefined) {
+            // See comment about type mismatch in onBeforeSendHeaders
             const responseHeaders = unflattenHeaders(response.responseHeaders)
             details = { ...details, responseHeaders }
           }
