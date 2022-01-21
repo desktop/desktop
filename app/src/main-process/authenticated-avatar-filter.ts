@@ -1,6 +1,10 @@
 import { EndpointToken } from '../lib/endpoint-token'
 import { OrderedWebRequest } from './ordered-webrequest'
 
+/**
+ * Installs a web request filter which adds the Authorization header for
+ * unauthenticated requests to the GHES/GHAE private avatars API.
+ */
 export function installAuthenticatedAvatarFilter(
   orderedWebRequest: OrderedWebRequest
 ) {
