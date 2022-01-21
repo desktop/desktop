@@ -1,8 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
-import { ipcRenderer, remote } from 'electron'
+import { remote } from 'electron'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import { ExecutableMenuItem } from '../models/app-menu'
+import * as ipcRenderer from '../lib/ipc-renderer'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the

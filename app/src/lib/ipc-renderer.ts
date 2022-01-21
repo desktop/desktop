@@ -26,6 +26,18 @@ export function send<T extends keyof RequestChannels>(
 }
 
 /**
+ * Send a message to the main process via channel synchronously. This is the
+ * equivalent of ipcRenderer.sendSync except with strong typing guarantees.
+ */
+export function sendSync<T extends keyof RequestChannels>(
+  channel: T,
+  ...args: Parameters<RequestChannels[T]>
+): void {
+  // eslint-disable-next-line no-sync
+  return ipcRenderer.sendSync(channel, ...args) as any
+}
+
+/**
  * Subscribes to the specified IPC channel and provides strong typing of
  * the channel name, and request parameters. This is the equivalent of
  * using ipcRenderer.on.
