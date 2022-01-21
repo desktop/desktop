@@ -1,11 +1,8 @@
 import * as React from 'react'
-import { ipcRenderer, remote } from 'electron'
-import {
-  WindowState,
-  getWindowState,
-  windowStateChannelName,
-} from '../../lib/window-state'
+import { remote } from 'electron'
+import { WindowState, getWindowState } from '../../lib/window-state'
 import classNames from 'classnames'
+import * as ipcRenderer from '../../lib/ipc-renderer'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -36,12 +33,12 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
   public componentWillMount() {
     this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
 
-    ipcRenderer.on(windowStateChannelName, this.onWindowStateChanged)
+    ipcRenderer.on('window-state-changed', this.onWindowStateChanged)
   }
 
   public componentWillUnmount() {
     ipcRenderer.removeListener(
-      windowStateChannelName,
+      'window-state-changed',
       this.onWindowStateChanged
     )
   }
@@ -51,7 +48,7 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
   }
 
   private onWindowStateChanged = (
-    event: Electron.IpcRendererEvent,
+    _: Electron.IpcRendererEvent,
     windowState: WindowState
   ) => {
     this.setState({ windowState })

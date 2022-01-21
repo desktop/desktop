@@ -52,6 +52,8 @@ export type RequestChannels = {
     error: string,
     url: string
   ) => void
+  focus: () => void
+  blur: () => void
 }
 
 /**
