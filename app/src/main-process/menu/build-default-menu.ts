@@ -613,7 +613,9 @@ function emit(name: MenuEvent): ClickHandler {
     // can be fairly certain that the first BrowserWindow we find is the one we
     // want.
     const window = focusedWindow ?? BrowserWindow.getAllWindows()[0]
-    window?.webContents.send('menu-event', name)
+    if (window !== undefined) {
+      ipcWebContents.send(window.webContents, 'menu-event', name)
+    }
   }
 }
 

@@ -26,7 +26,11 @@ function isLooselyTypesWebContentsCall(context, node) {
   const obj = callee.object
 
   // *.webContents?.send
-  if (obj.type === 'MemberExpression' && obj.property.name === 'webContents') {
+  if (
+    (obj.type === 'MemberExpression' ||
+      obj.type === 'OptionalMemberExpression') &&
+    obj.property.name === 'webContents'
+  ) {
     context.report({ node, messageId: 'useStronglyTypedWebContentsIPC' })
   }
 
