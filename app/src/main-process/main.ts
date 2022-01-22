@@ -1,8 +1,17 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, shell, session, BrowserWindow } from 'electron'
+import {
+  app,
+  Menu,
+  ipcMain,
+  shell,
+  session,
+  BrowserWindow,
+  Notification,
+} from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
+import * as notifier from 'node-notifier'
 
 import { MenuLabelsEvent } from '../models/menu-labels'
 
@@ -95,6 +104,42 @@ if (__DARWIN__) {
   possibleProtocols.add('github-windows')
 }
 
+if (__DEV__) {
+  app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktop')
+}
+
+if (__WIN32__) {
+  setTimeout(() => {
+    notifier.notify(
+      {
+        title: 'hello',
+        message: 'world!!',
+        appID: 'com.squirrel.GitHubDesktop.GitHubDesktop',
+        wait: true,
+      },
+      (err, response, metadata) => {
+        console.log('SOMETHING HAPPENED!', err, response, metadata)
+      }
+    )
+
+    notifier.on('click', () => {
+      console.log('clicked??')
+    })
+
+    setTimeout(() => {
+      const notification = new Notification({
+        title: 'heeyyy',
+        body: 'world',
+      })
+
+      notification.on('click', () => {
+        console.log('clicked!!!!')
+      })
+
+      notification.show()
+    }, 20000)
+  }, 20000)
+}
 app.on('window-all-closed', () => {
   // If we don't subscribe to this event and all windows are closed, the default
   // behavior is to quit the app. We don't want that though, we control that
