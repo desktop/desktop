@@ -9,15 +9,13 @@ export function showNotification(
   body: string,
   onClick: () => void
 ) {
-  const notification = new remote.Notification({
-    title,
+  const notification = new Notification(
+    title, {
     body,
   })
 
-  notification.on('click', () => {
+  notification.onclick = () => {
     remote.getCurrentWindow().focus()
     onClick()
-  })
-
-  notification.show()
+  }
 }
