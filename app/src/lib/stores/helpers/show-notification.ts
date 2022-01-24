@@ -9,8 +9,7 @@ export function showNotification(
   body: string,
   onClick: () => void
 ) {
-  const notification = new Notification(
-    title, {
+  const notification = new Notification(title, {
     body,
   })
 
