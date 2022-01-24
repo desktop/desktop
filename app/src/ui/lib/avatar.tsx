@@ -67,12 +67,13 @@ function getAvatarUrlCandidates(
   }
 
   const { email, endpoint, avatarURL } = user
+  const isDotCom = endpoint === getDotComAPIEndpoint()
 
   // By leveraging the avatar url from the API (if we've got it) we can
   // load the avatar from one of the load balanced domains (avatars). We can't
   // do the same for GHES/GHAE however since the URLs returned by the API are
   // behind private mode.
-  if (endpoint === getDotComAPIEndpoint() && avatarURL !== undefined) {
+  if (isDotCom && avatarURL !== undefined) {
     // The avatar urls returned by the API doesn't come with a size parameter,
     // they default to the biggest size we need on GitHub.com which is usually
     // much bigger than what desktop needs so we'll set a size explicitly.
@@ -86,7 +87,7 @@ function getAvatarUrlCandidates(
       // URLs which we can expect the API to not give us
       candidates.push(avatarURL)
     }
-  } else if (endpoint !== null && !supportsAvatarsAPI(endpoint)) {
+  } else if (endpoint !== null && !isDotCom && !supportsAvatarsAPI(endpoint)) {
     // We're dealing with an old GitHub Enterprise instance so we're unable to
     // get to the avatar by requesting the avatarURL due to the private mode
     // (see https://github.com/desktop/desktop/issues/821). So we have no choice
@@ -110,7 +111,7 @@ function getAvatarUrlCandidates(
   const stealthEmailMatch = StealthEmailRegexp.exec(email)
 
   const avatarEndpoint =
-    endpoint === null || endpoint === getDotComAPIEndpoint()
+    endpoint === null || isDotCom
       ? 'https://avatars.githubusercontent.com'
       : `${endpoint}/enterprise/avatars`
 
