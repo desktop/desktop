@@ -322,23 +322,35 @@ export class AppWindow {
 
   public setupAutoUpdater() {
     autoUpdater.on('error', (error: Error) => {
-      this.window.webContents.send('auto-updater-error', error)
+      ipcWebContents.send(this.window.webContents, 'auto-updater-error', error)
     })
 
     autoUpdater.on('checking-for-update', () => {
-      this.window.webContents.send('auto-updater-checking-for-update')
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-checking-for-update'
+      )
     })
 
     autoUpdater.on('update-available', () => {
-      this.window.webContents.send('auto-updater-update-available')
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-available'
+      )
     })
 
     autoUpdater.on('update-not-available', () => {
-      this.window.webContents.send('auto-updater-update-not-available')
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-not-available'
+      )
     })
 
     autoUpdater.on('update-downloaded', () => {
-      this.window.webContents.send('auto-updater-update-downloaded')
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-downloaded'
+      )
     })
   }
 
@@ -362,7 +374,7 @@ export class AppWindow {
 
   public subscribeNativeThemeUpdated() {
     nativeTheme.addListener('updated', (event: string, userInfo: any) => {
-      this.window.webContents.send('native-theme-updated')
+      ipcWebContents.send(this.window.webContents, 'native-theme-updated')
     })
   }
 
