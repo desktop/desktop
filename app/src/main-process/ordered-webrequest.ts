@@ -95,7 +95,7 @@ class AsyncListenerSet<TDetails, TResponse> {
  *
  * The WebRequest class in Electron allows us to intercept and modify web
  * requests from the renderer process. Unfortunately it only allows one filter
- * to be installed forcing consumers to build monolitchi filters. Using
+ * to be installed forcing consumers to build monolithic filters. Using
  * OrderedWebRequest consumers can instead subscribe to the event they'd like
  * and OrderedWebRequest will take care of calling them in order and merging the
  * changes each filter applies.
