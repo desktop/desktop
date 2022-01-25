@@ -54,7 +54,11 @@ import {
 } from './toolbar'
 import { iconForRepository, OcticonSymbolType } from './octicons'
 import * as OcticonSymbol from './octicons/octicons.generated'
-import { showCertificateTrustDialog, sendReady } from './main-process-proxy'
+import {
+  showCertificateTrustDialog,
+  sendReady,
+  isInApplicationFolder,
+} from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
@@ -288,7 +292,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     window.clearInterval(this.updateIntervalHandle)
   }
 
-  private performDeferredLaunchActions() {
+  private async performDeferredLaunchActions() {
     // Loading emoji is super important but maybe less important that loading
     // the app. So defer it until we have some breathing space.
     this.props.appStore.loadEmoji()
@@ -308,7 +312,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (
       __DEV__ === false &&
       this.state.askToMoveToApplicationsFolderSetting &&
-      remote.app.isInApplicationsFolder?.() === false
+      (await isInApplicationFolder()) === false
     ) {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }

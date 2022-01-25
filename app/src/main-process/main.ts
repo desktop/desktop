@@ -531,6 +531,16 @@ app.on('ready', () => {
       UNSAFE_openDirectory(path)
     }
   })
+
+  /**
+   * An event sent by the renderer asking whether the Desktop is in the
+   * applications folder
+   *
+   * Note: This will be undefined when not running on Darwin
+   */
+  ipcMain.handle('is-in-application-folder', async () => {
+    return app.isInApplicationsFolder?.()
+  })
 })
 
 app.on('activate', () => {

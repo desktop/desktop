@@ -70,4 +70,5 @@ export type RequestResponseChannels = {
     items: ReadonlyArray<ISerializableMenuItem>
   ) => Promise<ReadonlyArray<number> | null>
   'open-external': (path: string) => Promise<boolean>
+  'is-in-application-folder': () => Promise<boolean | undefined>
 }

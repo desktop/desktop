@@ -272,3 +272,11 @@ export function sendErrorReport(
 ) {
   _sendErrorReport(getIpcFriendlyError(error), extra, nonFatal)
 }
+
+/**
+ * Tell the main process to obtain whether the Desktop application is in the
+ * application folder
+ *
+ * Note: will return undefined when not running on darwin
+ */
+export const isInApplicationFolder = invokeProxy('is-in-application-folder')

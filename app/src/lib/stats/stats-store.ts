@@ -25,6 +25,7 @@ import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 import { remote } from 'electron'
 import { Architecture, getArchitecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
+import { isInApplicationFolder } from '../../ui/main-process-proxy'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -514,7 +515,7 @@ export class StatsStore implements IStatsStore {
 
     // isInApplicationsFolder is undefined when not running on Darwin
     const launchedFromApplicationsFolder =
-      remote.app.isInApplicationsFolder?.() ?? null
+      (await isInApplicationFolder()) ?? null
 
     return {
       eventType: 'usage',
