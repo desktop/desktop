@@ -25,6 +25,7 @@ rules:
   react-no-unbound-dispatcher-props: error
   react-readonly-props-and-state: error
   react-proper-lifecycle-methods: error
+  no-loosely-typed-webcontents-ipc: error
 
   ###########
   # PLUGINS #
@@ -149,6 +150,29 @@ rules:
     - error
     - global
   no-buffer-constructor: error
+  no-restricted-imports:
+    - error
+    - paths:
+        - name: electron
+          importNames: ['ipcRenderer']
+          message:
+            "Please use 'import * as ipcRenderer' from 'ipc-renderer' instead to
+            get strongly typed IPC methods."
+        - name: electron/renderer
+          importNames: ['ipcRenderer']
+          message:
+            "Please use 'import * as ipcRenderer' from 'ipc-renderer' instead to
+            get strongly typed IPC methods."
+        - name: electron
+          importNames: ['ipcMain']
+          message:
+            "Please use 'import * as ipcMain' from 'ipc-main' instead to get
+            strongly typed IPC methods."
+        - name: electron/main
+          importNames: ['ipcMain']
+          message:
+            "Please use 'import * as ipcMain' from 'ipc-main' instead to get
+            strongly typed IPC methods."
 
   ###########
   # SPECIAL #

@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import { ipcRenderer } from 'electron'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
@@ -185,7 +184,7 @@ import {
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
-import { WindowState, windowStateChannelName } from '../window-state'
+import { WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -286,6 +285,7 @@ import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
 import { IRefCheck } from '../ci-checks/ci-checks'
 import { NotificationsStore } from './notifications-store'
+import * as ipcRenderer from '../ipc-renderer'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -666,24 +666,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private wireupIpcEventHandlers() {
-    ipcRenderer.on(
-      windowStateChannelName,
-      (event: Electron.IpcRendererEvent, windowState: WindowState) => {
-        this.windowState = windowState
-        this.emitUpdate()
-      }
-    )
+    ipcRenderer.on('window-state-changed', (_, windowState) => {
+      this.windowState = windowState
+      this.emitUpdate()
+    })
 
     ipcRenderer.on('zoom-factor-changed', (event: any, zoomFactor: number) => {
       this.onWindowZoomFactorChanged(zoomFactor)
     })
 
-    ipcRenderer.on(
-      'app-menu',
-      (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
-        this.setAppMenu(menu)
-      }
-    )
+    ipcRenderer.on('app-menu', (_, menu) => this.setAppMenu(menu))
   }
 
   private wireupStoreEventHandlers() {

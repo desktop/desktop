@@ -1,20 +1,16 @@
 import * as React from 'react'
-import { ipcRenderer } from 'electron'
 import * as remote from '@electron/remote'
-import { ICrashDetails, ErrorType } from './shared'
+import { ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
 import { encodePathAsUrl } from '../lib/path'
-import {
-  WindowState,
-  getWindowState,
-  windowStateChannelName,
-} from '../lib/window-state'
+import { WindowState, getWindowState } from '../lib/window-state'
 import { Octicon } from '../ui/octicons'
 import * as OcticonSymbol from '../ui/octicons/octicons.generated'
 import { Button } from '../ui/lib/button'
 import { LinkButton } from '../ui/lib/link-button'
 import { getVersion } from '../ui/lib/app-proxy'
 import { getOS } from '../lib/get-os'
+import * as ipcRenderer from '../lib/ipc-renderer'
 
 // This is a weird one, let's leave it as a placeholder
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -102,16 +98,11 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   public componentDidMount() {
     const window = remote.getCurrentWindow()
 
-    ipcRenderer.on(windowStateChannelName, () => {
+    ipcRenderer.on('window-state-changed', () => {
       this.setState({ windowState: getWindowState(window) })
     })
 
-    ipcRenderer.on(
-      'error',
-      (event: Electron.IpcRendererEvent, crashDetails: ICrashDetails) => {
-        this.setState(crashDetails)
-      }
-    )
+    ipcRenderer.on('error', (_, crashDetails) => this.setState(crashDetails))
 
     ipcRenderer.send('crash-ready')
   }

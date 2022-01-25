@@ -3,12 +3,8 @@ import '../lib/logging/renderer/install'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
-
 import * as moment from 'moment'
-
-import { ipcRenderer } from 'electron'
 import * as remote from '@electron/remote'
-
 import { App } from './app'
 import {
   Dispatcher,
@@ -40,7 +36,6 @@ import {
   PullRequestStore,
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
-import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType, IAppState } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import {
@@ -86,6 +81,7 @@ import {
 import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
 import { AliveStore } from '../lib/stores/alive-store'
 import { NotificationsStore } from '../lib/stores/notifications-store'
+import * as ipcRenderer from '../lib/ipc-renderer'
 
 if (__DEV__) {
   installDevGlobals()
@@ -193,7 +189,7 @@ const sendErrorWithContext = (
       /* ignore */
     }
 
-    sendErrorReport(error, extra, nonFatal)
+    sendErrorReport(error, extra, nonFatal ?? false)
   }
 }
 
@@ -340,11 +336,8 @@ ipcRenderer.on('blur', () => {
   dispatcher.setAppFocusState(false)
 })
 
-ipcRenderer.on(
-  'url-action',
-  (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-    dispatcher.dispatchURLAction(action)
-  }
+ipcRenderer.on('url-action', (_, action) =>
+  dispatcher.dispatchURLAction(action)
 )
 
 ReactDOM.render(
