@@ -1,10 +1,8 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell, session } from 'electron'
+import { app, Menu, BrowserWindow, shell, session } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
-
-import { MenuLabelsEvent } from '../models/menu-labels'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, getAllMenuItems } from './menu'
@@ -13,8 +11,6 @@ import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { fatalError } from '../lib/fatal-error'
 
-import { IMenuItemState } from '../lib/menu-update'
-import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
 import { UNSAFE_openDirectory } from './shell'
 import { reportError } from './exception-reporting'
@@ -24,7 +20,6 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
-import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
@@ -33,6 +28,7 @@ import { EndpointToken } from '../lib/endpoint-token'
 import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
+import * as ipcMain from './ipc-main'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -308,149 +304,132 @@ app.on('ready', () => {
     })
   )
 
-  ipcMain.on('update-accounts', (_, accounts: ReadonlyArray<EndpointToken>) =>
-    updateAccounts(accounts)
-  )
+  ipcMain.on('update-accounts', (_, accounts) => updateAccounts(accounts))
 
-  ipcMain.on(
-    'update-preferred-app-menu-item-labels',
-    (event: Electron.IpcMainEvent, labels: MenuLabelsEvent) => {
-      // The current application menu is mutable and we frequently
-      // change whether particular items are enabled or not through
-      // the update-menu-state IPC event. This menu that we're creating
-      // now will have all the items enabled so we need to merge the
-      // current state with the new in order to not get a temporary
-      // race conditions where menu items which shouldn't be enabled
-      // are.
-      const newMenu = buildDefaultMenu(labels)
+  ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {
+    // The current application menu is mutable and we frequently
+    // change whether particular items are enabled or not through
+    // the update-menu-state IPC event. This menu that we're creating
+    // now will have all the items enabled so we need to merge the
+    // current state with the new in order to not get a temporary
+    // race conditions where menu items which shouldn't be enabled
+    // are.
+    const newMenu = buildDefaultMenu(labels)
 
-      const currentMenu = Menu.getApplicationMenu()
+    const currentMenu = Menu.getApplicationMenu()
 
-      // This shouldn't happen but whenever one says that it does
-      // so here's the escape hatch when we can't merge the current
-      // menu with the new one; we just use the new one.
-      if (currentMenu === null) {
-        // https://github.com/electron/electron/issues/2717
-        Menu.setApplicationMenu(newMenu)
+    // This shouldn't happen but whenever one says that it does
+    // so here's the escape hatch when we can't merge the current
+    // menu with the new one; we just use the new one.
+    if (currentMenu === null) {
+      // https://github.com/electron/electron/issues/2717
+      Menu.setApplicationMenu(newMenu)
 
-        if (mainWindow !== null) {
-          mainWindow.sendAppMenu()
-        }
-
-        return
-      }
-
-      // It's possible that after rebuilding the menu we'll end up
-      // with the exact same structural menu as we had before so we
-      // keep track of whether anything has actually changed in order
-      // to avoid updating the global menu and telling the renderer
-      // about it.
-      let menuHasChanged = false
-
-      for (const newItem of getAllMenuItems(newMenu)) {
-        // Our menu items always have ids and Electron.MenuItem takes on whatever
-        // properties was defined on the MenuItemOptions template used to create it
-        // but doesn't surface those in the type declaration.
-        const id = (newItem as any).id
-
-        if (!id) {
-          continue
-        }
-
-        const currentItem = currentMenu.getMenuItemById(id)
-
-        // Unfortunately the type information for getMenuItemById
-        // doesn't specify if it'll return null or undefined when
-        // the item doesn't exist so we'll do a falsy check here.
-        if (!currentItem) {
-          menuHasChanged = true
-        } else {
-          if (currentItem.label !== newItem.label) {
-            menuHasChanged = true
-          }
-
-          // Copy the enabled property from the existing menu
-          // item since it'll be the most recent reflection of
-          // what the renderer wants.
-          if (currentItem.enabled !== newItem.enabled) {
-            newItem.enabled = currentItem.enabled
-            menuHasChanged = true
-          }
-        }
-      }
-
-      if (menuHasChanged && mainWindow) {
-        // https://github.com/electron/electron/issues/2717
-        Menu.setApplicationMenu(newMenu)
+      if (mainWindow !== null) {
         mainWindow.sendAppMenu()
       }
+
+      return
     }
-  )
+
+    // It's possible that after rebuilding the menu we'll end up
+    // with the exact same structural menu as we had before so we
+    // keep track of whether anything has actually changed in order
+    // to avoid updating the global menu and telling the renderer
+    // about it.
+    let menuHasChanged = false
+
+    for (const newItem of getAllMenuItems(newMenu)) {
+      // Our menu items always have ids and Electron.MenuItem takes on whatever
+      // properties was defined on the MenuItemOptions template used to create it
+      // but doesn't surface those in the type declaration.
+      const id = (newItem as any).id
+
+      if (!id) {
+        continue
+      }
+
+      const currentItem = currentMenu.getMenuItemById(id)
+
+      // Unfortunately the type information for getMenuItemById
+      // doesn't specify if it'll return null or undefined when
+      // the item doesn't exist so we'll do a falsy check here.
+      if (!currentItem) {
+        menuHasChanged = true
+      } else {
+        if (currentItem.label !== newItem.label) {
+          menuHasChanged = true
+        }
+
+        // Copy the enabled property from the existing menu
+        // item since it'll be the most recent reflection of
+        // what the renderer wants.
+        if (currentItem.enabled !== newItem.enabled) {
+          newItem.enabled = currentItem.enabled
+          menuHasChanged = true
+        }
+      }
+    }
+
+    if (menuHasChanged && mainWindow) {
+      // https://github.com/electron/electron/issues/2717
+      Menu.setApplicationMenu(newMenu)
+      mainWindow.sendAppMenu()
+    }
+  })
 
   /**
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
    */
-  ipcMain.on(
-    'execute-menu-item',
-    (event: Electron.IpcMainEvent, { id }: { id: string }) => {
-      const currentMenu = Menu.getApplicationMenu()
+  ipcMain.on('execute-menu-item-by-id', (event, id) => {
+    const currentMenu = Menu.getApplicationMenu()
 
-      if (currentMenu === null) {
-        return
-      }
+    if (currentMenu === null) {
+      return
+    }
+
+    const menuItem = currentMenu.getMenuItemById(id)
+    if (menuItem) {
+      const window = BrowserWindow.fromWebContents(event.sender) || undefined
+      const fakeEvent = { preventDefault: () => {}, sender: event.sender }
+      menuItem.click(fakeEvent, window, event.sender)
+    }
+  })
+
+  ipcMain.on('update-menu-state', (_, items) => {
+    let sendMenuChangedEvent = false
+
+    const currentMenu = Menu.getApplicationMenu()
+
+    if (currentMenu === null) {
+      log.debug(`unable to get current menu, bailing out...`)
+      return
+    }
+
+    for (const item of items) {
+      const { id, state } = item
 
       const menuItem = currentMenu.getMenuItemById(id)
+
       if (menuItem) {
-        const window = BrowserWindow.fromWebContents(event.sender) || undefined
-        const fakeEvent = { preventDefault: () => {}, sender: event.sender }
-        menuItem.click(fakeEvent, window, event.sender)
-      }
-    }
-  )
-
-  ipcMain.on(
-    'update-menu-state',
-    (
-      event: Electron.IpcMainEvent,
-      items: Array<{ id: string; state: IMenuItemState }>
-    ) => {
-      let sendMenuChangedEvent = false
-
-      const currentMenu = Menu.getApplicationMenu()
-
-      if (currentMenu === null) {
-        log.debug(`unable to get current menu, bailing out...`)
-        return
-      }
-
-      for (const item of items) {
-        const { id, state } = item
-
-        const menuItem = currentMenu.getMenuItemById(id)
-
-        if (menuItem) {
-          // Only send the updated app menu when the state actually changes
-          // or we might end up introducing a never ending loop between
-          // the renderer and the main process
-          if (
-            state.enabled !== undefined &&
-            menuItem.enabled !== state.enabled
-          ) {
-            menuItem.enabled = state.enabled
-            sendMenuChangedEvent = true
-          }
-        } else {
-          fatalError(`Unknown menu id: ${id}`)
+        // Only send the updated app menu when the state actually changes
+        // or we might end up introducing a never ending loop between
+        // the renderer and the main process
+        if (state.enabled !== undefined && menuItem.enabled !== state.enabled) {
+          menuItem.enabled = state.enabled
+          sendMenuChangedEvent = true
         }
-      }
-
-      if (sendMenuChangedEvent && mainWindow) {
-        Menu.setApplicationMenu(currentMenu)
-        mainWindow.sendAppMenu()
+      } else {
+        fatalError(`Unknown menu id: ${id}`)
       }
     }
-  )
+
+    if (sendMenuChangedEvent && mainWindow) {
+      Menu.setApplicationMenu(currentMenu)
+      mainWindow.sendAppMenu()
+    }
+  })
 
   /**
    * Handle the action to show a contextual menu.
@@ -459,178 +438,115 @@ app.on('ready', () => {
    * the menu (or submenu) item that was clicked or null if the menu
    * was closed without clicking on any item.
    */
-  ipcMain.handle(
-    'show-contextual-menu',
-    (
-      event: Electron.IpcMainInvokeEvent,
-      items: ReadonlyArray<ISerializableMenuItem>
-    ): Promise<ReadonlyArray<number> | null> => {
-      return new Promise(resolve => {
-        const menu = buildContextMenu(items, indices => resolve(indices))
-        const window = BrowserWindow.fromWebContents(event.sender) || undefined
+  ipcMain.handle('show-contextual-menu', (event, items) => {
+    return new Promise(resolve => {
+      const menu = buildContextMenu(items, indices => resolve(indices))
+      const window = BrowserWindow.fromWebContents(event.sender) || undefined
 
-        menu.popup({ window, callback: () => resolve(null) })
-      })
-    }
-  )
+      menu.popup({ window, callback: () => resolve(null) })
+    })
+  })
 
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
    */
-  ipcMain.on('get-app-menu', () => {
-    if (mainWindow) {
-      mainWindow.sendAppMenu()
+  ipcMain.on('get-app-menu', () => mainWindow?.sendAppMenu())
+
+  ipcMain.on('show-certificate-trust-dialog', (_, certificate, message) => {
+    // This API is only implemented for macOS and Windows right now.
+    if (__DARWIN__ || __WIN32__) {
+      onDidLoad(window => {
+        window.showCertificateTrustDialog(certificate, message)
+      })
     }
   })
 
-  ipcMain.on(
-    'show-certificate-trust-dialog',
-    (
-      event: Electron.IpcMainEvent,
-      {
-        certificate,
-        message,
-      }: { certificate: Electron.Certificate; message: string }
-    ) => {
-      // This API is only implemented for macOS and Windows right now.
-      if (__DARWIN__ || __WIN32__) {
-        onDidLoad(window => {
-          window.showCertificateTrustDialog(certificate, message)
-        })
+  ipcMain.on('log', (_, level, message) => writeLog(level, message))
+
+  ipcMain.on('uncaught-exception', (_, error) => handleUncaughtException(error))
+
+  ipcMain.on('send-error-report', (_, error, extra, nonFatal) => {
+    reportError(error, { ...getExtraErrorContext(), ...extra }, nonFatal)
+  })
+
+  ipcMain.handle('open-external', async (_, path: string) => {
+    const pathLowerCase = path.toLowerCase()
+    if (
+      pathLowerCase.startsWith('http://') ||
+      pathLowerCase.startsWith('https://')
+    ) {
+      log.info(`opening in browser: ${path}`)
+    }
+
+    try {
+      await shell.openExternal(path)
+      return true
+    } catch (e) {
+      log.error(`Call to openExternal failed: '${e}'`)
+      return false
+    }
+  })
+
+  ipcMain.handle('move-to-trash', (_, path) => shell.trashItem(path))
+
+  ipcMain.on('show-item-in-folder', (_, path) => {
+    Fs.stat(path, err => {
+      if (err) {
+        log.error(`Unable to find file at '${path}'`, err)
+        return
       }
-    }
-  )
+      shell.showItemInFolder(path)
+    })
+  })
 
-  ipcMain.on(
-    'log',
-    (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
-      writeLog(level, message)
-    }
-  )
+  ipcMain.on('show-folder-contents', async (_, path) => {
+    const stats = await stat(path).catch(err => {
+      log.error(`Unable to retrieve file information for ${path}`, err)
+      return null
+    })
 
-  ipcMain.on(
-    'uncaught-exception',
-    (event: Electron.IpcMainEvent, error: Error) => {
-      handleUncaughtException(error)
+    if (!stats) {
+      return
     }
-  )
 
-  ipcMain.on(
-    'send-error-report',
-    (
-      event: Electron.IpcMainEvent,
-      {
-        error,
-        extra,
-        nonFatal,
-      }: { error: Error; extra: { [key: string]: string }; nonFatal?: boolean }
-    ) => {
-      reportError(
-        error,
-        {
-          ...getExtraErrorContext(),
-          ...extra,
-        },
-        nonFatal
+    if (!stats.isDirectory()) {
+      log.error(
+        `Trying to get the folder contents of a non-folder at '${path}'`
       )
+      shell.showItemInFolder(path)
+      return
     }
-  )
 
-  ipcMain.handle(
-    'open-external',
-    async (
-      event: Electron.IpcMainInvokeEvent,
-      path: string
-    ): Promise<boolean> => {
-      const pathLowerCase = path.toLowerCase()
-      if (
-        pathLowerCase.startsWith('http://') ||
-        pathLowerCase.startsWith('https://')
-      ) {
-        log.info(`opening in browser: ${path}`)
-      }
-
-      try {
-        await shell.openExternal(path)
-        return true
-      } catch (e) {
-        log.error(`Call to openExternal failed: '${e}'`)
-        return false
-      }
+    // On Windows and Linux we can count on a directory being just a
+    // directory.
+    if (!__DARWIN__) {
+      UNSAFE_openDirectory(path)
+      return
     }
-  )
 
-  ipcMain.handle(
-    'move-to-trash',
-    (event: Electron.IpcMainInvokeEvent, path: string): Promise<void> => {
-      return shell.trashItem(path)
+    // On macOS a directory might also be an app bundle and if it is
+    // and we attempt to open it we're gonna execute that app which
+    // it far from ideal so we'll look up the metadata for the path
+    // and attempt to determine whether it's an app bundle or not.
+    //
+    // If we fail loading the metadata we'll assume it's an app bundle
+    // out of an abundance of caution.
+    const isBundle = await isApplicationBundle(path).catch(err => {
+      log.error(`Failed to load metadata for path '${path}'`, err)
+      return true
+    })
+
+    if (isBundle) {
+      log.info(
+        `Preventing direct open of path '${path}' as it appears to be an application bundle`
+      )
+
+      shell.showItemInFolder(path)
+    } else {
+      UNSAFE_openDirectory(path)
     }
-  )
-
-  ipcMain.on(
-    'show-item-in-folder',
-    (event: Electron.IpcMainEvent, { path }: { path: string }) => {
-      Fs.stat(path, err => {
-        if (err) {
-          log.error(`Unable to find file at '${path}'`, err)
-          return
-        }
-        shell.showItemInFolder(path)
-      })
-    }
-  )
-
-  ipcMain.on(
-    'show-folder-contents',
-    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
-      const stats = await stat(path).catch(err => {
-        log.error(`Unable to retrieve file information for ${path}`, err)
-        return null
-      })
-
-      if (!stats) {
-        return
-      }
-
-      if (!stats.isDirectory()) {
-        log.error(
-          `Trying to get the folder contents of a non-folder at '${path}'`
-        )
-        shell.showItemInFolder(path)
-        return
-      }
-
-      // On Windows and Linux we can count on a directory being just a
-      // directory.
-      if (!__DARWIN__) {
-        UNSAFE_openDirectory(path)
-        return
-      }
-
-      // On macOS a directory might also be an app bundle and if it is
-      // and we attempt to open it we're gonna execute that app which
-      // it far from ideal so we'll look up the metadata for the path
-      // and attempt to determine whether it's an app bundle or not.
-      //
-      // If we fail loading the metadata we'll assume it's an app bundle
-      // out of an abundance of caution.
-      const isBundle = await isApplicationBundle(path).catch(err => {
-        log.error(`Failed to load metadata for path '${path}'`, err)
-        return true
-      })
-
-      if (isBundle) {
-        log.info(
-          `Preventing direct open of path '${path}' as it appears to be an application bundle`
-        )
-
-        shell.showItemInFolder(path)
-      } else {
-        UNSAFE_openDirectory(path)
-      }
-    }
-  )
+  })
 })
 
 app.on('activate', () => {

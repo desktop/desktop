@@ -7,6 +7,7 @@ import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { enableSquashMerging } from '../../lib/feature-flag'
+import * as ipcWebContents from '../ipc-webcontents'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
@@ -612,7 +613,9 @@ function emit(name: MenuEvent): ClickHandler {
     // can be fairly certain that the first BrowserWindow we find is the one we
     // want.
     const window = focusedWindow ?? BrowserWindow.getAllWindows()[0]
-    window?.webContents.send('menu-event', { name })
+    if (window !== undefined) {
+      ipcWebContents.send(window.webContents, 'menu-event', name)
+    }
   }
 }
 
@@ -646,7 +649,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
 
     if (direction === ZoomDirection.Reset) {
       webContents.zoomFactor = 1
-      webContents.send('zoom-factor-changed', 1)
+      ipcWebContents.send(webContents, 'zoom-factor-changed', 1)
     } else {
       const rawZoom = webContents.zoomFactor
       const zoomFactors =
@@ -668,7 +671,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
       const newZoom = nextZoomLevel === undefined ? currentZoom : nextZoomLevel
 
       webContents.zoomFactor = newZoom
-      webContents.send('zoom-factor-changed', newZoom)
+      ipcWebContents.send(webContents, 'zoom-factor-changed', newZoom)
     }
   }
 }
