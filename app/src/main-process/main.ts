@@ -531,6 +531,13 @@ app.on('ready', () => {
       UNSAFE_openDirectory(path)
     }
   })
+
+  /**
+   * Handle action to resolve proxy
+   */
+  ipcMain.handle('resolve-proxy', async (_, url: string) => {
+    return session.defaultSession.resolveProxy(url)
+  })
 })
 
 app.on('activate', () => {
