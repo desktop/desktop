@@ -58,6 +58,24 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
     )
   }
 
+  // Note: The following four wrapping methods are necessary on windows.
+  // Otherwise, you get a object cloning error.
+  private onMinimize = () => {
+    minimizeWindow()
+  }
+
+  private onMaximize = () => {
+    maximizeWindow()
+  }
+
+  private onRestore = () => {
+    restoreWindow()
+  }
+
+  private onClose = () => {
+    closeWindow()
+  }
+
   public shouldComponentUpdate(nextProps: {}, nextState: IWindowControlState) {
     return nextState.windowState !== this.state.windowState
   }
@@ -98,12 +116,12 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
       return <span />
     }
 
-    const min = this.renderButton('minimize', minimizeWindow, minimizePath)
+    const min = this.renderButton('minimize', this.onMinimize, minimizePath)
     const maximizeOrRestore =
       this.state.windowState === 'maximized'
-        ? this.renderButton('restore', restoreWindow, restorePath)
-        : this.renderButton('maximize', maximizeWindow, maximizePath)
-    const close = this.renderButton('close', closeWindow, closePath)
+        ? this.renderButton('restore', this.onRestore, restorePath)
+        : this.renderButton('maximize', this.onMaximize, maximizePath)
+    const close = this.renderButton('close', this.onClose, closePath)
 
     return (
       <div className="window-controls">
