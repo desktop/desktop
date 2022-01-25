@@ -1,7 +1,6 @@
 import * as remote from '@electron/remote'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
-import { WindowState } from '../lib/window-state'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import * as ipcRenderer from '../lib/ipc-renderer'
 
@@ -48,36 +47,24 @@ export const openExternal = invokeProxy('open-external')
 export const moveItemToTrash = invokeProxy('move-to-trash')
 
 /** Tell the main process to obtain the current window state */
-export function getCurrentWindowState(): Promise<WindowState | undefined> {
-  return ipcRenderer.invoke('get-current-window-state')
-}
+export const getCurrentWindowState = invokeProxy('get-current-window-state')
 
 /** Tell the main process to obtain the current window's zoom factor */
-export function getCurrentWindowZoomFactor(): Promise<number | undefined> {
-  return ipcRenderer.invoke('get-current-window-zoom-factor')
-}
+export const getCurrentWindowZoomFactor = invokeProxy(
+  'get-current-window-zoom-factor'
+)
 
 /** Tell the main process to setup the auto updater */
-export function setupAutoUpdater() {
-  ipcRenderer.send('setup-auto-updater')
-}
+export const setupAutoUpdater = sendProxy('setup-auto-updater')
 
 /** Tell the main process to check for app updates */
-export function checkForUpdates(
-  updatesURL: string
-): Promise<Error | undefined | null> {
-  return ipcRenderer.invoke('check-for-updates', updatesURL)
-}
+export const checkForUpdates = invokeProxy('check-for-updates')
 
 /** Tell the main process to quit the app and install updates */
-export function quitAndInstallUpdate() {
-  ipcRenderer.send('quit-and-install-updates')
-}
+export const quitAndInstallUpdate = sendProxy('quit-and-install-updates')
 
 /** Tell the main process to dispose of auto updater listeners */
-export function disposeAutoUpdater() {
-  ipcRenderer.send('dispose-auto-updater')
-}
+export const disposeAutoUpdater = sendProxy('dispose-auto-updater')
 
 /** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
@@ -111,9 +98,9 @@ export function onAutoUpdaterUpdateDownloaded(eventHandler: () => void) {
 }
 
 /** Tell the main process to subscribe to native theme updated listener */
-export function subscribeNativeThemeUpdated() {
-  ipcRenderer.send('subscribe-native-theme-updated')
-}
+export const subscribeNativeThemeUpdated = sendProxy(
+  'subscribe-native-theme-updated'
+)
 
 /** Subscribes to the native theme updated ecent originating from the main process */
 export function onNativeThemeUpdated(eventHandler: () => void) {
@@ -121,24 +108,16 @@ export function onNativeThemeUpdated(eventHandler: () => void) {
 }
 
 /** Tell the main process to minimize the window */
-export function minimizeWindow() {
-  return ipcRenderer.send('minimize-window')
-}
+export const minimizeWindow = sendProxy('minimize-window')
 
 /** Tell the main process to maximize the window */
-export function maximizeWindow() {
-  return ipcRenderer.send('maximize-window')
-}
+export const maximizeWindow = sendProxy('maximize-window')
 
 /** Tell the main process to unmaximize the window */
-export function restoreWindow() {
-  return ipcRenderer.send('unmaximize-window')
-}
+export const restoreWindow = sendProxy('unmaximize-window')
 
 /** Tell the main process to close the window */
-export function closeWindow() {
-  return ipcRenderer.send('close-window')
-}
+export const closeWindow = sendProxy('close-window')
 
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the

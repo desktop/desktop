@@ -186,7 +186,7 @@ class UpdateStore {
 
     const error = await checkForUpdates(updatesURL)
 
-    if (error !== null && error !== undefined) {
+    if (error !== undefined) {
       this.emitError(error)
     }
   }

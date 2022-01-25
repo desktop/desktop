@@ -437,7 +437,7 @@ app.on('ready', () => {
     mainWindow?.setupAutoUpdater()
   })
 
-  ipcMain.handle('check-for-updates', (_, url) => {
+  ipcMain.handle('check-for-updates', async (_, url) => {
     return mainWindow?.checkForUpdates(url)
   })
 
@@ -469,11 +469,11 @@ app.on('ready', () => {
     mainWindow?.closeWindow()
   })
 
-  ipcMain.handle('get-current-window-state', () => {
+  ipcMain.handle('get-current-window-state', async () => {
     return mainWindow?.getCurrentWindowState()
   })
 
-  ipcMain.handle('get-current-window-zoom-factor', () => {
+  ipcMain.handle('get-current-window-zoom-factor', async () => {
     return mainWindow?.getCurrentWindowZoomFactor()
   })
 

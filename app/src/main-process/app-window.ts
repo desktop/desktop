@@ -349,7 +349,7 @@ export class AppWindow {
     } catch (e) {
       return e
     }
-    return null
+    return undefined
   }
 
   public quitAndInstallUpdate() {

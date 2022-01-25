@@ -54,6 +54,20 @@ export type RequestChannels = {
   ) => void
   focus: () => void
   blur: () => void
+  'setup-auto-updater': () => void
+  'quit-and-install-updates': () => void
+  'dispose-auto-updater': () => void
+  'subscribe-native-theme-updated': () => void
+  'minimize-window': () => void
+  'maximize-window': () => void
+  'unmaximize-window': () => void
+  'close-window': () => void
+  'auto-updater-error': (error: Error) => void
+  'auto-updater-checking-for-update': () => void
+  'auto-updater-update-available': () => void
+  'auto-updater-update-not-available': () => void
+  'auto-updater-update-downloaded': () => void
+  'native-theme-updated': () => void
 }
 
 /**
@@ -70,4 +84,7 @@ export type RequestResponseChannels = {
     items: ReadonlyArray<ISerializableMenuItem>
   ) => Promise<ReadonlyArray<number> | null>
   'open-external': (path: string) => Promise<boolean>
+  'check-for-updates': (url: string) => Promise<Error | undefined>
+  'get-current-window-state': () => Promise<WindowState | undefined>
+  'get-current-window-zoom-factor': () => Promise<number | undefined>
 }
