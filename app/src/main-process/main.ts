@@ -531,6 +531,20 @@ app.on('ready', () => {
       UNSAFE_openDirectory(path)
     }
   })
+
+  /**
+   * An event sent by the renderer asking to show the open dialog
+   */
+  ipcMain.handle(
+    'show-open-dialog',
+    async (_, options: Electron.OpenDialogOptions) => {
+      if (mainWindow === null) {
+        return null
+      }
+
+      return mainWindow.showOpenDialog(options)
+    }
+  )
 })
 
 app.on('activate', () => {

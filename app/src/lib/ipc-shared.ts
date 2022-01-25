@@ -70,4 +70,7 @@ export type RequestResponseChannels = {
     items: ReadonlyArray<ISerializableMenuItem>
   ) => Promise<ReadonlyArray<number> | null>
   'open-external': (path: string) => Promise<boolean>
+  'show-open-dialog': (
+    options: Electron.OpenDialogOptions
+  ) => Promise<string | null>
 }
