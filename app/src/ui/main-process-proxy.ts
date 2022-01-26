@@ -102,7 +102,7 @@ export const subscribeNativeThemeUpdated = sendProxy(
   'subscribe-native-theme-updated'
 )
 
-/** Subscribes to the native theme updated ecent originating from the main process */
+/** Subscribes to the native theme updated event originating from the main process */
 export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
 }
