@@ -397,4 +397,17 @@ export class AppWindow {
   public getCurrentWindowZoomFactor() {
     return this.window.webContents.zoomFactor
   }
+
+  /**
+   * Method to show the open dialog and return the first file path it returns.
+   */
+  public async showOpenDialog(options: Electron.OpenDialogOptions) {
+    const { filePaths } = await dialog.showOpenDialog(this.window, options)
+
+    if (filePaths.length === 0) {
+      return null
+    }
+
+    return filePaths[0]
+  }
 }

@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote'
 import * as React from 'react'
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
@@ -31,6 +30,7 @@ import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
 import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { showOpenDialog } from '../main-process-proxy'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -162,16 +162,14 @@ export class CreateRepository extends React.Component<
   }
 
   private showFilePicker = async () => {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const path = await showOpenDialog({
       properties: ['createDirectory', 'openDirectory'],
     })
 
-    if (filePaths.length === 0) {
+    if (path === null) {
       return
     }
 
-    const path = filePaths[0]
     const isRepository = await isGitRepository(path)
 
     this.setState({ isRepository, path })
