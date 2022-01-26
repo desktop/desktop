@@ -213,6 +213,10 @@ export class AppWindow {
     this.window.restore()
   }
 
+  public isFocused() {
+    return this.window.isFocused()
+  }
+
   public focus() {
     this.window.focus()
   }

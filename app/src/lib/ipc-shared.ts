@@ -69,6 +69,7 @@ export type RequestResponseChannels = {
   'show-contextual-menu': (
     items: ReadonlyArray<ISerializableMenuItem>
   ) => Promise<ReadonlyArray<number> | null>
+  'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>
   'resolve-proxy': (url: string) => Promise<string>
   'show-open-dialog': (

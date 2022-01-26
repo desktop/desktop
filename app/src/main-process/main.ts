@@ -552,6 +552,14 @@ app.on('ready', () => {
       return mainWindow.showOpenDialog(options)
     }
   )
+
+  /**
+   * An event sent by the renderer asking obtain whether the window is focused
+   */
+  ipcMain.handle(
+    'is-window-focused',
+    async () => mainWindow?.isFocused() ?? false
+  )
 })
 
 app.on('activate', () => {
