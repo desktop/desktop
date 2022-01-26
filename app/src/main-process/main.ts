@@ -433,37 +433,29 @@ app.on('ready', () => {
     })
   })
 
-  ipcMain.handle('check-for-updates', async (_, url) => {
-    return mainWindow?.checkForUpdates(url)
-  })
+  ipcMain.handle('check-for-updates', async (_, url) =>
+    mainWindow?.checkForUpdates(url)
+  )
 
-  ipcMain.on('quit-and-install-updates', () => {
+  ipcMain.on('quit-and-install-updates', () =>
     mainWindow?.quitAndInstallUpdate()
-  })
+  )
 
-  ipcMain.on('minimize-window', () => {
-    mainWindow?.minimizeWindow()
-  })
+  ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
 
-  ipcMain.on('maximize-window', () => {
-    mainWindow?.maximizeWindow()
-  })
+  ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())
 
-  ipcMain.on('unmaximize-window', () => {
-    mainWindow?.unmaximizeWindow()
-  })
+  ipcMain.on('unmaximize-window', () => mainWindow?.unmaximizeWindow())
 
-  ipcMain.on('close-window', () => {
-    mainWindow?.closeWindow()
-  })
+  ipcMain.on('close-window', () => mainWindow?.closeWindow())
 
-  ipcMain.handle('get-current-window-state', async () => {
-    return mainWindow?.getCurrentWindowState()
-  })
+  ipcMain.handle('get-current-window-state', async () =>
+    mainWindow?.getCurrentWindowState()
+  )
 
-  ipcMain.handle('get-current-window-zoom-factor', async () => {
-    return mainWindow?.getCurrentWindowZoomFactor()
-  })
+  ipcMain.handle('get-current-window-zoom-factor', async () =>
+    mainWindow?.getCurrentWindowZoomFactor()
+  )
 
   /**
    * An event sent by the renderer asking for a copy of the current
