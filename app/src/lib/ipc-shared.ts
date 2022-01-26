@@ -71,6 +71,9 @@ export type RequestResponseChannels = {
   ) => Promise<ReadonlyArray<number> | null>
   'open-external': (path: string) => Promise<boolean>
   'resolve-proxy': (url: string) => Promise<string>
+  'show-save-dialog': (
+    options: Electron.SaveDialogOptions
+  ) => Promise<string | null>
   'show-open-dialog': (
     options: Electron.OpenDialogOptions
   ) => Promise<string | null>

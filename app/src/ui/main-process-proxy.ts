@@ -277,6 +277,11 @@ export function sendErrorReport(
 export const resolveProxy = invokeProxy('resolve-proxy')
 
 /**
+ * Tell the main process to show save dialog
+ */
+export const showSaveDialog = invokeProxy('show-save-dialog')
+
+/**
  * Tell the main process to show open dialog
  */
 export const showOpenDialog = invokeProxy('show-open-dialog')

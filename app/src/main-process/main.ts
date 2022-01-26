@@ -540,17 +540,21 @@ app.on('ready', () => {
   })
 
   /**
+   * An event sent by the renderer asking to show the save dialog
+   *
+   * Returns null if filepath is undefined or if dialog is canceled.
+   */
+  ipcMain.handle(
+    'show-save-dialog',
+    async (_, options) => mainWindow?.showSaveDialog(options) ?? null
+  )
+
+  /**
    * An event sent by the renderer asking to show the open dialog
    */
   ipcMain.handle(
     'show-open-dialog',
-    async (_, options: Electron.OpenDialogOptions) => {
-      if (mainWindow === null) {
-        return null
-      }
-
-      return mainWindow.showOpenDialog(options)
-    }
+    async (_, options) => mainWindow?.showOpenDialog(options) ?? null
   )
 })
 
