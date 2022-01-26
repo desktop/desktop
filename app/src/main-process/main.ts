@@ -538,6 +538,20 @@ app.on('ready', () => {
   ipcMain.handle('resolve-proxy', async (_, url: string) => {
     return session.defaultSession.resolveProxy(url)
   })
+
+  /**
+   * An event sent by the renderer asking to show the open dialog
+   */
+  ipcMain.handle(
+    'show-open-dialog',
+    async (_, options: Electron.OpenDialogOptions) => {
+      if (mainWindow === null) {
+        return null
+      }
+
+      return mainWindow.showOpenDialog(options)
+    }
+  )
 })
 
 app.on('activate', () => {
