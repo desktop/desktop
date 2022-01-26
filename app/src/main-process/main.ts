@@ -559,7 +559,6 @@ app.on('ready', () => {
       return mainWindow.showOpenDialog(options)
     }
   )
-
 })
 
 app.on('activate', () => {
