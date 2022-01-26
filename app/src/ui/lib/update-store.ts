@@ -5,7 +5,6 @@ import { Emitter, Disposable } from 'event-kit'
 
 import {
   checkForUpdates,
-  disposeAutoUpdater,
   onAutoUpdaterCheckingForUpdate,
   onAutoUpdaterError,
   onAutoUpdaterUpdateAvailable,
@@ -13,7 +12,6 @@ import {
   onAutoUpdaterUpdateNotAvailable,
   quitAndInstallUpdate,
   sendWillQuitSync,
-  setupAutoUpdater,
 } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { parseError } from '../../lib/squirrel-error-parser'
@@ -68,11 +66,6 @@ class UpdateStore {
       onAutoUpdaterUpdateAvailable(this.onUpdateAvailable)
       onAutoUpdaterUpdateNotAvailable(this.onUpdateNotAvailable)
       onAutoUpdaterUpdateDownloaded(this.onUpdateDownloaded)
-      setupAutoUpdater()
-
-      window.addEventListener('beforeunload', () => {
-        disposeAutoUpdater()
-      })
     } catch (e) {
       this.emitError(e)
     }

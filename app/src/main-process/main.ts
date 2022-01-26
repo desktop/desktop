@@ -433,20 +433,12 @@ app.on('ready', () => {
     })
   })
 
-  ipcMain.on('setup-auto-updater', () => {
-    mainWindow?.setupAutoUpdater()
-  })
-
   ipcMain.handle('check-for-updates', async (_, url) => {
     return mainWindow?.checkForUpdates(url)
   })
 
   ipcMain.on('quit-and-install-updates', () => {
     mainWindow?.quitAndInstallUpdate()
-  })
-
-  ipcMain.on('dispose-auto-updater', () => {
-    mainWindow?.disposeAutoUpdater()
   })
 
   ipcMain.on('minimize-window', () => {

@@ -105,6 +105,7 @@ export class AppWindow {
         return
       }
       nativeTheme.removeAllListeners()
+      autoUpdater.removeAllListeners()
     })
 
     if (__WIN32__) {
@@ -184,6 +185,8 @@ export class AppWindow {
     nativeTheme.addListener('updated', (event: string, userInfo: any) => {
       ipcWebContents.send(this.window.webContents, 'native-theme-updated')
     })
+
+    this.setupAutoUpdater()
   }
 
   /**
@@ -369,10 +372,6 @@ export class AppWindow {
 
   public quitAndInstallUpdate() {
     autoUpdater.quitAndInstall()
-  }
-
-  public disposeAutoUpdater() {
-    autoUpdater.removeAllListeners()
   }
 
   public minimizeWindow() {

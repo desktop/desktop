@@ -54,17 +54,11 @@ export const getCurrentWindowZoomFactor = invokeProxy(
   'get-current-window-zoom-factor'
 )
 
-/** Tell the main process to setup the auto updater */
-export const setupAutoUpdater = sendProxy('setup-auto-updater')
-
 /** Tell the main process to check for app updates */
 export const checkForUpdates = invokeProxy('check-for-updates')
 
 /** Tell the main process to quit the app and install updates */
 export const quitAndInstallUpdate = sendProxy('quit-and-install-updates')
-
-/** Tell the main process to dispose of auto updater listeners */
-export const disposeAutoUpdater = sendProxy('dispose-auto-updater')
 
 /** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
