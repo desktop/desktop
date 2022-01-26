@@ -272,3 +272,8 @@ export function sendErrorReport(
 ) {
   _sendErrorReport(getIpcFriendlyError(error), extra, nonFatal)
 }
+
+/**
+ * Tell the main process to show open dialog
+ */
+export const showOpenDialog = invokeProxy('show-open-dialog')
