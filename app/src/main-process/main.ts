@@ -449,10 +449,6 @@ app.on('ready', () => {
     mainWindow?.disposeAutoUpdater()
   })
 
-  ipcMain.on('subscribe-native-theme-updated', () => {
-    mainWindow?.subscribeNativeThemeUpdated()
-  })
-
   ipcMain.on('minimize-window', () => {
     mainWindow?.minimizeWindow()
   })

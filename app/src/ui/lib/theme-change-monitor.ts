@@ -4,10 +4,7 @@ import {
   supportsSystemThemeChanges,
 } from './application-theme'
 import { Disposable, Emitter } from 'event-kit'
-import {
-  onNativeThemeUpdated,
-  subscribeNativeThemeUpdated,
-} from '../main-process-proxy'
+import { onNativeThemeUpdated } from '../main-process-proxy'
 
 class ThemeChangeMonitor {
   private readonly emitter = new Emitter()
@@ -22,7 +19,6 @@ class ThemeChangeMonitor {
     }
 
     onNativeThemeUpdated(this.onThemeNotificationUpdated)
-    subscribeNativeThemeUpdated()
   }
 
   private onThemeNotificationUpdated = () => {

@@ -57,7 +57,6 @@ export type RequestChannels = {
   'setup-auto-updater': () => void
   'quit-and-install-updates': () => void
   'dispose-auto-updater': () => void
-  'subscribe-native-theme-updated': () => void
   'minimize-window': () => void
   'maximize-window': () => void
   'unmaximize-window': () => void

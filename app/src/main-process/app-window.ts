@@ -85,28 +85,27 @@ export class AppWindow {
     })
 
     ipcMain.on('will-quit', event => {
-      nativeTheme.removeAllListeners()
       quitting = true
       event.returnValue = true
     })
 
-    // on macOS, when the user closes the window we really just hide it. This
-    // lets us activate quickly and keep all our interesting logic in the
-    // renderer.
-    if (__DARWIN__) {
-      this.window.on('close', e => {
-        if (!quitting) {
-          e.preventDefault()
-          // https://github.com/desktop/desktop/issues/12838
-          if (this.window.isFullScreen()) {
-            this.window.setFullScreen(false)
-            this.window.once('leave-full-screen', () => app.hide())
-          } else {
-            app.hide()
-          }
+    this.window.on('close', e => {
+      // on macOS, when the user closes the window we really just hide it. This
+      // lets us activate quickly and keep all our interesting logic in the
+      // renderer.
+      if (__DARWIN__ && !quitting) {
+        e.preventDefault()
+        // https://github.com/desktop/desktop/issues/12838
+        if (this.window.isFullScreen()) {
+          this.window.setFullScreen(false)
+          this.window.once('leave-full-screen', () => app.hide())
+        } else {
+          app.hide()
         }
-      })
-    }
+        return
+      }
+      nativeTheme.removeAllListeners()
+    })
 
     if (__WIN32__) {
       // workaround for known issue with fullscreen-ing the app and restoring
@@ -181,6 +180,10 @@ export class AppWindow {
 
     registerWindowStateChangedEvents(this.window)
     this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
+
+    nativeTheme.addListener('updated', (event: string, userInfo: any) => {
+      ipcWebContents.send(this.window.webContents, 'native-theme-updated')
+    })
   }
 
   /**
@@ -370,12 +373,6 @@ export class AppWindow {
 
   public disposeAutoUpdater() {
     autoUpdater.removeAllListeners()
-  }
-
-  public subscribeNativeThemeUpdated() {
-    nativeTheme.addListener('updated', (event: string, userInfo: any) => {
-      ipcWebContents.send(this.window.webContents, 'native-theme-updated')
-    })
   }
 
   public minimizeWindow() {

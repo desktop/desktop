@@ -97,11 +97,6 @@ export function onAutoUpdaterUpdateDownloaded(eventHandler: () => void) {
   ipcRenderer.on('auto-updater-update-downloaded', eventHandler)
 }
 
-/** Tell the main process to subscribe to native theme updated listener */
-export const subscribeNativeThemeUpdated = sendProxy(
-  'subscribe-native-theme-updated'
-)
-
 /** Subscribes to the native theme updated event originating from the main process */
 export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
