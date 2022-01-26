@@ -120,7 +120,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     console.log(`Set!`)
   } catch (e) {
     console.warn(`Setting the app version failed 😿
-    (${e.message})
+    (${e instanceof Error ? e.message : e})
     Please manually set it to ${nextVersion} in app/package.json.`)
   }
 
@@ -177,7 +177,11 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       console.log('Added!')
       printInstructions(nextVersion, [])
     } catch (e) {
-      console.warn(`Writing the changelog failed 😿\n(${e.message})`)
+      console.warn(
+        `Writing the changelog failed 😿\n(${
+          e instanceof Error ? e.message : e
+        })`
+      )
       printInstructions(nextVersion, newEntries)
     }
   } else {
