@@ -536,10 +536,14 @@ app.on('ready', () => {
    * An event sent by the renderer asking whether the Desktop is in the
    * applications folder
    *
-   * Note: This will be undefined when not running on Darwin
+   * Note: This will return null when not running on Darwin
    */
   ipcMain.handle('is-in-application-folder', async () => {
-    return app.isInApplicationsFolder?.()
+    if (app.isInApplicationsFolder === undefined) {
+      return null
+    }
+
+    return app.isInApplicationsFolder()
   })
 })
 

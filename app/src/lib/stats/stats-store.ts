@@ -514,8 +514,9 @@ export class StatsStore implements IStatsStore {
     const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
     // isInApplicationsFolder is undefined when not running on Darwin
-    const launchedFromApplicationsFolder =
-      (await isInApplicationFolder()) ?? null
+    const launchedFromApplicationsFolder = __DARWIN__
+      ? await isInApplicationFolder()
+      : null
 
     return {
       eventType: 'usage',
