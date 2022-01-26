@@ -273,6 +273,9 @@ export function sendErrorReport(
   _sendErrorReport(getIpcFriendlyError(error), extra, nonFatal)
 }
 
+/** Tells the main process to resolve the proxy for a given url */
+export const resolveProxy = invokeProxy('resolve-proxy')
+
 /**
  * Tell the main process to show open dialog
  */

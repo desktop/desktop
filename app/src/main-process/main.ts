@@ -533,6 +533,13 @@ app.on('ready', () => {
   })
 
   /**
+   * Handle action to resolve proxy
+   */
+  ipcMain.handle('resolve-proxy', async (_, url: string) => {
+    return session.defaultSession.resolveProxy(url)
+  })
+
+  /**
    * An event sent by the renderer asking to show the open dialog
    */
   ipcMain.handle(
