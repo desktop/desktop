@@ -233,7 +233,7 @@ interface Window {
 }
 
 /**
- * Obtain the numer of items in an tuple type
+ * Obtain the number of elements of a tuple type
  *
  * See https://itnext.io/implementing-arithmetic-within-typescripts-type-system-a1ef140a6f6f
  */
