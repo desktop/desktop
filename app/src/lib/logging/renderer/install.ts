@@ -3,7 +3,7 @@ import { formatLogMessage } from '../format-log-message'
 import { sendProxy } from '../../../ui/main-process-proxy'
 
 const g = global as any
-const ipcLog = sendProxy('log')
+const ipcLog = sendProxy('log', 2)
 
 /**
  * Dispatches the given log entry to the main process where it will be picked

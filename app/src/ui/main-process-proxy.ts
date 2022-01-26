@@ -8,50 +8,81 @@ import * as ipcRenderer from '../lib/ipc-renderer'
  * Creates a strongly typed proxy method for sending a duplex IPC message to the
  * main process. The parameter types and return type are infered from the
  * RequestResponseChannels type which defines the valid duplex channel names.
+ *
+ * @param numArgs The number of arguments that the channel expects. We specify
+ *                this so that we don't accidentally send more things over the
+ *                IPC boundary than we intended to which can lead to runtime
+ *                errors.
+ *
+ *                This is necessary because TypeScript allows passing more
+ *                arguments than defined to functions which in turn means that
+ *                functions without arguments are type compatible with all
+ *                functions that share the same return type.
  */
 export function invokeProxy<T extends keyof RequestResponseChannels>(
-  channel: T
-): (
-  ...args: Parameters<RequestResponseChannels[T]>
-) => ReturnType<RequestResponseChannels[T]> {
-  return (...args) => ipcRenderer.invoke(channel, ...args) as any
+  channel: T,
+  numArgs: ParameterCount<RequestResponseChannels[T]>
+) {
+  return (...args: Parameters<RequestResponseChannels[T]>) => {
+    // This as any cast here may seem unsafe but it isn't since we're guaranteed
+    // that numArgs will match the parameter count of the IPC declaration.
+    args = args.length !== numArgs ? (args.slice(0, numArgs) as any) : args
+    return ipcRenderer.invoke(channel, ...args)
+  }
 }
 
 /**
  * Creates a strongly typed proxy method for sending a simplex IPC message to
  * the main process. The parameter types are infered from the
  * RequestResponseChannels type which defines the valid duplex channel names.
+ *
+ * @param numArgs The number of arguments that the channel expects. We specify
+ *                this so that we don't accidentally send more things over the
+ *                IPC boundary than we intended to which can lead to runtime
+ *                errors.
+ *
+ *                This is necessary because TypeScript allows passing more
+ *                arguments than defined to functions which in turn means that
+ *                functions without arguments are type compatible with all
+ *                functions that share the same return type.
  */
 export function sendProxy<T extends keyof RequestChannels>(
-  channel: T
-): (...args: Parameters<RequestChannels[T]>) => void {
-  return (...args) => ipcRenderer.send(channel, ...args)
+  channel: T,
+  numArgs: ParameterCount<RequestChannels[T]>
+) {
+  return (...args: Parameters<RequestChannels[T]>) => {
+    // This as any cast here may seem unsafe but it isn't since we're guaranteed
+    // that numArgs will match the parameter count of the IPC declaration.
+    args = args.length !== numArgs ? (args.slice(0, numArgs) as any) : args
+    ipcRenderer.send(channel, ...args)
+  }
 }
 
 /** Set the menu item's enabledness. */
-export const updateMenuState = sendProxy('update-menu-state')
+export const updateMenuState = sendProxy('update-menu-state', 1)
 
 /** Tell the main process that the renderer is ready. */
-export const sendReady = sendProxy('renderer-ready')
+export const sendReady = sendProxy('renderer-ready', 1)
 
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export const executeMenuItem = (item: ExecutableMenuItem) =>
   executeMenuItemById(item.id)
 
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
-export const executeMenuItemById = sendProxy('execute-menu-item-by-id')
+export const executeMenuItemById = sendProxy('execute-menu-item-by-id', 1)
 
-export const showItemInFolder = sendProxy('show-item-in-folder')
-export const showFolderContents = sendProxy('show-folder-contents')
-export const openExternal = invokeProxy('open-external')
-export const moveItemToTrash = invokeProxy('move-to-trash')
+export const showItemInFolder = sendProxy('show-item-in-folder', 1)
+export const showFolderContents = sendProxy('show-folder-contents', 1)
+export const openExternal = invokeProxy('open-external', 1)
+export const moveItemToTrash = invokeProxy('move-to-trash', 1)
 
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
  * given message.
  */
 export const showCertificateTrustDialog = sendProxy(
-  'show-certificate-trust-dialog'
+  'show-certificate-trust-dialog',
+  2
 )
 
 /**
@@ -71,7 +102,7 @@ export function sendWillQuitSync() {
  * The response will be send as a separate event with the name 'app-menu' and
  * will be received by the dispatcher.
  */
-export const getAppMenu = sendProxy('get-app-menu')
+export const getAppMenu = sendProxy('get-app-menu', 0)
 
 function findSubmenuItem(
   currentContextualMenuItems: ReadonlyArray<IMenuItem>,
@@ -186,7 +217,7 @@ function getSpellCheckLanguageMenuItem(
   }
 }
 
-const _showContextualMenu = invokeProxy('show-contextual-menu')
+const _showContextualMenu = invokeProxy('show-contextual-menu', 1)
 
 /** Show the given menu items in a contextual menu. */
 export async function showContextualMenu(
@@ -246,7 +277,8 @@ function serializeMenuItems(
 
 /** Update the menu item labels with the user's preferred apps. */
 export const updatePreferredAppMenuItemLabels = sendProxy(
-  'update-preferred-app-menu-item-labels'
+  'update-preferred-app-menu-item-labels',
+  1
 )
 
 function getIpcFriendlyError(error: Error) {
@@ -257,13 +289,13 @@ function getIpcFriendlyError(error: Error) {
   }
 }
 
-export const _reportUncaughtException = sendProxy('uncaught-exception')
+export const _reportUncaughtException = sendProxy('uncaught-exception', 1)
 
 export function reportUncaughtException(error: Error) {
   _reportUncaughtException(getIpcFriendlyError(error))
 }
 
-const _sendErrorReport = sendProxy('send-error-report')
+const _sendErrorReport = sendProxy('send-error-report', 3)
 
 export function sendErrorReport(
   error: Error,

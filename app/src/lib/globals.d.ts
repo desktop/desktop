@@ -231,3 +231,13 @@ declare module 'file-metadata' {
 interface Window {
   Element: typeof Element
 }
+
+/**
+ * Obtain the numer of items in an tuple type
+ *
+ * See https://itnext.io/implementing-arithmetic-within-typescripts-type-system-a1ef140a6f6f
+ */
+type Length<T extends any[]> = T extends { length: infer L } ? L : never
+
+/** Obtain the the number of parameters of a function type */
+type ParameterCount<T extends (...args: any) => any> = Length<Parameters<T>>
