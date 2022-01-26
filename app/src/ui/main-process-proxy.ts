@@ -280,3 +280,8 @@ export function sendErrorReport(
  * Note: will return undefined when not running on darwin
  */
 export const isInApplicationFolder = invokeProxy('is-in-application-folder')
+
+/**
+ * Tell the main process to show open dialog
+ */
+export const showOpenDialog = invokeProxy('show-open-dialog')
