@@ -34,6 +34,7 @@ These editors are currently supported:
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
  - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
+ - [JetBrains CLion](https://www.jetbrains.com/clion/)
  - [Notepad++](https://notepad-plus-plus.org/)
  - [RStudio](https://rstudio.com/)
 
