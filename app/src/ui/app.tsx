@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import { ipcRenderer, remote } from 'electron'
+import { remote } from 'electron'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import {
@@ -19,7 +19,6 @@ import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
-import { ILaunchStats } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
@@ -151,6 +150,7 @@ import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 import { clamp } from '../lib/clamp'
 import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
+import * as ipcRenderer from '../lib/ipc-renderer'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -248,12 +248,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       props.dispatcher.postError(error)
     })
 
-    ipcRenderer.on(
-      'menu-event',
-      (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
-        this.onMenuEvent(name)
-      }
-    )
+    ipcRenderer.on('menu-event', (_, name) => this.onMenuEvent(name))
 
     updateStore.onDidChange(state => {
       const status = state.status
@@ -275,37 +270,21 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.postError(error)
     })
 
-    ipcRenderer.on(
-      'launch-timing-stats',
-      (
-        event: Electron.IpcRendererEvent,
-        { stats }: { stats: ILaunchStats }
-      ) => {
-        console.info(`App ready time: ${stats.mainReadyTime}ms`)
-        console.info(`Load time: ${stats.loadTime}ms`)
-        console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
+    ipcRenderer.on('launch-timing-stats', (_, stats) => {
+      console.info(`App ready time: ${stats.mainReadyTime}ms`)
+      console.info(`Load time: ${stats.loadTime}ms`)
+      console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-        this.props.dispatcher.recordLaunchStats(stats)
-      }
-    )
+      this.props.dispatcher.recordLaunchStats(stats)
+    })
 
-    ipcRenderer.on(
-      'certificate-error',
-      (
-        event: Electron.IpcRendererEvent,
-        {
-          certificate,
-          error,
-          url,
-        }: { certificate: Electron.Certificate; error: string; url: string }
-      ) => {
-        this.props.dispatcher.showPopup({
-          type: PopupType.UntrustedCertificate,
-          certificate,
-          url,
-        })
-      }
-    )
+    ipcRenderer.on('certificate-error', (_, certificate, error, url) => {
+      this.props.dispatcher.showPopup({
+        type: PopupType.UntrustedCertificate,
+        certificate,
+        url,
+      })
+    })
 
     dragAndDropManager.onDragEnded(this.onDragEnd)
   }
@@ -1411,6 +1390,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
+            notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
             repository={repository}

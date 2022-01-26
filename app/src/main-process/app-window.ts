@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
+import { BrowserWindow, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
@@ -9,6 +9,8 @@ import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
+import * as ipcMain from './ipc-main'
+import * as ipcWebContents from './ipc-webcontents'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -71,7 +73,7 @@ export class AppWindow {
       quitting = true
     })
 
-    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+    ipcMain.on('will-quit', event => {
       quitting = true
       event.returnValue = true
     })
@@ -83,7 +85,13 @@ export class AppWindow {
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
-          app.hide()
+          // https://github.com/desktop/desktop/issues/12838
+          if (this.window.isFullScreen()) {
+            this.window.setFullScreen(false)
+            this.window.once('leave-full-screen', () => app.hide())
+          } else {
+            app.hide()
+          }
         }
       })
     }
@@ -147,17 +155,17 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.once(
-      'renderer-ready',
-      (event: Electron.IpcMainEvent, readyTime: number) => {
-        this._rendererReadyTime = readyTime
+    ipcMain.once('renderer-ready', (_, readyTime) => {
+      this._rendererReadyTime = readyTime
+      this.maybeEmitDidLoad()
+    })
 
-        this.maybeEmitDidLoad()
-      }
+    this.window.on('focus', () =>
+      ipcWebContents.send(this.window.webContents, 'focus')
     )
-
-    this.window.on('focus', () => this.window.webContents.send('focus'))
-    this.window.on('blur', () => this.window.webContents.send('blur'))
+    this.window.on('blur', () =>
+      ipcWebContents.send(this.window.webContents, 'blur')
+    )
 
     registerWindowStateChangedEvents(this.window)
     this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
@@ -224,19 +232,19 @@ export class AppWindow {
   public sendMenuEvent(name: MenuEvent) {
     this.show()
 
-    this.window.webContents.send('menu-event', { name })
+    ipcWebContents.send(this.window.webContents, 'menu-event', name)
   }
 
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
     this.show()
 
-    this.window.webContents.send('url-action', { action })
+    ipcWebContents.send(this.window.webContents, 'url-action', action)
   }
 
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchStats) {
-    this.window.webContents.send('launch-timing-stats', { stats })
+    ipcWebContents.send(this.window.webContents, 'launch-timing-stats', stats)
   }
 
   /** Send the app menu to the renderer. */
@@ -244,7 +252,7 @@ export class AppWindow {
     const appMenu = Menu.getApplicationMenu()
     if (appMenu) {
       const menu = menuFromElectronMenu(appMenu)
-      this.window.webContents.send('app-menu', { menu })
+      ipcWebContents.send(this.window.webContents, 'app-menu', menu)
     }
   }
 
@@ -254,11 +262,13 @@ export class AppWindow {
     error: string,
     url: string
   ) {
-    this.window.webContents.send('certificate-error', {
+    ipcWebContents.send(
+      this.window.webContents,
+      'certificate-error',
       certificate,
       error,
-      url,
-    })
+      url
+    )
   }
 
   public showCertificateTrustDialog(
@@ -273,18 +283,6 @@ export class AppWindow {
       { certificate, message },
       () => {}
     )
-  }
-
-  /** Report the exception to the renderer. */
-  public sendException(error: Error) {
-    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
-    // we'll just manually copy the properties we care about.
-    const friendlyError = {
-      stack: error.stack,
-      message: error.message,
-      name: error.name,
-    }
-    this.window.webContents.send('main-process-exception', friendlyError)
   }
 
   /**
@@ -308,5 +306,18 @@ export class AppWindow {
 
   public destroy() {
     this.window.destroy()
+  }
+
+  /**
+   * Method to show the open dialog and return the first file path it returns.
+   */
+  public async showOpenDialog(options: Electron.OpenDialogOptions) {
+    const { filePaths } = await dialog.showOpenDialog(this.window, options)
+
+    if (filePaths.length === 0) {
+      return null
+    }
+
+    return filePaths[0]
   }
 }

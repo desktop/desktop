@@ -1,12 +1,13 @@
 import * as React from 'react'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
-import marked from 'marked'
+import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import {
   applyNodeFilters,
   buildCustomMarkDownNodeFilterPipe,
 } from '../../lib/markdown-filters/node-filter'
+import { GitHubRepository } from '../../models/github-repository'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -24,8 +25,14 @@ interface ISandboxedMarkdownProps {
    */
   readonly onMarkdownLinkClicked?: (url: string) => void
 
+  /** A callback for after the markdown has been parsed and the contents have
+   * been mounted to the iframe */
+  readonly onMarkdownParsed?: () => void
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  /** The GitHub repository to use when looking up commit status. */
+  readonly repository: GitHubRepository
 }
 
 /**
@@ -149,6 +156,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     // to prevent scrollbar/content cut off.
     const divHeight = docEl.clientHeight + 50
     this.frameContainingDivRef.style.height = `${divHeight}px`
+    this.props.onMarkdownParsed?.()
   }
 
   /**
@@ -196,7 +204,13 @@ export class SandboxedMarkdown extends React.PureComponent<
     const styleSheet = await this.getInlineStyleSheet()
 
     const parsedMarkdown = marked(this.props.markdown ?? '', {
+      // https://marked.js.org/using_advanced  If true, use approved GitHub
+      // Flavored Markdown (GFM) specification.
       gfm: true,
+      // https://marked.js.org/using_advanced, If true, add <br> on a single
+      // line break (copies GitHub behavior on comments, but not on rendered
+      // markdown files). Requires gfm be true.
+      breaks: true,
     })
 
     const sanitizedHTML = DOMPurify.sanitize(parsedMarkdown)
@@ -240,7 +254,10 @@ export class SandboxedMarkdown extends React.PureComponent<
    * mentions, etc.
    */
   private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
-    const nodeFilters = buildCustomMarkDownNodeFilterPipe(this.props.emoji)
+    const nodeFilters = buildCustomMarkDownNodeFilterPipe(
+      this.props.emoji,
+      this.props.repository
+    )
     return applyNodeFilters(nodeFilters, parsedMarkdown)
   }
 

@@ -1,5 +1,4 @@
-// The name of the ipc channel over which state changes are communicated.
-export const windowStateChannelName = 'window-state-changed'
+import * as ipcWebContents from '../main-process/ipc-webcontents'
 
 export type WindowState =
   | 'minimized'
@@ -61,5 +60,5 @@ function sendWindowStateEvent(
   window: Electron.BrowserWindow,
   state: WindowState
 ) {
-  window.webContents.send(windowStateChannelName, state)
+  ipcWebContents.send(window.webContents, 'window-state-changed', state)
 }

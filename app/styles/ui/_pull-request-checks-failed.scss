@@ -73,6 +73,8 @@
       .ci-check-run-list {
         width: 40%;
         border-radius: 0;
+        border-right: 1px solid var(--box-border-color);
+        overflow-y: auto;
 
         // Make sure Octicons use the ambient color when the check run is
         // selected and the list focused

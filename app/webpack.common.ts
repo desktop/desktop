@@ -35,7 +35,7 @@ const commonConfig: webpack.Configuration = {
           {
             loader: 'awesome-typescript-loader',
             options: {
-              useBabel: true,
+              useBabel: false,
               useCache: true,
             },
           },
@@ -222,7 +222,7 @@ highlighter.module!.rules = [
       {
         loader: 'awesome-typescript-loader',
         options: {
-          useBabel: true,
+          useBabel: false,
           useCache: true,
           configFileName: path.resolve(
             __dirname,

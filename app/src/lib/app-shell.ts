@@ -1,7 +1,13 @@
-import { shell as electronShell, ipcRenderer } from 'electron'
+import { shell as electronShell } from 'electron'
 import * as Path from 'path'
 
 import { Repository } from '../models/repository'
+import {
+  showItemInFolder,
+  showFolderContents,
+  openExternal,
+  moveItemToTrash,
+} from '../ui/main-process-proxy'
 
 export interface IAppShell {
   readonly moveItemToTrash: (path: string) => Promise<void>
@@ -38,19 +44,11 @@ export const shell: IAppShell = {
   // Since Electron 13, shell.trashItem doesn't work from the renderer process
   // on Windows. Therefore, we must invoke it from the main process. See
   // https://github.com/electron/electron/issues/29598
-  moveItemToTrash: path => {
-    return ipcRenderer.invoke('move-to-trash', path)
-  },
+  moveItemToTrash,
   beep: electronShell.beep,
-  openExternal: path => {
-    return ipcRenderer.invoke('open-external', path)
-  },
-  showItemInFolder: path => {
-    ipcRenderer.send('show-item-in-folder', { path })
-  },
-  showFolderContents: path => {
-    ipcRenderer.send('show-folder-contents', { path })
-  },
+  openExternal,
+  showItemInFolder,
+  showFolderContents,
   openPath: electronShell.openPath,
 }
 

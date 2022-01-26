@@ -89,7 +89,7 @@ import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
-import { executeMenuItem } from '../main-process-proxy'
+import { executeMenuItem, showOpenDialog } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
@@ -1533,14 +1533,12 @@ export class Dispatcher {
    * Update the location of an existing repository and clear the missing flag.
    */
   public async relocateRepository(repository: Repository): Promise<void> {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const path = await showOpenDialog({
       properties: ['openDirectory'],
     })
 
-    if (filePaths.length > 0) {
-      const newPath = filePaths[0]
-      await this.updateRepositoryPath(repository, newPath)
+    if (path !== null) {
+      await this.updateRepositoryPath(repository, path)
     }
   }
 
@@ -1686,6 +1684,10 @@ export class Dispatcher {
     // ensure a fresh clone repository has it's in-memory state
     // up-to-date before performing the "Clone in Desktop" steps
     await this.appStore._refreshRepository(repository)
+
+    // if the repo has a remote, fetch before switching branches to ensure
+    // the checkout will be successful. This operation could be a no-op.
+    await this.appStore._fetch(repository, FetchType.UserInitiatedTask)
 
     await this.checkoutLocalBranch(repository, branchName)
 
@@ -2681,6 +2683,10 @@ export class Dispatcher {
 
   public setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
     this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
+  }
+
+  public setNotificationsEnabled(notificationsEnabled: boolean) {
+    this.appStore._setNotificationsEnabled(notificationsEnabled)
   }
 
   public recordDiffOptionsViewed() {
