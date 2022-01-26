@@ -60,15 +60,11 @@ class UpdateStore {
       this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
     }
 
-    try {
-      onAutoUpdaterError(this.onAutoUpdaterError)
-      onAutoUpdaterCheckingForUpdate(this.onCheckingForUpdate)
-      onAutoUpdaterUpdateAvailable(this.onUpdateAvailable)
-      onAutoUpdaterUpdateNotAvailable(this.onUpdateNotAvailable)
-      onAutoUpdaterUpdateDownloaded(this.onUpdateDownloaded)
-    } catch (e) {
-      this.emitError(e)
-    }
+    onAutoUpdaterError(this.onAutoUpdaterError)
+    onAutoUpdaterCheckingForUpdate(this.onCheckingForUpdate)
+    onAutoUpdaterUpdateAvailable(this.onUpdateAvailable)
+    onAutoUpdaterUpdateNotAvailable(this.onUpdateNotAvailable)
+    onAutoUpdaterUpdateDownloaded(this.onUpdateDownloaded)
   }
 
   private touchLastChecked() {
