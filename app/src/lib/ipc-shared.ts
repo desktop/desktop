@@ -17,6 +17,7 @@ import { URLActionType } from './parse-app-url'
  * the two over the untyped IPC framework.
  */
 export type RequestChannels = {
+  'select-all-window-contents': () => void
   'update-menu-state': (
     state: Array<{ id: MenuIDs; state: IMenuItemState }>
   ) => void

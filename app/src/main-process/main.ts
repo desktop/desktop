@@ -532,6 +532,11 @@ app.on('ready', () => {
     }
   })
 
+  /** An event sent by the renderer asking to select all of the window's contents */
+  ipcMain.on('select-all-window-contents', () =>
+    mainWindow?.selectAllWindowContents()
+  )
+
   /**
    * Handle action to resolve proxy
    */

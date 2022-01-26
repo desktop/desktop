@@ -28,6 +28,11 @@ export function sendProxy<T extends keyof RequestChannels>(
   return (...args) => ipcRenderer.send(channel, ...args)
 }
 
+/**
+ * Tell the main process to select all of the current web contents
+ */
+export const selectAllWindowContents = sendProxy('select-all-window-contents')
+
 /** Set the menu item's enabledness. */
 export const updateMenuState = sendProxy('update-menu-state')
 
