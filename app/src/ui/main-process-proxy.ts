@@ -277,6 +277,6 @@ export function sendErrorReport(
  * Tell the main process to obtain whether the Desktop application is in the
  * application folder
  *
- * Note: will return undefined when not running on darwin
+ * Note: will return null when not running on darwin
  */
 export const isInApplicationFolder = invokeProxy('is-in-application-folder')
