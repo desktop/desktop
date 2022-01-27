@@ -89,7 +89,11 @@ import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
-import { executeMenuItem, showOpenDialog } from '../main-process-proxy'
+import {
+  executeMenuItem,
+  isWindowFocused,
+  showOpenDialog,
+} from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
@@ -1576,6 +1580,11 @@ export class Dispatcher {
     }
   }
 
+  public async initializeAppFocusState(): Promise<void> {
+    const isFocused = await isWindowFocused()
+    this.setAppFocusState(isFocused)
+  }
+
   /**
    * Find an existing repository that can be used for checking out
    * the passed pull request.
@@ -1765,8 +1774,8 @@ export class Dispatcher {
         if (__DARWIN__) {
           // workaround for user reports that the application doesn't receive focus
           // after completing the OAuth signin in the browser
-          const window = remote.getCurrentWindow()
-          if (!window.isFocused()) {
+          const isFocused = await isWindowFocused()
+          if (!isFocused) {
             log.info(
               `refocusing the main window after the OAuth flow is completed`
             )
