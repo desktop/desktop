@@ -33,6 +33,9 @@ interface ICrashAppState {
    * The current state of the Window, ie maximized, minimized full-screen etc.
    */
   readonly windowState: WindowState
+
+  /** The version of the application */
+  readonly appVersion: string | null
 }
 
 // Note that we're reusing the welcome illustration here, any changes to it
@@ -49,7 +52,7 @@ const issuesUri = 'https://github.com/desktop/desktop/issues'
  * from paths and appends system metadata such and the running version and
  * current operating system.
  */
-function prepareErrorMessage(error: Error) {
+function prepareErrorMessage(error: Error, appVersion: string | null) {
   let message
 
   if (error.stack) {
@@ -73,7 +76,9 @@ function prepareErrorMessage(error: Error) {
     message = `${error.name}: ${error.message}`
   }
 
-  return `${message}\n\nVersion: ${getVersion()}\nOS: ${getOS()}\n`
+  return `${message}\n\nVersion: ${
+    appVersion ?? 'loading...'
+  }\nOS: ${getOS()}\n`
 }
 
 /**
@@ -92,7 +97,10 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
     this.state = {
       windowState: getWindowState(remote.getCurrentWindow()),
+      appVersion: null,
     }
+
+    this.initializeAppVersion()
   }
 
   public componentDidMount() {
@@ -105,6 +113,11 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     ipcRenderer.on('error', (_, crashDetails) => this.setState(crashDetails))
 
     ipcRenderer.send('crash-ready')
+  }
+
+  private initializeAppVersion = async () => {
+    const appVersion = await getVersion()
+    this.setState({ appVersion })
   }
 
   private onQuitButtonClicked = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -149,13 +162,13 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   }
 
   private renderErrorDetails() {
-    const error = this.state.error
+    const { error, appVersion } = this.state
 
     if (!error) {
       return
     }
 
-    return <pre className="error">{prepareErrorMessage(error)}</pre>
+    return <pre className="error">{prepareErrorMessage(error, appVersion)}</pre>
   }
 
   private renderFooter() {
@@ -184,6 +197,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   }
 
   public render() {
+    debugger
     return (
       <div id="crash-app">
         <TitleBar
