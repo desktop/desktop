@@ -37,7 +37,7 @@ interface IAboutProps {
   /**
    * The currently installed (and running) version of the app.
    */
-  readonly applicationVersion: string
+  readonly applicationVersion: Promise<string>
 
   /**
    * The currently installed (and running) architecture of the app.
@@ -55,6 +55,7 @@ interface IAboutProps {
 
 interface IAboutState {
   readonly updateState: IUpdateState
+  readonly appVersion: string | null
 }
 
 /**
@@ -69,7 +70,9 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
     this.state = {
       updateState: updateStore.state,
+      appVersion: null,
     }
+    this.initializeAppVersion()
   }
 
   private onUpdateStateChanged = (updateState: IUpdateState) => {
@@ -88,6 +91,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
+  }
+
+  private initializeAppVersion = async () => {
+    const appVersion = await this.props.applicationVersion
+    this.setState({ appVersion })
   }
 
   private onQuitAndInstall = () => {
@@ -238,12 +246,14 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
   public render() {
     const name = this.props.applicationName
-    const version = this.props.applicationVersion
+    const { appVersion } = this.state
     const releaseNotesLink = (
       <LinkButton uri={ReleaseNotesUri}>release notes</LinkButton>
     )
 
-    const versionText = __DEV__ ? `Build ${version}` : `Version ${version}`
+    const versionText = __DEV__
+      ? `Build ${appVersion}`
+      : `Version ${appVersion ?? 'loading'}`
 
     return (
       <Dialog
