@@ -16,7 +16,7 @@ interface IAcknowledgementsProps {
   /**
    * The currently installed (and running) version of the app.
    */
-  readonly applicationVersion: string
+  readonly applicationVersion: Promise<string>
 }
 
 interface ILicense {
@@ -29,6 +29,7 @@ type Licenses = { [key: string]: ILicense }
 
 interface IAcknowledgementsState {
   readonly licenses: Licenses | null
+  readonly appVersion: string | null
 }
 
 /** The component which displays the licenses for packages used in the app. */
@@ -39,7 +40,8 @@ export class Acknowledgements extends React.Component<
   public constructor(props: IAcknowledgementsProps) {
     super(props)
 
-    this.state = { licenses: null }
+    this.state = { licenses: null, appVersion: null }
+    this.initializeAppVersion()
   }
 
   public componentDidMount() {
@@ -58,6 +60,11 @@ export class Acknowledgements extends React.Component<
 
       this.setState({ licenses: parsed })
     })
+  }
+
+  private initializeAppVersion = async () => {
+    const appVersion = await this.props.applicationVersion
+    this.setState({ appVersion })
   }
 
   private renderLicenses(licenses: Licenses) {
@@ -103,11 +110,11 @@ export class Acknowledgements extends React.Component<
   }
 
   public render() {
-    const licenses = this.state.licenses
+    const { licenses, appVersion } = this.state
 
     let desktopLicense: JSX.Element | null = null
-    if (licenses) {
-      const key = `desktop@${this.props.applicationVersion}`
+    if (licenses && appVersion !== null) {
+      const key = `desktop@${appVersion}`
       const entry = licenses[key]
       desktopLicense = <p className="license-text">{entry.sourceText}</p>
     }
