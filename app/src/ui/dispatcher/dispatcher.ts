@@ -89,7 +89,11 @@ import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
-import { executeMenuItem, showOpenDialog } from '../main-process-proxy'
+import {
+  executeMenuItem,
+  moveToApplicationsFolder,
+  showOpenDialog,
+} from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
@@ -1367,7 +1371,7 @@ export class Dispatcher {
   }
 
   public moveToApplicationsFolder() {
-    remote.app.moveToApplicationsFolder?.()
+    moveToApplicationsFolder()
   }
 
   /**
