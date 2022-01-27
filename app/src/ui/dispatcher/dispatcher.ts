@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote'
 import { Disposable, IDisposable } from 'event-kit'
 
 import {
@@ -91,6 +90,7 @@ import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import {
   executeMenuItem,
+  moveToApplicationsFolder,
   isWindowFocused,
   showOpenDialog,
 } from '../main-process-proxy'
@@ -1371,7 +1371,7 @@ export class Dispatcher {
   }
 
   public moveToApplicationsFolder() {
-    remote.app.moveToApplicationsFolder?.()
+    moveToApplicationsFolder()
   }
 
   /**

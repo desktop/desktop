@@ -66,6 +66,7 @@ export type RequestChannels = {
   'auto-updater-update-not-available': () => void
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
+  'move-to-applications-folder': () => void
 }
 
 /**
