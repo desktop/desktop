@@ -518,7 +518,7 @@ export class StatsStore implements IStatsStore {
 
     return {
       eventType: 'usage',
-      version: getVersion(),
+      version: await getVersion(),
       osVersion: getOS(),
       platform: process.platform,
       architecture: getArchitecture(remote.app),
