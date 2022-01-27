@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import { remote } from 'electron'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import {
@@ -58,6 +57,7 @@ import {
   showCertificateTrustDialog,
   sendReady,
   isInApplicationFolder,
+  selectAllWindowContents,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -503,7 +503,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       document.activeElement != null &&
       document.activeElement.dispatchEvent(event)
     ) {
-      remote.getCurrentWebContents().selectAll()
+      selectAllWindowContents()
     }
   }
 
