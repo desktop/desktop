@@ -1,4 +1,4 @@
-import * as appProxy from '../ui/lib/app-proxy'
+import { getVersion } from '../ui/lib/app-proxy'
 import { URL } from 'url'
 
 /** The HTTP methods available. */
@@ -113,7 +113,7 @@ export function getAbsoluteUrl(endpoint: string, path: string): string {
  * the resource from the remote server without first looking in the cache, but
  * then will update the cache with the downloaded resource.
  */
-export function request(
+export async function request(
   endpoint: string,
   token: string | null,
   method: HTTPMethod,
@@ -127,7 +127,7 @@ export function request(
   let headers: any = {
     Accept: 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
-    'User-Agent': getUserAgent(),
+    'User-Agent': await getUserAgent(),
   }
 
   if (token) {
@@ -153,9 +153,9 @@ export function request(
 }
 
 /** Get the user agent to use for all requests. */
-function getUserAgent() {
+async function getUserAgent() {
   const platform = __DARWIN__ ? 'Macintosh' : 'Windows'
-  return `GitHubDesktop/${appProxy.getVersion()} (${platform})`
+  return `GitHubDesktop/${await getVersion()} (${platform})`
 }
 
 /**
