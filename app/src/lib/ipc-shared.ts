@@ -76,4 +76,5 @@ export type RequestResponseChannels = {
   'show-open-dialog': (
     options: Electron.OpenDialogOptions
   ) => Promise<string | null>
+  'get-app-version': () => Promise<string>
 }
