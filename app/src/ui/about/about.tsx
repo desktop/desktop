@@ -32,7 +32,7 @@ interface IAboutProps {
   /**
    * The name of the currently installed (and running) application
    */
-  readonly applicationName: string
+  readonly applicationName: Promise<string>
 
   /**
    * The currently installed (and running) version of the app.
@@ -55,6 +55,7 @@ interface IAboutProps {
 
 interface IAboutState {
   readonly updateState: IUpdateState
+  readonly appName: string | null
 }
 
 /**
@@ -69,7 +70,9 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
     this.state = {
       updateState: updateStore.state,
+      appName: null,
     }
+    this.initializeAppName()
   }
 
   private onUpdateStateChanged = (updateState: IUpdateState) => {
@@ -88,6 +91,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
+  }
+
+  private initializeAppName = async () => {
+    const appName = await this.props.applicationName
+    this.setState({ appName })
   }
 
   private onQuitAndInstall = () => {
@@ -237,7 +245,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   public render() {
-    const name = this.props.applicationName
+    const { appName } = this.state
     const version = this.props.applicationVersion
     const releaseNotesLink = (
       <LinkButton uri={ReleaseNotesUri}>release notes</LinkButton>
@@ -261,7 +269,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
               height="64"
             />
           </Row>
-          <h2>{name}</h2>
+          <h2>{appName ?? 'Loading...'}</h2>
           <p className="no-padding">
             <span className="selectable-text">
               {versionText} ({this.props.applicationArchitecture})

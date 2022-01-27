@@ -573,6 +573,11 @@ app.on('ready', () => {
     'is-window-focused',
     async () => mainWindow?.isFocused() ?? false
   )
+
+  /**
+   * An event sent by the renderer asking obtain the apps name
+   */
+  ipcMain.handle('get-app-name', async () => app.getName())
 })
 
 app.on('activate', () => {

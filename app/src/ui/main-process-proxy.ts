@@ -295,3 +295,6 @@ export const resolveProxy = invokeProxy('resolve-proxy')
  * Tell the main process to show open dialog
  */
 export const showOpenDialog = invokeProxy('show-open-dialog')
+
+/** Tell the main process to obtain the app's name */
+export const getAppName = invokeProxy('get-app-name')
