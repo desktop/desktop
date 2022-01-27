@@ -213,8 +213,17 @@ export class AppWindow {
     this.window.restore()
   }
 
+  public isFocused() {
+    return this.window.isFocused()
+  }
+
   public focus() {
     this.window.focus()
+  }
+
+  /** Selects all the windows web contents */
+  public selectAllWindowContents() {
+    this.window.webContents.selectAll()
   }
 
   /** Show the window. */

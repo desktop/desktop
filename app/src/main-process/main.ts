@@ -478,6 +478,14 @@ app.on('ready', () => {
    */
   ipcMain.handle('get-app-architecture', async () => getArchitecture(app))
 
+  /**
+   * An event sent by the renderer asking to move the app to the application
+   * folder
+   */
+  ipcMain.on('move-to-applications-folder', () => {
+    app.moveToApplicationsFolder?.()
+  })
+
   ipcMain.handle('move-to-trash', (_, path) => shell.trashItem(path))
 
   ipcMain.on('show-item-in-folder', (_, path) => {
@@ -538,6 +546,11 @@ app.on('ready', () => {
     }
   })
 
+  /** An event sent by the renderer asking to select all of the window's contents */
+  ipcMain.on('select-all-window-contents', () =>
+    mainWindow?.selectAllWindowContents()
+  )
+
   /**
    * Handle action to resolve proxy
    */
@@ -557,6 +570,14 @@ app.on('ready', () => {
 
       return mainWindow.showOpenDialog(options)
     }
+  )
+
+  /**
+   * An event sent by the renderer asking obtain whether the window is focused
+   */
+  ipcMain.handle(
+    'is-window-focused',
+    async () => mainWindow?.isFocused() ?? false
   )
 })
 
