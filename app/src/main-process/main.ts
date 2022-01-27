@@ -540,6 +540,11 @@ app.on('ready', () => {
     }
   })
 
+  /** An event sent by the renderer asking to select all of the window's contents */
+  ipcMain.on('select-all-window-contents', () =>
+    mainWindow?.selectAllWindowContents()
+  )
+
   /**
    * Handle action to resolve proxy
    */
@@ -559,6 +564,14 @@ app.on('ready', () => {
 
       return mainWindow.showOpenDialog(options)
     }
+  )
+
+  /**
+   * An event sent by the renderer asking obtain whether the window is focused
+   */
+  ipcMain.handle(
+    'is-window-focused',
+    async () => mainWindow?.isFocused() ?? false
   )
 })
 

@@ -1,4 +1,3 @@
-import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
 
 import {
@@ -92,6 +91,7 @@ import { installCLI } from '../lib/install-cli'
 import {
   executeMenuItem,
   moveToApplicationsFolder,
+  isWindowFocused,
   showOpenDialog,
 } from '../main-process-proxy'
 import {
@@ -1580,6 +1580,11 @@ export class Dispatcher {
     }
   }
 
+  public async initializeAppFocusState(): Promise<void> {
+    const isFocused = await isWindowFocused()
+    this.setAppFocusState(isFocused)
+  }
+
   /**
    * Find an existing repository that can be used for checking out
    * the passed pull request.
@@ -1769,8 +1774,8 @@ export class Dispatcher {
         if (__DARWIN__) {
           // workaround for user reports that the application doesn't receive focus
           // after completing the OAuth signin in the browser
-          const window = remote.getCurrentWindow()
-          if (!window.isFocused()) {
+          const isFocused = await isWindowFocused()
+          if (!isFocused) {
             log.info(
               `refocusing the main window after the OAuth flow is completed`
             )
