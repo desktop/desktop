@@ -221,6 +221,11 @@ export class AppWindow {
     this.window.focus()
   }
 
+  /** Selects all the windows web contents */
+  public selectAllWindowContents() {
+    this.window.webContents.selectAll()
+  }
+
   /** Show the window. */
   public show() {
     this.window.show()
