@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 import * as moment from 'moment'
-import * as remote from '@electron/remote'
 import { App } from './app'
 import {
   Dispatcher,
@@ -308,7 +307,7 @@ dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
 document.body.classList.add(`platform-${process.platform}`)
 
-dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+dispatcher.initializeAppFocusState()
 
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)
