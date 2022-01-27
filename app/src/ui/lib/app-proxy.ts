@@ -1,4 +1,5 @@
 import { remote } from 'electron'
+import { getAppVersion } from '../main-process-proxy'
 
 let app: Electron.App | null = null
 let version: string | null = null
@@ -20,9 +21,9 @@ function getApp(): Electron.App {
  *
  * This is preferable to using `remote` directly because we cache the result.
  */
-export function getVersion(): string {
+export async function getVersion(): Promise<string> {
   if (!version) {
-    version = getApp().getVersion()
+    version = await getAppVersion()
   }
 
   return version
