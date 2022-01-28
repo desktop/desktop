@@ -321,9 +321,9 @@ export function sendErrorReport(
 }
 
 /** Tells the main process to resolve the proxy for a given url */
-export const resolveProxy = invokeProxy('resolve-proxy')
+export const resolveProxy = invokeProxy('resolve-proxy', 1)
 
 /**
  * Tell the main process to show open dialog
  */
-export const showOpenDialog = invokeProxy('show-open-dialog')
+export const showOpenDialog = invokeProxy('show-open-dialog', 1)
