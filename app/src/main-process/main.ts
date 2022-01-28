@@ -94,6 +94,12 @@ if (__DARWIN__) {
   possibleProtocols.add('github-windows')
 }
 
+// On Windows, in order to get notifications properly working for dev builds,
+// we'll want to set the right App User Model ID from production builds.
+if (__WIN32__ && __DEV__) {
+  app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktop')
+}
+
 app.on('window-all-closed', () => {
   // If we don't subscribe to this event and all windows are closed, the default
   // behavior is to quit the app. We don't want that though, we control that
@@ -626,6 +632,11 @@ app.on('ready', () => {
     'is-window-focused',
     async () => mainWindow?.isFocused() ?? false
   )
+
+  /** An event sent by the renderer asking to focus the main window. */
+  ipcMain.on('focus-window', () => {
+    mainWindow?.focus()
+  })
 })
 
 app.on('activate', () => {

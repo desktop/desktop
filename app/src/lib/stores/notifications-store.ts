@@ -3,7 +3,6 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
-import * as remote from '@electron/remote'
 import { PullRequest } from '../../models/pull-request'
 import { API, APICheckConclusion } from '../api'
 import {
@@ -24,6 +23,7 @@ import {
   IDesktopChecksFailedAliveEvent,
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
+import { showNotification } from './helpers/show-notification'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -198,12 +198,8 @@ export class NotificationsStore {
     const shortSHA = sha.slice(0, 9)
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
-    const notification = new remote.Notification({
-      title,
-      body,
-    })
 
-    notification.on('click', () => {
+    showNotification(title, body, () =>
       this.onChecksFailedCallback?.(
         repository,
         pullRequest,
@@ -211,9 +207,7 @@ export class NotificationsStore {
         sha,
         checks
       )
-    })
-
-    notification.show()
+    )
   }
 
   private async getChecksForRef(

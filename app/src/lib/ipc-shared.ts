@@ -69,6 +69,7 @@ export type RequestChannels = {
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
   'move-to-applications-folder': () => void
+  'focus-window': () => void
 }
 
 /**
