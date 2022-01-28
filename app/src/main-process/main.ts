@@ -25,6 +25,8 @@ import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { installWebRequestFilters } from './install-web-request-filters'
 import * as ipcMain from './ipc-main'
+import * as remoteMain from '@electron/remote/main'
+remoteMain.initialize()
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -437,6 +439,30 @@ app.on('ready', () => {
     })
   })
 
+  ipcMain.handle('check-for-updates', async (_, url) =>
+    mainWindow?.checkForUpdates(url)
+  )
+
+  ipcMain.on('quit-and-install-updates', () =>
+    mainWindow?.quitAndInstallUpdate()
+  )
+
+  ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
+
+  ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())
+
+  ipcMain.on('unmaximize-window', () => mainWindow?.unmaximizeWindow())
+
+  ipcMain.on('close-window', () => mainWindow?.closeWindow())
+
+  ipcMain.handle('get-current-window-state', async () =>
+    mainWindow?.getCurrentWindowState()
+  )
+
+  ipcMain.handle('get-current-window-zoom-factor', async () =>
+    mainWindow?.getCurrentWindowZoomFactor()
+  )
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
@@ -550,6 +576,18 @@ app.on('ready', () => {
   ipcMain.on('select-all-window-contents', () =>
     mainWindow?.selectAllWindowContents()
   )
+
+  /**
+   * An event sent by the renderer asking whether the Desktop is in the
+   * applications folder
+   *
+   * Note: This will return null when not running on Darwin
+   */
+  ipcMain.handle('is-in-application-folder', async () => {
+    // Contrary to what the types tell you the `isInApplicationsFolder` will be undefined
+    // when not on macOS
+    return app.isInApplicationsFolder?.() ?? null
+  })
 
   /**
    * Handle action to resolve proxy

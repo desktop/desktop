@@ -1,6 +1,6 @@
 import * as React from 'react'
 import memoizeOne from 'memoize-one'
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
 import { Octicon } from '../octicons/octicon'
@@ -21,7 +21,7 @@ interface ITitleBarProps {
   /**
    * The current state of the Window, ie maximized, minimized full-screen etc.
    */
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
 import { encodePathAsUrl } from '../lib/path'

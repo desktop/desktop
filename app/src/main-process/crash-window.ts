@@ -2,6 +2,7 @@ import { BrowserWindow } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
+import * as remoteMain from '@electron/remote/main'
 import * as ipcMain from './ipc-main'
 import * as ipcWebContents from './ipc-webcontents'
 
@@ -40,9 +41,7 @@ export class CrashWindow {
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
         spellcheck: false,
-        enableRemoteModule: true,
         contextIsolation: false,
-        worldSafeExecuteJavaScript: false,
       },
     }
 
@@ -53,6 +52,8 @@ export class CrashWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+    remoteMain.enable(this.window.webContents)
+
     this.error = error
     this.errorType = errorType
   }
