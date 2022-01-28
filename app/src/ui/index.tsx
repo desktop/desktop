@@ -263,7 +263,8 @@ const aliveStore = new AliveStore(accountsStore)
 const notificationsStore = new NotificationsStore(
   accountsStore,
   aliveStore,
-  pullRequestCoordinator
+  pullRequestCoordinator,
+  statsStore
 )
 
 const appStore = new AppStore(

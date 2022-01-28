@@ -81,7 +81,8 @@ describe('App', () => {
     const notificationsStore = new NotificationsStore(
       accountsStore,
       aliveStore,
-      pullRequestCoordinator
+      pullRequestCoordinator,
+      statsStore
     )
     notificationsStore.setNotificationsEnabled(false)
 

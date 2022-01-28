@@ -24,6 +24,7 @@ import {
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
 import { showNotification } from './helpers/show-notification'
+import { StatsStore } from '../stats'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -52,7 +53,8 @@ export class NotificationsStore {
   public constructor(
     private readonly accountsStore: AccountsStore,
     private readonly aliveStore: AliveStore,
-    private readonly pullRequestCoordinator: PullRequestCoordinator
+    private readonly pullRequestCoordinator: PullRequestCoordinator,
+    private readonly statsStore: StatsStore
   ) {
     this.aliveStore.setEnabled(this.getNotificationsEnabled())
     this.aliveStore.onAliveEventReceived(this.onAliveEventReceived)
@@ -199,7 +201,9 @@ export class NotificationsStore {
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
 
-    showNotification(title, body, () =>
+    showNotification(title, body, () => {
+      this.statsStore.recordChecksFailedNotificationClicked()
+
       this.onChecksFailedCallback?.(
         repository,
         pullRequest,
@@ -207,7 +211,9 @@ export class NotificationsStore {
         sha,
         checks
       )
-    )
+    })
+
+    this.statsStore.recordChecksFailedNotificationShown()
   }
 
   private async getChecksForRef(

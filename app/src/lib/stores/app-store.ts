@@ -6866,6 +6866,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedRepository === null ||
       selectedRepository.hash !== repository.hash
     ) {
+      this.statsStore.recordChecksFailedDialogOpen()
       return this._showPopup(popup)
     }
 
@@ -6879,10 +6880,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If it's the same branch, just show the existing CI check run popover
       this._setShowCIStatusPopover(true)
     } else {
+      this.statsStore.recordChecksFailedDialogOpen()
+
       // If there is no current branch or it's different than the PR branch,
       // show the checks failed dialog, but it won't offer to switch to the
       // repository.
-      this._showPopup({
+      return this._showPopup({
         ...popup,
         needsSelectRepository: false,
       })

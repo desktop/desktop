@@ -178,6 +178,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   viewsCheckOnline: 0,
   viewsCheckJobStepOnline: 0,
   rerunsChecks: 0,
+  checksFailedNotificationCount: 0,
+  checksFailedNotificationClicked: 0,
+  checksFailedDialogOpenCount: 0,
+  checksFailedDialogSwitchToPullRequestCount: 0,
+  checksFailedDialogRerunChecksCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1730,6 +1735,38 @@ export class StatsStore implements IStatsStore {
   public recordRerunChecks(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       rerunsChecks: m.rerunsChecks + 1,
+    }))
+  }
+
+  public recordChecksFailedNotificationShown(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationCount: m.checksFailedNotificationCount + 1,
+    }))
+  }
+
+  public recordChecksFailedNotificationClicked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogOpen(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogOpenCount: m.checksFailedDialogOpenCount + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogSwitchToPullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogSwitchToPullRequestCount:
+        m.checksFailedDialogSwitchToPullRequestCount + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogRerunChecks(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogRerunChecksCount:
+        m.checksFailedDialogRerunChecksCount + 1,
     }))
   }
 
