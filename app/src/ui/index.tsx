@@ -3,9 +3,7 @@ import '../lib/logging/renderer/install'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
-
 import * as moment from 'moment'
-
 import { App } from './app'
 import {
   Dispatcher,
@@ -178,7 +176,7 @@ const sendErrorWithContext = (
         }
 
         extra.repositoryCount = `${currentState.repositories.length}`
-        extra.windowState = currentState.windowState
+        extra.windowState = currentState.windowState ?? 'Unknown'
         extra.accounts = `${currentState.accounts.length}`
 
         extra.automaticallySwitchTheme = `${

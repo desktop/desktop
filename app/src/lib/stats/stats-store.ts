@@ -22,7 +22,7 @@ import {
 } from '../local-storage'
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { Architecture, getArchitecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
-
 import {
   IAppState,
   RepositorySectionTab,

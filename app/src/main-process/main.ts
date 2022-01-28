@@ -25,6 +25,8 @@ import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { installWebRequestFilters } from './install-web-request-filters'
 import * as ipcMain from './ipc-main'
+import * as remoteMain from '@electron/remote/main'
+remoteMain.initialize()
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -430,6 +432,30 @@ app.on('ready', () => {
       menu.popup({ window, callback: () => resolve(null) })
     })
   })
+
+  ipcMain.handle('check-for-updates', async (_, url) =>
+    mainWindow?.checkForUpdates(url)
+  )
+
+  ipcMain.on('quit-and-install-updates', () =>
+    mainWindow?.quitAndInstallUpdate()
+  )
+
+  ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
+
+  ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())
+
+  ipcMain.on('unmaximize-window', () => mainWindow?.unmaximizeWindow())
+
+  ipcMain.on('close-window', () => mainWindow?.closeWindow())
+
+  ipcMain.handle('get-current-window-state', async () =>
+    mainWindow?.getCurrentWindowState()
+  )
+
+  ipcMain.handle('get-current-window-zoom-factor', async () =>
+    mainWindow?.getCurrentWindowZoomFactor()
+  )
 
   /**
    * An event sent by the renderer asking for a copy of the current
