@@ -389,6 +389,8 @@ export function sendErrorReport(
   _sendErrorReport(getIpcFriendlyError(error), extra, nonFatal)
 }
 
+export const updateAccounts = sendProxy('update-accounts', 1)
+
 /** Tells the main process to resolve the proxy for a given url */
 export const resolveProxy = invokeProxy('resolve-proxy', 1)
 
