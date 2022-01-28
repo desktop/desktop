@@ -28,6 +28,8 @@ import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
+import * as remoteMain from '@electron/remote/main'
+remoteMain.initialize()
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -446,6 +448,30 @@ app.on('ready', () => {
     })
   })
 
+  ipcMain.handle('check-for-updates', async (_, url) =>
+    mainWindow?.checkForUpdates(url)
+  )
+
+  ipcMain.on('quit-and-install-updates', () =>
+    mainWindow?.quitAndInstallUpdate()
+  )
+
+  ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
+
+  ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())
+
+  ipcMain.on('unmaximize-window', () => mainWindow?.unmaximizeWindow())
+
+  ipcMain.on('close-window', () => mainWindow?.closeWindow())
+
+  ipcMain.handle('get-current-window-state', async () =>
+    mainWindow?.getCurrentWindowState()
+  )
+
+  ipcMain.handle('get-current-window-zoom-factor', async () =>
+    mainWindow?.getCurrentWindowZoomFactor()
+  )
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
@@ -485,6 +511,14 @@ app.on('ready', () => {
       log.error(`Call to openExternal failed: '${e}'`)
       return false
     }
+  })
+
+  /**
+   * An event sent by the renderer asking to move the app to the application
+   * folder
+   */
+  ipcMain.on('move-to-applications-folder', () => {
+    app.moveToApplicationsFolder?.()
   })
 
   ipcMain.handle('move-to-trash', (_, path) => shell.trashItem(path))
@@ -546,6 +580,52 @@ app.on('ready', () => {
       UNSAFE_openDirectory(path)
     }
   })
+
+  /** An event sent by the renderer asking to select all of the window's contents */
+  ipcMain.on('select-all-window-contents', () =>
+    mainWindow?.selectAllWindowContents()
+  )
+
+  /**
+   * An event sent by the renderer asking whether the Desktop is in the
+   * applications folder
+   *
+   * Note: This will return null when not running on Darwin
+   */
+  ipcMain.handle('is-in-application-folder', async () => {
+    // Contrary to what the types tell you the `isInApplicationsFolder` will be undefined
+    // when not on macOS
+    return app.isInApplicationsFolder?.() ?? null
+  })
+
+  /**
+   * Handle action to resolve proxy
+   */
+  ipcMain.handle('resolve-proxy', async (_, url: string) => {
+    return session.defaultSession.resolveProxy(url)
+  })
+
+  /**
+   * An event sent by the renderer asking to show the open dialog
+   */
+  ipcMain.handle(
+    'show-open-dialog',
+    async (_, options: Electron.OpenDialogOptions) => {
+      if (mainWindow === null) {
+        return null
+      }
+
+      return mainWindow.showOpenDialog(options)
+    }
+  )
+
+  /**
+   * An event sent by the renderer asking obtain whether the window is focused
+   */
+  ipcMain.handle(
+    'is-window-focused',
+    async () => mainWindow?.isFocused() ?? false
+  )
 })
 
 app.on('activate', () => {

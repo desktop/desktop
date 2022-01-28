@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import {
   isMacOSMojaveOrLater,
   isWindows10And1809Preview17666OrLater,
