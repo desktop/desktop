@@ -58,6 +58,11 @@ export function sendProxy<T extends keyof RequestChannels>(
   }
 }
 
+/**
+ * Tell the main process to select all of the current web contents
+ */
+export const selectAllWindowContents = sendProxy('select-all-window-contents')
+
 /** Set the menu item's enabledness. */
 export const updateMenuState = sendProxy('update-menu-state', 1)
 
@@ -70,6 +75,11 @@ export const executeMenuItem = (item: ExecutableMenuItem) =>
 
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export const executeMenuItemById = sendProxy('execute-menu-item-by-id', 1)
+
+/**
+ * Tell the main process to obtain whether the window is focused.
+ */
+export const isWindowFocused = invokeProxy('is-window-focused', 0)
 
 export const showItemInFolder = sendProxy('show-item-in-folder', 1)
 export const showFolderContents = sendProxy('show-folder-contents', 1)
@@ -96,6 +106,11 @@ export function sendWillQuitSync() {
   // eslint-disable-next-line no-sync
   ipcRenderer.sendSync('will-quit')
 }
+
+/**
+ * Tell the main process to move the application to the application folder
+ */
+export const moveToApplicationsFolder = sendProxy('move-to-applications-folder')
 
 /**
  * Ask the main-process to send over a copy of the application menu.
@@ -304,3 +319,11 @@ export function sendErrorReport(
 ) {
   _sendErrorReport(getIpcFriendlyError(error), extra, nonFatal)
 }
+
+/** Tells the main process to resolve the proxy for a given url */
+export const resolveProxy = invokeProxy('resolve-proxy')
+
+/**
+ * Tell the main process to show open dialog
+ */
+export const showOpenDialog = invokeProxy('show-open-dialog')

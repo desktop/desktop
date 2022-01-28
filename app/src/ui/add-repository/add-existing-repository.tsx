@@ -1,7 +1,5 @@
 import * as React from 'react'
 import * as Path from 'path'
-
-import { remote } from 'electron'
 import { Dispatcher } from '../dispatcher'
 import { isGitRepository } from '../../lib/git'
 import { isBareRepository } from '../../lib/git'
@@ -16,6 +14,7 @@ import { PopupType } from '../../models/popup'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 import untildify from 'untildify'
+import { showOpenDialog } from '../main-process-proxy'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -172,15 +171,14 @@ export class AddExistingRepository extends React.Component<
   }
 
   private showFilePicker = async () => {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const path = await showOpenDialog({
       properties: ['createDirectory', 'openDirectory'],
     })
-    if (filePaths.length === 0) {
+
+    if (path === null) {
       return
     }
 
-    const path = filePaths[0]
     const isRepository = await isGitRepository(path)
     const isRepositoryBare = await isBareRepository(path)
 

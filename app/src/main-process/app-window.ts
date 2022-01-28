@@ -213,8 +213,17 @@ export class AppWindow {
     this.window.restore()
   }
 
+  public isFocused() {
+    return this.window.isFocused()
+  }
+
   public focus() {
     this.window.focus()
+  }
+
+  /** Selects all the windows web contents */
+  public selectAllWindowContents() {
+    this.window.webContents.selectAll()
   }
 
   /** Show the window. */
@@ -306,5 +315,18 @@ export class AppWindow {
 
   public destroy() {
     this.window.destroy()
+  }
+
+  /**
+   * Method to show the open dialog and return the first file path it returns.
+   */
+  public async showOpenDialog(options: Electron.OpenDialogOptions) {
+    const { filePaths } = await dialog.showOpenDialog(this.window, options)
+
+    if (filePaths.length === 0) {
+      return null
+    }
+
+    return filePaths[0]
   }
 }

@@ -17,6 +17,7 @@ import { URLActionType } from './parse-app-url'
  * the two over the untyped IPC framework.
  */
 export type RequestChannels = {
+  'select-all-window-contents': () => void
   'update-menu-state': (
     state: Array<{ id: MenuIDs; state: IMenuItemState }>
   ) => void
@@ -54,6 +55,7 @@ export type RequestChannels = {
   ) => void
   focus: () => void
   blur: () => void
+  'move-to-applications-folder': () => void
 }
 
 /**
@@ -69,5 +71,10 @@ export type RequestResponseChannels = {
   'show-contextual-menu': (
     items: ReadonlyArray<ISerializableMenuItem>
   ) => Promise<ReadonlyArray<number> | null>
+  'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>
+  'resolve-proxy': (url: string) => Promise<string>
+  'show-open-dialog': (
+    options: Electron.OpenDialogOptions
+  ) => Promise<string | null>
 }
