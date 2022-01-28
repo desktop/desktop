@@ -321,12 +321,8 @@ export class AppWindow {
    * Method to show the save dialog and return the first file path it returns.
    */
   public async showSaveDialog(options: Electron.SaveDialogOptions) {
-    const { canceled, filePath } = await dialog.showSaveDialog(
-      this.window,
-      options
-    )
-
-    return !canceled ? filePath ?? null : null
+    const { filePath } = await dialog.showSaveDialog(this.window, options)
+    return filePath ?? null
   }
 
   /**
