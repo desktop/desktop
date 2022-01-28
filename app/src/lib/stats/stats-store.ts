@@ -22,8 +22,8 @@ import {
 } from '../local-storage'
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
-import * as remote from '@electron/remote'
-import { Architecture, getArchitecture } from '../get-architecture'
+import { getAppArchitecture } from '../../ui/main-process-proxy'
+import { Architecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'
 
@@ -523,7 +523,7 @@ export class StatsStore implements IStatsStore {
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
-      architecture: getArchitecture(remote.app),
+      architecture: await getAppArchitecture(),
       theme: getPersistedThemeName(),
       selectedTerminalEmulator,
       selectedTextEditor,
