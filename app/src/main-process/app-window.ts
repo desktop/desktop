@@ -330,6 +330,6 @@ export class AppWindow {
    */
   public async showOpenDialog(options: Electron.OpenDialogOptions) {
     const { filePaths } = await dialog.showOpenDialog(this.window, options)
-    return filePaths[0] ?? null
+    return filePaths.length > 0 ? filePaths[0] : null
   }
 }
