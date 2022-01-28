@@ -283,7 +283,10 @@ import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
 import { IRefCheck } from '../ci-checks/ci-checks'
-import { NotificationsStore } from './notifications-store'
+import {
+  NotificationsStore,
+  getNotificationsEnabled,
+} from './notifications-store'
 import * as ipcRenderer from '../ipc-renderer'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -859,7 +862,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
-      notificationsEnabled: this.notificationsStore.getNotificationsEnabled(),
+      notificationsEnabled: getNotificationsEnabled(),
     }
   }
 

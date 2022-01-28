@@ -40,6 +40,11 @@ type OnChecksFailedCallback = (
  */
 const NotificationsEnabledKey = 'high-signal-notifications-enabled'
 
+/** Whether or not the user has enabled high-signal notifications */
+export function getNotificationsEnabled() {
+  return getBoolean(NotificationsEnabledKey, true)
+}
+
 /**
  * This class manages the coordination between Alive events and actual OS-level
  * notifications.
@@ -56,7 +61,7 @@ export class NotificationsStore {
     private readonly pullRequestCoordinator: PullRequestCoordinator,
     private readonly statsStore: StatsStore
   ) {
-    this.aliveStore.setEnabled(this.getNotificationsEnabled())
+    this.aliveStore.setEnabled(getNotificationsEnabled())
     this.aliveStore.onAliveEventReceived(this.onAliveEventReceived)
   }
 
@@ -70,10 +75,6 @@ export class NotificationsStore {
 
     setBoolean(NotificationsEnabledKey, enabled)
     this.aliveStore.setEnabled(enabled)
-  }
-
-  public getNotificationsEnabled() {
-    return getBoolean(NotificationsEnabledKey, true)
   }
 
   private onAliveEventReceived = async (e: DesktopAliveEvent) => {

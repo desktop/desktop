@@ -25,6 +25,7 @@ import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 import { remote } from 'electron'
 import { Architecture, getArchitecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
+import { getNotificationsEnabled } from '../stores/notifications-store'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -351,6 +352,9 @@ interface ICalculatedStats {
    * only relevant on macOS, null will be sent otherwise.
    */
   readonly launchedFromApplicationsFolder: boolean | null
+
+  /** Whether or not the user has enabled high-signal notifications */
+  readonly notificationsEnabled: boolean
 }
 
 type DailyStats = ICalculatedStats &
@@ -530,6 +534,7 @@ export class StatsStore implements IStatsStore {
       theme: getPersistedThemeName(),
       selectedTerminalEmulator,
       selectedTextEditor,
+      notificationsEnabled: getNotificationsEnabled(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
