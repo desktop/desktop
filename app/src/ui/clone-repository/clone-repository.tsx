@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as React from 'react'
 
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { readdir } from 'fs-extra'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'

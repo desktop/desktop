@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import { remote } from 'electron'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
-
 import {
   IAppState,
   RepositorySectionTab,
@@ -57,6 +55,7 @@ import * as OcticonSymbol from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
   sendReady,
+  isInApplicationFolder,
   selectAllWindowContents,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -293,7 +292,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     window.clearInterval(this.updateIntervalHandle)
   }
 
-  private performDeferredLaunchActions() {
+  private async performDeferredLaunchActions() {
     // Loading emoji is super important but maybe less important that loading
     // the app. So defer it until we have some breathing space.
     this.props.appStore.loadEmoji()
@@ -313,7 +312,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (
       __DEV__ === false &&
       this.state.askToMoveToApplicationsFolderSetting &&
-      remote.app.isInApplicationsFolder?.() === false
+      __DARWIN__ &&
+      (await isInApplicationFolder()) === false
     ) {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
