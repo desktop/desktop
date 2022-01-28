@@ -216,14 +216,9 @@ highlighter.module!.rules = [
     include: path.resolve(__dirname, 'src/highlighter'),
     use: [
       {
-        loader: 'awesome-typescript-loader',
+        loader: 'ts-loader',
         options: {
-          useBabel: false,
-          useCache: true,
-          configFileName: path.resolve(
-            __dirname,
-            'src/highlighter/tsconfig.json'
-          ),
+          configFile: path.resolve(__dirname, 'src/highlighter/tsconfig.json'),
         },
       },
     ],
