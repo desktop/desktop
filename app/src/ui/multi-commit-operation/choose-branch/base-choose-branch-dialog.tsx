@@ -79,7 +79,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
   IBaseChooseBranchDialogProps,
   IBaseChooseBranchDialogState
 > {
-  protected abstract start: () => {}
+  protected abstract start: () => void
 
   protected abstract canStart: () => boolean
 
