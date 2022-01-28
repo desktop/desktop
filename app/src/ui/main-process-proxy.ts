@@ -155,6 +155,16 @@ export const restoreWindow = sendProxy('unmaximize-window', 0)
 /** Tell the main process to close the window */
 export const closeWindow = sendProxy('close-window', 0)
 
+/** Tell the main process to get whether the window is maximized */
+export const isWindowMaximized = invokeProxy('is-window-maximized', 0)
+
+/** Tell the main process to get the users system preference for app action on
+ * double click */
+export const getAppleActionOnDoubleClick = invokeProxy(
+  'get-apple-action-on-double-click',
+  0
+)
+
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
  * given message.

@@ -1,11 +1,17 @@
 import * as React from 'react'
 import memoizeOne from 'memoize-one'
-import * as remote from '@electron/remote'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
 import { Octicon } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { isMacOSBigSurOrLater } from '../../lib/get-os'
+import {
+  getAppleActionOnDoubleClick,
+  isWindowMaximized,
+  maximizeWindow,
+  minimizeWindow,
+  restoreWindow,
+} from '../main-process-proxy'
 
 /** Get the height (in pixels) of the title bar depending on the platform */
 export function getTitleBarHeight() {
@@ -51,23 +57,19 @@ export class TitleBar extends React.Component<ITitleBarProps> {
     return style
   })
 
-  private onTitlebarDoubleClickDarwin = () => {
-    const actionOnDoubleClick = remote.systemPreferences.getUserDefault(
-      'AppleActionOnDoubleClick',
-      'string'
-    )
-    const mainWindow = remote.getCurrentWindow()
+  private onTitlebarDoubleClickDarwin = async () => {
+    const actionOnDoubleClick = await getAppleActionOnDoubleClick()
 
     switch (actionOnDoubleClick) {
       case 'Maximize':
-        if (mainWindow.isMaximized()) {
-          mainWindow.unmaximize()
+        if (await isWindowMaximized()) {
+          restoreWindow()
         } else {
-          mainWindow.maximize()
+          maximizeWindow()
         }
         break
       case 'Minimize':
-        mainWindow.minimize()
+        minimizeWindow()
         break
     }
   }

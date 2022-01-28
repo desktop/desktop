@@ -1,6 +1,13 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, BrowserWindow, shell, session } from 'electron'
+import {
+  app,
+  Menu,
+  BrowserWindow,
+  shell,
+  session,
+  systemPreferences,
+} from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
 
@@ -470,6 +477,15 @@ app.on('ready', () => {
   ipcMain.on('unmaximize-window', () => mainWindow?.unmaximizeWindow())
 
   ipcMain.on('close-window', () => mainWindow?.closeWindow())
+
+  ipcMain.handle(
+    'is-window-maximized',
+    async () => mainWindow?.isMaximized() ?? false
+  )
+
+  ipcMain.handle('get-apple-action-on-double-click', async () =>
+    systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+  )
 
   ipcMain.handle('get-current-window-state', async () =>
     mainWindow?.getCurrentWindowState()
