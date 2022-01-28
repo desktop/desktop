@@ -42,21 +42,6 @@ declare const __UPDATES_URL__: string
 declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'highlighter'
 
 /**
- * The IdleDeadline interface is used as the data type of the input parameter to
- * idle callbacks established by calling Window.requestIdleCallback(). It offers
- * a method, timeRemaining(), which lets you determine how much longer the user
- * agent estimates it will remain idle and a property, didTimeout, which lets
- * you determine if your callback is executing because its timeout duration
- * expired.
- *
- * https://developer.mozilla.org/en-US/docs/Web/API/IdleDeadline
- */
-interface IdleDeadline {
-  readonly didTimeout: boolean
-  readonly timeRemaining: () => DOMHighResTimeStamp
-}
-
-/**
  * Contains optional configuration parameters for the requestIdleCallback
  * function.
  *
@@ -206,19 +191,6 @@ declare namespace Electron {
       type: 'string'
     ): AppleActionOnDoubleClickPref
   }
-}
-
-// https://wicg.github.io/ResizeObserver/#resizeobserverentry
-interface IResizeObserverEntry {
-  readonly target: HTMLElement
-  readonly contentRect: ClientRect
-}
-
-declare class ResizeObserver {
-  public constructor(cb: (entries: ReadonlyArray<IResizeObserverEntry>) => void)
-
-  public disconnect(): void
-  public observe(e: HTMLElement): void
 }
 
 declare module 'file-metadata' {
