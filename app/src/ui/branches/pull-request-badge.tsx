@@ -4,6 +4,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { ICombinedRefCheck } from '../../lib/ci-checks/ci-checks'
 import { enableCICheckRuns } from '../../lib/feature-flag'
+import { getPullRequestCommitRef } from '../../models/pull-request'
 
 interface IPullRequestBadgeProps {
   /** The pull request's number. */
@@ -75,7 +76,7 @@ export class PullRequestBadge extends React.Component<
   }
 
   public render() {
-    const ref = `refs/pull/${this.props.number}/head`
+    const ref = getPullRequestCommitRef(this.props.number)
     return (
       <div className="pr-badge" onClick={this.onBadgeClick} ref={this.onRef}>
         <span className="number">#{this.props.number}</span>
