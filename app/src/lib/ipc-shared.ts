@@ -9,6 +9,7 @@ import { WindowState } from './window-state'
 import { IMenu } from '../models/app-menu'
 import { ILaunchStats } from './stats'
 import { URLActionType } from './parse-app-url'
+import { EndpointToken } from './endpoint-token'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -55,6 +56,18 @@ export type RequestChannels = {
   ) => void
   focus: () => void
   blur: () => void
+  'update-accounts': (accounts: ReadonlyArray<EndpointToken>) => void
+  'quit-and-install-updates': () => void
+  'minimize-window': () => void
+  'maximize-window': () => void
+  'unmaximize-window': () => void
+  'close-window': () => void
+  'auto-updater-error': (error: Error) => void
+  'auto-updater-checking-for-update': () => void
+  'auto-updater-update-available': () => void
+  'auto-updater-update-not-available': () => void
+  'auto-updater-update-downloaded': () => void
+  'native-theme-updated': () => void
   'move-to-applications-folder': () => void
 }
 
@@ -73,6 +86,10 @@ export type RequestResponseChannels = {
   ) => Promise<ReadonlyArray<number> | null>
   'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>
+  'is-in-application-folder': () => Promise<boolean | null>
+  'check-for-updates': (url: string) => Promise<Error | undefined>
+  'get-current-window-state': () => Promise<WindowState | undefined>
+  'get-current-window-zoom-factor': () => Promise<number | undefined>
   'resolve-proxy': (url: string) => Promise<string>
   'show-save-dialog': (
     options: Electron.SaveDialogOptions

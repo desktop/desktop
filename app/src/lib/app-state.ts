@@ -100,7 +100,7 @@ export interface IAppState {
   /**
    * The current state of the window, ie maximized, minimized full-screen etc.
    */
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 
   /**
    * The current zoom factor of the window represented as a fractional number
