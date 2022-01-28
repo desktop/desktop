@@ -411,6 +411,11 @@ export const resolveProxy = invokeProxy('resolve-proxy', 1)
 export const isInApplicationFolder = invokeProxy('is-in-application-folder', 0)
 
 /**
+ * Tell the main process to show save dialog
+ */
+export const showSaveDialog = invokeProxy('show-save-dialog', 1)
+
+/**
  * Tell the main process to show open dialog
  */
 export const showOpenDialog = invokeProxy('show-open-dialog', 1)

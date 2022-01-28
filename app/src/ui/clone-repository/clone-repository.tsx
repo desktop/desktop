@@ -1,7 +1,5 @@
 import * as Path from 'path'
 import * as React from 'react'
-
-import * as remote from '@electron/remote'
 import { readdir } from 'fs-extra'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
@@ -25,7 +23,7 @@ import { merge } from '../../lib/merge'
 import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { enableSaveDialogOnCloneRepository } from '../../lib/feature-flag'
-import { showOpenDialog } from '../main-process-proxy'
+import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -536,10 +534,9 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseWithSaveDialog = async (): Promise<string | undefined> => {
-    const window = remote.getCurrentWindow()
     const tabState = this.getSelectedTabState()
 
-    const { canceled, filePath } = await remote.dialog.showSaveDialog(window, {
+    const path = await showSaveDialog({
       buttonLabel: 'Select',
       nameFieldLabel: 'Clone As:',
       showsTagField: false,
@@ -547,13 +544,13 @@ export class CloneRepository extends React.Component<
       properties: ['createDirectory'],
     })
 
-    if (canceled || filePath == null) {
+    if (path == null) {
       return
     }
 
-    this.setSelectedTabState({ path: filePath, error: null }, this.validatePath)
+    this.setSelectedTabState({ path, error: null }, this.validatePath)
 
-    return filePath
+    return path
   }
 
   private updateUrl = async (url: string) => {
