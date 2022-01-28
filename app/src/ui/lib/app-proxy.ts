@@ -1,8 +1,6 @@
 import * as remote from '@electron/remote'
 
 let app: Electron.App | null = null
-let version: string | null = null
-let name: string | null = null
 let path: string | null = null
 let userDataPath: string | null = null
 let documentsPath: string | null = null
@@ -21,24 +19,14 @@ function getApp(): Electron.App {
  * This is preferable to using `remote` directly because we cache the result.
  */
 export function getVersion(): string {
-  if (!version) {
-    version = getApp().getVersion()
-  }
-
-  return version
+  return __APP_VERSION__
 }
 
 /**
  * Get the name of the app.
- *
- * This is preferable to using `remote` directly because we cache the result.
  */
 export function getName(): string {
-  if (!name) {
-    name = getApp().getName()
-  }
-
-  return name
+  return __APP_NAME__
 }
 
 /**
