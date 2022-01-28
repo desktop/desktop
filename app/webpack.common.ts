@@ -33,11 +33,7 @@ const commonConfig: webpack.Configuration = {
         include: path.resolve(__dirname, 'src'),
         use: [
           {
-            loader: 'awesome-typescript-loader',
-            options: {
-              useBabel: false,
-              useCache: true,
-            },
+            loader: 'ts-loader',
           },
         ],
         exclude: /node_modules/,
