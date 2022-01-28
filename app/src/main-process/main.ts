@@ -552,11 +552,9 @@ app.on('ready', () => {
    * Note: This will return null when not running on Darwin
    */
   ipcMain.handle('is-in-application-folder', async () => {
-    if (app.isInApplicationsFolder === undefined) {
-      return null
-    }
-
-    return app.isInApplicationsFolder()
+    // Contrary to what the types tell you the `isInApplicationsFolder` will be undefined
+    // when not on macOS
+    return app.isInApplicationsFolder?.() ?? null
   })
 
   /**
