@@ -16,6 +16,7 @@
     "strict": true,
     "noEmit": true,
     "outDir": "./out",
+    "useUnknownInCatchVariables": false
   },
   "plugins": [
     {
