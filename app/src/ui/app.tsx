@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
-
 import {
   IAppState,
   RepositorySectionTab,

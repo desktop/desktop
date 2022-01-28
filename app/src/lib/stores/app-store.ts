@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import { remote } from 'electron'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
@@ -75,6 +74,8 @@ import {
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
+  getCurrentWindowState,
+  getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
 } from '../../ui/main-process-proxy'
 import {
@@ -183,7 +184,7 @@ import {
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
-import { getWindowState, WindowState } from '../window-state'
+import { WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -403,7 +404,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
 
-  private windowState: WindowState
+  private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
@@ -501,16 +502,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       error => this.emitError(error)
     )
 
-    const browserWindow = remote.getCurrentWindow()
-    this.windowState = getWindowState(browserWindow)
-
-    this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
     window.addEventListener('resize', () => {
       this.updateResizableConstraints()
       this.emitUpdate()
     })
 
-    this.wireupIpcEventHandlers(browserWindow)
+    this.initializeWindowState()
+    this.initializeZoomFactor()
+    this.wireupIpcEventHandlers()
     this.wireupStoreEventHandlers()
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
@@ -545,6 +544,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
     )
+  }
+
+  private initializeWindowState = async () => {
+    const currentWindowState = await getCurrentWindowState()
+    if (currentWindowState === undefined) {
+      return
+    }
+
+    this.windowState = currentWindowState
+  }
+
+  private initializeZoomFactor = async () => {
+    const zoomFactor = await getCurrentWindowZoomFactor()
+    if (zoomFactor === undefined) {
+      return
+    }
+    this.onWindowZoomFactorChanged(zoomFactor)
   }
 
   private onTokenInvalidated = (endpoint: string) => {
@@ -649,7 +665,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.updateCurrentTutorialStep(repository)
   }
 
-  private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
+  private wireupIpcEventHandlers() {
     ipcRenderer.on('window-state-changed', (_, windowState) => {
       this.windowState = windowState
       this.emitUpdate()
