@@ -141,12 +141,6 @@ interface XMLHttpRequest extends XMLHttpRequestEventTarget {
 }
 
 declare namespace Electron {
-  interface RequestOptions {
-    readonly method: string
-    readonly url: string
-    readonly headers: any
-  }
-
   type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
   interface SystemPreferences {

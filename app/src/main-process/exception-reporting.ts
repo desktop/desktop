@@ -35,12 +35,9 @@ export async function reportError(
     }
   }
 
-  const requestOptions: Electron.RequestOptions = {
+  const requestOptions: Electron.ClientRequestConstructorOptions = {
     method: 'POST',
     url: nonFatal ? NonFatalErrorEndpoint : ErrorEndpoint,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
   }
 
   const body = [...data.entries()]
@@ -53,6 +50,7 @@ export async function reportError(
   try {
     await new Promise<void>((resolve, reject) => {
       const request = net.request(requestOptions)
+      request.setHeader('Content-Type', 'application/x-www-form-urlencoded')
 
       request.on('response', response => {
         if (response.statusCode === 200) {
