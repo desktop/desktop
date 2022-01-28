@@ -77,6 +77,11 @@ export function sendWillQuitSync() {
 }
 
 /**
+ * Tell the main process to move the application to the application folder
+ */
+export const moveToApplicationsFolder = sendProxy('move-to-applications-folder')
+
+/**
  * Ask the main-process to send over a copy of the application menu.
  * The response will be send as a separate event with the name 'app-menu' and
  * will be received by the dispatcher.
