@@ -1,7 +1,7 @@
-import { remote } from 'electron'
+import * as remote from '@electron/remote'
+import { ExecutableMenuItem } from '../models/app-menu'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
-import { ExecutableMenuItem } from '../models/app-menu'
 import * as ipcRenderer from '../lib/ipc-renderer'
 
 /**
@@ -55,6 +55,68 @@ export const showItemInFolder = sendProxy('show-item-in-folder')
 export const showFolderContents = sendProxy('show-folder-contents')
 export const openExternal = invokeProxy('open-external')
 export const moveItemToTrash = invokeProxy('move-to-trash')
+
+/** Tell the main process to obtain the current window state */
+export const getCurrentWindowState = invokeProxy('get-current-window-state')
+
+/** Tell the main process to obtain the current window's zoom factor */
+export const getCurrentWindowZoomFactor = invokeProxy(
+  'get-current-window-zoom-factor'
+)
+
+/** Tell the main process to check for app updates */
+export const checkForUpdates = invokeProxy('check-for-updates')
+
+/** Tell the main process to quit the app and install updates */
+export const quitAndInstallUpdate = sendProxy('quit-and-install-updates')
+
+/** Subscribes to auto updater error events originating from the main process */
+export function onAutoUpdaterError(
+  errorHandler: (evt: Electron.IpcRendererEvent, error: Error) => void
+) {
+  ipcRenderer.on('auto-updater-error', errorHandler)
+}
+
+/** Subscribes to auto updater checking for update events originating from the
+ * main process */
+export function onAutoUpdaterCheckingForUpdate(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-checking-for-update', eventHandler)
+}
+
+/** Subscribes to auto updater update available events originating from the
+ * main process */
+export function onAutoUpdaterUpdateAvailable(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-update-available', eventHandler)
+}
+
+/** Subscribes to auto updater update not available events originating from the
+ * main process */
+export function onAutoUpdaterUpdateNotAvailable(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-update-not-available', eventHandler)
+}
+
+/** Subscribes to auto updater update downloaded events originating from the
+ * main process */
+export function onAutoUpdaterUpdateDownloaded(eventHandler: () => void) {
+  ipcRenderer.on('auto-updater-update-downloaded', eventHandler)
+}
+
+/** Subscribes to the native theme updated event originating from the main process */
+export function onNativeThemeUpdated(eventHandler: () => void) {
+  ipcRenderer.on('native-theme-updated', eventHandler)
+}
+
+/** Tell the main process to minimize the window */
+export const minimizeWindow = sendProxy('minimize-window')
+
+/** Tell the main process to maximize the window */
+export const maximizeWindow = sendProxy('maximize-window')
+
+/** Tell the main process to unmaximize the window */
+export const restoreWindow = sendProxy('unmaximize-window')
+
+/** Tell the main process to close the window */
+export const closeWindow = sendProxy('close-window')
 
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
@@ -295,6 +357,14 @@ export function sendErrorReport(
 
 /** Tells the main process to resolve the proxy for a given url */
 export const resolveProxy = invokeProxy('resolve-proxy')
+
+/**
+ * Tell the main process to obtain whether the Desktop application is in the
+ * application folder
+ *
+ * Note: will return null when not running on darwin
+ */
+export const isInApplicationFolder = invokeProxy('is-in-application-folder')
 
 /**
  * Tell the main process to show open dialog

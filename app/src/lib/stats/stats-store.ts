@@ -22,10 +22,10 @@ import {
 } from '../local-storage'
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
-import { remote } from 'electron'
+import { getAppArchitecture } from '../../ui/main-process-proxy'
 import { Architecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
-import { getAppArchitecture } from '../../ui/main-process-proxy'
+import { isInApplicationFolder } from '../../ui/main-process-proxy'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -514,8 +514,9 @@ export class StatsStore implements IStatsStore {
     const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
     // isInApplicationsFolder is undefined when not running on Darwin
-    const launchedFromApplicationsFolder =
-      remote.app.isInApplicationsFolder?.() ?? null
+    const launchedFromApplicationsFolder = __DARWIN__
+      ? await isInApplicationFolder()
+      : null
 
     return {
       eventType: 'usage',
