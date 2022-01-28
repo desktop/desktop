@@ -246,7 +246,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    this.dialogElement.showModal()
+    ;(this.dialogElement as any).showModal()
 
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
