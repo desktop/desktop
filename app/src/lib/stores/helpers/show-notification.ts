@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import { focusWindow } from '../../../ui/main-process-proxy'
 
 /**
  * Shows a notification with a title, a body, and a function to handle when the
@@ -14,7 +14,7 @@ export function showNotification(
   })
 
   notification.onclick = () => {
-    remote.getCurrentWindow().focus()
+    focusWindow()
     onClick()
   }
 }

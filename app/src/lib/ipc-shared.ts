@@ -56,6 +56,7 @@ export type RequestChannels = {
   focus: () => void
   blur: () => void
   'move-to-applications-folder': () => void
+  'focus-window': () => void
 }
 
 /**

@@ -51,6 +51,9 @@ export const executeMenuItemById = sendProxy('execute-menu-item-by-id')
  */
 export const isWindowFocused = invokeProxy('is-window-focused')
 
+/** Tell the main process to focus on the main window. */
+export const focusWindow = sendProxy('focus-window')
+
 export const showItemInFolder = sendProxy('show-item-in-folder')
 export const showFolderContents = sendProxy('show-folder-contents')
 export const openExternal = invokeProxy('open-external')

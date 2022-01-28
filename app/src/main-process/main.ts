@@ -579,6 +579,11 @@ app.on('ready', () => {
     'is-window-focused',
     async () => mainWindow?.isFocused() ?? false
   )
+
+  /** An event sent by the renderer asking to focus the main window. */
+  ipcMain.on('focus-window', () => {
+    mainWindow?.focus()
+  })
 })
 
 app.on('activate', () => {
