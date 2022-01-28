@@ -271,11 +271,6 @@ export class PullRequestChecksFailed extends React.Component<
   }
 
   private rerunChecks = () => {
-    this.props.dispatcher.rerequestCheckSuites(
-      this.props.repository.gitHubRepository,
-      this.state.checks
-    )
-
     const prRef = getPullRequestCommitRef(
       this.props.pullRequest.pullRequestNumber
     )
