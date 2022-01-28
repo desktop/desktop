@@ -231,3 +231,7 @@ declare module 'file-metadata' {
 interface Window {
   Element: typeof Element
 }
+
+interface HTMLDialogElement {
+  showModal: () => void
+}
