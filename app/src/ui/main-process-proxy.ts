@@ -164,7 +164,7 @@ export const showCertificateTrustDialog = sendProxy(
 /**
  * Tell the main process to obtain the applications architecture
  */
-export const getAppArchitecture = invokeProxy('get-app-architecture')
+export const getAppArchitecture = invokeProxy('get-app-architecture', 0)
 
 /**
  * Tell the main process that we're going to quit. This means it should allow
