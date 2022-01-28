@@ -354,6 +354,14 @@ export function sendErrorReport(
 export const resolveProxy = invokeProxy('resolve-proxy')
 
 /**
+ * Tell the main process to obtain whether the Desktop application is in the
+ * application folder
+ *
+ * Note: will return null when not running on darwin
+ */
+export const isInApplicationFolder = invokeProxy('is-in-application-folder')
+
+/**
  * Tell the main process to show open dialog
  */
 export const showOpenDialog = invokeProxy('show-open-dialog')

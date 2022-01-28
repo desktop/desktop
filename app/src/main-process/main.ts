@@ -572,6 +572,18 @@ app.on('ready', () => {
   )
 
   /**
+   * An event sent by the renderer asking whether the Desktop is in the
+   * applications folder
+   *
+   * Note: This will return null when not running on Darwin
+   */
+  ipcMain.handle('is-in-application-folder', async () => {
+    // Contrary to what the types tell you the `isInApplicationsFolder` will be undefined
+    // when not on macOS
+    return app.isInApplicationsFolder?.() ?? null
+  })
+
+  /**
    * Handle action to resolve proxy
    */
   ipcMain.handle('resolve-proxy', async (_, url: string) => {
