@@ -10,6 +10,7 @@ import { IMenu } from '../models/app-menu'
 import { ILaunchStats } from './stats'
 import { URLActionType } from './parse-app-url'
 import { Architecture } from './get-architecture'
+import { EndpointToken } from './endpoint-token'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -56,6 +57,7 @@ export type RequestChannels = {
   ) => void
   focus: () => void
   blur: () => void
+  'update-accounts': (accounts: ReadonlyArray<EndpointToken>) => void
   'quit-and-install-updates': () => void
   'minimize-window': () => void
   'maximize-window': () => void

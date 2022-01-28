@@ -23,7 +23,10 @@ import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
-import { installWebRequestFilters } from './install-web-request-filters'
+import { OrderedWebRequest } from './ordered-webrequest'
+import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
+import { installAliveOriginFilter } from './alive-origin-filter'
+import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
 import { getArchitecture } from '../lib/get-architecture'
 import * as remoteMain from '@electron/remote/main'
@@ -280,9 +283,19 @@ app.on('ready', () => {
 
   createWindow()
 
+  const orderedWebRequest = new OrderedWebRequest(
+    session.defaultSession.webRequest
+  )
+
   // Ensures auth-related headers won't traverse http redirects to hosts
   // on different origins than the originating request.
-  installWebRequestFilters(session.defaultSession.webRequest)
+  installSameOriginFilter(orderedWebRequest)
+
+  // Ensures Alive websocket sessions are initiated with an acceptable Origin
+  installAliveOriginFilter(orderedWebRequest)
+
+  // Adds an authorization header for requests of avatars on GHES
+  const updateAccounts = installAuthenticatedAvatarFilter(orderedWebRequest)
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -292,6 +305,8 @@ app.on('ready', () => {
       askForConfirmationOnForcePush: false,
     })
   )
+
+  ipcMain.on('update-accounts', (_, accounts) => updateAccounts(accounts))
 
   ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {
     // The current application menu is mutable and we frequently
