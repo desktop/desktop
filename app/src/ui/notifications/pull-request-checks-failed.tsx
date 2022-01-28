@@ -271,6 +271,8 @@ export class PullRequestChecksFailed extends React.Component<
   }
 
   private rerunChecks = () => {
+    this.props.dispatcher.recordChecksFailedDialogSwitchToPullRequest()
+
     const prRef = getPullRequestCommitRef(
       this.props.pullRequest.pullRequestNumber
     )

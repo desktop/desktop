@@ -286,7 +286,10 @@ import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
 import { EndpointToken } from '../endpoint-token'
 import { IRefCheck } from '../ci-checks/ci-checks'
-import { NotificationsStore } from './notifications-store'
+import {
+  NotificationsStore,
+  getNotificationsEnabled,
+} from './notifications-store'
 import * as ipcRenderer from '../ipc-renderer'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -883,7 +886,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
-      notificationsEnabled: this.notificationsStore.getNotificationsEnabled(),
+      notificationsEnabled: getNotificationsEnabled(),
     }
   }
 
@@ -6890,6 +6893,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedRepository === null ||
       selectedRepository.hash !== repository.hash
     ) {
+      this.statsStore.recordChecksFailedDialogOpen()
       return this._showPopup(popup)
     }
 
@@ -6903,10 +6907,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If it's the same branch, just show the existing CI check run popover
       this._setShowCIStatusPopover(true)
     } else {
+      this.statsStore.recordChecksFailedDialogOpen()
+
       // If there is no current branch or it's different than the PR branch,
       // show the checks failed dialog, but it won't offer to switch to the
       // repository.
-      this._showPopup({
+      return this._showPopup({
         ...popup,
         needsSelectRepository: false,
       })
