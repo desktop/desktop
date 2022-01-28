@@ -1,5 +1,6 @@
 import { GitHubRepository } from './github-repository'
 
+/** Returns the commit ref for a given pull request number. */
 export function getPullRequestCommitRef(pullRequestNumber: number) {
   return `refs/pull/${pullRequestNumber}/head`
 }
