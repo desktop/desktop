@@ -116,9 +116,6 @@ declare const log: IDesktopLogger
 
 declare namespace NodeJS {
   interface Process extends EventEmitter {
-    once(event: 'exit', listener: Function): this
-    once(event: 'uncaughtException', listener: (error: Error) => void): this
-    on(event: 'uncaughtException', listener: (error: Error) => void): this
     on(
       event: 'send-non-fatal-exception',
       listener: (error: Error, context?: { [key: string]: string }) => void
@@ -128,16 +125,7 @@ declare namespace NodeJS {
       error: Error,
       context?: { [key: string]: string }
     ): this
-    removeListener(event: 'exit', listener: Function): this
   }
-}
-
-interface XMLHttpRequest extends XMLHttpRequestEventTarget {
-  /**
-   * Initiates the request. The optional argument provides the request body. The argument is ignored if request method is GET or HEAD.
-   * Throws an "InvalidStateError" DOMException if either state is not opened or the send() flag is set.
-   */
-  send(body?: Document | BodyInit | null): void
 }
 
 declare namespace Electron {
