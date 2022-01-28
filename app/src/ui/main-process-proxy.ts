@@ -405,7 +405,7 @@ export const isInApplicationFolder = invokeProxy('is-in-application-folder', 0)
 /**
  * Tell the main process to show save dialog
  */
-export const showSaveDialog = invokeProxy('show-save-dialog')
+export const showSaveDialog = invokeProxy('show-save-dialog', 1)
 
 /**
  * Tell the main process to show open dialog
