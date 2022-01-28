@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import * as remote from '@electron/remote'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -56,6 +55,7 @@ import * as OcticonSymbol from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
   sendReady,
+  isInApplicationFolder,
   selectAllWindowContents,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -149,6 +149,7 @@ import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 import { clamp } from '../lib/clamp'
 import * as ipcRenderer from '../lib/ipc-renderer'
+import { showNotification } from '../lib/stores/helpers/show-notification'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -291,7 +292,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     window.clearInterval(this.updateIntervalHandle)
   }
 
-  private performDeferredLaunchActions() {
+  private async performDeferredLaunchActions() {
     // Loading emoji is super important but maybe less important that loading
     // the app. So defer it until we have some breathing space.
     this.props.appStore.loadEmoji()
@@ -311,7 +312,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (
       __DEV__ === false &&
       this.state.askToMoveToApplicationsFolderSetting &&
-      remote.app.isInApplicationsFolder?.() === false
+      __DARWIN__ &&
+      (await isInApplicationFolder()) === false
     ) {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
@@ -406,6 +408,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showStashedChanges()
       case 'hide-stashed-changes':
         return this.hideStashedChanges()
+      case 'test-show-notification':
+        return this.testShowNotification()
       case 'test-prune-branches':
         return this.testPruneBranches()
       case 'find-text':
@@ -474,6 +478,18 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
       })
     }
+  }
+
+  private testShowNotification() {
+    if (!__DEV__) {
+      return
+    }
+
+    showNotification(
+      'Test notification',
+      'Click here! This is a test notification',
+      () => this.props.dispatcher.showPopup({ type: PopupType.About })
+    )
   }
 
   private testPruneBranches() {

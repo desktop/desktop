@@ -23,7 +23,10 @@ import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
-import { installWebRequestFilters } from './install-web-request-filters'
+import { OrderedWebRequest } from './ordered-webrequest'
+import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
+import { installAliveOriginFilter } from './alive-origin-filter'
+import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
 import * as remoteMain from '@electron/remote/main'
 remoteMain.initialize()
@@ -89,6 +92,12 @@ if (__DARWIN__) {
   possibleProtocols.add('github-mac')
 } else if (__WIN32__) {
   possibleProtocols.add('github-windows')
+}
+
+// On Windows, in order to get notifications properly working for dev builds,
+// we'll want to set the right App User Model ID from production builds.
+if (__WIN32__ && __DEV__) {
+  app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktop')
 }
 
 app.on('window-all-closed', () => {
@@ -279,9 +288,19 @@ app.on('ready', () => {
 
   createWindow()
 
+  const orderedWebRequest = new OrderedWebRequest(
+    session.defaultSession.webRequest
+  )
+
   // Ensures auth-related headers won't traverse http redirects to hosts
   // on different origins than the originating request.
-  installWebRequestFilters(session.defaultSession.webRequest)
+  installSameOriginFilter(orderedWebRequest)
+
+  // Ensures Alive websocket sessions are initiated with an acceptable Origin
+  installAliveOriginFilter(orderedWebRequest)
+
+  // Adds an authorization header for requests of avatars on GHES
+  const updateAccounts = installAuthenticatedAvatarFilter(orderedWebRequest)
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -291,6 +310,8 @@ app.on('ready', () => {
       askForConfirmationOnForcePush: false,
     })
   )
+
+  ipcMain.on('update-accounts', (_, accounts) => updateAccounts(accounts))
 
   ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {
     // The current application menu is mutable and we frequently
@@ -572,6 +593,18 @@ app.on('ready', () => {
   )
 
   /**
+   * An event sent by the renderer asking whether the Desktop is in the
+   * applications folder
+   *
+   * Note: This will return null when not running on Darwin
+   */
+  ipcMain.handle('is-in-application-folder', async () => {
+    // Contrary to what the types tell you the `isInApplicationsFolder` will be undefined
+    // when not on macOS
+    return app.isInApplicationsFolder?.() ?? null
+  })
+
+  /**
    * Handle action to resolve proxy
    */
   ipcMain.handle('resolve-proxy', async (_, url: string) => {
@@ -599,6 +632,11 @@ app.on('ready', () => {
     'is-window-focused',
     async () => mainWindow?.isFocused() ?? false
   )
+
+  /** An event sent by the renderer asking to focus the main window. */
+  ipcMain.on('focus-window', () => {
+    mainWindow?.focus()
+  })
 })
 
 app.on('activate', () => {
