@@ -61,7 +61,10 @@ export function sendProxy<T extends keyof RequestChannels>(
 /**
  * Tell the main process to select all of the current web contents
  */
-export const selectAllWindowContents = sendProxy('select-all-window-contents')
+export const selectAllWindowContents = sendProxy(
+  'select-all-window-contents',
+  0
+)
 
 /** Set the menu item's enabledness. */
 export const updateMenuState = sendProxy('update-menu-state', 1)
@@ -87,18 +90,19 @@ export const openExternal = invokeProxy('open-external', 1)
 export const moveItemToTrash = invokeProxy('move-to-trash', 1)
 
 /** Tell the main process to obtain the current window state */
-export const getCurrentWindowState = invokeProxy('get-current-window-state')
+export const getCurrentWindowState = invokeProxy('get-current-window-state', 0)
 
 /** Tell the main process to obtain the current window's zoom factor */
 export const getCurrentWindowZoomFactor = invokeProxy(
-  'get-current-window-zoom-factor'
+  'get-current-window-zoom-factor',
+  0
 )
 
 /** Tell the main process to check for app updates */
-export const checkForUpdates = invokeProxy('check-for-updates')
+export const checkForUpdates = invokeProxy('check-for-updates', 1)
 
 /** Tell the main process to quit the app and install updates */
-export const quitAndInstallUpdate = sendProxy('quit-and-install-updates')
+export const quitAndInstallUpdate = sendProxy('quit-and-install-updates', 0)
 
 /** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
@@ -137,16 +141,16 @@ export function onNativeThemeUpdated(eventHandler: () => void) {
 }
 
 /** Tell the main process to minimize the window */
-export const minimizeWindow = sendProxy('minimize-window')
+export const minimizeWindow = sendProxy('minimize-window', 0)
 
 /** Tell the main process to maximize the window */
-export const maximizeWindow = sendProxy('maximize-window')
+export const maximizeWindow = sendProxy('maximize-window', 0)
 
 /** Tell the main process to unmaximize the window */
-export const restoreWindow = sendProxy('unmaximize-window')
+export const restoreWindow = sendProxy('unmaximize-window', 0)
 
 /** Tell the main process to close the window */
-export const closeWindow = sendProxy('close-window')
+export const closeWindow = sendProxy('close-window', 0)
 
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
@@ -172,7 +176,10 @@ export function sendWillQuitSync() {
 /**
  * Tell the main process to move the application to the application folder
  */
-export const moveToApplicationsFolder = sendProxy('move-to-applications-folder')
+export const moveToApplicationsFolder = sendProxy(
+  'move-to-applications-folder',
+  0
+)
 
 /**
  * Ask the main-process to send over a copy of the application menu.
@@ -391,7 +398,7 @@ export const resolveProxy = invokeProxy('resolve-proxy', 1)
  *
  * Note: will return null when not running on darwin
  */
-export const isInApplicationFolder = invokeProxy('is-in-application-folder')
+export const isInApplicationFolder = invokeProxy('is-in-application-folder', 0)
 
 /**
  * Tell the main process to show open dialog
