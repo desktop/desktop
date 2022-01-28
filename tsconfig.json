@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2017",
+    "target": "es2020",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,
@@ -16,7 +16,6 @@
     "strict": true,
     "noEmit": true,
     "outDir": "./out",
-    "lib": ["ES2017", "DOM", "DOM.Iterable", "ES2018.Promise", "ES2020.string"]
   },
   "plugins": [
     {
