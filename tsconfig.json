@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2020",
+    "target": "es2017",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,
@@ -15,6 +15,7 @@
     "jsx": "react",
     "strict": true,
     "outDir": "./out",
+    "lib": ["ES2017", "DOM", "DOM.Iterable", "ES2018.Promise", "ES2020.string"],
     "useUnknownInCatchVariables": false
   },
   "plugins": [
