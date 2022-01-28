@@ -41,42 +41,6 @@ declare const __UPDATES_URL__: string
  */
 declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'highlighter'
 
-/**
- * Contains optional configuration parameters for the requestIdleCallback
- * function.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
- */
-interface IdleCallbackOptions {
-  /**
-   * If timeout is specified and has a positive value, and the callback has not
-   * already been called by the time timeout milliseconds have passed, the
-   * timeout will be called during the next idle period, even if doing so risks
-   * causing a negative performance impact..
-   */
-  readonly timeout: number
-}
-
-/**
- * The window.requestIdleCallback() method queues a function to be called during
- * a browser's idle periods. This enables developers to perform background and
- * low priority work on the main event loop, without impacting latency-critical
- * events such as animation and input response. Functions are generally called
- * in first-in-first-out order; however, callbacks which have a timeout
- * specified may be called out-of-order if necessary in order to run them before
- * the timeout elapses.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
- *
- * @param options Contains optional configuration parameters. Currently only one
- *                property is defined:
- *                  timeout:
- */
-declare function requestIdleCallback(
-  fn: (deadline: IdleDeadline) => void,
-  options?: IdleCallbackOptions
-): number
-
 interface IDesktopLogger {
   /**
    * Writes a log message at the 'error' level.
