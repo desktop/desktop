@@ -1,5 +1,9 @@
 import { GitHubRepository } from './github-repository'
 
+export function getPullRequestCommitRef(pullRequestNumber: number) {
+  return `refs/pull/${pullRequestNumber}/head`
+}
+
 export class PullRequestRef {
   /**
    * @param ref The name of the ref.

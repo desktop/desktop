@@ -10,6 +10,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DropTargetType } from '../../models/drag-drop'
+import { getPullRequestCommitRef } from '../../models/pull-request'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -155,7 +156,7 @@ export class PullRequestListItem extends React.Component<
   }
 
   private renderPullRequestStatus() {
-    const ref = `refs/pull/${this.props.number}/head`
+    const ref = getPullRequestCommitRef(this.props.number)
     return (
       <div className="ci-status-container">
         <CIStatus
