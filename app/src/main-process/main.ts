@@ -23,8 +23,14 @@ import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
 import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
-import { installWebRequestFilters } from './install-web-request-filters'
+import { OrderedWebRequest } from './ordered-webrequest'
+import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
+import { installAliveOriginFilter } from './alive-origin-filter'
+import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
+import { getArchitecture } from '../lib/get-architecture'
+import * as remoteMain from '@electron/remote/main'
+remoteMain.initialize()
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -87,6 +93,12 @@ if (__DARWIN__) {
   possibleProtocols.add('github-mac')
 } else if (__WIN32__) {
   possibleProtocols.add('github-windows')
+}
+
+// On Windows, in order to get notifications properly working for dev builds,
+// we'll want to set the right App User Model ID from production builds.
+if (__WIN32__ && __DEV__) {
+  app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktop')
 }
 
 app.on('window-all-closed', () => {
@@ -277,9 +289,19 @@ app.on('ready', () => {
 
   createWindow()
 
+  const orderedWebRequest = new OrderedWebRequest(
+    session.defaultSession.webRequest
+  )
+
   // Ensures auth-related headers won't traverse http redirects to hosts
   // on different origins than the originating request.
-  installWebRequestFilters(session.defaultSession.webRequest)
+  installSameOriginFilter(orderedWebRequest)
+
+  // Ensures Alive websocket sessions are initiated with an acceptable Origin
+  installAliveOriginFilter(orderedWebRequest)
+
+  // Adds an authorization header for requests of avatars on GHES
+  const updateAccounts = installAuthenticatedAvatarFilter(orderedWebRequest)
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -289,6 +311,8 @@ app.on('ready', () => {
       askForConfirmationOnForcePush: false,
     })
   )
+
+  ipcMain.on('update-accounts', (_, accounts) => updateAccounts(accounts))
 
   ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {
     // The current application menu is mutable and we frequently
@@ -431,6 +455,30 @@ app.on('ready', () => {
     })
   })
 
+  ipcMain.handle('check-for-updates', async (_, url) =>
+    mainWindow?.checkForUpdates(url)
+  )
+
+  ipcMain.on('quit-and-install-updates', () =>
+    mainWindow?.quitAndInstallUpdate()
+  )
+
+  ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
+
+  ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())
+
+  ipcMain.on('unmaximize-window', () => mainWindow?.unmaximizeWindow())
+
+  ipcMain.on('close-window', () => mainWindow?.closeWindow())
+
+  ipcMain.handle('get-current-window-state', async () =>
+    mainWindow?.getCurrentWindowState()
+  )
+
+  ipcMain.handle('get-current-window-zoom-factor', async () =>
+    mainWindow?.getCurrentWindowZoomFactor()
+  )
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
@@ -470,6 +518,19 @@ app.on('ready', () => {
       log.error(`Call to openExternal failed: '${e}'`)
       return false
     }
+  })
+
+  /**
+   * An event sent by the renderer asking for the app's architecture
+   */
+  ipcMain.handle('get-app-architecture', async () => getArchitecture(app))
+
+  /**
+   * An event sent by the renderer asking to move the app to the application
+   * folder
+   */
+  ipcMain.on('move-to-applications-folder', () => {
+    app.moveToApplicationsFolder?.()
   })
 
   ipcMain.handle('move-to-trash', (_, path) => shell.trashItem(path))
@@ -532,6 +593,23 @@ app.on('ready', () => {
     }
   })
 
+  /** An event sent by the renderer asking to select all of the window's contents */
+  ipcMain.on('select-all-window-contents', () =>
+    mainWindow?.selectAllWindowContents()
+  )
+
+  /**
+   * An event sent by the renderer asking whether the Desktop is in the
+   * applications folder
+   *
+   * Note: This will return null when not running on Darwin
+   */
+  ipcMain.handle('is-in-application-folder', async () => {
+    // Contrary to what the types tell you the `isInApplicationsFolder` will be undefined
+    // when not on macOS
+    return app.isInApplicationsFolder?.() ?? null
+  })
+
   /**
    * Handle action to resolve proxy
    */
@@ -540,18 +618,35 @@ app.on('ready', () => {
   })
 
   /**
+   * An event sent by the renderer asking to show the save dialog
+   *
+   * Returns null if filepath is undefined or if dialog is canceled.
+   */
+  ipcMain.handle(
+    'show-save-dialog',
+    async (_, options) => mainWindow?.showSaveDialog(options) ?? null
+  )
+
+  /**
    * An event sent by the renderer asking to show the open dialog
    */
   ipcMain.handle(
     'show-open-dialog',
-    async (_, options: Electron.OpenDialogOptions) => {
-      if (mainWindow === null) {
-        return null
-      }
-
-      return mainWindow.showOpenDialog(options)
-    }
+    async (_, options) => mainWindow?.showOpenDialog(options) ?? null
   )
+
+  /**
+   * An event sent by the renderer asking obtain whether the window is focused
+   */
+  ipcMain.handle(
+    'is-window-focused',
+    async () => mainWindow?.isFocused() ?? false
+  )
+
+  /** An event sent by the renderer asking to focus the main window. */
+  ipcMain.on('focus-window', () => {
+    mainWindow?.focus()
+  })
 })
 
 app.on('activate', () => {

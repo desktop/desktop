@@ -82,10 +82,13 @@ describe('AppStore', () => {
 
     const aliveStore = new AliveStore(accountsStore)
 
+    const statsStore = new StatsStore(statsDb, new TestActivityMonitor())
+
     const notificationsStore = new NotificationsStore(
       accountsStore,
       aliveStore,
-      pullRequestCoordinator
+      pullRequestCoordinator,
+      statsStore
     )
     notificationsStore.setNotificationsEnabled(false)
 
@@ -93,7 +96,7 @@ describe('AppStore', () => {
       githubUserStore,
       new CloningRepositoriesStore(),
       new IssuesStore(issuesDb),
-      new StatsStore(statsDb, new TestActivityMonitor()),
+      statsStore,
       new SignInStore(),
       accountsStore,
       repositoriesStore,

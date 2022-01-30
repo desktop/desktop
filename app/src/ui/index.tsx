@@ -3,11 +3,7 @@ import '../lib/logging/renderer/install'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
-
 import * as moment from 'moment'
-
-import { remote } from 'electron'
-
 import { App } from './app'
 import {
   Dispatcher,
@@ -180,7 +176,7 @@ const sendErrorWithContext = (
         }
 
         extra.repositoryCount = `${currentState.repositories.length}`
-        extra.windowState = currentState.windowState
+        extra.windowState = currentState.windowState ?? 'Unknown'
         extra.accounts = `${currentState.accounts.length}`
 
         extra.automaticallySwitchTheme = `${
@@ -265,7 +261,8 @@ const aliveStore = new AliveStore(accountsStore)
 const notificationsStore = new NotificationsStore(
   accountsStore,
   aliveStore,
-  pullRequestCoordinator
+  pullRequestCoordinator,
+  statsStore
 )
 
 const appStore = new AppStore(
@@ -311,7 +308,7 @@ dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
 document.body.classList.add(`platform-${process.platform}`)
 
-dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+dispatcher.initializeAppFocusState()
 
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)

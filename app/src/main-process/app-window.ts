@@ -1,7 +1,17 @@
-import { BrowserWindow, Menu, app, dialog } from 'electron'
+import {
+  Menu,
+  app,
+  dialog,
+  BrowserWindow,
+  autoUpdater,
+  nativeTheme,
+} from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
-import { registerWindowStateChangedEvents } from '../lib/window-state'
+import {
+  getWindowState,
+  registerWindowStateChangedEvents,
+} from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
@@ -9,6 +19,7 @@ import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
+import * as remoteMain from '@electron/remote/main'
 import * as ipcMain from './ipc-main'
 import * as ipcWebContents from './ipc-webcontents'
 
@@ -48,10 +59,8 @@ export class AppWindow {
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
-        enableRemoteModule: true,
         spellcheck: true,
         contextIsolation: false,
-        worldSafeExecuteJavaScript: false,
       },
       acceptFirstMouse: true,
     }
@@ -65,6 +74,8 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+    remoteMain.enable(this.window.webContents)
+
     savedWindowState.manage(this.window)
     this.shouldMaximizeOnShow = savedWindowState.isMaximized
 
@@ -78,23 +89,24 @@ export class AppWindow {
       event.returnValue = true
     })
 
-    // on macOS, when the user closes the window we really just hide it. This
-    // lets us activate quickly and keep all our interesting logic in the
-    // renderer.
-    if (__DARWIN__) {
-      this.window.on('close', e => {
-        if (!quitting) {
-          e.preventDefault()
-          // https://github.com/desktop/desktop/issues/12838
-          if (this.window.isFullScreen()) {
-            this.window.setFullScreen(false)
-            this.window.once('leave-full-screen', () => app.hide())
-          } else {
-            app.hide()
-          }
+    this.window.on('close', e => {
+      // on macOS, when the user closes the window we really just hide it. This
+      // lets us activate quickly and keep all our interesting logic in the
+      // renderer.
+      if (__DARWIN__ && !quitting) {
+        e.preventDefault()
+        // https://github.com/desktop/desktop/issues/12838
+        if (this.window.isFullScreen()) {
+          this.window.setFullScreen(false)
+          this.window.once('leave-full-screen', () => app.hide())
+        } else {
+          app.hide()
         }
-      })
-    }
+        return
+      }
+      nativeTheme.removeAllListeners()
+      autoUpdater.removeAllListeners()
+    })
 
     if (__WIN32__) {
       // workaround for known issue with fullscreen-ing the app and restoring
@@ -169,6 +181,12 @@ export class AppWindow {
 
     registerWindowStateChangedEvents(this.window)
     this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
+
+    nativeTheme.addListener('updated', (event: string, userInfo: any) => {
+      ipcWebContents.send(this.window.webContents, 'native-theme-updated')
+    })
+
+    this.setupAutoUpdater()
   }
 
   /**
@@ -213,8 +231,17 @@ export class AppWindow {
     this.window.restore()
   }
 
+  public isFocused() {
+    return this.window.isFocused()
+  }
+
   public focus() {
     this.window.focus()
+  }
+
+  /** Selects all the windows web contents */
+  public selectAllWindowContents() {
+    this.window.webContents.selectAll()
   }
 
   /** Show the window. */
@@ -308,16 +335,94 @@ export class AppWindow {
     this.window.destroy()
   }
 
+  public setupAutoUpdater() {
+    autoUpdater.on('error', (error: Error) => {
+      ipcWebContents.send(this.window.webContents, 'auto-updater-error', error)
+    })
+
+    autoUpdater.on('checking-for-update', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-checking-for-update'
+      )
+    })
+
+    autoUpdater.on('update-available', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-available'
+      )
+    })
+
+    autoUpdater.on('update-not-available', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-not-available'
+      )
+    })
+
+    autoUpdater.on('update-downloaded', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-downloaded'
+      )
+    })
+  }
+
+  public checkForUpdates(url: string) {
+    try {
+      autoUpdater.setFeedURL({ url })
+      autoUpdater.checkForUpdates()
+    } catch (e) {
+      return e
+    }
+    return undefined
+  }
+
+  public quitAndInstallUpdate() {
+    autoUpdater.quitAndInstall()
+  }
+
+  public minimizeWindow() {
+    this.window.minimize()
+  }
+
+  public maximizeWindow() {
+    this.window.maximize()
+  }
+
+  public unmaximizeWindow() {
+    this.window.unmaximize()
+  }
+
+  public closeWindow() {
+    this.window.close()
+  }
+
+  public getCurrentWindowState() {
+    return getWindowState(this.window)
+  }
+
+  public getCurrentWindowZoomFactor() {
+    return this.window.webContents.zoomFactor
+  }
+
+  /**
+   * Method to show the save dialog and return the first file path it returns.
+   */
+  public async showSaveDialog(options: Electron.SaveDialogOptions) {
+    const { canceled, filePath } = await dialog.showSaveDialog(
+      this.window,
+      options
+    )
+    return !canceled && filePath !== undefined ? filePath : null
+  }
+
   /**
    * Method to show the open dialog and return the first file path it returns.
    */
   public async showOpenDialog(options: Electron.OpenDialogOptions) {
     const { filePaths } = await dialog.showOpenDialog(this.window, options)
-
-    if (filePaths.length === 0) {
-      return null
-    }
-
-    return filePaths[0]
+    return filePaths.length > 0 ? filePaths[0] : null
   }
 }
