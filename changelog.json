@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.9.7-beta1": [
-      "[New] Initial support for high-signal notifications in macOS - #13655",
+      "[New] Initial support for system notifications when checks fail in macOS - #13655",
       "[Added] Support pushing workflow files for GitHub Actions to GitHub Enterprise Server - #13640",
       "[Added] Support CLion as an external editor - #13739. Thanks @Pinzauti!",
       "[Fixed] Fix close button in full screen mode on macOS - #12838",
