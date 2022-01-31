@@ -7,6 +7,7 @@ import {
   shell,
   session,
   systemPreferences,
+  nativeTheme,
 } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
@@ -37,6 +38,7 @@ import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
 import { getArchitecture } from '../lib/get-architecture'
 import * as remoteMain from '@electron/remote/main'
+
 remoteMain.initialize()
 
 app.setAppLogsPath()
@@ -671,6 +673,10 @@ app.on('ready', () => {
   /** An event sent by the renderer asking to focus the main window. */
   ipcMain.on('focus-window', () => {
     mainWindow?.focus()
+  })
+
+  ipcMain.on('set-native-theme-source', (_, themeName) => {
+    nativeTheme.themeSource = themeName
   })
 })
 

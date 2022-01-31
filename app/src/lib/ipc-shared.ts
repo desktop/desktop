@@ -11,6 +11,7 @@ import { ILaunchStats } from './stats'
 import { URLActionType } from './parse-app-url'
 import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
+import { ThemeSource } from '../ui/lib/application-theme'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -69,6 +70,7 @@ export type RequestChannels = {
   'auto-updater-update-not-available': () => void
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
+  'set-native-theme-source': (themeName: ThemeSource) => void
   'move-to-applications-folder': () => void
   'focus-window': () => void
 }

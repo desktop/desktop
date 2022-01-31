@@ -143,6 +143,9 @@ export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
 }
 
+/** Tell the main process to set the native theme source */
+export const setNativeThemeSource = sendProxy('set-native-theme-source', 1)
+
 /** Tell the main process to minimize the window */
 export const minimizeWindow = sendProxy('minimize-window', 0)
 

@@ -1,9 +1,9 @@
-import * as remote from '@electron/remote'
 import {
   isMacOSMojaveOrLater,
   isWindows10And1809Preview17666OrLater,
 } from '../../lib/get-os'
 import { getBoolean } from '../../lib/local-storage'
+  shouldUseDarkColors,
 
 /** Interface for set of customizable styles */
 export interface ICustomTheme {
@@ -34,14 +34,14 @@ export type ApplicableTheme =
   | ApplicationTheme.Dark
   | ApplicationTheme.HighContrast
 
+export type ThemeSource = 'light' | 'dark' | 'system'
+
 /**
  * Gets the friendly name of an application theme for use
  * in persisting to storage and/or calculating the required
  * body class name to set in order to apply the theme.
  */
-export function getThemeName(
-  theme: ApplicationTheme
-): 'light' | 'dark' | 'system' {
+export function getThemeName(theme: ApplicationTheme): ThemeSource {
   switch (theme) {
     case ApplicationTheme.Light:
       return 'light'
@@ -122,7 +122,7 @@ export function getPersistedThemeName(): ApplicationTheme {
 export function setPersistedTheme(theme: ApplicationTheme): void {
   const themeName = getThemeName(theme)
   localStorage.setItem(applicationThemeKey, theme)
-  remote.nativeTheme.themeSource = themeName
+  setNativeThemeSource(themeName)
 }
 
 /**
