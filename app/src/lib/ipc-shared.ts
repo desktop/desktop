@@ -107,4 +107,5 @@ export type RequestResponseChannels = {
   'get-apple-action-on-double-click': () => Promise<
     Electron.AppleActionOnDoubleClickPref
   >
+  'should-use-dark-colors': () => Promise<boolean>
 }

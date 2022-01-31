@@ -678,6 +678,11 @@ app.on('ready', () => {
   ipcMain.on('set-native-theme-source', (_, themeName) => {
     nativeTheme.themeSource = themeName
   })
+
+  ipcMain.handle(
+    'should-use-dark-colors',
+    async () => nativeTheme.shouldUseDarkColors
+  )
 })
 
 app.on('activate', () => {

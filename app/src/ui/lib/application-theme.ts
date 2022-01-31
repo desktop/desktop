@@ -3,7 +3,10 @@ import {
   isWindows10And1809Preview17666OrLater,
 } from '../../lib/get-os'
 import { getBoolean } from '../../lib/local-storage'
+import {
+  setNativeThemeSource,
   shouldUseDarkColors,
+} from '../main-process-proxy'
 
 /** Interface for set of customizable styles */
 export interface ICustomTheme {
@@ -101,8 +104,10 @@ function getApplicationThemeSetting(): ApplicationTheme {
 /**
  * Load the name of the currently selected theme
  */
-export function getCurrentlyAppliedTheme(): ApplicableTheme {
-  return isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
+export async function getCurrentlyAppliedTheme(): Promise<ApplicableTheme> {
+  return (await isDarkModeEnabled())
+    ? ApplicationTheme.Dark
+    : ApplicationTheme.Light
 }
 
 /**
@@ -141,6 +146,6 @@ export function supportsSystemThemeChanges(): boolean {
   return false
 }
 
-function isDarkModeEnabled(): boolean {
-  return remote.nativeTheme.shouldUseDarkColors
+function isDarkModeEnabled(): Promise<boolean> {
+  return shouldUseDarkColors()
 }

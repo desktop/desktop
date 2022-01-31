@@ -146,6 +146,9 @@ export function onNativeThemeUpdated(eventHandler: () => void) {
 /** Tell the main process to set the native theme source */
 export const setNativeThemeSource = sendProxy('set-native-theme-source', 1)
 
+/** Tell the main process to obtain wether the native theme uses dark colors */
+export const shouldUseDarkColors = invokeProxy('should-use-dark-colors', 0)
+
 /** Tell the main process to minimize the window */
 export const minimizeWindow = sendProxy('minimize-window', 0)
 
