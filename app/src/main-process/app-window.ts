@@ -399,6 +399,10 @@ export class AppWindow {
     this.window.close()
   }
 
+  public isMaximized() {
+    return this.window.isMaximized()
+  }
+
   public getCurrentWindowState() {
     return getWindowState(this.window)
   }
