@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
@@ -226,133 +225,17 @@ function findSubmenuItem(
   return foundMenuItem
 }
 
-let deferredContextMenuItems: ReadonlyArray<IMenuItem> | null = null
-
-/** Takes a context menu and spelling suggestions from electron and merges them
- * into one context menu. */
-function mergeDeferredContextMenuItems(
-  event: Electron.Event,
-  params: Electron.ContextMenuParams
-) {
-  if (deferredContextMenuItems === null) {
-    return
-  }
-
-  const items = [...deferredContextMenuItems]
-  const { misspelledWord, dictionarySuggestions } = params
-
-  if (!misspelledWord && dictionarySuggestions.length === 0) {
-    showContextualMenu(items, false)
-    return
-  }
-
-  items.push({ type: 'separator' })
-
-  const { webContents } = remote.getCurrentWindow()
-
-  for (const suggestion of dictionarySuggestions) {
-    items.push({
-      label: suggestion,
-      action: () => webContents.replaceMisspelling(suggestion),
-    })
-  }
-
-  if (misspelledWord) {
-    items.push({
-      label: __DARWIN__ ? 'Add to Dictionary' : 'Add to dictionary',
-      action: () =>
-        webContents.session.addWordToSpellCheckerDictionary(misspelledWord),
-    })
-  }
-
-  if (!__DARWIN__) {
-    // NOTE: "On macOS as we use the native APIs there is no way to set the
-    // language that the spellchecker uses" -- electron docs Therefore, we are
-    // only allowing setting to English for non-mac machines.
-    const spellCheckLanguageItem = getSpellCheckLanguageMenuItem(
-      webContents.session
-    )
-    if (spellCheckLanguageItem !== null) {
-      items.push(spellCheckLanguageItem)
-    }
-  }
-
-  showContextualMenu(items, false)
-}
-
-/**
- * Method to get a menu item to give user the option to use English or their
- * system language.
- *
- * If system language is english, it returns null. If spellchecker is not set to
- * english, it returns item that can set it to English. If spellchecker is set
- * to english, it returns the item that can set it to their system language.
- */
-function getSpellCheckLanguageMenuItem(
-  session: Electron.session
-): IMenuItem | null {
-  const userLanguageCode = remote.app.getLocale()
-  const englishLanguageCode = 'en-US'
-  const spellcheckLanguageCodes = session.getSpellCheckerLanguages()
-
-  if (
-    userLanguageCode === englishLanguageCode &&
-    spellcheckLanguageCodes.includes(englishLanguageCode)
-  ) {
-    return null
-  }
-
-  const languageCode =
-    spellcheckLanguageCodes.includes(englishLanguageCode) &&
-    !spellcheckLanguageCodes.includes(userLanguageCode)
-      ? userLanguageCode
-      : englishLanguageCode
-
-  const label =
-    languageCode === englishLanguageCode
-      ? 'Set spellcheck to English'
-      : 'Set spellcheck to system language'
-
-  return {
-    label,
-    action: () => session.setSpellCheckerLanguages([languageCode]),
-  }
-}
-
-const _showContextualMenu = invokeProxy('show-contextual-menu', 1)
+const _showContextualMenu = invokeProxy('show-contextual-menu', 2)
 
 /** Show the given menu items in a contextual menu. */
 export async function showContextualMenu(
   items: ReadonlyArray<IMenuItem>,
-  mergeWithSpellcheckSuggestions = false
+  addSpellCheckMenu = false
 ) {
-  /*
-    When a user right clicks on a misspelled word in an input, we get event from
-    electron. That event comes after the context menu event that we get from the
-    dom. In order merge the spelling suggestions from electron with the context
-    menu that the input wants to show, we stash the context menu items from the
-    input away while we wait for the event from electron.
-  */
-  if (deferredContextMenuItems !== null) {
-    deferredContextMenuItems = null
-    remote
-      .getCurrentWebContents()
-      .off('context-menu', mergeDeferredContextMenuItems)
-  }
-
-  if (mergeWithSpellcheckSuggestions) {
-    deferredContextMenuItems = items
-    remote
-      .getCurrentWebContents()
-      .once('context-menu', mergeDeferredContextMenuItems)
-    return
-  }
-
-  /*
-  This is a regular context menu that does not need to merge with spellcheck
-  items. They can be shown right away.
-  */
-  const indices = await _showContextualMenu(serializeMenuItems(items))
+  const indices = await _showContextualMenu(
+    serializeMenuItems(items),
+    addSpellCheckMenu
+  )
 
   if (indices !== null) {
     const menuItem = findSubmenuItem(items, indices)
