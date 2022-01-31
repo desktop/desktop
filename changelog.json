@@ -11,7 +11,7 @@
       "[Improved] Upgrade to Electron v14.2.3 - #13689",
       "[Improved] Support avatars on GitHub Enterprise Server - #13719",
       "[Improved] Fetch before trying to follow a URL link to a specific branch - #13641. Thanks @Bestra!",
-      "[Improved] Add \"View on GitHub\" context menu option - #13227. Thanks @lhvy!",
+      "[Improved] Add \"View on GitHub\" context menu option to repository list items - #13227. Thanks @lhvy!",
       "[Improved] Signal when a commit summary is getting long - #2055. Thanks @Twixes!",
       "[Improved] Check run group headers and checks stay in view while scrolling the sub checks or job steps. - #13532",
       "[Improved] Remove unnecessary punctuation in appearance settings- #13715. Thanks @Pinzauti!"
