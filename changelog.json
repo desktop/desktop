@@ -6,7 +6,7 @@
       "[Added] Support CLion as an external editor - #13739. Thanks @Pinzauti!",
       "[Fixed] Fix close button in full screen mode on macOS - #12838",
       "[Fixed] Commit message dialog background styles match dialog - #13606",
-      "[Fixed] Job steps on pull-request check run list are no longer intermittently missing - #13531",
+      "[Fixed] Ensure job steps on pull request check run list are always present - #13531",
       "[Fixed] Take alias into account when sorting repositories - #13429",
       "[Improved] Upgrade to Electron v14.2.3 - #13689",
       "[Improved] Support avatars on GitHub Enterprise Server - #13719",
