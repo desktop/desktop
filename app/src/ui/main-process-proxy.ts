@@ -1,5 +1,4 @@
 import { ExecutableMenuItem } from '../models/app-menu'
-import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import * as ipcRenderer from '../lib/ipc-renderer'
 
@@ -205,60 +204,7 @@ export const moveToApplicationsFolder = sendProxy(
  */
 export const getAppMenu = sendProxy('get-app-menu', 0)
 
-function findSubmenuItem(
-  currentContextualMenuItems: ReadonlyArray<IMenuItem>,
-  indices: ReadonlyArray<number>
-): IMenuItem | undefined {
-  let foundMenuItem: IMenuItem | undefined = {
-    submenu: currentContextualMenuItems,
-  }
-
-  // Traverse the submenus of the context menu until we find the appropriate index.
-  for (const index of indices) {
-    if (foundMenuItem === undefined || foundMenuItem.submenu === undefined) {
-      return undefined
-    }
-
-    foundMenuItem = foundMenuItem.submenu[index]
-  }
-
-  return foundMenuItem
-}
-
-const _showContextualMenu = invokeProxy('show-contextual-menu', 2)
-
-/** Show the given menu items in a contextual menu. */
-export async function showContextualMenu(
-  items: ReadonlyArray<IMenuItem>,
-  addSpellCheckMenu = false
-) {
-  const indices = await _showContextualMenu(
-    serializeMenuItems(items),
-    addSpellCheckMenu
-  )
-
-  if (indices !== null) {
-    const menuItem = findSubmenuItem(items, indices)
-
-    if (menuItem !== undefined && menuItem.action !== undefined) {
-      menuItem.action()
-    }
-  }
-}
-
-/**
- * Remove the menu items properties that can't be serializable in
- * order to pass them via IPC.
- */
-function serializeMenuItems(
-  items: ReadonlyArray<IMenuItem>
-): ReadonlyArray<ISerializableMenuItem> {
-  return items.map(item => ({
-    ...item,
-    action: undefined,
-    submenu: item.submenu ? serializeMenuItems(item.submenu) : undefined,
-  }))
-}
+export const invokeContextualMenu = invokeProxy('show-contextual-menu', 2)
 
 /** Update the menu item labels with the user's preferred apps. */
 export const updatePreferredAppMenuItemLabels = sendProxy(

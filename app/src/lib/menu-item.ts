@@ -1,3 +1,5 @@
+import { invokeContextualMenu } from '../ui/main-process-proxy'
+
 export interface IMenuItem {
   /** The user-facing label. */
   readonly label?: string
@@ -71,4 +73,59 @@ export function getPlatformSpecificNameOrSymbolForModifier(
 
   // Not a known modifier, likely a normal key
   return modifier
+}
+
+/** Show the given menu items in a contextual menu. */
+export async function showContextualMenu(
+  items: ReadonlyArray<IMenuItem>,
+  addSpellCheckMenu = false
+) {
+  const indices = await invokeContextualMenu(
+    serializeMenuItems(items),
+    addSpellCheckMenu
+  )
+
+  if (indices !== null) {
+    const menuItem = findSubmenuItem(items, indices)
+
+    if (menuItem !== undefined && menuItem.action !== undefined) {
+      menuItem.action()
+    }
+  }
+}
+
+/**
+ * Remove the menu items properties that can't be serializable in
+ * order to pass them via IPC.
+ */
+function serializeMenuItems(
+  items: ReadonlyArray<IMenuItem>
+): ReadonlyArray<ISerializableMenuItem> {
+  return items.map(item => ({
+    ...item,
+    action: undefined,
+    submenu: item.submenu ? serializeMenuItems(item.submenu) : undefined,
+  }))
+}
+
+/**
+ * Traverse the submenus of the context menu until we find the appropriate index.
+ */
+function findSubmenuItem(
+  currentContextualMenuItems: ReadonlyArray<IMenuItem>,
+  indices: ReadonlyArray<number>
+): IMenuItem | undefined {
+  let foundMenuItem: IMenuItem | undefined = {
+    submenu: currentContextualMenuItems,
+  }
+
+  for (const index of indices) {
+    if (foundMenuItem === undefined || foundMenuItem.submenu === undefined) {
+      return undefined
+    }
+
+    foundMenuItem = foundMenuItem.submenu[index]
+  }
+
+  return foundMenuItem
 }

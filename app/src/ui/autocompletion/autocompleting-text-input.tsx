@@ -15,7 +15,7 @@ interface IRange {
 }
 
 import getCaretCoordinates from 'textarea-caret'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
