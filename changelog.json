@@ -1,5 +1,20 @@
 {
   "releases": {
+    "2.9.7-beta1": [
+      "[Added] Initial support for high-signal notifications in macOS - #13655",
+      "[Added] Support pushing workflow files for GitHub Actions to GitHub Enterprise Server - #13640",
+      "[Added] Support CLion as an external editor - #13739. Thanks @Pinzauti!",
+      "[Fixed] Fix close button in full screen mode on macOS - #12838",
+      "[Fixed] Commit message dialog background styles match dialog - #13606",
+      "[Fixed] Job steps on pull-request check run list are no longer intermittently missing - #13531",
+      "[Fixed] Take alias into account when sorting repositories - #13429",
+      "[Improved] Support avatars on GitHub Enterprise Server - #13719",
+      "[Improved] Fetch before trying to follow a URL link to a specific branch - #13641. Thanks @Bestra!",
+      "[Improved] Add \"View on GitHub\" context menu option - #13227. Thanks @lhvy!",
+      "[Improved] Signal when a commit summary is getting long - #2055. Thanks @Twixes!",
+      "[Improved] Check run group headers and checks stay in view while scrolling the sub checks or job steps. - #13532",
+      "[Improved] Removed unnecessary punctuation in appearance settings- #13715. Thanks @Pinzauti!"
+    ],
     "2.9.6": [
       "[Added] View and re-run the check runs for the checked out pull request.",
       "[Fixed] Tooltip improvements and polish - #13452 #13449",
