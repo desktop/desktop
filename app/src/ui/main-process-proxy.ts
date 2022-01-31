@@ -180,6 +180,15 @@ export const showCertificateTrustDialog = sendProxy(
 export const getAppArchitecture = invokeProxy('get-app-architecture', 0)
 
 /**
+ * Tell the main process to obtain whether the app is running under a rosetta
+ * translation
+ */
+export const isRunningUnderRosettaTranslation = invokeProxy(
+  'is-running-under-rosetta-translation',
+  0
+)
+
+/**
  * Tell the main process that we're going to quit. This means it should allow
  * the window to close.
  *

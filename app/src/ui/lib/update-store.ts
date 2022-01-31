@@ -1,10 +1,10 @@
-import * as remote from '@electron/remote'
 const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
 import {
   checkForUpdates,
+  isRunningUnderRosettaTranslation,
   onAutoUpdaterCheckingForUpdate,
   onAutoUpdaterError,
   onAutoUpdaterUpdateAvailable,
@@ -160,7 +160,7 @@ class UpdateStore {
     // the arm64 binary.
     if (
       enableUpdateFromEmulatedX64ToARM64() &&
-      (remote.app.runningUnderRosettaTranslation === true ||
+      ((await isRunningUnderRosettaTranslation()) === true ||
         isRunningUnderARM64Translation() === true)
     ) {
       const url = new URL(updatesURL)

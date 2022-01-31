@@ -542,6 +542,15 @@ app.on('ready', () => {
   ipcMain.handle('get-app-architecture', async () => getArchitecture(app))
 
   /**
+   * An event sent by the renderer asking for whether the app is running under
+   * rosetta translation
+   */
+  ipcMain.handle(
+    'is-running-under-rosetta-translation',
+    async () => app.runningUnderRosettaTranslation
+  )
+
+  /**
    * An event sent by the renderer asking to move the app to the application
    * folder
    */
