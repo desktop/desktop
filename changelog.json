@@ -7,7 +7,7 @@
       "[Fixed] Fix close button in full screen mode on macOS - #12838",
       "[Fixed] Commit message dialog background styles match dialog - #13606",
       "[Fixed] Ensure job steps on pull request check run list are always present - #13531",
-      "[Fixed] Take alias into account when sorting repositories - #13429",
+      "[Improved] Take alias into account when sorting repositories - #13429",
       "[Improved] Upgrade to Electron v14.2.3 - #13689",
       "[Improved] Support avatars on GitHub Enterprise Server - #13719",
       "[Improved] Fetch before trying to follow a URL link to a specific branch - #13641. Thanks @Bestra!",
