@@ -14,7 +14,7 @@
       "[Improved] Add \"View on GitHub\" context menu option - #13227. Thanks @lhvy!",
       "[Improved] Signal when a commit summary is getting long - #2055. Thanks @Twixes!",
       "[Improved] Check run group headers and checks stay in view while scrolling the sub checks or job steps. - #13532",
-      "[Improved] Removed unnecessary punctuation in appearance settings- #13715. Thanks @Pinzauti!"
+      "[Improved] Remove unnecessary punctuation in appearance settings- #13715. Thanks @Pinzauti!"
     ],
     "2.9.6": [
       "[Added] View and re-run the check runs for the checked out pull request.",
