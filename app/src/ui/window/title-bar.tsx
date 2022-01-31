@@ -60,17 +60,22 @@ export class TitleBar extends React.Component<ITitleBarProps> {
   private onTitlebarDoubleClickDarwin = async () => {
     const actionOnDoubleClick = await getAppleActionOnDoubleClick()
 
+    // Electron.AppleActionOnDoubleClickPre should only be 'Minimize',
+    // 'Maximize', or 'None'. But, if a user deletes their action on double
+    // click setting via terminal, then it returns an empty string. The macOs
+    // convention is to treat this as the default behavior of 'Maximize'.
     switch (actionOnDoubleClick) {
-      case 'Maximize':
+      case 'Minimize':
+        minimizeWindow()
+        break
+      case 'None':
+        return
+      default:
         if (await isWindowMaximized()) {
           restoreWindow()
         } else {
           maximizeWindow()
         }
-        break
-      case 'Minimize':
-        minimizeWindow()
-        break
     }
   }
 
