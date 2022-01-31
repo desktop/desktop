@@ -91,6 +91,12 @@
     }
   }
 
+  .ci-check-run-list-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-padding-top: 35px;
+  }
+
   .loading-check-runs {
     width: 100%;
     display: flex;

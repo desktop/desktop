@@ -10,6 +10,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DropTargetType } from '../../models/drag-drop'
+import { getPullRequestCommitRef } from '../../models/pull-request'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -46,6 +47,14 @@ export interface IPullRequestListItemProps {
 
   /** When a drag element has landed on a pull request */
   readonly onDropOntoPullRequest: (prNumber: number) => void
+
+  /** When mouse enters a PR */
+  readonly onMouseEnter: (prNumber: number, prListItemTop: number) => void
+
+  /** When mouse leaves a PR */
+  readonly onMouseLeave: (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => void
 }
 
 interface IPullRequestListItemState {
@@ -73,7 +82,7 @@ export class PullRequestListItem extends React.Component<
     return this.props.draft ? `${subtitle} • Draft` : subtitle
   }
 
-  private onMouseEnter = () => {
+  private onMouseEnter = (e: React.MouseEvent) => {
     if (dragAndDropManager.isDragInProgress) {
       this.setState({ isDragInProgress: true })
 
@@ -82,14 +91,19 @@ export class PullRequestListItem extends React.Component<
         branchName: this.props.title,
       })
     }
+    const { top } = e.currentTarget.getBoundingClientRect()
+    this.props.onMouseEnter(this.props.number, top)
   }
 
-  private onMouseLeave = () => {
+  private onMouseLeave = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     if (dragAndDropManager.isDragInProgress) {
       this.setState({ isDragInProgress: false })
 
       dragAndDropManager.emitLeaveDropTarget()
     }
+    this.props.onMouseLeave(event)
   }
 
   private onMouseUp = () => {
@@ -119,7 +133,14 @@ export class PullRequestListItem extends React.Component<
         onMouseUp={this.onMouseUp}
       >
         <div>
-          <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+          <Octicon
+            className="icon"
+            symbol={
+              this.props.draft
+                ? OcticonSymbol.gitPullRequestDraft
+                : OcticonSymbol.gitPullRequest
+            }
+          />
         </div>
         <div className="info">
           <div className="title" title={title}>
@@ -135,7 +156,7 @@ export class PullRequestListItem extends React.Component<
   }
 
   private renderPullRequestStatus() {
-    const ref = `refs/pull/${this.props.number}/head`
+    const ref = getPullRequestCommitRef(this.props.number)
     return (
       <div className="ci-status-container">
         <CIStatus

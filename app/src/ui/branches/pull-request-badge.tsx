@@ -4,6 +4,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { ICombinedRefCheck } from '../../lib/ci-checks/ci-checks'
 import { enableCICheckRuns } from '../../lib/feature-flag'
+import { getPullRequestCommitRef } from '../../models/pull-request'
 
 interface IPullRequestBadgeProps {
   /** The pull request's number. */
@@ -15,11 +16,11 @@ interface IPullRequestBadgeProps {
   readonly repository: GitHubRepository
 
   /** The GitHub repository to use when looking up commit status. */
-  readonly onBadgeClick: () => void
+  readonly onBadgeClick?: () => void
 
   /** When the bottom edge of the pull request badge position changes. For
    * example, on a mac, this changes when the user maximizes Desktop. */
-  readonly onBadgeBottomPositionUpdate: (bottom: number) => void
+  readonly onBadgeBottomPositionUpdate?: (bottom: number) => void
 }
 
 interface IPullRequestBadgeState {
@@ -51,7 +52,7 @@ export class PullRequestBadge extends React.Component<
       this.badgeRef.getBoundingClientRect().bottom !== this.badgeBoundingBottom
     ) {
       this.badgeBoundingBottom = this.badgeRef.getBoundingClientRect().bottom
-      this.props.onBadgeBottomPositionUpdate(this.badgeBoundingBottom)
+      this.props.onBadgeBottomPositionUpdate?.(this.badgeBoundingBottom)
     }
   }
 
@@ -67,7 +68,7 @@ export class PullRequestBadge extends React.Component<
     }
 
     event.stopPropagation()
-    this.props.onBadgeClick()
+    this.props.onBadgeClick?.()
   }
 
   private onCheckChange = (check: ICombinedRefCheck | null) => {
@@ -75,9 +76,9 @@ export class PullRequestBadge extends React.Component<
   }
 
   public render() {
-    const ref = `refs/pull/${this.props.number}/head`
+    const ref = getPullRequestCommitRef(this.props.number)
     return (
-      <div id="pr-badge" onClick={this.onBadgeClick} ref={this.onRef}>
+      <div className="pr-badge" onClick={this.onBadgeClick} ref={this.onRef}>
         <span className="number">#{this.props.number}</span>
         <CIStatus
           commitRef={ref}

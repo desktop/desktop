@@ -3,11 +3,7 @@ import '../lib/logging/renderer/install'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
-
 import * as moment from 'moment'
-
-import { ipcRenderer, remote } from 'electron'
-
 import { App } from './app'
 import {
   Dispatcher,
@@ -39,7 +35,6 @@ import {
   PullRequestStore,
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
-import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType, IAppState } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import {
@@ -83,6 +78,9 @@ import {
   supportsSystemThemeChanges,
 } from './lib/application-theme'
 import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
+import { AliveStore } from '../lib/stores/alive-store'
+import { NotificationsStore } from '../lib/stores/notifications-store'
+import * as ipcRenderer from '../lib/ipc-renderer'
 
 if (__DEV__) {
   installDevGlobals()
@@ -178,7 +176,7 @@ const sendErrorWithContext = (
         }
 
         extra.repositoryCount = `${currentState.repositories.length}`
-        extra.windowState = currentState.windowState
+        extra.windowState = currentState.windowState ?? 'Unknown'
         extra.accounts = `${currentState.accounts.length}`
 
         extra.automaticallySwitchTheme = `${
@@ -190,7 +188,7 @@ const sendErrorWithContext = (
       /* ignore */
     }
 
-    sendErrorReport(error, extra, nonFatal)
+    sendErrorReport(error, extra, nonFatal ?? false)
   }
 }
 
@@ -258,6 +256,15 @@ const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 const commitStatusStore = new CommitStatusStore(accountsStore)
 const aheadBehindStore = new AheadBehindStore()
 
+const aliveStore = new AliveStore(accountsStore)
+
+const notificationsStore = new NotificationsStore(
+  accountsStore,
+  aliveStore,
+  pullRequestCoordinator,
+  statsStore
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -268,7 +275,8 @@ const appStore = new AppStore(
   repositoriesStore,
   pullRequestCoordinator,
   repositoryStateManager,
-  apiRepositoriesStore
+  apiRepositoriesStore,
+  notificationsStore
 )
 
 appStore.onDidUpdate(state => {
@@ -300,7 +308,7 @@ dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
 document.body.classList.add(`platform-${process.platform}`)
 
-dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+dispatcher.initializeAppFocusState()
 
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)
@@ -328,11 +336,8 @@ ipcRenderer.on('blur', () => {
   dispatcher.setAppFocusState(false)
 })
 
-ipcRenderer.on(
-  'url-action',
-  (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-    dispatcher.dispatchURLAction(action)
-  }
+ipcRenderer.on('url-action', (_, action) =>
+  dispatcher.dispatchURLAction(action)
 )
 
 ReactDOM.render(

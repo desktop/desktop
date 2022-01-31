@@ -6,13 +6,16 @@ import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
 import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
+import { enableHighSignalNotifications } from '../../lib/feature-flag'
 
 interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
+  readonly notificationsEnabled: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
   readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
+  readonly onNotificationsEnabledChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
@@ -74,6 +77,12 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
+  }
+
+  private onNotificationsEnabledChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onNotificationsEnabledChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -138,6 +147,7 @@ export class Advanced extends React.Component<
           </p>
         </div>
         {this.renderSSHSettings()}
+        {this.renderNotificationsSettings()}
         <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
@@ -169,6 +179,31 @@ export class Advanced extends React.Component<
           }
           onChange={this.onUseWindowsOpenSSHChanged}
         />
+      </div>
+    )
+  }
+
+  private renderNotificationsSettings() {
+    if (!enableHighSignalNotifications()) {
+      return null
+    }
+
+    return (
+      <div className="advanced-section">
+        <h2>Notifications</h2>
+        <Checkbox
+          label="Enable notifications"
+          value={
+            this.props.notificationsEnabled
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onNotificationsEnabledChanged}
+        />
+        <p className="git-settings-description">
+          Allows the display of notifications when high-signal events take place
+          in the current repository.
+        </p>
       </div>
     )
   }

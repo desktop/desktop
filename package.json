@@ -8,12 +8,11 @@
     "cli": "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.ts app/src/cli/main.ts",
     "check:eslint": "tsc -P eslint-rules/",
     "test:eslint": "jest eslint-rules/tests/*.test.js",
-    "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe --auto-servernum -- jest --testLocationInResults --config ./app/jest.integration.config.js",
     "test:unit": "cross-env ELECTRON_RUN_AS_NODE=1 ./node_modules/.bin/electron ./node_modules/jest/bin/jest --detectOpenHandles --silent --testLocationInResults --config ./app/jest.unit.config.js",
     "test:unit:cov": "yarn test:unit --coverage",
     "test:script": "jest --silent --config ./script/jest.config.js",
     "test:script:cov": "yarn test:script --coverage",
-    "test": "yarn test:unit:cov --runInBand && yarn test:script:cov && yarn test:integration",
+    "test": "yarn test:unit:cov --runInBand && yarn test:script:cov",
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
     "test:report": "codecov --disable=gcov -f app/coverage/coverage-final.json",
@@ -55,8 +54,10 @@
     "yarn": ">= 1.9"
   },
   "dependencies": {
+    "@electron/remote": "^2.0.1",
     "@primer/octicons": "^10.0.0",
-    "@types/marked": "^3.0.1",
+    "@types/lodash": "^4.14.178",
+    "@types/marked": "^4.0.1",
     "@types/plist": "^3.0.2",
     "@types/react-color": "^3.0.4",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
@@ -68,9 +69,6 @@
     "awesome-node-loader": "^1.1.0",
     "awesome-typescript-loader": "^5.2.1",
     "azure-storage": "^2.10.4",
-    "babel-core": "^6.26.3",
-    "babel-jest": "^23.4.2",
-    "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "chalk": "^2.2.0",
     "clean-webpack-plugin": "^0.1.19",
     "codecov": "^3.7.1",
@@ -105,7 +103,6 @@
     "sass": "^1.27.0",
     "sass-loader": "^10.0.3",
     "semver": "^5.5.0",
-    "spectron": "^15.0.0",
     "split2": "^3.2.2",
     "stop-build": "^1.1.0",
     "style-loader": "^0.21.0",
@@ -122,8 +119,7 @@
     "webpack-dev-middleware": "^3.1.3",
     "webpack-hot-middleware": "^2.22.2",
     "webpack-merge": "^4.1.2",
-    "xml2js": "^0.4.16",
-    "xvfb-maybe": "^0.2.1"
+    "xml2js": "^0.4.16"
   },
   "devDependencies": {
     "@types/byline": "^4.2.31",
@@ -178,10 +174,11 @@
     "@types/webpack-merge": "^4.1.3",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "=13.6.2",
+    "electron": "=14.2.3",
     "electron-builder": "^22.7.0",
     "electron-packager": "^15.1.0",
     "electron-winstaller": "^5.0.0",
+    "jest-esm-transformer": "^1.0.0",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0"
   }

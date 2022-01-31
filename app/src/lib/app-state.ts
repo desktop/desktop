@@ -100,7 +100,7 @@ export interface IAppState {
   /**
    * The current state of the window, ie maximized, minimized full-screen etc.
    */
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 
   /**
    * The current zoom factor of the window represented as a fractional number
@@ -294,6 +294,11 @@ export interface IAppState {
    * Whether or not the CI status popover is visible.
    */
   readonly showCIStatusPopover: boolean
+
+  /**
+   * Whether or not the user enabled high-signal notifications.
+   */
+  readonly notificationsEnabled: boolean
 }
 
 export enum FoldoutType {

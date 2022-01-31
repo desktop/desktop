@@ -23,7 +23,7 @@ interface IAppearanceProps {
 
 const systemTheme: ISegmentedItem<ApplicationTheme> = {
   title: 'System',
-  description: 'Automatically switch theme to match system theme.',
+  description: 'Automatically switch theme to match system theme',
   key: ApplicationTheme.System,
 }
 

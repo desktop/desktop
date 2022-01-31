@@ -1,8 +1,9 @@
-import { ipcRenderer } from 'electron'
 import { LogLevel } from '../log-level'
 import { formatLogMessage } from '../format-log-message'
+import { sendProxy } from '../../../ui/main-process-proxy'
 
 const g = global as any
+const ipcLog = sendProxy('log', 2)
 
 /**
  * Dispatches the given log entry to the main process where it will be picked
@@ -10,11 +11,7 @@ const g = global as any
  * details about what transports we set up.
  */
 function log(level: LogLevel, message: string, error?: Error) {
-  ipcRenderer.send(
-    'log',
-    level,
-    formatLogMessage(`[${__PROCESS_KIND__}] ${message}`, error)
-  )
+  ipcLog(level, formatLogMessage(`[${__PROCESS_KIND__}] ${message}`, error))
 }
 
 g.log = {

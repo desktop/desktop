@@ -351,6 +351,13 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'PyCharm ',
     publisher: 'JetBrains s.r.o.',
   },
+  {
+    name: 'JetBrains CLion',
+    registryKeys: registryKeysForJetBrainsIDE('CLion'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('clion'),
+    displayNamePrefix: 'CLion ',
+    publisher: 'JetBrains s.r.o.',
+  },
 ]
 
 function getKeyOrEmpty(

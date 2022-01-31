@@ -194,7 +194,8 @@ export class PullRequestStore {
           new PullRequestRef(record.head.ref, record.head.sha, headRepository),
           new PullRequestRef(record.base.ref, record.base.sha, baseRepository),
           record.author,
-          record.draft ?? false
+          record.draft ?? false,
+          record.body
         )
       )
     }
@@ -316,6 +317,7 @@ export class PullRequestStore {
           sha: pr.base.sha,
           repoId: baseGitHubRepo.dbID,
         },
+        body: pr.body,
         author: pr.user.login,
         draft: pr.draft ?? false,
       })
