@@ -18,6 +18,20 @@ declare const __WIN32__: boolean
 declare const __LINUX__: boolean
 
 /**
+ * The product name of the app, this is intended to be a compile-time
+ * replacement for app.getName
+ * (https://www.electronjs.org/docs/latest/api/app#appgetname)
+ */
+declare const __APP_NAME__: string
+
+/**
+ * The current version of the app, this is intended to be a compile-time
+ * replacement for app.getVersion
+ * (https://www.electronjs.org/docs/latest/api/app#appgetname)
+ */
+declare const __APP_VERSION__: string
+
+/**
  * The commit id of the repository HEAD at build time.
  * Represented as a 40 character SHA-1 hexadecimal digest string.
  */
@@ -154,3 +168,12 @@ interface Window {
 interface HTMLDialogElement {
   showModal: () => void
 }
+/**
+ * Obtain the number of elements of a tuple type
+ *
+ * See https://itnext.io/implementing-arithmetic-within-typescripts-type-system-a1ef140a6f6f
+ */
+type Length<T extends any[]> = T extends { length: infer L } ? L : never
+
+/** Obtain the the number of parameters of a function type */
+type ParameterCount<T extends (...args: any) => any> = Length<Parameters<T>>

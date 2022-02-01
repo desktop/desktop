@@ -1,7 +1,13 @@
 import * as React from 'react'
-import { remote } from 'electron'
-import { WindowState, getWindowState } from '../../lib/window-state'
+import { WindowState } from '../../lib/window-state'
 import classNames from 'classnames'
+import {
+  closeWindow,
+  getCurrentWindowState,
+  maximizeWindow,
+  minimizeWindow,
+  restoreWindow,
+} from '../main-process-proxy'
 import * as ipcRenderer from '../../lib/ipc-renderer'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
@@ -14,7 +20,7 @@ const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z'
 const minimizePath = 'M 0,5 10,5 10,6 0,6 Z'
 
 interface IWindowControlState {
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 }
 
 /**
@@ -31,9 +37,18 @@ interface IWindowControlState {
  */
 export class WindowControls extends React.Component<{}, IWindowControlState> {
   public componentWillMount() {
-    this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
-
+    this.setState({ windowState: null })
+    this.initializeWindowState()
     ipcRenderer.on('window-state-changed', this.onWindowStateChanged)
+  }
+
+  private initializeWindowState = async () => {
+    const windowState = await getCurrentWindowState()
+    if (windowState === undefined) {
+      return
+    }
+
+    this.setState({ windowState })
   }
 
   public componentWillUnmount() {
@@ -41,6 +56,24 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
       'window-state-changed',
       this.onWindowStateChanged
     )
+  }
+
+  // Note: The following four wrapping methods are necessary on windows.
+  // Otherwise, you get a object cloning error.
+  private onMinimize = () => {
+    minimizeWindow()
+  }
+
+  private onMaximize = () => {
+    maximizeWindow()
+  }
+
+  private onRestore = () => {
+    restoreWindow()
+  }
+
+  private onClose = () => {
+    closeWindow()
   }
 
   public shouldComponentUpdate(nextProps: {}, nextState: IWindowControlState) {
@@ -52,22 +85,6 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
     windowState: WindowState
   ) => {
     this.setState({ windowState })
-  }
-
-  private onMinimize = () => {
-    remote.getCurrentWindow().minimize()
-  }
-
-  private onMaximize = () => {
-    remote.getCurrentWindow().maximize()
-  }
-
-  private onRestore = () => {
-    remote.getCurrentWindow().unmaximize()
-  }
-
-  private onClose = () => {
-    remote.getCurrentWindow().close()
   }
 
   private renderButton(

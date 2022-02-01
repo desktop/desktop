@@ -3839,4 +3839,12 @@ export class Dispatcher {
   public recordRerunChecks() {
     this.statsStore.recordRerunChecks()
   }
+
+  public recordChecksFailedDialogSwitchToPullRequest() {
+    this.statsStore.recordChecksFailedDialogSwitchToPullRequest()
+  }
+
+  public recordChecksFailedDialogRerunChecks() {
+    this.statsStore.recordChecksFailedDialogRerunChecks()
+  }
 }

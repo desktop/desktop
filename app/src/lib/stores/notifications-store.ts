@@ -3,7 +3,6 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { remote } from 'electron'
 import { PullRequest } from '../../models/pull-request'
 import { API, APICheckConclusion } from '../api'
 import {
@@ -24,6 +23,8 @@ import {
   IDesktopChecksFailedAliveEvent,
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
+import { showNotification } from './helpers/show-notification'
+import { StatsStore } from '../stats'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -39,6 +40,11 @@ type OnChecksFailedCallback = (
  */
 const NotificationsEnabledKey = 'high-signal-notifications-enabled'
 
+/** Whether or not the user has enabled high-signal notifications */
+export function getNotificationsEnabled() {
+  return getBoolean(NotificationsEnabledKey, true)
+}
+
 /**
  * This class manages the coordination between Alive events and actual OS-level
  * notifications.
@@ -52,9 +58,10 @@ export class NotificationsStore {
   public constructor(
     private readonly accountsStore: AccountsStore,
     private readonly aliveStore: AliveStore,
-    private readonly pullRequestCoordinator: PullRequestCoordinator
+    private readonly pullRequestCoordinator: PullRequestCoordinator,
+    private readonly statsStore: StatsStore
   ) {
-    this.aliveStore.setEnabled(this.getNotificationsEnabled())
+    this.aliveStore.setEnabled(getNotificationsEnabled())
     this.aliveStore.onAliveEventReceived(this.onAliveEventReceived)
   }
 
@@ -68,10 +75,6 @@ export class NotificationsStore {
 
     setBoolean(NotificationsEnabledKey, enabled)
     this.aliveStore.setEnabled(enabled)
-  }
-
-  public getNotificationsEnabled() {
-    return getBoolean(NotificationsEnabledKey, true)
   }
 
   private onAliveEventReceived = async (e: DesktopAliveEvent) => {
@@ -198,12 +201,10 @@ export class NotificationsStore {
     const shortSHA = sha.slice(0, 9)
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
-    const notification = new remote.Notification({
-      title,
-      body,
-    })
 
-    notification.on('click', () => {
+    showNotification(title, body, () => {
+      this.statsStore.recordChecksFailedNotificationClicked()
+
       this.onChecksFailedCallback?.(
         repository,
         pullRequest,
@@ -213,7 +214,7 @@ export class NotificationsStore {
       )
     })
 
-    notification.show()
+    this.statsStore.recordChecksFailedNotificationShown()
   }
 
   private async getChecksForRef(

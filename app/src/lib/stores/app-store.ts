@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import { remote } from 'electron'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
@@ -75,7 +74,10 @@ import {
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
+  getCurrentWindowState,
+  getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
+  updateAccounts,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -183,7 +185,7 @@ import {
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
-import { getWindowState, WindowState } from '../window-state'
+import { WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -282,8 +284,12 @@ import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
+import { EndpointToken } from '../endpoint-token'
 import { IRefCheck } from '../ci-checks/ci-checks'
-import { NotificationsStore } from './notifications-store'
+import {
+  NotificationsStore,
+  getNotificationsEnabled,
+} from './notifications-store'
 import * as ipcRenderer from '../ipc-renderer'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -403,7 +409,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
 
-  private windowState: WindowState
+  private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
@@ -501,16 +507,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       error => this.emitError(error)
     )
 
-    const browserWindow = remote.getCurrentWindow()
-    this.windowState = getWindowState(browserWindow)
-
-    this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
     window.addEventListener('resize', () => {
       this.updateResizableConstraints()
       this.emitUpdate()
     })
 
-    this.wireupIpcEventHandlers(browserWindow)
+    this.initializeWindowState()
+    this.initializeZoomFactor()
+    this.wireupIpcEventHandlers()
     this.wireupStoreEventHandlers()
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
@@ -545,6 +549,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
     )
+  }
+
+  private initializeWindowState = async () => {
+    const currentWindowState = await getCurrentWindowState()
+    if (currentWindowState === undefined) {
+      return
+    }
+
+    this.windowState = currentWindowState
+  }
+
+  private initializeZoomFactor = async () => {
+    const zoomFactor = await getCurrentWindowZoomFactor()
+    if (zoomFactor === undefined) {
+      return
+    }
+    this.onWindowZoomFactorChanged(zoomFactor)
   }
 
   private onTokenInvalidated = (endpoint: string) => {
@@ -649,7 +670,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.updateCurrentTutorialStep(repository)
   }
 
-  private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
+  private wireupIpcEventHandlers() {
     ipcRenderer.on('window-state-changed', (_, windowState) => {
       this.windowState = windowState
       this.emitUpdate()
@@ -685,6 +706,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
+      const endpointTokens = accounts.map<EndpointToken>(
+        ({ endpoint, token }) => ({ endpoint, token })
+      )
+
+      updateAccounts(endpointTokens)
+
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
@@ -859,7 +886,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
-      notificationsEnabled: this.notificationsStore.getNotificationsEnabled(),
+      notificationsEnabled: getNotificationsEnabled(),
     }
   }
 
@@ -6866,6 +6893,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedRepository === null ||
       selectedRepository.hash !== repository.hash
     ) {
+      this.statsStore.recordChecksFailedDialogOpen()
       return this._showPopup(popup)
     }
 
@@ -6879,10 +6907,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If it's the same branch, just show the existing CI check run popover
       this._setShowCIStatusPopover(true)
     } else {
+      this.statsStore.recordChecksFailedDialogOpen()
+
       // If there is no current branch or it's different than the PR branch,
       // show the checks failed dialog, but it won't offer to switch to the
       // repository.
-      this._showPopup({
+      return this._showPopup({
         ...popup,
         needsSelectRepository: false,
       })
