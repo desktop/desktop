@@ -112,7 +112,9 @@ rules:
   react/jsx-uses-react: error
   react/no-unused-state: error
   react/no-unused-prop-types: error
-  react/prop-types: error
+  react/prop-types:
+    - error
+    - ignore: ['children']
 
   # JSDoc
   jsdoc/check-alignment: error
