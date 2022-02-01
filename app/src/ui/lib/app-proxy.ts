@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote'
+import { getAppPathProxy } from '../main-process-proxy'
 
 let app: Electron.App | null = null
 let path: string | null = null
@@ -33,9 +34,9 @@ export function getName(): string {
  *
  * This is preferable to using `remote` directly because we cache the result.
  */
-export function getAppPath(): string {
+export async function getAppPath(): Promise<string> {
   if (!path) {
-    path = getApp().getAppPath()
+    path = await getAppPathProxy()
   }
 
   return path
