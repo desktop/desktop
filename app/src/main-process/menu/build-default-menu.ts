@@ -518,6 +518,11 @@ export function buildDefaultMenu({
     showLogsItem,
   ]
 
+  helpItems.push({
+    label: 'Show notification',
+    click: emit('test-show-notification'),
+  })
+
   if (__DEV__) {
     helpItems.push(
       separator,
@@ -539,10 +544,6 @@ export function buildDefaultMenu({
             click: emit('show-release-notes-popup'),
           },
         ],
-      },
-      {
-        label: 'Show notification',
-        click: emit('test-show-notification'),
       },
       {
         label: 'Prune branches',

@@ -484,9 +484,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private testShowNotification() {
-    if (!__DEV__) {
-      return
-    }
+    // if (!__DEV__) {
+    //   return
+    // }
 
     showNotification(
       'Test notification',
