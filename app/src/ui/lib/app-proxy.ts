@@ -2,7 +2,6 @@ import * as remote from '@electron/remote'
 
 let app: Electron.App | null = null
 let path: string | null = null
-let userDataPath: string | null = null
 let documentsPath: string | null = null
 
 function getApp(): Electron.App {
@@ -40,19 +39,6 @@ export function getAppPath(): string {
   }
 
   return path
-}
-
-/**
- * Get the path to the user's data.
- *
- * This is preferable to using `remote` directly because we cache the result.
- */
-export function getUserDataPath(): string {
-  if (!userDataPath) {
-    userDataPath = getApp().getPath('userData')
-  }
-
-  return userDataPath
 }
 
 /**
