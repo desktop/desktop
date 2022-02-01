@@ -100,6 +100,7 @@ rules:
   '@typescript-eslint/no-explicit-any': off
   '@typescript-eslint/no-inferrable-types': off
   '@typescript-eslint/no-empty-function': off
+  '@typescript-eslint/no-redeclare': error
 
   # Babel
   babel/no-invalid-this: error
@@ -136,9 +137,9 @@ rules:
   ###########
   curly: error
   no-new-wrappers: error
-  no-redeclare:
-    - error
-    - builtinGlobals: true
+  # We'll use no-redeclare from @typescript/eslint-plugin instead as that
+  # supports overloads
+  no-redeclare: off
   no-eval: error
   no-sync: error
   no-var: error
