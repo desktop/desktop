@@ -539,6 +539,11 @@ app.on('ready', () => {
   /**
    * An event sent by the renderer asking for the app's architecture
    */
+  ipcMain.handle('get-path', async (_, path) => app.getPath(path))
+
+  /**
+   * An event sent by the renderer asking for the app's architecture
+   */
   ipcMain.handle('get-app-architecture', async () => getArchitecture(app))
 
   /**

@@ -5,6 +5,24 @@ let path: string | null = null
 let userDataPath: string | null = null
 let documentsPath: string | null = null
 
+export type PathType =
+  | 'home'
+  | 'appData'
+  | 'userData'
+  | 'cache'
+  | 'temp'
+  | 'exe'
+  | 'module'
+  | 'desktop'
+  | 'documents'
+  | 'downloads'
+  | 'music'
+  | 'pictures'
+  | 'videos'
+  | 'recent'
+  | 'logs'
+  | 'crashDumps'
+
 function getApp(): Electron.App {
   if (!app) {
     app = remote.app
