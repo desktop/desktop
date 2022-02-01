@@ -6186,7 +6186,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.statsStore.recordTutorialStarted()
 
       const name = 'desktop-tutorial'
-      const path = Path.resolve(getDefaultDir(), name)
+      const path = Path.resolve(await getDefaultDir(), name)
 
       const apiRepository = await createTutorialRepository(
         account,

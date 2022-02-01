@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote'
+import { getPath } from '../main-process-proxy'
 
 let app: Electron.App | null = null
 let path: string | null = null
@@ -78,14 +79,13 @@ export function getUserDataPath(): string {
  *
  * This is preferable to using `remote` directly because we cache the result.
  */
-export function getDocumentsPath(): string {
+export async function getDocumentsPath(): Promise<string> {
   if (!documentsPath) {
-    const app = getApp()
     try {
-      documentsPath = app.getPath('documents')
+      documentsPath = await getPath('documents')
     } catch (ex) {
       // a user profile may not have the Documents folder defined on Windows
-      documentsPath = app.getPath('home')
+      documentsPath = await getPath('home')
     }
   }
 
