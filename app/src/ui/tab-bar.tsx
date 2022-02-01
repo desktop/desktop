@@ -2,6 +2,7 @@ import * as React from 'react'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { TabBarItem } from './tab-bar-item'
 import { TabBarType } from './tab-bar-type'
+export { TabBarType } from './tab-bar-type'
 
 /** Time to wait for drag element hover before switching tabs */
 const dragTabSwitchWaitTime = 500
