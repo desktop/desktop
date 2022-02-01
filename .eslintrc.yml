@@ -111,6 +111,8 @@ rules:
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
   react/no-unused-state: error
+  react/no-unused-prop-types: error
+  react/prop-types: error
 
   # JSDoc
   jsdoc/check-alignment: error

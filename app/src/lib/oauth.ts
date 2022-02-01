@@ -23,9 +23,6 @@ let oauthState: IOAuthState | null = null
  * flow.
  */
 export function askUserToOAuth(endpoint: string) {
-  // Disable the lint warning since we're storing the `resolve` and `reject`
-  // functions.
-  // tslint:disable-next-line:promise-must-complete
   return new Promise<Account>((resolve, reject) => {
     oauthState = { state: uuid(), endpoint, resolve, reject }
 
