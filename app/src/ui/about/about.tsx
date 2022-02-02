@@ -95,10 +95,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateButton() {
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__RELEASE_CHANNEL__ === 'development') {
       return null
     }
 
