@@ -4,7 +4,6 @@ export async function buildSpellCheckMenu(
   window: BrowserWindow | undefined
 ): Promise<ReadonlyArray<MenuItem> | undefined> {
   if (window === undefined) {
-    // window.webContents.off('context-menu', mergeDeferredContextMenuItems)
     return
   }
 
