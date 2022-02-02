@@ -15,7 +15,7 @@ function initializeWindowsNotifications() {
   windowsToastActivatorClsid = findToastActivatorClsid()
 
   if (windowsToastActivatorClsid === undefined) {
-    console.error(
+    log.error(
       'Toast activator CLSID not found in any of the shortucts. Falling back to known CLSIDs.'
     )
 
@@ -24,7 +24,7 @@ function initializeWindowsNotifications() {
     windowsToastActivatorClsid = '{27D44D0C-A542-5B90-BCDB-AC3126048BA2}'
   }
 
-  console.log(`Using toast activator CLSID ${windowsToastActivatorClsid}`)
+  log.info(`Using toast activator CLSID ${windowsToastActivatorClsid}`)
   initializeNotifications(windowsToastActivatorClsid)
 }
 

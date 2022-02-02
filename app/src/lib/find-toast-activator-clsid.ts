@@ -46,7 +46,7 @@ function findToastActivatorClsidInShorcut(shortcutPath: string) {
 
     return shortcutDetails.toastActivatorClsid
   } catch (error) {
-    console.error(
+    log.error(
       `Error looking for toast activator CLSID in shortcut ${shortcutPath}`,
       error
     )
