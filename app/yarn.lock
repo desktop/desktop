@@ -333,6 +333,15 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
+desktop-notifications@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.4.tgz#698c5822fb88d7a2289f36b4f64eaac8b5bdefed"
+  integrity sha512-3ADhNvqL9ISbN17x/hWcYUcGHvWJxPnoxxsQbmrU26wpk2eakvDplCm0fvNIpHx/Ar5O7n1VmMOVmLr8W6B8sQ==
+  dependencies:
+    node-addon-api "^4.3.0"
+    prebuild-install "^7.0.1"
+    uuid "^8.3.2"
+
 desktop-trampoline@desktop/desktop-trampoline#v0.9.8:
   version "0.9.8"
   resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/cbd3dbb31d0d3ea9f325067f48bfbf60b6663a57"
@@ -1784,6 +1793,11 @@ uuid@^3.0.1:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
   integrity sha512-DIWtzUkw04M4k3bf1IcpS2tngXEL26YUD2M0tMDUpnUrz2hgzUBlD55a4FjdLGPvfHxS6uluGWvaVEqgBcVa+g==
+
+uuid@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
 warning@^3.0.0:
   version "3.0.0"
