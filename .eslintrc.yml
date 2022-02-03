@@ -2,7 +2,6 @@ root: true
 parser: '@typescript-eslint/parser'
 plugins:
   - '@typescript-eslint'
-  - babel
   - react
   - json
   - jsdoc
@@ -100,9 +99,7 @@ rules:
   '@typescript-eslint/no-explicit-any': off
   '@typescript-eslint/no-inferrable-types': off
   '@typescript-eslint/no-empty-function': off
-
-  # Babel
-  babel/no-invalid-this: error
+  '@typescript-eslint/no-redeclare': error
 
   # React
   react/jsx-boolean-value:
@@ -114,6 +111,10 @@ rules:
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
   react/no-unused-state: error
+  react/no-unused-prop-types: error
+  react/prop-types:
+    - error
+    - ignore: ['children']
 
   # JSDoc
   jsdoc/check-alignment: error
@@ -136,9 +137,9 @@ rules:
   ###########
   curly: error
   no-new-wrappers: error
-  no-redeclare:
-    - error
-    - builtinGlobals: true
+  # We'll use no-redeclare from @typescript/eslint-plugin instead as that
+  # supports overloads
+  no-redeclare: off
   no-eval: error
   no-sync: error
   no-var: error

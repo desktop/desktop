@@ -1,9 +1,7 @@
-// type annotations for package.json dependencies
-type PackageLookup = { [key: string]: string }
-
 type Package = {
-  dependencies: PackageLookup
-  devDependencies: PackageLookup
+  productName?: string
+  dependencies: Record<string, string>
+  devDependencies?: Record<string, string>
 }
 
 declare namespace NodeJS {

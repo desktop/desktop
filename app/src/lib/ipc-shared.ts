@@ -85,6 +85,7 @@ export type RequestChannels = {
  */
 export type RequestResponseChannels = {
   'get-app-architecture': () => Promise<Architecture>
+  'get-app-path': () => Promise<string>
   'is-running-under-rosetta-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
   'show-contextual-menu': (

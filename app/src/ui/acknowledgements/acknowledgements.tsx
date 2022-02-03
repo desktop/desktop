@@ -42,8 +42,8 @@ export class Acknowledgements extends React.Component<
     this.state = { licenses: null }
   }
 
-  public componentDidMount() {
-    const path = Path.join(getAppPath(), 'static', 'licenses.json')
+  public async componentDidMount() {
+    const path = Path.join(await getAppPath(), 'static', 'licenses.json')
     Fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
         log.error('Error loading licenses', err)

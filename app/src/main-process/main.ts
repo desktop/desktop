@@ -555,6 +555,11 @@ app.on('ready', () => {
   ipcMain.handle('get-app-architecture', async () => getArchitecture(app))
 
   /**
+   * An event sent by the renderer asking for the app's path
+   */
+  ipcMain.handle('get-app-path', async () => app.getAppPath())
+
+  /**
    * An event sent by the renderer asking for whether the app is running under
    * rosetta translation
    */

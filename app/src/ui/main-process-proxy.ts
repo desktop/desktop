@@ -184,6 +184,11 @@ export const showCertificateTrustDialog = sendProxy(
 export const getAppArchitecture = invokeProxy('get-app-architecture', 0)
 
 /**
+ * Tell the main process to obtain the application's app path
+ */
+export const getAppPathProxy = invokeProxy('get-app-path', 0)
+
+/**
  * Tell the main process to obtain whether the app is running under a rosetta
  * translation
  */
