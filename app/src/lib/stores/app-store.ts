@@ -5205,7 +5205,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * resolve when `_completeOpenInDesktop` is called.
    */
   public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
-    // tslint:disable-next-line:promise-must-complete
     const p = new Promise<Repository | null>(
       resolve => (this.resolveOpenInDesktop = resolve)
     )

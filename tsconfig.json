@@ -18,11 +18,6 @@
     "lib": ["ES2017", "DOM", "DOM.Iterable", "ES2018.Promise", "ES2020.string"],
     "useUnknownInCatchVariables": false
   },
-  "plugins": [
-    {
-      "name": "typescript-tslint-plugin"
-    }
-  ],
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
     "node_modules",
