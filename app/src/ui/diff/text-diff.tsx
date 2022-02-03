@@ -40,7 +40,7 @@ import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
 import {
   canSelect,

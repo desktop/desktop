@@ -23,7 +23,7 @@ import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 import { Dispatcher } from '../dispatcher'
 import { Resizable } from '../resizable'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'

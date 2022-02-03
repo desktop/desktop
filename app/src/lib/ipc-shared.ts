@@ -88,7 +88,8 @@ export type RequestResponseChannels = {
   'is-running-under-rosetta-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
   'show-contextual-menu': (
-    items: ReadonlyArray<ISerializableMenuItem>
+    items: ReadonlyArray<ISerializableMenuItem>,
+    addSpellCheckMenu: boolean
   ) => Promise<ReadonlyArray<number> | null>
   'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>
