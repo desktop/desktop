@@ -85,10 +85,12 @@ export type RequestChannels = {
 export type RequestResponseChannels = {
   'get-path': (path: PathType) => Promise<string>
   'get-app-architecture': () => Promise<Architecture>
+  'get-app-path': () => Promise<string>
   'is-running-under-rosetta-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
   'show-contextual-menu': (
-    items: ReadonlyArray<ISerializableMenuItem>
+    items: ReadonlyArray<ISerializableMenuItem>,
+    addSpellCheckMenu: boolean
   ) => Promise<ReadonlyArray<number> | null>
   'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>

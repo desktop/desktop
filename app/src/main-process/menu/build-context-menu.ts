@@ -48,9 +48,20 @@ function getEditMenuItems(): ReadonlyArray<MenuItem> {
  */
 export function buildContextMenu(
   template: ReadonlyArray<ISerializableMenuItem>,
-  onClick: (indices: ReadonlyArray<number>) => void
+  onClick: (indices: ReadonlyArray<number>) => void,
+  spellCheckMenuItems?: ReadonlyArray<MenuItem>
 ): Menu {
-  return buildRecursiveContextMenu(template, onClick)
+  const menu = buildRecursiveContextMenu(template, onClick)
+
+  if (spellCheckMenuItems === undefined) {
+    return menu
+  }
+
+  for (const spellCheckMenuItem of spellCheckMenuItems) {
+    menu.append(spellCheckMenuItem)
+  }
+
+  return menu
 }
 
 function buildRecursiveContextMenu(

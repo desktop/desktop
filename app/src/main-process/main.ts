@@ -37,6 +37,7 @@ import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
 import { getArchitecture } from '../lib/get-architecture'
 import * as remoteMain from '@electron/remote/main'
+import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
 remoteMain.initialize()
 
 app.setAppLogsPath()
@@ -450,13 +451,23 @@ app.on('ready', () => {
    * Handle the action to show a contextual menu.
    *
    * It responds an array of indices that maps to the path to reach
-   * the menu (or submenu) item that was clicked or null if the menu
-   * was closed without clicking on any item.
+   * the menu (or submenu) item that was clicked or null if the menu was closed
+   * without clicking on any item or the item click was handled by the main
+   * process as opposed to the renderer.
    */
-  ipcMain.handle('show-contextual-menu', (event, items) => {
-    return new Promise(resolve => {
-      const menu = buildContextMenu(items, indices => resolve(indices))
+  ipcMain.handle('show-contextual-menu', (event, items, addSpellCheckMenu) => {
+    return new Promise(async resolve => {
       const window = BrowserWindow.fromWebContents(event.sender) || undefined
+
+      const spellCheckMenuItems = addSpellCheckMenu
+        ? await buildSpellCheckMenu(window)
+        : undefined
+
+      const menu = buildContextMenu(
+        items,
+        indices => resolve(indices),
+        spellCheckMenuItems
+      )
 
       menu.popup({ window, callback: () => resolve(null) })
     })
@@ -545,6 +556,11 @@ app.on('ready', () => {
    * An event sent by the renderer asking for the app's architecture
    */
   ipcMain.handle('get-app-architecture', async () => getArchitecture(app))
+
+  /**
+   * An event sent by the renderer asking for the app's path
+   */
+  ipcMain.handle('get-app-path', async () => app.getAppPath())
 
   /**
    * An event sent by the renderer asking for whether the app is running under

@@ -1,9 +1,7 @@
-import * as remote from '@electron/remote'
 import { getPath } from '../main-process-proxy'
+import { getAppPathProxy } from '../main-process-proxy'
 
-let app: Electron.App | null = null
 let path: string | null = null
-let userDataPath: string | null = null
 let documentsPath: string | null = null
 
 export type PathType =
@@ -23,14 +21,6 @@ export type PathType =
   | 'recent'
   | 'logs'
   | 'crashDumps'
-
-function getApp(): Electron.App {
-  if (!app) {
-    app = remote.app
-  }
-
-  return app
-}
 
 /**
  * Get the version of the app.
@@ -53,25 +43,12 @@ export function getName(): string {
  *
  * This is preferable to using `remote` directly because we cache the result.
  */
-export function getAppPath(): string {
+export async function getAppPath(): Promise<string> {
   if (!path) {
-    path = getApp().getAppPath()
+    path = await getAppPathProxy()
   }
 
   return path
-}
-
-/**
- * Get the path to the user's data.
- *
- * This is preferable to using `remote` directly because we cache the result.
- */
-export function getUserDataPath(): string {
-  if (!userDataPath) {
-    userDataPath = getApp().getPath('userData')
-  }
-
-  return userDataPath
 }
 
 /**

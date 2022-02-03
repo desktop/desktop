@@ -2,7 +2,7 @@ import * as React from 'react'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 export interface ITextBoxProps {
   /** The label for the input field. */

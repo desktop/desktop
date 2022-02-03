@@ -46,7 +46,7 @@ import {
   getLineWidthFromDigitCount,
   getNumberOfDigits,
 } from './diff-helpers'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-search-input'
 import { escapeRegExp } from '../../lib/helpers/regex'
