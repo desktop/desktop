@@ -79,23 +79,17 @@ export abstract class BaseChooseBranchDialog extends React.Component<
   IBaseChooseBranchDialogProps,
   IBaseChooseBranchDialogState
 > {
-  protected abstract start = () => {}
+  protected abstract start: () => void
 
-  protected abstract canStart = (): boolean => {
-    return false
-  }
+  protected abstract canStart: () => boolean
 
-  protected abstract updateStatus = async (branch: Branch) => {}
+  protected abstract updateStatus: (branch: Branch) => Promise<void>
 
-  protected abstract getDialogTitle = (
+  protected abstract getDialogTitle: (
     branchName: string
-  ): string | JSX.Element | undefined => {
-    return branchName
-  }
+  ) => string | JSX.Element | undefined
 
-  protected abstract renderActionStatusIcon = (): JSX.Element | null => {
-    return null
-  }
+  protected abstract renderActionStatusIcon: () => JSX.Element | null
 
   public constructor(props: IBaseChooseBranchDialogProps) {
     super(props)

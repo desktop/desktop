@@ -1,8 +1,5 @@
 import * as React from 'react'
 
-// broken for SFCs: https://github.com/Microsoft/tslint-microsoft-contrib/issues/339
-/* tslint:disable react-unused-props-and-state */
-
 interface IHighlightTextProps {
   /** The text to render */
   readonly text: string
