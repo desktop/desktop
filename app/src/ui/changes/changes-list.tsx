@@ -411,7 +411,7 @@ export class ChangesList extends React.Component<
   ): IMenuItem => {
     return {
       label: CopyRelativeFilePathLabel,
-      action: () => clipboard.writeText(Path.normalize(file.path))
+      action: () => clipboard.writeText(Path.normalize(file.path)),
     }
   }
 
