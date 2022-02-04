@@ -7,6 +7,7 @@ import {
   setNativeThemeSource,
   shouldUseDarkColors,
 } from '../main-process-proxy'
+import { ThemeSource } from './theme-source'
 
 /** Interface for set of customizable styles */
 export interface ICustomTheme {
@@ -36,8 +37,6 @@ export type ApplicableTheme =
   | ApplicationTheme.Light
   | ApplicationTheme.Dark
   | ApplicationTheme.HighContrast
-
-export type ThemeSource = 'light' | 'dark' | 'system'
 
 /**
  * Gets the friendly name of an application theme for use
