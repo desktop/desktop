@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.7-test23": ["[Fixed] No more crashes on Win 7 and 8?"],
     "2.9.7-beta1": [
       "[New] Initial support for system notifications when checks fail in macOS - #13655",
       "[Added] Support pushing workflow files for GitHub Actions to GitHub Enterprise Server - #13640",
