@@ -2,6 +2,7 @@ import { focusWindow } from '../../../ui/main-process-proxy'
 import {
   DesktopNotification,
   initializeNotifications,
+  supportsNotifications,
 } from 'desktop-notifications'
 import { findToastActivatorClsid } from '../../find-toast-activator-clsid'
 
@@ -37,7 +38,7 @@ export function showNotification(
   body: string,
   onClick: () => void
 ) {
-  if (__WIN32__) {
+  if (supportsNotifications()) {
     initializeWindowsNotifications()
 
     const notification = new DesktopNotification(title, body)
