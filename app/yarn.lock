@@ -333,11 +333,11 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-notifications@^0.1.4:
+"desktop-notifications@https://github.com/desktop/desktop-notifications#os-version-check":
   version "0.1.4"
-  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.4.tgz#698c5822fb88d7a2289f36b4f64eaac8b5bdefed"
-  integrity sha512-3ADhNvqL9ISbN17x/hWcYUcGHvWJxPnoxxsQbmrU26wpk2eakvDplCm0fvNIpHx/Ar5O7n1VmMOVmLr8W6B8sQ==
+  resolved "https://github.com/desktop/desktop-notifications#83e7acc8b6e02ffbf0e2f2507e3606fb1fe87a37"
   dependencies:
+    lru-cache "^6.0.0"
     node-addon-api "^4.3.0"
     prebuild-install "^7.0.1"
     uuid "^8.3.2"
