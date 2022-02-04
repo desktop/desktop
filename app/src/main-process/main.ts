@@ -37,10 +37,7 @@ import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
 import { getArchitecture } from '../lib/get-architecture'
-import * as remoteMain from '@electron/remote/main'
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
-
-remoteMain.initialize()
 
 app.setAppLogsPath()
 enableSourceMaps()
