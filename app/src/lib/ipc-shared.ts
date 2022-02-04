@@ -11,8 +11,8 @@ import { ILaunchStats } from './stats'
 import { URLActionType } from './parse-app-url'
 import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
-import { ThemeSource } from '../ui/lib/application-theme'
 import { PathType } from '../ui/lib/app-proxy'
+import { ThemeSource } from '../ui/lib/theme-source'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
