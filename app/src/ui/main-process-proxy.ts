@@ -179,6 +179,11 @@ export const showCertificateTrustDialog = sendProxy(
 )
 
 /**
+ * Tell the main process to obtain the applications path for given path type
+ */
+export const getPath = invokeProxy('get-path', 1)
+
+/**
  * Tell the main process to obtain the applications architecture
  */
 export const getAppArchitecture = invokeProxy('get-app-architecture', 0)

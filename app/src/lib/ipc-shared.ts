@@ -12,6 +12,7 @@ import { URLActionType } from './parse-app-url'
 import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
 import { ThemeSource } from '../ui/lib/application-theme'
+import { PathType } from '../ui/lib/app-proxy'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -84,6 +85,7 @@ export type RequestChannels = {
  * Return signatures must be promises
  */
 export type RequestResponseChannels = {
+  'get-path': (path: PathType) => Promise<string>
   'get-app-architecture': () => Promise<Architecture>
   'get-app-path': () => Promise<string>
   'is-running-under-rosetta-translation': () => Promise<boolean>
