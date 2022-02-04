@@ -7,6 +7,7 @@ import {
   shell,
   session,
   systemPreferences,
+  nativeTheme,
 } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
@@ -38,6 +39,7 @@ import * as ipcMain from './ipc-main'
 import { getArchitecture } from '../lib/get-architecture'
 import * as remoteMain from '@electron/remote/main'
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
+
 remoteMain.initialize()
 
 app.setAppLogsPath()
@@ -693,6 +695,15 @@ app.on('ready', () => {
   ipcMain.on('focus-window', () => {
     mainWindow?.focus()
   })
+
+  ipcMain.on('set-native-theme-source', (_, themeName) => {
+    nativeTheme.themeSource = themeName
+  })
+
+  ipcMain.handle(
+    'should-use-dark-colors',
+    async () => nativeTheme.shouldUseDarkColors
+  )
 })
 
 app.on('activate', () => {

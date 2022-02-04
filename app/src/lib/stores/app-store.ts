@@ -1856,7 +1856,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.currentTheme =
       this.selectedTheme !== ApplicationTheme.HighContrast
-        ? getCurrentlyAppliedTheme()
+        ? await getCurrentlyAppliedTheme()
         : this.selectedTheme
 
     themeChangeMonitor.onThemeChanged(theme => {

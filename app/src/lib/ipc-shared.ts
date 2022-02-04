@@ -12,6 +12,7 @@ import { URLActionType } from './parse-app-url'
 import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
 import { PathType } from '../ui/lib/app-proxy'
+import { ThemeSource } from '../ui/lib/theme-source'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -70,6 +71,7 @@ export type RequestChannels = {
   'auto-updater-update-not-available': () => void
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
+  'set-native-theme-source': (themeName: ThemeSource) => void
   'move-to-applications-folder': () => void
   'focus-window': () => void
 }
@@ -109,4 +111,5 @@ export type RequestResponseChannels = {
   'get-apple-action-on-double-click': () => Promise<
     Electron.AppleActionOnDoubleClickPref
   >
+  'should-use-dark-colors': () => Promise<boolean>
 }
