@@ -19,7 +19,6 @@ import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
-import * as remoteMain from '@electron/remote/main'
 import * as ipcMain from './ipc-main'
 import * as ipcWebContents from './ipc-webcontents'
 
@@ -74,7 +73,6 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
-    remoteMain.enable(this.window.webContents)
 
     savedWindowState.manage(this.window)
     this.shouldMaximizeOnShow = savedWindowState.isMaximized
