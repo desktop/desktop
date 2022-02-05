@@ -18,6 +18,7 @@ import {
   DefaultEditorLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
+  CopyRelativeFilePathLabel,
 } from '../lib/context-menu'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
@@ -363,6 +364,10 @@ export class SelectedCommit extends React.Component<
         label: CopyFilePathLabel,
         action: () => clipboard.writeText(fullPath),
       },
+      {
+        label: CopyRelativeFilePathLabel,
+        action: () => clipboard.writeText(Path.normalize(file.path)),
+      },
     ]
 
     let viewOnGitHubLabel = 'View on GitHub'
@@ -375,14 +380,17 @@ export class SelectedCommit extends React.Component<
       viewOnGitHubLabel = 'View on GitHub Enterprise'
     }
 
-    items.push({
-      label: viewOnGitHubLabel,
-      action: () => this.onViewOnGitHub(file),
-      enabled:
-        !this.props.isLocal &&
-        !!gitHubRepository &&
-        !!this.props.selectedCommit,
-    })
+    items.push(
+      { type: 'separator' },
+      {
+        label: viewOnGitHubLabel,
+        action: () => this.onViewOnGitHub(file),
+        enabled:
+          !this.props.isLocal &&
+          !!gitHubRepository &&
+          !!this.props.selectedCommit,
+      }
+    )
 
     showContextualMenu(items)
   }
