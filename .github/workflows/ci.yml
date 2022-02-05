@@ -92,10 +92,6 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script:cov
-      - name: Run integration tests
-        if: matrix.arch == 'x64'
-        timeout-minutes: 5
-        run: yarn test:integration
       - name: Package application
         run: yarn run package
         if: ${{ matrix.os == 'ubuntu-18.04' && matrix.arch == 'x64' }}
