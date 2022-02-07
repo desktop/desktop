@@ -484,7 +484,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private testShowNotification() {
-    if (!__DEV__) {
+    if (
+      __RELEASE_CHANNEL__ !== 'development' &&
+      __RELEASE_CHANNEL__ !== 'test'
+    ) {
       return
     }
 
