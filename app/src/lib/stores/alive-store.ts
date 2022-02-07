@@ -144,7 +144,14 @@ export class AliveStore {
     }
 
     const api = API.fromAccount(account)
-    const webSocketUrl = await api.getAliveWebSocketURL()
+    let webSocketUrl = null
+
+    try {
+      webSocketUrl = await api.getAliveWebSocketURL()
+    } catch (e) {
+      log.error(`Could not get Alive web socket URL for '${account.login}'`, e)
+      return null
+    }
 
     if (webSocketUrl === null) {
       return null
