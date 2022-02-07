@@ -3,7 +3,7 @@
     "2.9.7-beta2": [
       "[New] Initial support for system notifications when checks fail in Windows - #13655",
       "[Improved] Upgrade to Electron v16.0.8 - #13814",
-      "[Improved] Use perl to resolve symlinks on macOS - #13764. Thanks @spotlightishere!"
+      "[Fixed] Fix CLI tool on macOS Monterey - #13764. Thanks @spotlightishere!"
     ],
     "2.9.7-beta1": [
       "[New] Initial support for system notifications when checks fail in macOS - #13655",
