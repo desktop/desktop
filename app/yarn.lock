@@ -333,14 +333,14 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-notifications@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.5.tgz#896d42753b356db9027ef26ddc0dc1714c87e778"
-  integrity sha512-yuOZsux22TCjeztMXS5tua889DZTIXpA7q9jKXds2M9BJl/a657/Z7Pv1sC3X0QtEuow1udEiMWWVFUkudGZVg==
+desktop-notifications@^0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.6.tgz#a9bd2774b3385019f849801c5314dbc43af11433"
+  integrity sha512-wIMhqmm2LVxs9+utPb2LtFzrts7SFl99ZLhU0Wy9F41IyTcGNMrutP6o/MUSGBVjSI8HpqjO5NwvqohpEUd+EQ==
   dependencies:
-    lru-cache "^6.0.0"
     node-addon-api "^4.3.0"
     prebuild-install "^7.0.1"
+    quick-lru "^3.0.0"
     uuid "^8.3.2"
 
 desktop-trampoline@desktop/desktop-trampoline#v0.9.8:
