@@ -46,6 +46,7 @@ import {
   canSelect,
   getLineWidthFromDigitCount,
   getNumberOfDigits,
+  MaxIntraLineDiffStringLength,
 } from './diff-helpers'
 import {
   expandTextDiffHunk,
@@ -57,9 +58,6 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverCaretPosition } from '../lib/popover'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
-
-/** The longest line for which we'd try to calculate a line diff. */
-const MaxIntraLineDiffStringLength = 4096
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
