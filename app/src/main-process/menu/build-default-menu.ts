@@ -541,14 +541,17 @@ export function buildDefaultMenu({
         ],
       },
       {
-        label: 'Show notification',
-        click: emit('test-show-notification'),
-      },
-      {
         label: 'Prune branches',
         click: emit('test-prune-branches'),
       }
     )
+  }
+
+  if (__RELEASE_CHANNEL__ === 'development' || __RELEASE_CHANNEL__ === 'test') {
+    helpItems.push({
+      label: 'Show notification',
+      click: emit('test-show-notification'),
+    })
   }
 
   if (__DARWIN__) {
