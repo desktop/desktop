@@ -368,6 +368,7 @@ export class SelectedCommit extends React.Component<
         label: CopyRelativeFilePathLabel,
         action: () => clipboard.writeText(Path.normalize(file.path)),
       },
+      { type: 'separator' },
     ]
 
     let viewOnGitHubLabel = 'View on GitHub'
@@ -380,17 +381,14 @@ export class SelectedCommit extends React.Component<
       viewOnGitHubLabel = 'View on GitHub Enterprise'
     }
 
-    items.push(
-      { type: 'separator' },
-      {
-        label: viewOnGitHubLabel,
-        action: () => this.onViewOnGitHub(file),
-        enabled:
-          !this.props.isLocal &&
-          !!gitHubRepository &&
-          !!this.props.selectedCommit,
-      }
-    )
+    items.push({
+      label: viewOnGitHubLabel,
+      action: () => this.onViewOnGitHub(file),
+      enabled:
+        !this.props.isLocal &&
+        !!gitHubRepository &&
+        !!this.props.selectedCommit,
+    })
 
     showContextualMenu(items)
   }
