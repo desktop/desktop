@@ -45,7 +45,7 @@ export async function removeRemote(
   name: string
 ): Promise<void> {
   const options = {
-    successExitCodes: new Set([0, 2]),
+    successExitCodes: new Set([0, 2, 128]),
   }
 
   await git(
@@ -79,7 +79,7 @@ export async function getRemoteURL(
     ['remote', 'get-url', name],
     repository.path,
     'getRemoteURL',
-    { successExitCodes: new Set([0, 2]) }
+    { successExitCodes: new Set([0, 2, 128]) }
   )
 
   if (result.exitCode !== 0) {
