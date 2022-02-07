@@ -80,7 +80,7 @@ function getSpellCheckMenuItems(
  * to english, it returns the item that can set it to their system language.
  */
 function getSpellCheckLanguageMenuItem(
-  session: Electron.session
+  session: Electron.Session
 ): MenuItem | null {
   const userLanguageCode = app.getLocale()
   const englishLanguageCode = 'en-US'
