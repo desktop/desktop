@@ -1,8 +1,8 @@
 import * as React from 'react'
 import CodeMirror, {
   Doc,
-  EditorChangeLinkedList,
   Editor,
+  EditorChange,
   EditorConfiguration,
   LineHandle,
 } from 'codemirror'
@@ -44,7 +44,7 @@ interface ICodeMirrorHostProps {
   ) => void
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
-  readonly onChanges?: (cm: Editor, change: EditorChangeLinkedList[]) => void
+  readonly onChanges?: (cm: Editor, change: EditorChange[]) => void
 
   /** Callback for when the viewport changes due to scrolling or other updates */
   readonly onViewportChange?: (cm: Editor, from: number, to: number) => void
@@ -231,7 +231,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
   }
 
-  private onChanges = (cm: Editor, changes: EditorChangeLinkedList[]) => {
+  private onChanges = (cm: Editor, changes: EditorChange[]) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }
