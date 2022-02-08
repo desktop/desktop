@@ -700,7 +700,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     const CodeMirrorOptions: EditorConfiguration & {
       hintOptions: any
     } = {
-      mode: null,
       lineWrapping: true,
       extraKeys: {
         Tab: false,
