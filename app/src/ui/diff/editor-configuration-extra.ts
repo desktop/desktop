@@ -5,8 +5,8 @@ import { EditorConfiguration } from 'codemirror'
  * but aren't.
  */
 export interface IEditorConfigurationExtra extends EditorConfiguration {
-  /** The scrollbar style for the text area. */
-  readonly scrollbarStyle: 'native' | 'simple'
+  /** The scrollbar style for the text area. 'native', 'simple', 'null' */
+  readonly scrollbarStyle?: any
 
   /**
    * This is used by the mark-selection addon and is unused if that
