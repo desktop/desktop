@@ -387,3 +387,9 @@ export function getLargestLineNumber(hunks: DiffHunk[]): number {
 export function getNumberOfDigits(val: number): number {
   return (Math.log(val) * Math.LOG10E + 1) | 0
 }
+
+/**
+ * The longest line for which we'd try to calculate a line diff, this matches
+ * GitHub.com's behavior.
+ **/
+export const MaxIntraLineDiffStringLength = 1024
