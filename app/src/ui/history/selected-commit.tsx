@@ -18,6 +18,7 @@ import {
   DefaultEditorLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
+  CopyRelativeFilePathLabel,
 } from '../lib/context-menu'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
@@ -363,6 +364,11 @@ export class SelectedCommit extends React.Component<
         label: CopyFilePathLabel,
         action: () => clipboard.writeText(fullPath),
       },
+      {
+        label: CopyRelativeFilePathLabel,
+        action: () => clipboard.writeText(Path.normalize(file.path)),
+      },
+      { type: 'separator' },
     ]
 
     let viewOnGitHubLabel = 'View on GitHub'
