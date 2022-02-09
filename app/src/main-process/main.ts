@@ -36,7 +36,10 @@ import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
-import { getArchitecture } from '../lib/get-architecture'
+import {
+  getArchitecture,
+  isAppRunningUnderARM64Translation,
+} from '../lib/get-architecture'
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
 
 app.setAppLogsPath()
@@ -565,9 +568,8 @@ app.on('ready', () => {
    * An event sent by the renderer asking for whether the app is running under
    * rosetta translation
    */
-  ipcMain.handle(
-    'is-running-under-rosetta-translation',
-    async () => app.runningUnderRosettaTranslation
+  ipcMain.handle('is-running-under-arm64-translation', async () =>
+    isAppRunningUnderARM64Translation(app)
   )
 
   /**

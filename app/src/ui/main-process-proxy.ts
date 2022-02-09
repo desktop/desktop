@@ -197,8 +197,8 @@ export const getAppPathProxy = invokeProxy('get-app-path', 0)
  * Tell the main process to obtain whether the app is running under a rosetta
  * translation
  */
-export const isRunningUnderRosettaTranslation = invokeProxy(
-  'is-running-under-rosetta-translation',
+export const isRunningUnderARM64Translation = invokeProxy(
+  'is-running-under-arm64-translation',
   0
 )
 
