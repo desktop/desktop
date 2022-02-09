@@ -182,10 +182,18 @@
   .before {
     color: var(--diff-delete-text-color);
     background: var(--diff-delete-background-color);
-    border-right: 1px solid var(--diff-border-color);
 
     @include high-contrast {
-      border: var(--hc-diff-delete-border);
+      border-right: var(--hc-diff-delete-border);
+      border-left: var(--hc-diff-delete-border);
+
+      &.is-first {
+        border-top: var(--hc-diff-delete-border);
+      }
+
+      &.is-last {
+        border-bottom: var(--hc-diff-delete-border);
+      }
     }
 
     .line-number {
@@ -206,7 +214,16 @@
     background: var(--diff-add-background-color);
 
     @include high-contrast {
-      border: var(--hc-diff-add-border);
+      border-left: var(--hc-diff-add-border);
+      border-right: var(--hc-diff-add-border);
+
+      &.is-first {
+        border-top: var(--hc-diff-add-border);
+      }
+
+      &.is-last {
+        border-bottom: var(--hc-diff-add-border);
+      }
     }
 
     .line-number {
