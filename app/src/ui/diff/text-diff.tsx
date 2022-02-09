@@ -1,7 +1,7 @@
 import * as React from 'react'
 import ReactDOM from 'react-dom'
 import { clipboard } from 'electron'
-import { Editor, Doc } from 'codemirror'
+import { Editor, Doc, EditorConfiguration } from 'codemirror'
 
 import {
   DiffHunk,
@@ -16,7 +16,6 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
-import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { CodeMirrorHost } from './code-mirror-host'
 import {
@@ -253,7 +252,7 @@ function scrollEditorVertically(step: number, unit: 'line' | 'page') {
   }
 }
 
-const defaultEditorOptions: IEditorConfigurationExtra = {
+const defaultEditorOptions: EditorConfiguration = {
   lineNumbers: false,
   readOnly: true,
   showCursorWhenSelecting: false,
@@ -312,7 +311,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         text = text.replace(/\r(?=\n|$)/g, '')
       }
 
-      const doc = new Doc(text, mode, firstLineNumber, lineSeparator)
+      const doc = new Doc(
+        text,
+        mode,
+        firstLineNumber,
+        lineSeparator ?? undefined
+      )
 
       for (const noNewlineLine of noNewlineIndicatorLines) {
         doc.setBookmark(
