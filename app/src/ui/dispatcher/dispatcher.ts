@@ -785,6 +785,11 @@ export class Dispatcher {
       }
 
       const addedRepositories = await this.addRepositories([path])
+
+      if (addedRepositories.length < 1) {
+        return null
+      }
+
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
 
