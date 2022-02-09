@@ -277,7 +277,7 @@ export class NoChanges extends React.Component<
   private openIntegrationPreferences = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.Preferences,
-      initialSelectedTab: PreferencesTab.Integrations
+      initialSelectedTab: PreferencesTab.Integrations,
     })
   }
 
