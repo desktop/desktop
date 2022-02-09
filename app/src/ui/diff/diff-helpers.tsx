@@ -393,3 +393,30 @@ export function getNumberOfDigits(val: number): number {
  * GitHub.com's behavior.
  **/
 export const MaxIntraLineDiffStringLength = 1024
+
+/**
+ * Used to obtain classes applied to style the row if it is the first or last of
+ * a group of added, deleted, or modified rows in the unified diff.
+ **/
+export function getFirstAndLastClassesUnified(
+  tokenIndex: string,
+  prevTokenIndex: string | undefined,
+  nextTokenIndex: string | undefined
+): string[] {
+  const addDeleteTokens = ['+', '-']
+  if (!addDeleteTokens.includes(tokenIndex)) {
+    return []
+  }
+
+  const classNames = []
+
+  if (prevTokenIndex !== tokenIndex) {
+    classNames.push('is-first')
+  }
+
+  if (nextTokenIndex !== tokenIndex) {
+    classNames.push('is-last')
+  }
+
+  return classNames
+}

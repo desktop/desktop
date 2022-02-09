@@ -6,6 +6,7 @@ import { ITokens } from '../../lib/highlighter/types'
 import 'codemirror/mode/javascript/javascript'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import { DefaultDiffExpansionStep } from './text-diff-expansion'
+import { getFirstAndLastClassesUnified } from './diff-helpers'
 
 export interface IDiffSyntaxModeOptions {
   /**
@@ -42,6 +43,7 @@ const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
 interface IState {
   diffLineIndex: number
   previousHunkOldEndLine: number | null
+  prevLineTokenIndex: string | undefined
 }
 
 function skipLine(stream: CodeMirror.StringStream, state: IState) {
@@ -50,8 +52,15 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
   return null
 }
 
-function getBaseDiffLineStyle(token: DiffSyntaxToken) {
-  return `line-${token} line-background-${token}`
+function getBaseDiffLineStyle(
+  token: DiffSyntaxToken,
+  customBackgroundClassNames: ReadonlyArray<string> = []
+) {
+  const customBackgroundStyles = customBackgroundClassNames
+    .map(c => `line-background-${c}`)
+    .join(' ')
+
+  return `line-${token} line-background-${token} ${customBackgroundStyles}`
 }
 
 /**
@@ -115,7 +124,11 @@ export class DiffSyntaxMode {
   }
 
   public startState(): IState {
-    return { diffLineIndex: 0, previousHunkOldEndLine: null }
+    return {
+      diffLineIndex: 0,
+      previousHunkOldEndLine: null,
+      prevLineTokenIndex: undefined,
+    }
   }
 
   public blankLine(state: IState) {
@@ -166,7 +179,17 @@ export class DiffSyntaxMode {
         return null
       }
 
-      let result = getBaseDiffLineStyle(token)
+      const nextLine = stream.lookAhead(1)
+      const nextLineTokenIndex =
+        typeof nextLine === `string` ? nextLine[0] : undefined
+      const lineBackgroundClassNames = getFirstAndLastClassesUnified(
+        index,
+        state.prevLineTokenIndex,
+        nextLineTokenIndex
+      )
+      state.prevLineTokenIndex = index
+
+      let result = getBaseDiffLineStyle(token, lineBackgroundClassNames)
 
       // If it's a hunk header line, we want to make a few extra checks
       // depending on the distance to the previous hunk.
