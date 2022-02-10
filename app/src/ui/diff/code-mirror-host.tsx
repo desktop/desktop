@@ -13,10 +13,7 @@ import 'codemirror/addon/selection/mark-selection'
 // Autocompletion plugin
 import 'codemirror/addon/hint/show-hint'
 
-if (__DARWIN__) {
-  // This has to be required to support the `simple` scrollbar style.
-  require('codemirror/addon/scroll/simplescrollbars')
-}
+import 'codemirror/addon/scroll/simplescrollbars'
 
 import 'codemirror/addon/search/search'
 
