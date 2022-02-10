@@ -3192,6 +3192,19 @@ export class Dispatcher {
     return this.appStore._setMultiCommitOperationStep(repository, step)
   }
 
+  /** Set the multi commit operation target branch */
+  public setMultiCommitOperationTargetBranch(
+    repository: Repository,
+    targetBranch: Branch
+  ): void {
+    this.repositoryStateManager.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        targetBranch,
+      })
+    )
+  }
+
   /** Set cherry-pick branch created state */
   public setCherryPickBranchCreated(
     repository: Repository,

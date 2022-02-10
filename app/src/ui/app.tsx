@@ -2874,7 +2874,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         branchCreated: false,
         commits,
       },
-      tip.branch,
+      null,
       commits,
       tip.branch.tip.sha
     )
