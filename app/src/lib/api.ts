@@ -1097,7 +1097,7 @@ export class API {
    *
    * If a check suite is comprised of check runs ran by actions, there will be
    * one workflow run that represents that check suite. Thus, if this api should
-   * eitehr return an empty array indicating there are no actions runs for that
+   * either return an empty array indicating there are no actions runs for that
    * check_suite_id (so check suite was not ran by actions) or an array with a
    * single element.
    */
