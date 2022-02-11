@@ -8,7 +8,7 @@ import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
-import { pick } from 'lodash'
+import { noop, pick } from 'lodash'
 
 interface ICommitMessageDialogProps {
   /**
@@ -124,6 +124,7 @@ export class CommitMessageDialog extends React.Component<
             onCreateCommit={this.props.onSubmitCommitMessage}
             anyFilesAvailable={true}
             anyFilesSelected={true}
+            onCommitMessageFocusSet={noop}
           />
         </DialogContent>
       </Dialog>

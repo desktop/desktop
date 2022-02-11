@@ -111,6 +111,13 @@ interface ICommitMessageProps {
    * and history view).
    */
   readonly onPersistCommitMessage?: (message: ICommitMessage) => void
+
+  /**
+   * Called when the component has given the commit message focus due to
+   * `focusCommitMessage` being set. Used to reset the `focusCommitMessage`
+   * prop.
+   */
+  readonly onCommitMessageFocusSet: () => void
 }
 
 interface ICommitMessageState {
@@ -226,7 +233,10 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    if (this.props.focusCommitMessage) {
+    if (
+      this.props.focusCommitMessage &&
+      this.props.focusCommitMessage !== prevProps.focusCommitMessage
+    ) {
       this.focusSummary()
     } else if (
       prevProps.showCoAuthoredBy === false &&
@@ -246,7 +256,7 @@ export class CommitMessage extends React.Component<
   private focusSummary() {
     if (this.summaryTextInput !== null) {
       this.summaryTextInput.focus()
-      this.props.dispatcher.setCommitMessageFocus(false)
+      this.props.onCommitMessageFocusSet()
     }
   }
 

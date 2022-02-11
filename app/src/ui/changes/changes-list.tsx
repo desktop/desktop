@@ -709,6 +709,7 @@ export class ChangesList extends React.Component<
         onCoAuthorsUpdated={this.onCoAuthorsUpdated}
         onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
         onPersistCommitMessage={this.onPersistCommitMessage}
+        onCommitMessageFocusSet={this.onCommitMessageFocusSet}
       />
     )
   }
@@ -720,6 +721,9 @@ export class ChangesList extends React.Component<
     const { dispatcher, repository } = this.props
     dispatcher.setShowCoAuthoredBy(repository, showCoAuthors)
   }
+
+  private onCommitMessageFocusSet = () =>
+    this.props.dispatcher.setCommitMessageFocus(false)
 
   private onPersistCommitMessage = (message: ICommitMessage) =>
     this.props.dispatcher.setCommitMessage(this.props.repository, message)
