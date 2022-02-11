@@ -333,10 +333,10 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-notifications@^0.1.6:
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.6.tgz#a9bd2774b3385019f849801c5314dbc43af11433"
-  integrity sha512-wIMhqmm2LVxs9+utPb2LtFzrts7SFl99ZLhU0Wy9F41IyTcGNMrutP6o/MUSGBVjSI8HpqjO5NwvqohpEUd+EQ==
+desktop-notifications@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.7.tgz#8aac705d374f1b527595030418d8c79de167cf96"
+  integrity sha512-3lSt/Ol/3yupnwf7teGRn2PixnFH0sAD1ZpFdeEga+ffhRqxSzHOY+VVd8k1RkecQiwVQWksDYkO4510wAmxeg==
   dependencies:
     node-addon-api "^4.3.0"
     prebuild-install "^7.0.1"
