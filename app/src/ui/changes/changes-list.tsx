@@ -719,6 +719,7 @@ export class ChangesList extends React.Component<
         onShowPopup={this.onShowPopup}
         onShowFoldout={this.onShowFoldout}
         onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
+        onStopAmending={this.onStopAmending}
       />
     )
   }
@@ -745,6 +746,9 @@ export class ChangesList extends React.Component<
 
   private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
     this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
+
+  private onStopAmending = () =>
+    this.props.dispatcher.stopAmendingRepository(this.props.repository)
 
   private onStashEntryClicked = () => {
     const { isShowingStashEntry, dispatcher, repository } = this.props

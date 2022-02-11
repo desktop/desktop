@@ -137,6 +137,7 @@ export class CommitMessageDialog extends React.Component<
               this.onCommitSpellcheckEnabledChanged
             }
             repositoryAccount={this.props.repositoryAccount}
+            onStopAmending={this.onStopAmending}
           />
         </DialogContent>
       </Dialog>
@@ -157,4 +158,7 @@ export class CommitMessageDialog extends React.Component<
 
   private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
     this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
+
+  private onStopAmending = () =>
+    this.props.dispatcher.stopAmendingRepository(this.props.repository)
 }
