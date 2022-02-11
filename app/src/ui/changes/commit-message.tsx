@@ -127,6 +127,7 @@ interface ICommitMessageProps {
 
   readonly onShowPopup: (popup: Popup) => void
   readonly onShowFoldout: (foldout: Foldout) => void
+  readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
 }
 
 interface ICommitMessageState {
@@ -497,8 +498,7 @@ export class CommitMessage extends React.Component<
       : 'Disable commit spellcheck'
     return {
       label: isEnabled ? disableLabel : enableLabel,
-      action: () =>
-        this.props.dispatcher.setCommitSpellcheckEnabled(!isEnabled),
+      action: () => this.props.onCommitSpellcheckEnabledChanged(!isEnabled),
     }
   }
 
