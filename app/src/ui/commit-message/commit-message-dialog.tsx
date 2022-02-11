@@ -125,6 +125,7 @@ export class CommitMessageDialog extends React.Component<
             anyFilesAvailable={true}
             anyFilesSelected={true}
             onCommitMessageFocusSet={noop}
+            onRefreshAuthor={this.onRefreshAuthor}
           />
         </DialogContent>
       </Dialog>
@@ -136,4 +137,7 @@ export class CommitMessageDialog extends React.Component<
 
   private onShowCoAuthorsChanged = (showCoAuthoredBy: boolean) =>
     this.setState({ showCoAuthoredBy })
+
+  private onRefreshAuthor = () =>
+    this.props.dispatcher.refreshAuthor(this.props.repository)
 }

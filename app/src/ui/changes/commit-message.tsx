@@ -118,6 +118,12 @@ interface ICommitMessageProps {
    * prop.
    */
   readonly onCommitMessageFocusSet: () => void
+
+  /**
+   * Called when the user email in Git config has been updated to refresh
+   * the repository state.
+   */
+  readonly onRefreshAuthor: () => void
 }
 
 interface ICommitMessageState {
@@ -383,7 +389,7 @@ export class CommitMessage extends React.Component<
 
   private onUpdateUserEmail = async (email: string) => {
     await setGlobalConfigValue('user.email', email)
-    this.props.dispatcher.refreshAuthor(this.props.repository)
+    this.props.onRefreshAuthor()
   }
 
   private onOpenRepositorySettings = () => {
