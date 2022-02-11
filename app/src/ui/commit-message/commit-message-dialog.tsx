@@ -11,6 +11,7 @@ import { CommitMessage } from '../changes/commit-message'
 import { noop, pick } from 'lodash'
 import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
+import { Account } from '../../models/account'
 
 interface ICommitMessageDialogProps {
   /**
@@ -79,6 +80,8 @@ interface ICommitMessageDialogProps {
 
   /** Method to run when dialog is submitted */
   readonly onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
+
+  readonly repositoryAccount: Account | null
 }
 
 interface ICommitMessageDialogState {
@@ -133,6 +136,7 @@ export class CommitMessageDialog extends React.Component<
             onCommitSpellcheckEnabledChanged={
               this.onCommitSpellcheckEnabledChanged
             }
+            repositoryAccount={this.props.repositoryAccount}
           />
         </DialogContent>
       </Dialog>

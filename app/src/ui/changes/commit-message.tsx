@@ -10,8 +10,8 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../dispatcher'
 import {
-  Repository,
   isRepositoryWithGitHubRepository,
+  Repository,
 } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
@@ -68,7 +68,7 @@ interface ICommitMessageProps {
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
-  readonly repositoryAccount?: Account | null
+  readonly repositoryAccount: Account | null
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting?: boolean
@@ -367,7 +367,6 @@ export class CommitMessage extends React.Component<
     const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
-      repositoryAccount !== undefined &&
       isAccountEmail(accountEmails, email) === false
 
     return (
@@ -643,8 +642,9 @@ export class CommitMessage extends React.Component<
   }
 
   private onMakeFork = () => {
-    if (isRepositoryWithGitHubRepository(this.props.repository)) {
-      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    const { repository, repositoryAccount: account, onShowPopup } = this.props
+    if (isRepositoryWithGitHubRepository(repository) && account !== null) {
+      onShowPopup({ type: PopupType.CreateFork, repository, account })
     }
   }
 

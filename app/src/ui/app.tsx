@@ -1926,6 +1926,11 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state.accounts
         )
 
+        const repositoryAccount = getAccountForRepository(
+          this.state.accounts,
+          popup.repository
+        )
+
         return (
           <CommitMessageDialog
             key="commit-message"
@@ -1947,6 +1952,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showNoWriteAccess={!hasWritePermissionForRepository}
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
+            repositoryAccount={repositoryAccount}
           />
         )
       case PopupType.MultiCommitOperation: {
