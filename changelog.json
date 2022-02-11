@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.7-test26": ["[New] Testing new Windows code signing certificate"],
     "2.9.7-beta2": [
       "[New] Initial support for system notifications when checks fail in Windows - #13655",
       "[Fixed] Fix CLI tool on macOS Monterey - #13764. Thanks @spotlightishere!",
