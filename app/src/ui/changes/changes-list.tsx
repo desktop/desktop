@@ -707,10 +707,15 @@ export class ChangesList extends React.Component<
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
         persistCoAuthors={true}
-        persistCommitMessage={true}
+        onPersistCommitMessage={this.onPersistCommitMessage}
       />
     )
   }
+
+  private onPersistCommitMessage = (
+    repository: Repository,
+    message: ICommitMessage
+  ) => this.props.dispatcher.setCommitMessage(repository, message)
 
   private onStashEntryClicked = () => {
     const { isShowingStashEntry, dispatcher, repository } = this.props

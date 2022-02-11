@@ -40,6 +40,7 @@ import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { pick } from '../../lib/pick'
 
 const addAuthorIcon = {
   w: 18,
@@ -100,11 +101,18 @@ interface ICommitMessageProps {
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
-  /** Whether or not to remember the commit message in the changes state */
-  readonly persistCommitMessage: boolean
-
   /** Whether or not to remember the coauthors in the changes state */
   readonly persistCoAuthors: boolean
+
+  /**
+   * Called when the component unmounts to give callers the ability
+   * to persist the commit message (i.e. when switching between changes
+   * and history view).
+   */
+  readonly onPersistCommitMessage?: (
+    repository: Repository,
+    message: ICommitMessage
+  ) => void
 }
 
 interface ICommitMessageState {
@@ -169,15 +177,11 @@ export class CommitMessage extends React.Component<
   }
 
   public componentWillUnmount() {
-    if (!this.props.persistCommitMessage) {
-      return
-    }
-    // We're unmounting, likely due to the user switching to the history tab.
-    // Let's persist our commit message in the dispatcher.
-    this.props.dispatcher.setCommitMessage(this.props.repository, {
-      summary: this.state.summary,
-      description: this.state.description,
-    })
+    const { props, state } = this
+    const { onPersistCommitMessage, repository } = props
+
+    // Persist our current commit message if the caller wants to
+    onPersistCommitMessage?.(repository, pick(state, 'summary', 'description'))
   }
 
   /**
