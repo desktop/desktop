@@ -102,17 +102,15 @@ interface ICommitMessageProps {
   readonly commitButtonText?: string
 
   /** Whether or not to remember the coauthors in the changes state */
-  readonly persistCoAuthors: boolean
+  readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
+  readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
 
   /**
    * Called when the component unmounts to give callers the ability
    * to persist the commit message (i.e. when switching between changes
    * and history view).
    */
-  readonly onPersistCommitMessage?: (
-    repository: Repository,
-    message: ICommitMessage
-  ) => void
+  readonly onPersistCommitMessage?: (message: ICommitMessage) => void
 }
 
 interface ICommitMessageState {
@@ -127,12 +125,6 @@ interface ICommitMessageState {
    * false when there's no action bar.
    */
   readonly descriptionObscured: boolean
-
-  /** when not persisting, we need to store locally */
-  readonly showCoAuthoredBy: boolean
-
-  /** when not persisting, we need to store locally */
-  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 function findUserAutoCompleteProvider(
@@ -171,17 +163,13 @@ export class CommitMessage extends React.Component<
         props.autocompletionProviders
       ),
       descriptionObscured: false,
-      showCoAuthoredBy: props.showCoAuthoredBy,
-      coAuthors: props.coAuthors,
     }
   }
 
+  // Persist our current commit message if the caller wants to
   public componentWillUnmount() {
     const { props, state } = this
-    const { onPersistCommitMessage, repository } = props
-
-    // Persist our current commit message if the caller wants to
-    onPersistCommitMessage?.(repository, pick(state, 'summary', 'description'))
+    props.onPersistCommitMessage?.(pick(state, 'summary', 'description'))
   }
 
   /**
@@ -238,11 +226,6 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    // If the need to show co-authors from the props changed, update the state.
-    if (prevProps.showCoAuthoredBy !== this.props.showCoAuthoredBy) {
-      this.setState({ showCoAuthoredBy: this.props.showCoAuthoredBy })
-    }
-
     if (this.props.focusCommitMessage) {
       this.focusSummary()
     } else if (
@@ -280,24 +263,11 @@ export class CommitMessage extends React.Component<
   }
 
   private getCoAuthorTrailers() {
-    if (!this.isCoAuthorInputEnabled) {
-      return []
-    }
-
-    /**
-     * When we persist coauthors in the app's changes state or outside this
-     * component, they will be sent in via the props. When we do not want to
-     * persist (like when used in modal), we will be storing and using from the
-     * component's state.
-     */
-    const coAuthors = this.props.persistCoAuthors
-      ? this.props.coAuthors
-      : this.state.coAuthors
-
-    return coAuthors.map(a => ({
-      token: 'Co-Authored-By',
-      value: `${a.name} <${a.email}>`,
-    }))
+    const { coAuthors } = this.props
+    const token = 'Co-Authored-By'
+    return this.isCoAuthorInputEnabled
+      ? coAuthors.map(a => ({ token, value: `${a.name} <${a.email}>` }))
+      : []
   }
 
   private get summaryOrPlaceholder() {
@@ -419,17 +389,11 @@ export class CommitMessage extends React.Component<
   }
 
   private get isCoAuthorInputVisible() {
-    return this.state.showCoAuthoredBy && this.isCoAuthorInputEnabled
+    return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
   }
 
-  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
-    if (!this.props.persistCoAuthors) {
-      this.setState({ coAuthors })
-      return
-    }
-
-    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
-  }
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+    this.props.onCoAuthorsUpdated(coAuthors)
 
   private renderCoAuthorInput() {
     if (!this.isCoAuthorInputVisible) {
@@ -454,22 +418,11 @@ export class CommitMessage extends React.Component<
   }
 
   private onToggleCoAuthors = () => {
-    this.setState({
-      showCoAuthoredBy: !this.state.showCoAuthoredBy,
-    })
-
-    if (!this.props.persistCoAuthors) {
-      return
-    }
-
-    this.props.dispatcher.setShowCoAuthoredBy(
-      this.props.repository,
-      !this.props.showCoAuthoredBy
-    )
+    this.props.onShowCoAuthoredByChanged(!this.props.showCoAuthoredBy)
   }
 
   private get toggleCoAuthorsText(): string {
-    return this.state.showCoAuthoredBy
+    return this.props.showCoAuthoredBy
       ? __DARWIN__
         ? 'Remove Co-Authors'
         : 'Remove co-authors'

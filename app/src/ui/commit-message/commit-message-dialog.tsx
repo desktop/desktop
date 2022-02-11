@@ -8,6 +8,7 @@ import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
+import { pick } from '../../lib/pick'
 
 interface ICommitMessageDialogProps {
   /**
@@ -78,10 +79,20 @@ interface ICommitMessageDialogProps {
   readonly onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
 }
 
+interface ICommitMessageDialogState {
+  readonly showCoAuthoredBy: boolean
+  readonly coAuthors: ReadonlyArray<IAuthor>
+}
+
 export class CommitMessageDialog extends React.Component<
   ICommitMessageDialogProps,
-  {}
+  ICommitMessageDialogState
 > {
+  public constructor(props: ICommitMessageDialogProps) {
+    super(props)
+    this.state = pick(props, 'showCoAuthoredBy', 'coAuthors')
+  }
+
   public render() {
     return (
       <Dialog
@@ -100,16 +111,16 @@ export class CommitMessageDialog extends React.Component<
             commitMessage={this.props.commitMessage}
             focusCommitMessage={false}
             autocompletionProviders={this.props.autocompletionProviders}
-            showCoAuthoredBy={this.props.showCoAuthoredBy}
-            coAuthors={this.props.coAuthors}
+            showCoAuthoredBy={this.state.showCoAuthoredBy}
+            coAuthors={this.state.coAuthors}
             placeholder={''}
             prepopulateCommitSummary={this.props.prepopulateCommitSummary}
             key={this.props.repository.id}
             showBranchProtected={this.props.showBranchProtected}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
-            persistCoAuthors={false}
-            persistCommitMessage={false}
+            onCoAuthorsUpdated={this.onCoAuthorsUpdated}
+            onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}
             onCreateCommit={this.props.onSubmitCommitMessage}
             anyFilesAvailable={true}
             anyFilesSelected={true}
@@ -118,4 +129,10 @@ export class CommitMessageDialog extends React.Component<
       </Dialog>
     )
   }
+
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+    this.setState({ coAuthors })
+
+  private onShowCoAuthorsChanged = (showCoAuthoredBy: boolean) =>
+    this.setState({ showCoAuthoredBy })
 }

@@ -706,16 +706,23 @@ export class ChangesList extends React.Component<
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
-        persistCoAuthors={true}
+        onCoAuthorsUpdated={this.onCoAuthorsUpdated}
+        onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
         onPersistCommitMessage={this.onPersistCommitMessage}
       />
     )
   }
 
-  private onPersistCommitMessage = (
-    repository: Repository,
-    message: ICommitMessage
-  ) => this.props.dispatcher.setCommitMessage(repository, message)
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
+
+  private onShowCoAuthoredByChanged = (showCoAuthors: boolean) => {
+    const { dispatcher, repository } = this.props
+    dispatcher.setShowCoAuthoredBy(repository, showCoAuthors)
+  }
+
+  private onPersistCommitMessage = (message: ICommitMessage) =>
+    this.props.dispatcher.setCommitMessage(this.props.repository, message)
 
   private onStashEntryClicked = () => {
     const { isShowingStashEntry, dispatcher, repository } = this.props
