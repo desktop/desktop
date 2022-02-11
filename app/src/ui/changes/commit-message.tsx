@@ -25,7 +25,7 @@ import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { CommitWarning, CommitWarningIcon } from './commit-warning'
 import { LinkButton } from '../lib/link-button'
-import { FoldoutType } from '../../lib/app-state'
+import { Foldout, FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Account } from '../../models/account'
@@ -33,7 +33,7 @@ import { CommitMessageAvatar } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
-import { PopupType } from '../../models/popup'
+import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isAccountEmail } from '../../lib/is-account-email'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
@@ -124,6 +124,9 @@ interface ICommitMessageProps {
    * the repository state.
    */
   readonly onRefreshAuthor: () => void
+
+  readonly onShowPopup: (popup: Popup) => void
+  readonly onShowFoldout: (foldout: Foldout) => void
 }
 
 interface ICommitMessageState {
@@ -393,7 +396,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onOpenRepositorySettings = () => {
-    this.props.dispatcher.showPopup({
+    this.props.onShowPopup({
       type: PopupType.RepositorySettings,
       repository: this.props.repository,
       initialSelectedTab: RepositorySettingsTab.GitConfig,
@@ -636,9 +639,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onSwitchBranch = () => {
-    this.props.dispatcher.showFoldout({
-      type: FoldoutType.Branch,
-    })
+    this.props.onShowFoldout({ type: FoldoutType.Branch })
   }
 
   private onMakeFork = () => {

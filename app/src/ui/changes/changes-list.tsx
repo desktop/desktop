@@ -33,7 +33,11 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { Commit, ICommitContext } from '../../models/commit'
-import { RebaseConflictState, ConflictState } from '../../lib/app-state'
+import {
+  RebaseConflictState,
+  ConflictState,
+  Foldout,
+} from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -43,6 +47,7 @@ import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { Popup } from '../../models/popup'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -711,6 +716,8 @@ export class ChangesList extends React.Component<
         onPersistCommitMessage={this.onPersistCommitMessage}
         onCommitMessageFocusSet={this.onCommitMessageFocusSet}
         onRefreshAuthor={this.onRefreshAuthor}
+        onShowPopup={this.onShowPopup}
+        onShowFoldout={this.onShowFoldout}
       />
     )
   }
@@ -731,6 +738,9 @@ export class ChangesList extends React.Component<
 
   private onPersistCommitMessage = (message: ICommitMessage) =>
     this.props.dispatcher.setCommitMessage(this.props.repository, message)
+
+  private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
+  private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)
 
   private onStashEntryClicked = () => {
     const { isShowingStashEntry, dispatcher, repository } = this.props

@@ -9,6 +9,8 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
 import { noop, pick } from 'lodash'
+import { Popup } from '../../models/popup'
+import { Foldout } from '../../lib/app-state'
 
 interface ICommitMessageDialogProps {
   /**
@@ -126,6 +128,8 @@ export class CommitMessageDialog extends React.Component<
             anyFilesSelected={true}
             onCommitMessageFocusSet={noop}
             onRefreshAuthor={this.onRefreshAuthor}
+            onShowPopup={this.onShowPopup}
+            onShowFoldout={this.onShowFoldout}
           />
         </DialogContent>
       </Dialog>
@@ -140,4 +144,7 @@ export class CommitMessageDialog extends React.Component<
 
   private onRefreshAuthor = () =>
     this.props.dispatcher.refreshAuthor(this.props.repository)
+
+  private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
+  private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)
 }
