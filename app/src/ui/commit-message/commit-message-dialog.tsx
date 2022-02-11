@@ -112,7 +112,6 @@ export class CommitMessageDialog extends React.Component<
             commitButtonText={this.props.dialogButtonText}
             commitToAmend={null}
             repository={this.props.repository}
-            dispatcher={this.props.dispatcher}
             commitMessage={this.props.commitMessage}
             focusCommitMessage={false}
             autocompletionProviders={this.props.autocompletionProviders}

@@ -8,7 +8,6 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Dispatcher } from '../dispatcher'
 import {
   isRepositoryWithGitHubRepository,
   Repository,
@@ -69,7 +68,6 @@ interface ICommitMessageProps {
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
   readonly repositoryAccount: Account | null
-  readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting?: boolean
   readonly commitToAmend: Commit | null
