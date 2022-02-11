@@ -8,7 +8,7 @@ import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
-import { pick } from '../../lib/pick'
+import { pick } from 'lodash'
 
 interface ICommitMessageDialogProps {
   /**
