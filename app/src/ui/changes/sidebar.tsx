@@ -229,7 +229,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     })
   }
 
-  private onIgnore = (pattern: string | string[]) => {
+  private onIgnoreFile = (file: string | string[]) => {
+    this.props.dispatcher.appendIgnoreFile(this.props.repository, file)
+  }
+
+  private onIgnorePattern = (pattern: string | string[]) => {
     this.props.dispatcher.appendIgnoreRule(this.props.repository, pattern)
   }
 
@@ -392,7 +396,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
-          onIgnore={this.onIgnore}
+          onIgnoreFile={this.onIgnoreFile}
+          onIgnorePattern={this.onIgnorePattern}
           isCommitting={this.props.isCommitting}
           commitToAmend={this.props.commitToAmend}
           showCoAuthoredBy={showCoAuthoredBy}

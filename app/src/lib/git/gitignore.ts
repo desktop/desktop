@@ -86,6 +86,36 @@ export async function appendIgnoreRule(
 }
 
 /**
+ * Convenience method to add the given file path(s) to the repository's gitignore.
+ *
+ * The file path will be escaped before adding.
+ */
+export async function appendIgnoreFile(
+  repository: Repository,
+  filePath: string | string[]
+): Promise<void> {
+  if (filePath instanceof Array) {
+    const escapedFilePaths = filePath.map(path =>
+      escapeGitSpecialCharacters(path)
+    )
+
+    return appendIgnoreRule(repository, escapedFilePaths)
+  }
+
+  const escapedFilePath = escapeGitSpecialCharacters(filePath)
+  return appendIgnoreRule(repository, escapedFilePath)
+}
+
+/** Escapes a string from special characters used in a gitignore file */
+export function escapeGitSpecialCharacters(pattern: string): string {
+  const specialCharacters = /[\[\]!\*\#\?]/g
+
+  return pattern.replaceAll(specialCharacters, match => {
+    return '\\' + match
+  })
+}
+
+/**
  * Format the gitignore text based on the current config settings.
  *
  * This setting looks at core.autocrlf to decide which line endings to use

@@ -1334,6 +1334,18 @@ export class Dispatcher {
     return this.appStore._appendIgnoreRule(repository, pattern)
   }
 
+  /**
+   * Convenience method to add the given file path(s) to the repository's gitignore.
+   *
+   * The file path will be escaped before adding.
+   */
+  public appendIgnoreFile(
+    repository: Repository,
+    pattern: string | string[]
+  ): Promise<void> {
+    return this.appStore._appendIgnoreFile(repository, pattern)
+  }
+
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
   public async openShell(
     path: string,
