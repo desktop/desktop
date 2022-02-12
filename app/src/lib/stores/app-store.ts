@@ -5148,9 +5148,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _appendIgnoreFile(
     repository: Repository,
-    pattern: string | string[]
+    filePath: string | string[]
   ): Promise<void> {
-    await appendIgnoreFile(repository, pattern)
+    await appendIgnoreFile(repository, filePath)
     return this._refreshRepository(repository)
   }
 

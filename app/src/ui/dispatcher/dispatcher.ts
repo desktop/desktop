@@ -1341,9 +1341,9 @@ export class Dispatcher {
    */
   public appendIgnoreFile(
     repository: Repository,
-    pattern: string | string[]
+    filePath: string | string[]
   ): Promise<void> {
-    return this.appStore._appendIgnoreFile(repository, pattern)
+    return this.appStore._appendIgnoreFile(repository, filePath)
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
