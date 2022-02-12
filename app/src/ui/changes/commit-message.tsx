@@ -8,10 +8,7 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import {
-  isRepositoryWithGitHubRepository,
-  Repository,
-} from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input'
@@ -127,6 +124,7 @@ interface ICommitMessageProps {
   readonly onShowFoldout: (foldout: Foldout) => void
   readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
   readonly onStopAmending: () => void
+  readonly onShowCreateForkDialog: () => void
 }
 
 interface ICommitMessageState {
@@ -366,6 +364,7 @@ export class CommitMessage extends React.Component<
     const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
+      repositoryAccount !== undefined &&
       isAccountEmail(accountEmails, email) === false
 
     return (
@@ -614,7 +613,10 @@ export class CommitMessage extends React.Component<
         <CommitWarning icon={CommitWarningIcon.Warning}>
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
-          <LinkButton onClick={this.onMakeFork}>create a fork</LinkButton>?
+          <LinkButton onClick={this.props.onShowCreateForkDialog}>
+            create a fork
+          </LinkButton>
+          ?
         </CommitWarning>
       )
     } else if (showBranchProtected) {
@@ -640,13 +642,6 @@ export class CommitMessage extends React.Component<
 
   private onSwitchBranch = () => {
     this.props.onShowFoldout({ type: FoldoutType.Branch })
-  }
-
-  private onMakeFork = () => {
-    const { repository, repositoryAccount: account, onShowPopup } = this.props
-    if (isRepositoryWithGitHubRepository(repository) && account !== null) {
-      onShowPopup({ type: PopupType.CreateFork, repository, account })
-    }
   }
 
   private renderSubmitButton() {

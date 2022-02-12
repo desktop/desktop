@@ -6130,6 +6130,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.currentBranchPruner.testPrune()
   }
 
+  public async _showCreateForkDialog(
+    repository: RepositoryWithGitHubRepository
+  ) {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+    await this._showPopup({
+      type: PopupType.CreateFork,
+      repository,
+      account,
+    })
+  }
+
   /**
    * Converts a local repository to use the given fork
    * as its default remote and associated `GitHubRepository`.

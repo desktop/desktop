@@ -12,7 +12,10 @@ import {
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { Account } from '../../models/account'
 import { IAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
@@ -719,6 +722,7 @@ export class ChangesList extends React.Component<
         onShowFoldout={this.onShowFoldout}
         onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
         onStopAmending={this.onStopAmending}
+        onShowCreateForkDialog={this.onShowCreateForkDialog}
       />
     )
   }
@@ -748,6 +752,12 @@ export class ChangesList extends React.Component<
 
   private onStopAmending = () =>
     this.props.dispatcher.stopAmendingRepository(this.props.repository)
+
+  private onShowCreateForkDialog = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    }
+  }
 
   private onStashEntryClicked = () => {
     const { isShowingStashEntry, dispatcher, repository } = this.props

@@ -1510,6 +1510,16 @@ export class Dispatcher {
   }
 
   /**
+   * Show a dialog that helps the user create a fork of
+   * their local repo.
+   */
+  public async showCreateForkDialog(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    await this.appStore._showCreateForkDialog(repository)
+  }
+
+  /**
    * Register a new error handler.
    *
    * Error handlers are called in order starting with the most recently

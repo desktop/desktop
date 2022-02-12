@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { Dialog, DialogContent } from '../dialog'
 import { ICommitContext } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -137,6 +140,7 @@ export class CommitMessageDialog extends React.Component<
             }
             repositoryAccount={this.props.repositoryAccount}
             onStopAmending={this.onStopAmending}
+            onShowCreateForkDialog={this.onShowCreateForkDialog}
           />
         </DialogContent>
       </Dialog>
@@ -160,4 +164,10 @@ export class CommitMessageDialog extends React.Component<
 
   private onStopAmending = () =>
     this.props.dispatcher.stopAmendingRepository(this.props.repository)
+
+  private onShowCreateForkDialog = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    }
+  }
 }
