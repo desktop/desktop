@@ -6,7 +6,8 @@
       "[Fixed] Fix error managing remotes under some circumstances - #13837",
       "[Fixed] Add \"Copy Relative File Path\" option to changed files' context menu - #12589. Thanks @uttiya10!",
       "[Improved] Changes within lines are presented the same way in side-by-side and unified modes - #13838",
-      "[Improved] Select integration tab automatically when changing default editor  - #13856. Thanks @uttiya10!"
+      "[Improved] Select integration tab automatically when changing default editor  - #13856. Thanks @uttiya10!",
+      "[Improved] The check runs list for pull requests with multiple branches displays all actions workflow steps and headers - #13868"
     ],
     "2.9.7-beta2": [
       "[New] Initial support for system notifications when checks fail in Windows - #13655",
