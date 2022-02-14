@@ -21,7 +21,7 @@
       "[Improved] Fetch before trying to follow a URL link to a specific branch - #13641. Thanks @Bestra!",
       "[Improved] Add \"View on GitHub\" context menu option to repository list items - #13227. Thanks @lhvy!",
       "[Improved] Signal when a commit summary is getting long - #2055. Thanks @Twixes!",
-      "[Improved] Remove unnecessary punctuation in appearance settings- #13715. Thanks @Pinzauti!"
+      "[Improved] Remove unnecessary punctuation in appearance settings - #13715. Thanks @Pinzauti!"
     ],
     "2.9.7-beta3": [
       "[Fixed] Don't show web flow committer on GitHub Enterprise Server - #13848",
