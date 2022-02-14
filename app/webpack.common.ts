@@ -1,6 +1,5 @@
 import * as path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import CleanWebpackPlugin from 'clean-webpack-plugin'
 import webpack from 'webpack'
 import merge from 'webpack-merge'
 import { getChannel } from '../script/dist-info'
@@ -25,6 +24,7 @@ const commonConfig: webpack.Configuration = {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),
     libraryTarget: 'commonjs2',
+    clean: true,
   },
   module: {
     rules: [
@@ -48,10 +48,12 @@ const commonConfig: webpack.Configuration = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin([outputDir], { verbose: false }),
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/locale$/,
+      contextRegExp: /moment$/,
+    }),
   ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
@@ -162,12 +164,12 @@ export const highlighter = merge({}, commonConfig, {
     chunkFilename: 'highlighter/[name].js',
   },
   optimization: {
-    namedChunks: true,
+    chunkIds: 'named',
     splitChunks: {
       cacheGroups: {
         modes: {
           enforce: true,
-          name: (mod, chunks) => {
+          name: (mod: any) => {
             const builtInMode = /node_modules[\\\/]codemirror[\\\/]mode[\\\/](\w+)[\\\/]/i.exec(
               mod.resource
             )
