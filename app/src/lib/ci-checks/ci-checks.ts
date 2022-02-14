@@ -13,6 +13,8 @@ import JSZip from 'jszip'
 import moment from 'moment'
 import { enableCICheckRunsLogs } from '../feature-flag'
 import { GitHubRepository } from '../../models/github-repository'
+import { Account } from '../../models/account'
+import { supportsRetrieveActionWorkflowByCheckSuiteId } from '../endpoint-capabilities'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -429,8 +431,8 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
 }
 
 /**
- * Retrieves the jobs and logs URLs from a list of check runs. Retruns a list
- * with the same check runs augmented with the job and logs URLs.
+ * Retrieves the action workflow run for the check runs and if exists updates
+ * the actionWorkflow property.
  *
  * @param api API instance used to retrieve the jobs and logs URLs
  * @param owner Owner of the repository
@@ -439,13 +441,45 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
  * @param checkRuns List of check runs to augment
  */
 export async function getCheckRunActionsWorkflowRuns(
+  account: Account,
+  owner: string,
+  repo: string,
+  branchName: string,
+  checkRuns: ReadonlyArray<IRefCheck>
+): Promise<ReadonlyArray<IRefCheck>> {
+  const api = API.fromAccount(account)
+  return supportsRetrieveActionWorkflowByCheckSuiteId(account.endpoint)
+    ? getCheckRunActionsWorkflowRunsByCheckSuiteId(api, owner, repo, checkRuns)
+    : getCheckRunActionsWorkflowRunsByBranchName(
+        api,
+        owner,
+        repo,
+        branchName,
+        checkRuns
+      )
+}
+
+/**
+ * Retrieves the action workflow runs by using the branchName they are
+ * associated with.
+ *
+ * Note: This approach has pit falls because it is possible for a pull request
+ * to have check runs initiated from two separate branches and therefore we do
+ * not get action workflows that exist for some pr check runs. For example,
+ * desktop releases auto generate a release branch from the release pr branch.
+ * The actions teams added a way to retrieve Action workflows via the check
+ * suite id to avoid these pitfalls. However, this will not be immediately
+ * available for GitHub Enterprise; thus, we keep approach to maintain GitHub
+ * Enterprise Server usage.
+ */
+async function getCheckRunActionsWorkflowRunsByBranchName(
   api: API,
   owner: string,
   repo: string,
   branchName: string,
   checkRuns: ReadonlyArray<IRefCheck>
 ): Promise<ReadonlyArray<IRefCheck>> {
-  const latestWorkflowRuns = await getLatestPRWorkflowRuns(
+  const latestWorkflowRuns = await getLatestPRWorkflowRunsByBranchName(
     api,
     owner,
     repo,
@@ -459,15 +493,67 @@ export async function getCheckRunActionsWorkflowRuns(
   return mapActionWorkflowsRunsToCheckRuns(checkRuns, latestWorkflowRuns)
 }
 
+/**
+ * Retrieves the action workflow runs by using the check suite id.
+ *
+ * If the check run is run using GitHub Actions, then there will be an actions
+ * workflow run with a matching check suite id that has the corresponding
+ * actions workflow.
+ */
+async function getCheckRunActionsWorkflowRunsByCheckSuiteId(
+  api: API,
+  owner: string,
+  repo: string,
+  checkRuns: ReadonlyArray<IRefCheck>
+): Promise<readonly IRefCheck[]> {
+  if (checkRuns.length === 0) {
+    return checkRuns
+  }
+
+  const mappedCheckRuns = new Array<IRefCheck>()
+  const actionsCache = new Map<number, IAPIWorkflowRun | null>()
+  for (const cr of checkRuns) {
+    if (cr.checkSuiteId === null) {
+      mappedCheckRuns.push(cr)
+      continue
+    }
+
+    // Multiple check runs share the same action workflow
+    const cachedActionWorkFlow = actionsCache.get(cr.checkSuiteId)
+    const actionsWorkflow =
+      cachedActionWorkFlow === undefined
+        ? await api.fetchPRActionWorkflowRunByCheckSuiteId(
+            owner,
+            repo,
+            cr.checkSuiteId
+          )
+        : cachedActionWorkFlow
+
+    actionsCache.set(cr.checkSuiteId, actionsWorkflow)
+
+    if (actionsWorkflow === null) {
+      mappedCheckRuns.push(cr)
+      continue
+    }
+
+    mappedCheckRuns.push({
+      ...cr,
+      actionsWorkflow,
+    })
+  }
+
+  return mappedCheckRuns
+}
+
 // Gets only the latest PR workflow runs hashed by name
-async function getLatestPRWorkflowRuns(
+async function getLatestPRWorkflowRunsByBranchName(
   api: API,
   owner: string,
   name: string,
   branchName: string
 ): Promise<ReadonlyArray<IAPIWorkflowRun>> {
   const wrMap = new Map<number, IAPIWorkflowRun>()
-  const allBranchWorkflowRuns = await api.fetchPRWorkflowRuns(
+  const allBranchWorkflowRuns = await api.fetchPRWorkflowRunsByBranchName(
     owner,
     name,
     branchName
