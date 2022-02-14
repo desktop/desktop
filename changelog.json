@@ -11,7 +11,7 @@
       "[Fixed] Fix close button in full screen mode on macOS - #12838",
       "[Fixed] Commit message dialog background styles match dialog - #13606",
       "[Fixed] Ensure job steps on pull request check run list are always present - #13531",
-      "[Improved] Changes within lines are presented the same way in side-by-side and unified modes - #13838",
+      "[Improved] Changes within lines are presented the same way in side-by-side and unified diffs - #13838",
       "[Improved] Select integration tab automatically when changing default editor  - #13856. Thanks @uttiya10!",
       "[Improved] The check runs list for pull requests with multiple branches displays all actions workflow steps and headers - #13868",
       "[Improved] Check run group headers and checks stay in view while scrolling the sub checks or job steps. - #13532",
