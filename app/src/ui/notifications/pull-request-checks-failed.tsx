@@ -312,7 +312,7 @@ export class PullRequestChecksFailed extends React.Component<
       a check run does not have action logs to retrieve/parse.
     */
     const checkRunsWithActionsUrls = await getCheckRunActionsWorkflowRuns(
-      api,
+      account,
       gitHubRepository.owner.login,
       gitHubRepository.name,
       pullRequest.head.ref,
