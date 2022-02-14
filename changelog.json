@@ -1,5 +1,13 @@
 {
   "releases": {
+    "2.9.7-beta3": [
+      "[Fixed] Don't show web flow committer on GitHub Enterprise Server - #13848",
+      "[Fixed] Cherry-pick success message always correctly reflects target branch - #13849",
+      "[Fixed] Fix error managing remotes under some circumstances - #13837",
+      "[Fixed] Add \"Copy Relative File Path\" option to changed files' context menu - #12589. Thanks @uttiya10!",
+      "[Improved] Changes within lines are presented the same way in side-by-side and unified modes - #13838",
+      "[Improved] Select integration tab automatically when changing default editor  - #13856. Thanks @uttiya10!"
+    ],
     "2.9.7-beta2": [
       "[New] Initial support for system notifications when checks fail in Windows - #13655",
       "[Fixed] Fix CLI tool on macOS Monterey - #13764. Thanks @spotlightishere!",
