@@ -160,8 +160,8 @@ export const supportsRerunningChecks = endpointSatisfies({
  */
 export const supportsRetrieveActionWorkflowByCheckSuiteId = endpointSatisfies({
   dotcom: true,
-  ae: '>= 3.4.0',
-  es: '>= 3.4.0',
+  ae: false,
+  es: false,
 })
 
 export const supportsAliveSessions = endpointSatisfies({
