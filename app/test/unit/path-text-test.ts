@@ -84,7 +84,7 @@ describe('PathText', () => {
       )
       expect(normalizedFileName).toBe('path')
       expect(normalizedDirectory).toBe(
-        __WIN32__ ? 'some\\submodule' : 'some/submodule/'
+        __WIN32__ ? 'some\\submodule\\' : 'some/submodule/'
       )
     })
 
