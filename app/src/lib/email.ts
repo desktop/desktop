@@ -2,7 +2,6 @@ import * as URL from 'url'
 
 import { IAPIEmail, getDotComAPIEndpoint } from './api'
 import { Account } from '../models/account'
-import { caseInsensitiveEquals } from './compare'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -100,38 +99,26 @@ export function getStealthEmailForUser(
 }
 
 /**
- * Produces a list of all email addresses that when used as the author email
- * in a commit we'll know will end up getting attributed to the given
- * account when pushed to GitHub.com or GitHub Enterprise.
+ * Gets a value indicating whether a commit email matching the given email would
+ * get attributed to the account (i.e. user) if pushed to the endpoint that said
+ * account belongs to.
  *
- * The list of email addresses consists of all the email addresses we get
- * from the API (since this is for the currently signed in user we get
- * public as well as private email addresses here) as well as the legacy
- * and modern format of the anonymous email addresses, for example:
+ * When determining if an email is attributable to an account we consider a list
+ * of email addresses consisting of all the email addresses we get from the API
+ * (since this is for the currently signed in user we get public as well as
+ * private email addresses here) as well as the legacy and modern format of the
+ * anonymous email addresses, for example:
  *
  *  desktop@users.noreply.github.com
  *  13171334+desktop@users.noreply.github.com
  */
-export function getAttributableEmailsFor(
-  account: Account
-): ReadonlyArray<string> {
-  const { id, login, endpoint } = account
-  const uniqueEmails = new Set<string>([
-    ...account.emails.map(x => x.email),
-    getLegacyStealthEmailForUser(login, endpoint),
-    getStealthEmailForUser(id, login, endpoint),
-  ])
+export const isAttributableEmailFor = (account: Account, email: string) => {
+  const { id, login, endpoint, emails } = account
+  const needle = email.toLowerCase()
 
-  return [...uniqueEmails]
+  return (
+    emails.some(({ email }) => email.toLowerCase() === needle) ||
+    getStealthEmailForUser(id, login, endpoint).toLowerCase() === needle ||
+    getLegacyStealthEmailForUser(login, endpoint).toLowerCase() === needle
+  )
 }
-
-/**
- * Gets a value indicating whether a commit email matching the given email
- * would get attributed to the account (i.e. user) if pushed to the endpoint
- * that said account belongs to.
- *
- * See getAttributableEmailsFor for more information on what emails are
- * considered attributable.
- */
-export const isAttributableEmailFor = (account: Account, email: string) =>
-  getAttributableEmailsFor(account).some(x => caseInsensitiveEquals(x, email))
