@@ -17,13 +17,16 @@ export const replacements = getReplacements()
 
 const commonConfig: webpack.Configuration = {
   optimization: {
-    noEmitOnErrors: true,
+    emitOnErrors: false,
   },
   externals: externals,
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),
-    libraryTarget: 'commonjs2',
+    library: {
+      name: '[name]',
+      type: 'commonjs2',
+    },
     clean: true,
   },
   module: {
@@ -160,7 +163,10 @@ export const cli = merge({}, commonConfig, {
 export const highlighter = merge({}, commonConfig, {
   entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
   output: {
-    libraryTarget: 'var',
+    library: {
+      name: '[name]',
+      type: 'var',
+    },
     chunkFilename: 'highlighter/[name].js',
   },
   optimization: {

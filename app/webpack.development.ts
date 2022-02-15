@@ -58,6 +58,9 @@ const rendererConfig = merge({}, common.renderer, config, {
       },
     ],
   },
+  infrastructureLogging: {
+    level: 'error',
+  },
   plugins: [new webpack.HotModuleReplacementPlugin()],
 })
 
