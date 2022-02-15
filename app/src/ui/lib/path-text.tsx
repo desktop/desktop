@@ -141,10 +141,10 @@ export function truncatePath(path: string, length: number) {
 export function extract(
   normalizedPath: string
 ): { normalizedFileName: string; normalizedDirectory: string } {
-  // for untracked submodules, the status entry is returned as a directory,
-  // with a trailing / which causes the directory to be trimmed in a weird way
-  // below. let's try and resolve this here
-  normalizedPath = normalizedPath.endsWith('/')
+  // for directories the status entry is returned as a path with a trailing
+  // which causes the directory to be trimmed in a weird way below. let's try
+  // and resolve this here
+  normalizedPath = normalizedPath.endsWith(Path.sep)
     ? normalizedPath.substr(0, normalizedPath.length - 1)
     : normalizedPath
 
