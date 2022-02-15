@@ -576,7 +576,7 @@ app.on('ready', () => {
    * An event sent by the renderer asking to move the app to the application
    * folder
    */
-  ipcMain.on('move-to-applications-folder', () => {
+  ipcMain.handle('move-to-applications-folder', async () => {
     app.moveToApplicationsFolder?.()
   })
 
