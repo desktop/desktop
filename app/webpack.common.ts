@@ -27,7 +27,6 @@ const commonConfig: webpack.Configuration = {
       name: '[name]',
       type: 'commonjs2',
     },
-    clean: true,
   },
   module: {
     rules: [
