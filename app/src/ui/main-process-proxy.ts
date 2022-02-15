@@ -217,7 +217,7 @@ export function sendWillQuitSync() {
 /**
  * Tell the main process to move the application to the application folder
  */
-export const moveToApplicationsFolder = sendProxy(
+export const moveToApplicationsFolder = invokeProxy(
   'move-to-applications-folder',
   0
 )

@@ -72,7 +72,6 @@ export type RequestChannels = {
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
   'set-native-theme-source': (themeName: ThemeSource) => void
-  'move-to-applications-folder': () => void
   'focus-window': () => void
 }
 
@@ -97,6 +96,7 @@ export type RequestResponseChannels = {
   'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>
   'is-in-application-folder': () => Promise<boolean | null>
+  'move-to-applications-folder': () => Promise<void>
   'check-for-updates': (url: string) => Promise<Error | undefined>
   'get-current-window-state': () => Promise<WindowState | undefined>
   'get-current-window-zoom-factor': () => Promise<number | undefined>
