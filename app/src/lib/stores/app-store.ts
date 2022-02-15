@@ -4360,7 +4360,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.emitError(
         new Error(
-          `Failed to discard changes to ${TrashNameLabel}.\n\nA common reason for this is that the directory or one of its files is open in another program or the ${TrashNameLabel} is set to delete items immediately.`
+          `Failed to discard changes to ${TrashNameLabel}.\n\nA common reason for this is that the ${TrashNameLabel} is set to delete items immediately.`
         )
       )
     }
