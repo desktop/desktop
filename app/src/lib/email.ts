@@ -2,6 +2,7 @@ import * as URL from 'url'
 
 import { IAPIEmail, getDotComAPIEndpoint } from './api'
 import { Account } from '../models/account'
+import { caseInsensitiveEquals } from './compare'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -123,3 +124,14 @@ export function getAttributableEmailsFor(
 
   return [...uniqueEmails]
 }
+
+/**
+ * Gets a value indicating whether a commit email matching the given email
+ * would get attributed to the account (i.e. user) if pushed to the endpoint
+ * that said account belongs to.
+ *
+ * See getAttributableEmailsFor for more information on what emails are
+ * considered attributable.
+ */
+export const isAttributableEmailFor = (account: Account, email: string) =>
+  getAttributableEmailsFor(account).some(x => caseInsensitiveEquals(x, email))
