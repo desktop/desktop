@@ -45,7 +45,7 @@ export class DiscardChangesRetryDialog extends React.Component<
               <li>
                 The {TrashNameLabel} is configured to delete items immediately.
               </li>
-              <li>Access to move the file is unavailable.</li>
+              <li>Restricted access to move the file(s).</li>
             </ul>
           </p>
           <p>These changes will be unrecoverable from the {TrashNameLabel}.</p>
