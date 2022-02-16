@@ -176,8 +176,7 @@ export class AddExistingRepository extends React.Component<
 
   private onPathChanged = async (path: string) => {
     if (this.state.path !== path) {
-      this.setState({ path, isRepository: false })
-      this.validatePath(path)
+      this.updatePath(path)
     }
   }
 
