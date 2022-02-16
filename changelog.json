@@ -2,7 +2,7 @@
   "releases": {
     "2.9.8": [
       "[Fixed] Unicode emoji on Windows no longer render as monochrome outlines - #13914",
-      "[Fixed] App does not hang when discarding changes in some scenarios. - #13899",
+      "[Fixed] App no longer hangs when discarding changes in some scenarios - #13899",
       "[Fixed] App no longer crashes sometimes when rebasing and cherry-picking. - #13889",
       "[Fixed] Fix crash when attempting to move the app to the /Applications folder on macOS - #13886",
       "[Fixed] App no longer crashes when checking for updates while the closing the window - #13892",
