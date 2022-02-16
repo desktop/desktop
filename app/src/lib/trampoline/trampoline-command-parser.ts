@@ -1,4 +1,5 @@
 import { parseEnumValue } from '../enum'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import {
   ITrampolineCommand,
   TrampolineCommandIdentifier,
@@ -97,14 +98,17 @@ export class TrampolineCommandParser {
   /**
    * Returns a command.
    *
-   * Throws an error if the parser hasn't finished yet, or if the identifier
+   * It will return null if the parser hasn't finished yet, or if the identifier
    * is missing or invalid.
    **/
-  public toCommand(): ITrampolineCommand {
+  public toCommand(): ITrampolineCommand | null {
     if (this.hasFinished() === false) {
-      throw new Error(
+      const error = new Error(
         'The command cannot be generated if parsing is not finished'
       )
+      log.error('Error creating trampoline command:', error)
+      sendNonFatalException('trampolineCommandParser', error)
+      return null
     }
 
     const identifierString = this.environmentVariables.get(
@@ -112,7 +116,14 @@ export class TrampolineCommandParser {
     )
 
     if (identifierString === undefined) {
-      throw new Error('The command identifier is missing')
+      const error = new Error(
+        `The command identifier is missing. Env variables received: ${Array.from(
+          this.environmentVariables.keys()
+        )}`
+      )
+      log.error('Error creating trampoline command:', error)
+      sendNonFatalException('trampolineCommandParser', error)
+      return null
     }
 
     const identifier = parseEnumValue(
@@ -121,9 +132,12 @@ export class TrampolineCommandParser {
     )
 
     if (identifier === undefined) {
-      throw new Error(
+      const error = new Error(
         `The command identifier ${identifierString} is not supported`
       )
+      log.error('Error creating trampoline command:', error)
+      sendNonFatalException('trampolineCommandParser', error)
+      return null
     }
 
     const trampolineToken = this.environmentVariables.get(
@@ -131,7 +145,10 @@ export class TrampolineCommandParser {
     )
 
     if (trampolineToken === undefined) {
-      throw new Error(`The trampoline token is missing`)
+      const error = new Error(`The trampoline token is missing`)
+      log.error('Error creating trampoline command:', error)
+      sendNonFatalException('trampolineCommandParser', error)
+      return null
     }
 
     return {

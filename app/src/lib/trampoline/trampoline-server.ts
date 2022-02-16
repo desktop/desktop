@@ -131,9 +131,17 @@ export class TrampolineServer {
     const value = data.toString('utf8')
     parser.processValue(value)
 
-    if (parser.hasFinished()) {
-      this.processCommand(socket, parser.toCommand())
+    if (!parser.hasFinished()) {
+      return
     }
+
+    const command = parser.toCommand()
+    if (command === null) {
+      socket.end()
+      return
+    }
+
+    this.processCommand(socket, command)
   }
 
   /**
