@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.9.8": [
+      "[Fixed] Unicode emoji on Windows no longer render as monochrome outlines - #13914",
+      "[Fixed] App does not hang when discarding changes in some scenarios. - #13899",
+      "[Fixed] App no longer crashes sometimes when rebasing and cherry-picking. - #13889",
+      "[Fixed] Fix crash when attempting to move the app to the /Applications folder on macOS - #13886",
+      "[Improved] Relative dates in branch menu and commit history match - #13867"
+    ],
     "2.9.7": [
       "[Added] Support pushing workflow files for GitHub Actions to GitHub Enterprise Server - #13640",
       "[Added] Support CLion as an external editor - #13739. Thanks @Pinzauti!",
