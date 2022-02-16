@@ -80,6 +80,7 @@ export enum PopupType {
   PullRequestChecksFailed,
   CICheckRunRerun,
   WarnForcePush,
+  DiscardChangesRetry,
 }
 
 export type Popup =
@@ -330,3 +331,7 @@ export type Popup =
       prRef: string
     }
   | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }
+  | {
+      type: PopupType.DiscardChangesRetry
+      retryAction: RetryAction
+    }

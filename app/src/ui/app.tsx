@@ -150,6 +150,7 @@ import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-
 import { clamp } from '../lib/clamp'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
+import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2085,6 +2086,16 @@ export class App extends React.Component<IAppProps, IAppState> {
               popup.onBegin,
               onPopupDismissedFn
             )}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.DiscardChangesRetry: {
+        return (
+          <DiscardChangesRetryDialog
+            key="discard-changes-retry"
+            dispatcher={this.props.dispatcher}
+            retryAction={popup.retryAction}
             onDismissed={onPopupDismissedFn}
           />
         )
