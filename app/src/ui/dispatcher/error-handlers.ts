@@ -626,12 +626,11 @@ export async function discardChangesHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (!(e instanceof DiscardChangesError)) {
+  if (!(error instanceof DiscardChangesError)) {
     return error
   }
 
-  const { retryAction } = e.metadata
+  const { retryAction } = error.metadata
 
   if (retryAction === undefined) {
     return error
