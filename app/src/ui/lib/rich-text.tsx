@@ -67,6 +67,12 @@ function getElements(
         }
       case TokenType.Text:
         return <span key={index}>{token.text}</span>
+      case TokenType.UnicodeEmoji:
+        return (
+          <span key={index} className="unicode-emoji">
+            {token.text}
+          </span>
+        )
       default:
         return assertNever(token, `Unknown token type: ${token}`)
     }
