@@ -22,6 +22,7 @@ import {
   refusedWorkflowUpdate,
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
+  discardChangesHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -305,6 +306,7 @@ dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
+dispatcher.registerErrorHandler(discardChangesHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
