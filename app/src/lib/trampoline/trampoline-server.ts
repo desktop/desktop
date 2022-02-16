@@ -185,7 +185,7 @@ export class TrampolineServer {
   }
 
   private onClientError = (error: Error) => {
-    console.error('Trampoline client error', error)
+    log.error('Trampoline client error', error)
   }
 }
 
