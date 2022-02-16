@@ -474,7 +474,7 @@ export function buildDefaultMenu({
     label: 'Show User Guides',
     click() {
       shell
-        .openExternal('https://help.github.com/desktop/guides/')
+        .openExternal('https://docs.github.com/en/desktop')
         .catch(err => log.error('Failed opening user guides page', err))
     },
   }
@@ -484,7 +484,7 @@ export function buildDefaultMenu({
     click() {
       shell
         .openExternal(
-          'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+          'https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/keyboard-shortcuts'
         )
         .catch(err => log.error('Failed opening keyboard shortcuts page', err))
     },
