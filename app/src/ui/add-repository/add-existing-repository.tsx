@@ -15,6 +15,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 import untildify from 'untildify'
 import { showOpenDialog } from '../main-process-proxy'
+import { stat } from 'fs-extra'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -165,9 +166,34 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onPathChanged = async (path: string) => {
-    const isRepository = await isGitRepository(path)
+    this.setState({ path })
 
-    this.setState({ path, isRepository })
+    // Fast check to avoid invoking Git
+    const pathExists = await stat(path).catch(_ => null)
+
+    if (!pathExists) {
+      this.setState(state =>
+        state.path === path
+          ? { isRepository: false, isRepositoryBare: false }
+          : null
+      )
+      return
+    }
+
+    const [isRepository, isRepositoryBare] = await Promise.all([
+      isGitRepository(path),
+      isBareRepository(path),
+    ])
+
+    this.setState(state =>
+      state.path === path
+        ? {
+            isRepository,
+            isRepositoryBare,
+            showNonGitRepositoryWarning: !isRepository || !isRepositoryBare,
+          }
+        : null
+    )
   }
 
   private showFilePicker = async () => {
