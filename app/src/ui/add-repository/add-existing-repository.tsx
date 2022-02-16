@@ -190,7 +190,7 @@ export class AddExistingRepository extends React.Component<
         ? {
             isRepository,
             isRepositoryBare,
-            showNonGitRepositoryWarning: !isRepository || !isRepositoryBare,
+            showNonGitRepositoryWarning: !isRepository || isRepositoryBare,
           }
         : null
     )
