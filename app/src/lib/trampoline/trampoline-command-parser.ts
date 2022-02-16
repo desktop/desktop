@@ -106,8 +106,7 @@ export class TrampolineCommandParser {
       const error = new Error(
         'The command cannot be generated if parsing is not finished'
       )
-      log.error('Error creating trampoline command:', error)
-      sendNonFatalException('trampolineCommandParser', error)
+      this.logCommandCreationError(error)
       return null
     }
 
@@ -121,8 +120,7 @@ export class TrampolineCommandParser {
           this.environmentVariables.keys()
         )}`
       )
-      log.error('Error creating trampoline command:', error)
-      sendNonFatalException('trampolineCommandParser', error)
+      this.logCommandCreationError(error)
       return null
     }
 
@@ -135,8 +133,7 @@ export class TrampolineCommandParser {
       const error = new Error(
         `The command identifier ${identifierString} is not supported`
       )
-      log.error('Error creating trampoline command:', error)
-      sendNonFatalException('trampolineCommandParser', error)
+      this.logCommandCreationError(error)
       return null
     }
 
@@ -146,8 +143,7 @@ export class TrampolineCommandParser {
 
     if (trampolineToken === undefined) {
       const error = new Error(`The trampoline token is missing`)
-      log.error('Error creating trampoline command:', error)
-      sendNonFatalException('trampolineCommandParser', error)
+      this.logCommandCreationError(error)
       return null
     }
 
@@ -157,5 +153,10 @@ export class TrampolineCommandParser {
       parameters: this.parameters,
       environmentVariables: this.environmentVariables,
     }
+  }
+
+  private logCommandCreationError(error: Error) {
+    log.error('Error creating trampoline command:', error)
+    sendNonFatalException('trampolineCommandParser', error)
   }
 }
