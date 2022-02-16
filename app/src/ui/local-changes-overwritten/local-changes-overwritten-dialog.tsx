@@ -7,9 +7,10 @@ import {
 } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Repository } from '../../models/repository'
-import { getRetryActionName, RetryAction } from '../../models/retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Dispatcher } from '../dispatcher'
 import { PathText } from '../lib/path-text'
+import { assertNever } from '../../lib/fatal-error'
 
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
@@ -154,6 +155,35 @@ export class LocalChangesOverwrittenDialog extends React.Component<
    * Returns a user-friendly string to describe the current retryAction.
    */
   private getRetryActionName() {
-    return getRetryActionName(this.props.retryAction.type)
+    switch (this.props.retryAction.type) {
+      case RetryActionType.Checkout:
+        return 'checkout'
+      case RetryActionType.Pull:
+        return 'pull'
+      case RetryActionType.Merge:
+        return 'merge'
+      case RetryActionType.Rebase:
+        return 'rebase'
+      case RetryActionType.Clone:
+        return 'clone'
+      case RetryActionType.Fetch:
+        return 'fetch'
+      case RetryActionType.Push:
+        return 'push'
+      case RetryActionType.CherryPick:
+      case RetryActionType.CreateBranchForCherryPick:
+        return 'cherry-pick'
+      case RetryActionType.Squash:
+        return 'squash'
+      case RetryActionType.Reorder:
+        return 'reorder'
+      case RetryActionType.DiscardChanges:
+        return 'discard changes'
+      default:
+        assertNever(
+          this.props.retryAction,
+          `Unknown retryAction: ${this.props.retryAction}`
+        )
+    }
   }
 }

@@ -12,11 +12,7 @@ import { Popup, PopupType } from '../models/popup'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
-import {
-  RetryActionType,
-  RetryAction,
-  getRetryActionName,
-} from '../models/retry-actions'
+import { RetryActionType, RetryAction } from '../models/retry-actions'
 import { Ref } from './lib/ref'
 import memoizeOne from 'memoize-one'
 import { parseCarriageReturn } from '../lib/parse-carriage-return'
@@ -107,7 +103,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       const { retryAction } = error.metadata
       if (retryAction !== undefined) {
         this.props.onRetryAction(retryAction)
-        this.props.onClearError(error)
       }
     }
   }
@@ -229,10 +224,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       }
     }
 
-    if (isRetryError(error)) {
-      return this.renderRetryFooter(error)
-    }
-
     return this.renderDefaultFooter()
   }
 
@@ -241,28 +232,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       <DialogFooter>
         <OkCancelButtonGroup
           okButtonText={__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
-          onOkButtonClick={this.onRetryAction}
-          onCancelButtonClick={this.onCloseButtonClick}
-        />
-      </DialogFooter>
-    )
-  }
-
-  private renderRetryFooter(error: Error) {
-    if (!isErrorWithMetaData(error)) {
-      return this.renderDefaultFooter()
-    }
-
-    const { retryAction } = error.metadata
-    if (retryAction === undefined) {
-      return this.renderDefaultFooter()
-    }
-
-    const action = getRetryActionName(retryAction.type)
-    return (
-      <DialogFooter>
-        <OkCancelButtonGroup
-          okButtonText={`Retry ${action}`}
           onOkButtonClick={this.onRetryAction}
           onCancelButtonClick={this.onCloseButtonClick}
         />
@@ -328,12 +297,4 @@ function isCloneError(error: Error) {
   }
   const { retryAction } = error.metadata
   return retryAction !== undefined && retryAction.type === RetryActionType.Clone
-}
-
-function isRetryError(error: Error) {
-  if (!isErrorWithMetaData(error)) {
-    return false
-  }
-  const { retryAction } = error.metadata
-  return retryAction !== undefined
 }
