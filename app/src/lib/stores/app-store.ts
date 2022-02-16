@@ -255,7 +255,11 @@ import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updat
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import { GitError as DugiteError } from 'dugite'
-import { ErrorWithMetadata, CheckoutError } from '../error-with-metadata'
+import {
+  ErrorWithMetadata,
+  CheckoutError,
+  DiscardChangesError,
+} from '../error-with-metadata'
 import {
   ShowSideBySideDiffDefault,
   getShowSideBySideDiff,
@@ -4357,28 +4361,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     try {
       await gitStore.discardChanges(files, moveToTrash)
     } catch (error) {
-      let errorToThrow = new Error(`Failed to discard changes.`)
-
-      if (error instanceof ErrorWithMetadata) {
-        const reasons = `Common reasons are that the ${TrashNameLabel} is set to delete items immediately or access to file is not available and file could not be moved.`
-        const warning = `Discarding without moving the files to the ${TrashNameLabel} means the changes will be unrecoverable. Retry to continue anyways.`
-        errorToThrow = new ErrorWithMetadata(
-          new Error(
-            `Failed to discard changes to ${TrashNameLabel}.\n${reasons}\n\n${warning}`
-          ),
-          {
-            retryAction: {
-              type: RetryActionType.DiscardChanges,
-              files,
-              repository,
-            },
-          }
-        )
-      } else {
+      if (!(error instanceof DiscardChangesError)) {
         log.error('Failed discarding changes', error)
       }
 
-      this.emitError(errorToThrow)
+      this.emitError(error)
       return
     }
 
