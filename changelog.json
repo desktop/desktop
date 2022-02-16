@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.9.9-beta1": [
+      "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916",
+      "[Fixed] Unicode emoji on Windows no longer render as monochrome outlines - #13914",
+      "[Fixed] App no longer hangs when discarding changes in some scenarios - #13899",
+      "[Fixed] App no longer crashes intermittently when rebasing and cherry-picking - #13889",
+      "[Fixed] Fix crash when attempting to move the app to the /Applications folder on macOS - #13886",
+      "[Fixed] App no longer crashes when checking for updates while the closing the window - #13892",
+      "[Fixed] Restore application icon in \"Apps & Features\" on Windows - #13890",
+      "[Improved] Relative dates in branch menu and commit history match - #13867"
+    ],
     "2.9.8": [
       "[Fixed] Unicode emoji on Windows no longer render as monochrome outlines - #13914",
       "[Fixed] App no longer hangs when discarding changes in some scenarios - #13899",
