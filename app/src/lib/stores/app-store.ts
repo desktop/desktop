@@ -4352,7 +4352,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.discardChanges(files)
+
+    try {
+      await gitStore.discardChanges(files)
+    } catch (error) {
+      log.error('Failed discarding changes', error)
+
+      this.emitError(
+        new Error(
+          `Failed to discard changes to ${TrashNameLabel}.\n\nA common reason for this is that the ${TrashNameLabel} is set to delete items immediately.`
+        )
+      )
+    }
 
     return this._refreshRepository(repository)
   }
