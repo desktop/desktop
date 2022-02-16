@@ -174,7 +174,11 @@ export class AddExistingRepository extends React.Component<
     if (!pathExists) {
       this.setState(state =>
         state.path === path
-          ? { isRepository: false, isRepositoryBare: false }
+          ? {
+              isRepository: false,
+              isRepositoryBare: false,
+              showNonGitRepositoryWarning: true,
+            }
           : null
       )
       return
