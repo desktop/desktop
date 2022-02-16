@@ -846,9 +846,10 @@ export class Dispatcher {
   /** Discard the changes to the given files. */
   public discardChanges(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true
   ): Promise<void> {
-    return this.appStore._discardChanges(repository, files)
+    return this.appStore._discardChanges(repository, files, moveToTrash)
   }
 
   /** Discard the changes from the given diff selection. */
@@ -2022,6 +2023,12 @@ export class Dispatcher {
           retryAction.commitsToReorder,
           retryAction.beforeCommit,
           retryAction.lastRetainedCommitRef
+        )
+      case RetryActionType.DiscardChanges:
+        return this.discardChanges(
+          retryAction.repository,
+          retryAction.files,
+          false
         )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)

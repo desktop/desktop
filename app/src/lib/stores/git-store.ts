@@ -1449,7 +1449,8 @@ export class GitStore extends BaseStore {
   }
 
   public async discardChanges(
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true
   ): Promise<void> {
     const pathsToCheckout = new Array<string>()
     const pathsToReset = new Array<string>()
@@ -1459,13 +1460,21 @@ export class GitStore extends BaseStore {
     await queueWorkHigh(files, async file => {
       const foundSubmodule = submodules.some(s => s.path === file.path)
 
-      if (file.status.kind !== AppFileStatusKind.Deleted && !foundSubmodule) {
+      if (
+        file.status.kind !== AppFileStatusKind.Deleted &&
+        !foundSubmodule &&
+        moveToTrash
+      ) {
         // N.B. moveItemToTrash can take a fair bit of time which is why we're
         // running it inside this work queue that spreads out the calls across
         // as many animation frames as it needs to.
-        await this.shell.moveItemToTrash(
-          Path.resolve(this.repository.path, file.path)
-        )
+        try {
+          await this.shell.moveItemToTrash(
+            Path.resolve(this.repository.path, file.path)
+          )
+        } catch (e) {
+          throw new ErrorWithMetadata(e, {})
+        }
       }
 
       if (
