@@ -21,7 +21,11 @@ import {
 import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
-import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
+import {
+  DiscardChangesError,
+  ErrorWithMetadata,
+  IErrorMetadata,
+} from '../error-with-metadata'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
 
@@ -1473,7 +1477,7 @@ export class GitStore extends BaseStore {
             Path.resolve(this.repository.path, file.path)
           )
         } catch (e) {
-          throw new ErrorWithMetadata(e, {})
+          throw new DiscardChangesError(e, this.repository, files)
         }
       }
 
