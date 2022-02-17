@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Account } from '../../models/account'
 import { LinkButton } from './link-button'
 import { getDotComAPIEndpoint } from '../../lib/api'
-import { isAccountEmail } from '../../lib/is-account-email'
+import { isAttributableEmailFor } from '../../lib/email'
 
 interface IGitEmailNotFoundWarningProps {
   /** The account the commit should be attributed to. */
@@ -19,20 +19,12 @@ interface IGitEmailNotFoundWarningProps {
 export class GitEmailNotFoundWarning extends React.Component<
   IGitEmailNotFoundWarningProps
 > {
-  private get accountEmails(): ReadonlyArray<string> {
-    // Merge email addresses from all accounts into an array
-    return this.props.accounts.reduce<ReadonlyArray<string>>(
-      (previousValue, currentValue) => {
-        return previousValue.concat(currentValue.emails.map(e => e.email))
-      },
-      []
-    )
-  }
-
   public render() {
+    const { accounts, email } = this.props
+
     if (
-      this.props.accounts.length === 0 ||
-      isAccountEmail(this.accountEmails, this.props.email)
+      accounts.length === 0 ||
+      accounts.some(account => isAttributableEmailFor(account, email))
     ) {
       return null
     }
