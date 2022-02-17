@@ -116,7 +116,10 @@ export class CreateRepository extends React.Component<
       isRepository: false,
       readMeExists: false,
     }
-    this.initializePath()
+
+    if (path === null) {
+      this.initializePath()
+    }
   }
 
   public async componentDidMount() {
