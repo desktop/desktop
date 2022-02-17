@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.9.9": [
+      "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13928",
+      "[Fixed] User guides now opens the correct page - #13920",
+      "[Fixed] Fixes crash on some Windows machines - #13930"
+    ],
     "2.9.9-beta1": [
       "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916",
       "[Fixed] Unicode emoji on Windows no longer render as monochrome outlines - #13914",
