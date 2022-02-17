@@ -1,9 +1,17 @@
 {
   "releases": {
+    "2.9.10-beta1": [
+      "[Fixed] Fix \"Create new repository\" using the wrong path - #13909",
+      "[Fixed] Legacy stealth email attribution - #13879",
+      "[Fixed] Fix duplicated first character on Windows when dealing with submodules or repos-within-repos - #12314",
+      "[Fixed] Treat the old and new format of private email address equally when showing commit attribution warning - #13887",
+      "[Fixed] Repositories containing untracked submodules no longer display an duplicated first character on Windows - #13885"
+    ],
     "2.9.9": [
       "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13928",
       "[Fixed] User guides now opens the correct page - #13920",
-      "[Fixed] Fixes crash on some Windows machines - #13930"
+      "[Fixed] Fixes crash on some Windows machines - #13930",
+      "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916"
     ],
     "2.9.9-beta1": [
       "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916",
