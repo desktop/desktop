@@ -356,6 +356,7 @@ export class CreateBranch extends React.Component<
           <Ref>{currentBranchName}</Ref>
           ). <Ref>{currentBranchName}</Ref> is the {defaultBranchLink} for your
           repository.
+          {this.renderForkLink()}
         </p>
       )
     } else {
@@ -408,6 +409,7 @@ export class CreateBranch extends React.Component<
           <strong>{upstreamRepositoryFullName}</strong>
           's {defaultBranchLink} (
           <Ref>{upstreamDefaultBranch.nameWithoutRemote}</Ref>).
+          {this.renderForkLink()}
         </p>
       )
     } else {
