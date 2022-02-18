@@ -1,25 +1,44 @@
 @import '../mixins';
 
+.notification-banner + .compare-form {
+  border-top: var(--base-border);
+}
+
 .notification-banner {
-  padding: var(--spacing-half);
+  background: var(--notification-banner-background);
+  border: var(--base-border);
+  border-color: var(--notification-banner-border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing);
+  position: relative;
+
+  .notification-icon {
+    margin-right: var(--spacing-half);
+  }
 
   &-content {
     display: flex;
 
     p {
       flex-grow: 1;
+      font-size: var(--font-size-sm);
+      margin: 0;
+      padding-right: var(--spacing-double); // Extra space for the close button
     }
   }
 
   @include close-button;
 
   .ref-component {
+    background: var(--notification-ref-background);
     word-break: normal;
   }
 
   .close {
-    flex-grow: 0;
+    position: absolute;
     margin: 0;
+    top: var(--spacing);
+    right: var(--spacing);
     text-align: center;
 
     .octicon {
@@ -29,18 +48,45 @@
 }
 
 .diverge-banner {
-  p {
-    margin-top: 0;
+  margin: var(--spacing-half);
+  overflow: hidden;
+
+  &-enter {
+    max-height: 0;
+
+    &-active {
+      max-height: 200px;
+      transition: max-height var(--undo-animation-duration) ease-in;
+    }
+  }
+
+  &-leave {
+    max-height: 200px;
+
+    &-active {
+      max-height: 0;
+      transition: max-height 0.5s ease-out;
+
+      .diverge-banner {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease-in-out;
+      }
+    }
+  }
+
+  &-wrapper {
+    overflow: hidden;
+    border-bottom: var(--base-border);
   }
 
   .button-group {
     display: flex;
+    margin-top: var(--spacing-half);
   }
 
   .button-component {
     flex: 1;
     margin-right: var(--spacing-half);
-
 
     &:last-of-type {
       margin-right: 0;
