@@ -351,13 +351,13 @@ export class CreateBranch extends React.Component<
   ) {
     if (defaultBranch === null || defaultBranch.name === currentBranchName) {
       return (
-        <p>
+        <div>
           Your new branch will be based on your currently checked out branch (
           <Ref>{currentBranchName}</Ref>
           ). <Ref>{currentBranchName}</Ref> is the {defaultBranchLink} for your
           repository.
           {this.renderForkLink()}
-        </p>
+        </div>
       )
     } else {
       const items = [
@@ -404,13 +404,13 @@ export class CreateBranch extends React.Component<
     // fork will have the same default branch name
     if (currentBranchName === upstreamDefaultBranch.nameWithoutRemote) {
       return (
-        <p>
+        <div>
           Your new branch will be based on{' '}
           <strong>{upstreamRepositoryFullName}</strong>
           's {defaultBranchLink} (
           <Ref>{upstreamDefaultBranch.nameWithoutRemote}</Ref>).
           {this.renderForkLink()}
-        </p>
+        </div>
       )
     } else {
       const items = [
@@ -445,7 +445,7 @@ export class CreateBranch extends React.Component<
     if (isRepositoryWithForkedGitHubRepository(this.props.repository)) {
       return (
         <div className="secondary-text">
-          Your default branch source is determined by your {' '}
+          Your default branch source will be determined by your {' '}
           <LinkButton onClick={this.onForkSettingsClick}>
             fork behavior settings
           </LinkButton>
