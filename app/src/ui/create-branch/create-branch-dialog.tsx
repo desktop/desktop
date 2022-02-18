@@ -445,7 +445,7 @@ export class CreateBranch extends React.Component<
     if (isRepositoryWithForkedGitHubRepository(this.props.repository)) {
       return (
         <div className="secondary-text">
-          Your default branch source will be determined by your {' '}
+          Your default branch source will be determined by your{' '}
           <LinkButton onClick={this.onForkSettingsClick}>
             fork behavior settings
           </LinkButton>
