@@ -9,8 +9,7 @@ Recommended packages:
 * [build-npm-apm](https://atom.io/packages/build-npm-apm) - invoke
   all npm scripts straight from the editor by pressing F7 (requires
   [build](https://atom.io/packages/build))
-* [linter](https://atom.io/packages/linter) and
-  [linter-tslint](https://atom.io/packages/linter-tslint) - shows linter errors and warning in the editor
+* [linter](https://atom.io/packages/linter) - shows linter errors and warning in the editor
 
 You can install them all at once with:
 

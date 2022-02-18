@@ -90,8 +90,8 @@ export async function getChangeLog(
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
   )
 
-  if (__RELEASE_CHANNEL__ === 'beta') {
-    changelogURL.searchParams.set('env', 'beta')
+  if (__RELEASE_CHANNEL__ === 'beta' || __RELEASE_CHANNEL__ === 'test') {
+    changelogURL.searchParams.set('env', __RELEASE_CHANNEL__)
   }
 
   if (limit !== undefined) {

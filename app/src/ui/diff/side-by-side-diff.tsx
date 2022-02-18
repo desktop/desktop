@@ -45,8 +45,9 @@ import {
   DiffColumn,
   getLineWidthFromDigitCount,
   getNumberOfDigits,
+  MaxIntraLineDiffStringLength,
 } from './diff-helpers'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-search-input'
 import { escapeRegExp } from '../../lib/helpers/regex'
@@ -59,7 +60,6 @@ import { IMenuItem } from '../../lib/menu-item'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 
 const DefaultRowHeight = 20
-const MaxLineLengthToCalculateDiff = 240
 
 export interface ISelectionPoint {
   readonly column: DiffColumn
@@ -1164,8 +1164,8 @@ function getModifiedRows(
       const deletedLine = deletedLines[i]
 
       if (
-        addedLine.line.content.length < MaxLineLengthToCalculateDiff &&
-        deletedLine.line.content.length < MaxLineLengthToCalculateDiff
+        addedLine.line.content.length < MaxIntraLineDiffStringLength &&
+        deletedLine.line.content.length < MaxIntraLineDiffStringLength
       ) {
         const { before, after } = getDiffTokens(
           deletedLine.line.content,

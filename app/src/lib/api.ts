@@ -1066,7 +1066,7 @@ export class API {
    * List workflow runs for a repository filtered by branch and event type of
    * pull_request
    */
-  public async fetchPRWorkflowRuns(
+  public async fetchPRWorkflowRunsByBranchName(
     owner: string,
     name: string,
     branchName: string
@@ -1083,6 +1083,43 @@ export class API {
     } catch (err) {
       log.debug(
         `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Return the workflow run for a given check_suite_id.
+   *
+   * A check suite is a reference for a set check runs.
+   * A workflow run is a reference for set a of workflows for the GitHub Actions
+   * check runner.
+   *
+   * If a check suite is comprised of check runs ran by actions, there will be
+   * one workflow run that represents that check suite. Thus, if this api should
+   * either return an empty array indicating there are no actions runs for that
+   * check_suite_id (so check suite was not ran by actions) or an array with a
+   * single element.
+   */
+  public async fetchPRActionWorkflowRunByCheckSuiteId(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPIWorkflowRun | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&check_suite_id=${checkSuiteId}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      const apiWorkflowRuns = await parsedResponse<IAPIWorkflowRuns>(response)
+
+      if (apiWorkflowRuns.workflow_runs.length > 0) {
+        return apiWorkflowRuns.workflow_runs[0]
+      }
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${checkSuiteId} (${owner}/${name})`
       )
     }
     return null

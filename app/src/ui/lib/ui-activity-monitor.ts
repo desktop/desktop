@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { ipcRenderer } from 'electron'
+import * as ipcRenderer from '../../lib/ipc-renderer'
 
 /**
  * Describes the interface of a UI activity monitor.
@@ -98,9 +98,7 @@ export class UiActivityMonitor implements IUiActivityMonitor {
     this.emit('keyboard')
   }
 
-  private onMenuEvent = (event: Electron.IpcRendererEvent) => {
-    this.emit('menu')
-  }
+  private onMenuEvent = () => this.emit('menu')
 }
 
 const interactionTargets = new Set(

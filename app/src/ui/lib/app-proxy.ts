@@ -1,19 +1,26 @@
-import { remote } from 'electron'
+import { getPath } from '../main-process-proxy'
+import { getAppPathProxy } from '../main-process-proxy'
 
-let app: Electron.App | null = null
-let version: string | null = null
-let name: string | null = null
 let path: string | null = null
-let userDataPath: string | null = null
 let documentsPath: string | null = null
 
-function getApp(): Electron.App {
-  if (!app) {
-    app = remote.app
-  }
-
-  return app
-}
+export type PathType =
+  | 'home'
+  | 'appData'
+  | 'userData'
+  | 'cache'
+  | 'temp'
+  | 'exe'
+  | 'module'
+  | 'desktop'
+  | 'documents'
+  | 'downloads'
+  | 'music'
+  | 'pictures'
+  | 'videos'
+  | 'recent'
+  | 'logs'
+  | 'crashDumps'
 
 /**
  * Get the version of the app.
@@ -21,24 +28,14 @@ function getApp(): Electron.App {
  * This is preferable to using `remote` directly because we cache the result.
  */
 export function getVersion(): string {
-  if (!version) {
-    version = getApp().getVersion()
-  }
-
-  return version
+  return __APP_VERSION__
 }
 
 /**
  * Get the name of the app.
- *
- * This is preferable to using `remote` directly because we cache the result.
  */
 export function getName(): string {
-  if (!name) {
-    name = getApp().getName()
-  }
-
-  return name
+  return __APP_NAME__
 }
 
 /**
@@ -46,25 +43,12 @@ export function getName(): string {
  *
  * This is preferable to using `remote` directly because we cache the result.
  */
-export function getAppPath(): string {
+export async function getAppPath(): Promise<string> {
   if (!path) {
-    path = getApp().getAppPath()
+    path = await getAppPathProxy()
   }
 
   return path
-}
-
-/**
- * Get the path to the user's data.
- *
- * This is preferable to using `remote` directly because we cache the result.
- */
-export function getUserDataPath(): string {
-  if (!userDataPath) {
-    userDataPath = getApp().getPath('userData')
-  }
-
-  return userDataPath
 }
 
 /**
@@ -72,14 +56,13 @@ export function getUserDataPath(): string {
  *
  * This is preferable to using `remote` directly because we cache the result.
  */
-export function getDocumentsPath(): string {
+export async function getDocumentsPath(): Promise<string> {
   if (!documentsPath) {
-    const app = getApp()
     try {
-      documentsPath = app.getPath('documents')
+      documentsPath = await getPath('documents')
     } catch (ex) {
       // a user profile may not have the Documents folder defined on Windows
-      documentsPath = app.getPath('home')
+      documentsPath = await getPath('home')
     }
   }
 

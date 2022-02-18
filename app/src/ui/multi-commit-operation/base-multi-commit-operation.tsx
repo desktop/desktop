@@ -45,23 +45,13 @@ export interface IMultiCommitOperationProps {
 export abstract class BaseMultiCommitOperation extends React.Component<
   IMultiCommitOperationProps
 > {
-  protected abstract onBeginOperation = () => {}
-
-  protected abstract onChooseBranch = (targetBranch: Branch) => {}
-
-  protected abstract onContinueAfterConflicts = async (): Promise<void> => {}
-
-  protected abstract onAbort = async (): Promise<void> => {}
-
-  protected abstract onConflictsDialogDismissed = () => {}
-
-  protected abstract renderChooseBranch = (): JSX.Element | null => {
-    return null
-  }
-
-  protected abstract renderCreateBranch = (): JSX.Element | null => {
-    return null
-  }
+  protected abstract onBeginOperation: () => void
+  protected abstract onChooseBranch: (targetBranch: Branch) => void
+  protected abstract onContinueAfterConflicts: () => Promise<void>
+  protected abstract onAbort: () => Promise<void>
+  protected abstract onConflictsDialogDismissed: () => void
+  protected abstract renderChooseBranch: () => JSX.Element | null
+  protected abstract renderCreateBranch: () => JSX.Element | null
 
   protected onFlowEnded = () => {
     this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)

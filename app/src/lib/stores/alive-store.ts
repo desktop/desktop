@@ -4,6 +4,7 @@ import { API } from '../api'
 import { AliveSession, AliveEvent, Subscription } from '@github/alive-client'
 import { Emitter } from 'event-kit'
 import { enableHighSignalNotifications } from '../feature-flag'
+import { supportsAliveSessions } from '../endpoint-capabilities'
 
 /** Checks whether or not an account is included in a list of accounts. */
 function accountIncluded(account: Account, accounts: ReadonlyArray<Account>) {
@@ -46,6 +47,7 @@ export class AliveStore {
   private readonly emitter = new Emitter()
   private subscriptions: Array<IAliveSubscription> = []
   private enabled: boolean = false
+  private accountSubscriptionPromise: Promise<void> | null = null
 
   public constructor(private readonly accountsStore: AccountsStore) {
     this.accountsStore.onDidUpdate(this.subscribeToAccounts)
@@ -83,18 +85,33 @@ export class AliveStore {
     this.subscribeToAccounts(accounts)
   }
 
-  private unsubscribeFromAllAccounts() {
+  private async unsubscribeFromAllAccounts() {
+    // Wait until previous (un)subscriptions finish
+    await this.accountSubscriptionPromise
+
     const subscribedAccounts = this.subscriptions.map(s => s.account)
     for (const account of subscribedAccounts) {
       this.unsubscribeFromAccount(account)
     }
   }
 
-  private subscribeToAccounts = (accounts: ReadonlyArray<Account>) => {
+  private subscribeToAccounts = async (accounts: ReadonlyArray<Account>) => {
     if (!this.enabled || !enableHighSignalNotifications()) {
       return
     }
 
+    // Wait until previous (un)subscriptions finish
+    await this.accountSubscriptionPromise
+
+    this.accountSubscriptionPromise = this._subscribeToAccounts(accounts)
+  }
+
+  /**
+   * This method just wraps the async logic to subscribe to a list of accounts,
+   * so that we can wait until the previous (un)subscriptions finish.
+   * Do not use directly, use `subscribeToAccounts` instead.
+   */
+  private async _subscribeToAccounts(accounts: ReadonlyArray<Account>) {
     const subscribedAccounts = this.subscriptions.map(s => s.account)
 
     // Clear subscriptions for accounts that are no longer in the list
@@ -107,7 +124,7 @@ export class AliveStore {
     // Subscribe to new accounts
     for (const account of accounts) {
       if (!accountIncluded(account, subscribedAccounts)) {
-        this.subscribeToAccount(account)
+        await this.subscribeToAccount(account)
       }
     }
   }
@@ -127,7 +144,14 @@ export class AliveStore {
     }
 
     const api = API.fromAccount(account)
-    const webSocketUrl = await api.getAliveWebSocketURL()
+    let webSocketUrl = null
+
+    try {
+      webSocketUrl = await api.getAliveWebSocketURL()
+    } catch (e) {
+      log.error(`Could not get Alive web socket URL for '${account.login}'`, e)
+      return null
+    }
 
     if (webSocketUrl === null) {
       return null
@@ -135,7 +159,7 @@ export class AliveStore {
 
     const aliveSession = new AliveSession(
       webSocketUrl,
-      api.getAliveWebSocketURL,
+      () => api.getAliveWebSocketURL(),
       false,
       this.notify
     )
@@ -172,10 +196,14 @@ export class AliveStore {
 
     endpointSession.session.offline()
 
-    console.log('Unubscribed from Alive channel!')
+    log.info(`Unubscribed '${account.login}' from Alive channel`)
   }
 
   private subscribeToAccount = async (account: Account) => {
+    if (!supportsAliveSessions(account.endpoint)) {
+      return
+    }
+
     const endpointSession = await this.createSessionForAccount(account)
     const api = API.fromAccount(account)
     const channelInfo = await api.getAliveDesktopChannel()
@@ -200,12 +228,10 @@ export class AliveStore {
       subscription,
     })
 
-    console.log('Subscribed to Alive channel!')
+    log.info(`Subscribed '${account.login}' to Alive channel`)
   }
 
   private notify = (subscribers: Iterable<AliveStore>, event: AliveEvent) => {
-    console.log('Alive event received:', event)
-
     if (event.type !== 'message') {
       return
     }

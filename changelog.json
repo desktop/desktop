@@ -1,5 +1,81 @@
 {
   "releases": {
+    "2.9.9": [
+      "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13928",
+      "[Fixed] User guides now opens the correct page - #13920",
+      "[Fixed] Fixes crash on some Windows machines - #13930"
+    ],
+    "2.9.9-beta1": [
+      "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916",
+      "[Fixed] Unicode emoji on Windows no longer render as monochrome outlines - #13914",
+      "[Fixed] App no longer hangs when discarding changes in some scenarios - #13899",
+      "[Fixed] App no longer crashes intermittently when rebasing and cherry-picking - #13889",
+      "[Fixed] Fix crash when attempting to move the app to the /Applications folder on macOS - #13886",
+      "[Fixed] App no longer crashes when checking for updates while the closing the window - #13892",
+      "[Fixed] Restore application icon in \"Apps & Features\" on Windows - #13890",
+      "[Improved] Relative dates in branch menu and commit history match - #13867"
+    ],
+    "2.9.8": [
+      "[Fixed] Unicode emoji on Windows no longer render as monochrome outlines - #13914",
+      "[Fixed] App no longer hangs when discarding changes in some scenarios - #13899",
+      "[Fixed] App no longer crashes intermittently when rebasing and cherry-picking - #13889",
+      "[Fixed] Fix crash when attempting to move the app to the /Applications folder on macOS - #13886",
+      "[Fixed] App no longer crashes when checking for updates while the closing the window - #13892",
+      "[Fixed] Restore application icon in \"Apps & Features\" on Windows - #13890",
+      "[Improved] Relative dates in branch menu and commit history match - #13867"
+    ],
+    "2.9.7": [
+      "[Added] Support pushing workflow files for GitHub Actions to GitHub Enterprise Server - #13640",
+      "[Added] Support CLion as an external editor - #13739. Thanks @Pinzauti!",
+      "[Fixed] Don't show web flow committer on GitHub Enterprise Server - #13848",
+      "[Fixed] Cherry-pick success message always correctly reflects target branch - #13849",
+      "[Fixed] Fix error managing remotes under some circumstances - #13837",
+      "[Fixed] Add \"Copy Relative File Path\" option to changed files' context menu - #12589. Thanks @uttiya10!",
+      "[Fixed] Fix CLI tool on macOS Monterey - #13764. Thanks @spotlightishere!",
+      "[Fixed] Fix close button in full screen mode on macOS - #12838",
+      "[Fixed] Commit message dialog background styles match dialog - #13606",
+      "[Fixed] Ensure job steps on pull request check run list are always present - #13531",
+      "[Improved] Changes within lines are presented the same way in side-by-side and unified diffs - #13838",
+      "[Improved] Select integration tab automatically when changing default editor  - #13856. Thanks @uttiya10!",
+      "[Improved] The check runs list for pull requests with multiple branches displays all actions workflow steps and headers - #13868",
+      "[Improved] Check run group headers and checks stay in view while scrolling the sub checks or job steps. - #13532",
+      "[Improved] Take aliases into account when sorting repositories - #13429",
+      "[Improved] Support avatars on GitHub Enterprise Server - #13719",
+      "[Improved] Fetch before trying to follow a URL link to a specific branch - #13641. Thanks @Bestra!",
+      "[Improved] Add \"View on GitHub\" context menu option to repository list items - #13227. Thanks @lhvy!",
+      "[Improved] Signal when a commit summary is getting long - #2055. Thanks @Twixes!",
+      "[Improved] Remove unnecessary punctuation in appearance settings - #13715. Thanks @Pinzauti!"
+    ],
+    "2.9.7-beta3": [
+      "[Fixed] Don't show web flow committer on GitHub Enterprise Server - #13848",
+      "[Fixed] Cherry-pick success message always correctly reflects target branch - #13849",
+      "[Fixed] Fix error managing remotes under some circumstances - #13837",
+      "[Fixed] Add \"Copy Relative File Path\" option to changed files' context menu - #12589. Thanks @uttiya10!",
+      "[Improved] Changes within lines are presented the same way in side-by-side and unified modes - #13838",
+      "[Improved] Select integration tab automatically when changing default editor  - #13856. Thanks @uttiya10!",
+      "[Improved] The check runs list for pull requests with multiple branches displays all actions workflow steps and headers - #13868"
+    ],
+    "2.9.7-beta2": [
+      "[New] Initial support for system notifications when checks fail in Windows - #13655",
+      "[Fixed] Fix CLI tool on macOS Monterey - #13764. Thanks @spotlightishere!",
+      "[Improved] Upgrade to Electron v16.0.8 - #13814"
+    ],
+    "2.9.7-beta1": [
+      "[New] Initial support for system notifications when checks fail in macOS - #13655",
+      "[Added] Support pushing workflow files for GitHub Actions to GitHub Enterprise Server - #13640",
+      "[Added] Support CLion as an external editor - #13739. Thanks @Pinzauti!",
+      "[Fixed] Fix close button in full screen mode on macOS - #12838",
+      "[Fixed] Commit message dialog background styles match dialog - #13606",
+      "[Fixed] Ensure job steps on pull request check run list are always present - #13531",
+      "[Improved] Take alias into account when sorting repositories - #13429",
+      "[Improved] Upgrade to Electron v14.2.3 - #13689",
+      "[Improved] Support avatars on GitHub Enterprise Server - #13719",
+      "[Improved] Fetch before trying to follow a URL link to a specific branch - #13641. Thanks @Bestra!",
+      "[Improved] Add \"View on GitHub\" context menu option to repository list items - #13227. Thanks @lhvy!",
+      "[Improved] Signal when a commit summary is getting long - #2055. Thanks @Twixes!",
+      "[Improved] Check run group headers and checks stay in view while scrolling the sub checks or job steps. - #13532",
+      "[Improved] Remove unnecessary punctuation in appearance settings- #13715. Thanks @Pinzauti!"
+    ],
     "2.9.6": [
       "[Added] View and re-run the check runs for the checked out pull request.",
       "[Fixed] Tooltip improvements and polish - #13452 #13449",

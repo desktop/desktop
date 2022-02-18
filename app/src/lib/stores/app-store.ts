@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import { ipcRenderer, remote } from 'electron'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
@@ -75,7 +74,10 @@ import {
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
+  getCurrentWindowState,
+  getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
+  updateAccounts,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -183,11 +185,7 @@ import {
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
-import {
-  getWindowState,
-  WindowState,
-  windowStateChannelName,
-} from '../window-state'
+import { WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
@@ -254,7 +252,7 @@ import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
-import { getAttributableEmailsFor } from '../email'
+import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import { GitError as DugiteError } from 'dugite'
 import { ErrorWithMetadata, CheckoutError } from '../error-with-metadata'
@@ -286,8 +284,13 @@ import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
+import { EndpointToken } from '../endpoint-token'
 import { IRefCheck } from '../ci-checks/ci-checks'
-import { NotificationsStore } from './notifications-store'
+import {
+  NotificationsStore,
+  getNotificationsEnabled,
+} from './notifications-store'
+import * as ipcRenderer from '../ipc-renderer'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -406,7 +409,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
 
-  private windowState: WindowState
+  private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
@@ -504,16 +507,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       error => this.emitError(error)
     )
 
-    const browserWindow = remote.getCurrentWindow()
-    this.windowState = getWindowState(browserWindow)
-
-    this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
     window.addEventListener('resize', () => {
       this.updateResizableConstraints()
       this.emitUpdate()
     })
 
-    this.wireupIpcEventHandlers(browserWindow)
+    this.initializeWindowState()
+    this.initializeZoomFactor()
+    this.wireupIpcEventHandlers()
     this.wireupStoreEventHandlers()
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
@@ -548,6 +549,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
     )
+  }
+
+  private initializeWindowState = async () => {
+    const currentWindowState = await getCurrentWindowState()
+    if (currentWindowState === undefined) {
+      return
+    }
+
+    this.windowState = currentWindowState
+  }
+
+  private initializeZoomFactor = async () => {
+    const zoomFactor = await getCurrentWindowZoomFactor()
+    if (zoomFactor === undefined) {
+      return
+    }
+    this.onWindowZoomFactorChanged(zoomFactor)
   }
 
   private onTokenInvalidated = (endpoint: string) => {
@@ -652,25 +670,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.updateCurrentTutorialStep(repository)
   }
 
-  private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
-    ipcRenderer.on(
-      windowStateChannelName,
-      (event: Electron.IpcRendererEvent, windowState: WindowState) => {
-        this.windowState = windowState
-        this.emitUpdate()
-      }
-    )
+  private wireupIpcEventHandlers() {
+    ipcRenderer.on('window-state-changed', (_, windowState) => {
+      this.windowState = windowState
+      this.emitUpdate()
+    })
 
     ipcRenderer.on('zoom-factor-changed', (event: any, zoomFactor: number) => {
       this.onWindowZoomFactorChanged(zoomFactor)
     })
 
-    ipcRenderer.on(
-      'app-menu',
-      (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
-        this.setAppMenu(menu)
-      }
-    )
+    ipcRenderer.on('app-menu', (_, menu) => this.setAppMenu(menu))
   }
 
   private wireupStoreEventHandlers() {
@@ -696,6 +706,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
+      const endpointTokens = accounts.map<EndpointToken>(
+        ({ endpoint, token }) => ({ endpoint, token })
+      )
+
+      updateAccounts(endpointTokens)
+
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
@@ -723,8 +739,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** Load the emoji from disk. */
-  public loadEmoji() {
-    const rootDir = getAppPath()
+  public async loadEmoji() {
+    const rootDir = await getAppPath()
     readEmoji(rootDir)
       .then(emoji => {
         this.emoji = emoji
@@ -870,7 +886,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
-      notificationsEnabled: this.notificationsStore.getNotificationsEnabled(),
+      notificationsEnabled: getNotificationsEnabled(),
     }
   }
 
@@ -1840,7 +1856,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.currentTheme =
       this.selectedTheme !== ApplicationTheme.HighContrast
-        ? getCurrentlyAppliedTheme()
+        ? await getCurrentlyAppliedTheme()
         : this.selectedTheme
 
     themeChangeMonitor.onThemeChanged(theme => {
@@ -2807,12 +2823,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         const { commitAuthor } = repositoryState
         if (commitAuthor !== null) {
-          const commitEmail = commitAuthor.email.toLowerCase()
-          const attributableEmails = getAttributableEmailsFor(account)
-          const commitEmailMatchesAccount = attributableEmails.some(
-            email => email.toLowerCase() === commitEmail
-          )
-          if (!commitEmailMatchesAccount) {
+          if (!isAttributableEmailFor(account, commitAuthor.email)) {
             this.statsStore.recordUnattributedCommit()
           }
         }
@@ -4336,7 +4347,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.discardChanges(files)
+
+    try {
+      await gitStore.discardChanges(files)
+    } catch (error) {
+      log.error('Failed discarding changes', error)
+
+      this.emitError(
+        new Error(
+          `Failed to discard changes to ${TrashNameLabel}.\n\nA common reason for this is that the ${TrashNameLabel} is set to delete items immediately.`
+        )
+      )
+    }
 
     return this._refreshRepository(repository)
   }
@@ -5189,7 +5211,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * resolve when `_completeOpenInDesktop` is called.
    */
   public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
-    // tslint:disable-next-line:promise-must-complete
     const p = new Promise<Repository | null>(
       resolve => (this.resolveOpenInDesktop = resolve)
     )
@@ -6170,7 +6191,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.statsStore.recordTutorialStarted()
 
       const name = 'desktop-tutorial'
-      const path = Path.resolve(getDefaultDir(), name)
+      const path = Path.resolve(await getDefaultDir(), name)
 
       const apiRepository = await createTutorialRepository(
         account,
@@ -6877,6 +6898,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedRepository === null ||
       selectedRepository.hash !== repository.hash
     ) {
+      this.statsStore.recordChecksFailedDialogOpen()
       return this._showPopup(popup)
     }
 
@@ -6890,10 +6912,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If it's the same branch, just show the existing CI check run popover
       this._setShowCIStatusPopover(true)
     } else {
+      this.statsStore.recordChecksFailedDialogOpen()
+
       // If there is no current branch or it's different than the PR branch,
       // show the checks failed dialog, but it won't offer to switch to the
       // repository.
-      this._showPopup({
+      return this._showPopup({
         ...popup,
         needsSelectRepository: false,
       })

@@ -1,4 +1,4 @@
-import { WebRequest } from 'electron/main'
+import { OrderedWebRequest } from './ordered-webrequest'
 
 /**
  * Installs a web request filter to prevent cross domain leaks of auth headers
@@ -29,15 +29,15 @@ import { WebRequest } from 'electron/main'
  * 2. https://fetch.spec.whatwg.org/#http-network-or-cache-fetch
  * 3. https://github.com/whatwg/fetch/issues/763
  *
- * @param webRequest
+ * @param orderedWebRequest
  */
-export function installSameOriginFilter(webRequest: WebRequest) {
+export function installSameOriginFilter(orderedWebRequest: OrderedWebRequest) {
   // A map between the request ID and the _initial_ request origin
   const requestOrigin = new Map<number, string>()
   const safeProtocols = new Set(['devtools:', 'file:', 'chrome-extension:'])
   const unsafeHeaders = new Set(['authentication', 'authorization', 'cookie'])
 
-  webRequest.onBeforeRequest((details, cb) => {
+  orderedWebRequest.onBeforeRequest.addEventListener(async details => {
     const { protocol, origin } = new URL(details.url)
 
     // This is called once for the initial request and then once for each
@@ -48,15 +48,15 @@ export function installSameOriginFilter(webRequest: WebRequest) {
       requestOrigin.set(details.id, origin)
     }
 
-    cb({})
+    return {}
   })
 
-  webRequest.onBeforeSendHeaders((details, cb) => {
+  orderedWebRequest.onBeforeSendHeaders.addEventListener(async details => {
     const initialOrigin = requestOrigin.get(details.id)
     const { origin } = new URL(details.url)
 
     if (initialOrigin === undefined || initialOrigin === origin) {
-      return cb({ requestHeaders: details.requestHeaders })
+      return { requestHeaders: details.requestHeaders }
     }
 
     const sanitizedHeaders: Record<string, string> = {}
@@ -68,8 +68,10 @@ export function installSameOriginFilter(webRequest: WebRequest) {
     }
 
     log.debug(`Sanitizing cross-origin redirect to ${origin}`)
-    return cb({ requestHeaders: sanitizedHeaders })
+    return { requestHeaders: sanitizedHeaders }
   })
 
-  webRequest.onCompleted(details => requestOrigin.delete(details.id))
+  orderedWebRequest.onCompleted.addEventListener(details =>
+    requestOrigin.delete(details.id)
+  )
 }

@@ -20,7 +20,7 @@ export interface IMatch<T> {
 
 export type KeyFunction<T> = (item: T) => ReadonlyArray<string>
 
-export function match<T, _K extends keyof T>(
+export function match<T>(
   query: string,
   items: ReadonlyArray<T>,
   getKey: KeyFunction<T>

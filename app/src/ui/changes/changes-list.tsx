@@ -23,11 +23,12 @@ import {
   CopyFilePathLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
+  CopyRelativeFilePathLabel,
 } from '../lib/context-menu'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
@@ -405,6 +406,15 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private getCopyRelativePathMenuItem = (
+    file: WorkingDirectoryFileChange
+  ): IMenuItem => {
+    return {
+      label: CopyRelativeFilePathLabel,
+      action: () => clipboard.writeText(Path.normalize(file.path)),
+    }
+  }
+
   private getRevealInFileManagerMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -517,6 +527,8 @@ export class ChangesList extends React.Component<
     items.push(
       { type: 'separator' },
       this.getCopyPathMenuItem(file),
+      this.getCopyRelativePathMenuItem(file),
+      { type: 'separator' },
       this.getRevealInFileManagerMenuItem(file),
       this.getOpenInExternalEditorMenuItem(file, enabled),
       {
@@ -549,6 +561,8 @@ export class ChangesList extends React.Component<
 
     items.push(
       this.getCopyPathMenuItem(file),
+      this.getCopyRelativePathMenuItem(file),
+      { type: 'separator' },
       this.getRevealInFileManagerMenuItem(file),
       this.getOpenInExternalEditorMenuItem(file, enabled),
       {

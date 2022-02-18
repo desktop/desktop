@@ -1,7 +1,7 @@
 import * as React from 'react'
 import ReactDOM from 'react-dom'
 import { clipboard } from 'electron'
-import { Editor, Doc } from 'codemirror'
+import { Editor, Doc, EditorConfiguration } from 'codemirror'
 
 import {
   DiffHunk,
@@ -16,7 +16,6 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
-import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { CodeMirrorHost } from './code-mirror-host'
 import {
@@ -40,12 +39,13 @@ import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
 import {
   canSelect,
   getLineWidthFromDigitCount,
   getNumberOfDigits,
+  MaxIntraLineDiffStringLength,
 } from './diff-helpers'
 import {
   expandTextDiffHunk,
@@ -57,9 +57,6 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverCaretPosition } from '../lib/popover'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
-
-/** The longest line for which we'd try to calculate a line diff. */
-const MaxIntraLineDiffStringLength = 4096
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
@@ -254,7 +251,7 @@ function scrollEditorVertically(step: number, unit: 'line' | 'page') {
   }
 }
 
-const defaultEditorOptions: IEditorConfigurationExtra = {
+const defaultEditorOptions: EditorConfiguration = {
   lineNumbers: false,
   readOnly: true,
   showCursorWhenSelecting: false,
@@ -313,7 +310,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         text = text.replace(/\r(?=\n|$)/g, '')
       }
 
-      const doc = new Doc(text, mode, firstLineNumber, lineSeparator)
+      const doc = new Doc(
+        text,
+        mode,
+        firstLineNumber,
+        lineSeparator ?? undefined
+      )
 
       for (const noNewlineLine of noNewlineIndicatorLines) {
         doc.setBookmark(

@@ -1,9 +1,13 @@
-import { remote } from 'electron'
 import {
   isMacOSMojaveOrLater,
   isWindows10And1809Preview17666OrLater,
 } from '../../lib/get-os'
 import { getBoolean } from '../../lib/local-storage'
+import {
+  setNativeThemeSource,
+  shouldUseDarkColors,
+} from '../main-process-proxy'
+import { ThemeSource } from './theme-source'
 
 /** Interface for set of customizable styles */
 export interface ICustomTheme {
@@ -39,9 +43,7 @@ export type ApplicableTheme =
  * in persisting to storage and/or calculating the required
  * body class name to set in order to apply the theme.
  */
-export function getThemeName(
-  theme: ApplicationTheme
-): 'light' | 'dark' | 'system' {
+export function getThemeName(theme: ApplicationTheme): ThemeSource {
   switch (theme) {
     case ApplicationTheme.Light:
       return 'light'
@@ -101,8 +103,10 @@ function getApplicationThemeSetting(): ApplicationTheme {
 /**
  * Load the name of the currently selected theme
  */
-export function getCurrentlyAppliedTheme(): ApplicableTheme {
-  return isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
+export async function getCurrentlyAppliedTheme(): Promise<ApplicableTheme> {
+  return (await isDarkModeEnabled())
+    ? ApplicationTheme.Dark
+    : ApplicationTheme.Light
 }
 
 /**
@@ -122,7 +126,7 @@ export function getPersistedThemeName(): ApplicationTheme {
 export function setPersistedTheme(theme: ApplicationTheme): void {
   const themeName = getThemeName(theme)
   localStorage.setItem(applicationThemeKey, theme)
-  remote.nativeTheme.themeSource = themeName
+  setNativeThemeSource(themeName)
 }
 
 /**
@@ -141,6 +145,6 @@ export function supportsSystemThemeChanges(): boolean {
   return false
 }
 
-function isDarkModeEnabled(): boolean {
-  return remote.nativeTheme.shouldUseDarkColors
+function isDarkModeEnabled(): Promise<boolean> {
+  return shouldUseDarkColors()
 }

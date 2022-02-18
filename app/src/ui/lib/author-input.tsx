@@ -13,7 +13,7 @@ import { arrayEquals } from '../../lib/equality'
 import { syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IAuthor } from '../../models/author'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
 import { getLegacyStealthEmailForUser } from '../../lib/email'
 
@@ -700,7 +700,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     const CodeMirrorOptions: EditorConfiguration & {
       hintOptions: any
     } = {
-      mode: null,
+      mode: 'null',
       lineWrapping: true,
       extraKeys: {
         Tab: false,

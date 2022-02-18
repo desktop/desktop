@@ -1,4 +1,4 @@
-import { Menu, ipcMain, shell, app } from 'electron'
+import { Menu, shell, app, BrowserWindow } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
@@ -7,6 +7,7 @@ import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { enableSquashMerging } from '../../lib/feature-flag'
+import * as ipcWebContents from '../ipc-webcontents'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
@@ -473,7 +474,7 @@ export function buildDefaultMenu({
     label: 'Show User Guides',
     click() {
       shell
-        .openExternal('https://help.github.com/desktop/guides/')
+        .openExternal('https://docs.github.com/en/desktop')
         .catch(err => log.error('Failed opening user guides page', err))
     },
   }
@@ -483,7 +484,7 @@ export function buildDefaultMenu({
     click() {
       shell
         .openExternal(
-          'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+          'https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/keyboard-shortcuts'
         )
         .catch(err => log.error('Failed opening keyboard shortcuts page', err))
     },
@@ -546,6 +547,13 @@ export function buildDefaultMenu({
     )
   }
 
+  if (__RELEASE_CHANNEL__ === 'development' || __RELEASE_CHANNEL__ === 'test') {
+    helpItems.push({
+      label: 'Show notification',
+      click: emit('test-show-notification'),
+    })
+  }
+
   if (__DARWIN__) {
     template.push({
       role: 'help',
@@ -605,11 +613,15 @@ type ClickHandler = (
  * the provided menu event over IPC.
  */
 function emit(name: MenuEvent): ClickHandler {
-  return (menuItem, window) => {
-    if (window) {
-      window.webContents.send('menu-event', { name })
-    } else {
-      ipcMain.emit('menu-event', { name })
+  return (_, focusedWindow) => {
+    // focusedWindow can be null if the menu item was clicked without the window
+    // being in focus. A simple way to reproduce this is to click on a menu item
+    // while in DevTools. Since Desktop only supports one window at a time we
+    // can be fairly certain that the first BrowserWindow we find is the one we
+    // want.
+    const window = focusedWindow ?? BrowserWindow.getAllWindows()[0]
+    if (window !== undefined) {
+      ipcWebContents.send(window.webContents, 'menu-event', name)
     }
   }
 }
@@ -644,7 +656,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
 
     if (direction === ZoomDirection.Reset) {
       webContents.zoomFactor = 1
-      webContents.send('zoom-factor-changed', 1)
+      ipcWebContents.send(webContents, 'zoom-factor-changed', 1)
     } else {
       const rawZoom = webContents.zoomFactor
       const zoomFactors =
@@ -666,7 +678,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
       const newZoom = nextZoomLevel === undefined ? currentZoom : nextZoomLevel
 
       webContents.zoomFactor = newZoom
-      webContents.send('zoom-factor-changed', newZoom)
+      ipcWebContents.send(webContents, 'zoom-factor-changed', newZoom)
     }
   }
 }

@@ -21,9 +21,13 @@ interface IAppearanceProps {
   readonly onCustomThemeChanged: (theme: ICustomTheme) => void
 }
 
+interface IAppearanceState {
+  readonly selectedTheme: ApplicationTheme | null
+}
+
 const systemTheme: ISegmentedItem<ApplicationTheme> = {
   title: 'System',
-  description: 'Automatically switch theme to match system theme.',
+  description: 'Automatically switch theme to match system theme',
   key: ApplicationTheme.System,
 }
 
@@ -50,7 +54,45 @@ const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
   ...(supportsSystemThemeChanges() ? [systemTheme] : []),
 ]
 
-export class Appearance extends React.Component<IAppearanceProps, {}> {
+export class Appearance extends React.Component<
+  IAppearanceProps,
+  IAppearanceState
+> {
+  public constructor(props: IAppearanceProps) {
+    super(props)
+
+    const usePropTheme =
+      props.selectedTheme !== ApplicationTheme.System ||
+      supportsSystemThemeChanges()
+
+    this.state = { selectedTheme: usePropTheme ? props.selectedTheme : null }
+
+    if (!usePropTheme) {
+      this.initializeSelectedTheme()
+    }
+  }
+
+  public async componentDidUpdate(prevProps: IAppearanceProps) {
+    if (prevProps.selectedTheme === this.props.selectedTheme) {
+      return
+    }
+
+    const usePropTheme =
+      this.props.selectedTheme !== ApplicationTheme.System ||
+      supportsSystemThemeChanges()
+
+    const selectedTheme = usePropTheme
+      ? this.props.selectedTheme
+      : await getCurrentlyAppliedTheme()
+
+    this.setState({ selectedTheme })
+  }
+
+  private initializeSelectedTheme = async () => {
+    const selectedTheme = await getCurrentlyAppliedTheme()
+    this.setState({ selectedTheme })
+  }
+
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.onSelectedThemeChanged(theme)
   }
@@ -60,13 +102,14 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
   }
 
   public render() {
-    let selectedTheme = this.props.selectedTheme
+    const { selectedTheme } = this.state
 
-    if (
-      this.props.selectedTheme === ApplicationTheme.System &&
-      !supportsSystemThemeChanges()
-    ) {
-      selectedTheme = getCurrentlyAppliedTheme()
+    if (selectedTheme == null) {
+      return (
+        <DialogContent>
+          <Row>Loading system theme</Row>
+        </DialogContent>
+      )
     }
 
     return (

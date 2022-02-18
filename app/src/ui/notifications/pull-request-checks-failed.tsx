@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { PullRequest } from '../../models/pull-request'
+import { PullRequest, getPullRequestCommitRef } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
 import { CICheckRunList } from '../check-runs/ci-check-run-list'
 import {
@@ -21,6 +21,7 @@ import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
 import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
+import { PopupType } from '../../models/popup'
 
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 const BlankSlateImage = encodePathAsUrl(
@@ -144,6 +145,7 @@ export class PullRequestChecksFailed extends React.Component<
               onCancelButtonClick={this.props.onDismissed}
               cancelButtonText="Dismiss"
               okButtonText={okButtonTitle}
+              okButtonDisabled={this.state.switchingToPullRequest}
               onOkButtonClick={this.onSubmit}
             />
           </Row>
@@ -269,10 +271,18 @@ export class PullRequestChecksFailed extends React.Component<
   }
 
   private rerunChecks = () => {
-    this.props.dispatcher.rerequestCheckSuites(
-      this.props.repository.gitHubRepository,
-      this.state.checks
+    this.props.dispatcher.recordChecksFailedDialogSwitchToPullRequest()
+
+    const prRef = getPullRequestCommitRef(
+      this.props.pullRequest.pullRequestNumber
     )
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.CICheckRunRerun,
+      checkRuns: this.state.checks,
+      repository: this.props.repository.gitHubRepository,
+      prRef,
+    })
   }
 
   private async loadCheckRunLogs() {
@@ -302,7 +312,7 @@ export class PullRequestChecksFailed extends React.Component<
       a check run does not have action logs to retrieve/parse.
     */
     const checkRunsWithActionsUrls = await getCheckRunActionsWorkflowRuns(
-      api,
+      account,
       gitHubRepository.owner.login,
       gitHubRepository.name,
       pullRequest.head.ref,
