@@ -43,6 +43,8 @@ import {
   SimplifiedDiffRow,
   IDiffRowData,
   DiffColumn,
+  getLineWidthFromDigitCount,
+  getNumberOfDigits,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
@@ -96,6 +98,9 @@ interface ISideBySideDiffProps {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => void
+
+  /** Whether or not whitespace changes are hidden. */
+  readonly hideWhitespaceInDiff: boolean
 
   /**
    * Whether we'll show a confirmation dialog when the user
@@ -232,7 +237,11 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
-    const rows = getDiffRows(this.state.diff, this.props.showSideBySideDiff)
+    const rows = getDiffRows(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      this.newContentLines !== null
+    )
     const containerClassName = classNames('side-by-side-diff-container', {
       'unified-diff': !this.props.showSideBySideDiff,
       [`selecting-${this.state.selectingTextInRow}`]:
@@ -282,12 +291,20 @@ export class SideBySideDiff extends React.Component<
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
-    const rows = getDiffRows(this.state.diff, this.props.showSideBySideDiff)
+    const rows = getDiffRows(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      this.newContentLines !== null
+    )
     const row = rows[index]
 
     if (row === undefined) {
       return null
     }
+
+    const lineNumberWidth = `${getLineWidthFromDigitCount(
+      getNumberOfDigits(this.state.diff.maxLineNumber)
+    )}px`
 
     const rowWithTokens = this.createFullRow(row, index)
 
@@ -305,10 +322,12 @@ export class SideBySideDiff extends React.Component<
         <div key={key} style={style}>
           <SideBySideDiffRow
             row={rowWithTokens}
+            lineNumberWidth={lineNumberWidth}
             numRow={index}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
             showSideBySideDiff={this.props.showSideBySideDiff}
+            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
@@ -337,7 +356,7 @@ export class SideBySideDiff extends React.Component<
     const { file, repository } = this.props
     const { diff } = this.state
 
-    // Store the current props and state to that we can see if anything
+    // Store the current props and state so that we can see if anything
     // changes from underneath us as we're making asynchronous
     // operations that makes our data stale or useless.
     const propsSnapshot = this.props
@@ -378,7 +397,9 @@ export class SideBySideDiff extends React.Component<
       contents.oldContents === null ? [] : contents.oldContents.split('\n')
 
     const currentDiff = this.state.diff
-    const newDiff = enableTextDiffExpansion()
+    const shouldEnableDiffExpansion =
+      enableTextDiffExpansion() && contents.canBeExpanded
+    const newDiff = shouldEnableDiffExpansion
       ? getTextDiffWithBottomDummyHunk(
           currentDiff,
           currentDiff.hunks,
@@ -386,7 +407,7 @@ export class SideBySideDiff extends React.Component<
           newContentLines.length
         )
       : null
-    this.newContentLines = newContentLines
+    this.newContentLines = shouldEnableDiffExpansion ? newContentLines : null
 
     this.setState({
       diff: newDiff ?? currentDiff,
@@ -537,7 +558,11 @@ export class SideBySideDiff extends React.Component<
     rowNumber: number,
     column: DiffColumn
   ): number | null {
-    const rows = getDiffRows(this.state.diff, this.props.showSideBySideDiff)
+    const rows = getDiffRows(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      this.newContentLines !== null
+    )
     const row = rows[rowNumber]
 
     if (row === undefined) {
@@ -706,10 +731,14 @@ export class SideBySideDiff extends React.Component<
    * @param diffLineNumber the line number the diff where the user clicked
    */
   private onContextMenuLine = (diffLineNumber: number) => {
-    const { file } = this.props
+    const { file, hideWhitespaceInDiff } = this.props
     const { diff } = this.state
 
     if (!canSelect(file)) {
+      return
+    }
+
+    if (hideWhitespaceInDiff) {
       return
     }
 
@@ -731,7 +760,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   private buildExpandMenuItem(): IMenuItem | null {
-    if (!enableTextDiffExpansion()) {
+    if (!enableTextDiffExpansion() || this.newContentLines === null) {
       return null
     }
 
@@ -904,7 +933,12 @@ export class SideBySideDiff extends React.Component<
           searchResults.length
       }
     } else {
-      searchResults = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
+      searchResults = calcSearchTokens(
+        diff,
+        showSideBySideDiff,
+        searchQuery,
+        this.newContentLines !== null
+      )
       selectedSearchResult = 0
 
       if (searchResults === undefined || searchResults.length === 0) {
@@ -990,12 +1024,18 @@ function highlightParametersEqual(
  */
 const getDiffRows = memoize(function (
   diff: ITextDiff,
-  showSideBySideDiff: boolean
+  showSideBySideDiff: boolean,
+  enableDiffExpansion: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
   const outputRows = new Array<SimplifiedDiffRow>()
 
   diff.hunks.forEach((hunk, index) => {
-    for (const row of getDiffRowsFromHunk(index, hunk, showSideBySideDiff)) {
+    for (const row of getDiffRowsFromHunk(
+      index,
+      hunk,
+      showSideBySideDiff,
+      enableDiffExpansion
+    )) {
       outputRows.push(row)
     }
   })
@@ -1017,7 +1057,8 @@ const getDiffRows = memoize(function (
 function getDiffRowsFromHunk(
   hunkIndex: number,
   hunk: DiffHunk,
-  showSideBySideDiff: boolean
+  showSideBySideDiff: boolean,
+  enableDiffExpansion: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
   const rows = new Array<SimplifiedDiffRow>()
 
@@ -1048,7 +1089,9 @@ function getDiffRowsFromHunk(
       rows.push({
         type: DiffRowType.Hunk,
         content: line.text,
-        expansionType: hunk.expansionType,
+        expansionType: enableDiffExpansion
+          ? hunk.expansionType
+          : DiffHunkExpansionType.None,
         hunkIndex,
       })
       continue
@@ -1265,7 +1308,8 @@ class SearchResults {
 function calcSearchTokens(
   diff: ITextDiff,
   showSideBySideDiffs: boolean,
-  searchQuery: string
+  searchQuery: string,
+  enableDiffExpansion: boolean
 ): SearchResults | undefined {
   if (searchQuery.length === 0) {
     return undefined
@@ -1273,7 +1317,7 @@ function calcSearchTokens(
 
   const hits = new SearchResults()
   const searchRe = new RegExp(escapeRegExp(searchQuery), 'gi')
-  const rows = getDiffRows(diff, showSideBySideDiffs)
+  const rows = getDiffRows(diff, showSideBySideDiffs, enableDiffExpansion)
 
   for (const [rowNumber, row] of rows.entries()) {
     if (row.type === DiffRowType.Hunk) {

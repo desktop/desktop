@@ -723,6 +723,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         closeOnUnfocus: true,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
+        container: host,
       },
     }
 

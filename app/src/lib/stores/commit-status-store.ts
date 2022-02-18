@@ -12,6 +12,7 @@ import {
   APICheckConclusion,
 } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
+import { setAlmostImmediate } from '../set-almost-immediate'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -225,7 +226,7 @@ export class CommitStatusStore {
   private queueRefresh() {
     if (!this.refreshQueued) {
       this.refreshQueued = true
-      setImmediate(() => {
+      setAlmostImmediate(() => {
         this.refreshQueued = false
         this.refreshEligibleSubscriptions()
       })

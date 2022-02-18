@@ -1,14 +1,9 @@
 import { remote } from 'electron'
-import { enableAutomaticGitProxyConfiguration } from './feature-flag'
 import { parsePACString } from './parse-pac-string'
 
 export async function resolveGitProxy(
   url: string
 ): Promise<string | undefined> {
-  if (!enableAutomaticGitProxyConfiguration()) {
-    return undefined
-  }
-
   // resolveProxy doesn't throw an error (at least not in the
   // current Electron version) but it could in the future and
   // it's also possible that the IPC layer could throw an

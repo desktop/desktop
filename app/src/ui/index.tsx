@@ -82,6 +82,7 @@ import {
   ApplicationTheme,
   supportsSystemThemeChanges,
 } from './lib/application-theme'
+import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
 
 if (__DEV__) {
   installDevGlobals()
@@ -300,6 +301,9 @@ dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+
+// The trampoline UI helper needs a reference to the dispatcher before it's used
+trampolineUIHelper.setDispatcher(dispatcher)
 
 ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()

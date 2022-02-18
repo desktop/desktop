@@ -201,44 +201,13 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  /** Load the next batch of history, starting from the last loaded commit. */
-  public async loadNextHistoryBatch() {
-    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
-      return
-    }
-
-    if (!this.history.length) {
-      return
-    }
-
-    const lastSHA = this.history[this.history.length - 1]
-    const requestKey = `history/${lastSHA}`
-    if (this.requestsInFight.has(requestKey)) {
-      return
-    }
-
-    this.requestsInFight.add(requestKey)
-
-    const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, `${lastSHA}^`, CommitBatchSize)
-    )
-    if (!commits) {
-      return
-    }
-
-    this._history = this._history.concat(commits.map(c => c.sha))
-    this.storeCommits(commits)
-    this.requestsInFight.delete(requestKey)
-    this.emitUpdate()
-  }
-
   /** Load a batch of commits from the repository, using a given commitish object as the starting point */
-  public async loadCommitBatch(commitish: string) {
+  public async loadCommitBatch(commitish: string, skip: number) {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
       return null
     }
 
-    const requestKey = `history/compare/${commitish}`
+    const requestKey = `history/compare/${commitish}/skip/${skip}`
     if (this.requestsInFight.has(requestKey)) {
       return null
     }
@@ -246,7 +215,7 @@ export class GitStore extends BaseStore {
     this.requestsInFight.add(requestKey)
 
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, commitish, CommitBatchSize)
+      getCommits(this.repository, commitish, CommitBatchSize, skip)
     )
 
     this.requestsInFight.delete(requestKey)
@@ -647,7 +616,7 @@ export class GitStore extends BaseStore {
       )
     } else {
       localCommits = await this.performFailableOperation(() =>
-        getCommits(this.repository, 'HEAD', CommitBatchSize, [
+        getCommits(this.repository, 'HEAD', CommitBatchSize, undefined, [
           '--not',
           '--remotes',
         ])
@@ -1437,7 +1406,10 @@ export class GitStore extends BaseStore {
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<MergeResult | undefined> {
+  public merge(
+    branch: Branch,
+    isSquash: boolean = false
+  ): Promise<MergeResult | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
         `unable to merge as tip state is '${this.tip.kind}' and the application expects the repository to be on a branch currently`
@@ -1446,19 +1418,22 @@ export class GitStore extends BaseStore {
 
     const currentBranch = this.tip.branch.name
 
-    return this.performFailableOperation(() => merge(this.repository, branch), {
-      gitContext: {
-        kind: 'merge',
-        currentBranch,
-        theirBranch: branch,
-      },
-      retryAction: {
-        type: RetryActionType.Merge,
-        currentBranch,
-        theirBranch: branch,
-        repository: this.repository,
-      },
-    })
+    return this.performFailableOperation(
+      () => merge(this.repository, branch.name, isSquash),
+      {
+        gitContext: {
+          kind: 'merge',
+          currentBranch,
+          theirBranch: branch.name,
+        },
+        retryAction: {
+          type: RetryActionType.Merge,
+          currentBranch,
+          theirBranch: branch,
+          repository: this.repository,
+        },
+      }
+    )
   }
 
   /** Changes the URL for the remote that matches the given name  */

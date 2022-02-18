@@ -41,6 +41,9 @@ export interface ITextBoxProps {
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
+  /** Called when the Enter key is pressed in field of type search */
+  readonly onEnterPressed?: (text: string) => void
+
   /** The type of the input. Defaults to `text`. */
   readonly type?: 'text' | 'search' | 'password' | 'email'
 
@@ -271,6 +274,14 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           this.inputElement.blur()
         }
       }
+    } else if (
+      this.props.type === 'search' &&
+      event.key === 'Enter' &&
+      value !== undefined &&
+      value !== '' &&
+      this.props.onEnterPressed !== undefined
+    ) {
+      this.props.onEnterPressed(value)
     }
 
     if (this.props.onKeyDown !== undefined) {

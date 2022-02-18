@@ -119,7 +119,7 @@ generateIconData().then(result => {
   result.forEach(function (symbol) {
     const { jsFriendlyName, pathData, width, height, fillRule } = symbol
     out.write(
-      `export const ${jsFriendlyName} = {w: ${width}, h: ${height}, d: '${pathData}', fr: ${
+      `export const ${jsFriendlyName}: OcticonSymbolType = {w: ${width}, h: ${height}, d: '${pathData}', fr: ${
         fillRule ? `'${fillRule}'` : 'undefined'
       }}\n\n`
     )

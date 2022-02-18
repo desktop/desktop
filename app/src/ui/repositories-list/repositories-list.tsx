@@ -11,7 +11,7 @@ import {
 } from './group-repositories'
 import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
-import { ILocalRepositoryState } from '../../models/repository'
+import { ILocalRepositoryState, Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon } from '../octicons'
@@ -139,6 +139,8 @@ export class RepositoriesList extends React.Component<
         onShowRepository={this.props.onShowRepository}
         onOpenInShell={this.props.onOpenInShell}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onChangeRepositoryAlias={this.onChangeRepositoryAlias}
+        onRemoveRepositoryAlias={this.onRemoveRepositoryAlias}
         externalEditorLabel={this.props.externalEditorLabel}
         shellLabel={this.props.shellLabel}
         matches={matches}
@@ -320,5 +322,16 @@ export class RepositoriesList extends React.Component<
 
   private onCreateNewRepository = () => {
     this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
+  }
+
+  private onChangeRepositoryAlias = (repository: Repository) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ChangeRepositoryAlias,
+      repository,
+    })
+  }
+
+  private onRemoveRepositoryAlias = (repository: Repository) => {
+    this.props.dispatcher.changeRepositoryAlias(repository, null)
   }
 }

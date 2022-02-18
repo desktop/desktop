@@ -41,11 +41,12 @@ import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
-  enableDiscardLines,
-  enableTextDiffExpansion,
-} from '../../lib/feature-flag'
-import { canSelect } from './diff-helpers'
+  canSelect,
+  getLineWidthFromDigitCount,
+  getNumberOfDigits,
+} from './diff-helpers'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -53,6 +54,8 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { createOcticonElement } from '../octicons/octicon'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { HideWhitespaceWarning } from './hide-whitespace-warning'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -420,7 +423,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       contents.oldContents === null ? [] : contents.oldContents.split('\n')
 
     const currentDiff = this.state.diff
-    const newDiff = enableTextDiffExpansion()
+    const shouldEnableDiffExpansion =
+      enableTextDiffExpansion() && contents.canBeExpanded
+    const newDiff = shouldEnableDiffExpansion
       ? getTextDiffWithBottomDummyHunk(
           currentDiff,
           currentDiff.hunks,
@@ -428,7 +433,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           newContentLines.length
         )
       : null
-    this.newContentLines = newContentLines
+    this.newContentLines = shouldEnableDiffExpansion ? newContentLines : null
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
@@ -670,7 +675,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private buildExpandMenuItem(event: Event): IMenuItem | null {
-    if (!enableTextDiffExpansion()) {
+    if (!enableTextDiffExpansion() || this.newContentLines === null) {
       return null
     }
 
@@ -703,10 +708,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     editor: CodeMirror.Editor,
     event: Event
   ): ReadonlyArray<IMenuItem> | null {
-    if (!enableDiscardLines()) {
-      return null
-    }
-
     const file = this.props.file
 
     if (this.props.readOnly || !canSelect(file)) {
@@ -991,7 +992,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
                 lineNumber,
                 hunks,
                 hunk,
-                diffLine
+                diffLine,
+                getNumberOfDigits(this.state.diff.maxLineNumber)
               )
               cm.setGutterMarker(line, diffGutterName, marker)
             })
@@ -1006,6 +1008,22 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // markers to create.
     if (batchedOps.length > 0) {
       cm.operation(() => batchedOps.forEach(x => x()))
+    }
+
+    const diffSize = getLineWidthFromDigitCount(
+      getNumberOfDigits(this.state.diff.maxLineNumber)
+    )
+
+    const gutterParentElement = cm.getGutterElement()
+    const gutterElement = gutterParentElement.getElementsByClassName(
+      diffGutterName
+    )[0]
+
+    const newStyle = `width: ${diffSize * 2}px;`
+    const currentStyle = gutterElement.getAttribute('style')
+    if (newStyle !== currentStyle) {
+      gutterElement.setAttribute('style', newStyle)
+      cm.refresh()
     }
   }
 
@@ -1036,6 +1054,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       diffLine.originalLineNumber !== null &&
       inSelection(this.hunkHighlightRange, diffLine.originalLineNumber)
 
+    const shouldEnableDiffExpansion =
+      enableTextDiffExpansion() && this.newContentLines !== null
+
     return {
       'diff-line-gutter': true,
       'diff-add': diffLine.type === DiffLineType.Add,
@@ -1045,10 +1066,18 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       'read-only': this.props.readOnly,
       'diff-line-selected': isIncluded,
       'diff-line-hover': hover,
-      'expandable-down': hunk.expansionType === DiffHunkExpansionType.Down,
-      'expandable-up': hunk.expansionType === DiffHunkExpansionType.Up,
-      'expandable-both': hunk.expansionType === DiffHunkExpansionType.Both,
-      'expandable-short': hunk.expansionType === DiffHunkExpansionType.Short,
+      'expandable-down':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Down,
+      'expandable-up':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Up,
+      'expandable-both':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Both,
+      'expandable-short':
+        shouldEnableDiffExpansion &&
+        hunk.expansionType === DiffHunkExpansionType.Short,
       includeable: isIncludeable && !this.props.readOnly,
     }
   }
@@ -1057,9 +1086,14 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     index: number,
     hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
-    diffLine: DiffLine
+    diffLine: DiffLine,
+    digitCount: number
   ) {
+    const diffSize = getLineWidthFromDigitCount(digitCount)
+
     const marker = document.createElement('div')
+    marker.style.width = `${diffSize * 2}px`
+    marker.style.margin = '0px'
     marker.className = 'diff-line-gutter'
 
     marker.addEventListener(
@@ -1069,10 +1103,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const oldLineNumber = document.createElement('div')
     oldLineNumber.classList.add('diff-line-number', 'before')
+    oldLineNumber.style.width = `${diffSize}px`
     marker.appendChild(oldLineNumber)
 
     const newLineNumber = document.createElement('div')
     newLineNumber.classList.add('diff-line-number', 'after')
+    newLineNumber.style.width = `${diffSize}px`
     marker.appendChild(newLineNumber)
 
     const hunkHandle = document.createElement('div')
@@ -1082,7 +1118,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunkHandle.classList.add('hunk-handle')
     marker.appendChild(hunkHandle)
 
-    if (enableTextDiffExpansion()) {
+    if (enableTextDiffExpansion() && this.newContentLines !== null) {
       const hunkExpandUpHandle = document.createElement('div')
       hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
       hunkExpandUpHandle.title = 'Expand Up'
@@ -1239,8 +1275,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     }
 
     if (this.props.hideWhitespaceInDiff) {
-      marker.title =
-        'Partial committing is not available while hiding whitespace changes'
+      marker.title = HideWhitespaceWarning
     }
 
     const hunkExpandWholeHandle = marker.getElementsByClassName(
@@ -1375,10 +1410,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     document.removeEventListener('find-text', this.onFindText)
   }
 
+  // eslint-disable-next-line react-proper-lifecycle-methods
   public componentDidUpdate(
     prevProps: ITextDiffProps,
     prevState: ITextDiffState,
-    // tslint:disable-next-line:react-proper-lifecycle-methods
     snapshot: CodeMirror.ScrollInfo | null
   ) {
     if (this.codeMirror === null) {

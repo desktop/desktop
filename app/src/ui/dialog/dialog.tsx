@@ -53,7 +53,7 @@ interface IDialogProps {
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
    */
-  readonly onDismissed: () => void
+  readonly onDismissed?: () => void
 
   /**
    * An optional id for the rendered dialog element.

@@ -14,3 +14,4 @@ app/node_modules/
 .envrc
 junit*.xml
 *.swp
+tslint-rules/

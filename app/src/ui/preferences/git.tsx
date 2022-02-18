@@ -4,7 +4,6 @@ import { SuggestedBranchNames } from '../../lib/helpers/default-branch'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { RadioButton } from '../lib/radio-button'
-import { enableDefaultBranchSetting } from '../../lib/feature-flag'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
 
@@ -101,10 +100,6 @@ export class Git extends React.Component<IGitProps, IGitState> {
   }
 
   private renderDefaultBranchSetting() {
-    if (!enableDefaultBranchSetting()) {
-      return null
-    }
-
     const { defaultBranchIsOther } = this.state
 
     return (

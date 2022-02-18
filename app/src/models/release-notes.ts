@@ -26,4 +26,5 @@ export type ReleaseSummary = {
   readonly enhancements: ReadonlyArray<ReleaseNote>
   readonly bugfixes: ReadonlyArray<ReleaseNote>
   readonly other: ReadonlyArray<ReleaseNote>
+  readonly thankYous: ReadonlyArray<ReleaseNote>
 }

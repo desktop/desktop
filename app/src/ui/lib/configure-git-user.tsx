@@ -248,6 +248,9 @@ export class ConfigureGitUser extends React.Component<
           commit={dummyCommit}
           emoji={emoji}
           gitHubRepository={null}
+          canBeUndone={false}
+          canBeAmended={false}
+          canBeResetTo={false}
           isLocal={false}
           showUnpushedIndicator={false}
           selectedCommits={[dummyCommit]}

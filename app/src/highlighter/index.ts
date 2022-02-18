@@ -403,6 +403,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.toml': 'text/x-toml',
     },
   },
+  {
+    install: () => import('codemirror/mode/dart/dart'),
+    mappings: {
+      '.dart': 'application/dart',
+    },
+  },
 ]
 
 /**

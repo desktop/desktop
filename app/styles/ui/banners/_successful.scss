@@ -1,7 +1,4 @@
-#cherry-pick-undone,
-#successful-cherry-pick,
-#successful-rebase,
-#successful-merge {
+#successful {
   .banner-message {
     span {
       max-width: 100%;
@@ -27,5 +24,9 @@
     display: flex;
     flex-shrink: 0;
     flex-grow: 0;
+  }
+
+  .success-contents {
+    padding-right: var(--spacing-half);
   }
 }

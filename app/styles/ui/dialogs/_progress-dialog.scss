@@ -1,5 +1,6 @@
 dialog#cherry-pick-progress,
-dialog#rebase-progress {
+dialog#rebase-progress,
+dialog#multi-commit-progress {
   progress {
     -webkit-appearance: none;
     appearance: none;
@@ -30,6 +31,7 @@ dialog#rebase-progress {
       height: 22px;
       width: 22px;
       display: flex;
+      flex: 0 0 auto;
       justify-content: center;
       align-items: center;
     }

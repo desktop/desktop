@@ -11,9 +11,8 @@ import {
 import { git } from '../../git'
 import { friendlyEndpointName } from '../../friendly-endpoint-name'
 import { IRemote } from '../../../models/remote'
-import { merge } from '../../merge'
-import { withTrampolineEnvForRemoteOperation } from '../../trampoline/trampoline-environment'
 import { getDefaultBranch } from '../../helpers/default-branch'
+import { envForRemoteOperation } from '../../git/environment'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InitialReadmeContents =
@@ -72,7 +71,9 @@ async function pushRepo(
   progressCb(pushTitle, 0)
 
   const pushOpts = await executionOptionsWithProgress(
-    {},
+    {
+      env: await envForRemoteOperation(account, remote.url),
+    },
     new PushProgressParser(),
     progress => {
       if (progress.kind === 'progress') {
@@ -82,13 +83,7 @@ async function pushRepo(
   )
 
   const args = ['push', '-u', remote.name, remoteBranchName]
-
-  await withTrampolineEnvForRemoteOperation(account, remote.url, env => {
-    return git(args, path, 'tutorial:push', {
-      ...pushOpts,
-      env: merge(pushOpts.env, env),
-    })
-  })
+  await git(args, path, 'tutorial:push', pushOpts)
 }
 
 /**

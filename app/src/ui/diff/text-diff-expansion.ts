@@ -7,6 +7,7 @@ import {
   DiffLineType,
   ITextDiff,
 } from '../../models/diff'
+import { getLargestLineNumber } from './diff-helpers'
 
 /** How many new lines will be added to a diff hunk by default. */
 export const DefaultDiffExpansionStep = 20
@@ -59,7 +60,7 @@ function mergeDiffHunks(hunk1: DiffHunk, hunk2: DiffHunk): DiffHunk {
     newHunkHeader,
     newHunkLines,
     hunk1.unifiedDiffStart,
-    hunk1.unifiedDiffStart + newHunkLines.length,
+    hunk1.unifiedDiffStart + newHunkLines.length - 1,
     // The expansion type of the resulting hunk will match the expansion type
     // of the first hunk:
     // - If the first hunk can be expanded up, it means it's the very first
@@ -232,7 +233,7 @@ export function expandTextDiffHunk(
       // which is effectively taking all the undiscovered file contents and
       // would prevent us from expanding down the diff.
       if (isAdjacentDummyHunk === false) {
-        const downLimit = adjacentHunk.header.newStartLine - 1
+        const downLimit = adjacentHunk.header.newStartLine
         to = Math.min(to, downLimit)
         shouldMergeWithAdjacent = to === downLimit
       }
@@ -392,6 +393,7 @@ export function expandTextDiffHunk(
     ...diff,
     text: newDiffText,
     hunks: newHunks,
+    maxLineNumber: getLargestLineNumber(newHunks),
   }
 }
 

@@ -42,6 +42,10 @@
     align-items: center;
   }
 
+  .secondary-text {
+    color: var(--text-secondary-color);
+  }
+
   h3 {
     display: flex;
     flex-direction: row;

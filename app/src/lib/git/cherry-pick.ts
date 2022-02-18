@@ -9,8 +9,7 @@ import {
 import { git, IGitExecutionOptions, IGitResult } from './core'
 import { getStatus } from './status'
 import { stageFiles } from './update-index'
-import { ICherryPickProgress } from '../../models/progress'
-import { getCommitsInRange, revRangeInclusive } from './rev-list'
+import { getCommitsInRange, revRange } from './rev-list'
 import { CommitOneLine } from '../../models/commit'
 import { merge } from '../merge'
 import { ChildProcess } from 'child_process'
@@ -19,6 +18,8 @@ import byline from 'byline'
 import { ICherryPickSnapshot } from '../../models/cherry-pick'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { getCommit } from '.'
+import { IMultiCommitOperationProgress } from '../../models/progress'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -64,10 +65,12 @@ export enum CherryPickResult {
  *      create mode 100644 filename
  */
 class GitCherryPickParser {
-  private count = 0
-  public constructor(private readonly commits: ReadonlyArray<CommitOneLine>) {}
+  public constructor(
+    private readonly commits: ReadonlyArray<CommitOneLine>,
+    private count: number = 0
+  ) {}
 
-  public parse(line: string): ICherryPickProgress | null {
+  public parse(line: string): IMultiCommitOperationProgress | null {
     const cherryPickRe = /^\[(.*\s.*)\]/
     const match = cherryPickRe.exec(line)
     if (match === null) {
@@ -78,10 +81,9 @@ class GitCherryPickParser {
     this.count++
 
     return {
-      kind: 'cherryPick',
-      title: `Cherry-picking commit ${this.count} of ${this.commits.length} commits`,
+      kind: 'multiCommitOperation',
       value: round(this.count / this.commits.length, 2),
-      cherryPickCommitCount: this.count,
+      position: this.count,
       totalCommitCount: this.commits.length,
       currentCommitSummary: this.commits[this.count - 1]?.summary ?? '',
     }
@@ -101,14 +103,15 @@ class GitCherryPickParser {
 function configureOptionsWithCallBack(
   baseOptions: IGitExecutionOptions,
   commits: readonly CommitOneLine[],
-  progressCallback: (progress: ICherryPickProgress) => void
+  progressCallback: (progress: IMultiCommitOperationProgress) => void,
+  cherryPickedCount: number = 0
 ) {
   return merge(baseOptions, {
     processCallback: (process: ChildProcess) => {
       if (process.stdout === null) {
         return
       }
-      const parser = new GitCherryPickParser(commits)
+      const parser = new GitCherryPickParser(commits, cherryPickedCount)
 
       byline(process.stdout).on('data', (line: string) => {
         const progress = parser.parse(line)
@@ -122,16 +125,22 @@ function configureOptionsWithCallBack(
 }
 
 /**
- * A stub function to initiate cherry picking in the app.
+ * A function to initiate cherry picking in the app.
  *
- * @param revisionRange - this could be a single commit sha or could be a range
- * of commits like sha1..sha2 or inclusively sha1^..sha2
+ * @param commits - array of commits to cherry-pick
+ * For a cherry-pick operation, it does not matter what order the commits
+ * appear. But, it is best practice to send them in ascending order to prevent
+ * conflicts. First one on the array is first to be cherry-picked.
  */
 export async function cherryPick(
   repository: Repository,
-  revisionRange: string,
-  progressCallback?: (progress: ICherryPickProgress) => void
+  commits: ReadonlyArray<CommitOneLine>,
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void
 ): Promise<CherryPickResult> {
+  if (commits.length === 0) {
+    return CherryPickResult.UnableToStart
+  }
+
   let baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([
       GitError.MergeConflicts,
@@ -140,25 +149,6 @@ export async function cherryPick(
   }
 
   if (progressCallback !== undefined) {
-    // If it is a single commit sha, format it as tho it is a range
-    // so getCommitsInRange only pulls back single commit.
-    if (revisionRange.includes('..') === false) {
-      revisionRange = revRangeInclusive(revisionRange, revisionRange)
-    }
-
-    const commits = await getCommitsInRange(repository, revisionRange)
-
-    if (commits === null) {
-      // BadRevision can be raised here if git rev-list is unable to resolve a
-      // revision range, so we need to signal to the caller that this cherry
-      // pick is not possible to perform
-      log.warn(
-        `Unable to cherry-pick these branches
-        because one or both of the refs do not exist in the repository`
-      )
-      return CherryPickResult.UnableToStart
-    }
-
     baseOptions = await configureOptionsWithCallBack(
       baseOptions,
       commits,
@@ -176,7 +166,12 @@ export async function cherryPick(
   //  there could be multiple empty commits. I.E. If user does a range that
   //  includes commits from that merge.
   const result = await git(
-    ['cherry-pick', revisionRange, '--keep-redundant-commits', '-m 1'],
+    [
+      'cherry-pick',
+      ...commits.map(c => c.sha),
+      '--keep-redundant-commits',
+      '-m 1',
+    ],
     repository.path,
     'cherry-pick',
     baseOptions
@@ -225,28 +220,50 @@ export async function getCherryPickSnapshot(
     return null
   }
 
-  let firstSha: string = ''
-  let lastSha: string = ''
-  const remainingShas: string[] = []
+  // Abort safety sha is stored in.git/sequencer/abort-safety. It is the sha of
+  // the last cherry-picked commit in the operation or the head of target branch
+  // if no commits have been cherry-picked yet.
+  let abortSafetySha: string = ''
+
+  // The head sha is stored in .git/sequencer/head. It is the sha of target
+  // branch before the cherry-pick operation occurred.
+  let headSha: string = ''
+
+  // Each line of .git/sequencer/todo holds a sha of a commit lined up to be
+  // cherry-picked. These shas are in historical order starting oldest commit as
+  // the first line and newest as the last line.
+  const remainingCommits: CommitOneLine[] = []
+
   // Try block included as files may throw an error if it cannot locate
   // the sequencer files. This is possible if cherry pick is continued
   // or aborted at the same time.
   try {
-    // This contains the sha of the first committed pick.
-    firstSha = (
+    abortSafetySha = (
       await FSE.readFile(
         Path.join(repository.path, '.git', 'sequencer', 'abort-safety'),
         'utf8'
       )
     ).trim()
 
-    if (firstSha === '') {
+    if (abortSafetySha === '') {
       // Technically possible if someone continued or aborted the cherry pick at
       // the same time
       return null
     }
 
-    // This contains a reference to the remaining commits to cherry pick.
+    headSha = (
+      await FSE.readFile(
+        Path.join(repository.path, '.git', 'sequencer', 'head'),
+        'utf8'
+      )
+    ).trim()
+
+    if (headSha === '') {
+      // Technically possible if someone continued or aborted the cherry pick at
+      // the same time
+      return null
+    }
+
     const remainingPicks = (
       await FSE.readFile(
         Path.join(repository.path, '.git', 'sequencer', 'todo'),
@@ -262,49 +279,87 @@ export async function getCherryPickSnapshot(
 
     // Each line is of the format: `pick shortSha commitSummary`
     remainingPicks.split('\n').forEach(line => {
-      const linePieces = line.split(' ')
-      if (linePieces.length > 2) {
-        remainingShas.push(linePieces[1])
+      line = line.replace(/^pick /, '')
+      if (line.trim().includes(' ')) {
+        const sha = line.substr(0, line.indexOf(' '))
+        const commit: CommitOneLine = {
+          sha,
+          summary: line.substr(sha.length + 1),
+        }
+        remainingCommits.push(commit)
       }
     })
 
-    if (remainingShas.length === 0) {
+    if (remainingCommits.length === 0) {
       // This should only be possible with corrupt sequencer files.
       return null
     }
-    lastSha = remainingShas[remainingShas.length - 1]
+  } catch {
+    // could not parse sequencer files
 
-    if (lastSha === '') {
-      // This should only be possible with corrupt sequencer files.
+    if (!isCherryPickHeadFound(repository)) {
+      // We redo this check just because a user technically could end the
+      // cherry-pick by the time we got here.
       return null
     }
-  } catch {}
 
-  const commits = await getCommitsInRange(
-    repository,
-    revRangeInclusive(firstSha, lastSha)
-  )
+    // If cherry-pick is in progress, then there was only one commit cherry-picked
+    // thus sequencer files were not used.
+    const cherryPickHeadSha = (
+      await FSE.readFile(
+        Path.join(repository.path, '.git', 'CHERRY_PICK_HEAD'),
+        'utf8'
+      )
+    ).trim()
+    const commit = await getCommit(repository, cherryPickHeadSha)
+    if (commit === null) {
+      return null
+    }
 
-  if (commits === null || commits.length === 0) {
+    return {
+      progress: {
+        kind: 'multiCommitOperation',
+        value: 1,
+        position: 1,
+        totalCommitCount: 1,
+        currentCommitSummary: commit.summary,
+      },
+      remainingCommits: [],
+      commits: [{ sha: commit.sha, summary: commit.summary }],
+      targetBranchUndoSha: headSha,
+      cherryPickedCount: 0,
+    }
+  }
+
+  // To get all the commits for the cherry-pick operation, we need to get the
+  // ones already cherry-picked. If abortSafetySha is headSha; none have been
+  // cherry-picked yet.
+  const commitsCherryPicked =
+    abortSafetySha !== headSha
+      ? await getCommitsInRange(repository, revRange(headSha, abortSafetySha))
+      : []
+
+  if (commitsCherryPicked === null) {
     // This should only be possible with corrupt sequencer files resulting in a
     // bad revision range.
     return null
   }
 
-  const count = commits.length - remainingShas.length
-  const commitSummaryIndex = count > 0 ? count - 1 : 0
+  const commits = [...commitsCherryPicked, ...remainingCommits]
+  const position = commitsCherryPicked.length + 1
+
   return {
     progress: {
-      kind: 'cherryPick',
-      title: `Cherry-picking commit ${count} of ${commits.length} commits`,
-      value: round(count / commits.length, 2),
-      cherryPickCommitCount: count,
+      kind: 'multiCommitOperation',
+      value: round(position / commits.length, 2),
+      position,
       totalCommitCount: commits.length,
-      currentCommitSummary: commits[commitSummaryIndex].summary ?? '',
+      currentCommitSummary: remainingCommits[0].summary ?? '',
     },
-    remainingCommits: commits.slice(count, commits.length),
+    remainingCommits,
     commits,
-    targetBranchUndoSha: firstSha,
+    targetBranchUndoSha: headSha,
+    cherryPickedCount: commitsCherryPicked.length,
   }
 }
 
@@ -323,7 +378,7 @@ export async function continueCherryPick(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
-  progressCallback?: (progress: ICherryPickProgress) => void
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void
 ): Promise<CherryPickResult> {
   // only stage files related to cherry pick
   const trackedFiles = files.filter(f => {
@@ -379,10 +434,12 @@ export async function continueCherryPick(
       )
       return CherryPickResult.UnableToStart
     }
+
     options = configureOptionsWithCallBack(
       options,
-      snapshot.remainingCommits,
-      progressCallback
+      snapshot.commits,
+      progressCallback,
+      snapshot.cherryPickedCount
     )
   }
 

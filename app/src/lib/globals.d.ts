@@ -39,12 +39,7 @@ declare const __UPDATES_URL__: string
  * The currently executing process kind, this is specific to desktop
  * and identifies the processes that we have.
  */
-declare const __PROCESS_KIND__:
-  | 'main'
-  | 'ui'
-  | 'crash'
-  | 'askpass'
-  | 'highlighter'
+declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'highlighter'
 
 /**
  * The IdleDeadline interface is used as the data type of the input parameter to

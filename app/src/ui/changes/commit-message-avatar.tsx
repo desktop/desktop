@@ -5,7 +5,8 @@ import { Row } from '../lib/row'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { IAvatarUser } from '../../models/avatar'
 import { Avatar } from '../lib/avatar'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 
 interface ICommitMessageAvatarState {

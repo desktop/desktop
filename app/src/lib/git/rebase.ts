@@ -5,18 +5,14 @@ import { GitError } from 'dugite'
 import byline from 'byline'
 
 import { Repository } from '../../models/repository'
-import {
-  RebaseInternalState,
-  RebaseProgressOptions,
-  GitRebaseProgress,
-} from '../../models/rebase'
-import { IRebaseProgress } from '../../models/progress'
+import { RebaseInternalState, RebaseProgressOptions } from '../../models/rebase'
+import { IMultiCommitOperationProgress } from '../../models/progress'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { CommitOneLine } from '../../models/commit'
+import { Commit, CommitOneLine } from '../../models/commit'
 
 import { merge } from '../merge'
 import { formatRebaseValue } from '../rebase'
@@ -146,7 +142,7 @@ export async function getRebaseInternalState(
 export async function getRebaseSnapshot(
   repository: Repository
 ): Promise<{
-  progress: GitRebaseProgress
+  progress: IMultiCommitOperationProgress
   commits: ReadonlyArray<CommitOneLine>
 } | null> {
   const rebaseHead = await isRebaseHeadSet(repository)
@@ -238,12 +234,13 @@ export async function getRebaseSnapshot(
 
     const currentCommitSummary = hasValidCommit
       ? commits[nextCommitIndex].summary
-      : null
+      : ''
 
     return {
       progress: {
+        kind: 'multiCommitOperation',
         value,
-        rebasedCommitCount: next,
+        position: next,
         totalCommitCount: last,
         currentCommitSummary,
       },
@@ -281,7 +278,7 @@ const rebasingRe = /^Rebasing \((\d+)\/(\d+)\)$/
 class GitRebaseParser {
   public constructor(private readonly commits: ReadonlyArray<CommitOneLine>) {}
 
-  public parse(line: string): IRebaseProgress | null {
+  public parse(line: string): IMultiCommitOperationProgress | null {
     const match = rebasingRe.exec(line)
     if (match === null || match.length !== 3) {
       // Git will sometimes emit other output (for example, when it tries to
@@ -303,10 +300,9 @@ class GitRebaseParser {
     const value = formatRebaseValue(progress)
 
     return {
-      kind: 'rebase',
-      title: `Rebasing commit ${rebasedCommitCount} of ${totalCommitCount} commits`,
+      kind: 'multiCommitOperation',
       value,
-      rebasedCommitCount: rebasedCommitCount,
+      position: rebasedCommitCount,
       totalCommitCount: totalCommitCount,
       currentCommitSummary,
     }
@@ -359,7 +355,7 @@ export async function rebase(
   repository: Repository,
   baseBranch: Branch,
   targetBranch: Branch,
-  progressCallback?: (progress: IRebaseProgress) => void
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void
 ): Promise<RebaseResult> {
   const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([GitError.RebaseConflicts]),
@@ -433,7 +429,8 @@ export async function continueRebase(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
-  progressCallback?: (progress: IRebaseProgress) => void
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void,
+  gitEditor: string = ':'
 ): Promise<RebaseResult> {
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
@@ -478,7 +475,7 @@ export async function continueRebase(
       GitError.UnresolvedConflicts,
     ]),
     env: {
-      GIT_EDITOR: ':',
+      GIT_EDITOR: gitEditor,
     },
   }
 
@@ -519,6 +516,72 @@ export async function continueRebase(
     ['rebase', '--continue'],
     repository.path,
     'continueRebase',
+    options
+  )
+
+  return parseRebaseResult(result)
+}
+
+/**
+ * Method for initiating interactive rebase in the app.
+ *
+ * In order to modify the interactive todo list during interactive rebase, we
+ * create a temporary todo list of our own. Pass that file's path into our
+ * interactive rebase and using the sequence.editor to cat replace the
+ * interactive todo list with the contents of our generated one.
+ *
+ * @param pathOfGeneratedTodo path to generated todo list for interactive rebase
+ * @param lastRetainedCommitRef the commit before the earliest commit to be
+ * changed during the interactive rebase or null if commit is root (first commit
+ * in history) of branch
+ * @param action a description of the action to be displayed in the progress
+ * dialog - i.e. Squash, Amend, etc..
+ */
+export async function rebaseInteractive(
+  repository: Repository,
+  pathOfGeneratedTodo: string,
+  lastRetainedCommitRef: string | null,
+  action: string = 'Interactive rebase',
+  gitEditor: string = ':',
+  progressCallback?: (progress: IMultiCommitOperationProgress) => void,
+  commits?: ReadonlyArray<Commit>
+): Promise<RebaseResult> {
+  const baseOptions: IGitExecutionOptions = {
+    expectedErrors: new Set([GitError.RebaseConflicts]),
+    env: {
+      GIT_EDITOR: gitEditor,
+    },
+  }
+
+  let options = baseOptions
+
+  if (progressCallback !== undefined) {
+    if (commits === undefined) {
+      log.warn(`Unable to interactively rebase if no commits`)
+      return RebaseResult.Error
+    }
+
+    options = configureOptionsForRebase(baseOptions, {
+      commits,
+      progressCallback,
+    })
+  }
+
+  /* If the commit is the first commit in the branch, we cannot reference it
+  using the sha thus if lastRetainedCommitRef is null (we couldn't define it),
+  we must use the --root flag */
+  const ref = lastRetainedCommitRef == null ? '--root' : lastRetainedCommitRef
+  const result = await git(
+    [
+      '-c',
+      // This replaces interactive todo with contents of file at pathOfGeneratedTodo
+      `sequence.editor=cat "${pathOfGeneratedTodo}" >`,
+      'rebase',
+      '-i',
+      ref,
+    ],
+    repository.path,
+    action,
     options
   )
 

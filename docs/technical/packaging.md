@@ -20,7 +20,6 @@ The webpack configuration files organize the source files into these targets:
  - `renderer.js` - logic in the renderer process in Electron
  - `crash.js` - specialised UI for displaying an error that crashed the app
  - `highlighter.js` - logic for syntax highlighting, which runs in a web worker
- - `ask-pass.js` - logic for handling authentication requests from Git
  - `cli.js` - logic for the `github` command line interface
 
 Webpack also handles these steps:

@@ -5,6 +5,7 @@ import { GitProcess } from 'dugite'
 import { DiffParser } from '../../src/lib/diff-parser'
 import {
   expandTextDiffHunk,
+  expandWholeTextDiff,
   getTextDiffWithBottomDummyHunk,
 } from '../../src/ui/diff/text-diff-expansion'
 import { ITextDiff, DiffType } from '../../src/models/diff/diff-data'
@@ -57,6 +58,7 @@ async function prepareDiff(
     kind: DiffType.Text,
     text: diff.contents,
     hunks: diff.hunks,
+    maxLineNumber: diff.maxLineNumber,
   }
 
   const resultDiff = getTextDiffWithBottomDummyHunk(
@@ -165,7 +167,7 @@ describe('text-diff-expansion', () => {
   })
 
   it('merges hunks when the gap between them is shorter than the expansion size', async () => {
-    const { textDiff, newContentLines } = await prepareDiff(100, [10, 20])
+    const { textDiff, newContentLines } = await prepareDiff(100, [20, 10])
     const expandedDiff = expandTextDiffHunk(
       textDiff,
       textDiff.hunks[0],
@@ -184,8 +186,43 @@ describe('text-diff-expansion', () => {
 
     const firstHunk = expandedDiff!.hunks[0]
     expect(firstHunk.header.oldStartLine).toBe(8)
-    expect(firstHunk.header.oldLineCount).toBe(14)
+    expect(firstHunk.header.oldLineCount).toBe(16)
     expect(firstHunk.header.newStartLine).toBe(8)
-    expect(firstHunk.header.newLineCount).toBe(16)
+    expect(firstHunk.header.newLineCount).toBe(18)
+  })
+
+  it('expands the whole file', async () => {
+    const { textDiff, newContentLines } = await prepareDiff(35, [
+      20,
+      17,
+      8,
+      7,
+      6,
+    ])
+
+    const expandedDiff = expandWholeTextDiff(textDiff, newContentLines)
+    expect(expandedDiff!.hunks).toHaveLength(1)
+
+    const firstHunk = expandedDiff!.hunks[0]
+    expect(firstHunk.lines).toHaveLength(40 + 1) // +1 for the header
+
+    let expectedNewLine = 1
+    let expectedOldLine = 1
+
+    // Make sure line numbers are consecutive as expected
+    for (const line of firstHunk.lines) {
+      if (line.type === DiffLineType.Add) {
+        expect(line.newLineNumber).toBe(expectedNewLine)
+        expectedNewLine++
+      } else if (line.type === DiffLineType.Delete) {
+        expect(line.oldLineNumber).toBe(expectedOldLine)
+        expectedOldLine++
+      } else if (line.type === DiffLineType.Context) {
+        expect(line.newLineNumber).toBe(expectedNewLine)
+        expectedNewLine++
+        expect(line.oldLineNumber).toBe(expectedOldLine)
+        expectedOldLine++
+      }
+    }
   })
 })

@@ -130,18 +130,6 @@ export const renderer = merge({}, commonConfig, {
   ],
 })
 
-export const askPass = merge({}, commonConfig, {
-  entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
-  target: 'node',
-  plugins: [
-    new webpack.DefinePlugin(
-      Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('askpass'),
-      })
-    ),
-  ],
-})
-
 export const crash = merge({}, commonConfig, {
   entry: { crash: path.resolve(__dirname, 'src/crash/index') },
   target: 'electron-renderer',

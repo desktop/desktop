@@ -122,17 +122,13 @@ function getConflictState(
   status: IStatusResult,
   manualResolutions: Map<string, ManualConflictResolution>
 ): ConflictState | null {
-  if (status.mergeHeadFound) {
-    const { currentBranch, currentTip } = status
-    if (currentBranch == null || currentTip == null) {
-      return null
-    }
-    return {
-      kind: 'merge',
-      currentBranch,
-      currentTip,
-      manualResolutions,
-    }
+  // If there are no conflicts found in working directory, conflict state should
+  // be null this is important when checking for a conflict after a --squash
+  // merge which will not have a MERGE_HEAD but would have SQUASH_MSG which also
+  // can be present when no conflicts. You shouldn't be able to have
+  // any form of the other conflicts without conflicted files anyways.
+  if (!status.doConflictedFilesExist) {
+    return null
   }
 
   if (status.rebaseInternalState !== null) {
@@ -169,7 +165,21 @@ function getConflictState(
     }
   }
 
-  return null
+  const { currentBranch, currentTip, mergeHeadFound, squashMsgFound } = status
+  if (
+    currentBranch == null ||
+    currentTip == null ||
+    (!mergeHeadFound && !squashMsgFound)
+  ) {
+    return null
+  }
+
+  return {
+    kind: 'merge',
+    currentBranch,
+    currentTip,
+    manualResolutions,
+  }
 }
 
 function performEffectsForMergeStateChange(

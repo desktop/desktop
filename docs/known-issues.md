@@ -10,7 +10,6 @@
   - [Enable Mandatory ASLR triggers cygheap errors](#enable-mandatory-aslr-triggers-cygheap-errors)
   - [I get a black screen when launching Desktop](#i-get-a-black-screen-when-launching-desktop)
   - [Failed to open CA file after an update](#failed-to-open-ca-file-after-an-update)
-  - [`ask-pass-trampoline.bat` errors](#ask-pass-trampolinebat-errors)
   - [Authentication errors due to modified registry entries](#authentication-errors-due-to-modified-registry-entries)
 
 # Known Issues
@@ -192,37 +191,6 @@ file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
 [http]
 sslCAInfo = [some value here]
 ```
-
-### `ask-pass-trampoline.bat` errors
-
-Related issues: - [#2623](https://github.com/desktop/desktop/issues/2623), [#4124](https://github.com/desktop/desktop/issues/4124), [#6882](https://github.com/desktop/desktop/issues/6882), [#6789](https://github.com/desktop/desktop/issues/6879)
-
-An example of the error message:
-
-```
-The system cannot find the path specified.
-error: unable to read askpass response from 'C:\Users\User\AppData\Local\GitHubDesktop\app-1.6.2\resources\app\static\ask-pass-trampoline.bat'
-fatal: could not read Username for 'https://github.com': terminal prompts disabled"
-```
-
-Known causes and workarounds:
-
-**If you're experiencing this error, please download the [beta version](https://github.com/desktop/desktop#beta-channel) where it should hopefully be solved.**
-
--  Modifying the `AutoRun` registry entry. To check if this entry has been modified open `Regedit.exe` and navigate to `HKEY_CURRENT_USER\Software\Microsoft\Command Processor\autorun` and `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\autorun` to see if there is anything set (sometimes applications will also modify this). See [#6789](https://github.com/desktop/desktop/issues/6879#issuecomment-471042891) and [#2623](https://github.com/desktop/desktop/issues/2623#issuecomment-334305916) for examples of this.
-
-- Special characters in your Windows username like a `&` or `-` can cause this error to be thrown. See [#7064](https://github.com/desktop/desktop/issues/7064) for an example of this. Try installing GitHub Desktop in a new user account to verify if this is the case.
-
-- Antivirus software can sometimes prevent GitHub Desktop from installing correctly. If you are running antivirus software that could be causing this try temporarily disabling it and reinstalling GitHub Desktop.
-
-- Restrictive permissions on your Windows user account. If you are running GitHub Desktop as a non-admin user try launching the application as an administrator (right-click -> `Run as administrator`). See [#5082](https://github.com/desktop/desktop/issues/5082#issuecomment-483067198).
-
-- If none of these potential causes are present on your machine, try performing a fresh installation of GitHub Desktop to see if that gets things working again. Here are the steps you can take to do that:
-
-  1. Close GitHub Desktop
-  2. Delete the `%AppData%\GitHub Desktop\` directory
-  3. Delete the `%LocalAppData%\GitHubDesktop\` directory
-  4. Reinstall GitHub Desktop from [desktop.github.com](https://desktop.github.com)
 
 ### Authentication errors due to modified registry entries
 

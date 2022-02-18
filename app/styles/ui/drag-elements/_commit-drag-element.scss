@@ -1,0 +1,92 @@
+#commit-drag-element {
+  display: block;
+  position: absolute;
+  height: 50px;
+  min-width: 300px;
+  z-index: 1000;
+  padding: 0;
+
+  .commit-box {
+    box-shadow: 2px 1px 1px 0px var(--box-border-color);
+    border-top: 1px solid var(--box-border-color);
+    border-left: 1px solid var(--box-border-color);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--background-color);
+    overflow: hidden;
+
+    .commit {
+      border-bottom: none;
+      max-width: 300px;
+    }
+
+    .count {
+      background-image: linear-gradient(#d73a49, darken(#d73a49, 5%));
+      color: white;
+      width: 18px;
+      height: 18px;
+      font-weight: 500;
+      font-size: 11px;
+      position: absolute;
+      top: -22px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-radius: 100%;
+    }
+  }
+
+  .tool-tip-contents {
+    position: absolute;
+    bottom: -35px;
+    left: 0px;
+    background-color: var(--background-color);
+    border: 1px solid var(--box-border-color);
+    color: var(--text-color);
+    padding: var(--spacing-third) var(--spacing-half);
+
+    @include darwin {
+      padding: 1px var(--spacing-third);
+      font-size: 11px;
+      bottom: -25px;
+      background-color: var(--title-tool-tip-background-color);
+      border-radius: 1px;
+      box-shadow: var(--title-tool-tip-shadow);
+    }
+
+    .branch-name {
+      margin-left: var(--spacing-third);
+    }
+
+    @include win32 {
+      .copy-to,
+      .copy-to-icon {
+        color: var(--link-button-color);
+      }
+    }
+
+    div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+  }
+
+  &.multiple-selected::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color);
+    z-index: -1;
+    left: 7px;
+    top: 5px;
+    box-shadow: 1px 1px 1px 1px var(--box-border-color);
+  }
+}

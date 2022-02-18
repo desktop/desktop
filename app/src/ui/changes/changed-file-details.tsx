@@ -5,7 +5,6 @@ import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, iconForStatus } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { mapStatus } from '../../lib/status'
-import { enableSideBySideDiffs } from '../../lib/feature-flag'
 import { DiffOptions } from '../diff/diff-options'
 import { RepositorySectionTab } from '../../lib/app-state'
 
@@ -44,18 +43,16 @@ export class ChangedFileDetails extends React.Component<
         <PathLabel path={this.props.path} status={this.props.status} />
         {this.renderDecorator()}
 
-        {enableSideBySideDiffs() && (
-          <DiffOptions
-            sourceTab={RepositorySectionTab.Changes}
-            onHideWhitespaceChangesChanged={
-              this.props.onHideWhitespaceInDiffChanged
-            }
-            hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-            onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
-            showSideBySideDiff={this.props.showSideBySideDiff}
-            onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-          />
-        )}
+        <DiffOptions
+          sourceTab={RepositorySectionTab.Changes}
+          onHideWhitespaceChangesChanged={
+            this.props.onHideWhitespaceInDiffChanged
+          }
+          hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+          onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+        />
 
         <Octicon
           symbol={iconForStatus(status)}

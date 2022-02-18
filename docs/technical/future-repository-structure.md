@@ -101,14 +101,6 @@ initializes to perform asynchronous computation of syntax highlighting in diffs.
 Modules and logic that Desktop uses to show a default UI when an unhandled error
 occurs that crashes the main application.
 
-### AskPass script - `app/src/ask-pass`
-
-Modules and logic that Desktop uses to act as a credential helper for it's Git
-operations, bypassing whatever the user has set in config. This is a separate
-component because Desktop will spawn Git which can only spawn another program,
-so Desktop sets this script as the program to execute if Git encounters an
-authentication prompt.
-
 ### Command Line Interface - `app/src/cli`
 
 Module and logic to be bundled for the `github` command line interface that

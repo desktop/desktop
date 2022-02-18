@@ -86,7 +86,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
  * @param id        Optional identifier to set to the wrapper element.
  */
 export function createOcticonElement(
-  symbol: OcticonSymbol,
+  symbol: OcticonSymbolType,
   className?: string,
   id?: string
 ) {

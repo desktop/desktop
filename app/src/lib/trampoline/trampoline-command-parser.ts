@@ -126,8 +126,17 @@ export class TrampolineCommandParser {
       )
     }
 
+    const trampolineToken = this.environmentVariables.get(
+      'DESKTOP_TRAMPOLINE_TOKEN'
+    )
+
+    if (trampolineToken === undefined) {
+      throw new Error(`The trampoline token is missing`)
+    }
+
     return {
       identifier,
+      trampolineToken,
       parameters: this.parameters,
       environmentVariables: this.environmentVariables,
     }
