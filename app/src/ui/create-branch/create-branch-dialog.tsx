@@ -381,8 +381,8 @@ export class CreateBranch extends React.Component<
 
       return (
         <div>
-          {this.renderForkLink()}
           {this.renderOptions(items, selectedValue)}
+          {this.renderForkLink()}
         </div>
       )
     }
@@ -432,8 +432,8 @@ export class CreateBranch extends React.Component<
           : StartPoint.CurrentBranch
       return (
         <div>
-          {this.renderForkLink()}
           {this.renderOptions(items, selectedValue)}
+          {this.renderForkLink()}
         </div>
       )
     }
@@ -442,13 +442,13 @@ export class CreateBranch extends React.Component<
   private renderForkLink = () => {
     if (isRepositoryWithForkedGitHubRepository(this.props.repository)) {
       return (
-        <p>
-          Fork behavior can be changed from{' '}
+        <div className="secondary-text">
+          Your default branch source is determined by your {' '}
           <LinkButton onClick={this.onForkSettingsClick}>
-            the repository settings
+            fork behavior settings
           </LinkButton>
           .
-        </p>
+        </div>
       )
     } else {
       return

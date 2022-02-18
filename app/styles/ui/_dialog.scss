@@ -51,6 +51,10 @@ dialog {
   min-width: 400px;
   max-width: 600px;
 
+  .secondary-text {
+    color: var(--text-secondary-color);
+  }
+
   // Substitute the appear/exit animations with a fade in fade out effect if the
   // user prefers reduced motion.
   //
