@@ -6,6 +6,7 @@ import { ensureDir } from 'fs-extra'
 import { noop } from 'lodash'
 import { DesktopConsoleTransport } from './desktop-console-transport'
 import 'winston-daily-rotate-file'
+import memoizeOne from 'memoize-one'
 
 /**
  * The maximum number of log files we should have on disk before pruning old
@@ -62,30 +63,11 @@ function initializeWinston(path: string): winston.LogMethod {
  *          it accepts a log level, a message and an optional callback
  *          for when the event has been written to all destinations.
  */
-function getLogger(): Promise<winston.LogMethod> {
-  if (loggerPromise) {
-    return loggerPromise
-  }
-
-  loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-    const logDirectory = getLogDirectoryPath()
-
-    ensureDir(logDirectory)
-      .then(() => {
-        try {
-          const logger = initializeWinston(logDirectory)
-          resolve(logger)
-        } catch (err) {
-          reject(err)
-        }
-      })
-      .catch(error => {
-        reject(error)
-      })
-  })
-
-  return loggerPromise
-}
+const getLogger = memoizeOne(async () => {
+  const logDirectory = getLogDirectoryPath()
+  await ensureDir(logDirectory)
+  return initializeWinston(logDirectory)
+})
 
 /**
  * Write the given log entry to all configured transports,
