@@ -51,7 +51,8 @@ const commonConfig: webpack.Configuration = {
     new CleanWebpackPlugin([outputDir], { verbose: false }),
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    // new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en-gb/),
   ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
