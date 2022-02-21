@@ -69,10 +69,7 @@ export function wrapRichTextCommitMessage(
         // complex for now.
         summary.push(text(token.text.substr(0, remainder)))
         overflow.push(text(token.text.substr(remainder)))
-      } else if (
-        token.kind === TokenType.Emoji ||
-        token.kind === TokenType.UnicodeEmoji
-      ) {
+      } else if (token.kind === TokenType.Emoji) {
         // Can't hard-wrap inside an emoji
         overflow.push(token)
       } else if (token.kind === TokenType.Link) {
