@@ -1,21 +1,17 @@
 import * as Path from 'path'
 import * as winston from 'winston'
-
 import { getLogDirectoryPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
 import { ensureDir } from 'fs-extra'
-
-import 'winston-daily-rotate-file'
 import { noop } from 'lodash'
+import { DesktopConsoleTransport } from './desktop-console-transport'
+import 'winston-daily-rotate-file'
 
 /**
  * The maximum number of log files we should have on disk before pruning old
  * ones.
  */
 const MaxLogFiles = 14
-
-/** Generates a timestamp in a constistent format for file logs  */
-const timestamp = () => new Date().toISOString()
 
 /**
  * Initializes winston and returns a subset of the available log level
@@ -26,6 +22,7 @@ const timestamp = () => new Date().toISOString()
  */
 function initializeWinston(path: string): winston.LogMethod {
   const filename = Path.join(path, `%DATE%.desktop.${__RELEASE_CHANNEL__}.log`)
+  const timestamp = () => new Date().toISOString()
 
   const fileLogger = new winston.transports.DailyRotateFile({
     filename,
@@ -44,7 +41,7 @@ function initializeWinston(path: string): winston.LogMethod {
   // likely still work.
   fileLogger.on('error', noop)
 
-  const consoleLogger = new winston.transports.Console({
+  const consoleLogger = new DesktopConsoleTransport({
     level: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
   })
 
@@ -55,8 +52,6 @@ function initializeWinston(path: string): winston.LogMethod {
 
   return winston.log
 }
-
-let loggerPromise: Promise<winston.LogMethod> | null = null
 
 /**
  * Initializes and configures winston (if necessary) to write to Electron's
