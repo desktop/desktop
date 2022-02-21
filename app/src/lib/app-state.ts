@@ -299,6 +299,11 @@ export interface IAppState {
    * Whether or not the user enabled high-signal notifications.
    */
   readonly notificationsEnabled: boolean
+
+  /**
+   * Whether or not to use 24-Hour date formating.
+   */
+  readonly is24hourFormat: boolean
 }
 
 export enum FoldoutType {

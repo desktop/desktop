@@ -350,6 +350,7 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 
 const MaxInvalidFoldersToDisplay = 3
 
+export const timeFormatKey = '24hour-time-format'
 const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
 const dragAndDropIntroTypesShownKey = 'drag-and-drop-intro-types-shown'
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
@@ -471,6 +472,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private lastThankYou: ILastThankYou | undefined
   private showCIStatusPopover: boolean = false
 
+  private is24hourTimeFormat: boolean = false
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
@@ -498,6 +501,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       } else {
         this.useWindowsOpenSSH = useWindowsOpenSSH
       }
+    }
+
+    const timeFormat = getBoolean(timeFormatKey)
+
+    if (timeFormat === undefined) {
+      this._setIs24HourTimeFormat(this.is24hourTimeFormat)
+    } else {
+      this.is24hourTimeFormat = timeFormat
     }
 
     this.gitStoreCache = new GitStoreCache(
@@ -887,6 +898,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
+      is24hourFormat: this.is24hourTimeFormat,
     }
   }
 
@@ -3195,6 +3207,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setNotificationsEnabled(notificationsEnabled: boolean) {
     this.notificationsStore.setNotificationsEnabled(notificationsEnabled)
+    this.emitUpdate()
+  }
+
+  public _setIs24HourTimeFormat(format: boolean) {
+    setBoolean(timeFormatKey, format)
+    this.is24hourTimeFormat = format
     this.emitUpdate()
   }
 

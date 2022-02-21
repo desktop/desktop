@@ -2704,6 +2704,10 @@ export class Dispatcher {
     this.appStore._setNotificationsEnabled(notificationsEnabled)
   }
 
+  public setTimeFormat(is24hour: boolean) {
+    this.appStore._setIs24HourTimeFormat(is24hour)
+  }
+
   public recordDiffOptionsViewed() {
     return this.statsStore.recordDiffOptionsViewed()
   }

@@ -49,6 +49,7 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly useWindowsOpenSSH: boolean
   readonly notificationsEnabled: boolean
+  readonly is24hourFormat: boolean
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
@@ -73,6 +74,7 @@ interface IPreferencesState {
   readonly disallowedCharactersMessage: string | null
   readonly useWindowsOpenSSH: boolean
   readonly notificationsEnabled: boolean
+  readonly is24hourFormat: boolean
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
@@ -113,6 +115,7 @@ export class Preferences extends React.Component<
       availableEditors: [],
       useWindowsOpenSSH: false,
       notificationsEnabled: true,
+      is24hourFormat: false,
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
@@ -167,6 +170,7 @@ export class Preferences extends React.Component<
       initialDefaultBranch,
       useWindowsOpenSSH: this.props.useWindowsOpenSSH,
       notificationsEnabled: this.props.notificationsEnabled,
+      is24hourFormat: this.props.is24hourFormat,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
@@ -336,11 +340,13 @@ export class Preferences extends React.Component<
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             notificationsEnabled={this.state.notificationsEnabled}
+            is24hourFormat={this.state.is24hourFormat}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
             onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
+            onTimeFormatChanged={this.onTimeFormatChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
@@ -379,6 +385,10 @@ export class Preferences extends React.Component<
 
   private onNotificationsEnabledChanged = (notificationsEnabled: boolean) => {
     this.setState({ notificationsEnabled })
+  }
+
+  private onTimeFormatChanged = (is24hourFormat: boolean) => {
+    this.setState({ is24hourFormat })
   }
 
   private onOptOutofReportingChanged = (value: boolean) => {
@@ -524,6 +534,8 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setNotificationsEnabled(
       this.state.notificationsEnabled
     )
+
+    this.props.dispatcher.setTimeFormat(this.state.is24hourFormat)
 
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,

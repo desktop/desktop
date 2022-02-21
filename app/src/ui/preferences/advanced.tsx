@@ -12,10 +12,12 @@ interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly notificationsEnabled: boolean
+  readonly is24hourFormat: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
   readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
   readonly onNotificationsEnabledChanged: (checked: boolean) => void
+  readonly onTimeFormatChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
@@ -85,6 +87,10 @@ export class Advanced extends React.Component<
     this.props.onNotificationsEnabledChanged(event.currentTarget.checked)
   }
 
+  private onTimeFormatChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    this.props.onTimeFormatChanged(event.currentTarget.checked)
+  }
+
   private reportDesktopUsageLabel() {
     return (
       <span>
@@ -148,6 +154,7 @@ export class Advanced extends React.Component<
         </div>
         {this.renderSSHSettings()}
         {this.renderNotificationsSettings()}
+        {this.renderTimeFormatingSettings()}
         <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
@@ -178,6 +185,21 @@ export class Advanced extends React.Component<
             this.props.useWindowsOpenSSH ? CheckboxValue.On : CheckboxValue.Off
           }
           onChange={this.onUseWindowsOpenSSHChanged}
+        />
+      </div>
+    )
+  }
+
+  private renderTimeFormatingSettings() {
+    return (
+      <div className="advanced-section">
+        <h2>Time Format</h2>
+        <Checkbox
+          label="Use 24-Hour Time"
+          value={
+            this.props.is24hourFormat ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onTimeFormatChanged}
         />
       </div>
     )

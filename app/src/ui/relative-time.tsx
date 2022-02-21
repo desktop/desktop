@@ -1,6 +1,8 @@
 import * as React from 'react'
 import moment from 'moment'
 import { TooltippedContent } from './lib/tooltipped-content'
+import { getBoolean } from '../lib/local-storage'
+import { timeFormatKey } from '../lib/stores'
 
 interface IRelativeTimeProps {
   /**
@@ -63,6 +65,11 @@ export class RelativeTime extends React.Component<
   public constructor(props: IRelativeTimeProps) {
     super(props)
     this.state = { absoluteText: '', relativeText: '' }
+    if (getBoolean(timeFormatKey) === true) {
+      moment.locale('en-gb')
+    } else {
+      moment.locale('en')
+    }
   }
 
   private clearTimer() {
