@@ -14,6 +14,9 @@ import { noop } from 'lodash'
  */
 const MaxLogFiles = 14
 
+/** Generates a timestamp in a constistent format for file logs  */
+const timestamp = () => new Date().toISOString()
+
 /**
  * Initializes winston and returns a subset of the available log level
  * methods (debug, info, error). This method should only be called once
@@ -29,6 +32,9 @@ function initializeWinston(path: string): winston.LogMethod {
     datePattern: 'YYYY-MM-DD',
     level: 'info',
     maxFiles: MaxLogFiles,
+    format: winston.format.printf(
+      ({ level, message }) => `${timestamp()} - ${level}: ${message}`
+    ),
   })
 
   // The file logger handles errors when it can't write to an existing file but
