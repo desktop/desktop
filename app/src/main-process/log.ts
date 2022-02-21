@@ -6,6 +6,7 @@ import { LogLevel } from '../lib/logging/log-level'
 import { ensureDir } from 'fs-extra'
 
 import 'winston-daily-rotate-file'
+import { noop } from 'lodash'
 
 /**
  * The maximum number of log files we should have on disk before pruning old
@@ -13,43 +14,29 @@ import 'winston-daily-rotate-file'
  */
 const MaxLogFiles = 14
 
-/** resolve the log file location based on the current channel */
-function getLogFilePath(directory: string): string {
-  const channel = __RELEASE_CHANNEL__
-  const fileName = `desktop.${channel}.log`
-  return Path.join(directory, fileName)
-}
-
 /**
  * Initializes winston and returns a subset of the available log level
  * methods (debug, info, error). This method should only be called once
  * during an application's lifetime.
  *
- * @param path The path where to write log files. This path will have
- *             the current date prepended to the basename part of the
- *             path such that passing a path '/logs/foo' will end up
- *             writing to '/logs/2017-05-17.foo'
+ * @param path The path where to write log files.
  */
 function initializeWinston(path: string): winston.LogMethod {
+  const filename = Path.join(path, `%DATE%.desktop.${__RELEASE_CHANNEL__}.log`)
+
   const fileLogger = new winston.transports.DailyRotateFile({
-    filename: path,
-    // We'll do this ourselves, thank you
-    handleExceptions: false,
-    json: false,
-    datePattern: 'yyyy-MM-dd.',
-    prepend: true,
-    // log everything interesting (info and up)
+    filename,
+    datePattern: 'YYYY-MM-DD',
     level: 'info',
     maxFiles: MaxLogFiles,
   })
 
-  // The file logger handles errors when it can't write to an
-  // existing file but emits an error when attempting to create
-  // a file and failing (for example due to permissions or the
-  // disk being full). If logging fails that's not a big deal
-  // so we'll just suppress any error, besides, the console
-  // logger will likely still work.
-  fileLogger.on('error', () => {})
+  // The file logger handles errors when it can't write to an existing file but
+  // emits an error when attempting to create a file and failing (for example
+  // due to permissions or the disk being full). If logging fails that's not a
+  // big deal so we'll just suppress any error, besides, the console logger will
+  // likely still work.
+  fileLogger.on('error', noop)
 
   const consoleLogger = new winston.transports.Console({
     level: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
@@ -57,6 +44,7 @@ function initializeWinston(path: string): winston.LogMethod {
 
   winston.configure({
     transports: [consoleLogger, fileLogger],
+    format: winston.format.simple(),
   })
 
   return winston.log
@@ -84,7 +72,7 @@ function getLogger(): Promise<winston.LogMethod> {
     ensureDir(logDirectory)
       .then(() => {
         try {
-          const logger = initializeWinston(getLogFilePath(logDirectory))
+          const logger = initializeWinston(logDirectory)
           resolve(logger)
         } catch (err) {
           reject(err)
