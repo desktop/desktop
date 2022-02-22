@@ -61,11 +61,11 @@ export class DiscardChangesRetryDialog extends React.Component<
         <OkCancelButtonGroup
           okButtonText={
             __DARWIN__
-              ? 'Retry Discard Changes and Continue'
-              : 'Retry discard changes and continue'
+              ? 'Permannetly Discard Changes and Continue'
+              : 'Permannetly discard changes and continue'
           }
           okButtonTitle={`This will discard changes and they will be unrecoverable.`}
-          cancelButtonText="Close"
+          cancelButtonText="Cancel"
           destructive={true}
         />
       </DialogFooter>
