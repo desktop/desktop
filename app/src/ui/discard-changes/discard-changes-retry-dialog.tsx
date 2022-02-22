@@ -42,7 +42,7 @@ export class DiscardChangesRetryDialog extends React.Component<
       >
         <DialogContent>
           <p>Failed to discard changes to {TrashNameLabel}.</p>
-          <p>
+          <div>
             Common reasons are:
             <ul>
               <li>
@@ -50,7 +50,7 @@ export class DiscardChangesRetryDialog extends React.Component<
               </li>
               <li>Restricted access to move the file(s).</li>
             </ul>
-          </p>
+          </div>
           <p>These changes will be unrecoverable from the {TrashNameLabel}.</p>
           {this.renderConfirmDiscardChanges()}
         </DialogContent>
