@@ -182,6 +182,6 @@
     "electron-installer-redhat": "3.3.0"
   },
   "resolutions": {
-    "electron/@electron/get": "1.12.2"
+    "electron/@electron/get": "1.13.1"
   }
 }
