@@ -4,15 +4,18 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Dispatcher } from '../dispatcher'
 import { TrashNameLabel } from '../lib/context-menu'
 import { RetryAction } from '../../models/retry-actions'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IDiscardChangesRetryDialogProps {
   readonly dispatcher: Dispatcher
   readonly retryAction: RetryAction
   readonly onDismissed: () => void
+  readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
 
 interface IDiscardChangesRetryDialogState {
   readonly retrying: boolean
+  readonly confirmDiscardChanges: boolean
 }
 
 export class DiscardChangesRetryDialog extends React.Component<
@@ -21,7 +24,7 @@ export class DiscardChangesRetryDialog extends React.Component<
 > {
   public constructor(props: IDiscardChangesRetryDialogProps) {
     super(props)
-    this.state = { retrying: false }
+    this.state = { retrying: false, confirmDiscardChanges: true }
   }
 
   public render() {
@@ -49,9 +52,24 @@ export class DiscardChangesRetryDialog extends React.Component<
             </ul>
           </p>
           <p>These changes will be unrecoverable from the {TrashNameLabel}.</p>
+          {this.renderConfirmDiscardChanges()}
         </DialogContent>
         {this.renderFooter()}
       </Dialog>
+    )
+  }
+
+  private renderConfirmDiscardChanges() {
+    return (
+      <Checkbox
+        label="Do not show this message again"
+        value={
+          this.state.confirmDiscardChanges
+            ? CheckboxValue.Off
+            : CheckboxValue.On
+        }
+        onChange={this.onConfirmDiscardChangesChanged}
+      />
     )
   }
 
@@ -72,6 +90,14 @@ export class DiscardChangesRetryDialog extends React.Component<
     )
   }
 
+  private onConfirmDiscardChangesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = !event.currentTarget.checked
+
+    this.setState({ confirmDiscardChanges: value })
+  }
+
   private onSubmit = async () => {
     const { dispatcher, retryAction } = this.props
 
@@ -79,6 +105,7 @@ export class DiscardChangesRetryDialog extends React.Component<
 
     await dispatcher.performRetry(retryAction)
 
+    this.props.onConfirmDiscardChangesChanged(this.state.confirmDiscardChanges)
     this.props.onDismissed()
   }
 }

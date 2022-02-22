@@ -53,6 +53,7 @@ interface IPreferencesProps {
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
@@ -76,6 +77,7 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
@@ -116,6 +118,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
+      confirmDiscardChangesPermanently: false,
       confirmForcePush: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
@@ -170,6 +173,8 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      confirmDiscardChangesPermanently: this.props
+        .confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
@@ -321,12 +326,18 @@ export class Preferences extends React.Component<
           <Prompts
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
+            confirmDiscardChangesPermanently={
+              this.state.confirmDiscardChangesPermanently
+            }
             confirmForcePush={this.state.confirmForcePush}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
+            onConfirmDiscardChangesPermanentlyChanged={
+              this.onConfirmDiscardChangesPermanentlyChanged
+            }
           />
         )
         break
@@ -391,6 +402,10 @@ export class Preferences extends React.Component<
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.setState({ confirmDiscardChanges: value })
+  }
+
+  private onConfirmDiscardChangesPermanentlyChanged = (value: boolean) => {
+    this.setState({ confirmDiscardChangesPermanently: value })
   }
 
   private onConfirmForcePushChanged = (value: boolean) => {
@@ -545,6 +560,9 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setShell(this.state.selectedShell)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges
+    )
+    await this.props.dispatcher.setConfirmDiscardChangesPermanentlySetting(
+      this.state.confirmDiscardChangesPermanently
     )
 
     await this.props.dispatcher.setUncommittedChangesStrategySetting(

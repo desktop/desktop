@@ -1845,6 +1845,16 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference so that confirmation to retry discard changes
+   * after failure is not asked
+   */
+  public setConfirmDiscardChangesPermanentlySetting(
+    value: boolean
+  ): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesPermanentlySetting(value)
+  }
+
+  /**
    * Sets the user's preference for handling uncommitted changes when switching branches
    */
   public setUncommittedChangesStrategySetting(

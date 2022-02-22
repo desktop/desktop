@@ -1454,7 +1454,8 @@ export class GitStore extends BaseStore {
 
   public async discardChanges(
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    moveToTrash: boolean = true
+    moveToTrash: boolean = true,
+    askForConfirmationOnDiscardChangesPermanently: boolean = false
   ): Promise<void> {
     const pathsToCheckout = new Array<string>()
     const pathsToReset = new Array<string>()
@@ -1477,7 +1478,9 @@ export class GitStore extends BaseStore {
             Path.resolve(this.repository.path, file.path)
           )
         } catch (e) {
-          throw new DiscardChangesError(e, this.repository, files)
+          if (askForConfirmationOnDiscardChangesPermanently) {
+            throw new DiscardChangesError(e, this.repository, files)
+          }
         }
       }
 
