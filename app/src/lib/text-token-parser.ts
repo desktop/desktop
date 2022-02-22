@@ -5,7 +5,6 @@ import {
 } from '../models/repository'
 import { GitHubRepository } from '../models/github-repository'
 import { getHTMLURL } from './api'
-import emojiRegex from 'emoji-regex'
 
 export enum TokenType {
   /*
@@ -21,10 +20,6 @@ export enum TokenType {
    * to launch the browser.
    */
   Link,
-  /*
-   * A token representing a sequence of Unicode emoji characters
-   */
-  UnicodeEmoji,
 }
 
 export type EmojiMatch = {
@@ -49,23 +44,11 @@ export type PlainText = {
   readonly text: string
 }
 
-export type UnicodeEmojiMatch = {
-  readonly kind: TokenType.UnicodeEmoji
-  // The text to render.
-  readonly text: string
-}
-
-export type TokenResult =
-  | PlainText
-  | EmojiMatch
-  | HyperlinkMatch
-  | UnicodeEmojiMatch
+export type TokenResult = PlainText | EmojiMatch | HyperlinkMatch
 
 type LookupResult = {
   nextIndex: number
 }
-
-const unicodeEmojiRegex = emojiRegex()
 
 /**
  * A look-ahead tokenizer designed for scanning commit messages for emoji, issues, mentions and links.
@@ -284,22 +267,8 @@ export class Tokenizer {
     text: string
   ): ReadonlyArray<TokenResult> {
     let i = 0
-
-    const unicodeEmojiMatches = this.getUnicodeEmojiMap(text)
-
     while (i < text.length) {
       const element = text[i]
-
-      const unicodeEmojiMatch = unicodeEmojiMatches.get(i)
-      if (unicodeEmojiMatch !== undefined) {
-        this._results.push({
-          kind: TokenType.UnicodeEmoji,
-          text: unicodeEmojiMatch,
-        })
-        i += unicodeEmojiMatch.length
-        continue
-      }
-
       switch (element) {
         case ':':
           i = this.inspectAndMove(element, i, () => this.scanForEmoji(text, i))
@@ -322,32 +291,13 @@ export class Tokenizer {
     return this._results
   }
 
-  private getUnicodeEmojiMap(text: string): Map<number, string> {
-    const matches = [...text.matchAll(unicodeEmojiRegex)]
-    return new Map(matches.map(m => [m.index ?? -1, m[0]]))
-  }
-
   private tokenizeGitHubRepository(
     text: string,
     repository: GitHubRepository
   ): ReadonlyArray<TokenResult> {
     let i = 0
-
-    const unicodeEmojiMatches = this.getUnicodeEmojiMap(text)
-
     while (i < text.length) {
       const element = text[i]
-
-      const unicodeEmojiMatch = unicodeEmojiMatches.get(i)
-      if (unicodeEmojiMatch !== undefined) {
-        this._results.push({
-          kind: TokenType.UnicodeEmoji,
-          text: unicodeEmojiMatch,
-        })
-        i += unicodeEmojiMatch.length
-        continue
-      }
-
       switch (element) {
         case ':':
           i = this.inspectAndMove(element, i, () => this.scanForEmoji(text, i))

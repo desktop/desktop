@@ -3,9 +3,3 @@
   height: 16px;
   vertical-align: text-bottom;
 }
-
-.unicode-emoji {
-  // See https://github.com/desktop/desktop/issues/13911#issuecomment-1041360884
-  // Can be removed once we move to Electron 17+
-  font-weight: normal;
-}
