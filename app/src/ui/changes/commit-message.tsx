@@ -31,11 +31,10 @@ import { showContextualMenu } from '../../lib/menu-item'
 import { Account } from '../../models/account'
 import { CommitMessageAvatar } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
-import { lookupPreferredEmail } from '../../lib/email'
+import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
-import { isAccountEmail } from '../../lib/is-account-email'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
@@ -374,7 +373,7 @@ export class CommitMessage extends React.Component<
       email !== undefined &&
       repositoryAccount !== null &&
       repositoryAccount !== undefined &&
-      isAccountEmail(accountEmails, email) === false
+      isAttributableEmailFor(repositoryAccount, email) === false
 
     return (
       <CommitMessageAvatar

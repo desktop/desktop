@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "2.9.7",
+  "version": "2.9.10-beta2",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -62,13 +62,14 @@
     "source-map-support": "^0.4.15",
     "strip-ansi": "^4.0.0",
     "textarea-caret": "^3.0.2",
+    "triple-beam": "^1.3.0",
     "tslib": "^2.0.0",
     "untildify": "^3.0.2",
     "username": "^5.1.0",
     "uuid": "^3.0.1",
     "wicg-focus-ring": "^1.0.1",
-    "winston": "^2.3.1",
-    "winston-daily-rotate-file": "^1.4.5"
+    "winston": "^3.6.0",
+    "winston-daily-rotate-file": "^4.6.1"
   },
   "devDependencies": {
     "devtron": "^1.4.0",

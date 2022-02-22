@@ -18,6 +18,7 @@ export function send<T extends keyof RequestChannels>(
       throw new Error(msg)
     }
     log.error(msg)
+  } else {
+    webContents.send(channel, ...args)
   }
-  webContents.send(channel, ...args)
 }

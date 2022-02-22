@@ -1,11 +1,12 @@
 import * as Path from 'path'
 import * as winston from 'winston'
-
 import { getLogDirectoryPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
 import { ensureDir } from 'fs-extra'
-
+import { noop } from 'lodash'
+import { DesktopConsoleTransport } from './desktop-console-transport'
 import 'winston-daily-rotate-file'
+import memoizeOne from 'memoize-one'
 
 /**
  * The maximum number of log files we should have on disk before pruning old
@@ -13,56 +14,45 @@ import 'winston-daily-rotate-file'
  */
 const MaxLogFiles = 14
 
-/** resolve the log file location based on the current channel */
-function getLogFilePath(directory: string): string {
-  const channel = __RELEASE_CHANNEL__
-  const fileName = `desktop.${channel}.log`
-  return Path.join(directory, fileName)
-}
-
 /**
  * Initializes winston and returns a subset of the available log level
  * methods (debug, info, error). This method should only be called once
  * during an application's lifetime.
  *
- * @param path The path where to write log files. This path will have
- *             the current date prepended to the basename part of the
- *             path such that passing a path '/logs/foo' will end up
- *             writing to '/logs/2017-05-17.foo'
+ * @param path The path where to write log files.
  */
 function initializeWinston(path: string): winston.LogMethod {
+  const filename = Path.join(path, `%DATE%.desktop.${__RELEASE_CHANNEL__}.log`)
+  const timestamp = () => new Date().toISOString()
+
   const fileLogger = new winston.transports.DailyRotateFile({
-    filename: path,
-    // We'll do this ourselves, thank you
-    handleExceptions: false,
-    json: false,
-    datePattern: 'yyyy-MM-dd.',
-    prepend: true,
-    // log everything interesting (info and up)
+    filename,
+    datePattern: 'YYYY-MM-DD',
     level: 'info',
     maxFiles: MaxLogFiles,
+    format: winston.format.printf(
+      ({ level, message }) => `${timestamp()} - ${level}: ${message}`
+    ),
   })
 
-  // The file logger handles errors when it can't write to an
-  // existing file but emits an error when attempting to create
-  // a file and failing (for example due to permissions or the
-  // disk being full). If logging fails that's not a big deal
-  // so we'll just suppress any error, besides, the console
-  // logger will likely still work.
-  fileLogger.on('error', () => {})
+  // The file logger handles errors when it can't write to an existing file but
+  // emits an error when attempting to create a file and failing (for example
+  // due to permissions or the disk being full). If logging fails that's not a
+  // big deal so we'll just suppress any error, besides, the console logger will
+  // likely still work.
+  fileLogger.on('error', noop)
 
-  const consoleLogger = new winston.transports.Console({
+  const consoleLogger = new DesktopConsoleTransport({
     level: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
   })
 
   winston.configure({
     transports: [consoleLogger, fileLogger],
+    format: winston.format.simple(),
   })
 
   return winston.log
 }
-
-let loggerPromise: Promise<winston.LogMethod> | null = null
 
 /**
  * Initializes and configures winston (if necessary) to write to Electron's
@@ -73,30 +63,11 @@ let loggerPromise: Promise<winston.LogMethod> | null = null
  *          it accepts a log level, a message and an optional callback
  *          for when the event has been written to all destinations.
  */
-function getLogger(): Promise<winston.LogMethod> {
-  if (loggerPromise) {
-    return loggerPromise
-  }
-
-  loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-    const logDirectory = getLogDirectoryPath()
-
-    ensureDir(logDirectory)
-      .then(() => {
-        try {
-          const logger = initializeWinston(getLogFilePath(logDirectory))
-          resolve(logger)
-        } catch (err) {
-          reject(err)
-        }
-      })
-      .catch(error => {
-        reject(error)
-      })
-  })
-
-  return loggerPromise
-}
+const getLogger = memoizeOne(async () => {
+  const logDirectory = getLogDirectoryPath()
+  await ensureDir(logDirectory)
+  return initializeWinston(logDirectory)
+})
 
 /**
  * Write the given log entry to all configured transports,
