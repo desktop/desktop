@@ -21,6 +21,7 @@ import {
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -133,19 +134,26 @@ export class RepositoryStateCache {
   >(
     repository: Repository,
     fn: (
-      state: IMultiCommitOperationState
+      state: IMultiCommitOperationState | null
     ) => Pick<IMultiCommitOperationState, K>
   ) {
     this.update(repository, state => {
       const { multiCommitOperationState } = state
+      const toUpdate = fn(multiCommitOperationState)
+
       if (multiCommitOperationState === null) {
-        throw new Error('Cannot update a null state.')
+        // This is not expected, but we see instances in error reporting. Best
+        // guess is that it would indicate that the user ended the state another
+        // way such as via command line/on state load detection, in which we
+        // would not want to crash the app.
+        const msg = `Cannot update a null state, trying to update object with keys: ${Object.keys(
+          toUpdate
+        ).join(', ')}`
+        sendNonFatalException('multiCommitOperation', new Error(msg))
+        return { multiCommitOperationState: null }
       }
 
-      const newState = merge(
-        multiCommitOperationState,
-        fn(multiCommitOperationState)
-      )
+      const newState = merge(multiCommitOperationState, toUpdate)
       return { multiCommitOperationState: newState }
     })
   }
