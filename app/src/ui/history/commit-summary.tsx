@@ -417,17 +417,32 @@ export class CommitSummary extends React.Component<
 
     const filesLongDescription = (
       <>
-        {filesAdded ? <li>{filesAdded} added</li> : null}
-        {filesModified ? <li>{filesModified} modified</li> : null}
-        {filesRemoved ? <li>{filesRemoved} deleted</li> : null}
+        {filesAdded > 0 ? (
+          <span className="files-added">
+            <Octicon symbol={OcticonSymbol.diffAdded} />
+            {filesAdded} added
+          </span>
+        ) : null}
+        {filesModified > 0 ? (
+          <span className="files-modified">
+            <Octicon symbol={OcticonSymbol.diffModified} />
+            {filesModified} modified
+          </span>
+        ) : null}
+        {filesRemoved > 0 ? (
+          <span className="files-deleted">
+            <Octicon symbol={OcticonSymbol.diffRemoved} />
+            {filesRemoved} deleted
+          </span>
+        ) : null}
       </>
     )
 
     return (
       <TooltippedContent
-        tagName="li"
         className="commit-summary-meta-item without-truncation"
-        tooltip={filesLongDescription}
+        tooltipClassName="changed-files-description-tooltip"
+        tooltip={fileCount > 0 ? filesLongDescription : undefined}
       >
         <Octicon symbol={OcticonSymbol.diff} />
         {filesShortDescription}
