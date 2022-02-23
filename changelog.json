@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.9.10": [
+      "[New] Initial support for system notifications when checks fail - #13655",
+      "[Fixed] Unicode emoji on Windows are rendered in the correct position - #13958",
+      "[Fixed] Fix crash logging under some circumstances - #13962"
+    ],
     "2.9.10-beta2": [
       "[Fixed] Unicode emoji on Windows are rendered in the correct position - #13958",
       "[Fixed] Fix crash logging under some circumstances - #13962"
