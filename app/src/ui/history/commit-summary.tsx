@@ -418,20 +418,29 @@ export class CommitSummary extends React.Component<
     const filesLongDescription = (
       <>
         {filesAdded > 0 ? (
-          <span className="files-added">
-            <Octicon symbol={OcticonSymbol.diffAdded} />
+          <span>
+            <Octicon
+              className="files-added-icon"
+              symbol={OcticonSymbol.diffAdded}
+            />
             {filesAdded} added
           </span>
         ) : null}
         {filesModified > 0 ? (
-          <span className="files-modified">
-            <Octicon symbol={OcticonSymbol.diffModified} />
+          <span>
+            <Octicon
+              className="files-modified-icon"
+              symbol={OcticonSymbol.diffModified}
+            />
             {filesModified} modified
           </span>
         ) : null}
         {filesRemoved > 0 ? (
-          <span className="files-deleted">
-            <Octicon symbol={OcticonSymbol.diffRemoved} />
+          <span>
+            <Octicon
+              className="files-deleted-icon"
+              symbol={OcticonSymbol.diffRemoved}
+            />
             {filesRemoved} deleted
           </span>
         ) : null}

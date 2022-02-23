@@ -180,15 +180,15 @@ body > .tooltip,
       flex-direction: column;
       gap: var(--spacing-third);
 
-      .files-added {
+      .files-added-icon {
         color: var(--color-new);
       }
 
-      .files-modified {
+      .files-modified-icon {
         color: var(--color-modified);
       }
 
-      .files-deleted {
+      .files-deleted-icon {
         color: var(--color-deleted);
       }
 
