@@ -86,8 +86,8 @@ export function truncateMid(value: string, length: number) {
   }
 
   const mid = (length - 1) / 2
-  const pre = value.substr(0, Math.floor(mid))
-  const post = value.substr(value.length - Math.ceil(mid))
+  const pre = value.substring(0, Math.floor(mid))
+  const post = value.substring(value.length - Math.ceil(mid))
 
   return `${pre}…${post}`
 }
@@ -127,8 +127,8 @@ export function truncatePath(path: string, length: number) {
     return truncateMid(path, length)
   }
 
-  const pre = path.substr(0, length - filenameLength - 2)
-  const post = path.substr(lastSeparator)
+  const pre = path.substring(0, length - filenameLength - 2)
+  const post = path.substring(lastSeparator)
 
   return `${pre}…${post}`
 }
@@ -141,15 +141,15 @@ export function truncatePath(path: string, length: number) {
 export function extract(
   normalizedPath: string
 ): { normalizedFileName: string; normalizedDirectory: string } {
-  // for untracked submodules, the status entry is returned as a directory,
-  // with a trailing / which causes the directory to be trimmed in a weird way
-  // below. let's try and resolve this here
-  normalizedPath = normalizedPath.endsWith('/')
-    ? normalizedPath.substr(0, normalizedPath.length - 1)
+  // for untracked submodules the status entry is returned as a path with a
+  // trailing path separator which causes the directory to be trimmed in a weird
+  // way below. let's try to resolve this here
+  normalizedPath = normalizedPath.endsWith(Path.sep)
+    ? normalizedPath.substring(0, normalizedPath.length - 1)
     : normalizedPath
 
   const normalizedFileName = Path.basename(normalizedPath)
-  const normalizedDirectory = normalizedPath.substr(
+  const normalizedDirectory = normalizedPath.substring(
     0,
     normalizedPath.length - normalizedFileName.length
   )
@@ -215,8 +215,8 @@ function createPathDisplayState(
     }
   }
 
-  const fileText = truncatedPath.substr(directoryLength)
-  const directoryText = truncatedPath.substr(0, directoryLength)
+  const fileText = truncatedPath.substring(directoryLength)
+  const directoryText = truncatedPath.substring(0, directoryLength)
 
   return { normalizedPath, directoryText, fileText, length }
 }

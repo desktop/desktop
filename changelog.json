@@ -5,10 +5,22 @@
       "[Fixed] Unicode emoji on Windows are rendered in the correct position - #13958",
       "[Fixed] Fix crash logging under some circumstances - #13962"
     ],
+    "2.9.10-beta2": [
+      "[Fixed] Unicode emoji on Windows are rendered in the correct position - #13958",
+      "[Fixed] Fix crash logging under some circumstances - #13962"
+    ],
+    "2.9.10-beta1": [
+      "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13928",
+      "[Fixed] User guides now opens the correct page - #13920",
+      "[Fixed] Fix duplicated first character on Windows when dealing with submodules or repos-within-repos - #12314",
+      "[Fixed] Treat the old and new format of private email address equally when showing commit attribution warning - #13887",
+      "[Fixed] Fixes crash on some Windows machines - #13930"
+    ],
     "2.9.9": [
       "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13928",
       "[Fixed] User guides now opens the correct page - #13920",
-      "[Fixed] Fixes crash on some Windows machines - #13930"
+      "[Fixed] Fixes crash on some Windows machines - #13930",
+      "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916"
     ],
     "2.9.9-beta1": [
       "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916",
