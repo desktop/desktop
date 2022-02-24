@@ -255,7 +255,11 @@ import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updat
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import { GitError as DugiteError } from 'dugite'
-import { ErrorWithMetadata, CheckoutError } from '../error-with-metadata'
+import {
+  ErrorWithMetadata,
+  CheckoutError,
+  DiscardChangesError,
+} from '../error-with-metadata'
 import {
   ShowSideBySideDiffDefault,
   getShowSideBySideDiff,
@@ -313,10 +317,13 @@ const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
+const confirmDiscardChangesPermanentlyDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const confirmDiscardChangesPermanentlyKey: string =
+  'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
 
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
@@ -416,6 +423,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askToMoveToApplicationsFolderSetting: boolean = askToMoveToApplicationsFolderDefault
   private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
+  private confirmDiscardChangesPermanently: boolean = confirmDiscardChangesPermanentlyDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInChangesDiff: boolean = hideWhitespaceInChangesDiffDefault
@@ -861,6 +869,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnRepositoryRemoval: this
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
+      askForConfirmationOnDiscardChangesPermanently: this
+        .confirmDiscardChangesPermanently,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -1809,6 +1819,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChanges = getBoolean(
       confirmDiscardChangesKey,
       confirmDiscardChangesDefault
+    )
+
+    this.confirmDiscardChangesPermanently = getBoolean(
+      confirmDiscardChangesPermanentlyKey,
+      confirmDiscardChangesPermanentlyDefault
     )
 
     this.askForConfirmationOnForcePush = getBoolean(
@@ -4344,20 +4359,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _discardChanges(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true
   ) {
     const gitStore = this.gitStoreCache.get(repository)
 
-    try {
-      await gitStore.discardChanges(files)
-    } catch (error) {
-      log.error('Failed discarding changes', error)
+    const { askForConfirmationOnDiscardChangesPermanently } = this.getState()
 
-      this.emitError(
-        new Error(
-          `Failed to discard changes to ${TrashNameLabel}.\n\nA common reason for this is that the ${TrashNameLabel} is set to delete items immediately.`
-        )
+    try {
+      await gitStore.discardChanges(
+        files,
+        moveToTrash,
+        askForConfirmationOnDiscardChangesPermanently
       )
+    } catch (error) {
+      if (!(error instanceof DiscardChangesError)) {
+        log.error('Failed discarding changes', error)
+      }
+
+      this.emitError(error)
+      return
     }
 
     return this._refreshRepository(repository)
@@ -5018,6 +5039,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChanges = value
 
     setBoolean(confirmDiscardChangesKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmDiscardChangesPermanentlySetting(
+    value: boolean
+  ): Promise<void> {
+    this.confirmDiscardChangesPermanently = value
+
+    setBoolean(confirmDiscardChangesPermanentlyKey, value)
     this.emitUpdate()
 
     return Promise.resolve()

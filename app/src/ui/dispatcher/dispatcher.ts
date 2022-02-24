@@ -846,9 +846,10 @@ export class Dispatcher {
   /** Discard the changes to the given files. */
   public discardChanges(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true
   ): Promise<void> {
-    return this.appStore._discardChanges(repository, files)
+    return this.appStore._discardChanges(repository, files, moveToTrash)
   }
 
   /** Discard the changes from the given diff selection. */
@@ -1844,6 +1845,16 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference so that confirmation to retry discard changes
+   * after failure is not asked
+   */
+  public setConfirmDiscardChangesPermanentlySetting(
+    value: boolean
+  ): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesPermanentlySetting(value)
+  }
+
+  /**
    * Sets the user's preference for handling uncommitted changes when switching branches
    */
   public setUncommittedChangesStrategySetting(
@@ -2022,6 +2033,12 @@ export class Dispatcher {
           retryAction.commitsToReorder,
           retryAction.beforeCommit,
           retryAction.lastRetainedCommitRef
+        )
+      case RetryActionType.DiscardChanges:
+        return this.discardChanges(
+          retryAction.repository,
+          retryAction.files,
+          false
         )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)

@@ -5,8 +5,10 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 interface IPromptsPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
+  readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
 }
@@ -14,6 +16,7 @@ interface IPromptsPreferencesProps {
 interface IPromptsPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
 }
 
@@ -27,6 +30,8 @@ export class Prompts extends React.Component<
     this.state = {
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      confirmDiscardChangesPermanently: this.props
+        .confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
     }
   }
@@ -38,6 +43,15 @@ export class Prompts extends React.Component<
 
     this.setState({ confirmDiscardChanges: value })
     this.props.onConfirmDiscardChangesChanged(value)
+  }
+
+  private onConfirmDiscardChangesPermanentlyChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmDiscardChangesPermanently: value })
+    this.props.onConfirmDiscardChangesPermanentlyChanged(value)
   }
 
   private onConfirmForcePushChanged = (
@@ -79,6 +93,15 @@ export class Prompts extends React.Component<
               : CheckboxValue.Off
           }
           onChange={this.onConfirmDiscardChangesChanged}
+        />
+        <Checkbox
+          label="Discarding changes permanently"
+          value={
+            this.state.confirmDiscardChangesPermanently
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onConfirmDiscardChangesPermanentlyChanged}
         />
         <Checkbox
           label="Force pushing"
