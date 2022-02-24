@@ -493,6 +493,18 @@ export interface IAPIPullRequest {
   readonly draft?: boolean
 }
 
+/** Information about a pull request review as returned by the GitHub API. */
+export interface IAPIPullRequestReview {
+  readonly user: IAPIIdentity
+  readonly body: string
+  readonly state:
+    | 'APPROVED'
+    | 'DISMISSED'
+    | 'PENDING'
+    | 'COMMENTED'
+    | 'CHANGES_REQUESTED'
+}
+
 /** The metadata about a GitHub server. */
 export interface IServerMetadata {
   /**
@@ -1008,6 +1020,28 @@ export class API {
       return await parsedResponse<IAPIPullRequest>(response)
     } catch (e) {
       log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
+      throw e
+    }
+  }
+
+  /**
+   * Fetch a single pull request in the given repository
+   */
+  public async fetchPullRequestReview(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview>(response)
+    } catch (e) {
+      log.warn(
+        `failed fetching PR review ${reviewId} for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
       throw e
     }
   }
