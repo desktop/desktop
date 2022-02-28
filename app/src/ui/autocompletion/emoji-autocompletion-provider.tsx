@@ -105,7 +105,9 @@ export class EmojiAutocompletionProvider
     return (
       <div className="title">
         {emoji.substring(0, hit.matchStart)}
-        <mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>
+        <mark>
+          {emoji.substring(hit.matchStart, hit.matchStart + hit.matchLength)}
+        </mark>
         {emoji.substring(hit.matchStart + hit.matchLength)}
       </div>
     )
