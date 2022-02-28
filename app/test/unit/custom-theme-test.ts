@@ -31,7 +31,7 @@ describe('CustomTheme', () => {
         if (trimmedLine === '') {
           continue
         }
-        const firstTwoChar = trimmedLine.substr(0, 2)
+        const firstTwoChar = trimmedLine.substring(0, 2)
         expect(firstTwoChar).toBe('--')
       }
     })

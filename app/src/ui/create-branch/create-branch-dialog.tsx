@@ -146,7 +146,7 @@ export class CreateBranch extends React.Component<
       return (
         <p>
           Your new branch will be based on the commit '{targetCommit.summary}' (
-          {targetCommit.sha.substr(0, 7)}) from your repository.
+          {targetCommit.sha.substring(0, 7)}) from your repository.
         </p>
       )
     } else if (tip.kind === TipState.Detached) {
@@ -154,7 +154,7 @@ export class CreateBranch extends React.Component<
         <p>
           You do not currently have any branch checked out (your HEAD reference
           is detached). As such your new branch will be based on your currently
-          checked out commit ({tip.currentSha.substr(0, 7)}
+          checked out commit ({tip.currentSha.substring(0, 7)}
           ).
         </p>
       )

@@ -656,6 +656,6 @@ function getRemoteMessage(stderr: string) {
   return stderr
     .split(/\r?\n/)
     .filter(x => x.startsWith(needle))
-    .map(x => x.substr(needle.length))
+    .map(x => x.substring(needle.length))
     .join('\n')
 }

@@ -229,5 +229,5 @@ async function getBranchesFromGit(repository: Repository) {
   return gitOutput.stdout
     .split('\n')
     .filter(s => s.length > 0)
-    .map(s => s.substr(2))
+    .map(s => s.substring(2))
 }

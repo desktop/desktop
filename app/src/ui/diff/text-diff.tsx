@@ -861,7 +861,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         if (i === 0 && range.head.ch > 0) {
           lineContent.push(line)
         } else {
-          lineContent.push(line.substr(1))
+          lineContent.push(line.substring(1))
         }
       }
 

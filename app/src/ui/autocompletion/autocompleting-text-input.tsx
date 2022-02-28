@@ -351,7 +351,8 @@ export abstract class AutocompletingTextInput<
       originalText.substr(0, range.start - 1) + autoCompleteText + ' '
 
     const newText =
-      textWithAutoCompleteText + originalText.substr(range.start + range.length)
+      textWithAutoCompleteText +
+      originalText.substring(range.start + range.length)
 
     element.value = newText
 

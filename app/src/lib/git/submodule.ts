@@ -63,7 +63,7 @@ export async function listSubmodules(
     //
     // https://git-scm.com/docs/git-describe
 
-    const [path, describeOutput] = entry.substr(42).split(/\s+/)
+    const [path, describeOutput] = entry.substring(42).split(/\s+/)
 
     // if the submodule has not been initialized, no describe output is set
     // this means we don't have a submodule to work with

@@ -162,7 +162,7 @@ export class Tokenizer {
     }
 
     this.flush()
-    const id = parseInt(maybeIssue.substr(1), 10)
+    const id = parseInt(maybeIssue.substring(1), 10)
     if (isNaN(id)) {
       return null
     }
@@ -198,7 +198,7 @@ export class Tokenizer {
     }
 
     this.flush()
-    const name = maybeMention.substr(1)
+    const name = maybeMention.substring(1)
     const url = `${getHTMLURL(repository.endpoint)}/${name}`
     this._results.push({ kind: TokenType.Link, text: maybeMention, url })
     return { nextIndex }
