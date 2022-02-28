@@ -1,6 +1,5 @@
 import { sort as semverSort, SemVer } from 'semver'
 
-import { spawn } from '../changelog/spawn'
 import { getLogLines } from '../changelog/git'
 import {
   convertToChangelogFormat,
@@ -9,14 +8,16 @@ import {
 
 import { Channel } from './channel'
 import { getNextVersionNumber } from './version'
-import { execSync } from 'child_process'
+import { execSync, execFile } from 'child_process'
 
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { format } from 'prettier'
 import { assertNever } from '../../app/src/lib/fatal-error'
+import { promisify } from 'util'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
+const execFileAsync = promisify(execFile)
 
 /**
  * Returns the latest release tag, according to git and semver
@@ -28,12 +29,10 @@ const changelogPath = join(__dirname, '..', '..', 'changelog.json')
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
 }): Promise<string> {
-  const allTags = await spawn('git', ['tag'])
-  let releaseTags = allTags
+  const { stdout } = await execFileAsync('git', ['tag'], { shell: true })
+  let releaseTags = stdout
     .split('\n')
-    .filter(tag => tag.startsWith('release-'))
-    .filter(tag => !tag.includes('-linux'))
-    .filter(tag => !tag.includes('-test'))
+    .filter(tag => tag.startsWith('release-') && !/\-(linux|test)/.test(tag))
 
   if (options.excludeBetaReleases) {
     releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))

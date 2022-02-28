@@ -1,21 +1,21 @@
-import { spawn } from './spawn'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
 
-export async function getLogLines(
-  previousVersion: string
-): Promise<ReadonlyArray<string>> {
-  const log = await spawn('git', [
-    'log',
-    `...${previousVersion}`,
-    '--merges',
-    '--grep="Merge pull request"',
-    '--format=format:%s',
-    '-z',
-    '--',
-  ])
+const execFileAsync = promisify(execFile)
 
-  if (log.length === 0) {
-    return []
-  }
-
-  return log.split('\0')
+export async function getLogLines(previousVersion: string) {
+  const { stdout } = await execFileAsync(
+    'git',
+    [
+      'log',
+      `...${previousVersion}`,
+      '--merges',
+      '--grep="Merge pull request"',
+      '--format=format:%s',
+      '-z',
+      '--',
+    ],
+    { shell: true }
+  )
+  return stdout.length === 0 ? [] : stdout.split('\0')
 }
