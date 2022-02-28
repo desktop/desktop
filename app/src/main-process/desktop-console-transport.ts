@@ -30,9 +30,16 @@ export class DesktopConsoleTransport extends TransportStream {
     // Node.js only differentiates between warn and log but we'll use info and
     // debug here as well in case we're used in the renderer
     // https://github.com/nodejs/node/blob/916227b3ed041ff13d588b02f98e9be0846a5a7c/lib/internal/console/constructor.js#L666-L670
-    const level = info[LEVEL]
-    const logFn = logFunctions[level] ?? console.log
-    logFn(info[MESSAGE])
+    const logFn = logFunctions[info[LEVEL]] ?? console.log
+
+    // Surprisingly we are seeing rare crashes originating from within
+    // console.log when the underlying stream is closed. Our understanding based
+    // on reading the Node source code was that only stack overflow errors would
+    // escape console.log (when _ignoreErrors is set to false that is) but
+    // that's not what we're seeing so we'll safeguard here.
+    try {
+      logFn(info[MESSAGE])
+    } catch {}
 
     callback?.()
   }
