@@ -29,8 +29,6 @@ import {
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
-import { stat } from 'fs-extra'
-import { isApplicationBundle } from '../lib/is-application-bundle'
 import { OrderedWebRequest } from './ordered-webrequest'
 import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
@@ -581,64 +579,13 @@ app.on('ready', () => {
   })
 
   ipcMain.handle('move-to-trash', (_, path) => shell.trashItem(path))
+  ipcMain.handle('show-item-in-folder', async (_, path) =>
+    shell.showItemInFolder(path)
+  )
 
-  ipcMain.on('show-item-in-folder', (_, path) => {
-    Fs.stat(path, err => {
-      if (err) {
-        log.error(`Unable to find file at '${path}'`, err)
-        return
-      }
-      shell.showItemInFolder(path)
-    })
-  })
-
-  ipcMain.on('show-folder-contents', async (_, path) => {
-    const stats = await stat(path).catch(err => {
-      log.error(`Unable to retrieve file information for ${path}`, err)
-      return null
-    })
-
-    if (!stats) {
-      return
-    }
-
-    if (!stats.isDirectory()) {
-      log.error(
-        `Trying to get the folder contents of a non-folder at '${path}'`
-      )
-      shell.showItemInFolder(path)
-      return
-    }
-
-    // On Windows and Linux we can count on a directory being just a
-    // directory.
-    if (!__DARWIN__) {
-      UNSAFE_openDirectory(path)
-      return
-    }
-
-    // On macOS a directory might also be an app bundle and if it is
-    // and we attempt to open it we're gonna execute that app which
-    // it far from ideal so we'll look up the metadata for the path
-    // and attempt to determine whether it's an app bundle or not.
-    //
-    // If we fail loading the metadata we'll assume it's an app bundle
-    // out of an abundance of caution.
-    const isBundle = await isApplicationBundle(path).catch(err => {
-      log.error(`Failed to load metadata for path '${path}'`, err)
-      return true
-    })
-
-    if (isBundle) {
-      log.info(
-        `Preventing direct open of path '${path}' as it appears to be an application bundle`
-      )
-
-      shell.showItemInFolder(path)
-    } else {
-      UNSAFE_openDirectory(path)
-    }
-  })
+  ipcMain.on('unsafe-open-directory', async (_, path) =>
+    UNSAFE_openDirectory(path)
+  )
 
   /** An event sent by the renderer asking to select all of the window's contents */
   ipcMain.on('select-all-window-contents', () =>
