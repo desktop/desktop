@@ -1,21 +1,13 @@
-import { execFile } from 'child_process'
-import { promisify } from 'util'
+import { sh } from '../sh'
 
-const execFileAsync = promisify(execFile)
-
-export async function getLogLines(previousVersion: string) {
-  const { stdout } = await execFileAsync(
+export const getLogLines = (previousVersion: string) =>
+  sh(
     'git',
-    [
-      'log',
-      `...${previousVersion}`,
-      '--merges',
-      '--grep="Merge pull request"',
-      '--format=format:%s',
-      '-z',
-      '--',
-    ],
-    { shell: true }
-  )
-  return stdout.length === 0 ? [] : stdout.split('\0')
-}
+    'log',
+    `...${previousVersion}`,
+    '--merges',
+    '--grep="Merge pull request"',
+    '--format=format:%s',
+    '-z',
+    '--'
+  ).then(x => (x.length === 0 ? [] : x.split('\0')))

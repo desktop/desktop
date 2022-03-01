@@ -8,16 +8,15 @@ import {
 
 import { Channel } from './channel'
 import { getNextVersionNumber } from './version'
-import { execSync, execFile } from 'child_process'
+import { execSync } from 'child_process'
 
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { format } from 'prettier'
 import { assertNever } from '../../app/src/lib/fatal-error'
-import { promisify } from 'util'
+import { sh } from '../sh'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
-const execFileAsync = promisify(execFile)
 
 /**
  * Returns the latest release tag, according to git and semver
@@ -29,8 +28,7 @@ const execFileAsync = promisify(execFile)
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
 }): Promise<string> {
-  const { stdout } = await execFileAsync('git', ['tag'], { shell: true })
-  let releaseTags = stdout
+  let releaseTags = (await sh('git', 'tag'))
     .split('\n')
     .filter(tag => tag.startsWith('release-') && !/\-(linux|test)/.test(tag))
 
