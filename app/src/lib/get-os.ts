@@ -21,6 +21,11 @@ function systemVersionGreaterThanOrEqualTo(version: string) {
   return sysver === undefined ? false : compare(sysver, version, '>=')
 }
 
+function systemVersionLessThan(version: string) {
+  const sysver = getSystemVersionSafe()
+  return sysver === undefined ? false : compare(sysver, version, '<')
+}
+
 /** Get the OS we're currently running on. */
 export function getOS() {
   const version = getSystemVersionSafe()
@@ -32,6 +37,11 @@ export function getOS() {
     return `${OS.type()} ${version}`
   }
 }
+
+/** We're currently running macOS and it is macOS Catalina or earlier. */
+export const isMacOSCatalinaOrEarlier = memoizeOne(
+  () => __DARWIN__ && systemVersionLessThan('10.16')
+)
 
 /** We're currently running macOS and it is at least Mojave. */
 export const isMacOSMojaveOrLater = memoizeOne(
