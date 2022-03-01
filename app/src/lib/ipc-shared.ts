@@ -75,7 +75,7 @@ export type RequestChannels = {
 }
 
 /**
- * Define the duplex IPC channel names we use from the renderer
+ * Defines the duplex IPC channel names we use from the renderer
  * process along with their signatures. This type is used from both
  * the renderer and the main process to ensure a common contract between
  * the two over the untyped IPC framework.
