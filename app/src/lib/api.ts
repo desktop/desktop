@@ -495,8 +495,10 @@ export interface IAPIPullRequest {
 
 /** Information about a pull request review as returned by the GitHub API. */
 export interface IAPIPullRequestReview {
+  readonly id: number
   readonly user: IAPIIdentity
   readonly body: string
+  readonly html_url: string
   readonly state:
     | 'APPROVED'
     | 'DISMISSED'

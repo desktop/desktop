@@ -20,6 +20,7 @@ import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
+import { IAPIPullRequestReview } from '../lib/api'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -81,6 +82,7 @@ export enum PopupType {
   CICheckRunRerun,
   WarnForcePush,
   DiscardChangesRetry,
+  PullRequestReview,
 }
 
 export type Popup =
@@ -334,4 +336,11 @@ export type Popup =
   | {
       type: PopupType.DiscardChangesRetry
       retryAction: RetryAction
+    }
+  | {
+      type: PopupType.PullRequestReview
+      repository: RepositoryWithGitHubRepository
+      pullRequest: PullRequest
+      review: IAPIPullRequestReview
+      needsSelectRepository: boolean
     }
