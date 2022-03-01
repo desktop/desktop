@@ -53,7 +53,7 @@ export async function listSubmodules(
   // about it if you want to learn more:
   //
   // https://git-scm.com/docs/git-describe
-  const statusRe = /^.([a-f0-9]{40}) (.+?) \((.+?)\)$/gm
+  const statusRe = /^.([^ ]+) (.+) \((.+?)\)$/gm
 
   for (const [, sha, path, describe] of stdout.matchAll(statusRe)) {
     submodules.push(new SubmoduleEntry(sha, path, describe))
