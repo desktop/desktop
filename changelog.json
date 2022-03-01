@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.9.11-beta1": [
+      "[Added] Add tooltip to show types of file changes in a commit - #13957. Thanks @uttiya10!",
+      "[Fixed] Discarding submodules with spaces in their relative path now correctly updates the submodule instead of moving it to Trash - #14024",
+      "[Fixed] Prevent crash report dialog from appearing when launching on macOS Catalina or earlier - #13974",
+      "[Fixed] Pre-fill clone path with repository name - #13971",
+      "[Fixed] Allow discarding changes in scenarios where they cannot be moved to Trash - #13888",
+      "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13909",
+      "[Fixed] Treat the old and new format of private email address equally when showing commit attribution warning - #13879",
+      "[Fixed] Repositories containing untracked submodules no longer display an duplicated first character on Windows - #12314"
+    ],
     "2.9.10": [
       "[New] Initial support for system notifications when checks fail - #13655",
       "[Fixed] Unicode emoji on Windows are rendered in the correct position - #13958",
