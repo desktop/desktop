@@ -1,15 +1,13 @@
-import { execFile } from 'child_process'
 import * as Path from 'path'
-import { promisify } from 'util'
+import { execFile } from './exec-file'
 
-const execFileAsync = promisify(execFile)
 const findOnPath = (program: string) => {
   if (__WIN32__) {
     const cwd = process.env.SystemRoot || 'C:\\Windows'
     const cmd = Path.join(cwd, 'System32', 'where.exe')
-    return execFileAsync(cmd, [program], { cwd })
+    return execFile(cmd, [program], { cwd })
   }
-  return execFileAsync('which', [program])
+  return execFile('which', [program])
 }
 
 /** Attempts to locate the path to the system version of Git */
