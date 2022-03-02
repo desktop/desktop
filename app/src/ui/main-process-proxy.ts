@@ -1,6 +1,8 @@
 import { ExecutableMenuItem } from '../models/app-menu'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import * as ipcRenderer from '../lib/ipc-renderer'
+import { stat } from 'fs-extra'
+import { isApplicationBundle } from '../lib/is-application-bundle'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the
@@ -85,8 +87,61 @@ export const isWindowFocused = invokeProxy('is-window-focused', 0)
 /** Tell the main process to focus on the main window. */
 export const focusWindow = sendProxy('focus-window', 0)
 
-export const showItemInFolder = sendProxy('show-item-in-folder', 1)
-export const showFolderContents = sendProxy('show-folder-contents', 1)
+const _showItemInFolder = invokeProxy('show-item-in-folder', 1)
+
+export const showItemInFolder = (path: string) =>
+  stat(path)
+    .then(() => _showItemInFolder(path))
+    .catch(err => log.error(`Unable show item in folder '${path}'`, err))
+
+const UNSAFE_openDirectory = sendProxy('unsafe-open-directory', 1)
+
+export async function showFolderContents(path: string) {
+  const stats = await stat(path).catch(err => {
+    log.error(`Unable to retrieve file information for ${path}`, err)
+    return null
+  })
+
+  if (!stats) {
+    return
+  }
+
+  if (!stats.isDirectory()) {
+    log.error(`Trying to get the folder contents of a non-folder at '${path}'`)
+    await _showItemInFolder(path)
+    return
+  }
+
+  // On Windows and Linux we can count on a directory being just a
+  // directory.
+  if (!__DARWIN__) {
+    UNSAFE_openDirectory(path)
+    return
+  }
+
+  // On macOS a directory might also be an app bundle and if it is
+  // and we attempt to open it we're gonna execute that app which
+  // it far from ideal so we'll look up the metadata for the path
+  // and attempt to determine whether it's an app bundle or not.
+  //
+  // If we fail loading the metadata we'll assume it's an app bundle
+  // out of an abundance of caution.
+  const isBundle = await isApplicationBundle(path).catch(err => {
+    log.error(`Failed to load metadata for path '${path}'`, err)
+    return true
+  })
+
+  if (isBundle) {
+    log.info(
+      `Preventing direct open of path '${path}' as it appears to be an application bundle`
+    )
+
+    await _showItemInFolder(path)
+  } else {
+    UNSAFE_openDirectory(path)
+  }
+}
+
 export const openExternal = invokeProxy('open-external', 1)
 export const moveItemToTrash = invokeProxy('move-to-trash', 1)
 
