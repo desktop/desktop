@@ -997,11 +997,6 @@
   dependencies:
     "@types/webpack" "*"
 
-"@types/file-url@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/file-url/-/file-url-2.0.0.tgz#23d00a219b5064d903d4baa0cf7558692ea0eeb6"
-  integrity sha512-9YqUM3izkmwtCbq6ANdcHJiU2mpDvPm3WuHOcJ5ZouHw7CoYcyY/KvZm6dmYTIurfrRsmBIvHr6y1jpBjDd4Jg==
-
 "@types/form-data@*":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@types/form-data/-/form-data-2.2.1.tgz#ee2b3b8eaa11c0938289953606b745b738c54b1e"
