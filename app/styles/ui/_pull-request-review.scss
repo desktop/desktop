@@ -1,0 +1,56 @@
+#pull-request-review {
+  .dialog-header {
+    height: unset;
+  }
+
+  .pull-request-review-dialog-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > .octicon {
+      width: 20px;
+      height: 20px;
+      color: var(--status-error-color);
+      margin-right: var(--spacing);
+    }
+
+    .title-container {
+      flex-grow: 1;
+
+      .pr-title {
+        display: flex;
+        column-gap: 4px;
+        align-items: center;
+        font-weight: normal;
+        font-size: var(--font-size);
+
+        .pr-number {
+          color: var(--text-secondary-color);
+        }
+
+        .octicon {
+          vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+          color: var(--pr-open-icon-color);
+
+          &.draft {
+            color: var(--pr-draft-icon-color);
+          }
+        }
+      }
+    }
+  }
+
+  .footer-question {
+    flex-grow: 1;
+
+    span {
+      vertical-align: sub;
+    }
+  }
+
+  .dialog-content {
+    max-height: 300px;
+    overflow: auto;
+  }
+}

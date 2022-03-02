@@ -57,8 +57,8 @@ export class PullRequestReview extends React.Component<
     const { title, pullRequestNumber, base } = this.props.pullRequest
 
     const header = (
-      <div className="ci-check-run-dialog-header">
-        <Octicon symbol={OcticonSymbol.xCircleFill} />
+      <div className="pull-request-review-dialog-header">
+        <Octicon symbol={OcticonSymbol.fileDiff} />
         <div className="title-container">
           <div className="summary">
             @{this.props.review.user.login} requested changes on your pull
@@ -74,7 +74,7 @@ export class PullRequestReview extends React.Component<
 
     return (
       <Dialog
-        id="pull-request-checks-failed"
+        id="pull-request-review"
         type="normal"
         title={header}
         dismissable={false}
@@ -83,15 +83,13 @@ export class PullRequestReview extends React.Component<
         loading={this.state.switchingToPullRequest}
       >
         <DialogContent>
-          <Row>
-            <SandboxedMarkdown
-              markdown={this.props.review.body}
-              emoji={this.props.emoji}
-              baseHref={base.gitHubRepository.htmlURL}
-              repository={base.gitHubRepository}
-              onMarkdownLinkClicked={this.onMarkdownLinkClicked}
-            />
-          </Row>
+          <SandboxedMarkdown
+            markdown={this.props.review.body}
+            emoji={this.props.emoji}
+            baseHref={base.gitHubRepository.htmlURL}
+            repository={base.gitHubRepository}
+            onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+          />
         </DialogContent>
         <DialogFooter>
           <Row>
