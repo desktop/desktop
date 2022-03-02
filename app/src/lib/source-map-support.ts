@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
-import fileUriToPath from 'file-uri-to-path'
 import sourceMapSupport from 'source-map-support'
+import { fileURLToPath } from 'url'
 
 /**
  * This array tells the source map logic which files that we can expect to
@@ -23,7 +23,7 @@ function retrieveSourceMap(source: string) {
 
   // We get a file uri when we're inside a renderer, convert to a path
   if (source.startsWith('file://')) {
-    source = fileUriToPath(source)
+    source = fileURLToPath(source)
   }
 
   // We store our source maps right next to the bundle
