@@ -2,8 +2,6 @@ import { app, net } from 'electron'
 import { getArchitecture } from '../lib/get-architecture'
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
-const NonFatalErrorEndpoint =
-  'https://central.github.com/api/desktop-non-fatal/exception'
 
 let hasSentFatalError = false
 
