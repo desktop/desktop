@@ -34,7 +34,7 @@ export async function isApplicationBundle(path: string): Promise<boolean> {
   //     "public.item",
   //     "com.apple.package"
   // )
-  const { stdout: xml } = await execFileP('mdls', [
+  const { stdout } = await execFileP('mdls', [
     ...['-name', 'kMDItemContentType'],
     ...['-name', 'kMDItemContentTypeTree'],
     path,
@@ -46,5 +46,5 @@ export async function isApplicationBundle(path: string): Promise<boolean> {
     'public.executable',
   ]
 
-  return probableBundleIdentifiers.some(id => xml.includes(`"${id}"`))
+  return probableBundleIdentifiers.some(id => stdout.includes(`"${id}"`))
 }
