@@ -30,7 +30,9 @@ async function getLatestRelease(options: {
 }): Promise<string> {
   let releaseTags = (await sh('git', 'tag'))
     .split('\n')
-    .filter(tag => tag.startsWith('release-') && !/\-(linux|test)/.test(tag))
+    .filter(tag => tag.startsWith('release-'))
+    .filter(tag => !tag.includes('-linux'))
+    .filter(tag => !tag.includes('-test'))
 
   if (options.excludeBetaReleases) {
     releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
