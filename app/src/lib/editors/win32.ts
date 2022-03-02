@@ -20,25 +20,25 @@ type RegistryKey = { key: HKEY; subKey: string }
 
 type WindowsExternalEditorPathInfo =
   | {
-      /**
-       * Registry key with the install location of the app. If not provided,
-       * 'InstallLocation' will be used.
-       **/
-      readonly installLocationRegistryKey?: 'InstallLocation'
+    /**
+    * Registry key with the install location of the app. If not provided,
+    * 'InstallLocation' will be used.
+    **/
+    readonly installLocationRegistryKey?: 'InstallLocation'
 
-      /**
-       * List of lists of path components from the editor's installation folder to
-       * the potential executable shims. Only needed when the install location
-       * registry key is `InstallLocation`.
-       **/
-      readonly executableShimPaths: ReadonlyArray<ReadonlyArray<string>>
-    }
+    /**
+    * List of lists of path components from the editor's installation folder to
+    * the potential executable shims. Only needed when the install location
+    * registry key is `InstallLocation`.
+    **/
+    readonly executableShimPaths: ReadonlyArray<ReadonlyArray<string>>
+  }
   | {
-      /**
-       * Registry key with the install location of the app.
-       **/
-      readonly installLocationRegistryKey: 'DisplayIcon'
-    }
+    /**
+     * Registry key with the install location of the app.
+     **/
+    readonly installLocationRegistryKey: 'DisplayIcon'
+  }
 
 /** Represents an external editor on Windows */
 type WindowsExternalEditor = {
@@ -301,6 +301,17 @@ const editors: WindowsExternalEditor[] = [
     executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
     displayNamePrefix: 'PhpStorm',
     publisher: 'JetBrains s.r.o.',
+  },
+  {
+    name: 'Android Studio',
+    // registryKeys: registryKeysForJetBrainsIDE('Android Studio')
+    // Android Studio is based on JetBrains IDEs but I am not sure what to put here?
+    registryKeys: [
+      LocalMachineUninstallKey('Android Studio'),
+    ],
+    executableShimPaths: executableShimPathsForJetBrainsIDE('studio'),
+    displayNamePrefix: 'Android Studio',
+    publisher: 'JetBrains s.r.o',
   },
   {
     name: 'Notepad++',
