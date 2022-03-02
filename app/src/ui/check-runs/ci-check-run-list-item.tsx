@@ -97,8 +97,8 @@ export class CICheckRunListItem extends React.PureComponent<
         <Octicon
           symbol={
             isCheckRunExpanded
-              ? OcticonSymbol.chevronDown
-              : OcticonSymbol.chevronUp
+              ? OcticonSymbol.chevronUp
+              : OcticonSymbol.chevronDown
           }
         />
       </div>
