@@ -104,7 +104,7 @@ export async function getRebaseInternalState(
     )
 
     if (targetBranch.startsWith('refs/heads/')) {
-      targetBranch = targetBranch.substr(11).trim()
+      targetBranch = targetBranch.substring(11).trim()
     }
 
     baseBranchTip = await FSE.readFile(

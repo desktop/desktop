@@ -32,7 +32,7 @@ import request from 'request'
 console.log('Packaging…')
 execSync('yarn package', { stdio: 'inherit' })
 
-const sha = platforms.getSha().substr(0, 8)
+const sha = platforms.getSha().substring(0, 8)
 
 function getSecret() {
   if (process.env.DEPLOYMENT_SECRET != null) {
