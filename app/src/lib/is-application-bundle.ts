@@ -1,4 +1,4 @@
-import getFileMetadata from 'file-metadata'
+import { execFile } from './exec-file'
 
 /**
  * Attempts to determine if the provided path is an application bundle or not.
@@ -18,24 +18,30 @@ export async function isApplicationBundle(path: string): Promise<boolean> {
     return false
   }
 
-  const metadata = await getFileMetadata(path)
+  // Expected output for an application bundle:
+  // $ mdls -name kMDItemContentType -name kMDItemContentTypeTree /Applications/GitHub\ Desktop.app
+  // kMDItemContentType     = "com.apple.application-bundle"
+  // kMDItemContentTypeTree = (
+  //     "com.apple.application-bundle",
+  //     "com.apple.application",
+  //     "public.executable",
+  //     "com.apple.localizable-name-bundle",
+  //     "com.apple.bundle",
+  //     "public.directory",
+  //     "public.item",
+  //     "com.apple.package"
+  // )
+  const { stdout } = await execFile('mdls', [
+    ...['-name', 'kMDItemContentType'],
+    ...['-name', 'kMDItemContentTypeTree'],
+    path,
+  ])
 
-  if (metadata['contentType'] === 'com.apple.application-bundle') {
-    return true
-  }
+  const probableBundleIdentifiers = [
+    'com.apple.application-bundle',
+    'com.apple.application',
+    'public.executable',
+  ]
 
-  const contentTypeTree = metadata['contentTypeTree']
-
-  if (Array.isArray(contentTypeTree)) {
-    for (const contentType of contentTypeTree) {
-      switch (contentType) {
-        case 'com.apple.application-bundle':
-        case 'com.apple.application':
-        case 'public.executable':
-          return true
-      }
-    }
-  }
-
-  return false
+  return probableBundleIdentifiers.some(id => stdout.includes(`"${id}"`))
 }
