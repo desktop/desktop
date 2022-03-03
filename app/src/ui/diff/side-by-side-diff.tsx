@@ -1150,17 +1150,17 @@ function getDiffRowsFromHunk(
 }
 
 function getModifiedRows(
-  addedDeletedLines: ReadonlyArray<ModifiedLine>,
+  addedOrDeletedLines: ReadonlyArray<ModifiedLine>,
   showSideBySideDiff: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
-  if (addedDeletedLines.length === 0) {
+  if (addedOrDeletedLines.length === 0) {
     return []
   }
-  const hunkStartLine = addedDeletedLines[0].diffLineNumber
+  const hunkStartLine = addedOrDeletedLines[0].diffLineNumber
   const addedLines = new Array<ModifiedLine>()
   const deletedLines = new Array<ModifiedLine>()
 
-  for (const line of addedDeletedLines) {
+  for (const line of addedOrDeletedLines) {
     if (line.line.type === DiffLineType.Add) {
       addedLines.push(line)
     } else if (line.line.type === DiffLineType.Delete) {
