@@ -84,9 +84,9 @@ async function deserialize<T>(response: Response): Promise<T> {
  * @param path The resource path (should be relative to the root of the server)
  */
 export function getAbsoluteUrl(endpoint: string, path: string): string {
-  let relativePath = path[0] === '/' ? path.substr(1) : path
+  let relativePath = path[0] === '/' ? path.substring(1) : path
   if (relativePath.startsWith('api/v3/')) {
-    relativePath = relativePath.substr(7)
+    relativePath = relativePath.substring(7)
   }
 
   // Our API endpoints are a bit sloppy in that they don't typically
