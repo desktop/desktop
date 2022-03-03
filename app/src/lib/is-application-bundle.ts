@@ -1,7 +1,4 @@
-import { execFile } from 'child_process'
-import { promisify } from 'util'
-
-const execFileP = promisify(execFile)
+import { execFile } from './exec-file'
 
 /**
  * Attempts to determine if the provided path is an application bundle or not.
@@ -34,7 +31,7 @@ export async function isApplicationBundle(path: string): Promise<boolean> {
   //     "public.item",
   //     "com.apple.package"
   // )
-  const { stdout } = await execFileP('mdls', [
+  const { stdout } = await execFile('mdls', [
     ...['-name', 'kMDItemContentType'],
     ...['-name', 'kMDItemContentTypeTree'],
     path,
