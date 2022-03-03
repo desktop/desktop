@@ -437,10 +437,7 @@ export function getFirstAndLastClassesUnified(
   prevToken: DiffSyntaxToken | null,
   nextToken: DiffSyntaxToken | null
 ): string[] {
-  const addedOrDeletedTokens = [
-    DiffSyntaxToken.DiffAdded,
-    DiffSyntaxToken.DiffDeleted,
-  ]
+  const addedOrDeletedTokens = [DiffSyntaxToken.Add, DiffSyntaxToken.Delete]
   if (!addedOrDeletedTokens.includes(token)) {
     return []
   }

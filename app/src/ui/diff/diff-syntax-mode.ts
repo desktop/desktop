@@ -32,17 +32,17 @@ export interface IDiffSyntaxModeSpec extends IDiffSyntaxModeOptions {
 }
 
 export enum DiffSyntaxToken {
-  DiffAdded = 'diff-add',
-  DiffDeleted = 'diff-deleted',
-  DiffHunk = 'diff-hunk',
-  DiffContext = 'diff-context',
+  Add = 'diff-add',
+  Delete = 'diff-delete',
+  Hunk = 'diff-hunk',
+  Context = 'diff-context',
 }
 
 const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
-  '+': DiffSyntaxToken.DiffAdded,
-  '-': DiffSyntaxToken.DiffDeleted,
-  '@': DiffSyntaxToken.DiffHunk,
-  ' ': DiffSyntaxToken.DiffContext,
+  '+': DiffSyntaxToken.Add,
+  '-': DiffSyntaxToken.Delete,
+  '@': DiffSyntaxToken.Hunk,
+  ' ': DiffSyntaxToken.Context,
 }
 
 interface IState {
@@ -142,7 +142,7 @@ export class DiffSyntaxMode {
     // diff that was just loaded, but for which we haven't run the highlighter
     // yet. If we don't do this, that last line will be formatted wrongly.
     if (this.hunks === undefined) {
-      return getBaseDiffLineStyle(DiffSyntaxToken.DiffHunk)
+      return getBaseDiffLineStyle(DiffSyntaxToken.Hunk)
     }
 
     // A line might be empty in a non-blank diff for the only line of the
@@ -151,7 +151,7 @@ export class DiffSyntaxMode {
     if (this.hunks.length > 0) {
       const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
       if (diffLine?.type === DiffLineType.Hunk) {
-        return getBaseDiffLineStyle(DiffSyntaxToken.DiffHunk)
+        return getBaseDiffLineStyle(DiffSyntaxToken.Hunk)
       }
     }
 
@@ -199,7 +199,7 @@ export class DiffSyntaxMode {
 
       // If it's a hunk header line, we want to make a few extra checks
       // depending on the distance to the previous hunk.
-      if (token === DiffSyntaxToken.DiffHunk && enableTextDiffExpansion()) {
+      if (token === DiffSyntaxToken.Hunk && enableTextDiffExpansion()) {
         // First we grab the numbers in the hunk header
         const matches = stream.match(/\@ -(\d+),(\d+) \+\d+,\d+ \@\@/)
         if (matches !== null) {
