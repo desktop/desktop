@@ -73,7 +73,8 @@ export async function getSSHEnvironment() {
 }
 
 export function parseAddSSHHostPrompt(prompt: string) {
-  const promptRegex = /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established[^.]*\.\n([^ ]+) key fingerprint is ([^.]+)\./
+  const promptRegex =
+    /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established[^.]*\.\n([^ ]+) key fingerprint is ([^.]+)\./
 
   const matches = promptRegex.exec(prompt)
   if (matches === null || matches.length < 5) {

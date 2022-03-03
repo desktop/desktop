@@ -610,9 +610,8 @@ export class StatsStore implements IStatsStore {
 
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
-    const launches:
-      | ReadonlyArray<ILaunchStats>
-      | undefined = await this.db.launches.toArray()
+    const launches: ReadonlyArray<ILaunchStats> | undefined =
+      await this.db.launches.toArray()
     if (!launches || !launches.length) {
       return {
         mainReadyTime: -1,
@@ -645,9 +644,9 @@ export class StatsStore implements IStatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    const measures:
-      | IDailyMeasures
-      | undefined = await this.db.dailyMeasures.limit(1).first()
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures
+      .limit(1)
+      .first()
     return {
       ...DefaultDailyMeasures,
       ...measures,
@@ -996,9 +995,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
-    void
-  > {
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       anyConflictsLeftOnMergeConflictsDialogDismissalCount:
         m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
@@ -1222,9 +1219,7 @@ export class StatsStore implements IStatsStore {
    * Record the number of times the user experiences the error
    * "Some of your changes would be overwritten" when switching branches
    */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
-    void
-  > {
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       errorWhenSwitchingBranchesWithUncommmittedChanges:
         m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,

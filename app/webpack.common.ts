@@ -175,15 +175,17 @@ export const highlighter = merge({}, commonConfig, {
         modes: {
           enforce: true,
           name: (mod: any) => {
-            const builtInMode = /node_modules[\\\/]codemirror[\\\/]mode[\\\/](\w+)[\\\/]/i.exec(
-              mod.resource
-            )
+            const builtInMode =
+              /node_modules[\\\/]codemirror[\\\/]mode[\\\/](\w+)[\\\/]/i.exec(
+                mod.resource
+              )
             if (builtInMode) {
               return `mode/${builtInMode[1]}`
             }
-            const external = /node_modules[\\\/]codemirror-mode-(\w+)[\\\/]/i.exec(
-              mod.resource
-            )
+            const external =
+              /node_modules[\\\/]codemirror-mode-(\w+)[\\\/]/i.exec(
+                mod.resource
+              )
             if (external) {
               return `ext/${external[1]}`
             }

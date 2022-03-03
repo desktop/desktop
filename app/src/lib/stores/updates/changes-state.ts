@@ -128,11 +128,8 @@ function getConflictState(
       return null
     }
 
-    const {
-      targetBranch,
-      originalBranchTip,
-      baseBranchTip,
-    } = status.rebaseInternalState
+    const { targetBranch, originalBranchTip, baseBranchTip } =
+      status.rebaseInternalState
 
     return {
       kind: 'rebase',

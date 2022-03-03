@@ -252,17 +252,20 @@ export class DiffSyntaxMode {
   }
 }
 
-CodeMirror.defineMode(DiffSyntaxMode.ModeName, function (
-  config: CodeMirror.EditorConfiguration,
-  modeOptions?: IDiffSyntaxModeOptions
-) {
-  if (!modeOptions) {
-    throw new Error('I needs me some options')
-  }
+CodeMirror.defineMode(
+  DiffSyntaxMode.ModeName,
+  function (
+    config: CodeMirror.EditorConfiguration,
+    modeOptions?: IDiffSyntaxModeOptions
+  ) {
+    if (!modeOptions) {
+      throw new Error('I needs me some options')
+    }
 
-  return new DiffSyntaxMode(
-    modeOptions.hunks,
-    modeOptions.oldTokens,
-    modeOptions.newTokens
-  )
-})
+    return new DiffSyntaxMode(
+      modeOptions.hunks,
+      modeOptions.oldTokens,
+      modeOptions.newTokens
+    )
+  }
+)

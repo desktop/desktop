@@ -130,13 +130,12 @@ function checkConstraint(
  * Note: NOT meant for direct consumption, only exported for testability reasons.
  *       Consumers should use the various `supports*` methods instead.
  */
-export const endpointSatisfies = (
-  { dotcom, ae, es }: VersionConstraint,
-  getVersion = getEndpointVersion
-) => (ep: string) =>
-  checkConstraint(dotcom, isDotCom(ep)) ||
-  checkConstraint(ae, isGHAE(ep), assumedGHAEVersion) ||
-  checkConstraint(es, isGHES(ep), getVersion(ep) ?? assumedGHESVersion)
+export const endpointSatisfies =
+  ({ dotcom, ae, es }: VersionConstraint, getVersion = getEndpointVersion) =>
+  (ep: string) =>
+    checkConstraint(dotcom, isDotCom(ep)) ||
+    checkConstraint(ae, isGHAE(ep), assumedGHAEVersion) ||
+    checkConstraint(es, isGHES(ep), getVersion(ep) ?? assumedGHESVersion)
 
 /**
  * Whether or not the endpoint supports the internal GitHub Enterprise Server

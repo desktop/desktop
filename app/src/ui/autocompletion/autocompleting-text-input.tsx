@@ -343,9 +343,8 @@ export abstract class AutocompletingTextInput<
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
     const range = autocompletionState.range
-    const autoCompleteText = autocompletionState.provider.getCompletionText(
-      item
-    )
+    const autoCompleteText =
+      autocompletionState.provider.getCompletionText(item)
 
     const textWithAutoCompleteText =
       originalText.substr(0, range.start - 1) + autoCompleteText + ' '

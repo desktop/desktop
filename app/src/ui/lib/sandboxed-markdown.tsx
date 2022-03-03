@@ -39,9 +39,7 @@ interface ISandboxedMarkdownProps {
  * Parses and sanitizes markdown into html and outputs it inside a sandboxed
  * iframe.
  **/
-export class SandboxedMarkdown extends React.PureComponent<
-  ISandboxedMarkdownProps
-> {
+export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownProps> {
   private frameRef: HTMLIFrameElement | null = null
   private frameContainingDivRef: HTMLDivElement | null = null
 
@@ -145,9 +143,8 @@ export class SandboxedMarkdown extends React.PureComponent<
      * element was not adjusting it's height dynamically when new content was
      * provided.
      */
-    const docEl = frameRef.contentDocument.documentElement.querySelector(
-      '#content'
-    )
+    const docEl =
+      frameRef.contentDocument.documentElement.querySelector('#content')
     if (docEl === null) {
       return
     }

@@ -22,9 +22,7 @@ interface IConfigLockFileExistsProps {
   readonly onError: (e: Error) => void
 }
 
-export class ConfigLockFileExists extends React.Component<
-  IConfigLockFileExistsProps
-> {
+export class ConfigLockFileExists extends React.Component<IConfigLockFileExistsProps> {
   private onDeleteLockFile = async () => {
     try {
       await unlink(this.props.lockFilePath)
