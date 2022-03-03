@@ -181,7 +181,7 @@ export class DiffSyntaxMode {
 
       const nextLine = stream.lookAhead(1)
       const nextLineTokenIndex =
-        typeof nextLine === `string` ? nextLine[0] : undefined
+        typeof nextLine === 'string' ? nextLine[0] : undefined
       const lineBackgroundClassNames = getFirstAndLastClassesUnified(
         index,
         state.prevLineTokenIndex,
