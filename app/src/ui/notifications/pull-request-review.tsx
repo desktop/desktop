@@ -10,6 +10,7 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
+import { Button } from '../lib/button'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -69,6 +70,7 @@ export class PullRequestReview extends React.Component<
             <span className="pr-number">#{pullRequestNumber}</span>{' '}
           </span>
         </div>
+        {this.renderViewOnGitHubButton()}
       </div>
     )
 
@@ -121,22 +123,30 @@ export class PullRequestReview extends React.Component<
     )
   }
 
-  // private onViewOnGitHub = (checkRun: IRefCheck) => {
-  //   const { repository, pullRequest, dispatcher, review } = this.props
+  private renderViewOnGitHubButton = () => {
+    return (
+      <div className="ci-check-rerun">
+        <Button onClick={this.viewOnGitHub}>View on GitHub</Button>
+      </div>
+    )
+  }
 
-  //   // Some checks do not provide htmlURLS like ones for the legacy status
-  //   // object as they do not have a view in the checks screen. In that case we
-  //   // will just open the PR and they can navigate from there... a little
-  //   // dissatisfying tho more of an edgecase anyways.
-  //   const url =
-  //     review.html_url ||
-  //     `${repository.gitHubRepository.htmlURL}/pull/${pullRequest.pullRequestNumber}#pullrequestreview-${review.id}`
-  //   if (url === null) {
-  //     // The repository should have a htmlURL.
-  //     return
-  //   }
-  //   dispatcher.openInBrowser(url)
-  // }
+  private viewOnGitHub = () => {
+    const { repository, pullRequest, dispatcher, review } = this.props
+
+    // Some checks do not provide htmlURLS like ones for the legacy status
+    // object as they do not have a view in the checks screen. In that case we
+    // will just open the PR and they can navigate from there... a little
+    // dissatisfying tho more of an edgecase anyways.
+    const url =
+      review.html_url ||
+      `${repository.gitHubRepository.htmlURL}/pull/${pullRequest.pullRequestNumber}#pullrequestreview-${review.id}`
+    if (url === null) {
+      // The repository should have a htmlURL.
+      return
+    }
+    dispatcher.openInBrowser(url)
+  }
 
   private onSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
