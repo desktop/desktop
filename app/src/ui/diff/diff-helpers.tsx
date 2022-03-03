@@ -404,7 +404,7 @@ export function getFirstAndLastClassesSideBySide(
   nextRow: SimplifiedDiffRow | undefined,
   addedOrDeleted: DiffRowType
 ): ReadonlyArray<string> {
-  const classes: Array<string> = []
+  const classes = new Array<string>()
   const typesToCheck = [addedOrDeleted, DiffRowType.Modified]
 
   // Is the row of the type we are checking? No. Then can't be first or last.
