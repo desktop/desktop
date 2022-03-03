@@ -402,7 +402,7 @@ export function getFirstAndLastClassesSideBySide(
   row: SimplifiedDiffRow,
   previousRow: SimplifiedDiffRow | undefined,
   nextRow: SimplifiedDiffRow | undefined,
-  addedOrDeleted: DiffRowType
+  addedOrDeleted: DiffRowType.Added | DiffRowType.Deleted
 ): ReadonlyArray<string> {
   const classes = new Array<string>()
   const typesToCheck = [addedOrDeleted, DiffRowType.Modified]
