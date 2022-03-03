@@ -304,14 +304,12 @@ const editors: WindowsExternalEditor[] = [
   },
   {
     name: 'Android Studio',
-    // registryKeys: registryKeysForJetBrainsIDE('Android Studio')
-    // Android Studio is based on JetBrains IDEs but I am not sure what to put here?
     registryKeys: [
       LocalMachineUninstallKey('Android Studio'),
     ],
-    executableShimPaths: executableShimPathsForJetBrainsIDE('studio'),
+    installLocationRegistryKey: 'DisplayIcon',
     displayNamePrefix: 'Android Studio',
-    publisher: 'JetBrains s.r.o',
+    publisher: 'Google LLC',
   },
   {
     name: 'Notepad++',
