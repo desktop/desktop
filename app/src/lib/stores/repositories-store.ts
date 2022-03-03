@@ -383,7 +383,8 @@ export class RepositoriesStore extends TypedBaseStore<
     // login with the proper case.
     if (existingOwner === undefined || existingOwner.login !== login) {
       id = existingOwner?.id
-      id = await this.db.owners.put({ id, key, endpoint, login })
+      const existingId = id !== undefined ? { id } : {}
+      id = await this.db.owners.put({ ...existingId, key, endpoint, login })
     } else {
       id = forceUnwrap('Missing owner id', existingOwner.id)
     }
