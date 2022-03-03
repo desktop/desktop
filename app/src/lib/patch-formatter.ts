@@ -191,7 +191,7 @@ export function formatPatch(
         // is concerned which means that we should treat it as if it's still
         // in the old file so we'll convert it to a context line.
         if (line.type === DiffLineType.Delete) {
-          hunkBuf += ` ${line.text.substr(1)}\n`
+          hunkBuf += ` ${line.text.substring(1)}\n`
           oldCount++
           newCount++
         } else {
@@ -280,10 +280,10 @@ export function formatPatchToDiscardChanges(
       } else if (selection.isSelected(absoluteIndex)) {
         // Reverse the change (if it was an added line, treat it as removed and vice versa).
         if (line.type === DiffLineType.Add) {
-          hunkBuf += `-${line.text.substr(1)}\n`
+          hunkBuf += `-${line.text.substring(1)}\n`
           newCount++
         } else if (line.type === DiffLineType.Delete) {
-          hunkBuf += `+${line.text.substr(1)}\n`
+          hunkBuf += `+${line.text.substring(1)}\n`
           oldCount++
         } else {
           assertNever(line.type, `Unsupported line type ${line.type}`)
@@ -296,7 +296,7 @@ export function formatPatchToDiscardChanges(
           // so we just print it untouched on the diff.
           oldCount++
           newCount++
-          hunkBuf += ` ${line.text.substr(1)}\n`
+          hunkBuf += ` ${line.text.substring(1)}\n`
         } else if (line.type === DiffLineType.Delete) {
           // An unselected removed line has no impact on this patch since it's not
           // found on the current working copy of the file, so we can ignore it.

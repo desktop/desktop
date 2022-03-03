@@ -38,7 +38,7 @@ async function getLatestRelease(options: {
     releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
   }
 
-  const releaseVersions = releaseTags.map(tag => tag.substr(8))
+  const releaseVersions = releaseTags.map(tag => tag.substring(8))
 
   const sortedTags = semverSort(releaseVersions)
   const latestTag = sortedTags[sortedTags.length - 1]

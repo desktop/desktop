@@ -24,7 +24,7 @@ function formatErrors(errors: ErrorObject[]): string {
       }
 
       // dataPath starts with a leading "."," which is a bit confusing
-      const element = dataPath.substr(1)
+      const element = dataPath.substring(1)
 
       return ` - ${element} - ${message}${additionalPropertyText}`
     })

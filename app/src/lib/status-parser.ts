@@ -72,11 +72,11 @@ export function parsePorcelainStatus(
 
   while ((field = queue.shift())) {
     if (field.startsWith('# ') && field.length > 2) {
-      entries.push({ kind: 'header', value: field.substr(2) })
+      entries.push({ kind: 'header', value: field.substring(2) })
       continue
     }
 
-    const entryKind = field.substr(0, 1)
+    const entryKind = field.substring(0, 1)
 
     if (entryKind === ChangedEntryType) {
       entries.push(parseChangedEntry(field))
@@ -159,7 +159,7 @@ function parseUnmergedEntry(field: string): IStatusEntry {
 }
 
 function parseUntrackedEntry(field: string): IStatusEntry {
-  const path = field.substr(2)
+  const path = field.substring(2)
   return {
     kind: 'entry',
     // NOTE: We return ?? instead of ? here to play nice with mapStatus,
