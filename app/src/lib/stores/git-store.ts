@@ -191,7 +191,7 @@ export class GitStore extends BaseStore {
       log.debug(
         `reconciling history - adding ${
           commits.length
-        } commits before merge base ${mergeBase.substr(0, 8)}`
+        } commits before merge base ${mergeBase.substring(0, 8)}`
       )
 
       // rebuild the local history state by combining the commits _before_ the
@@ -528,7 +528,7 @@ export class GitStore extends BaseStore {
         // strip out everything related to the remote because this
         // is likely to be a tracked branch locally
         // e.g. `main`, `develop`, etc
-        return match.substr(remoteNamespace.length)
+        return match.substring(remoteNamespace.length)
       }
     }
 

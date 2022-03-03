@@ -226,7 +226,7 @@ export class BranchPruner {
         continue
       }
 
-      const branchName = branchCanonicalRef.substr(branchRefPrefix.length)
+      const branchName = branchCanonicalRef.substring(branchRefPrefix.length)
 
       if (options.deleteBranch) {
         const isDeleted = await gitStore.performFailableOperation(() =>

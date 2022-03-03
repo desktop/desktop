@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "2.9.11-beta1",
+  "version": "2.9.11",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -34,7 +34,6 @@
     "dugite": "^1.104.0",
     "electron-window-state": "^5.0.3",
     "event-kit": "^2.0.0",
-    "file-url": "^2.0.2",
     "focus-trap-react": "^8.1.0",
     "fs-admin": "^0.19.0",
     "fs-extra": "^9.0.1",
