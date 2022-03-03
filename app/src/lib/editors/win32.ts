@@ -358,6 +358,13 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'CLion ',
     publisher: 'JetBrains s.r.o.',
   },
+  {
+    name: 'JetBrains RubyMine',
+    registryKeys: registryKeysForJetBrainsIDE('RubyMine'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rubymine'),
+    displayNamePrefix: 'RubyMine ',
+    publisher: 'JetBrains s.r.o.',
+  },
 ]
 
 function getKeyOrEmpty(
