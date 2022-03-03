@@ -10,6 +10,7 @@ import {
 } from '../../models/status'
 import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
 import { DiffLineType } from '../../models/diff'
+import { DiffSyntaxToken } from './diff-syntax-mode'
 
 /**
  * DiffRowType defines the different types of
@@ -432,22 +433,25 @@ export function getFirstAndLastClassesSideBySide(
  * a group of added, deleted, or modified rows in the unified diff.
  **/
 export function getFirstAndLastClassesUnified(
-  tokenIndex: string,
-  prevTokenIndex: string | undefined,
-  nextTokenIndex: string | undefined
+  token: DiffSyntaxToken,
+  prevToken: DiffSyntaxToken | null,
+  nextToken: DiffSyntaxToken | null
 ): string[] {
-  const addDeleteTokens = ['+', '-']
-  if (!addDeleteTokens.includes(tokenIndex)) {
+  const addedOrDeletedTokens = [
+    DiffSyntaxToken.DiffAdded,
+    DiffSyntaxToken.DiffDeleted,
+  ]
+  if (!addedOrDeletedTokens.includes(token)) {
     return []
   }
 
   const classNames = []
 
-  if (prevTokenIndex !== tokenIndex) {
+  if (prevToken !== token) {
     classNames.push('is-first')
   }
 
-  if (nextTokenIndex !== tokenIndex) {
+  if (nextToken !== token) {
     classNames.push('is-last')
   }
 

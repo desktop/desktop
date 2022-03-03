@@ -31,19 +31,24 @@ export interface IDiffSyntaxModeSpec extends IDiffSyntaxModeOptions {
   readonly name: 'github-diff-syntax'
 }
 
-type DiffSyntaxToken = 'diff-add' | 'diff-delete' | 'diff-hunk' | 'diff-context'
+export enum DiffSyntaxToken {
+  DiffAdded = 'diff-add',
+  DiffDeleted = 'diff-deleted',
+  DiffHunk = 'diff-hunk',
+  DiffContext = 'diff-context',
+}
 
 const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
-  '+': 'diff-add',
-  '-': 'diff-delete',
-  '@': 'diff-hunk',
-  ' ': 'diff-context',
+  '+': DiffSyntaxToken.DiffAdded,
+  '-': DiffSyntaxToken.DiffDeleted,
+  '@': DiffSyntaxToken.DiffHunk,
+  ' ': DiffSyntaxToken.DiffContext,
 }
 
 interface IState {
   diffLineIndex: number
   previousHunkOldEndLine: number | null
-  prevLineTokenIndex: string | undefined
+  prevLineToken: DiffSyntaxToken | null
 }
 
 function skipLine(stream: CodeMirror.StringStream, state: IState) {
@@ -127,7 +132,7 @@ export class DiffSyntaxMode {
     return {
       diffLineIndex: 0,
       previousHunkOldEndLine: null,
-      prevLineTokenIndex: undefined,
+      prevLineToken: null,
     }
   }
 
@@ -137,7 +142,7 @@ export class DiffSyntaxMode {
     // diff that was just loaded, but for which we haven't run the highlighter
     // yet. If we don't do this, that last line will be formatted wrongly.
     if (this.hunks === undefined) {
-      return getBaseDiffLineStyle('diff-hunk')
+      return getBaseDiffLineStyle(DiffSyntaxToken.DiffHunk)
     }
 
     // A line might be empty in a non-blank diff for the only line of the
@@ -146,7 +151,7 @@ export class DiffSyntaxMode {
     if (this.hunks.length > 0) {
       const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
       if (diffLine?.type === DiffLineType.Hunk) {
-        return getBaseDiffLineStyle('diff-hunk')
+        return getBaseDiffLineStyle(DiffSyntaxToken.DiffHunk)
       }
     }
 
@@ -163,37 +168,38 @@ export class DiffSyntaxMode {
     // The first character of a line in a diff is always going to
     // be the diff line marker so we always take care of that first.
     if (stream.sol()) {
-      const index = stream.next()
+      const tokenKey = stream.next()
 
       if (stream.eol()) {
         state.diffLineIndex++
       }
 
-      if (index === null) {
+      if (tokenKey === null) {
         return null
       }
 
-      const token = TokenNames[index] ?? null
+      const token = TokenNames[tokenKey] ?? null
 
       if (token === null) {
         return null
       }
 
       const nextLine = stream.lookAhead(1)
-      const nextLineTokenIndex =
-        typeof nextLine === 'string' ? nextLine[0] : undefined
+      const nextLineToken =
+        typeof nextLine === 'string' ? TokenNames[nextLine[0]] : null
+
       const lineBackgroundClassNames = getFirstAndLastClassesUnified(
-        index,
-        state.prevLineTokenIndex,
-        nextLineTokenIndex
+        token,
+        state.prevLineToken,
+        nextLineToken
       )
-      state.prevLineTokenIndex = index
+      state.prevLineToken = token
 
       let result = getBaseDiffLineStyle(token, lineBackgroundClassNames)
 
       // If it's a hunk header line, we want to make a few extra checks
       // depending on the distance to the previous hunk.
-      if (index === '@' && enableTextDiffExpansion()) {
+      if (token === DiffSyntaxToken.DiffHunk && enableTextDiffExpansion()) {
         // First we grab the numbers in the hunk header
         const matches = stream.match(/\@ -(\d+),(\d+) \+\d+,\d+ \@\@/)
         if (matches !== null) {
