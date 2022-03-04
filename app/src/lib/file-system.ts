@@ -1,10 +1,10 @@
-import * as FSE from 'fs-extra'
 import * as Os from 'os'
 import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Tailer } from './tailer'
 import byline from 'byline'
 import * as Crypto from 'crypto'
+import { createReadStream } from 'fs'
 import { mkdtemp } from 'fs/promises'
 
 /**
@@ -71,7 +71,7 @@ export async function readPartialFile(
     const chunks = new Array<Buffer>()
     let total = 0
 
-    FSE.createReadStream(path, { start, end })
+    createReadStream(path, { start, end })
       .on('data', (chunk: Buffer) => {
         chunks.push(chunk)
         total += chunk.length
@@ -88,7 +88,7 @@ export async function getFileHash(
   return new Promise((resolve, reject) => {
     const hash = Crypto.createHash(type)
     hash.setEncoding('hex')
-    const input = FSE.createReadStream(path)
+    const input = createReadStream(path)
 
     hash.on('finish', () => {
       resolve(hash.read() as string)
