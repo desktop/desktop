@@ -434,8 +434,8 @@ export function getFirstAndLastClassesSideBySide(
  **/
 export function getFirstAndLastClassesUnified(
   token: DiffSyntaxToken,
-  prevToken: DiffSyntaxToken | null,
-  nextToken: DiffSyntaxToken | null
+  prevToken: DiffSyntaxToken | undefined,
+  nextToken: DiffSyntaxToken | undefined
 ): string[] {
   const addedOrDeletedTokens = [DiffSyntaxToken.Add, DiffSyntaxToken.Delete]
   if (!addedOrDeletedTokens.includes(token)) {

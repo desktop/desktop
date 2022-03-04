@@ -38,7 +38,7 @@ export enum DiffSyntaxToken {
   Context = 'diff-context',
 }
 
-const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
+const TokenNames: { [key: string]: DiffSyntaxToken | undefined } = {
   '+': DiffSyntaxToken.Add,
   '-': DiffSyntaxToken.Delete,
   '@': DiffSyntaxToken.Hunk,
@@ -48,7 +48,7 @@ const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
 interface IState {
   diffLineIndex: number
   previousHunkOldEndLine: number | null
-  prevLineToken: DiffSyntaxToken | null
+  prevLineToken: DiffSyntaxToken | undefined
 }
 
 function skipLine(stream: CodeMirror.StringStream, state: IState) {
@@ -132,7 +132,7 @@ export class DiffSyntaxMode {
     return {
       diffLineIndex: 0,
       previousHunkOldEndLine: null,
-      prevLineToken: null,
+      prevLineToken: undefined,
     }
   }
 
@@ -178,15 +178,15 @@ export class DiffSyntaxMode {
         return null
       }
 
-      const token = TokenNames[tokenKey] ?? null
+      const token = TokenNames[tokenKey]
 
-      if (token === null) {
+      if (token === undefined) {
         return null
       }
 
       const nextLine = stream.lookAhead(1)
       const nextLineToken =
-        typeof nextLine === 'string' ? TokenNames[nextLine[0]] : null
+        typeof nextLine === 'string' ? TokenNames[nextLine[0]] : undefined
 
       const lineBackgroundClassNames = getFirstAndLastClassesUnified(
         token,
