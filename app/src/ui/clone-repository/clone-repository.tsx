@@ -1,6 +1,5 @@
 import * as Path from 'path'
 import * as React from 'react'
-import { readdir } from 'fs-extra'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
@@ -24,6 +23,7 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { enableSaveDialogOnCloneRepository } from '../../lib/feature-flag'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
+import { readdir } from 'fs/promises'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
