@@ -313,9 +313,7 @@ const editors: WindowsExternalEditor[] = [
   },
   {
     name: 'Android Studio',
-    registryKeys: [
-      LocalMachineUninstallKey('Android Studio'),
-    ],
+    registryKeys: [LocalMachineUninstallKey('Android Studio')],
     installLocationRegistryKey: 'DisplayIcon',
     displayNamePrefix: 'Android Studio',
     publisher: 'Google LLC',
