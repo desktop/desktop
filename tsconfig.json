@@ -15,7 +15,6 @@
     "jsx": "react",
     "strict": true,
     "outDir": "./out",
-    "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "useUnknownInCatchVariables": false
   },
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
