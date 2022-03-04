@@ -1,4 +1,4 @@
-import { writeFile } from 'fs-extra'
+import { writeFile } from 'fs/promises'
 import * as Path from 'path'
 
 const DefaultReadmeName = 'README.md'
