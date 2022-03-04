@@ -5,6 +5,7 @@ import { Disposable } from 'event-kit'
 import { Tailer } from './tailer'
 import byline from 'byline'
 import * as Crypto from 'crypto'
+import { mkdtemp } from 'fs/promises'
 
 /**
  * Get a path to a temp file using the given name. Note that the file itself
@@ -12,7 +13,7 @@ import * as Crypto from 'crypto'
  */
 export async function getTempFilePath(name: string): Promise<string> {
   const tempDir = Path.join(Os.tmpdir(), `${name}-`)
-  const directory = await FSE.mkdtemp(tempDir)
+  const directory = await mkdtemp(tempDir)
   return Path.join(directory, name)
 }
 
