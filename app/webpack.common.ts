@@ -66,41 +66,17 @@ const commonConfig: webpack.Configuration = {
   },
 }
 
-// Hack: The file-metadata plugin has substantial dependencies
-// (plist, DOMParser, etc) and it's only applicable on macOS.
-//
-// Therefore, when compiling on other platforms, we replace it
-// with a tiny shim instead.
-const shimFileMetadata = {
-  resolve: {
-    alias: {
-      'file-metadata': path.resolve(
-        __dirname,
-        'src',
-        'lib',
-        'helpers',
-        'file-metadata.js'
-      ),
-    },
-  },
-}
-
-export const main = merge(
-  {},
-  commonConfig,
-  {
-    entry: { main: path.resolve(__dirname, 'src/main-process/main') },
-    target: 'electron-main',
-    plugins: [
-      new webpack.DefinePlugin(
-        Object.assign({}, replacements, {
-          __PROCESS_KIND__: JSON.stringify('main'),
-        })
-      ),
-    ],
-  },
-  process.platform !== 'darwin' ? shimFileMetadata : {}
-)
+export const main = merge({}, commonConfig, {
+  entry: { main: path.resolve(__dirname, 'src/main-process/main') },
+  target: 'electron-main',
+  plugins: [
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('main'),
+      })
+    ),
+  ],
+})
 
 export const renderer = merge({}, commonConfig, {
   entry: { renderer: path.resolve(__dirname, 'src/ui/index') },

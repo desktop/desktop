@@ -154,12 +154,6 @@ declare namespace Electron {
   }
 }
 
-declare module 'file-metadata' {
-  // eslint-disable-next-line no-restricted-syntax
-  function fileMetadata(path: string): Promise<plist.PlistObject>
-  export = fileMetadata
-}
-
 // https://github.com/microsoft/TypeScript/issues/21568#issuecomment-362473070
 interface Window {
   Element: typeof Element

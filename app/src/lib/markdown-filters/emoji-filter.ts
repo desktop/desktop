@@ -1,7 +1,7 @@
 import { INodeFilter } from './node-filter'
-import * as FSE from 'fs-extra'
 import { escapeRegExp } from '../helpers/regex'
 import { fileURLToPath } from 'url'
+import { readFile } from 'fs/promises'
 
 /**
  * The Emoji Markdown filter will take a text node and create multiple text and
@@ -122,7 +122,7 @@ export class EmojiFilter implements INodeFilter {
     if (cached !== undefined) {
       return cached
     }
-    const imageBuffer = await FSE.readFile(fileURLToPath(filePath))
+    const imageBuffer = await readFile(fileURLToPath(filePath))
     const b64src = imageBuffer.toString('base64')
     const uri = `data:image/png;base64,${b64src}`
     this.emojiBase64URICache.set(filePath, uri)
