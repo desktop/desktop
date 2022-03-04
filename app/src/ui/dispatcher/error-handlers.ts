@@ -5,7 +5,10 @@ import {
 
 import { Dispatcher } from '.'
 import { ExternalEditorError } from '../../lib/editors/shared'
-import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import {
+  DiscardChangesError,
+  ErrorWithMetadata,
+} from '../../lib/error-with-metadata'
 import { AuthenticationErrors } from '../../lib/git/authentication'
 import { GitError, isAuthFailureError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
@@ -616,6 +619,32 @@ export async function localChangesOverwrittenHandler(
 }
 
 /**
+ * Handler for when an action the user attempts to discard changes and they
+ * cannot be moved to trash/recycle bin
+ */
+export async function discardChangesHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  if (!(error instanceof DiscardChangesError)) {
+    return error
+  }
+
+  const { retryAction } = error.metadata
+
+  if (retryAction === undefined) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.DiscardChangesRetry,
+    retryAction,
+  })
+
+  return null
+}
+
+/**
  * Extract lines from Git's stderr output starting with the
  * prefix `remote: `. Useful to extract server-specific
  * error messages from network operations (fetch, push, pull,
@@ -627,6 +656,6 @@ function getRemoteMessage(stderr: string) {
   return stderr
     .split(/\r?\n/)
     .filter(x => x.startsWith(needle))
-    .map(x => x.substr(needle.length))
+    .map(x => x.substring(needle.length))
     .join('\n')
 }

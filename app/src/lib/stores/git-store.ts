@@ -21,7 +21,11 @@ import {
 import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
-import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
+import {
+  DiscardChangesError,
+  ErrorWithMetadata,
+  IErrorMetadata,
+} from '../error-with-metadata'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
 
@@ -187,7 +191,7 @@ export class GitStore extends BaseStore {
       log.debug(
         `reconciling history - adding ${
           commits.length
-        } commits before merge base ${mergeBase.substr(0, 8)}`
+        } commits before merge base ${mergeBase.substring(0, 8)}`
       )
 
       // rebuild the local history state by combining the commits _before_ the
@@ -524,7 +528,7 @@ export class GitStore extends BaseStore {
         // strip out everything related to the remote because this
         // is likely to be a tracked branch locally
         // e.g. `main`, `develop`, etc
-        return match.substr(remoteNamespace.length)
+        return match.substring(remoteNamespace.length)
       }
     }
 
@@ -1449,7 +1453,9 @@ export class GitStore extends BaseStore {
   }
 
   public async discardChanges(
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true,
+    askForConfirmationOnDiscardChangesPermanently: boolean = false
   ): Promise<void> {
     const pathsToCheckout = new Array<string>()
     const pathsToReset = new Array<string>()
@@ -1459,13 +1465,23 @@ export class GitStore extends BaseStore {
     await queueWorkHigh(files, async file => {
       const foundSubmodule = submodules.some(s => s.path === file.path)
 
-      if (file.status.kind !== AppFileStatusKind.Deleted && !foundSubmodule) {
+      if (
+        file.status.kind !== AppFileStatusKind.Deleted &&
+        !foundSubmodule &&
+        moveToTrash
+      ) {
         // N.B. moveItemToTrash can take a fair bit of time which is why we're
         // running it inside this work queue that spreads out the calls across
         // as many animation frames as it needs to.
-        await this.shell.moveItemToTrash(
-          Path.resolve(this.repository.path, file.path)
-        )
+        try {
+          await this.shell.moveItemToTrash(
+            Path.resolve(this.repository.path, file.path)
+          )
+        } catch (e) {
+          if (askForConfirmationOnDiscardChangesPermanently) {
+            throw new DiscardChangesError(e, this.repository, files)
+          }
+        }
       }
 
       if (

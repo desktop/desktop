@@ -3,6 +3,7 @@ import {
   IDatabaseGitHubRepository,
   IDatabaseProtectedBranch,
   IDatabaseRepository,
+  getOwnerKey,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import {
@@ -15,7 +16,7 @@ import {
   assertIsRepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { fatalError, assertNonNullable } from '../fatal-error'
+import { fatalError, assertNonNullable, forceUnwrap } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIFullRepository } from '../api'
 import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
@@ -371,18 +372,23 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   private async putOwner(endpoint: string, login: string): Promise<Owner> {
-    login = login.toLowerCase()
+    const key = getOwnerKey(endpoint, login)
+    const existingOwner = await this.db.owners.get({ key })
+    let id
 
-    const existingOwner = await this.db.owners
-      .where('[endpoint+login]')
-      .equals([endpoint, login])
-      .first()
-
-    if (existingOwner) {
-      return new Owner(login, endpoint, existingOwner.id!)
+    // Since we look up the owner based on a key which is the product of the
+    // lowercased endpoint and login we know that we've found our match but it's
+    // possible that the case differs (i.e we found `usera` but the actual login
+    // is `userA`). In that case we want to update our database to persist the
+    // login with the proper case.
+    if (existingOwner === undefined || existingOwner.login !== login) {
+      id = existingOwner?.id
+      const existingId = id !== undefined ? { id } : {}
+      id = await this.db.owners.put({ ...existingId, key, endpoint, login })
+    } else {
+      id = forceUnwrap('Missing owner id', existingOwner.id)
     }
 
-    const id = await this.db.owners.add({ login, endpoint })
     return new Owner(login, endpoint, id)
   }
 
@@ -465,8 +471,7 @@ export class RepositoriesStore extends TypedBaseStore<
           )
         : await Promise.resolve(null) // Dexie gets confused if we return null
 
-    const login = gitHubRepository.owner.login.toLowerCase()
-    const owner = await this.putOwner(endpoint, login)
+    const owner = await this.putOwner(endpoint, gitHubRepository.owner.login)
 
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')

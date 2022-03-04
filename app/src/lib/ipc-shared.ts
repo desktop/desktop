@@ -39,8 +39,7 @@ export type RequestChannels = {
     extra: Record<string, string>,
     nonFatal: boolean
   ) => void
-  'show-item-in-folder': (path: string) => void
-  'show-folder-contents': (path: string) => void
+  'unsafe-open-directory': (path: string) => void
   'menu-event': (name: MenuEvent) => void
   log: (level: LogLevel, message: string) => void
   'will-quit': () => void
@@ -72,7 +71,6 @@ export type RequestChannels = {
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
   'set-native-theme-source': (themeName: ThemeSource) => void
-  'move-to-applications-folder': () => void
   'focus-window': () => void
 }
 
@@ -90,6 +88,7 @@ export type RequestResponseChannels = {
   'get-app-path': () => Promise<string>
   'is-running-under-arm64-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
+  'show-item-in-folder': (path: string) => Promise<void>
   'show-contextual-menu': (
     items: ReadonlyArray<ISerializableMenuItem>,
     addSpellCheckMenu: boolean
@@ -97,6 +96,7 @@ export type RequestResponseChannels = {
   'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>
   'is-in-application-folder': () => Promise<boolean | null>
+  'move-to-applications-folder': () => Promise<void>
   'check-for-updates': (url: string) => Promise<Error | undefined>
   'get-current-window-state': () => Promise<WindowState | undefined>
   'get-current-window-zoom-factor': () => Promise<number | undefined>

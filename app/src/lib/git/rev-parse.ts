@@ -2,6 +2,7 @@ import * as Path from 'path'
 
 import { git } from './core'
 import { RepositoryDoesNotExistErrorCode } from 'dugite'
+import { directoryExists } from '../directory-exists'
 
 /**
  * Get the absolute path to the top level working directory.
@@ -79,4 +80,42 @@ export async function isBareRepository(path: string): Promise<boolean> {
 /** Is the path a git repository? */
 export async function isGitRepository(path: string): Promise<boolean> {
   return (await getTopLevelWorkingDirectory(path)) !== null
+}
+
+/**
+ * Attempts to fulfill the work of isGitRepository and isBareRepository while
+ * requiring only one Git process to be spawned.
+ *
+ * Returns 'bare', 'regular', or 'missing' if the repository couldn't be
+ * found.
+ */
+export async function getRepositoryType(
+  path: string
+): Promise<'bare' | 'regular' | 'missing'> {
+  if (!(await directoryExists(path))) {
+    return 'missing'
+  }
+
+  try {
+    const result = await git(
+      ['rev-parse', '--is-bare-repository'],
+      path,
+      'getRepositoryType',
+      { successExitCodes: new Set([0, 128]) }
+    )
+
+    if (result.exitCode === 0) {
+      return result.stdout.trim() === 'true' ? 'bare' : 'regular'
+    }
+    return 'missing'
+  } catch (err) {
+    // This could theoretically mean that the Git executable didn't exist but
+    // in reality it's almost always going to be that the process couldn't be
+    // launched inside of `path` meaning it didn't exist. This would constitute
+    // a race condition given that we stat the path before executing Git.
+    if (err.code === 'ENOENT') {
+      return 'missing'
+    }
+    throw err
+  }
 }

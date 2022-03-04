@@ -1,5 +1,6 @@
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
+import { readFile } from 'fs/promises'
 
 const GitDescriptionPath = '.git/description'
 
@@ -13,7 +14,7 @@ export async function getGitDescription(
   const path = Path.join(repositoryPath, GitDescriptionPath)
 
   try {
-    const data = await FSE.readFile(path, 'utf8')
+    const data = await readFile(path, 'utf8')
     if (data === DefaultGitDescription) {
       return ''
     }

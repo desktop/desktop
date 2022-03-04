@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { Dialog, DialogContent } from '../dialog'
 import { ICommitContext } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -8,6 +11,10 @@ import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
+import { noop, pick } from 'lodash'
+import { Popup } from '../../models/popup'
+import { Foldout } from '../../lib/app-state'
+import { Account } from '../../models/account'
 
 interface ICommitMessageDialogProps {
   /**
@@ -76,12 +83,24 @@ interface ICommitMessageDialogProps {
 
   /** Method to run when dialog is submitted */
   readonly onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
+
+  readonly repositoryAccount: Account | null
+}
+
+interface ICommitMessageDialogState {
+  readonly showCoAuthoredBy: boolean
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 export class CommitMessageDialog extends React.Component<
   ICommitMessageDialogProps,
-  {}
+  ICommitMessageDialogState
 > {
+  public constructor(props: ICommitMessageDialogProps) {
+    super(props)
+    this.state = pick(props, 'showCoAuthoredBy', 'coAuthors')
+  }
+
   public render() {
     return (
       <Dialog
@@ -96,26 +115,59 @@ export class CommitMessageDialog extends React.Component<
             commitButtonText={this.props.dialogButtonText}
             commitToAmend={null}
             repository={this.props.repository}
-            dispatcher={this.props.dispatcher}
             commitMessage={this.props.commitMessage}
             focusCommitMessage={false}
             autocompletionProviders={this.props.autocompletionProviders}
-            showCoAuthoredBy={this.props.showCoAuthoredBy}
-            coAuthors={this.props.coAuthors}
+            showCoAuthoredBy={this.state.showCoAuthoredBy}
+            coAuthors={this.state.coAuthors}
             placeholder={''}
             prepopulateCommitSummary={this.props.prepopulateCommitSummary}
             key={this.props.repository.id}
             showBranchProtected={this.props.showBranchProtected}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
-            persistCoAuthors={false}
-            persistCommitMessage={false}
+            onCoAuthorsUpdated={this.onCoAuthorsUpdated}
+            onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}
             onCreateCommit={this.props.onSubmitCommitMessage}
             anyFilesAvailable={true}
             anyFilesSelected={true}
+            onCommitMessageFocusSet={noop}
+            onRefreshAuthor={this.onRefreshAuthor}
+            onShowPopup={this.onShowPopup}
+            onShowFoldout={this.onShowFoldout}
+            onCommitSpellcheckEnabledChanged={
+              this.onCommitSpellcheckEnabledChanged
+            }
+            repositoryAccount={this.props.repositoryAccount}
+            onStopAmending={this.onStopAmending}
+            onShowCreateForkDialog={this.onShowCreateForkDialog}
           />
         </DialogContent>
       </Dialog>
     )
+  }
+
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+    this.setState({ coAuthors })
+
+  private onShowCoAuthorsChanged = (showCoAuthoredBy: boolean) =>
+    this.setState({ showCoAuthoredBy })
+
+  private onRefreshAuthor = () =>
+    this.props.dispatcher.refreshAuthor(this.props.repository)
+
+  private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
+  private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)
+
+  private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
+    this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
+
+  private onStopAmending = () =>
+    this.props.dispatcher.stopAmendingRepository(this.props.repository)
+
+  private onShowCreateForkDialog = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    }
   }
 }

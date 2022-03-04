@@ -13,7 +13,7 @@ function isTestTag(version: SemVer) {
 function tryGetBetaNumber(version: SemVer): number | null {
   if (isBetaTag(version)) {
     const tag = version.prerelease[0]
-    const text = tag.substr(4)
+    const text = tag.substring(4)
     const betaNumber = parseInt(text, 10)
     return isNaN(betaNumber) ? null : betaNumber
   }

@@ -8,11 +8,7 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Dispatcher } from '../dispatcher'
-import {
-  Repository,
-  isRepositoryWithGitHubRepository,
-} from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input'
@@ -25,21 +21,21 @@ import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { CommitWarning, CommitWarningIcon } from './commit-warning'
 import { LinkButton } from '../lib/link-button'
-import { FoldoutType } from '../../lib/app-state'
+import { Foldout, FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Account } from '../../models/account'
 import { CommitMessageAvatar } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
-import { lookupPreferredEmail } from '../../lib/email'
+import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
-import { PopupType } from '../../models/popup'
+import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
-import { isAccountEmail } from '../../lib/is-account-email'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { pick } from 'lodash'
 
 const addAuthorIcon = {
   w: 18,
@@ -67,8 +63,7 @@ interface ICommitMessageProps {
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
-  readonly repositoryAccount?: Account | null
-  readonly dispatcher: Dispatcher
+  readonly repositoryAccount: Account | null
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting?: boolean
   readonly commitToAmend: Commit | null
@@ -100,11 +95,35 @@ interface ICommitMessageProps {
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
-  /** Whether or not to remember the commit message in the changes state */
-  readonly persistCommitMessage: boolean
-
   /** Whether or not to remember the coauthors in the changes state */
-  readonly persistCoAuthors: boolean
+  readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
+  readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
+
+  /**
+   * Called when the component unmounts to give callers the ability
+   * to persist the commit message (i.e. when switching between changes
+   * and history view).
+   */
+  readonly onPersistCommitMessage?: (message: ICommitMessage) => void
+
+  /**
+   * Called when the component has given the commit message focus due to
+   * `focusCommitMessage` being set. Used to reset the `focusCommitMessage`
+   * prop.
+   */
+  readonly onCommitMessageFocusSet: () => void
+
+  /**
+   * Called when the user email in Git config has been updated to refresh
+   * the repository state.
+   */
+  readonly onRefreshAuthor: () => void
+
+  readonly onShowPopup: (popup: Popup) => void
+  readonly onShowFoldout: (foldout: Foldout) => void
+  readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
+  readonly onStopAmending: () => void
+  readonly onShowCreateForkDialog: () => void
 }
 
 interface ICommitMessageState {
@@ -119,12 +138,6 @@ interface ICommitMessageState {
    * false when there's no action bar.
    */
   readonly descriptionObscured: boolean
-
-  /** when not persisting, we need to store locally */
-  readonly showCoAuthoredBy: boolean
-
-  /** when not persisting, we need to store locally */
-  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 function findUserAutoCompleteProvider(
@@ -163,21 +176,13 @@ export class CommitMessage extends React.Component<
         props.autocompletionProviders
       ),
       descriptionObscured: false,
-      showCoAuthoredBy: props.showCoAuthoredBy,
-      coAuthors: props.coAuthors,
     }
   }
 
+  // Persist our current commit message if the caller wants to
   public componentWillUnmount() {
-    if (!this.props.persistCommitMessage) {
-      return
-    }
-    // We're unmounting, likely due to the user switching to the history tab.
-    // Let's persist our commit message in the dispatcher.
-    this.props.dispatcher.setCommitMessage(this.props.repository, {
-      summary: this.state.summary,
-      description: this.state.description,
-    })
+    const { props, state } = this
+    props.onPersistCommitMessage?.(pick(state, 'summary', 'description'))
   }
 
   /**
@@ -234,12 +239,10 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    // If the need to show co-authors from the props changed, update the state.
-    if (prevProps.showCoAuthoredBy !== this.props.showCoAuthoredBy) {
-      this.setState({ showCoAuthoredBy: this.props.showCoAuthoredBy })
-    }
-
-    if (this.props.focusCommitMessage) {
+    if (
+      this.props.focusCommitMessage &&
+      this.props.focusCommitMessage !== prevProps.focusCommitMessage
+    ) {
       this.focusSummary()
     } else if (
       prevProps.showCoAuthoredBy === false &&
@@ -259,7 +262,7 @@ export class CommitMessage extends React.Component<
   private focusSummary() {
     if (this.summaryTextInput !== null) {
       this.summaryTextInput.focus()
-      this.props.dispatcher.setCommitMessageFocus(false)
+      this.props.onCommitMessageFocusSet()
     }
   }
 
@@ -276,24 +279,11 @@ export class CommitMessage extends React.Component<
   }
 
   private getCoAuthorTrailers() {
-    if (!this.isCoAuthorInputEnabled) {
-      return []
-    }
-
-    /**
-     * When we persist coauthors in the app's changes state or outside this
-     * component, they will be sent in via the props. When we do not want to
-     * persist (like when used in modal), we will be storing and using from the
-     * component's state.
-     */
-    const coAuthors = this.props.persistCoAuthors
-      ? this.props.coAuthors
-      : this.state.coAuthors
-
-    return coAuthors.map(a => ({
-      token: 'Co-Authored-By',
-      value: `${a.name} <${a.email}>`,
-    }))
+    const { coAuthors } = this.props
+    const token = 'Co-Authored-By'
+    return this.isCoAuthorInputEnabled
+      ? coAuthors.map(a => ({ token, value: `${a.name} <${a.email}>` }))
+      : []
   }
 
   private get summaryOrPlaceholder() {
@@ -374,7 +364,7 @@ export class CommitMessage extends React.Component<
       email !== undefined &&
       repositoryAccount !== null &&
       repositoryAccount !== undefined &&
-      isAccountEmail(accountEmails, email) === false
+      isAttributableEmailFor(repositoryAccount, email) === false
 
     return (
       <CommitMessageAvatar
@@ -399,11 +389,11 @@ export class CommitMessage extends React.Component<
 
   private onUpdateUserEmail = async (email: string) => {
     await setGlobalConfigValue('user.email', email)
-    this.props.dispatcher.refreshAuthor(this.props.repository)
+    this.props.onRefreshAuthor()
   }
 
   private onOpenRepositorySettings = () => {
-    this.props.dispatcher.showPopup({
+    this.props.onShowPopup({
       type: PopupType.RepositorySettings,
       repository: this.props.repository,
       initialSelectedTab: RepositorySettingsTab.GitConfig,
@@ -415,17 +405,11 @@ export class CommitMessage extends React.Component<
   }
 
   private get isCoAuthorInputVisible() {
-    return this.state.showCoAuthoredBy && this.isCoAuthorInputEnabled
+    return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
   }
 
-  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
-    if (!this.props.persistCoAuthors) {
-      this.setState({ coAuthors })
-      return
-    }
-
-    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
-  }
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+    this.props.onCoAuthorsUpdated(coAuthors)
 
   private renderCoAuthorInput() {
     if (!this.isCoAuthorInputVisible) {
@@ -450,22 +434,11 @@ export class CommitMessage extends React.Component<
   }
 
   private onToggleCoAuthors = () => {
-    this.setState({
-      showCoAuthoredBy: !this.state.showCoAuthoredBy,
-    })
-
-    if (!this.props.persistCoAuthors) {
-      return
-    }
-
-    this.props.dispatcher.setShowCoAuthoredBy(
-      this.props.repository,
-      !this.props.showCoAuthoredBy
-    )
+    this.props.onShowCoAuthoredByChanged(!this.props.showCoAuthoredBy)
   }
 
   private get toggleCoAuthorsText(): string {
-    return this.state.showCoAuthoredBy
+    return this.props.showCoAuthoredBy
       ? __DARWIN__
         ? 'Remove Co-Authors'
         : 'Remove co-authors'
@@ -521,8 +494,7 @@ export class CommitMessage extends React.Component<
       : 'Disable commit spellcheck'
     return {
       label: isEnabled ? disableLabel : enableLabel,
-      action: () =>
-        this.props.dispatcher.setCommitSpellcheckEnabled(!isEnabled),
+      action: () => this.props.onCommitSpellcheckEnabledChanged(!isEnabled),
     }
   }
 
@@ -629,7 +601,9 @@ export class CommitMessage extends React.Component<
       return (
         <CommitWarning icon={CommitWarningIcon.Information}>
           Your changes will modify your <strong>most recent commit</strong>.{' '}
-          <LinkButton onClick={this.onStopAmending}>Stop amending</LinkButton>{' '}
+          <LinkButton onClick={this.props.onStopAmending}>
+            Stop amending
+          </LinkButton>{' '}
           to make these changes as a new commit.
         </CommitWarning>
       )
@@ -638,7 +612,10 @@ export class CommitMessage extends React.Component<
         <CommitWarning icon={CommitWarningIcon.Warning}>
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
-          <LinkButton onClick={this.onMakeFork}>create a fork</LinkButton>?
+          <LinkButton onClick={this.props.onShowCreateForkDialog}>
+            create a fork
+          </LinkButton>
+          ?
         </CommitWarning>
       )
     } else if (showBranchProtected) {
@@ -663,19 +640,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onSwitchBranch = () => {
-    this.props.dispatcher.showFoldout({
-      type: FoldoutType.Branch,
-    })
-  }
-
-  private onMakeFork = () => {
-    if (isRepositoryWithGitHubRepository(this.props.repository)) {
-      this.props.dispatcher.showCreateForkDialog(this.props.repository)
-    }
-  }
-
-  private onStopAmending = () => {
-    this.props.dispatcher.stopAmendingRepository(this.props.repository)
+    this.props.onShowFoldout({ type: FoldoutType.Branch })
   }
 
   private renderSubmitButton() {

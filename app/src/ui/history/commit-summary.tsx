@@ -17,6 +17,7 @@ import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { clipboard } from 'electron'
 import { TooltipDirection } from '../lib/tooltip'
+import { AppFileStatusKind } from '../../models/status'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -293,9 +294,6 @@ export class CommitSummary extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.changesetData.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.commit.shortSha
 
     const className = classNames({
@@ -352,13 +350,7 @@ export class CommitSummary extends React.Component<
               </TooltippedContent>
             </li>
 
-            <li
-              className="commit-summary-meta-item without-truncation"
-              title={filesDescription}
-            >
-              <Octicon symbol={OcticonSymbol.diff} />
-              {filesDescription}
-            </li>
+            {this.renderChangedFilesDescription()}
             {this.renderLinesChanged()}
             {this.renderTags()}
 
@@ -399,6 +391,72 @@ export class CommitSummary extends React.Component<
   private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     clipboard.writeText(this.props.commit.sha)
+  }
+
+  private renderChangedFilesDescription = () => {
+    const fileCount = this.props.changesetData.files.length
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    const filesShortDescription = `${fileCount} changed ${filesPlural}`
+
+    let filesAdded = 0
+    let filesModified = 0
+    let filesRemoved = 0
+    for (const file of this.props.changesetData.files) {
+      switch (file.status.kind) {
+        case AppFileStatusKind.New:
+          filesAdded += 1
+          break
+        case AppFileStatusKind.Modified:
+          filesModified += 1
+          break
+        case AppFileStatusKind.Deleted:
+          filesRemoved += 1
+          break
+      }
+    }
+
+    const filesLongDescription = (
+      <>
+        {filesAdded > 0 ? (
+          <span>
+            <Octicon
+              className="files-added-icon"
+              symbol={OcticonSymbol.diffAdded}
+            />
+            {filesAdded} added
+          </span>
+        ) : null}
+        {filesModified > 0 ? (
+          <span>
+            <Octicon
+              className="files-modified-icon"
+              symbol={OcticonSymbol.diffModified}
+            />
+            {filesModified} modified
+          </span>
+        ) : null}
+        {filesRemoved > 0 ? (
+          <span>
+            <Octicon
+              className="files-deleted-icon"
+              symbol={OcticonSymbol.diffRemoved}
+            />
+            {filesRemoved} deleted
+          </span>
+        ) : null}
+      </>
+    )
+
+    return (
+      <TooltippedContent
+        className="commit-summary-meta-item without-truncation"
+        tooltipClassName="changed-files-description-tooltip"
+        tooltip={fileCount > 0 ? filesLongDescription : undefined}
+      >
+        <Octicon symbol={OcticonSymbol.diff} />
+        {filesShortDescription}
+      </TooltippedContent>
+    )
   }
 
   private renderLinesChanged() {

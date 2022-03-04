@@ -1,6 +1,5 @@
 import * as path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import CleanWebpackPlugin from 'clean-webpack-plugin'
 import webpack from 'webpack'
 import merge from 'webpack-merge'
 import { getChannel } from '../script/dist-info'
@@ -18,13 +17,16 @@ export const replacements = getReplacements()
 
 const commonConfig: webpack.Configuration = {
   optimization: {
-    noEmitOnErrors: true,
+    emitOnErrors: false,
   },
   externals: externals,
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),
-    libraryTarget: 'commonjs2',
+    library: {
+      name: '[name]',
+      type: 'commonjs2',
+    },
   },
   module: {
     rules: [
@@ -48,10 +50,12 @@ const commonConfig: webpack.Configuration = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin([outputDir], { verbose: false }),
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/locale$/,
+      contextRegExp: /moment$/,
+    }),
   ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
@@ -62,41 +66,17 @@ const commonConfig: webpack.Configuration = {
   },
 }
 
-// Hack: The file-metadata plugin has substantial dependencies
-// (plist, DOMParser, etc) and it's only applicable on macOS.
-//
-// Therefore, when compiling on other platforms, we replace it
-// with a tiny shim instead.
-const shimFileMetadata = {
-  resolve: {
-    alias: {
-      'file-metadata': path.resolve(
-        __dirname,
-        'src',
-        'lib',
-        'helpers',
-        'file-metadata.js'
-      ),
-    },
-  },
-}
-
-export const main = merge(
-  {},
-  commonConfig,
-  {
-    entry: { main: path.resolve(__dirname, 'src/main-process/main') },
-    target: 'electron-main',
-    plugins: [
-      new webpack.DefinePlugin(
-        Object.assign({}, replacements, {
-          __PROCESS_KIND__: JSON.stringify('main'),
-        })
-      ),
-    ],
-  },
-  process.platform !== 'darwin' ? shimFileMetadata : {}
-)
+export const main = merge({}, commonConfig, {
+  entry: { main: path.resolve(__dirname, 'src/main-process/main') },
+  target: 'electron-main',
+  plugins: [
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('main'),
+      })
+    ),
+  ],
+})
 
 export const renderer = merge({}, commonConfig, {
   entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
@@ -158,16 +138,19 @@ export const cli = merge({}, commonConfig, {
 export const highlighter = merge({}, commonConfig, {
   entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
   output: {
-    libraryTarget: 'var',
+    library: {
+      name: '[name]',
+      type: 'var',
+    },
     chunkFilename: 'highlighter/[name].js',
   },
   optimization: {
-    namedChunks: true,
+    chunkIds: 'named',
     splitChunks: {
       cacheGroups: {
         modes: {
           enforce: true,
-          name: (mod, chunks) => {
+          name: (mod: any) => {
             const builtInMode = /node_modules[\\\/]codemirror[\\\/]mode[\\\/](\w+)[\\\/]/i.exec(
               mod.resource
             )

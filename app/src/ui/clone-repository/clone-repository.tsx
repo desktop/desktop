@@ -213,6 +213,11 @@ export class CloneRepository extends React.Component<
       enterpriseTabState,
       urlTabState,
     })
+
+    // Update the local path based on the current url now that we have an
+    // initial path
+    const selectedTabState = this.getSelectedTabState()
+    this.updateUrl(selectedTabState.url)
   }
 
   public componentWillUnmount() {
@@ -580,9 +585,15 @@ export class CloneRepository extends React.Component<
     const tabState = this.getSelectedTabState()
     const lastParsedIdentifier = tabState.lastParsedIdentifier
 
+    // If there is no path yet, just update the url
+    if (tabState.path === null) {
+      this.setSelectedTabState({ url }, this.validatePath)
+      return
+    }
+
     let newPath: string
 
-    const dirPath = tabState.path ?? ''
+    const dirPath = tabState.path
     if (lastParsedIdentifier) {
       if (parsed) {
         newPath = Path.join(Path.dirname(dirPath), parsed.name)
