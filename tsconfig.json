@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2017",
+    "target": "ES2021",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,
@@ -15,7 +15,6 @@
     "jsx": "react",
     "strict": true,
     "outDir": "./out",
-    "lib": ["ES2017", "DOM", "DOM.Iterable", "ES2018.Promise", "ES2020.string"],
     "useUnknownInCatchVariables": false
   },
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
