@@ -1,6 +1,5 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
-import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
 import byline from 'byline'
 
