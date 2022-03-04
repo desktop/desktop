@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -8,6 +7,7 @@ import {
   buildCustomMarkDownNodeFilterPipe,
 } from '../../lib/markdown-filters/node-filter'
 import { GitHubRepository } from '../../models/github-repository'
+import { readFile } from 'fs/promises'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -80,7 +80,7 @@ export class SandboxedMarkdown extends React.PureComponent<
    * document body and provide them aswell.
    */
   private async getInlineStyleSheet(): Promise<string> {
-    const css = await FSE.readFile(
+    const css = await readFile(
       Path.join(__dirname, 'static', 'markdown.css'),
       'utf8'
     )

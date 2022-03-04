@@ -31,6 +31,7 @@ import { Ref } from '../lib/ref'
 import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog } from '../main-process-proxy'
+import { pathExists } from '../lib/path-exists'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -190,7 +191,7 @@ export class CreateRepository extends React.Component<
     }
 
     const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
-    const readMeExists = await FSE.pathExists(fullPath)
+    const readMeExists = await pathExists(fullPath)
 
     // Only update readMeExists if the path is still the same
     this.setState(state => (state.path === path ? { readMeExists } : null))
@@ -323,7 +324,7 @@ export class CreateRepository extends React.Component<
 
     try {
       const gitAttributes = Path.join(fullPath, '.gitattributes')
-      const gitAttributesExists = await FSE.pathExists(gitAttributes)
+      const gitAttributesExists = await pathExists(gitAttributes)
       if (!gitAttributesExists) {
         await writeGitAttributes(fullPath)
       }
