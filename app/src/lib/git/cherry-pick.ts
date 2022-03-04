@@ -20,6 +20,7 @@ import { ManualConflictResolution } from '../../models/manual-conflict-resolutio
 import { stageManualConflictResolution } from './stage'
 import { getCommit } from '.'
 import { IMultiCommitOperationProgress } from '../../models/progress'
+import { readFile } from 'fs/promises'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -239,7 +240,7 @@ export async function getCherryPickSnapshot(
   // or aborted at the same time.
   try {
     abortSafetySha = (
-      await FSE.readFile(
+      await readFile(
         Path.join(repository.path, '.git', 'sequencer', 'abort-safety'),
         'utf8'
       )
@@ -252,7 +253,7 @@ export async function getCherryPickSnapshot(
     }
 
     headSha = (
-      await FSE.readFile(
+      await readFile(
         Path.join(repository.path, '.git', 'sequencer', 'head'),
         'utf8'
       )
@@ -265,7 +266,7 @@ export async function getCherryPickSnapshot(
     }
 
     const remainingPicks = (
-      await FSE.readFile(
+      await readFile(
         Path.join(repository.path, '.git', 'sequencer', 'todo'),
         'utf8'
       )
@@ -306,7 +307,7 @@ export async function getCherryPickSnapshot(
     // If cherry-pick is in progress, then there was only one commit cherry-picked
     // thus sequencer files were not used.
     const cherryPickHeadSha = (
-      await FSE.readFile(
+      await readFile(
         Path.join(repository.path, '.git', 'CHERRY_PICK_HEAD'),
         'utf8'
       )
