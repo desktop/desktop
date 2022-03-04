@@ -1,4 +1,3 @@
-import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
 import * as fsAdmin from 'fs-admin'
