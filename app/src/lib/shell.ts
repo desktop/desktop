@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-
 import { ExecFileOptions } from 'child_process'
 import { execFile } from './exec-file'
 import { isMacOSCatalinaOrEarlier } from './get-os'
