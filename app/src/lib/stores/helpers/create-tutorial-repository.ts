@@ -1,7 +1,7 @@
 import * as Path from 'path'
 
 import { Account } from '../../../models/account'
-import { pathExists, ensureDir } from 'fs-extra'
+import { ensureDir } from 'fs-extra'
 import { writeFile } from 'fs/promises'
 import { API } from '../../api'
 import { APIError } from '../../http'
@@ -14,6 +14,7 @@ import { friendlyEndpointName } from '../../friendly-endpoint-name'
 import { IRemote } from '../../../models/remote'
 import { getDefaultBranch } from '../../helpers/default-branch'
 import { envForRemoteOperation } from '../../git/environment'
+import { pathExists } from '../../../ui/lib/path-exists'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InitialReadmeContents =

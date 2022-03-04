@@ -6,8 +6,8 @@ import {
   RegistryValue,
   RegistryValueType,
 } from 'registry-js'
+import { pathExists } from '../../ui/lib/path-exists'
 
-import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 
 interface IWindowsAppInformation {

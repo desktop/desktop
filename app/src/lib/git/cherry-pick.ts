@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import {
@@ -21,6 +20,7 @@ import { stageManualConflictResolution } from './stage'
 import { getCommit } from '.'
 import { IMultiCommitOperationProgress } from '../../models/progress'
 import { readFile } from 'fs/promises'
+import { pathExists } from '../../ui/lib/path-exists'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -496,7 +496,7 @@ export async function isCherryPickHeadFound(
       '.git',
       'CHERRY_PICK_HEAD'
     )
-    return FSE.pathExists(cherryPickHeadPath)
+    return pathExists(cherryPickHeadPath)
   } catch (err) {
     log.warn(
       `[cherryPick] a problem was encountered reading .git/CHERRY_PICK_HEAD,

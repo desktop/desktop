@@ -1,9 +1,10 @@
 import * as Path from 'path'
 import * as Os from 'os'
 
-import { pathExists, ensureDir } from 'fs-extra'
+import { ensureDir } from 'fs-extra'
 import { writeFile } from 'fs/promises'
 import { spawn, getPathSegments, setPathSegments } from '../lib/process/win32'
+import { pathExists } from '../ui/lib/path-exists'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
