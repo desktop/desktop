@@ -1,8 +1,7 @@
 import * as Path from 'path'
 import * as Os from 'os'
 
-import { ensureDir } from 'fs-extra'
-import { writeFile } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises'
 import { spawn, getPathSegments, setPathSegments } from '../lib/process/win32'
 import { pathExists } from '../ui/lib/path-exists'
 
@@ -49,7 +48,7 @@ async function handleUpdated(): Promise<void> {
 
 async function installCLI(): Promise<void> {
   const binPath = getBinPath()
-  await ensureDir(binPath)
+  await mkdir(binPath, { recursive: true })
   await writeBatchScriptCLITrampoline(binPath)
   await writeShellScriptCLITrampoline(binPath)
   try {

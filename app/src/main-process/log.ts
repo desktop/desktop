@@ -2,11 +2,11 @@ import * as Path from 'path'
 import * as winston from 'winston'
 import { getLogDirectoryPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
-import { ensureDir } from 'fs-extra'
 import { noop } from 'lodash'
 import { DesktopConsoleTransport } from './desktop-console-transport'
 import 'winston-daily-rotate-file'
 import memoizeOne from 'memoize-one'
+import { mkdir } from 'fs/promises'
 
 /**
  * The maximum number of log files we should have on disk before pruning old
@@ -65,7 +65,7 @@ function initializeWinston(path: string): winston.LogMethod {
  */
 const getLogger = memoizeOne(async () => {
   const logDirectory = getLogDirectoryPath()
-  await ensureDir(logDirectory)
+  await mkdir(logDirectory, { recursive: true })
   return initializeWinston(logDirectory)
 })
 

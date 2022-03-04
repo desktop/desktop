@@ -2,7 +2,7 @@ import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
 import * as fsAdmin from 'fs-admin'
-import { readlink, symlink, unlink } from 'fs/promises'
+import { mkdir, readlink, symlink, unlink } from 'fs/promises'
 
 /** The path for the installed command line tool. */
 export const InstalledCLIPath = '/usr/local/bin/github'
@@ -58,7 +58,7 @@ function createDirectories(asAdmin: boolean) {
   const path = Path.dirname(InstalledCLIPath)
 
   if (!asAdmin) {
-    return FSE.mkdirp(path)
+    return mkdir(path, { recursive: true })
   }
 
   return new Promise<void>((resolve, reject) => {
