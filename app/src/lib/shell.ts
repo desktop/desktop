@@ -41,21 +41,28 @@ export async function updateEnvironmentForProcess(): Promise<void> {
     return
   }
 
-  const shell = process.env.SHELL || '/bin/bash'
-  // This timeout and the excessive maxBuffer are leftovers of previous
-  // implementations and could _probably_ be removed. The default maxBuffer is
-  // 1Mb and I don't know why anyone would have 1Mb of env vars. The timeout
-  // is a leftover from when the process was detached and the reason we still
-  // have it is that if we happen to await this method it could block app launch
-  const opts: ExecFileOptions = { timeout: 5000, maxBuffer: 10 * 1024 * 1024 }
+  try {
+    const shell = process.env.SHELL || '/bin/bash'
+    // These options are leftovers of previous implementations and could
+    // _probably_ be removed. The default maxBuffer is 1Mb and I don't know why
+    // anyone would have 1Mb of env vars (previous implementation had no limit).
+    //
+    // The timeout is a leftover from when the process was detached and the
+    // reason we still have it is that if we happen to await this method it
+    // could block app launch
+    const opts: ExecFileOptions = { timeout: 5000, maxBuffer: 10 * 1024 * 1024 }
 
-  const rawEnv = await execFile(shell, ['-ilc', 'command env'], opts)
-    .then(({ stdout }) => stdout)
-    .catch(() => '')
+    // Deal with environment variables containing newlines by separating with \0
+    // https://github.com/atom/atom/blob/d04abd683/src/update-process-env.js#L17
+    const cmd = `command awk 'BEGIN{for(k in ENVIRON) printf("%c%s=%s%c", 0, k, ENVIRON[k], 0)}'`
+    const { stdout } = await execFile(shell, ['-ilc', cmd], opts)
 
-  for (const [, k, v] of rawEnv.matchAll(/^(.+?)=(.*)$/gm)) {
-    if (!ExcludedEnvironmentVars.has(k)) {
-      process.env[k] = v
+    for (const [, k, v] of stdout.matchAll(/\0(.+?)=(.+?)\0/g)) {
+      if (!ExcludedEnvironmentVars.has(k)) {
+        process.env[k] = v
+      }
     }
+  } catch (err) {
+    log.error('Failed updating process environment from shell', err)
   }
 }
