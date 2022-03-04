@@ -1,5 +1,4 @@
-import * as FSE from 'fs-extra'
-import { appendFile, writeFile } from 'fs/promises'
+import { appendFile, rm, writeFile } from 'fs/promises'
 import { getCommits, revRange } from '.'
 import { Commit } from '../../models/commit'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
@@ -160,11 +159,11 @@ export async function squash(
     return RebaseResult.Error
   } finally {
     if (todoPath !== undefined) {
-      FSE.remove(todoPath)
+      await rm(todoPath, { recursive: true, force: true })
     }
 
     if (messagePath !== undefined) {
-      FSE.remove(messagePath)
+      await rm(messagePath, { recursive: true, force: true })
     }
   }
 

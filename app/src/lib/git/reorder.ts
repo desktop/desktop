@@ -1,5 +1,4 @@
-import * as FSE from 'fs-extra'
-import { appendFile } from 'fs/promises'
+import { appendFile, rm } from 'fs/promises'
 import { getCommits, revRange } from '.'
 import { Commit } from '../../models/commit'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
@@ -145,7 +144,7 @@ export async function reorder(
     return RebaseResult.Error
   } finally {
     if (todoPath !== undefined) {
-      FSE.remove(todoPath)
+      await rm(todoPath, { recursive: true, force: true })
     }
   }
 
