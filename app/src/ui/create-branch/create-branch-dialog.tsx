@@ -407,7 +407,8 @@ export class CreateBranch extends React.Component<
           Your new branch will be based on{' '}
           <strong>{upstreamRepositoryFullName}</strong>
           's {defaultBranchLink} (
-          <Ref>{upstreamDefaultBranch.nameWithoutRemote}</Ref>){this.renderForkLinkSuffix()}.
+          <Ref>{upstreamDefaultBranch.nameWithoutRemote}</Ref>)
+          {this.renderForkLinkSuffix()}.
         </div>
       )
     } else {
