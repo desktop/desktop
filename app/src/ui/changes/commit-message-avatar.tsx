@@ -44,6 +44,10 @@ interface ICommitMessageAvatarProps {
 
   readonly onUpdateEmail: (email: string) => void
 
+  /**
+   * Called when the user has requested to see the Git Config tab in the
+   * repository settings dialog
+   */
   readonly onOpenRepositorySettings: () => void
 }
 

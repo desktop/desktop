@@ -150,6 +150,7 @@ import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-
 import { clamp } from '../lib/clamp'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
+import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1399,6 +1400,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            confirmDiscardChangesPermanently={
+              this.state.askForConfirmationOnDiscardChangesPermanently
+            }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
@@ -1524,7 +1528,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.About:
-        const version = __DEV__ ? __SHA__.substr(0, 10) : getVersion()
+        const version = __DEV__ ? __SHA__.substring(0, 10) : getVersion()
 
         return (
           <About
@@ -1926,6 +1930,11 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state.accounts
         )
 
+        const repositoryAccount = getAccountForRepository(
+          this.state.accounts,
+          popup.repository
+        )
+
         return (
           <CommitMessageDialog
             key="commit-message"
@@ -1947,6 +1956,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showNoWriteAccess={!hasWritePermissionForRepository}
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
+            repositoryAccount={repositoryAccount}
           />
         )
       case PopupType.MultiCommitOperation: {
@@ -2086,6 +2096,19 @@ export class App extends React.Component<IAppProps, IAppState> {
               onPopupDismissedFn
             )}
             onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.DiscardChangesRetry: {
+        return (
+          <DiscardChangesRetryDialog
+            key="discard-changes-retry"
+            dispatcher={this.props.dispatcher}
+            retryAction={popup.retryAction}
+            onDismissed={onPopupDismissedFn}
+            onConfirmDiscardChangesChanged={
+              this.onConfirmDiscardChangesPermanentlyChanged
+            }
           />
         )
       }
@@ -2244,6 +2267,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.props.dispatcher.setConfirmDiscardChangesSetting(value)
+  }
+
+  private onConfirmDiscardChangesPermanentlyChanged = (value: boolean) => {
+    this.props.dispatcher.setConfirmDiscardChangesPermanentlySetting(value)
   }
 
   private renderAppError() {

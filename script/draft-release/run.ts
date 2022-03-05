@@ -1,6 +1,5 @@
 import { sort as semverSort, SemVer } from 'semver'
 
-import { spawn } from '../changelog/spawn'
 import { getLogLines } from '../changelog/git'
 import {
   convertToChangelogFormat,
@@ -15,6 +14,7 @@ import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { format } from 'prettier'
 import { assertNever } from '../../app/src/lib/fatal-error'
+import { sh } from '../sh'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
 
@@ -28,8 +28,7 @@ const changelogPath = join(__dirname, '..', '..', 'changelog.json')
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
 }): Promise<string> {
-  const allTags = await spawn('git', ['tag'])
-  let releaseTags = allTags
+  let releaseTags = (await sh('git', 'tag'))
     .split('\n')
     .filter(tag => tag.startsWith('release-'))
     .filter(tag => !tag.includes('-linux'))
@@ -39,7 +38,7 @@ async function getLatestRelease(options: {
     releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
   }
 
-  const releaseVersions = releaseTags.map(tag => tag.substr(8))
+  const releaseVersions = releaseTags.map(tag => tag.substring(8))
 
   const sortedTags = semverSort(releaseVersions)
   const latestTag = sortedTags[sortedTags.length - 1]

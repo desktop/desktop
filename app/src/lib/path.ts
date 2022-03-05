@@ -1,16 +1,14 @@
 import * as Path from 'path'
-import fileUrl from 'file-url'
 import { realpath } from 'fs-extra'
+import { pathToFileURL } from 'url'
 
 /**
  * Resolve and encode the path information into a URL.
  *
  * @param pathSegments array of path segments to resolve
  */
-export function encodePathAsUrl(...pathSegments: string[]): string {
-  const path = Path.resolve(...pathSegments)
-  return fileUrl(path)
-}
+export const encodePathAsUrl = (...pathSegments: string[]) =>
+  pathToFileURL(Path.resolve(...pathSegments)).toString()
 
 /**
  * Resolve one or more path sequences into an absolute path underneath

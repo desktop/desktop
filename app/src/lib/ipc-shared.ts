@@ -39,8 +39,7 @@ export type RequestChannels = {
     extra: Record<string, string>,
     nonFatal: boolean
   ) => void
-  'show-item-in-folder': (path: string) => void
-  'show-folder-contents': (path: string) => void
+  'unsafe-open-directory': (path: string) => void
   'menu-event': (name: MenuEvent) => void
   log: (level: LogLevel, message: string) => void
   'will-quit': () => void
@@ -89,6 +88,7 @@ export type RequestResponseChannels = {
   'get-app-path': () => Promise<string>
   'is-running-under-arm64-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
+  'show-item-in-folder': (path: string) => Promise<void>
   'show-contextual-menu': (
     items: ReadonlyArray<ISerializableMenuItem>,
     addSpellCheckMenu: boolean

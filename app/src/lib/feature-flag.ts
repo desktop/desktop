@@ -165,5 +165,5 @@ export function enablePullRequestQuickView(): boolean {
 
 /** Should we enable high-signal notifications? */
 export function enableHighSignalNotifications(): boolean {
-  return enableBetaFeatures()
+  return true
 }

@@ -1,9 +1,46 @@
 {
   "releases": {
+    "2.9.11": [
+      "[Added] Add tooltip to show types of file changes in a commit - #13957. Thanks @uttiya10!",
+      "[Fixed] Discarding submodules with spaces in their relative path now correctly updates the submodule instead of moving it to Trash - #14024",
+      "[Fixed] Prevent crash report dialog from appearing when launching on macOS Catalina or earlier - #13974",
+      "[Fixed] Pre-fill clone path with repository name - #13971",
+      "[Fixed] Allow discarding changes in scenarios where they cannot be moved to Trash - #13888",
+      "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13909",
+      "[Fixed] Treat the old and new format of private email addresses equally when showing commit attribution warning - #13879",
+      "[Fixed] Repositories containing untracked submodules no longer display a duplicated first character on Windows - #12314"
+    ],
+    "2.9.11-beta1": [
+      "[Added] Add tooltip to show types of file changes in a commit - #13957. Thanks @uttiya10!",
+      "[Fixed] Discarding submodules with spaces in their relative path now correctly updates the submodule instead of moving it to Trash - #14024",
+      "[Fixed] Prevent crash report dialog from appearing when launching on macOS Catalina or earlier - #13974",
+      "[Fixed] Pre-fill clone path with repository name - #13971",
+      "[Fixed] Allow discarding changes in scenarios where they cannot be moved to Trash - #13888",
+      "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13909",
+      "[Fixed] Treat the old and new format of private email addresses equally when showing commit attribution warning - #13879",
+      "[Fixed] Repositories containing untracked submodules no longer display a duplicated first character on Windows - #12314"
+    ],
+    "2.9.10": [
+      "[New] Initial support for system notifications when checks fail - #13655",
+      "[Fixed] Unicode emoji on Windows are rendered in the correct position - #13958",
+      "[Fixed] Fix crash logging under some circumstances - #13962"
+    ],
+    "2.9.10-beta2": [
+      "[Fixed] Unicode emoji on Windows are rendered in the correct position - #13958",
+      "[Fixed] Fix crash logging under some circumstances - #13962"
+    ],
+    "2.9.10-beta1": [
+      "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13928",
+      "[Fixed] User guides now opens the correct page - #13920",
+      "[Fixed] Fix duplicated first character on Windows when dealing with submodules or repos-within-repos - #12314",
+      "[Fixed] Treat the old and new format of private email address equally when showing commit attribution warning - #13887",
+      "[Fixed] Fixes crash on some Windows machines - #13930"
+    ],
     "2.9.9": [
       "[Fixed] \"Create New Repository\" dialog preserves the path set from \"Add Local Repository\" dialog - #13928",
       "[Fixed] User guides now opens the correct page - #13920",
-      "[Fixed] Fixes crash on some Windows machines - #13930"
+      "[Fixed] Fixes crash on some Windows machines - #13930",
+      "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916"
     ],
     "2.9.9-beta1": [
       "[Fixed] App no longer crashes intermittently when running remote Git operations - #13916",

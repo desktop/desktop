@@ -101,7 +101,7 @@ export function parseAppURL(url: string): URLActionType {
   }
 
   // Trim the trailing / from the URL
-  const parsedPath = pathName.substr(1)
+  const parsedPath = pathName.substring(1)
 
   if (actionName === 'openrepo') {
     const pr = getQueryStringValue(query, 'pr')

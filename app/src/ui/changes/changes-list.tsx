@@ -12,7 +12,10 @@ import {
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { Account } from '../../models/account'
 import { IAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
@@ -33,7 +36,11 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { Commit, ICommitContext } from '../../models/commit'
-import { RebaseConflictState, ConflictState } from '../../lib/app-state'
+import {
+  RebaseConflictState,
+  ConflictState,
+  Foldout,
+} from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -43,6 +50,7 @@ import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { Popup } from '../../models/popup'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -688,7 +696,6 @@ export class ChangesList extends React.Component<
         anyFilesAvailable={fileCount > 0}
         repository={repository}
         repositoryAccount={repositoryAccount}
-        dispatcher={dispatcher}
         commitMessage={this.props.commitMessage}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
@@ -706,10 +713,50 @@ export class ChangesList extends React.Component<
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
-        persistCoAuthors={true}
-        persistCommitMessage={true}
+        onCoAuthorsUpdated={this.onCoAuthorsUpdated}
+        onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
+        onPersistCommitMessage={this.onPersistCommitMessage}
+        onCommitMessageFocusSet={this.onCommitMessageFocusSet}
+        onRefreshAuthor={this.onRefreshAuthor}
+        onShowPopup={this.onShowPopup}
+        onShowFoldout={this.onShowFoldout}
+        onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
+        onStopAmending={this.onStopAmending}
+        onShowCreateForkDialog={this.onShowCreateForkDialog}
       />
     )
+  }
+
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
+
+  private onShowCoAuthoredByChanged = (showCoAuthors: boolean) => {
+    const { dispatcher, repository } = this.props
+    dispatcher.setShowCoAuthoredBy(repository, showCoAuthors)
+  }
+
+  private onRefreshAuthor = () =>
+    this.props.dispatcher.refreshAuthor(this.props.repository)
+
+  private onCommitMessageFocusSet = () =>
+    this.props.dispatcher.setCommitMessageFocus(false)
+
+  private onPersistCommitMessage = (message: ICommitMessage) =>
+    this.props.dispatcher.setCommitMessage(this.props.repository, message)
+
+  private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
+  private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)
+
+  private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
+    this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
+
+  private onStopAmending = () =>
+    this.props.dispatcher.stopAmendingRepository(this.props.repository)
+
+  private onShowCreateForkDialog = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    }
   }
 
   private onStashEntryClicked = () => {
