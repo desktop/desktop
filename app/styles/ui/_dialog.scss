@@ -389,6 +389,9 @@ dialog {
   }
   &#create-branch {
     width: 400px;
+    .link-button-component {
+      display: inline;
+    }
   }
   &#push-branch-commits {
     width: 450px;
