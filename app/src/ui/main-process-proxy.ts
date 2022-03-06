@@ -1,7 +1,7 @@
 import { ExecutableMenuItem } from '../models/app-menu'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import * as ipcRenderer from '../lib/ipc-renderer'
-import { stat } from 'fs-extra'
+import { stat } from 'fs/promises'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 
 /**

@@ -1,6 +1,5 @@
 import * as Path from 'path'
-import * as FSE from 'fs-extra'
-import { readFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
 
 const GitDescriptionPath = '.git/description'
 
@@ -30,5 +29,5 @@ export async function writeGitDescription(
   description: string
 ): Promise<void> {
   const fullPath = Path.join(repositoryPath, GitDescriptionPath)
-  await FSE.writeFile(fullPath, description)
+  await writeFile(fullPath, description)
 }

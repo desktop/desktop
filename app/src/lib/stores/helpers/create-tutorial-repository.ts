@@ -1,7 +1,8 @@
 import * as Path from 'path'
 
 import { Account } from '../../../models/account'
-import { writeFile, pathExists, ensureDir } from 'fs-extra'
+import { pathExists, ensureDir } from 'fs-extra'
+import { writeFile } from 'fs/promises'
 import { API } from '../../api'
 import { APIError } from '../../http'
 import {

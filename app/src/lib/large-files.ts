@@ -1,7 +1,7 @@
 import { WorkingDirectoryStatus } from '../models/status'
 import { DiffSelectionType } from '../models/diff'
 import { Repository } from '../models/repository'
-import { stat } from 'fs-extra'
+import { stat } from 'fs/promises'
 import { join } from 'path'
 
 /**
