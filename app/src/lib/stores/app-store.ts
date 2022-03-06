@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
   AccountsStore,
@@ -295,6 +294,7 @@ import {
   getNotificationsEnabled,
 } from './notifications-store'
 import * as ipcRenderer from '../ipc-renderer'
+import { pathExists } from '../../ui/lib/path-exists'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 

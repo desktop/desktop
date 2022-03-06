@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { clipboard } from 'electron'
-import { pathExists } from 'fs-extra'
 import * as Path from 'path'
 
 import { Repository } from '../../models/repository'
@@ -34,6 +33,7 @@ import { IMenuItem } from '../../lib/menu-item'
 import { IChangesetData } from '../../lib/git'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
+import { pathExists } from '../lib/path-exists'
 
 interface ISelectedCommitProps {
   readonly repository: Repository

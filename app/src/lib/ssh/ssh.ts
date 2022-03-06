@@ -1,5 +1,5 @@
-import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
+import { pathExists } from '../../ui/lib/path-exists'
 import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
 import { getBoolean } from '../local-storage'
 import {
@@ -23,7 +23,7 @@ export const isWindowsOpenSSHAvailable = memoizeOne(
       return false
     }
 
-    return await fse.pathExists(WindowsOpenSSHPath)
+    return await pathExists(WindowsOpenSSHPath)
   }
 )
 
