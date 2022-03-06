@@ -46,6 +46,7 @@ import {
   getLineWidthFromDigitCount,
   getNumberOfDigits,
   MaxIntraLineDiffStringLength,
+  getFirstAndLastClassesSideBySide,
 } from './diff-helpers'
 import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './diff-syntax-mode'
@@ -323,11 +324,27 @@ export class SideBySideDiff extends React.Component<
       this.props.showSideBySideDiff,
       this.canExpandDiff()
     )
-    const row = rows[index]
 
+    const row = rows[index]
     if (row === undefined) {
       return null
     }
+
+    const prev = rows[index - 1]
+    const next = rows[index + 1]
+
+    const beforeClassNames = getFirstAndLastClassesSideBySide(
+      row,
+      prev,
+      next,
+      DiffRowType.Deleted
+    )
+    const afterClassNames = getFirstAndLastClassesSideBySide(
+      row,
+      prev,
+      next,
+      DiffRowType.Added
+    )
 
     const lineNumberWidth = getLineWidthFromDigitCount(
       getNumberOfDigits(diff.maxLineNumber)
@@ -368,6 +385,8 @@ export class SideBySideDiff extends React.Component<
             onHideWhitespaceInDiffChanged={
               this.props.onHideWhitespaceInDiffChanged
             }
+            beforeClassNames={beforeClassNames}
+            afterClassNames={afterClassNames}
           />
         </div>
       </CellMeasurer>
@@ -1131,17 +1150,17 @@ function getDiffRowsFromHunk(
 }
 
 function getModifiedRows(
-  addedDeletedLines: ReadonlyArray<ModifiedLine>,
+  addedOrDeletedLines: ReadonlyArray<ModifiedLine>,
   showSideBySideDiff: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
-  if (addedDeletedLines.length === 0) {
+  if (addedOrDeletedLines.length === 0) {
     return []
   }
-  const hunkStartLine = addedDeletedLines[0].diffLineNumber
+  const hunkStartLine = addedOrDeletedLines[0].diffLineNumber
   const addedLines = new Array<ModifiedLine>()
   const deletedLines = new Array<ModifiedLine>()
 
-  for (const line of addedDeletedLines) {
+  for (const line of addedOrDeletedLines) {
     if (line.line.type === DiffLineType.Add) {
       addedLines.push(line)
     } else if (line.line.type === DiffLineType.Delete) {

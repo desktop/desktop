@@ -10,6 +10,7 @@ import {
 } from '../../models/status'
 import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
 import { DiffLineType } from '../../models/diff'
+import { DiffSyntaxToken } from './diff-syntax-mode'
 
 /**
  * DiffRowType defines the different types of
@@ -393,3 +394,63 @@ export function getNumberOfDigits(val: number): number {
  * GitHub.com's behavior.
  **/
 export const MaxIntraLineDiffStringLength = 1024
+
+/**
+ * Used to obtain classes applied to style the row as first or last of a group
+ * of added or deleted rows in the side-by-side diff.
+ **/
+export function getFirstAndLastClassesSideBySide(
+  row: SimplifiedDiffRow,
+  previousRow: SimplifiedDiffRow | undefined,
+  nextRow: SimplifiedDiffRow | undefined,
+  addedOrDeleted: DiffRowType.Added | DiffRowType.Deleted
+): ReadonlyArray<string> {
+  const classes = new Array<string>()
+  const typesToCheck = [addedOrDeleted, DiffRowType.Modified]
+
+  // Is the row of the type we are checking? No. Then can't be first or last.
+  if (!typesToCheck.includes(row.type)) {
+    return []
+  }
+
+  // Is the previous row exist or is of the type we are checking?
+  // No. Then this row must be the first of this type.
+  if (previousRow === undefined || !typesToCheck.includes(previousRow.type)) {
+    classes.push('is-first')
+  }
+
+  // Is the next row exist or is of the type we are checking?
+  // No. Then this row must be last of this type.
+  if (nextRow === undefined || !typesToCheck.includes(nextRow.type)) {
+    classes.push('is-last')
+  }
+
+  return classes
+}
+
+/**
+ * Used to obtain classes applied to style the row if it is the first or last of
+ * a group of added, deleted, or modified rows in the unified diff.
+ **/
+export function getFirstAndLastClassesUnified(
+  token: DiffSyntaxToken,
+  prevToken: DiffSyntaxToken | undefined,
+  nextToken: DiffSyntaxToken | undefined
+): string[] {
+  const addedOrDeletedTokens = [DiffSyntaxToken.Add, DiffSyntaxToken.Delete]
+  if (!addedOrDeletedTokens.includes(token)) {
+    return []
+  }
+
+  const classNames = []
+
+  if (prevToken !== token) {
+    classNames.push('is-first')
+  }
+
+  if (nextToken !== token) {
+    classNames.push('is-last')
+  }
+
+  return classNames
+}

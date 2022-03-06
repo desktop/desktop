@@ -6,6 +6,7 @@ import { ITokens } from '../../lib/highlighter/types'
 import 'codemirror/mode/javascript/javascript'
 import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import { DefaultDiffExpansionStep } from './text-diff-expansion'
+import { getFirstAndLastClassesUnified } from './diff-helpers'
 
 export interface IDiffSyntaxModeOptions {
   /**
@@ -30,18 +31,24 @@ export interface IDiffSyntaxModeSpec extends IDiffSyntaxModeOptions {
   readonly name: 'github-diff-syntax'
 }
 
-type DiffSyntaxToken = 'diff-add' | 'diff-delete' | 'diff-hunk' | 'diff-context'
+export enum DiffSyntaxToken {
+  Add = 'diff-add',
+  Delete = 'diff-delete',
+  Hunk = 'diff-hunk',
+  Context = 'diff-context',
+}
 
-const TokenNames: { [key: string]: DiffSyntaxToken | null } = {
-  '+': 'diff-add',
-  '-': 'diff-delete',
-  '@': 'diff-hunk',
-  ' ': 'diff-context',
+const TokenNames: { [key: string]: DiffSyntaxToken | undefined } = {
+  '+': DiffSyntaxToken.Add,
+  '-': DiffSyntaxToken.Delete,
+  '@': DiffSyntaxToken.Hunk,
+  ' ': DiffSyntaxToken.Context,
 }
 
 interface IState {
   diffLineIndex: number
   previousHunkOldEndLine: number | null
+  prevLineToken: DiffSyntaxToken | undefined
 }
 
 function skipLine(stream: CodeMirror.StringStream, state: IState) {
@@ -50,8 +57,15 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
   return null
 }
 
-function getBaseDiffLineStyle(token: DiffSyntaxToken) {
-  return `line-${token} line-background-${token}`
+function getBaseDiffLineStyle(
+  token: DiffSyntaxToken,
+  customBackgroundClassNames: ReadonlyArray<string> = []
+) {
+  const customBackgroundStyles = customBackgroundClassNames
+    .map(c => `line-background-${c}`)
+    .join(' ')
+
+  return `line-${token} line-background-${token} ${customBackgroundStyles}`
 }
 
 /**
@@ -115,7 +129,11 @@ export class DiffSyntaxMode {
   }
 
   public startState(): IState {
-    return { diffLineIndex: 0, previousHunkOldEndLine: null }
+    return {
+      diffLineIndex: 0,
+      previousHunkOldEndLine: null,
+      prevLineToken: undefined,
+    }
   }
 
   public blankLine(state: IState) {
@@ -124,7 +142,7 @@ export class DiffSyntaxMode {
     // diff that was just loaded, but for which we haven't run the highlighter
     // yet. If we don't do this, that last line will be formatted wrongly.
     if (this.hunks === undefined) {
-      return getBaseDiffLineStyle('diff-hunk')
+      return getBaseDiffLineStyle(DiffSyntaxToken.Hunk)
     }
 
     // A line might be empty in a non-blank diff for the only line of the
@@ -133,7 +151,7 @@ export class DiffSyntaxMode {
     if (this.hunks.length > 0) {
       const diffLine = diffLineForIndex(this.hunks, state.diffLineIndex)
       if (diffLine?.type === DiffLineType.Hunk) {
-        return getBaseDiffLineStyle('diff-hunk')
+        return getBaseDiffLineStyle(DiffSyntaxToken.Hunk)
       }
     }
 
@@ -150,27 +168,38 @@ export class DiffSyntaxMode {
     // The first character of a line in a diff is always going to
     // be the diff line marker so we always take care of that first.
     if (stream.sol()) {
-      const index = stream.next()
+      const tokenKey = stream.next()
 
       if (stream.eol()) {
         state.diffLineIndex++
       }
 
-      if (index === null) {
+      if (tokenKey === null) {
         return null
       }
 
-      const token = TokenNames[index] ?? null
+      const token = TokenNames[tokenKey]
 
-      if (token === null) {
+      if (token === undefined) {
         return null
       }
 
-      let result = getBaseDiffLineStyle(token)
+      const nextLine = stream.lookAhead(1)
+      const nextLineToken =
+        typeof nextLine === 'string' ? TokenNames[nextLine[0]] : undefined
+
+      const lineBackgroundClassNames = getFirstAndLastClassesUnified(
+        token,
+        state.prevLineToken,
+        nextLineToken
+      )
+      state.prevLineToken = token
+
+      let result = getBaseDiffLineStyle(token, lineBackgroundClassNames)
 
       // If it's a hunk header line, we want to make a few extra checks
       // depending on the distance to the previous hunk.
-      if (index === '@' && enableTextDiffExpansion()) {
+      if (token === DiffSyntaxToken.Hunk && enableTextDiffExpansion()) {
         // First we grab the numbers in the hunk header
         const matches = stream.match(/\@ -(\d+),(\d+) \+\d+,\d+ \@\@/)
         if (matches !== null) {
