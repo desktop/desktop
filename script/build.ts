@@ -3,7 +3,6 @@
 
 import * as path from 'path'
 import * as cp from 'child_process'
-import * as fs from 'fs-extra'
 import * as os from 'os'
 import packager, {
   OfficialArch,
@@ -46,7 +45,16 @@ import { isCircleCI, isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
-import { rmSync } from 'fs'
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs'
+import { copySync } from 'fs-extra'
 
 const projectRoot = path.join(__dirname, '..')
 const entitlementsPath = `${projectRoot}/script/entitlements.plist`
@@ -232,7 +240,7 @@ function packageApp() {
 
 function removeAndCopy(source: string, destination: string) {
   rmSync(destination, { recursive: true, force: true })
-  fs.copySync(source, destination)
+  copySync(source, destination)
 }
 
 function copyEmoji() {
@@ -251,25 +259,25 @@ function copyStaticResources() {
   const common = path.join(projectRoot, 'app', 'static', 'common')
   const destination = path.join(outRoot, 'static')
   rmSync(destination, { recursive: true, force: true })
-  if (fs.existsSync(platformSpecific)) {
-    fs.copySync(platformSpecific, destination)
+  if (existsSync(platformSpecific)) {
+    copySync(platformSpecific, destination)
   }
-  fs.copySync(common, destination, { overwrite: false })
+  copySync(common, destination, { overwrite: false })
 }
 
 function moveAnalysisFiles() {
   const rendererReport = 'renderer.report.html'
   const analysisSource = path.join(outRoot, rendererReport)
-  if (fs.existsSync(analysisSource)) {
+  if (existsSync(analysisSource)) {
     const distRoot = getDistRoot()
     const destination = path.join(distRoot, rendererReport)
-    fs.mkdirpSync(distRoot)
+    mkdirSync(distRoot, { recursive: true })
     // there's no moveSync API here, so let's do it the old fashioned way
     //
     // unlinkSync below ensures that the analysis file isn't bundled into
     // the app by accident
-    fs.copySync(analysisSource, destination, { overwrite: true })
-    fs.unlinkSync(analysisSource)
+    copySync(analysisSource, destination, { overwrite: true })
+    unlinkSync(analysisSource)
   }
 }
 
@@ -290,7 +298,7 @@ function copyDependencies() {
       ? filterExternals(pkg.devDependencies)
       : {}
 
-  fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(pkg))
+  writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(pkg))
   rmSync(path.resolve(outRoot, 'node_modules'), {
     recursive: true,
     force: true,
@@ -306,8 +314,8 @@ function copyDependencies() {
       ? 'desktop-trampoline.exe'
       : 'desktop-trampoline'
   rmSync(desktopTrampolineDir, { recursive: true, force: true })
-  fs.mkdirSync(desktopTrampolineDir)
-  fs.copySync(
+  mkdirSync(desktopTrampolineDir, { recursive: true })
+  copySync(
     path.resolve(
       projectRoot,
       'app/node_modules/desktop-trampoline/build/Release',
@@ -320,7 +328,7 @@ function copyDependencies() {
   if (process.platform === 'darwin' && isDevelopmentBuild) {
     console.log('  Copying ssh-wrapper')
     const sshWrapperFile = 'ssh-wrapper'
-    fs.copySync(
+    copySync(
       path.resolve(
         projectRoot,
         'app/node_modules/desktop-trampoline/build/Release',
@@ -333,8 +341,8 @@ function copyDependencies() {
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
   rmSync(gitDir, { recursive: true, force: true })
-  fs.mkdirpSync(gitDir)
-  fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
+  mkdirSync(gitDir, { recursive: true })
+  copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
   if (process.platform === 'win32') {
     console.log('  Cleaning unneeded Git components…')
@@ -357,7 +365,7 @@ function copyDependencies() {
     for (const file of files) {
       const filePath = path.join(gitCoreDir, file)
       try {
-        fs.unlinkSync(filePath)
+        unlinkSync(filePath)
       } catch (err) {
         // probably already cleaned up
       }
@@ -368,7 +376,7 @@ function copyDependencies() {
     console.log('  Copying app-path binary…')
     const appPathMain = path.resolve(outRoot, 'main')
     rmSync(appPathMain, { recursive: true, force: true })
-    fs.copySync(
+    copySync(
       path.resolve(projectRoot, 'app/node_modules/app-path/main'),
       appPathMain
     )
@@ -379,12 +387,12 @@ function generateLicenseMetadata(outRoot: string) {
   const chooseALicense = path.join(outRoot, 'static', 'choosealicense.com')
   const licensesDir = path.join(chooseALicense, '_licenses')
 
-  const files = fs.readdirSync(licensesDir)
+  const files = readdirSync(licensesDir)
 
   const licenses = new Array<ILicense>()
   for (const file of files) {
     const fullPath = path.join(licensesDir, file)
-    const contents = fs.readFileSync(fullPath, 'utf8')
+    const contents = readFileSync(fullPath, 'utf8')
     const result = frontMatter<IChooseALicense>(contents)
 
     const licenseText = result.body.trim()
@@ -407,7 +415,7 @@ function generateLicenseMetadata(outRoot: string) {
 
   const licensePayload = path.join(outRoot, 'static', 'available-licenses.json')
   const text = JSON.stringify(licenses)
-  fs.writeFileSync(licensePayload, text, 'utf8')
+  writeFileSync(licensePayload, text, 'utf8')
 
   // embed the license alongside the generated license payload
   const chooseALicenseLicense = path.join(chooseALicense, 'LICENSE.md')
@@ -417,7 +425,7 @@ function generateLicenseMetadata(outRoot: string) {
     'LICENSE.choosealicense.md'
   )
 
-  const licenseText = fs.readFileSync(chooseALicenseLicense, 'utf8')
+  const licenseText = readFileSync(chooseALicenseLicense, 'utf8')
   const licenseWithHeader = `GitHub Desktop uses licensing information provided by choosealicense.com.
 
 The bundle in available-licenses.json has been generated from a source list provided at https://github.com/github/choosealicense.com, which is made available under the below license:
@@ -426,7 +434,7 @@ The bundle in available-licenses.json has been generated from a source list prov
 
 ${licenseText}`
 
-  fs.writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
+  writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
   rmSync(chooseALicense, { recursive: true, force: true })
