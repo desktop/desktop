@@ -1,8 +1,7 @@
 import * as Path from 'path'
 
 import { Account } from '../../../models/account'
-import { ensureDir } from 'fs-extra'
-import { writeFile } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises'
 import { API } from '../../api'
 import { APIError } from '../../http'
 import {
@@ -120,7 +119,7 @@ export async function createTutorialRepository(
   const branch = repo.default_branch ?? (await getDefaultBranch())
   progressCb('Initializing local repository', 0.2)
 
-  await ensureDir(path)
+  await mkdir(path, { recursive: true })
 
   await git(
     ['-c', `init.defaultBranch=${branch}`, 'init'],

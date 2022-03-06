@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Path from 'path'
-import * as FSE from 'fs-extra'
 
 import { Dispatcher } from '../dispatcher'
 import {
@@ -32,6 +31,7 @@ import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog } from '../main-process-proxy'
 import { pathExists } from '../lib/path-exists'
+import { mkdir } from 'fs/promises'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -207,7 +207,7 @@ export class CreateRepository extends React.Component<
       // if the user provided an initial path and didn't change it, we should
       // validate it is an existing path and use that for the repository
       try {
-        await FSE.ensureDir(currentPath)
+        await mkdir(currentPath, { recursive: true })
         return currentPath
       } catch {}
     }
@@ -226,7 +226,7 @@ export class CreateRepository extends React.Component<
     }
 
     try {
-      await FSE.ensureDir(fullPath)
+      await mkdir(fullPath, { recursive: true })
       this.setState({ isValidPath: true })
     } catch (e) {
       if (e.code === 'EACCES' && e.errno === -13) {
