@@ -16,6 +16,7 @@ import {
   getIconFileName,
 } from './dist-info'
 import { isAppveyor, isGitHubActions } from './build-platforms'
+import { rmSync } from 'fs-extra'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -34,7 +35,7 @@ if (process.platform === 'darwin') {
 
 function packageOSX() {
   const dest = getOSXZipPath()
-  fs.removeSync(dest)
+  rmSync(dest, { recursive: true, force: true })
 
   console.log('Packaging for macOS…')
   cp.execSync(

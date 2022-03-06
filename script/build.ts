@@ -46,6 +46,7 @@ import { isCircleCI, isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
+import { rmSync } from 'fs'
 
 const projectRoot = path.join(__dirname, '..')
 const entitlementsPath = `${projectRoot}/script/entitlements.plist`
@@ -58,7 +59,7 @@ const isDevelopmentBuild = getChannel() === 'development'
 console.log(`Building for ${getChannel()}…`)
 
 console.log('Removing old distribution…')
-fs.removeSync(getDistRoot())
+rmSync(getDistRoot(), { recursive: true, force: true })
 
 console.log('Copying dependencies…')
 copyDependencies()
@@ -230,7 +231,7 @@ function packageApp() {
 }
 
 function removeAndCopy(source: string, destination: string) {
-  fs.removeSync(destination)
+  rmSync(destination, { recursive: true, force: true })
   fs.copySync(source, destination)
 }
 
@@ -249,7 +250,7 @@ function copyStaticResources() {
   const platformSpecific = path.join(projectRoot, 'app', 'static', dirName)
   const common = path.join(projectRoot, 'app', 'static', 'common')
   const destination = path.join(outRoot, 'static')
-  fs.removeSync(destination)
+  rmSync(destination, { recursive: true, force: true })
   if (fs.existsSync(platformSpecific)) {
     fs.copySync(platformSpecific, destination)
   }
@@ -290,7 +291,10 @@ function copyDependencies() {
       : {}
 
   fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(pkg))
-  fs.removeSync(path.resolve(outRoot, 'node_modules'))
+  rmSync(path.resolve(outRoot, 'node_modules'), {
+    recursive: true,
+    force: true,
+  })
 
   console.log('  Installing dependencies via yarn…')
   cp.execSync('yarn install', { cwd: outRoot, env: process.env })
@@ -301,7 +305,7 @@ function copyDependencies() {
     process.platform === 'win32'
       ? 'desktop-trampoline.exe'
       : 'desktop-trampoline'
-  fs.removeSync(desktopTrampolineDir)
+  rmSync(desktopTrampolineDir, { recursive: true, force: true })
   fs.mkdirSync(desktopTrampolineDir)
   fs.copySync(
     path.resolve(
@@ -328,7 +332,7 @@ function copyDependencies() {
 
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
-  fs.removeSync(gitDir)
+  rmSync(gitDir, { recursive: true, force: true })
   fs.mkdirpSync(gitDir)
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
@@ -363,7 +367,7 @@ function copyDependencies() {
   if (process.platform === 'darwin') {
     console.log('  Copying app-path binary…')
     const appPathMain = path.resolve(outRoot, 'main')
-    fs.removeSync(appPathMain)
+    rmSync(appPathMain, { recursive: true, force: true })
     fs.copySync(
       path.resolve(projectRoot, 'app/node_modules/app-path/main'),
       appPathMain
@@ -425,7 +429,7 @@ ${licenseText}`
   fs.writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
-  fs.removeSync(chooseALicense)
+  rmSync(chooseALicense, { recursive: true, force: true })
 }
 
 function getNotarizationCredentials(): OsxNotarizeOptions | undefined {
