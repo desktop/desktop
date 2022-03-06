@@ -36,7 +36,6 @@
     "event-kit": "^2.0.0",
     "focus-trap-react": "^8.1.0",
     "fs-admin": "^0.19.0",
-    "fs-extra": "^9.0.1",
     "fuzzaldrin-plus": "^0.6.0",
     "keytar": "^7.8.0",
     "marked": "^4.0.10",
