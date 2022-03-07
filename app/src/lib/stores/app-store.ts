@@ -85,6 +85,7 @@ import {
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
+  IAPIPullRequestReview,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -556,6 +557,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
+    )
+
+    this.notificationsStore.onPullRequestReviewSubmitNotification(
+      this.onPullRequestReviewSubmitNotification
     )
   }
 
@@ -6944,6 +6949,53 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._setShowCIStatusPopover(true)
     } else {
       this.statsStore.recordChecksFailedDialogOpen()
+
+      // If there is no current branch or it's different than the PR branch,
+      // show the checks failed dialog, but it won't offer to switch to the
+      // repository.
+      return this._showPopup({
+        ...popup,
+        needsSelectRepository: false,
+      })
+    }
+  }
+
+  private onPullRequestReviewSubmitNotification = async (
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    review: IAPIPullRequestReview
+  ) => {
+    const selectedRepository =
+      this.selectedRepository ?? (await this._selectRepository(repository))
+
+    const popup: Popup = {
+      type: PopupType.PullRequestReview,
+      needsSelectRepository: true,
+      review,
+      pullRequest,
+      repository,
+    }
+
+    // If the repository doesn't match the one from the notification, just show
+    // the popup which will suggest to switch to that repo.
+    if (
+      selectedRepository === null ||
+      selectedRepository.hash !== repository.hash
+    ) {
+      // TODO: this.statsStore.recordChecksFailedDialogOpen()
+      return this._showPopup(popup)
+    }
+
+    const state = this.repositoryStateCache.get(repository)
+
+    const { branchesState } = state
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (currentBranch !== null && currentBranch.name === pullRequest.head.ref) {
+      // TODO: what if we're already in that branch?
+    } else {
+      // TODO: this.statsStore.recordChecksFailedDialogOpen()
 
       // If there is no current branch or it's different than the PR branch,
       // show the checks failed dialog, but it won't offer to switch to the

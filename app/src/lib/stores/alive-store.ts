@@ -21,8 +21,20 @@ export interface IDesktopChecksFailedAliveEvent {
   readonly commit_sha: string
 }
 
+export interface IDesktopPullRequestReviewSubmitAliveEvent {
+  readonly type: 'pr-review-submit'
+  readonly timestamp: number
+  readonly owner: string
+  readonly repo: string
+  readonly pull_request_number: number
+  readonly state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED'
+  readonly review_id: string
+}
+
 /** Represents an Alive event relevant to Desktop. */
-export type DesktopAliveEvent = IDesktopChecksFailedAliveEvent
+export type DesktopAliveEvent =
+  | IDesktopChecksFailedAliveEvent
+  | IDesktopPullRequestReviewSubmitAliveEvent
 interface IAliveSubscription {
   readonly account: Account
   readonly subscription: Subscription<AliveStore>
@@ -237,7 +249,7 @@ export class AliveStore {
     }
 
     const data = (event.data as any) as DesktopAliveEvent
-    if (data.type === 'pr-checks-failed') {
+    if (data.type === 'pr-checks-failed' || data.type === 'pr-review-submit') {
       this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, data)
     }
   }

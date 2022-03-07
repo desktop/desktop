@@ -4,7 +4,7 @@ import {
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { PullRequest } from '../../models/pull-request'
-import { API, APICheckConclusion } from '../api'
+import { API, APICheckConclusion, IAPIPullRequestReview } from '../api'
 import {
   createCombinedCheckFromChecks,
   getLatestCheckRunsByName,
@@ -21,6 +21,7 @@ import {
   AliveStore,
   DesktopAliveEvent,
   IDesktopChecksFailedAliveEvent,
+  IDesktopPullRequestReviewSubmitAliveEvent,
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
 import { showNotification } from './helpers/show-notification'
@@ -32,6 +33,12 @@ type OnChecksFailedCallback = (
   commitMessage: string,
   commitSha: string,
   checkRuns: ReadonlyArray<IRefCheck>
+) => void
+
+type OnPullRequestReviewSubmitCallback = (
+  repository: RepositoryWithGitHubRepository,
+  pullRequest: PullRequest,
+  review: IAPIPullRequestReview
 ) => void
 
 /**
@@ -52,6 +59,7 @@ export function getNotificationsEnabled() {
 export class NotificationsStore {
   private repository: RepositoryWithGitHubRepository | null = null
   private onChecksFailedCallback: OnChecksFailedCallback | null = null
+  private onPullRequestReviewSubmitCallback: OnPullRequestReviewSubmitCallback | null = null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
 
@@ -81,7 +89,56 @@ export class NotificationsStore {
     switch (e.type) {
       case 'pr-checks-failed':
         return this.handleChecksFailedEvent(e)
+      case 'pr-review-submit':
+        return this.handlePullRequestReviewSubmitEvent(e)
     }
+  }
+
+  private async handlePullRequestReviewSubmitEvent(
+    event: IDesktopPullRequestReviewSubmitAliveEvent
+  ) {
+    const repository = this.repository
+    if (repository === null) {
+      return
+    }
+
+    const pullRequests = await this.pullRequestCoordinator.getAllPullRequests(
+      repository
+    )
+    const pullRequest = pullRequests.find(
+      pr => pr.pullRequestNumber === event.pull_request_number
+    )
+
+    // If the PR is not in cache, it probably means the user didn't work on it
+    // from Desktop, so we can maybe ignore it?
+    if (pullRequest === undefined) {
+      return
+    }
+
+    const account = await this.getAccountForRepository(
+      repository.gitHubRepository
+    )
+
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const { gitHubRepository } = repository
+    const review = await api.fetchPullRequestReview(
+      gitHubRepository.owner.login,
+      gitHubRepository.name,
+      pullRequest.pullRequestNumber.toString(),
+      event.review_id
+    )
+    const title = `@${review.user.login} requested changes on your pull request`
+    const body = `${pullRequest.title} #${
+      pullRequest.pullRequestNumber
+    }\n${review.body.substring(0, 50)}…`
+
+    showNotification(title, body, () => {
+      this.onPullRequestReviewSubmitCallback?.(repository, pullRequest, review)
+    })
   }
 
   private async handleChecksFailedEvent(event: IDesktopChecksFailedAliveEvent) {
@@ -264,5 +321,12 @@ export class NotificationsStore {
   /** Observe when the user reacted to a "Checks Failed" notification. */
   public onChecksFailedNotification(callback: OnChecksFailedCallback) {
     this.onChecksFailedCallback = callback
+  }
+
+  /** Observe when the user reacted to a "PR review submit" notification. */
+  public onPullRequestReviewSubmitNotification(
+    callback: OnPullRequestReviewSubmitCallback
+  ) {
+    this.onPullRequestReviewSubmitCallback = callback
   }
 }
