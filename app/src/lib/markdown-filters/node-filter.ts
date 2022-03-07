@@ -43,7 +43,7 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
     new IssueMentionFilter(repository),
     new IssueLinkFilter(repository),
     new EmojiFilter(emoji),
-    new MentionFilter(),
+    new MentionFilter(repository),
   ]
 )
 

@@ -1,3 +1,5 @@
+import { GitHubRepository } from '../../models/github-repository'
+import { getHTMLURL } from '../api'
 import { INodeFilter } from './node-filter'
 
 /**
@@ -22,7 +24,7 @@ export class MentionFilter implements INodeFilter {
   private readonly beginStringNonWord = /(^|[^a-zA-Z0-9_`])/
 
   // @username and @username_emu for emu support
-  private readonly userName = /@(?<username>[a-z0-9][a-z0-9-]*_[a-zA-Z0-9]+|[a-z0-9][a-z0-9-]*)/
+  private readonly userNameRef = /(?<userNameRef>@[a-z0-9][a-z0-9-]*_[a-zA-Z0-9]+|@[a-z0-9][a-z0-9-]*)/
 
   // without a trailing slash
   private readonly withoutTrailingSlash = /(?!\/)/
@@ -41,9 +43,9 @@ export class MentionFilter implements INodeFilter {
   // Note: Enterprise managed users may have underscores
   private readonly mentionRegex = new RegExp(
     this.beginStringNonWord.source +
-      this.userName.source +
+      this.userNameRef.source +
       this.withoutTrailingSlash.source +
-      '(' +
+      '(?=' +
       this.dotsFollowedBySpace.source +
       '|' +
       this.dotsAtEndOfLine.source +
@@ -54,7 +56,13 @@ export class MentionFilter implements INodeFilter {
     'ig'
   )
 
-  public constructor() {}
+  /** The parent github repository of which the content the filter is being
+   * applied to belongs  */
+  private readonly repository: GitHubRepository
+
+  public constructor(repository: GitHubRepository) {
+    this.repository = repository
+  }
 
   /**
    * Mention filters iterates on all text nodes that are not inside a pre, code,
@@ -98,23 +106,23 @@ export class MentionFilter implements INodeFilter {
         continue
       }
 
-      const { username } = match.groups
-      if (username === undefined) {
+      const { userNameRef } = match.groups
+      if (userNameRef === undefined) {
         continue
       }
 
-      const link = this.createLinkElement(username)
+      const link = this.createLinkElement(userNameRef)
       if (link === null) {
         continue
       }
 
-      const textBefore = text.slice(lastMatchEndingPosition, match.index)
+      const refPosition = match.index === 0 ? 0 : match.index + 1
+      const textBefore = text.slice(lastMatchEndingPosition, refPosition)
       const textNodeBefore = document.createTextNode(textBefore)
       nodes.push(textNodeBefore)
       nodes.push(link)
 
-      // +1 for the @
-      lastMatchEndingPosition = match.index + (username.length ?? 0) + 1
+      lastMatchEndingPosition = refPosition + (userNameRef.length ?? 0)
     }
 
     const trailingText = text.slice(lastMatchEndingPosition)
@@ -128,10 +136,11 @@ export class MentionFilter implements INodeFilter {
   /**
    * Method to create the user mention anchor.
    **/
-  private createLinkElement(username: string) {
-    const href = `https://github.com/${username}`
+  private createLinkElement(userNameRef: string) {
+    const baseHref = getHTMLURL(this.repository.endpoint)
+    const href = `${baseHref}/${userNameRef.slice(1)}`
     const anchor = document.createElement('a')
-    anchor.textContent = `@${username}`
+    anchor.textContent = userNameRef
     anchor.href = href
     return anchor
   }
