@@ -25,6 +25,9 @@ import { startTimer } from '../lib/timing'
 import { GitHubRepository } from '../../models/github-repository'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { CommitOneLine } from '../../models/commit'
+import { PopupType } from '../../models/popup'
+import { RepositorySettingsTab } from '../repository-settings/repository-settings'
+import { isRepositoryWithForkedGitHubRepository } from '../../models/repository'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -348,12 +351,12 @@ export class CreateBranch extends React.Component<
   ) {
     if (defaultBranch === null || defaultBranch.name === currentBranchName) {
       return (
-        <p>
+        <div>
           Your new branch will be based on your currently checked out branch (
-          <Ref>{currentBranchName}</Ref>
-          ). <Ref>{currentBranchName}</Ref> is the {defaultBranchLink} for your
+          <Ref>{currentBranchName}</Ref>){this.renderForkLinkSuffix()}.{' '}
+          <Ref>{currentBranchName}</Ref> is the {defaultBranchLink} for your
           repository.
-        </p>
+        </div>
       )
     } else {
       const items = [
@@ -376,7 +379,12 @@ export class CreateBranch extends React.Component<
           ? this.state.startPoint
           : StartPoint.CurrentBranch
 
-      return this.renderOptions(items, selectedValue)
+      return (
+        <div>
+          {this.renderOptions(items, selectedValue)}
+          {this.renderForkLink()}
+        </div>
+      )
     }
   }
 
@@ -395,12 +403,13 @@ export class CreateBranch extends React.Component<
     // fork will have the same default branch name
     if (currentBranchName === upstreamDefaultBranch.nameWithoutRemote) {
       return (
-        <p>
+        <div>
           Your new branch will be based on{' '}
           <strong>{upstreamRepositoryFullName}</strong>
           's {defaultBranchLink} (
-          <Ref>{upstreamDefaultBranch.nameWithoutRemote}</Ref>).
-        </p>
+          <Ref>{upstreamDefaultBranch.nameWithoutRemote}</Ref>)
+          {this.renderForkLinkSuffix()}.
+        </div>
       )
     } else {
       const items = [
@@ -422,8 +431,43 @@ export class CreateBranch extends React.Component<
         this.state.startPoint === StartPoint.UpstreamDefaultBranch
           ? this.state.startPoint
           : StartPoint.CurrentBranch
+      return (
+        <div>
+          {this.renderOptions(items, selectedValue)}
+          {this.renderForkLink()}
+        </div>
+      )
+    }
+  }
 
-      return this.renderOptions(items, selectedValue)
+  private renderForkLink = () => {
+    if (isRepositoryWithForkedGitHubRepository(this.props.repository)) {
+      return (
+        <div className="secondary-text">
+          Your default branch source is determined by your{' '}
+          <LinkButton onClick={this.onForkSettingsClick}>
+            fork behavior settings
+          </LinkButton>
+          .
+        </div>
+      )
+    } else {
+      return
+    }
+  }
+
+  private renderForkLinkSuffix = () => {
+    if (isRepositoryWithForkedGitHubRepository(this.props.repository)) {
+      return (
+        <span>
+          &nbsp;as determined by your{' '}
+          <LinkButton onClick={this.onForkSettingsClick}>
+            fork behavior settings
+          </LinkButton>
+        </span>
+      )
+    } else {
+      return
     }
   }
 
@@ -441,6 +485,14 @@ export class CreateBranch extends React.Component<
       />
     </Row>
   )
+
+  private onForkSettingsClick = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.RepositorySettings,
+      repository: this.props.repository,
+      initialSelectedTab: RepositorySettingsTab.ForkSettings,
+    })
+  }
 }
 
 /** Reusable snippet */
