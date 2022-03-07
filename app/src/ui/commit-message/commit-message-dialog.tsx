@@ -11,10 +11,11 @@ import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
-import { noop, pick } from 'lodash'
+import { noop } from 'lodash'
 import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
+import { pick } from '../../lib/pick'
 
 interface ICommitMessageDialogProps {
   /**
