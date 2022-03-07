@@ -3,11 +3,11 @@ import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
-import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { enableSquashMerging } from '../../lib/feature-flag'
 import * as ipcWebContents from '../ipc-webcontents'
+import { mkdir } from 'fs/promises'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
@@ -500,13 +500,9 @@ export function buildDefaultMenu({
     label: showLogsLabel,
     click() {
       const logPath = getLogDirectoryPath()
-      ensureDir(logPath)
-        .then(() => {
-          UNSAFE_openDirectory(logPath)
-        })
-        .catch(err => {
-          log.error('Failed opening logs directory', err)
-        })
+      mkdir(logPath, { recursive: true })
+        .then(() => UNSAFE_openDirectory(logPath))
+        .catch(err => log.error('Failed opening logs directory', err))
     },
   }
 

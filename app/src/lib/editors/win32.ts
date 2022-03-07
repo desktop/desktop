@@ -6,8 +6,8 @@ import {
   RegistryValue,
   RegistryValueType,
 } from 'registry-js'
+import { pathExists } from '../../ui/lib/path-exists'
 
-import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 
 interface IWindowsAppInformation {
@@ -312,6 +312,13 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'JetBrains s.r.o.',
   },
   {
+    name: 'Android Studio',
+    registryKeys: [LocalMachineUninstallKey('Android Studio')],
+    installLocationRegistryKey: 'DisplayIcon',
+    displayNamePrefix: 'Android Studio',
+    publisher: 'Google LLC',
+  },
+  {
     name: 'Notepad++',
     registryKeys: [
       // 64-bit version of Notepad++
@@ -372,6 +379,13 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('RubyMine'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('rubymine'),
     displayNamePrefix: 'RubyMine ',
+    publisher: 'JetBrains s.r.o.',
+  },
+  {
+    name: 'JetBrains GoLand',
+    registryKeys: registryKeysForJetBrainsIDE('GoLand'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('goland'),
+    displayNamePrefix: 'GoLand ',
     publisher: 'JetBrains s.r.o.',
   },
 ]

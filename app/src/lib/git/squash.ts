@@ -1,4 +1,4 @@
-import * as FSE from 'fs-extra'
+import { appendFile, rm, writeFile } from 'fs/promises'
 import { getCommits, revRange } from '.'
 import { Commit } from '../../models/commit'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
@@ -77,10 +77,7 @@ export async function squash(
         // If it is toSquash commit and we have found the squashOnto commit, we
         // can go ahead and squash them (as we will hold any picks till after)
         if (foundSquashOntoCommitInLog) {
-          await FSE.appendFile(
-            todoPath,
-            `squash ${commit.sha} ${commit.summary}\n`
-          )
+          await appendFile(todoPath, `squash ${commit.sha} ${commit.summary}\n`)
         } else {
           // However, if we have not found the squashOnto commit yet we want to
           // keep track of them in the order of the log. Thus, we use a new
@@ -100,7 +97,7 @@ export async function squash(
 
         for (let j = 0; j < toReplayAtSquash.length; j++) {
           const action = j === 0 ? 'pick' : 'squash'
-          await FSE.appendFile(
+          await appendFile(
             todoPath,
             `${action} ${toReplayAtSquash[j].sha} ${toReplayAtSquash[j].summary}\n`
           )
@@ -121,12 +118,12 @@ export async function squash(
       // If it is not one toSquash nor the squashOnto and have not found the
       // squashOnto commit, we simply record it is an unchanged pick (before the
       // squash)
-      await FSE.appendFile(todoPath, `pick ${commit.sha} ${commit.summary}\n`)
+      await appendFile(todoPath, `pick ${commit.sha} ${commit.summary}\n`)
     }
 
     if (toReplayAfterSquash.length > 0) {
       for (let i = 0; i < toReplayAfterSquash.length; i++) {
-        await FSE.appendFile(
+        await appendFile(
           todoPath,
           `pick ${toReplayAfterSquash[i].sha} ${toReplayAfterSquash[i].summary}\n`
         )
@@ -141,7 +138,7 @@ export async function squash(
 
     if (commitMessage.trim() !== '') {
       messagePath = await getTempFilePath('squashCommitMessage')
-      await FSE.writeFile(messagePath, commitMessage)
+      await writeFile(messagePath, commitMessage)
     }
 
     // if no commit message provided, accept default editor
@@ -162,11 +159,11 @@ export async function squash(
     return RebaseResult.Error
   } finally {
     if (todoPath !== undefined) {
-      FSE.remove(todoPath)
+      await rm(todoPath, { recursive: true, force: true })
     }
 
     if (messagePath !== undefined) {
-      FSE.remove(messagePath)
+      await rm(messagePath, { recursive: true, force: true })
     }
   }
 

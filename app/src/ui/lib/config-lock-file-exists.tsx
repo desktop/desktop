@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Ref } from './ref'
 import { LinkButton } from './link-button'
-import { unlink } from 'fs-extra'
+import { unlink } from 'fs/promises'
 
 interface IConfigLockFileExistsProps {
   /**

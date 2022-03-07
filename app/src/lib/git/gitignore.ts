@@ -2,6 +2,7 @@ import * as Path from 'path'
 import * as FS from 'fs'
 import { Repository } from '../../models/repository'
 import { getConfigValue } from './config'
+import { writeFile } from 'fs/promises'
 
 /**
  * Read the contents of the repository .gitignore.
@@ -55,15 +56,7 @@ export async function saveGitIgnore(
   }
 
   const fileContents = await formatGitIgnoreContents(text, repository)
-  return new Promise<void>((resolve, reject) => {
-    FS.writeFile(ignorePath, fileContents, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  await writeFile(ignorePath, fileContents)
 }
 
 /** Add the given pattern or patterns to the root gitignore file */

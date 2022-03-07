@@ -1,6 +1,5 @@
 /* eslint-disable no-sync */
 
-import * as fs from 'fs-extra'
 import * as cp from 'child_process'
 import * as path from 'path'
 import * as electronInstaller from 'electron-winstaller'
@@ -16,6 +15,7 @@ import {
   getIconFileName,
 } from './dist-info'
 import { isAppveyor, isGitHubActions } from './build-platforms'
+import { existsSync, rmSync } from 'fs'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -34,7 +34,7 @@ if (process.platform === 'darwin') {
 
 function packageOSX() {
   const dest = getOSXZipPath()
-  fs.removeSync(dest)
+  rmSync(dest, { recursive: true, force: true })
 
   console.log('Packaging for macOS…')
   cp.execSync(
@@ -66,7 +66,7 @@ function packageWindows() {
     `${getIconFileName()}.ico`
   )
 
-  if (!fs.existsSync(iconSource)) {
+  if (!existsSync(iconSource)) {
     console.error(`expected setup icon not found at location: ${iconSource}`)
     process.exit(1)
   }
@@ -76,7 +76,7 @@ function packageWindows() {
     '../app/static/logos/win32-installer-splash.gif'
   )
 
-  if (!fs.existsSync(splashScreenPath)) {
+  if (!existsSync(splashScreenPath)) {
     console.error(
       `expected setup splash screen gif not found at location: ${splashScreenPath}`
     )

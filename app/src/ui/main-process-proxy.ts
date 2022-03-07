@@ -1,8 +1,9 @@
 import { ExecutableMenuItem } from '../models/app-menu'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import * as ipcRenderer from '../lib/ipc-renderer'
-import { stat } from 'fs-extra'
+import { stat } from 'fs/promises'
 import { isApplicationBundle } from '../lib/is-application-bundle'
+import { pathExists } from './lib/path-exists'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the
@@ -90,7 +91,7 @@ export const focusWindow = sendProxy('focus-window', 0)
 const _showItemInFolder = invokeProxy('show-item-in-folder', 1)
 
 export const showItemInFolder = (path: string) =>
-  stat(path)
+  pathExists(path)
     .then(() => _showItemInFolder(path))
     .catch(err => log.error(`Unable show item in folder '${path}'`, err))
 
