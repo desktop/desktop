@@ -381,6 +381,13 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'RubyMine ',
     publisher: 'JetBrains s.r.o.',
   },
+  {
+    name: 'JetBrains GoLand',
+    registryKeys: registryKeysForJetBrainsIDE('GoLand'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('goland'),
+    displayNamePrefix: 'GoLand ',
+    publisher: 'JetBrains s.r.o.',
+  },
 ]
 
 function getKeyOrEmpty(
