@@ -161,9 +161,7 @@ function parseUntrackedEntry(field: string): IStatusEntry {
  */
 export function mapStatus(status: string): FileEntry {
   if (status === '??') {
-    return {
-      kind: 'untracked',
-    }
+    return { kind: 'untracked' }
   }
 
   if (status === '.M') {
