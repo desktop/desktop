@@ -312,6 +312,13 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'JetBrains s.r.o.',
   },
   {
+    name: 'Android Studio',
+    registryKeys: [LocalMachineUninstallKey('Android Studio')],
+    installLocationRegistryKey: 'DisplayIcon',
+    displayNamePrefix: 'Android Studio',
+    publisher: 'Google LLC',
+  },
+  {
     name: 'Notepad++',
     registryKeys: [
       // 64-bit version of Notepad++
