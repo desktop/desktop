@@ -353,9 +353,9 @@ export class CreateBranch extends React.Component<
       return (
         <div>
           Your new branch will be based on your currently checked out branch (
-          <Ref>{currentBranchName}</Ref>
-          ). <Ref>{currentBranchName}</Ref> is the {defaultBranchLink} for your
-          repository{this.renderForkLinkSuffix()}.
+          <Ref>{currentBranchName}</Ref>){this.renderForkLinkSuffix()}.{' '}
+          <Ref>{currentBranchName}</Ref> is the {defaultBranchLink} for your
+          repository.
         </div>
       )
     } else {
