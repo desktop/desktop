@@ -11,5 +11,6 @@ const units = {
   seconds: 1000,
 }
 
+/** Converts the given value and time unit to milliseconds */
 export const toMilliseconds = (value: number, unit: keyof typeof units) =>
   value * units[unit]
