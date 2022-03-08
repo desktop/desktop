@@ -26,6 +26,7 @@ import {
 import { setBoolean, getBoolean } from '../local-storage'
 import { showNotification } from './helpers/show-notification'
 import { StatsStore } from '../stats'
+import { truncateWithEllipsis } from '../truncate-with-ellipsis'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -115,26 +116,40 @@ export class NotificationsStore {
       return
     }
 
-    const account = await this.getAccountForRepository(
-      repository.gitHubRepository
-    )
+    const { gitHubRepository } = repository
+    const api = await this.getAPIForRepository(gitHubRepository)
 
-    if (account === null) {
+    if (api === null) {
       return
     }
 
-    const api = API.fromAccount(account)
-    const { gitHubRepository } = repository
     const review = await api.fetchPullRequestReview(
       gitHubRepository.owner.login,
       gitHubRepository.name,
       pullRequest.pullRequestNumber.toString(),
       event.review_id
     )
+
+    if (review === null) {
+      return
+    }
+
+    this.postPullRequestReviewSubmitNotification(
+      repository,
+      pullRequest,
+      review
+    )
+  }
+
+  private postPullRequestReviewSubmitNotification(
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    review: IAPIPullRequestReview
+  ) {
     const title = `@${review.user.login} requested changes on your pull request`
     const body = `${pullRequest.title} #${
       pullRequest.pullRequestNumber
-    }\n${review.body.substring(0, 50)}…`
+    }\n${truncateWithEllipsis(review.body, 50)}`
 
     showNotification(title, body, () => {
       this.onPullRequestReviewSubmitCallback?.(repository, pullRequest, review)

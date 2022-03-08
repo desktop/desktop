@@ -1040,11 +1040,11 @@ export class API {
       const response = await this.request('GET', path)
       return await parsedResponse<IAPIPullRequestReview>(response)
     } catch (e) {
-      log.warn(
+      log.debug(
         `failed fetching PR review ${reviewId} for ${owner}/${name}/pulls/${prNumber}`,
         e
       )
-      throw e
+      return null
     }
   }
 
