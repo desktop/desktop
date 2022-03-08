@@ -119,7 +119,6 @@
     "@types/codemirror": "5.60.4",
     "@types/deep-equal": "^1.0.1",
     "@types/dompurify": "^2.3.1",
-    "@types/double-ended-queue": "^2.1.0",
     "@types/electron-winstaller": "^4.0.0",
     "@types/eslint": "^8.4.1",
     "@types/estree": "^0.0.49",
