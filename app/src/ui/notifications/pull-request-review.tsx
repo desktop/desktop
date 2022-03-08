@@ -7,10 +7,13 @@ import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
 import { IAPIPullRequestReview } from '../../lib/api'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { Button } from '../lib/button'
+import {
+  getPullRequestReviewStateIcon,
+  getVerbForPullRequestReview,
+} from './pull-request-review-helpers'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -55,15 +58,16 @@ export class PullRequestReview extends React.Component<
         : 'Switch to repository and pull request'
     }
 
+    const { review } = this.props
     const { title, pullRequestNumber, base } = this.props.pullRequest
+    const verb = getVerbForPullRequestReview(review)
 
     const header = (
       <div className="pull-request-review-dialog-header">
-        <Octicon symbol={OcticonSymbol.fileDiff} />
+        {this.renderReviewIcon()}
         <div className="title-container">
           <div className="summary">
-            @{this.props.review.user.login} requested changes on your pull
-            request
+            @{review.user.login} {verb} your pull request
           </div>
           <span className="pr-title">
             <span className="pr-title">{title}</span>{' '}
@@ -121,6 +125,13 @@ export class PullRequestReview extends React.Component<
         </span>
       </div>
     )
+  }
+
+  private renderReviewIcon = () => {
+    const { review } = this.props
+
+    const icon = getPullRequestReviewStateIcon(review.state)
+    return <Octicon symbol={icon.symbol} className={icon.className} />
   }
 
   private renderViewOnGitHubButton = () => {

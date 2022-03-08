@@ -27,6 +27,7 @@ import { setBoolean, getBoolean } from '../local-storage'
 import { showNotification } from './helpers/show-notification'
 import { StatsStore } from '../stats'
 import { truncateWithEllipsis } from '../truncate-with-ellipsis'
+import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -146,7 +147,8 @@ export class NotificationsStore {
     pullRequest: PullRequest,
     review: IAPIPullRequestReview
   ) {
-    const title = `@${review.user.login} requested changes on your pull request`
+    const reviewVerb = getVerbForPullRequestReview(review)
+    const title = `@${review.user.login} ${reviewVerb} your pull request`
     const body = `${pullRequest.title} #${
       pullRequest.pullRequestNumber
     }\n${truncateWithEllipsis(review.body, 50)}`

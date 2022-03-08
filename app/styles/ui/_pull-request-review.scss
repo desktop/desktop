@@ -11,8 +11,17 @@
     > .octicon {
       width: 20px;
       height: 20px;
-      color: var(--status-error-color);
       margin-right: var(--spacing);
+
+      &.pr-review-approved {
+        color: var(--status-success-color);
+      }
+      &.pr-review-changes-requested {
+        color: var(--status-error-color);
+      }
+      &.pr-review-commented {
+        color: var(--text-secondary-color);
+      }
     }
 
     .title-container {
