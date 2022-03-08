@@ -23,7 +23,7 @@ export class MentionFilter implements INodeFilter {
   // beginning of string or non-word, non-` char
   private readonly beginStringNonWord = /(^|[^a-zA-Z0-9_`])/
 
-  // @username and @username_emu for emu support
+  // @username and @username_emu for enterprise managed users support
   private readonly userNameRef = /(?<userNameRef>@[a-z0-9][a-z0-9-]*_[a-zA-Z0-9]+|@[a-z0-9][a-z0-9-]*)/
 
   // without a trailing slash
@@ -56,13 +56,10 @@ export class MentionFilter implements INodeFilter {
     'ig'
   )
 
-  /** The parent github repository of which the content the filter is being
-   * applied to belongs  */
-  private readonly repository: GitHubRepository
-
-  public constructor(repository: GitHubRepository) {
-    this.repository = repository
-  }
+  public constructor(
+    /** The repository which the markdown content originated from */
+    private readonly repository: GitHubRepository
+  ) {}
 
   /**
    * Mention filters iterates on all text nodes that are not inside a pre, code,
@@ -112,10 +109,6 @@ export class MentionFilter implements INodeFilter {
       }
 
       const link = this.createLinkElement(userNameRef)
-      if (link === null) {
-        continue
-      }
-
       const refPosition = match.index === 0 ? 0 : match.index + 1
       const textBefore = text.slice(lastMatchEndingPosition, refPosition)
       const textNodeBefore = document.createTextNode(textBefore)
