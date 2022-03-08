@@ -1,11 +1,8 @@
 import { assertNever } from './fatal-error'
 
 type Unit = 'year' | 'day' | 'hour' | 'minute' | 'second'
-type Plural = `${Unit}s`
 
-export function toMilliseconds(value: 1, unit: Unit): number
-export function toMilliseconds(value: number, unit: Plural): number
-export function toMilliseconds(value: number, unit: Unit | Plural): number {
+export function toMilliseconds(value: number, unit: Unit | `${Unit}s`): number {
   switch (unit) {
     case 'year':
     case 'years':
