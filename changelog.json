@@ -1,5 +1,16 @@
 {
   "releases": {
+    "2.9.12-beta1": [
+      "[Added] Add support for Brackets Editor on Windows - #14069. Thanks @tsvetilian-ty!",
+      "[Added] Add support for JetBrains RubyMine on Windows - #14068. Thanks @tsvetilian-ty!",
+      "[Added] Add support for JetBrains GoLand on Windows - #14085. Thanks @tsvetilian-ty!",
+      "[Added] Add support for Android Studio on Windows - #14054. Thanks @detherminal!",
+      "[Fixed] Usernames displayed in repository list respect username casing - #9890",
+      "[Fixed] Coauthor doesn't steal input focus while inputting commit message in squashing dialog - #13850",
+      "[Fixed] Repository path validation for adding a repository doesn't erase keystrokes - #13901",
+      "[Fixed] Command Line Tool ignores command aliases set by user on macOS - #13935",
+      "[Improved] Improves added and deleted line borders for high contrast mode - #12922"
+    ],
     "2.9.11": [
       "[Added] Add tooltip to show types of file changes in a commit - #13957. Thanks @uttiya10!",
       "[Fixed] Discarding submodules with spaces in their relative path now correctly updates the submodule instead of moving it to Trash - #14024",
