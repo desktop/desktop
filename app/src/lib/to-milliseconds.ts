@@ -1,25 +1,15 @@
-import { assertNever } from './fatal-error'
-
-type Unit = 'year' | 'day' | 'hour' | 'minute' | 'second'
-
-export function toMilliseconds(value: number, unit: Unit | `${Unit}s`): number {
-  switch (unit) {
-    case 'year':
-    case 'years':
-      return value * 1000 * 60 * 60 * 24 * 365
-    case 'day':
-    case 'days':
-      return value * 1000 * 60 * 60 * 24
-    case 'hour':
-    case 'hours':
-      return value * 1000 * 60 * 60
-    case 'minute':
-    case 'minutes':
-      return value * 1000 * 60
-    case 'second':
-    case 'seconds':
-      return value * 1000
-    default:
-      assertNever(unit, `Unknown time unit ${unit}`)
-  }
+const units = {
+  year: 31536000000,
+  years: 31536000000,
+  day: 86400000,
+  days: 86400000,
+  hour: 3600000,
+  hours: 3600000,
+  minute: 60000,
+  minutes: 60000,
+  second: 1000,
+  seconds: 1000,
 }
+
+export const toMilliseconds = (value: number, unit: keyof typeof units) =>
+  value * units[unit]
