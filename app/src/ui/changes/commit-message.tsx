@@ -35,7 +35,7 @@ import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
-import { pick } from 'lodash'
+import { pick } from '../../lib/pick'
 
 const addAuthorIcon = {
   w: 18,
