@@ -10,6 +10,11 @@ const getDateFormatter = mem(Intl.DateTimeFormat, {
   cacheKey: (...args) => JSON.stringify(args),
 })
 
+/**
+ * Format a date in en-US locale, customizable with Intl.DateTimeFormatOptions.
+ *
+ * See Intl.DateTimeFormat for more information
+ */
 export const formatDate = (date: Date, options: Intl.DateTimeFormatOptions) =>
   isNaN(date.valueOf())
     ? 'Invalid date'
