@@ -25,6 +25,7 @@
 // allow easy layout using generalized components and elements such as <Row>
 // and <p>.
 dialog {
+  overflow: unset;
   // These are the 24px versions of the alert and stop octicons
   // from oction v10.0.0
   //
