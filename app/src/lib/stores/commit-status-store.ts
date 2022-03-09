@@ -18,7 +18,7 @@ import {
   manuallySetChecksToPending,
 } from '../ci-checks/ci-checks'
 import _ from 'lodash'
-import { toMilliseconds } from '../to-milliseconds'
+import { offsetFromNow } from '../offset-from'
 
 interface ICommitStatusCacheEntry {
   /**
@@ -432,7 +432,7 @@ export class CommitStatusStore {
           // (cache/api limit). This sets this sub back to 61 so that on next
           // refresh triggered, it will be reretreived, as this time, it will be
           // different given the branch name is provided.
-          fetchedAt: new Date(Date.now() - toMilliseconds(61, 'minutes')),
+          fetchedAt: new Date(offsetFromNow(-61, 'minutes')),
         })
       }
 

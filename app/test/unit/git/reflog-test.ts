@@ -10,7 +10,7 @@ import {
 import { setupFixtureRepository } from '../../helpers/repositories'
 import moment from 'moment'
 import { GitProcess } from 'dugite'
-import { toMilliseconds } from '../../../src/lib/to-milliseconds'
+import { offsetFromNow } from '../../../src/lib/offset-from'
 
 async function createAndCheckout(
   repository: Repository,
@@ -91,7 +91,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        new Date(Date.now() - toMilliseconds(1, 'hour'))
+        new Date(offsetFromNow(-1, 'hour'))
       )
       expect(branches.size).toBe(2)
     })
@@ -105,7 +105,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        new Date(Date.now() - toMilliseconds(1, 'hour'))
+        new Date(offsetFromNow(-1, 'hour'))
       )
       expect(branches.size).toBe(0)
     })
