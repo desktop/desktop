@@ -1,4 +1,3 @@
-import moment from 'moment'
 import { BranchPruner } from '../../src/lib/stores/helpers/branch-pruner'
 import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
@@ -14,6 +13,7 @@ import {
 } from '../helpers/repository-builder-branch-pruner'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
+import { toMilliseconds } from '../../src/lib/to-milliseconds'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -71,8 +71,7 @@ describe('BranchPruner', () => {
   })
 
   it('prunes for GitHub repository', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
 
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
@@ -81,7 +80,7 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
@@ -99,8 +98,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune if the last prune date is less than 24 hours ago', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(4, 'hours')
+    const lastPruneDate = new Date(Date.now() - toMilliseconds(4, 'hours'))
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
       path,
@@ -108,7 +106,7 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
@@ -126,8 +124,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune if there is no default branch', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
     const path = await setupFixtureRepository('branch-prune-tests')
 
     const repo = await setupRepository(
@@ -136,7 +133,7 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       '',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
@@ -154,8 +151,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune reserved branches', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
 
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
@@ -164,7 +160,7 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
@@ -196,8 +192,7 @@ describe('BranchPruner', () => {
   it('never prunes a branch that lacks an upstream', async () => {
     const path = await createPrunedRepository()
 
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
 
     const repo = await setupRepository(
       path,
@@ -205,7 +200,7 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
 
     const branchPruner = new BranchPruner(

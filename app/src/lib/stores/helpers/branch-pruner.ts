@@ -16,6 +16,7 @@ import {
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
 import moment from 'moment'
+import { toMilliseconds } from '../../to-milliseconds'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
@@ -140,20 +141,19 @@ export class BranchPruner {
     )
 
     // Only prune if it's been at least 24 hours since the last time
-    const dateNow = moment()
-    const threshold = dateNow.subtract(24, 'hours')
+    const threshold = Date.now() - toMilliseconds(24, 'hours')
 
     // Using type coalescing behavior to deal with Dexie returning `undefined`
     // for records that haven't been updated with the new field yet
     if (
       options.enforcePruneThreshold &&
       lastPruneDate != null &&
-      threshold.isBefore(lastPruneDate)
+      threshold < lastPruneDate
     ) {
       log.info(
-        `[BranchPruner] Last prune took place ${moment(lastPruneDate).from(
-          dateNow
-        )} - skipping`
+        `[BranchPruner] Last prune took place ${moment(
+          lastPruneDate
+        ).fromNow()} - skipping`
       )
       return
     }
@@ -183,7 +183,7 @@ export class BranchPruner {
     }
 
     // Get all branches checked out within the past 2 weeks
-    const twoWeeksAgo = moment().subtract(2, 'weeks').toDate()
+    const twoWeeksAgo = new Date(Date.now() - toMilliseconds(14, 'days'))
     const recentlyCheckedOutBranches = await getBranchCheckouts(
       this.repository,
       twoWeeksAgo
