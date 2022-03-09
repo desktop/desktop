@@ -3,6 +3,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { EmojiFilter } from './emoji-filter'
 import { IssueLinkFilter } from './issue-link-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
+import { MentionFilter } from './mention-filter'
 
 export interface INodeFilter {
   /**
@@ -42,6 +43,7 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
     new IssueMentionFilter(repository),
     new IssueLinkFilter(repository),
     new EmojiFilter(emoji),
+    new MentionFilter(repository),
   ]
 )
 
