@@ -5,7 +5,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
-import { IAPIPullRequestReview } from '../../lib/api'
+import { getHTMLURL, IAPIPullRequestReview } from '../../lib/api'
 import { Octicon } from '../octicons'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
@@ -14,6 +14,7 @@ import {
   getPullRequestReviewStateIcon,
   getVerbForPullRequestReview,
 } from './pull-request-review-helpers'
+import { LinkButton } from '../lib/link-button'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -49,7 +50,69 @@ export class PullRequestReview extends React.Component<
   }
 
   public render() {
+    const { review, repository } = this.props
+
+    const { title, pullRequestNumber } = this.props.pullRequest
+    const verb = getVerbForPullRequestReview(review)
+
+    const header = (
+      <div className="pull-request-review-dialog-header">
+        <div className="title-container">
+          <div>
+            {__DARWIN__ ? 'Pull Request Review' : 'Pull request review'}
+          </div>
+          <span className="pr-title">
+            <span className="pr-title">{title}</span>{' '}
+            <span className="pr-number">#{pullRequestNumber}</span>{' '}
+          </span>
+        </div>
+        {this.renderViewOnGitHubButton()}
+      </div>
+    )
+
+    const authorUrl = `${getHTMLURL(repository.gitHubRepository.endpoint)}/${
+      review.user.login
+    }`
+
+    return (
+      <Dialog
+        id="pull-request-review"
+        type="normal"
+        title={header}
+        dismissable={false}
+        onSubmit={this.props.onSubmit}
+        onDismissed={this.props.onDismissed}
+        loading={this.state.switchingToPullRequest}
+      >
+        <DialogContent>
+          <Row>
+            <div className="review-summary-container">
+              {this.renderReviewIcon()}
+              <span className="review-summary">
+                <LinkButton uri={authorUrl}>{review.user.login}</LinkButton>{' '}
+                {verb} your pull request{review.body.length === 0 ? '.' : ':'}
+              </span>
+            </div>
+          </Row>
+          {this.renderReviewBody()}
+        </DialogContent>
+        <DialogFooter>{this.renderFooterContent()}</DialogFooter>
+      </Dialog>
+    )
+  }
+
+  private renderFooterContent() {
     const { review, shouldChangeRepository, shouldCheckoutBranch } = this.props
+
+    const footerQuestion =
+      review.state === 'APPROVED' ? null : (
+        <div className="footer-question">
+          <span>
+            Do you want to switch to that Pull Request now and start working on
+            the requested changes?
+          </span>
+        </div>
+      )
 
     let okButtonTitle: undefined | string = undefined
 
@@ -63,75 +126,48 @@ export class PullRequestReview extends React.Component<
         : 'Switch to pull request'
     }
 
-    const { title, pullRequestNumber, base } = this.props.pullRequest
-    const verb = getVerbForPullRequestReview(review)
-
-    const header = (
-      <div className="pull-request-review-dialog-header">
-        {this.renderReviewIcon()}
-        <div className="title-container">
-          <div className="summary">
-            @{review.user.login} {verb} your pull request
-          </div>
-          <span className="pr-title">
-            <span className="pr-title">{title}</span>{' '}
-            <span className="pr-number">#{pullRequestNumber}</span>{' '}
-          </span>
-        </div>
-        {this.renderViewOnGitHubButton()}
-      </div>
+    const okCancelButtonGroup = (
+      <OkCancelButtonGroup
+        onCancelButtonClick={this.props.onDismissed}
+        cancelButtonText="Dismiss"
+        okButtonText={okButtonTitle}
+        okButtonDisabled={this.state.switchingToPullRequest}
+        onOkButtonClick={this.onSubmit}
+      />
     )
 
-    return (
-      <Dialog
-        id="pull-request-review"
-        type="normal"
-        title={header}
-        dismissable={false}
-        onSubmit={this.props.onSubmit}
-        onDismissed={this.props.onDismissed}
-        loading={this.state.switchingToPullRequest}
-      >
-        <DialogContent>
-          <SandboxedMarkdown
-            markdown={this.props.review.body}
-            emoji={this.props.emoji}
-            baseHref={base.gitHubRepository.htmlURL}
-            repository={base.gitHubRepository}
-            onMarkdownLinkClicked={this.onMarkdownLinkClicked}
-          />
-        </DialogContent>
-        <DialogFooter>
-          <Row>
-            {this.renderSummary()}
-            <OkCancelButtonGroup
-              onCancelButtonClick={this.props.onDismissed}
-              cancelButtonText="Dismiss"
-              okButtonText={okButtonTitle}
-              okButtonDisabled={this.state.switchingToPullRequest}
-              onOkButtonClick={this.onSubmit}
-            />
-          </Row>
-        </DialogFooter>
-      </Dialog>
+    return footerQuestion === null ? (
+      okCancelButtonGroup
+    ) : (
+      <Row>
+        {footerQuestion}
+        {okCancelButtonGroup}
+      </Row>
     )
   }
+
   private onMarkdownLinkClicked = (url: string) => {
     this.props.dispatcher.openInBrowser(url)
   }
 
-  private renderSummary() {
-    if (this.props.review.state === 'APPROVED') {
+  private renderReviewBody() {
+    const { review, emoji, pullRequest } = this.props
+    const { base } = pullRequest
+
+    if (review.body.length === 0) {
       return null
     }
 
     return (
-      <div className="footer-question">
-        <span>
-          Do you want to switch to that Pull Request now and start working on
-          the requested changes?
-        </span>
-      </div>
+      <Row>
+        <SandboxedMarkdown
+          markdown={review.body}
+          emoji={emoji}
+          baseHref={base.gitHubRepository.htmlURL}
+          repository={base.gitHubRepository}
+          onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+        />
+      </Row>
     )
   }
 

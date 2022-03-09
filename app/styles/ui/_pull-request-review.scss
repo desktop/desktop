@@ -8,22 +8,6 @@
     flex-direction: row;
     align-items: center;
 
-    > .octicon {
-      width: 20px;
-      height: 20px;
-      margin-right: var(--spacing);
-
-      &.pr-review-approved {
-        color: var(--status-success-color);
-      }
-      &.pr-review-changes-requested {
-        color: var(--status-error-color);
-      }
-      &.pr-review-commented {
-        color: var(--text-secondary-color);
-      }
-    }
-
     .button-component {
       margin-left: var(--spacing);
     }
@@ -41,15 +25,6 @@
         .pr-number {
           color: var(--text-secondary-color);
         }
-
-        .octicon {
-          vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-          color: var(--pr-open-icon-color);
-
-          &.draft {
-            color: var(--pr-draft-icon-color);
-          }
-        }
       }
     }
   }
@@ -65,5 +40,40 @@
   .dialog-content {
     max-height: 300px;
     overflow: auto;
+
+    .review-summary-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .review-summary {
+        .link-button-component {
+          color: var(--text-color);
+          font-weight: bold;
+        }
+      }
+
+      > .octicon {
+        width: 16px;
+        height: 16px;
+        margin-right: var(--spacing-half);
+
+        &.pr-review-approved {
+          color: var(--status-success-color);
+        }
+        &.pr-review-changes-requested {
+          color: var(--status-error-color);
+        }
+        &.pr-review-commented {
+          color: var(--text-secondary-color);
+        }
+      }
+    }
+
+    .sandboxed-markdown-iframe-container {
+      padding-left: 15px;
+      border-left: 2px solid var(--border-color);
+      width: 100%;
+    }
   }
 }
