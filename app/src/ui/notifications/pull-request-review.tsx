@@ -17,6 +17,7 @@ import {
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
+  readonly shouldCheckoutBranch: boolean
   readonly shouldChangeRepository: boolean
   readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
@@ -48,17 +49,20 @@ export class PullRequestReview extends React.Component<
   }
 
   public render() {
-    let okButtonTitle = __DARWIN__
-      ? 'Switch to Pull Request'
-      : 'Switch to pull request'
+    const { review, shouldChangeRepository, shouldCheckoutBranch } = this.props
 
-    if (this.props.shouldChangeRepository) {
+    let okButtonTitle: undefined | string = undefined
+
+    if (shouldChangeRepository) {
       okButtonTitle = __DARWIN__
         ? 'Switch to Repository and Pull Request'
         : 'Switch to repository and pull request'
+    } else if (shouldCheckoutBranch) {
+      okButtonTitle = __DARWIN__
+        ? 'Switch to Pull Request'
+        : 'Switch to pull request'
     }
 
-    const { review } = this.props
     const { title, pullRequestNumber, base } = this.props.pullRequest
     const verb = getVerbForPullRequestReview(review)
 
@@ -117,6 +121,10 @@ export class PullRequestReview extends React.Component<
   }
 
   private renderSummary() {
+    if (this.props.review.state === 'APPROVED') {
+      return null
+    }
+
     return (
       <div className="footer-question">
         <span>
@@ -161,12 +169,20 @@ export class PullRequestReview extends React.Component<
 
   private onSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    const { dispatcher, repository, pullRequest } = this.props
+    const {
+      dispatcher,
+      repository,
+      pullRequest,
+      shouldChangeRepository,
+      shouldCheckoutBranch,
+    } = this.props
 
-    this.setState({ switchingToPullRequest: true })
-    await dispatcher.selectRepository(repository)
-    await dispatcher.checkoutPullRequest(repository, pullRequest)
-    this.setState({ switchingToPullRequest: false })
+    if (shouldChangeRepository || shouldCheckoutBranch) {
+      this.setState({ switchingToPullRequest: true })
+      await dispatcher.selectRepository(repository)
+      await dispatcher.checkoutPullRequest(repository, pullRequest)
+      this.setState({ switchingToPullRequest: false })
+    }
 
     this.props.onDismissed()
   }

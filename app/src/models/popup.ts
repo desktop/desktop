@@ -342,5 +342,6 @@ export type Popup =
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
       review: IAPIPullRequestReview
+      needsCheckoutBranch: boolean
       needsSelectRepository: boolean
     }
