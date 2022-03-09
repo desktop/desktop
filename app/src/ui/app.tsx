@@ -151,6 +151,7 @@ import { clamp } from '../lib/clamp'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
+import { getReleaseSummary } from '../lib/release-notes'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -432,54 +433,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (__DEV__) {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,
-        newRelease: {
-          latestVersion: '42.7.99',
-          datePublished: 'Awesomeber 71, 2025',
-          pretext:
-            'There is something so different here that we wanted to include some pretext for it',
-          enhancements: [
-            {
-              kind: 'new',
-              message: 'An awesome new feature!',
-            },
-            {
-              kind: 'improved',
-              message: 'This is so much better',
-            },
-            {
-              kind: 'improved',
-              message:
-                'Testing links to profile pages by a mention to @shiftkey',
-            },
+        newRelease: getReleaseSummary({
+          name: '',
+          version: '42.7.99',
+          notes: [
+            '[New] An awesome new feature!',
+            '[Improved] This is so much better',
+            '[Improved] Testing links to profile pages by a mention to @shiftkey',
+            '[Fixed] Fixed this one thing',
+            '[Fixed] Fixed this thing over here too',
+            '[Fixed] Testing links to issues by calling out #42. Assuming it is fixed by now.',
+            '[OhHai] Look at me, a new category!',
+            '[Added] In other news... . Thanks @some-body-to-thank!',
           ],
-          bugfixes: [
-            {
-              kind: 'fixed',
-              message: 'Fixed this one thing',
-            },
-            {
-              kind: 'fixed',
-              message: 'Fixed this thing over here too',
-            },
-            {
-              kind: 'fixed',
-              message:
-                'Testing links to issues by calling out #42. Assuming it is fixed by now.',
-            },
-          ],
-          other: [
-            {
-              kind: 'other',
-              message: 'In other news...',
-            },
-          ],
-          thankYous: [
-            {
-              kind: 'other',
-              message: 'In other news... . Thanks @some-body-to-thank!',
-            },
-          ],
-        },
+          pub_date: '2025-11-07T09:52:34Z',
+        }),
       })
     }
   }

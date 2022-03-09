@@ -1,10 +1,9 @@
-import moment from 'moment'
-
 import {
   ReleaseMetadata,
   ReleaseNote,
   ReleaseSummary,
 } from '../models/release-notes'
+import { formatDate } from './format-date'
 import { encodePathAsUrl } from './path'
 
 // expects a release note entry to contain a header and then some text
@@ -69,11 +68,11 @@ export function getReleaseSummary(
   const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
   const thankYous = entries.filter(e => e.message.includes(' Thanks @'))
 
-  const datePublished = moment(latestRelease.pub_date).format('MMMM Do YYYY')
-
   return {
     latestVersion: latestRelease.version,
-    datePublished,
+    datePublished: formatDate(new Date(latestRelease.pub_date), {
+      dateStyle: 'long',
+    }),
     // TODO: find pretext entry
     pretext: undefined,
     enhancements,

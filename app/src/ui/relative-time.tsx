@@ -1,6 +1,7 @@
 import * as React from 'react'
 import moment from 'moment'
 import { TooltippedContent } from './lib/tooltipped-content'
+import { formatDate } from '../lib/format-date'
 
 interface IRelativeTimeProps {
   /**
@@ -85,13 +86,18 @@ export class RelativeTime extends React.Component<
     this.setState({ absoluteText, relativeText })
   }
 
-  private updateWithDate(date: Date) {
-    const then = moment(date)
-    const now = moment()
-    const diff = then.diff(now)
+  private updateWithDate(then: Date) {
+    const { abbreviate, onlyRelative } = this.props
+
+    const diff = then.getTime() - Date.now()
     const duration = Math.abs(diff)
-    const absoluteText = then.format('LLLL')
-    const format = this.props.abbreviate
+
+    const absoluteText = formatDate(then, {
+      dateStyle: 'full',
+      timeStyle: 'short',
+    })
+
+    const format = abbreviate
       ? 'y[y] M[m] w[w] d[d] h[h] m[m]'
       : 'y [years] ago M [months] ago d [days] ago h [hours] ago m [minutes] ago'
 
@@ -102,7 +108,11 @@ export class RelativeTime extends React.Component<
     // Future date, let's just show as absolute and reschedule. If it's less
     // than a minute into the future we'll treat it as 'just now'.
     if (diff > 0 && duration > MINUTE) {
-      this.updateAndSchedule(absoluteText, then.format('lll'), duration)
+      this.updateAndSchedule(
+        absoluteText,
+        formatDate(then, { dateStyle: 'medium', timeStyle: 'short' }),
+        duration
+      )
     } else if (duration < MINUTE) {
       this.updateAndSchedule(absoluteText, 'just now', MINUTE - duration)
     } else if (duration < HOUR) {
@@ -112,10 +122,14 @@ export class RelativeTime extends React.Component<
     } else if (duration < 7 * DAY) {
       this.updateAndSchedule(absoluteText, relativeText, 6 * HOUR)
     } else {
-      if (this.props.onlyRelative === true) {
+      if (onlyRelative) {
         this.updateAndSchedule(absoluteText, relativeText, 6 * HOUR)
       } else {
-        this.setState({ absoluteText, relativeText: then.format('ll') })
+        // More than a week ago, just the date will suffice
+        this.setState({
+          absoluteText,
+          relativeText: formatDate(then, { dateStyle: 'medium' }),
+        })
       }
     }
   }
