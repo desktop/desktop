@@ -14,7 +14,7 @@ import { enableCICheckRunsLogs } from '../feature-flag'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { supportsRetrieveActionWorkflowByCheckSuiteId } from '../endpoint-capabilities'
-import { formatDuration } from '../format-duration'
+import { formatPreciseDuration } from '../format-duration'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -184,8 +184,7 @@ function getCheckRunShortDescription(
   const preposition = conclusion === APICheckConclusion.Success ? 'in' : 'after'
 
   if (durationMs !== undefined && durationMs > 0) {
-    const duration = formatDuration(durationMs, 'narrow')
-    return `${adjective} ${preposition} ${duration}`
+    return `${adjective} ${preposition} ${formatPreciseDuration(durationMs)}`
   }
 
   return adjective
@@ -602,7 +601,7 @@ export function getFormattedCheckRunDuration(
   checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
 ) {
   const duration = getCheckDurationInMilliseconds(checkRun)
-  return isNaN(duration) ? '' : formatDuration(duration, 'narrow')
+  return isNaN(duration) ? '' : formatPreciseDuration(duration)
 }
 
 /**

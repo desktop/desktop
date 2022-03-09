@@ -1,20 +1,26 @@
 export const units: [string, number][] = [
-  ['day', 86400000],
-  ['hour', 3600000],
-  ['minute', 60000],
-  ['second', 1000],
+  ['d', 86400000],
+  ['h', 3600000],
+  ['m', 60000],
+  ['s', 1000],
 ]
 
-type DurationStyle = 'narrow' | 'long'
-
-export const formatDuration = (duration: number, style: DurationStyle) => {
+/**
+ * Creates a narrow style precise duration format used for displaying things
+ * like check run durations that typically only last for a few minutes.
+ *
+ * Example: formatPreciseDuration(3670000) -> "1h 1m 10s"
+ *
+ * @param ms The duration in milliseconds
+ */
+export const formatPreciseDuration = (ms: number) => {
   const parts = new Array<string>()
 
   for (const [unit, value] of units) {
-    if (parts.length > 0 || duration >= value) {
-      const qty = Math.floor(duration / value)
-      duration -= qty * value
-      parts.push(`${qty}${style === 'narrow' ? unit[0] : unit}`)
+    if (parts.length > 0 || ms >= value) {
+      const qty = Math.floor(ms / value)
+      ms -= qty * value
+      parts.push(`${qty}${unit}`)
     }
   }
 
