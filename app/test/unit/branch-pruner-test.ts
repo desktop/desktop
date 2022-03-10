@@ -13,7 +13,7 @@ import {
 } from '../helpers/repository-builder-branch-pruner'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
-import { toMilliseconds } from '../../src/lib/to-milliseconds'
+import { offsetFromNow } from '../../src/lib/offset-from'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -71,7 +71,7 @@ describe('BranchPruner', () => {
   })
 
   it('prunes for GitHub repository', async () => {
-    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
 
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
@@ -98,7 +98,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune if the last prune date is less than 24 hours ago', async () => {
-    const lastPruneDate = new Date(Date.now() - toMilliseconds(4, 'hours'))
+    const lastPruneDate = new Date(offsetFromNow(-4, 'hours'))
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
       path,
@@ -124,7 +124,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune if there is no default branch', async () => {
-    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
     const path = await setupFixtureRepository('branch-prune-tests')
 
     const repo = await setupRepository(
@@ -151,7 +151,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune reserved branches', async () => {
-    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
 
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
@@ -192,7 +192,7 @@ describe('BranchPruner', () => {
   it('never prunes a branch that lacks an upstream', async () => {
     const path = await createPrunedRepository()
 
-    const lastPruneDate = new Date(Date.now() - toMilliseconds(1, 'day'))
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
 
     const repo = await setupRepository(
       path,

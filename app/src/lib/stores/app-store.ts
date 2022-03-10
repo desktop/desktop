@@ -294,7 +294,7 @@ import {
 } from './notifications-store'
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
-import { toMilliseconds } from '../to-milliseconds'
+import { offsetFromNow } from '../offset-from'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -3051,7 +3051,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
       repository
     )
-    const threshold = Date.now() - toMilliseconds(24, 'hours')
+    const threshold = offsetFromNow(-24, 'hours')
     // `lastStashEntryCheck` being equal to `null` means
     // we've never checked for the given repo
     if (lastStashEntryCheck == null || threshold > lastStashEntryCheck) {
