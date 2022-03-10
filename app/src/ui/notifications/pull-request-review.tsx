@@ -103,27 +103,31 @@ export class PullRequestReview extends React.Component<
 
   private renderFooterContent() {
     const { review, shouldChangeRepository, shouldCheckoutBranch } = this.props
+    const isApprovedReview = review.state === 'APPROVED'
 
+    // If the PR was approved, there is no need to switch branches
     const footerQuestion =
-      review.state === 'APPROVED' ? null : (
+      !isApprovedReview && (shouldChangeRepository || shouldCheckoutBranch) ? (
         <div className="footer-question">
           <span>
             Do you want to switch to that Pull Request now and start working on
             the requested changes?
           </span>
         </div>
-      )
+      ) : null
 
     let okButtonTitle: undefined | string = undefined
 
-    if (shouldChangeRepository) {
-      okButtonTitle = __DARWIN__
-        ? 'Switch to Repository and Pull Request'
-        : 'Switch to repository and pull request'
-    } else if (shouldCheckoutBranch) {
-      okButtonTitle = __DARWIN__
-        ? 'Switch to Pull Request'
-        : 'Switch to pull request'
+    if (!isApprovedReview) {
+      if (shouldChangeRepository) {
+        okButtonTitle = __DARWIN__
+          ? 'Switch to Repository and Pull Request'
+          : 'Switch to repository and pull request'
+      } else if (shouldCheckoutBranch) {
+        okButtonTitle = __DARWIN__
+          ? 'Switch to Pull Request'
+          : 'Switch to pull request'
+      }
     }
 
     const okCancelButtonGroup = (
@@ -211,9 +215,12 @@ export class PullRequestReview extends React.Component<
       pullRequest,
       shouldChangeRepository,
       shouldCheckoutBranch,
+      review,
     } = this.props
 
-    if (shouldChangeRepository || shouldCheckoutBranch) {
+    const isApprovedReview = review.state === 'APPROVED'
+
+    if (!isApprovedReview && (shouldChangeRepository || shouldCheckoutBranch)) {
       this.setState({ switchingToPullRequest: true })
       await dispatcher.selectRepository(repository)
       await dispatcher.checkoutPullRequest(repository, pullRequest)
