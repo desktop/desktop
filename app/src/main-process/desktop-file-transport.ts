@@ -13,7 +13,9 @@ type DesktopFileTransportOptions = TransportStreamOptions & {
 }
 
 const fileSuffix = `.desktop.${__RELEASE_CHANNEL__}.log`
-const pathRe = new RegExp('(d{4}-d{2}-d{2})' + escapeRegExp(fileSuffix) + '$')
+const pathRe = new RegExp(
+  '(\\d{4}-\\d{2}-\\d{2})' + escapeRegExp(fileSuffix) + '$'
+)
 
 /**
  * A re-implementation of the winston-daily-rotate-file module
