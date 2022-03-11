@@ -15,9 +15,10 @@ export const units: [string, number][] = [
  */
 export const formatPreciseDuration = (ms: number) => {
   const parts = new Array<string>()
+  ms = Math.abs(ms)
 
   for (const [unit, value] of units) {
-    if (parts.length > 0 || ms >= value) {
+    if (parts.length > 0 || ms >= value || unit === 's') {
       const qty = Math.floor(ms / value)
       ms -= qty * value
       parts.push(`${qty}${unit}`)
