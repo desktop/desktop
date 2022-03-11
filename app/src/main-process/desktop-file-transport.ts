@@ -6,7 +6,7 @@ import { EOL } from 'os'
 import { readdir, unlink } from 'fs/promises'
 import { escapeRegExp } from '../lib/helpers/regex'
 import { offsetFromNow } from '../lib/offset-from'
-import { omit } from 'lodash'
+import { noop, omit } from 'lodash'
 
 type DesktopFileTransportOptions = TransportStreamOptions & {
   readonly logDirectory: string
@@ -16,6 +16,9 @@ const fileSuffix = `.desktop.${__RELEASE_CHANNEL__}.log`
 const pathRe = new RegExp(
   '(\\d{4}-\\d{2}-\\d{2})' + escapeRegExp(fileSuffix) + '$'
 )
+
+const debug = (...args: any) =>
+  __DEV__ ? console.error('DesktopFileTransport', ...args) : noop
 
 /**
  * A re-implementation of the winston-daily-rotate-file module
@@ -42,14 +45,14 @@ export class DesktopFileTransport extends TransportStream {
     if (this.stream === undefined || this.stream.path !== path) {
       this.stream?.end()
       this.stream = await createStream(path)
-      this.stream.on('error', e => this.emit('error', e))
+      this.stream.on('error', debug)
 
-      await pruneDirectory(this.logDirectory).catch(e => this.emit('error', e))
+      await pruneDirectory(this.logDirectory).catch(debug)
     }
 
     this.stream.write(`${info[MESSAGE]}${EOL}`, err => {
       if (err) {
-        this.emit('error', err)
+        debug(err)
       } else {
         this.emit('logged', info)
       }
