@@ -7,6 +7,7 @@ import { DesktopConsoleTransport } from './desktop-console-transport'
 import 'winston-daily-rotate-file'
 import memoizeOne from 'memoize-one'
 import { mkdir } from 'fs/promises'
+import { DesktopFileTransport } from './desktop-file-transport'
 
 /**
  * The maximum number of log files we should have on disk before pruning old
@@ -22,14 +23,11 @@ const MaxLogFiles = 14
  * @param path The path where to write log files.
  */
 function initializeWinston(path: string): winston.LogMethod {
-  const filename = Path.join(path, `%DATE%.desktop.${__RELEASE_CHANNEL__}.log`)
   const timestamp = () => new Date().toISOString()
 
-  const fileLogger = new winston.transports.DailyRotateFile({
-    filename,
-    datePattern: 'YYYY-MM-DD',
+  const fileLogger = new DesktopFileTransport({
+    logDirectory: path,
     level: 'info',
-    maxFiles: MaxLogFiles,
     format: winston.format.printf(
       ({ level, message }) => `${timestamp()} - ${level}: ${message}`
     ),
