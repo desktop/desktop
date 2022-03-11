@@ -6,7 +6,7 @@ import { EOL } from 'os'
 import { readdir, unlink } from 'fs/promises'
 import { escapeRegExp } from '../lib/helpers/regex'
 import { offsetFromNow } from '../lib/offset-from'
-import { noop, omit } from 'lodash'
+import { omit } from 'lodash'
 
 type DesktopFileTransportOptions = TransportStreamOptions & {
   readonly logDirectory: string
@@ -17,8 +17,12 @@ const pathRe = new RegExp(
   '(\\d{4}-\\d{2}-\\d{2})' + escapeRegExp(fileSuffix) + '$'
 )
 
-const debug = (...args: any) =>
-  __DEV__ ? console.error('DesktopFileTransport', ...args) : noop
+const debug = (...args: any) => {
+  if (__DEV__) {
+    console.error('DesktopFileTransport', ...args)
+  }
+  return undefined
+}
 
 /**
  * A re-implementation of the winston-daily-rotate-file module
@@ -44,20 +48,18 @@ export class DesktopFileTransport extends TransportStream {
 
     if (this.stream === undefined || this.stream.path !== path) {
       this.stream?.end()
-      this.stream = await createStream(path)
+      this.stream = createWriteStream(path, { flags: 'a' })
       this.stream.on('error', debug)
 
       await pruneDirectory(this.logDirectory).catch(debug)
     }
 
-    this.stream.write(`${info[MESSAGE]}${EOL}`, err => {
-      if (err) {
-        debug(err)
-      } else {
-        this.emit('logged', info)
-      }
-      callback?.()
-    })
+    if (this.stream !== undefined) {
+      await write(this.stream, `${info[MESSAGE]}${EOL}`).catch(debug)
+      this.emit('logged', info)
+    }
+
+    callback?.()
   }
 
   public close(cb?: () => void) {
@@ -65,25 +67,21 @@ export class DesktopFileTransport extends TransportStream {
     this.stream = undefined
   }
 }
+const write = (s: WriteStream, chunk: string) =>
+  new Promise((resolve, reject) => {
+    const draining: boolean = s.write(chunk, e =>
+      e ? reject(e) : resolve(draining)
+    )
+  })
 
 const getFilePrefix = (d = new Date()) => d.toISOString().split('T', 1)[0]
 const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
-const createStream = (p: string) =>
-  new Promise<WriteStream>((resolve, reject) => {
-    try {
-      const stream: WriteStream = createWriteStream(p, {
-        flags: 'a',
-      }).on('ready', () => resolve(stream))
-    } catch (e) {
-      reject(e)
-    }
-  })
 
 const pruneDirectory = async (p: string) => {
   const treshold = offsetFromNow(-14, 'days')
-  const files = await readdir(p)
+  const files = await readdir(p).catch(debug)
 
-  for (const f of files) {
+  for (const f of files ?? []) {
     const m = pathRe.exec(f)
     const d = m ? Date.parse(m[1]) : NaN
 
