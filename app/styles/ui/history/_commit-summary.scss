@@ -111,13 +111,12 @@
   // Enable text selection inside the title and description elements.
   &-title,
   &-description {
-    span,
-    a {
-      -webkit-user-select: text;
-      user-select: text;
-    }
+    user-select: text;
+    cursor: text;
 
-    span {
+    * {
+      user-select: unset;
+      pointer-events: unset;
       cursor: text;
     }
   }
