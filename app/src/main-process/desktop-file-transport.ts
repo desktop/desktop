@@ -49,15 +49,24 @@ export class DesktopFileTransport extends TransportStream {
     callback?.()
   }
 
-  public close() {
-    this.stream?.end()
+  public close(cb?: () => void) {
+    this.stream?.end(cb)
     this.stream = undefined
   }
 }
 
 const getFilePrefix = (d = new Date()) => d.toISOString().split('T', 1)[0]
 const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
-const createStream = (p: string) => createWriteStream(p, { flags: 'a' })
+const createStream = (p: string) =>
+  new Promise<WriteStream>((resolve, reject) => {
+    try {
+      const stream: WriteStream = createWriteStream(p, {
+        flags: 'a',
+      }).on('ready', () => resolve(stream))
+    } catch (e) {
+      reject(e)
+    }
+  })
 
 const pruneDirectory = async (p: string) => {
   const treshold = offsetFromNow(-14, 'days')
