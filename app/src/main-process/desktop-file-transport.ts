@@ -45,8 +45,14 @@ export class DesktopFileTransport extends TransportStream {
       await pruneDirectory(this.logDirectory).catch(e => this.emit('error', e))
     }
 
-    this.stream.write(`${info[MESSAGE]}${EOL}`, () => this.emit('logged', info))
-    callback?.()
+    this.stream.write(`${info[MESSAGE]}${EOL}`, err => {
+      if (err) {
+        this.emit('error', err)
+      } else {
+        this.emit('logged', info)
+      }
+      callback?.()
+    })
   }
 
   public close(cb?: () => void) {
