@@ -10,7 +10,7 @@ body:
     attributes:
       label: Search for existing feature requests
       options:
-        - label: I have searched the issue tracker and confirmed there are no existing issues for the feature I am requesting.
+        - label: I have searched the issue tracker and confirmed that I was unable to find existing issues for the feature I am requesting.
           required: true
   - type: textarea
     id: the-feature-request

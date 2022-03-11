@@ -4,13 +4,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for filing a bug report! This issue tracker is for [GitHub Desktop](https://desktop.github.com). If you are experiencing issues with the Linux fork of GitHub Desktop please open an issue [in that repository](https://github.com/shiftkey/desktop). If you are experiencing issues with github.com please [contact GitHub Support](https://support.github.com/).
+        Thanks for filing a bug report! This issue tracker is for [GitHub Desktop](https://desktop.github.com). If you are experiencing issues with the Linux fork of GitHub Desktop please open an issue [in its repository](https://github.com/shiftkey/desktop). If you are experiencing issues with github.com please [contact GitHub Support](https://support.github.com/).
   - type: checkboxes
     id: existing-issues
     attributes:
       label: Search existing issues
       options:
-        - label: I have searched the issue tracker and confirmed there are no existing issues for the problem I am experiencing.
+        - label: I have searched the issue tracker and confirmed that I was unable to find existing issues for the problem I am experiencing.
           required: true
   - type: textarea
     id: the-problem
@@ -30,7 +30,7 @@ body:
     id: operating-system
     attributes:
       label: Operating system
-      description: Enter the specific operating system version you are running.
+      description: Enter the specific operating system version you are running (example: Windows 10)
     validations:
         required: true
   - type: textarea
