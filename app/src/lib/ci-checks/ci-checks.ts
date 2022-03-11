@@ -10,11 +10,11 @@ import {
   IAPIWorkflowRun,
 } from '../api'
 import JSZip from 'jszip'
-import moment from 'moment'
 import { enableCICheckRunsLogs } from '../feature-flag'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { supportsRetrieveActionWorkflowByCheckSuiteId } from '../endpoint-capabilities'
+import { formatPreciseDuration } from '../format-duration'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -156,12 +156,12 @@ export function getCheckRunConclusionAdjective(
  * or failing...
  * @param conclusion - The conclusion of the check, something like success or
  * skipped...
- * @param durationSeconds - The time in seconds it took to complete.
+ * @param durationMs - The time in milliseconds it took to complete.
  */
 function getCheckRunShortDescription(
   status: APICheckStatus,
   conclusion: APICheckConclusion | null,
-  durationSeconds?: number
+  durationMs?: number
 ): string {
   if (status !== APICheckStatus.Completed || conclusion === null) {
     return 'In progress'
@@ -183,37 +183,20 @@ function getCheckRunShortDescription(
 
   const preposition = conclusion === APICheckConclusion.Success ? 'in' : 'after'
 
-  if (durationSeconds !== undefined && durationSeconds > 0) {
-    const duration =
-      durationSeconds < 60
-        ? `${durationSeconds}s`
-        : `${Math.round(durationSeconds / 60)}m`
-    return `${adjective} ${preposition} ${duration}`
+  if (durationMs !== undefined && durationMs > 0) {
+    return `${adjective} ${preposition} ${formatPreciseDuration(durationMs)}`
   }
 
   return adjective
 }
 
 /**
- * Attempts to get the duration of a check run in seconds.
- * If it fails, it returns 0
+ * Attempts to get the duration of a check run in milliseconds. Returns NaN if
+ * parsing either completed_at or started_at fails
  */
-export function getCheckDurationInSeconds(
+export const getCheckDurationInMilliseconds = (
   checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
-): number {
-  try {
-    // This could fail if the dates cannot be parsed.
-    const completedAt = new Date(checkRun.completed_at).getTime()
-    const startedAt = new Date(checkRun.started_at).getTime()
-    const duration = (completedAt - startedAt) / 1000
-
-    if (!isNaN(duration)) {
-      return duration
-    }
-  } catch (e) {}
-
-  return 0
-}
+) => Date.parse(checkRun.completed_at) - Date.parse(checkRun.started_at)
 
 /**
  * Convert an API check run object to a RefCheck model
@@ -225,7 +208,7 @@ export function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
     description: getCheckRunShortDescription(
       checkRun.status,
       checkRun.conclusion,
-      getCheckDurationInSeconds(checkRun)
+      getCheckDurationInMilliseconds(checkRun)
     ),
     status: checkRun.status,
     conclusion: checkRun.conclusion,
@@ -616,14 +599,9 @@ function mapActionWorkflowsRunsToCheckRuns(
  */
 export function getFormattedCheckRunDuration(
   checkRun: IAPIRefCheckRun | IAPIWorkflowJobStep
-): string {
-  if (checkRun.completed_at === null || checkRun.started_at === null) {
-    return ''
-  }
-
-  return moment
-    .duration(getCheckDurationInSeconds(checkRun), 'seconds')
-    .format('d[d] h[h] m[m] s[s]', { largest: 4 })
+) {
+  const duration = getCheckDurationInMilliseconds(checkRun)
+  return isNaN(duration) ? '' : formatPreciseDuration(duration)
 }
 
 /**
