@@ -64,6 +64,8 @@ jobs:
         run: yarn lint
       - name: Validate changelog
         run: yarn validate-changelog
+      - name: Dirty up the working directory for testing
+        run: echo ohaimark > README.md
       - name: Ensure a clean working directory
         run: git diff --name-status --exit-code
       - name: Build production app
