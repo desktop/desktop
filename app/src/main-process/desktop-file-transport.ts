@@ -60,7 +60,7 @@ const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
 const createStream = (p: string) => createWriteStream(p, { flags: 'a' })
 
 const pruneDirectory = async (p: string) => {
-  const treshold = offsetFromNow(14, 'days')
+  const treshold = offsetFromNow(-14, 'days')
   const files = await readdir(p)
 
   for (const f of files) {
