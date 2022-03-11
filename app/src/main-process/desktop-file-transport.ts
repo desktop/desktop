@@ -41,7 +41,9 @@ export class DesktopFileTransport extends TransportStream {
 
     if (this.stream === undefined || this.stream.path !== path) {
       this.stream?.end()
-      this.stream = createStream(path).on('error', e => this.emit('error', e))
+      this.stream = await createStream(path)
+      this.stream.on('error', e => this.emit('error', e))
+
       await pruneDirectory(this.logDirectory).catch(e => this.emit('error', e))
     }
 
