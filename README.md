@@ -43,6 +43,8 @@ There are several community-supported package managers that can be used to
 install GitHub Desktop:
  - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
       `c:\> choco install github-desktop`
+ - Windows users who are using [Scoop](https://scoop.sh) package manager:
+      `PS > scoop bucket add extras; scoop install github
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
       `$ brew install --cask github`
 
