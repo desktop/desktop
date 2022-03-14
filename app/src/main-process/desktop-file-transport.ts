@@ -6,6 +6,7 @@ import { EOL } from 'os'
 import { readdir, unlink } from 'fs/promises'
 import { escapeRegExp } from '../lib/helpers/regex'
 import { offsetFromNow } from '../lib/offset-from'
+import { promisify } from 'util'
 
 type DesktopFileTransportOptions = TransportStreamOptions & {
   readonly logDirectory: string
@@ -67,10 +68,7 @@ export class DesktopFileTransport extends TransportStream {
     this.stream = undefined
   }
 }
-const write = (s: WriteStream, chunk: string) =>
-  new Promise<void>((resolve, reject) =>
-    s.write(chunk, e => (e ? reject(e) : resolve()))
-  )
+const write = promisify<WriteStream, string, void>((s, c, cb) => s.write(c, cb))
 
 const getFilePrefix = (d = new Date()) => d.toISOString().split('T', 1)[0]
 const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
