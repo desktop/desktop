@@ -78,14 +78,14 @@ const getFilePrefix = (d = new Date()) => d.toISOString().split('T', 1)[0]
 const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
 
 const pruneDirectory = async (p: string) => {
-  const treshold = offsetFromNow(-14, 'days')
+  const threshold = offsetFromNow(-14, 'days')
   const files = await readdir(p).catch(debug)
 
   for (const f of files ?? []) {
     const m = pathRe.exec(f)
     const d = m ? Date.parse(m[1]) : NaN
 
-    if (!isNaN(d) && d < treshold) {
+    if (!isNaN(d) && d < threshold) {
       await unlink(join(p, f)).catch(e =>
         console.debug(`DesktopFileTransport: Error removing old log file`, e)
       )
