@@ -17,9 +17,9 @@ const pathRe = new RegExp(
   '(\\d{4}-\\d{2}-\\d{2})' + escapeRegExp(fileSuffix) + '$'
 )
 
-const debug = (...args: any) => {
+const error = (operation: string) => (error: any) => {
   if (__DEV__) {
-    console.error('DesktopFileTransport', ...args)
+    console.error(`DesktopFileTransport: ${operation}`, error)
   }
   return undefined
 }
@@ -49,13 +49,13 @@ export class DesktopFileTransport extends TransportStream {
     if (this.stream === undefined || this.stream.path !== path) {
       this.stream?.end()
       this.stream = createWriteStream(path, { flags: 'a' })
-      this.stream.on('error', debug)
+      this.stream.on('error', error('stream error'))
 
-      await pruneDirectory(this.logDirectory).catch(debug)
+      await pruneDirectory(this.logDirectory).catch(error('prune'))
     }
 
     if (this.stream !== undefined) {
-      await write(this.stream, `${info[MESSAGE]}${EOL}`).catch(debug)
+      await write(this.stream, `${info[MESSAGE]}${EOL}`).catch(error('write'))
       this.emit('logged', info)
     }
 
@@ -68,27 +68,23 @@ export class DesktopFileTransport extends TransportStream {
   }
 }
 const write = (s: WriteStream, chunk: string) =>
-  new Promise((resolve, reject) => {
-    const draining: boolean = s.write(chunk, e =>
-      e ? reject(e) : resolve(draining)
-    )
-  })
+  new Promise<void>((resolve, reject) =>
+    s.write(chunk, e => (e ? reject(e) : resolve()))
+  )
 
 const getFilePrefix = (d = new Date()) => d.toISOString().split('T', 1)[0]
 const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
 
 const pruneDirectory = async (p: string) => {
   const threshold = offsetFromNow(-14, 'days')
-  const files = await readdir(p).catch(debug)
+  const files = await readdir(p).catch(error('readlink'))
 
   for (const f of files ?? []) {
     const m = pathRe.exec(f)
     const d = m ? Date.parse(m[1]) : NaN
 
     if (!isNaN(d) && d < threshold) {
-      await unlink(join(p, f)).catch(e =>
-        console.debug(`DesktopFileTransport: Error removing old log file`, e)
-      )
+      await unlink(join(p, f)).catch(error('unlink'))
     }
   }
 }
