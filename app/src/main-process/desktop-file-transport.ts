@@ -6,7 +6,6 @@ import { EOL } from 'os'
 import { readdir, unlink } from 'fs/promises'
 import { escapeRegExp } from '../lib/helpers/regex'
 import { offsetFromNow } from '../lib/offset-from'
-import { omit } from 'lodash'
 
 type DesktopFileTransportOptions = TransportStreamOptions & {
   readonly logDirectory: string
@@ -39,8 +38,9 @@ export class DesktopFileTransport extends TransportStream {
   private logDirectory: string
 
   public constructor(opts: DesktopFileTransportOptions) {
-    super(omit(opts, 'logDirectory'))
-    this.logDirectory = opts.logDirectory
+    const { logDirectory, ...rest } = opts
+    super(rest)
+    this.logDirectory = logDirectory
   }
 
   public async log(info: any, callback: () => void) {
