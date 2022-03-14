@@ -1,14 +1,15 @@
-import { readdir } from 'fs/promises'
-import { LEVEL } from 'triple-beam'
+import { readdir, readFile } from 'fs/promises'
+import { EOL } from 'os'
+import { join } from 'path'
+import { Writable } from 'stream'
+import { LEVEL, MESSAGE } from 'triple-beam'
+import { promisify } from 'util'
 import { DesktopFileTransport } from '../../src/main-process/desktop-file-transport'
 import { createTempDirectory } from '../helpers/temp'
 
-const info = (t: DesktopFileTransport, message: string) => {
-  const chunk = { message, [LEVEL]: 'info', level: 'info' }
-  return new Promise<void>((resolve, reject) =>
-    t.write(chunk, e => (e ? reject(e) : resolve()))
-  )
-}
+const write = promisify<Writable, any, void>((t, c, cb) => t.write(c, cb))
+const format = (msg: string, lvl: string) => ({ [MESSAGE]: msg, [LEVEL]: lvl })
+const info = (t: DesktopFileTransport, m: string) => write(t, format(m, 'info'))
 
 describe('DesktopFileTransport', () => {
   it('creates a file on demand', async () => {
@@ -17,7 +18,9 @@ describe('DesktopFileTransport', () => {
 
     expect(await readdir(d)).toBeArrayOfSize(0)
     await info(t, 'heyo')
-    expect(await readdir(d)).toBeArrayOfSize(1)
+    const files = await readdir(d)
+    expect(files).toBeArrayOfSize(1)
+    expect(await readFile(join(d, files[0]), 'utf8')).toEqual(`heyo${EOL}`)
 
     t.close()
   })
