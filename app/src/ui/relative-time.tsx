@@ -1,7 +1,7 @@
 import * as React from 'react'
-import moment from 'moment'
 import { TooltippedContent } from './lib/tooltipped-content'
 import { formatDate } from '../lib/format-date'
+import { formatRelative } from '../lib/format-relative'
 
 interface IRelativeTimeProps {
   /**
@@ -87,7 +87,7 @@ export class RelativeTime extends React.Component<
   }
 
   private updateWithDate(then: Date) {
-    const { abbreviate, onlyRelative } = this.props
+    const { onlyRelative } = this.props
 
     const diff = then.getTime() - Date.now()
     const duration = Math.abs(diff)
@@ -97,13 +97,7 @@ export class RelativeTime extends React.Component<
       timeStyle: 'short',
     })
 
-    const format = abbreviate
-      ? 'y[y] M[m] w[w] d[d] h[h] m[m]'
-      : 'y [years] ago M [months] ago d [days] ago h [hours] ago m [minutes] ago'
-
-    const relativeText = moment
-      .duration(duration, 'milliseconds')
-      .format(format, { largest: 1 })
+    const relativeText = formatRelative(duration)
 
     // Future date, let's just show as absolute and reschedule. If it's less
     // than a minute into the future we'll treat it as 'just now'.

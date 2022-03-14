@@ -129,7 +129,6 @@
     "@types/klaw-sync": "^6.0.0",
     "@types/legal-eagle": "^0.15.0",
     "@types/memoize-one": "^3.1.1",
-    "@types/moment-duration-format": "^2.2.2",
     "@types/mri": "^1.1.0",
     "@types/node": "16.11.11",
     "@types/prettier": "^2.0.1",
