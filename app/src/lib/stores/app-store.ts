@@ -295,6 +295,8 @@ import {
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
+import { getUserLocale } from '../get-user-locale'
+import { setDateLocale } from '../format-date'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1777,6 +1779,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
+    const userLocalePromise = getUserLocale()
+      .then(setDateLocale)
+      .catch(e => log.error(`Could not resolve user locale`, e))
+
     const [accounts, repositories] = await Promise.all([
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
@@ -1894,6 +1900,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.dragAndDropIntroTypesShown = new Set(dragAndDropIntroTypesShown)
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
+
+    await userLocalePromise
 
     this.emitUpdateNow()
 

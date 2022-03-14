@@ -19,6 +19,7 @@
   "dependencies": {
     "@github/alive-client": "^0.0.2",
     "app-path": "^3.3.0",
+    "bcp-47": "^2.1.0",
     "byline": "^5.0.0",
     "chalk": "^2.3.0",
     "classnames": "^2.2.5",
@@ -63,6 +64,7 @@
     "username": "^5.1.0",
     "uuid": "^3.0.1",
     "wicg-focus-ring": "^1.0.1",
+    "win32-user-locale": "^0.3.0",
     "winston": "^3.6.0",
     "winston-daily-rotate-file": "^4.6.1"
   },
