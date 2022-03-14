@@ -112,4 +112,5 @@ export type RequestResponseChannels = {
     Electron.AppleActionOnDoubleClickPref
   >
   'should-use-dark-colors': () => Promise<boolean>
+  'get-apple-locale': () => Promise<string>
 }

@@ -650,6 +650,10 @@ app.on('ready', () => {
     'should-use-dark-colors',
     async () => nativeTheme.shouldUseDarkColors
   )
+
+  ipcMain.handle('get-apple-locale', async () =>
+    systemPreferences.getUserDefault('AppleLocale', 'string')
+  )
 })
 
 app.on('activate', () => {
