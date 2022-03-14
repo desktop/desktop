@@ -77,7 +77,7 @@ const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
 
 const pruneDirectory = async (p: string) => {
   const threshold = offsetFromNow(-14, 'days')
-  const files = await readdir(p).catch(error('readlink'))
+  const files = await readdir(p).catch(error('readdir'))
 
   for (const f of files ?? []) {
     const m = pathRe.exec(f)
