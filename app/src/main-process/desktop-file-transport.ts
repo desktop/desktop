@@ -30,7 +30,7 @@ const error = (operation: string) => (error: any) => {
  * winston-daily-rotate-file depends on moment.js which we're trying to unship
  * so we're using this instead.
  *
- * Please note that this is in no way a general purpose transpot like
+ * Please note that this is in no way a general purpose transport like
  * winston-daily-rotate-file, it's highly specific to the needs of GitHub
  * Desktop.
  */
