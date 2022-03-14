@@ -8,7 +8,6 @@ import {
   getBranchCheckouts,
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import moment from 'moment'
 import { GitProcess } from 'dugite'
 import { offsetFromNow } from '../../../src/lib/offset-from'
 
@@ -79,7 +78,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        moment().add(1, 'day').toDate()
+        new Date(offsetFromNow(1, 'day'))
       )
       expect(branches.size).toBe(0)
     })
