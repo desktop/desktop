@@ -18,14 +18,21 @@ import { LinkButton } from '../lib/link-button'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
-  readonly shouldCheckoutBranch: boolean
-  readonly shouldChangeRepository: boolean
   readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
   readonly review: IAPIPullRequestReview
+
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  /**
+   * Whether or not the dialog should offer to switch to the PR's repository or
+   * to checkout the PR branch when applicable (e.g. non-approved reviews).
+   */
+  readonly shouldCheckoutBranch: boolean
+  readonly shouldChangeRepository: boolean
+
   readonly onSubmit: () => void
   readonly onDismissed: () => void
 }
@@ -191,24 +198,13 @@ export class PullRequestReview extends React.Component<
   }
 
   private viewOnGitHub = () => {
-    const { repository, pullRequest, dispatcher, review } = this.props
-
-    // Some checks do not provide htmlURLS like ones for the legacy status
-    // object as they do not have a view in the checks screen. In that case we
-    // will just open the PR and they can navigate from there... a little
-    // dissatisfying tho more of an edgecase anyways.
-    const url =
-      review.html_url ||
-      `${repository.gitHubRepository.htmlURL}/pull/${pullRequest.pullRequestNumber}#pullrequestreview-${review.id}`
-    if (url === null) {
-      // The repository should have a htmlURL.
-      return
-    }
-    dispatcher.openInBrowser(url)
+    const { dispatcher, review } = this.props
+    dispatcher.openInBrowser(review.html_url)
   }
 
   private onSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
+
     const {
       dispatcher,
       repository,
@@ -220,6 +216,7 @@ export class PullRequestReview extends React.Component<
 
     const isApprovedReview = review.state === 'APPROVED'
 
+    // Only switch to the PR when needed, if it's not an approved review
     if (!isApprovedReview && (shouldChangeRepository || shouldCheckoutBranch)) {
       this.setState({ switchingToPullRequest: true })
       await dispatcher.selectRepository(repository)

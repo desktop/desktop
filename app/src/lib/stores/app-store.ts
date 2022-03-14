@@ -6955,7 +6955,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // repository.
       return this._showPopup({
         ...popup,
-        needsSelectRepository: false,
+        shouldChangeRepository: false,
       })
     }
   }
@@ -6976,9 +6976,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return this._showPopup({
       type: PopupType.PullRequestReview,
-      needsCheckoutBranch:
+      shouldCheckoutBranch:
         currentBranch !== null && currentBranch.name !== pullRequest.head.ref,
-      needsSelectRepository:
+      shouldChangeRepository:
         selectedRepository === null ||
         selectedRepository.hash !== repository.hash,
       review,
