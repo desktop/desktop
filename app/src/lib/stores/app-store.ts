@@ -6922,7 +6922,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       type: PopupType.PullRequestChecksFailed,
       pullRequest,
       repository,
-      needsSelectRepository: true,
+      shouldChangeRepository: true,
       commitMessage,
       commitSha,
       checks,

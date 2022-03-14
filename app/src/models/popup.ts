@@ -321,7 +321,7 @@ export type Popup =
       type: PopupType.PullRequestChecksFailed
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
-      needsSelectRepository: boolean
+      shouldChangeRepository: boolean
       commitMessage: string
       commitSha: string
       checks: ReadonlyArray<IRefCheck>

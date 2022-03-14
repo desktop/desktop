@@ -5,7 +5,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
-import { getHTMLURL, IAPIPullRequestReview } from '../../lib/api'
+import { IAPIPullRequestReview } from '../../lib/api'
 import { Octicon } from '../octicons'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
@@ -14,7 +14,6 @@ import {
   getPullRequestReviewStateIcon,
   getVerbForPullRequestReview,
 } from './pull-request-review-helpers'
-import { LinkButton } from '../lib/link-button'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -57,16 +56,17 @@ export class PullRequestReview extends React.Component<
   }
 
   public render() {
-    const { review, repository } = this.props
+    const { review } = this.props
 
     const { title, pullRequestNumber } = this.props.pullRequest
     const verb = getVerbForPullRequestReview(review)
 
     const header = (
       <div className="pull-request-review-dialog-header">
+        {this.renderReviewIcon()}
         <div className="title-container">
-          <div>
-            {__DARWIN__ ? 'Pull Request Review' : 'Pull request review'}
+          <div className="summary">
+            @{review.user.login} {verb} your pull request
           </div>
           <span className="pr-title">
             <span className="pr-title">{title}</span>{' '}
@@ -76,10 +76,6 @@ export class PullRequestReview extends React.Component<
         {this.renderViewOnGitHubButton()}
       </div>
     )
-
-    const authorUrl = `${getHTMLURL(repository.gitHubRepository.endpoint)}/${
-      review.user.login
-    }`
 
     return (
       <Dialog
@@ -91,18 +87,7 @@ export class PullRequestReview extends React.Component<
         onDismissed={this.props.onDismissed}
         loading={this.state.switchingToPullRequest}
       >
-        <DialogContent>
-          <Row>
-            <div className="review-summary-container">
-              {this.renderReviewIcon()}
-              <span className="review-summary">
-                <LinkButton uri={authorUrl}>{review.user.login}</LinkButton>{' '}
-                {verb} your pull request{review.body.length === 0 ? '.' : ':'}
-              </span>
-            </div>
-          </Row>
-          {this.renderReviewBody()}
-        </DialogContent>
+        <DialogContent>{this.renderReviewBody()}</DialogContent>
         <DialogFooter>{this.renderFooterContent()}</DialogFooter>
       </Dialog>
     )
