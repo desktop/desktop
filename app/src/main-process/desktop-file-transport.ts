@@ -5,13 +5,13 @@ import TransportStream, { TransportStreamOptions } from 'winston-transport'
 import { EOL } from 'os'
 import { readdir, unlink } from 'fs/promises'
 import { escapeRegExp } from '../lib/helpers/regex'
-import { offsetFromNow } from '../lib/offset-from'
 import { promisify } from 'util'
 
 type DesktopFileTransportOptions = TransportStreamOptions & {
   readonly logDirectory: string
 }
 
+const MaxRetainedLogFiles = 14
 const fileSuffix = `.desktop.${__RELEASE_CHANNEL__}.log`
 const pathRe = new RegExp(
   '(\\d{4}-\\d{2}-\\d{2})' + escapeRegExp(fileSuffix) + '$'
@@ -68,21 +68,24 @@ export class DesktopFileTransport extends TransportStream {
     this.stream = undefined
   }
 }
-const write = promisify<WriteStream, string, void>((s, c, cb) => s.write(c, cb))
 
+const write = promisify<WriteStream, string, void>((s, c, cb) => s.write(c, cb))
 const getFilePrefix = (d = new Date()) => d.toISOString().split('T', 1)[0]
 const getFilePath = (p: string) => join(p, `${getFilePrefix()}${fileSuffix}`)
+const getLogFilesIn = (p: string) =>
+  readdir(p, { withFileTypes: true })
+    .then(entries => entries.filter(x => x.isFile() && pathRe.test(x.name)))
+    .catch(error('readdir'))
 
 const pruneDirectory = async (p: string) => {
-  const threshold = offsetFromNow(-14, 'days')
-  const files = await readdir(p).catch(error('readdir'))
+  const all = await getLogFilesIn(p)
 
-  for (const f of files ?? []) {
-    const m = pathRe.exec(f)
-    const d = m ? Date.parse(m[1]) : NaN
+  if (all && all.length > MaxRetainedLogFiles) {
+    const end = all.length - MaxRetainedLogFiles + 1
+    const old = all.sort().slice(0, end)
 
-    if (!isNaN(d) && d < threshold) {
-      await unlink(join(p, f)).catch(error('unlink'))
+    for (const f of old) {
+      await unlink(join(p, f.name)).catch(error('unlink'))
     }
   }
 }

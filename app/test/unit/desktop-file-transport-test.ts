@@ -48,27 +48,65 @@ describe('DesktopFileTransport', () => {
     }
   })
 
-  it('cleans up files older than 14 days', async () => {
-    const originalNow = Date.now
+  it.only('retains a maximum of 14 log files', async () => {
     const originalToISOString = Date.prototype.toISOString
     const globalDate = global.Date as any
     const d = await createTempDirectory('desktop-logs')
     const t = new DesktopFileTransport({ logDirectory: d })
 
+    const dates = [
+      '2022-03-01T10:00:00.000Z',
+      '2022-03-02T10:00:00.000Z',
+      '2022-03-03T10:00:00.000Z',
+      '2022-03-04T10:00:00.000Z',
+      '2022-03-05T10:00:00.000Z',
+      '2022-03-06T10:00:00.000Z',
+      '2022-03-07T10:00:00.000Z',
+      '2022-03-08T10:00:00.000Z',
+      '2022-03-09T10:00:00.000Z',
+      '2022-03-10T10:00:00.000Z',
+      '2022-03-11T10:00:00.000Z',
+      '2022-03-12T10:00:00.000Z',
+      '2022-03-13T10:00:00.000Z',
+      '2022-03-14T10:00:00.000Z',
+      '2022-03-15T10:00:00.000Z',
+      '2022-03-16T10:00:00.000Z',
+      '2022-03-17T10:00:00.000Z',
+      '2022-03-18T10:00:00.000Z',
+      '2022-03-19T10:00:00.000Z',
+      '2022-03-20T10:00:00.000Z',
+    ]
+
     try {
       expect(await readdir(d)).toBeArrayOfSize(0)
-      for (let i = 1; i < 20; i++) {
-        const date = `${i}`.padStart(2, '0')
-        globalDate.now = () => Date.parse(`2022-03-${date}T10:00:00.000Z`)
-        globalDate.prototype.toISOString = () => `2022-03-${date}T10:00:00.000Z`
+      for (const date of dates) {
+        globalDate.prototype.toISOString = () => date
         await info(t, 'heyo')
       }
 
-      expect(await readdir(d)).toBeArrayOfSize(14)
+      const retainedFiles = await readdir(d)
+      expect(retainedFiles).toBeArrayOfSize(14)
+
+      // Retains the newest files (ISO date is lexicographically sortable)
+      expect(retainedFiles.sort()).toEqual([
+        '2022-03-07.desktop.development.log',
+        '2022-03-08.desktop.development.log',
+        '2022-03-09.desktop.development.log',
+        '2022-03-10.desktop.development.log',
+        '2022-03-11.desktop.development.log',
+        '2022-03-12.desktop.development.log',
+        '2022-03-13.desktop.development.log',
+        '2022-03-14.desktop.development.log',
+        '2022-03-15.desktop.development.log',
+        '2022-03-16.desktop.development.log',
+        '2022-03-17.desktop.development.log',
+        '2022-03-18.desktop.development.log',
+        '2022-03-19.desktop.development.log',
+        '2022-03-20.desktop.development.log',
+      ])
 
       t.close()
     } finally {
-      globalDate.now = originalNow
       globalDate.prototype.toISOString = originalToISOString
     }
   })
