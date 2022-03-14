@@ -1911,10 +1911,10 @@ wide-align@^1.1.0:
   dependencies:
     string-width "^1.0.2 || 2"
 
-win32-user-locale@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/win32-user-locale/-/win32-user-locale-0.3.0.tgz#ed6cc12478d94c0e99234e7f50f988b22ffac85b"
-  integrity sha512-e6twiD283S1CF0kU7wMyu9Esme4TSs+cUBum8T5PriiUdWWpimHZuKO/A07gX6WPsdpZ1jEO0CQbCIzbnD0e3Q==
+win32-user-locale@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/win32-user-locale/-/win32-user-locale-0.4.0.tgz#f36648ddd3dfb5ea70f91fcd16b5680b127163cb"
+  integrity sha512-7SnSH1XORT+x0XznnhAtlGLYNbpjpDvO0EPpRtLvUs1XGydFT7xDeiBC67/4YXM0yJVSNu1xFQodh92GkUq7Jw==
   dependencies:
     bindings "^1.5.0"
     node-addon-api "^4.3.0"
