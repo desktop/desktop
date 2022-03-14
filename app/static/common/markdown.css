@@ -284,6 +284,10 @@ changes from the original, just a note that this will not match 1-1)
 	background-color: var(--md-canvas-default-color)
 }
 
+.markdown-body video {
+	max-width: 100%;
+}
+
 .markdown-body img[align=right] {
 	padding-left: 20px
 }
