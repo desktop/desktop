@@ -1,31 +1,7 @@
-import mem from 'mem'
-import QuickLRU from 'quick-lru'
-import { getFormattingLocales } from './formatting-locale'
-
-// Initializing a date formatter is expensive but formatting is relatively cheap
-// so we cache them based on the locale and their options. The maxSize of a 100
-// is only as an escape hatch, we don't expect to ever create more than a
-// handful different formatters.
-const getRelativeFormatter = mem(
-  (locales: string | string[], options: Intl.RelativeTimeFormatOptions) => {
-    try {
-      return new Intl.RelativeTimeFormat(locales, options)
-    } catch (e) {
-      log.error(`Error creating RelativeTimeFormat with locale '${locales}'`, e)
-      return new Intl.RelativeTimeFormat(undefined, options)
-    }
-  },
-  {
-    cache: new QuickLRU({ maxSize: 100 }),
-    cacheKey: (...args) => JSON.stringify(args),
-  }
-)
+import { getDefaultRelativeTimeFormatter } from './get-intl-formatter'
 
 export function formatRelative(ms: number) {
-  const formatter = getRelativeFormatter(getFormattingLocales(), {
-    numeric: 'auto',
-  })
-
+  const formatter = getDefaultRelativeTimeFormatter({ numeric: 'auto' })
   const sign = ms < 0 ? 1 : -1
 
   // Lifted and adopted from
