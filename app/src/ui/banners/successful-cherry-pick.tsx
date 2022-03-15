@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { formatCommitCount } from '../../lib/format-commit-count'
 import { SuccessBanner } from './success-banner'
 
 interface ISuccessfulCherryPickBannerProps {
@@ -20,12 +21,10 @@ export class SuccessfulCherryPick extends React.Component<
       targetBranchName,
     } = this.props
 
-    const pluralized = countCherryPicked === 1 ? 'commit' : 'commits'
-
     return (
       <SuccessBanner timeout={15000} onDismissed={onDismissed} onUndo={onUndo}>
         <span>
-          Successfully copied {countCherryPicked} {pluralized} to{' '}
+          Successfully copied {formatCommitCount(countCherryPicked)} to{' '}
           <strong>{targetBranchName}</strong>.
         </span>
       </SuccessBanner>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { formatCommitCount } from '../../../lib/format-commit-count'
 import {
   getAheadBehind,
   mergeTree,
@@ -174,11 +175,9 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
       )
     }
 
-    const pluralized = commitCount === 1 ? 'commit' : 'commits'
     return (
       <React.Fragment>
-        This will merge
-        <strong>{` ${commitCount} ${pluralized}`}</strong>
+        This will merge <strong>{formatCommitCount(commitCount)}</strong>
         {` from `}
         <strong>{branch.name}</strong>
         {` into `}

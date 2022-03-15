@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { formatCommitCount } from '../../lib/format-commit-count'
 import { SuccessBanner } from './success-banner'
 
 interface ICherryPickUndoneBannerProps {
@@ -13,12 +14,11 @@ export class CherryPickUndone extends React.Component<
 > {
   public render() {
     const { countCherryPicked, targetBranchName, onDismissed } = this.props
-    const pluralized = countCherryPicked === 1 ? 'commit' : 'commits'
     return (
       <SuccessBanner timeout={5000} onDismissed={onDismissed}>
-        Cherry-pick undone. Successfully removed the {countCherryPicked}
-        {' copied '}
-        {pluralized} from <strong>{targetBranchName}</strong>.
+        Cherry-pick undone. Successfully removed the{' '}
+        {formatCommitCount(countCherryPicked, 'copied commit')}
+        from <strong>{targetBranchName}</strong>.
       </SuccessBanner>
     )
   }

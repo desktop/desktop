@@ -14,6 +14,7 @@ import {
 import { getMergeOptions, updateRebasePreview } from '../lib/update-branch'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { RebasePreview } from '../../models/rebase'
+import { formatCommitCount } from '../../lib/format-commit-count'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -252,14 +253,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
       return null
     }
 
-    const pluralized = this.commitCount === 1 ? 'commit' : 'commits'
-
     if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
       return (
         <div className="merge-message">
           This will update <strong>{currentBranch.name}</strong>
           {` by applying its `}
-          <strong>{`${this.commitCount} ${pluralized}`}</strong>
+          <strong>{`${formatCommitCount(this.commitCount)}`}</strong>
           {` on top of `}
           <strong>{branch.name}</strong>
         </div>
@@ -268,8 +267,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     return (
       <div className="merge-message">
-        This will merge
-        <strong>{` ${this.commitCount} ${pluralized}`}</strong>
+        This will merge <strong>{formatCommitCount(this.commitCount)}</strong>
         {` from `}
         <strong>{branch.name}</strong>
         {` into `}

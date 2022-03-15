@@ -18,6 +18,7 @@ import { OpenThankYouCard } from './open-thank-you-card'
 import { SuccessfulSquash } from './successful-squash'
 import { SuccessBanner } from './success-banner'
 import { ConflictsFoundBanner } from './conflicts-found-banner'
+import { formatCommitCount } from '../../lib/format-commit-count'
 
 export function renderBanner(
   banner: Banner,
@@ -120,33 +121,27 @@ export function renderBanner(
         />
       )
     case BannerType.SquashUndone: {
-      const pluralized = banner.commitsCount === 1 ? 'commit' : 'commits'
       return (
         <SuccessBanner timeout={5000} onDismissed={onDismissed}>
-          Squash of {banner.commitsCount} {pluralized} undone.
+          Squash of {formatCommitCount(banner.commitsCount)} undone.
         </SuccessBanner>
       )
     }
     case BannerType.SuccessfulReorder: {
-      const pluralized = banner.count === 1 ? 'commit' : 'commits'
-
       return (
         <SuccessBanner
           timeout={15000}
           onDismissed={onDismissed}
           onUndo={banner.onUndo}
         >
-          <span>
-            Successfully reordered {banner.count} {pluralized}.
-          </span>
+          <span>Successfully reordered {formatCommitCount(banner.count)}.</span>
         </SuccessBanner>
       )
     }
     case BannerType.ReorderUndone: {
-      const pluralized = banner.commitsCount === 1 ? 'commit' : 'commits'
       return (
         <SuccessBanner timeout={5000} onDismissed={onDismissed}>
-          Reorder of {banner.commitsCount} {pluralized} undone.
+          Reorder of {formatCommitCount(banner.commitsCount)} undone.
         </SuccessBanner>
       )
     }

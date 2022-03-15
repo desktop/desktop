@@ -19,6 +19,7 @@ import { Dispatcher } from '../dispatcher'
 import { SuggestedActionGroup } from '../suggested-actions'
 import { PreferencesTab } from '../../models/preferences'
 import { PopupType } from '../../models/popup'
+import { formatCommitCount } from '../../lib/format-commit-count'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -550,9 +551,9 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    const title = `Pull ${aheadBehind.behind} ${
-      aheadBehind.behind === 1 ? 'commit' : 'commits'
-    } from the ${remote.name} remote`
+    const title = `Pull ${formatCommitCount(aheadBehind.behind)} from the ${
+      remote.name
+    } remote`
 
     const buttonText = `Pull ${remote.name}`
 
@@ -592,9 +593,7 @@ export class NoChanges extends React.Component<
     if (aheadBehind.ahead > 0) {
       itemsToPushTypes.push('commits')
       itemsToPushDescriptions.push(
-        aheadBehind.ahead === 1
-          ? '1 local commit'
-          : `${aheadBehind.ahead} local commits`
+        formatCommitCount(aheadBehind.ahead, 'local commit')
       )
     }
 
