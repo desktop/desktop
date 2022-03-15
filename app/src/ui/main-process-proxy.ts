@@ -340,4 +340,5 @@ export const showSaveDialog = invokeProxy('show-save-dialog', 1)
  */
 export const showOpenDialog = invokeProxy('show-open-dialog', 1)
 
-export const getAppleLocale = invokeProxy('get-apple-locale', 0)
+/** User's locale region as a two-letter ISO 3166 country code. */
+export const getLocaleCountryCode = invokeProxy('get-locale-country-code', 0)

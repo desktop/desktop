@@ -1,5 +1,3 @@
-import { parse } from 'bcp-47'
-
 export const defaultFormattingLocale = 'en-US'
 let formattingLocale: string | undefined = undefined
 
@@ -19,22 +17,14 @@ export const getFormattingLocales = () =>
     : defaultFormattingLocale
 
 /**
- * Set the current user locale. Note that we will only use the region part
- * of the locale, the language will always be 'en'.
+ * Set the current user locale. Note that the language will always be 'en'.
  *
- * @param locale A BCP 47 formatted tag (i.e "en-US"). POSIX-style en_US is
- *               supported on a best-effort basis
+ * @param countryCode The user's locale region as a ISO 3166 country code
  */
-export const setFormattingLocale = (locale: string | undefined) => {
-  if (locale === undefined) {
-    formattingLocale = undefined
-  } else {
-    const { region } = parse(locale.replaceAll('_', '-'), { forgiving: true })
-
-    if (typeof region !== 'string') {
-      throw new Error(`Could not parse locale: ${locale}`)
-    }
-
-    formattingLocale = `en-${region.toUpperCase() ?? 'US'}`
+export const setFormattingLocaleFromCountryCode = (countryCode: string) => {
+  if (!/^[a-z]{2}$/i.test(countryCode)) {
+    throw new Error(`Could not parse region '${countryCode}'`)
   }
+
+  formattingLocale = `en-${countryCode.toUpperCase()}`
 }
