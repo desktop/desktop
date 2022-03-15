@@ -23,7 +23,5 @@ module.exports = {
   reporters: ['default', '<rootDir>../script/jest-actions-reporter.js'],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
   // For now, @github Node modules required to be transformed by jest-esm-transformer
-  transformIgnorePatterns: [
-    'node_modules/(?!(@github|bcp-47|is-decimal|is-alphabetical|is-alphanumerical))',
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(@github)'],
 }

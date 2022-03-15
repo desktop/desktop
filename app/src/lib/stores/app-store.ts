@@ -77,6 +77,7 @@ import {
   getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
   updateAccounts,
+  getLocaleCountryCode,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -298,8 +299,7 @@ import {
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
-import { getUserLocale } from '../get-user-locale'
-import { setFormattingLocale } from '../formatting-locale'
+import { setFormattingLocaleFromCountryCode } from '../formatting-locale'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1909,13 +1909,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.refresh()
   }
 
-  private loadUserLocale() {
-    return enableLocaleAwareFormatting()
-      ? getUserLocale()
-          .then(setFormattingLocale)
-          .then(l => log.info(`[AppStore] Set formatting locale to ${l}`))
-          .catch(e => log.error(`[AppStore] Could not resolve user locale`, e))
-      : Promise.resolve()
+  private async loadUserLocale() {
+    if (!enableLocaleAwareFormatting()) {
+      return
+    }
+
+    try {
+      const l = setFormattingLocaleFromCountryCode(await getLocaleCountryCode())
+      log.info(`[AppStore] Set formatting locale to ${l}`)
+    } catch (e) {
+      log.error(`[AppStore] Could not resolve user locale`, e)
+    }
   }
 
   /**

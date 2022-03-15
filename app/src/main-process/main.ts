@@ -651,8 +651,8 @@ app.on('ready', () => {
     async () => nativeTheme.shouldUseDarkColors
   )
 
-  ipcMain.handle('get-apple-locale', async () =>
-    systemPreferences.getUserDefault('AppleLocale', 'string')
+  ipcMain.handle('get-locale-country-code', async () =>
+    app.getLocaleCountryCode()
   )
 })
 
