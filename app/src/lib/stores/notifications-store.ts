@@ -40,7 +40,8 @@ type OnChecksFailedCallback = (
 type OnPullRequestReviewSubmitCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
-  review: IAPIPullRequestReview
+  review: IAPIPullRequestReview,
+  numberOfComments: number
 ) => void
 
 /**
@@ -138,14 +139,16 @@ export class NotificationsStore {
     this.postPullRequestReviewSubmitNotification(
       repository,
       pullRequest,
-      review
+      review,
+      event.number_of_comments
     )
   }
 
   private postPullRequestReviewSubmitNotification(
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    review: IAPIPullRequestReview
+    review: IAPIPullRequestReview,
+    numberOfComments: number
   ) {
     const reviewVerb = getVerbForPullRequestReview(review)
     const title = `@${review.user.login} ${reviewVerb} your pull request`
@@ -154,7 +157,12 @@ export class NotificationsStore {
     }\n${truncateWithEllipsis(review.body, 50)}`
 
     showNotification(title, body, () => {
-      this.onPullRequestReviewSubmitCallback?.(repository, pullRequest, review)
+      this.onPullRequestReviewSubmitCallback?.(
+        repository,
+        pullRequest,
+        review,
+        numberOfComments
+      )
     })
   }
 

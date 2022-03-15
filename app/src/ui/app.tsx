@@ -2091,6 +2091,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             pullRequest={popup.pullRequest}
             review={popup.review}
+            numberOfComments={popup.numberOfComments}
             emoji={this.state.emoji}
             accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
