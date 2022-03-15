@@ -167,3 +167,5 @@ export function enablePullRequestQuickView(): boolean {
 export function enableHighSignalNotifications(): boolean {
   return true
 }
+
+export const enabeLocaleAwareDateFormatting = enableBetaFeatures

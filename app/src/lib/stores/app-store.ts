@@ -214,7 +214,10 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableHideWhitespaceInDiffOption } from '../feature-flag'
+import {
+  enableHideWhitespaceInDiffOption,
+  enableLocaleAwareDateFormatting,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -1779,9 +1782,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    const userLocalePromise = getUserLocale()
-      .then(setDateLocale)
-      .catch(e => log.error(`Could not resolve user locale`, e))
+    const userLocalePromise = this.loadUserLocale()
 
     const [accounts, repositories] = await Promise.all([
       this.accountsStore.getAll(),
@@ -1906,6 +1907,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+  }
+
+  private loadUserLocale() {
+    return enableLocaleAwareDateFormatting()
+      ? getUserLocale()
+          .then(setDateLocale)
+          .catch(e => log.error(`Could not resolve user locale`, e))
+      : Promise.resolve()
   }
 
   /**
