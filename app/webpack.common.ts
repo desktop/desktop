@@ -41,6 +41,10 @@ const commonConfig: webpack.Configuration = {
         exclude: /node_modules/,
       },
       {
+        test: /\.js?$/,
+        loader: 'node-bindings-loader',
+      },
+      {
         test: /\.node$/,
         loader: 'awesome-node-loader',
         options: {
