@@ -299,7 +299,7 @@ import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
 import { getUserLocale } from '../get-user-locale'
-import { setDateLocale } from '../format-date'
+import { setFormattingLocale } from '../formatting-locale'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1912,8 +1912,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private loadUserLocale() {
     return enableLocaleAwareDateFormatting()
       ? getUserLocale()
-          .then(setDateLocale)
-          .then(l => l && log.info(`[AppStore] Set user locale to ${l}`))
+          .then(setFormattingLocale)
+          .then(l => log.info(`[AppStore] Set formatting locale to ${l}`))
           .catch(e => log.error(`[AppStore] Could not resolve user locale`, e))
       : Promise.resolve()
   }
