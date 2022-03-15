@@ -22,7 +22,8 @@ const getDateFormatter = mem(
 )
 
 /**
- * Format a date in en-US locale, customizable with Intl.DateTimeFormatOptions.
+ * Format a date in the user's formatting locale customizable with
+ * Intl.DateTimeFormatOptions.
  *
  * See Intl.DateTimeFormat for more information
  */
