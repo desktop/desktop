@@ -11,6 +11,7 @@ const getDateFormatter = mem(
     try {
       return new Intl.DateTimeFormat(locale, options)
     } catch (e) {
+      log.error(`Failed initializing DateTimeFormat with locale '${locale}'`, e)
       return new Intl.DateTimeFormat(undefined, options)
     }
   },
