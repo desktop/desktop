@@ -40,8 +40,6 @@
     "marked": "^4.0.10",
     "mem": "^4.3.0",
     "memoize-one": "^4.0.3",
-    "moment": "^2.24.0",
-    "moment-duration-format": "^2.3.2",
     "mri": "^1.1.0",
     "p-limit": "^2.2.0",
     "primer-support": "^4.0.0",

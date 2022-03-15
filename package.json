@@ -39,8 +39,7 @@
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "draft-release": "ts-node -P script/tsconfig.json script/draft-release/index.ts",
     "draft-release:format": "prettier --check --write changelog.json app/package.json && yarn validate-changelog",
-    "validate-changelog": "ts-node -P script/tsconfig.json script/validate-changelog.ts",
-    "check-modified": "stop-build"
+    "validate-changelog": "ts-node -P script/tsconfig.json script/validate-changelog.ts"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -99,7 +98,6 @@
     "sass-loader": "^10.0.3",
     "semver": "^5.5.0",
     "split2": "^3.2.2",
-    "stop-build": "^1.1.0",
     "style-loader": "^0.21.0",
     "to-camel-case": "^1.0.0",
     "ts-jest": "^26.4.4",
@@ -131,7 +129,6 @@
     "@types/klaw-sync": "^6.0.0",
     "@types/legal-eagle": "^0.15.0",
     "@types/memoize-one": "^3.1.1",
-    "@types/moment-duration-format": "^2.2.2",
     "@types/mri": "^1.1.0",
     "@types/node": "16.11.11",
     "@types/prettier": "^2.0.1",

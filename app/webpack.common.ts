@@ -49,14 +49,6 @@ const commonConfig: webpack.Configuration = {
       },
     ],
   },
-  plugins: [
-    // This saves us a bunch of bytes by pruning locales (which we don't use)
-    // from moment.
-    new webpack.IgnorePlugin({
-      resourceRegExp: /^\.\/locale$/,
-      contextRegExp: /moment$/,
-    }),
-  ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
   },
