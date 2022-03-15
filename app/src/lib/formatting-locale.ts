@@ -26,5 +26,5 @@ export const setFormattingLocaleFromCountryCode = (countryCode: string) => {
     throw new Error(`Could not parse region '${countryCode}'`)
   }
 
-  return (formattingLocale = `en-${countryCode.toUpperCase()}`)
+  formattingLocale = `en-${countryCode.toUpperCase()}`
 }

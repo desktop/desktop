@@ -1915,8 +1915,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     try {
-      const l = setFormattingLocaleFromCountryCode(await getLocaleCountryCode())
-      log.info(`[AppStore] Set formatting locale to ${l}`)
+      const countryCode = await getLocaleCountryCode()
+      setFormattingLocaleFromCountryCode(countryCode)
+      log.info(`[AppStore] Set formatting locale region to '${countryCode}'`)
     } catch (e) {
       log.error(`[AppStore] Could not resolve user locale`, e)
     }
