@@ -168,4 +168,4 @@ export function enableHighSignalNotifications(): boolean {
   return true
 }
 
-export const enabeLocaleAwareDateFormatting = enableBetaFeatures
+export const enableLocaleAwareDateFormatting = enableBetaFeatures
