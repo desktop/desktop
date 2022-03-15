@@ -398,8 +398,8 @@ export class NoChanges extends React.Component<
     const numChanges = stashEntry.files.files.length
     const description = (
       <>
-        You have {numChanges} {numChanges === 1 ? 'change' : 'changes'} in
-        progress that you have not yet committed.
+        You have {formatCount(numChanges, 'change')} in progress that you have
+        not yet committed.
       </>
     )
     const discoverabilityContent = (

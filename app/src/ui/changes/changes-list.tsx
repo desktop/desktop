@@ -51,6 +51,8 @@ import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
+import { formatCount } from '../../lib/format-count'
+import { formatNumber } from '../../lib/format-number'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -817,14 +819,14 @@ export class ChangesList extends React.Component<
     const { workingDirectory, rebaseConflictState, isCommitting } = this.props
     const { files } = workingDirectory
 
-    const filesPlural = files.length === 1 ? 'file' : 'files'
-    const filesDescription = `${files.length} changed ${filesPlural}`
+    const filesDescription = formatCount(files.length, 'changed file')
 
     const selectedChangeCount = files.filter(
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
-    const totalFilesPlural = files.length === 1 ? 'file' : 'files'
-    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} selected`
+    const selectedChangesDescription = `${formatNumber(
+      selectedChangeCount
+    )}/${formatCount(files.length, 'changed file')} selected`
 
     const includeAllValue = getIncludeAllValue(
       workingDirectory,
