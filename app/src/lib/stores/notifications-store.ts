@@ -28,6 +28,7 @@ import { showNotification } from './helpers/show-notification'
 import { StatsStore } from '../stats'
 import { truncateWithEllipsis } from '../truncate-with-ellipsis'
 import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
+import { enablePullRequestReviewNotifications } from '../feature-flag'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -100,6 +101,10 @@ export class NotificationsStore {
   private async handlePullRequestReviewSubmitEvent(
     event: IDesktopPullRequestReviewSubmitAliveEvent
   ) {
+    if (!enablePullRequestReviewNotifications()) {
+      return
+    }
+
     const repository = this.repository
     if (repository === null) {
       return
@@ -136,20 +141,6 @@ export class NotificationsStore {
       return
     }
 
-    this.postPullRequestReviewSubmitNotification(
-      repository,
-      pullRequest,
-      review,
-      event.number_of_comments
-    )
-  }
-
-  private postPullRequestReviewSubmitNotification(
-    repository: RepositoryWithGitHubRepository,
-    pullRequest: PullRequest,
-    review: IAPIPullRequestReview,
-    numberOfComments: number
-  ) {
     const reviewVerb = getVerbForPullRequestReview(review)
     const title = `@${review.user.login} ${reviewVerb} your pull request`
     const body = `${pullRequest.title} #${
@@ -161,7 +152,7 @@ export class NotificationsStore {
         repository,
         pullRequest,
         review,
-        numberOfComments
+        event.number_of_comments
       )
     })
   }
