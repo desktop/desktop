@@ -22,7 +22,7 @@ export const getFormattingLocales = () =>
  * @param countryCode The user's locale region as a ISO 3166 country code
  */
 export const setFormattingLocaleFromCountryCode = (countryCode: string) => {
-  if (!/^[a-z]{2}$/.test(countryCode)) {
+  if (!/^[a-z]{2}$/i.test(countryCode)) {
     throw new Error(`Could not parse region '${countryCode}'`)
   }
 
