@@ -37,20 +37,20 @@ export const formatDate = (date: Date, options: Intl.DateTimeFormatOptions) => {
 
 export const setDateLocale = (locale: string | undefined) => {
   if (locale === undefined) {
-    dateLocale = undefined
-    return
+    return (dateLocale = undefined)
   }
 
   try {
     const { region } = parse(locale.replaceAll('_', '-'), { forgiving: true })
     if (region === undefined) {
       dateLocale = undefined
-      log.error(`Failed setting date formatting locale from ${locale}`)
+      log.error(`Failed parsing locale from ${locale}`)
     } else {
       dateLocale = `en-${region ?? 'US'}`
-      log.info(`Set date formatting locale to ${dateLocale}`)
     }
   } catch (e) {
     log.error(`Failed setting date locale`, e)
   }
+
+  return dateLocale
 }

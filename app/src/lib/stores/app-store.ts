@@ -1913,7 +1913,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return enableLocaleAwareDateFormatting()
       ? getUserLocale()
           .then(setDateLocale)
-          .catch(e => log.error(`Could not resolve user locale`, e))
+          .then(l => l && log.info(`[AppStore] Set user locale to ${l}`))
+          .catch(e => log.error(`[AppStore] Could not resolve user locale`, e))
       : Promise.resolve()
   }
 
