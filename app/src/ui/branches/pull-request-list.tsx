@@ -1,5 +1,4 @@
 import * as React from 'react'
-import moment from 'moment'
 import {
   FilterList,
   IFilterListGroup,
@@ -21,6 +20,7 @@ import { FoldoutType } from '../../lib/app-state'
 import { startTimer } from '../lib/timing'
 import { DragType } from '../../models/drag-drop'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { formatRelative } from '../../lib/format-relative'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -318,7 +318,7 @@ export class PullRequestList extends React.Component<
 }
 
 function getSubtitle(pr: PullRequest) {
-  const timeAgo = moment(pr.created).fromNow()
+  const timeAgo = formatRelative(pr.created.getTime() - Date.now())
   return `#${pr.pullRequestNumber} opened ${timeAgo} by ${pr.author}`
 }
 
