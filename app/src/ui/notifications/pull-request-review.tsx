@@ -14,6 +14,13 @@ import {
   getPullRequestReviewStateIcon,
   getVerbForPullRequestReview,
 } from './pull-request-review-helpers'
+import { LinkButton } from '../lib/link-button'
+import { encodePathAsUrl } from '../../lib/path'
+
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -67,7 +74,7 @@ export class PullRequestReview extends React.Component<
         {this.renderReviewIcon()}
         <div className="title-container">
           <div className="summary">
-            @{review.user.login} {verb} your pull request
+            {review.user.login} {verb} your pull request
           </div>
           <span className="pr-title">
             <span className="pr-title">{title}</span>{' '}
@@ -127,6 +134,9 @@ export class PullRequestReview extends React.Component<
       <OkCancelButtonGroup
         onCancelButtonClick={this.props.onDismissed}
         cancelButtonText="Dismiss"
+        // If there is nothing special about the OK button, just hide the cancel
+        // button, since they will both just dismiss the dialog.
+        cancelButtonVisible={okButtonTitle !== undefined}
         okButtonText={okButtonTitle}
         okButtonDisabled={this.state.switchingToPullRequest}
         onOkButtonClick={this.onSubmit}
@@ -148,24 +158,38 @@ export class PullRequestReview extends React.Component<
   }
 
   private renderReviewBody() {
-    const { review, emoji, pullRequest } = this.props
+    const { review, emoji, pullRequest, numberOfComments } = this.props
     const { base } = pullRequest
 
-    if (review.body.length === 0) {
-      return null
+    if (review.body.length > 0) {
+      return (
+        <Row>
+          <SandboxedMarkdown
+            markdown={review.body}
+            emoji={emoji}
+            baseHref={base.gitHubRepository.htmlURL}
+            repository={base.gitHubRepository}
+            onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+          />
+        </Row>
+      )
     }
 
-    return (
-      <Row>
-        <SandboxedMarkdown
-          markdown={review.body}
-          emoji={emoji}
-          baseHref={base.gitHubRepository.htmlURL}
-          repository={base.gitHubRepository}
-          onMarkdownLinkClicked={this.onMarkdownLinkClicked}
-        />
-      </Row>
-    )
+    if (numberOfComments > 0) {
+      const pluralComments = numberOfComments === 1 ? 'comment' : 'comments'
+      return (
+        <Row>
+          <span>
+            <LinkButton uri={review.user.html_url}>
+              @{review.user.login}
+            </LinkButton>{' '}
+            left {numberOfComments} {pluralComments}.
+          </span>
+        </Row>
+      )
+    }
+
+    return <img src={BlankSlateImage} className="blankslate-image" />
   }
 
   private renderReviewIcon = () => {
