@@ -14,6 +14,9 @@ import { RelativeTime } from '../relative-time'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import classNames from 'classnames'
 import { formatNumber } from '../../lib/format-number'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { formatCount } from '../../lib/format-count'
+import { formatCommitCount } from '../../lib/format-commit-count'
 
 interface IPushPullButtonProps {
   /**
@@ -71,8 +74,17 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     return null
   }
 
+  let description = ''
+
   const content = new Array<JSX.Element>()
   if (ahead > 0 || numTagsToPush > 0) {
+    const pendingPush = [
+      ...(ahead ? [formatCommitCount(aheadBehind.ahead)] : []),
+      ...(numTagsToPush ? [formatCount(numTagsToPush, 'tag')] : []),
+    ].join(' and ')
+
+    description = `You are ahead of the remote by ${pendingPush}`
+
     content.push(
       <span key="ahead">
         {formatNumber(ahead + numTagsToPush, { notation: 'compact' })}
@@ -82,6 +94,12 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
   }
 
   if (behind > 0) {
+    description = `${
+      description.length > 0
+        ? `${description}, and behind by `
+        : 'You are behind the remote by '
+    }${formatCommitCount(behind)}`
+
     content.push(
       <span key="behind">
         {formatNumber(behind, { notation: 'compact' })}
@@ -90,7 +108,15 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     )
   }
 
-  return <div className="ahead-behind">{content}</div>
+  return (
+    <TooltippedContent
+      tooltip={description}
+      tagName="div"
+      className="ahead-behind"
+    >
+      {content}
+    </TooltippedContent>
+  )
 }
 
 function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
