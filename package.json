@@ -90,7 +90,6 @@
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^2.5.3",
-    "node-bindings-loader": "^1.5.0",
     "parallel-webpack": "^2.3.0",
     "prettier": "2.0.5",
     "request": "^2.72.0",
