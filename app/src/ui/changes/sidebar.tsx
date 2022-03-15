@@ -116,9 +116,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     const overSizedFiles = await getLargeFilePaths(
       this.props.repository,
-      workingDirectory,
-      100
+      workingDirectory
     )
+
     const filesIgnoredByLFS = await filesNotTrackedByLFS(
       this.props.repository,
       overSizedFiles
