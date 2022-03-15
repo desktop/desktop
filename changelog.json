@@ -5,7 +5,7 @@
       "[Fixed] Allow selecting emojis in commit text - #14111",
       "[Fixed] Merge dialog options dropdown does not cause dialog scrolling - #13944",
       "[Improved] Relative time formatting consistent with dotcom - #14149",
-      "[Improved] Prompt to initialize Git LFS cannot be dismissed by clicking outside of it",
+      "[Improved] Prompt to initialize Git LFS cannot be dismissed by clicking outside of it - #14131",
       "[Improved] Add link to open fork settings when creating new branch on a forked repository - #12534. Thanks @geophilusd!",
       "[Improved] Render native elements such as scrollbars and checkboxes as dark when using a dark theme - #11174. Thanks @rakleed!"
     ],
