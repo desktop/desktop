@@ -9,9 +9,9 @@ import { getFormattingLocales } from './formatting-locale'
 const getDateFormatter = mem(
   (locale: string | string[], options: Intl.DateTimeFormatOptions) => {
     try {
-      return Intl.DateTimeFormat(locale, options)
+      return new Intl.DateTimeFormat(locale, options)
     } catch (e) {
-      return Intl.DateTimeFormat(undefined, options)
+      return new Intl.DateTimeFormat(undefined, options)
     }
   },
   {
