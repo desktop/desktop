@@ -192,9 +192,9 @@ export interface IAPIOrganization {
  */
 export interface IAPIIdentity {
   readonly id: number
-  readonly url: string
   readonly login: string
   readonly avatar_url: string
+  readonly html_url: string
   readonly type: GitHubAccountType
 }
 
@@ -208,7 +208,7 @@ export interface IAPIIdentity {
  */
 interface IAPIFullIdentity {
   readonly id: number
-  readonly url: string
+  readonly html_url: string
   readonly login: string
   readonly avatar_url: string
 
