@@ -1027,7 +1027,7 @@ export class API {
   }
 
   /**
-   * Fetch a single pull request in the given repository
+   * Fetch a single pull request review in the given repository
    */
   public async fetchPullRequestReview(
     owner: string,
