@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { formatCommitCount } from '../../lib/format-commit-count'
+import { formatCount } from '../../lib/format-count'
 
 interface IPushBranchCommitsProps {
   readonly dispatcher: Dispatcher
@@ -92,7 +92,7 @@ export class PushBranchCommits extends React.Component<
       )
     }
 
-    const localCommits = formatCommitCount(unPushedCommits, 'local commit')
+    const localCommits = formatCount(unPushedCommits, 'local commit')
 
     return (
       <DialogContent>

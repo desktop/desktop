@@ -594,7 +594,7 @@ export class NoChanges extends React.Component<
     if (aheadBehind.ahead > 0) {
       itemsToPushTypes.push('commits')
       itemsToPushDescriptions.push(
-        formatCommitCount(aheadBehind.ahead, 'local commit')
+        formatCount(aheadBehind.ahead, 'local commit')
       )
     }
 

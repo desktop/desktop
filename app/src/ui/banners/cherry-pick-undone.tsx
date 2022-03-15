@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { formatCommitCount } from '../../lib/format-commit-count'
+import { formatCount } from '../../lib/format-count'
 import { SuccessBanner } from './success-banner'
 
 interface ICherryPickUndoneBannerProps {
@@ -17,7 +17,7 @@ export class CherryPickUndone extends React.Component<
     return (
       <SuccessBanner timeout={5000} onDismissed={onDismissed}>
         Cherry-pick undone. Successfully removed the{' '}
-        {formatCommitCount(countCherryPicked, 'copied commit')}
+        {formatCount(countCherryPicked, 'copied commit')}
         from <strong>{targetBranchName}</strong>.
       </SuccessBanner>
     )
