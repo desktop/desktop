@@ -216,7 +216,7 @@ import { ManualConflictResolution } from '../../models/manual-conflict-resolutio
 import { BranchPruner } from './helpers/branch-pruner'
 import {
   enableHideWhitespaceInDiffOption,
-  enableLocaleAwareDateFormatting,
+  enableLocaleAwareFormatting,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -1910,7 +1910,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private loadUserLocale() {
-    return enableLocaleAwareDateFormatting()
+    return enableLocaleAwareFormatting()
       ? getUserLocale()
           .then(setFormattingLocale)
           .then(l => log.info(`[AppStore] Set formatting locale to ${l}`))
