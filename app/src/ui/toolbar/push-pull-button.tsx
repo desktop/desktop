@@ -13,6 +13,7 @@ import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import classNames from 'classnames'
+import { formatNumber } from '../../lib/format-number'
 
 interface IPushPullButtonProps {
   /**
@@ -74,7 +75,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
   if (ahead > 0 || numTagsToPush > 0) {
     content.push(
       <span key="ahead">
-        {ahead + numTagsToPush}
+        {formatNumber(ahead + numTagsToPush, { notation: 'compact' })}
         <Octicon symbol={OcticonSymbol.arrowUp} />
       </span>
     )
@@ -83,7 +84,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
   if (behind > 0) {
     content.push(
       <span key="behind">
-        {behind}
+        {formatNumber(behind, { notation: 'compact' })}
         <Octicon symbol={OcticonSymbol.arrowDown} />
       </span>
     )

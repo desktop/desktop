@@ -21,6 +21,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Donut } from '../donut'
 import { supportsRerunningChecks } from '../../lib/endpoint-capabilities'
 import { getPullRequestCommitRef } from '../../models/pull-request'
+import { formatCount } from '../../lib/format-count'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -187,8 +188,8 @@ export class CICheckRunPopover extends React.PureComponent<
       return `${output.slice(0, -1).join(', ')}, and ${output.slice(-1)} checks`
     }
 
-    const pluralize = summaryArray[0].count > 1 ? 'checks' : 'check'
-    return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
+    const { count, conclusion } = summaryArray[0]
+    return formatCount(count, `${conclusion} check`)
   }
 
   private rerunChecks = () => {

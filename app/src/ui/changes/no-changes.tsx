@@ -20,6 +20,7 @@ import { SuggestedActionGroup } from '../suggested-actions'
 import { PreferencesTab } from '../../models/preferences'
 import { PopupType } from '../../models/popup'
 import { formatCommitCount } from '../../lib/format-commit-count'
+import { formatCount } from '../../lib/format-count'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -599,9 +600,7 @@ export class NoChanges extends React.Component<
 
     if (tagsToPush !== null && tagsToPush.length > 0) {
       itemsToPushTypes.push('tags')
-      itemsToPushDescriptions.push(
-        tagsToPush.length === 1 ? '1 tag' : `${tagsToPush.length} tags`
-      )
+      itemsToPushDescriptions.push(formatCount(tagsToPush.length, 'tag'))
     }
 
     const description = `You have ${itemsToPushDescriptions.join(

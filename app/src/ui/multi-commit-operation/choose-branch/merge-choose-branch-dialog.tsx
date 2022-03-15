@@ -1,5 +1,6 @@
 import React from 'react'
 import { formatCommitCount } from '../../../lib/format-commit-count'
+import { formatCount } from '../../../lib/format-count'
 import {
   getAheadBehind,
   mergeTree,
@@ -199,11 +200,9 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
     currentBranch: Branch,
     count: number
   ) {
-    const pluralized = count === 1 ? 'file' : 'files'
     return (
       <React.Fragment>
-        There will be
-        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        There will be <strong>{formatCount(count, 'conflicted file')}</strong>
         {` when merging `}
         <strong>{branch.name}</strong>
         {` into `}

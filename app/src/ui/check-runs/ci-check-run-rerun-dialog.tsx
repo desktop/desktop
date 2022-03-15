@@ -11,6 +11,7 @@ import * as OcticonSymbol from './../octicons/octicons.generated'
 import { Row } from '../lib/row'
 import { encodePathAsUrl } from '../../lib/path'
 import { offsetFromNow } from '../../lib/offset-from'
+import { formatCount } from '../../lib/format-count'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -147,17 +148,20 @@ export class CICheckRunRerunDialog extends React.Component<
       return null
     }
 
-    const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
-    const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
+    const notRerunnable = this.state.nonRerunnable.length
+    const verb = notRerunnable !== 1 ? 'are' : 'is'
     return (
       <Row className="non-re-run-info warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />
 
         {this.state.rerunnable.length === 0
           ? `There are no checks that can be re-run. `
-          : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be re-run. `}
+          : `There ${verb} ${formatCount(
+              notRerunnable,
+              'check'
+            )} that cannot be re-run. `}
 
-        {this.state.nonRerunnable.length > 0
+        {notRerunnable > 0
           ? `A check run cannot be re-run if the check is more than one month old,
           the check has not completed, or the check is not configured to be
           re-run.`

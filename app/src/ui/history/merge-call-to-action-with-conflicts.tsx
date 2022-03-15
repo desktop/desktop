@@ -15,6 +15,7 @@ import { getMergeOptions, updateRebasePreview } from '../lib/update-branch'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { RebasePreview } from '../../models/rebase'
 import { formatCommitCount } from '../../lib/format-commit-count'
+import { formatCount } from '../../lib/format-count'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -297,11 +298,9 @@ export class MergeCallToActionWithConflicts extends React.Component<
     branch: Branch,
     count: number
   ) {
-    const pluralized = count === 1 ? 'file' : 'files'
     return (
       <div className="merge-message">
-        There will be
-        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        There will be <strong>{formatCount(count, 'conflicted file')}</strong>
         {` when merging `}
         <strong>{branch.name}</strong>
         {` into `}
