@@ -30,7 +30,7 @@ body:
     id: operating-system
     attributes:
       label: Operating system
-      description: Enter the specific operating system version you are running (example: Windows 10)
+      description: "Enter the specific operating system version you are running (example: Windows 10)"
     validations:
         required: true
   - type: textarea
