@@ -2,7 +2,7 @@ export const defaultFormattingLocale = 'en-US'
 let formattingLocale: string | undefined = undefined
 
 /**
- * Get the current user localle or undefined if not set or invalid
+ * Get the current user locale or undefined if not set or invalid
  */
 export const getFormattingLocale = () =>
   formattingLocale ?? defaultFormattingLocale
