@@ -1,13 +1,12 @@
 import { ChildProcess } from 'child_process'
 
 import * as Darwin from './darwin'
-import * as Win32 from './win32'
 import * as Linux from './linux'
 import { IFoundShell } from './found-shell'
 import { ShellError } from './error'
 import { pathExists } from '../../ui/lib/path-exists'
 
-export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell
+export type Shell = Darwin.Shell | Linux.Shell
 
 export type FoundShell = IFoundShell<Shell>
 
@@ -15,8 +14,6 @@ export type FoundShell = IFoundShell<Shell>
 export const Default = (function () {
   if (__DARWIN__) {
     return Darwin.Default
-  } else if (__WIN32__) {
-    return Win32.Default
   } else {
     return Linux.Default
   }
@@ -28,8 +25,6 @@ let shellCache: ReadonlyArray<FoundShell> | null = null
 export function parse(label: string): Shell {
   if (__DARWIN__) {
     return Darwin.parse(label)
-  } else if (__WIN32__) {
-    return Win32.parse(label)
   } else if (__LINUX__) {
     return Linux.parse(label)
   }
@@ -47,9 +42,6 @@ export async function getAvailableShells(): Promise<ReadonlyArray<FoundShell>> {
 
   if (__DARWIN__) {
     shellCache = await Darwin.getAvailableShells()
-    return shellCache
-  } else if (__WIN32__) {
-    shellCache = await Win32.getAvailableShells()
     return shellCache
   } else if (__LINUX__) {
     shellCache = await Linux.getAvailableShells()
@@ -93,8 +85,6 @@ export async function launchShell(
 
   if (__DARWIN__) {
     cp = Darwin.launch(shell as IFoundShell<Darwin.Shell>, path)
-  } else if (__WIN32__) {
-    cp = Win32.launch(shell as IFoundShell<Win32.Shell>, path)
   } else if (__LINUX__) {
     cp = Linux.launch(shell as IFoundShell<Linux.Shell>, path)
   }

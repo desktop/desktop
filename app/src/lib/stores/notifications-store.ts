@@ -23,7 +23,6 @@ import {
   IDesktopChecksFailedAliveEvent,
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
-import { showNotification } from './helpers/show-notification'
 import { StatsStore } from '../stats'
 
 type OnChecksFailedCallback = (
@@ -51,7 +50,6 @@ export function getNotificationsEnabled() {
  */
 export class NotificationsStore {
   private repository: RepositoryWithGitHubRepository | null = null
-  private onChecksFailedCallback: OnChecksFailedCallback | null = null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
 
@@ -182,8 +180,6 @@ export class NotificationsStore {
       return
     }
 
-    const repository = this.repository
-
     const numberOfFailedChecks = checks.filter(
       check => check.conclusion === APICheckConclusion.Failure
     ).length
@@ -194,25 +190,6 @@ export class NotificationsStore {
     if (numberOfFailedChecks === 0) {
       return
     }
-
-    const pluralChecks =
-      numberOfFailedChecks === 1 ? 'check was' : 'checks were'
-
-    const shortSHA = sha.slice(0, 9)
-    const title = 'Pull Request checks failed'
-    const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
-
-    showNotification(title, body, () => {
-      this.statsStore.recordChecksFailedNotificationClicked()
-
-      this.onChecksFailedCallback?.(
-        repository,
-        pullRequest,
-        commitMessage,
-        sha,
-        checks
-      )
-    })
 
     this.statsStore.recordChecksFailedNotificationShown()
   }
@@ -262,7 +239,5 @@ export class NotificationsStore {
   }
 
   /** Observe when the user reacted to a "Checks Failed" notification. */
-  public onChecksFailedNotification(callback: OnChecksFailedCallback) {
-    this.onChecksFailedCallback = callback
-  }
+  public onChecksFailedNotification(callback: OnChecksFailedCallback) {}
 }

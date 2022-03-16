@@ -149,7 +149,6 @@ import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 import { clamp } from '../lib/clamp'
 import * as ipcRenderer from '../lib/ipc-renderer'
-import { showNotification } from '../lib/stores/helpers/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { getReleaseSummary } from '../lib/release-notes'
 
@@ -459,12 +458,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     ) {
       return
     }
-
-    showNotification(
-      'Test notification',
-      'Click here! This is a test notification',
-      () => this.props.dispatcher.showPopup({ type: PopupType.About })
-    )
   }
 
   private testPruneBranches() {

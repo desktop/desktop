@@ -31,11 +31,8 @@ export async function resolveGitProxy(
     // See
     // https://github.com/jeroen/curl/issues/186#issuecomment-494560890
     // "The Schannel backend doesn't support HTTPS proxy"
-    if (__WIN32__ && proxy.startsWith('https://')) {
-      log.warn('ignoring https proxy, not supported in cURL/schannel')
-    } else {
-      return proxy
-    }
+
+    return proxy
   }
 
   return undefined

@@ -27,7 +27,7 @@ export class Start extends React.Component<IStartProps, {}> {
   public render() {
     return (
       <div id="start">
-        <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
+        <h1 className="welcome-title">Welcome 2 GitHub&nbsp;Desktop</h1>
         {!this.props.loadingBrowserAuth ? (
           <>
             <p className="welcome-text">

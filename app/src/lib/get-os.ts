@@ -31,8 +31,6 @@ export function getOS() {
   const version = getSystemVersionSafe()
   if (__DARWIN__) {
     return `Mac OS ${version}`
-  } else if (__WIN32__) {
-    return `Windows ${version}`
   } else {
     return `${OS.type()} ${version}`
   }

@@ -1,7 +1,4 @@
-import {
-  isMacOSMojaveOrLater,
-  isWindows10And1809Preview17666OrLater,
-} from '../../lib/get-os'
+import { isMacOSMojaveOrLater } from '../../lib/get-os'
 import { getBoolean } from '../../lib/local-storage'
 import {
   setNativeThemeSource,
@@ -135,11 +132,6 @@ export function setPersistedTheme(theme: ApplicationTheme): void {
 export function supportsSystemThemeChanges(): boolean {
   if (__DARWIN__) {
     return isMacOSMojaveOrLater()
-  } else if (__WIN32__) {
-    // Its technically possible this would still work on prior versions of Windows 10 but 1809
-    // was released October 2nd, 2018 and the feature can just be "attained" by upgrading
-    // See https://github.com/desktop/desktop/issues/9015 for more
-    return isWindows10And1809Preview17666OrLater()
   }
 
   return false

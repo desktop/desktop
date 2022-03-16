@@ -11,12 +11,13 @@ import {
 } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
+// import path from 'path'
+// import os from 'os'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, getAllMenuItems } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
-import { handleSquirrelEvent } from './squirrel-updater'
 import { fatalError } from '../lib/fatal-error'
 
 import { log as writeLog } from './log'
@@ -125,24 +126,7 @@ process.on('uncaughtException', (error: Error) => {
   handleUncaughtException(error)
 })
 
-let handlingSquirrelEvent = false
-if (__WIN32__ && process.argv.length > 1) {
-  const arg = process.argv[1]
-
-  const promise = handleSquirrelEvent(arg)
-  if (promise) {
-    handlingSquirrelEvent = true
-    promise
-      .catch(e => {
-        log.error(`Failed handling Squirrel event: ${arg}`, e)
-      })
-      .then(() => {
-        app.quit()
-      })
-  } else {
-    handlePossibleProtocolLauncherArgs(process.argv)
-  }
-}
+const handlingSquirrelEvent = false
 
 function handleAppURL(url: string) {
   log.info('Processing protocol url')
@@ -682,31 +666,82 @@ app.on(
     })
   }
 )
+// const reactDevToolsPath = path.join(
+//   os.homedir(),
+//   '/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.24.0_0'
+// )
 
-function createWindow() {
+// app.whenReady().then(async () => {
+//   try {
+//     console.log('start installing!')
+//     const a = await session.defaultSession.loadExtension(reactDevToolsPath)
+//     console.log('a', a)
+//     console.log('installed!')
+//   } catch (e) {
+//     console.log('e')
+//   }
+// })
+
+import installExtension, {
+  REACT_DEVELOPER_TOOLS,
+} from 'electron-devtools-installer'
+
+const extensionOptions = {
+  forceDownload: false, // not sure about this one, i've read somewhere that it could cause issues when set to true ?
+  // Important setting allowFileAccess, make sure your electron version > 11.3.0 contains this PR contents :
+  // https://github.com/electron/electron/pull/25198
+  loadExtensionOptions: { allowFileAccess: true },
+}
+
+app.whenReady().then(() => {
+  installExtension(REACT_DEVELOPER_TOOLS, extensionOptions)
+    .then(name => console.log(`Added Extension:  ${name}`))
+    .catch(err => console.log('An error occurred: ', err))
+})
+
+// const installExtensions = async () => {
+//   const installer = require('electron-devtools-installer')
+//   const forceDownload = !!process.env.UPGRADE_EXTENSIONS
+//   const extensions = ['REACT_DEVELOPER_TOOLS', 'REDUX_DEVTOOLS']
+//   const extensionOptions = {
+//     forceDownload: false, // not sure about this one, i've read somewhere that it could cause issues when set to true ?
+//     // Important setting allowFileAccess, make sure your electron version > 11.3.0 contains this PR contents :
+//     // https://github.com/electron/electron/pull/25198
+//     loadExtensionOptions: { allowFileAccess: true }
+// }
+//   return installer
+//     .default(
+//       extensions.map(name => installer[name]),
+//       forceDownload
+//     )
+//     .catch(console.log)
+// }
+
+async function createWindow() {
   const window = new AppWindow()
+  // await installExtensions()
 
-  if (__DEV__) {
-    const {
-      default: installExtension,
-      REACT_DEVELOPER_TOOLS,
-    } = require('electron-devtools-installer')
+  // if (__DEV__) {
+  // const {
+  //   default: installExtension,
+  //   REACT_DEVELOPER_TOOLS,
+  // } = require('electron-devtools-installer')
 
-    require('electron-debug')({ showDevTools: true })
+  // require('electron-debug')({ showDevTools: false })
 
-    const ChromeLens = {
-      id: 'idikgljglpfilbhaboonnpnnincjhjkd',
-      electron: '>=1.2.1',
-    }
+  // const ChromeLens = {
+  //   id: 'idikgljglpfilbhaboonnpnnincjhjkd',
+  //   electron: '>=1.2.1',
+  // }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
+  // const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
 
-    for (const extension of extensions) {
-      try {
-        installExtension(extension)
-      } catch (e) {}
-    }
-  }
+  // for (const extension of extensions) {
+  //   try {
+  //     installExtension(extension)
+  //   } catch (e) {}
+  // }
+  // }
 
   window.onClose(() => {
     mainWindow = null

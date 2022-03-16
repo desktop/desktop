@@ -789,10 +789,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       { role: 'paste' },
     ]
 
-    if (__WIN32__) {
-      menu.push({ type: 'separator' })
-    }
-
     menu.push({
       label: __DARWIN__ ? 'Select All' : 'Select all',
       action: () => {
