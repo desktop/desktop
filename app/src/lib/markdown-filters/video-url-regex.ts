@@ -9,6 +9,6 @@ const videoExtensionRegex = /(mp4|webm|ogg|mov|qt|avi|wmv|3gp|mpg|mpeg|)$/
 
 /** Regex for checking if a url is a github asset cdn video url */
 export const githubAssetVideoRegex = new RegExp(
-  escapeRegExp(user_images_cdn_url) + '.+' + videoExtensionRegex.source,
+  '^' + escapeRegExp(user_images_cdn_url) + '.+' + videoExtensionRegex.source,
   'i'
 )
