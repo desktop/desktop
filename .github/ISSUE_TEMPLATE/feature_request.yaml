@@ -10,13 +10,16 @@ body:
     attributes:
       label: Search for existing feature requests
       options:
-        - label: I have searched the issue tracker and confirmed that I was unable to find existing issues for the feature I am requesting.
+        - label:
+            I have searched the issue tracker and confirmed that I was unable to
+            find existing issues for the feature I am requesting.
           required: true
   - type: textarea
     id: the-feature-request
     attributes:
       label: The feature request
-      description: Write a clear and concise description of what the feature or problem is.
+      description:
+        Write a clear and concise description of what the feature or problem is.
     validations:
       required: true
   - type: textarea
@@ -30,4 +33,6 @@ body:
     id: additional-context
     attributes:
       label: Additional context
-      description: Please include any other context, like screenshots or mockups, if applicable.
+      description:
+        Please include any other context, like screenshots or mockups, if
+        applicable.
