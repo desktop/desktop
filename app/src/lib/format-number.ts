@@ -29,3 +29,9 @@ const getNumber = mem(
  */
 export const formatNumber = (num: number, options?: Intl.NumberFormatOptions) =>
   getNumber(getFormattingLocales(), options).format(num)
+
+/** Shorthand for formatNumber(x, { style: 'percent' }) */
+export const formatPercent = (
+  num: number,
+  options?: Omit<Intl.NumberFormatOptions, 'style'>
+) => formatNumber(num, { ...options, style: 'percent' })

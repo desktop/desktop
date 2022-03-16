@@ -4,10 +4,7 @@ import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
 import { formatBytes } from '../../lib/bytes'
 import classNames from 'classnames'
-
-function percentDiff(previous: number, current: number) {
-  return `${Math.abs(Math.round((current / previous) * 100))}%`
-}
+import { formatPercent } from '../../../lib/format-number'
 
 interface ITwoUpProps extends ICommonImageDiffProperties {
   readonly previousImageSize: ISize | null
@@ -22,7 +19,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
 
     const { current, previous } = this.props
 
-    const diffPercent = percentDiff(previous.bytes, current.bytes)
+    const diffPercent = formatPercent(Math.abs(previous.bytes / current.bytes))
     const diffBytes = current.bytes - previous.bytes
     const diffBytesSign = diffBytes >= 0 ? '+' : ''
 
