@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
-import { formatBytes } from '../../lib/bytes'
+import { formatBytes } from '../../lib/format-bytes'
 import classNames from 'classnames'
 import { formatPercent } from '../../../lib/format-number'
 
