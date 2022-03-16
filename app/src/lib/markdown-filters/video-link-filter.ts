@@ -19,14 +19,11 @@ export class VideoLinkFilter implements INodeFilter {
    * user asset.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const filter = this
     return doc.createTreeWalker(doc, NodeFilter.SHOW_ELEMENT, {
-      acceptNode: function (el: Element) {
-        return filter.getGithubVideoLink(el) === null
+      acceptNode: (el: Element) =>
+        this.getGithubVideoLink(el) === null
           ? NodeFilter.FILTER_SKIP
-          : NodeFilter.FILTER_ACCEPT
-      },
+          : NodeFilter.FILTER_ACCEPT,
     })
   }
 
