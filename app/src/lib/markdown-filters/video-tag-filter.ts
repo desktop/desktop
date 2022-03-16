@@ -34,7 +34,7 @@ export class VideoTagFilter implements INodeFilter {
       githubAssetVideoRegex.test(node.src)
     ) {
       // If it is video element with a valid source, we return null to leave it alone.
-      // This is different then dotcom that regenerates a video tag because it
+      // This is different than dotcom which regenerates a video tag because it
       // verifies through a db call that the assets exists
       return null
     }
