@@ -63,15 +63,13 @@ export class IssueLinkFilter implements INodeFilter {
    * - https://github.com/github/github/discussions/99872#discussioncomment-1858985
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const filter = this
     return doc.createTreeWalker(doc, NodeFilter.SHOW_ELEMENT, {
-      acceptNode: function (el: Element) {
+      acceptNode: (el: Element) => {
         return (el.parentNode !== null &&
           ['CODE', 'PRE', 'A'].includes(el.parentNode.nodeName)) ||
           !(el instanceof HTMLAnchorElement) ||
           el.href !== el.innerText ||
-          !filter.isGitHubIssuePullDiscussionLink(el)
+          !this.isGitHubIssuePullDiscussionLink(el)
           ? NodeFilter.FILTER_SKIP
           : NodeFilter.FILTER_ACCEPT
       },
