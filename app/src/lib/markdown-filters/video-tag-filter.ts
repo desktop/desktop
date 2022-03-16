@@ -14,7 +14,6 @@ export class VideoTagFilter implements INodeFilter {
    * Video link filter matches on video tags that src does not match a github user asset url.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     return doc.createTreeWalker(doc, NodeFilter.SHOW_ELEMENT, {
       acceptNode: function (el: Element) {
         return !(el instanceof HTMLVideoElement) ||
