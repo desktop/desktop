@@ -158,6 +158,7 @@ import {
   getBranchAheadBehind,
   getRebaseInternalState,
   getCommit,
+  appendIgnoreFile,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -5179,6 +5180,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     pattern: string | string[]
   ): Promise<void> {
     await appendIgnoreRule(repository, pattern)
+    return this._refreshRepository(repository)
+  }
+
+  public async _appendIgnoreFile(
+    repository: Repository,
+    filePath: string | string[]
+  ): Promise<void> {
+    await appendIgnoreFile(repository, filePath)
     return this._refreshRepository(repository)
   }
 
