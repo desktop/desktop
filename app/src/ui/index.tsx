@@ -46,7 +46,6 @@ import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
-import { getGUID } from '../lib/stats'
 import {
   enableSourceMaps,
   withSourceMappedStack,
@@ -78,10 +77,13 @@ import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
 import { AliveStore } from '../lib/stores/alive-store'
 import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
+import { migrateRendererGUID } from '../lib/get-renderer-guid'
 
 if (__DEV__) {
   installDevGlobals()
 }
+
+migrateRendererGUID()
 
 if (shellNeedsPatching(process)) {
   updateEnvironmentForProcess()
@@ -132,7 +134,6 @@ const sendErrorWithContext = (
   } else {
     const extra: Record<string, string> = {
       osVersion: getOS(),
-      guid: getGUID(),
       ...context,
     }
 

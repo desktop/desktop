@@ -112,4 +112,6 @@ export type RequestResponseChannels = {
     Electron.AppleActionOnDoubleClickPref
   >
   'should-use-dark-colors': () => Promise<boolean>
+  'save-guid': (guid: string) => Promise<void>
+  'read-guid': () => Promise<string>
 }

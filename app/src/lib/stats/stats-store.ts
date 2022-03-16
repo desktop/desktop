@@ -4,7 +4,6 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { getOS } from '../get-os'
-import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
@@ -27,6 +26,7 @@ import { Architecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { getNotificationsEnabled } from '../stores/notifications-store'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'
+import { getRendererGUID } from '../get-renderer-guid'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -541,7 +541,7 @@ export class StatsStore implements IStatsStore {
       ...dailyMeasures,
       ...userType,
       ...onboardingStats,
-      guid: getGUID(),
+      guid: await getRendererGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
