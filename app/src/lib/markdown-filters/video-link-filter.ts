@@ -42,7 +42,7 @@ export class VideoLinkFilter implements INodeFilter {
    * </p>
    *
    * Output = [
-   * <videosrc="https://user-images.githubusercontent.com/7559041/1234.mp4"></video>
+   * <video src="https://user-images.githubusercontent.com/7559041/1234.mp4"></video>
    * ]
    */
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
