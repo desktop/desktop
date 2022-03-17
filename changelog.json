@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.9.12-test2": ["[Added] More and better crashes"],
     "2.9.12-beta2": [
       "[Fixed] Show warning when attempting to commit files exceeding 100 MiB - #14164",
       "[Fixed] Allow selecting emojis in commit text - #14111",
