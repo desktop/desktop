@@ -5,7 +5,7 @@ export type MenuIDs =
   | 'discard-all-changes'
   | 'stash-all-changes'
   | 'preferences'
-  | 'update-branch'
+  | 'update-branch-with-contribution-target-branch'
   | 'merge-branch'
   | 'squash-and-merge-branch'
   | 'rebase-branch'
