@@ -39,7 +39,7 @@ import {
   isAppRunningUnderARM64Translation,
 } from '../lib/get-architecture'
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
-import { readGUIDFile, saveGUIDFile } from '../lib/get-main-guid'
+import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -652,8 +652,8 @@ app.on('ready', () => {
     async () => nativeTheme.shouldUseDarkColors
   )
 
-  ipcMain.handle('read-guid', () => {
-    return readGUIDFile()
+  ipcMain.handle('get-guid', () => {
+    return getMainGUID()
   })
 
   ipcMain.handle('save-guid', (_, guid) => {

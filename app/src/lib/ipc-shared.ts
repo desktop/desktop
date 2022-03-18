@@ -113,5 +113,5 @@ export type RequestResponseChannels = {
   >
   'should-use-dark-colors': () => Promise<boolean>
   'save-guid': (guid: string) => Promise<void>
-  'read-guid': () => Promise<string>
+  'get-guid': () => Promise<string>
 }
