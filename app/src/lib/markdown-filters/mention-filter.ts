@@ -36,7 +36,7 @@ export class MentionFilter implements INodeFilter {
   private readonly dotsAtEndOfLine = /\.+$/
 
   // non-word character except dot or `
-  private readonly nonWordExceptDotOrBackTick = /[^0-9a-zA-Z_.`]/
+  private readonly nonWordExceptDotOrBackTickOrHyphen = /[^0-9a-zA-Z_.`-]/
 
   // Pattern used to extract @mentions from text
   // Looking for @user or @user_user
@@ -50,7 +50,7 @@ export class MentionFilter implements INodeFilter {
       '|' +
       this.dotsAtEndOfLine.source +
       '|' +
-      this.nonWordExceptDotOrBackTick.source +
+      this.nonWordExceptDotOrBackTickOrHyphen.source +
       '|' +
       '$)', // end of line
     'ig'
