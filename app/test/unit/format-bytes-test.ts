@@ -12,19 +12,19 @@ describe('formatBytes', () => {
   })
 
   it('uses the correct units', () => {
-    expect(formatBytes(1023)).toEqual('1,023 B')
+    expect(formatBytes(1023)).toEqual('1023 B')
     expect(formatBytes(1024)).toEqual('1 KiB')
 
     // N.B this codifies the current behavior, I personally
     // wouldn't object to formatBytes(1048575) returning 1 MiB
-    expect(formatBytes(1048575, 3)).toEqual('1,023.999 KiB')
-    expect(formatBytes(1048575)).toEqual('1,024 KiB')
+    expect(formatBytes(1048575, 3)).toEqual('1023.999 KiB')
+    expect(formatBytes(1048575)).toEqual('1024 KiB')
     expect(formatBytes(1048576)).toEqual('1 MiB')
 
-    expect(formatBytes(1073741823)).toEqual('1,024 MiB')
+    expect(formatBytes(1073741823)).toEqual('1024 MiB')
     expect(formatBytes(1073741824)).toEqual('1 GiB')
 
-    expect(formatBytes(1099511627775)).toEqual('1,024 GiB')
+    expect(formatBytes(1099511627775)).toEqual('1024 GiB')
     expect(formatBytes(1099511627776)).toEqual('1 TiB')
   })
 
