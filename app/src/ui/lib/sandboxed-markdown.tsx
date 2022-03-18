@@ -100,6 +100,10 @@ export class SandboxedMarkdown extends React.PureComponent<
     }
   }
 
+  public componentWillUnmount() {
+    this.resizeObserver.disconnect()
+  }
+
   /**
    * Since iframe styles are isolated from the rest of the app, we have a
    * markdown.css file that we added to app/static directory that we can read in
@@ -171,6 +175,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     ) as HTMLDivElement
 
     if (this.contentDivRef !== null) {
+      this.resizeObserver.disconnect()
       this.resizeObserver.observe(this.contentDivRef)
     }
   }
