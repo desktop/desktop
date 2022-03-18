@@ -1,4 +1,4 @@
-export const defaultFormattingLocale = 'en-US'
+export const defaultFormattingLocale = 'en-US-POSIX'
 let formattingLocale: string | undefined = undefined
 
 /**
