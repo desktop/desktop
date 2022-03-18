@@ -4,6 +4,7 @@ import { EmojiFilter } from './emoji-filter'
 import { IssueLinkFilter } from './issue-link-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
 import { MentionFilter } from './mention-filter'
+import { TeamMentionFilter } from './team-mention-filter'
 
 export interface INodeFilter {
   /**
@@ -43,6 +44,7 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
     new IssueMentionFilter(repository),
     new IssueLinkFilter(repository),
     new EmojiFilter(emoji),
+    new TeamMentionFilter(repository),
     new MentionFilter(repository),
   ]
 )
