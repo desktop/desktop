@@ -46,27 +46,21 @@ export function findDefaultUpstreamBranch(
 }
 
 /**
- * 
+ *
  * @param repository The repository to use.
  * @param branchesState The branches state of the repository.
  * @returns The default branch of the user's contribution target, or null if it's not known.
- * 
+ *
  * This method will return the fork's upstream default branch, if the user
  * is contributing to the parent repository.
- * 
+ *
  * Otherwise, this method will return the default branch of the passed in repository.
  */
 export function findContributionTargetDefaultBranch(
   repository: Repository,
-  branchesState: IBranchesState
+  { allBranches, defaultBranch }: IBranchesState
 ): Branch | null {
-  let contributionTargetDefaultBranch: Branch | null
-    if (isRepositoryWithGitHubRepository(repository)) {
-      contributionTargetDefaultBranch = findDefaultUpstreamBranch(
-        repository,
-        branchesState.allBranches
-      )
-    }
-    contributionTargetDefaultBranch ??= branchesState.defaultBranch
-    return contributionTargetDefaultBranch
+  return isRepositoryWithGitHubRepository(repository)
+    ? findDefaultUpstreamBranch(repository, allBranches) ?? defaultBranch
+    : defaultBranch
 }
