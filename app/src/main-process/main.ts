@@ -712,7 +712,9 @@ function createWindow() {
 
     for (const extension of extensions) {
       try {
-        installExtension(extension)
+        installExtension(extension, {
+          loadExtensionOptions: { allowFileAccess: true },
+        })
       } catch (e) {}
     }
   }
