@@ -35,7 +35,8 @@ export class MentionFilter implements INodeFilter {
   // dots at end of line
   private readonly dotsAtEndOfLine = /\.+$/
 
-  // non-word character except dot or `
+  // non-word character except dot, ` , or -
+  // Note: In the case of usernames, the hyphen is a word character.
   private readonly nonWordExceptDotOrBackTickOrHyphen = /[^0-9a-zA-Z_.`-]/
 
   // Pattern used to extract @mentions from text
