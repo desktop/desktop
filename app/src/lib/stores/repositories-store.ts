@@ -121,7 +121,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.issuesEnabled,
       repo.isArchived,
       repo.permissions,
-      parent
+      parent,
+      repo.organization
     )
   }
 
@@ -527,6 +528,7 @@ export class RepositoriesStore extends TypedBaseStore<
       issuesEnabled: gitHubRepository.has_issues,
       isArchived: gitHubRepository.archived,
       permissions,
+      organization: gitHubRepository.organization,
     }
 
     if (existingRepo !== undefined) {

@@ -1,3 +1,4 @@
+import { IAPIOrganization } from '../lib/api'
 import { createEqualityHash } from './equality-hash'
 import { Owner } from './owner'
 
@@ -28,7 +29,8 @@ export class GitHubRepository {
     public readonly isArchived: boolean | null = null,
     /** The user's permissions for this github repository. `null` if unknown. */
     public readonly permissions: GitHubRepositoryPermission = null,
-    public readonly parent: GitHubRepository | null = null
+    public readonly parent: GitHubRepository | null = null,
+    public readonly organization: IAPIOrganization | null = null
   ) {
     this.hash = createEqualityHash(
       this.name,
@@ -41,7 +43,8 @@ export class GitHubRepository {
       this.issuesEnabled,
       this.isArchived,
       this.permissions,
-      this.parent?.hash
+      this.parent?.hash,
+      this.organization?.login
     )
   }
 

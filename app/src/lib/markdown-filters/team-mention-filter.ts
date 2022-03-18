@@ -73,7 +73,12 @@ export class TeamMentionFilter implements INodeFilter {
    */
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
     const { textContent: text } = node
-    if (node.nodeType !== node.TEXT_NODE || text === null) {
+    if (
+      node.nodeType !== node.TEXT_NODE ||
+      text === null ||
+      // if this is null, then the repo does not belong to an org that can have teams.
+      this.repository.organization === null
+    ) {
       return null
     }
 
@@ -90,7 +95,8 @@ export class TeamMentionFilter implements INodeFilter {
         org === undefined ||
         team === undefined ||
         // Team references are only added when the repository owner is the org to prevent linking to a team outside the repositories org.
-        org.slice(1) !== this.repository.owner.login
+        org.slice(1).toLocaleLowerCase() !==
+          this.repository.organization.login.toLocaleLowerCase()
       ) {
         continue
       }

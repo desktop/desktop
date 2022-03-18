@@ -107,6 +107,7 @@ export interface IAPIRepository {
   readonly pushed_at: string
   readonly has_issues: boolean
   readonly archived: boolean
+  readonly organization?: IAPIOrganization
 }
 
 /** Information needed to clone a repository. */

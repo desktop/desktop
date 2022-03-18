@@ -2,6 +2,7 @@ import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { assertNonNullable } from '../fatal-error'
+import { IAPIOrganization } from '../api'
 
 export interface IDatabaseOwner {
   readonly id?: number
@@ -33,6 +34,7 @@ export interface IDatabaseGitHubRepository {
   readonly isArchived?: boolean
 
   readonly permissions?: 'read' | 'write' | 'admin' | null
+  readonly organization?: IAPIOrganization
 }
 
 /** A record to track the protected branch information for a GitHub repository */
@@ -131,6 +133,13 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+
+    this.conditionalVersion(10, {}, async tx => {
+      /**
+       * We're introducing the `organization` property on PRs in version 10.
+       */
+      tx.table('gitHubRepositories').clear()
+    })
   }
 }
 
