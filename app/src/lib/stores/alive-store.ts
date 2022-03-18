@@ -40,10 +40,8 @@ interface IAliveEndpointSession {
 export class AliveStore {
   private readonly ALIVE_EVENT_RECEIVED_EVENT = 'alive-event-received'
 
-  private readonly sessionPerEndpoint: Map<
-    string,
-    IAliveEndpointSession
-  > = new Map()
+  private readonly sessionPerEndpoint: Map<string, IAliveEndpointSession> =
+    new Map()
   private readonly emitter = new Emitter()
   private subscriptions: Array<IAliveSubscription> = []
   private enabled: boolean = false
@@ -236,7 +234,7 @@ export class AliveStore {
       return
     }
 
-    const data = (event.data as any) as DesktopAliveEvent
+    const data = event.data as any as DesktopAliveEvent
     if (data.type === 'pr-checks-failed') {
       this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, data)
     }

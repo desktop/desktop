@@ -16,12 +16,8 @@ export function getMultiCommitOperationChooseBranchStep(
   state: IRepositoryState,
   initialBranch?: Branch | null
 ): ChooseBranchStep {
-  const {
-    defaultBranch,
-    allBranches,
-    recentBranches,
-    tip,
-  } = state.branchesState
+  const { defaultBranch, allBranches, recentBranches, tip } =
+    state.branchesState
   let currentBranch: Branch | null = null
 
   if (tip.kind === TipState.Valid) {

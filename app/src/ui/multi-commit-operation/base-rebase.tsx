@@ -10,13 +10,8 @@ export abstract class BaseRebase extends BaseMultiCommitOperation {
   protected abstract rebaseKind: MultiCommitOperationKind
 
   protected onContinueAfterConflicts = async (): Promise<void> => {
-    const {
-      repository,
-      dispatcher,
-      workingDirectory,
-      state,
-      conflictState,
-    } = this.props
+    const { repository, dispatcher, workingDirectory, state, conflictState } =
+      this.props
     const { operationDetail, originalBranchTip } = state
 
     if (

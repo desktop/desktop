@@ -148,12 +148,8 @@ export class SideBySideDiffRow extends React.Component<
     this.state = { showWhitespaceHint: undefined }
   }
   public render() {
-    const {
-      row,
-      showSideBySideDiff,
-      beforeClassNames,
-      afterClassNames,
-    } = this.props
+    const { row, showSideBySideDiff, beforeClassNames, afterClassNames } =
+      this.props
 
     const beforeClasses = classNames('before', ...beforeClassNames)
     const afterClasses = classNames('after', ...afterClassNames)

@@ -63,8 +63,7 @@ import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 export const narrowNoNewlineSymbol = {
   w: 16,
   h: 8,
-  d:
-    'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+  d: 'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
 }
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
@@ -281,7 +280,8 @@ const defaultEditorOptions: EditorConfiguration = {
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
   lineSeparator: '\n',
-  specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
+  specialChars:
+    /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
   gutters: [diffGutterName],
 }
 
@@ -1009,9 +1009,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     )
 
     const gutterParentElement = cm.getGutterElement()
-    const gutterElement = gutterParentElement.getElementsByClassName(
-      diffGutterName
-    )[0]
+    const gutterElement =
+      gutterParentElement.getElementsByClassName(diffGutterName)[0]
 
     const newStyle = `width: ${diffSize * 2}px;`
     const currentStyle = gutterElement.getAttribute('style')

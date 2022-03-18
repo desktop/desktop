@@ -108,9 +108,7 @@ class AsyncListenerSet<TDetails, TResponse> {
  * documentation.
  */
 export class OrderedWebRequest {
-  public readonly onBeforeRedirect: SyncListenerSet<
-    OnBeforeRedirectListenerDetails
-  >
+  public readonly onBeforeRedirect: SyncListenerSet<OnBeforeRedirectListenerDetails>
 
   public readonly onBeforeRequest: AsyncListenerSet<
     OnBeforeRequestListenerDetails,
@@ -123,18 +121,14 @@ export class OrderedWebRequest {
   >
 
   public readonly onCompleted: SyncListenerSet<OnCompletedListenerDetails>
-  public readonly onErrorOccurred: SyncListenerSet<
-    OnErrorOccurredListenerDetails
-  >
+  public readonly onErrorOccurred: SyncListenerSet<OnErrorOccurredListenerDetails>
 
   public readonly onHeadersReceived: AsyncListenerSet<
     OnHeadersReceivedListenerDetails,
     HeadersReceivedResponse
   >
 
-  public readonly onResponseStarted: SyncListenerSet<
-    OnResponseStartedListenerDetails
-  >
+  public readonly onResponseStarted: SyncListenerSet<OnResponseStartedListenerDetails>
 
   public readonly onSendHeaders: SyncListenerSet<OnSendHeadersListenerDetails>
 

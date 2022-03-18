@@ -24,9 +24,7 @@ interface IUpstreamAlreadyExistsProps {
  * The dialog shown when a repository is a fork but its upstream remote doesn't
  * point to the parent repository.
  */
-export class UpstreamAlreadyExists extends React.Component<
-  IUpstreamAlreadyExistsProps
-> {
+export class UpstreamAlreadyExists extends React.Component<IUpstreamAlreadyExistsProps> {
   public render() {
     const name = this.props.repository.name
     const gitHubRepository = forceUnwrap(

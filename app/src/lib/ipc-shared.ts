@@ -108,8 +108,6 @@ export type RequestResponseChannels = {
     options: Electron.OpenDialogOptions
   ) => Promise<string | null>
   'is-window-maximized': () => Promise<boolean>
-  'get-apple-action-on-double-click': () => Promise<
-    Electron.AppleActionOnDoubleClickPref
-  >
+  'get-apple-action-on-double-click': () => Promise<Electron.AppleActionOnDoubleClickPref>
   'should-use-dark-colors': () => Promise<boolean>
 }
