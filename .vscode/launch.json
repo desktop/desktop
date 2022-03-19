@@ -3,6 +3,10 @@
   "configurations": [
     
 
+    AnalyserNode
+    AbortController
+
+
     {
       "type": "lldb",
       "request": "attach",
