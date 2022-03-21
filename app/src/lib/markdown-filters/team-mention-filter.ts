@@ -76,8 +76,8 @@ export class TeamMentionFilter implements INodeFilter {
     if (
       node.nodeType !== node.TEXT_NODE ||
       text === null ||
-      // if this is null, then the repo does not belong to an org that can have teams.
-      this.repository.organization === null
+      // If the repo is not owned by an org, then there cannot be teams.
+      this.repository.owner.type !== 'Organization'
     ) {
       return null
     }
@@ -96,7 +96,7 @@ export class TeamMentionFilter implements INodeFilter {
         team === undefined ||
         // Team references are only added when the repository owner is the org to prevent linking to a team outside the repositories org.
         org.slice(1).toLocaleLowerCase() !==
-          this.repository.organization.login.toLocaleLowerCase()
+          this.repository.owner.login.toLocaleLowerCase()
       ) {
         continue
       }

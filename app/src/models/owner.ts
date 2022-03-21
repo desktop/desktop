@@ -1,3 +1,5 @@
+import { GitHubAccountType } from '../lib/api'
+
 /** The owner of a GitHubRepository. */
 export class Owner {
   /**
@@ -6,7 +8,8 @@ export class Owner {
   public constructor(
     public readonly login: string,
     public readonly endpoint: string,
-    public readonly id: number
+    public readonly id: number,
+    public readonly type?: GitHubAccountType
   ) {}
 
   /**

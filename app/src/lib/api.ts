@@ -79,7 +79,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
-type GitHubAccountType = 'User' | 'Organization'
+export type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we want to request */
 const oauthScopes = ['repo', 'user', 'workflow']
@@ -107,7 +107,6 @@ export interface IAPIRepository {
   readonly pushed_at: string
   readonly has_issues: boolean
   readonly archived: boolean
-  readonly organization?: IAPIOrganization
 }
 
 /** Information needed to clone a repository. */

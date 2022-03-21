@@ -161,6 +161,7 @@ describe('repository-matching', () => {
         id: 1234,
         endpoint: 'https://api.github.com/',
         hash: 'whatever',
+        type: 'User',
       },
       isPrivate: false,
       htmlURL: 'https://github.com/shiftkey/desktop',
@@ -172,7 +173,6 @@ describe('repository-matching', () => {
       issuesEnabled: true,
       isArchived: false,
       permissions: null,
-      organization: null,
     }
 
     it('returns true for exact match', () => {
