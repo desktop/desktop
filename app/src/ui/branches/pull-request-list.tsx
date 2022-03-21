@@ -214,12 +214,8 @@ export class PullRequestList extends React.Component<
   }
 
   private onDropOntoPullRequest = (prNumber: number) => {
-    const {
-      repository,
-      selectedPullRequest,
-      dispatcher,
-      pullRequests,
-    } = this.props
+    const { repository, selectedPullRequest, dispatcher, pullRequests } =
+      this.props
 
     if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
       return

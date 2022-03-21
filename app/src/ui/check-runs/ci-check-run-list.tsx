@@ -55,10 +55,8 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public componentDidUpdate(prevProps: ICICheckRunListProps) {
-    const {
-      checkRunExpanded,
-      hasUserToggledCheckRun,
-    } = this.setupStateAfterCheckRunPropChange(this.props, this.state)
+    const { checkRunExpanded, hasUserToggledCheckRun } =
+      this.setupStateAfterCheckRunPropChange(this.props, this.state)
 
     let foundDiffStatus = false
     for (const prevCR of prevProps.checkRuns) {

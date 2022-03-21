@@ -123,12 +123,8 @@ export class BranchListItem extends React.Component<
   }
 
   private onMouseUp = () => {
-    const {
-      onDropOntoBranch,
-      onDropOntoCurrentBranch,
-      name,
-      isCurrentBranch,
-    } = this.props
+    const { onDropOntoBranch, onDropOntoCurrentBranch, name, isCurrentBranch } =
+      this.props
 
     this.setState({ isDragInProgress: false })
 

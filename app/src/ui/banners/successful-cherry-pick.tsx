@@ -13,12 +13,8 @@ export class SuccessfulCherryPick extends React.Component<
   {}
 > {
   public render() {
-    const {
-      countCherryPicked,
-      onDismissed,
-      onUndo,
-      targetBranchName,
-    } = this.props
+    const { countCherryPicked, onDismissed, onUndo, targetBranchName } =
+      this.props
 
     const pluralized = countCherryPicked === 1 ? 'commit' : 'commits'
 

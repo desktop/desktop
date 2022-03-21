@@ -77,8 +77,8 @@ export class DropdownSelectButton extends React.Component<
 
     const windowHeight = window.innerHeight
     const bottomOfButton = this.invokeButtonRef.getBoundingClientRect().bottom
-    const invokeButtonHeight = this.invokeButtonRef.getBoundingClientRect()
-      .height
+    const invokeButtonHeight =
+      this.invokeButtonRef.getBoundingClientRect().height
     // 15 pixels is just to give some padding room below it
     const calcMaxHeight = windowHeight - bottomOfButton - 15
     const heightOfOptions = this.optionsContainerRef.clientHeight
@@ -180,11 +180,8 @@ export class DropdownSelectButton extends React.Component<
 
   public render() {
     const { options, disabled } = this.props
-    const {
-      selectedOption,
-      optionsPositionBottom,
-      showButtonOptions,
-    } = this.state
+    const { selectedOption, optionsPositionBottom, showButtonOptions } =
+      this.state
     if (options.length === 0 || selectedOption === null) {
       return
     }

@@ -29,20 +29,12 @@ interface ITooltippedContentProps
  * to add a wrapping element around the content. supports all the options that
  * the Tooltip component does without having to worry about refs.
  **/
-export class TooltippedContent extends React.Component<
-  ITooltippedContentProps
-> {
+export class TooltippedContent extends React.Component<ITooltippedContentProps> {
   private wrapperRef = createObservableRef<HTMLElement>()
 
   public render() {
-    const {
-      tooltip,
-      tagName,
-      children,
-      className,
-      tooltipClassName,
-      ...rest
-    } = this.props
+    const { tooltip, tagName, children, className, tooltipClassName, ...rest } =
+      this.props
 
     return React.createElement(tagName ?? 'span', {
       ref: this.wrapperRef,

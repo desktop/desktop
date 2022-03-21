@@ -173,8 +173,8 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      confirmDiscardChangesPermanently: this.props
-        .confirmDiscardChangesPermanently,
+      confirmDiscardChangesPermanently:
+        this.props.confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,

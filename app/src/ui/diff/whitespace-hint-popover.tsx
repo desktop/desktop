@@ -14,9 +14,7 @@ interface IWhitespaceHintPopoverProps {
   readonly style: React.CSSProperties
 }
 
-export class WhitespaceHintPopover extends React.Component<
-  IWhitespaceHintPopoverProps
-> {
+export class WhitespaceHintPopover extends React.Component<IWhitespaceHintPopoverProps> {
   public render() {
     return (
       <Popover

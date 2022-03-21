@@ -371,16 +371,14 @@ export class CommitStatusStore {
       return mapped
     }
 
-    const checkRunsWithActionsWorkflows = await this.getCheckRunActionsWorkflowRuns(
-      key,
-      branchName,
-      checks
-    )
+    const checkRunsWithActionsWorkflows =
+      await this.getCheckRunActionsWorkflowRuns(key, branchName, checks)
 
-    const checkRunsWithActionsWorkflowJobs = await this.mapActionWorkflowRunsJobsToCheckRuns(
-      key,
-      checkRunsWithActionsWorkflows
-    )
+    const checkRunsWithActionsWorkflowJobs =
+      await this.mapActionWorkflowRunsJobsToCheckRuns(
+        key,
+        checkRunsWithActionsWorkflows
+      )
 
     return checkRunsWithActionsWorkflowJobs
   }
