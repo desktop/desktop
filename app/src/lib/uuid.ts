@@ -13,7 +13,7 @@ import guid from 'uuid/v4'
  *  https://github.com/kelektiv/node-uuid/issues/189
  */
 function getRandomBytes(count: number) {
-  if (window.crypto) {
+  if (typeof window !== 'undefined' && window.crypto) {
     const rndBuf = new Uint8Array(count)
     crypto.getRandomValues(rndBuf)
 

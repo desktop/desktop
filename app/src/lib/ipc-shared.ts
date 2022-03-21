@@ -110,4 +110,6 @@ export type RequestResponseChannels = {
   'is-window-maximized': () => Promise<boolean>
   'get-apple-action-on-double-click': () => Promise<Electron.AppleActionOnDoubleClickPref>
   'should-use-dark-colors': () => Promise<boolean>
+  'save-guid': (guid: string) => Promise<void>
+  'get-guid': () => Promise<string>
 }
