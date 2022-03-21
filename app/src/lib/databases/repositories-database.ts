@@ -133,13 +133,6 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
-
-    this.conditionalVersion(10, {}, async tx => {
-      /**
-       * We're introducing the `organization` property on PRs in version 10.
-       */
-      tx.table('gitHubRepositories').clear()
-    })
   }
 }
 
