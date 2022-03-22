@@ -49,7 +49,8 @@ export function getMatches(text: string, re: RegExp): Array<RegExpExecArray> {
  * example return [ "LargeFile.exe (150.00 MB)", "AlsoTooLargeOfAFile.txt (1.00 GB)" ]
  */
 export function getFileFromExceedsError(error: string): string[] {
-  const endRegex = /(;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm
+  const endRegex =
+    /(;\sthis\sexceeds\sGitHub's\sfile\ssize\slimit\sof\s100.00\sMB)/gm
   const beginRegex = /(^remote:\serror:\sFile\s)/gm
   const beginMatches = Array.from(error.matchAll(beginRegex))
   const endMatches = Array.from(error.matchAll(endRegex))
