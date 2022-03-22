@@ -67,7 +67,8 @@ export function getNotificationsEnabled() {
 export class NotificationsStore {
   private repository: RepositoryWithGitHubRepository | null = null
   private onChecksFailedCallback: OnChecksFailedCallback | null = null
-  private onPullRequestReviewSubmitCallback: OnPullRequestReviewSubmitCallback | null = null
+  private onPullRequestReviewSubmitCallback: OnPullRequestReviewSubmitCallback | null =
+    null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
 

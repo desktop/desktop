@@ -53,10 +53,8 @@ interface IAliveEndpointSession {
 export class AliveStore {
   private readonly ALIVE_EVENT_RECEIVED_EVENT = 'alive-event-received'
 
-  private readonly sessionPerEndpoint: Map<
-    string,
-    IAliveEndpointSession
-  > = new Map()
+  private readonly sessionPerEndpoint: Map<string, IAliveEndpointSession> =
+    new Map()
   private readonly emitter = new Emitter()
   private subscriptions: Array<IAliveSubscription> = []
   private enabled: boolean = false
