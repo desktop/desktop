@@ -29,11 +29,11 @@ changes from the original, just a note that this will not match 1-1)
 	content: ""
 }
 
-.markdown-body>*:first-child {
+.markdown-body>#content>*:first-child {
 	margin-top: 0 !important
 }
 
-.markdown-body>*:last-child {
+.markdown-body>#content>*:last-child {
 	margin-bottom: 0 !important
 }
 

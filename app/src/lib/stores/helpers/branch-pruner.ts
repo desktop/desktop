@@ -15,8 +15,8 @@ import {
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
-import moment from 'moment'
 import { offsetFromNow } from '../../offset-from'
+import { formatRelative } from '../../format-relative'
 
 /** Check if a repo needs to be pruned at least every 4 hours */
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
@@ -150,11 +150,8 @@ export class BranchPruner {
       lastPruneDate != null &&
       threshold < lastPruneDate
     ) {
-      log.info(
-        `[BranchPruner] Last prune took place ${moment(
-          lastPruneDate
-        ).fromNow()} - skipping`
-      )
+      const timeAgo = formatRelative(lastPruneDate - Date.now())
+      log.info(`[BranchPruner] Last prune took place ${timeAgo} - skipping`)
       return
     }
 

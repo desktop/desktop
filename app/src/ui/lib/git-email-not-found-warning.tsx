@@ -16,9 +16,7 @@ interface IGitEmailNotFoundWarningProps {
  * A component which just displays a warning to the user if their git config
  * email doesn't match any of the emails in their GitHub (Enterprise) account.
  */
-export class GitEmailNotFoundWarning extends React.Component<
-  IGitEmailNotFoundWarningProps
-> {
+export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWarningProps> {
   public render() {
     const { accounts, email } = this.props
 

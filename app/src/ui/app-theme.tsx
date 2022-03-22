@@ -63,7 +63,15 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     ) {
       this.clearThemes()
       body.classList.add(newThemeClassName)
+      this.updateColorScheme()
     }
+  }
+
+  private updateColorScheme = () => {
+    const isDarkTheme = document.body.classList.contains('theme-dark')
+    const rootStyle = document.documentElement.style
+
+    rootStyle.colorScheme = isDarkTheme ? 'dark' : 'light'
   }
 
   /**
@@ -102,6 +110,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     styles.appendChild(document.createTextNode(customThemeStyles))
 
     body.appendChild(styles)
+    this.updateColorScheme()
   }
 
   private clearThemes() {

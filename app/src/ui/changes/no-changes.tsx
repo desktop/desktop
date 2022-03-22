@@ -324,12 +324,8 @@ export class NoChanges extends React.Component<
     this.props.dispatcher.recordSuggestedStepOpenInExternalEditor()
 
   private renderRemoteAction() {
-    const {
-      remote,
-      aheadBehind,
-      branchesState,
-      tagsToPush,
-    } = this.props.repositoryState
+    const { remote, aheadBehind, branchesState, tagsToPush } =
+      this.props.repositoryState
     const { tip, defaultBranch, currentPullRequest } = branchesState
 
     if (tip.kind !== TipState.Valid) {

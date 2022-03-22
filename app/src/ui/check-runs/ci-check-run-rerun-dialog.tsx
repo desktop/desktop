@@ -6,11 +6,11 @@ import { CICheckRunList } from './ci-check-run-list'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { APICheckStatus, IAPICheckSuite } from '../../lib/api'
-import moment from 'moment'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from './../octicons/octicons.generated'
 import { Row } from '../lib/row'
 import { encodePathAsUrl } from '../../lib/path'
+import { offsetFromNow } from '../../lib/offset-from'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -91,11 +91,10 @@ export class CICheckRunRerunDialog extends React.Component<
         continue
       }
 
-      const created = moment(cs.created_at)
-      const monthsSinceCreated = moment().diff(created, 'months')
+      const createdAt = Date.parse(cs.created_at)
       if (
         cs.rerequestable &&
-        monthsSinceCreated < 1 && // Must be less than a month old
+        createdAt > offsetFromNow(-30, 'days') && // Must be less than a month old
         cs.status === APICheckStatus.Completed // Must be completed
       ) {
         rerequestableCheckSuiteIds.push(cs.id)

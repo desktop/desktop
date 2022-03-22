@@ -424,7 +424,8 @@ export async function rebaseConflictsHandler(
   return null
 }
 
-const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
+const rejectedPathRe =
+  /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
 
 /**
  * Attempts to detect whether an error is the result of a failed push
@@ -469,7 +470,8 @@ export async function refusedWorkflowUpdate(
   return null
 }
 
-const samlReauthErrorMessageRe = /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
+const samlReauthErrorMessageRe =
+  /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
 
 /**
  * Attempts to detect whether an error is the result of a failed push

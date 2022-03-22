@@ -3,7 +3,6 @@ import '../lib/logging/renderer/install'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
-import * as moment from 'moment'
 import { App } from './app'
 import {
   Dispatcher,
@@ -47,7 +46,6 @@ import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
-import { getGUID } from '../lib/stats'
 import {
   enableSourceMaps,
   withSourceMappedStack,
@@ -68,9 +66,6 @@ import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 //   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
 import 'wicg-focus-ring'
 
-// setup this moment.js plugin so we can use easier
-// syntax for formatting time duration
-import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
@@ -82,10 +77,13 @@ import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
 import { AliveStore } from '../lib/stores/alive-store'
 import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
+import { migrateRendererGUID } from '../lib/get-renderer-guid'
 
 if (__DEV__) {
   installDevGlobals()
 }
+
+migrateRendererGUID()
 
 if (shellNeedsPatching(process)) {
   updateEnvironmentForProcess()
@@ -102,8 +100,6 @@ process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 // instead of just blindly trusting what's set in
 // the current environment. See https://git.io/JJ7KF
 delete process.env.GIT_EXEC_PATH
-
-momentDurationFormatSetup(moment)
 
 const startTime = performance.now()
 
@@ -138,7 +134,6 @@ const sendErrorWithContext = (
   } else {
     const extra: Record<string, string> = {
       osVersion: getOS(),
-      guid: getGUID(),
       ...context,
     }
 

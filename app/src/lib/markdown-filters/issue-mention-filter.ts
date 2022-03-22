@@ -38,12 +38,14 @@ export class IssueMentionFilter implements INodeFilter {
   /** A regular expression to match a group of an repo name or name with owner
    * Example: desktop/dugite or desktop
    */
-  private readonly ownerOrOwnerRepo = /(?<ownerOrOwnerRepo>\w+(?:-\w+)*(?:\/[.\w-]+)?)/
+  private readonly ownerOrOwnerRepo =
+    /(?<ownerOrOwnerRepo>\w+(?:-\w+)*(?:\/[.\w-]+)?)/
 
   /** A regular expression to match a group possible of preceding markers are
    * gh-, #, /issues/, /pull/, or /discussions/ followed by a digit
    */
-  private readonly marker = /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/i
+  private readonly marker =
+    /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/i
 
   /**
    * A regular expression string of a lookbehind is used so that valid matches

@@ -193,13 +193,10 @@ describe('text-diff-expansion', () => {
   })
 
   it('expands the whole file', async () => {
-    const { textDiff, newContentLines } = await prepareDiff(35, [
-      20,
-      17,
-      8,
-      7,
-      6,
-    ])
+    const { textDiff, newContentLines } = await prepareDiff(
+      35,
+      [20, 17, 8, 7, 6]
+    )
 
     const expandedDiff = expandWholeTextDiff(textDiff, newContentLines)
     expect(expandedDiff!.hunks).toHaveLength(1)

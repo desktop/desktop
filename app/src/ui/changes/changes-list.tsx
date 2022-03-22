@@ -166,8 +166,11 @@ interface IChangesListProps {
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 
+  /** Called when the given file should be ignored. */
+  readonly onIgnoreFile: (pattern: string | string[]) => void
+
   /** Called when the given pattern should be ignored. */
-  readonly onIgnore: (pattern: string | string[]) => void
+  readonly onIgnorePattern: (pattern: string | string[]) => void
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -499,7 +502,7 @@ export class ChangesList extends React.Component<
         label: __DARWIN__
           ? 'Ignore File (Add to .gitignore)'
           : 'Ignore file (add to .gitignore)',
-        action: () => this.props.onIgnore(path),
+        action: () => this.props.onIgnoreFile(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
     } else if (paths.length > 1) {
@@ -510,7 +513,7 @@ export class ChangesList extends React.Component<
         action: () => {
           // Filter out any .gitignores that happens to be selected, ignoring
           // those doesn't make sense.
-          this.props.onIgnore(
+          this.props.onIgnoreFile(
             paths.filter(path => Path.basename(path) !== GitIgnoreFileName)
           )
         },
@@ -527,7 +530,7 @@ export class ChangesList extends React.Component<
           label: __DARWIN__
             ? `Ignore All ${extension} Files (Add to .gitignore)`
             : `Ignore all ${extension} files (add to .gitignore)`,
-          action: () => this.props.onIgnore(`*${extension}`),
+          action: () => this.props.onIgnorePattern(`*${extension}`),
         })
       })
 

@@ -4,7 +4,8 @@ export const TimestampRegex = /^.{27}Z /gm
 export const BrightClassPostfix = '-br'
 // export for testing
 // match characters that could be enclosing url to cleanly handle url formatting
-export const UrlRegex = /([{(<[]*https?:\/\/[a-z0-9][a-z0-9-]*[a-z0-9]\.[^\s<>|'"]{2,})/gi
+export const UrlRegex =
+  /([{(<[]*https?:\/\/[a-z0-9][a-z0-9-]*[a-z0-9]\.[^\s<>|'"]{2,})/gi
 
 /**
  * Regex for matching ANSII escape codes
@@ -16,7 +17,8 @@ export const UrlRegex = /([{(<[]*https?:\/\/[a-z0-9][a-z0-9-]*[a-z0-9]\.[^\s<>|'
  * (?:(?:;[0-9]{0,3})*)?: Match one or more occurrences of the format we want with semicolon
  */
 // eslint-disable-next-line no-control-regex
-export const _ansiEscapeCodeRegex = /(?:\u001b\[)(?:[?|#])?(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-Z|a-z])/
+export const _ansiEscapeCodeRegex =
+  /(?:\u001b\[)(?:[?|#])?(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-Z|a-z])/
 
 /**
  * http://ascii-table.com/ansi-escape-sequences.php

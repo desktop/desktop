@@ -28,9 +28,7 @@ interface ITutorialStepInstructionsProps {
 }
 
 /** A step (summary and expandable description) in the tutorial side panel */
-export class TutorialStepInstructions extends React.Component<
-  ITutorialStepInstructionsProps
-> {
+export class TutorialStepInstructions extends React.Component<ITutorialStepInstructionsProps> {
   public render() {
     return (
       <li key={this.props.sectionId} onClick={this.onSummaryClick}>

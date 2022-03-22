@@ -323,7 +323,8 @@ function getMediaType(extension: string) {
  * about to `stderr` - this rule here will catch this and also the to/from
  * changes based on what the user has configured.
  */
-const lineEndingsChangeRegex = /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
+const lineEndingsChangeRegex =
+  /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
 
 /**
  * Utility function for inspecting the stderr output for the line endings
