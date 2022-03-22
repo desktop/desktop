@@ -30,8 +30,8 @@ export class Prompts extends React.Component<
     this.state = {
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      confirmDiscardChangesPermanently: this.props
-        .confirmDiscardChangesPermanently,
+      confirmDiscardChangesPermanently:
+        this.props.confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
     }
   }

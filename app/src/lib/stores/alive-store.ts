@@ -249,7 +249,7 @@ export class AliveStore {
       return
     }
 
-    const data = (event.data as any) as DesktopAliveEvent
+    const data = event.data as any as DesktopAliveEvent
     if (data.type === 'pr-checks-failed' || data.type === 'pr-review-submit') {
       this.emitter.emit(this.ALIVE_EVENT_RECEIVED_EVENT, data)
     }

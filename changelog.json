@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.9.12-beta3": [
+      "[Fixed] Escape special characters when adding a file to .gitignore - #10253. Thanks @uttiya10!",
+      "[Fixed] Dismiss \"initialize LFS\" dialog when clicking `Not Now` button - #14187"
+    ],
     "2.9.12-beta2": [
       "[Fixed] Show warning when attempting to commit files exceeding 100 MiB - #14164",
       "[Fixed] Allow selecting emojis in commit text - #14111",

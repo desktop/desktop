@@ -201,9 +201,10 @@ export async function getChangedFiles(
   }
 }
 
-function parseChangedFilesNumStat(
-  stdout: string
-): { linesAdded: number; linesDeleted: number } {
+function parseChangedFilesNumStat(stdout: string): {
+  linesAdded: number
+  linesDeleted: number
+} {
   const lines = stdout.split('\0')
   let totalLinesAdded = 0
   let totalLinesDeleted = 0

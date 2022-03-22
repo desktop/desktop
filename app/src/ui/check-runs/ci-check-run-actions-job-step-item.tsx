@@ -18,9 +18,7 @@ interface ICICheckRunActionsJobStepListItemProps {
   readonly onViewJobStepExternally: (step: IAPIWorkflowJobStep) => void
 }
 
-export class CICheckRunActionsJobStepListItem extends React.PureComponent<
-  ICICheckRunActionsJobStepListItemProps
-> {
+export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICICheckRunActionsJobStepListItemProps> {
   private onViewJobStepExternally = () => {
     this.props.onViewJobStepExternally(this.props.step)
   }

@@ -794,9 +794,7 @@ export class API {
   }
 
   /** Fetch all repos a user has access to. */
-  public async fetchRepositories(): Promise<ReadonlyArray<
-    IAPIRepository
-  > | null> {
+  public async fetchRepositories(): Promise<ReadonlyArray<IAPIRepository> | null> {
     try {
       const repositories = await this.fetchAll<IAPIRepository>('user/repos')
       // "But wait, repositories can't have a null owner" you say.

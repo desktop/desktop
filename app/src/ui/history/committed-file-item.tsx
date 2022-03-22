@@ -14,9 +14,7 @@ interface ICommittedFileItemProps {
   ) => void
 }
 
-export class CommittedFileItem extends React.Component<
-  ICommittedFileItemProps
-> {
+export class CommittedFileItem extends React.Component<ICommittedFileItemProps> {
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onContextMenu !== undefined) {
       this.props.onContextMenu(this.props.file, event)

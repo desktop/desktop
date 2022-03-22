@@ -111,9 +111,7 @@ function findRepositoryForListItem(
   return repositories.find(r => r.clone_url === listItem.url) || null
 }
 
-export class CloneableRepositoryFilterList extends React.PureComponent<
-  ICloneableRepositoryFilterListProps
-> {
+export class CloneableRepositoryFilterList extends React.PureComponent<ICloneableRepositoryFilterListProps> {
   /**
    * A memoized function for grouping repositories for display
    * in the FilterList. The group will not be recomputed as long

@@ -4,7 +4,6 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { getOS } from '../get-os'
-import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
@@ -27,6 +26,7 @@ import { Architecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { getNotificationsEnabled } from '../stores/notifications-store'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'
+import { getRendererGUID } from '../get-renderer-guid'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -541,7 +541,7 @@ export class StatsStore implements IStatsStore {
       ...dailyMeasures,
       ...userType,
       ...onboardingStats,
-      guid: getGUID(),
+      guid: await getRendererGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
@@ -610,9 +610,8 @@ export class StatsStore implements IStatsStore {
 
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
-    const launches:
-      | ReadonlyArray<ILaunchStats>
-      | undefined = await this.db.launches.toArray()
+    const launches: ReadonlyArray<ILaunchStats> | undefined =
+      await this.db.launches.toArray()
     if (!launches || !launches.length) {
       return {
         mainReadyTime: -1,
@@ -645,9 +644,9 @@ export class StatsStore implements IStatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    const measures:
-      | IDailyMeasures
-      | undefined = await this.db.dailyMeasures.limit(1).first()
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures
+      .limit(1)
+      .first()
     return {
       ...DefaultDailyMeasures,
       ...measures,
@@ -996,9 +995,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
-    void
-  > {
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       anyConflictsLeftOnMergeConflictsDialogDismissalCount:
         m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
@@ -1222,9 +1219,7 @@ export class StatsStore implements IStatsStore {
    * Record the number of times the user experiences the error
    * "Some of your changes would be overwritten" when switching branches
    */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
-    void
-  > {
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       errorWhenSwitchingBranchesWithUncommmittedChanges:
         m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
