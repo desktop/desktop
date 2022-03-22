@@ -283,6 +283,8 @@ export class PullRequestReview extends React.Component<
       await dispatcher.selectRepository(repository)
       await dispatcher.checkoutPullRequest(repository, pullRequest)
       this.setState({ switchingToPullRequest: false })
+
+      dispatcher.recordPullRequestReviewDialogSwitchToPullRequest(review.state)
     }
 
     this.props.onDismissed()
