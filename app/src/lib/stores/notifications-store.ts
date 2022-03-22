@@ -4,7 +4,7 @@ import {
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { PullRequest } from '../../models/pull-request'
-import { API, APICheckConclusion, IAPIPullRequestReview } from '../api'
+import { API, APICheckConclusion } from '../api'
 import {
   createCombinedCheckFromChecks,
   getLatestCheckRunsByName,
@@ -29,6 +29,10 @@ import { StatsStore } from '../stats'
 import { truncateWithEllipsis } from '../truncate-with-ellipsis'
 import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
 import { enablePullRequestReviewNotifications } from '../feature-flag'
+import {
+  isValidNotificationPullRequestReview,
+  ValidNotificationPullRequestReview,
+} from '../valid-notification-pull-request-review'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -41,7 +45,7 @@ type OnChecksFailedCallback = (
 type OnPullRequestReviewSubmitCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
-  review: IAPIPullRequestReview,
+  review: ValidNotificationPullRequestReview,
   numberOfComments: number
 ) => void
 
@@ -137,7 +141,7 @@ export class NotificationsStore {
       event.review_id
     )
 
-    if (review === null) {
+    if (review === null || !isValidNotificationPullRequestReview(review)) {
       return
     }
 

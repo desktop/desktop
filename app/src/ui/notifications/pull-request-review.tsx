@@ -5,7 +5,6 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
-import { IAPIPullRequestReview } from '../../lib/api'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
@@ -19,6 +18,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import classNames from 'classnames'
 import { Avatar } from '../lib/avatar'
 import { formatRelative } from '../../lib/format-relative'
+import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -30,7 +30,7 @@ interface IPullRequestReviewProps {
   readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
-  readonly review: IAPIPullRequestReview
+  readonly review: ValidNotificationPullRequestReview
   readonly numberOfComments: number
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */

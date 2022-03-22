@@ -1,15 +1,20 @@
-import { IAPIPullRequestReview } from '../../lib/api'
+import {
+  ValidNotificationPullRequestReview,
+  ValidNotificationPullRequestReviewState,
+} from '../../lib/valid-notification-pull-request-review'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OcticonSymbolType } from '../octicons/octicons.generated'
 
 /** Returns the user-facing verb for a given review's state. */
-export function getVerbForPullRequestReview(review: IAPIPullRequestReview) {
+export function getVerbForPullRequestReview(
+  review: ValidNotificationPullRequestReview
+) {
   switch (review.state) {
     case 'APPROVED':
       return 'approved'
     case 'CHANGES_REQUESTED':
       return 'requested changes on'
-    default:
+    case 'COMMENTED':
       return 'reviewed'
   }
 }
@@ -20,9 +25,9 @@ type ReviewStateIcon = {
 }
 
 /** Returns the icon info (symbol and class) for a given review's state. */
-export function getPullRequestReviewStateIcon<
-  T extends IAPIPullRequestReview['state']
->(state: T): ReviewStateIcon {
+export function getPullRequestReviewStateIcon(
+  state: ValidNotificationPullRequestReviewState
+): ReviewStateIcon {
   switch (state) {
     case 'APPROVED':
       return {
@@ -34,7 +39,7 @@ export function getPullRequestReviewStateIcon<
         symbol: OcticonSymbol.fileDiff,
         className: 'pr-review-changes-requested',
       }
-    default:
+    case 'COMMENTED':
       return {
         symbol: OcticonSymbol.eye,
         className: 'pr-review-commented',

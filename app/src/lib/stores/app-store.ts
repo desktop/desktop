@@ -85,7 +85,6 @@ import {
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
-  IAPIPullRequestReview,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -297,6 +296,7 @@ import {
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
+import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -6961,7 +6961,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private onPullRequestReviewSubmitNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    review: IAPIPullRequestReview,
+    review: ValidNotificationPullRequestReview,
     numberOfComments: number
   ) => {
     const selectedRepository =

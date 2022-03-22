@@ -20,7 +20,7 @@ import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
-import { IAPIPullRequestReview } from '../lib/api'
+import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -341,7 +341,7 @@ export type Popup =
       type: PopupType.PullRequestReview
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
-      review: IAPIPullRequestReview
+      review: ValidNotificationPullRequestReview
       numberOfComments: number
       shouldCheckoutBranch: boolean
       shouldChangeRepository: boolean
