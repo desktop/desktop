@@ -499,6 +499,7 @@ export interface IAPIPullRequestReview {
   readonly user: IAPIIdentity
   readonly body: string
   readonly html_url: string
+  readonly submitted_at: string
   readonly state:
     | 'APPROVED'
     | 'DISMISSED'

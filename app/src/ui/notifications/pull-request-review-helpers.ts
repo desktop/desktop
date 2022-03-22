@@ -26,7 +26,7 @@ export function getPullRequestReviewStateIcon<
   switch (state) {
     case 'APPROVED':
       return {
-        symbol: OcticonSymbol.checkCircleFill,
+        symbol: OcticonSymbol.check,
         className: 'pr-review-approved',
       }
     case 'CHANGES_REQUESTED':

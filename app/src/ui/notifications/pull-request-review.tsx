@@ -7,6 +7,7 @@ import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
 import { IAPIPullRequestReview } from '../../lib/api'
 import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { Button } from '../lib/button'
@@ -16,6 +17,9 @@ import {
 } from './pull-request-review-helpers'
 import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
+import classNames from 'classnames'
+import { Avatar } from '../lib/avatar'
+import { formatRelative } from '../../lib/format-relative'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -64,24 +68,15 @@ export class PullRequestReview extends React.Component<
   }
 
   public render() {
-    const { review } = this.props
-
     const { title, pullRequestNumber } = this.props.pullRequest
-    const verb = getVerbForPullRequestReview(review)
 
     const header = (
       <div className="pull-request-review-dialog-header">
-        {this.renderReviewIcon()}
-        <div className="title-container">
-          <div className="summary">
-            {review.user.login} {verb} your pull request
-          </div>
-          <span className="pr-title">
-            <span className="pr-title">{title}</span>{' '}
-            <span className="pr-number">#{pullRequestNumber}</span>{' '}
-          </span>
-        </div>
-        {this.renderViewOnGitHubButton()}
+        {this.renderPullRequestIcon()}
+        <span className="pr-title">
+          <span className="pr-title">{title}</span>{' '}
+          <span className="pr-number">#{pullRequestNumber}</span>{' '}
+        </span>
       </div>
     )
 
@@ -95,26 +90,95 @@ export class PullRequestReview extends React.Component<
         onDismissed={this.props.onDismissed}
         loading={this.state.switchingToPullRequest}
       >
-        <DialogContent>{this.renderReviewBody()}</DialogContent>
+        <DialogContent>
+          <div className="review-container">
+            {this.renderTimelineItem()}
+            {this.renderCommentBubble()}
+          </div>
+          {1 === NaN && this.renderViewOnGitHubButton()}
+        </DialogContent>
         <DialogFooter>{this.renderFooterContent()}</DialogFooter>
       </Dialog>
+    )
+  }
+
+  private renderTimelineItem() {
+    const { review, repository } = this.props
+    const verb = getVerbForPullRequestReview(review)
+    const userAvatar = {
+      name: review.user.login,
+      email: '',
+      avatarURL: review.user.avatar_url,
+      endpoint: repository.gitHubRepository.endpoint,
+    }
+
+    const bottomLine = this.shouldRenderCommentBubble()
+      ? null
+      : this.renderDashedTimelineLine('bottom')
+
+    const timelineItemClass = classNames('timeline-item', {
+      'with-comment': this.shouldRenderCommentBubble(),
+    })
+
+    const submittedAt = new Date(review.submitted_at)
+    const diff = submittedAt.getTime() - Date.now()
+    const duration = Math.abs(diff)
+    const relativeReviewDate = formatRelative(duration)
+
+    return (
+      <div className="timeline-item-container">
+        {this.renderDashedTimelineLine('top')}
+        <div className={timelineItemClass}>
+          <Avatar user={userAvatar} title={null} size={40} />
+          {this.renderReviewIcon()}
+          <div className="summary">
+            <LinkButton uri={review.user.html_url} className="reviewer">
+              {review.user.login}
+            </LinkButton>{' '}
+            {verb} your pull request{' '}
+            <LinkButton uri={review.html_url} className="submission-date">
+              {relativeReviewDate}
+            </LinkButton>
+          </div>
+        </div>
+        {bottomLine}
+      </div>
+    )
+  }
+
+  private shouldRenderCommentBubble() {
+    return this.props.review.body !== ''
+  }
+
+  private renderCommentBubble() {
+    if (!this.shouldRenderCommentBubble()) {
+      return null
+    }
+
+    return (
+      <div className="comment-bubble-container">
+        <div className="comment-bubble">{this.renderReviewBody()}</div>
+        {this.renderDashedTimelineLine('bottom')}
+      </div>
+    )
+  }
+
+  private renderDashedTimelineLine(type: 'top' | 'bottom') {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={`timeline-line ${type}`}
+      >
+        {/* Need to use 0.5 for X to prevent nearest neighbour filtering causing
+        the line to appear semi-transparent. */}
+        <line x1="0.5" y1="0" x2="0.5" y2="100%" />
+      </svg>
     )
   }
 
   private renderFooterContent() {
     const { review, shouldChangeRepository, shouldCheckoutBranch } = this.props
     const isApprovedReview = review.state === 'APPROVED'
-
-    // If the PR was approved, there is no need to switch branches
-    const footerQuestion =
-      !isApprovedReview && (shouldChangeRepository || shouldCheckoutBranch) ? (
-        <div className="footer-question">
-          <span>
-            Do you want to switch to that Pull Request now and start working on
-            the requested changes?
-          </span>
-        </div>
-      ) : null
 
     let okButtonTitle: undefined | string = undefined
 
@@ -143,11 +207,13 @@ export class PullRequestReview extends React.Component<
       />
     )
 
-    return footerQuestion === null ? (
-      okCancelButtonGroup
-    ) : (
+    const openInBrowserText = __DARWIN__ ? 'Open in Browser' : 'Open in browser'
+
+    return (
       <Row>
-        {footerQuestion}
+        <div className="footer-links">
+          <LinkButton uri={review.html_url}>{openInBrowserText}</LinkButton>
+        </div>
         {okCancelButtonGroup}
       </Row>
     )
@@ -192,11 +258,34 @@ export class PullRequestReview extends React.Component<
     return <img src={BlankSlateImage} className="blankslate-image" />
   }
 
+  private renderPullRequestIcon = () => {
+    const { pullRequest } = this.props
+
+    const cls = classNames('pull-request-icon', {
+      draft: pullRequest.draft,
+    })
+
+    return (
+      <Octicon
+        className={cls}
+        symbol={
+          pullRequest.draft
+            ? OcticonSymbol.gitPullRequestDraft
+            : OcticonSymbol.gitPullRequest
+        }
+      />
+    )
+  }
+
   private renderReviewIcon = () => {
     const { review } = this.props
 
     const icon = getPullRequestReviewStateIcon(review.state)
-    return <Octicon symbol={icon.symbol} className={icon.className} />
+    return (
+      <div className={classNames('review-icon-container', icon.className)}>
+        <Octicon symbol={icon.symbol} />
+      </div>
+    )
   }
 
   private renderViewOnGitHubButton = () => {
