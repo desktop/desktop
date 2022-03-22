@@ -10,7 +10,6 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
-import { Button } from '../lib/button'
 import {
   getPullRequestReviewStateIcon,
   getVerbForPullRequestReview,
@@ -95,7 +94,6 @@ export class PullRequestReview extends React.Component<
             {this.renderTimelineItem()}
             {this.renderCommentBubble()}
           </div>
-          {1 === NaN && this.renderViewOnGitHubButton()}
         </DialogContent>
         <DialogFooter>{this.renderFooterContent()}</DialogFooter>
       </Dialog>
@@ -286,19 +284,6 @@ export class PullRequestReview extends React.Component<
         <Octicon symbol={icon.symbol} />
       </div>
     )
-  }
-
-  private renderViewOnGitHubButton = () => {
-    return (
-      <div className="ci-check-rerun">
-        <Button onClick={this.viewOnGitHub}>View on GitHub</Button>
-      </div>
-    )
-  }
-
-  private viewOnGitHub = () => {
-    const { dispatcher, review } = this.props
-    dispatcher.openInBrowser(review.html_url)
   }
 
   private onSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
