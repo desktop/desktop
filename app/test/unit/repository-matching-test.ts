@@ -161,7 +161,6 @@ describe('repository-matching', () => {
         id: 1234,
         endpoint: 'https://api.github.com/',
         hash: 'whatever',
-        type: 'User',
       },
       isPrivate: false,
       htmlURL: 'https://github.com/shiftkey/desktop',

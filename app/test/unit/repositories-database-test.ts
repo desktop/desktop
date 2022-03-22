@@ -55,12 +55,10 @@ describe('RepositoriesDatabase', () => {
     const ownerA = await ownersTableBeforeUpgrade.add({
       endpoint,
       login: 'desktop',
-      type: 'User',
     })
     const ownerB = await ownersTableBeforeUpgrade.add({
       endpoint,
       login: 'DeskTop',
-      type: 'User',
     })
 
     const originalRepoA: IDatabaseGitHubRepository = {
