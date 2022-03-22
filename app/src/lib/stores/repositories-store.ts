@@ -399,7 +399,7 @@ export class RepositoriesStore extends TypedBaseStore<
       existingOwner === undefined ||
       existingOwner.login !== login ||
       // This is added so that we update existing owners with an undefined type.
-      (ownerType !== undefined && existingOwner.type === ownerType)
+      (ownerType !== undefined && existingOwner.type !== ownerType)
     ) {
       id = existingOwner?.id
       const existingId = id !== undefined ? { id } : {}
