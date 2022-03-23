@@ -530,7 +530,10 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseDirectory = async () => {
-    if (enableSaveDialogOnCloneRepository()) {
+    // We received feedback (#12812) that using the save dialog is confusing on
+    // windows due to appearing to require a file selection. This is not the case
+    // on mac where it more clearly shows directory creation.
+    if (__DARWIN__) {
       return this.onChooseWithSaveDialog()
     }
 

@@ -80,7 +80,7 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
 
 /** Should we allow using the save dialog when choosing where to clone a repo */
 export function enableSaveDialogOnCloneRepository(): boolean {
-  return __DARWIN__
+  return false
 }
 
 /** Should we allow setting repository aliases? */
