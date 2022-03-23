@@ -4,8 +4,8 @@ import { MESSAGE } from 'triple-beam'
 import TransportStream, { TransportStreamOptions } from 'winston-transport'
 import { EOL } from 'os'
 import { readdir, unlink } from 'fs/promises'
-import { escapeRegExp } from '../lib/helpers/regex'
 import { promisify } from 'util'
+import { escapeRegExp } from 'lodash'
 
 type DesktopFileTransportOptions = TransportStreamOptions & {
   readonly logDirectory: string

@@ -51,7 +51,6 @@ import {
 import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-search-input'
-import { escapeRegExp } from '../../lib/helpers/regex'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -59,6 +58,7 @@ import {
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
+import { escapeRegExp } from 'lodash'
 
 const DefaultRowHeight = 20
 

@@ -1,6 +1,6 @@
+import { escapeRegExp } from 'lodash'
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../api'
-import { escapeRegExp } from '../helpers/regex'
 import { INodeFilter } from './node-filter'
 
 /**
