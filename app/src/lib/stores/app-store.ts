@@ -296,6 +296,7 @@ import {
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
+import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -561,6 +562,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
+    )
+
+    this.notificationsStore.onPullRequestReviewSubmitNotification(
+      this.onPullRequestReviewSubmitNotification
     )
   }
 
@@ -6915,7 +6920,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       type: PopupType.PullRequestChecksFailed,
       pullRequest,
       repository,
-      needsSelectRepository: true,
+      shouldChangeRepository: true,
       commitMessage,
       commitSha,
       checks,
@@ -6948,9 +6953,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // repository.
       return this._showPopup({
         ...popup,
-        needsSelectRepository: false,
+        shouldChangeRepository: false,
       })
     }
+  }
+
+  private onPullRequestReviewSubmitNotification = async (
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    review: ValidNotificationPullRequestReview,
+    numberOfComments: number
+  ) => {
+    const selectedRepository =
+      this.selectedRepository ?? (await this._selectRepository(repository))
+
+    const state = this.repositoryStateCache.get(repository)
+
+    const { branchesState } = state
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    return this._showPopup({
+      type: PopupType.PullRequestReview,
+      shouldCheckoutBranch:
+        currentBranch !== null && currentBranch.name !== pullRequest.head.ref,
+      shouldChangeRepository:
+        selectedRepository === null ||
+        selectedRepository.hash !== repository.hash,
+      review,
+      pullRequest,
+      repository,
+      numberOfComments,
+    })
   }
 }
 

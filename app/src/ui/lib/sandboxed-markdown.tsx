@@ -140,6 +140,7 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
         ${scrapeVariable('--font-size')}
         ${scrapeVariable('--font-size-sm')}
         ${scrapeVariable('--text-color')}
+        ${scrapeVariable('--background-color')}
       }
       ${css}
     </style>`
