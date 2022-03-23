@@ -14,17 +14,11 @@ import {
   getVerbForPullRequestReview,
 } from './pull-request-review-helpers'
 import { LinkButton } from '../lib/link-button'
-import { encodePathAsUrl } from '../../lib/path'
 import classNames from 'classnames'
 import { Avatar } from '../lib/avatar'
 import { formatRelative } from '../../lib/format-relative'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 import { getStealthEmailForUser } from '../../lib/email'
-
-const BlankSlateImage = encodePathAsUrl(
-  __dirname,
-  'static/empty-no-pull-requests.svg'
-)
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -225,38 +219,18 @@ export class PullRequestReview extends React.Component<
   }
 
   private renderReviewBody() {
-    const { review, emoji, pullRequest, numberOfComments } = this.props
+    const { review, emoji, pullRequest } = this.props
     const { base } = pullRequest
 
-    if (review.body.length > 0) {
-      return (
-        <Row>
-          <SandboxedMarkdown
-            markdown={review.body}
-            emoji={emoji}
-            baseHref={base.gitHubRepository.htmlURL}
-            repository={base.gitHubRepository}
-            onMarkdownLinkClicked={this.onMarkdownLinkClicked}
-          />
-        </Row>
-      )
-    }
-
-    if (numberOfComments > 0) {
-      const pluralComments = numberOfComments === 1 ? 'comment' : 'comments'
-      return (
-        <Row>
-          <span>
-            <LinkButton uri={review.user.html_url}>
-              @{review.user.login}
-            </LinkButton>{' '}
-            left {numberOfComments} {pluralComments}.
-          </span>
-        </Row>
-      )
-    }
-
-    return <img src={BlankSlateImage} className="blankslate-image" />
+    return (
+      <SandboxedMarkdown
+        markdown={review.body}
+        emoji={emoji}
+        baseHref={base.gitHubRepository.htmlURL}
+        repository={base.gitHubRepository}
+        onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+      />
+    )
   }
 
   private renderPullRequestIcon = () => {
