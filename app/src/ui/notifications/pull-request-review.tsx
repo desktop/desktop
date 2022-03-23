@@ -19,6 +19,7 @@ import classNames from 'classnames'
 import { Avatar } from '../lib/avatar'
 import { formatRelative } from '../../lib/format-relative'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
+import { getStealthEmailForUser } from '../../lib/email'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -102,12 +103,14 @@ export class PullRequestReview extends React.Component<
 
   private renderTimelineItem() {
     const { review, repository } = this.props
+    const { user } = review
+    const { endpoint } = repository.gitHubRepository
     const verb = getVerbForPullRequestReview(review)
     const userAvatar = {
-      name: review.user.login,
-      email: '',
-      avatarURL: review.user.avatar_url,
-      endpoint: repository.gitHubRepository.endpoint,
+      name: user.login,
+      email: getStealthEmailForUser(user.id, user.login, endpoint),
+      avatarURL: user.avatar_url,
+      endpoint: endpoint,
     }
 
     const bottomLine = this.shouldRenderCommentBubble()
