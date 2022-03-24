@@ -175,6 +175,7 @@ export class RepositoriesList extends React.Component<
         className="filter-list-group-header"
         tooltip={label}
         onlyWhenOverflowed={true}
+        tagName="div"
       >
         {label}
       </TooltippedContent>
