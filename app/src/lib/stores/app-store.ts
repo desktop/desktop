@@ -71,7 +71,9 @@ import {
   ICustomTheme,
   setPersistedTheme,
   setPersistedFontFace,
-  setPersistedFontSize
+  setPersistedFontSize,
+  getPersistedFontFace,
+  getPersistedFontSize
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
@@ -79,6 +81,8 @@ import {
   getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
   updateAccounts,
+  setFontFaceSource,
+  setFontSizeSource
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -464,7 +468,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
-  private selectedFontFace = null;
+  private selectedFontFace: string | null = null;
   private selectedFontSize = 0;
   private customTheme?: ICustomTheme
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
@@ -1883,6 +1887,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.customTheme = getObject<ICustomTheme>(customThemeKey)
     // Make sure the persisted theme is applied
     setPersistedTheme(this.selectedTheme)
+
+    this.selectedFontFace = await getPersistedFontFace()
+
+    // Make sure the persisted font face is applied
+    setFontFaceSource(this.selectedFontFace);
+
+    this.selectedFontSize = await getPersistedFontSize()
+
+    // Make sure the persisted font size is applied
+    setFontSizeSource(this.selectedFontSize);
 
     this.currentTheme =
       this.selectedTheme !== ApplicationTheme.HighContrast

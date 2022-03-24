@@ -43,10 +43,26 @@ export class Font extends React.Component<
      getFonts({ disableQuoting: true })
     .then(fonts => {
       this.setState({ availableFonts: fonts })
+      const fontFaceElem = document.getElementById("fontFaceChooser");
+      if (fontFaceElem)
+      {
+        this.props.onSelectedFontFaceChanged(this.state.selectedFontFace ?? "serif")
+        const faceChooser : HTMLSelectElement = fontFaceElem as HTMLSelectElement
+        faceChooser.value = this.state.selectedFontFace ?? "serif";
+      }
+
+      const fontSizeElem = document.getElementById("fontSizeChooser");
+      if (fontSizeElem)
+      {
+        this.props.onSelectedFontSizeChanged(this.state.selectedFontSize)
+        const sizeChooser : HTMLInputElement = fontSizeElem  as HTMLInputElement
+        sizeChooser.value = this.state.selectedFontSize.toString()
+      }
     })
     .catch(err => {
       console.error(err)
     })
+
   }
 
   public async componentDidUpdate(prevProps: IFontProps) {
@@ -64,7 +80,7 @@ export class Font extends React.Component<
 
   private initializeSelectedFontFace = async () => {
     const currentFontFace = await getPersistedFontFace()
-    this.setState({ selectedFontFace:currentFontFace })
+    this.setState({ selectedFontFace: currentFontFace })
   }
 
 
@@ -81,13 +97,13 @@ export class Font extends React.Component<
     this.props.onSelectedFontSizeChanged(parseFloat(event.currentTarget.value));
   }
 
-  public async render() {
+  public render() {
 
     return (
       <DialogContent>
         <Row>
            <label htmlFor="fontFaceChooser">Font Face</label><br></br>
-          <select defaultValue={(await getPersistedFontFace())} id="fontFaceChooser" onChange={this.onSelectedFontFaceChanged}>
+          <select defaultValue={this.props.selectedFontFace ?? "serif"} id="fontFaceChooser" onChange={this.onSelectedFontFaceChanged}>
         {
           this.state.availableFonts?.map((fontName, index) =>
           {
@@ -98,7 +114,7 @@ export class Font extends React.Component<
         </Row>
         <Row>
           <label htmlFor="font-size">Font Size</label><br></br>
-          <input type="number" defaultValue={(await getPersistedFontSize()).toString()} id="font-size"  name="font-size" min="6" max="48" onChange={this.onSelectedFontSizeChanged}></input>
+          <input type="number" defaultValue={this.props.selectedFontSize.toString()} id="fontSizeChooser" min="6" max="48" onChange={this.onSelectedFontSizeChanged}></input>
         </Row>
       </DialogContent>
     )
