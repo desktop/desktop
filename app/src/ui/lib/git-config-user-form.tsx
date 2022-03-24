@@ -10,6 +10,7 @@ const OtherEmailSelectValue = 'Other'
 interface IGitConfigUserFormProps {
   readonly name: string
   readonly email: string
+  readonly signingKey: string
 
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
@@ -18,6 +19,7 @@ interface IGitConfigUserFormProps {
 
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
+  readonly onSigningKeyChanged: (signingKey: string) => void
 }
 
 interface IGitConfigUserFormState {
@@ -101,6 +103,14 @@ export class GitConfigUserForm extends React.Component<
           accounts={this.accounts}
           email={this.props.email}
         />
+        <Row>
+          <TextBox
+            label="Signing key"
+            value={this.props.signingKey}
+            disabled={this.props.disabled}
+            onValueChanged={this.props.onSigningKeyChanged}
+          />
+        </Row>
       </div>
     )
   }

@@ -11,6 +11,7 @@ interface IGitProps {
   readonly name: string
   readonly email: string
   readonly defaultBranch: string
+  readonly signingKey: string
 
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
@@ -18,6 +19,7 @@ interface IGitProps {
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
   readonly onDefaultBranchChanged: (defaultBranch: string) => void
+  readonly onSigningKeyChanged: (signingKey: string) => void
 }
 
 interface IGitState {
@@ -72,10 +74,12 @@ export class Git extends React.Component<IGitProps, IGitState> {
       <GitConfigUserForm
         email={this.props.email}
         name={this.props.name}
+        signingKey={this.props.signingKey}
         enterpriseAccount={this.props.enterpriseAccount}
         dotComAccount={this.props.dotComAccount}
         onEmailChanged={this.props.onEmailChanged}
         onNameChanged={this.props.onNameChanged}
+        onSigningKeyChanged={this.props.onSigningKeyChanged}
       />
     )
   }

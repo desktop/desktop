@@ -56,11 +56,14 @@ interface IRepositorySettingsState {
   readonly gitConfigLocation: GitConfigLocation
   readonly committerName: string
   readonly committerEmail: string
+  readonly committerSigningKey: string
   readonly globalCommitterName: string
   readonly globalCommitterEmail: string
+  readonly globalCommitterSigningKey: string
   readonly initialGitConfigLocation: GitConfigLocation
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
+  readonly initialCommitterSigningKey: string | null
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
 }
@@ -84,11 +87,14 @@ export class RepositorySettings extends React.Component<
       gitConfigLocation: GitConfigLocation.Global,
       committerName: '',
       committerEmail: '',
+      committerSigningKey: '',
       globalCommitterName: '',
       globalCommitterEmail: '',
+      globalCommitterSigningKey: '',
       initialGitConfigLocation: GitConfigLocation.Global,
       initialCommitterName: null,
       initialCommitterEmail: null,
+      initialCommitterSigningKey: null,
     }
   }
 
@@ -114,10 +120,17 @@ export class RepositorySettings extends React.Component<
       'user.email',
       true
     )
+    const localCommitterSigningKey = await getConfigValue(
+      this.props.repository,
+      'user.signingkey',
+      true
+    )
 
     const globalCommitterName = (await getGlobalConfigValue('user.name')) || ''
     const globalCommitterEmail =
       (await getGlobalConfigValue('user.email')) || ''
+    const globalCommitterSigningKey =
+      (await getGlobalConfigValue('user.signingkey')) || ''
 
     const gitConfigLocation =
       localCommitterName === null && localCommitterEmail === null
@@ -126,21 +139,26 @@ export class RepositorySettings extends React.Component<
 
     let committerName = globalCommitterName
     let committerEmail = globalCommitterEmail
+    let committerSigningKey = globalCommitterSigningKey
 
     if (gitConfigLocation === GitConfigLocation.Local) {
       committerName = localCommitterName ?? ''
       committerEmail = localCommitterEmail ?? ''
+      committerSigningKey = localCommitterSigningKey ?? ''
     }
 
     this.setState({
       gitConfigLocation,
       committerName,
       committerEmail,
+      committerSigningKey,
       globalCommitterName,
       globalCommitterEmail,
+      globalCommitterSigningKey,
       initialGitConfigLocation: gitConfigLocation,
       initialCommitterName: localCommitterName,
       initialCommitterEmail: localCommitterEmail,
+      initialCommitterSigningKey: localCommitterSigningKey,
     })
   }
 
@@ -259,10 +277,13 @@ export class RepositorySettings extends React.Component<
             onGitConfigLocationChanged={this.onGitConfigLocationChanged}
             name={this.state.committerName}
             email={this.state.committerEmail}
+            signingKey={this.state.committerSigningKey}
             globalName={this.state.globalCommitterName}
             globalEmail={this.state.globalCommitterEmail}
+            globalSigningKey={this.state.globalCommitterSigningKey}
             onNameChanged={this.onCommitterNameChanged}
             onEmailChanged={this.onCommitterEmailChanged}
+            onSigningKeyChanged={this.onCommitterSigningKeyChanged}
           />
         )
       }
@@ -346,6 +367,7 @@ export class RepositorySettings extends React.Component<
       // user info in this repository.
       await removeConfigValue(this.props.repository, 'user.name')
       await removeConfigValue(this.props.repository, 'user.email')
+      await removeConfigValue(this.props.repository, 'user.signingkey')
 
       shouldRefreshAuthor = true
     } else if (this.state.gitConfigLocation === GitConfigLocation.Local) {
@@ -426,5 +448,9 @@ export class RepositorySettings extends React.Component<
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
+  }
+
+  private onCommitterSigningKeyChanged = (committerSigningKey: string) => {
+    this.setState({ committerSigningKey })
   }
 }

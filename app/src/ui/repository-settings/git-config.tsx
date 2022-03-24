@@ -12,12 +12,15 @@ interface IGitConfigProps {
   readonly gitConfigLocation: GitConfigLocation
   readonly name: string
   readonly email: string
+  readonly signingKey: string
   readonly globalName: string
   readonly globalEmail: string
+  readonly globalSigningKey: string
 
   readonly onGitConfigLocationChanged: (value: GitConfigLocation) => void
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
+  readonly onSigningKeyChanged: (signingKey: string) => void
 }
 
 export enum GitConfigLocation {
@@ -38,6 +41,11 @@ export class GitConfig extends React.Component<IGitConfigProps> {
     const enterpriseAccount = isDotComAccount ? null : this.props.account
     const dotComAccount = isDotComAccount ? this.props.account : null
 
+    const isGlobalConfig =
+      this.props.gitConfigLocation === GitConfigLocation.Global
+    const isLocalConfig =
+      this.props.gitConfigLocation === GitConfigLocation.Local
+
     return (
       <DialogContent>
         <div className="advanced-section">
@@ -46,38 +54,32 @@ export class GitConfig extends React.Component<IGitConfigProps> {
             <div>
               <RadioButton
                 label="Use my global Git config"
-                checked={
-                  this.props.gitConfigLocation === GitConfigLocation.Global
-                }
+                checked={isGlobalConfig}
                 value={GitConfigLocation.Global}
                 onSelected={this.onGitConfigLocationChanged}
               />
               <RadioButton
                 label="Use a local Git config"
-                checked={
-                  this.props.gitConfigLocation === GitConfigLocation.Local
-                }
+                checked={isLocalConfig}
                 value={GitConfigLocation.Local}
                 onSelected={this.onGitConfigLocationChanged}
               />
             </div>
           </Row>
           <GitConfigUserForm
-            email={
-              this.props.gitConfigLocation === GitConfigLocation.Global
-                ? this.props.globalEmail
-                : this.props.email
-            }
-            name={
-              this.props.gitConfigLocation === GitConfigLocation.Global
-                ? this.props.globalName
-                : this.props.name
+            email={isGlobalConfig ? this.props.globalEmail : this.props.email}
+            name={isGlobalConfig ? this.props.globalName : this.props.name}
+            signingKey={
+              isGlobalConfig
+                ? this.props.globalSigningKey
+                : this.props.signingKey
             }
             enterpriseAccount={enterpriseAccount}
             dotComAccount={dotComAccount}
-            disabled={this.props.gitConfigLocation === GitConfigLocation.Global}
+            disabled={isGlobalConfig}
             onEmailChanged={this.props.onEmailChanged}
             onNameChanged={this.props.onNameChanged}
+            onSigningKeyChanged={this.props.onSigningKeyChanged}
           />
         </div>
       </DialogContent>

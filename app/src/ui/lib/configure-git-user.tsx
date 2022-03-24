@@ -36,6 +36,7 @@ interface IConfigureGitUserProps {
 interface IConfigureGitUserState {
   readonly globalUserName: string | null
   readonly globalUserEmail: string | null
+  readonly globalSigningKey: string | null
 
   readonly manualName: string
   readonly manualEmail: string
@@ -66,6 +67,8 @@ export class ConfigureGitUser extends React.Component<
 > {
   private readonly globalUsernamePromise = getGlobalConfigValue('user.name')
   private readonly globalEmailPromise = getGlobalConfigValue('user.email')
+  private readonly globalSigningKeyPromise =
+    getGlobalConfigValue('user.signingkey')
   private loadInitialDataPromise: Promise<void> | null = null
 
   public constructor(props: IConfigureGitUserProps) {
@@ -76,6 +79,7 @@ export class ConfigureGitUser extends React.Component<
     this.state = {
       globalUserName: null,
       globalUserEmail: null,
+      globalSigningKey: null,
       manualName: '',
       manualEmail: '',
       useGitHubAuthorInfo: this.account !== null,
@@ -96,15 +100,18 @@ export class ConfigureGitUser extends React.Component<
     // was at mount-time.
     const accounts = this.props.accounts
 
-    const [globalUserName, globalUserEmail] = await Promise.all([
-      this.globalUsernamePromise,
-      this.globalEmailPromise,
-    ])
+    const [globalUserName, globalUserEmail, globalSigningKey] =
+      await Promise.all([
+        this.globalUsernamePromise,
+        this.globalEmailPromise,
+        this.globalSigningKeyPromise,
+      ])
 
     this.setState(
       prevState => ({
         globalUserName,
         globalUserEmail,
+        globalSigningKey,
         manualName:
           prevState.manualName.length === 0
             ? globalUserName || ''

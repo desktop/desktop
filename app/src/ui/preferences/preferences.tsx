@@ -67,6 +67,7 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
+  readonly committerSigningKey: string
   readonly defaultBranch: string
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
@@ -107,6 +108,7 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      committerSigningKey: '',
       defaultBranch: '',
       initialCommitterName: null,
       initialCommitterEmail: null,
@@ -300,12 +302,14 @@ export class Preferences extends React.Component<
             <Git
               name={this.state.committerName}
               email={this.state.committerEmail}
+              signingKey={this.state.committerSigningKey}
               defaultBranch={this.state.defaultBranch}
               dotComAccount={this.props.dotComAccount}
               enterpriseAccount={this.props.enterpriseAccount}
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
+              onSigningKeyChanged={this.onCommitterSigningKeyChanged}
             />
           </>
         )
@@ -433,6 +437,10 @@ export class Preferences extends React.Component<
 
   private onDefaultBranchChanged = (defaultBranch: string) => {
     this.setState({ defaultBranch })
+  }
+
+  private onCommitterSigningKeyChanged = (committerSigningKey: string) => {
+    this.setState({ committerSigningKey })
   }
 
   private onSelectedEditorChanged = (editor: string) => {
