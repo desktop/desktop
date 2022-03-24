@@ -153,6 +153,8 @@ export class NotificationsStore {
     }\n${truncateWithEllipsis(review.body, 50)}`
 
     showNotification(title, body, () => {
+      this.statsStore.recordPullRequestReviewNotificationClicked(review.state)
+
       this.onPullRequestReviewSubmitCallback?.(
         repository,
         pullRequest,
@@ -160,6 +162,8 @@ export class NotificationsStore {
         event.number_of_comments
       )
     })
+
+    this.statsStore.recordPullRequestReviewNotificationShown(review.state)
   }
 
   private async handleChecksFailedEvent(event: IDesktopChecksFailedAliveEvent) {
