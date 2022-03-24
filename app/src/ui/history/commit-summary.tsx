@@ -159,8 +159,8 @@ export class CommitSummary extends React.Component<
 
   private onResized = () => {
     if (this.descriptionRef) {
-      const descriptionBottom = this.descriptionRef.getBoundingClientRect()
-        .bottom
+      const descriptionBottom =
+        this.descriptionRef.getBoundingClientRect().bottom
       this.props.onDescriptionBottomChanged(descriptionBottom)
     }
 

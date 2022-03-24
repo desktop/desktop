@@ -75,7 +75,8 @@ function updateCurrentMergeEntry(
 
 // The first line for each entry is what I'm referring to as the the header
 // This regex filters on the known entries that can appear
-const contextHeaderRe = /^(merged|added in remote|removed in remote|changed in both|removed in local|added in both)$/
+const contextHeaderRe =
+  /^(merged|added in remote|removed in remote|changed in both|removed in local|added in both)$/
 
 // the rest of the header is made up of a number of entries formatted like this
 //
@@ -83,7 +84,8 @@ const contextHeaderRe = /^(merged|added in remote|removed in remote|changed in b
 //
 // this regex let's us extract the blob details - the filename may also change
 // as part of the merge if files are moved or renamed
-const blobEntryRe = /^\s{2}(result|our|their|base)\s+(\d{6})\s([0-9a-f]{40})\s(.+)$/
+const blobEntryRe =
+  /^\s{2}(result|our|their|base)\s+(\d{6})\s([0-9a-f]{40})\s(.+)$/
 
 /**
  * Parse the Git output of a merge-tree command to identify whether it

@@ -20,6 +20,7 @@ import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import { encodePathAsUrl } from '../../lib/path'
+import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
@@ -169,9 +170,15 @@ export class RepositoriesList extends React.Component<
     const label = this.getGroupLabel(identifier)
 
     return (
-      <div key={identifier} className="filter-list-group-header">
+      <TooltippedContent
+        key={identifier}
+        className="filter-list-group-header"
+        tooltip={label}
+        onlyWhenOverflowed={true}
+        tagName="div"
+      >
         {label}
-      </div>
+      </TooltippedContent>
     )
   }
 

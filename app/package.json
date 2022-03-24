@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "2.9.12-beta1",
+  "version": "2.9.12",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -40,8 +40,6 @@
     "marked": "^4.0.10",
     "mem": "^4.3.0",
     "memoize-one": "^4.0.3",
-    "moment": "^2.24.0",
-    "moment-duration-format": "^2.3.2",
     "mri": "^1.1.0",
     "p-limit": "^2.2.0",
     "primer-support": "^4.0.0",
@@ -63,13 +61,12 @@
     "username": "^5.1.0",
     "uuid": "^3.0.1",
     "wicg-focus-ring": "^1.0.1",
-    "winston": "^3.6.0",
-    "winston-daily-rotate-file": "^4.6.1"
+    "winston": "^3.6.0"
   },
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron-debug": "^3.1.0",
-    "electron-devtools-installer": "^3.1.1",
+    "electron-devtools-installer": "^3.2.0",
     "temp": "^0.8.3",
     "webpack-hot-middleware": "^2.10.0"
   }

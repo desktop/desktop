@@ -42,9 +42,7 @@ export interface IMultiCommitOperationProps {
 }
 
 /** A base component for the shared logic of multi commit operations. */
-export abstract class BaseMultiCommitOperation extends React.Component<
-  IMultiCommitOperationProps
-> {
+export abstract class BaseMultiCommitOperation extends React.Component<IMultiCommitOperationProps> {
   protected abstract onBeginOperation: () => void
   protected abstract onChooseBranch: (targetBranch: Branch) => void
   protected abstract onContinueAfterConflicts: () => Promise<void>

@@ -78,11 +78,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow using the save dialog when choosing where to clone a repo */
-export function enableSaveDialogOnCloneRepository(): boolean {
-  return true
-}
-
 /** Should we allow setting repository aliases? */
 export function enableRepositoryAliases(): boolean {
   return true
@@ -166,4 +161,9 @@ export function enablePullRequestQuickView(): boolean {
 /** Should we enable high-signal notifications? */
 export function enableHighSignalNotifications(): boolean {
   return true
+}
+
+/** Should we enable PR review notifications? */
+export function enablePullRequestReviewNotifications(): boolean {
+  return enableDevelopmentFeatures()
 }
