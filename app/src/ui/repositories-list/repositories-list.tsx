@@ -169,7 +169,7 @@ export class RepositoriesList extends React.Component<
     const label = this.getGroupLabel(identifier)
 
     return (
-      <div key={identifier} className="filter-list-group-header">
+      <div key={identifier} className="filter-list-group-header" title={label}>
         {label}
       </div>
     )
