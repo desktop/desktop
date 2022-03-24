@@ -227,6 +227,25 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     return null
   }
 
+  private renderBetaLink() {
+    if (__RELEASE_CHANNEL__ === 'beta') {
+      return
+    }
+
+    return (
+      <div className="beta-suggestion">
+        <p className="no-padding">Looking for the latest features?</p>
+        <p className="no-padding">
+          Check out the{' '}
+          <LinkButton uri="https://desktop.github.com/beta">
+            Beta Channel
+          </LinkButton>
+          .
+        </p>
+      </div>
+    )
+  }
+
   public render() {
     const name = this.props.applicationName
     const version = this.props.applicationVersion
@@ -271,6 +290,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
+          {this.renderBetaLink()}
         </DialogContent>
         <DefaultDialogFooter />
       </Dialog>
