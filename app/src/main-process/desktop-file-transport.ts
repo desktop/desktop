@@ -27,7 +27,7 @@ const error = (operation: string) => (error: any) => {
 /**
  * A re-implementation of the winston-daily-rotate-file module
  *
- * winston-daily-rotate-file depends on moment.js which we're trying to unship
+ * winston-daily-rotate-file depends on moment.js which we've unshipped
  * so we're using this instead.
  *
  * Please note that this is in no way a general purpose transport like
