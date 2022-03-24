@@ -426,6 +426,7 @@ export function buildDefaultMenu({
     {
       label: __DARWIN__ ? 'View Branch on GitHub' : 'View branch on GitHub',
       id: 'branch-on-github',
+      accelerator: 'CmdOrCtrl+Alt+B',
       click: emit('branch-on-github'),
     },
     {
