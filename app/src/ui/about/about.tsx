@@ -233,7 +233,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
 
     return (
-      <div className="beta-suggestion">
+      <div>
         <p className="no-padding">Looking for the latest features?</p>
         <p className="no-padding">
           Check out the{' '}
