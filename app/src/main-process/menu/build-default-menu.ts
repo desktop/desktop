@@ -424,6 +424,11 @@ export function buildDefaultMenu({
       click: emit('compare-on-github'),
     },
     {
+      label: __DARWIN__ ? 'View Branch on GitHub' : 'View branch on GitHub',
+      id: 'branch-on-github',
+      click: emit('branch-on-github'),
+    },
+    {
       label: pullRequestLabel,
       id: 'create-pull-request',
       accelerator: 'CmdOrCtrl+R',

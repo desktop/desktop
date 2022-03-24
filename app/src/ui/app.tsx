@@ -388,6 +388,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
         return this.compareBranchOnDotcom()
+      case 'branch-on-github':
+        return this.showBranchOnGitHub()
       case 'create-issue-in-repository-on-github':
         return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
@@ -610,6 +612,29 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
     this.props.dispatcher.openInBrowser(compareURL)
+  }
+
+  private showBranchOnGitHub() {
+    const htmlURL = this.getCurrentRepositoryGitHubURL()
+    if (!htmlURL) {
+      return
+    }
+
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    const branchTip = state.state.branchesState.tip
+    if (
+      branchTip.kind !== TipState.Valid ||
+      !branchTip.branch.upstreamWithoutRemote
+    ) {
+      return
+    }
+
+    const branchOnGitHub = `${htmlURL}/tree/${branchTip.branch.upstreamWithoutRemote}`
+    this.props.dispatcher.openInBrowser(branchOnGitHub)
   }
 
   private openCurrentRepositoryWorkingDirectory() {
