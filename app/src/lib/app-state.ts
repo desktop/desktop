@@ -57,15 +57,15 @@ export enum SelectionType {
 
 export type PossibleSelections =
   | {
-      type: SelectionType.Repository
-      repository: Repository
-      state: IRepositoryState
-    }
+    type: SelectionType.Repository
+    repository: Repository
+    state: IRepositoryState
+  }
   | {
-      type: SelectionType.CloningRepository
-      repository: CloningRepository
-      progress: ICloneProgress
-    }
+    type: SelectionType.CloningRepository
+    repository: CloningRepository
+    progress: ICloneProgress
+  }
   | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
@@ -240,6 +240,11 @@ export interface IAppState {
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
 
+  /** The selected font face preference */
+  readonly selectedFontFace: string | null
+
+  /** The selected font size preference */
+  readonly selectedFontSize: number
   /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
 

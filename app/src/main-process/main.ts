@@ -409,7 +409,7 @@ app.on('ready', () => {
     const menuItem = currentMenu.getMenuItemById(id)
     if (menuItem) {
       const window = BrowserWindow.fromWebContents(event.sender) || undefined
-      const fakeEvent = { preventDefault: () => {}, sender: event.sender }
+      const fakeEvent = { preventDefault: () => { }, sender: event.sender }
       menuItem.click(fakeEvent, window, event.sender)
     }
   })
@@ -643,6 +643,14 @@ app.on('ready', () => {
     mainWindow?.focus()
   })
 
+  ipcMain.on('set-font-face', (_, fontFace) => {
+    mainWindow?.setFontFace(fontFace);
+  })
+
+  ipcMain.on('set-font-size', (_, fontSize) => {
+    mainWindow?.setFontSize(fontSize);
+  })
+
   ipcMain.on('set-native-theme-source', (_, themeName) => {
     nativeTheme.themeSource = themeName
   })
@@ -715,7 +723,7 @@ function createWindow() {
         installExtension(extension, {
           loadExtensionOptions: { allowFileAccess: true },
         })
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 

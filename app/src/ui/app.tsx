@@ -1383,6 +1383,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
+            selectedFontFace={this.state.selectedFontFace}
+            selectedFontSize={this.state.selectedFontSize}
             customTheme={this.state.customTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
           />

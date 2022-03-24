@@ -78,6 +78,7 @@
     "express": "^4.15.0",
     "fake-indexeddb": "^2.0.4",
     "file-loader": "^2.0.0",
+    "font-list": "^1.4.5",
     "front-matter": "^2.3.0",
     "fs-extra": "^9.0.1",
     "glob": "^7.1.2",

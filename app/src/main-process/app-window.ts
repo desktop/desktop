@@ -35,6 +35,10 @@ export class AppWindow {
   // See https://github.com/desktop/desktop/pull/11162
   private shouldMaximizeOnShow = false
 
+  private lastCssFontFaceKey: string = ""
+
+  private lastCssFontSizeKey: string = ""
+
   public constructor() {
     const savedWindowState = windowStateKeeper({
       defaultWidth: this.minWidth,
@@ -242,6 +246,22 @@ export class AppWindow {
     this.window.webContents.selectAll()
   }
 
+  public async setFontFace(fontFace: string) {
+    const css = `body,code, .CodeMirror ,.CodeMirror-code,pre { font-family: ${fontFace}  !important;}`
+    if (this.lastCssFontFaceKey !== "") {
+      this.window.webContents.removeInsertedCSS(this.lastCssFontFaceKey);
+    }
+    this.lastCssFontFaceKey = await this.window.webContents.insertCSS(css)
+  }
+
+  public async setFontSize(fontSize: number) {
+    const css = `body,code,.CodeMirror ,.CodeMirror-code,pre { font-size: ${fontSize};}`
+    if (this.lastCssFontSizeKey !== "") {
+      this.window.webContents.removeInsertedCSS(this.lastCssFontSizeKey);
+    }
+    this.lastCssFontSizeKey = await this.window.webContents.insertCSS(css)
+  }
+
   /** Show the window. */
   public show() {
     this.window.show()
@@ -306,7 +326,7 @@ export class AppWindow {
     d.showCertificateTrustDialog(
       this.window,
       { certificate, message },
-      () => {}
+      () => { }
     )
   }
 

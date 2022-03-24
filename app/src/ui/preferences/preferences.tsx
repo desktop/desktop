@@ -40,6 +40,7 @@ import {
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
+import { Font } from './font'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -59,6 +60,8 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly selectedFontFace: string | null
+  readonly selectedFontSize : number
   readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
 }
@@ -213,6 +216,7 @@ export class Preferences extends React.Component<
               <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
               Appearance
             </span>
+
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.question} />
               Prompts
@@ -220,6 +224,10 @@ export class Preferences extends React.Component<
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.settings} />
               Advanced
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
+              Fonts
             </span>
           </TabBar>
 
@@ -318,6 +326,16 @@ export class Preferences extends React.Component<
             customTheme={this.props.customTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
             onCustomThemeChanged={this.onCustomThemeChanged}
+          />
+        )
+        break
+       case PreferencesTab.Font:
+        View = (
+          <Font
+            selectedFontFace={this.props.selectedFontFace}
+            selectedFontSize={this.props.selectedFontSize}
+            onSelectedFontFaceChanged={this.onSelectedFontFaceChanged}
+            onSelectedFontSizeChanged={this.onSelectedFontSizeChanged}
           />
         )
         break
@@ -443,6 +461,14 @@ export class Preferences extends React.Component<
     this.setState({ selectedShell: shell })
   }
 
+  private onSelectedFontFaceChanged = (fontFace: string) => {
+    this.props.dispatcher.setSelectedFontFace(fontFace);
+  }
+
+  private onSelectedFontSizeChanged = (fontSize: number) => {
+    this.props.dispatcher.setSelectedFontSize(fontSize);
+  }
+
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
   }
@@ -462,6 +488,7 @@ export class Preferences extends React.Component<
       case PreferencesTab.Integrations:
       case PreferencesTab.Advanced:
       case PreferencesTab.Prompts:
+      case PreferencesTab.Font:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>

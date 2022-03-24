@@ -6,6 +6,8 @@ import { getBoolean } from '../../lib/local-storage'
 import {
   setNativeThemeSource,
   shouldUseDarkColors,
+  setFontFaceSource,
+  setFontSizeSource
 } from '../main-process-proxy'
 import { ThemeSource } from './theme-source'
 
@@ -83,6 +85,13 @@ function migrateAutomaticallySwitchSetting(): string | null {
 // in localStorage.
 const applicationThemeKey = 'theme'
 
+// The key under which the currently font face is persisted
+// in localStorage.
+const applicationFontFaceKey = 'fontFace'
+
+// The key under which the currently font size is persisted
+// in localStorage.
+const applicationFontSizeKey = 'fontSize'
 /**
  * Returns User's theme preference or 'system' if not set or parsable
  */
@@ -127,6 +136,48 @@ export function setPersistedTheme(theme: ApplicationTheme): void {
   const themeName = getThemeName(theme)
   localStorage.setItem(applicationThemeKey, theme)
   setNativeThemeSource(themeName)
+}
+
+/**
+ * Stores the given font face in the persistent store.
+ */
+export function setPersistedFontFace(fontFace: string): void {
+  localStorage.setItem(applicationFontFaceKey, fontFace)
+  setFontFaceSource(fontFace)
+}
+
+/**
+ * Load the name of the currently selected font face
+ */
+export async function getPersistedFontFace(): Promise<string> {
+  const fontFace = localStorage.getItem(applicationFontFaceKey);
+  if (fontFace != null) {
+    return fontFace;
+  }
+  else {
+    return "serif";
+  }
+}
+
+/**
+ * Stores the given font size in the persistent store.
+ */
+export function setPersistedFontSize(fontSize: number): void {
+  localStorage.setItem(applicationFontSizeKey, fontSize.toString())
+  setFontSizeSource(fontSize)
+}
+
+/**
+ * Load the name of the currently selected font face
+ */
+export async function getPersistedFontSize(): Promise<number> {
+  const fontSize = localStorage.getItem(applicationFontSizeKey);
+  if (fontSize != null) {
+    return parseFloat(fontSize);
+  }
+  else {
+    return 14;
+  }
 }
 
 /**

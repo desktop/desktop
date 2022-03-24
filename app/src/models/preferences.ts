@@ -5,4 +5,5 @@ export enum PreferencesTab {
   Appearance = 3,
   Prompts = 4,
   Advanced = 5,
+  Font = 6
 }

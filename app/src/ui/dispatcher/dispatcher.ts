@@ -143,7 +143,7 @@ export class Dispatcher {
     private readonly repositoryStateManager: RepositoryStateCache,
     private readonly statsStore: StatsStore,
     private readonly commitStatusStore: CommitStatusStore
-  ) {}
+  ) { }
 
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
@@ -1126,7 +1126,7 @@ export class Dispatcher {
     if (
       multiCommitOperationState == null ||
       multiCommitOperationState.operationDetail.kind !==
-        MultiCommitOperationKind.Rebase
+      MultiCommitOperationKind.Rebase
     ) {
       return
     }
@@ -1821,8 +1821,7 @@ export class Dispatcher {
       default:
         const unknownAction: IUnknownAction = action
         log.warn(
-          `Unknown URL action: ${
-            unknownAction.name
+          `Unknown URL action: ${unknownAction.name
           } - payload: ${JSON.stringify(unknownAction)}`
         )
     }
@@ -2354,6 +2353,20 @@ export class Dispatcher {
    */
   public recordCompareInitiatedMerge() {
     return this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  /**
+   * Set the application-wide font-face
+   */
+  public setSelectedFontFace(fontFace: string) {
+    return this.appStore._setSelectedFontFace(fontFace);
+  }
+
+  /**
+   * Set the custom application-wide theme
+   */
+  public setSelectedFontSize(fontSize: number) {
+    return this.appStore._setSelectedFontSize(fontSize);
   }
 
   /**
@@ -3037,7 +3050,7 @@ export class Dispatcher {
       !isCherryPickConflictState(conflictState) ||
       multiCommitOperationState == null ||
       multiCommitOperationState.operationDetail.kind !==
-        MultiCommitOperationKind.CherryPick
+      MultiCommitOperationKind.CherryPick
     ) {
       log.error(
         '[cherryPick] - conflict state was null or not in a cherry-pick conflict state - unable to continue'
@@ -3184,9 +3197,9 @@ export class Dispatcher {
       : null
     const upstreamDefaultBranch = isGHRepo
       ? findDefaultUpstreamBranch(
-          repository as RepositoryWithGitHubRepository,
-          allBranches
-        )
+        repository as RepositoryWithGitHubRepository,
+        allBranches
+      )
       : null
 
     this.initializeMultiCommitOperation(
@@ -3755,7 +3768,7 @@ export class Dispatcher {
         if (
           multiCommitOperationState !== null &&
           multiCommitOperationState.operationDetail.kind ===
-            MultiCommitOperationKind.CherryPick
+          MultiCommitOperationKind.CherryPick
         ) {
           // TODO: expanded to other types - not functionally necessary; makes
           // progress dialog more accurate; likely only regular rebase has the

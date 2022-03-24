@@ -70,6 +70,8 @@ import {
   getPersistedThemeName,
   ICustomTheme,
   setPersistedTheme,
+  setPersistedFontFace,
+  setPersistedFontSize
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
@@ -462,6 +464,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
+  private selectedFontFace = null;
+  private selectedFontSize = 0;
   private customTheme?: ICustomTheme
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
@@ -893,6 +897,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
+      selectedFontFace: this.selectedFontFace,
+      selectedFontSize: this.selectedFontSize,
       customTheme: this.customTheme,
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
@@ -1154,8 +1160,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // and it also exists in the repository
     const defaultBranch =
       currentBranch != null &&
-      cachedDefaultBranch != null &&
-      currentBranch.name !== cachedDefaultBranch.name
+        cachedDefaultBranch != null &&
+        currentBranch.name !== cachedDefaultBranch.name
         ? cachedDefaultBranch
         : null
 
@@ -2329,7 +2335,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (
         multiCommitOperationState !== null &&
         multiCommitOperationState.operationDetail.kind ===
-          MultiCommitOperationKind.CherryPick &&
+        MultiCommitOperationKind.CherryPick &&
         multiCommitOperationState.operationDetail.sourceBranch !== null
       ) {
         theirBranch =
@@ -2365,7 +2371,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       multiCommitOperationState !== null &&
       multiCommitOperationState.operationDetail.kind ===
-        MultiCommitOperationKind.Merge &&
+      MultiCommitOperationKind.Merge &&
       multiCommitOperationState.operationDetail.sourceBranch !== null
     ) {
       theirBranch = multiCommitOperationState.operationDetail.sourceBranch.name
@@ -2626,7 +2632,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const currentFiles =
         stashEntry !== null &&
-        stashEntry.files.kind === StashedChangesLoadStates.Loaded
+          stashEntry.files.kind === StashedChangesLoadStates.Loaded
           ? stashEntry.files.files
           : []
 
@@ -2721,7 +2727,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       changesStateAfterLoad.selection.kind !== ChangesSelectionKind.Stash ||
       changesStateAfterLoad.selection.selectedStashedFile !==
-        selectionBeforeLoad.selectedStashedFile
+      selectionBeforeLoad.selectedStashedFile
     ) {
       return
     }
@@ -5484,11 +5490,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return `The following paths aren't Git repositories:\n\n${invalidPaths
       .slice(0, MaxInvalidFoldersToDisplay)
       .map(path => `- ${path}`)
-      .join('\n')}${
-      invalidPaths.length > MaxInvalidFoldersToDisplay
+      .join('\n')}${invalidPaths.length > MaxInvalidFoldersToDisplay
         ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
         : ''
-    }`
+      }`
   }
 
   private async withAuthenticatingUser<T>(
@@ -5920,8 +5925,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitError(
         new Error(
           `Couldn't find branch '${headRefName}' in remote '${remote.name}'. ` +
-            `A common reason for this is that the PR author has deleted their ` +
-            `branch or their forked repository.`
+          `A common reason for this is that the PR author has deleted their ` +
+          `branch or their forked repository.`
         )
       )
       return
@@ -5981,6 +5986,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (theme === ApplicationTheme.HighContrast) {
       this.currentTheme = theme
     }
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide font size
+   */
+  public _setSelectedFontFace(fontFace: string) {
+    setPersistedFontFace(fontFace)
+
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide font size
+   */
+  public _setSelectedFontSize(fontSize: number) {
+    setPersistedFontSize(fontSize)
+
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6069,7 +6097,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changesState.conflictState === null ||
       multiCommitOperationState === null ||
       multiCommitOperationState.step.kind !==
-        MultiCommitOperationStepKind.ShowConflicts
+      MultiCommitOperationStepKind.ShowConflicts
     ) {
       return
     }
