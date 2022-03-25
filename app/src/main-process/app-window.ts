@@ -249,7 +249,7 @@ export class AppWindow {
   public async setFontFace(fontFace: string) {
     const fontFaceNextRuleIndex = fontFace.indexOf(";") > 0 ? fontFace.indexOf(";") : undefined;
     const singleRuleFontFace = fontFace.substring(0, fontFaceNextRuleIndex);
-    const css = `body,code, .CodeMirror ,.CodeMirror-code,pre { font-family: ${singleRuleFontFace}  !important;}`
+    const css = `body,code, .CodeMirror ,.CodeMirror-code,.commit-summary-description,pre { font-family: ${singleRuleFontFace}  !important;}`
     if (this.lastCssFontFaceKey !== "") {
       this.window.webContents.removeInsertedCSS(this.lastCssFontFaceKey);
     }
@@ -258,7 +258,7 @@ export class AppWindow {
 
   public async setFontSize(fontSize: number) {
     const safeFontSize = fontSize >= 14 ? fontSize : 14;
-    const css = `body,code,.CodeMirror , .CodeMirror-code, pre { font-size: ${safeFontSize}px !important;}`
+    const css = `body,code,.CodeMirror , .CodeMirror-code, .commit-summary-description, pre { font-size: ${safeFontSize}px !important;}`
     if (this.lastCssFontSizeKey !== "") {
       this.window.webContents.removeInsertedCSS(this.lastCssFontSizeKey);
     }
