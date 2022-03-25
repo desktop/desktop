@@ -46,9 +46,9 @@ export class Font extends React.Component<
       const fontFaceElem = document.getElementById("fontFaceChooser");
       if (fontFaceElem)
       {
-        this.props.onSelectedFontFaceChanged(this.state.selectedFontFace ?? "serif")
+        this.props.onSelectedFontFaceChanged(this.state.selectedFontFace ?? '"Helvetica Neue", Helvetica, Arial, sans-seri')
         const faceChooser : HTMLSelectElement = fontFaceElem as HTMLSelectElement
-        faceChooser.value = this.state.selectedFontFace ?? "serif";
+        faceChooser.value = this.state.selectedFontFace ?? '"Helvetica Neue", Helvetica, Arial, sans-seri';
       }
 
       const fontSizeElem = document.getElementById("fontSizeChooser");
@@ -103,7 +103,7 @@ export class Font extends React.Component<
       <DialogContent>
         <Row>
            <label htmlFor="fontFaceChooser">Font Face</label><br></br>
-          <select defaultValue={this.props.selectedFontFace ?? "serif"} id="fontFaceChooser" onChange={this.onSelectedFontFaceChanged}>
+          <select defaultValue={this.props.selectedFontFace ?? '"Helvetica Neue", Helvetica, Arial, sans-seri'} id="fontFaceChooser" onChange={this.onSelectedFontFaceChanged}>
         {
           this.state.availableFonts?.map((fontName, index) =>
           {

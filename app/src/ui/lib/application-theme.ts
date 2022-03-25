@@ -155,7 +155,7 @@ export async function getPersistedFontFace(): Promise<string> {
     return fontFace;
   }
   else {
-    return "serif";
+    return '"Helvetica Neue", Helvetica, Arial, sans-seri';
   }
 }
 
