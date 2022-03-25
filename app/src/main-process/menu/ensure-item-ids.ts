@@ -35,9 +35,8 @@ export function ensureItemIds(
     seenIds.add(id)
 
     if (item.submenu) {
-      const subMenuTemplate = item.submenu as ReadonlyArray<
-        Electron.MenuItemConstructorOptions
-      >
+      const subMenuTemplate =
+        item.submenu as ReadonlyArray<Electron.MenuItemConstructorOptions>
       ensureItemIds(subMenuTemplate, item.id, seenIds)
     }
   }

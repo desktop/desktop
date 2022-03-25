@@ -65,10 +65,8 @@ async function handleSSHKeyPassphrase(
     return storedPassphrase
   }
 
-  const {
-    passphrase,
-    storePassphrase,
-  } = await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
+  const { passphrase, storePassphrase } =
+    await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
 
   // If the user wanted us to remember the passphrase, we'll keep it around to
   // store it later if the git operation succeeds.
@@ -86,38 +84,39 @@ async function handleSSHKeyPassphrase(
   return passphrase ?? ''
 }
 
-export const askpassTrampolineHandler: TrampolineCommandHandler = async command => {
-  if (command.parameters.length !== 1) {
-    return undefined
-  }
-
-  const firstParameter = command.parameters[0]
-
-  if (firstParameter.startsWith('The authenticity of host ')) {
-    return handleSSHHostAuthenticity(firstParameter)
-  }
-
-  if (firstParameter.startsWith('Enter passphrase for key ')) {
-    return handleSSHKeyPassphrase(command.trampolineToken, firstParameter)
-  }
-
-  const username = command.environmentVariables.get('DESKTOP_USERNAME')
-  if (username === undefined || username.length === 0) {
-    return undefined
-  }
-
-  if (firstParameter.startsWith('Username')) {
-    return username
-  } else if (firstParameter.startsWith('Password')) {
-    const endpoint = command.environmentVariables.get('DESKTOP_ENDPOINT')
-    if (endpoint === undefined || endpoint.length === 0) {
+export const askpassTrampolineHandler: TrampolineCommandHandler =
+  async command => {
+    if (command.parameters.length !== 1) {
       return undefined
     }
 
-    const key = getKeyForEndpoint(endpoint)
-    const token = await TokenStore.getItem(key, username)
-    return token ?? undefined
-  }
+    const firstParameter = command.parameters[0]
 
-  return undefined
-}
+    if (firstParameter.startsWith('The authenticity of host ')) {
+      return handleSSHHostAuthenticity(firstParameter)
+    }
+
+    if (firstParameter.startsWith('Enter passphrase for key ')) {
+      return handleSSHKeyPassphrase(command.trampolineToken, firstParameter)
+    }
+
+    const username = command.environmentVariables.get('DESKTOP_USERNAME')
+    if (username === undefined || username.length === 0) {
+      return undefined
+    }
+
+    if (firstParameter.startsWith('Username')) {
+      return username
+    } else if (firstParameter.startsWith('Password')) {
+      const endpoint = command.environmentVariables.get('DESKTOP_ENDPOINT')
+      if (endpoint === undefined || endpoint.length === 0) {
+        return undefined
+      }
+
+      const key = getKeyForEndpoint(endpoint)
+      const token = await TokenStore.getItem(key, username)
+      return token ?? undefined
+    }
+
+    return undefined
+  }

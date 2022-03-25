@@ -4,6 +4,9 @@ import { EmojiFilter } from './emoji-filter'
 import { IssueLinkFilter } from './issue-link-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
 import { MentionFilter } from './mention-filter'
+import { VideoLinkFilter } from './video-link-filter'
+import { VideoTagFilter } from './video-tag-filter'
+import { TeamMentionFilter } from './team-mention-filter'
 
 export interface INodeFilter {
   /**
@@ -43,7 +46,16 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
     new IssueMentionFilter(repository),
     new IssueLinkFilter(repository),
     new EmojiFilter(emoji),
+    // Note: TeamMentionFilter was placed before MentionFilter as they search
+    // for similar patterns with TeamMentionFilter having a larger application.
+    // @org/something vs @username. Thus, even tho the MentionFilter regex is
+    // meant to prevent this, in case a username could be encapsulated in the
+    // team mention like @username/something, we do the team mentions first to
+    // eliminate the possibility.
+    new TeamMentionFilter(repository),
     new MentionFilter(repository),
+    new VideoTagFilter(),
+    new VideoLinkFilter(),
   ]
 )
 

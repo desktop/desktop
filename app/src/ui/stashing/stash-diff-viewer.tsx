@@ -54,9 +54,7 @@ interface IStashDiffViewerProps {
  *
  * _(Like viewing a selected commit in history but for a stash)_
  */
-export class StashDiffViewer extends React.PureComponent<
-  IStashDiffViewerProps
-> {
+export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> {
   private onSelectedFileChanged = (file: CommittedFileChange) =>
     this.props.dispatcher.selectStashedFile(this.props.repository, file)
 

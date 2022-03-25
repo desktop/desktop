@@ -15,7 +15,8 @@ function formatErrors(errors: ErrorObject[]): string {
     .map(error => {
       const { dataPath, message } = error
       const additionalProperties = error.params as any
-      const additionalProperty = additionalProperties.additionalProperty as string
+      const additionalProperty =
+        additionalProperties.additionalProperty as string
 
       let additionalPropertyText = ''
 

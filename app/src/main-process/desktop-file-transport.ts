@@ -4,8 +4,8 @@ import { MESSAGE } from 'triple-beam'
 import TransportStream, { TransportStreamOptions } from 'winston-transport'
 import { EOL } from 'os'
 import { readdir, unlink } from 'fs/promises'
-import { escapeRegExp } from '../lib/helpers/regex'
 import { promisify } from 'util'
+import { escapeRegExp } from 'lodash'
 
 type DesktopFileTransportOptions = TransportStreamOptions & {
   readonly logDirectory: string
@@ -27,7 +27,7 @@ const error = (operation: string) => (error: any) => {
 /**
  * A re-implementation of the winston-daily-rotate-file module
  *
- * winston-daily-rotate-file depends on moment.js which we're trying to unship
+ * winston-daily-rotate-file depends on moment.js which we've unshipped
  * so we're using this instead.
  *
  * Please note that this is in no way a general purpose transport like

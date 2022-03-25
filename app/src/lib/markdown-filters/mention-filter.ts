@@ -24,7 +24,8 @@ export class MentionFilter implements INodeFilter {
   private readonly beginStringNonWord = /(^|[^a-zA-Z0-9_`])/
 
   // @username and @username_emu for enterprise managed users support
-  private readonly userNameRef = /(?<userNameRef>@[a-z0-9][a-z0-9-]*_[a-zA-Z0-9]+|@[a-z0-9][a-z0-9-]*)/
+  private readonly userNameRef =
+    /(?<userNameRef>@[a-z0-9][a-z0-9-]*_[a-zA-Z0-9]+|@[a-z0-9][a-z0-9-]*)/
 
   // without a trailing slash
   private readonly withoutTrailingSlash = /(?!\/)/
@@ -35,8 +36,9 @@ export class MentionFilter implements INodeFilter {
   // dots at end of line
   private readonly dotsAtEndOfLine = /\.+$/
 
-  // non-word character except dot or `
-  private readonly nonWordExceptDotOrBackTick = /[^0-9a-zA-Z_.`]/
+  // non-word character except dot, ` , or -
+  // Note: In the case of usernames, the hyphen is a word character.
+  private readonly nonWordExceptDotOrBackTickOrHyphen = /[^0-9a-zA-Z_.`-]/
 
   // Pattern used to extract @mentions from text
   // Looking for @user or @user_user
@@ -50,7 +52,7 @@ export class MentionFilter implements INodeFilter {
       '|' +
       this.dotsAtEndOfLine.source +
       '|' +
-      this.nonWordExceptDotOrBackTick.source +
+      this.nonWordExceptDotOrBackTickOrHyphen.source +
       '|' +
       '$)', // end of line
     'ig'
