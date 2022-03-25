@@ -93,7 +93,7 @@ export class Font extends React.Component<
     this.props.onSelectedFontFaceChanged(event.currentTarget.value);
   }
 
-   private onSelectedFontSizeChanged = (event: React.FormEvent<HTMLInputElement>): void => {
+  private onSelectedFontSizeChanged = (event: React.FormEvent<HTMLInputElement>): void => {
     this.props.onSelectedFontSizeChanged(parseFloat(event.currentTarget.value));
   }
 
@@ -114,7 +114,7 @@ export class Font extends React.Component<
         </Row>
         <Row>
           <label htmlFor="font-size">Font Size</label><br></br>
-          <input type="number" defaultValue={this.props.selectedFontSize.toString()} id="fontSizeChooser" min="6" max="48" onChange={this.onSelectedFontSizeChanged}></input>
+          <input type="number" defaultValue={this.props.selectedFontSize.toString()} id="fontSizeChooser" min="14" max="20" onChange={this.onSelectedFontSizeChanged}></input>
         </Row>
       </DialogContent>
     )
