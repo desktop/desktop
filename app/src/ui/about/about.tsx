@@ -240,7 +240,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           <LinkButton uri="https://desktop.github.com/beta">
             Beta Channel
           </LinkButton>
-          .
         </p>
       </div>
     )
