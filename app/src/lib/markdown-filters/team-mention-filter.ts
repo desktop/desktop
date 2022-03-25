@@ -1,5 +1,6 @@
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../api'
+import { caseInsensitiveEquals } from '../compare'
 import { INodeFilter } from './node-filter'
 
 /**
