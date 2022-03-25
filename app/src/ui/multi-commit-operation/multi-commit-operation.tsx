@@ -9,9 +9,7 @@ import { CherryPick } from './cherry-pick'
 import { Rebase } from './rebase'
 
 /** A component for managing the views of a multi commit operation. */
-export class MultiCommitOperation extends React.Component<
-  IMultiCommitOperationProps
-> {
+export class MultiCommitOperation extends React.Component<IMultiCommitOperationProps> {
   public render() {
     const { kind } = this.props.state.operationDetail
     switch (kind) {

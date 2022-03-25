@@ -342,3 +342,7 @@ export const showOpenDialog = invokeProxy('show-open-dialog', 1)
 
 /** User's locale region as a two-letter ISO 3166 country code. */
 export const getLocaleCountryCode = invokeProxy('get-locale-country-code', 0)
+
+/** Tell the main process read/save the user GUID from/to file */
+export const saveGUID = invokeProxy('save-guid', 1)
+export const getGUID = invokeProxy('get-guid', 0)

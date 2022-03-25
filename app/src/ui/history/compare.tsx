@@ -333,12 +333,8 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const {
-      defaultBranch,
-      branches,
-      recentBranches,
-      filterText,
-    } = this.props.compareState
+    const { defaultBranch, branches, recentBranches, filterText } =
+      this.props.compareState
 
     return (
       <BranchList

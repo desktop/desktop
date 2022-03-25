@@ -39,11 +39,39 @@ interface ISandboxedMarkdownProps {
  * Parses and sanitizes markdown into html and outputs it inside a sandboxed
  * iframe.
  **/
-export class SandboxedMarkdown extends React.PureComponent<
-  ISandboxedMarkdownProps
-> {
+export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownProps> {
   private frameRef: HTMLIFrameElement | null = null
   private frameContainingDivRef: HTMLDivElement | null = null
+  private contentDivRef: HTMLDivElement | null = null
+
+  /**
+   * Resize observer used for tracking height changes in the markdown
+   * content and update the size of the iframe container.
+   */
+  private readonly resizeObserver: ResizeObserver
+  private resizeDebounceId: number | null = null
+
+  public constructor(props: ISandboxedMarkdownProps) {
+    super(props)
+
+    this.resizeObserver = new ResizeObserver(this.scheduleResizeEvent)
+  }
+
+  private scheduleResizeEvent = () => {
+    if (this.resizeDebounceId !== null) {
+      cancelAnimationFrame(this.resizeDebounceId)
+      this.resizeDebounceId = null
+    }
+    this.resizeDebounceId = requestAnimationFrame(this.onContentResized)
+  }
+
+  private onContentResized = () => {
+    if (this.frameRef === null) {
+      return
+    }
+
+    this.setFrameContainerHeight(this.frameRef)
+  }
 
   private onFrameRef = (frameRef: HTMLIFrameElement | null) => {
     this.frameRef = frameRef
@@ -68,6 +96,10 @@ export class SandboxedMarkdown extends React.PureComponent<
     if (prevProps.markdown !== this.props.markdown) {
       this.mountIframeContents()
     }
+  }
+
+  public componentWillUnmount() {
+    this.resizeObserver.disconnect()
   }
 
   /**
@@ -108,6 +140,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         ${scrapeVariable('--font-size')}
         ${scrapeVariable('--font-size-sm')}
         ${scrapeVariable('--text-color')}
+        ${scrapeVariable('--background-color')}
       }
       ${css}
     </style>`
@@ -119,9 +152,31 @@ export class SandboxedMarkdown extends React.PureComponent<
    */
   private setupFrameLoadListeners(frameRef: HTMLIFrameElement): void {
     frameRef.addEventListener('load', () => {
+      this.setupContentDivRef(frameRef)
       this.setupLinkInterceptor(frameRef)
       this.setFrameContainerHeight(frameRef)
     })
+  }
+
+  private setupContentDivRef(frameRef: HTMLIFrameElement): void {
+    if (frameRef.contentDocument === null) {
+      return
+    }
+
+    /*
+     * We added an additional wrapper div#content around the markdown to
+     * determine a more accurate scroll height as the iframe's document or body
+     * element was not adjusting it's height dynamically when new content was
+     * provided.
+     */
+    this.contentDivRef = frameRef.contentDocument.documentElement.querySelector(
+      '#content'
+    ) as HTMLDivElement
+
+    if (this.contentDivRef !== null) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver.observe(this.contentDivRef)
+    }
   }
 
   /**
@@ -133,31 +188,17 @@ export class SandboxedMarkdown extends React.PureComponent<
    */
   private setFrameContainerHeight(frameRef: HTMLIFrameElement): void {
     if (
-      frameRef.contentDocument == null ||
-      this.frameContainingDivRef == null
+      frameRef.contentDocument === null ||
+      this.frameContainingDivRef === null ||
+      this.contentDivRef === null
     ) {
-      return
-    }
-
-    /*
-     * We added an additional wrapper div#content around the markdown to
-     * determine a more accurate scroll height as the iframe's document or body
-     * element was not adjusting it's height dynamically when new content was
-     * provided.
-     */
-    const docEl = frameRef.contentDocument.documentElement.querySelector(
-      '#content'
-    ) as HTMLDivElement
-
-    if (docEl === null) {
       return
     }
 
     // Not sure why the content height != body height exactly. But we need to
     // set the height explicitly to prevent scrollbar/content cut off.
-    const divHeight = docEl.clientHeight
+    const divHeight = this.contentDivRef.clientHeight
     this.frameContainingDivRef.style.height = `${divHeight}px`
-    docEl.style.height = `${divHeight}px`
     this.props.onMarkdownParsed?.()
   }
 

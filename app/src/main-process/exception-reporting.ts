@@ -1,5 +1,6 @@
 import { app, net } from 'electron'
 import { getArchitecture } from '../lib/get-architecture'
+import { getMainGUID } from '../lib/get-main-guid'
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 const NonFatalErrorEndpoint =
@@ -41,6 +42,7 @@ export async function reportError(
   data.set('architecture', getArchitecture(app))
   data.set('sha', __SHA__)
   data.set('version', app.getVersion())
+  data.set('guid', await getMainGUID())
 
   if (extra) {
     for (const key of Object.keys(extra)) {

@@ -119,6 +119,7 @@ import {
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
+import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 
 /**
  * An error handler function.
@@ -1091,10 +1092,8 @@ export class Dispatcher {
 
   private dropCurrentBranchFromForcePushList = (repository: Repository) => {
     const currentState = this.repositoryStateManager.get(repository)
-    const {
-      forcePushBranches: rebasedBranches,
-      tip,
-    } = currentState.branchesState
+    const { forcePushBranches: rebasedBranches, tip } =
+      currentState.branchesState
 
     if (tip.kind !== TipState.Valid) {
       return
@@ -1122,10 +1121,8 @@ export class Dispatcher {
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<void> {
-    const {
-      branchesState,
-      multiCommitOperationState,
-    } = this.repositoryStateManager.get(repository)
+    const { branchesState, multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
 
     if (
       multiCommitOperationState == null ||
@@ -1333,6 +1330,18 @@ export class Dispatcher {
     pattern: string | string[]
   ): Promise<void> {
     return this.appStore._appendIgnoreRule(repository, pattern)
+  }
+
+  /**
+   * Convenience method to add the given file path(s) to the repository's gitignore.
+   *
+   * The file path will be escaped before adding.
+   */
+  public appendIgnoreFile(
+    repository: Repository,
+    filePath: string | string[]
+  ): Promise<void> {
+    return this.appStore._appendIgnoreFile(repository, filePath)
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
@@ -1721,9 +1730,8 @@ export class Dispatcher {
     }
 
     // Find the repository where the PR is created in Desktop.
-    let repository: Repository | null = this.getRepositoryFromPullRequest(
-      pullRequest
-    )
+    let repository: Repository | null =
+      this.getRepositoryFromPullRequest(pullRequest)
 
     if (repository !== null) {
       await this.selectRepository(repository)
@@ -3021,10 +3029,8 @@ export class Dispatcher {
    * show conflicts step
    */
   private startConflictCherryPickFlow(repository: Repository): void {
-    const {
-      changesState,
-      multiCommitOperationState,
-    } = this.repositoryStateManager.get(repository)
+    const { changesState, multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
     const { conflictState } = changesState
 
     if (
@@ -3736,10 +3742,8 @@ export class Dispatcher {
       type: BannerType.ConflictsFound,
       operationDescription,
       onOpenConflictsDialog: async () => {
-        const {
-          changesState,
-          multiCommitOperationState,
-        } = this.repositoryStateManager.get(repository)
+        const { changesState, multiCommitOperationState } =
+          this.repositoryStateManager.get(repository)
         const { conflictState } = changesState
 
         if (conflictState == null) {
@@ -3882,5 +3886,11 @@ export class Dispatcher {
 
   public recordChecksFailedDialogRerunChecks() {
     this.statsStore.recordChecksFailedDialogRerunChecks()
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ) {
+    this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
 }

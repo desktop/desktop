@@ -39,6 +39,7 @@ import {
   isAppRunningUnderARM64Translation,
 } from '../lib/get-architecture'
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
+import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -654,6 +655,14 @@ app.on('ready', () => {
   ipcMain.handle('get-locale-country-code', async () =>
     app.getLocaleCountryCode()
   )
+
+  ipcMain.handle('get-guid', () => {
+    return getMainGUID()
+  })
+
+  ipcMain.handle('save-guid', (_, guid) => {
+    return saveGUIDFile(guid)
+  })
 })
 
 app.on('activate', () => {
@@ -707,7 +716,9 @@ function createWindow() {
 
     for (const extension of extensions) {
       try {
-        installExtension(extension)
+        installExtension(extension, {
+          loadExtensionOptions: { allowFileAccess: true },
+        })
       } catch (e) {}
     }
   }
