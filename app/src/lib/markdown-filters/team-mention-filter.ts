@@ -95,8 +95,7 @@ export class TeamMentionFilter implements INodeFilter {
         org === undefined ||
         team === undefined ||
         // Team references are only added when the repository owner is the org to prevent linking to a team outside the repositories org.
-        org.slice(1).toLocaleLowerCase() !==
-          this.repository.owner.login.toLocaleLowerCase()
+        caseInsensitiveEquals(org.slice(1), this.repository.owner.login)
       ) {
         continue
       }
