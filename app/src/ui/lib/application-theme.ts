@@ -87,11 +87,11 @@ const applicationThemeKey = 'theme'
 
 // The key under which the currently font face is persisted
 // in localStorage.
-const applicationFontFaceKey = 'fontFace'
+const applicationFontFaceKey = 'font-face'
 
 // The key under which the currently font size is persisted
 // in localStorage.
-const applicationFontSizeKey = 'fontSize'
+const applicationFontSizeKey = 'font-size'
 /**
  * Returns User's theme preference or 'system' if not set or parsable
  */

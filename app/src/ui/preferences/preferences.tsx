@@ -214,9 +214,12 @@ export class Preferences extends React.Component<
             </span>
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
-              Appearance
+              Theme
             </span>
-
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
+              Fonts
+            </span>
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.question} />
               Prompts
@@ -224,10 +227,6 @@ export class Preferences extends React.Component<
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.settings} />
               Advanced
-            </span>
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
-              Fonts
             </span>
           </TabBar>
 
@@ -319,7 +318,7 @@ export class Preferences extends React.Component<
         )
         break
       }
-      case PreferencesTab.Appearance:
+      case PreferencesTab.Theme:
         View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
@@ -483,7 +482,7 @@ export class Preferences extends React.Component<
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:
-      case PreferencesTab.Appearance:
+      case PreferencesTab.Theme:
         return null
       case PreferencesTab.Integrations:
       case PreferencesTab.Advanced:
