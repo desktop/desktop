@@ -387,9 +387,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
-        return this.openBranchOnGitub(true)
+        return this.openBranchOnGitub('compare')
       case 'branch-on-github':
-        return this.openBranchOnGitub(false)
+        return this.openBranchOnGitub('tree')
       case 'create-issue-in-repository-on-github':
         return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
@@ -591,7 +591,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.startMergeBranchOperation(repository, isSquash)
   }
 
-  private openBranchOnGitub(compare: boolean) {
+  private openBranchOnGitub(view: 'tree' | 'compare') {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
       return
@@ -610,14 +610,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    let url = htmlURL
-
-    if (compare === true) {
-      url = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
-    } else {
-      url = `${htmlURL}/tree/${branchTip.branch.upstreamWithoutRemote}`
-    }
-
+    const url = `${htmlURL}/${view}/${branchTip.branch.upstreamWithoutRemote}`
     this.props.dispatcher.openInBrowser(url)
   }
 
