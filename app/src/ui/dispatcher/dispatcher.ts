@@ -119,6 +119,7 @@ import {
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
+import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 
 /**
  * An error handler function.
@@ -3885,5 +3886,11 @@ export class Dispatcher {
 
   public recordChecksFailedDialogRerunChecks() {
     this.statsStore.recordChecksFailedDialogRerunChecks()
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ) {
+    this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
 }

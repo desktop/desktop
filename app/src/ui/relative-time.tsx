@@ -97,7 +97,7 @@ export class RelativeTime extends React.Component<
       timeStyle: 'short',
     })
 
-    const relativeText = formatRelative(duration)
+    const relativeText = formatRelative(diff)
 
     // Future date, let's just show as absolute and reschedule. If it's less
     // than a minute into the future we'll treat it as 'just now'.

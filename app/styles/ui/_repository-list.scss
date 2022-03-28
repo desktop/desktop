@@ -116,6 +116,9 @@
 
   .filter-list-group-header {
     padding-top: var(--spacing);
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    white-space: nowrap;
   }
 
   .new-repository-button {
