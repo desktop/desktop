@@ -165,5 +165,5 @@ export function enableHighSignalNotifications(): boolean {
 
 /** Should we enable PR review notifications? */
 export function enablePullRequestReviewNotifications(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
