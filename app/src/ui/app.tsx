@@ -387,9 +387,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
-        return this.compareBranchOnDotcom()
+        return this.openBranchOnGitub(true)
       case 'branch-on-github':
-        return this.showBranchOnGitHub()
+        return this.openBranchOnGitub(false)
       case 'create-issue-in-repository-on-github':
         return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
@@ -591,7 +591,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.startMergeBranchOperation(repository, isSquash)
   }
 
-  private compareBranchOnDotcom() {
+  private openBranchOnGitub(compare: boolean) {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
       return
@@ -610,31 +610,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
-    this.props.dispatcher.openInBrowser(compareURL)
-  }
+    let url = htmlURL
 
-  private showBranchOnGitHub() {
-    const htmlURL = this.getCurrentRepositoryGitHubURL()
-    if (!htmlURL) {
-      return
+    if (compare === true) {
+      url = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
+    } else {
+      url = `${htmlURL}/tree/${branchTip.branch.upstreamWithoutRemote}`
     }
 
-    const state = this.state.selectedState
-    if (state == null || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    const branchTip = state.state.branchesState.tip
-    if (
-      branchTip.kind !== TipState.Valid ||
-      !branchTip.branch.upstreamWithoutRemote
-    ) {
-      return
-    }
-
-    const branchOnGitHub = `${htmlURL}/tree/${branchTip.branch.upstreamWithoutRemote}`
-    this.props.dispatcher.openInBrowser(branchOnGitHub)
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private openCurrentRepositoryWorkingDirectory() {
@@ -1724,8 +1708,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.StashAndSwitchBranch: {
         const { repository, branchToCheckout } = popup
-        const { branchesState, changesState } =
-          this.props.repositoryStateManager.get(repository)
+        const {
+          branchesState,
+          changesState,
+        } = this.props.repositoryStateManager.get(repository)
         const { tip } = branchesState
 
         if (tip.kind !== TipState.Valid) {
