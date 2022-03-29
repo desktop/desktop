@@ -4,7 +4,7 @@
       "[New] Add support for notifications of pull request reviews - #14175",
       "[Fixed] Pull requests adhere to temporal laws again - #14238",
       "[Fixed] Fix repository group header overflow when text is too long - #14233. Thanks @tsvetilian-ty!",
-      "[Fixed] Clone dialog \"Choose\" button uses an open dialog for directory selection on macOS - #12812"
+      "[Fixed] Clone dialog \"Choose\" button uses an open dialog for directory selection on Windows - #12812"
     ],
     "2.9.12": [
       "[Added] Add support for Brackets Editor on Windows - #14069. Thanks @tsvetilian-ty!",
