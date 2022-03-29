@@ -535,7 +535,7 @@ export class ChangesList extends React.Component<
       })
 
     if (paths.length > 1) {
-      const includeFilesOptions: IMenuItem[] = [
+      items.push(
         { type: 'separator' },
         {
           label: __DARWIN__
@@ -556,9 +556,8 @@ export class ChangesList extends React.Component<
               this.props.onIncludeChanged(file.path, false)
             )
           },
-        },
-      ]
-      items.push(...includeFilesOptions)
+        }
+      )
     }
 
     const enabled = status.kind !== AppFileStatusKind.Deleted
