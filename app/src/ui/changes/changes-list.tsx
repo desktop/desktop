@@ -534,6 +534,32 @@ export class ChangesList extends React.Component<
         })
       })
 
+    if (paths.length > 1) {
+      items.push(
+        { type: 'separator' },
+        {
+          label: __DARWIN__
+            ? 'Include Selected Files'
+            : 'Include selected files',
+          action: () => {
+            selectedFiles.map(file =>
+              this.props.onIncludeChanged(file.path, true)
+            )
+          },
+        },
+        {
+          label: __DARWIN__
+            ? 'Exclude Selected Files'
+            : 'Exclude selected files',
+          action: () => {
+            selectedFiles.map(file =>
+              this.props.onIncludeChanged(file.path, false)
+            )
+          },
+        }
+      )
+    }
+
     const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(
       { type: 'separator' },
