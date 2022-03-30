@@ -117,8 +117,7 @@ export class PullRequestReview extends React.Component<
 
     const submittedAt = new Date(review.submitted_at)
     const diff = submittedAt.getTime() - Date.now()
-    const duration = Math.abs(diff)
-    const relativeReviewDate = formatRelative(duration)
+    const relativeReviewDate = formatRelative(diff)
 
     return (
       <div className="timeline-item-container">
