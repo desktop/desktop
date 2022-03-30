@@ -60,9 +60,8 @@ export class CommitMentionFilter implements INodeFilter {
    * 1234567...1234567
    * 1234567...1234567.
    *  1234567...1234567
-   * [1234567...1234567
-   * {1234567...1234567
-   * @1234567...1234567
+   * [1234567...1234567,
+   * {1234567...1234567,
    * (1234567...1234567
    * */
   private readonly shaRange = new RegExp(
@@ -95,7 +94,6 @@ export class CommitMentionFilter implements INodeFilter {
    * ...1234567
    * (1234567
    * {1234567
-   * @1234567
    * 1234567
    * [1234567
    * 1234567.
