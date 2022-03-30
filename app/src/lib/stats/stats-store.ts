@@ -4,7 +4,6 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { getOS } from '../get-os'
-import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
@@ -27,6 +26,21 @@ import { Architecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { getNotificationsEnabled } from '../stores/notifications-store'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'
+import { getRendererGUID } from '../get-renderer-guid'
+import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
+
+type PullRequestReviewStatFieldInfix =
+  | 'Approved'
+  | 'ChangesRequested'
+  | 'Commented'
+
+type PullRequestReviewStatFieldSuffix =
+  | 'NotificationCount'
+  | 'NotificationClicked'
+  | 'DialogSwitchToPullRequestCount'
+
+type PullRequestReviewStatField =
+  `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -185,6 +199,15 @@ const DefaultDailyMeasures: IDailyMeasures = {
   checksFailedDialogOpenCount: 0,
   checksFailedDialogSwitchToPullRequestCount: 0,
   checksFailedDialogRerunChecksCount: 0,
+  pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationClicked: 0,
+  pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationClicked: 0,
+  pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationClicked: 0,
+  pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
 }
 
 interface IOnboardingStats {
@@ -541,7 +564,7 @@ export class StatsStore implements IStatsStore {
       ...dailyMeasures,
       ...userType,
       ...onboardingStats,
-      guid: getGUID(),
+      guid: await getRendererGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
@@ -610,9 +633,8 @@ export class StatsStore implements IStatsStore {
 
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
-    const launches:
-      | ReadonlyArray<ILaunchStats>
-      | undefined = await this.db.launches.toArray()
+    const launches: ReadonlyArray<ILaunchStats> | undefined =
+      await this.db.launches.toArray()
     if (!launches || !launches.length) {
       return {
         mainReadyTime: -1,
@@ -645,9 +667,9 @@ export class StatsStore implements IStatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    const measures:
-      | IDailyMeasures
-      | undefined = await this.db.dailyMeasures.limit(1).first()
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures
+      .limit(1)
+      .first()
     return {
       ...DefaultDailyMeasures,
       ...measures,
@@ -996,9 +1018,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
-    void
-  > {
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       anyConflictsLeftOnMergeConflictsDialogDismissalCount:
         m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
@@ -1222,9 +1242,7 @@ export class StatsStore implements IStatsStore {
    * Record the number of times the user experiences the error
    * "Some of your changes would be overwritten" when switching branches
    */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
-    void
-  > {
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       errorWhenSwitchingBranchesWithUncommmittedChanges:
         m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
@@ -1775,6 +1793,55 @@ export class StatsStore implements IStatsStore {
       checksFailedDialogRerunChecksCount:
         m.checksFailedDialogRerunChecksCount + 1,
     }))
+  }
+
+  // Generates the stat field name for the given PR review type and suffix.
+  private getStatFieldForRequestReviewState(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ): PullRequestReviewStatField {
+    const infixMap: Record<
+      ValidNotificationPullRequestReviewState,
+      PullRequestReviewStatFieldInfix
+    > = {
+      CHANGES_REQUESTED: 'ChangesRequested',
+      APPROVED: 'Approved',
+      COMMENTED: 'Commented',
+    }
+
+    return `pullRequestReview${infixMap[reviewType]}${suffix}`
+  }
+
+  // Generic method to record stats related to Pull Request review notifications.
+  private recordPullRequestReviewStat(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ) {
+    const statField = this.getStatFieldForRequestReviewState(reviewType, suffix)
+    return this.updateDailyMeasures(
+      m => ({ [statField]: m[statField] + 1 } as any)
+    )
+  }
+
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  public recordPullRequestReviewNotificationClicked(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationClicked')
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'DialogSwitchToPullRequestCount'
+    )
   }
 
   /** Post some data to our stats endpoint. */

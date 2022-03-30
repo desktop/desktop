@@ -24,7 +24,8 @@ export class MentionFilter implements INodeFilter {
   private readonly beginStringNonWord = /(^|[^a-zA-Z0-9_`])/
 
   // @username and @username_emu for enterprise managed users support
-  private readonly userNameRef = /(?<userNameRef>@[a-z0-9][a-z0-9-]*_[a-zA-Z0-9]+|@[a-z0-9][a-z0-9-]*)/
+  private readonly userNameRef =
+    /(?<userNameRef>@[a-z0-9][a-z0-9-]*_[a-zA-Z0-9]+|@[a-z0-9][a-z0-9-]*)/
 
   // without a trailing slash
   private readonly withoutTrailingSlash = /(?!\/)/

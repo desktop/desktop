@@ -152,6 +152,7 @@ import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { getReleaseSummary } from '../lib/release-notes'
+import { PullRequestReview } from './notifications/pull-request-review'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -386,7 +387,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
-        return this.compareBranchOnDotcom()
+        return this.openBranchOnGitub('compare')
+      case 'branch-on-github':
+        return this.openBranchOnGitub('tree')
       case 'create-issue-in-repository-on-github':
         return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
@@ -588,7 +591,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.startMergeBranchOperation(repository, isSquash)
   }
 
-  private compareBranchOnDotcom() {
+  private openBranchOnGitub(view: 'tree' | 'compare') {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
       return
@@ -607,8 +610,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
-    this.props.dispatcher.openInBrowser(compareURL)
+    const url = `${htmlURL}/${view}/${branchTip.branch.upstreamWithoutRemote}`
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private openCurrentRepositoryWorkingDirectory() {
@@ -1698,10 +1701,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.StashAndSwitchBranch: {
         const { repository, branchToCheckout } = popup
-        const {
-          branchesState,
-          changesState,
-        } = this.props.repositoryStateManager.get(repository)
+        const { branchesState, changesState } =
+          this.props.repositoryStateManager.get(repository)
         const { tip } = branchesState
 
         if (tip.kind !== TipState.Valid) {
@@ -2027,7 +2028,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <PullRequestChecksFailed
             key="pull-request-checks-failed"
             dispatcher={this.props.dispatcher}
-            shouldChangeRepository={popup.needsSelectRepository}
+            shouldChangeRepository={popup.shouldChangeRepository}
             repository={popup.repository}
             pullRequest={popup.pullRequest}
             commitMessage={popup.commitMessage}
@@ -2077,6 +2078,24 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmDiscardChangesChanged={
               this.onConfirmDiscardChangesPermanentlyChanged
             }
+          />
+        )
+      }
+      case PopupType.PullRequestReview: {
+        return (
+          <PullRequestReview
+            key="pull-request-checks-failed"
+            dispatcher={this.props.dispatcher}
+            shouldCheckoutBranch={popup.shouldCheckoutBranch}
+            shouldChangeRepository={popup.shouldChangeRepository}
+            repository={popup.repository}
+            pullRequest={popup.pullRequest}
+            review={popup.review}
+            numberOfComments={popup.numberOfComments}
+            emoji={this.state.emoji}
+            accounts={this.state.accounts}
+            onSubmit={onPopupDismissedFn}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }

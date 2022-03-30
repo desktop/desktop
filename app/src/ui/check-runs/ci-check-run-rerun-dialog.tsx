@@ -143,25 +143,26 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   private renderRerunInfo = () => {
-    if (this.state.loadingCheckSuites) {
+    if (
+      this.state.loadingCheckSuites ||
+      this.state.nonRerunnable.length === 0
+    ) {
       return null
     }
 
     const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
     const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
+    const warningPrefix =
+      this.state.rerunnable.length === 0
+        ? `There are no checks that can be re-run`
+        : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be re-run`
     return (
       <Row className="non-re-run-info warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />
 
-        {this.state.rerunnable.length === 0
-          ? `There are no checks that can be re-run. `
-          : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be re-run. `}
-
-        {this.state.nonRerunnable.length > 0
-          ? `A check run cannot be re-run if the check is more than one month old,
+        {`${warningPrefix}. A check run cannot be re-run if the check is more than one month old,
           the check has not completed, or the check is not configured to be
-          re-run.`
-          : null}
+          re-run.`}
       </Row>
     )
   }

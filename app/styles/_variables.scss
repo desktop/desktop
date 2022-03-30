@@ -470,6 +470,15 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-500};
 
+  // PR review colors
+  --pr-timeline-line-color: var(--box-border-color);
+  --pr-changes-requested-icon-color: #{$white};
+  --pr-changes-requested-icon-background-color: #cf222e;
+  --pr-approved-icon-color: #{$white};
+  --pr-approved-icon-background-color: #2da44e;
+  --pr-commented-icon-color: var(--md-fg-muted-color);
+  --pr-commented-icon-background-color: #eaeef2;
+
   --call-to-action-bubble-border-color: #{$green};
   --call-to-action-bubble-color: #{$green};
 

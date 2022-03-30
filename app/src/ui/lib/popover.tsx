@@ -51,14 +51,14 @@ export class Popover extends React.Component<IPopoverProps> {
   }
 
   public componentDidMount() {
-    document.addEventListener('mousedown', this.onDocumentMouseDown)
+    document.addEventListener('click', this.onDocumentClick)
   }
 
   public componentWillUnmount() {
-    document.removeEventListener('mousedown', this.onDocumentMouseDown)
+    document.removeEventListener('click', this.onDocumentClick)
   }
 
-  private onDocumentMouseDown = (event: MouseEvent) => {
+  private onDocumentClick = (event: MouseEvent) => {
     const { current: ref } = this.containerDivRef
     const { target } = event
 

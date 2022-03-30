@@ -53,10 +53,11 @@ export class CreateForkDialog extends React.Component<
         gitHubRepository.name
       )
       this.props.dispatcher.recordForkCreated()
-      const updatedRepository = await this.props.dispatcher.convertRepositoryToFork(
-        this.props.repository,
-        fork
-      )
+      const updatedRepository =
+        await this.props.dispatcher.convertRepositoryToFork(
+          this.props.repository,
+          fork
+        )
       this.setState({ loading: false })
       this.props.onDismissed()
 
