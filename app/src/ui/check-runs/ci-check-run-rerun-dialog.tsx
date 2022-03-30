@@ -131,20 +131,12 @@ export class CICheckRunRerunDialog extends React.Component<
     return (
       <div className="ci-check-run-list check-run-rerun-list">
         {this.state.rerunnable.length > 0 ? (
-          <>
-            <CICheckRunList
-              checkRuns={this.state.rerunnable}
-              loadingActionLogs={false}
-              loadingActionWorkflows={false}
-              notExpandable={true}
-            />
-            <CICheckRunList
-              checkRuns={this.state.rerunnable}
-              loadingActionLogs={false}
-              loadingActionWorkflows={false}
-              notExpandable={true}
-            />
-          </>
+          <CICheckRunList
+            checkRuns={this.state.rerunnable}
+            loadingActionLogs={false}
+            loadingActionWorkflows={false}
+            notExpandable={true}
+          />
         ) : null}
       </div>
     )
