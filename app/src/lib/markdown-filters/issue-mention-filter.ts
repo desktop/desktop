@@ -1,6 +1,7 @@
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../api'
 import { INodeFilter } from './node-filter'
+import { resolveOwnerRepo } from './resolve-owner-repo'
 
 /**
  * The Issue Mention filter matches for text issue references. For this purpose,
@@ -171,7 +172,7 @@ export class IssueMentionFilter implements INodeFilter {
   ) {
     let text = `${marker}${refNumber}`
 
-    const ownerRepo = this.resolveOwnerRepo(ownerOrOwnerRepo)
+    const ownerRepo = resolveOwnerRepo(ownerOrOwnerRepo, this.repository)
     if (ownerRepo === null) {
       return null
     }
@@ -196,51 +197,5 @@ export class IssueMentionFilter implements INodeFilter {
     anchor.textContent = text
     anchor.href = href
     return anchor
-  }
-
-  /**
-   * The ownerOrOwnerRepo may be of the form owner or owner/repo.
-   * 1) If owner/repo and they don't both match the current repo, then we return
-   *    them as to distinguish them as a different from the current repo for the
-   *    reference url.
-   * 2) If (owner) and the owner !== current repo owner, it is an invalid
-   *    references - return null.
-   * 3) Otherwise, return [] as it is an valid references, but, was either and
-   *    empty string or in the current repo and is redundant owner/repo info.
-   */
-  private resolveOwnerRepo(
-    ownerOrOwnerRepo: string | undefined
-  ): ReadonlyArray<string> | null {
-    if (ownerOrOwnerRepo === undefined) {
-      return []
-    }
-
-    const ownerAndRepo = ownerOrOwnerRepo.split('/')
-    // Invalid - This shouldn't happen based on the regex, but would mean
-    // something/something/something/#1 which isn't an issue ref.
-    if (ownerAndRepo.length > 3) {
-      return null
-    }
-
-    // Invalid - If it is only something/#1 and that `something` isn't the
-    // current repositories owner login, then it is not an actual, 'relative to
-    // this user', issue ref.
-    if (
-      ownerAndRepo.length === 1 &&
-      ownerAndRepo[0] !== this.repository.owner.login
-    ) {
-      return null
-    }
-
-    // If owner and repo are provided, we only care if they differ from the current repo.
-    if (
-      ownerAndRepo.length === 2 &&
-      (ownerAndRepo[0] !== this.repository.owner.login ||
-        ownerAndRepo[1] !== this.repository.name)
-    ) {
-      return ownerAndRepo
-    }
-
-    return []
   }
 }
