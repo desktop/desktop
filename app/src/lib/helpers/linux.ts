@@ -92,9 +92,8 @@ export function spawnEditor(
 ): ChildProcess {
   if (isFlatpakBuild()) {
     const actualpath = formatPathForFlatpak(path)
-    const EscapedworkingDirectory = formatWorkingDirectoryForFlatpak(
-      workingDirectory
-    )
+    const EscapedworkingDirectory =
+      formatWorkingDirectoryForFlatpak(workingDirectory)
     return spawn(
       'flatpak-spawn',
       ['--host', actualpath, EscapedworkingDirectory],
