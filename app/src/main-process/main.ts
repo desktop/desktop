@@ -273,6 +273,16 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
     } else {
       log.error(`Malformed launch arguments received: ${args}`)
     }
+  } else if (__LINUX__) {
+    // we expect this call to have several parameters before the URL we want,
+    // so we should filter out the program name as well as any parameters that
+    // look like arguments to Electron
+    const argsWithoutParameters = args.filter(
+      a => !a.endsWith('github-desktop') && !a.startsWith('--')
+    )
+    if (argsWithoutParameters.length > 0) {
+      handleAppURL(argsWithoutParameters[0])
+    }
   } else if (args.length > 1) {
     handleAppURL(args[1])
   }
