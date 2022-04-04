@@ -36,31 +36,22 @@ export class CommitMentionLinkFilter implements INodeFilter {
    *
    * Example: /desktop/desktop/commit/6fd7945
    */
-  private readonly commitPath = new RegExp(
-    /^\//.source +
-      this.nameWithOwner.source +
-      /\/commit\/(?<pathFragment>.+)$/.source
-  )
+  private readonly commitPath = /^commit\/(?<pathFragment>.+)$/
 
   /**
    * A regexp that searches for a url path pattern for a compare
    *
    * Example: /desktop/desktop/commit/6fd7945...6fd7945
    */
-  private readonly comparePath = new RegExp(
-    /^\//.source + this.nameWithOwner.source + /\/compare\/(?<range>.+)$/.source
-  )
+  private readonly comparePath = /^compare\/(?<range>.+)$/
 
   /**
    * A regexp that searches for a url path pattern for a compare
    *
    * Example: /desktop/desktop/commit/6fd7945...6fd7945
    */
-  private readonly pullCommitPath = new RegExp(
-    /^\//.source +
-      this.nameWithOwner.source +
-      /\/pull\/(\d+)\/commits\/(?<sha>([^.]|\.{2,})+)$/.source
-  )
+  private readonly pullCommitPath =
+    /^pull\/(\d+)\/commits\/(?<sha>([^.]|\.{2,})+)$/
 
   private readonly sha = /^[0-9a-f]{7,40}$/
 
@@ -131,11 +122,18 @@ export class CommitMentionLinkFilter implements INodeFilter {
     }
 
     const url = new URL(text)
-    const path = url.pathname
+    const [, owner, name] = url.pathname.split('/', 3)
+    if (owner === undefined || name === undefined) {
+      return null
+    }
+    const slashes = 3
+    const path = url.pathname.substring(owner.length + name.length + slashes)
+
+    let ref, filepathToAppend
 
     const commitPathMatch = path.match(this.commitPath)
     if (commitPathMatch !== null && commitPathMatch.groups !== undefined) {
-      const { owner, name, pathFragment } = commitPathMatch.groups
+      const { pathFragment } = commitPathMatch.groups
       const [possibleSha, filePath] = pathFragment.split('/', 2)
       if (possibleSha === undefined) {
         return null
@@ -150,29 +148,14 @@ export class CommitMentionLinkFilter implements INodeFilter {
         return null
       }
 
-      const newNode = node.cloneNode(true)
-      if (!(newNode instanceof HTMLAnchorElement)) {
-        return null
-      }
-      const filePathAppended =
+      ref = this.trimCommitSha(sha)
+      filepathToAppend =
         filePath !== undefined ? '/' + filePath + url.search : filePath
-      newNode.innerHTML = this.getCommitMentionRef(
-        owner,
-        name,
-        this.trimCommitSha(sha),
-        filePathAppended
-      )
-      return [newNode]
     }
 
     const comparePathMatch = path.match(this.comparePath)
     if (comparePathMatch !== null && comparePathMatch.groups !== undefined) {
-      const { owner, name, range } = comparePathMatch.groups
-
-      const newNode = node.cloneNode(true)
-      if (!(newNode instanceof HTMLAnchorElement)) {
-        return null
-      }
+      const { range } = comparePathMatch.groups
 
       if (/\.(diff|path)$/.test(range)) {
         return null
@@ -184,20 +167,10 @@ export class CommitMentionLinkFilter implements INodeFilter {
       }
 
       const [secondSha, filePath] = shas[1].split('/', 2)
-      const formattedRange = `${this.trimCommitSha(
-        shas[0]
-      )}...${this.trimCommitSha(secondSha)}`
+      ref = `${this.trimCommitSha(shas[0])}...${this.trimCommitSha(secondSha)}`
 
-      const filePathAppended =
+      filepathToAppend =
         filePath !== undefined ? '/' + filePath + url.search : filePath
-
-      newNode.innerHTML = this.getCommitMentionRef(
-        owner,
-        name,
-        formattedRange,
-        filePathAppended
-      )
-      return [newNode]
     }
 
     const pullCommitPathMatch = path.match(this.pullCommitPath)
@@ -205,25 +178,29 @@ export class CommitMentionLinkFilter implements INodeFilter {
       pullCommitPathMatch !== null &&
       pullCommitPathMatch.groups !== undefined
     ) {
-      const { owner, name, sha } = pullCommitPathMatch.groups
+      const { sha } = pullCommitPathMatch.groups
       if (!this.sha.test(sha)) {
         return null
       }
 
-      const newNode = node.cloneNode(true)
-      if (!(newNode instanceof HTMLAnchorElement)) {
-        return null
-      }
-      newNode.innerHTML = this.getCommitMentionRef(
-        owner,
-        name,
-        this.trimCommitSha(sha)
-      )
-
-      return [newNode]
+      ref = this.trimCommitSha(sha)
     }
 
-    return null
+    if (ref === undefined) {
+      return null
+    }
+
+    const newNode = node.cloneNode(true)
+    if (!(newNode instanceof HTMLAnchorElement)) {
+      return null
+    }
+    newNode.innerHTML = this.getCommitMentionRef(
+      owner,
+      name,
+      ref,
+      filepathToAppend
+    )
+    return [newNode]
   }
 
   /**
