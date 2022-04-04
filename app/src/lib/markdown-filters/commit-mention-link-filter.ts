@@ -28,31 +28,39 @@ import { INodeFilter } from './node-filter'
  */
 export class CommitMentionLinkFilter implements INodeFilter {
   /** A regexp that searches for the owner/name pattern in issue href */
-  private readonly nameWithOwner = /(?<nameWithOwner>\w+(?:-\w+)*\/[.\w-]+)/
+  private readonly nameWithOwner =
+    /(?<owner>-?[a-z0-9][a-z0-9\-\_]*)\/(?<name>(?:\w|\.|\-)+)/
 
   /**
    * A regexp that searches for a url path pattern for a commit
    *
    * Example: /desktop/desktop/commit/6fd7945
    */
-  private readonly commitPath =
-    /^\/(?<owner>[^\/]+)\/(?<name>[^\/]+)\/commit\/(?<pathFragment>.+)$/
+  private readonly commitPath = new RegExp(
+    /^\//.source +
+      this.nameWithOwner.source +
+      /\/commit\/(?<pathFragment>.+)$/.source
+  )
 
   /**
    * A regexp that searches for a url path pattern for a compare
    *
    * Example: /desktop/desktop/commit/6fd7945...6fd7945
    */
-  private readonly comparePath =
-    /^\/(?<owner>[^\/]+)\/(?<name>[^\/]+)\/compare\/(?<range>.+)$/
+  private readonly comparePath = new RegExp(
+    /^\//.source + this.nameWithOwner.source + /\/compare\/(?<range>.+)$/.source
+  )
 
   /**
    * A regexp that searches for a url path pattern for a compare
    *
    * Example: /desktop/desktop/commit/6fd7945...6fd7945
    */
-  private readonly pullCommitPath =
-    /^\/(?<owner>[^\/]+)\/(?<name>[^\/]+)\/pull\/(\d+)\/commits\/(?<sha>([^.]|\.{2,})+)$/
+  private readonly pullCommitPath = new RegExp(
+    /^\//.source +
+      this.nameWithOwner.source +
+      /\/pull\/(\d+)\/commits\/(?<sha>([^.]|\.{2,})+)$/.source
+  )
 
   private readonly sha = /^[0-9a-f]{7,40}$/
 
@@ -137,8 +145,7 @@ export class CommitMentionLinkFilter implements INodeFilter {
       if (
         sha === undefined ||
         this.isReservedCommitActionPath(filePath) ||
-        format !== undefined ||
-        !this.isValidNwO(owner, name)
+        format !== undefined
       ) {
         return null
       }
@@ -161,9 +168,6 @@ export class CommitMentionLinkFilter implements INodeFilter {
     const comparePathMatch = path.match(this.comparePath)
     if (comparePathMatch !== null && comparePathMatch.groups !== undefined) {
       const { owner, name, range } = comparePathMatch.groups
-      if (!this.isValidNwO(owner, name)) {
-        return null
-      }
 
       const newNode = node.cloneNode(true)
       if (!(newNode instanceof HTMLAnchorElement)) {
@@ -202,7 +206,7 @@ export class CommitMentionLinkFilter implements INodeFilter {
       pullCommitPathMatch.groups !== undefined
     ) {
       const { owner, name, sha } = pullCommitPathMatch.groups
-      if (!this.isValidNwO(owner, name) || !this.sha.test(sha)) {
+      if (!this.sha.test(sha)) {
         return null
       }
 
@@ -220,12 +224,6 @@ export class CommitMentionLinkFilter implements INodeFilter {
     }
 
     return null
-  }
-
-  private isValidNwO(owner: string, name: string) {
-    return (
-      /^-?[a-z0-9][a-z0-9\-\_]*$/i.test(owner) && /^(?:\w|\.|\-)+$/i.test(name)
-    )
   }
 
   /**
