@@ -232,7 +232,7 @@ export class CommitMentionLinkFilter implements INodeFilter {
   }
 
   /**
-   * Commit action path's are formatted nor shortened.
+   * Commit action path's are not formatted nor shortened.
    *
    * Commit links could be action paths
    * ${github.url}/owner/repo/commit/1234567/${actionPathPossibility}
