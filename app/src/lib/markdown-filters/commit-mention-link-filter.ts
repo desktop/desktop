@@ -25,6 +25,14 @@ import { INodeFilter } from './node-filter'
  *
  * The intention behind this node filter is for use after the markdown parser
  * that has taken raw urls and auto tagged them them as anchor elements.
+ *
+ * Trailing filepath and query parameters: Plain and compare links may be
+ * followed by further filepaths and query params. Pull request commits links
+ * cannot. Additionally, plain link paths have some that may not follow that
+ * indicate reserved actions paths -- see method isReservedCommitActionPath. Thus,
+ * https://github.com/desktop/desktop/commit/6fd7945/test/test/test will become
+ * 6fd7945/test/test/test.
+ *
  */
 export class CommitMentionLinkFilter implements INodeFilter {
   /** A regexp that searches for the owner/name pattern in issue href */
