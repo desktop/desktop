@@ -116,8 +116,9 @@ export class CommitMentionLinkFilter implements INodeFilter {
    * Output = [<a href="https://github.com/owner/repo/issues/1234">#1234</a>]
    */
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
-    const { textContent: text } = node
-    if (!(node instanceof HTMLAnchorElement) || text === null) {
+    const newNode = node.cloneNode(true)
+    const { textContent: text } = newNode
+    if (!(newNode instanceof HTMLAnchorElement) || text === null) {
       return null
     }
 
@@ -131,69 +132,26 @@ export class CommitMentionLinkFilter implements INodeFilter {
 
     let ref, filepathToAppend
 
-    const commitPathMatch = path.match(this.commitPath)
-    if (commitPathMatch !== null && commitPathMatch.groups !== undefined) {
-      const { pathFragment } = commitPathMatch.groups
-      const [possibleSha, filePath] = pathFragment.split('/', 2)
-      if (possibleSha === undefined) {
-        return null
-      }
-      const [sha, format] = possibleSha.split('.')
-
-      if (
-        sha === undefined ||
-        this.isReservedCommitActionPath(filePath) ||
-        format !== undefined
-      ) {
-        return null
-      }
-
-      ref = this.trimCommitSha(sha)
-      filepathToAppend =
-        filePath !== undefined ? '/' + filePath + url.search : filePath
-    }
-
-    const comparePathMatch = path.match(this.comparePath)
-    if (comparePathMatch !== null && comparePathMatch.groups !== undefined) {
-      const { range } = comparePathMatch.groups
-
-      if (/\.(diff|path)$/.test(range)) {
-        return null
-      }
-
-      const shas = range.split('...')
-      if (shas.length > 2) {
-        return null
-      }
-
-      const [secondSha, filePath] = shas[1].split('/', 2)
-      ref = `${this.trimCommitSha(shas[0])}...${this.trimCommitSha(secondSha)}`
+    const commitComparePathMatch =
+      this.getRefFromCommitPath(path) ?? this.getRefFromComparePath(path)
+    if (commitComparePathMatch !== null) {
+      ;({ ref, filepathToAppend } = commitComparePathMatch)
 
       filepathToAppend =
-        filePath !== undefined ? '/' + filePath + url.search : filePath
+        filepathToAppend !== undefined
+          ? filepathToAppend + url.search
+          : url.search
     }
 
-    const pullCommitPathMatch = path.match(this.pullCommitPath)
-    if (
-      pullCommitPathMatch !== null &&
-      pullCommitPathMatch.groups !== undefined
-    ) {
-      const { sha } = pullCommitPathMatch.groups
-      if (!this.sha.test(sha)) {
-        return null
-      }
-
-      ref = this.trimCommitSha(sha)
+    const pullCommitPathMatch = this.getRefFromPullPath(path)
+    if (pullCommitPathMatch !== null) {
+      ;({ ref } = pullCommitPathMatch)
     }
 
     if (ref === undefined) {
       return null
     }
 
-    const newNode = node.cloneNode(true)
-    if (!(newNode instanceof HTMLAnchorElement)) {
-      return null
-    }
     newNode.innerHTML = this.getCommitMentionRef(
       owner,
       name,
@@ -201,6 +159,81 @@ export class CommitMentionLinkFilter implements INodeFilter {
       filepathToAppend
     )
     return [newNode]
+  }
+
+  private getRefFromCommitPath(path: string) {
+    const match = path.match(this.commitPath)
+    if (match === null || match.groups === undefined) {
+      return null
+    }
+
+    const { pathFragment } = match.groups
+    const slashIndex = pathFragment.indexOf('/')
+    const possibleSha =
+      slashIndex >= 0 ? pathFragment.slice(0, slashIndex) : pathFragment
+    const filepathToAppend =
+      slashIndex >= 0 ? pathFragment.slice(slashIndex) : undefined
+
+    if (possibleSha === undefined) {
+      return null
+    }
+    const [sha, format] = possibleSha.split('.')
+
+    if (
+      sha === undefined ||
+      this.isReservedCommitActionPath(filepathToAppend) ||
+      format !== undefined
+    ) {
+      return null
+    }
+
+    return {
+      ref: this.trimCommitSha(sha),
+      filepathToAppend,
+    }
+  }
+
+  private getRefFromComparePath(path: string) {
+    const match = path.match(this.comparePath)
+    if (match === null || match.groups === undefined) {
+      return null
+    }
+
+    const { range } = match.groups
+
+    if (/\.(diff|path)$/.test(range)) {
+      return null
+    }
+
+    const shas = range.split('...')
+    if (shas.length > 2) {
+      return null
+    }
+
+    const slashIndex = shas[1].indexOf('/')
+    const secondSha = slashIndex >= 0 ? shas[1].slice(0, slashIndex) : shas[1]
+
+    return {
+      ref: `${this.trimCommitSha(shas[0])}...${this.trimCommitSha(secondSha)}`,
+      filepathToAppend: slashIndex >= 0 ? shas[1].slice(slashIndex) : undefined,
+    }
+  }
+
+  private getRefFromPullPath(path: string) {
+    const match = path.match(this.pullCommitPath)
+    if (match === null || match.groups === undefined) {
+      return null
+    }
+
+    const { sha } = match.groups
+
+    if (!this.sha.test(sha)) {
+      return null
+    }
+
+    return {
+      ref: this.trimCommitSha(sha),
+    }
   }
 
   /**
@@ -219,7 +252,7 @@ export class CommitMentionLinkFilter implements INodeFilter {
    *  "rollup"
    * "show_partial"
    */
-  private isReservedCommitActionPath(filePath: string) {
+  private isReservedCommitActionPath(filePath: string | undefined) {
     const commitActions = [
       'checks_state_summary',
       'hovercard',
