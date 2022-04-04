@@ -41,7 +41,7 @@ type WindowsExternalEditorPathInfo =
     }
 
 /** Represents an external editor on Windows */
-type WindowsExternalEditor = {
+export type WindowsExternalEditor = {
   /** Name of the editor. It will be used both as identifier and user-facing. */
   readonly name: string
 
@@ -132,7 +132,7 @@ const executableShimPathsForJetBrainsIDE = (
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
  **/
-const editors: WindowsExternalEditor[] = [
+export const editors: WindowsExternalEditor[] = [
   {
     name: 'Atom',
     registryKeys: [CurrentUserUninstallKey('atom')],
@@ -411,9 +411,13 @@ function getAppInfo(
   return { displayName, publisher, installLocation }
 }
 
-async function findApplication(editor: WindowsExternalEditor) {
+async function findApplication(
+  editor: WindowsExternalEditor,
+  enumerateRegistryValues: typeof enumerateValues,
+  fileExists: typeof pathExists
+) {
   for (const { key, subKey } of editor.registryKeys) {
-    const keys = enumerateValues(key, subKey)
+    const keys = enumerateRegistryValues(key, subKey)
     if (keys.length === 0) {
       continue
     }
@@ -434,7 +438,7 @@ async function findApplication(editor: WindowsExternalEditor) {
         : editor.executableShimPaths.map(p => Path.join(installLocation, ...p))
 
     for (const path of executableShimPaths) {
-      const exists = await pathExists(path)
+      const exists = await fileExists(path)
       if (exists) {
         return path
       }
@@ -446,17 +450,18 @@ async function findApplication(editor: WindowsExternalEditor) {
   return null
 }
 
-/**
- * Lookup known external editors using the Windows registry to find installed
- * applications and their location on disk for Desktop to launch.
- */
-export async function getAvailableEditors(): Promise<
-  ReadonlyArray<IFoundEditor<string>>
-> {
+export async function getAvailableEditorsImpl(
+  enumerateRegistryValues: typeof enumerateValues,
+  fileExists: typeof pathExists
+): Promise<ReadonlyArray<IFoundEditor<string>>> {
   const results: Array<IFoundEditor<string>> = []
 
   for (const editor of editors) {
-    const path = await findApplication(editor)
+    const path = await findApplication(
+      editor,
+      enumerateRegistryValues,
+      fileExists
+    )
 
     if (path) {
       results.push({
@@ -468,4 +473,14 @@ export async function getAvailableEditors(): Promise<
   }
 
   return results
+}
+
+/**
+ * Lookup known external editors using the Windows registry to find installed
+ * applications and their location on disk for Desktop to launch.
+ */
+export async function getAvailableEditors(): Promise<
+  ReadonlyArray<IFoundEditor<string>>
+> {
+  return getAvailableEditorsImpl(enumerateValues, pathExists)
 }
