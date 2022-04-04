@@ -51,9 +51,7 @@ export class CommitMentionLinkFilter implements INodeFilter {
    * Example: /desktop/desktop/commit/6fd7945...6fd7945
    */
   private readonly pullCommitPath =
-    /^pull\/(\d+)\/commits\/(?<sha>([^.]|\.{2,})+)$/
-
-  private readonly sha = /^[0-9a-f]{7,40}$/
+    /^pull\/(\d+)\/commits\/(?<sha>[0-9a-f]{7,40})$/
 
   /** A regexp that matches a full issue, pull request, or discussion url
    * including the anchor */
@@ -141,14 +139,11 @@ export class CommitMentionLinkFilter implements INodeFilter {
         filepathToAppend !== undefined
           ? filepathToAppend + url.search
           : url.search
+    } else {
+      ref = this.getRefFromPullPath(path)
     }
 
-    const pullCommitPathMatch = this.getRefFromPullPath(path)
-    if (pullCommitPathMatch !== null) {
-      ;({ ref } = pullCommitPathMatch)
-    }
-
-    if (ref === undefined) {
+    if (ref === null || ref === undefined) {
       return null
     }
 
@@ -225,15 +220,7 @@ export class CommitMentionLinkFilter implements INodeFilter {
       return null
     }
 
-    const { sha } = match.groups
-
-    if (!this.sha.test(sha)) {
-      return null
-    }
-
-    return {
-      ref: this.trimCommitSha(sha),
-    }
+    return this.trimCommitSha(match.groups.sha)
   }
 
   /**
