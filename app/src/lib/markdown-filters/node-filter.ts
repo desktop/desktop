@@ -52,7 +52,11 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
     const filterPipe: Array<INodeFilter> = isIssueClosingContext(
       markdownContext
     )
-      ? [new CloseKeywordFilter(markdownContext)]
+      ? /* The CloseKeywordFilter must be applied before the IssueMentionFilter or
+         * IssueLinkFilter so we can scan for plain text or pasted link issue
+         * mentions in conjunction wth the keyword.
+         */
+        [new CloseKeywordFilter(markdownContext, repository)]
       : []
 
     filterPipe.push(

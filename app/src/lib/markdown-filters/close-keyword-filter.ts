@@ -1,3 +1,5 @@
+import { GitHubRepository } from '../../models/github-repository'
+import { issueUrl } from './issue-link-filter'
 import { IssueReference } from './issue-mention-filter'
 import { INodeFilter, MarkdownContext } from './node-filter'
 
@@ -32,6 +34,33 @@ export function isIssueClosingContext(markdownContext: MarkdownContext) {
  * '<span class="issue-keyword" title="This pull request closes #1234."]>Closes</span> #1234'
  */
 export class CloseKeywordFilter implements INodeFilter {
+  private closesWithTextReference = new RegExp(
+    this.closeText('closeTextWIssue').source +
+      '(?<issueReference>' +
+      IssueReference.source +
+      ')'
+  )
+
+  private closesAtEndOfText = new RegExp(
+    this.closeText('closeTextAtEnd').source + /$/.source
+  )
+
+  private closesKeywordUnion = new RegExp(
+    '(' +
+      this.closesWithTextReference.source +
+      ')|(' +
+      this.closesAtEndOfText.source +
+      ')',
+    'ig'
+  )
+
+  public constructor(
+    /** The context from which the markdown content originated from - such as a PullRequest or PullRequest Comment */
+    private readonly markdownContext: MarkdownContext,
+    /** The repository which the markdown content originated from */
+    private readonly repository: GitHubRepository
+  ) {}
+
   /**
    * Searches for the words: close, closes, closed, fix, fixes, fixed, resolve,
    * resolves, resolved
@@ -39,18 +68,15 @@ export class CloseKeywordFilter implements INodeFilter {
    * Expects one or more spaces at the end to avoid false matches like
    * owner/fixops#1
    */
-  private closeText =
-    /\b(?<closeText>close[sd]?|fix(e[sd])?|resolve[sd]?)(\s*:?\s+)/i
-
-  private closesWithTextReference = new RegExp(
-    this.closeText.source + '(?<issue_reference>' + IssueReference.source + ')',
-    'ig'
-  )
-
-  public constructor(
-    /** The context from which the markdown content originated from - such as a PullRequest or PullRequest Comment */
-    private readonly markdownContext: MarkdownContext
-  ) {}
+  private closeText(groupName: string) {
+    return new RegExp(
+      /\b/.source +
+        `(?<${groupName}>` +
+        /close[sd]?|fix(e[sd])?|resolve[sd]?/.source +
+        ')' +
+        /(\s*:?\s+)/.source
+    )
+  }
 
   /**
    *  Close keyword filter iterates on all text nodes that are not inside a pre,
@@ -82,7 +108,7 @@ export class CloseKeywordFilter implements INodeFilter {
       return null
     }
 
-    const matches = [...text.matchAll(this.closesWithTextReference)]
+    const matches = [...text.matchAll(this.closesKeywordUnion)]
     if (matches.length === 0) {
       return null
     }
@@ -93,9 +119,16 @@ export class CloseKeywordFilter implements INodeFilter {
       if (match.groups === undefined || match.index === undefined) {
         continue
       }
-      const { closeText, issue_reference } = match.groups
+      const { closeTextWIssue, closeTextAtEnd, issueReference } = match.groups
+      const closeText = closeTextWIssue ?? closeTextAtEnd
+      const issueDesc =
+        issueReference ?? this.getIssueReferenceFromSibling(node.nextSibling)
 
-      const span = this.createTooltipContent(closeText, issue_reference)
+      if (issueDesc === undefined || closeText === undefined) {
+        return null
+      }
+
+      const span = this.createTooltipContent(closeText, issueDesc)
 
       const textBefore = text.slice(lastMatchEndingPosition, match.index)
       nodes.push(document.createTextNode(textBefore))
@@ -110,6 +143,39 @@ export class CloseKeywordFilter implements INodeFilter {
     }
 
     return nodes
+  }
+
+  /**
+   * A match of something like 'Closes ' a text issue reference can happen if
+   * someone pastes a link to an issue reference such as
+   * https://github.com/owner/repo/issues/1234.
+   * This having been processed by a markdown parser will make that be `Closes <a
+   * href="https://github.com/owner/repo/issues/1234">https://github.com/owner/repo/issues/1234</a>`.
+   * In this case, we still want to format the closes keyword.
+   *
+   * This method takes the current text nodes next sibling and inspects it to
+   * see if it is a pasted issue url. If so, returns a text issue reference,
+   * otherwise returns undefined.
+   */
+  private getIssueReferenceFromSibling(siblingNode: ChildNode | null) {
+    if (
+      siblingNode === null ||
+      !(siblingNode instanceof HTMLAnchorElement) ||
+      siblingNode.href !== siblingNode.innerText
+    ) {
+      return
+    }
+
+    const issueLinkMatches = siblingNode.href.match(issueUrl(this.repository))
+    if (
+      issueLinkMatches === null ||
+      issueLinkMatches.groups === undefined ||
+      issueLinkMatches.groups.refNumber === undefined
+    ) {
+      return
+    }
+
+    return `#${issueLinkMatches.groups.refNumber}`
   }
 
   private createTooltipContent(closesText: string, issueNumber: string) {
