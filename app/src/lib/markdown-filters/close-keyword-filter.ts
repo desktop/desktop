@@ -1,6 +1,17 @@
 import { IssueReference } from './issue-mention-filter'
 import { INodeFilter, MarkdownContext } from './node-filter'
 
+/** Markdown locations that can have closing keywords */
+const IssueClosingContext: ReadonlyArray<MarkdownContext> = [
+  'Commit',
+  'PullRequest',
+]
+
+/** Determines if markdown context could have issue closing mention */
+export function isIssueClosingContext(markdownContext: MarkdownContext) {
+  return IssueClosingContext.includes(markdownContext)
+}
+
 export class CloseKeywordFilter implements INodeFilter {
   /**
    * Searches for the words: close, closes, closed, fix, fixes, fixed, resolve,

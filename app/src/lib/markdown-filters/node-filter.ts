@@ -8,7 +8,10 @@ import { VideoLinkFilter } from './video-link-filter'
 import { VideoTagFilter } from './video-tag-filter'
 import { TeamMentionFilter } from './team-mention-filter'
 import { CommitMentionFilter } from './commit-mention-filter'
-import { CloseKeywordFilter } from './close-keyword-filter'
+import {
+  CloseKeywordFilter,
+  isIssueClosingContext,
+} from './close-keyword-filter'
 
 export interface INodeFilter {
   /**
@@ -45,23 +48,32 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
     emoji: Map<string, string>,
     repository: GitHubRepository,
     markdownContext: MarkdownContext
-  ): ReadonlyArray<INodeFilter> => [
-    new CloseKeywordFilter(markdownContext),
-    new IssueMentionFilter(repository),
-    new IssueLinkFilter(repository),
-    new EmojiFilter(emoji),
-    // Note: TeamMentionFilter was placed before MentionFilter as they search
-    // for similar patterns with TeamMentionFilter having a larger application.
-    // @org/something vs @username. Thus, even tho the MentionFilter regex is
-    // meant to prevent this, in case a username could be encapsulated in the
-    // team mention like @username/something, we do the team mentions first to
-    // eliminate the possibility.
-    new TeamMentionFilter(repository),
-    new MentionFilter(repository),
-    new CommitMentionFilter(repository),
-    new VideoTagFilter(),
-    new VideoLinkFilter(),
-  ]
+  ): ReadonlyArray<INodeFilter> => {
+    const filterPipe: Array<INodeFilter> = isIssueClosingContext(
+      markdownContext
+    )
+      ? [new CloseKeywordFilter(markdownContext)]
+      : []
+
+    filterPipe.push(
+      new IssueMentionFilter(repository),
+      new IssueLinkFilter(repository),
+      new EmojiFilter(emoji),
+      // Note: TeamMentionFilter was placed before MentionFilter as they search
+      // for similar patterns with TeamMentionFilter having a larger application.
+      // @org/something vs @username. Thus, even tho the MentionFilter regex is
+      // meant to prevent this, in case a username could be encapsulated in the
+      // team mention like @username/something, we do the team mentions first to
+      // eliminate the possibility.
+      new TeamMentionFilter(repository),
+      new MentionFilter(repository),
+      new CommitMentionFilter(repository),
+      new VideoTagFilter(),
+      new VideoLinkFilter()
+    )
+
+    return filterPipe
+  }
 )
 
 /**
