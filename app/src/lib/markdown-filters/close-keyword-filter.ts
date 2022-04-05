@@ -1,6 +1,12 @@
 import { INodeFilter, MarkdownContext } from './node-filter'
 
 export class CloseKeywordFilter implements INodeFilter {
+  /** Markdown locations that can have closing keywords */
+  private issueClosingLocations: ReadonlyArray<MarkdownContext> = [
+    'Commit',
+    'PullRequest',
+  ]
+
   public constructor(
     /** The context from which the markdown content originated from - such as a PullRequest or PullRequest Comment */
     private readonly markdownContext: MarkdownContext
@@ -22,10 +28,7 @@ export class CloseKeywordFilter implements INodeFilter {
   }
 
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
-    if (
-      this.markdownContext !== 'Commit' &&
-      this.markdownContext !== 'PullRequest'
-    ) {
+    if (!this.issueClosingLocations.includes(this.markdownContext)) {
       return null
     }
 
