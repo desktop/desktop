@@ -12,6 +12,25 @@ export function isIssueClosingContext(markdownContext: MarkdownContext) {
   return IssueClosingContext.includes(markdownContext)
 }
 
+/**
+ * The Closes keyword filter matches text nodes for a set of key words that
+ * indicate the markdown closes an issue (Closes, fixes) followed by a issue
+ * reference. It replaces the closes keywords it with a span to be styled and
+ * provide a tooltip indicating the markdown will close the referenced issue.
+ *
+ * Markdown that can have these keywords are pull request bodies and commit
+ * messages.
+ *
+ * Closes keywords are close, closes, closed, fix, fixes, fixed, resolve,
+ * resolves, and resolved.
+ *
+ * Issue reference can be plain test like #1234 or can bea  pasted issue link
+ * like https://github.com/owner/repo/issues/1234.
+ *
+ * Example:
+ * 'Closes #1234' becomes
+ * '<span class="issue-keyword" title="This pull request closes #1234."]>Closes</span> #1234'
+ */
 export class CloseKeywordFilter implements INodeFilter {
   /**
    * Searches for the words: close, closes, closed, fix, fixes, fixed, resolve,
@@ -49,6 +68,14 @@ export class CloseKeywordFilter implements INodeFilter {
     })
   }
 
+  /**
+   * Takes a text node that matches a close keyword pattern and returns an array
+   * of nodes to replace the text node where the matching keyword becomes a span
+   * element.
+   *
+   * Example: Closes #1 becomes [<span class="issue-keyword" title="This pull
+   * request closes #1."]>Closes</span>, ' #1']
+   */
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
     const text = node.textContent
     if (node.nodeType !== node.TEXT_NODE || text === null) {
