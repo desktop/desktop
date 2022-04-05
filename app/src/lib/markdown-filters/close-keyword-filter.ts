@@ -184,7 +184,7 @@ export class CloseKeywordFilter implements INodeFilter {
     tooltipSpan.classList.add('issue-keyword')
     tooltipSpan.title = `This ${
       this.markdownContext === 'Commit' ? 'commit' : 'pull request'
-    } closes issue ${issueNumber}.`
+    } closes ${issueNumber}.`
     return tooltipSpan
   }
 }
