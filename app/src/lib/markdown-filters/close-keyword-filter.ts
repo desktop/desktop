@@ -1,6 +1,27 @@
+import { IssueReference } from './issue-mention-filter'
 import { INodeFilter, MarkdownContext } from './node-filter'
 
 export class CloseKeywordFilter implements INodeFilter {
+  /**
+   * Searches for the words: close, closes, closed, fix, fixes, fixed, resolve,
+   * resolves, resolved
+   *
+   * Expects one or more spaces at the end to avoid false matches like
+   * owner/fixops#1
+   */
+  private closeText =
+    /\b(?<close_text>close[sd]?|fix(e[sd])?|resolve[sd]?)(?<close_spacer>\s*:?\s+)/i
+
+  private closesWithTextReference = new RegExp(
+    this.closeText.source + '(?<issue_reference>' + IssueReference.source + ')',
+    'i'
+  )
+
+  private closesAtEndOfText = new RegExp(
+    this.closeText.source + /$/.source,
+    'i'
+  )
+
   /** Markdown locations that can have closing keywords */
   private issueClosingLocations: ReadonlyArray<MarkdownContext> = [
     'Commit',
@@ -31,6 +52,9 @@ export class CloseKeywordFilter implements INodeFilter {
     if (!this.issueClosingLocations.includes(this.markdownContext)) {
       return null
     }
+
+    console.log(this.closesWithTextReference)
+    console.log(this.closesAtEndOfText)
 
     return null
   }

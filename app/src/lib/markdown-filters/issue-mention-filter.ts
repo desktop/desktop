@@ -3,6 +3,47 @@ import { getHTMLURL } from '../api'
 import { INodeFilter } from './node-filter'
 import { resolveOwnerRepo } from './resolve-owner-repo'
 
+/** A regular expression to match a group of any digit follow by a word
+ * bounding character.
+ * Example: 123 or 123.
+ */
+const IssueRefNumber = /(?<refNumber>\d+)\b/
+
+/** A regular expression to match a group of an repo name or name with owner
+ * Example: desktop/dugite or desktop
+ */
+const IssueOwnerOrOwnerRepo = /(?<ownerOrOwnerRepo>\w+(?:-\w+)*(?:\/[.\w-]+)?)/
+
+/** A regular expression to match a group possible of preceding markers are
+ * gh-, #, /issues/, /pull/, or /discussions/ followed by a digit
+ */
+const IssueMentionMarker =
+  /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/i
+
+/**
+ * A regular expression string of a lookbehind is used so that valid matches
+ * for the issue reference have the leader precede them but the leader is not
+ * considered part of the match. An issue reference much have a whitespace,
+ * beginning of line, or some other non-word character must precede it.
+ * */
+const IssueMentionLeader = /(?<=^|\W)/
+
+/**
+ * A regular expression matching an issue reference. Issue reference must:
+ * 1) Start with an issue marker: gh-, #, /issues/, /pull/, or /discussions/
+ * 2) The issue marker must be followed by a number
+ * 3) The number must end in a word bounding character. Additionally, the
+ *    issue reference match may be such that the marker may be preceded by a
+ *    repo references of owner/repo or owner
+ * */
+export const IssueReference = new RegExp(
+  IssueOwnerOrOwnerRepo.source +
+    '?' +
+    IssueMentionMarker.source +
+    IssueRefNumber.source,
+  'i'
+)
+
 /**
  * The Issue Mention filter matches for text issue references. For this purpose,
  * issues, pull requests, and discussions all share reference patterns and
@@ -30,32 +71,6 @@ import { resolveOwnerRepo } from './resolve-owner-repo'
  *
  */
 export class IssueMentionFilter implements INodeFilter {
-  /** A regular expression to match a group of any digit follow by a word
-   * bounding character.
-   * Example: 123 or 123.
-   */
-  private readonly refNumber = /(?<refNumber>\d+)\b/
-
-  /** A regular expression to match a group of an repo name or name with owner
-   * Example: desktop/dugite or desktop
-   */
-  private readonly ownerOrOwnerRepo =
-    /(?<ownerOrOwnerRepo>\w+(?:-\w+)*(?:\/[.\w-]+)?)/
-
-  /** A regular expression to match a group possible of preceding markers are
-   * gh-, #, /issues/, /pull/, or /discussions/ followed by a digit
-   */
-  private readonly marker =
-    /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/i
-
-  /**
-   * A regular expression string of a lookbehind is used so that valid matches
-   * for the issue reference have the leader precede them but the leader is not
-   * considered part of the match. An issue reference much have a whitespace,
-   * beginning of line, or some other non-word character must precede it.
-   * */
-  private readonly leader = /(?<=^|\W)/
-
   /**
    * A regular expression matching an issue reference.
    * Issue reference must:
@@ -68,11 +83,7 @@ export class IssueMentionFilter implements INodeFilter {
    *    repo references of owner/repo or owner
    * */
   private readonly issueReferenceWithLeader = new RegExp(
-    this.leader.source +
-      this.ownerOrOwnerRepo.source +
-      '?' +
-      this.marker.source +
-      this.refNumber.source,
+    IssueMentionLeader.source + IssueReference.source,
     'ig'
   )
 
@@ -118,7 +129,7 @@ export class IssueMentionFilter implements INodeFilter {
     if (
       node.nodeType !== node.TEXT_NODE ||
       text === null ||
-      !this.marker.test(text)
+      !IssueMentionMarker.test(text)
     ) {
       return null
     }
