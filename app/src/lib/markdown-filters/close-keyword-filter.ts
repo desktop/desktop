@@ -51,8 +51,9 @@ export class CloseKeywordFilter implements INodeFilter {
   public createFilterTreeWalker(doc: Document): TreeWalker {
     return doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
       acceptNode: node => {
-        return node.parentNode !== null &&
-          ['CODE', 'PRE', 'A'].includes(node.parentNode.nodeName)
+        return (node.parentNode !== null &&
+          ['CODE', 'PRE', 'A'].includes(node.parentNode.nodeName)) ||
+          node.textContent === null
           ? NodeFilter.FILTER_SKIP
           : NodeFilter.FILTER_ACCEPT
       },
