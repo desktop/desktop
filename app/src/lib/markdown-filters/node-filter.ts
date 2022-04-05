@@ -8,6 +8,7 @@ import { VideoLinkFilter } from './video-link-filter'
 import { VideoTagFilter } from './video-tag-filter'
 import { TeamMentionFilter } from './team-mention-filter'
 import { CommitMentionFilter } from './commit-mention-filter'
+import { CloseKeywordFilter } from './close-keyword-filter'
 
 export interface INodeFilter {
   /**
@@ -42,8 +43,10 @@ export interface INodeFilter {
 export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
   (
     emoji: Map<string, string>,
-    repository: GitHubRepository
+    repository: GitHubRepository,
+    markdownContext: MarkdownContext
   ): ReadonlyArray<INodeFilter> => [
+    new CloseKeywordFilter(markdownContext),
     new IssueMentionFilter(repository),
     new IssueLinkFilter(repository),
     new EmojiFilter(emoji),
@@ -111,3 +114,10 @@ async function applyNodeFilter(
     currentNode.parentNode?.removeChild(currentNode)
   }
 }
+
+/** The context of which markdown resides */
+export type MarkdownContext =
+  | 'PullRequest'
+  | 'PullRequestComment'
+  | 'IssueComment'
+  | 'Commit'

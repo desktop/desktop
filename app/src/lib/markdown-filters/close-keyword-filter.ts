@@ -1,6 +1,11 @@
-import { INodeFilter } from './node-filter'
+import { INodeFilter, MarkdownContext } from './node-filter'
 
 export class CloseKeywordFilter implements INodeFilter {
+  public constructor(
+    /** The context from which the markdown content originated from - such as a PullRequest or PullRequest Comment */
+    private readonly markdownContext: MarkdownContext
+  ) {}
+
   /**
    *  Close keyword filter iterates on all text nodes that are not inside a pre,
    *  code, or anchor tag.
@@ -16,7 +21,14 @@ export class CloseKeywordFilter implements INodeFilter {
     })
   }
 
-  public filter(node: Node): Promise<readonly Node[] | null> {
-    throw new Error('Method not implemented.')
+  public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
+    if (
+      this.markdownContext !== 'Commit' &&
+      this.markdownContext !== 'PullRequest'
+    ) {
+      return null
+    }
+
+    return null
   }
 }

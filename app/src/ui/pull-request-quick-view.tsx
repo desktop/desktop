@@ -208,6 +208,7 @@ export class PullRequestQuickView extends React.Component<
           emoji={this.props.emoji}
           baseHref={base.gitHubRepository.htmlURL}
           repository={base.gitHubRepository}
+          markdownContext={'PullRequest'}
           onMarkdownLinkClicked={this.onMarkdownLinkClicked}
           onMarkdownParsed={this.onMarkdownParsed}
         />
