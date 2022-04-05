@@ -188,6 +188,10 @@ export class Advanced extends React.Component<
       return null
     }
 
+    const notificationSettingsURL = __DARWIN__
+      ? 'x-apple.systempreferences:com.apple.preference.notifications'
+      : 'ms-settings:notifications'
+
     return (
       <div className="advanced-section">
         <h2>Notifications</h2>
@@ -202,7 +206,12 @@ export class Advanced extends React.Component<
         />
         <p className="git-settings-description">
           Allows the display of notifications when high-signal events take place
-          in the current repository.
+          in the current repository. Make sure notifications are enabled for
+          GitHub Desktop in the{' '}
+          <LinkButton uri={notificationSettingsURL}>
+            Notifications Settings
+          </LinkButton>
+          .
         </p>
       </div>
     )
