@@ -30,7 +30,8 @@
   }
 
   .ci-check-status-symbol,
-  .job-step-toggled-indicator {
+  .job-step-toggled-indicator,
+  .job-rerun {
     padding: var(--spacing);
     padding-top: 11px;
   }
@@ -38,6 +39,14 @@
   .job-step-toggled-indicator {
     padding-left: 0px;
     color: var(--text-secondary-color);
+  }
+
+  .job-rerun {
+    color: var(--text-secondary-color);
+
+    &.not-action-job {
+      color: var(--toolbar-text-secondary-color);
+    }
   }
 
   .ci-check-list-item-detail {

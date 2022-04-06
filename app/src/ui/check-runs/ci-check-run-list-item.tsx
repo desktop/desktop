@@ -44,8 +44,20 @@ interface ICICheckRunListItemProps {
   ) => void
 }
 
+interface ICICheckRunListItemState {
+  readonly mouseOver: boolean
+}
+
 /** The CI check list item. */
-export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemProps> {
+export class CICheckRunListItem extends React.PureComponent<
+  ICICheckRunListItemProps,
+  ICICheckRunListItemState
+> {
+  public constructor(props: ICICheckRunListItemProps) {
+    super(props)
+    this.state = { mouseOver: false }
+  }
+
   private toggleCheckRunExpansion = () => {
     this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
@@ -125,6 +137,52 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     )
   }
 
+  private renderJobRerun = (): JSX.Element | null => {
+    const { checkRun } = this.props
+    const { mouseOver } = this.state
+
+    if (!mouseOver) {
+      return null
+    }
+
+    const classes = classNames('job-rerun', {
+      'not-action-job': checkRun.actionJobSteps === undefined,
+    })
+
+    const tooltip =
+      checkRun.actionJobSteps !== undefined
+        ? 'Re-run this check'
+        : 'This check cannot individually re-run.'
+
+    return (
+      <div className={classes} onClick={this.rerunJob}>
+        <TooltippedContent tooltip={tooltip}>
+          <Octicon symbol={OcticonSymbol.sync} />
+        </TooltippedContent>
+      </div>
+    )
+  }
+
+  private rerunJob = (e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (this.props.checkRun.actionJobSteps === undefined) {
+      console.log('Cannot re-run:', this.props.checkRun.name)
+    } else {
+      console.log('Re-run:', this.props.checkRun.name)
+    }
+  }
+
+  private onMouseOver = () => {
+    if (!this.state.mouseOver) {
+      this.setState({ mouseOver: true })
+    }
+  }
+
+  private onMouseOut = (e: React.MouseEvent) => {
+    this.setState({ mouseOver: false })
+  }
+
   public render() {
     const { checkRun, isCheckRunExpanded } = this.props
 
@@ -133,7 +191,11 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
       selected: this.props.selected,
     })
     return (
-      <div className="ci-check-list-item-group">
+      <div
+        className="ci-check-list-item-group"
+        onMouseOver={this.onMouseOver}
+        onMouseLeave={this.onMouseOut}
+      >
         <div
           className={classes}
           onClick={this.toggleCheckRunExpansion}
@@ -141,6 +203,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
         >
           {this.renderCheckStatusSymbol()}
           {this.renderCheckRunName()}
+          {this.renderJobRerun()}
           {this.renderCheckJobStepToggle()}
         </div>
         {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
