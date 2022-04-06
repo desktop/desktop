@@ -21,6 +21,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Donut } from '../donut'
 import { supportsRerunningChecks } from '../../lib/endpoint-capabilities'
 import { getPullRequestCommitRef } from '../../models/pull-request'
+import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -231,12 +232,28 @@ export class CICheckRunPopover extends React.PureComponent<
 
     return (
       <Button
-        onClick={this.rerunChecks}
+        onClick={this.onRerunChecksButton}
         disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
       >
-        <Octicon symbol={syncClockwise} /> Re-run checks
+        <Octicon symbol={syncClockwise} /> Re-run checks{' '}
+        <Octicon symbol={OcticonSymbol.triangleDown} />
       </Button>
     )
+  }
+
+  private onRerunChecksButton = () => {
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Re-run Failed Checks' : 'Re-run failed checks',
+        action: () => this.rerunChecks(),
+      },
+      {
+        label: __DARWIN__ ? 'Re-run All Checks' : 'Re-run all checks',
+        action: () => this.rerunChecks(),
+      },
+    ]
+
+    showContextualMenu(items)
   }
 
   private renderCheckRunLoadings(): JSX.Element {
