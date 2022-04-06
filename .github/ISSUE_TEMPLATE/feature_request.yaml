@@ -4,16 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for submitting a feature request! This issue tracker is for [GitHub Desktop](https://desktop.github.com).  If you have a feature request for github.com please visit the [GitHub public feedback discussions repository](https://github.com/github/feedback/discussions).
-  - type: checkboxes
-    id: existing-feature-requests
-    attributes:
-      label: Search for existing feature requests
-      options:
-        - label:
-            I have searched the issue tracker and confirmed that I was unable to
-            find existing issues for the feature I am requesting.
-          required: true
+        Thanks for submitting a feature request! This issue tracker is for [GitHub Desktop](https://desktop.github.com). Please search the issue tracker to see if there is an existing issue for the feature you are requesting. If you have a feature request for github.com please visit the [GitHub public feedback discussions repository](https://github.com/github/feedback/discussions).
   - type: textarea
     id: the-feature-request
     attributes:
