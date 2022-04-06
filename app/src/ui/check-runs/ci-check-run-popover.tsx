@@ -191,6 +191,15 @@ export class CICheckRunPopover extends React.PureComponent<
     return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
+  private rerunCheck = (check: IRefCheck) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CICheckRunRerun,
+      checkRuns: [check],
+      repository: this.props.repository,
+      prRef: getPullRequestCommitRef(this.props.prNumber),
+    })
+  }
+
   private rerunChecks = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CICheckRunRerun,
@@ -364,6 +373,7 @@ export class CICheckRunPopover extends React.PureComponent<
           loadingActionWorkflows={loadingActionWorkflows}
           onViewCheckDetails={this.onViewCheckDetails}
           onViewJobStep={this.onViewJobStep}
+          onRerunJob={this.rerunCheck}
         />
       </div>
     )

@@ -42,6 +42,9 @@ interface ICICheckRunListItemProps {
     checkRun: IRefCheck,
     step: IAPIWorkflowJobStep
   ) => void
+
+  /** Callback to rerun a job*/
+  readonly onRerunJob?: (checkRun: IRefCheck) => void
 }
 
 interface ICICheckRunListItemState {
@@ -68,6 +71,25 @@ export class CICheckRunListItem extends React.PureComponent<
 
   private onViewJobStep = (step: IAPIWorkflowJobStep) => {
     this.props.onViewJobStep?.(this.props.checkRun, step)
+  }
+
+  private rerunJob = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (this.props.checkRun.actionJobSteps === undefined) {
+      return
+    }
+
+    this.props.onRerunJob?.(this.props.checkRun)
+  }
+
+  private onMouseOver = () => {
+    if (!this.state.mouseOver) {
+      this.setState({ mouseOver: true })
+    }
+  }
+
+  private onMouseOut = (e: React.MouseEvent) => {
+    this.setState({ mouseOver: false })
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
@@ -138,10 +160,10 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderJobRerun = (): JSX.Element | null => {
-    const { checkRun } = this.props
+    const { checkRun, onRerunJob } = this.props
     const { mouseOver } = this.state
 
-    if (!mouseOver) {
+    if (!mouseOver || onRerunJob === undefined) {
       return null
     }
 
@@ -161,26 +183,6 @@ export class CICheckRunListItem extends React.PureComponent<
         </TooltippedContent>
       </div>
     )
-  }
-
-  private rerunJob = (e: React.MouseEvent) => {
-    e.stopPropagation()
-
-    if (this.props.checkRun.actionJobSteps === undefined) {
-      console.log('Cannot re-run:', this.props.checkRun.name)
-    } else {
-      console.log('Re-run:', this.props.checkRun.name)
-    }
-  }
-
-  private onMouseOver = () => {
-    if (!this.state.mouseOver) {
-      this.setState({ mouseOver: true })
-    }
-  }
-
-  private onMouseOut = (e: React.MouseEvent) => {
-    this.setState({ mouseOver: false })
   }
 
   public render() {
