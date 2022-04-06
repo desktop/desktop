@@ -7,6 +7,7 @@ import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-str
 import { RadioButton } from '../lib/radio-button'
 import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
 import { enableHighSignalNotifications } from '../../lib/feature-flag'
+import { isWindows10OrLater } from '../../lib/get-os'
 
 interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
@@ -202,9 +203,30 @@ export class Advanced extends React.Component<
         />
         <p className="git-settings-description">
           Allows the display of notifications when high-signal events take place
-          in the current repository.
+          in the current repository.{this.renderNotificationSettingsLink()}
         </p>
       </div>
+    )
+  }
+
+  private renderNotificationSettingsLink() {
+    if (!__DARWIN__ && !isWindows10OrLater()) {
+      return null
+    }
+
+    const notificationSettingsURL = __DARWIN__
+      ? 'x-apple.systempreferences:com.apple.preference.notifications'
+      : 'ms-settings:notifications'
+
+    return (
+      <>
+        {' '}
+        Make sure notifications are enabled for GitHub Desktop in the{' '}
+        <LinkButton uri={notificationSettingsURL}>
+          Notifications Settings
+        </LinkButton>
+        .
+      </>
     )
   }
 }
