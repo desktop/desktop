@@ -5,6 +5,7 @@ import DOMPurify from 'dompurify'
 import {
   applyNodeFilters,
   buildCustomMarkDownNodeFilterPipe,
+  MarkdownContext,
 } from '../../lib/markdown-filters/node-filter'
 import { GitHubRepository } from '../../models/github-repository'
 import { readFile } from 'fs/promises'
@@ -28,11 +29,15 @@ interface ISandboxedMarkdownProps {
   /** A callback for after the markdown has been parsed and the contents have
    * been mounted to the iframe */
   readonly onMarkdownParsed?: () => void
+
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+
+  /** The context of which markdown resides - such as PullRequest, PullRequestComment, Commit */
+  readonly markdownContext: MarkdownContext
 }
 
 /**
@@ -299,7 +304,8 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
   private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
     const nodeFilters = buildCustomMarkDownNodeFilterPipe(
       this.props.emoji,
-      this.props.repository
+      this.props.repository,
+      this.props.markdownContext
     )
     return applyNodeFilters(nodeFilters, parsedMarkdown)
   }

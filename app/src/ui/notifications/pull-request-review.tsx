@@ -228,6 +228,7 @@ export class PullRequestReview extends React.Component<
         baseHref={base.gitHubRepository.htmlURL}
         repository={base.gitHubRepository}
         onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+        markdownContext={'PullRequestComment'}
       />
     )
   }
