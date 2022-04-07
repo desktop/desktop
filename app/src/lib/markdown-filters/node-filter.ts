@@ -8,6 +8,7 @@ import { VideoLinkFilter } from './video-link-filter'
 import { VideoTagFilter } from './video-tag-filter'
 import { TeamMentionFilter } from './team-mention-filter'
 import { CommitMentionFilter } from './commit-mention-filter'
+import { CommitMentionLinkFilter } from './commit-mention-link-filter'
 
 export interface INodeFilter {
   /**
@@ -56,6 +57,7 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
     new TeamMentionFilter(repository),
     new MentionFilter(repository),
     new CommitMentionFilter(repository),
+    new CommitMentionLinkFilter(repository),
     new VideoTagFilter(),
     new VideoLinkFilter(),
   ]
