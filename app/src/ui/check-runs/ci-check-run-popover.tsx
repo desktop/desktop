@@ -198,15 +198,17 @@ export class CICheckRunPopover extends React.PureComponent<
       checkRuns: [check],
       repository: this.props.repository,
       prRef: getPullRequestCommitRef(this.props.prNumber),
+      failedOnly: false,
     })
   }
 
-  private rerunChecks = () => {
+  private rerunChecks = (failedOnly: boolean) => {
     this.props.dispatcher.showPopup({
       type: PopupType.CICheckRunRerun,
       checkRuns: this.state.checkRuns,
       repository: this.props.repository,
       prRef: getPullRequestCommitRef(this.props.prNumber),
+      failedOnly,
     })
   }
 
@@ -245,11 +247,11 @@ export class CICheckRunPopover extends React.PureComponent<
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Re-run Failed Checks' : 'Re-run failed checks',
-        action: () => this.rerunChecks(),
+        action: () => this.rerunChecks(true),
       },
       {
         label: __DARWIN__ ? 'Re-run All Checks' : 'Re-run all checks',
-        action: () => this.rerunChecks(),
+        action: () => this.rerunChecks(false),
       },
     ]
 

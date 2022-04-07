@@ -2049,6 +2049,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             prRef={popup.prRef}
             onDismissed={onPopupDismissedFn}
+            failedOnly={popup.failedOnly}
           />
         )
       }

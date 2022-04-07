@@ -22,6 +22,7 @@ import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions
 import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
+import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
 
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 const BlankSlateImage = encodePathAsUrl(
@@ -264,14 +265,33 @@ export class PullRequestChecksFailed extends React.Component<
     const { checks } = this.state
     return (
       <div className="ci-check-rerun">
-        <Button onClick={this.rerunChecks} disabled={checks.length === 0}>
-          <Octicon symbol={syncClockwise} /> Re-run checks
+        <Button
+          onClick={this.onRerunChecksButton}
+          disabled={checks.length === 0}
+        >
+          <Octicon symbol={syncClockwise} /> Re-run checks{' '}
+          <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
       </div>
     )
   }
 
-  private rerunChecks = () => {
+  private onRerunChecksButton = () => {
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Re-run Failed Checks' : 'Re-run failed checks',
+        action: () => this.rerunChecks(true),
+      },
+      {
+        label: __DARWIN__ ? 'Re-run All Checks' : 'Re-run all checks',
+        action: () => this.rerunChecks(false),
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private rerunChecks = (failedOnly: boolean) => {
     this.props.dispatcher.recordChecksFailedDialogRerunChecks()
 
     const prRef = getPullRequestCommitRef(
@@ -283,6 +303,7 @@ export class PullRequestChecksFailed extends React.Component<
       checkRuns: this.state.checks,
       repository: this.props.repository.gitHubRepository,
       prRef,
+      failedOnly,
     })
   }
 
@@ -298,6 +319,7 @@ export class PullRequestChecksFailed extends React.Component<
       checkRuns: [check],
       repository: this.props.repository.gitHubRepository,
       prRef,
+      failedOnly: false,
     })
   }
 
