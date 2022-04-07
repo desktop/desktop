@@ -533,3 +533,66 @@ changes from the original, just a note that this will not match 1-1)
 .markdown-body .issue-keyword {
 	border-bottom: 1px dotted var(--md-border-default-color);
 }
+
+.tooltipped {
+  position: relative;
+}
+
+.tooltipped:hover::before,
+.tooltipped:hover::after,
+.tooltipped:active::before,
+.tooltipped:active::after,
+.tooltipped:focus::before,
+.tooltipped:focus::after {
+	display: inline-block;
+	text-decoration: none;
+}
+
+.tooltipped::before {
+	position: absolute;
+	z-index: 1000001;
+	display: none;
+	width: 0;
+	height: 0;
+	color: var(--text-color);
+	pointer-events: none;
+	content: "";
+	border: 6px solid transparent;
+}
+
+.tooltipped-se::after {
+	top: 100%;
+	right: auto;
+	left: 50%;
+	margin-top: 6px;
+	margin-left: -16px;
+}
+
+.tooltipped-s::before, .tooltipped-se::before, .tooltipped-sw::before {
+	top: auto;
+	right: 50%;
+	bottom: -7px;
+	margin-right: -6px;
+	border-bottom-color: var(--text-color);
+}
+
+.tooltipped::after {
+	position: absolute;
+	display: none;
+	z-index: 1000000;
+	padding: 0.5em 0.75em;
+	font: normal normal 11px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+	-webkit-font-smoothing: subpixel-antialiased;
+	color: var(--background-color);
+	text-align: center;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	letter-spacing: normal;
+	word-wrap: break-word;
+	white-space: pre;
+	pointer-events: none;
+	content: attr(aria-label);
+	background-color: var(--text-color);
+	border-radius: 6px;
+}
