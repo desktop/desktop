@@ -26,7 +26,7 @@ export function isIssueClosingContext(markdownContext: MarkdownContext) {
  * Closes keywords are close, closes, closed, fix, fixes, fixed, resolve,
  * resolves, and resolved.
  *
- * Issue reference can be plain test like #1234 or can bea  pasted issue link
+ * Issue reference can be plain test like #1234 or can be a pasted issue link
  * like https://github.com/owner/repo/issues/1234.
  *
  * Example:
