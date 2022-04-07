@@ -4,16 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for filing a bug report! This issue tracker is for [GitHub Desktop](https://desktop.github.com). If you are experiencing issues with the Linux fork of GitHub Desktop please open an issue [in its repository](https://github.com/shiftkey/desktop). If you are experiencing issues with github.com please [contact GitHub Support](https://support.github.com/).
-  - type: checkboxes
-    id: existing-issues
-    attributes:
-      label: Search existing issues
-      options:
-        - label:
-            I have searched the issue tracker and confirmed that I was unable to
-            find existing issues for the problem I am experiencing.
-          required: true
+        Thanks for filing a bug report! This issue tracker is for [GitHub Desktop](https://desktop.github.com). Please search the issue tracker to see if there is an existing issue for the problem you are experiencing. If you are experiencing issues with the Linux fork of GitHub Desktop please open an issue [in its repository](https://github.com/shiftkey/desktop). If you are experiencing issues with github.com please [contact GitHub Support](https://support.github.com/).
   - type: textarea
     id: the-problem
     attributes:

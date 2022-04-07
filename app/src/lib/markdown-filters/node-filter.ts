@@ -12,6 +12,7 @@ import {
   CloseKeywordFilter,
   isIssueClosingContext,
 } from './close-keyword-filter'
+import { CommitMentionLinkFilter } from './commit-mention-link-filter'
 
 export interface INodeFilter {
   /**
@@ -72,6 +73,7 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
       new TeamMentionFilter(repository),
       new MentionFilter(repository),
       new CommitMentionFilter(repository),
+      new CommitMentionLinkFilter(repository),
       new VideoTagFilter(),
       new VideoLinkFilter()
     )
