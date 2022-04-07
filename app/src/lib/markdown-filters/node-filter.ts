@@ -3,6 +3,15 @@ import { GitHubRepository } from '../../models/github-repository'
 import { EmojiFilter } from './emoji-filter'
 import { IssueLinkFilter } from './issue-link-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
+import { MentionFilter } from './mention-filter'
+import { VideoLinkFilter } from './video-link-filter'
+import { VideoTagFilter } from './video-tag-filter'
+import { TeamMentionFilter } from './team-mention-filter'
+import { CommitMentionFilter } from './commit-mention-filter'
+import {
+  CloseKeywordFilter,
+  isIssueClosingContext,
+} from './close-keyword-filter'
 
 export interface INodeFilter {
   /**
@@ -37,12 +46,38 @@ export interface INodeFilter {
 export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
   (
     emoji: Map<string, string>,
-    repository: GitHubRepository
-  ): ReadonlyArray<INodeFilter> => [
-    new IssueMentionFilter(repository),
-    new IssueLinkFilter(repository),
-    new EmojiFilter(emoji),
-  ]
+    repository: GitHubRepository,
+    markdownContext: MarkdownContext
+  ): ReadonlyArray<INodeFilter> => {
+    const filterPipe: Array<INodeFilter> = isIssueClosingContext(
+      markdownContext
+    )
+      ? /* The CloseKeywordFilter must be applied before the IssueMentionFilter or
+         * IssueLinkFilter so we can scan for plain text or pasted link issue
+         * mentions in conjunction wth the keyword.
+         */
+        [new CloseKeywordFilter(markdownContext, repository)]
+      : []
+
+    filterPipe.push(
+      new IssueMentionFilter(repository),
+      new IssueLinkFilter(repository),
+      new EmojiFilter(emoji),
+      // Note: TeamMentionFilter was placed before MentionFilter as they search
+      // for similar patterns with TeamMentionFilter having a larger application.
+      // @org/something vs @username. Thus, even tho the MentionFilter regex is
+      // meant to prevent this, in case a username could be encapsulated in the
+      // team mention like @username/something, we do the team mentions first to
+      // eliminate the possibility.
+      new TeamMentionFilter(repository),
+      new MentionFilter(repository),
+      new CommitMentionFilter(repository),
+      new VideoTagFilter(),
+      new VideoLinkFilter()
+    )
+
+    return filterPipe
+  }
 )
 
 /**
@@ -95,3 +130,10 @@ async function applyNodeFilter(
     currentNode.parentNode?.removeChild(currentNode)
   }
 }
+
+/** The context of which markdown resides */
+export type MarkdownContext =
+  | 'PullRequest'
+  | 'PullRequestComment'
+  | 'IssueComment'
+  | 'Commit'

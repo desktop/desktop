@@ -277,8 +277,18 @@
     background: var(--diff-add-background-color);
 
     @include high-contrast {
-      border: var(--hc-diff-add-border);
+      border-right: var(--hc-diff-add-border);
+      border-left: var(--hc-diff-add-border);
       margin-top: 1px;
+
+      &.is-first {
+        margin-top: 1px;
+        border-top: var(--hc-diff-add-border);
+      }
+
+      &.is-last {
+        border-bottom: var(--hc-diff-add-border);
+      }
     }
   }
 
@@ -286,7 +296,17 @@
     background: var(--diff-delete-background-color);
 
     @include high-contrast {
-      border: var(--hc-diff-delete-border);
+      border-right: var(--hc-diff-delete-border);
+      border-left: var(--hc-diff-delete-border);
+
+      &.is-first {
+        margin-top: 1px;
+        border-top: var(--hc-diff-delete-border);
+      }
+
+      &.is-last {
+        border-bottom: var(--hc-diff-delete-border);
+      }
     }
   }
 

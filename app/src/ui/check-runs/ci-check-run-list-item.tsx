@@ -45,9 +45,7 @@ interface ICICheckRunListItemProps {
 }
 
 /** The CI check list item. */
-export class CICheckRunListItem extends React.PureComponent<
-  ICICheckRunListItemProps
-> {
+export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemProps> {
   private toggleCheckRunExpansion = () => {
     this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
@@ -77,12 +75,8 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckJobStepToggle = (): JSX.Element | null => {
-    const {
-      checkRun,
-      isCheckRunExpanded,
-      selectable,
-      notExpandable,
-    } = this.props
+    const { checkRun, isCheckRunExpanded, selectable, notExpandable } =
+      this.props
 
     if (
       checkRun.actionJobSteps === undefined ||
@@ -97,8 +91,8 @@ export class CICheckRunListItem extends React.PureComponent<
         <Octicon
           symbol={
             isCheckRunExpanded
-              ? OcticonSymbol.chevronDown
-              : OcticonSymbol.chevronUp
+              ? OcticonSymbol.chevronUp
+              : OcticonSymbol.chevronDown
           }
         />
       </div>

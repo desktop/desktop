@@ -6,8 +6,8 @@ import {
   RegistryValue,
   RegistryValueType,
 } from 'registry-js'
+import { pathExists } from '../../ui/lib/path-exists'
 
-import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 
 interface IWindowsAppInformation {
@@ -233,6 +233,15 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'Sublime HQ Pty Ltd',
   },
   {
+    name: 'Brackets',
+    registryKeys: [
+      Wow64LocalMachineUninstallKey('{4F3B6E8C-401B-4EDE-A423-6481C239D6FF}'),
+    ],
+    executableShimPaths: [['Brackets.exe']],
+    displayNamePrefix: 'Brackets',
+    publisher: 'brackets.io',
+  },
+  {
     name: 'ColdFusion Builder',
     registryKeys: [
       // 64-bit version of ColdFusionBuilder3
@@ -303,6 +312,13 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'JetBrains s.r.o.',
   },
   {
+    name: 'Android Studio',
+    registryKeys: [LocalMachineUninstallKey('Android Studio')],
+    installLocationRegistryKey: 'DisplayIcon',
+    displayNamePrefix: 'Android Studio',
+    publisher: 'Google LLC',
+  },
+  {
     name: 'Notepad++',
     registryKeys: [
       // 64-bit version of Notepad++
@@ -356,6 +372,20 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('CLion'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('clion'),
     displayNamePrefix: 'CLion ',
+    publisher: 'JetBrains s.r.o.',
+  },
+  {
+    name: 'JetBrains RubyMine',
+    registryKeys: registryKeysForJetBrainsIDE('RubyMine'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rubymine'),
+    displayNamePrefix: 'RubyMine ',
+    publisher: 'JetBrains s.r.o.',
+  },
+  {
+    name: 'JetBrains GoLand',
+    registryKeys: registryKeysForJetBrainsIDE('GoLand'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('goland'),
+    displayNamePrefix: 'GoLand ',
     publisher: 'JetBrains s.r.o.',
   },
 ]

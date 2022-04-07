@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import * as fileSystem from '../../lib/file-system'
 
 import { getBlobContents } from './show'
 
@@ -26,6 +25,7 @@ import { spawnAndComplete } from './spawn'
 import { DiffParser } from '../diff-parser'
 import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
+import { readFile } from 'fs/promises'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -323,7 +323,8 @@ function getMediaType(extension: string) {
  * about to `stderr` - this rule here will catch this and also the to/from
  * changes based on what the user has configured.
  */
-const lineEndingsChangeRegex = /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
+const lineEndingsChangeRegex =
+  /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
 
 /**
  * Utility function for inspecting the stderr output for the line endings
@@ -432,9 +433,7 @@ export async function getWorkingDirectoryImage(
   repository: Repository,
   file: FileChange
 ): Promise<Image> {
-  const contents = await fileSystem.readFile(
-    Path.join(repository.path, file.path)
-  )
+  const contents = await readFile(Path.join(repository.path, file.path))
   return new Image(
     contents.toString('base64'),
     getMediaType(Path.extname(file.path)),

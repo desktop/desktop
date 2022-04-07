@@ -1,10 +1,10 @@
-import * as remote from '@electron/remote'
 const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
 import {
   checkForUpdates,
+  isRunningUnderARM64Translation,
   onAutoUpdaterCheckingForUpdate,
   onAutoUpdaterError,
   onAutoUpdaterUpdateAvailable,
@@ -20,7 +20,6 @@ import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
-import { isRunningUnderARM64Translation } from 'detect-arm64-translation'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -155,13 +154,11 @@ class UpdateStore {
 
     let updatesURL = __UPDATES_URL__
 
-    // If the app is running under Rosetta (i.e. it's a macOS x64 binary running
-    // on an arm64 machine), we need to tweak the update URL here to point at
-    // the arm64 binary.
+    // If the app is running under arm64 to x64 translation, we need to tweak the
+    // update URL here to point at the arm64 binary.
     if (
       enableUpdateFromEmulatedX64ToARM64() &&
-      (remote.app.runningUnderRosettaTranslation === true ||
-        isRunningUnderARM64Translation() === true)
+      (await isRunningUnderARM64Translation()) === true
     ) {
       const url = new URL(updatesURL)
       url.pathname = url.pathname.replace(

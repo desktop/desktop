@@ -271,7 +271,7 @@ export class PullRequestChecksFailed extends React.Component<
   }
 
   private rerunChecks = () => {
-    this.props.dispatcher.recordChecksFailedDialogSwitchToPullRequest()
+    this.props.dispatcher.recordChecksFailedDialogRerunChecks()
 
     const prRef = getPullRequestCommitRef(
       this.props.pullRequest.pullRequestNumber
@@ -312,7 +312,7 @@ export class PullRequestChecksFailed extends React.Component<
       a check run does not have action logs to retrieve/parse.
     */
     const checkRunsWithActionsUrls = await getCheckRunActionsWorkflowRuns(
-      api,
+      account,
       gitHubRepository.owner.login,
       gitHubRepository.name,
       pullRequest.head.ref,
@@ -373,6 +373,8 @@ export class PullRequestChecksFailed extends React.Component<
   private onSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     const { dispatcher, repository, pullRequest } = this.props
+
+    this.props.dispatcher.recordChecksFailedDialogSwitchToPullRequest()
 
     this.setState({ switchingToPullRequest: true })
     await dispatcher.selectRepository(repository)

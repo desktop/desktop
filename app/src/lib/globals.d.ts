@@ -55,57 +55,6 @@ declare const __UPDATES_URL__: string
  */
 declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'highlighter'
 
-/**
- * The IdleDeadline interface is used as the data type of the input parameter to
- * idle callbacks established by calling Window.requestIdleCallback(). It offers
- * a method, timeRemaining(), which lets you determine how much longer the user
- * agent estimates it will remain idle and a property, didTimeout, which lets
- * you determine if your callback is executing because its timeout duration
- * expired.
- *
- * https://developer.mozilla.org/en-US/docs/Web/API/IdleDeadline
- */
-interface IdleDeadline {
-  readonly didTimeout: boolean
-  readonly timeRemaining: () => DOMHighResTimeStamp
-}
-
-/**
- * Contains optional configuration parameters for the requestIdleCallback
- * function.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
- */
-interface IdleCallbackOptions {
-  /**
-   * If timeout is specified and has a positive value, and the callback has not
-   * already been called by the time timeout milliseconds have passed, the
-   * timeout will be called during the next idle period, even if doing so risks
-   * causing a negative performance impact..
-   */
-  readonly timeout: number
-}
-
-/**
- * The window.requestIdleCallback() method queues a function to be called during
- * a browser's idle periods. This enables developers to perform background and
- * low priority work on the main event loop, without impacting latency-critical
- * events such as animation and input response. Functions are generally called
- * in first-in-first-out order; however, callbacks which have a timeout
- * specified may be called out-of-order if necessary in order to run them before
- * the timeout elapses.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
- *
- * @param options Contains optional configuration parameters. Currently only one
- *                property is defined:
- *                  timeout:
- */
-declare function requestIdleCallback(
-  fn: (deadline: IdleDeadline) => void,
-  options?: IdleCallbackOptions
-): number
-
 interface IDesktopLogger {
   /**
    * Writes a log message at the 'error' level.
@@ -181,9 +130,6 @@ declare const log: IDesktopLogger
 
 declare namespace NodeJS {
   interface Process extends EventEmitter {
-    once(event: 'exit', listener: Function): this
-    once(event: 'uncaughtException', listener: (error: Error) => void): this
-    on(event: 'uncaughtException', listener: (error: Error) => void): this
     on(
       event: 'send-non-fatal-exception',
       listener: (error: Error, context?: { [key: string]: string }) => void
@@ -197,21 +143,7 @@ declare namespace NodeJS {
   }
 }
 
-interface XMLHttpRequest extends XMLHttpRequestEventTarget {
-  /**
-   * Initiates the request. The optional argument provides the request body. The argument is ignored if request method is GET or HEAD.
-   * Throws an "InvalidStateError" DOMException if either state is not opened or the send() flag is set.
-   */
-  send(body?: Document | BodyInit | null): void
-}
-
 declare namespace Electron {
-  interface RequestOptions {
-    readonly method: string
-    readonly url: string
-    readonly headers: any
-  }
-
   type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
   interface SystemPreferences {
@@ -222,30 +154,14 @@ declare namespace Electron {
   }
 }
 
-// https://wicg.github.io/ResizeObserver/#resizeobserverentry
-interface IResizeObserverEntry {
-  readonly target: HTMLElement
-  readonly contentRect: ClientRect
-}
-
-declare class ResizeObserver {
-  public constructor(cb: (entries: ReadonlyArray<IResizeObserverEntry>) => void)
-
-  public disconnect(): void
-  public observe(e: HTMLElement): void
-}
-
-declare module 'file-metadata' {
-  // eslint-disable-next-line no-restricted-syntax
-  function fileMetadata(path: string): Promise<plist.PlistObject>
-  export = fileMetadata
-}
-
 // https://github.com/microsoft/TypeScript/issues/21568#issuecomment-362473070
 interface Window {
   Element: typeof Element
 }
 
+interface HTMLDialogElement {
+  showModal: () => void
+}
 /**
  * Obtain the number of elements of a tuple type
  *

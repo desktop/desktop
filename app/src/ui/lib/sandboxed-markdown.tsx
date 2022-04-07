@@ -1,13 +1,14 @@
 import * as React from 'react'
-import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import {
   applyNodeFilters,
   buildCustomMarkDownNodeFilterPipe,
+  MarkdownContext,
 } from '../../lib/markdown-filters/node-filter'
 import { GitHubRepository } from '../../models/github-repository'
+import { readFile } from 'fs/promises'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -28,22 +29,54 @@ interface ISandboxedMarkdownProps {
   /** A callback for after the markdown has been parsed and the contents have
    * been mounted to the iframe */
   readonly onMarkdownParsed?: () => void
+
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+
+  /** The context of which markdown resides - such as PullRequest, PullRequestComment, Commit */
+  readonly markdownContext: MarkdownContext
 }
 
 /**
  * Parses and sanitizes markdown into html and outputs it inside a sandboxed
  * iframe.
  **/
-export class SandboxedMarkdown extends React.PureComponent<
-  ISandboxedMarkdownProps
-> {
+export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownProps> {
   private frameRef: HTMLIFrameElement | null = null
   private frameContainingDivRef: HTMLDivElement | null = null
+  private contentDivRef: HTMLDivElement | null = null
+
+  /**
+   * Resize observer used for tracking height changes in the markdown
+   * content and update the size of the iframe container.
+   */
+  private readonly resizeObserver: ResizeObserver
+  private resizeDebounceId: number | null = null
+
+  public constructor(props: ISandboxedMarkdownProps) {
+    super(props)
+
+    this.resizeObserver = new ResizeObserver(this.scheduleResizeEvent)
+  }
+
+  private scheduleResizeEvent = () => {
+    if (this.resizeDebounceId !== null) {
+      cancelAnimationFrame(this.resizeDebounceId)
+      this.resizeDebounceId = null
+    }
+    this.resizeDebounceId = requestAnimationFrame(this.onContentResized)
+  }
+
+  private onContentResized = () => {
+    if (this.frameRef === null) {
+      return
+    }
+
+    this.setFrameContainerHeight(this.frameRef)
+  }
 
   private onFrameRef = (frameRef: HTMLIFrameElement | null) => {
     this.frameRef = frameRef
@@ -70,6 +103,10 @@ export class SandboxedMarkdown extends React.PureComponent<
     }
   }
 
+  public componentWillUnmount() {
+    this.resizeObserver.disconnect()
+  }
+
   /**
    * Since iframe styles are isolated from the rest of the app, we have a
    * markdown.css file that we added to app/static directory that we can read in
@@ -80,7 +117,7 @@ export class SandboxedMarkdown extends React.PureComponent<
    * document body and provide them aswell.
    */
   private async getInlineStyleSheet(): Promise<string> {
-    const css = await FSE.readFile(
+    const css = await readFile(
       Path.join(__dirname, 'static', 'markdown.css'),
       'utf8'
     )
@@ -108,6 +145,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         ${scrapeVariable('--font-size')}
         ${scrapeVariable('--font-size-sm')}
         ${scrapeVariable('--text-color')}
+        ${scrapeVariable('--background-color')}
       }
       ${css}
     </style>`
@@ -119,9 +157,31 @@ export class SandboxedMarkdown extends React.PureComponent<
    */
   private setupFrameLoadListeners(frameRef: HTMLIFrameElement): void {
     frameRef.addEventListener('load', () => {
+      this.setupContentDivRef(frameRef)
       this.setupLinkInterceptor(frameRef)
       this.setFrameContainerHeight(frameRef)
     })
+  }
+
+  private setupContentDivRef(frameRef: HTMLIFrameElement): void {
+    if (frameRef.contentDocument === null) {
+      return
+    }
+
+    /*
+     * We added an additional wrapper div#content around the markdown to
+     * determine a more accurate scroll height as the iframe's document or body
+     * element was not adjusting it's height dynamically when new content was
+     * provided.
+     */
+    this.contentDivRef = frameRef.contentDocument.documentElement.querySelector(
+      '#content'
+    ) as HTMLDivElement
+
+    if (this.contentDivRef !== null) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver.observe(this.contentDivRef)
+    }
   }
 
   /**
@@ -133,28 +193,16 @@ export class SandboxedMarkdown extends React.PureComponent<
    */
   private setFrameContainerHeight(frameRef: HTMLIFrameElement): void {
     if (
-      frameRef.contentDocument == null ||
-      this.frameContainingDivRef == null
+      frameRef.contentDocument === null ||
+      this.frameContainingDivRef === null ||
+      this.contentDivRef === null
     ) {
       return
     }
 
-    /*
-     * We added an additional wrapper div#content around the markdown to
-     * determine a more accurate scroll height as the iframe's document or body
-     * element was not adjusting it's height dynamically when new content was
-     * provided.
-     */
-    const docEl = frameRef.contentDocument.documentElement.querySelector(
-      '#content'
-    )
-    if (docEl === null) {
-      return
-    }
-
-    // Not sure why the content height != body height exactly. But, 50px seems
-    // to prevent scrollbar/content cut off.
-    const divHeight = docEl.clientHeight + 50
+    // Not sure why the content height != body height exactly. But we need to
+    // set the height explicitly to prevent scrollbar/content cut off.
+    const divHeight = this.contentDivRef.clientHeight
     this.frameContainingDivRef.style.height = `${divHeight}px`
     this.props.onMarkdownParsed?.()
   }
@@ -256,7 +304,8 @@ export class SandboxedMarkdown extends React.PureComponent<
   private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
     const nodeFilters = buildCustomMarkDownNodeFilterPipe(
       this.props.emoji,
-      this.props.repository
+      this.props.repository,
+      this.props.markdownContext
     )
     return applyNodeFilters(nodeFilters, parsedMarkdown)
   }

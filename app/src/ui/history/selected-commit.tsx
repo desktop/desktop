@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { clipboard } from 'electron'
-import { pathExists } from 'fs-extra'
 import * as Path from 'path'
 
 import { Repository } from '../../models/repository'
@@ -18,12 +17,13 @@ import {
   DefaultEditorLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
+  CopyRelativeFilePathLabel,
 } from '../lib/context-menu'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 import { Dispatcher } from '../dispatcher'
 import { Resizable } from '../resizable'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
@@ -33,6 +33,7 @@ import { IMenuItem } from '../../lib/menu-item'
 import { IChangesetData } from '../../lib/git'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
+import { pathExists } from '../lib/path-exists'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
@@ -363,6 +364,11 @@ export class SelectedCommit extends React.Component<
         label: CopyFilePathLabel,
         action: () => clipboard.writeText(fullPath),
       },
+      {
+        label: CopyRelativeFilePathLabel,
+        action: () => clipboard.writeText(Path.normalize(file.path)),
+      },
+      { type: 'separator' },
     ]
 
     let viewOnGitHubLabel = 'View on GitHub'

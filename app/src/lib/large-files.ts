@@ -1,8 +1,10 @@
 import { WorkingDirectoryStatus } from '../models/status'
 import { DiffSelectionType } from '../models/diff'
 import { Repository } from '../models/repository'
-import { stat } from 'fs-extra'
+import { stat } from 'fs/promises'
 import { join } from 'path'
+
+const ReceiveLimit = 100 * 1024 * 1024 // 100 MiB
 
 /**
  * Retrieve paths of working directory files that are larger than a given Megabyte size.
@@ -15,10 +17,8 @@ import { join } from 'path'
  */
 export async function getLargeFilePaths(
   repository: Repository,
-  workingDirectory: WorkingDirectoryStatus,
-  maximumSizeMB: number
+  workingDirectory: WorkingDirectoryStatus
 ) {
-  const maximumSizeBytes = maximumSizeMB * 1000000
   const fileNames = new Array<string>()
   const workingDirectoryFiles = workingDirectory.files
   const includedFiles = workingDirectoryFiles.filter(
@@ -30,7 +30,7 @@ export async function getLargeFilePaths(
     try {
       const fileStatus = await stat(filePath)
       const fileSizeBytes = fileStatus.size
-      if (fileSizeBytes > maximumSizeBytes) {
+      if (fileSizeBytes > ReceiveLimit) {
         fileNames.push(file.path)
       }
     } catch (error) {

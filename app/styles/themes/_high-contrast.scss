@@ -65,4 +65,13 @@ body.theme-high-contrast {
   --diff-hunk-background-color: var(--hc-background-color);
   --diff-empty-row-background-color: var(--hc-secondary-background-color);
   --diff-border-color: var(--hc-border-color);
+
+  // PR review colors
+  --pr-timeline-line-color: #7a828e;
+  --pr-changes-requested-icon-color: #0a0c10;
+  --pr-changes-requested-icon-background-color: #ff6a69;
+  --pr-approved-icon-color: #0a0c10;
+  --pr-approved-icon-background-color: #09b43a;
+  --pr-commented-icon-color: #f0f3f6;
+  --pr-commented-icon-background-color: #272b33;
 }

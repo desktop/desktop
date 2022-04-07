@@ -1,8 +1,9 @@
-import * as remote from '@electron/remote'
 import { ExecutableMenuItem } from '../models/app-menu'
-import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import * as ipcRenderer from '../lib/ipc-renderer'
+import { stat } from 'fs/promises'
+import { isApplicationBundle } from '../lib/is-application-bundle'
+import { pathExists } from './lib/path-exists'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the
@@ -87,8 +88,61 @@ export const isWindowFocused = invokeProxy('is-window-focused', 0)
 /** Tell the main process to focus on the main window. */
 export const focusWindow = sendProxy('focus-window', 0)
 
-export const showItemInFolder = sendProxy('show-item-in-folder', 1)
-export const showFolderContents = sendProxy('show-folder-contents', 1)
+const _showItemInFolder = invokeProxy('show-item-in-folder', 1)
+
+export const showItemInFolder = (path: string) =>
+  pathExists(path)
+    .then(() => _showItemInFolder(path))
+    .catch(err => log.error(`Unable show item in folder '${path}'`, err))
+
+const UNSAFE_openDirectory = sendProxy('unsafe-open-directory', 1)
+
+export async function showFolderContents(path: string) {
+  const stats = await stat(path).catch(err => {
+    log.error(`Unable to retrieve file information for ${path}`, err)
+    return null
+  })
+
+  if (!stats) {
+    return
+  }
+
+  if (!stats.isDirectory()) {
+    log.error(`Trying to get the folder contents of a non-folder at '${path}'`)
+    await _showItemInFolder(path)
+    return
+  }
+
+  // On Windows and Linux we can count on a directory being just a
+  // directory.
+  if (!__DARWIN__) {
+    UNSAFE_openDirectory(path)
+    return
+  }
+
+  // On macOS a directory might also be an app bundle and if it is
+  // and we attempt to open it we're gonna execute that app which
+  // it far from ideal so we'll look up the metadata for the path
+  // and attempt to determine whether it's an app bundle or not.
+  //
+  // If we fail loading the metadata we'll assume it's an app bundle
+  // out of an abundance of caution.
+  const isBundle = await isApplicationBundle(path).catch(err => {
+    log.error(`Failed to load metadata for path '${path}'`, err)
+    return true
+  })
+
+  if (isBundle) {
+    log.info(
+      `Preventing direct open of path '${path}' as it appears to be an application bundle`
+    )
+
+    await _showItemInFolder(path)
+  } else {
+    UNSAFE_openDirectory(path)
+  }
+}
+
 export const openExternal = invokeProxy('open-external', 1)
 export const moveItemToTrash = invokeProxy('move-to-trash', 1)
 
@@ -143,6 +197,12 @@ export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
 }
 
+/** Tell the main process to set the native theme source */
+export const setNativeThemeSource = sendProxy('set-native-theme-source', 1)
+
+/** Tell the main process to obtain wether the native theme uses dark colors */
+export const shouldUseDarkColors = invokeProxy('should-use-dark-colors', 0)
+
 /** Tell the main process to minimize the window */
 export const minimizeWindow = sendProxy('minimize-window', 0)
 
@@ -155,6 +215,16 @@ export const restoreWindow = sendProxy('unmaximize-window', 0)
 /** Tell the main process to close the window */
 export const closeWindow = sendProxy('close-window', 0)
 
+/** Tell the main process to get whether the window is maximized */
+export const isWindowMaximized = invokeProxy('is-window-maximized', 0)
+
+/** Tell the main process to get the users system preference for app action on
+ * double click */
+export const getAppleActionOnDoubleClick = invokeProxy(
+  'get-apple-action-on-double-click',
+  0
+)
+
 /**
  * Show the OS-provided certificate trust dialog for the certificate, using the
  * given message.
@@ -165,9 +235,28 @@ export const showCertificateTrustDialog = sendProxy(
 )
 
 /**
+ * Tell the main process to obtain the applications path for given path type
+ */
+export const getPath = invokeProxy('get-path', 1)
+
+/**
  * Tell the main process to obtain the applications architecture
  */
 export const getAppArchitecture = invokeProxy('get-app-architecture', 0)
+
+/**
+ * Tell the main process to obtain the application's app path
+ */
+export const getAppPathProxy = invokeProxy('get-app-path', 0)
+
+/**
+ * Tell the main process to obtain whether the app is running under a rosetta
+ * translation
+ */
+export const isRunningUnderARM64Translation = invokeProxy(
+  'is-running-under-arm64-translation',
+  0
+)
 
 /**
  * Tell the main process that we're going to quit. This means it should allow
@@ -184,7 +273,7 @@ export function sendWillQuitSync() {
 /**
  * Tell the main process to move the application to the application folder
  */
-export const moveToApplicationsFolder = sendProxy(
+export const moveToApplicationsFolder = invokeProxy(
   'move-to-applications-folder',
   0
 )
@@ -196,176 +285,7 @@ export const moveToApplicationsFolder = sendProxy(
  */
 export const getAppMenu = sendProxy('get-app-menu', 0)
 
-function findSubmenuItem(
-  currentContextualMenuItems: ReadonlyArray<IMenuItem>,
-  indices: ReadonlyArray<number>
-): IMenuItem | undefined {
-  let foundMenuItem: IMenuItem | undefined = {
-    submenu: currentContextualMenuItems,
-  }
-
-  // Traverse the submenus of the context menu until we find the appropriate index.
-  for (const index of indices) {
-    if (foundMenuItem === undefined || foundMenuItem.submenu === undefined) {
-      return undefined
-    }
-
-    foundMenuItem = foundMenuItem.submenu[index]
-  }
-
-  return foundMenuItem
-}
-
-let deferredContextMenuItems: ReadonlyArray<IMenuItem> | null = null
-
-/** Takes a context menu and spelling suggestions from electron and merges them
- * into one context menu. */
-function mergeDeferredContextMenuItems(
-  event: Electron.Event,
-  params: Electron.ContextMenuParams
-) {
-  if (deferredContextMenuItems === null) {
-    return
-  }
-
-  const items = [...deferredContextMenuItems]
-  const { misspelledWord, dictionarySuggestions } = params
-
-  if (!misspelledWord && dictionarySuggestions.length === 0) {
-    showContextualMenu(items, false)
-    return
-  }
-
-  items.push({ type: 'separator' })
-
-  const { webContents } = remote.getCurrentWindow()
-
-  for (const suggestion of dictionarySuggestions) {
-    items.push({
-      label: suggestion,
-      action: () => webContents.replaceMisspelling(suggestion),
-    })
-  }
-
-  if (misspelledWord) {
-    items.push({
-      label: __DARWIN__ ? 'Add to Dictionary' : 'Add to dictionary',
-      action: () =>
-        webContents.session.addWordToSpellCheckerDictionary(misspelledWord),
-    })
-  }
-
-  if (!__DARWIN__) {
-    // NOTE: "On macOS as we use the native APIs there is no way to set the
-    // language that the spellchecker uses" -- electron docs Therefore, we are
-    // only allowing setting to English for non-mac machines.
-    const spellCheckLanguageItem = getSpellCheckLanguageMenuItem(
-      webContents.session
-    )
-    if (spellCheckLanguageItem !== null) {
-      items.push(spellCheckLanguageItem)
-    }
-  }
-
-  showContextualMenu(items, false)
-}
-
-/**
- * Method to get a menu item to give user the option to use English or their
- * system language.
- *
- * If system language is english, it returns null. If spellchecker is not set to
- * english, it returns item that can set it to English. If spellchecker is set
- * to english, it returns the item that can set it to their system language.
- */
-function getSpellCheckLanguageMenuItem(
-  session: Electron.session
-): IMenuItem | null {
-  const userLanguageCode = remote.app.getLocale()
-  const englishLanguageCode = 'en-US'
-  const spellcheckLanguageCodes = session.getSpellCheckerLanguages()
-
-  if (
-    userLanguageCode === englishLanguageCode &&
-    spellcheckLanguageCodes.includes(englishLanguageCode)
-  ) {
-    return null
-  }
-
-  const languageCode =
-    spellcheckLanguageCodes.includes(englishLanguageCode) &&
-    !spellcheckLanguageCodes.includes(userLanguageCode)
-      ? userLanguageCode
-      : englishLanguageCode
-
-  const label =
-    languageCode === englishLanguageCode
-      ? 'Set spellcheck to English'
-      : 'Set spellcheck to system language'
-
-  return {
-    label,
-    action: () => session.setSpellCheckerLanguages([languageCode]),
-  }
-}
-
-const _showContextualMenu = invokeProxy('show-contextual-menu', 1)
-
-/** Show the given menu items in a contextual menu. */
-export async function showContextualMenu(
-  items: ReadonlyArray<IMenuItem>,
-  mergeWithSpellcheckSuggestions = false
-) {
-  /*
-    When a user right clicks on a misspelled word in an input, we get event from
-    electron. That event comes after the context menu event that we get from the
-    dom. In order merge the spelling suggestions from electron with the context
-    menu that the input wants to show, we stash the context menu items from the
-    input away while we wait for the event from electron.
-  */
-  if (deferredContextMenuItems !== null) {
-    deferredContextMenuItems = null
-    remote
-      .getCurrentWebContents()
-      .off('context-menu', mergeDeferredContextMenuItems)
-  }
-
-  if (mergeWithSpellcheckSuggestions) {
-    deferredContextMenuItems = items
-    remote
-      .getCurrentWebContents()
-      .once('context-menu', mergeDeferredContextMenuItems)
-    return
-  }
-
-  /*
-  This is a regular context menu that does not need to merge with spellcheck
-  items. They can be shown right away.
-  */
-  const indices = await _showContextualMenu(serializeMenuItems(items))
-
-  if (indices !== null) {
-    const menuItem = findSubmenuItem(items, indices)
-
-    if (menuItem !== undefined && menuItem.action !== undefined) {
-      menuItem.action()
-    }
-  }
-}
-
-/**
- * Remove the menu items properties that can't be serializable in
- * order to pass them via IPC.
- */
-function serializeMenuItems(
-  items: ReadonlyArray<IMenuItem>
-): ReadonlyArray<ISerializableMenuItem> {
-  return items.map(item => ({
-    ...item,
-    action: undefined,
-    submenu: item.submenu ? serializeMenuItems(item.submenu) : undefined,
-  }))
-}
+export const invokeContextualMenu = invokeProxy('show-contextual-menu', 2)
 
 /** Update the menu item labels with the user's preferred apps. */
 export const updatePreferredAppMenuItemLabels = sendProxy(
@@ -419,3 +339,7 @@ export const showSaveDialog = invokeProxy('show-save-dialog', 1)
  * Tell the main process to show open dialog
  */
 export const showOpenDialog = invokeProxy('show-open-dialog', 1)
+
+/** Tell the main process read/save the user GUID from/to file */
+export const saveGUID = invokeProxy('save-guid', 1)
+export const getGUID = invokeProxy('get-guid', 0)

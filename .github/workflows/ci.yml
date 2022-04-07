@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [14.15.4]
+        node: [16.13.0]
         os: [macos-10.15, windows-2019]
         arch: [x64, arm64]
         include:
@@ -65,7 +65,7 @@ jobs:
       - name: Validate changelog
         run: yarn validate-changelog
       - name: Ensure a clean working directory
-        run: yarn check-modified
+        run: git diff --name-status --exit-code
       - name: Build production app
         run: yarn build:prod
         env:

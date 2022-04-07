@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { Dispatcher } from '../dispatcher'
-import { isGitRepository } from '../../lib/git'
-import { isBareRepository } from '../../lib/git'
+import { getRepositoryType } from '../../lib/git'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -71,28 +70,39 @@ export class AddExistingRepository extends React.Component<
   }
 
   public async componentDidMount() {
-    const pathToCheck = this.state.path
-    // We'll only have a path at this point if the dialog was opened with a path
-    // to prefill.
-    if (pathToCheck.length < 1) {
+    const { path } = this.state
+
+    if (path.length !== 0) {
+      await this.validatePath(path)
+    }
+  }
+
+  private async updatePath(path: string) {
+    this.setState({ path, isRepository: false })
+    await this.validatePath(path)
+  }
+
+  private async validatePath(path: string) {
+    if (path.length === 0) {
+      this.setState({
+        isRepository: false,
+        isRepositoryBare: false,
+        showNonGitRepositoryWarning: false,
+      })
       return
     }
 
-    const isRepository = await isGitRepository(pathToCheck)
-    // The path might have changed while we were checking, in which case we
-    // don't care about the result anymore.
-    if (this.state.path !== pathToCheck) {
-      return
-    }
+    const type = await getRepositoryType(path)
 
-    const isBare = await isBareRepository(this.state.path)
-    if (isBare === true) {
-      this.setState({ isRepositoryBare: true })
-      return
-    }
+    const isRepository = type !== 'missing'
+    const isRepositoryBare = type === 'bare'
+    const showNonGitRepositoryWarning = !isRepository || isRepositoryBare
 
-    this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
-    this.setState({ isRepositoryBare: false })
+    this.setState(state =>
+      path === state.path
+        ? { isRepository, isRepositoryBare, showNonGitRepositoryWarning }
+        : null
+    )
   }
 
   private renderWarning() {
@@ -165,9 +175,9 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onPathChanged = async (path: string) => {
-    const isRepository = await isGitRepository(path)
-
-    this.setState({ path, isRepository })
+    if (this.state.path !== path) {
+      this.updatePath(path)
+    }
   }
 
   private showFilePicker = async () => {
@@ -179,15 +189,7 @@ export class AddExistingRepository extends React.Component<
       return
     }
 
-    const isRepository = await isGitRepository(path)
-    const isRepositoryBare = await isBareRepository(path)
-
-    this.setState({
-      path,
-      isRepository,
-      showNonGitRepositoryWarning: !isRepository || isRepositoryBare,
-      isRepositoryBare,
-    })
+    this.updatePath(path)
   }
 
   private resolvedPath(path: string): string {

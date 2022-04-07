@@ -3,19 +3,19 @@ import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
-import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { enableSquashMerging } from '../../lib/feature-flag'
 import * as ipcWebContents from '../ipc-webcontents'
+import { mkdir } from 'fs/promises'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
 const showPullRequestLabel = __DARWIN__
-  ? 'Show Pull Request'
-  : 'Show &pull request'
+  ? 'View Pull Request on GitHub'
+  : 'View &pull request on GitHub'
 const defaultBranchNameValue = __DARWIN__ ? 'Default Branch' : 'default branch'
 const confirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
 const repositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
@@ -424,6 +424,12 @@ export function buildDefaultMenu({
       click: emit('compare-on-github'),
     },
     {
+      label: __DARWIN__ ? 'View Branch on GitHub' : 'View branch on GitHub',
+      id: 'branch-on-github',
+      accelerator: 'CmdOrCtrl+Alt+B',
+      click: emit('branch-on-github'),
+    },
+    {
       label: pullRequestLabel,
       id: 'create-pull-request',
       accelerator: 'CmdOrCtrl+R',
@@ -474,7 +480,7 @@ export function buildDefaultMenu({
     label: 'Show User Guides',
     click() {
       shell
-        .openExternal('https://help.github.com/desktop/guides/')
+        .openExternal('https://docs.github.com/en/desktop')
         .catch(err => log.error('Failed opening user guides page', err))
     },
   }
@@ -484,7 +490,7 @@ export function buildDefaultMenu({
     click() {
       shell
         .openExternal(
-          'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+          'https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/keyboard-shortcuts'
         )
         .catch(err => log.error('Failed opening keyboard shortcuts page', err))
     },
@@ -500,13 +506,9 @@ export function buildDefaultMenu({
     label: showLogsLabel,
     click() {
       const logPath = getLogDirectoryPath()
-      ensureDir(logPath)
-        .then(() => {
-          UNSAFE_openDirectory(logPath)
-        })
-        .catch(err => {
-          log.error('Failed opening logs directory', err)
-        })
+      mkdir(logPath, { recursive: true })
+        .then(() => UNSAFE_openDirectory(logPath))
+        .catch(err => log.error('Failed opening logs directory', err))
     },
   }
 
@@ -541,14 +543,17 @@ export function buildDefaultMenu({
         ],
       },
       {
-        label: 'Show notification',
-        click: emit('test-show-notification'),
-      },
-      {
         label: 'Prune branches',
         click: emit('test-prune-branches'),
       }
     )
+  }
+
+  if (__RELEASE_CHANNEL__ === 'development' || __RELEASE_CHANNEL__ === 'test') {
+    helpItems.push({
+      label: 'Show notification',
+      click: emit('test-show-notification'),
+    })
   }
 
   if (__DARWIN__) {

@@ -38,11 +38,11 @@ interface IWindowControlState {
 export class WindowControls extends React.Component<{}, IWindowControlState> {
   public componentWillMount() {
     this.setState({ windowState: null })
-    this.intializeWindowState()
+    this.initializeWindowState()
     ipcRenderer.on('window-state-changed', this.onWindowStateChanged)
   }
 
-  private intializeWindowState = async () => {
+  private initializeWindowState = async () => {
     const windowState = await getCurrentWindowState()
     if (windowState === undefined) {
       return

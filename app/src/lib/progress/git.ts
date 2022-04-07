@@ -253,8 +253,8 @@ export function parse(line: string): IGitProgressInfo | null {
     return null
   }
 
-  const title = line.substr(0, titleLength)
-  const progressText = line.substr(title.length + 2).trim()
+  const title = line.substring(0, titleLength)
+  const progressText = line.substring(title.length + 2).trim()
 
   if (!progressText.length) {
     return null

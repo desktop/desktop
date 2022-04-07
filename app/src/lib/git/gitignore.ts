@@ -2,6 +2,7 @@ import * as Path from 'path'
 import * as FS from 'fs'
 import { Repository } from '../../models/repository'
 import { getConfigValue } from './config'
+import { writeFile } from 'fs/promises'
 
 /**
  * Read the contents of the repository .gitignore.
@@ -55,15 +56,7 @@ export async function saveGitIgnore(
   }
 
   const fileContents = await formatGitIgnoreContents(text, repository)
-  return new Promise<void>((resolve, reject) => {
-    FS.writeFile(ignorePath, fileContents, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  await writeFile(ignorePath, fileContents)
 }
 
 /** Add the given pattern or patterns to the root gitignore file */
@@ -83,6 +76,36 @@ export async function appendIgnoreRule(
   )
 
   await saveGitIgnore(repository, newText)
+}
+
+/**
+ * Convenience method to add the given file path(s) to the repository's gitignore.
+ *
+ * The file path will be escaped before adding.
+ */
+export async function appendIgnoreFile(
+  repository: Repository,
+  filePath: string | string[]
+): Promise<void> {
+  if (filePath instanceof Array) {
+    const escapedFilePaths = filePath.map(path =>
+      escapeGitSpecialCharacters(path)
+    )
+
+    return appendIgnoreRule(repository, escapedFilePaths)
+  }
+
+  const escapedFilePath = escapeGitSpecialCharacters(filePath)
+  return appendIgnoreRule(repository, escapedFilePath)
+}
+
+/** Escapes a string from special characters used in a gitignore file */
+export function escapeGitSpecialCharacters(pattern: string): string {
+  const specialCharacters = /[\[\]!\*\#\?]/g
+
+  return pattern.replaceAll(specialCharacters, match => {
+    return '\\' + match
+  })
 }
 
 /**

@@ -288,8 +288,8 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (ResizeObserver || false) {
       this.resizeObserver = new ResizeObserverClass(entries => {
-        for (const entry of entries) {
-          if (entry.target === this.list) {
+        for (const { target, contentRect } of entries) {
+          if (target === this.list && this.list !== null) {
             // We might end up causing a recursive update by updating the state
             // when we're reacting to a resize so we'll defer it until after
             // react is done with this frame.
@@ -299,8 +299,8 @@ export class List extends React.Component<IListProps, IListState> {
 
             this.updateSizeTimeoutId = setImmediate(
               this.onResized,
-              entry.target,
-              entry.contentRect
+              this.list,
+              contentRect
             )
           }
         }
@@ -592,9 +592,8 @@ export class List extends React.Component<IListProps, IListState> {
       return this.moveSelection(direction, source)
     }
 
-    const lastSelection = this.props.selectedRows[
-      this.props.selectedRows.length - 1
-    ]
+    const lastSelection =
+      this.props.selectedRows[this.props.selectedRows.length - 1]
 
     const selectionOrigin = this.props.selectedRows[0]
 

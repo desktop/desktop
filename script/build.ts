@@ -3,7 +3,6 @@
 
 import * as path from 'path'
 import * as cp from 'child_process'
-import * as fs from 'fs-extra'
 import * as os from 'os'
 import packager, {
   OfficialArch,
@@ -46,19 +45,30 @@ import { isCircleCI, isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
-
-const projectRoot = path.join(__dirname, '..')
-const entitlementsPath = `${projectRoot}/script/entitlements.plist`
-const extendInfoPath = `${projectRoot}/script/info.plist`
-const outRoot = path.join(projectRoot, 'out')
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs'
+import { copySync } from 'fs-extra'
 
 const isPublishableBuild = isPublishable()
 const isDevelopmentBuild = getChannel() === 'development'
 
+const projectRoot = path.join(__dirname, '..')
+const entitlementsSuffix = isDevelopmentBuild ? '-dev' : ''
+const entitlementsPath = `${projectRoot}/script/entitlements${entitlementsSuffix}.plist`
+const extendInfoPath = `${projectRoot}/script/info.plist`
+const outRoot = path.join(projectRoot, 'out')
+
 console.log(`Building for ${getChannel()}…`)
 
 console.log('Removing old distribution…')
-fs.removeSync(getDistRoot())
+rmSync(getDistRoot(), { recursive: true, force: true })
 
 console.log('Copying dependencies…')
 copyDependencies()
@@ -200,6 +210,13 @@ function packageApp() {
       entitlements: entitlementsPath,
       'entitlements-inherit': entitlementsPath,
       type: isPublishableBuild ? 'distribution' : 'development',
+      // For development, we will use '-' as the identifier so that codesign
+      // will sign the app to run locally. We need to disable 'identity-validation'
+      // or otherwise it will replace '-' with one of the regular codesigning
+      // identities in our system.
+      identity: isDevelopmentBuild ? '-' : undefined,
+      'identity-validation': !isDevelopmentBuild,
+      'gatekeeper-assess': !isDevelopmentBuild,
     },
     osxNotarize: notarizationCredentials,
     protocols: [
@@ -230,8 +247,8 @@ function packageApp() {
 }
 
 function removeAndCopy(source: string, destination: string) {
-  fs.removeSync(destination)
-  fs.copySync(source, destination)
+  rmSync(destination, { recursive: true, force: true })
+  copySync(source, destination)
 }
 
 function copyEmoji() {
@@ -249,84 +266,54 @@ function copyStaticResources() {
   const platformSpecific = path.join(projectRoot, 'app', 'static', dirName)
   const common = path.join(projectRoot, 'app', 'static', 'common')
   const destination = path.join(outRoot, 'static')
-  fs.removeSync(destination)
-  if (fs.existsSync(platformSpecific)) {
-    fs.copySync(platformSpecific, destination)
+  rmSync(destination, { recursive: true, force: true })
+  if (existsSync(platformSpecific)) {
+    copySync(platformSpecific, destination)
   }
-  fs.copySync(common, destination, { overwrite: false })
+  copySync(common, destination, { overwrite: false })
 }
 
 function moveAnalysisFiles() {
   const rendererReport = 'renderer.report.html'
   const analysisSource = path.join(outRoot, rendererReport)
-  if (fs.existsSync(analysisSource)) {
+  if (existsSync(analysisSource)) {
     const distRoot = getDistRoot()
     const destination = path.join(distRoot, rendererReport)
-    fs.mkdirpSync(distRoot)
+    mkdirSync(distRoot, { recursive: true })
     // there's no moveSync API here, so let's do it the old fashioned way
     //
     // unlinkSync below ensures that the analysis file isn't bundled into
     // the app by accident
-    fs.copySync(analysisSource, destination, { overwrite: true })
-    fs.unlinkSync(analysisSource)
+    copySync(analysisSource, destination, { overwrite: true })
+    unlinkSync(analysisSource)
   }
 }
 
 function copyDependencies() {
-  const originalPackage: Package = require(path.join(
-    projectRoot,
-    'app',
-    'package.json'
-  ))
+  const pkg: Package = require(path.join(projectRoot, 'app', 'package.json'))
 
-  const oldDependencies = originalPackage.dependencies
-  const newDependencies: PackageLookup = {}
-
-  for (const name of Object.keys(oldDependencies)) {
-    const spec = oldDependencies[name]
-    if (externals.indexOf(name) !== -1) {
-      newDependencies[name] = spec
-    }
-  }
-
-  const oldDevDependencies = originalPackage.devDependencies
-  const newDevDependencies: PackageLookup = {}
-
-  if (isDevelopmentBuild) {
-    for (const name of Object.keys(oldDevDependencies)) {
-      const spec = oldDevDependencies[name]
-      if (externals.indexOf(name) !== -1) {
-        newDevDependencies[name] = spec
-      }
-    }
-  }
+  const filterExternals = (dependencies: Record<string, string>) =>
+    Object.fromEntries(
+      Object.entries(dependencies).filter(([k]) => externals.includes(k))
+    )
 
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
-  const updatedPackage = Object.assign({}, originalPackage, {
-    productName: getProductName(),
-    dependencies: newDependencies,
-    devDependencies: newDevDependencies,
+  pkg.productName = getProductName()
+  pkg.dependencies = filterExternals(pkg.dependencies)
+  pkg.devDependencies =
+    isDevelopmentBuild && pkg.devDependencies
+      ? filterExternals(pkg.devDependencies)
+      : {}
+
+  writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(pkg))
+  rmSync(path.resolve(outRoot, 'node_modules'), {
+    recursive: true,
+    force: true,
   })
 
-  if (!isDevelopmentBuild) {
-    delete updatedPackage.devDependencies
-  }
-
-  fs.writeFileSync(
-    path.join(outRoot, 'package.json'),
-    JSON.stringify(updatedPackage)
-  )
-
-  fs.removeSync(path.resolve(outRoot, 'node_modules'))
-
-  if (
-    Object.keys(newDependencies).length ||
-    Object.keys(newDevDependencies).length
-  ) {
-    console.log('  Installing dependencies via yarn…')
-    cp.execSync('yarn install', { cwd: outRoot, env: process.env })
-  }
+  console.log('  Installing dependencies via yarn…')
+  cp.execSync('yarn install', { cwd: outRoot, env: process.env })
 
   console.log('  Copying desktop-trampoline…')
   const desktopTrampolineDir = path.resolve(outRoot, 'desktop-trampoline')
@@ -334,9 +321,9 @@ function copyDependencies() {
     process.platform === 'win32'
       ? 'desktop-trampoline.exe'
       : 'desktop-trampoline'
-  fs.removeSync(desktopTrampolineDir)
-  fs.mkdirSync(desktopTrampolineDir)
-  fs.copySync(
+  rmSync(desktopTrampolineDir, { recursive: true, force: true })
+  mkdirSync(desktopTrampolineDir, { recursive: true })
+  copySync(
     path.resolve(
       projectRoot,
       'app/node_modules/desktop-trampoline/build/Release',
@@ -349,7 +336,7 @@ function copyDependencies() {
   if (process.platform === 'darwin' && isDevelopmentBuild) {
     console.log('  Copying ssh-wrapper')
     const sshWrapperFile = 'ssh-wrapper'
-    fs.copySync(
+    copySync(
       path.resolve(
         projectRoot,
         'app/node_modules/desktop-trampoline/build/Release',
@@ -361,9 +348,9 @@ function copyDependencies() {
 
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
-  fs.removeSync(gitDir)
-  fs.mkdirpSync(gitDir)
-  fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
+  rmSync(gitDir, { recursive: true, force: true })
+  mkdirSync(gitDir, { recursive: true })
+  copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
   if (process.platform === 'win32') {
     console.log('  Cleaning unneeded Git components…')
@@ -386,7 +373,7 @@ function copyDependencies() {
     for (const file of files) {
       const filePath = path.join(gitCoreDir, file)
       try {
-        fs.unlinkSync(filePath)
+        unlinkSync(filePath)
       } catch (err) {
         // probably already cleaned up
       }
@@ -396,8 +383,8 @@ function copyDependencies() {
   if (process.platform === 'darwin') {
     console.log('  Copying app-path binary…')
     const appPathMain = path.resolve(outRoot, 'main')
-    fs.removeSync(appPathMain)
-    fs.copySync(
+    rmSync(appPathMain, { recursive: true, force: true })
+    copySync(
       path.resolve(projectRoot, 'app/node_modules/app-path/main'),
       appPathMain
     )
@@ -408,12 +395,12 @@ function generateLicenseMetadata(outRoot: string) {
   const chooseALicense = path.join(outRoot, 'static', 'choosealicense.com')
   const licensesDir = path.join(chooseALicense, '_licenses')
 
-  const files = fs.readdirSync(licensesDir)
+  const files = readdirSync(licensesDir)
 
   const licenses = new Array<ILicense>()
   for (const file of files) {
     const fullPath = path.join(licensesDir, file)
-    const contents = fs.readFileSync(fullPath, 'utf8')
+    const contents = readFileSync(fullPath, 'utf8')
     const result = frontMatter<IChooseALicense>(contents)
 
     const licenseText = result.body.trim()
@@ -436,7 +423,7 @@ function generateLicenseMetadata(outRoot: string) {
 
   const licensePayload = path.join(outRoot, 'static', 'available-licenses.json')
   const text = JSON.stringify(licenses)
-  fs.writeFileSync(licensePayload, text, 'utf8')
+  writeFileSync(licensePayload, text, 'utf8')
 
   // embed the license alongside the generated license payload
   const chooseALicenseLicense = path.join(chooseALicense, 'LICENSE.md')
@@ -446,7 +433,7 @@ function generateLicenseMetadata(outRoot: string) {
     'LICENSE.choosealicense.md'
   )
 
-  const licenseText = fs.readFileSync(chooseALicenseLicense, 'utf8')
+  const licenseText = readFileSync(chooseALicenseLicense, 'utf8')
   const licenseWithHeader = `GitHub Desktop uses licensing information provided by choosealicense.com.
 
 The bundle in available-licenses.json has been generated from a source list provided at https://github.com/github/choosealicense.com, which is made available under the below license:
@@ -455,10 +442,10 @@ The bundle in available-licenses.json has been generated from a source list prov
 
 ${licenseText}`
 
-  fs.writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
+  writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
-  fs.removeSync(chooseALicense)
+  rmSync(chooseALicense, { recursive: true, force: true })
 }
 
 function getNotarizationCredentials(): OsxNotarizeOptions | undefined {

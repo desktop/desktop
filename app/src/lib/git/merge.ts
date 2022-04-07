@@ -1,4 +1,3 @@
-import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
 import { git } from './core'
@@ -9,6 +8,7 @@ import { MergeTreeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
 import { parseMergeTreeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
+import { pathExists } from '../../ui/lib/path-exists'
 
 export enum MergeResult {
   /** The merge completed successfully */
@@ -147,7 +147,7 @@ export async function abortMerge(repository: Repository): Promise<void> {
  */
 export async function isMergeHeadSet(repository: Repository): Promise<boolean> {
   const path = Path.join(repository.path, '.git', 'MERGE_HEAD')
-  return await FSE.pathExists(path)
+  return await pathExists(path)
 }
 
 /**
@@ -160,5 +160,5 @@ export async function isMergeHeadSet(repository: Repository): Promise<boolean> {
  */
 export async function isSquashMsgSet(repository: Repository): Promise<boolean> {
   const path = Path.join(repository.path, '.git', 'SQUASH_MSG')
-  return await FSE.pathExists(path)
+  return await pathExists(path)
 }

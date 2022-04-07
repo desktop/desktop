@@ -146,7 +146,7 @@ export class BranchDropdown extends React.Component<
         b => !b.isDesktopForkRemoteBranch
       )
     } else if (tip.kind === TipState.Detached) {
-      title = `On ${tip.currentSha.substr(0, 7)}`
+      title = `On ${tip.currentSha.substring(0, 7)}`
       tooltip = 'Currently on a detached HEAD'
       icon = OcticonSymbol.gitCommit
       description = 'Detached HEAD'
@@ -302,16 +302,11 @@ export class BranchDropdown extends React.Component<
   }
 
   private onBadgeClick = () => {
-    this.togglePopover()
-  }
-
-  private togglePopover() {
-    if (this.props.showCIStatusPopover) {
-      this.closePopover()
-    } else {
-      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-      this.openPopover()
-    }
+    // The badge can't be clicked while the CI status popover is shown, because
+    // in that case the Popover component will recognize the "click outside"
+    // event and close the popover.
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.openPopover()
   }
 
   private updateBadgeBottomPosition = (badgeBottom: number) => {

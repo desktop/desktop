@@ -119,6 +119,7 @@ import {
 import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
+import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 
 /**
  * An error handler function.
@@ -785,6 +786,11 @@ export class Dispatcher {
       }
 
       const addedRepositories = await this.addRepositories([path])
+
+      if (addedRepositories.length < 1) {
+        return null
+      }
+
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
 
@@ -841,9 +847,10 @@ export class Dispatcher {
   /** Discard the changes to the given files. */
   public discardChanges(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true
   ): Promise<void> {
-    return this.appStore._discardChanges(repository, files)
+    return this.appStore._discardChanges(repository, files, moveToTrash)
   }
 
   /** Discard the changes from the given diff selection. */
@@ -1085,10 +1092,8 @@ export class Dispatcher {
 
   private dropCurrentBranchFromForcePushList = (repository: Repository) => {
     const currentState = this.repositoryStateManager.get(repository)
-    const {
-      forcePushBranches: rebasedBranches,
-      tip,
-    } = currentState.branchesState
+    const { forcePushBranches: rebasedBranches, tip } =
+      currentState.branchesState
 
     if (tip.kind !== TipState.Valid) {
       return
@@ -1116,10 +1121,8 @@ export class Dispatcher {
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<void> {
-    const {
-      branchesState,
-      multiCommitOperationState,
-    } = this.repositoryStateManager.get(repository)
+    const { branchesState, multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
 
     if (
       multiCommitOperationState == null ||
@@ -1329,6 +1332,18 @@ export class Dispatcher {
     return this.appStore._appendIgnoreRule(repository, pattern)
   }
 
+  /**
+   * Convenience method to add the given file path(s) to the repository's gitignore.
+   *
+   * The file path will be escaped before adding.
+   */
+  public appendIgnoreFile(
+    repository: Repository,
+    filePath: string | string[]
+  ): Promise<void> {
+    return this.appStore._appendIgnoreFile(repository, filePath)
+  }
+
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
   public async openShell(
     path: string,
@@ -1370,8 +1385,9 @@ export class Dispatcher {
     return this.appStore.setStatsOptOut(optOut, userViewedPrompt)
   }
 
+  /** Moves the app to the /Applications folder on macOS. */
   public moveToApplicationsFolder() {
-    moveToApplicationsFolder()
+    return moveToApplicationsFolder()
   }
 
   /**
@@ -1714,9 +1730,8 @@ export class Dispatcher {
     }
 
     // Find the repository where the PR is created in Desktop.
-    let repository: Repository | null = this.getRepositoryFromPullRequest(
-      pullRequest
-    )
+    let repository: Repository | null =
+      this.getRepositoryFromPullRequest(pullRequest)
 
     if (repository !== null) {
       await this.selectRepository(repository)
@@ -1835,6 +1850,16 @@ export class Dispatcher {
    */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to retry discard changes
+   * after failure is not asked
+   */
+  public setConfirmDiscardChangesPermanentlySetting(
+    value: boolean
+  ): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesPermanentlySetting(value)
   }
 
   /**
@@ -2016,6 +2041,12 @@ export class Dispatcher {
           retryAction.commitsToReorder,
           retryAction.beforeCommit,
           retryAction.lastRetainedCommitRef
+        )
+      case RetryActionType.DiscardChanges:
+        return this.discardChanges(
+          retryAction.repository,
+          retryAction.files,
+          false
         )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
@@ -2998,10 +3029,8 @@ export class Dispatcher {
    * show conflicts step
    */
   private startConflictCherryPickFlow(repository: Repository): void {
-    const {
-      changesState,
-      multiCommitOperationState,
-    } = this.repositoryStateManager.get(repository)
+    const { changesState, multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
     const { conflictState } = changesState
 
     if (
@@ -3185,6 +3214,19 @@ export class Dispatcher {
     }
 
     return this.appStore._setMultiCommitOperationStep(repository, step)
+  }
+
+  /** Set the multi commit operation target branch */
+  public setMultiCommitOperationTargetBranch(
+    repository: Repository,
+    targetBranch: Branch
+  ): void {
+    this.repositoryStateManager.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        targetBranch,
+      })
+    )
   }
 
   /** Set cherry-pick branch created state */
@@ -3700,10 +3742,8 @@ export class Dispatcher {
       type: BannerType.ConflictsFound,
       operationDescription,
       onOpenConflictsDialog: async () => {
-        const {
-          changesState,
-          multiCommitOperationState,
-        } = this.repositoryStateManager.get(repository)
+        const { changesState, multiCommitOperationState } =
+          this.repositoryStateManager.get(repository)
         const { conflictState } = changesState
 
         if (conflictState == null) {
@@ -3846,5 +3886,11 @@ export class Dispatcher {
 
   public recordChecksFailedDialogRerunChecks() {
     this.statsStore.recordChecksFailedDialogRerunChecks()
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ) {
+    this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
 }

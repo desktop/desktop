@@ -1,5 +1,5 @@
-import * as fse from 'fs-extra'
 import memoizeOne from 'memoize-one'
+import { pathExists } from '../../ui/lib/path-exists'
 import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
 import { getBoolean } from '../local-storage'
 import {
@@ -23,7 +23,7 @@ export const isWindowsOpenSSHAvailable = memoizeOne(
       return false
     }
 
-    return await fse.pathExists(WindowsOpenSSHPath)
+    return await pathExists(WindowsOpenSSHPath)
   }
 )
 
@@ -73,7 +73,8 @@ export async function getSSHEnvironment() {
 }
 
 export function parseAddSSHHostPrompt(prompt: string) {
-  const promptRegex = /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established[^.]*\.\n([^ ]+) key fingerprint is ([^.]+)\./
+  const promptRegex =
+    /^The authenticity of host '([^ ]+) \(([^\)]+)\)' can't be established[^.]*\.\n([^ ]+) key fingerprint is ([^.]+)\./
 
   const matches = promptRegex.exec(prompt)
   if (matches === null || matches.length < 5) {

@@ -9,15 +9,13 @@ describe('CustomTheme', () => {
     it('sets the first line to body.theme-high-contrast {', () => {
       const customTheme = CustomThemeDefaults[ApplicationTheme.HighContrast]
       const customThemeStyles = buildCustomThemeStyles(customTheme)
-      expect(customThemeStyles.split('\n')[0]).toBe(
-        'body.theme-high-contrast {'
-      )
+      expect(customThemeStyles).toStartWith('body.theme-high-contrast {\n')
     })
 
     it('sets the last line to }', () => {
       const customTheme = CustomThemeDefaults[ApplicationTheme.HighContrast]
       const customThemeStyles = buildCustomThemeStyles(customTheme)
-      expect(customThemeStyles.substr(-1, 1)).toBe('}')
+      expect(customThemeStyles).toEndWith('}')
     })
 
     it('prefaces all variable lines with --', () => {
@@ -31,8 +29,7 @@ describe('CustomTheme', () => {
         if (trimmedLine === '') {
           continue
         }
-        const firstTwoChar = trimmedLine.substr(0, 2)
-        expect(firstTwoChar).toBe('--')
+        expect(trimmedLine).toStartWith('--')
       }
     })
 
@@ -47,8 +44,7 @@ describe('CustomTheme', () => {
         if (trimmedLine === '') {
           continue
         }
-        const firstTwoChar = trimmedLine.substr(-1, 1)
-        expect(firstTwoChar).toBe(';')
+        expect(trimmedLine).toEndWith(';')
       }
     })
   })

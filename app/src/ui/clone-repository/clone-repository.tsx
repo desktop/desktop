@@ -1,6 +1,5 @@
 import * as Path from 'path'
 import * as React from 'react'
-import { readdir } from 'fs-extra'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
@@ -22,8 +21,8 @@ import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
 import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { enableSaveDialogOnCloneRepository } from '../../lib/feature-flag'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
+import { readdir } from 'fs/promises'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -77,7 +76,7 @@ interface ICloneRepositoryState {
    *
    *  See the onWindowFocus method for more information.
    */
-  readonly initialPath: string
+  readonly initialPath: string | null
 
   /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
@@ -114,7 +113,7 @@ interface IBaseTabState {
   readonly lastParsedIdentifier: IRepositoryIdentifier | null
 
   /** The local path to clone to. */
-  readonly path: string
+  readonly path: string | null
 
   /** The user-entered URL or `owner/name` shortcut. */
   readonly url: string
@@ -151,7 +150,7 @@ export class CloneRepository extends React.Component<
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
-    const defaultDirectory = getDefaultDir()
+    const defaultDirectory = null
 
     const initialBaseTabState: IBaseTabState = {
       error: null,
@@ -180,6 +179,8 @@ export class CloneRepository extends React.Component<
         ...initialBaseTabState,
       },
     }
+
+    this.initializePath()
   }
 
   public componentDidUpdate(prevProps: ICloneRepositoryProps) {
@@ -195,6 +196,27 @@ export class CloneRepository extends React.Component<
     }
 
     window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  private initializePath = async () => {
+    const initialPath = await getDefaultDir()
+    const dotComTabState = { ...this.state.dotComTabState, path: initialPath }
+    const enterpriseTabState = {
+      ...this.state.enterpriseTabState,
+      path: initialPath,
+    }
+    const urlTabState = { ...this.state.urlTabState, path: initialPath }
+    this.setState({
+      initialPath,
+      dotComTabState,
+      enterpriseTabState,
+      urlTabState,
+    })
+
+    // Update the local path based on the current url now that we have an
+    // initial path
+    const selectedTabState = this.getSelectedTabState()
+    this.updateUrl(selectedTabState.url)
   }
 
   public componentWillUnmount() {
@@ -235,7 +257,11 @@ export class CloneRepository extends React.Component<
     const { loading } = this.state
 
     const disabled =
-      url.length === 0 || path.length === 0 || loading || error !== null
+      url.length === 0 ||
+      path == null ||
+      path.length === 0 ||
+      loading ||
+      error !== null
 
     return disabled
   }
@@ -274,7 +300,7 @@ export class CloneRepository extends React.Component<
         const tabState = this.state.urlTabState
         return (
           <CloneGenericRepository
-            path={tabState.path}
+            path={tabState.path ?? ''}
             url={tabState.url}
             onPathChanged={this.onPathChanged}
             onUrlChanged={this.updateUrl}
@@ -297,7 +323,7 @@ export class CloneRepository extends React.Component<
 
           return (
             <CloneGithubRepository
-              path={tabState.path}
+              path={tabState.path ?? ''}
               account={account}
               selectedItem={tabState.selectedItem}
               onSelectionChanged={this.onSelectionChanged}
@@ -503,7 +529,10 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseDirectory = async () => {
-    if (enableSaveDialogOnCloneRepository()) {
+    // We received feedback (#12812) that using the save dialog is confusing on
+    // windows due to appearing to require a file selection. This is not the case
+    // on mac where it more clearly shows directory creation.
+    if (__DARWIN__) {
       return this.onChooseWithSaveDialog()
     }
 
@@ -540,7 +569,7 @@ export class CloneRepository extends React.Component<
       buttonLabel: 'Select',
       nameFieldLabel: 'Clone As:',
       showsTagField: false,
-      defaultPath: tabState.path,
+      defaultPath: tabState.path ?? '',
       properties: ['createDirectory'],
     })
 
@@ -558,18 +587,25 @@ export class CloneRepository extends React.Component<
     const tabState = this.getSelectedTabState()
     const lastParsedIdentifier = tabState.lastParsedIdentifier
 
+    // If there is no path yet, just update the url
+    if (tabState.path === null) {
+      this.setSelectedTabState({ url }, this.validatePath)
+      return
+    }
+
     let newPath: string
 
+    const dirPath = tabState.path
     if (lastParsedIdentifier) {
       if (parsed) {
-        newPath = Path.join(Path.dirname(tabState.path), parsed.name)
+        newPath = Path.join(Path.dirname(dirPath), parsed.name)
       } else {
-        newPath = Path.dirname(tabState.path)
+        newPath = Path.dirname(dirPath)
       }
     } else if (parsed) {
-      newPath = Path.join(tabState.path, parsed.name)
+      newPath = Path.join(dirPath, parsed.name)
     } else {
-      newPath = tabState.path
+      newPath = dirPath
     }
 
     this.setSelectedTabState(
@@ -582,7 +618,15 @@ export class CloneRepository extends React.Component<
     )
   }
 
-  private async validateEmptyFolder(path: string): Promise<null | Error> {
+  private async validateEmptyFolder(
+    path: string | null
+  ): Promise<null | Error> {
+    if (path === null) {
+      return new Error(
+        'Unable to read path on disk. Please check the path and try again.'
+      )
+    }
+
     try {
       const directoryFiles = await readdir(path)
 
@@ -661,6 +705,13 @@ export class CloneRepository extends React.Component<
 
     const cloneInfo = await this.resolveCloneInfo()
     const { path } = this.getSelectedTabState()
+
+    if (path == null) {
+      const error = new Error(`Directory could not be created at this path.`)
+      this.setState({ loading: false })
+      this.setSelectedTabState({ error })
+      return
+    }
 
     if (!cloneInfo) {
       const error = new Error(

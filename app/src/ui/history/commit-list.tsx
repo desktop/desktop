@@ -398,9 +398,8 @@ export class CommitList extends React.Component<
     const intro = this.state.remainingDragAndDropIntros[0]
 
     this.setState({
-      remainingDragAndDropIntros: this.state.remainingDragAndDropIntros.slice(
-        1
-      ),
+      remainingDragAndDropIntros:
+        this.state.remainingDragAndDropIntros.slice(1),
     })
 
     this.props.onDragAndDropIntroSeen(intro)

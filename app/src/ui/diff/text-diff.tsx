@@ -1,7 +1,7 @@
 import * as React from 'react'
 import ReactDOM from 'react-dom'
 import { clipboard } from 'electron'
-import { Editor, Doc } from 'codemirror'
+import { Editor, Doc, EditorConfiguration } from 'codemirror'
 
 import {
   DiffHunk,
@@ -16,7 +16,6 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
-import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { CodeMirrorHost } from './code-mirror-host'
 import {
@@ -40,12 +39,13 @@ import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
 import {
   canSelect,
   getLineWidthFromDigitCount,
   getNumberOfDigits,
+  MaxIntraLineDiffStringLength,
 } from './diff-helpers'
 import {
   expandTextDiffHunk,
@@ -58,16 +58,12 @@ import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverCaretPosition } from '../lib/popover'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 
-/** The longest line for which we'd try to calculate a line diff. */
-const MaxIntraLineDiffStringLength = 4096
-
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
 export const narrowNoNewlineSymbol = {
   w: 16,
   h: 8,
-  d:
-    'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+  d: 'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
 }
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
@@ -254,7 +250,7 @@ function scrollEditorVertically(step: number, unit: 'line' | 'page') {
   }
 }
 
-const defaultEditorOptions: IEditorConfigurationExtra = {
+const defaultEditorOptions: EditorConfiguration = {
   lineNumbers: false,
   readOnly: true,
   showCursorWhenSelecting: false,
@@ -284,7 +280,8 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
   lineSeparator: '\n',
-  specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
+  specialChars:
+    /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
   gutters: [diffGutterName],
 }
 
@@ -313,7 +310,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         text = text.replace(/\r(?=\n|$)/g, '')
       }
 
-      const doc = new Doc(text, mode, firstLineNumber, lineSeparator)
+      const doc = new Doc(
+        text,
+        mode,
+        firstLineNumber,
+        lineSeparator ?? undefined
+      )
 
       for (const noNewlineLine of noNewlineIndicatorLines) {
         doc.setBookmark(
@@ -859,7 +861,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         if (i === 0 && range.head.ch > 0) {
           lineContent.push(line)
         } else {
-          lineContent.push(line.substr(1))
+          lineContent.push(line.substring(1))
         }
       }
 
@@ -1007,9 +1009,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     )
 
     const gutterParentElement = cm.getGutterElement()
-    const gutterElement = gutterParentElement.getElementsByClassName(
-      diffGutterName
-    )[0]
+    const gutterElement =
+      gutterParentElement.getElementsByClassName(diffGutterName)[0]
 
     const newStyle = `width: ${diffSize * 2}px;`
     const currentStyle = gutterElement.getAttribute('style')

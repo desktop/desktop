@@ -127,12 +127,8 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
-    const {
-      repository,
-      branchToCheckout,
-      dispatcher,
-      hasAssociatedStash,
-    } = this.props
+    const { repository, branchToCheckout, dispatcher, hasAssociatedStash } =
+      this.props
     const { selectedStashAction } = this.state
 
     if (

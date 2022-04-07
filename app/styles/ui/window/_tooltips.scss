@@ -173,4 +173,29 @@ body > .tooltip,
       }
     }
   }
+
+  &.changed-files-description-tooltip {
+    .tooltip-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-third);
+
+      .files-added-icon {
+        color: var(--color-new);
+      }
+
+      .files-modified-icon {
+        color: var(--color-modified);
+      }
+
+      .files-deleted-icon {
+        color: var(--color-deleted);
+      }
+
+      .octicon {
+        margin-right: var(--spacing-third);
+        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+      }
+    }
+  }
 }

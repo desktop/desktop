@@ -42,9 +42,7 @@ interface ICreateTutorialRepositoryDialogProps {
  * A dialog component responsible for initializing, publishing, and adding
  * a tutorial repository to the application.
  */
-export class CreateTutorialRepositoryDialog extends React.Component<
-  ICreateTutorialRepositoryDialogProps
-> {
+export class CreateTutorialRepositoryDialog extends React.Component<ICreateTutorialRepositoryDialogProps> {
   public onSubmit = () =>
     this.props.onCreateTutorialRepository(this.props.account)
 

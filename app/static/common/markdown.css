@@ -12,7 +12,8 @@ changes from the original, just a note that this will not match 1-1)
 .markdown-body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 	font-size: var(--font-size);
-  color: var(--text-color);
+	color: var(--text-color);
+	background-color: var(--background-color);
 	line-height: 1.5;
 	word-wrap: break-word;
 	margin: 0;
@@ -29,11 +30,11 @@ changes from the original, just a note that this will not match 1-1)
 	content: ""
 }
 
-.markdown-body>*:first-child {
+.markdown-body>#content>*:first-child {
 	margin-top: 0 !important
 }
 
-.markdown-body>*:last-child {
+.markdown-body>#content>*:last-child {
 	margin-bottom: 0 !important
 }
 
@@ -284,6 +285,10 @@ changes from the original, just a note that this will not match 1-1)
 	background-color: var(--md-canvas-default-color)
 }
 
+.markdown-body video {
+	max-width: 95%;
+}
+
 .markdown-body img[align=right] {
 	padding-left: 20px
 }
@@ -523,4 +528,8 @@ changes from the original, just a note that this will not match 1-1)
 .markdown-body a {
   color: var(--md-accent-fg-color);
   text-decoration: none;
+}
+
+.markdown-body .issue-keyword {
+	border-bottom: 1px dotted var(--md-border-default-color);
 }

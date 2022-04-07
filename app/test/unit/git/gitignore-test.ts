@@ -8,6 +8,8 @@ import {
   saveGitIgnore,
   readGitIgnoreAtRoot,
   appendIgnoreRule,
+  escapeGitSpecialCharacters,
+  appendIgnoreFile,
 } from '../../../src/lib/git'
 import { setupLocalConfig } from '../../helpers/local-config'
 
@@ -129,6 +131,14 @@ describe('gitignore', () => {
 
       expect(files).toHaveLength(0)
     })
+
+    it('escapes string with special git characters', async () => {
+      const unescapedFilePath = '[never]\\!gonna*give#you?_.up'
+      const escapedFilePath = '\\[never\\]\\\\!gonna\\*give\\#you\\?_.up'
+
+      const result = escapeGitSpecialCharacters(unescapedFilePath)
+      expect(result).toBe(escapedFilePath)
+    })
   })
 
   describe('appendIgnoreRule', () => {
@@ -165,6 +175,26 @@ describe('gitignore', () => {
       const gitignore = await FSE.readFile(ignoreFile)
 
       const expected = 'node_modules\nyarn-error.log\n.eslintcache\ndist/\n'
+      expect(gitignore.toString('utf8')).toBe(expected)
+    })
+
+    it('appends one file containing special characters', async () => {
+      const repo = await setupEmptyRepository()
+
+      await setupLocalConfig(repo, [['core.autocrlf', 'true']])
+
+      const { path } = repo
+
+      const ignoreFile = `${path}/.gitignore`
+      await FSE.writeFile(ignoreFile, 'node_modules\n')
+
+      const fileToIgnore = '[never]!gonna*give#you?_.up'
+      await appendIgnoreFile(repo, [fileToIgnore])
+
+      const gitignore = await FSE.readFile(ignoreFile)
+
+      const expected =
+        'node_modules\n' + '\\[never\\]\\!gonna\\*give\\#you\\?_.up\n'
       expect(gitignore.toString('utf8')).toBe(expected)
     })
   })

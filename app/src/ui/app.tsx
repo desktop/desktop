@@ -152,6 +152,9 @@ import { clamp } from '../lib/clamp'
 import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
+import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
+import { getReleaseSummary } from '../lib/release-notes'
+import { PullRequestReview } from './notifications/pull-request-review'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -255,10 +258,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const status = state.status
 
       if (
-        !(
-          __RELEASE_CHANNEL__ === 'development' ||
-          __RELEASE_CHANNEL__ === 'test'
-        ) &&
+        !(__RELEASE_CHANNEL__ === 'development') &&
         status === UpdateStatus.UpdateReady
       ) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
@@ -304,8 +304,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.installGlobalLFSFilters(false)
 
-    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
-    this.checkForUpdates(true)
+    // We only want to automatically check for updates on beta and prod
+    if (
+      __RELEASE_CHANNEL__ !== 'development' &&
+      __RELEASE_CHANNEL__ !== 'test'
+    ) {
+      setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
+      this.checkForUpdates(true)
+    }
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
     log.info(`execPath: '${process.execPath}'`)
@@ -383,7 +389,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
-        return this.compareBranchOnDotcom()
+        return this.openBranchOnGitub('compare')
+      case 'branch-on-github':
+        return this.openBranchOnGitub('tree')
       case 'create-issue-in-repository-on-github':
         return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
@@ -430,60 +438,30 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (__DEV__) {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,
-        newRelease: {
-          latestVersion: '42.7.99',
-          datePublished: 'Awesomeber 71, 2025',
-          pretext:
-            'There is something so different here that we wanted to include some pretext for it',
-          enhancements: [
-            {
-              kind: 'new',
-              message: 'An awesome new feature!',
-            },
-            {
-              kind: 'improved',
-              message: 'This is so much better',
-            },
-            {
-              kind: 'improved',
-              message:
-                'Testing links to profile pages by a mention to @shiftkey',
-            },
+        newRelease: getReleaseSummary({
+          name: '',
+          version: '42.7.99',
+          notes: [
+            '[New] An awesome new feature!',
+            '[Improved] This is so much better',
+            '[Improved] Testing links to profile pages by a mention to @shiftkey',
+            '[Fixed] Fixed this one thing',
+            '[Fixed] Fixed this thing over here too',
+            '[Fixed] Testing links to issues by calling out #42. Assuming it is fixed by now.',
+            '[OhHai] Look at me, a new category!',
+            '[Added] In other news... . Thanks @some-body-to-thank!',
           ],
-          bugfixes: [
-            {
-              kind: 'fixed',
-              message: 'Fixed this one thing',
-            },
-            {
-              kind: 'fixed',
-              message: 'Fixed this thing over here too',
-            },
-            {
-              kind: 'fixed',
-              message:
-                'Testing links to issues by calling out #42. Assuming it is fixed by now.',
-            },
-          ],
-          other: [
-            {
-              kind: 'other',
-              message: 'In other news...',
-            },
-          ],
-          thankYous: [
-            {
-              kind: 'other',
-              message: 'In other news... . Thanks @some-body-to-thank!',
-            },
-          ],
-        },
+          pub_date: '2025-11-07T09:52:34Z',
+        }),
       })
     }
   }
 
   private testShowNotification() {
-    if (!__DEV__) {
+    if (
+      __RELEASE_CHANNEL__ !== 'development' &&
+      __RELEASE_CHANNEL__ !== 'test'
+    ) {
       return
     }
 
@@ -557,14 +535,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private checkForUpdates(inBackground: boolean) {
-    if (__LINUX__) {
-      return
-    }
-
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__LINUX__ || __RELEASE_CHANNEL__ === 'development') {
       return
     }
 
@@ -622,7 +593,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.startMergeBranchOperation(repository, isSquash)
   }
 
-  private compareBranchOnDotcom() {
+  private openBranchOnGitub(view: 'tree' | 'compare') {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
       return
@@ -641,8 +612,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
-    this.props.dispatcher.openInBrowser(compareURL)
+    const url = `${htmlURL}/${view}/${branchTip.branch.upstreamWithoutRemote}`
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private openCurrentRepositoryWorkingDirectory() {
@@ -1402,6 +1373,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            confirmDiscardChangesPermanently={
+              this.state.askForConfirmationOnDiscardChangesPermanently
+            }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
@@ -1527,7 +1501,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.About:
-        const version = __DEV__ ? __SHA__.substr(0, 10) : getVersion()
+        const version = __DEV__ ? __SHA__.substring(0, 10) : getVersion()
 
         return (
           <About
@@ -1729,10 +1703,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.StashAndSwitchBranch: {
         const { repository, branchToCheckout } = popup
-        const {
-          branchesState,
-          changesState,
-        } = this.props.repositoryStateManager.get(repository)
+        const { branchesState, changesState } =
+          this.props.repositoryStateManager.get(repository)
         const { tip } = branchesState
 
         if (tip.kind !== TipState.Valid) {
@@ -1929,6 +1901,11 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state.accounts
         )
 
+        const repositoryAccount = getAccountForRepository(
+          this.state.accounts,
+          popup.repository
+        )
+
         return (
           <CommitMessageDialog
             key="commit-message"
@@ -1950,6 +1927,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showNoWriteAccess={!hasWritePermissionForRepository}
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
+            repositoryAccount={repositoryAccount}
           />
         )
       case PopupType.MultiCommitOperation: {
@@ -2052,7 +2030,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <PullRequestChecksFailed
             key="pull-request-checks-failed"
             dispatcher={this.props.dispatcher}
-            shouldChangeRepository={popup.needsSelectRepository}
+            shouldChangeRepository={popup.shouldChangeRepository}
             repository={popup.repository}
             pullRequest={popup.pullRequest}
             commitMessage={popup.commitMessage}
@@ -2088,6 +2066,37 @@ export class App extends React.Component<IAppProps, IAppState> {
               popup.onBegin,
               onPopupDismissedFn
             )}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.DiscardChangesRetry: {
+        return (
+          <DiscardChangesRetryDialog
+            key="discard-changes-retry"
+            dispatcher={this.props.dispatcher}
+            retryAction={popup.retryAction}
+            onDismissed={onPopupDismissedFn}
+            onConfirmDiscardChangesChanged={
+              this.onConfirmDiscardChangesPermanentlyChanged
+            }
+          />
+        )
+      }
+      case PopupType.PullRequestReview: {
+        return (
+          <PullRequestReview
+            key="pull-request-checks-failed"
+            dispatcher={this.props.dispatcher}
+            shouldCheckoutBranch={popup.shouldCheckoutBranch}
+            shouldChangeRepository={popup.shouldChangeRepository}
+            repository={popup.repository}
+            pullRequest={popup.pullRequest}
+            review={popup.review}
+            numberOfComments={popup.numberOfComments}
+            emoji={this.state.emoji}
+            accounts={this.state.accounts}
+            onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2247,6 +2256,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.props.dispatcher.setConfirmDiscardChangesSetting(value)
+  }
+
+  private onConfirmDiscardChangesPermanentlyChanged = (value: boolean) => {
+    this.props.dispatcher.setConfirmDiscardChangesPermanentlySetting(value)
   }
 
   private renderAppError() {
@@ -2915,7 +2928,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         branchCreated: false,
         commits,
       },
-      tip.branch,
+      null,
       commits,
       tip.branch.tip.sha
     )
