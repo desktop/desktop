@@ -16,7 +16,11 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint } from '../lib/api'
+import {
+  APICheckConclusion,
+  APICheckStatus,
+  getDotComAPIEndpoint,
+} from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
@@ -153,6 +157,7 @@ import { showNotification } from '../lib/stores/helpers/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { getReleaseSummary } from '../lib/release-notes'
 import { PullRequestReview } from './notifications/pull-request-review'
+import { PullRequest, PullRequestRef } from '../models/pull-request'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -422,6 +427,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.testPruneBranches()
       case 'find-text':
         return this.findText()
+      case 'pull-request-check-run-failed':
+        return this.testPullRequestCheckRunFailed()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -468,6 +475,61 @@ export class App extends React.Component<IAppProps, IAppState> {
       'Click here! This is a test notification',
       () => this.props.dispatcher.showPopup({ type: PopupType.About })
     )
+  }
+
+  private testPullRequestCheckRunFailed() {
+    if (
+      __RELEASE_CHANNEL__ !== 'development' &&
+      __RELEASE_CHANNEL__ !== 'test'
+    ) {
+      return
+    }
+
+    const { selectedState } = this.state
+    if (
+      selectedState == null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return
+    }
+
+    const { repository } = selectedState
+
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      return
+    }
+
+    const popup: Popup = {
+      type: PopupType.PullRequestChecksFailed,
+      pullRequest: new PullRequest(
+        new Date(),
+        'Test PR',
+        9999,
+        new PullRequestRef('test', '123456', repository.gitHubRepository),
+        new PullRequestRef('test', '123456', repository.gitHubRepository),
+        'tidy-dev',
+        false,
+        'test'
+      ),
+      repository,
+      shouldChangeRepository: true,
+      commitMessage: 'Some Test Commit Message',
+      commitSha: '123456',
+      checks: [
+        {
+          id: 1234,
+          name: 'test',
+          description: 'test',
+          status: APICheckStatus.Completed,
+          conclusion: APICheckConclusion.Failure,
+          appName: 'test',
+          htmlUrl: '',
+          checkSuiteId: 1234,
+        },
+      ],
+    }
+
+    this.showPopup(popup)
   }
 
   private testPruneBranches() {
