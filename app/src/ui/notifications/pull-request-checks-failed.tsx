@@ -14,15 +14,14 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Account } from '../../models/account'
 import { API, IAPIWorkflowJobStep } from '../../lib/api'
-import { Octicon, syncClockwise } from '../octicons'
+import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { Button } from '../lib/button'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
 import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
-import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
+import { CICheckReRunButton } from '../check-runs/ci-check-re-run-button'
 
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 const BlankSlateImage = encodePathAsUrl(
@@ -265,30 +264,12 @@ export class PullRequestChecksFailed extends React.Component<
     const { checks } = this.state
     return (
       <div className="ci-check-rerun">
-        <Button
-          onClick={this.onRerunChecksButton}
+        <CICheckReRunButton
           disabled={checks.length === 0}
-        >
-          <Octicon symbol={syncClockwise} /> Re-run checks{' '}
-          <Octicon symbol={OcticonSymbol.triangleDown} />
-        </Button>
+          onRerunChecks={this.rerunChecks}
+        />
       </div>
     )
-  }
-
-  private onRerunChecksButton = () => {
-    const items: IMenuItem[] = [
-      {
-        label: __DARWIN__ ? 'Re-run Failed Checks' : 'Re-run failed checks',
-        action: () => this.rerunChecks(true),
-      },
-      {
-        label: __DARWIN__ ? 'Re-run All Checks' : 'Re-run all checks',
-        action: () => this.rerunChecks(false),
-      },
-    ]
-
-    showContextualMenu(items)
   }
 
   private rerunChecks = (failedOnly: boolean) => {
