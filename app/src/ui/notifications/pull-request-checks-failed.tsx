@@ -167,6 +167,10 @@ export class PullRequestChecksFailed extends React.Component<
     )
   }
 
+  private onRerunJob = (check: IRefCheck) => {
+    this.rerunChecks(false, [check])
+  }
+
   private renderCheckRunJobs() {
     return (
       <CICheckRunList
@@ -176,7 +180,7 @@ export class PullRequestChecksFailed extends React.Component<
         selectable={true}
         onViewCheckDetails={this.onViewOnGitHub}
         onCheckRunClick={this.onCheckRunClick}
-        onRerunJob={this.rerunCheck}
+        onRerunJob={this.onRerunJob}
       />
     )
   }
@@ -272,7 +276,10 @@ export class PullRequestChecksFailed extends React.Component<
     )
   }
 
-  private rerunChecks = (failedOnly: boolean) => {
+  private rerunChecks = (
+    failedOnly: boolean,
+    checks?: ReadonlyArray<IRefCheck>
+  ) => {
     this.props.dispatcher.recordChecksFailedDialogRerunChecks()
 
     const prRef = getPullRequestCommitRef(
@@ -281,26 +288,10 @@ export class PullRequestChecksFailed extends React.Component<
 
     this.props.dispatcher.showPopup({
       type: PopupType.CICheckRunRerun,
-      checkRuns: this.state.checks,
+      checkRuns: checks ?? this.state.checks,
       repository: this.props.repository.gitHubRepository,
       prRef,
       failedOnly,
-    })
-  }
-
-  private rerunCheck = (check: IRefCheck) => {
-    this.props.dispatcher.recordChecksFailedDialogRerunChecks()
-
-    const prRef = getPullRequestCommitRef(
-      this.props.pullRequest.pullRequestNumber
-    )
-
-    this.props.dispatcher.showPopup({
-      type: PopupType.CICheckRunRerun,
-      checkRuns: [check],
-      repository: this.props.repository.gitHubRepository,
-      prRef,
-      failedOnly: false,
     })
   }
 

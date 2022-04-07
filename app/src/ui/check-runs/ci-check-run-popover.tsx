@@ -191,20 +191,13 @@ export class CICheckRunPopover extends React.PureComponent<
     return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
-  private rerunCheck = (check: IRefCheck) => {
+  private rerunChecks = (
+    failedOnly: boolean,
+    checkRuns?: ReadonlyArray<IRefCheck>
+  ) => {
     this.props.dispatcher.showPopup({
       type: PopupType.CICheckRunRerun,
-      checkRuns: [check],
-      repository: this.props.repository,
-      prRef: getPullRequestCommitRef(this.props.prNumber),
-      failedOnly: false,
-    })
-  }
-
-  private rerunChecks = (failedOnly: boolean) => {
-    this.props.dispatcher.showPopup({
-      type: PopupType.CICheckRunRerun,
-      checkRuns: this.state.checkRuns,
+      checkRuns: checkRuns ?? this.state.checkRuns,
       repository: this.props.repository,
       prRef: getPullRequestCommitRef(this.props.prNumber),
       failedOnly,
@@ -356,6 +349,10 @@ export class CICheckRunPopover extends React.PureComponent<
     )
   }
 
+  private onRerunJob = (check: IRefCheck) => {
+    this.rerunChecks(false, [check])
+  }
+
   public renderList = (): JSX.Element => {
     const { checkRuns, loadingActionLogs, loadingActionWorkflows } = this.state
     if (loadingActionWorkflows) {
@@ -373,7 +370,7 @@ export class CICheckRunPopover extends React.PureComponent<
           loadingActionWorkflows={loadingActionWorkflows}
           onViewCheckDetails={this.onViewCheckDetails}
           onViewJobStep={this.onViewJobStep}
-          onRerunJob={this.rerunCheck}
+          onRerunJob={this.onRerunJob}
         />
       </div>
     )
