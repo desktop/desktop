@@ -167,3 +167,8 @@ export function enableHighSignalNotifications(): boolean {
 export function enablePullRequestReviewNotifications(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we enable the rerunning of failed and single jobs aka action based checks */
+export function enableReRunFailedAndSingleCheckJobs(): boolean {
+  return enableDevelopmentFeatures()
+}
