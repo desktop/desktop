@@ -1234,6 +1234,45 @@ export class API {
   }
 
   /**
+   * Re-run all of the failed jobs and their dependent jobs in a workflow run
+   * using the id of the workflow run.
+   */
+  public async rerunFailedJob(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/runs/${workflowRunId}/rerun-failed-jobs`
+    const response = await this.request('POST', path)
+    try {
+      return response.ok
+    } catch (err) {
+      log.debug(
+        `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`
+      )
+    }
+    return false
+  }
+
+  /**
+   * Re-run a job and its dependent jobs in a workflow run.
+   */
+  public async rerunJob(
+    owner: string,
+    name: string,
+    jobId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/jobs/${jobId}/rerun`
+    const response = await this.request('POST', path)
+    try {
+      return response.ok
+    } catch (err) {
+      log.debug(`Failed to rerun workflow job (${owner}/${name}): ${jobId}`)
+    }
+    return false
+  }
+
+  /**
    * Gets a single check suite using its id
    */
   public async fetchCheckSuite(
