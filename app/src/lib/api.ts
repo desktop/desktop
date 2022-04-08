@@ -1237,7 +1237,7 @@ export class API {
    * Re-run all of the failed jobs and their dependent jobs in a workflow run
    * using the id of the workflow run.
    */
-  public async rerunFailedJob(
+  public async rerunFailedJobs(
     owner: string,
     name: string,
     workflowRunId: number
