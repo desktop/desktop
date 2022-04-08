@@ -1,10 +1,11 @@
-import * as FSE from 'fs-extra'
 import * as Os from 'os'
 import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Tailer } from './tailer'
 import byline from 'byline'
 import * as Crypto from 'crypto'
+import { createReadStream } from 'fs'
+import { mkdtemp } from 'fs/promises'
 
 /**
  * Get a path to a temp file using the given name. Note that the file itself
@@ -12,7 +13,7 @@ import * as Crypto from 'crypto'
  */
 export async function getTempFilePath(name: string): Promise<string> {
   const tempDir = Path.join(Os.tmpdir(), `${name}-`)
-  const directory = await FSE.mkdtemp(tempDir)
+  const directory = await mkdtemp(tempDir)
   return Path.join(directory, name)
 }
 
@@ -53,39 +54,6 @@ export function tailByLine(
 }
 
 /**
- * Asynchronous readFile - Asynchronously reads the entire contents of a file.
- *
- * @param fileName
- * @param options An object with optional {encoding} and {flag} properties.  If {encoding} is specified, readFile returns a string; otherwise it returns a Buffer.
- * @param callback - The callback is passed two arguments (err, data), where data is the contents of the file.
- */
-export async function readFile(
-  filename: string,
-  options?: { flag?: string }
-): Promise<Buffer>
-// eslint-disable-next-line no-redeclare
-export async function readFile(
-  filename: string,
-  options?: { encoding: BufferEncoding; flag?: string }
-): Promise<string>
-// eslint-disable-next-line no-redeclare
-export async function readFile(
-  filename: string,
-  options?: { encoding?: string; flag?: string }
-): Promise<Buffer | string> {
-  return new Promise<string | Buffer>((resolve, reject) => {
-    options = options || { flag: 'r' }
-    FSE.readFile(filename, options, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
-}
-
-/**
  * Read a specific region from a file.
  *
  * @param path  Path to the file
@@ -103,7 +71,7 @@ export async function readPartialFile(
     const chunks = new Array<Buffer>()
     let total = 0
 
-    FSE.createReadStream(path, { start, end })
+    createReadStream(path, { start, end })
       .on('data', (chunk: Buffer) => {
         chunks.push(chunk)
         total += chunk.length
@@ -120,7 +88,7 @@ export async function getFileHash(
   return new Promise((resolve, reject) => {
     const hash = Crypto.createHash(type)
     hash.setEncoding('hex')
-    const input = FSE.createReadStream(path)
+    const input = createReadStream(path)
 
     hash.on('finish', () => {
       resolve(hash.read() as string)

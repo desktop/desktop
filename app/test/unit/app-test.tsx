@@ -30,6 +30,8 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 import { AheadBehindStore } from '../../src/lib/stores/ahead-behind-store'
+import { AliveStore } from '../../src/lib/stores/alive-store'
+import { NotificationsStore } from '../../src/lib/stores/notifications-store'
 
 describe('App', () => {
   let appStore: AppStore
@@ -74,6 +76,16 @@ describe('App', () => {
     const commitStatusStore = new CommitStatusStore(accountsStore)
     aheadBehindStore = new AheadBehindStore()
 
+    const aliveStore = new AliveStore(accountsStore)
+
+    const notificationsStore = new NotificationsStore(
+      accountsStore,
+      aliveStore,
+      pullRequestCoordinator,
+      statsStore
+    )
+    notificationsStore.setNotificationsEnabled(false)
+
     appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -84,7 +96,8 @@ describe('App', () => {
       repositoriesStore,
       pullRequestCoordinator,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      notificationsStore
     )
 
     dispatcher = new InMemoryDispatcher(
@@ -96,7 +109,7 @@ describe('App', () => {
   })
 
   it('renders', async () => {
-    const app = (TestUtils.renderIntoDocument(
+    const app = TestUtils.renderIntoDocument(
       <App
         dispatcher={dispatcher}
         appStore={appStore}
@@ -106,7 +119,7 @@ describe('App', () => {
         aheadBehindStore={aheadBehindStore}
         startTime={0}
       />
-    ) as unknown) as React.Component<any, any>
+    ) as unknown as React.Component<any, any>
     // Give any promises a tick to resolve.
     await wait(0)
 

@@ -17,6 +17,7 @@ class TrampolineUIHelper {
   public promptAddingSSHHost(
     host: string,
     ip: string,
+    keyType: string,
     fingerprint: string
   ): Promise<boolean> {
     return new Promise(resolve => {
@@ -24,6 +25,7 @@ class TrampolineUIHelper {
         type: PopupType.AddSSHHost,
         host,
         ip,
+        keyType,
         fingerprint,
         onSubmit: addHost => resolve(addHost),
       })

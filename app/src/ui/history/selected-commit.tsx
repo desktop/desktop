@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { clipboard } from 'electron'
-import { pathExists } from 'fs-extra'
 import * as Path from 'path'
 
 import { Repository } from '../../models/repository'
@@ -18,27 +17,35 @@ import {
   DefaultEditorLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
+  CopyRelativeFilePathLabel,
 } from '../lib/context-menu'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 import { Dispatcher } from '../dispatcher'
 import { Resizable } from '../resizable'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { IMenuItem } from '../../lib/menu-item'
 import { IChangesetData } from '../../lib/git'
+import { IConstrainedValue } from '../../lib/app-state'
+import { clamp } from '../../lib/clamp'
+import { pathExists } from '../lib/path-exists'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
+  readonly isLocalRepository: boolean
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommit: Commit | null
+  readonly isLocal: boolean
   readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
   readonly currentDiff: IDiff | null
-  readonly commitSummaryWidth: number
+  readonly commitSummaryWidth: IConstrainedValue
   readonly selectedDiffType: ImageDiffType
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -49,6 +56,7 @@ interface ISelectedCommitProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenInExternalEditor: (path: string) => void
+  readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
   readonly hideWhitespaceInDiff: boolean
 
   /** Whether we should display side by side diffs. */
@@ -153,6 +161,7 @@ export class SelectedCommit extends React.Component<
         showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.props.onOpenBinaryFile}
         onChangeImageDiffType={this.props.onChangeImageDiffType}
+        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
       />
     )
   }
@@ -217,7 +226,7 @@ export class SelectedCommit extends React.Component<
     }
 
     // -1 for right hand side border
-    const availableWidth = this.props.commitSummaryWidth - 1
+    const availableWidth = clamp(this.props.commitSummaryWidth) - 1
 
     return (
       <FileList
@@ -252,13 +261,16 @@ export class SelectedCommit extends React.Component<
     }
 
     const className = this.state.isExpanded ? 'expanded' : 'collapsed'
+    const { commitSummaryWidth } = this.props
 
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
         {this.renderCommitSummary(commit)}
         <div className="commit-details">
           <Resizable
-            width={this.props.commitSummaryWidth}
+            width={commitSummaryWidth.value}
+            minimumWidth={commitSummaryWidth.min}
+            maximumWidth={commitSummaryWidth.max}
             onResize={this.onCommitSummaryResize}
             onReset={this.onCommitSummaryReset}
           >
@@ -331,11 +343,7 @@ export class SelectedCommit extends React.Component<
       ? `Open in ${this.props.externalEditorLabel}`
       : DefaultEditorLabel
 
-    const items = [
-      {
-        label: CopyFilePathLabel,
-        action: () => clipboard.writeText(fullPath),
-      },
+    const items: IMenuItem[] = [
       {
         label: RevealInFileManagerLabel,
         action: () => revealInFileManager(this.props.repository, file.path),
@@ -351,8 +359,44 @@ export class SelectedCommit extends React.Component<
         action: () => this.onOpenItem(file.path),
         enabled: isSafeExtension && fileExistsOnDisk,
       },
+      { type: 'separator' },
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
+      {
+        label: CopyRelativeFilePathLabel,
+        action: () => clipboard.writeText(Path.normalize(file.path)),
+      },
+      { type: 'separator' },
     ]
+
+    let viewOnGitHubLabel = 'View on GitHub'
+    const gitHubRepository = this.props.repository.gitHubRepository
+
+    if (
+      gitHubRepository &&
+      gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      viewOnGitHubLabel = 'View on GitHub Enterprise'
+    }
+
+    items.push({
+      label: viewOnGitHubLabel,
+      action: () => this.onViewOnGitHub(file),
+      enabled:
+        !this.props.isLocal &&
+        !!gitHubRepository &&
+        !!this.props.selectedCommit,
+    })
+
     showContextualMenu(items)
+  }
+
+  private onViewOnGitHub = (file: CommittedFileChange) => {
+    if (this.props.selectedCommit && this.props.onViewCommitOnGitHub) {
+      this.props.onViewCommitOnGitHub(this.props.selectedCommit.sha, file.path)
+    }
   }
 }
 

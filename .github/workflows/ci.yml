@@ -11,10 +11,11 @@ jobs:
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
+    permissions: read-all
     strategy:
       fail-fast: false
       matrix:
-        node: [14.15.4]
+        node: [16.13.0]
         os: [macos-10.15, windows-2019]
         arch: [x64, arm64]
         include:
@@ -27,6 +28,8 @@ jobs:
       # Needed for macOS arm64 until hosted macos-11.0 runners become available
       SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
+      - name: Fail immediately # yes
+        run: exit 1
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -64,7 +67,7 @@ jobs:
       - name: Validate changelog
         run: yarn validate-changelog
       - name: Ensure a clean working directory
-        run: yarn check-modified
+        run: git diff --name-status --exit-code
       - name: Build production app
         run: yarn build:prod
         env:
@@ -86,10 +89,6 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script:cov
-      - name: Run integration tests
-        if: matrix.arch == 'x64'
-        timeout-minutes: 5
-        run: yarn test:integration
       - name: Publish production app
         run: yarn run publish
         env:
@@ -98,9 +97,6 @@ jobs:
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
-          S3_KEY: ${{ secrets.S3_KEY }}
-          S3_SECRET: ${{ secrets.S3_SECRET }}
-          S3_BUCKET: github-desktop
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
           AZURE_BLOB_CONTAINER: ${{ secrets.AZURE_BLOB_CONTAINER }}

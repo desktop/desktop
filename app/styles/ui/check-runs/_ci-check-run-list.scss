@@ -1,0 +1,14 @@
+.ci-check-run-list {
+  .ci-check-run-list-group-header {
+    position: sticky;
+    top: 0;
+    padding: var(--spacing-half) var(--spacing);
+    background-color: var(--background-color);
+    border-bottom: var(--base-border);
+    filter: brightness(98%);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    z-index: var(--list-sticky-header-top-level-z-index);
+  }
+}

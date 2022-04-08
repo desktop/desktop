@@ -80,26 +80,32 @@ describe('PathText', () => {
   describe('extract', () => {
     it('converts untracked submodule correctly', () => {
       const { normalizedFileName, normalizedDirectory } = extract(
-        'some/submodule/path/'
+        __WIN32__ ? 'some\\submodule\\path\\' : 'some/submodule/path/'
       )
       expect(normalizedFileName).toBe('path')
-      expect(normalizedDirectory).toBe('some/submodule/')
+      expect(normalizedDirectory).toBe(
+        __WIN32__ ? 'some\\submodule\\' : 'some/submodule/'
+      )
     })
 
     it('converts tracked submodule correctly', () => {
       const { normalizedFileName, normalizedDirectory } = extract(
-        'some/submodule/path'
+        __WIN32__ ? 'some\\submodule\\path' : 'some/submodule/path'
       )
       expect(normalizedFileName).toBe('path')
-      expect(normalizedDirectory).toBe('some/submodule/')
+      expect(normalizedDirectory).toBe(
+        __WIN32__ ? 'some\\submodule\\' : 'some/submodule/'
+      )
     })
 
     it('converts file path correctly', () => {
       const { normalizedFileName, normalizedDirectory } = extract(
-        'some/repository/path.tsx'
+        __WIN32__ ? 'some\\repository\\path.tsx' : 'some/repository/path.tsx'
       )
       expect(normalizedFileName).toBe('path.tsx')
-      expect(normalizedDirectory).toBe('some/repository/')
+      expect(normalizedDirectory).toBe(
+        __WIN32__ ? 'some\\repository\\' : 'some/repository/'
+      )
     })
   })
 })

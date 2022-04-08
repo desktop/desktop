@@ -8,11 +8,6 @@ import { OnionSkin } from './onion-skin'
 import { Swipe } from './swipe'
 import { assertNever } from '../../../lib/fatal-error'
 import { ISize, getMaxFitSize } from './sizing'
-import {
-  AlmostImmediate,
-  clearAlmostImmediate,
-  setAlmostImmediate,
-} from '../../../lib/set-almost-immediate'
 
 interface IModifiedImageDiffProps {
   readonly previous: Image
@@ -68,25 +63,25 @@ export class ModifiedImageDiff extends React.Component<
   private container: HTMLElement | null = null
 
   private readonly resizeObserver: ResizeObserver
-  private resizedTimeoutID: AlmostImmediate | null = null
+  private resizedTimeoutID: NodeJS.Immediate | null = null
 
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
 
     this.resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        if (entry.target === this.container) {
+      for (const { target, contentRect } of entries) {
+        if (target === this.container && target instanceof HTMLElement) {
           // We might end up causing a recursive update by updating the state
           // when we're reacting to a resize so we'll defer it until after
           // react is done with this frame.
           if (this.resizedTimeoutID !== null) {
-            clearAlmostImmediate(this.resizedTimeoutID)
+            clearImmediate(this.resizedTimeoutID)
           }
 
-          this.resizedTimeoutID = setAlmostImmediate(
+          this.resizedTimeoutID = setImmediate(
             this.onResized,
-            entry.target,
-            entry.contentRect
+            target,
+            contentRect
           )
         }
       }

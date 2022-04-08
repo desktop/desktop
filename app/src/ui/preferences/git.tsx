@@ -104,7 +104,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
 
     return (
       <div className="default-branch-component">
-        <h2>Default branch for new repositories</h2>
+        <h2>Default branch name for new repositories</h2>
 
         {SuggestedBranchNames.map((branchName: string) => (
           <RadioButton

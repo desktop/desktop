@@ -11,13 +11,8 @@ import { BaseMultiCommitOperation } from './base-multi-commit-operation'
 
 export abstract class CherryPick extends BaseMultiCommitOperation {
   protected onContinueAfterConflicts = async (): Promise<void> => {
-    const {
-      repository,
-      dispatcher,
-      workingDirectory,
-      state,
-      conflictState,
-    } = this.props
+    const { repository, dispatcher, workingDirectory, state, conflictState } =
+      this.props
     const { operationDetail, targetBranch } = state
 
     if (
@@ -160,7 +155,7 @@ export abstract class CherryPick extends BaseMultiCommitOperation {
     }
 
     const { commits, sourceBranch } = operationDetail
-
+    dispatcher.setMultiCommitOperationTargetBranch(repository, targetBranch)
     dispatcher.setCherryPickBranchCreated(repository, false)
     dispatcher.cherryPick(repository, targetBranch, commits, sourceBranch)
   }

@@ -122,26 +122,14 @@ function getConflictState(
   status: IStatusResult,
   manualResolutions: Map<string, ManualConflictResolution>
 ): ConflictState | null {
-  // If there are no conflicts found in working directory, conflict state should
-  // be null this is important when checking for a conflict after a --squash
-  // merge which will not have a MERGE_HEAD but would have SQUASH_MSG which also
-  // can be present when no conflicts. You shouldn't be able to have
-  // any form of the other conflicts without conflicted files anyways.
-  if (!status.doConflictedFilesExist) {
-    return null
-  }
-
   if (status.rebaseInternalState !== null) {
     const { currentTip } = status
     if (currentTip == null) {
       return null
     }
 
-    const {
-      targetBranch,
-      originalBranchTip,
-      baseBranchTip,
-    } = status.rebaseInternalState
+    const { targetBranch, originalBranchTip, baseBranchTip } =
+      status.rebaseInternalState
 
     return {
       kind: 'rebase',
@@ -169,7 +157,12 @@ function getConflictState(
   if (
     currentBranch == null ||
     currentTip == null ||
-    (!mergeHeadFound && !squashMsgFound)
+    (!mergeHeadFound && !squashMsgFound) ||
+    // If there are no conflicts, we want to ignore the squash msg found.
+    // However, we do want to prompt the conflicts showing all resolved
+    // if a regular merge conflicts are all resolves so user can
+    // commit the merge commit.
+    (!mergeHeadFound && !status.doConflictedFilesExist)
   ) {
     return null
   }

@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { writeFile, readFile } from 'fs-extra'
+import { readFile, writeFile } from 'fs/promises'
 
 export interface ILicense {
   /** The human-readable name. */

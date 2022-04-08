@@ -25,7 +25,7 @@ interface ICommitMessageAvatarProps {
    * Defaults to the name and email if undefined and is
    * skipped completely if title is null
    */
-  readonly title?: string | null
+  readonly title?: string | JSX.Element | null
 
   /** Current email address configured by the user. */
   readonly email?: string
@@ -44,6 +44,10 @@ interface ICommitMessageAvatarProps {
 
   readonly onUpdateEmail: (email: string) => void
 
+  /**
+   * Called when the user has requested to see the Git Config tab in the
+   * repository settings dialog
+   */
   readonly onOpenRepositorySettings: () => void
 }
 
@@ -130,8 +134,9 @@ export class CommitMessageAvatar extends React.Component<
         <h3>This commit will be misattributed</h3>
         <Row>
           <div>
-            The email in your global Git config ({this.props.email}) doesn't
-            match your GitHub{accountTypeSuffix} account.{' '}
+            The email in your global Git config (
+            <span className="git-email">{this.props.email}</span>) doesn't match
+            your GitHub{accountTypeSuffix} account.{' '}
             <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
               Learn more.
             </LinkButton>
@@ -159,14 +164,10 @@ export class CommitMessageAvatar extends React.Component<
           </div>
         </Row>
         <Row className="button-row">
-          <Button onClick={this.onIgnoreClick} tooltip="Ignore" type="button">
+          <Button onClick={this.onIgnoreClick} type="button">
             Ignore
           </Button>
-          <Button
-            onClick={this.onUpdateEmailClick}
-            tooltip={updateEmailTitle}
-            type="submit"
-          >
+          <Button onClick={this.onUpdateEmailClick} type="submit">
             {updateEmailTitle}
           </Button>
         </Row>

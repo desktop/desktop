@@ -6,13 +6,17 @@ import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
 import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
+import { enableHighSignalNotifications } from '../../lib/feature-flag'
+import { isWindows10OrLater } from '../../lib/get-os'
 
 interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
+  readonly notificationsEnabled: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
   readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
+  readonly onNotificationsEnabledChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
@@ -74,6 +78,12 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
+  }
+
+  private onNotificationsEnabledChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onNotificationsEnabledChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -138,6 +148,7 @@ export class Advanced extends React.Component<
           </p>
         </div>
         {this.renderSSHSettings()}
+        {this.renderNotificationsSettings()}
         <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
@@ -170,6 +181,52 @@ export class Advanced extends React.Component<
           onChange={this.onUseWindowsOpenSSHChanged}
         />
       </div>
+    )
+  }
+
+  private renderNotificationsSettings() {
+    if (!enableHighSignalNotifications()) {
+      return null
+    }
+
+    return (
+      <div className="advanced-section">
+        <h2>Notifications</h2>
+        <Checkbox
+          label="Enable notifications"
+          value={
+            this.props.notificationsEnabled
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onNotificationsEnabledChanged}
+        />
+        <p className="git-settings-description">
+          Allows the display of notifications when high-signal events take place
+          in the current repository.{this.renderNotificationSettingsLink()}
+        </p>
+      </div>
+    )
+  }
+
+  private renderNotificationSettingsLink() {
+    if (!__DARWIN__ && !isWindows10OrLater()) {
+      return null
+    }
+
+    const notificationSettingsURL = __DARWIN__
+      ? 'x-apple.systempreferences:com.apple.preference.notifications'
+      : 'ms-settings:notifications'
+
+    return (
+      <>
+        {' '}
+        Make sure notifications are enabled for GitHub Desktop in the{' '}
+        <LinkButton uri={notificationSettingsURL}>
+          Notifications Settings
+        </LinkButton>
+        .
+      </>
     )
   }
 }

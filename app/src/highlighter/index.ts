@@ -314,6 +314,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
+    install: () => import('codemirror/mode/haml/haml'),
+    mappings: {
+      '.haml': 'text/x-haml',
+    },
+  },
+  {
     install: () => import('codemirror/mode/sieve/sieve'),
     mappings: {
       '.sieve': 'application/sieve',
@@ -403,6 +409,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.toml': 'text/x-toml',
     },
   },
+  {
+    install: () => import('codemirror/mode/dart/dart'),
+    mappings: {
+      '.dart': 'application/dart',
+    },
+  },
 ]
 
 /**
@@ -453,15 +465,15 @@ for (const basenameMode of basenameModes) {
   }
 }
 
-function guessMimeType(contents: string) {
-  if (contents.startsWith('<?xml')) {
+function guessMimeType(contents: ReadonlyArray<string>) {
+  const firstLine = contents[0]
+
+  if (firstLine.startsWith('<?xml')) {
     return 'text/xml'
   }
 
-  if (contents.startsWith('#!')) {
-    const m = /^#!.*?(ts-node|node|bash|sh|python(?:[\d.]+)?)\r?\n/g.exec(
-      contents
-    )
+  if (firstLine.startsWith('#!')) {
+    const m = /^#!.*?(ts-node|node|bash|sh|python(?:[\d.]+)?)/g.exec(firstLine)
 
     if (m) {
       switch (m[1]) {
@@ -491,7 +503,7 @@ async function detectMode(
   const mimeType =
     extensionMIMEMap.get(request.extension.toLowerCase()) ||
     basenameMIMEMap.get(request.basename.toLowerCase()) ||
-    guessMimeType(request.contents)
+    guessMimeType(request.contentLines)
 
   if (!mimeType) {
     return null
@@ -570,7 +582,6 @@ onmessage = async (ev: MessageEvent) => {
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
-  const contents = request.contents
   const addModeClass = request.addModeClass === true
 
   const mode = await detectMode(request)
@@ -589,7 +600,7 @@ onmessage = async (ev: MessageEvent) => {
   // line we need so that we can bail immediately when we've reached it.
   const maxLine = lineFilter ? Math.max(...lineFilter) : null
 
-  const lines = contents.split(/\r?\n/)
+  const lines = request.contentLines.concat()
   const state: any = mode.startState ? mode.startState() : null
 
   const tokens: ITokens = {}

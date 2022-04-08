@@ -46,14 +46,14 @@ describe('wrapRichTextCommitMessage', () => {
     expect(body.length).toBe(2)
 
     expect(summary[0].kind).toBe(TokenType.Text)
-    expect(summary[0].text).toBe(summaryText.substr(0, 72))
+    expect(summary[0].text).toBe(summaryText.substring(0, 72))
     expect(summary[1].kind).toBe(TokenType.Text)
     expect(summary[1].text).toBe('…')
 
     expect(body[0].kind).toBe(TokenType.Text)
     expect(body[0].text).toBe('…')
     expect(body[1].kind).toBe(TokenType.Text)
-    expect(body[1].text).toBe(summaryText.substr(72))
+    expect(body[1].text).toBe(summaryText.substring(72))
   })
 
   it('hard wraps text longer than 72 chars and joins it with the body', async () => {
@@ -66,12 +66,12 @@ describe('wrapRichTextCommitMessage', () => {
     expect(body.length).toBe(4)
 
     expect(summary[0].kind).toBe(TokenType.Text)
-    expect(summary[0].text).toBe(summaryText.substr(0, 72))
+    expect(summary[0].text).toBe(summaryText.substring(0, 72))
     expect(summary[1].kind).toBe(TokenType.Text)
     expect(summary[1].text).toBe('…')
 
     expect(body[0].text).toBe('…')
-    expect(body[1].text).toBe(summaryText.substr(72))
+    expect(body[1].text).toBe(summaryText.substring(72))
     expect(body[2].text).toBe('\n\n')
     expect(body[3].text).toBe(bodyText)
   })

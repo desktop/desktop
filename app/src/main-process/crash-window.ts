@@ -1,7 +1,9 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
+import * as ipcMain from './ipc-main'
+import * as ipcWebContents from './ipc-webcontents'
 
 const minWidth = 600
 const minHeight = 500
@@ -38,7 +40,7 @@ export class CrashWindow {
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
         spellcheck: false,
-        enableRemoteModule: true,
+        contextIsolation: false,
       },
     }
 
@@ -49,6 +51,7 @@ export class CrashWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+
     this.error = error
     this.errorType = errorType
   }
@@ -90,7 +93,7 @@ export class CrashWindow {
       }
     })
 
-    ipcMain.on('crash-ready', (event: Electron.IpcMainEvent) => {
+    ipcMain.on('crash-ready', () => {
       log.debug(`Crash process is ready`)
 
       this.hasSentReadyEvent = true
@@ -99,7 +102,7 @@ export class CrashWindow {
       this.maybeEmitDidLoad()
     })
 
-    ipcMain.on('crash-quit', (event: Electron.IpcMainEvent) => {
+    ipcMain.on('crash-quit', () => {
       log.debug('Got quit signal from crash process')
       this.window.close()
     })
@@ -160,7 +163,7 @@ export class CrashWindow {
       error: friendlyError,
     }
 
-    this.window.webContents.send('error', details)
+    ipcWebContents.send(this.window.webContents, 'error', details)
   }
 
   public destroy() {

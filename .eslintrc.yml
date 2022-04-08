@@ -2,7 +2,6 @@ root: true
 parser: '@typescript-eslint/parser'
 plugins:
   - '@typescript-eslint'
-  - babel
   - react
   - json
   - jsdoc
@@ -25,7 +24,7 @@ rules:
   react-no-unbound-dispatcher-props: error
   react-readonly-props-and-state: error
   react-proper-lifecycle-methods: error
-  set-almost-immediate: error
+  no-loosely-typed-webcontents-ipc: error
 
   ###########
   # PLUGINS #
@@ -100,9 +99,7 @@ rules:
   '@typescript-eslint/no-explicit-any': off
   '@typescript-eslint/no-inferrable-types': off
   '@typescript-eslint/no-empty-function': off
-
-  # Babel
-  babel/no-invalid-this: error
+  '@typescript-eslint/no-redeclare': error
 
   # React
   react/jsx-boolean-value:
@@ -114,6 +111,10 @@ rules:
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
   react/no-unused-state: error
+  react/no-unused-prop-types: error
+  react/prop-types:
+    - error
+    - ignore: ['children']
 
   # JSDoc
   jsdoc/check-alignment: error
@@ -136,9 +137,9 @@ rules:
   ###########
   curly: error
   no-new-wrappers: error
-  no-redeclare:
-    - error
-    - builtinGlobals: true
+  # We'll use no-redeclare from @typescript/eslint-plugin instead as that
+  # supports overloads
+  no-redeclare: off
   no-eval: error
   no-sync: error
   no-var: error
@@ -150,6 +151,29 @@ rules:
     - error
     - global
   no-buffer-constructor: error
+  no-restricted-imports:
+    - error
+    - paths:
+        - name: electron
+          importNames: ['ipcRenderer']
+          message:
+            "Please use 'import * as ipcRenderer' from 'ipc-renderer' instead to
+            get strongly typed IPC methods."
+        - name: electron/renderer
+          importNames: ['ipcRenderer']
+          message:
+            "Please use 'import * as ipcRenderer' from 'ipc-renderer' instead to
+            get strongly typed IPC methods."
+        - name: electron
+          importNames: ['ipcMain']
+          message:
+            "Please use 'import * as ipcMain' from 'ipc-main' instead to get
+            strongly typed IPC methods."
+        - name: electron/main
+          importNames: ['ipcMain']
+          message:
+            "Please use 'import * as ipcMain' from 'ipc-main' instead to get
+            strongly typed IPC methods."
 
   ###########
   # SPECIAL #

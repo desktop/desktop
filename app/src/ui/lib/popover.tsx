@@ -1,6 +1,7 @@
 import * as React from 'react'
 import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
+import classNames from 'classnames'
 
 /**
  * Position of the caret relative to the pop up. It's composed by 2 dimensions:
@@ -15,14 +16,24 @@ import { Options as FocusTrapOptions } from 'focus-trap'
  * position.
  **/
 export enum PopoverCaretPosition {
+  Top = 'top',
   TopRight = 'top-right',
   TopLeft = 'top-left',
   LeftTop = 'left-top',
   LeftBottom = 'left-bottom',
+  RightTop = 'right-top',
 }
+
+export enum PopoverAppearEffect {
+  Shake = 'shake',
+}
+
 interface IPopoverProps {
-  readonly onClickOutside?: () => void
+  readonly onClickOutside?: (event?: MouseEvent) => void
   readonly caretPosition: PopoverCaretPosition
+  readonly className?: string
+  readonly style?: React.CSSProperties
+  readonly appearEffect?: PopoverAppearEffect
 }
 
 export class Popover extends React.Component<IPopoverProps> {
@@ -40,14 +51,14 @@ export class Popover extends React.Component<IPopoverProps> {
   }
 
   public componentDidMount() {
-    document.addEventListener('mousedown', this.onDocumentMouseDown)
+    document.addEventListener('click', this.onDocumentClick)
   }
 
   public componentWillUnmount() {
-    document.removeEventListener('mousedown', this.onDocumentMouseDown)
+    document.removeEventListener('click', this.onDocumentClick)
   }
 
-  private onDocumentMouseDown = (event: MouseEvent) => {
+  private onDocumentClick = (event: MouseEvent) => {
     const { current: ref } = this.containerDivRef
     const { target } = event
 
@@ -58,16 +69,21 @@ export class Popover extends React.Component<IPopoverProps> {
       !ref.parentElement.contains(target) &&
       this.props.onClickOutside !== undefined
     ) {
-      this.props.onClickOutside()
+      this.props.onClickOutside(event)
     }
   }
 
   public render() {
-    const classNames = ['popover-component', this.getClassNameForCaret()]
+    const cn = classNames(
+      'popover-component',
+      this.getClassNameForCaret(),
+      this.props.className,
+      this.props.appearEffect && `appear-${this.props.appearEffect}`
+    )
 
     return (
       <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div className={classNames.join(' ')} ref={this.containerDivRef}>
+        <div className={cn} ref={this.containerDivRef} style={this.props.style}>
           {this.props.children}
         </div>
       </FocusTrap>

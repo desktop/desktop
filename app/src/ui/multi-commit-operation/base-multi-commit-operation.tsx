@@ -7,10 +7,10 @@ import { getResolvedFiles } from '../../lib/status'
 import { ConflictState, IMultiCommitOperationState } from '../../lib/app-state'
 import { Branch } from '../../models/branch'
 import { MultiCommitOperationStepKind } from '../../models/multi-commit-operation'
-import { ConflictsDialog } from './conflicts-dialog'
-import { ConfirmAbortDialog } from './confirm-abort-dialog'
-import { ProgressDialog } from './progress-dialog'
-import { WarnForcePushDialog } from './warn-force-push-dialog'
+import { ConflictsDialog } from './dialog/conflicts-dialog'
+import { ConfirmAbortDialog } from './dialog/confirm-abort-dialog'
+import { ProgressDialog } from './dialog/progress-dialog'
+import { WarnForcePushDialog } from './dialog/warn-force-push-dialog'
 import { PopupType } from '../../models/popup'
 
 export interface IMultiCommitOperationProps {
@@ -42,26 +42,14 @@ export interface IMultiCommitOperationProps {
 }
 
 /** A base component for the shared logic of multi commit operations. */
-export abstract class BaseMultiCommitOperation extends React.Component<
-  IMultiCommitOperationProps
-> {
-  protected abstract onBeginOperation = () => {}
-
-  protected abstract onChooseBranch = (targetBranch: Branch) => {}
-
-  protected abstract onContinueAfterConflicts = async (): Promise<void> => {}
-
-  protected abstract onAbort = async (): Promise<void> => {}
-
-  protected abstract onConflictsDialogDismissed = () => {}
-
-  protected abstract renderChooseBranch = (): JSX.Element | null => {
-    return null
-  }
-
-  protected abstract renderCreateBranch = (): JSX.Element | null => {
-    return null
-  }
+export abstract class BaseMultiCommitOperation extends React.Component<IMultiCommitOperationProps> {
+  protected abstract onBeginOperation: () => void
+  protected abstract onChooseBranch: (targetBranch: Branch) => void
+  protected abstract onContinueAfterConflicts: () => Promise<void>
+  protected abstract onAbort: () => Promise<void>
+  protected abstract onConflictsDialogDismissed: () => void
+  protected abstract renderChooseBranch: () => JSX.Element | null
+  protected abstract renderCreateBranch: () => JSX.Element | null
 
   protected onFlowEnded = () => {
     this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
@@ -73,11 +61,15 @@ export abstract class BaseMultiCommitOperation extends React.Component<
    * needed for typing purposes. Thus it should never happen, so throw error if
    * does.
    */
-  protected endFlowInvalidState(): void {
+  protected endFlowInvalidState(isSilent: boolean = false): void {
     const { step, operationDetail } = this.props.state
-    throw new Error(
-      `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
-    )
+    const errorMessage = `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
+    if (isSilent) {
+      this.onFlowEnded()
+      log.error(errorMessage)
+      return
+    }
+    throw new Error(errorMessage)
   }
 
   protected onInvokeConflictsDialogDismissed = (operationPrefix: string) => {

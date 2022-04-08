@@ -18,6 +18,9 @@ import { ITextDiff, DiffSelection } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
+import { IRefCheck } from '../lib/ci-checks/ci-checks'
+import { GitHubRepository } from './github-repository'
+import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -51,7 +54,6 @@ export enum PopupType {
   OversizedFiles,
   CommitConflictsWarning,
   PushNeedsPull,
-  RebaseFlow,
   ConfirmForcePush,
   StashAndSwitchBranch,
   ConfirmOverwriteStash,
@@ -76,6 +78,11 @@ export enum PopupType {
   InvalidatedToken,
   AddSSHHost,
   SSHKeyPassphrase,
+  PullRequestChecksFailed,
+  CICheckRunRerun,
+  WarnForcePush,
+  DiscardChangesRetry,
+  PullRequestReview,
 }
 
 export type Popup =
@@ -196,10 +203,6 @@ export type Popup =
       upstreamBranch: string
     }
   | {
-      type: PopupType.RebaseFlow
-      repository: Repository
-    }
-  | {
       type: PopupType.StashAndSwitchBranch
       repository: Repository
       branchToCheckout: Branch
@@ -225,7 +228,7 @@ export type Popup =
   | {
       type: PopupType.PushRejectedDueToMissingWorkflowScope
       rejectedPath: string
-      repository: Repository
+      repository: RepositoryWithGitHubRepository
     }
   | {
       type: PopupType.SAMLReauthRequired
@@ -302,6 +305,7 @@ export type Popup =
       type: PopupType.AddSSHHost
       host: string
       ip: string
+      keyType: string
       fingerprint: string
       onSubmit: (addHost: boolean) => void
     }
@@ -312,4 +316,33 @@ export type Popup =
         passphrase: string | undefined,
         storePassphrase: boolean
       ) => void
+    }
+  | {
+      type: PopupType.PullRequestChecksFailed
+      repository: RepositoryWithGitHubRepository
+      pullRequest: PullRequest
+      shouldChangeRepository: boolean
+      commitMessage: string
+      commitSha: string
+      checks: ReadonlyArray<IRefCheck>
+    }
+  | {
+      type: PopupType.CICheckRunRerun
+      checkRuns: ReadonlyArray<IRefCheck>
+      repository: GitHubRepository
+      prRef: string
+    }
+  | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }
+  | {
+      type: PopupType.DiscardChangesRetry
+      retryAction: RetryAction
+    }
+  | {
+      type: PopupType.PullRequestReview
+      repository: RepositoryWithGitHubRepository
+      pullRequest: PullRequest
+      review: ValidNotificationPullRequestReview
+      numberOfComments: number
+      shouldCheckoutBranch: boolean
+      shouldChangeRepository: boolean
     }

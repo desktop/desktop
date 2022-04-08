@@ -59,6 +59,7 @@ async function prepareDiff(
     text: diff.contents,
     hunks: diff.hunks,
     maxLineNumber: diff.maxLineNumber,
+    hasHiddenBidiChars: diff.hasHiddenBidiChars,
   }
 
   const resultDiff = getTextDiffWithBottomDummyHunk(
@@ -83,7 +84,7 @@ describe('text-diff-expansion', () => {
 
     const firstLine = lastHunk.lines[0]
     expect(firstLine.type).toBe(DiffLineType.Hunk)
-    expect(firstLine.text).toBe('@@ @@')
+    expect(firstLine.text).toBe('')
     expect(firstLine.newLineNumber).toBe(null)
     expect(firstLine.oldLineNumber).toBe(null)
   })
@@ -192,13 +193,10 @@ describe('text-diff-expansion', () => {
   })
 
   it('expands the whole file', async () => {
-    const { textDiff, newContentLines } = await prepareDiff(35, [
-      20,
-      17,
-      8,
-      7,
-      6,
-    ])
+    const { textDiff, newContentLines } = await prepareDiff(
+      35,
+      [20, 17, 8, 7, 6]
+    )
 
     const expandedDiff = expandWholeTextDiff(textDiff, newContentLines)
     expect(expandedDiff!.hunks).toHaveLength(1)

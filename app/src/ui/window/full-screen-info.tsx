@@ -3,9 +3,7 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { WindowState } from '../../lib/window-state'
 
 interface IFullScreenInfoProps {
-  // react-unused-props-and-state doesn't understand getDerivedStateFromProps
-  // tslint:disable-next-line:react-unused-props-and-state
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 }
 
 interface IFullScreenInfoState {
@@ -16,7 +14,7 @@ interface IFullScreenInfoState {
    * "real" window state regardless of whether the app is in
    * the background or not.
    */
-  readonly windowState?: Exclude<WindowState, 'hidden'>
+  readonly windowState?: Exclude<WindowState, 'hidden'> | null
 }
 
 const toastTransitionTimeout = { appear: 100, exit: 250 }

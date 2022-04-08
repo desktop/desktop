@@ -95,10 +95,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateButton() {
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__RELEASE_CHANNEL__ === 'development') {
       return null
     }
 
@@ -180,14 +177,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__RELEASE_CHANNEL__ === 'development') {
       return (
         <p>
-          The application is currently running in development or test mode and
-          will not receive any updates.
+          The application is currently running in development and will not
+          receive any updates.
         </p>
       )
     }
@@ -216,10 +210,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__RELEASE_CHANNEL__ === 'development') {
       return null
     }
 
@@ -234,6 +225,24 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
 
     return null
+  }
+
+  private renderBetaLink() {
+    if (__RELEASE_CHANNEL__ === 'beta') {
+      return
+    }
+
+    return (
+      <div>
+        <p className="no-padding">Looking for the latest features?</p>
+        <p className="no-padding">
+          Check out the{' '}
+          <LinkButton uri="https://desktop.github.com/beta">
+            Beta Channel
+          </LinkButton>
+        </p>
+      </div>
+    )
   }
 
   public render() {
@@ -280,6 +289,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
+          {this.renderBetaLink()}
         </DialogContent>
         <DefaultDialogFooter />
       </Dialog>

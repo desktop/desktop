@@ -43,6 +43,8 @@ import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-stor
 import { getStatusOrThrow } from '../helpers/status'
 import { AppFileStatusKind } from '../../src/models/status'
 import { ManualConflictResolution } from '../../src/models/manual-conflict-resolution'
+import { AliveStore } from '../../src/lib/stores/alive-store'
+import { NotificationsStore } from '../../src/lib/stores/notifications-store'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -78,17 +80,30 @@ describe('AppStore', () => {
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
+    const aliveStore = new AliveStore(accountsStore)
+
+    const statsStore = new StatsStore(statsDb, new TestActivityMonitor())
+
+    const notificationsStore = new NotificationsStore(
+      accountsStore,
+      aliveStore,
+      pullRequestCoordinator,
+      statsStore
+    )
+    notificationsStore.setNotificationsEnabled(false)
+
     const appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
       new IssuesStore(issuesDb),
-      new StatsStore(statsDb, new TestActivityMonitor()),
+      statsStore,
       new SignInStore(),
       accountsStore,
       repositoriesStore,
       pullRequestCoordinator,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      notificationsStore
     )
 
     return { appStore, repositoriesStore }

@@ -11,7 +11,9 @@ export function openDesktop(url: string = '') {
   if (__DARWIN__) {
     return ChildProcess.spawn('open', [url], { env })
   } else if (__WIN32__) {
-    return ChildProcess.spawn('cmd', ['/c', 'start', url], { env })
+    // https://github.com/nodejs/node/blob/b39dabefe6d/lib/child_process.js#L565-L577
+    const shell = process.env.comspec || 'cmd.exe'
+    return ChildProcess.spawn(shell, ['/d', '/c', 'start', url], { env })
   } else {
     throw new Error(
       `Desktop command line interface not currently supported on platform ${process.platform}`

@@ -33,6 +33,7 @@ import {
   enableHideWhitespaceInDiffOption,
   enableExperimentalDiffViewer,
 } from '../../lib/feature-flag'
+import { IFileContents } from './syntax-highlighting'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -58,6 +59,11 @@ interface IDiffProps {
 
   /** The diff that should be rendered */
   readonly diff: IDiff
+
+  /**
+   * Contents of the old and new files related to the current text diff.
+   */
+  readonly fileContents: IFileContents | null
 
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
@@ -91,6 +97,9 @@ interface IDiffProps {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => void
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface IDiffState {
@@ -193,6 +202,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       kind: DiffType.Text,
       lineEndingsChange: diff.lineEndingsChange,
       maxLineNumber: diff.maxLineNumber,
+      hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
     return this.renderTextDiff(textDiff)
@@ -256,12 +266,16 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           repository={this.props.repository}
           file={this.props.file}
           diff={diff}
+          fileContents={this.props.fileContents}
           hideWhitespaceInDiff={hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onIncludeChanged={this.props.onIncludeChanged}
           onDiscardChanges={this.props.onDiscardChanges}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
+          }
+          onHideWhitespaceInDiffChanged={
+            this.props.onHideWhitespaceInDiffChanged
           }
         />
       )
@@ -276,9 +290,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.props.onDiscardChanges}
         diff={diff}
+        fileContents={this.props.fileContents}
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
+        onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
       />
     )
   }

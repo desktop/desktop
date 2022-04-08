@@ -3,11 +3,6 @@ import '../lib/logging/renderer/install'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
-
-import * as moment from 'moment'
-
-import { ipcRenderer, remote } from 'electron'
-
 import { App } from './app'
 import {
   Dispatcher,
@@ -26,6 +21,7 @@ import {
   refusedWorkflowUpdate,
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
+  discardChangesHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -39,7 +35,6 @@ import {
   PullRequestStore,
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
-import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType, IAppState } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import {
@@ -51,7 +46,6 @@ import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
-import { getGUID } from '../lib/stats'
 import {
   enableSourceMaps,
   withSourceMappedStack,
@@ -72,9 +66,6 @@ import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 //   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
 import 'wicg-focus-ring'
 
-// setup this moment.js plugin so we can use easier
-// syntax for formatting time duration
-import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
@@ -83,10 +74,16 @@ import {
   supportsSystemThemeChanges,
 } from './lib/application-theme'
 import { trampolineUIHelper } from '../lib/trampoline/trampoline-ui-helper'
+import { AliveStore } from '../lib/stores/alive-store'
+import { NotificationsStore } from '../lib/stores/notifications-store'
+import * as ipcRenderer from '../lib/ipc-renderer'
+import { migrateRendererGUID } from '../lib/get-renderer-guid'
 
 if (__DEV__) {
   installDevGlobals()
 }
+
+migrateRendererGUID()
 
 if (shellNeedsPatching(process)) {
   updateEnvironmentForProcess()
@@ -103,8 +100,6 @@ process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 // instead of just blindly trusting what's set in
 // the current environment. See https://git.io/JJ7KF
 delete process.env.GIT_EXEC_PATH
-
-momentDurationFormatSetup(moment)
 
 const startTime = performance.now()
 
@@ -139,7 +134,6 @@ const sendErrorWithContext = (
   } else {
     const extra: Record<string, string> = {
       osVersion: getOS(),
-      guid: getGUID(),
       ...context,
     }
 
@@ -178,7 +172,7 @@ const sendErrorWithContext = (
         }
 
         extra.repositoryCount = `${currentState.repositories.length}`
-        extra.windowState = currentState.windowState
+        extra.windowState = currentState.windowState ?? 'Unknown'
         extra.accounts = `${currentState.accounts.length}`
 
         extra.automaticallySwitchTheme = `${
@@ -190,7 +184,7 @@ const sendErrorWithContext = (
       /* ignore */
     }
 
-    sendErrorReport(error, extra, nonFatal)
+    sendErrorReport(error, extra, nonFatal ?? false)
   }
 }
 
@@ -258,6 +252,15 @@ const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 const commitStatusStore = new CommitStatusStore(accountsStore)
 const aheadBehindStore = new AheadBehindStore()
 
+const aliveStore = new AliveStore(accountsStore)
+
+const notificationsStore = new NotificationsStore(
+  accountsStore,
+  aliveStore,
+  pullRequestCoordinator,
+  statsStore
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -268,7 +271,8 @@ const appStore = new AppStore(
   repositoriesStore,
   pullRequestCoordinator,
   repositoryStateManager,
-  apiRepositoriesStore
+  apiRepositoriesStore,
+  notificationsStore
 )
 
 appStore.onDidUpdate(state => {
@@ -297,10 +301,11 @@ dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
+dispatcher.registerErrorHandler(discardChangesHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
-dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+dispatcher.initializeAppFocusState()
 
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)
@@ -328,11 +333,8 @@ ipcRenderer.on('blur', () => {
   dispatcher.setAppFocusState(false)
 })
 
-ipcRenderer.on(
-  'url-action',
-  (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-    dispatcher.dispatchURLAction(action)
-  }
+ipcRenderer.on('url-action', (_, action) =>
+  dispatcher.dispatchURLAction(action)
 )
 
 ReactDOM.render(

@@ -6,7 +6,7 @@ import { RichText } from '../lib/rich-text'
 import { RelativeTime } from '../relative-time'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
@@ -43,7 +43,7 @@ interface ICommitProps {
   readonly onCreateBranch?: (commit: CommitOneLine) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
-  readonly onAmendCommit?: () => void
+  readonly onAmendCommit?: (commit: Commit, isLocalCommit: boolean) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onRenderCommitDragElement?: (commit: Commit) => void
   readonly onRemoveDragElement?: () => void
@@ -218,9 +218,7 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private onAmendCommit = () => {
-    if (this.props.onAmendCommit !== undefined) {
-      this.props.onAmendCommit()
-    }
+    this.props.onAmendCommit?.(this.props.commit, this.props.isLocal)
   }
 
   private onCopySHA = () => {
@@ -280,7 +278,6 @@ export class CommitListItem extends React.PureComponent<
     if (this.props.canBeAmended && enableAmendingCommits()) {
       items.push({
         label: __DARWIN__ ? 'Amend Commit…' : 'Amend commit…',
-        enabled: this.props.isLocal,
         action: this.onAmendCommit,
       })
     }

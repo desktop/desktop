@@ -8,7 +8,6 @@ import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 import { MenuBackedSuggestedAction } from '../suggested-actions'
-import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
 import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
@@ -18,6 +17,8 @@ import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
 import { SuggestedActionGroup } from '../suggested-actions'
+import { PreferencesTab } from '../../models/preferences'
+import { PopupType } from '../../models/popup'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -273,8 +274,11 @@ export class NoChanges extends React.Component<
   private onViewOnGitHubClicked = () =>
     this.props.dispatcher.recordSuggestedStepViewOnGitHub()
 
-  private openPreferences = () => {
-    executeMenuItemById('preferences')
+  private openIntegrationPreferences = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Integrations,
+    })
   }
 
   private renderOpenInExternalEditor() {
@@ -302,7 +306,7 @@ export class NoChanges extends React.Component<
     const description = (
       <>
         Select your editor in{' '}
-        <LinkButton onClick={this.openPreferences}>
+        <LinkButton onClick={this.openIntegrationPreferences}>
           {__DARWIN__ ? 'Preferences' : 'Options'}
         </LinkButton>
       </>
@@ -320,12 +324,8 @@ export class NoChanges extends React.Component<
     this.props.dispatcher.recordSuggestedStepOpenInExternalEditor()
 
   private renderRemoteAction() {
-    const {
-      remote,
-      aheadBehind,
-      branchesState,
-      tagsToPush,
-    } = this.props.repositoryState
+    const { remote, aheadBehind, branchesState, tagsToPush } =
+      this.props.repositoryState
     const { tip, defaultBranch, currentPullRequest } = branchesState
 
     if (tip.kind !== TipState.Valid) {

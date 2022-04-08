@@ -15,13 +15,13 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ICommitSelection,
-  IRebaseState,
   ChangesSelectionKind,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -46,21 +46,22 @@ export class RepositoryStateCache {
     const newValues = fn(currentState)
     const newState = merge(currentState, newValues)
 
-    const isSameLastLocalCommit =
-      currentState.localCommitSHAs.length > 0 &&
-      newState.localCommitSHAs.length > 0 &&
-      currentState.localCommitSHAs[0] === newState.localCommitSHAs[0]
+    const currentTip = currentState.branchesState.tip
+    const newTip = newState.branchesState.tip
 
-    // Only keep the "is amending" state if the last local commit hasn't changed
-    // and there is no "fixing conflicts" state.
-    const newIsAmending =
-      newState.isAmending &&
-      isSameLastLocalCommit &&
+    // Only keep the "is amending" state if the head commit hasn't changed, it
+    // matches the commit to amend, and there is no "fixing conflicts" state.
+    const isAmending =
+      newState.commitToAmend !== null &&
+      newTip.kind === TipState.Valid &&
+      currentTip.kind === TipState.Valid &&
+      currentTip.branch.tip.sha === newTip.branch.tip.sha &&
+      newTip.branch.tip.sha === newState.commitToAmend.sha &&
       newState.changesState.conflictState === null
 
     this.repositoryState.set(repository.hash, {
       ...newState,
-      isAmending: newIsAmending,
+      commitToAmend: isAmending ? newState.commitToAmend : null,
     })
   }
 
@@ -109,17 +110,6 @@ export class RepositoryStateCache {
     })
   }
 
-  public updateRebaseState<K extends keyof IRebaseState>(
-    repository: Repository,
-    fn: (branchesState: IRebaseState) => Pick<IRebaseState, K>
-  ) {
-    this.update(repository, state => {
-      const { rebaseState } = state
-      const newState = merge(rebaseState, fn(rebaseState))
-      return { rebaseState: newState }
-    })
-  }
-
   public updateMultiCommitOperationUndoState<
     K extends keyof IMultiCommitOperationUndoState
   >(
@@ -144,19 +134,26 @@ export class RepositoryStateCache {
   >(
     repository: Repository,
     fn: (
-      state: IMultiCommitOperationState
+      state: IMultiCommitOperationState | null
     ) => Pick<IMultiCommitOperationState, K>
   ) {
     this.update(repository, state => {
       const { multiCommitOperationState } = state
+      const toUpdate = fn(multiCommitOperationState)
+
       if (multiCommitOperationState === null) {
-        throw new Error('Cannot update a null state.')
+        // This is not expected, but we see instances in error reporting. Best
+        // guess is that it would indicate that the user ended the state another
+        // way such as via command line/on state load detection, in which we
+        // would not want to crash the app.
+        const msg = `Cannot update a null state, trying to update object with keys: ${Object.keys(
+          toUpdate
+        ).join(', ')}`
+        sendNonFatalException('multiCommitOperation', new Error(msg))
+        return { multiCommitOperationState: null }
       }
 
-      const newState = merge(
-        multiCommitOperationState,
-        fn(multiCommitOperationState)
-      )
+      const newState = merge(multiCommitOperationState, toUpdate)
       return { multiCommitOperationState: newState }
     })
   }
@@ -210,7 +207,7 @@ function getInitialRepositoryState(): IRepositoryState {
       openPullRequests: new Array<PullRequest>(),
       currentPullRequest: null,
       isLoadingPullRequests: false,
-      rebasedBranches: new Map<string, string>(),
+      forcePushBranches: new Map<string, string>(),
     },
     compareState: {
       formState: {
@@ -225,12 +222,6 @@ function getInitialRepositoryState(): IRepositoryState {
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
     },
-    rebaseState: {
-      step: null,
-      progress: null,
-      commits: null,
-      userHasResolvedConflicts: false,
-    },
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
@@ -240,7 +231,7 @@ function getInitialRepositoryState(): IRepositoryState {
     remote: null,
     isPushPullFetchInProgress: false,
     isCommitting: false,
-    isAmending: false,
+    commitToAmend: null,
     lastFetched: null,
     checkoutProgress: null,
     pushPullFetchProgress: null,

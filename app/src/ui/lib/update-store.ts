@@ -1,13 +1,18 @@
-import { remote } from 'electron'
-
-// Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
-// use with `remote`.
-const autoUpdater = remote.autoUpdater
 const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { sendWillQuitSync } from '../main-process-proxy'
+import {
+  checkForUpdates,
+  isRunningUnderARM64Translation,
+  onAutoUpdaterCheckingForUpdate,
+  onAutoUpdaterError,
+  onAutoUpdaterUpdateAvailable,
+  onAutoUpdaterUpdateDownloaded,
+  onAutoUpdaterUpdateNotAvailable,
+  quitAndInstallUpdate,
+  sendWillQuitSync,
+} from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { parseError } from '../../lib/squirrel-error-parser'
 
@@ -15,7 +20,6 @@ import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
-import { isRunningUnderARM64Translation } from 'detect-arm64-translation'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -55,25 +59,11 @@ class UpdateStore {
       this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
     }
 
-    autoUpdater.on('error', this.onAutoUpdaterError)
-    autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
-    autoUpdater.on('update-available', this.onUpdateAvailable)
-    autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
-    autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
-
-    window.addEventListener('beforeunload', () => {
-      autoUpdater.removeListener('error', this.onAutoUpdaterError)
-      autoUpdater.removeListener(
-        'checking-for-update',
-        this.onCheckingForUpdate
-      )
-      autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-      autoUpdater.removeListener(
-        'update-not-available',
-        this.onUpdateNotAvailable
-      )
-      autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
-    })
+    onAutoUpdaterError(this.onAutoUpdaterError)
+    onAutoUpdaterCheckingForUpdate(this.onCheckingForUpdate)
+    onAutoUpdaterUpdateAvailable(this.onUpdateAvailable)
+    onAutoUpdaterUpdateNotAvailable(this.onUpdateNotAvailable)
+    onAutoUpdaterUpdateDownloaded(this.onUpdateDownloaded)
   }
 
   private touchLastChecked() {
@@ -82,7 +72,7 @@ class UpdateStore {
     setNumber(lastSuccessfulCheckKey, now.getTime())
   }
 
-  private onAutoUpdaterError = (error: Error) => {
+  private onAutoUpdaterError = (e: Electron.IpcRendererEvent, error: Error) => {
     this.status = UpdateStatus.UpdateNotAvailable
 
     if (__WIN32__) {
@@ -154,7 +144,7 @@ class UpdateStore {
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(inBackground: boolean) {
+  public async checkForUpdates(inBackground: boolean) {
     // An update has been downloaded and the app is waiting to be restarted.
     // Checking for updates again may result in the running app being nuked
     // when it finds a subsequent update.
@@ -164,13 +154,11 @@ class UpdateStore {
 
     let updatesURL = __UPDATES_URL__
 
-    // If the app is running under Rosetta (i.e. it's a macOS x64 binary running
-    // on an arm64 machine), we need to tweak the update URL here to point at
-    // the arm64 binary.
+    // If the app is running under arm64 to x64 translation, we need to tweak the
+    // update URL here to point at the arm64 binary.
     if (
       enableUpdateFromEmulatedX64ToARM64() &&
-      (remote.app.runningUnderRosettaTranslation === true ||
-        isRunningUnderARM64Translation() === true)
+      (await isRunningUnderARM64Translation()) === true
     ) {
       const url = new URL(updatesURL)
       url.pathname = url.pathname.replace(
@@ -182,11 +170,10 @@ class UpdateStore {
 
     this.userInitiatedUpdate = !inBackground
 
-    try {
-      autoUpdater.setFeedURL({ url: updatesURL })
-      autoUpdater.checkForUpdates()
-    } catch (e) {
-      this.emitError(e)
+    const error = await checkForUpdates(updatesURL)
+
+    if (error !== undefined) {
+      this.emitError(error)
     }
   }
 
@@ -196,7 +183,7 @@ class UpdateStore {
     // before we call the function to quit.
     // eslint-disable-next-line no-sync
     sendWillQuitSync()
-    autoUpdater.quitAndInstall()
+    quitAndInstallUpdate()
   }
 }
 

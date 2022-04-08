@@ -8,6 +8,7 @@ import {
   ITextDiff,
 } from '../../models/diff'
 import { getLargestLineNumber } from './diff-helpers'
+import { HiddenBidiCharsRegex } from '../../lib/diff-parser'
 
 /** How many new lines will be added to a diff hunk by default. */
 export const DefaultDiffExpansionStep = 20
@@ -273,6 +274,11 @@ export function expandTextDiffHunk(
     )
   })
 
+  // Look for hidden bidi chars in the new lines, if the diff didn't have any already
+  const hasHiddenBidiChars =
+    diff.hasHiddenBidiChars ||
+    newLines.some(line => HiddenBidiCharsRegex.test(line))
+
   // Update the resulting hunk header with the new line count
   const newHunkHeader = new DiffHunkHeader(
     isExpandingUp
@@ -394,6 +400,7 @@ export function expandTextDiffHunk(
     text: newDiffText,
     hunks: newHunks,
     maxLineNumber: getLargestLineNumber(newHunks),
+    hasHiddenBidiChars,
   }
 }
 
@@ -436,14 +443,8 @@ export function getTextDiffWithBottomDummyHunk(
     dummyNewStartLine,
     numberOfNewLines - dummyNewStartLine + 1
   )
-  const dummyLine = new DiffLine(
-    '@@ @@',
-    DiffLineType.Hunk,
-    null,
-    null,
-    null,
-    false
-  )
+  // Use an empty line for this dummy hunk to keep the diff clean
+  const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, null, false)
   const dummyHunk = new DiffHunk(
     dummyHeader,
     [dummyLine],

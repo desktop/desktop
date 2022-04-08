@@ -43,7 +43,7 @@ interface ICompareSidebarProps {
   readonly currentBranch: Branch | null
   readonly selectedCommitShas: ReadonlyArray<string>
   readonly onRevertCommit: (commit: Commit) => void
-  readonly onAmendCommit: () => void
+  readonly onAmendCommit: (commit: Commit, isLocalCommit: boolean) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly onCherryPick: (
@@ -330,12 +330,8 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const {
-      defaultBranch,
-      branches,
-      recentBranches,
-      filterText,
-    } = this.props.compareState
+    const { defaultBranch, branches, recentBranches, filterText } =
+      this.props.compareState
 
     return (
       <BranchList

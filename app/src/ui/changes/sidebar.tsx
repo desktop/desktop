@@ -49,7 +49,7 @@ interface IChangesSidebarProps {
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
-  readonly isAmending: boolean
+  readonly commitToAmend: Commit | null
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly focusCommitMessage: boolean
@@ -116,9 +116,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     const overSizedFiles = await getLargeFilePaths(
       this.props.repository,
-      workingDirectory,
-      100
+      workingDirectory
     )
+
     const filesIgnoredByLFS = await filesNotTrackedByLFS(
       this.props.repository,
       overSizedFiles
@@ -229,7 +229,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     })
   }
 
-  private onIgnore = (pattern: string | string[]) => {
+  private onIgnoreFile = (file: string | string[]) => {
+    this.props.dispatcher.appendIgnoreFile(this.props.repository, file)
+  }
+
+  private onIgnorePattern = (pattern: string | string[]) => {
     this.props.dispatcher.appendIgnoreRule(this.props.repository, pattern)
   }
 
@@ -301,7 +305,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     // We don't allow undoing commits that have tags associated to them, since then
     // the commit won't be completely deleted because the tag will still point to it.
     // Also, don't allow undoing commits while the user is amending the last one.
-    if (commit && commit.tags.length === 0 && !this.props.isAmending) {
+    if (
+      commit &&
+      commit.tags.length === 0 &&
+      this.props.commitToAmend === null
+    ) {
       child = (
         <CSSTransition
           classNames="undo"
@@ -388,9 +396,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
-          onIgnore={this.onIgnore}
+          onIgnoreFile={this.onIgnoreFile}
+          onIgnorePattern={this.onIgnorePattern}
           isCommitting={this.props.isCommitting}
-          isAmending={this.props.isAmending}
+          commitToAmend={this.props.commitToAmend}
           showCoAuthoredBy={showCoAuthoredBy}
           coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}

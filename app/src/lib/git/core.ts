@@ -18,6 +18,7 @@ import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
 import { Readable } from 'stream'
 import split2 from 'split2'
+import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
@@ -240,6 +241,15 @@ export async function git(
 
     log.error(errorMessage.join('\n'))
 
+    if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
+      const result = getFileFromExceedsError(errorMessage.join())
+      const files = result.join('\n')
+
+      if (files !== '') {
+        gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+      }
+    }
+
     throw new GitError(gitResult, args)
   })
 }
@@ -314,6 +324,7 @@ function getDescriptionForError(error: DugiteError): string | null {
 - You do not have permission to access this repository.
 - The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
 - If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.
+- If you use SSH authentication, ensure the host key verification passes for your repository hosting service.
 - If you used username / password authentication, you might need to use a Personal Access Token instead of your account password. Check the documentation of your repository hosting service.`
   }
 

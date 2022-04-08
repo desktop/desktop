@@ -1,0 +1,126 @@
+.ci-check-list-popover {
+  .popover-component {
+    position: absolute;
+    padding: 0px;
+    width: 440px;
+    top: 60;
+    margin-left: -302px;
+
+    &::after {
+      border-bottom-color: var(--box-alt-background-color);
+    }
+  }
+
+  .ci-check-run-list-header {
+    background-color: var(--box-alt-background-color);
+    border-bottom: var(--base-border);
+    display: flex;
+    font-size: var(--font-size-md);
+    padding: var(--spacing);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+
+    .ci-check-run-list-title-container {
+      flex: 1;
+      align-items: center;
+      .title {
+        font-weight: var(--font-weight-semibold);
+
+        .failure {
+          color: $red-500;
+        }
+
+        .pending {
+          color: $yellow-700;
+        }
+      }
+
+      .check-run-list-summary {
+        color: var(--text-secondary-color);
+        font-weight: var(--text-secondary-color);
+        font-size: var(--font-size-sm);
+      }
+    }
+
+    .completeness-indicator {
+      margin-right: var(--spacing);
+
+      .octicon,
+      .donut {
+        display: block;
+        margin-top: var(--spacing-half);
+        margin-bottom: var(--spacing-half);
+        margin-right: auto;
+        margin-left: auto;
+        width: 30px;
+        height: 30px;
+      }
+
+      .completeness-indicator-success {
+        color: $green-500;
+      }
+
+      .completeness-indicator-error {
+        color: $red-500;
+      }
+
+      .donut {
+        > .error,
+        > .cancelled,
+        > .action_required,
+        > .timed_out,
+        > .failure {
+          fill: $red-500;
+        }
+
+        > .expected,
+        > .queued,
+        > .in_progress,
+        > .waiting,
+        > .requested,
+        > .pending {
+          fill: $yellow-700;
+        }
+
+        > .success {
+          fill: $green-500;
+        }
+
+        > .neutral,
+        > .stale,
+        > .skipped {
+          fill: $gray-400;
+        }
+      }
+    }
+  }
+
+  .ci-check-run-list-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-padding-top: 35px;
+  }
+
+  .loading-check-runs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--spacing);
+    padding-bottom: var(--spacing-double);
+
+    .blankslate-image {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .call-to-action {
+      font-size: var(--font-size-sm);
+    }
+  }
+}

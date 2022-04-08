@@ -26,12 +26,15 @@ export async function checkoutIndex(
     return
   }
 
+  const options = {
+    successExitCodes: new Set([0, 1]),
+    stdin: paths.join('\0'),
+  }
+
   await git(
     ['checkout-index', '-f', '-u', '-q', '--stdin', '-z'],
     repository.path,
     'checkoutIndex',
-    {
-      stdin: paths.join('\0'),
-    }
+    options
   )
 }

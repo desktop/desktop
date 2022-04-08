@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { readdir, writeFile, readFile } from 'fs-extra'
+import { readdir, readFile, writeFile } from 'fs/promises'
 
 const GitIgnoreExtension = '.gitignore'
 

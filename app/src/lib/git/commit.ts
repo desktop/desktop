@@ -10,6 +10,7 @@ import { stageManualConflictResolution } from './stage'
  * @param repository repository to execute merge in
  * @param message commit message
  * @param files files to commit
+ * @returns the commit SHA
  */
 export async function createCommit(
   repository: Repository,

@@ -20,7 +20,7 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Appearance } from './appearance'
-import { ApplicationTheme } from '../lib/application-theme'
+import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
 import {
@@ -48,15 +48,18 @@ interface IPreferencesProps {
   readonly repository: Repository | null
   readonly onDismissed: () => void
   readonly useWindowsOpenSSH: boolean
+  readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
 }
 
@@ -70,9 +73,11 @@ interface IPreferencesState {
   readonly initialDefaultBranch: string | null
   readonly disallowedCharactersMessage: string | null
   readonly useWindowsOpenSSH: boolean
+  readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
@@ -109,9 +114,11 @@ export class Preferences extends React.Component<
       disallowedCharactersMessage: null,
       availableEditors: [],
       useWindowsOpenSSH: false,
+      notificationsEnabled: true,
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
+      confirmDiscardChangesPermanently: false,
       confirmForcePush: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
@@ -162,9 +169,12 @@ export class Preferences extends React.Component<
       initialCommitterEmail,
       initialDefaultBranch,
       useWindowsOpenSSH: this.props.useWindowsOpenSSH,
+      notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      confirmDiscardChangesPermanently:
+        this.props.confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
@@ -305,7 +315,9 @@ export class Preferences extends React.Component<
         View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
+            customTheme={this.props.customTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            onCustomThemeChanged={this.onCustomThemeChanged}
           />
         )
         break
@@ -314,12 +326,18 @@ export class Preferences extends React.Component<
           <Prompts
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
+            confirmDiscardChangesPermanently={
+              this.state.confirmDiscardChangesPermanently
+            }
             confirmForcePush={this.state.confirmForcePush}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
+            onConfirmDiscardChangesPermanentlyChanged={
+              this.onConfirmDiscardChangesPermanentlyChanged
+            }
           />
         )
         break
@@ -328,10 +346,12 @@ export class Preferences extends React.Component<
         View = (
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
+            notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
+            onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
@@ -368,6 +388,10 @@ export class Preferences extends React.Component<
     this.setState({ useWindowsOpenSSH })
   }
 
+  private onNotificationsEnabledChanged = (notificationsEnabled: boolean) => {
+    this.setState({ notificationsEnabled })
+  }
+
   private onOptOutofReportingChanged = (value: boolean) => {
     this.setState({ optOutOfUsageTracking: value })
   }
@@ -378,6 +402,10 @@ export class Preferences extends React.Component<
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.setState({ confirmDiscardChanges: value })
+  }
+
+  private onConfirmDiscardChangesPermanentlyChanged = (value: boolean) => {
+    this.setState({ confirmDiscardChangesPermanently: value })
   }
 
   private onConfirmForcePushChanged = (value: boolean) => {
@@ -417,6 +445,10 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onCustomThemeChanged = (theme: ICustomTheme) => {
+    this.props.dispatcher.setCustomTheme(theme)
   }
 
   private renderFooter() {
@@ -504,6 +536,9 @@ export class Preferences extends React.Component<
     }
 
     this.props.dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
+    this.props.dispatcher.setNotificationsEnabled(
+      this.state.notificationsEnabled
+    )
 
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,
@@ -525,6 +560,9 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setShell(this.state.selectedShell)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges
+    )
+    await this.props.dispatcher.setConfirmDiscardChangesPermanentlySetting(
+      this.state.confirmDiscardChangesPermanently
     )
 
     await this.props.dispatcher.setUncommittedChangesStrategySetting(

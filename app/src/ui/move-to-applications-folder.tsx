@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import {
   Dialog,
   DialogContent,
@@ -98,13 +97,12 @@ export class MoveToApplicationsFolder extends React.Component<
     )
   }
 
-  private onSubmit = () => {
+  private onSubmit = async () => {
     this.props.onDismissed()
 
     try {
-      this.props.dispatcher.moveToApplicationsFolder()
+      await this.props.dispatcher.moveToApplicationsFolder()
     } catch (error) {
-      sendNonFatalException('moveApplication', error)
       this.props.dispatcher.postError(error)
     }
   }

@@ -23,6 +23,9 @@ export interface IPullRequest {
   /** The title. */
   readonly title: string
 
+  /** The body of the PR - This is markdown. */
+  readonly body: string
+
   /** The string formatted date on which the PR was created. */
   readonly createdAt: string
 
@@ -121,6 +124,15 @@ export class PullRequestDatabase extends BaseDatabase {
        * and unless the draft PRs get updated at some point in the future we'll
        * never pick up on it so we'll clear the db to seed it with fresh data
        * from the API.
+       */
+      tx.table('pullRequests').clear()
+      tx.table('pullRequestsLastUpdated').clear()
+    })
+
+    this.conditionalVersion(9, {}, async tx => {
+      /**
+       * We're introducing the `body` property on PRs in version 8 in order
+       * to be able to display the body of the pr.
        */
       tx.table('pullRequests').clear()
       tx.table('pullRequestsLastUpdated').clear()
