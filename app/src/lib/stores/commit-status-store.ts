@@ -551,7 +551,7 @@ export class CommitStatusStore {
     return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
   }
 
-  public async rerenJob(
+  public async rerunJob(
     repository: GitHubRepository,
     jobId: number
   ): Promise<boolean> {

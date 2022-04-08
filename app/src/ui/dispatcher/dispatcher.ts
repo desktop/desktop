@@ -2522,14 +2522,23 @@ export class Dispatcher {
    */
   public async rerequestCheckSuites(
     repository: GitHubRepository,
-    checkRuns: ReadonlyArray<IRefCheck>
+    checkRuns: ReadonlyArray<IRefCheck>,
+    failedOnly: boolean
   ): Promise<ReadonlyArray<boolean>> {
+    const promises = new Array<Promise<boolean>>()
+
+    // If it is one and in actions check, we can rerun it individually.
+    if (checkRuns.length === 1 && checkRuns[0].actionsWorkflow !== undefined) {
+      promises.push(
+        this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
+      )
+      return Promise.all(promises)
+    }
+
     // Get unique set of check suite ids
     const checkSuiteIds = new Set<number | null>([
       ...checkRuns.map(cr => cr.checkSuiteId),
     ])
-
-    const promises = new Array<Promise<boolean>>()
 
     for (const id of checkSuiteIds) {
       if (id === null) {
