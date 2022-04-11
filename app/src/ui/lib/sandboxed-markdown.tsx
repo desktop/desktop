@@ -40,11 +40,19 @@ interface ISandboxedMarkdownProps {
   readonly markdownContext: MarkdownContext
 }
 
+interface ISandboxedMarkdownState {
+  readonly tooltipElements: ReadonlyArray<HTMLElement>
+  readonly tooltipOffset?: DOMRect
+}
+
 /**
  * Parses and sanitizes markdown into html and outputs it inside a sandboxed
  * iframe.
  **/
-export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownProps> {
+export class SandboxedMarkdown extends React.PureComponent<
+  ISandboxedMarkdownProps,
+  ISandboxedMarkdownState
+> {
   private frameRef: HTMLIFrameElement | null = null
   private frameContainingDivRef: HTMLDivElement | null = null
   private contentDivRef: HTMLDivElement | null = null
@@ -60,6 +68,7 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
     super(props)
 
     this.resizeObserver = new ResizeObserver(this.scheduleResizeEvent)
+    this.state = { tooltipElements: [] }
   }
 
   private scheduleResizeEvent = () => {
@@ -159,8 +168,32 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
     frameRef.addEventListener('load', () => {
       this.setupContentDivRef(frameRef)
       this.setupLinkInterceptor(frameRef)
+      this.setupTooltips(frameRef)
       this.setFrameContainerHeight(frameRef)
     })
+  }
+
+  private setupTooltips(frameRef: HTMLIFrameElement) {
+    if (frameRef.contentDocument === null) {
+      return
+    }
+
+    const tooltipElements = new Array<HTMLElement>()
+
+    for (const e of frameRef.contentDocument.querySelectorAll('[aria-label]')) {
+      if (frameRef.contentWindow?.HTMLElement) {
+        if (e instanceof frameRef.contentWindow.HTMLElement) {
+          tooltipElements.push(e)
+        }
+      }
+    }
+
+    this.setState({
+      tooltipElements,
+      tooltipOffset: frameRef.getBoundingClientRect(),
+    })
+
+    console.log(this.state.tooltipElements, this.state.tooltipOffset)
   }
 
   private setupContentDivRef(frameRef: HTMLIFrameElement): void {
