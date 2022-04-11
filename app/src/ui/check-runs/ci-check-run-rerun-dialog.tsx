@@ -190,7 +190,7 @@ export class CICheckRunRerunDialog extends React.Component<
     return (
       <Dialog
         id="rerun-check-runs"
-        title={__DARWIN__ ? `Re-run ${failed}Checks` : 'Re-run ${failed}checks'}
+        title={__DARWIN__ ? `Re-run ${failed}Checks` : `Re-run ${failed}checks`}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={this.state.loadingCheckSuites || this.state.loadingRerun}
