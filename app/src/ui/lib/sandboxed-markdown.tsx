@@ -9,6 +9,9 @@ import {
 } from '../../lib/markdown-filters/node-filter'
 import { GitHubRepository } from '../../models/github-repository'
 import { readFile } from 'fs/promises'
+import { Tooltip } from './tooltip'
+import { createObservableRef } from './observable-ref'
+import { getObjectId } from './object-id'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -192,8 +195,6 @@ export class SandboxedMarkdown extends React.PureComponent<
       tooltipElements,
       tooltipOffset: frameRef.getBoundingClientRect(),
     })
-
-    console.log(this.state.tooltipElements, this.state.tooltipOffset)
   }
 
   private setupContentDivRef(frameRef: HTMLIFrameElement): void {
@@ -344,6 +345,8 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   public render() {
+    const { tooltipElements, tooltipOffset } = this.state
+
     return (
       <div
         className="sandboxed-markdown-iframe-container"
@@ -354,6 +357,15 @@ export class SandboxedMarkdown extends React.PureComponent<
           sandbox=""
           ref={this.onFrameRef}
         />
+        {tooltipElements.map(e => (
+          <Tooltip
+            target={createObservableRef(e)}
+            key={getObjectId(e)}
+            tooltipOffset={tooltipOffset}
+          >
+            {e.ariaLabel}
+          </Tooltip>
+        ))}
       </div>
     )
   }
