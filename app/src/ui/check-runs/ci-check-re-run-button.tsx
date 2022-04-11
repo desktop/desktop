@@ -10,6 +10,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 interface ICICheckReRunButtonProps {
   readonly disabled: boolean
   readonly checkRuns: ReadonlyArray<IRefCheck>
+  readonly canReRunFailed: boolean
   readonly onRerunChecks: (failedOnly: boolean) => void
 }
 
@@ -21,7 +22,11 @@ export class CICheckReRunButton extends React.PureComponent<ICICheckReRunButtonP
   }
 
   private onRerunChecks = () => {
-    if (!enableReRunFailedAndSingleCheckJobs() || !this.failedChecksExist) {
+    if (
+      !enableReRunFailedAndSingleCheckJobs() ||
+      !this.props.canReRunFailed ||
+      !this.failedChecksExist
+    ) {
       this.props.onRerunChecks(false)
       return
     }
@@ -42,7 +47,9 @@ export class CICheckReRunButton extends React.PureComponent<ICICheckReRunButtonP
 
   public render() {
     const text =
-      enableReRunFailedAndSingleCheckJobs() && this.failedChecksExist ? (
+      enableReRunFailedAndSingleCheckJobs() &&
+      this.props.canReRunFailed &&
+      this.failedChecksExist ? (
         <>
           Re-run <Octicon symbol={OcticonSymbol.triangleDown} />
         </>
