@@ -8,7 +8,7 @@
       "[Fixed] Fix checks list overflow handling on re-run checks dialog - #14246",
       "[Improved] Close keywords are now formatted and have informational tooltips in markdown - #14253",
       "[Improved] Commit mentions in markdown are now formatted and linked - #14282",
-      "[Improved] Adds a link under our \"Enable notifications\" settings to the user's OS system notification settings - #14288"
+      "[Improved] Add a link under \"Enable notifications\" settings to the user's OS system notification settings - #14288"
     ],
     "2.9.13-beta1": [
       "[New] Add support for notifications of pull request reviews - #14175",
