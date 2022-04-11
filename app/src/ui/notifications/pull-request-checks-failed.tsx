@@ -270,6 +270,7 @@ export class PullRequestChecksFailed extends React.Component<
       <div className="ci-check-rerun">
         <CICheckReRunButton
           disabled={checks.length === 0}
+          checkRuns={checks}
           onRerunChecks={this.rerunChecks}
         />
       </div>

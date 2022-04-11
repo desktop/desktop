@@ -227,6 +227,7 @@ export class CICheckRunPopover extends React.PureComponent<
     return (
       <CICheckReRunButton
         disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
+        checkRuns={checkRuns}
         onRerunChecks={this.rerunChecks}
       />
     )
