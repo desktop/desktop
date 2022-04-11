@@ -2,7 +2,7 @@
   "releases": {
     "2.9.13-beta2": [
       "[Added] Add include and exclude to the context menu of multiple selected files in the changes list - #7790. Thanks @tsvetilian-ty!",
-      "[Added] Add the option to view the current branch on GitHub - #14224. Thanks @tsvetilian-ty!",
+      "[Added] Add \"View Branch on GitHub\" to the branches menu - #14224. Thanks @tsvetilian-ty!",
       "[Fixed] Fix relative time of pull request review notification dialogs - #14261",
       "[Fixed] Fix CI check status popover not closing when clicking on PR badge - #14256",
       "[Fixed] Fix checks list overflow handling on re-run checks dialog - #14246",
