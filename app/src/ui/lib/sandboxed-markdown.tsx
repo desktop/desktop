@@ -12,6 +12,7 @@ import { readFile } from 'fs/promises'
 import { Tooltip } from './tooltip'
 import { createObservableRef } from './observable-ref'
 import { getObjectId } from './object-id'
+import { debounce } from 'lodash'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -67,6 +68,12 @@ export class SandboxedMarkdown extends React.PureComponent<
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
 
+  private onDocumentScroll = debounce(() => {
+    this.setState({
+      tooltipOffset: this.frameRef?.getBoundingClientRect() ?? new DOMRect(),
+    })
+  }, 100)
+
   public constructor(props: ISandboxedMarkdownProps) {
     super(props)
 
@@ -106,6 +113,10 @@ export class SandboxedMarkdown extends React.PureComponent<
     if (this.frameRef !== null) {
       this.setupFrameLoadListeners(this.frameRef)
     }
+
+    document.addEventListener('scroll', this.onDocumentScroll, {
+      capture: true,
+    })
   }
 
   public async componentDidUpdate(prevProps: ISandboxedMarkdownProps) {
@@ -117,6 +128,7 @@ export class SandboxedMarkdown extends React.PureComponent<
 
   public componentWillUnmount() {
     this.resizeObserver.disconnect()
+    document.removeEventListener('scroll', this.onDocumentScroll)
   }
 
   /**
