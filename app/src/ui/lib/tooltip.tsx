@@ -4,7 +4,7 @@ import { ObservableRef } from './observable-ref'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
-import { rectEquals, rectContains } from './rect'
+import { rectEquals, rectContains, offsetRect } from './rect'
 
 export enum TooltipDirection {
   NORTH = 'n',
@@ -101,6 +101,14 @@ export interface ITooltipProps<T> {
    * the tooltip.
    */
   readonly isTargetOverflowed?: ((target: TooltipTarget) => boolean) | boolean
+
+  /**
+   * Optional parameter to be able offset the position of the target element
+   * relative to the window. This can be useful in scenarios where the target's
+   * natural positioning is not already relative to the window such as an
+   * element within in iframe.
+   */
+  readonly tooltipOffset?: DOMRect
 }
 
 interface ITooltipState {
@@ -393,13 +401,20 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     this.setState({
       measure: true,
       show: false,
-      targetRect:
-        this.props.direction === undefined
-          ? this.mouseRect
-          : target.getBoundingClientRect(),
+      targetRect: this.getTargetRect(target),
       hostRect: tooltipHost.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
     })
+  }
+
+  private getTargetRect(target: TooltipTarget) {
+    const { direction, tooltipOffset } = this.props
+
+    return offsetRect(
+      direction === undefined ? this.mouseRect : target.getBoundingClientRect(),
+      tooltipOffset?.x ?? 0,
+      tooltipOffset?.y ?? 0
+    )
   }
 
   private cancelShowTooltip() {
