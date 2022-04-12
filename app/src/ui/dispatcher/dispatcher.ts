@@ -120,6 +120,7 @@ import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
+import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
 
 /**
  * An error handler function.
@@ -2522,19 +2523,47 @@ export class Dispatcher {
    */
   public async rerequestCheckSuites(
     repository: GitHubRepository,
-    checkRuns: ReadonlyArray<IRefCheck>
+    checkRuns: ReadonlyArray<IRefCheck>,
+    failedOnly: boolean
   ): Promise<ReadonlyArray<boolean>> {
-    // Get unique set of check suite ids
-    const checkSuiteIds = new Set<number | null>([
-      ...checkRuns.map(cr => cr.checkSuiteId),
-    ])
-
     const promises = new Array<Promise<boolean>>()
 
-    for (const id of checkSuiteIds) {
-      if (id === null) {
+    // If it is one and in actions check, we can rerun it individually.
+    if (
+      checkRuns.length === 1 &&
+      checkRuns[0].actionsWorkflow !== undefined &&
+      enableReRunFailedAndSingleCheckJobs()
+    ) {
+      promises.push(
+        this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
+      )
+      return Promise.all(promises)
+    }
+
+    const checkSuiteIds = new Set<number>()
+    const workflowRunIds = new Set<number>()
+    for (const cr of checkRuns) {
+      if (
+        failedOnly &&
+        cr.actionsWorkflow !== undefined &&
+        enableReRunFailedAndSingleCheckJobs()
+      ) {
+        workflowRunIds.add(cr.actionsWorkflow.id)
         continue
       }
+
+      // There could still be failed ones that are not action and only way to
+      // rerun them is to rerun their whole check suite
+      if (cr.checkSuiteId !== null) {
+        checkSuiteIds.add(cr.checkSuiteId)
+      }
+    }
+
+    for (const id of workflowRunIds) {
+      promises.push(this.commitStatusStore.rerunFailedJobs(repository, id))
+    }
+
+    for (const id of checkSuiteIds) {
       promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
     }
 

@@ -65,7 +65,11 @@ export class CICheckRunRerunDialog extends React.Component<
   private onSubmit = async () => {
     const { dispatcher, repository, prRef } = this.props
     this.setState({ loadingRerun: true })
-    await dispatcher.rerequestCheckSuites(repository, this.state.rerunnable)
+    await dispatcher.rerequestCheckSuites(
+      repository,
+      this.state.rerunnable,
+      this.props.failedOnly
+    )
     await dispatcher.manualRefreshSubscription(
       repository,
       prRef,
@@ -163,6 +167,12 @@ export class CICheckRunRerunDialog extends React.Component<
     ) {
       return null
     }
+
+    /**
+     * Verbiage from dotcom:
+     * Single Job: "A new attempt of this workflow will be started, including macOS x64 and dependents"
+     * Failed Jobs: "A new attempt of this workflow will be started, including all failed jobs and dependents"
+     * */
 
     const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
     const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
