@@ -2553,23 +2553,17 @@ export class Dispatcher {
       }
 
       // There could still be failed ones that are not action and only way to
-      // rerun them it rerun their whole check suite
+      // rerun them is to rerun their whole check suite
       if (cr.checkSuiteId !== null) {
         checkSuiteIds.add(cr.checkSuiteId)
       }
     }
 
     for (const id of workflowRunIds) {
-      if (id === null) {
-        continue
-      }
       promises.push(this.commitStatusStore.rerunFailedJobs(repository, id))
     }
 
     for (const id of checkSuiteIds) {
-      if (id === null) {
-        continue
-      }
       promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
     }
 
