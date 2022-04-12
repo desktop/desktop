@@ -125,8 +125,7 @@ export class CICheckRunRerunDialog extends React.Component<
     const nonRerunnable = checkRunsToConsider.filter(
       cr =>
         cr.checkSuiteId === null ||
-        !rerequestableCheckSuiteIds.includes(cr.checkSuiteId) ||
-        (this.props.failedOnly && cr.conclusion === APICheckConclusion.Failure)
+        !rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
     )
 
     this.setState({ loadingCheckSuites: false, rerunnable, nonRerunnable })
