@@ -1220,17 +1220,16 @@ export class API {
     checkSuiteId: number
   ): Promise<boolean> {
     const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
-    const response = await this.request('POST', path)
 
-    try {
-      return response.ok
-    } catch (_) {
-      log.debug(
-        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
-      )
-    }
-
-    return false
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`,
+          err
+        )
+        return false
+      })
   }
 
   /**
@@ -1243,15 +1242,16 @@ export class API {
     workflowRunId: number
   ): Promise<boolean> {
     const path = `/repos/${owner}/${name}/actions/runs/${workflowRunId}/rerun-failed-jobs`
-    const response = await this.request('POST', path)
-    try {
-      return response.ok
-    } catch (err) {
-      log.debug(
-        `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`
-      )
-    }
-    return false
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`,
+          err
+        )
+        return false
+      })
   }
 
   /**
@@ -1263,13 +1263,16 @@ export class API {
     jobId: number
   ): Promise<boolean> {
     const path = `/repos/${owner}/${name}/actions/jobs/${jobId}/rerun`
-    const response = await this.request('POST', path)
-    try {
-      return response.ok
-    } catch (err) {
-      log.debug(`Failed to rerun workflow job (${owner}/${name}): ${jobId}`)
-    }
-    return false
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun workflow job (${owner}/${name}): ${jobId}`,
+          err
+        )
+        return false
+      })
   }
 
   /**
