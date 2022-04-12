@@ -49,7 +49,7 @@ interface ICICheckRunListItemProps {
 }
 
 interface ICICheckRunListItemState {
-  readonly mouseOver: boolean
+  readonly mouseEnter: boolean
 }
 
 /** The CI check list item. */
@@ -59,7 +59,7 @@ export class CICheckRunListItem extends React.PureComponent<
 > {
   public constructor(props: ICICheckRunListItemProps) {
     super(props)
-    this.state = { mouseOver: false }
+    this.state = { mouseEnter: false }
   }
 
   private toggleCheckRunExpansion = () => {
@@ -83,14 +83,14 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onRerunJob?.(this.props.checkRun)
   }
 
-  private onMouseOver = () => {
-    if (!this.state.mouseOver) {
-      this.setState({ mouseOver: true })
+  private onMouseEnter = () => {
+    if (!this.state.mouseEnter) {
+      this.setState({ mouseEnter: true })
     }
   }
 
   private onMouseOut = (e: React.MouseEvent) => {
-    this.setState({ mouseOver: false })
+    this.setState({ mouseEnter: false })
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
@@ -162,10 +162,10 @@ export class CICheckRunListItem extends React.PureComponent<
 
   private renderJobRerun = (): JSX.Element | null => {
     const { checkRun, onRerunJob } = this.props
-    const { mouseOver } = this.state
+    const { mouseEnter } = this.state
 
     if (
-      !mouseOver ||
+      !mouseEnter ||
       onRerunJob === undefined ||
       !enableReRunFailedAndSingleCheckJobs()
     ) {
@@ -200,7 +200,7 @@ export class CICheckRunListItem extends React.PureComponent<
     return (
       <div
         className="ci-check-list-item-group"
-        onMouseOver={this.onMouseOver}
+        onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseOut}
       >
         <div
