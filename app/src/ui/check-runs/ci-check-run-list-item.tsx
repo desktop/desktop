@@ -89,7 +89,7 @@ export class CICheckRunListItem extends React.PureComponent<
     }
   }
 
-  private onMouseOut = (e: React.MouseEvent) => {
+  private onMouseLeave = (e: React.MouseEvent) => {
     this.setState({ isMouseOver: false })
   }
 
@@ -201,7 +201,7 @@ export class CICheckRunListItem extends React.PureComponent<
       <div
         className="ci-check-list-item-group"
         onMouseEnter={this.onMouseEnter}
-        onMouseLeave={this.onMouseOut}
+        onMouseLeave={this.onMouseLeave}
       >
         <div
           className={classes}
