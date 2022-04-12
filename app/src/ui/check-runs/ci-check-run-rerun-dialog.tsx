@@ -132,18 +132,6 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   private renderRerunnableJobsList = () => {
-    if (this.state.loadingCheckSuites) {
-      return (
-        <div className="loading-rerun-checks">
-          <img src={BlankSlateImage} className="blankslate-image" />
-          <div className="title">Please wait</div>
-          <div className="call-to-action">
-            Determining which checks can be re-run.
-          </div>
-        </div>
-      )
-    }
-
     if (this.state.rerunnable.length === 0) {
       return null
     }
@@ -228,6 +216,28 @@ export class CICheckRunRerunDialog extends React.Component<
     return `Re-run ${descriptor}${c}heck${s}`
   }
 
+  private renderDialogContent = () => {
+    if (this.state.loadingCheckSuites && this.props.checkRuns.length > 1) {
+      return (
+        <div className="loading-rerun-checks">
+          <img src={BlankSlateImage} className="blankslate-image" />
+          <div className="title">Please wait</div>
+          <div className="call-to-action">
+            Determining which checks can be re-run.
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <>
+        {this.renderRerunDependentsMessage()}
+        {this.renderRerunnableJobsList()}
+        {this.renderRerunWarning()}
+      </>
+    )
+  }
+
   public render() {
     return (
       <Dialog
@@ -237,11 +247,7 @@ export class CICheckRunRerunDialog extends React.Component<
         onDismissed={this.props.onDismissed}
         loading={this.state.loadingCheckSuites || this.state.loadingRerun}
       >
-        <DialogContent>
-          {this.renderRerunDependentsMessage()}
-          {this.renderRerunnableJobsList()}
-          {this.renderRerunWarning()}
-        </DialogContent>
+        <DialogContent>{this.renderDialogContent()}</DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText={this.getTitle(false)}
