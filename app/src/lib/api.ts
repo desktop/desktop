@@ -79,7 +79,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
-type GitHubAccountType = 'User' | 'Organization'
+export type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we want to request */
 const oauthScopes = ['repo', 'user', 'workflow']
