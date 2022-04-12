@@ -5,7 +5,11 @@ import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { CICheckRunList } from './ci-check-run-list'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
-import { APICheckStatus, IAPICheckSuite } from '../../lib/api'
+import {
+  APICheckConclusion,
+  APICheckStatus,
+  IAPICheckSuite,
+} from '../../lib/api'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from './../octicons/octicons.generated'
 import { Row } from '../lib/row'
@@ -26,6 +30,9 @@ interface ICICheckRunRerunDialogProps {
 
   /** The git reference of the pr */
   readonly prRef: string
+
+  /** Whether to only rerun failed checks */
+  readonly failedOnly: boolean
 
   readonly onDismissed: () => void
 }
@@ -69,9 +76,15 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   private determineRerunnability = async () => {
+    const checkRunsToConsider = this.props.failedOnly
+      ? this.props.checkRuns.filter(
+          cr => cr.conclusion === APICheckConclusion.Failure
+        )
+      : this.props.checkRuns
+
     // Get unique set of check suite ids
     const checkSuiteIds = new Set(
-      this.props.checkRuns.map(cr => cr.checkSuiteId)
+      checkRunsToConsider.map(cr => cr.checkSuiteId)
     )
 
     const checkSuitesPromises = new Array<Promise<IAPICheckSuite | null>>()
@@ -101,7 +114,7 @@ export class CICheckRunRerunDialog extends React.Component<
       }
     }
 
-    const rerunnable = this.props.checkRuns.filter(
+    const rerunnable = checkRunsToConsider.filter(
       cr =>
         cr.checkSuiteId !== null &&
         rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
@@ -109,7 +122,8 @@ export class CICheckRunRerunDialog extends React.Component<
     const nonRerunnable = this.props.checkRuns.filter(
       cr =>
         cr.checkSuiteId === null ||
-        !rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
+        !rerequestableCheckSuiteIds.includes(cr.checkSuiteId) ||
+        (this.props.failedOnly && cr.conclusion === APICheckConclusion.Failure)
     )
 
     this.setState({ loadingCheckSuites: false, rerunnable, nonRerunnable })
@@ -168,10 +182,15 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   public render() {
+    const failed = this.props.failedOnly
+      ? __DARWIN__
+        ? 'Failed '
+        : 'failed '
+      : ''
     return (
       <Dialog
         id="rerun-check-runs"
-        title={__DARWIN__ ? 'Re-run Checks' : 'Re-run checks'}
+        title={__DARWIN__ ? `Re-run ${failed}Checks` : `Re-run ${failed}checks`}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={this.state.loadingCheckSuites || this.state.loadingRerun}
@@ -180,7 +199,9 @@ export class CICheckRunRerunDialog extends React.Component<
         <DialogFooter>
           {this.renderRerunInfo()}
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Re-run Checks' : 'Re-run checks'}
+            okButtonText={
+              __DARWIN__ ? `Re-run ${failed}Checks` : `Re-run ${failed}checks`
+            }
             okButtonDisabled={this.state.rerunnable.length === 0}
           />
         </DialogFooter>

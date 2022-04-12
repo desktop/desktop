@@ -540,6 +540,10 @@ export function buildDefaultMenu({
             label: 'Release notes',
             click: emit('show-release-notes-popup'),
           },
+          {
+            label: 'Pull Request Check Run Failed',
+            click: emit('pull-request-check-run-failed'),
+          },
         ],
       },
       {
