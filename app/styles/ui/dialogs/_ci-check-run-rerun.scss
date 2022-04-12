@@ -2,12 +2,11 @@
   max-width: 550px;
 
   .dialog-content {
-    padding: 0;
     overflow: auto;
   }
 
   .check-run-rerun-list {
-    margin: var(--spacing);
+    margin: var(--spacing) 0px;
     border: var(--base-border);
     border-radius: var(--border-radius);
     max-height: 300px;
@@ -21,14 +20,7 @@
     }
   }
 
-  .re-run-dependents-message {
-    padding: var(--spacing);
-    padding-bottom: 0px;
-  }
-
   .non-re-run-info {
-    padding: var(--spacing);
-    padding-top: 0px;
     display: flex;
 
     .octicon {
