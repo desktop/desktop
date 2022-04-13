@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.9.14-beta1": [
+      "[Improved] Surface Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user - #14336"
+    ],
     "2.9.13": [
       "[Added] Add ability to include or exclude multiple selected files for a commit from the context menu - #7790. Thanks @tsvetilian-ty!",
       "[Added] Add \"View Branch on GitHub\" to the branches menu - #14224. Thanks @tsvetilian-ty!",

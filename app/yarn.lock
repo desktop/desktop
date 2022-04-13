@@ -434,7 +434,7 @@ dompurify@^2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
-dugite@^1.105.0:
+dugite@1.105.0:
   version "1.105.0"
   resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.105.0.tgz#51a645004c29d42c42435441f829ef96334dd469"
   integrity sha512-0KNmQ5pU4+6IRYlhCKa63F6/r/qZtfNLBulEoU78s5gaWtAtgznt1yFwD7rM45+7C323L9qfJyzl9ZWLvOKiYw==

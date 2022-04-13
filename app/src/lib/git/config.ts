@@ -149,6 +149,35 @@ export async function setGlobalConfigValue(
   return setConfigValueInPath(name, value, null, env)
 }
 
+/** Set the global config value by name. */
+export async function addGlobalConfigValue(
+  name: string,
+  value: string
+): Promise<void> {
+  await git(
+    ['config', '--global', '--add', name, value],
+    __dirname,
+    'addGlobalConfigValue'
+  )
+}
+
+/** Set the global config value by name. */
+export async function addGlobalConfigValueIfMissing(
+  name: string,
+  value: string
+): Promise<void> {
+  const { stdout, exitCode } = await git(
+    ['config', '--global', '-z', '--get-all', name, value],
+    __dirname,
+    'addGlobalConfigValue',
+    { successExitCodes: new Set([0, 1]) }
+  )
+
+  if (exitCode === 1 || !stdout.split('\0').includes(value)) {
+    await addGlobalConfigValue(name, value)
+  }
+}
+
 /**
  * Set config value by name
  *
