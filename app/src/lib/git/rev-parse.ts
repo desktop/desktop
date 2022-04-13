@@ -83,7 +83,10 @@ export async function isGitRepository(path: string): Promise<boolean> {
 }
 
 type RepositoryType =
-  { kind: 'bare' } | { kind:'regular' } | {kind: 'missing'} | { kind: 'unsafe', path: string}
+  | { kind: 'bare' }
+  | { kind: 'regular' }
+  | { kind: 'missing' }
+  | { kind: 'unsafe'; path: string }
 
 /**
  * Attempts to fulfill the work of isGitRepository and isBareRepository while
@@ -92,9 +95,7 @@ type RepositoryType =
  * Returns 'bare', 'regular', or 'missing' if the repository couldn't be
  * found.
  */
-export async function getRepositoryType(
-  path: string
-): Promise<RepositoryType> {
+export async function getRepositoryType(path: string): Promise<RepositoryType> {
   if (!(await directoryExists(path))) {
     return { kind: 'missing' }
   }
@@ -108,11 +109,14 @@ export async function getRepositoryType(
     )
 
     if (result.exitCode === 0) {
-      return {kind: result.stdout.trim() === 'true' ? 'bare' : 'regular' }
+      return { kind: result.stdout.trim() === 'true' ? 'bare' : 'regular' }
     }
 
-    const unsafeMatch = /fatal: unsafe repository \('(.+)\' is owned by someone else\)/.exec(result.stderr)
-    if(unsafeMatch) {
+    const unsafeMatch =
+      /fatal: unsafe repository \('(.+)\' is owned by someone else\)/.exec(
+        result.stderr
+      )
+    if (unsafeMatch) {
       return { kind: 'unsafe', path: unsafeMatch[1] }
     }
 

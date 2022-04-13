@@ -69,7 +69,7 @@ export class AddExistingRepository extends React.Component<
       isRepository: false,
       showNonGitRepositoryWarning: false,
       isRepositoryBare: false,
-      isRepositoryUnsafe: false
+      isRepositoryUnsafe: false,
     }
   }
 
@@ -82,7 +82,7 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onTrustDirectory = () => {
-    if(this.state.repositoryUnsafePath) {
+    if (this.state.repositoryUnsafePath) {
       addGlobalConfigValue('safe.directory', this.state.repositoryUnsafePath)
     }
     this.validatePath(this.state.path)
@@ -113,7 +113,13 @@ export class AddExistingRepository extends React.Component<
 
     this.setState(state =>
       path === state.path
-        ? { isRepository, isRepositoryBare, isRepositoryUnsafe, showNonGitRepositoryWarning, repositoryUnsafePath }
+        ? {
+            isRepository,
+            isRepositoryBare,
+            isRepositoryUnsafe,
+            showNonGitRepositoryWarning,
+            repositoryUnsafePath,
+          }
         : null
     )
   }
@@ -140,16 +146,19 @@ export class AddExistingRepository extends React.Component<
         <Row className="warning-helper-text">
           <Octicon symbol={OcticonSymbol.alert} />
           <div>
-          <p>
-            The Git repository at <Ref>{this.state.repositoryUnsafePath}</Ref> appears to
-            be owned by another user on your machine. Adding untrusted
-            repositories may automatically execute files in the repository.
-          </p>
-          <p>
-            If you trust the owner of the directory you can
-            <LinkButton onClick={this.onTrustDirectory}>add an exception for
-            this directory</LinkButton> in order to continue.
-          </p>
+            <p>
+              The Git repository at <Ref>{this.state.repositoryUnsafePath}</Ref>
+              appears to be owned by another user on your machine. Adding
+              untrusted repositories may automatically execute files in the
+              repository.
+            </p>
+            <p>
+              If you trust the owner of the directory you can
+              <LinkButton onClick={this.onTrustDirectory}>
+                add an exception for this directory
+              </LinkButton>{' '}
+              in order to continue.
+            </p>
           </div>
         </Row>
       )
