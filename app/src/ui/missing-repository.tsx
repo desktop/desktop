@@ -7,29 +7,90 @@ import { Repository } from '../models/repository'
 import { Button } from './lib/button'
 import { Row } from './lib/row'
 import { LinkButton } from './lib/link-button'
+import { addGlobalConfigValueIfMissing, getRepositoryType } from '../lib/git'
+import { Ref } from './lib/ref'
 
 interface IMissingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
 
+interface IMissingRepositoryState {
+  readonly isPathUnsafe: boolean
+  readonly unsafePath?: string
+}
+
 /** The view displayed when a repository is missing. */
 export class MissingRepository extends React.Component<
   IMissingRepositoryProps,
-  {}
+  IMissingRepositoryState
 > {
+  public constructor(props: IMissingRepositoryProps) {
+    super(props)
+    this.state = { isPathUnsafe: false }
+  }
+
+  private onTrustDirectory = async () => {
+    if (this.state.unsafePath) {
+      await addGlobalConfigValueIfMissing(
+        'safe.directory',
+        this.state.unsafePath
+      )
+      const type = await getRepositoryType(this.props.repository.path)
+
+      if (type.kind !== 'unsafe') {
+        this.checkAgain()
+      }
+    }
+  }
+
+  public async componentDidMount() {
+    this.updateUnsafePathState()
+  }
+
+  public async componentDidUpdate(prevProps: IMissingRepositoryProps) {
+    if (prevProps.repository.path !== this.props.repository.path) {
+      this.updateUnsafePathState()
+    }
+  }
+
+  private updateUnsafePathState = async () => {
+    const { path } = this.props.repository
+    const type = await getRepositoryType(path)
+    if (path === this.props.repository.path) {
+      this.setState({
+        isPathUnsafe: type.kind === 'unsafe',
+        unsafePath: type.kind === 'unsafe' ? type.path : undefined,
+      })
+    }
+  }
+
   public render() {
     const buttons = new Array<JSX.Element>()
-    buttons.push(
-      <Button key="locate" onClick={this.locate} type="submit">
-        Locate…
-      </Button>
-    )
+    const { isPathUnsafe, unsafePath } = this.state
 
-    if (this.canCloneAgain()) {
+    if (!isPathUnsafe) {
       buttons.push(
-        <Button key="clone-again" onClick={this.cloneAgain}>
-          Clone Again
+        <Button key="locate" onClick={this.locate} type="submit">
+          Locate…
+        </Button>
+      )
+
+      if (this.canCloneAgain()) {
+        buttons.push(
+          <Button key="clone-again" onClick={this.cloneAgain}>
+            Clone Again
+          </Button>
+        )
+      }
+    } else {
+      buttons.push(
+        <Button
+          key="trustDirectory"
+          onClick={this.onTrustDirectory}
+          type="submit"
+        >
+          {__DARWIN__ ? 'Trust Repository…' : 'Trust repository…'}
         </Button>
       )
     }
@@ -39,6 +100,31 @@ export class MissingRepository extends React.Component<
         Remove
       </Button>
     )
+
+    if (isPathUnsafe) {
+      return (
+        <UiView id="missing-repository-view">
+          <div className="title-container">
+            <div className="title">
+              {this.props.repository.name} is potentially unsafe
+            </div>
+            <div className="details">
+              <p>
+                The Git repository at <Ref>{unsafePath}</Ref> appears to be
+                owned by another user on your machine. Adding untrusted
+                repositories may automatically execute files in the repository.
+              </p>
+              <p>
+                If you trust the owner of the directory you can add an exception
+                for this directory in order to continue.
+              </p>
+            </div>
+          </div>
+
+          <Row>{buttons}</Row>
+        </UiView>
+      )
+    }
 
     return (
       <UiView id="missing-repository-view">
