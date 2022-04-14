@@ -541,15 +541,15 @@ export class CreateRepository extends React.Component<
   }
 
   private onAddRepositoryClicked = () => {
-    if (this.state.path === null) {
-      // Shouldn't be able to even get here if path is null.
-      return
-    }
+    const { path, name } = this.state
 
-    return this.props.dispatcher.showPopup({
-      type: PopupType.AddRepository,
-      path: this.state.path,
-    })
+    // Shouldn't be able to even get here if path is null.
+    if (path !== null) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.AddRepository,
+        path: Path.join(path, sanitizedRepositoryName(name)),
+      })
+    }
   }
 
   public render() {
