@@ -82,6 +82,12 @@ export async function isGitRepository(path: string): Promise<boolean> {
   return (await getTopLevelWorkingDirectory(path)) !== null
 }
 
+type RepositoryType =
+  | { kind: 'bare' }
+  | { kind: 'regular' }
+  | { kind: 'missing' }
+  | { kind: 'unsafe'; path: string }
+
 /**
  * Attempts to fulfill the work of isGitRepository and isBareRepository while
  * requiring only one Git process to be spawned.
@@ -89,11 +95,9 @@ export async function isGitRepository(path: string): Promise<boolean> {
  * Returns 'bare', 'regular', or 'missing' if the repository couldn't be
  * found.
  */
-export async function getRepositoryType(
-  path: string
-): Promise<'bare' | 'regular' | 'missing'> {
+export async function getRepositoryType(path: string): Promise<RepositoryType> {
   if (!(await directoryExists(path))) {
-    return 'missing'
+    return { kind: 'missing' }
   }
 
   try {
@@ -105,16 +109,25 @@ export async function getRepositoryType(
     )
 
     if (result.exitCode === 0) {
-      return result.stdout.trim() === 'true' ? 'bare' : 'regular'
+      return { kind: result.stdout.trim() === 'true' ? 'bare' : 'regular' }
     }
-    return 'missing'
+
+    const unsafeMatch =
+      /fatal: unsafe repository \('(.+)\' is owned by someone else\)/.exec(
+        result.stderr
+      )
+    if (unsafeMatch) {
+      return { kind: 'unsafe', path: unsafeMatch[1] }
+    }
+
+    return { kind: 'missing' }
   } catch (err) {
     // This could theoretically mean that the Git executable didn't exist but
     // in reality it's almost always going to be that the process couldn't be
     // launched inside of `path` meaning it didn't exist. This would constitute
     // a race condition given that we stat the path before executing Git.
     if (err.code === 'ENOENT') {
-      return 'missing'
+      return { kind: 'missing' }
     }
     throw err
   }

@@ -1,5 +1,28 @@
 {
   "releases": {
+    "2.9.14-beta1": [
+      "[Improved] Surface Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user - #14336"
+    ],
+    "2.9.13": [
+      "[Added] Add ability to include or exclude multiple selected files for a commit from the context menu - #7790. Thanks @tsvetilian-ty!",
+      "[Added] Add \"View Branch on GitHub\" to the branches menu - #14224. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix CI check status popover not closing when clicking on PR badge - #14256",
+      "[Fixed] Fix checks list overflow handling on re-run checks dialog - #14246",
+      "[Fixed] Pull requests adhere to temporal laws again - #14238",
+      "[Fixed] Fix repository group header overflow when text is too long - #14233. Thanks @tsvetilian-ty!",
+      "[Fixed] Clone dialog \"Choose\" button uses an open dialog for directory selection on Windows - #12812",
+      "[Improved] Add a link under \"Enable notifications\" settings to the user's OS system notification settings - #14288"
+    ],
+    "2.9.13-beta2": [
+      "[Added] Add ability to include or exclude multiple selected files for a commit from the context menu - #7790. Thanks @tsvetilian-ty!",
+      "[Added] Add \"View Branch on GitHub\" to the branches menu - #14224. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix relative time of pull request review notification dialogs - #14261",
+      "[Fixed] Fix CI check status popover not closing when clicking on PR badge - #14256",
+      "[Fixed] Fix checks list overflow handling on re-run checks dialog - #14246",
+      "[Improved] Close keywords are now formatted and have informational tooltips in markdown - #14253",
+      "[Improved] Commit mentions in markdown are now formatted and linked - #14282",
+      "[Improved] Add a link under \"Enable notifications\" settings to the user's OS system notification settings - #14288"
+    ],
     "2.9.13-beta1": [
       "[New] Add support for notifications of pull request reviews - #14175",
       "[Fixed] Pull requests adhere to temporal laws again - #14238",

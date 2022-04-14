@@ -36,6 +36,9 @@ interface ICICheckRunListProps {
     checkRun: IRefCheck,
     step: IAPIWorkflowJobStep
   ) => void
+
+  /** Callback to rerun a job*/
+  readonly onRerunJob?: (checkRun: IRefCheck) => void
 }
 
 interface ICICheckRunListState {
@@ -165,6 +168,7 @@ export class CICheckRunList extends React.PureComponent<
           onCheckRunExpansionToggleClick={this.onCheckRunClick}
           onViewCheckExternally={this.props.onViewCheckDetails}
           onViewJobStep={this.props.onViewJobStep}
+          onRerunJob={this.props.onRerunJob}
         />
       )
     })

@@ -8,6 +8,7 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
+import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -42,10 +43,25 @@ interface ICICheckRunListItemProps {
     checkRun: IRefCheck,
     step: IAPIWorkflowJobStep
   ) => void
+
+  /** Callback to rerun a job*/
+  readonly onRerunJob?: (checkRun: IRefCheck) => void
+}
+
+interface ICICheckRunListItemState {
+  readonly isMouseOver: boolean
 }
 
 /** The CI check list item. */
-export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemProps> {
+export class CICheckRunListItem extends React.PureComponent<
+  ICICheckRunListItemProps,
+  ICICheckRunListItemState
+> {
+  public constructor(props: ICICheckRunListItemProps) {
+    super(props)
+    this.state = { isMouseOver: false }
+  }
+
   private toggleCheckRunExpansion = () => {
     this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
@@ -56,6 +72,25 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
 
   private onViewJobStep = (step: IAPIWorkflowJobStep) => {
     this.props.onViewJobStep?.(this.props.checkRun, step)
+  }
+
+  private rerunJob = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (this.props.checkRun.actionJobSteps === undefined) {
+      return
+    }
+
+    this.props.onRerunJob?.(this.props.checkRun)
+  }
+
+  private onMouseEnter = () => {
+    if (!this.state.isMouseOver) {
+      this.setState({ isMouseOver: true })
+    }
+  }
+
+  private onMouseLeave = (e: React.MouseEvent) => {
+    this.setState({ isMouseOver: false })
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
@@ -125,6 +160,36 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     )
   }
 
+  private renderJobRerun = (): JSX.Element | null => {
+    const { checkRun, onRerunJob } = this.props
+    const { isMouseOver } = this.state
+
+    if (
+      !isMouseOver ||
+      onRerunJob === undefined ||
+      !enableReRunFailedAndSingleCheckJobs()
+    ) {
+      return null
+    }
+
+    const classes = classNames('job-rerun', {
+      'not-action-job': checkRun.actionJobSteps === undefined,
+    })
+
+    const tooltip =
+      checkRun.actionJobSteps !== undefined
+        ? 'Re-run this check'
+        : 'This check cannot be re-run individually.'
+
+    return (
+      <div className={classes} onClick={this.rerunJob}>
+        <TooltippedContent tooltip={tooltip}>
+          <Octicon symbol={OcticonSymbol.sync} />
+        </TooltippedContent>
+      </div>
+    )
+  }
+
   public render() {
     const { checkRun, isCheckRunExpanded } = this.props
 
@@ -133,7 +198,11 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
       selected: this.props.selected,
     })
     return (
-      <div className="ci-check-list-item-group">
+      <div
+        className="ci-check-list-item-group"
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+      >
         <div
           className={classes}
           onClick={this.toggleCheckRunExpansion}
@@ -141,6 +210,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
         >
           {this.renderCheckStatusSymbol()}
           {this.renderCheckRunName()}
+          {this.renderJobRerun()}
           {this.renderCheckJobStepToggle()}
         </div>
         {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (

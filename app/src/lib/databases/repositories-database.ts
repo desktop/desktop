@@ -2,6 +2,7 @@ import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { assertNonNullable } from '../fatal-error'
+import { GitHubAccountType } from '../api'
 
 export interface IDatabaseOwner {
   readonly id?: number
@@ -12,6 +13,7 @@ export interface IDatabaseOwner {
   readonly key: string
   readonly login: string
   readonly endpoint: string
+  readonly type?: GitHubAccountType
 }
 
 export interface IDatabaseGitHubRepository {
@@ -25,7 +27,6 @@ export interface IDatabaseGitHubRepository {
 
   /** The database ID of the parent repository if the repository is a fork. */
   readonly parentID: number | null
-
   /** The last time a prune was attempted on the repository */
   readonly lastPruneDate: number | null
 
