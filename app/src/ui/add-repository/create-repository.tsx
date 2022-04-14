@@ -147,16 +147,13 @@ export class CreateRepository extends React.Component<
     window.addEventListener('focus', this.onWindowFocus)
 
     const gitIgnoreNames = await getGitIgnoreNames()
-    this.setState({ gitIgnoreNames })
-
     const licenses = await getLicenses()
-    this.setState({ licenses })
 
-    const path =
-      this.state.path !== null ? this.state.path : await getDefaultDir()
-    const isRepository = await isGitRepository(path)
-    this.setState({ isRepository })
+    this.setState({ gitIgnoreNames, licenses })
 
+    const path = this.state.path ?? (await getDefaultDir())
+
+    this.updateIsRepository(path, this.state.name)
     this.updateReadMeExists(path, this.state.name)
   }
 
@@ -166,25 +163,38 @@ export class CreateRepository extends React.Component<
 
   private initializePath = async () => {
     const path = await getDefaultDir()
-    this.setState({ path })
+    this.setState(s => (s.path === null ? { path } : null))
   }
 
   private onPathChanged = async (path: string) => {
-    this.setState({ path, isValidPath: null })
+    this.setState({ path, isValidPath: null, isRepository: false })
 
-    const isRepository = await isGitRepository(path)
-
-    // Only update isRepository if the path is still the
-    // same one we were using to check whether it looked
-    // like a repository.
-    this.setState(state => (state.path === path ? { isRepository } : null))
-
+    this.updateIsRepository(path, this.state.name)
     this.updateReadMeExists(path, this.state.name)
   }
 
   private onNameChanged = (name: string) => {
+    const { path } = this.state
+
     this.setState({ name })
+
+    if (path === null) {
+      return
+    }
+
+    this.updateIsRepository(path, name)
     this.updateReadMeExists(this.state.path, name)
+  }
+
+  private async updateIsRepository(path: string, name: string) {
+    const fullPath = Path.join(path, sanitizedRepositoryName(name))
+    const isRepository = await isGitRepository(fullPath)
+
+    // Only update isRepository if the path is still the same one we were using
+    // to check whether it looked like a repository.
+    this.setState(state =>
+      state.path === path && state.name === name ? { isRepository } : null
+    )
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -200,9 +210,8 @@ export class CreateRepository extends React.Component<
       return
     }
 
-    const isRepository = await isGitRepository(path)
-
-    this.setState({ isRepository, path })
+    this.setState({ path, isRepository: false })
+    this.updateIsRepository(path, this.state.name)
   }
 
   private async updateReadMeExists(path: string | null, name: string) {
