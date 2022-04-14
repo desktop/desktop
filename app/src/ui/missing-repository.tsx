@@ -90,7 +90,7 @@ export class MissingRepository extends React.Component<
           onClick={this.onTrustDirectory}
           type="submit"
         >
-          {__DARWIN__ ? 'Trust Repository…' : 'Trust repository…'}
+          {__DARWIN__ ? 'Trust Repository' : 'Trust repository'}
         </Button>
       )
     }
