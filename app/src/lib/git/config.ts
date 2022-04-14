@@ -173,7 +173,7 @@ export async function addSafeDirectory(path: string) {
     path = `%(prefix)/${path}`
   }
 
-  addGlobalConfigValueIfMissing('safe.directory', path)
+  await addGlobalConfigValueIfMissing('safe.directory', path)
 }
 
 /** Set the global config value by name. */
