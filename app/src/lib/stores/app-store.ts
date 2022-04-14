@@ -159,6 +159,8 @@ import {
   getRebaseInternalState,
   getCommit,
   appendIgnoreFile,
+  getRepositoryType,
+  RepositoryType,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -5365,6 +5367,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const invalidPaths = new Array<string>()
 
     for (const path of paths) {
+      const repositoryType = await getRepositoryType(path).catch(e => {
+        log.error('Could not determine repository type', e)
+        return { kind: 'missing' } as RepositoryType
+      })
+
+      if (repositoryType.kind === 'unsafe') {
+        const repository = await this.repositoriesStore.addRepository(path, {
+          missing: true,
+        })
+
+        addedRepositories.push(repository)
+        continue
+      }
+
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)

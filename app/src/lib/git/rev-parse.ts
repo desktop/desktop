@@ -82,7 +82,7 @@ export async function isGitRepository(path: string): Promise<boolean> {
   return (await getTopLevelWorkingDirectory(path)) !== null
 }
 
-type RepositoryType =
+export type RepositoryType =
   | { kind: 'bare' }
   | { kind: 'regular' }
   | { kind: 'missing' }

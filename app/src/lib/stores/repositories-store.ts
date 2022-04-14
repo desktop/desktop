@@ -30,6 +30,10 @@ import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
 import { enableRepositoryAliases } from '../feature-flag'
 
+type AddRepositoryOptions = {
+  missing?: boolean
+}
+
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
   ReadonlyArray<Repository>
@@ -224,7 +228,10 @@ export class RepositoriesStore extends TypedBaseStore<
    *
    * If a repository already exists with that path, it will be returned instead.
    */
-  public async addRepository(path: string): Promise<Repository> {
+  public async addRepository(
+    path: string,
+    opts?: AddRepositoryOptions
+  ): Promise<Repository> {
     const repository = await this.db.transaction(
       'rw',
       this.db.repositories,
@@ -240,7 +247,7 @@ export class RepositoriesStore extends TypedBaseStore<
         const dbRepo: IDatabaseRepository = {
           path,
           gitHubRepositoryID: null,
-          missing: false,
+          missing: opts?.missing ?? false,
           lastStashCheckDate: null,
           alias: null,
         }
