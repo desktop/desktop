@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { Dispatcher } from '../dispatcher'
-import { addGlobalConfigValueIfMissing, getRepositoryType } from '../../lib/git'
+import { addSafeDirectory, getRepositoryType } from '../../lib/git'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -81,10 +81,10 @@ export class AddExistingRepository extends React.Component<
     }
   }
 
-  private onTrustDirectory = () => {
+  private onTrustDirectory = async () => {
     const { repositoryUnsafePath, path } = this.state
     if (repositoryUnsafePath) {
-      addGlobalConfigValueIfMissing('safe.directory', repositoryUnsafePath)
+      await addSafeDirectory(repositoryUnsafePath)
     }
     this.validatePath(path)
   }

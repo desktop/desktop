@@ -7,7 +7,7 @@ import { Repository } from '../models/repository'
 import { Button } from './lib/button'
 import { Row } from './lib/row'
 import { LinkButton } from './lib/link-button'
-import { addGlobalConfigValueIfMissing, getRepositoryType } from '../lib/git'
+import { addSafeDirectory, getRepositoryType } from '../lib/git'
 import { Ref } from './lib/ref'
 
 interface IMissingRepositoryProps {
@@ -31,12 +31,12 @@ export class MissingRepository extends React.Component<
   }
 
   private onTrustDirectory = async () => {
-    if (this.state.unsafePath) {
-      await addGlobalConfigValueIfMissing(
-        'safe.directory',
-        this.state.unsafePath
-      )
-      const type = await getRepositoryType(this.props.repository.path)
+    const { unsafePath } = this.state
+    const { repository } = this.props
+
+    if (unsafePath) {
+      await addSafeDirectory(unsafePath)
+      const type = await getRepositoryType(repository.path)
 
       if (type.kind !== 'unsafe') {
         this.checkAgain()

@@ -161,6 +161,21 @@ export async function addGlobalConfigValue(
   )
 }
 
+/**
+ * Adds a path to the `safe.directories` configuration variable if it's not
+ * already present. Adding a path to `safe.directory` will cause Git to ignore
+ * if the path is owner by a different user than the current.
+ */
+export async function addSafeDirectory(path: string) {
+  // UNC-paths on Windows need to be prefixed with `%(prefix)/`, see
+  // https://github.com/git-for-windows/git/commit/e394a16023cbb62784e380f70ad8a833fb960d68
+  if (__WIN32__ && path[0] === '/') {
+    path = `%(prefix)/${path}`
+  }
+
+  addGlobalConfigValueIfMissing('safe.directory', path)
+}
+
 /** Set the global config value by name. */
 export async function addGlobalConfigValueIfMissing(
   name: string,
