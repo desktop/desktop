@@ -139,7 +139,6 @@ import {
   appendIgnoreRule,
   createMergeCommit,
   getBranchesPointedAt,
-  isGitRepository,
   abortRebase,
   continueRebase,
   rebase,
@@ -2971,7 +2970,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const foundRepository =
       (await pathExists(repository.path)) &&
-      (await isGitRepository(repository.path)) &&
+      (await getRepositoryType(repository.path)).kind === 'regular' &&
       (await this._loadStatus(repository)) !== null
 
     if (foundRepository) {
