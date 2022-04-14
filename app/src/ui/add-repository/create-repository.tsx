@@ -7,7 +7,8 @@ import {
   createCommit,
   getStatus,
   getAuthorIdentity,
-  isGitRepository,
+  getRepositoryType,
+  RepositoryType,
 } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { TextBox } from '../lib/text-box'
@@ -32,6 +33,8 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog } from '../main-process-proxy'
 import { pathExists } from '../lib/path-exists'
 import { mkdir } from 'fs/promises'
+import { directoryExists } from '../../lib/directory-exists'
+import { join } from 'path'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -42,6 +45,23 @@ const NoLicenseValue: ILicense = {
   featured: false,
   body: '',
   hidden: false,
+}
+
+/** Is the path a git repository? */
+export const isGitRepository = async (path: string) => {
+  const type = await getRepositoryType(path).catch(e => {
+    log.error(`Unable to determine repository type`, e)
+    return { kind: 'missing' } as RepositoryType
+  })
+
+  if (type.kind === 'unsafe') {
+    // If the path is considered unsafe by Git we won't be able to
+    // verify that it's a repository (or worktree). So we'll fall back to this
+    // naive approximation.
+    return directoryExists(join(path, '.git'))
+  }
+
+  return type.kind !== 'missing'
 }
 
 interface ICreateRepositoryProps {
