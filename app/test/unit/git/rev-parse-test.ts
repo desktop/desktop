@@ -3,10 +3,7 @@ import * as FSE from 'fs-extra'
 import * as os from 'os'
 
 import { Repository } from '../../../src/models/repository'
-import {
-  isGitRepository,
-  getRepositoryType,
-} from '../../../src/lib/git/rev-parse'
+import { getRepositoryType } from '../../../src/lib/git/rev-parse'
 import { git } from '../../../src/lib/git/core'
 import {
   setupFixtureRepository,
@@ -21,18 +18,6 @@ describe('git/rev-parse', () => {
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  describe('isGitRepository', () => {
-    it('should return true for a repository', async () => {
-      const result = await isGitRepository(repository.path)
-      expect(result).toBe(true)
-    })
-
-    it('should return false for a directory', async () => {
-      const result = await isGitRepository(path.dirname(repository.path))
-      expect(result).toBe(false)
-    })
   })
 
   describe('getRepositoryType', () => {

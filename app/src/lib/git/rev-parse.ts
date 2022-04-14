@@ -2,10 +2,6 @@ import { git } from './core'
 import { directoryExists } from '../directory-exists'
 import { resolve } from 'path'
 
-/** Is the path a git repository? */
-export const isGitRepository = (path: string) =>
-  getRepositoryType(path).then(t => t.kind === 'regular')
-
 export type RepositoryType =
   | { kind: 'bare' }
   | { kind: 'regular'; topLevelWorkingDirectory: string }
