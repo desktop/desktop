@@ -31,6 +31,7 @@ import {
   getCommitsBetweenCommits,
   getBranches,
   getRebaseSnapshot,
+  getRepositoryType,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -50,7 +51,6 @@ import {
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
 import { AppStore } from '../../lib/stores/app-store'
-import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
@@ -1808,7 +1808,15 @@ export class Dispatcher {
         // user may accidentally provide a folder within the repository
         // this ensures we use the repository root, if it is actually a repository
         // otherwise we consider it an untracked repository
-        const path = (await validatedRepositoryPath(action.path)) || action.path
+        const path = await getRepositoryType(action.path)
+          .then(t =>
+            t.kind === 'regular' ? t.topLevelWorkingDirectory : action.path
+          )
+          .catch(e => {
+            log.error('Could not determine repository type', e)
+            return action.path
+          })
+
         const { repositories } = this.appStore.getState()
         const existingRepository = matchExistingRepository(repositories, path)
 

@@ -3,6 +3,7 @@ import * as Path from 'path'
 import { git } from './core'
 import { RepositoryDoesNotExistErrorCode } from 'dugite'
 import { directoryExists } from '../directory-exists'
+import { resolve } from 'path'
 
 /**
  * Get the absolute path to the top level working directory.
@@ -84,7 +85,7 @@ export async function isGitRepository(path: string): Promise<boolean> {
 
 export type RepositoryType =
   | { kind: 'bare' }
-  | { kind: 'regular' }
+  | { kind: 'regular'; topLevelWorkingDirectory: string }
   | { kind: 'missing' }
   | { kind: 'unsafe'; path: string }
 
@@ -102,14 +103,18 @@ export async function getRepositoryType(path: string): Promise<RepositoryType> {
 
   try {
     const result = await git(
-      ['rev-parse', '--is-bare-repository'],
+      ['rev-parse', '--is-bare-repository', '--show-cdup'],
       path,
       'getRepositoryType',
       { successExitCodes: new Set([0, 128]) }
     )
 
     if (result.exitCode === 0) {
-      return { kind: result.stdout.trim() === 'true' ? 'bare' : 'regular' }
+      const [isBare, cdup] = result.stdout.split('\n', 2)
+
+      return isBare === 'true'
+        ? { kind: 'bare' }
+        : { kind: 'regular', topLevelWorkingDirectory: resolve(path, cdup) }
     }
 
     const unsafeMatch =

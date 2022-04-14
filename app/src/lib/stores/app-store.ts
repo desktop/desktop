@@ -192,7 +192,6 @@ import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
-import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
@@ -5341,8 +5340,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     endpoint: string,
     apiRepository: IAPIFullRepository
   ) {
-    const validatedPath = await validatedRepositoryPath(path)
-    if (validatedPath) {
+    const type = await getRepositoryType(path)
+    if (type.kind === 'regular') {
+      const validatedPath = type.topLevelWorkingDirectory
       log.info(
         `[AppStore] adding tutorial repository at ${validatedPath} to store`
       )
@@ -5381,8 +5381,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         continue
       }
 
-      const validatedPath = await validatedRepositoryPath(path)
-      if (validatedPath) {
+      if (repositoryType.kind === 'regular') {
+        const validatedPath = repositoryType.topLevelWorkingDirectory
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
         const repositories = this.repositories
