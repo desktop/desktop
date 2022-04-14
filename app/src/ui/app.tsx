@@ -23,7 +23,6 @@ import {
 } from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
-import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { MenuEvent } from '../main-process/menu'
 import {
   Repository,
@@ -158,6 +157,7 @@ import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-ret
 import { getReleaseSummary } from '../lib/release-notes'
 import { PullRequestReview } from './notifications/pull-request-review'
 import { PullRequest, PullRequestRef } from '../models/pull-request'
+import { getRepositoryType } from '../lib/git'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1161,8 +1161,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       // user may accidentally provide a folder within the repository
       // this ensures we use the repository root, if it is actually a repository
       // otherwise we consider it an untracked repository
-      const first = paths[0]
-      const path = (await validatedRepositoryPath(first)) ?? first
+      const path = await getRepositoryType(paths[0])
+        .then(t =>
+          t.kind === 'regular' ? t.topLevelWorkingDirectory : paths[0]
+        )
+        .catch(e => {
+          log.error('Could not determine repository type', e)
+          return paths[0]
+        })
 
       const { repositories } = this.state
       const existingRepository = matchExistingRepository(repositories, path)
