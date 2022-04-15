@@ -162,7 +162,6 @@
     "electron": "28.2.3",
     "electron-builder": "^24.4.0",
     "electron-packager": "^17.1.1",
-    "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^4.10.1",
     "markdownlint-cli": "^0.32.2",
     "reserved-words": "^0.1.2",
@@ -170,6 +169,7 @@
   },
   "optionalDependencies": {
     "electron-installer-debian": "3.1.0",
-    "electron-installer-redhat": "3.3.0"
+    "electron-installer-redhat": "3.3.0",
+    "electron-winstaller": "^5.0.0"
   }
 }
