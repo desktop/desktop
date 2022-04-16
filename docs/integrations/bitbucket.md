@@ -4,7 +4,7 @@
 
 To authenticate against Bitbucket repositories you will need to create a personal access token.
 
-1. Go to your Bitbucket account and select **Bitbucket settings** in the user profile dropdown.
+1. Go to your Bitbucket account and select **Personal settings** in the user profile dropdown.
 
 2. Select **App passwords**
 
