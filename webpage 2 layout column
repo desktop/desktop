@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-column layout website</title>
+</head>
+<body>
+    <table
+        width="100%"
+        cellpadding="10"
+        cellspacing="10"
+        border="0"
+        height="100%"
+    >
+
+    <tr> 
+        <!---header sections-->
+        <td colspan="4"  bgcolor="pink">
+        <h1>TOURISM</h1>
+        <img src="https://schools.cukerala.ac.in/Images/tourism.jpg " alt=" tourism" width="100%" height="2%">
+    </td>
+    </tr>
+    <tr>
+        <!--left side column-->
+        <td width ="10% "valign="top" bgcolor=" pink">
+         <a href="./purpose.html">purpose</a><br />
+         <a href="./concept.html">concept</a><br />
+         <a href="./types.html">types</a><br />
+        </td>
+        <!--right side column-->
+        <td width ="90% "valign="top" bgcolor="sky blue">
+            <h2> TOURISM</h2>
+            <P>
+                Tourism is travel for pleasure or business; also the theory and practice of touring, the business of attracting, accommodating, and entertaining tourists, and the business of operating tours.[2] The World Tourism Organization defines tourism more generally, in terms which go "beyond the common perception of tourism as being limited to holiday activity only", as people "traveling to and staying in places outside their usual environment for not more than one consecutive year for leisure and not less than 24 hours, business and other purposes".[3] Tourism can be domestic (within the traveller's own country) or international, and international tourism has both incoming and outgoing implications on a country's balance of payments.
+                <br>
+            </br>
+
+
+                Tourism numbers declined as a result of a strong economic slowdown (the late-2000s recession) between the second half of 2008 and the end of 2009, and in consequence of the outbreak of the 2009 H1N1 influenza virus,[4][5] but slowly recovered until the COVID-19 pandemic put an abrupt end to the growth. The United Nations World Tourism Organization estimated that global international tourist arrivals might decrease by 58% to 78% in 2020, leading to a potential loss of US$0.9–1.2 trillion in international tourism receipts.
+                <br>
+        </br>
+
+                
+                Globally, international tourism receipts (the travel item in balance of payments) grew to US$1.03 trillion (€740 billion) in 2005, corresponding to an increase in real terms of 3.8% from 2010.[7] International tourist arrivals surpassed the milestone of 1 billion tourists globally for the first time in 2012,[8] emerging source markets such as China, Russia, and Brazil had significantly increased their spending over the previous decade.
+                <br>
+    </br>
+                
+                Global tourism accounts for c. 8% of global greenhouse-gas emissions.[10] Emissions as well as other significant environmental and social impacts are not always beneficial to local communities and their economies. For this reason, many tourist development organizations have begun to focus on sustainable tourism in order to mitigate negative effects caused by the growing impact of tourism. The United Nations World Tourism Organization emphasized these practices by promoting tourism as part of the Sustainable Development Goals, through programs like the International Year for Sustainable Tourism for Development in 2017,[11] and programs like Tourism for SDGs focusing on how SDG 8, SDG 12 and SDG 14 implicate tourism in creating a sustainable economy.
+            </P>
+
+        </td>
+     </tr>
+<tr>
+    <td colspan="4" align="center" height="30%" bgcolor="pink">Copyright&copy; created by bhagat bhagyasri</td>
+</tr>
+
+
+    </table>
+    
+</body>
+</html>
