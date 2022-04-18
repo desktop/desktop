@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>text font</title>
+   
+        <div>
+            <h1 style="font-size:200%;"><center>JOHN DOE</center></h1>
+            <p><center>Full Address &middot;city&middot;state&middot;Zip&middot;Phone NUMBER &middot; E-mail</center></p>
+            <hr>
+            <hr/>
+            
+            <h1 style="font-size:120%;">OBJECTIVE: Design apparel print for an innovative retail company</h1>
+             <h1 style="font-size:120%;">EDUCATION:</h1>
+            <ul type="square">  
+                 <p align="left">UNIVERSITY OF MINNESOTA</p> 
+                 <p align="right">City, State</p>
+                 <p align="left"><em>College of Design</em></p>
+                 <p align="right">May 2011</p>
+                                <li>Bachelor of Science in Graphic Design</li>
+                                <li>Cummulative CGPA 3.93,Dean's List </li>
+                                <li>Twin cities Iron Range Scholarship</li>
+            </ul>
+            <h1 style="font-size:120%;">WORK EXPERIENCE:</h1>
+            <ul> 
+                <p align="left">AMERICAN EAGLE</p> 
+                <p align="right">City, State</p>
+                <p><em>Sale Associate</em></p>
+                <p align="right">July 2009 - present</p>
+            
+                              <li>Collaborated with the store merchandiser creating displays to attract clientele</li>
+                              <li>Use my trend awareness to assist customers in their shopping experience</li>
+                              <li>Thoroughly scan every piece of merchandise for inventory control</li> 
+                              <li>Process shipment to increase my product knowledge</li>
+           </ul>
+           <ul>
+                <p>PLANET BEACH</p> 
+                <p align="right">City, State</p>
+                <p><em>Spa Counsultant</em></p>
+                <p align="right">Aug. 2008 - present</p>
+                             <li>Sell retail and memberships to meet company sales goals</li>
+                             <li>Build organizational skills by single handedly running all operating procedures</li>
+                             <li>Communicate with clients to fulfill their wants and needs</li> 
+                             <li>Attend promotional events to market our services</li>
+                             <li>Handle cash and deposits during opening and closing</li> 
+                             <li>Received employee of the month award twice</li>
+           </ul>
+                 <p>HEARTBREAKER</p> 
+                 <p align="right">City, State</p>
+                 <p><em>Sales Associate</em></p>
+                 <p align="right">May 2008 – Aug. 2008</p>
+                            <li>Stocked sales floor with fast fashion inventory</li>
+                            <li>Marked down items allowing me to see unsuccessful merchandise in a retail market</li>
+                            <li>Offered advice and assistance to each guest</li> 
+                    
+           </ul> 
+           <ul>
+                <p>VICTORIA’S SECRET </p> 
+                <p align="right">City, State</p>
+                <p><em>Fashion Representative</em></p>
+                <p align="right">Jan. 2006 – Feb. 2009</p>
+                           <li>Applied my leadership skills by assisting in the training of coworkers</li>
+                           <li>Set up mannequins and displays in order to entice future customers</li>
+                           <li>Provided superior customer service by helping with consumer decisions</li>
+                           <li>Took seasonal inventory</li>
+           </ul>
+            <h1 style="font-size:120%;">VOLUNTEER EXPERIENCE:</h1>
+               <p>TARGET CORPORATION </p> 
+               <p align="right">City, State</p>
+               <p><em>Brand Ambassador</em> </p>
+               <p align="right">August 2009</p>
+            </p>
+                           <li>Represented Periscope Marketing and Target Inc. at a college event</li>
+                           <li>Engaged University of Minnesota freshman in the Target brand experience</li>
+            </ul>
+            </div>
+    
+    </body>
+    </html>
