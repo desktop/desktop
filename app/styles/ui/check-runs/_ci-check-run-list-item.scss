@@ -4,6 +4,18 @@
   border-bottom: var(--base-border);
   height: auto;
 
+  &.condensed {
+    border-bottom: none;
+    align-items: center;
+    justify-content: center;
+
+    .ci-check-status-symbol {
+      padding: var(--spacing-third);
+      display: flex;
+      margin: 0;
+    }
+  }
+
   &.sticky {
     position: sticky;
     background-color: var(--background-color);

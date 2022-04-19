@@ -12,7 +12,6 @@ import {
 } from '../../lib/api'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from './../octicons/octicons.generated'
-import { Row } from '../lib/row'
 import { encodePathAsUrl } from '../../lib/path'
 import { offsetFromNow } from '../../lib/offset-from'
 
@@ -123,18 +122,102 @@ export class CICheckRunRerunDialog extends React.Component<
         cr.checkSuiteId !== null &&
         rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
     )
-    const nonRerunnable = this.props.checkRuns.filter(
+    const nonRerunnable = checkRunsToConsider.filter(
       cr =>
         cr.checkSuiteId === null ||
-        !rerequestableCheckSuiteIds.includes(cr.checkSuiteId) ||
-        (this.props.failedOnly && cr.conclusion === APICheckConclusion.Failure)
+        !rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
     )
 
     this.setState({ loadingCheckSuites: false, rerunnable, nonRerunnable })
   }
 
   private renderRerunnableJobsList = () => {
-    if (this.state.loadingCheckSuites) {
+    if (this.state.rerunnable.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="ci-check-run-list check-run-rerun-list">
+        <CICheckRunList
+          checkRuns={this.state.rerunnable}
+          loadingActionLogs={false}
+          loadingActionWorkflows={false}
+          notExpandable={true}
+          isCondensedView={true}
+        />
+      </div>
+    )
+  }
+
+  private renderRerunDependentsMessage = () => {
+    if (this.state.rerunnable.length === 0) {
+      return null
+    }
+
+    const name =
+      this.props.checkRuns.length === 1 ? (
+        <strong>{this.props.checkRuns[0].name}</strong>
+      ) : (
+        'these workflows'
+      )
+    const dependentAdj = this.props.checkRuns.length === 1 ? 'its' : 'their'
+
+    return (
+      <div className="re-run-dependents-message">
+        A new attempt of {name} will be started, including all of {dependentAdj}{' '}
+        dependents:
+      </div>
+    )
+  }
+
+  private renderRerunWarning = () => {
+    if (
+      this.state.loadingCheckSuites ||
+      this.state.nonRerunnable.length === 0
+    ) {
+      return null
+    }
+
+    const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
+    const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
+    const warningPrefix =
+      this.state.rerunnable.length === 0
+        ? `There are no ${
+            this.props.failedOnly ? 'failed ' : ''
+          }checks that can be re-run`
+        : `There ${verb} ${this.state.nonRerunnable.length} ${
+            this.props.failedOnly ? 'failed ' : ''
+          }${pluralize} that cannot be re-run`
+    return (
+      <div className="non-re-run-info warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+
+        {`${warningPrefix}. A check run cannot be re-run if the check is more than one month old,
+          the check or its dependent has not completed, or the check is not configured to be
+          re-run.`}
+      </div>
+    )
+  }
+
+  public getTitle = (showDescriptor: boolean = true) => {
+    const { checkRuns, failedOnly } = this.props
+    const s = checkRuns.length === 1 ? '' : 's'
+    const c = __DARWIN__ ? 'C' : 'c'
+
+    let descriptor = ''
+    if (showDescriptor && checkRuns.length === 1) {
+      descriptor = __DARWIN__ ? 'Single ' : 'single '
+    }
+
+    if (showDescriptor && failedOnly) {
+      descriptor = __DARWIN__ ? 'Failed ' : 'failed '
+    }
+
+    return `Re-run ${descriptor}${c}heck${s}`
+  }
+
+  private renderDialogContent = () => {
+    if (this.state.loadingCheckSuites && this.props.checkRuns.length > 1) {
       return (
         <div className="loading-rerun-checks">
           <img src={BlankSlateImage} className="blankslate-image" />
@@ -147,71 +230,27 @@ export class CICheckRunRerunDialog extends React.Component<
     }
 
     return (
-      <div className="ci-check-run-list check-run-rerun-list">
-        {this.state.rerunnable.length > 0 ? (
-          <CICheckRunList
-            checkRuns={this.state.rerunnable}
-            loadingActionLogs={false}
-            loadingActionWorkflows={false}
-            notExpandable={true}
-          />
-        ) : null}
-      </div>
-    )
-  }
-
-  private renderRerunInfo = () => {
-    if (
-      this.state.loadingCheckSuites ||
-      this.state.nonRerunnable.length === 0
-    ) {
-      return null
-    }
-
-    /**
-     * Verbiage from dotcom:
-     * Single Job: "A new attempt of this workflow will be started, including macOS x64 and dependents"
-     * Failed Jobs: "A new attempt of this workflow will be started, including all failed jobs and dependents"
-     * */
-
-    const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
-    const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
-    const warningPrefix =
-      this.state.rerunnable.length === 0
-        ? `There are no checks that can be re-run`
-        : `There ${verb} ${this.state.nonRerunnable.length} ${pluralize} that cannot be re-run`
-    return (
-      <Row className="non-re-run-info warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-
-        {`${warningPrefix}. A check run cannot be re-run if the check is more than one month old,
-          the check has not completed, or the check is not configured to be
-          re-run.`}
-      </Row>
+      <>
+        {this.renderRerunDependentsMessage()}
+        {this.renderRerunnableJobsList()}
+        {this.renderRerunWarning()}
+      </>
     )
   }
 
   public render() {
-    const failed = this.props.failedOnly
-      ? __DARWIN__
-        ? 'Failed '
-        : 'failed '
-      : ''
     return (
       <Dialog
         id="rerun-check-runs"
-        title={__DARWIN__ ? `Re-run ${failed}Checks` : `Re-run ${failed}checks`}
+        title={this.getTitle()}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={this.state.loadingCheckSuites || this.state.loadingRerun}
       >
-        <DialogContent>{this.renderRerunnableJobsList()}</DialogContent>
+        <DialogContent>{this.renderDialogContent()}</DialogContent>
         <DialogFooter>
-          {this.renderRerunInfo()}
           <OkCancelButtonGroup
-            okButtonText={
-              __DARWIN__ ? `Re-run ${failed}Checks` : `Re-run ${failed}checks`
-            }
+            okButtonText={this.getTitle(false)}
             okButtonDisabled={this.state.rerunnable.length === 0}
           />
         </DialogFooter>

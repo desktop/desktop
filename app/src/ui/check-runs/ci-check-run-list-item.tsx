@@ -32,6 +32,9 @@ interface ICICheckRunListItemProps {
   /** Whether check runs can be expanded. Default: false */
   readonly notExpandable?: boolean
 
+  /** Showing a condensed view */
+  readonly isCondensedView?: boolean
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
@@ -135,7 +138,8 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckRunName = (): JSX.Element => {
-    const { name, description } = this.props.checkRun
+    const { checkRun, isCondensedView, onViewCheckExternally } = this.props
+    const { name, description } = checkRun
     return (
       <div className="ci-check-list-item-detail">
         <TooltippedContent
@@ -147,7 +151,7 @@ export class CICheckRunListItem extends React.PureComponent<
         >
           <span
             className={classNames({
-              isLink: this.props.onViewCheckExternally !== undefined,
+              isLink: onViewCheckExternally !== undefined,
             })}
             onClick={this.onViewCheckExternally}
           >
@@ -155,7 +159,9 @@ export class CICheckRunListItem extends React.PureComponent<
           </span>
         </TooltippedContent>
 
-        <div className="ci-check-description">{description}</div>
+        {isCondensedView ? null : (
+          <div className="ci-check-description">{description}</div>
+        )}
       </div>
     )
   }
@@ -191,11 +197,13 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   public render() {
-    const { checkRun, isCheckRunExpanded } = this.props
+    const { checkRun, isCheckRunExpanded, selected, isCondensedView } =
+      this.props
 
     const classes = classNames('ci-check-list-item', 'list-item', {
       sticky: isCheckRunExpanded,
-      selected: this.props.selected,
+      selected,
+      condensed: isCondensedView,
     })
     return (
       <div

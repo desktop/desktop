@@ -22,6 +22,7 @@ import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import { CICheckReRunButton } from '../check-runs/ci-check-re-run-button'
+import { supportsRerunningIndividualOrFailedChecks } from '../../lib/endpoint-capabilities'
 
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 const BlankSlateImage = encodePathAsUrl(
@@ -180,7 +181,13 @@ export class PullRequestChecksFailed extends React.Component<
         selectable={true}
         onViewCheckDetails={this.onViewOnGitHub}
         onCheckRunClick={this.onCheckRunClick}
-        onRerunJob={this.onRerunJob}
+        onRerunJob={
+          supportsRerunningIndividualOrFailedChecks(
+            this.props.repository.gitHubRepository.endpoint
+          )
+            ? this.onRerunJob
+            : undefined
+        }
       />
     )
   }
@@ -270,6 +277,10 @@ export class PullRequestChecksFailed extends React.Component<
       <div className="ci-check-rerun">
         <CICheckReRunButton
           disabled={checks.length === 0}
+          checkRuns={checks}
+          canReRunFailed={supportsRerunningIndividualOrFailedChecks(
+            this.props.repository.gitHubRepository.endpoint
+          )}
           onRerunChecks={this.rerunChecks}
         />
       </div>

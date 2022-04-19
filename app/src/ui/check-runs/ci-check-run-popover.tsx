@@ -18,7 +18,10 @@ import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Donut } from '../donut'
-import { supportsRerunningChecks } from '../../lib/endpoint-capabilities'
+import {
+  supportsRerunningChecks,
+  supportsRerunningIndividualOrFailedChecks,
+} from '../../lib/endpoint-capabilities'
 import { getPullRequestCommitRef } from '../../models/pull-request'
 import { CICheckReRunButton } from './ci-check-re-run-button'
 
@@ -227,6 +230,10 @@ export class CICheckRunPopover extends React.PureComponent<
     return (
       <CICheckReRunButton
         disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
+        checkRuns={checkRuns}
+        canReRunFailed={supportsRerunningIndividualOrFailedChecks(
+          this.props.repository.endpoint
+        )}
         onRerunChecks={this.rerunChecks}
       />
     )
@@ -370,7 +377,13 @@ export class CICheckRunPopover extends React.PureComponent<
           loadingActionWorkflows={loadingActionWorkflows}
           onViewCheckDetails={this.onViewCheckDetails}
           onViewJobStep={this.onViewJobStep}
-          onRerunJob={this.onRerunJob}
+          onRerunJob={
+            supportsRerunningIndividualOrFailedChecks(
+              this.props.repository.endpoint
+            )
+              ? this.onRerunJob
+              : undefined
+          }
         />
       </div>
     )
