@@ -12,6 +12,7 @@ export enum Shell {
   Kitty = 'Kitty',
   Alacritty = 'Alacritty',
   WezTerm = 'WezTerm',
+  Warp = 'Warp',
 }
 
 export const Default = Shell.Terminal
@@ -36,6 +37,8 @@ function getBundleID(shell: Shell): string {
       return 'io.alacritty'
     case Shell.WezTerm:
       return 'com.github.wez.wezterm'
+    case Shell.Warp:
+      return 'dev.warp.Warp-Stable'
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -62,6 +65,7 @@ export async function getAvailableShells(): Promise<
     kittyPath,
     alacrittyPath,
     wezTermPath,
+    warpPath,
   ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
@@ -70,6 +74,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Kitty),
     getShellPath(Shell.Alacritty),
     getShellPath(Shell.WezTerm),
+    getShellPath(Shell.Warp),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -102,6 +107,11 @@ export async function getAvailableShells(): Promise<
   if (wezTermPath) {
     const wezTermExecutable = `${wezTermPath}/Contents/MacOS/wezterm`
     shells.push({ shell: Shell.WezTerm, path: wezTermExecutable })
+  }
+
+  if (warpPath) {
+    const warpExecutable = `${warpPath}/Contents/MacOS/stable`
+    shells.push({ shell: Shell.Warp, path: warpExecutable })
   }
 
   return shells
