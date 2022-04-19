@@ -195,6 +195,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** Should the app show a hint when the commit summary is over 50 characters? */
+  readonly showSummaryLengthHint: boolean
+
   /** How the app should handle uncommitted changes when switching branches */
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 

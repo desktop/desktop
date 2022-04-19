@@ -7,10 +7,12 @@ interface IPromptsPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
+  readonly showSummaryLengthHint: boolean
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
+  readonly onShowSummaryLengthHintChanged: (checked: boolean) => void
 }
 
 interface IPromptsPreferencesState {
@@ -18,6 +20,7 @@ interface IPromptsPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
+  readonly showSummaryLengthHint: boolean
 }
 
 export class Prompts extends React.Component<
@@ -33,6 +36,7 @@ export class Prompts extends React.Component<
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
+      showSummaryLengthHint: this.props.showSummaryLengthHint,
     }
   }
 
@@ -72,44 +76,67 @@ export class Prompts extends React.Component<
     this.props.onConfirmRepositoryRemovalChanged(value)
   }
 
+  private onShowSummaryLengthHintChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ showSummaryLengthHint: value })
+    this.props.onShowSummaryLengthHintChanged(value)
+  }
+
   public render() {
     return (
       <DialogContent>
-        <h2>Show a confirmation dialog before...</h2>
-        <Checkbox
-          label="Removing repositories"
-          value={
-            this.state.confirmRepositoryRemoval
-              ? CheckboxValue.On
-              : CheckboxValue.Off
-          }
-          onChange={this.onConfirmRepositoryRemovalChanged}
-        />
-        <Checkbox
-          label="Discarding changes"
-          value={
-            this.state.confirmDiscardChanges
-              ? CheckboxValue.On
-              : CheckboxValue.Off
-          }
-          onChange={this.onConfirmDiscardChangesChanged}
-        />
-        <Checkbox
-          label="Discarding changes permanently"
-          value={
-            this.state.confirmDiscardChangesPermanently
-              ? CheckboxValue.On
-              : CheckboxValue.Off
-          }
-          onChange={this.onConfirmDiscardChangesPermanentlyChanged}
-        />
-        <Checkbox
-          label="Force pushing"
-          value={
-            this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
-          }
-          onChange={this.onConfirmForcePushChanged}
-        />
+        <div className="preferences-tab-section">
+          <h2>Show a confirmation dialog before...</h2>
+          <Checkbox
+            label="Removing repositories"
+            value={
+              this.state.confirmRepositoryRemoval
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onConfirmRepositoryRemovalChanged}
+          />
+          <Checkbox
+            label="Discarding changes"
+            value={
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onConfirmDiscardChangesChanged}
+          />
+          <Checkbox
+            label="Discarding changes permanently"
+            value={
+              this.state.confirmDiscardChangesPermanently
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onConfirmDiscardChangesPermanentlyChanged}
+          />
+          <Checkbox
+            label="Force pushing"
+            value={
+              this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
+            }
+            onChange={this.onConfirmForcePushChanged}
+          />
+        </div>
+        <div className="preferences-tab-section">
+          <h2>Show a hint for...</h2>
+          <Checkbox
+            label="Lengthy commit summaries"
+            value={
+              this.state.showSummaryLengthHint
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onShowSummaryLengthHintChanged}
+          />
+        </div>
       </DialogContent>
     )
   }

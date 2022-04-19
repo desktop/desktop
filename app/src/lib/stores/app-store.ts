@@ -321,12 +321,14 @@ const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
+const showSummaryLengthHintDefault = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
+const showSummaryLengthHintKey: string = 'showSummaryLengthHint'
 
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
@@ -430,6 +432,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
+  private showSummaryLengthHint: boolean = showSummaryLengthHintDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInChangesDiff: boolean =
     hideWhitespaceInChangesDiffDefault
@@ -881,6 +884,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      showSummaryLengthHint: this.showSummaryLengthHint,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
@@ -1838,6 +1842,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnForcePush = getBoolean(
       confirmForcePushKey,
       askForConfirmationOnForcePushDefault
+    )
+
+    this.showSummaryLengthHint = getBoolean(
+      showSummaryLengthHintKey,
+      showSummaryLengthHintDefault
     )
 
     this.uncommittedChangesStrategy =
@@ -5060,6 +5069,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(confirmForcePushKey, value)
 
     this.updateMenuLabelsForSelectedRepository()
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setShowSummaryLengthHintSetting(value: boolean): Promise<void> {
+    this.showSummaryLengthHint = value
+    setBoolean(showSummaryLengthHintKey, value)
 
     this.emitUpdate()
 

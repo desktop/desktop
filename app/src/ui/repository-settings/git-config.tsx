@@ -40,7 +40,7 @@ export class GitConfig extends React.Component<IGitConfigProps> {
 
     return (
       <DialogContent>
-        <div className="advanced-section">
+        <div className="preferences-tab-section">
           <h2>For this repository I wish to</h2>
           <Row>
             <div>

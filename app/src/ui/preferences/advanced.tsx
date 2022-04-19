@@ -98,7 +98,7 @@ export class Advanced extends React.Component<
   public render() {
     return (
       <DialogContent>
-        <div className="advanced-section">
+        <div className="preferences-tab-section">
           <h2>If I have changes and I switch branches...</h2>
 
           <RadioButton
@@ -131,7 +131,7 @@ export class Advanced extends React.Component<
             onSelected={this.onUncommittedChangesStrategyChanged}
           />
         </div>
-        <div className="advanced-section">
+        <div className="preferences-tab-section">
           <h2>Background updates</h2>
           <Checkbox
             label="Periodically fetch and refresh status of all repositories"
@@ -149,7 +149,7 @@ export class Advanced extends React.Component<
         </div>
         {this.renderSSHSettings()}
         {this.renderNotificationsSettings()}
-        <div className="advanced-section">
+        <div className="preferences-tab-section">
           <h2>Usage</h2>
           <Checkbox
             label={this.reportDesktopUsageLabel()}
@@ -171,7 +171,7 @@ export class Advanced extends React.Component<
     }
 
     return (
-      <div className="advanced-section">
+      <div className="preferences-tab-section">
         <h2>SSH</h2>
         <Checkbox
           label="Use system OpenSSH (recommended)"
@@ -190,7 +190,7 @@ export class Advanced extends React.Component<
     }
 
     return (
-      <div className="advanced-section">
+      <div className="preferences-tab-section">
         <h2>Notifications</h2>
         <Checkbox
           label="Enable notifications"

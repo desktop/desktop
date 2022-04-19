@@ -1872,6 +1872,13 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference so that a hint for a commit summary over 50 characters is not shown
+   */
+  public setShowSummaryLengthHint(value: boolean) {
+    return this.appStore._setShowSummaryLengthHintSetting(value)
+  }
+
+  /**
    * Sets the user's preference for handling uncommitted changes when switching branches
    */
   public setUncommittedChangesStrategySetting(
