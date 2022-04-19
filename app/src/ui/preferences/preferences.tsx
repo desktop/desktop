@@ -55,7 +55,7 @@ interface IPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
@@ -80,7 +80,7 @@ interface IPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
@@ -122,7 +122,7 @@ export class Preferences extends React.Component<
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
       confirmForcePush: false,
-      showSummaryLengthHint: false,
+      showCommitSummaryLengthHint: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
@@ -179,7 +179,7 @@ export class Preferences extends React.Component<
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
-      showSummaryLengthHint: this.props.showSummaryLengthHint,
+      showCommitSummaryLengthHint: this.props.showCommitSummaryLengthHint,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
@@ -334,7 +334,7 @@ export class Preferences extends React.Component<
               this.state.confirmDiscardChangesPermanently
             }
             confirmForcePush={this.state.confirmForcePush}
-            showSummaryLengthHint={this.state.showSummaryLengthHint}
+            showCommitSummaryLengthHint={this.state.showCommitSummaryLengthHint}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
@@ -343,7 +343,9 @@ export class Preferences extends React.Component<
             onConfirmDiscardChangesPermanentlyChanged={
               this.onConfirmDiscardChangesPermanentlyChanged
             }
-            onShowSummaryLengthHintChanged={this.onShowSummaryLengthHintChanged}
+            onShowCommitSummaryLengthHintChanged={
+              this.onShowCommitSummaryLengthHintChanged
+            }
           />
         )
         break
@@ -418,8 +420,8 @@ export class Preferences extends React.Component<
     this.setState({ confirmForcePush: value })
   }
 
-  private onShowSummaryLengthHintChanged = (value: boolean) => {
-    this.setState({ showSummaryLengthHint: value })
+  private onShowCommitSummaryLengthHintChanged = (value: boolean) => {
+    this.setState({ showCommitSummaryLengthHint: value })
   }
 
   private onUncommittedChangesStrategyChanged = (
@@ -562,8 +564,8 @@ export class Preferences extends React.Component<
       this.state.confirmForcePush
     )
 
-    await this.props.dispatcher.setShowSummaryLengthHint(
-      this.state.showSummaryLengthHint
+    await this.props.dispatcher.setShowCommitSummaryLengthHint(
+      this.state.showCommitSummaryLengthHint
     )
 
     if (this.state.selectedExternalEditor) {

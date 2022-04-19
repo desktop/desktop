@@ -80,7 +80,7 @@ interface ICommitMessageDialogProps {
   readonly showNoWriteAccess: boolean
 
   /** Whether to show a hint if the commit summary is over 50 characters */
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
 
   /** Method to run when dialog is dismissed */
   readonly onDismissed: () => void
@@ -129,7 +129,7 @@ export class CommitMessageDialog extends React.Component<
             key={this.props.repository.id}
             showBranchProtected={this.props.showBranchProtected}
             showNoWriteAccess={this.props.showNoWriteAccess}
-            showSummaryLengthHint={this.props.showSummaryLengthHint}
+            showCommitSummaryLengthHint={this.props.showCommitSummaryLengthHint}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}
             onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}

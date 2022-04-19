@@ -54,7 +54,7 @@ interface IChangesSidebarProps {
   readonly gitHubUserStore: GitHubUserStore
   readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
   readonly accounts: ReadonlyArray<Account>
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -388,7 +388,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
-          showSummaryLengthHint={this.props.showSummaryLengthHint}
+          showCommitSummaryLengthHint={this.props.showCommitSummaryLengthHint}
           onDiscardChangesFromFiles={this.onDiscardChangesFromFiles}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}

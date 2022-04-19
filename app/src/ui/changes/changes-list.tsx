@@ -127,7 +127,7 @@ interface IChangesListProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
   readonly focusCommitMessage: boolean
   readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
@@ -741,7 +741,7 @@ export class ChangesList extends React.Component<
         key={repository.id}
         showBranchProtected={fileCount > 0 && currentBranchProtected}
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
-        showSummaryLengthHint={this.props.showSummaryLengthHint}
+        showCommitSummaryLengthHint={this.props.showCommitSummaryLengthHint}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
         onCoAuthorsUpdated={this.onCoAuthorsUpdated}

@@ -1874,8 +1874,8 @@ export class Dispatcher {
   /**
    * Sets the user's preference so that a hint for a commit summary over 50 characters is not shown
    */
-  public setShowSummaryLengthHint(value: boolean) {
-    return this.appStore._setShowSummaryLengthHintSetting(value)
+  public setShowCommitSummaryLengthHint(value: boolean) {
+    return this.appStore._setShowCommitSummaryLengthHintSetting(value)
   }
 
   /**

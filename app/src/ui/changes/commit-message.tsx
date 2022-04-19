@@ -71,7 +71,7 @@ interface ICommitMessageProps {
   readonly prepopulateCommitSummary: boolean
   readonly showBranchProtected: boolean
   readonly showNoWriteAccess: boolean
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -743,7 +743,7 @@ export class CommitMessage extends React.Component<
     })
 
     const showSummaryLengthHint =
-      this.props.showSummaryLengthHint &&
+      this.props.showCommitSummaryLengthHint &&
       this.state.summary.length > IdealSummaryLength
     const summaryClassName = classNames('summary', {
       'with-length-hint': showSummaryLengthHint,

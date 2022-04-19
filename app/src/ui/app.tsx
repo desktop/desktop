@@ -1515,7 +1515,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
-            showSummaryLengthHint={this.state.showSummaryLengthHint}
+            showCommitSummaryLengthHint={this.state.showCommitSummaryLengthHint}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
@@ -2064,7 +2064,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
             showCoAuthoredBy={popup.showCoAuthoredBy}
             showNoWriteAccess={!hasWritePermissionForRepository}
-            showSummaryLengthHint={this.state.showSummaryLengthHint}
+            showCommitSummaryLengthHint={this.state.showCommitSummaryLengthHint}
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
             repositoryAccount={repositoryAccount}
@@ -2865,7 +2865,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }
-          showSummaryLengthHint={state.showSummaryLengthHint}
+          showCommitSummaryLengthHint={state.showCommitSummaryLengthHint}
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           resolvedExternalEditor={state.resolvedExternalEditor}

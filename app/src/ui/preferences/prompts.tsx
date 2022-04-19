@@ -7,12 +7,12 @@ interface IPromptsPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
-  readonly onShowSummaryLengthHintChanged: (checked: boolean) => void
+  readonly onShowCommitSummaryLengthHintChanged: (checked: boolean) => void
 }
 
 interface IPromptsPreferencesState {
@@ -20,7 +20,7 @@ interface IPromptsPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
-  readonly showSummaryLengthHint: boolean
+  readonly showCommitSummaryLengthHint: boolean
 }
 
 export class Prompts extends React.Component<
@@ -36,7 +36,7 @@ export class Prompts extends React.Component<
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
-      showSummaryLengthHint: this.props.showSummaryLengthHint,
+      showCommitSummaryLengthHint: this.props.showCommitSummaryLengthHint,
     }
   }
 
@@ -76,13 +76,13 @@ export class Prompts extends React.Component<
     this.props.onConfirmRepositoryRemovalChanged(value)
   }
 
-  private onShowSummaryLengthHintChanged = (
+  private onShowCommitSummaryLengthHintChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
 
-    this.setState({ showSummaryLengthHint: value })
-    this.props.onShowSummaryLengthHintChanged(value)
+    this.setState({ showCommitSummaryLengthHint: value })
+    this.props.onShowCommitSummaryLengthHintChanged(value)
   }
 
   public render() {
@@ -130,11 +130,11 @@ export class Prompts extends React.Component<
           <Checkbox
             label="Lengthy commit summaries"
             value={
-              this.state.showSummaryLengthHint
+              this.state.showCommitSummaryLengthHint
                 ? CheckboxValue.On
                 : CheckboxValue.Off
             }
-            onChange={this.onShowSummaryLengthHintChanged}
+            onChange={this.onShowCommitSummaryLengthHintChanged}
           />
         </div>
       </DialogContent>
