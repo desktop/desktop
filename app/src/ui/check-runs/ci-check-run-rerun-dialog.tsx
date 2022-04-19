@@ -160,7 +160,7 @@ export class CICheckRunRerunDialog extends React.Component<
       ) : (
         'these workflows'
       )
-    const dependentAdj = this.props.checkRuns.length === 1 ? "it's" : 'their'
+    const dependentAdj = this.props.checkRuns.length === 1 ? "its" : 'their'
 
     return (
       <div className="re-run-dependents-message">
