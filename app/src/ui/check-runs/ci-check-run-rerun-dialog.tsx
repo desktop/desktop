@@ -193,7 +193,7 @@ export class CICheckRunRerunDialog extends React.Component<
         <Octicon symbol={OcticonSymbol.alert} />
 
         {`${warningPrefix}. A check run cannot be re-run if the check is more than one month old,
-          the check or it's dependent has not completed, or the check is not configured to be
+          the check or its dependent has not completed, or the check is not configured to be
           re-run.`}
       </div>
     )
