@@ -368,6 +368,13 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'JetBrains s.r.o.',
   },
   {
+    name: 'JetBrains PyCharm Community Edition',
+    registryKeys: registryKeysForJetBrainsIDE('PyCharm Community Edition'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('pycharm'),
+    displayNamePrefix: 'PyCharm Community Edition',
+    publisher: 'JetBrains s.r.o.',
+  },
+  {
     name: 'JetBrains CLion',
     registryKeys: registryKeysForJetBrainsIDE('CLion'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('clion'),
