@@ -9,6 +9,7 @@ import { Row } from './lib/row'
 import { LinkButton } from './lib/link-button'
 import { addSafeDirectory, getRepositoryType } from '../lib/git'
 import { Ref } from './lib/ref'
+import { Loading } from './lib/loading'
 
 interface IMissingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -18,6 +19,7 @@ interface IMissingRepositoryProps {
 interface IMissingRepositoryState {
   readonly isPathUnsafe: boolean
   readonly unsafePath?: string
+  readonly isTrustingPath: boolean
 }
 
 /** The view displayed when a repository is missing. */
@@ -27,16 +29,19 @@ export class MissingRepository extends React.Component<
 > {
   public constructor(props: IMissingRepositoryProps) {
     super(props)
-    this.state = { isPathUnsafe: false }
+    this.state = { isPathUnsafe: false, isTrustingPath: false }
   }
 
   private onTrustDirectory = async () => {
+    this.setState({ isTrustingPath: true })
     const { unsafePath } = this.state
     const { repository } = this.props
 
     if (unsafePath) {
       await addSafeDirectory(unsafePath)
       const type = await getRepositoryType(repository.path)
+
+      this.setState({ isTrustingPath: false })
 
       if (type.kind !== 'unsafe') {
         this.checkAgain()
@@ -89,7 +94,9 @@ export class MissingRepository extends React.Component<
           key="trustDirectory"
           onClick={this.onTrustDirectory}
           type="submit"
+          disabled={this.state.isTrustingPath}
         >
+          {this.state.isTrustingPath && <Loading />}
           {__DARWIN__ ? 'Trust Repository' : 'Trust repository'}
         </Button>
       )
