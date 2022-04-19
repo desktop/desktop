@@ -52,6 +52,7 @@ interface IAddExistingRepositoryState {
   readonly isRepositoryBare: boolean
   readonly isRepositoryUnsafe: boolean
   readonly repositoryUnsafePath?: string
+  readonly isTrustingRepository: boolean
 }
 
 /** The component for adding an existing local repository. */
@@ -70,6 +71,7 @@ export class AddExistingRepository extends React.Component<
       showNonGitRepositoryWarning: false,
       isRepositoryBare: false,
       isRepositoryUnsafe: false,
+      isTrustingRepository: false,
     }
   }
 
@@ -82,11 +84,13 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onTrustDirectory = async () => {
+    this.setState({ isTrustingRepository: true })
     const { repositoryUnsafePath, path } = this.state
     if (repositoryUnsafePath) {
       await addSafeDirectory(repositoryUnsafePath)
     }
-    this.validatePath(path)
+    await this.validatePath(path)
+    this.setState({ isTrustingRepository: false })
   }
 
   private async updatePath(path: string) {
@@ -193,6 +197,7 @@ export class AddExistingRepository extends React.Component<
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
         onSubmit={this.addRepository}
         onDismissed={this.props.onDismissed}
+        loading={this.state.isTrustingRepository}
       >
         <DialogContent>
           <Row>
