@@ -146,13 +146,26 @@ export class AddExistingRepository extends React.Component<
       )
     }
 
-    if (this.state.isRepositoryUnsafe) {
+    const { isRepositoryUnsafe, repositoryUnsafePath, path } = this.state
+
+    if (isRepositoryUnsafe && repositoryUnsafePath !== undefined) {
+      // Git for Windows will replace backslashes with slashes in the error
+      // message so we'll do the same to not show "the repo at path c:/repo"
+      // when the entered path is `c:\repo`.
+      const convertedPath = __WIN32__ ? path.replaceAll('\\', '/') : path
+
       return (
         <Row className="warning-helper-text">
           <Octicon symbol={OcticonSymbol.alert} />
           <div>
             <p>
-              The Git repository at <Ref>{this.state.repositoryUnsafePath}</Ref>
+              The Git repository
+              {repositoryUnsafePath !== convertedPath && (
+                <>
+                  {' at '}
+                  <Ref>{repositoryUnsafePath}</Ref>
+                </>
+              )}{' '}
               appears to be owned by another user on your machine. Adding
               untrusted repositories may automatically execute files in the
               repository.
