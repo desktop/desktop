@@ -170,5 +170,5 @@ export function enablePullRequestReviewNotifications(): boolean {
 
 /** Should we enable the rerunning of failed and single jobs aka action based checks */
 export function enableReRunFailedAndSingleCheckJobs(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }

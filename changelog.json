@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.9.16-beta1": [
+      "[Improved] Add ability to re-run individual and failed GitHub Action checks - #14310"
+    ],
     "2.9.15": [
       "[Fixed] Support trusting repositories on network shares (Windows) - #14368",
       "[Improved] Redesigned dialog for re-running checks - #14322"
