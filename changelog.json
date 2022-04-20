@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.9.15": [
+      "[Fixed] Support trusting repositories on network shares (Windows) - #14368",
+      "[Improved] Redesigned dialog for re-running checks - #14322"
+    ],
     "2.9.15-beta2": [
       "[Improved] Show progress indicator when trusting a repository directory - #14410",
       "[Improved] Reduced noise on the rerun dialog user interface - #14322",
