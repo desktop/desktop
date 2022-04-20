@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.9.15-beta2": [
+      "[Improved] Show progress indicator when trusting a repository directory - #14410",
+      "[Improved] Reduced noise on the rerun dialog user interface - #14322",
+      "[Improved] Upgrade embedded Git LFS to 3.1.4 - #14415"
+    ],
     "2.9.15-beta1": [
       "[Improved] Add UNC path prefix before adding to safe directory list - #14368",
       "[Improved] Upgrade embedded Git to v2.35.3 on macOS, v2.35.3.windows.1 on Windows, and Git LFS to v3.1.2"
