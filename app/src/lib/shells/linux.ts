@@ -6,6 +6,7 @@ import { pathExists, spawn } from '../helpers/linux'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
+  GnomeConsole = 'GNOME Console',
   Mate = 'MATE Terminal',
   Tilix = 'Tilix',
   Terminator = 'Terminator',
@@ -34,6 +35,8 @@ function getShellPath(shell: Shell): Promise<string | null> {
   switch (shell) {
     case Shell.Gnome:
       return getPathIfAvailable('/usr/bin/gnome-terminal')
+    case Shell.GnomeConsole:
+      return getPathIfAvailable('/usr/bin/kgx')
     case Shell.Mate:
       return getPathIfAvailable('/usr/bin/mate-terminal')
     case Shell.Tilix:
@@ -68,6 +71,7 @@ export async function getAvailableShells(): Promise<
 > {
   const [
     gnomeTerminalPath,
+    gnomeConsolePath,
     mateTerminalPath,
     tilixPath,
     terminatorPath,
@@ -82,6 +86,7 @@ export async function getAvailableShells(): Promise<
     kittyPath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
+    getShellPath(Shell.GnomeConsole),
     getShellPath(Shell.Mate),
     getShellPath(Shell.Tilix),
     getShellPath(Shell.Terminator),
@@ -99,6 +104,10 @@ export async function getAvailableShells(): Promise<
   const shells: Array<FoundShell<Shell>> = []
   if (gnomeTerminalPath) {
     shells.push({ shell: Shell.Gnome, path: gnomeTerminalPath })
+  }
+
+  if (gnomeConsolePath) {
+    shells.push({ shell: Shell.GnomeConsole, path: gnomeConsolePath })
   }
 
   if (mateTerminalPath) {
@@ -159,6 +168,7 @@ export function launch(
   const shell = foundShell.shell
   switch (shell) {
     case Shell.Gnome:
+    case Shell.GnomeConsole:
     case Shell.Mate:
     case Shell.Tilix:
     case Shell.Terminator:
