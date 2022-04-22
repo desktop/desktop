@@ -13,6 +13,7 @@ import { AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
+import { getConfigValue } from './config'
 
 async function getPullArgs(
   repository: Repository,
@@ -22,7 +23,16 @@ async function getPullArgs(
 ) {
   const networkArguments = await gitNetworkArguments(repository, account)
 
-  const args = [...networkArguments, ...gitRebaseArguments(), 'pull']
+  const divergentPathArgs = await getDefaultPullDivergentBranchArguments(
+    repository
+  )
+
+  const args = [
+    ...networkArguments,
+    ...gitRebaseArguments(),
+    'pull',
+    ...divergentPathArgs,
+  ]
 
   if (enableRecurseSubmodulesFlag()) {
     args.push('--recurse-submodules')
@@ -109,4 +119,24 @@ export async function pull(
   if (result.gitErrorDescription) {
     throw new GitError(result, args)
   }
+}
+
+/**
+ * Defaults the pull default for divergent paths to try to fast forward and if
+ * not perform a merge. Aka uses the flag --ff
+ *
+ * It checks whether the user has a config set for this already, if so, no need for
+ * default.
+ */
+async function getDefaultPullDivergentBranchArguments(
+  repository: Repository
+): Promise<ReadonlyArray<string>> {
+  const pullRebase = await getConfigValue(repository, 'pull.rebase')
+  const pullFF = await getConfigValue(repository, 'pull.ff')
+
+  if (pullRebase !== null || pullFF !== null) {
+    return []
+  }
+
+  return ['--ff']
 }
