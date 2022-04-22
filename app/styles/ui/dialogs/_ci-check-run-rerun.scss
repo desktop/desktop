@@ -1,33 +1,39 @@
 #rerun-check-runs {
+  max-width: 500px;
+
   .dialog-content {
-    padding: 0;
+    overflow: auto;
   }
 
   .check-run-rerun-list {
+    margin: var(--spacing) 0px;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
     max-height: 300px;
+    padding: var(--spacing);
+    overflow: auto;
 
     .ci-check-run-list-group-header {
-      padding-left: 15px;
-    }
-
-    .ci-check-list-item {
-      padding-left: var(--spacing);
+      &:not(.condensed) {
+        padding-left: 15px;
+      }
     }
   }
 
   .non-re-run-info {
-    max-width: 400px;
-    margin-bottom: var(--spacing-double);
+    display: flex;
+
+    .octicon {
+      margin: 0px var(--spacing-half);
+    }
   }
 
   .loading-rerun-checks {
-    min-height: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: var(--spacing);
-    padding-bottom: var(--spacing-double);
+    min-height: 100px;
 
     .blankslate-image {
       width: 100%;

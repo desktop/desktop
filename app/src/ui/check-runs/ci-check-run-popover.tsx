@@ -11,7 +11,6 @@ import {
   FailingCheckConclusions,
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
-import { Button } from '../lib/button'
 import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
@@ -19,8 +18,12 @@ import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Donut } from '../donut'
-import { supportsRerunningChecks } from '../../lib/endpoint-capabilities'
+import {
+  supportsRerunningChecks,
+  supportsRerunningIndividualOrFailedChecks,
+} from '../../lib/endpoint-capabilities'
 import { getPullRequestCommitRef } from '../../models/pull-request'
+import { CICheckReRunButton } from './ci-check-re-run-button'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -191,12 +194,16 @@ export class CICheckRunPopover extends React.PureComponent<
     return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
   }
 
-  private rerunChecks = () => {
+  private rerunChecks = (
+    failedOnly: boolean,
+    checkRuns?: ReadonlyArray<IRefCheck>
+  ) => {
     this.props.dispatcher.showPopup({
       type: PopupType.CICheckRunRerun,
-      checkRuns: this.state.checkRuns,
+      checkRuns: checkRuns ?? this.state.checkRuns,
       repository: this.props.repository,
       prRef: getPullRequestCommitRef(this.props.prNumber),
+      failedOnly,
     })
   }
 
@@ -221,12 +228,14 @@ export class CICheckRunPopover extends React.PureComponent<
     }
 
     return (
-      <Button
-        onClick={this.rerunChecks}
+      <CICheckReRunButton
         disabled={checkRuns.length === 0 || this.state.loadingActionWorkflows}
-      >
-        <Octicon symbol={syncClockwise} /> Re-run checks
-      </Button>
+        checkRuns={checkRuns}
+        canReRunFailed={supportsRerunningIndividualOrFailedChecks(
+          this.props.repository.endpoint
+        )}
+        onRerunChecks={this.rerunChecks}
+      />
     )
   }
 
@@ -347,6 +356,10 @@ export class CICheckRunPopover extends React.PureComponent<
     )
   }
 
+  private onRerunJob = (check: IRefCheck) => {
+    this.rerunChecks(false, [check])
+  }
+
   public renderList = (): JSX.Element => {
     const { checkRuns, loadingActionLogs, loadingActionWorkflows } = this.state
     if (loadingActionWorkflows) {
@@ -364,6 +377,13 @@ export class CICheckRunPopover extends React.PureComponent<
           loadingActionWorkflows={loadingActionWorkflows}
           onViewCheckDetails={this.onViewCheckDetails}
           onViewJobStep={this.onViewJobStep}
+          onRerunJob={
+            supportsRerunningIndividualOrFailedChecks(
+              this.props.repository.endpoint
+            )
+              ? this.onRerunJob
+              : undefined
+          }
         />
       </div>
     )

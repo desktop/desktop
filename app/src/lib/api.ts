@@ -79,7 +79,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
-type GitHubAccountType = 'User' | 'Organization'
+export type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we want to request */
 const oauthScopes = ['repo', 'user', 'workflow']
@@ -192,9 +192,9 @@ export interface IAPIOrganization {
  */
 export interface IAPIIdentity {
   readonly id: number
-  readonly url: string
   readonly login: string
   readonly avatar_url: string
+  readonly html_url: string
   readonly type: GitHubAccountType
 }
 
@@ -208,7 +208,7 @@ export interface IAPIIdentity {
  */
 interface IAPIFullIdentity {
   readonly id: number
-  readonly url: string
+  readonly html_url: string
   readonly login: string
   readonly avatar_url: string
 
@@ -491,6 +491,21 @@ export interface IAPIPullRequest {
   readonly body: string
   readonly state: 'open' | 'closed'
   readonly draft?: boolean
+}
+
+/** Information about a pull request review as returned by the GitHub API. */
+export interface IAPIPullRequestReview {
+  readonly id: number
+  readonly user: IAPIIdentity
+  readonly body: string
+  readonly html_url: string
+  readonly submitted_at: string
+  readonly state:
+    | 'APPROVED'
+    | 'DISMISSED'
+    | 'PENDING'
+    | 'COMMENTED'
+    | 'CHANGES_REQUESTED'
 }
 
 /** The metadata about a GitHub server. */
@@ -1011,6 +1026,28 @@ export class API {
   }
 
   /**
+   * Fetch a single pull request review in the given repository
+   */
+  public async fetchPullRequestReview(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR review ${reviewId} for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return null
+    }
+  }
+
+  /**
    * Get the combined status for the given ref.
    */
   public async fetchCombinedRefStatus(
@@ -1183,17 +1220,59 @@ export class API {
     checkSuiteId: number
   ): Promise<boolean> {
     const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
-    const response = await this.request('POST', path)
 
-    try {
-      return response.ok
-    } catch (_) {
-      log.debug(
-        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
-      )
-    }
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`,
+          err
+        )
+        return false
+      })
+  }
 
-    return false
+  /**
+   * Re-run all of the failed jobs and their dependent jobs in a workflow run
+   * using the id of the workflow run.
+   */
+  public async rerunFailedJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/runs/${workflowRunId}/rerun-failed-jobs`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Re-run a job and its dependent jobs in a workflow run.
+   */
+  public async rerunJob(
+    owner: string,
+    name: string,
+    jobId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/jobs/${jobId}/rerun`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun workflow job (${owner}/${name}): ${jobId}`,
+          err
+        )
+        return false
+      })
   }
 
   /**

@@ -27,6 +27,20 @@ import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { getNotificationsEnabled } from '../stores/notifications-store'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'
 import { getRendererGUID } from '../get-renderer-guid'
+import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
+
+type PullRequestReviewStatFieldInfix =
+  | 'Approved'
+  | 'ChangesRequested'
+  | 'Commented'
+
+type PullRequestReviewStatFieldSuffix =
+  | 'NotificationCount'
+  | 'NotificationClicked'
+  | 'DialogSwitchToPullRequestCount'
+
+type PullRequestReviewStatField =
+  `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -185,6 +199,15 @@ const DefaultDailyMeasures: IDailyMeasures = {
   checksFailedDialogOpenCount: 0,
   checksFailedDialogSwitchToPullRequestCount: 0,
   checksFailedDialogRerunChecksCount: 0,
+  pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationClicked: 0,
+  pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationClicked: 0,
+  pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationClicked: 0,
+  pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1770,6 +1793,55 @@ export class StatsStore implements IStatsStore {
       checksFailedDialogRerunChecksCount:
         m.checksFailedDialogRerunChecksCount + 1,
     }))
+  }
+
+  // Generates the stat field name for the given PR review type and suffix.
+  private getStatFieldForRequestReviewState(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ): PullRequestReviewStatField {
+    const infixMap: Record<
+      ValidNotificationPullRequestReviewState,
+      PullRequestReviewStatFieldInfix
+    > = {
+      CHANGES_REQUESTED: 'ChangesRequested',
+      APPROVED: 'Approved',
+      COMMENTED: 'Commented',
+    }
+
+    return `pullRequestReview${infixMap[reviewType]}${suffix}`
+  }
+
+  // Generic method to record stats related to Pull Request review notifications.
+  private recordPullRequestReviewStat(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ) {
+    const statField = this.getStatFieldForRequestReviewState(reviewType, suffix)
+    return this.updateDailyMeasures(
+      m => ({ [statField]: m[statField] + 1 } as any)
+    )
+  }
+
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  public recordPullRequestReviewNotificationClicked(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationClicked')
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'DialogSwitchToPullRequestCount'
+    )
   }
 
   /** Post some data to our stats endpoint. */

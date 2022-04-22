@@ -139,7 +139,6 @@ import {
   appendIgnoreRule,
   createMergeCommit,
   getBranchesPointedAt,
-  isGitRepository,
   abortRebase,
   continueRebase,
   rebase,
@@ -159,6 +158,8 @@ import {
   getRebaseInternalState,
   getCommit,
   appendIgnoreFile,
+  getRepositoryType,
+  RepositoryType,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -190,7 +191,6 @@ import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
-import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
@@ -296,6 +296,7 @@ import {
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
+import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -561,6 +562,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
+    )
+
+    this.notificationsStore.onPullRequestReviewSubmitNotification(
+      this.onPullRequestReviewSubmitNotification
     )
   }
 
@@ -2965,7 +2970,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const foundRepository =
       (await pathExists(repository.path)) &&
-      (await isGitRepository(repository.path)) &&
+      (await getRepositoryType(repository.path)).kind === 'regular' &&
       (await this._loadStatus(repository)) !== null
 
     if (foundRepository) {
@@ -5334,8 +5339,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     endpoint: string,
     apiRepository: IAPIFullRepository
   ) {
-    const validatedPath = await validatedRepositoryPath(path)
-    if (validatedPath) {
+    const type = await getRepositoryType(path)
+    if (type.kind === 'regular') {
+      const validatedPath = type.topLevelWorkingDirectory
       log.info(
         `[AppStore] adding tutorial repository at ${validatedPath} to store`
       )
@@ -5360,8 +5366,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const invalidPaths = new Array<string>()
 
     for (const path of paths) {
-      const validatedPath = await validatedRepositoryPath(path)
-      if (validatedPath) {
+      const repositoryType = await getRepositoryType(path).catch(e => {
+        log.error('Could not determine repository type', e)
+        return { kind: 'missing' } as RepositoryType
+      })
+
+      if (repositoryType.kind === 'unsafe') {
+        const repository = await this.repositoriesStore.addRepository(path, {
+          missing: true,
+        })
+
+        addedRepositories.push(repository)
+        continue
+      }
+
+      if (repositoryType.kind === 'regular') {
+        const validatedPath = repositoryType.topLevelWorkingDirectory
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
         const repositories = this.repositories
@@ -6915,7 +6935,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       type: PopupType.PullRequestChecksFailed,
       pullRequest,
       repository,
-      needsSelectRepository: true,
+      shouldChangeRepository: true,
       commitMessage,
       commitSha,
       checks,
@@ -6948,9 +6968,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // repository.
       return this._showPopup({
         ...popup,
-        needsSelectRepository: false,
+        shouldChangeRepository: false,
       })
     }
+  }
+
+  private onPullRequestReviewSubmitNotification = async (
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    review: ValidNotificationPullRequestReview,
+    numberOfComments: number
+  ) => {
+    const selectedRepository =
+      this.selectedRepository ?? (await this._selectRepository(repository))
+
+    const state = this.repositoryStateCache.get(repository)
+
+    const { branchesState } = state
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    return this._showPopup({
+      type: PopupType.PullRequestReview,
+      shouldCheckoutBranch:
+        currentBranch !== null && currentBranch.name !== pullRequest.head.ref,
+      shouldChangeRepository:
+        selectedRepository === null ||
+        selectedRepository.hash !== repository.hash,
+      review,
+      pullRequest,
+      repository,
+      numberOfComments,
+    })
   }
 }
 

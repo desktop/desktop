@@ -19,6 +19,7 @@ body.theme-dark {
 
   --text-color: #{$gray-300};
   --text-secondary-color: #{$gray-400};
+  --text-secondary-color-muted: #{darken($gray-500, 10%)};
   --background-color: #{$gray-900};
 
   --button-background: #{$blue};
@@ -354,6 +355,13 @@ body.theme-dark {
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-400};
+
+  // PR review colors
+  --pr-timeline-line-color: #{$gray-500};
+  --pr-changes-requested-icon-background-color: #da3633;
+  --pr-approved-icon-background-color: #2da44e;
+  --pr-commented-icon-color: #8b949e;
+  --pr-commented-icon-background-color: #{$gray-700};
 
   --call-to-action-bubble-background-color: #{$blue};
   --call-to-action-bubble-color: #{$white};

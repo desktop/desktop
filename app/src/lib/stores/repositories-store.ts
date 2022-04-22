@@ -17,13 +17,22 @@ import {
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { fatalError, assertNonNullable, forceUnwrap } from '../fatal-error'
-import { IAPIRepository, IAPIBranch, IAPIFullRepository } from '../api'
+import {
+  IAPIRepository,
+  IAPIBranch,
+  IAPIFullRepository,
+  GitHubAccountType,
+} from '../api'
 import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
 import { enableRepositoryAliases } from '../feature-flag'
+
+type AddRepositoryOptions = {
+  missing?: boolean
+}
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -107,7 +116,12 @@ export class RepositoriesStore extends TypedBaseStore<
     if (owner === undefined) {
       const dbOwner = await this.db.owners.get(repo.ownerID)
       assertNonNullable(dbOwner, `Missing owner '${repo.ownerID}'`)
-      owner = new Owner(dbOwner.login, dbOwner.endpoint, dbOwner.id!)
+      owner = new Owner(
+        dbOwner.login,
+        dbOwner.endpoint,
+        dbOwner.id!,
+        dbOwner.type
+      )
     }
 
     return new GitHubRepository(
@@ -214,7 +228,10 @@ export class RepositoriesStore extends TypedBaseStore<
    *
    * If a repository already exists with that path, it will be returned instead.
    */
-  public async addRepository(path: string): Promise<Repository> {
+  public async addRepository(
+    path: string,
+    opts?: AddRepositoryOptions
+  ): Promise<Repository> {
     const repository = await this.db.transaction(
       'rw',
       this.db.repositories,
@@ -230,7 +247,7 @@ export class RepositoriesStore extends TypedBaseStore<
         const dbRepo: IDatabaseRepository = {
           path,
           gitHubRepositoryID: null,
-          missing: false,
+          missing: opts?.missing ?? false,
           lastStashCheckDate: null,
           alias: null,
         }
@@ -371,7 +388,11 @@ export class RepositoriesStore extends TypedBaseStore<
     return lastCheckDate
   }
 
-  private async putOwner(endpoint: string, login: string): Promise<Owner> {
+  private async putOwner(
+    endpoint: string,
+    login: string,
+    ownerType?: GitHubAccountType
+  ): Promise<Owner> {
     const key = getOwnerKey(endpoint, login)
     const existingOwner = await this.db.owners.get({ key })
     let id
@@ -381,15 +402,26 @@ export class RepositoriesStore extends TypedBaseStore<
     // possible that the case differs (i.e we found `usera` but the actual login
     // is `userA`). In that case we want to update our database to persist the
     // login with the proper case.
-    if (existingOwner === undefined || existingOwner.login !== login) {
+    if (
+      existingOwner === undefined ||
+      existingOwner.login !== login ||
+      // This is added so that we update existing owners with an undefined type.
+      (ownerType !== undefined && existingOwner.type !== ownerType)
+    ) {
       id = existingOwner?.id
       const existingId = id !== undefined ? { id } : {}
-      id = await this.db.owners.put({ ...existingId, key, endpoint, login })
+      id = await this.db.owners.put({
+        ...existingId,
+        key,
+        endpoint,
+        login,
+        type: ownerType,
+      })
     } else {
       id = forceUnwrap('Missing owner id', existingOwner.id)
     }
 
-    return new Owner(login, endpoint, id)
+    return new Owner(login, endpoint, id, ownerType ?? existingOwner?.type)
   }
 
   public async upsertGitHubRepositoryFromMatch(
@@ -471,7 +503,8 @@ export class RepositoriesStore extends TypedBaseStore<
           )
         : await Promise.resolve(null) // Dexie gets confused if we return null
 
-    const owner = await this.putOwner(endpoint, gitHubRepository.owner.login)
+    const { login, type } = gitHubRepository.owner
+    const owner = await this.putOwner(endpoint, login, type)
 
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')

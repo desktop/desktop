@@ -20,6 +20,7 @@ import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
+import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -81,6 +82,7 @@ export enum PopupType {
   CICheckRunRerun,
   WarnForcePush,
   DiscardChangesRetry,
+  PullRequestReview,
 }
 
 export type Popup =
@@ -319,7 +321,7 @@ export type Popup =
       type: PopupType.PullRequestChecksFailed
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
-      needsSelectRepository: boolean
+      shouldChangeRepository: boolean
       commitMessage: string
       commitSha: string
       checks: ReadonlyArray<IRefCheck>
@@ -329,9 +331,19 @@ export type Popup =
       checkRuns: ReadonlyArray<IRefCheck>
       repository: GitHubRepository
       prRef: string
+      failedOnly: boolean
     }
   | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }
   | {
       type: PopupType.DiscardChangesRetry
       retryAction: RetryAction
+    }
+  | {
+      type: PopupType.PullRequestReview
+      repository: RepositoryWithGitHubRepository
+      pullRequest: PullRequest
+      review: ValidNotificationPullRequestReview
+      numberOfComments: number
+      shouldCheckoutBranch: boolean
+      shouldChangeRepository: boolean
     }

@@ -62,6 +62,11 @@
 
   button {
     // the three buttons should rougly fill the width of the panel
-    width: 120px;
+    min-width: 120px;
+
+    .octicon.spin {
+      margin-right: var(--spacing-half);
+      height: 11px;
+    }
   }
 }

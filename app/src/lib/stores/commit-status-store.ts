@@ -551,6 +551,34 @@ export class CommitStatusStore {
     return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
   }
 
+  public async rerunJob(
+    repository: GitHubRepository,
+    jobId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerunJob(owner.login, name, jobId)
+  }
+
+  public async rerunFailedJobs(
+    repository: GitHubRepository,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerunFailedJobs(owner.login, name, workflowRunId)
+  }
+
   public async fetchCheckSuite(
     repository: GitHubRepository,
     checkSuiteId: number

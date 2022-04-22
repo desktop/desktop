@@ -434,6 +434,7 @@ function getDescriptionForError(error: DugiteError): string | null {
     case DugiteError.GPGFailedToSignData:
     case DugiteError.ConflictModifyDeletedInBranch:
     case DugiteError.MergeCommitNoMainlineOption:
+    case DugiteError.UnsafeDirectory:
       return null
     default:
       return assertNever(error, `Unknown error: ${error}`)

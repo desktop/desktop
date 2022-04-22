@@ -153,6 +153,12 @@ export const supportsRerunningChecks = endpointSatisfies({
   es: '>= 3.4.0',
 })
 
+export const supportsRerunningIndividualOrFailedChecks = endpointSatisfies({
+  dotcom: true,
+  ae: false,
+  es: false,
+})
+
 /**
  * Whether or not the endpoint supports the retrieval of action workflows by
  * check suite id.

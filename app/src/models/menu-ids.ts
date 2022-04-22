@@ -11,6 +11,7 @@ export type MenuIDs =
   | 'rebase-branch'
   | 'view-repository-on-github'
   | 'compare-on-github'
+  | 'branch-on-github'
   | 'open-in-shell'
   | 'push'
   | 'pull'

@@ -16,10 +16,13 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint } from '../lib/api'
+import {
+  APICheckConclusion,
+  APICheckStatus,
+  getDotComAPIEndpoint,
+} from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
-import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { MenuEvent } from '../main-process/menu'
 import {
   Repository,
@@ -152,6 +155,9 @@ import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { getReleaseSummary } from '../lib/release-notes'
+import { PullRequestReview } from './notifications/pull-request-review'
+import { PullRequest, PullRequestRef } from '../models/pull-request'
+import { getRepositoryType } from '../lib/git'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -386,7 +392,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
-        return this.compareBranchOnDotcom()
+        return this.openBranchOnGitub('compare')
+      case 'branch-on-github':
+        return this.openBranchOnGitub('tree')
       case 'create-issue-in-repository-on-github':
         return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
@@ -419,6 +427,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.testPruneBranches()
       case 'find-text':
         return this.findText()
+      case 'pull-request-check-run-failed':
+        return this.testPullRequestCheckRunFailed()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -465,6 +475,133 @@ export class App extends React.Component<IAppProps, IAppState> {
       'Click here! This is a test notification',
       () => this.props.dispatcher.showPopup({ type: PopupType.About })
     )
+  }
+
+  private testPullRequestCheckRunFailed() {
+    if (
+      __RELEASE_CHANNEL__ !== 'development' &&
+      __RELEASE_CHANNEL__ !== 'test'
+    ) {
+      return
+    }
+
+    const { selectedState } = this.state
+    if (
+      selectedState == null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return
+    }
+
+    const { repository } = selectedState
+
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      return
+    }
+
+    const popup: Popup = {
+      type: PopupType.PullRequestChecksFailed,
+      pullRequest: new PullRequest(
+        new Date('2021-10-28T08:36:18Z'),
+        'IGNORE: Fail CI tasks immediately',
+        13201,
+        new PullRequestRef(
+          'development',
+          'a7bca44088b105a04714dc4628f4af50f6f179c3',
+          repository.gitHubRepository
+        ),
+        new PullRequestRef(
+          'fail-ci-immediately',
+          '665eb4810ea65d73ec7720c779dc9f8cd7b97d9e',
+          repository.gitHubRepository
+        ),
+        'sergiou87',
+        true,
+        'This is a test PR'
+      ),
+      repository,
+      shouldChangeRepository: true,
+      commitMessage: 'Some Test Commit Message',
+      commitSha: '123456',
+      checks: [
+        {
+          id: 5873122372,
+          name: 'macOS arm64',
+          description: 'Failed after 5s',
+          status: APICheckStatus.Completed,
+          conclusion: APICheckConclusion.Failure,
+          appName: 'GitHub Actions',
+          htmlUrl:
+            'https://github.com/desktop/desktop/runs/5873122372?check_suite_focus=true',
+          checkSuiteId: 5767392356,
+          actionsWorkflow: {
+            id: 2027842572,
+            workflow_id: 1835763,
+            cancel_url:
+              'https://api.github.com/repos/desktop/desktop/actions/runs/2027842572/cancel',
+            created_at: '2022-03-23T10:38:05Z',
+            logs_url:
+              'https://api.github.com/repos/desktop/desktop/actions/runs/2027842572/logs',
+            rerun_url:
+              'https://api.github.com/repos/desktop/desktop/actions/runs/2027842572/rerun',
+            name: 'CI',
+            check_suite_id: 5767392356,
+            event: 'pull_request',
+          },
+          actionJobSteps: [
+            {
+              completed_at: '2022-04-07T13:30:33.000-04:00',
+              conclusion: APICheckConclusion.Success,
+              name: 'Set up job',
+              number: 1,
+              started_at: '2022-04-07T13:30:30.000-04:00',
+              status: APICheckStatus.Completed,
+              log: '',
+            },
+            {
+              completed_at: '2022-04-07T13:30:33.000-04:00',
+              conclusion: APICheckConclusion.Failure,
+              name: 'Fail immediately',
+              number: 1,
+              started_at: '2022-04-07T13:30:30.000-04:00',
+              status: APICheckStatus.Completed,
+              log: '',
+            },
+            {
+              completed_at: '2022-04-07T13:30:33.000-04:00',
+              conclusion: APICheckConclusion.Skipped,
+              name: 'Run actions/checkout@v2',
+              number: 1,
+              started_at: '2022-04-07T13:30:30.000-04:00',
+              status: APICheckStatus.Completed,
+              log: '',
+            },
+            {
+              completed_at: '2022-04-07T13:30:33.000-04:00',
+              conclusion: APICheckConclusion.Skipped,
+              name: 'Use Node.js 16.13.0',
+              number: 1,
+              started_at: '2022-04-07T13:30:30.000-04:00',
+              status: APICheckStatus.Completed,
+              log: '',
+            },
+          ],
+        },
+        {
+          id: 5873122309,
+          name: 'CodeQL-Build',
+          description: 'Failed after 5s',
+          status: APICheckStatus.Completed,
+          conclusion: APICheckConclusion.Success,
+          appName: 'GitHub Actions',
+          htmlUrl:
+            'https://github.com/desktop/desktop/runs/5873122309?check_suite_focus=true',
+          checkSuiteId: 5767392357,
+        },
+      ],
+    }
+
+    this.showPopup(popup)
   }
 
   private testPruneBranches() {
@@ -588,7 +725,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.startMergeBranchOperation(repository, isSquash)
   }
 
-  private compareBranchOnDotcom() {
+  private openBranchOnGitub(view: 'tree' | 'compare') {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) {
       return
@@ -607,8 +744,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
-    this.props.dispatcher.openInBrowser(compareURL)
+    const url = `${htmlURL}/${view}/${branchTip.branch.upstreamWithoutRemote}`
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private openCurrentRepositoryWorkingDirectory() {
@@ -1024,8 +1161,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       // user may accidentally provide a folder within the repository
       // this ensures we use the repository root, if it is actually a repository
       // otherwise we consider it an untracked repository
-      const first = paths[0]
-      const path = (await validatedRepositoryPath(first)) ?? first
+      const path = await getRepositoryType(paths[0])
+        .then(t =>
+          t.kind === 'regular' ? t.topLevelWorkingDirectory : paths[0]
+        )
+        .catch(e => {
+          log.error('Could not determine repository type', e)
+          return paths[0]
+        })
 
       const { repositories } = this.state
       const existingRepository = matchExistingRepository(repositories, path)
@@ -2025,7 +2168,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <PullRequestChecksFailed
             key="pull-request-checks-failed"
             dispatcher={this.props.dispatcher}
-            shouldChangeRepository={popup.needsSelectRepository}
+            shouldChangeRepository={popup.shouldChangeRepository}
             repository={popup.repository}
             pullRequest={popup.pullRequest}
             commitMessage={popup.commitMessage}
@@ -2046,6 +2189,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             prRef={popup.prRef}
             onDismissed={onPopupDismissedFn}
+            failedOnly={popup.failedOnly}
           />
         )
       }
@@ -2075,6 +2219,24 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmDiscardChangesChanged={
               this.onConfirmDiscardChangesPermanentlyChanged
             }
+          />
+        )
+      }
+      case PopupType.PullRequestReview: {
+        return (
+          <PullRequestReview
+            key="pull-request-checks-failed"
+            dispatcher={this.props.dispatcher}
+            shouldCheckoutBranch={popup.shouldCheckoutBranch}
+            shouldChangeRepository={popup.shouldChangeRepository}
+            repository={popup.repository}
+            pullRequest={popup.pullRequest}
+            review={popup.review}
+            numberOfComments={popup.numberOfComments}
+            emoji={this.state.emoji}
+            accounts={this.state.accounts}
+            onSubmit={onPopupDismissedFn}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
