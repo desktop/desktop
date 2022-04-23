@@ -1,0 +1,27 @@
+<! doctype html>
+<html>
+        <head>
+                  <meta charset="utf-8">
+                  <link rel="stylesheet" href="style.css"> 
+                  <title>Изучаем HTML b CSS</title>   
+        </head>
+        <body>
+           
+            <div class="card">
+                <img class="card-photo"src="img/images%201.jpg" alt="Mekan Gurbanow">   
+                <h1 class="card-title">Mekan Mekan</h1>
+                <div class="card-text">
+                        <p>Многие думают, что Lorem Ipsum - взятый с потолка псевдо-латинский набор слов, но это не совсем так. Его корни уходят в один фрагмент классической латыни 45 года н.э., то есть более двух тысячелетий назад.</p>
+                </div>
+                <h2 class="card-subtitle">Meniň başarnyklam:</h2>
+                <ul class="card-list">
+                      <li>html</li>
+                      <li>css</li>
+                      <li>JavaScript</li>
+                     </ul>
+                <h3 class="card-subtitle">Meniň kontaktlam:</h3>
+                <a href="#">+993000001</a>
+              </div>
+            
+        </body>
+</html>
