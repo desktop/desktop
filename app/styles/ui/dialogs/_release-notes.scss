@@ -1,13 +1,18 @@
 @import '../../../styles/variables';
 
 #release-notes {
-  max-height: 450px;
+  max-height: 500px;
 
   .dialog-content {
     // we'll own the layout inside here
     padding: 0;
     overflow-y: scroll;
-    max-height: 250px;
+    max-height: 325px;
+
+    .version-header {
+      padding: var(--spacing);
+      margin: 0 var(--spacing-double);
+    }
   }
 
   .dialog-header {
@@ -91,7 +96,6 @@
       height: 100%;
 
       .section {
-        margin: var(--spacing-double) 0;
         .header {
           font-size: 12px;
           font-weight: var(--font-weight-semibold);

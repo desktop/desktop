@@ -12,7 +12,6 @@ import {
   ReleaseNoteHeaderLeftUri,
   ReleaseNoteHeaderRightUri,
 } from '../../lib/release-notes'
-import { Row } from '../lib/row'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -86,13 +85,22 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   public render() {
     const { latestVersion, datePublished } = this.props.newReleases[0]
 
-    const contents = this.props.newReleases.map((r, i) => {
-      const releaseContent =
-        r.enhancements.length > 0 && r.bugfixes.length > 0
-          ? this.drawTwoColumnLayout(r)
-          : this.drawSingleColumnLayout(r)
+    const showTwoColumns = this.props.newReleases.some(
+      ({ enhancements, bugfixes }) =>
+        enhancements.length > 0 && bugfixes.length > 0
+    )
 
-      return <Row key={i}> {releaseContent}</Row>
+    const contents = this.props.newReleases.map((r, i) => {
+      const releaseContent = showTwoColumns
+        ? this.drawTwoColumnLayout(r)
+        : this.drawSingleColumnLayout(r)
+
+      return (
+        <div key={i} className="release-contents">
+          <h2 className="version-header">{r.latestVersion}</h2>
+          {releaseContent}
+        </div>
+      )
     })
 
     const dialogHeader = (
