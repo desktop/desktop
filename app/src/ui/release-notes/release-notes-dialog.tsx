@@ -16,7 +16,7 @@ import {
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
   readonly emoji: Map<string, string>
-  readonly newRelease: ReleaseSummary
+  readonly newReleases: ReadonlyArray<ReleaseSummary>
 }
 
 /**
@@ -83,7 +83,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   public render() {
-    const release = this.props.newRelease
+    const release = this.props.newReleases[0]
 
     const contents =
       release.enhancements.length > 0 && release.bugfixes.length > 0
