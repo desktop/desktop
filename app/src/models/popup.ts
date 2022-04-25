@@ -170,7 +170,7 @@ export type Popup =
     }
   | {
       type: PopupType.ReleaseNotes
-      newRelease: ReleaseSummary
+      newReleases: ReadonlyArray<ReleaseSummary>
     }
   | {
       type: PopupType.DeletePullRequest

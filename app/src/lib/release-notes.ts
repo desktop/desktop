@@ -106,10 +106,12 @@ export async function getChangeLog(
   }
 }
 
-export async function generateReleaseSummary(): Promise<ReleaseSummary> {
+export async function generateReleaseSummary(): Promise<
+  ReadonlyArray<ReleaseSummary>
+> {
   const releases = await getChangeLog()
   const latestRelease = releases[0]
-  return getReleaseSummary(latestRelease)
+  return [getReleaseSummary(latestRelease)]
 }
 
 export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
