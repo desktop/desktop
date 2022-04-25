@@ -1,8 +1,10 @@
+import * as semver from 'semver'
 import {
   ReleaseMetadata,
   ReleaseNote,
   ReleaseSummary,
 } from '../models/release-notes'
+import { getVersion } from '../ui/lib/app-proxy'
 import { formatDate } from './format-date'
 import { encodePathAsUrl } from './path'
 
@@ -110,7 +112,12 @@ export async function generateReleaseSummary(): Promise<
   ReadonlyArray<ReleaseSummary>
 > {
   const releases = await getChangeLog()
-  return releases.map(getReleaseSummary)
+  const currentVersion = new semver.SemVer(getVersion())
+  const releaseSinceCurrentVersion = releases.filter(r =>
+    semver.gte(new semver.SemVer(r.version), currentVersion)
+  )
+
+  return releaseSinceCurrentVersion.map(getReleaseSummary)
 }
 
 export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(

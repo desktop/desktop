@@ -5,7 +5,7 @@
 
   .dialog-content {
     // we'll own the layout inside here
-    padding: 0;
+    padding: var(--spacing-double) 0;
     overflow-y: scroll;
     max-height: 325px;
 
