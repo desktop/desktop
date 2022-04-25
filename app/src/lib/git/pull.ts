@@ -131,12 +131,15 @@ export async function pull(
 async function getDefaultPullDivergentBranchArguments(
   repository: Repository
 ): Promise<ReadonlyArray<string>> {
-  const pullRebase = await getConfigValue(repository, 'pull.rebase')
-  const pullFF = await getConfigValue(repository, 'pull.ff')
-
-  if (pullRebase !== null || pullFF !== null) {
-    return []
+  try {
+    const pullFF = await getConfigValue(repository, 'pull.ff')
+    return pullFF !== null ? [] : ['--ff']
+  } catch (e) {
+    log.error("Couldn't read 'pull.ff' config", e)
   }
 
-  return ['--ff']
+  // If there is a failure in checking the config, we still want to use any
+  // config and not overwrite the user's set config behavior. This will show the
+  // git error if no config is set.
+  return []
 }
