@@ -7,6 +7,7 @@
     // we'll own the layout inside here
     padding: var(--spacing-double) 0;
     overflow-y: scroll;
+    overflow-x: hidden;
     max-height: 325px;
 
     .version-header {

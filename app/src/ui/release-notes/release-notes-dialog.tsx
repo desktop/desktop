@@ -90,6 +90,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         enhancements.length > 0 && bugfixes.length > 0
     )
 
+    const showHeader = this.props.newReleases.length > 1
+
     const contents = this.props.newReleases.map((r, i) => {
       const releaseContent = showTwoColumns
         ? this.drawTwoColumnLayout(r)
@@ -97,7 +99,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
       return (
         <div key={i} className="release-contents">
-          <h2 className="version-header">{r.latestVersion}</h2>
+          {showHeader && <h2 className="version-header">{r.latestVersion}</h2>}
           {releaseContent}
         </div>
       )
