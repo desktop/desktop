@@ -8,7 +8,7 @@ import {
   SelectionType,
   HistoryTabMode,
 } from '../lib/app-state'
-import { defaultErrorHandler, Dispatcher } from './dispatcher'
+import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
@@ -486,12 +486,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       selectedState == null ||
       selectedState.type !== SelectionType.Repository
     ) {
-      defaultErrorHandler(
-        new Error(
-          'You must be in a GitHub repo, on a pull request branch, and your branch tip must be in a valid state.'
-        ),
-        this.props.dispatcher
-      )
       return
     }
 
@@ -512,12 +506,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       pullRequest === null ||
       currentBranchName === ''
     ) {
-      defaultErrorHandler(
-        new Error(
-          'You must be in a GitHub repo, on a pull request branch, and your branch tip must be in a valid state.'
-        ),
-        this.props.dispatcher
-      )
       return
     }
 
@@ -527,13 +515,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
 
     if (cachedStatus?.checks === undefined) {
-      // Probably be hard for this to happen as the checks start loading in the background for pr statuses
-      defaultErrorHandler(
-        new Error(
-          'Your pull request must have cached checks. Try opening the checks popover and then try again.'
-        ),
-        this.props.dispatcher
-      )
       return
     }
 
