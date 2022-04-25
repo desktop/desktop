@@ -6,6 +6,8 @@
   .dialog-content {
     // we'll own the layout inside here
     padding: 0;
+    overflow-y: scroll;
+    max-height: 250px;
   }
 
   .dialog-header {
@@ -75,13 +77,11 @@
 
   .container {
     width: 600px;
-    max-height: 200px;
     display: flex;
     flex-direction: row;
     padding-left: var(--spacing-triple);
     padding-right: var(--spacing-triple);
     overflow-x: hidden;
-    overflow-y: auto;
     justify-content: space-around;
 
     .column {
