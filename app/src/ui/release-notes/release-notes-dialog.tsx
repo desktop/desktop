@@ -12,6 +12,7 @@ import {
   ReleaseNoteHeaderLeftUri,
   ReleaseNoteHeaderRightUri,
 } from '../../lib/release-notes'
+import { Row } from '../lib/row'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -83,12 +84,16 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   public render() {
-    const release = this.props.newReleases[0]
+    const { latestVersion, datePublished } = this.props.newReleases[0]
 
-    const contents =
-      release.enhancements.length > 0 && release.bugfixes.length > 0
-        ? this.drawTwoColumnLayout(release)
-        : this.drawSingleColumnLayout(release)
+    const contents = this.props.newReleases.map((r, i) => {
+      const releaseContent =
+        r.enhancements.length > 0 && r.bugfixes.length > 0
+          ? this.drawTwoColumnLayout(r)
+          : this.drawSingleColumnLayout(r)
+
+      return <Row key={i}> {releaseContent}</Row>
+    })
 
     const dialogHeader = (
       <div className="release-notes-header">
@@ -97,8 +102,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
           src={ReleaseNoteHeaderLeftUri}
         />
         <div className="title">
-          <p className="version">Version {release.latestVersion}</p>
-          <p className="date">{release.datePublished}</p>
+          <p className="version">Version {latestVersion}</p>
+          <p className="date">{datePublished}</p>
         </div>
         <img
           className="release-note-graphic-right"
