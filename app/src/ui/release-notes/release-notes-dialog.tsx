@@ -83,27 +83,39 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   public render() {
-    const { latestVersion, datePublished } = this.props.newReleases[0]
+    let release = this.props.newReleases[0]
+    if (this.props.newReleases.length > 0) {
+      let enhancements = new Array<ReleaseNote>()
+      let bugfixes = new Array<ReleaseNote>()
 
-    const showTwoColumns = this.props.newReleases.some(
-      ({ enhancements, bugfixes }) =>
-        enhancements.length > 0 && bugfixes.length > 0
-    )
+      this.props.newReleases.forEach(r => {
+        enhancements = enhancements.concat(r.enhancements)
+        bugfixes = bugfixes.concat(r.bugfixes)
+      })
 
-    const showHeader = this.props.newReleases.length > 1
+      release = {
+        latestVersion: `${
+          this.props.newReleases[this.props.newReleases.length - 1]
+            .latestVersion
+        } - ${this.props.newReleases[0].latestVersion}`,
+        datePublished: `${
+          this.props.newReleases[this.props.newReleases.length - 1]
+            .datePublished
+        } to ${this.props.newReleases[0].datePublished}`,
+        enhancements,
+        bugfixes,
+        other: [],
+        thankYous: [],
+      }
+    }
 
-    const contents = this.props.newReleases.map((r, i) => {
-      const releaseContent = showTwoColumns
-        ? this.drawTwoColumnLayout(r)
-        : this.drawSingleColumnLayout(r)
+    const { latestVersion, datePublished, enhancements, bugfixes } = release
 
-      return (
-        <div key={i} className="release-contents">
-          {showHeader && <h2 className="version-header">{r.latestVersion}</h2>}
-          {releaseContent}
-        </div>
-      )
-    })
+    const showTwoColumns = enhancements.length > 0 && bugfixes.length > 0
+
+    const contents = showTwoColumns
+      ? this.drawTwoColumnLayout(release)
+      : this.drawSingleColumnLayout(release)
 
     const dialogHeader = (
       <div className="release-notes-header">
