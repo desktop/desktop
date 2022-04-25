@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.0.0": [
+      "[New] Add support for notifications of pull request reviews - #14175",
+      "[Fixed] Use fast-forward flag as default for pulling divergent paths - #14431",
+      "[Improved] Add ability to re-run individual and failed GitHub Action checks - #14310"
+    ],
     "2.9.16-beta2": [
       "[Fixed] Use fast-forward flag as default for pulling divergent paths - #14431"
     ],

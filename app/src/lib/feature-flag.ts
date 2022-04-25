@@ -165,10 +165,10 @@ export function enableHighSignalNotifications(): boolean {
 
 /** Should we enable PR review notifications? */
 export function enablePullRequestReviewNotifications(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we enable the rerunning of failed and single jobs aka action based checks */
 export function enableReRunFailedAndSingleCheckJobs(): boolean {
-  return enableBetaFeatures()
+  return true
 }
