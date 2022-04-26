@@ -84,7 +84,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
   public render() {
     let release = this.props.newReleases[0]
-    if (this.props.newReleases.length > 0) {
+    if (this.props.newReleases.length > 1) {
       let enhancements = new Array<ReleaseNote>()
       let bugfixes = new Array<ReleaseNote>()
 
