@@ -82,40 +82,49 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     )
   }
 
-  public render() {
-    let release = this.props.newReleases[0]
-    if (this.props.newReleases.length > 1) {
-      let enhancements = new Array<ReleaseNote>()
-      let bugfixes = new Array<ReleaseNote>()
-
-      this.props.newReleases.forEach(r => {
-        enhancements = enhancements.concat(r.enhancements)
-        bugfixes = bugfixes.concat(r.bugfixes)
-      })
-
-      release = {
-        latestVersion: `${
-          this.props.newReleases[this.props.newReleases.length - 1]
-            .latestVersion
-        } - ${this.props.newReleases[0].latestVersion}`,
-        datePublished: `${
-          this.props.newReleases[this.props.newReleases.length - 1]
-            .datePublished
-        } to ${this.props.newReleases[0].datePublished}`,
-        enhancements,
-        bugfixes,
-        other: [],
-        thankYous: [],
-      }
+  /**
+   * If there is just one release, it returns it. If multiple, it merges the release notes.
+   */
+  private getDisplayRelease = () => {
+    if (this.props.newReleases.length === 1) {
+      return this.props.newReleases[0]
     }
 
+    const earliestRelease = this.props.newReleases.slice(-1)[0]
+
+    let enhancements = new Array<ReleaseNote>()
+    let bugfixes = new Array<ReleaseNote>()
+
+    for (const r of this.props.newReleases) {
+      enhancements = enhancements.concat(r.enhancements)
+      bugfixes = bugfixes.concat(r.bugfixes)
+    }
+
+    const {
+      latestVersion: earliestVersion,
+      datePublished: earliestDatePublished,
+    } = earliestRelease
+
+    const { latestVersion, datePublished } = this.props.newReleases[0]
+
+    return {
+      latestVersion: `${earliestVersion} - ${latestVersion}`,
+      datePublished: `${earliestDatePublished} to ${datePublished}`,
+      enhancements,
+      bugfixes,
+      other: [],
+      thankYous: [],
+    }
+  }
+
+  public render() {
+    const release = this.getDisplayRelease()
     const { latestVersion, datePublished, enhancements, bugfixes } = release
 
-    const showTwoColumns = enhancements.length > 0 && bugfixes.length > 0
-
-    const contents = showTwoColumns
-      ? this.drawTwoColumnLayout(release)
-      : this.drawSingleColumnLayout(release)
+    const contents =
+      enhancements.length > 0 && bugfixes.length > 0
+        ? this.drawTwoColumnLayout(release)
+        : this.drawSingleColumnLayout(release)
 
     const dialogHeader = (
       <div className="release-notes-header">
