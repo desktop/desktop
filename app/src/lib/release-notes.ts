@@ -56,7 +56,14 @@ function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
 export function parseReleaseEntries(
   notes: ReadonlyArray<string>
 ): ReadonlyArray<ReleaseNote> {
-  return notes.map(n => parseEntry(n)).filter(notEmpty)
+  const pretext =
+    '<img style="width: 100%" src="https://user-images.githubusercontent.com/75402236/165329268-4650b6f1-a891-4f26-b123-e52de21f703c.png"/>' +
+    'Adding that `x.x.x ?? ` in the semver construction is the easiest way up date what version the release notes thinks the app is running under. ' +
+    '<div style="color:red">But you can also update the package.json and run yarn:build, to actually change the version the app believes it is running under.</div>'
+
+  const injectPretext = [...notes, '[pretext] ' + pretext]
+  console.log(injectPretext)
+  return injectPretext.map(n => parseEntry(n)).filter(notEmpty)
 }
 
 export function getReleaseSummary(
@@ -70,14 +77,14 @@ export function getReleaseSummary(
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
   const thankYous = entries.filter(e => e.message.includes(' Thanks @'))
+  const pretext = entries.filter(e => e.kind === 'pretext')
 
   return {
     latestVersion: latestRelease.version,
     datePublished: formatDate(new Date(latestRelease.pub_date), {
       dateStyle: 'long',
     }),
-    // TODO: find pretext entry
-    pretext: undefined,
+    pretext,
     enhancements,
     bugfixes,
     other,
@@ -113,7 +120,7 @@ export async function generateReleaseSummary(): Promise<
   ReadonlyArray<ReleaseSummary>
 > {
   const lastTenReleases = await getChangeLog()
-  const currentVersion = new semver.SemVer(getVersion())
+  const currentVersion = new semver.SemVer('3.0.0' ?? getVersion())
   const recentReleases = lastTenReleases.filter(
     r =>
       semver.gte(new semver.SemVer(r.version), currentVersion) &&
