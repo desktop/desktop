@@ -2,16 +2,12 @@
 
 #release-notes {
   max-height: 500px;
+  max-width: 800px;
 
   .dialog-content {
     // we'll own the layout inside here
-    padding: var(--spacing-double) 0;
-    overflow-y: scroll;
-
-    .version-header {
-      padding: var(--spacing);
-      margin: 0 var(--spacing-double);
-    }
+    padding: 0;
+    overflow-x: hidden;
   }
 
   .dialog-header {
@@ -80,8 +76,8 @@
   }
 
   .container {
-    width: 600px;
-    max-height: 200px;
+    width: 800px;
+    max-height: 300px;
     display: flex;
     flex-direction: row;
     padding-left: var(--spacing-triple);
@@ -97,6 +93,7 @@
       height: 100%;
 
       .section {
+        margin: var(--spacing-double) 0;
         .header {
           font-size: 12px;
           font-weight: var(--font-weight-semibold);
