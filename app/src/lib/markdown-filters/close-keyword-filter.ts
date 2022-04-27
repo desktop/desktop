@@ -182,7 +182,7 @@ export class CloseKeywordFilter implements INodeFilter {
     const tooltipSpan = document.createElement('span')
     tooltipSpan.textContent = closesText
     tooltipSpan.classList.add('issue-keyword')
-    tooltipSpan.title = `This ${
+    tooltipSpan.ariaLabel = `This ${
       this.markdownContext === 'Commit' ? 'commit' : 'pull request'
     } closes ${issueNumber}.`
     return tooltipSpan

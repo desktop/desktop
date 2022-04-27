@@ -9,6 +9,10 @@ import {
 } from '../../lib/markdown-filters/node-filter'
 import { GitHubRepository } from '../../models/github-repository'
 import { readFile } from 'fs/promises'
+import { Tooltip } from './tooltip'
+import { createObservableRef } from './observable-ref'
+import { getObjectId } from './object-id'
+import { debounce } from 'lodash'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -40,11 +44,19 @@ interface ISandboxedMarkdownProps {
   readonly markdownContext: MarkdownContext
 }
 
+interface ISandboxedMarkdownState {
+  readonly tooltipElements: ReadonlyArray<HTMLElement>
+  readonly tooltipOffset?: DOMRect
+}
+
 /**
  * Parses and sanitizes markdown into html and outputs it inside a sandboxed
  * iframe.
  **/
-export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownProps> {
+export class SandboxedMarkdown extends React.PureComponent<
+  ISandboxedMarkdownProps,
+  ISandboxedMarkdownState
+> {
   private frameRef: HTMLIFrameElement | null = null
   private frameContainingDivRef: HTMLDivElement | null = null
   private contentDivRef: HTMLDivElement | null = null
@@ -56,10 +68,17 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
 
+  private onDocumentScroll = debounce(() => {
+    this.setState({
+      tooltipOffset: this.frameRef?.getBoundingClientRect() ?? new DOMRect(),
+    })
+  }, 100)
+
   public constructor(props: ISandboxedMarkdownProps) {
     super(props)
 
     this.resizeObserver = new ResizeObserver(this.scheduleResizeEvent)
+    this.state = { tooltipElements: [] }
   }
 
   private scheduleResizeEvent = () => {
@@ -94,6 +113,10 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
     if (this.frameRef !== null) {
       this.setupFrameLoadListeners(this.frameRef)
     }
+
+    document.addEventListener('scroll', this.onDocumentScroll, {
+      capture: true,
+    })
   }
 
   public async componentDidUpdate(prevProps: ISandboxedMarkdownProps) {
@@ -105,6 +128,7 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
 
   public componentWillUnmount() {
     this.resizeObserver.disconnect()
+    document.removeEventListener('scroll', this.onDocumentScroll)
   }
 
   /**
@@ -159,7 +183,29 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
     frameRef.addEventListener('load', () => {
       this.setupContentDivRef(frameRef)
       this.setupLinkInterceptor(frameRef)
+      this.setupTooltips(frameRef)
       this.setFrameContainerHeight(frameRef)
+    })
+  }
+
+  private setupTooltips(frameRef: HTMLIFrameElement) {
+    if (frameRef.contentDocument === null) {
+      return
+    }
+
+    const tooltipElements = new Array<HTMLElement>()
+
+    for (const e of frameRef.contentDocument.querySelectorAll('[aria-label]')) {
+      if (frameRef.contentWindow?.HTMLElement) {
+        if (e instanceof frameRef.contentWindow.HTMLElement) {
+          tooltipElements.push(e)
+        }
+      }
+    }
+
+    this.setState({
+      tooltipElements,
+      tooltipOffset: frameRef.getBoundingClientRect(),
     })
   }
 
@@ -311,6 +357,8 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
   }
 
   public render() {
+    const { tooltipElements, tooltipOffset } = this.state
+
     return (
       <div
         className="sandboxed-markdown-iframe-container"
@@ -321,6 +369,15 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
           sandbox=""
           ref={this.onFrameRef}
         />
+        {tooltipElements.map(e => (
+          <Tooltip
+            target={createObservableRef(e)}
+            key={getObjectId(e)}
+            tooltipOffset={tooltipOffset}
+          >
+            {e.ariaLabel}
+          </Tooltip>
+        ))}
       </div>
     )
   }

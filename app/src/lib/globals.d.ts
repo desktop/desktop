@@ -157,6 +157,7 @@ declare namespace Electron {
 // https://github.com/microsoft/TypeScript/issues/21568#issuecomment-362473070
 interface Window {
   Element: typeof Element
+  HTMLElement: typeof HTMLElement
 }
 
 interface HTMLDialogElement {

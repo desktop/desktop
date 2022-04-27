@@ -33,3 +33,6 @@ export function rectContains(x: ClientRect, y: ClientRect) {
     y.right <= x.right
   )
 }
+
+export const offsetRect = (rect: DOMRect, x: number, y: number) =>
+  new DOMRect(rect.x + x, rect.y + y, rect.width, rect.height)
