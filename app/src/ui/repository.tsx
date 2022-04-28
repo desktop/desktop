@@ -31,10 +31,6 @@ import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
-import {
-  DragAndDropIntroType,
-  AvailableDragAndDropIntroKeys,
-} from './history/drag-and-drop-intro'
 import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 import { clamp } from '../lib/clamp'
 
@@ -96,9 +92,6 @@ interface IRepositoryViewProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
-
-  /* Types of drag and drop intros already seen by the user */
-  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
 }
 
 interface IRepositoryViewState {
@@ -172,24 +165,10 @@ export class RepositoryView extends React.Component<
         </span>
 
         <div className="with-indicator">
-          <span>History {this.renderNewCallToActionBubble()}</span>
+          <span>History</span>
         </div>
       </TabBar>
     )
-  }
-
-  private renderNewCallToActionBubble(): JSX.Element | null {
-    const { dragAndDropIntroTypesShown, state } = this.props
-    const { compareState } = state
-    const remainingDragAndDropIntros = AvailableDragAndDropIntroKeys.filter(
-      intro => !dragAndDropIntroTypesShown.has(intro)
-    )
-    const hasSeenAllDragAndDropIntros = remainingDragAndDropIntros.length === 0
-
-    if (hasSeenAllDragAndDropIntros || compareState.commitSHAs.length === 0) {
-      return null
-    }
-    return <span className="call-to-action-bubble">New</span>
   }
 
   private renderChangesSidebar(): JSX.Element {
@@ -253,14 +232,8 @@ export class RepositoryView extends React.Component<
   }
 
   private renderCompareSidebar(): JSX.Element {
-    const {
-      repository,
-      dispatcher,
-      state,
-      aheadBehindStore,
-      dragAndDropIntroTypesShown,
-      emoji,
-    } = this.props
+    const { repository, dispatcher, state, aheadBehindStore, emoji } =
+      this.props
     const {
       remote,
       compareState,
@@ -306,7 +279,6 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
-        dragAndDropIntroTypesShown={dragAndDropIntroTypesShown}
         isCherryPickInProgress={isCherryPickInProgress}
       />
     )

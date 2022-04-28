@@ -283,7 +283,6 @@ import {
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
-import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
@@ -359,8 +358,6 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 
 const MaxInvalidFoldersToDisplay = 3
 
-const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
-const dragAndDropIntroTypesShownKey = 'drag-and-drop-intro-types-shown'
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const customThemeKey = 'custom-theme-key'
 export class AppStore extends TypedBaseStore<IAppState> {
@@ -474,12 +471,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Which step the user needs to complete next in the onboarding tutorial */
   private currentOnboardingTutorialStep = TutorialStep.NotApplicable
   private readonly tutorialAssessor: OnboardingTutorialAssessor
-
-  /**
-   * List of drag & drop intro types shown to the user.
-   */
-  private dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType> =
-    new Set()
 
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
@@ -901,7 +892,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
-      dragAndDropIntroTypesShown: this.dragAndDropIntroTypesShown,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
@@ -1888,20 +1878,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
 
-    const hasShownCherryPickIntro = getBoolean(
-      hasShownCherryPickIntroKey,
-      false
-    )
-    const dragAndDropIntroTypesShown =
-      getObject<Array<DragAndDropIntroType>>(dragAndDropIntroTypesShownKey) ??
-      []
-
-    // Compatibility fallback for old persisted value
-    if (hasShownCherryPickIntro) {
-      dragAndDropIntroTypesShown.push(DragAndDropIntroType.CherryPick)
-    }
-
-    this.dragAndDropIntroTypesShown = new Set(dragAndDropIntroTypesShown)
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
     this.emitUpdateNow()
@@ -6481,19 +6457,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         progress: snapshot.progress,
       })
     )
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _markDragAndDropIntroAsSeen(intro: DragAndDropIntroType) {
-    if (this.dragAndDropIntroTypesShown.has(intro)) {
-      return
-    }
-
-    const newIntros = [...this.dragAndDropIntroTypesShown, intro]
-    this.dragAndDropIntroTypesShown = new Set(newIntros)
-
-    setObject(dragAndDropIntroTypesShownKey, newIntros)
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

@@ -31,7 +31,7 @@ import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-autho
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { enableCommitReordering } from '../../lib/feature-flag'
-import { DragAndDropIntroType } from './drag-and-drop-intro'
+
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
@@ -54,7 +54,6 @@ interface ICompareSidebarProps {
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
-  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
   readonly isCherryPickInProgress: boolean
 }
 
@@ -260,8 +259,6 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
-        dragAndDropIntroTypesShown={this.props.dragAndDropIntroTypesShown}
-        onDragAndDropIntroSeen={this.onDragAndDropIntroSeen}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
@@ -312,10 +309,6 @@ export class CompareSidebar extends React.Component<
 
   private onRemoveCommitDragElement = () => {
     this.props.dispatcher.clearDragElement()
-  }
-
-  private onDragAndDropIntroSeen = (intro: DragAndDropIntroType) => {
-    this.props.dispatcher.markDragAndDropIntroAsSeen(intro)
   }
 
   private renderActiveTab(view: ICompareBranch) {

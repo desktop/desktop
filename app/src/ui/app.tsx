@@ -2823,7 +2823,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           aheadBehindStore={this.props.aheadBehindStore}
           commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
           onCherryPick={this.startCherryPickWithoutBranch}
-          dragAndDropIntroTypesShown={this.state.dragAndDropIntroTypesShown}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
