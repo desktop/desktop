@@ -45,7 +45,11 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/javascript/javascript'),
     mappings: {
       '.ts': 'text/typescript',
+      '.mts': 'text/typescript',
+      '.cts': 'text/typescript',
       '.js': 'text/javascript',
+      '.mjs': 'text/javascript',
+      '.cjs': 'text/javascript',
       '.json': 'application/json',
     },
   },
@@ -59,7 +63,11 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/jsx/jsx'),
     mappings: {
       '.tsx': 'text/typescript-jsx',
+      '.mtsx': 'text/typescript-jsx',
+      '.ctsx': 'text/typescript-jsx',
       '.jsx': 'text/jsx',
+      '.mjsx': 'text/jsx',
+      '.cjsx': 'text/jsx',
     },
   },
   {
