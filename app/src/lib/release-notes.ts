@@ -125,7 +125,7 @@ export async function generateReleaseSummary(): Promise<
   // to ensure we always show at least the last set of release notes.
   return recentReleases.length > 0
     ? recentReleases.map(getReleaseSummary)
-    : [getReleaseSummary(recentReleases[0])]
+    : [getReleaseSummary(lastTenReleases[0])]
 }
 
 export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
