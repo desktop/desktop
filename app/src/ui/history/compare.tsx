@@ -31,6 +31,7 @@ import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-autho
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { enableCommitReordering } from '../../lib/feature-flag'
+import classNames from 'classnames'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -200,6 +201,23 @@ export class CompareSidebar extends React.Component<
     })
   }
 
+  private onAllFilesClicked = () => {
+    const formState = this.props.compareState.formState
+
+    if (
+      formState.kind === HistoryTabMode.History ||
+      formState.comparisonMode !== ComparisonMode.Ahead
+    ) {
+      return
+    }
+
+    this.props.dispatcher.executeCompare(this.props.repository, {
+      kind: HistoryTabMode.Compare,
+      branch: formState.comparisonBranch,
+      comparisonMode: ComparisonMode.Ahead,
+    })
+  }
+
   private renderCommitList() {
     const { formState, commitSHAs } = this.props.compareState
 
@@ -223,47 +241,67 @@ export class CompareSidebar extends React.Component<
         )
     }
 
+    const canSeeFilesOfAllCommits =
+      commitSHAs.length > 0 &&
+      formState.kind !== HistoryTabMode.History &&
+      formState.comparisonMode === ComparisonMode.Ahead
+
+    const isSeeingAllCommits = this.props.selectedCommitShas.length === 0
+
     return (
-      <CommitList
-        gitHubRepository={this.props.repository.gitHubRepository}
-        isLocalRepository={this.props.isLocalRepository}
-        commitLookup={this.props.commitLookup}
-        commitSHAs={commitSHAs}
-        selectedSHAs={this.props.selectedCommitShas}
-        localCommitSHAs={this.props.localCommitSHAs}
-        canResetToCommits={formState.kind === HistoryTabMode.History}
-        canUndoCommits={formState.kind === HistoryTabMode.History}
-        canAmendCommits={formState.kind === HistoryTabMode.History}
-        emoji={this.props.emoji}
-        reorderingEnabled={
-          enableCommitReordering() && formState.kind === HistoryTabMode.History
-        }
-        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        onUndoCommit={this.onUndoCommit}
-        onResetToCommit={this.onResetToCommit}
-        onRevertCommit={
-          ableToRevertCommit(this.props.compareState.formState)
-            ? this.props.onRevertCommit
-            : undefined
-        }
-        onAmendCommit={this.props.onAmendCommit}
-        onCommitsSelected={this.onCommitsSelected}
-        onScroll={this.onScroll}
-        onCreateBranch={this.onCreateBranch}
-        onCreateTag={this.onCreateTag}
-        onDeleteTag={this.onDeleteTag}
-        onCherryPick={this.onCherryPick}
-        onDropCommitInsertion={this.onDropCommitInsertion}
-        onSquash={this.onSquash}
-        emptyListMessage={emptyListMessage}
-        onCompareListScrolled={this.props.onCompareListScrolled}
-        compareListScrollTop={this.props.compareListScrollTop}
-        tagsToPush={this.props.tagsToPush}
-        isCherryPickInProgress={this.props.isCherryPickInProgress}
-        onRenderCommitDragElement={this.onRenderCommitDragElement}
-        onRemoveCommitDragElement={this.onRemoveCommitDragElement}
-        disableSquashing={formState.kind === HistoryTabMode.Compare}
-      />
+      <>
+        {canSeeFilesOfAllCommits && (
+          <div
+            onClick={this.onAllFilesClicked}
+            className={classNames('all-files', 'list-item', {
+              selected: isSeeingAllCommits,
+            })}
+          >
+            View files of all ahead commits
+          </div>
+        )}
+        <CommitList
+          gitHubRepository={this.props.repository.gitHubRepository}
+          isLocalRepository={this.props.isLocalRepository}
+          commitLookup={this.props.commitLookup}
+          commitSHAs={commitSHAs}
+          selectedSHAs={this.props.selectedCommitShas}
+          localCommitSHAs={this.props.localCommitSHAs}
+          canResetToCommits={formState.kind === HistoryTabMode.History}
+          canUndoCommits={formState.kind === HistoryTabMode.History}
+          canAmendCommits={formState.kind === HistoryTabMode.History}
+          emoji={this.props.emoji}
+          reorderingEnabled={
+            enableCommitReordering() &&
+            formState.kind === HistoryTabMode.History
+          }
+          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+          onUndoCommit={this.onUndoCommit}
+          onResetToCommit={this.onResetToCommit}
+          onRevertCommit={
+            ableToRevertCommit(this.props.compareState.formState)
+              ? this.props.onRevertCommit
+              : undefined
+          }
+          onAmendCommit={this.props.onAmendCommit}
+          onCommitsSelected={this.onCommitsSelected}
+          onScroll={this.onScroll}
+          onCreateBranch={this.onCreateBranch}
+          onCreateTag={this.onCreateTag}
+          onDeleteTag={this.onDeleteTag}
+          onCherryPick={this.onCherryPick}
+          onDropCommitInsertion={this.onDropCommitInsertion}
+          onSquash={this.onSquash}
+          emptyListMessage={emptyListMessage}
+          onCompareListScrolled={this.props.onCompareListScrolled}
+          compareListScrollTop={this.props.compareListScrollTop}
+          tagsToPush={this.props.tagsToPush}
+          isCherryPickInProgress={this.props.isCherryPickInProgress}
+          onRenderCommitDragElement={this.onRenderCommitDragElement}
+          onRemoveCommitDragElement={this.onRemoveCommitDragElement}
+          disableSquashing={formState.kind === HistoryTabMode.Compare}
+        />
+      </>
     )
   }
 

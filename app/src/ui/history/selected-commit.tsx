@@ -256,7 +256,7 @@ export class SelectedCommit extends React.Component<
       return this.renderMultipleCommitsSelected()
     }
 
-    if (commit == null) {
+    if (commit == null && this.props.changesetData.files.length === 0) {
       return <NoCommitSelected />
     }
 
@@ -265,7 +265,7 @@ export class SelectedCommit extends React.Component<
 
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
-        {this.renderCommitSummary(commit)}
+        {commit !== null && this.renderCommitSummary(commit)}
         <div className="commit-details">
           <Resizable
             width={commitSummaryWidth.value}

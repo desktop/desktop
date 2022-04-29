@@ -489,7 +489,9 @@ export async function getBranchDiff(
 ): Promise<IDiff> {
   const args = [
     'diff',
-    `${branchA}..${branchB}`,
+    '--merge-base',
+    branchA,
+    branchB,
     ...(hideWhitespaceInDiff ? ['-w'] : []),
     '--patch-with-raw',
     '-z',
@@ -515,10 +517,9 @@ export async function getBranchDiffChangedFiles(
 ): Promise<IChangesetData> {
   const baseArgs = [
     'diff',
-    `${branchA}..${branchB}`,
-    // TODO: learn why follow was added to commit change files (maybe we want the here?)
-    //'-C', detect copies as well as renames (see log.ts line 159 method getChangedFiles)
-    // '-M', detect renames (see log.ts line 159 method getChangedFiles)
+    '--merge-base',
+    branchA,
+    branchB,
     '--format=format:',
     '-z',
   ]

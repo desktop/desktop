@@ -108,6 +108,7 @@ import {
   isMergeConflictState,
   IMultiCommitOperationState,
   IConstrainedValue,
+  ComparisonMode,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -160,6 +161,8 @@ import {
   appendIgnoreFile,
   getRepositoryType,
   RepositoryType,
+  getBranchDiffChangedFiles,
+  getBranchDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1095,6 +1098,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  private async updateOrSelectAllCompareCommit(
+    repository: Repository,
+    comparisonBranch: Branch,
+    commitSHAs: ReadonlyArray<string>
+  ) {
+    const { commitSelection, branchesState } =
+      this.repositoryStateCache.get(repository)
+    this.clearSelectedCommit(repository)
+
+    if (
+      commitSelection.shas.length === 0 &&
+      commitSHAs.length > 0 &&
+      branchesState.tip.kind === TipState.Valid
+    ) {
+      const changesetData = await getBranchDiffChangedFiles(
+        repository,
+        comparisonBranch.name,
+        branchesState.tip.branch.name
+      )
+
+      this.repositoryStateCache.updateCommitSelection(repository, () => ({
+        shas: [],
+        file: changesetData.files.length > 0 ? changesetData.files[0] : null,
+        changesetData,
+        diff: null,
+      }))
+
+      this.emitUpdate()
+      this._changeFileSelection(repository, changesetData.files[0])
+    }
+  }
+
   private updateOrSelectFirstCommit(
     repository: Repository,
     commitSHAs: ReadonlyArray<string>
@@ -1285,7 +1320,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
 
-    this.updateOrSelectFirstCommit(repository, commitSHAs)
+    if (action.comparisonMode === ComparisonMode.Ahead) {
+      this.updateOrSelectAllCompareCommit(repository, action.branch, commitSHAs)
+    } else {
+      this.updateOrSelectFirstCommit(repository, commitSHAs)
+    }
 
     if (this.currentMergeTreePromise != null) {
       return this.currentMergeTreePromise
@@ -1433,11 +1472,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       diff: null,
     }))
     this.emitUpdate()
-
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
+    const {
+      compareState: { formState },
+      branchesState,
+    } = stateBeforeLoad
     const shas = stateBeforeLoad.commitSelection.shas
 
-    if (shas.length === 0) {
+    const isAheadComparisonMode =
+      formState.kind === HistoryTabMode.Compare &&
+      formState.comparisonMode === ComparisonMode.Ahead
+
+    if (shas.length === 0 && !isAheadComparisonMode) {
       if (__DEV__) {
         throw new Error(
           "No currently selected sha yet we've been asked to switch file selection"
@@ -1452,17 +1498,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const diff = await getCommitDiff(
-      repository,
-      file,
-      shas[0],
-      this.hideWhitespaceInHistoryDiff
-    )
+    const diff =
+      shas.length === 0 &&
+      isAheadComparisonMode &&
+      branchesState.tip.kind === TipState.Valid
+        ? await getBranchDiff(
+            repository,
+            formState.comparisonBranch.name,
+            branchesState.tip.branch.name,
+            file,
+            this.hideWhitespaceInHistoryDiff
+          )
+        : await getCommitDiff(
+            repository,
+            file,
+            shas[0],
+            this.hideWhitespaceInHistoryDiff
+          )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection
     // A whole bunch of things could have happened since we initiated the diff load
-    if (shasAfter.length !== shas.length || shasAfter[0] !== shas[0]) {
+    if (
+      shasAfter.length !== shas.length ||
+      (!isAheadComparisonMode && shasAfter[0] !== shas[0])
+    ) {
       return
     }
     if (!stateAfterLoad.commitSelection.file) {
