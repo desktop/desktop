@@ -26,6 +26,12 @@ import { DiffParser } from '../diff-parser'
 import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
+import { git } from './core'
+import {
+  IChangesetData,
+  parseChangedFiles,
+  parseChangedFilesNumStat,
+} from './log'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -469,3 +475,76 @@ export async function getBinaryPaths(
 }
 
 const binaryListRegex = /-\t-\t(?:\0.+\0)?([^\0]*)/gi
+
+/**
+ * Render the difference between two branches
+ *
+ */
+export async function getBranchDiff(
+  repository: Repository,
+  branchA: string,
+  branchB: string,
+  file: FileChange,
+  hideWhitespaceInDiff: boolean = false
+): Promise<IDiff> {
+  const args = [
+    'diff',
+    `${branchA}..${branchB}`,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+    '--',
+    file.path,
+  ]
+
+  const { output } = await spawnAndComplete(
+    args,
+    repository.path,
+    'getBranchDiff'
+  )
+
+  return buildDiff(output, repository, file, branchB)
+}
+
+/** Get the files that were changed in the for the diff between two branches. */
+export async function getBranchDiffChangedFiles(
+  repository: Repository,
+  branchA: string,
+  branchB: string
+): Promise<IChangesetData> {
+  const baseArgs = [
+    'diff',
+    `${branchA}..${branchB}`,
+    // TODO: learn why follow was added to commit change files (maybe we want the here?)
+    //'-C', detect copies as well as renames (see log.ts line 159 method getChangedFiles)
+    // '-M', detect renames (see log.ts line 159 method getChangedFiles)
+    '--format=format:',
+    '-z',
+  ]
+
+  // Run `git diff` to obtain the file names and their state
+  const resultNameStatus = await git(
+    [...baseArgs, '--name-status', '--'],
+    repository.path,
+    'getChangedFilesNameStatus'
+  )
+
+  // TODO: does branchB make since as a committish reference - maybe it should be branch head sha?
+  const files = parseChangedFiles(resultNameStatus.stdout, branchB)
+
+  // Run `git diff` again, but this time to get the number of lines added/deleted
+  // per file
+  const resultNumStat = await git(
+    [...baseArgs, '--numstat', '--'],
+    repository.path,
+    'getChangedFilesNumStats'
+  )
+
+  const linesChanged = parseChangedFilesNumStat(resultNumStat.stdout)
+
+  return {
+    files,
+    ...linesChanged,
+  }
+}

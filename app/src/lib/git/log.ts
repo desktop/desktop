@@ -201,7 +201,7 @@ export async function getChangedFiles(
   }
 }
 
-function parseChangedFilesNumStat(stdout: string): {
+export function parseChangedFilesNumStat(stdout: string): {
   linesAdded: number
   linesDeleted: number
 } {
