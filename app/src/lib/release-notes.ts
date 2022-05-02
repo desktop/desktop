@@ -116,7 +116,7 @@ export async function generateReleaseSummary(): Promise<
   const currentVersion = new semver.SemVer(getVersion())
   const recentReleases = lastTenReleases.filter(
     r =>
-      semver.gte(new semver.SemVer(r.version), currentVersion) &&
+      semver.gt(new semver.SemVer(r.version), currentVersion) &&
       new Date(r.pub_date).getTime() > offsetFromNow(-90, 'days')
   )
 
