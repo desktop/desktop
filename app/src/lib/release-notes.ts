@@ -14,7 +14,7 @@ import { encodePathAsUrl } from './path'
 // expects a release note entry to contain a header and then some text
 // example:
 //    [New] Fallback to Gravatar for loading avatars - #821
-const itemEntryRe = /^\[([a-z]{1,})\]\s(.*)/i
+const itemEntryRe = /^\[([a-z]{1,})\]\s((.|\n)*)/i
 
 function parseEntry(note: string): ReleaseNote | null {
   const text = note.trim()
