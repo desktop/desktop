@@ -94,10 +94,12 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
     let enhancements = new Array<ReleaseNote>()
     let bugfixes = new Array<ReleaseNote>()
+    let pretext = new Array<ReleaseNote>()
 
     for (const r of this.props.newReleases) {
       enhancements = enhancements.concat(r.enhancements)
       bugfixes = bugfixes.concat(r.bugfixes)
+      pretext = pretext.concat(r.pretext)
     }
 
     const {
@@ -110,6 +112,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     return {
       latestVersion: `${earliestVersion} - ${latestVersion}`,
       datePublished: `${earliestDatePublished} to ${datePublished}`,
+      pretext,
       enhancements,
       bugfixes,
       other: [],
