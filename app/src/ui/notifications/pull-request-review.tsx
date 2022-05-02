@@ -225,7 +225,7 @@ export class PullRequestReview extends React.Component<
       <SandboxedMarkdown
         markdown={review.body}
         emoji={emoji}
-        baseHref={base.gitHubRepository.htmlURL}
+        baseHref={base.gitHubRepository.htmlURL ?? undefined}
         repository={base.gitHubRepository}
         onMarkdownLinkClicked={this.onMarkdownLinkClicked}
         markdownContext={'PullRequestComment'}
