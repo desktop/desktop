@@ -1,3 +1,5 @@
+import { readFile } from 'fs/promises'
+import * as Path from 'path'
 import * as semver from 'semver'
 import {
   ReleaseMetadata,
@@ -109,11 +111,11 @@ export async function getChangeLog(
   }
 }
 
-export async function generateReleaseSummary(): Promise<
-  ReadonlyArray<ReleaseSummary>
-> {
+export async function generateReleaseSummary(
+  version?: string
+): Promise<ReadonlyArray<ReleaseSummary>> {
   const lastTenReleases = await getChangeLog()
-  const currentVersion = new semver.SemVer(getVersion())
+  const currentVersion = new semver.SemVer(version ?? getVersion())
   const recentReleases = lastTenReleases.filter(
     r =>
       semver.gte(new semver.SemVer(r.version), currentVersion) &&
@@ -126,6 +128,34 @@ export async function generateReleaseSummary(): Promise<
   return recentReleases.length > 0
     ? recentReleases.map(getReleaseSummary)
     : [getReleaseSummary(lastTenReleases[0])]
+}
+
+/**
+ * This method is used in conjunction with the Help > Show Popup > Release notes
+ * menu item to test release notes on dev builds.
+ **/
+export async function generateDevReleaseSummary(): Promise<
+  ReadonlyArray<ReleaseSummary>
+> {
+  // Remove version if want to use latest version in your dev build
+  const releases = [...(await generateReleaseSummary('3.0.0'))]
+
+  const pretextDraft = await readFile(
+    Path.join(__dirname, 'static', 'pretext-draft.md'),
+    'utf8'
+  ).catch(_ => null)
+
+  if (pretextDraft === null) {
+    return releases
+  }
+
+  return [
+    {
+      ...releases[0],
+      pretext: [{ kind: 'pretext', message: pretextDraft }],
+    },
+    ...releases.slice(1),
+  ]
 }
 
 export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
