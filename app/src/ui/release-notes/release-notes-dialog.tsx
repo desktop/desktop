@@ -100,6 +100,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
       datePublished: `${oldestRelease.datePublished} to ${latestRelease.datePublished}`,
       enhancements: newReleases.flatMap(r => r.enhancements),
       bugfixes: newReleases.flatMap(r => r.bugfixes),
+      pretext: newReleases.flatMap(r => r.pretext),
       other: [],
       thankYous: [],
     }

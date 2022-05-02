@@ -70,14 +70,14 @@ export function getReleaseSummary(
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
   const thankYous = entries.filter(e => e.message.includes(' Thanks @'))
+  const pretext = entries.filter(e => e.kind === 'pretext')
 
   return {
     latestVersion: latestRelease.version,
     datePublished: formatDate(new Date(latestRelease.pub_date), {
       dateStyle: 'long',
     }),
-    // TODO: find pretext entry
-    pretext: undefined,
+    pretext,
     enhancements,
     bugfixes,
     other,
