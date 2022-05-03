@@ -49,6 +49,27 @@ type OnPullRequestReviewSubmitCallback = (
   numberOfComments: number
 ) => void
 
+export interface IDesktopChecksFailedNotificationUserInfo {
+  readonly type: 'pr-checks-failed'
+  readonly owner: string
+  readonly repo: string
+  readonly pullRequestNumber: number
+  readonly checkSuiteId: number
+  readonly commitSha: string
+}
+
+export interface IDesktopPullRequestReviewSubmitNotificationUserInfo {
+  readonly type: 'pr-review-submit'
+  readonly owner: string
+  readonly repo: string
+  readonly pullRequestNumber: number
+  readonly reviewId: string
+}
+
+export type DesktopNotificationUserInfo =
+  | IDesktopChecksFailedNotificationUserInfo
+  | IDesktopPullRequestReviewSubmitNotificationUserInfo
+
 /**
  * The localStorage key for whether the user has enabled high-signal
  * notifications.
@@ -152,7 +173,15 @@ export class NotificationsStore {
       pullRequest.pullRequestNumber
     }\n${truncateWithEllipsis(review.body, 50)}`
 
-    showNotification(title, body, () => {
+    const userInfo: DesktopNotificationUserInfo = {
+      type: 'pr-review-submit',
+      owner: event.owner,
+      repo: event.repo,
+      pullRequestNumber: event.pull_request_number,
+      reviewId: event.review_id,
+    }
+
+    showNotification(title, body, userInfo, () => {
       this.statsStore.recordPullRequestReviewNotificationClicked(review.state)
 
       this.onPullRequestReviewSubmitCallback?.(
@@ -219,11 +248,21 @@ export class NotificationsStore {
       return
     }
 
+    const userInfo: DesktopNotificationUserInfo = {
+      type: 'pr-checks-failed',
+      owner: event.owner,
+      repo: event.repo,
+      checkSuiteId: event.check_suite_id,
+      pullRequestNumber: event.pull_request_number,
+      commitSha: event.commit_sha,
+    }
+
     this.postChecksFailedNotification(
       pullRequest,
       checks,
       commitSHA,
-      commit.summary
+      commit.summary,
+      userInfo
     )
   }
 
@@ -258,7 +297,8 @@ export class NotificationsStore {
     pullRequest: PullRequest,
     checks: ReadonlyArray<IRefCheck>,
     sha: string,
-    commitMessage: string
+    commitMessage: string,
+    userInfo: IDesktopChecksFailedNotificationUserInfo
   ) {
     if (this.repository === null) {
       return
@@ -284,7 +324,7 @@ export class NotificationsStore {
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
 
-    showNotification(title, body, () => {
+    showNotification(title, body, userInfo, () => {
       this.statsStore.recordChecksFailedNotificationClicked()
 
       this.onChecksFailedCallback?.(

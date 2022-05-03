@@ -24,6 +24,7 @@ export function initializeRendererNotificationHandler() {
 export async function showNotification(
   title: string,
   body: string,
+  userInfo: Record<string, any>,
   onClick: () => void
 ) {
   if (!supportsNotifications()) {
@@ -38,6 +39,6 @@ export async function showNotification(
     return
   }
 
-  const notificationID = await invokeShowNotification(title, body)
+  const notificationID = await invokeShowNotification(title, body, userInfo)
   notificationCallbacks.set(notificationID, onClick)
 }

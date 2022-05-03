@@ -455,6 +455,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     showNotification(
       'Test notification',
       'Click here! This is a test notification',
+      {},
       () => this.props.dispatcher.showPopup({ type: PopupType.About })
     )
   }
