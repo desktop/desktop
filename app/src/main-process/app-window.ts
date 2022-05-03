@@ -21,6 +21,7 @@ import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
 import * as ipcMain from './ipc-main'
 import * as ipcWebContents from './ipc-webcontents'
+import { installNotificationCallback } from './notifications'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -73,6 +74,8 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+
+    installNotificationCallback(this.window)
 
     savedWindowState.manage(this.window)
     this.shouldMaximizeOnShow = savedWindowState.isMaximized

@@ -13,6 +13,7 @@ import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
 import { PathType } from '../ui/lib/app-proxy'
 import { ThemeSource } from '../ui/lib/theme-source'
+import { DesktopNotificationPermission } from 'desktop-notifications/dist/notification-permission'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -72,6 +73,11 @@ export type RequestChannels = {
   'native-theme-updated': () => void
   'set-native-theme-source': (themeName: ThemeSource) => void
   'focus-window': () => void
+  'notification-event': (
+    event: string,
+    id: string,
+    userInfo: Record<string, any>
+  ) => void
 }
 
 /**
@@ -112,4 +118,10 @@ export type RequestResponseChannels = {
   'should-use-dark-colors': () => Promise<boolean>
   'save-guid': (guid: string) => Promise<void>
   'get-guid': () => Promise<string>
+  'show-notification': (
+    title: string,
+    body: string,
+    userInfo?: Record<string, any>
+  ) => Promise<string>
+  'get-notifications-permission': () => Promise<DesktopNotificationPermission>
 }
