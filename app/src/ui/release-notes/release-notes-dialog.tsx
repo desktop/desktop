@@ -90,7 +90,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
       return this.props.newReleases[0]
     }
 
-    const earliestRelease = this.props.newReleases.slice(-1)[0]
+    const oldestRelease = this.props.newReleases.slice(-1)[0]
 
     let enhancements = new Array<ReleaseNote>()
     let bugfixes = new Array<ReleaseNote>()
@@ -103,7 +103,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     const {
       latestVersion: earliestVersion,
       datePublished: earliestDatePublished,
-    } = earliestRelease
+    } = oldestRelease
 
     const { latestVersion, datePublished } = this.props.newReleases[0]
 
