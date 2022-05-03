@@ -86,32 +86,26 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
    * If there is just one release, it returns it. If multiple, it merges the release notes.
    */
   private getDisplayRelease = () => {
-    if (this.props.newReleases.length === 1) {
-      return this.props.newReleases[0]
+    const { newReleases } = this.props
+    const latestRelease = newReleases[0]
+
+    if (newReleases.length === 1) {
+      return latestRelease
     }
 
-    const oldestRelease = this.props.newReleases.slice(-1)[0]
-
-    let enhancements = new Array<ReleaseNote>()
-    let bugfixes = new Array<ReleaseNote>()
-
-    for (const r of this.props.newReleases) {
-      enhancements = enhancements.concat(r.enhancements)
-      bugfixes = bugfixes.concat(r.bugfixes)
-    }
-
-    const {
-      latestVersion: earliestVersion,
-      datePublished: earliestDatePublished,
-    } = oldestRelease
-
-    const { latestVersion, datePublished } = this.props.newReleases[0]
+    const oldestRelease = newReleases.slice(-1)[0]
 
     return {
-      latestVersion: `${earliestVersion} - ${latestVersion}`,
-      datePublished: `${earliestDatePublished} to ${datePublished}`,
-      enhancements,
-      bugfixes,
+      latestVersion: `${oldestRelease.latestVersion} - ${latestRelease.latestVersion}`,
+      datePublished: `${oldestRelease.datePublished} to ${latestRelease.datePublished}`,
+      enhancements: newReleases.reduce(
+        (notes, release) => notes.concat(release.enhancements),
+        new Array<ReleaseNote>()
+      ),
+      bugfixes: newReleases.reduce(
+        (notes, release) => notes.concat(release.bugfixes),
+        new Array<ReleaseNote>()
+      ),
       other: [],
       thankYous: [],
     }
