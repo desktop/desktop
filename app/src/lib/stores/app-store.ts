@@ -418,6 +418,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
+  private isUpdateShowCaseVisible: boolean = false
 
   private askToMoveToApplicationsFolderSetting: boolean =
     askToMoveToApplicationsFolderDefault
@@ -863,6 +864,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      isUpdateShowCaseVisible: this.isUpdateShowCaseVisible,
       currentBanner: this.currentBanner,
       askToMoveToApplicationsFolderSetting:
         this.askToMoveToApplicationsFolderSetting,
@@ -5119,6 +5121,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
+
+    this.emitUpdate()
+  }
+
+  public _setUpdateShowCaseVisibility(visibility: boolean) {
+    this.isUpdateShowCaseVisible = visibility
 
     this.emitUpdate()
   }

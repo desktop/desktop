@@ -953,6 +953,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the update show case visibility
+   */
+  public setUpdateShowCaseVisibility(isVisible: boolean) {
+    return this.appStore._setUpdateShowCaseVisibility(isVisible)
+  }
+
+  /**
    * Set the banner state for the application
    */
   public setBanner(state: Banner) {

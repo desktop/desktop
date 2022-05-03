@@ -253,7 +253,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     ipcRenderer.on('menu-event', (_, name) => this.onMenuEvent(name))
 
-    updateStore.onDidChange(state => {
+    updateStore.onDidChange(async state => {
       const status = state.status
 
       if (
@@ -261,6 +261,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         status === UpdateStatus.UpdateReady
       ) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
+      }
+      if (await updateStore.isUpdateShowcase()) {
+        this.props.dispatcher.setUpdateShowCaseVisibility(true)
       }
     })
 
@@ -310,6 +313,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     ) {
       setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
       this.checkForUpdates(true)
+    } else if (await updateStore.isUpdateShowcase()) {
+      // The only purpose of this call is so we can see the showcase on dev/test
+      // env. Prod and beta environment will trigger this during automatic check
+      // for updates.
+      this.props.dispatcher.setUpdateShowCaseVisibility(true)
     }
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
