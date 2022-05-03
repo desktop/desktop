@@ -73,7 +73,33 @@ export function getNextVersionNumber(
         const firstBeta = `${nextVersion}-beta1`
         return firstBeta
       }
+    case 'test':
+      console.warn(
+        `WARNING: Since we do not tag test versions, the version provided will always be the first of test series respective of latest prod or beta.
+         You may need to adjust the -testX according to how many test releases already exist.`
+      )
 
+      if (isTestTag(semanticVersion)) {
+        /*Since we do not tag test versions, it "should be" impossible to reach
+        this first if, but added just for the case of future proofing the ideal
+        path. */
+        const tag = semanticVersion.prerelease[0]
+        const text = tag.substring(4)
+        const testNumber = parseInt(text, 10)
+        return semanticVersion.version.replace(
+          `-test${testNumber}`,
+          `-test${testNumber + 1}`
+        )
+      } else if (isBetaTag(semanticVersion)) {
+        return semanticVersion.version.replace(
+          semanticVersion.prerelease[0],
+          'test1'
+        )
+      } else {
+        const nextVersion = inc(semanticVersion, 'patch')
+        const firstTest = `${nextVersion}-test1`
+        return firstTest
+      }
     default:
       throw new Error(
         `Resolving the next version is not implemented for channel ${channel}`
