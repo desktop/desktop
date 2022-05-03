@@ -98,14 +98,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     return {
       latestVersion: `${oldestRelease.latestVersion} - ${latestRelease.latestVersion}`,
       datePublished: `${oldestRelease.datePublished} to ${latestRelease.datePublished}`,
-      enhancements: newReleases.reduce(
-        (notes, release) => notes.concat(release.enhancements),
-        new Array<ReleaseNote>()
-      ),
-      bugfixes: newReleases.reduce(
-        (notes, release) => notes.concat(release.bugfixes),
-        new Array<ReleaseNote>()
-      ),
+      enhancements: newReleases.flatMap(r => r.enhancements),
+      bugfixes: newReleases.flatMap(r => r.bugfixes),
       other: [],
       thankYous: [],
     }
