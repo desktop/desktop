@@ -150,7 +150,7 @@ import { clamp } from '../lib/clamp'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
-import { getReleaseSummary } from '../lib/release-notes'
+import { generateReleaseSummary } from '../lib/release-notes'
 import { PullRequestReview } from './notifications/pull-request-review'
 import { getPullRequestCommitRef } from '../models/pull-request'
 import { getRepositoryType } from '../lib/git'
@@ -435,25 +435,11 @@ export class App extends React.Component<IAppProps, IAppState> {
    * make it easier to verify changes to the popup. Has no meaning
    * about a new release being available.
    */
-  private showFakeReleaseNotesPopup() {
+  private async showFakeReleaseNotesPopup() {
     if (__DEV__) {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,
-        newRelease: getReleaseSummary({
-          name: '',
-          version: '42.7.99',
-          notes: [
-            '[New] An awesome new feature!',
-            '[Improved] This is so much better',
-            '[Improved] Testing links to profile pages by a mention to @shiftkey',
-            '[Fixed] Fixed this one thing',
-            '[Fixed] Fixed this thing over here too',
-            '[Fixed] Testing links to issues by calling out #42. Assuming it is fixed by now.',
-            '[OhHai] Look at me, a new category!',
-            '[Added] In other news... . Thanks @some-body-to-thank!',
-          ],
-          pub_date: '2025-11-07T09:52:34Z',
-        }),
+        newReleases: await generateReleaseSummary(),
       })
     }
   }
@@ -1727,7 +1713,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <ReleaseNotes
             key="release-notes"
             emoji={this.state.emoji}
-            newRelease={popup.newRelease}
+            newReleases={popup.newReleases}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2726,7 +2712,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
-        newRelease={updateStore.state.newRelease}
+        newReleases={updateStore.state.newReleases}
         onDismissed={this.onUpdateAvailableDismissed}
         key={'update-available'}
       />

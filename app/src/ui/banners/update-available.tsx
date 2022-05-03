@@ -13,7 +13,7 @@ import { ReleaseNotesUri } from '../lib/releases'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
-  readonly newRelease: ReleaseSummary | null
+  readonly newReleases: ReadonlyArray<ReleaseSummary> | null
   readonly onDismissed: () => void
 }
 
@@ -47,14 +47,14 @@ export class UpdateAvailable extends React.Component<
   }
 
   private showReleaseNotes = () => {
-    if (this.props.newRelease == null) {
+    if (this.props.newReleases == null) {
       // if, for some reason we're not able to render the release notes we
       // should redirect the user to the website so we do _something_
       shell.openExternal(ReleaseNotesUri)
     } else {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,
-        newRelease: this.props.newRelease,
+        newReleases: this.props.newReleases,
       })
     }
   }

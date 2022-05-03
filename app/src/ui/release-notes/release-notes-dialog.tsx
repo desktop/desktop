@@ -16,7 +16,7 @@ import {
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
   readonly emoji: Map<string, string>
-  readonly newRelease: ReleaseSummary
+  readonly newReleases: ReadonlyArray<ReleaseSummary>
 }
 
 /**
@@ -82,11 +82,35 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     )
   }
 
+  /**
+   * If there is just one release, it returns it. If multiple, it merges the release notes.
+   */
+  private getDisplayRelease = () => {
+    const { newReleases } = this.props
+    const latestRelease = newReleases[0]
+
+    if (newReleases.length === 1) {
+      return latestRelease
+    }
+
+    const oldestRelease = newReleases.slice(-1)[0]
+
+    return {
+      latestVersion: `${oldestRelease.latestVersion} - ${latestRelease.latestVersion}`,
+      datePublished: `${oldestRelease.datePublished} to ${latestRelease.datePublished}`,
+      enhancements: newReleases.flatMap(r => r.enhancements),
+      bugfixes: newReleases.flatMap(r => r.bugfixes),
+      other: [],
+      thankYous: [],
+    }
+  }
+
   public render() {
-    const release = this.props.newRelease
+    const release = this.getDisplayRelease()
+    const { latestVersion, datePublished, enhancements, bugfixes } = release
 
     const contents =
-      release.enhancements.length > 0 && release.bugfixes.length > 0
+      enhancements.length > 0 && bugfixes.length > 0
         ? this.drawTwoColumnLayout(release)
         : this.drawSingleColumnLayout(release)
 
@@ -97,8 +121,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
           src={ReleaseNoteHeaderLeftUri}
         />
         <div className="title">
-          <p className="version">Version {release.latestVersion}</p>
-          <p className="date">{release.datePublished}</p>
+          <p className="version">Version {latestVersion}</p>
+          <p className="date">{datePublished}</p>
         </div>
         <img
           className="release-note-graphic-right"

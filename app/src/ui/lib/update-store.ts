@@ -39,7 +39,7 @@ export enum UpdateStatus {
 export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
-  newRelease: ReleaseSummary | null
+  newReleases: ReadonlyArray<ReleaseSummary> | null
 }
 
 /** A store which contains the current state of the auto updater. */
@@ -47,7 +47,7 @@ class UpdateStore {
   private emitter = new Emitter()
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
-  private newRelease: ReleaseSummary | null = null
+  private newReleases: ReadonlyArray<ReleaseSummary> | null = null
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
@@ -101,7 +101,7 @@ class UpdateStore {
   }
 
   private onUpdateDownloaded = async () => {
-    this.newRelease = await generateReleaseSummary()
+    this.newReleases = await generateReleaseSummary()
 
     this.status = UpdateStatus.UpdateReady
 
@@ -134,7 +134,7 @@ class UpdateStore {
     return {
       status: this.status,
       lastSuccessfulCheck: this.lastSuccessfulCheck,
-      newRelease: this.newRelease,
+      newReleases: this.newReleases,
     }
   }
 
