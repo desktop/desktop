@@ -15,6 +15,7 @@ import { join } from 'path'
 import { format } from 'prettier'
 import { assertNever } from '../../app/src/lib/fatal-error'
 import { sh } from '../sh'
+import { readFile } from 'fs/promises'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
 
@@ -104,6 +105,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   const channel = parseChannel(args[0])
   const excludeBetaReleases = channel === 'production'
+  const draftPretext = args[1] === '--pretext'
   const previousVersion = await getLatestRelease({ excludeBetaReleases })
   const nextVersion = getNextVersionNumber(previousVersion, channel)
 
@@ -127,6 +129,13 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   const currentChangelog: IChangelog = require(changelogPath)
   const newEntries = new Array<string>()
+
+  if (draftPretext) {
+    const pretext = await getPretext()
+    if (pretext !== null) {
+      newEntries.push(pretext)
+    }
+  }
 
   switch (channel) {
     case 'production': {
@@ -211,4 +220,21 @@ type ChangelogReleases = { [key: string]: ReadonlyArray<string> }
 
 interface IChangelog {
   releases: ChangelogReleases
+}
+
+async function getPretext(): Promise<string | null> {
+  const pretextPath = join(
+    __dirname,
+    '..',
+    '..',
+    'app',
+    'static',
+    'common',
+    'pretext-draft.md'
+  )
+  const pretext = await readFile(pretextPath, 'utf8')
+  if (pretext.trim() === '') {
+    return null
+  }
+  return `[Pretext] ${pretext}`
 }
