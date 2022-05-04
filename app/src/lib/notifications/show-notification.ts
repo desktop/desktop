@@ -4,7 +4,7 @@ import { showNotification as invokeShowNotification } from '../../ui/main-proces
 import { notificationCallbacks } from './notification-handler'
 import { DesktopAliveEvent } from '../stores/alive-store'
 
-export interface IShowNotificationOptions {
+interface IShowNotificationOptions {
   title: string
   body: string
   userInfo?: DesktopAliveEvent

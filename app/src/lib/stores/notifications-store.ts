@@ -24,10 +24,7 @@ import {
   IDesktopPullRequestReviewSubmitAliveEvent,
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
-import {
-  IShowNotificationOptions,
-  showNotification,
-} from '../notifications/show-notification'
+import { showNotification } from '../notifications/show-notification'
 import { StatsStore } from '../stats'
 import { truncateWithEllipsis } from '../truncate-with-ellipsis'
 import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
@@ -103,18 +100,6 @@ export class NotificationsStore {
 
   public onNotificationEventReceived: NotificationCallback<DesktopAliveEvent> =
     async (event, id, userInfo) => this.handleAliveEvent(userInfo, true)
-
-  private async getShowNotificationOptions(
-    e: DesktopAliveEvent,
-    skipNotification: boolean
-  ): Promise<IShowNotificationOptions> {
-    switch (e.type) {
-      case 'pr-checks-failed':
-        return this.handleChecksFailedEvent(e, skipNotification)
-      case 'pr-review-submit':
-        return this.handlePullRequestReviewSubmitEvent(e, skipNotification)
-    }
-  }
 
   private async handleAliveEvent(
     e: DesktopAliveEvent,
