@@ -77,8 +77,11 @@ interface IPullRequestsLastUpdated {
 export type PullRequestKey = [number, number]
 
 export class PullRequestDatabase extends BaseDatabase {
-  public pullRequests!: Dexie.Table<IPullRequest, PullRequestKey>
-  public pullRequestsLastUpdated!: Dexie.Table<IPullRequestsLastUpdated, number>
+  public declare pullRequests: Dexie.Table<IPullRequest, PullRequestKey>
+  public declare pullRequestsLastUpdated: Dexie.Table<
+    IPullRequestsLastUpdated,
+    number
+  >
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)

@@ -523,8 +523,8 @@ export interface IDailyMeasures {
 }
 
 export class StatsDatabase extends Dexie {
-  public launches!: Dexie.Table<ILaunchStats, number>
-  public dailyMeasures!: Dexie.Table<IDailyMeasures, number>
+  public declare launches: Dexie.Table<ILaunchStats, number>
+  public declare dailyMeasures: Dexie.Table<IDailyMeasures, number>
 
   public constructor(name: string) {
     super(name)
