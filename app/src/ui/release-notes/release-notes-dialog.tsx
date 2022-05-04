@@ -155,7 +155,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         title={dialogHeader}
       >
         <DialogContent>
-          {this.getPretext(pretext)}
+          {this.renderPretext(pretext)}
           {contents}
         </DialogContent>
         <DialogFooter>
