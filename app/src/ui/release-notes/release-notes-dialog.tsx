@@ -107,7 +107,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     }
   }
 
-  private getPretext = (pretext: ReadonlyArray<ReleaseNote>) => {
+  private renderPretext = (pretext: ReadonlyArray<ReleaseNote>) => {
     if (pretext.length === 0) {
       return
     }
