@@ -10,10 +10,13 @@ import { shell } from '../../lib/app-shell'
 import { ReleaseSummary } from '../../models/release-notes'
 import { Banner } from './banner'
 import { ReleaseNotesUri } from '../lib/releases'
+import { RichText } from '../lib/rich-text'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
   readonly newReleases: ReadonlyArray<ReleaseSummary> | null
+  readonly isUpdateShowCaseVisible: boolean
+  readonly emoji: Map<string, string>
   readonly onDismissed: () => void
 }
 
@@ -28,21 +31,50 @@ export class UpdateAvailable extends React.Component<
   public render() {
     return (
       <Banner id="update-available" onDismissed={this.props.onDismissed}>
-        <Octicon
-          className="download-icon"
-          symbol={OcticonSymbol.desktopDownload}
-        />
+        {!this.props.isUpdateShowCaseVisible && (
+          <Octicon
+            className="download-icon"
+            symbol={OcticonSymbol.desktopDownload}
+          />
+        )}
 
-        <span onSubmit={this.updateNow}>
-          An updated version of GitHub Desktop is available and will be
-          installed at the next launch. See{' '}
+        {this.renderMessage()}
+      </Banner>
+    )
+  }
+
+  private renderMessage = () => {
+    if (this.props.isUpdateShowCaseVisible) {
+      const version =
+        this.props.newReleases !== null
+          ? ` with GitHub Desktop ${this.props.newReleases[0].latestVersion}`
+          : ''
+
+      return (
+        <span>
+          <RichText
+            className="banner-emoji"
+            text={':tada:'}
+            emoji={this.props.emoji}
+          />
+          Exciting new features have been added{version}. See{' '}
           <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton> or{' '}
-          <LinkButton onClick={this.updateNow}>
-            restart GitHub Desktop
+          <LinkButton onClick={this.dismissUpdateShowCaseVisibility}>
+            dismiss
           </LinkButton>
           .
         </span>
-      </Banner>
+      )
+    }
+
+    return (
+      <span onSubmit={this.updateNow}>
+        An updated version of GitHub Desktop is available and will be installed
+        at the next launch. See{' '}
+        <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton> or{' '}
+        <LinkButton onClick={this.updateNow}>restart GitHub Desktop</LinkButton>
+        .
+      </span>
     )
   }
 
@@ -72,6 +104,8 @@ export class UpdateAvailable extends React.Component<
         newReleases: this.props.newReleases,
       })
     }
+
+    this.dismissUpdateShowCaseVisibility()
   }
 
   private updateNow = () => {

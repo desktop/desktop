@@ -2702,7 +2702,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.props.dispatcher,
         this.onBannerDismissed
       )
-    } else if (this.state.isUpdateAvailableBannerVisible) {
+    } else if (
+      this.state.isUpdateAvailableBannerVisible ||
+      this.state.isUpdateShowCaseVisible
+    ) {
       banner = this.renderUpdateBanner()
     }
     return (
@@ -2722,6 +2725,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         newReleases={updateStore.state.newReleases}
         onDismissed={this.onUpdateAvailableDismissed}
+        isUpdateShowCaseVisible={this.state.isUpdateShowCaseVisible}
+        emoji={this.state.emoji}
         key={'update-available'}
       />
     )
