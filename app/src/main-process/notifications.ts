@@ -4,6 +4,7 @@ import {
 } from 'desktop-notifications'
 import { BrowserWindow } from 'electron'
 import { findToastActivatorClsid } from '../lib/find-toast-activator-clsid'
+import { DesktopAliveEvent } from '../lib/stores/alive-store'
 import * as ipcWebContents from './ipc-webcontents'
 
 let windowsToastActivatorClsid: string | undefined = undefined
@@ -35,7 +36,7 @@ export function initializeDesktopNotifications() {
 }
 
 export function installNotificationCallback(window: BrowserWindow) {
-  onNotificationEvent((event, id, userInfo) => {
+  onNotificationEvent<DesktopAliveEvent>((event, id, userInfo) => {
     ipcWebContents.send(
       window.webContents,
       'notification-event',

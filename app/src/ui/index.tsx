@@ -78,7 +78,7 @@ import { AliveStore } from '../lib/stores/alive-store'
 import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { migrateRendererGUID } from '../lib/get-renderer-guid'
-import { initializeRendererNotificationHandler } from '../lib/stores/helpers/show-notification'
+import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
 
 if (__DEV__) {
   installDevGlobals()
@@ -91,8 +91,6 @@ if (shellNeedsPatching(process)) {
 }
 
 enableSourceMaps()
-
-initializeRendererNotificationHandler()
 
 // Tell dugite where to find the git environment,
 // see https://github.com/desktop/dugite/pull/85
@@ -309,6 +307,8 @@ dispatcher.registerErrorHandler(discardChangesHandler)
 document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.initializeAppFocusState()
+
+initializeRendererNotificationHandler(notificationsStore)
 
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)

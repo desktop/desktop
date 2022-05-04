@@ -14,6 +14,8 @@ import { EndpointToken } from './endpoint-token'
 import { PathType } from '../ui/lib/app-proxy'
 import { ThemeSource } from '../ui/lib/theme-source'
 import { DesktopNotificationPermission } from 'desktop-notifications/dist/notification-permission'
+import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
+import { DesktopAliveEvent } from './stores/alive-store'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -73,11 +75,7 @@ export type RequestChannels = {
   'native-theme-updated': () => void
   'set-native-theme-source': (themeName: ThemeSource) => void
   'focus-window': () => void
-  'notification-event': (
-    event: string,
-    id: string,
-    userInfo: Record<string, any>
-  ) => void
+  'notification-event': NotificationCallback<DesktopAliveEvent>
 }
 
 /**
@@ -121,7 +119,7 @@ export type RequestResponseChannels = {
   'show-notification': (
     title: string,
     body: string,
-    userInfo?: Record<string, any>
+    userInfo?: DesktopAliveEvent
   ) => Promise<string>
   'get-notifications-permission': () => Promise<DesktopNotificationPermission>
 }
