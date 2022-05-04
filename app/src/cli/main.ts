@@ -16,7 +16,6 @@ if (!args[0]) {
 const commandArg = args[0]
 args = args.slice(1)
 
-// tslint:disable-next-line whitespace
 ;(function attemptRun(name: string) {
   try {
     if (supportsCommand(name)) {
