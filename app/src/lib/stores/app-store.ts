@@ -114,7 +114,7 @@ import {
   getAvailableEditors,
   launchExternalEditor,
 } from '../editors'
-import { assertNever, fatalError } from '../fatal-error'
+import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -6266,26 +6266,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) {
-    if (commits.length === 0) {
-      // This shouldn't happen... but in case throw error.
-      throw new Error(
-        'Unable to initialize cherry-pick progress. No commits provided.'
-      )
-    }
+    // This shouldn't happen... but in case throw error.
+    const lastCommit = forceUnwrap(
+      'Unable to initialize cherry-pick progress. No commits provided.',
+      commits.at(-1)
+    )
 
     this.repositoryStateCache.updateMultiCommitOperationState(
       repository,
-      () => {
-        return {
-          progress: {
-            kind: 'multiCommitOperation',
-            value: 0,
-            position: 1,
-            totalCommitCount: commits.length,
-            currentCommitSummary: commits[commits.length - 1].summary,
-          },
-        }
-      }
+      () => ({
+        progress: {
+          kind: 'multiCommitOperation',
+          value: 0,
+          position: 1,
+          totalCommitCount: commits.length,
+          currentCommitSummary: lastCommit.summary,
+        },
+      })
     )
 
     this.emitUpdate()

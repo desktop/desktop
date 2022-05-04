@@ -26,6 +26,7 @@ import { DiffParser } from '../diff-parser'
 import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
+import { forceUnwrap } from '../fatal-error'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -362,7 +363,7 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
 
   const pieces = result.split('\0')
   const parser = new DiffParser()
-  return parser.parse(pieces[pieces.length - 1])
+  return parser.parse(forceUnwrap(`Invalid diff output`, pieces.at(-1)))
 }
 
 function buildDiff(

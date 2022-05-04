@@ -995,7 +995,7 @@ export class API {
           // updated_at field we can safely say that if the last item
           // is modified after our sinceTime then haven't reached the
           // end of updated PRs.
-          const last = results[results.length - 1]
+          const last = results.at(-1)
           return last !== undefined && Date.parse(last.updated_at) > sinceTime
         },
         // We can't ignore errors here as that might mean that we haven't

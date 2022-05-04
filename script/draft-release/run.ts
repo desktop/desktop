@@ -13,7 +13,7 @@ import { execSync } from 'child_process'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { format } from 'prettier'
-import { assertNever } from '../../app/src/lib/fatal-error'
+import { assertNever, forceUnwrap } from '../../app/src/lib/fatal-error'
 import { sh } from '../sh'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
@@ -41,7 +41,7 @@ async function getLatestRelease(options: {
   const releaseVersions = releaseTags.map(tag => tag.substring(8))
 
   const sortedTags = semverSort(releaseVersions)
-  const latestTag = sortedTags[sortedTags.length - 1]
+  const latestTag = forceUnwrap(`No tags`, sortedTags.at(-1))
 
   return latestTag instanceof SemVer ? latestTag.raw : latestTag
 }
