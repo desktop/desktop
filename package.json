@@ -103,7 +103,7 @@
     "ts-jest": "^26.4.4",
     "ts-loader": "^9",
     "ts-node": "^7.0.0",
-    "typescript": "^4.5.5",
+    "typescript": "^4.6.4",
     "webpack": "^5.68.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-dev-middleware": "^5.3.1",
