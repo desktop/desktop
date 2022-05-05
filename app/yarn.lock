@@ -364,7 +364,7 @@ delegates@^1.0.0:
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
 desktop-notifications@../../desktop-notifications:
-  version "0.1.7"
+  version "0.2.0"
   dependencies:
     node-addon-api "^4.3.0"
     prebuild-install "^7.0.1"

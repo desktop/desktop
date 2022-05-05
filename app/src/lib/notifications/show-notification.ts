@@ -33,5 +33,7 @@ export async function showNotification(options: IShowNotificationOptions) {
     options.body,
     options.userInfo
   )
-  notificationCallbacks.set(notificationID, options.onClick)
+  if (notificationID !== null) {
+    notificationCallbacks.set(notificationID, options.onClick)
+  }
 }

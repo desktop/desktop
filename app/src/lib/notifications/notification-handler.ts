@@ -11,6 +11,10 @@ export function initializeRendererNotificationHandler(
   notificationsStore: NotificationsStore
 ) {
   ipcRenderer.on('notification-event', (_, event, id, userInfo) => {
+    if (event !== 'click') {
+      return
+    }
+
     focusWindow()
     const callback = notificationCallbacks.get(id)
     if (callback !== undefined) {
