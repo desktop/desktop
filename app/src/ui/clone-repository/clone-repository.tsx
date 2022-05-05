@@ -150,7 +150,8 @@ export class CloneRepository extends React.Component<
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
-    const defaultDirectory = null
+    // Initialize initial path with a '/' to avoid invalid paths
+    const defaultDirectory = '/'
 
     const initialBaseTabState: IBaseTabState = {
       error: null,
