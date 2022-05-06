@@ -7,12 +7,14 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { IAheadBehind } from '../../models/branch' 
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
   readonly existsOnRemote: boolean
+  readonly aheadBehind: IAheadBehind | null
   readonly onDismissed: () => void
   readonly onDeleted: (repository: Repository) => void
 }
@@ -71,6 +73,9 @@ export class DeleteBranch extends React.Component<
               there as well?
             </strong>
           </p>
+          {this.props.aheadBehind && this.props.aheadBehind.ahead > 0 ? 
+          (<p><Ref>{this.props.branch.name}</Ref> has <em>{unmergedCommits}</em>{' '}
+          unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.</p>) : null}
           <Checkbox
             label="Yes, delete this branch on the remote"
             value={
