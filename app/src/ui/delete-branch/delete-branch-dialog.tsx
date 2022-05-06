@@ -64,8 +64,11 @@ export class DeleteBranch extends React.Component<
           </p>
         </DialogContent>
         <DialogFooter>
-          <OkCancelButtonGroup destructive={true} cancelButtonText="No" 
-          okButtonText="Merge and Delete" />
+          <OkCancelButtonGroup
+            destructive={true}
+            cancelButtonText="No"
+            okButtonText="Merge and Delete"
+          />
         </DialogFooter>
       </Dialog>
     )
@@ -107,9 +110,12 @@ export class DeleteBranch extends React.Component<
               there as well?
             </strong>
           </p>
-          {this.props.aheadBehind && this.props.aheadBehind.ahead > 0 ? 
-          (<p><Ref>{this.props.branch.name}</Ref> has <em>{unmergedCommits}</em>{' '}
-          unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.</p>) : null}
+          {this.props.aheadBehind && this.props.aheadBehind.ahead > 0 ? (
+            <p>
+              <Ref>{this.props.branch.name}</Ref> has <em>{unmergedCommits}</em>{' '}
+              unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.
+            </p>
+          ) : null}
           <Checkbox
             label="Yes, delete this branch on the remote"
             value={
@@ -154,7 +160,7 @@ export class DeleteBranch extends React.Component<
       this.props.repository,
       this.props.branch.name
     )
-    
+
     this.renderDeleteBranch()
   }
 }
