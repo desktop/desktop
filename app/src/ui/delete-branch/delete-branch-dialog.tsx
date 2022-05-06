@@ -8,11 +8,13 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { IAheadBehind } from '../../models/branch'
+import { MergeTreeResult } from '../../models/merge'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
+  readonly mergeStatus: MergeTreeResult | null
   readonly existsOnRemote: boolean
   readonly aheadBehind: IAheadBehind | null
   readonly onDismissed: () => void
@@ -101,6 +103,8 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
+    const unmergedCommits = this.props.aheadBehind!.ahead
+
     if (this.props.branch.upstreamRemoteName && this.props.existsOnRemote) {
       return (
         <div>
@@ -158,7 +162,8 @@ export class DeleteBranch extends React.Component<
   private mergeAndDeleteBranch = async () => {
     await this.props.dispatcher.mergeBranch(
       this.props.repository,
-      this.props.branch.name
+      this.props.branch,
+      this.props.mergeStatus
     )
 
     this.renderDeleteBranch()

@@ -443,7 +443,9 @@ export class BranchesContainer extends React.Component<
       type: PopupType.DeleteBranch,
       repository: this.props.repository,
       branch,
+      mergeStatus: null,
       existsOnRemote: aheadBehind !== null,
+      aheadBehind: aheadBehind,
     })
   }
 

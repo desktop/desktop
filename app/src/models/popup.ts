@@ -21,6 +21,8 @@ import { IAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
+import { IAheadBehind } from '../models/branch'
+import { MergeTreeResult } from '../models/merge'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -83,6 +85,7 @@ export enum PopupType {
   WarnForcePush,
   DiscardChangesRetry,
   PullRequestReview,
+  IAheadBehind,
 }
 
 export type Popup =
@@ -92,6 +95,8 @@ export type Popup =
       repository: Repository
       branch: Branch
       existsOnRemote: boolean
+      mergeStatus: MergeTreeResult | null
+      aheadBehind: IAheadBehind | null
     }
   | {
       type: PopupType.DeleteRemoteBranch
