@@ -151,7 +151,7 @@ export class CloneRepository extends React.Component<
     super(props)
 
     // Initialize initial path with a '/' to avoid invalid paths
-    const defaultDirectory = __WIN32__? '\\' : '/'
+    const defaultDirectory = '/'
 
     const initialBaseTabState: IBaseTabState = {
       error: null,
