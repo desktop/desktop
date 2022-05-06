@@ -7,7 +7,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { IAheadBehind } from '../../models/branch' 
+import { IAheadBehind } from '../../models/branch'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -38,6 +38,40 @@ export class DeleteBranch extends React.Component<
   }
 
   public render() {
+    const aheadBehind = this.props.aheadBehind
+    return aheadBehind !== null && aheadBehind.ahead > 0
+      ? this.renderDeleteBranchWithUnmergedCommits()
+      : this.renderDeleteBranch()
+  }
+
+  private renderDeleteBranchWithUnmergedCommits() {
+    const unmergedCommits = this.props.aheadBehind!.ahead
+
+    return (
+      <Dialog
+        id="delete-branch"
+        title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
+        type="warning"
+        onSubmit={this.mergeAndDeleteBranch}
+        onDismissed={this.renderDeleteBranch}
+      >
+        <DialogContent>
+          <p>
+            <Ref>{this.props.branch.name}</Ref> has <em>{unmergedCommits}</em>{' '}
+            unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.
+            <br />
+            Would you like to merge your changes first?
+          </p>
+        </DialogContent>
+        <DialogFooter>
+          <OkCancelButtonGroup destructive={true} cancelButtonText="No" 
+          okButtonText="Merge and Delete" />
+        </DialogFooter>
+      </Dialog>
+    )
+  }
+
+  private renderDeleteBranch() {
     return (
       <Dialog
         id="delete-branch"
@@ -113,5 +147,14 @@ export class DeleteBranch extends React.Component<
     this.props.onDeleted(repository)
 
     this.props.onDismissed()
+  }
+
+  private mergeAndDeleteBranch = async () => {
+    await this.props.dispatcher.mergeBranch(
+      this.props.repository,
+      this.props.branch.name
+    )
+    
+    this.renderDeleteBranch()
   }
 }
