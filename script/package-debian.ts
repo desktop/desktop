@@ -16,7 +16,7 @@ type DebianOptions = {
   // required
   src: string
   dest: string
-  arch: 'amd64' | 'i386' | 'arm64'
+  arch: 'amd64' | 'i386' | 'arm64' | 'armhf'
   // optional
   description?: string
   productDescription?: string
