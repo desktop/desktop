@@ -24,7 +24,9 @@ type WindowsExternalEditorPathInfo =
        * Registry key with the install location of the app. If not provided,
        * 'InstallLocation' will be used.
        **/
-      readonly installLocationRegistryKey?: 'InstallLocation'
+      readonly installLocationRegistryKey?:
+        | 'InstallLocation'
+        | 'UninstallString'
 
       /**
        * List of lists of path components from the editor's installation folder to
@@ -314,7 +316,11 @@ const editors: WindowsExternalEditor[] = [
   {
     name: 'Android Studio',
     registryKeys: [LocalMachineUninstallKey('Android Studio')],
-    installLocationRegistryKey: 'DisplayIcon',
+    installLocationRegistryKey: 'UninstallString',
+    executableShimPaths: [
+      ['..', 'bin', `studio64.exe`],
+      ['..', 'bin', `studio.exe`],
+    ],
     displayNamePrefix: 'Android Studio',
     publisher: 'Google LLC',
   },
