@@ -22,7 +22,7 @@ type WindowsExternalEditorPathInfo =
   | {
       /**
        * Registry key with the install location of the app. If not provided,
-       * 'InstallLocation' will be used.
+       * 'InstallLocation' or 'UninstallString' will be assumed.
        **/
       readonly installLocationRegistryKey?:
         | 'InstallLocation'
