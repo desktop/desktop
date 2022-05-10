@@ -88,13 +88,17 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
    */
   private getDisplayRelease = () => {
     const { newReleases } = this.props
-    const latestRelease = newReleases[0]
 
-    if (newReleases.length === 1) {
+    const latestRelease = newReleases.at(0)
+    const oldestRelease = newReleases.at(-1)
+
+    if (
+      latestRelease === undefined ||
+      oldestRelease === undefined ||
+      latestRelease === oldestRelease
+    ) {
       return latestRelease
     }
-
-    const oldestRelease = newReleases.slice(-1)[0]
 
     return {
       latestVersion: `${oldestRelease.latestVersion} - ${latestRelease.latestVersion}`,
@@ -122,6 +126,11 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
   public render() {
     const release = this.getDisplayRelease()
+
+    if (release === undefined) {
+      return null
+    }
+
     const { latestVersion, datePublished, enhancements, bugfixes, pretext } =
       release
 

@@ -420,13 +420,14 @@ export function getTextDiffWithBottomDummyHunk(
   numberOfOldLines: number,
   numberOfNewLines: number
 ): ITextDiff | null {
-  if (hunks.length === 0) {
+  const lastHunk = hunks.at(-1)
+
+  if (lastHunk === undefined) {
     return null
   }
 
   // If the last hunk doesn't reach the end of the file, create a dummy hunk
   // at the end to allow expanding the diff down.
-  const lastHunk = hunks[hunks.length - 1]
   const lastHunkNewLine =
     lastHunk.header.newStartLine + lastHunk.header.newLineCount
 
