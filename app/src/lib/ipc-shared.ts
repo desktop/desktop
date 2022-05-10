@@ -122,4 +122,5 @@ export type RequestResponseChannels = {
     userInfo?: DesktopAliveEvent
   ) => Promise<string | null>
   'get-notifications-permission': () => Promise<DesktopNotificationPermission>
+  'request-notifications-permission': () => Promise<boolean>
 }

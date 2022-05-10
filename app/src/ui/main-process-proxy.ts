@@ -352,3 +352,9 @@ export const getNotificationsPermission = invokeProxy(
   'get-notifications-permission',
   0
 )
+
+/** Tell the main process to request the app's permission to display notifications */
+export const requestNotificationsPermission = invokeProxy(
+  'request-notifications-permission',
+  0
+)

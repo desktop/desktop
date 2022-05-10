@@ -42,6 +42,7 @@ import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
 import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
 import {
   getNotificationsPermission,
+  requestNotificationsPermission,
   showNotification,
 } from 'desktop-notifications'
 import { initializeDesktopNotifications } from './notifications'
@@ -669,6 +670,9 @@ app.on('ready', () => {
 
   ipcMain.handle('get-notifications-permission', async () =>
     getNotificationsPermission()
+  )
+  ipcMain.handle('request-notifications-permission', async () =>
+    requestNotificationsPermission()
   )
 })
 

@@ -7,7 +7,15 @@ import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-str
 import { RadioButton } from '../lib/radio-button'
 import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
 import { enableHighSignalNotifications } from '../../lib/feature-flag'
-import { isWindows10OrLater } from '../../lib/get-os'
+import {
+  getNotificationSettingsUrl,
+  supportsNotifications,
+  supportsNotificationsPermissionRequest,
+} from 'desktop-notifications'
+import {
+  getNotificationsPermission,
+  requestNotificationsPermission,
+} from '../main-process-proxy'
 
 interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
@@ -28,6 +36,9 @@ interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly canUseWindowsSSH: boolean
+  readonly suggestGrantNotificationPermission: boolean
+  readonly warnNotificationsDenied: boolean
+  readonly suggestConfigureNotifications: boolean
 }
 
 export class Advanced extends React.Component<
@@ -41,11 +52,15 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       canUseWindowsSSH: false,
+      suggestGrantNotificationPermission: false,
+      warnNotificationsDenied: false,
+      suggestConfigureNotifications: false,
     }
   }
 
   public componentDidMount() {
     this.checkSSHAvailability()
+    this.updateNotificationsState()
   }
 
   private async checkSSHAvailability() {
@@ -203,25 +218,81 @@ export class Advanced extends React.Component<
         />
         <p className="git-settings-description">
           Allows the display of notifications when high-signal events take place
-          in the current repository.{this.renderNotificationSettingsLink()}
+          in the current repository.{this.renderNotificationHint()}
         </p>
       </div>
     )
   }
 
-  private renderNotificationSettingsLink() {
-    if (!__DARWIN__ && !isWindows10OrLater()) {
+  private onGrantNotificationPermission = async () => {
+    await requestNotificationsPermission()
+    this.updateNotificationsState()
+  }
+
+  private async updateNotificationsState() {
+    const notificationsPermission = await getNotificationsPermission()
+    this.setState({
+      suggestGrantNotificationPermission:
+        supportsNotificationsPermissionRequest() &&
+        notificationsPermission === 'default',
+      warnNotificationsDenied: notificationsPermission === 'denied',
+      suggestConfigureNotifications: notificationsPermission === 'granted',
+    })
+  }
+
+  private renderNotificationHint() {
+    // No need to bother the user if their environment doesn't support our
+    // notifications or if they've been explicitly disabled.
+    if (!supportsNotifications() || !this.props.notificationsEnabled) {
       return null
     }
 
-    const notificationSettingsURL = __DARWIN__
-      ? 'x-apple.systempreferences:com.apple.preference.notifications'
-      : 'ms-settings:notifications'
+    const {
+      suggestGrantNotificationPermission,
+      warnNotificationsDenied,
+      suggestConfigureNotifications,
+    } = this.state
+
+    if (suggestGrantNotificationPermission) {
+      return (
+        <>
+          {' '}
+          You need to{' '}
+          <LinkButton onClick={this.onGrantNotificationPermission}>
+            grant permission
+          </LinkButton>{' '}
+          to display these notifications from GitHub Desktop.
+        </>
+      )
+    }
+
+    const notificationSettingsURL = getNotificationSettingsUrl()
+
+    if (notificationSettingsURL === null) {
+      return null
+    }
+
+    if (warnNotificationsDenied) {
+      return (
+        <p>
+          ⚠️ GitHub Desktop has no permission to display notifications. Please,
+          enable them in the{' '}
+          <LinkButton uri={notificationSettingsURL}>
+            Notifications Settings
+          </LinkButton>
+          .
+        </p>
+      )
+    }
+
+    const verb = suggestConfigureNotifications
+      ? 'properly configured'
+      : 'enabled'
 
     return (
       <>
         {' '}
-        Make sure notifications are enabled for GitHub Desktop in the{' '}
+        Make sure notifications are {verb} for GitHub Desktop in the{' '}
         <LinkButton uri={notificationSettingsURL}>
           Notifications Settings
         </LinkButton>
