@@ -16,7 +16,8 @@ if (!args[0]) {
 const commandArg = args[0]
 args = args.slice(1)
 
-// tslint:disable-next-line whitespace
+const supportsCommand = (name: string) => Object.hasOwn(commands, name)
+
 ;(function attemptRun(name: string) {
   try {
     if (supportsCommand(name)) {
@@ -70,7 +71,7 @@ function runCommand(name: string) {
       if (flagOptions.aliases) {
         opts.alias[flag] = flagOptions.aliases
       }
-      if (flagOptions.hasOwnProperty('default')) {
+      if (Object.hasOwn(flagOptions, 'default')) {
         opts.default[flag] = flagOptions.default
       }
       switch (flagOptions.type) {
@@ -103,7 +104,4 @@ function runCommand(name: string) {
     }
   }
   command.handler(parsedArgs, args)
-}
-function supportsCommand(name: string) {
-  return Object.prototype.hasOwnProperty.call(commands, name)
 }
