@@ -47,36 +47,47 @@ export interface INodeFilter {
 export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
   (
     emoji: Map<string, string>,
-    repository: GitHubRepository,
-    markdownContext: MarkdownContext
+    repository?: GitHubRepository,
+    markdownContext?: MarkdownContext
   ): ReadonlyArray<INodeFilter> => {
-    const filterPipe: Array<INodeFilter> = isIssueClosingContext(
-      markdownContext
-    )
-      ? /* The CloseKeywordFilter must be applied before the IssueMentionFilter or
-         * IssueLinkFilter so we can scan for plain text or pasted link issue
-         * mentions in conjunction wth the keyword.
-         */
-        [new CloseKeywordFilter(markdownContext, repository)]
-      : []
+    const filterPipe: Array<INodeFilter> = []
 
-    filterPipe.push(
-      new IssueMentionFilter(repository),
-      new IssueLinkFilter(repository),
-      new EmojiFilter(emoji),
-      // Note: TeamMentionFilter was placed before MentionFilter as they search
-      // for similar patterns with TeamMentionFilter having a larger application.
-      // @org/something vs @username. Thus, even tho the MentionFilter regex is
-      // meant to prevent this, in case a username could be encapsulated in the
-      // team mention like @username/something, we do the team mentions first to
-      // eliminate the possibility.
-      new TeamMentionFilter(repository),
-      new MentionFilter(repository),
-      new CommitMentionFilter(repository),
-      new CommitMentionLinkFilter(repository),
-      new VideoTagFilter(),
-      new VideoLinkFilter()
-    )
+    if (repository !== undefined) {
+      /* The CloseKeywordFilter must be applied before the IssueMentionFilter or
+       * IssueLinkFilter so we can scan for plain text or pasted link issue
+       * mentions in conjunction wth the keyword.
+       */
+      if (
+        markdownContext !== undefined &&
+        isIssueClosingContext(markdownContext)
+      ) {
+        filterPipe.push(new CloseKeywordFilter(markdownContext, repository))
+      }
+
+      filterPipe.push(
+        new IssueMentionFilter(repository),
+        new IssueLinkFilter(repository)
+      )
+    }
+
+    filterPipe.push(new EmojiFilter(emoji))
+
+    if (repository !== undefined) {
+      filterPipe.push(
+        // Note: TeamMentionFilter was placed before MentionFilter as they search
+        // for similar patterns with TeamMentionFilter having a larger application.
+        // @org/something vs @username. Thus, even tho the MentionFilter regex is
+        // meant to prevent this, in case a username could be encapsulated in the
+        // team mention like @username/something, we do the team mentions first to
+        // eliminate the possibility.
+        new TeamMentionFilter(repository),
+        new MentionFilter(repository),
+        new CommitMentionFilter(repository),
+        new CommitMentionLinkFilter(repository)
+      )
+    }
+
+    filterPipe.push(new VideoTagFilter(), new VideoLinkFilter())
 
     return filterPipe
   }

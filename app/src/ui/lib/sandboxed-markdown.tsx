@@ -19,7 +19,7 @@ interface ISandboxedMarkdownProps {
   readonly markdown: string
 
   /** The baseHref of the markdown content for when the markdown has relative links */
-  readonly baseHref: string | null
+  readonly baseHref?: string
 
   /**
    * A callback with the url of a link clicked in the parsed markdown
@@ -37,11 +37,11 @@ interface ISandboxedMarkdownProps {
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 
-  /** The GitHub repository to use when looking up commit status. */
-  readonly repository: GitHubRepository
+  /** The GitHub repository for some markdown filters such as issue and commits. */
+  readonly repository?: GitHubRepository
 
   /** The context of which markdown resides - such as PullRequest, PullRequestComment, Commit */
-  readonly markdownContext: MarkdownContext
+  readonly markdownContext?: MarkdownContext
 }
 
 interface ISandboxedMarkdownState {
@@ -277,8 +277,8 @@ export class SandboxedMarkdown extends React.PureComponent<
   /**
    * Builds a <base> tag for cases where markdown has relative links
    */
-  private getBaseTag(baseHref: string | null): string {
-    if (baseHref == null) {
+  private getBaseTag(baseHref?: string): string {
+    if (baseHref === undefined) {
       return ''
     }
 

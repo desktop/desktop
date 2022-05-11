@@ -12,6 +12,7 @@ import {
   ReleaseNoteHeaderLeftUri,
   ReleaseNoteHeaderRightUri,
 } from '../../lib/release-notes'
+import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -104,9 +105,24 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
       datePublished: `${oldestRelease.datePublished} to ${latestRelease.datePublished}`,
       enhancements: newReleases.flatMap(r => r.enhancements),
       bugfixes: newReleases.flatMap(r => r.bugfixes),
+      pretext: newReleases.flatMap(r => r.pretext),
       other: [],
       thankYous: [],
     }
+  }
+
+  private renderPretext = (pretext: ReadonlyArray<ReleaseNote>) => {
+    if (pretext.length === 0) {
+      return
+    }
+
+    return (
+      <SandboxedMarkdown
+        markdown={pretext[0].message}
+        emoji={this.props.emoji}
+        onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+      />
+    )
   }
 
   public render() {
@@ -116,7 +132,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
       return null
     }
 
-    const { latestVersion, datePublished, enhancements, bugfixes } = release
+    const { latestVersion, datePublished, enhancements, bugfixes, pretext } =
+      release
 
     const contents =
       enhancements.length > 0 && bugfixes.length > 0
@@ -147,7 +164,10 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         onSubmit={this.updateNow}
         title={dialogHeader}
       >
-        <DialogContent>{contents}</DialogContent>
+        <DialogContent>
+          {this.renderPretext(pretext)}
+          {contents}
+        </DialogContent>
         <DialogFooter>
           <LinkButton onClick={this.showAllReleaseNotes}>
             View all release notes
@@ -170,5 +190,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
   private showAllReleaseNotes = () => {
     shell.openExternal(ReleaseNotesUri)
+  }
+
+  private onMarkdownLinkClicked = (url: string) => {
+    shell.openExternal(url)
   }
 }

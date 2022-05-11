@@ -150,7 +150,7 @@ import { clamp } from '../lib/clamp'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { showNotification } from '../lib/stores/helpers/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
-import { generateReleaseSummary } from '../lib/release-notes'
+import { generateDevReleaseSummary } from '../lib/release-notes'
 import { PullRequestReview } from './notifications/pull-request-review'
 import { getPullRequestCommitRef } from '../models/pull-request'
 import { getRepositoryType } from '../lib/git'
@@ -439,7 +439,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (__DEV__) {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,
-        newReleases: await generateReleaseSummary(),
+        newReleases: await generateDevReleaseSummary(),
       })
     }
   }
