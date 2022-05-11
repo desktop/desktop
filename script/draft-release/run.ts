@@ -28,15 +28,19 @@ const changelogPath = join(__dirname, '..', '..', 'changelog.json')
  */
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
+  excludeTestReleases: boolean
 }): Promise<string> {
   let releaseTags = (await sh('git', 'tag'))
     .split('\n')
     .filter(tag => tag.startsWith('release-'))
     .filter(tag => !tag.includes('-linux'))
-    .filter(tag => !tag.includes('-test'))
 
   if (options.excludeBetaReleases) {
     releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
+  }
+
+  if (options.excludeTestReleases) {
+    releaseTags = releaseTags.filter(tag => !tag.includes('-test'))
   }
 
   const releaseVersions = releaseTags.map(tag => tag.substring(8))
@@ -104,9 +108,11 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const channel = parseChannel(args[0])
-  const excludeBetaReleases = channel === 'production'
   const draftPretext = args[1] === '--pretext'
-  const previousVersion = await getLatestRelease({ excludeBetaReleases })
+  const previousVersion = await getLatestRelease({
+    excludeBetaReleases: channel === 'production' || channel === 'test',
+    excludeTestReleases: channel === 'production' || channel === 'beta',
+  })
   const nextVersion = getNextVersionNumber(previousVersion, channel)
 
   console.log(`Setting app version to "${nextVersion}" in app/package.json...`)
