@@ -120,6 +120,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
       <SandboxedMarkdown
         markdown={pretext[0].message}
         emoji={this.props.emoji}
+        onMarkdownLinkClicked={this.onMarkdownLinkClicked}
       />
     )
   }
@@ -189,5 +190,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
   private showAllReleaseNotes = () => {
     shell.openExternal(ReleaseNotesUri)
+  }
+
+  private onMarkdownLinkClicked = (url: string) => {
+    shell.openExternal(url)
   }
 }
