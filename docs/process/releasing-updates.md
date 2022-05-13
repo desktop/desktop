@@ -78,7 +78,6 @@ If you are creating a new beta release, the `yarn draft-release beta` command wi
 
 If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
-(For `test` releases, it will do a naive attempt to update the `app/package.json`'s `version` and add a changelog entry. You may have to adjust the test version and add a changelog entry to the `changelog.json`.)
 
 The script will output a draft changelog, which covers everything that's been merged, and probably needs some love.
 The output will then explain the next steps:
