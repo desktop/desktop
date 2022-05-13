@@ -71,17 +71,18 @@ Run the script below (which relies on the your personal access token being set),
 For `production` and `beta` releases, run:
 
 ```shellsession
-$ yarn draft-release (production|beta)
+$ yarn draft-release (production|beta|test)
 ```
 
 If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
 
 If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
-(For `test` releases, follow the directions in the steps below to update `app/package.json`'s `version` to a higher version and add a changelog entry. The script does not support test yet.)
 
 The script will output a draft changelog, which covers everything that's been merged, and probably needs some love.
 The output will then explain the next steps:
+
+If you have pretext release note drafted in `app/static/common/pretext-draft.md`, you can add the `--pretext` flag to generate a pretext change log entry it. Example: `yarn draft-release test --pretext`
 
 ```shellsession
 Here's what you should do next:
