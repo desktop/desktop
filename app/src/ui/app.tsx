@@ -262,7 +262,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       ) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
       }
-      if (await updateStore.isUpdateShowcase()) {
+
+      if (
+        status !== UpdateStatus.UpdateReady &&
+        (await updateStore.isUpdateShowcase())
+      ) {
         this.props.dispatcher.setUpdateShowCaseVisibility(true)
       }
     })
