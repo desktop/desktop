@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.0.1-test7": [
+      "[New] Get notified when your pull requests are reviewed - #14175",
+      "[Fixed] Default to merging when pulling without a configured preference between merge or rebase - #14431"
+    ],
     "3.0.1-test6": [
       "[Improved] just for 3.0.1-test6 (no pretext but last one has a pretext)"
     ],
