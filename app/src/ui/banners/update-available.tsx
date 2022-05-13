@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher/index'
 import { LinkButton } from '../lib/link-button'
-import { updateStore } from '../lib/update-store'
+import { lastShowCaseVersionSeen, updateStore } from '../lib/update-store'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { PopupType } from '../../models/popup'
@@ -44,6 +44,21 @@ export class UpdateAvailable extends React.Component<
         </span>
       </Banner>
     )
+  }
+
+  private dismissUpdateShowCaseVisibility = () => {
+    // Note: under that scenario that this is being dismissed due to clicking
+    // what's new on a pending release and for some reason we don't have the
+    // releases. We will end up showing the showcase banner after restart. This
+    // shouldn't happen but even if it did it would just be a minor annoyance as
+    // user would need to dismiss it again.
+    const versionSeen =
+      this.props.newReleases === null
+        ? __APP_VERSION__
+        : this.props.newReleases[0].latestVersion
+
+    localStorage.setItem(lastShowCaseVersionSeen, versionSeen)
+    this.props.dispatcher.setUpdateShowCaseVisibility(false)
   }
 
   private showReleaseNotes = () => {

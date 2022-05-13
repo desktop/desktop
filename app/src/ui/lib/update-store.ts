@@ -21,6 +21,10 @@ import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
 import { offsetFromNow } from '../../lib/offset-from'
+import { gte, SemVer } from 'semver'
+
+/** The last version a showcase was seen. */
+export const lastShowCaseVersionSeen = 'version-of-last-showcase'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -208,14 +212,24 @@ class UpdateStore {
       this.newReleases = await generateReleaseSummary()
     }
 
-    return (
-      this.newReleases !== null &&
-      this.newReleases
-        .filter(
-          r => new Date(r.datePublished).getTime() > offsetFromNow(-15, 'days')
-        )
-        .some(r => r.pretext.length > 0)
-    )
+    if (this.newReleases === null) {
+      return false
+    }
+
+    const lastShowCaseVersion = localStorage.getItem(lastShowCaseVersionSeen)
+    if (lastShowCaseVersion !== null) {
+      const lastShowCaseSemVersion = new SemVer(lastShowCaseVersion)
+      const latestRelease = new SemVer(this.newReleases[0].latestVersion)
+      if (gte(lastShowCaseSemVersion, latestRelease)) {
+        return false
+      }
+    }
+
+    return this.newReleases
+      .filter(
+        r => new Date(r.datePublished).getTime() > offsetFromNow(-15, 'days')
+      )
+      .some(r => r.pretext.length > 0)
   }
 }
 
