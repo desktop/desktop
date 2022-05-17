@@ -73,6 +73,18 @@ export class SandboxedMarkdown extends React.PureComponent<
     })
   }, 100)
 
+  /**
+   * We debounce the markdown updating because it is updated on each custom
+   * markdown filter. Leading is true so that users will at a minimum see the
+   * markdown parsed by markedjs while the custom filters are being applied.
+   * (So instead of being updated, 10+ times it is updated 1 or 2 times.)
+   */
+  private onMarkdownUpdated = debounce(
+    markdown => this.mountIframeContents(markdown),
+    10,
+    { leading: true }
+  )
+
   public constructor(props: ISandboxedMarkdownProps) {
     super(props)
 
@@ -121,7 +133,7 @@ export class SandboxedMarkdown extends React.PureComponent<
           })
 
     this.markdownEmitter.onMarkdownUpdated((markdown: string) => {
-      this.mountIframeContents(markdown)
+      this.onMarkdownUpdated(markdown)
     })
   }
 
