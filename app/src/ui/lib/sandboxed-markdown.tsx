@@ -110,10 +110,15 @@ export class SandboxedMarkdown extends React.PureComponent<
     if (this.markdownEmitter !== undefined) {
       this.markdownEmitter.dispose()
     }
+    const { emoji, repository, markdownContext } = this.props
     this.markdownEmitter =
       typeof this.props.markdown !== 'string'
         ? this.props.markdown
-        : await parseMarkdown(this.props.markdown)
+        : parseMarkdown(this.props.markdown, {
+            emoji,
+            repository,
+            markdownContext,
+          })
 
     this.markdownEmitter.onMarkdownUpdated((markdown: string) => {
       this.mountIframeContents(markdown)
