@@ -1,5 +1,4 @@
 import memoizeOne from 'memoize-one'
-import { GitHubRepository } from '../../models/github-repository'
 import { EmojiFilter } from './emoji-filter'
 import { IssueLinkFilter } from './issue-link-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
@@ -14,6 +13,7 @@ import {
 } from './close-keyword-filter'
 import { CommitMentionLinkFilter } from './commit-mention-link-filter'
 import { MarkdownEmitter } from './markdown-filter'
+import { GitHubRepository } from '../../models/github-repository'
 
 export interface INodeFilter {
   /**
@@ -38,19 +38,20 @@ export interface INodeFilter {
   filter(node: Node): Promise<ReadonlyArray<Node> | null>
 }
 
+export interface ICustomMarkdownFilterOptions {
+  emoji: Map<string, string>
+  repository?: GitHubRepository
+  markdownContext?: MarkdownContext
+}
+
 /**
  * Builds an array of node filters to apply to markdown html. Referring to it as pipe
  * because they will be applied in the order they are entered in the returned
  * array. This is important as some filters impact others.
- *
- * @param emoji Map from the emoji shortcut (e.g., :+1:) to the image's local path.
  */
 export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
-  (
-    emoji: Map<string, string>,
-    repository?: GitHubRepository | undefined,
-    markdownContext?: MarkdownContext
-  ): ReadonlyArray<INodeFilter> => {
+  (options: ICustomMarkdownFilterOptions): ReadonlyArray<INodeFilter> => {
+    const { emoji, repository, markdownContext } = options
     const filterPipe: Array<INodeFilter> = []
 
     if (repository !== undefined) {

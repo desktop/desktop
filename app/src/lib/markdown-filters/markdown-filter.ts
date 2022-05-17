@@ -1,19 +1,16 @@
 import DOMPurify from 'dompurify'
 import { Disposable, Emitter } from 'event-kit'
 import { marked } from 'marked'
-import { GitHubRepository } from '../../models/github-repository'
 import {
   applyNodeFilters,
   buildCustomMarkDownNodeFilterPipe,
-  MarkdownContext,
+  ICustomMarkdownFilterOptions,
 } from './node-filter'
 
-interface ICustomMarkdownFilterOptions {
-  emoji: Map<string, string>
-  repository?: GitHubRepository
-  markdownContext?: MarkdownContext
-}
-
+/**
+ * The MarkdownEmitter extends the Emitter functionality to be able to keep
+ * track of the last emitted value and return it upon subscription.
+ */
 export class MarkdownEmitter extends Emitter {
   public constructor(private markdown: null | string = null) {
     super()
@@ -38,9 +35,21 @@ export class MarkdownEmitter extends Emitter {
 
 /**
  * Takes string of markdown and runs it through the MarkedJs parser with github
- * flavored flags enabled followed by running that through domPurify, and lastly
- * if custom markdown options are provided, it applies the custom markdown
+ * flavored flags followed by sanitization with domPurify.
+ *
+ * If custom markdown options are provided, it applies the custom markdown
  * filters.
+ *
+ * Rely `repository` custom markdown option:
+ * - TeamMentionFilter
+ * - MentionFilter
+ * - CommitMentionFilter
+ * - CommitMentionLinkFilter
+ *
+ * Rely `markdownContext` custom markdown option:
+ * - IssueMentionFilter
+ * - IssueLinkFilter
+ * - CloseKeyWordFilter
  */
 export function parseMarkdown(
   markdown: string,
@@ -70,16 +79,12 @@ export function parseMarkdown(
  * Applies custom markdown filters to parsed markdown html. This is done
  * through converting the markdown html into a DOM document and then
  * traversing the nodes to apply custom filters such as emoji, issue, username
- * mentions, etc.
+ * mentions, etc. (Expects a markdownEmitter with an initial markdown value)
  */
 function applyCustomMarkdownFilters(
   markdownEmitter: MarkdownEmitter,
   options: ICustomMarkdownFilterOptions
 ): void {
-  const nodeFilters = buildCustomMarkDownNodeFilterPipe(
-    options.emoji,
-    options.repository,
-    options.markdownContext
-  )
+  const nodeFilters = buildCustomMarkDownNodeFilterPipe(options)
   applyNodeFilters(nodeFilters, markdownEmitter)
 }
