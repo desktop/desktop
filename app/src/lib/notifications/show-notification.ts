@@ -16,6 +16,8 @@ interface IShowNotificationOptions {
  * user clicks on the notification.
  */
 export async function showNotification(options: IShowNotificationOptions) {
+  // `supportNotifications` checks if `desktop-notifications` is supported by
+  // the current platform. Otherwise, we'll rely on the HTML5 notification API.
   if (!supportsNotifications()) {
     const notification = new Notification(options.title, {
       body: options.body,
