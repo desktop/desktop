@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify'
+import { Disposable, Emitter } from 'event-kit'
 import { marked } from 'marked'
 import { GitHubRepository } from '../../models/github-repository'
 import {
@@ -13,6 +14,24 @@ interface ICustomMarkdownFilterOptions {
   markdownContext?: MarkdownContext
 }
 
+export class MarkdownEmitter extends Emitter {
+  public constructor(private markdown: null | string = null) {
+    super()
+  }
+
+  public onMarkdownUpdated(handler: (value: string) => void): Disposable {
+    if (this.markdown !== null) {
+      handler(this.markdown)
+    }
+    return super.on('markdown', handler)
+  }
+
+  public emit(value: string): void {
+    this.markdown = value
+    super.emit('markdown', value)
+  }
+}
+
 /**
  * Takes string of markdown and runs it through the MarkedJs parser with github
  * flavored flags enabled followed by running that through domPurify, and lastly
@@ -22,7 +41,7 @@ interface ICustomMarkdownFilterOptions {
 export async function parseMarkdown(
   markdown: string,
   customMarkdownOptions?: ICustomMarkdownFilterOptions
-) {
+): Promise<MarkdownEmitter> {
   const parsedMarkdown = marked(markdown, {
     // https://marked.js.org/using_advanced  If true, use approved GitHub
     // Flavored Markdown (GFM) specification.
@@ -33,11 +52,16 @@ export async function parseMarkdown(
     breaks: true,
   })
 
-  const sanitizedHTML = DOMPurify.sanitize(parsedMarkdown)
+  const sanitizedMarkdown = DOMPurify.sanitize(parsedMarkdown)
+  const filteredMarkdown =
+    customMarkdownOptions !== undefined
+      ? await applyCustomMarkdownFilters(
+          sanitizedMarkdown,
+          customMarkdownOptions
+        )
+      : sanitizedMarkdown
 
-  return customMarkdownOptions !== undefined
-    ? await applyCustomMarkdownFilters(sanitizedHTML, customMarkdownOptions)
-    : sanitizedHTML
+  return new MarkdownEmitter(filteredMarkdown)
 }
 
 /**
