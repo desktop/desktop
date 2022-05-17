@@ -30,6 +30,10 @@ export class MarkdownEmitter extends Emitter {
     this.markdown = value
     super.emit('markdown', value)
   }
+
+  public get latestMarkdown() {
+    return this.markdown
+  }
 }
 
 /**
@@ -38,10 +42,10 @@ export class MarkdownEmitter extends Emitter {
  * if custom markdown options are provided, it applies the custom markdown
  * filters.
  */
-export async function parseMarkdown(
+export function parseMarkdown(
   markdown: string,
   customMarkdownOptions?: ICustomMarkdownFilterOptions
-): Promise<MarkdownEmitter> {
+): MarkdownEmitter {
   const parsedMarkdown = marked(markdown, {
     // https://marked.js.org/using_advanced  If true, use approved GitHub
     // Flavored Markdown (GFM) specification.
@@ -53,15 +57,13 @@ export async function parseMarkdown(
   })
 
   const sanitizedMarkdown = DOMPurify.sanitize(parsedMarkdown)
-  const filteredMarkdown =
-    customMarkdownOptions !== undefined
-      ? await applyCustomMarkdownFilters(
-          sanitizedMarkdown,
-          customMarkdownOptions
-        )
-      : sanitizedMarkdown
+  const markdownEmitter = new MarkdownEmitter(sanitizedMarkdown)
 
-  return new MarkdownEmitter(filteredMarkdown)
+  if (customMarkdownOptions !== undefined) {
+    applyCustomMarkdownFilters(markdownEmitter, customMarkdownOptions)
+  }
+
+  return markdownEmitter
 }
 
 /**
@@ -71,13 +73,13 @@ export async function parseMarkdown(
  * mentions, etc.
  */
 function applyCustomMarkdownFilters(
-  parsedMarkdown: string,
+  markdownEmitter: MarkdownEmitter,
   options: ICustomMarkdownFilterOptions
-): Promise<string> {
+): void {
   const nodeFilters = buildCustomMarkDownNodeFilterPipe(
     options.emoji,
     options.repository,
     options.markdownContext
   )
-  return applyNodeFilters(nodeFilters, parsedMarkdown)
+  applyNodeFilters(nodeFilters, markdownEmitter)
 }

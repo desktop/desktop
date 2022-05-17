@@ -13,6 +13,7 @@ import {
   isIssueClosingContext,
 } from './close-keyword-filter'
 import { CommitMentionLinkFilter } from './commit-mention-link-filter'
+import { MarkdownEmitter } from './markdown-filter'
 
 export interface INodeFilter {
   /**
@@ -47,7 +48,7 @@ export interface INodeFilter {
 export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
   (
     emoji: Map<string, string>,
-    repository?: GitHubRepository,
+    repository?: GitHubRepository | undefined,
     markdownContext?: MarkdownContext
   ): ReadonlyArray<INodeFilter> => {
     const filterPipe: Array<INodeFilter> = []
@@ -104,15 +105,21 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
  */
 export async function applyNodeFilters(
   nodeFilters: ReadonlyArray<INodeFilter>,
-  parsedMarkdown: string
-): Promise<string> {
-  const mdDoc = new DOMParser().parseFromString(parsedMarkdown, 'text/html')
+  markdownEmitter: MarkdownEmitter
+): Promise<void> {
+  if (markdownEmitter.latestMarkdown === null) {
+    return
+  }
+
+  const mdDoc = new DOMParser().parseFromString(
+    markdownEmitter.latestMarkdown,
+    'text/html'
+  )
 
   for (const nodeFilter of nodeFilters) {
     await applyNodeFilter(nodeFilter, mdDoc)
+    markdownEmitter.emit(mdDoc.documentElement.innerHTML)
   }
-
-  return mdDoc.documentElement.innerHTML
 }
 
 /**
