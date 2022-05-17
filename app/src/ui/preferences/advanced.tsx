@@ -274,14 +274,15 @@ export class Advanced extends React.Component<
 
     if (warnNotificationsDenied) {
       return (
-        <p>
+        <>
+          <br />
           ⚠️ GitHub Desktop has no permission to display notifications. Please,
           enable them in the{' '}
           <LinkButton uri={notificationSettingsURL}>
             Notifications Settings
           </LinkButton>
           .
-        </p>
+        </>
       )
     }
 
