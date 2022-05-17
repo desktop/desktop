@@ -295,10 +295,15 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     const styleSheet = await this.getInlineStyleSheet()
 
+    const { emoji, repository, markdownContext } = this.props
     const filteredHTML =
       this.props.isParsed === true
         ? this.props.markdown
-        : await parseMarkdown(this.props.markdown)
+        : await parseMarkdown(this.props.markdown, {
+            emoji,
+            repository,
+            markdownContext,
+          })
 
     const src = `
       <html>
