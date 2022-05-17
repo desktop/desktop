@@ -16,9 +16,6 @@ interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
   readonly markdown: string | MarkdownEmitter
 
-  /** Whether the markdown was pre-parsed - assumed false */
-  readonly isParsed?: boolean
-
   /** The baseHref of the markdown content for when the markdown has relative links */
   readonly baseHref?: string
 
