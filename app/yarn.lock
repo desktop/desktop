@@ -363,14 +363,13 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-notifications@^0.1.7:
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.7.tgz#8aac705d374f1b527595030418d8c79de167cf96"
-  integrity sha512-3lSt/Ol/3yupnwf7teGRn2PixnFH0sAD1ZpFdeEga+ffhRqxSzHOY+VVd8k1RkecQiwVQWksDYkO4510wAmxeg==
+desktop-notifications@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.2.0.tgz#8ec6d732671d42e9aa4dac4523a2a57806c9e210"
+  integrity sha512-6puOHRkSHmH1HpQDftFtpJU+ko7gw1vtSlf2LViJX+sY2N+9pVuYO85HjTlpktHDSVKvDnFGhPVAoZmjXIvo/Q==
   dependencies:
-    node-addon-api "^4.3.0"
+    node-addon-api "^5.0.0"
     prebuild-install "^7.0.1"
-    quick-lru "^3.0.0"
     uuid "^8.3.2"
 
 desktop-trampoline@desktop/desktop-trampoline#v0.9.8:
@@ -1059,6 +1058,11 @@ node-addon-api@^4.3.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-4.3.0.tgz#52a1a0b475193e0928e98e0426a0d1254782b77f"
   integrity sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==
+
+node-addon-api@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-5.0.0.tgz#7d7e6f9ef89043befdb20c1989c905ebde18c501"
+  integrity sha512-CvkDw2OEnme7ybCykJpVcKH+uAOLV2qLqiyla128dN9TkEWfrYmxG6C2boDe5KcNQqZF3orkqzGgOMvZ/JNekA==
 
 node-fetch@^1.0.1:
   version "1.7.3"

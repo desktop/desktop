@@ -59,8 +59,3 @@ export const isMacOSBigSurOrLater = memoizeOne(
 export const isWindows10And1809Preview17666OrLater = memoizeOne(
   () => __WIN32__ && systemVersionGreaterThanOrEqualTo('10.0.17666')
 )
-
-/** We're currently running Windows 10 or later. */
-export const isWindows10OrLater = memoizeOne(
-  () => __WIN32__ && systemVersionGreaterThanOrEqualTo('10.0')
-)
