@@ -59,48 +59,59 @@ export async function determineMergeability(
   )
 
   return await new Promise<MergeTreeResult>((resolve, reject) => {
+    const mergeTreeResultPromise: Promise<MergeTreeResult> =
+      process.stdout !== null
+        ? parseMergeTreeResult(process.stdout)
+        : Promise.reject(new Error('Failed reading merge-tree output'))
+
+    // If this is an exception thrown by Node.js while attempting to
+    // spawn let's keep the salient details but include the name of
+    // the operation.
+    process.on('error', e =>
+      reject(
+        isErrnoException(e) ? new Error(`merge-tree failed: ${e.code}`) : e
+      )
+    )
+
+    process.on('exit', code => {
+      if (code !== 0) {
+        reject(new Error(`merge-tree exited with code '${code}'`))
+      } else {
+        mergeTreeResultPromise.then(resolve, reject)
+      }
+    })
+  })
+}
+
+export function parseMergeTreeResult(stream: NodeJS.ReadableStream) {
+  return new Promise<MergeTreeResult>(resolve => {
     let seenConflictMarker = false
     let conflictedFiles = 0
 
-    process.stdout?.pipe(byline()).on('data', (line: string) => {
-      if (contextHeaderRe.test(line)) {
+    stream
+      .pipe(byline())
+      .on('data', (line: string) => {
+        // New header means new file, reset conflict flag and record if we've
+        // seen a conflict in this file or not
+        if (contextHeaderRe.test(line)) {
+          if (seenConflictMarker) {
+            conflictedFiles++
+            seenConflictMarker = false
+          }
+        } else if (conflictMarkerRe.test(line)) {
+          seenConflictMarker = true
+        }
+      })
+      .on('end', () => {
         if (seenConflictMarker) {
           conflictedFiles++
-          seenConflictMarker = false
         }
-      } else if (conflictMarkerRe.test(line)) {
-        seenConflictMarker = true
-      }
-    })
 
-    process.on('error', err => {
-      // If this is an exception thrown by Node.js while attempting to
-      // spawn let's keep the salient details but include the name of
-      // the operation.
-      if (isErrnoException(err)) {
-        reject(new Error(`Failed to execute merge-tree: ${err.code}`))
-      } else {
-        // for unhandled errors raised by the process, let's surface this in the
-        // promise and make the caller handle it
-        reject(err)
-      }
-    })
-
-    process.on('exit', (code, signal) => {
-      if (code !== 0) {
-        reject(new Error(`merge-tree exited with code '${code}'`))
-        return
-      }
-
-      if (seenConflictMarker) {
-        conflictedFiles++
-      }
-
-      resolve(
-        conflictedFiles > 0
-          ? { kind: ComputedAction.Conflicts, conflictedFiles }
-          : { kind: ComputedAction.Clean }
-      )
-    })
+        resolve(
+          conflictedFiles > 0
+            ? { kind: ComputedAction.Conflicts, conflictedFiles }
+            : { kind: ComputedAction.Clean }
+        )
+      })
   })
 }

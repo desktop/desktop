@@ -1,11 +1,10 @@
 import * as Path from 'path'
-import * as FSE from 'fs-extra'
 import * as glob from 'glob'
-
-import { parseMergeTreeResult } from '../../../src/lib/merge-tree-parser'
 
 import { MergeTreeError } from '../../../src/models/merge'
 import { ComputedAction } from '../../../src/models/computed-action'
+import { parseMergeTreeResult } from '../../../src/lib/git/merge-tree'
+import { createReadStream } from 'fs'
 
 const filenameRegex = /merge\-(.*)\-into\-(.*).txt/
 
@@ -40,9 +39,8 @@ describe('parseMergeResult', () => {
       '../../fixtures/merge-parser/desktop/valid-merge-master-into-script-upgrade.txt'
     )
     const filePath = Path.resolve(relativePath)
-    const input = await FSE.readFile(filePath, { encoding: 'utf8' })
 
-    const result = parseMergeTreeResult(input)
+    const result = await parseMergeTreeResult(createReadStream(filePath))
     expect(result.kind).toBe(ComputedAction.Clean)
   })
 
@@ -51,14 +49,9 @@ describe('parseMergeResult', () => {
       __dirname,
       '../../fixtures/merge-parser/desktop/failed-merge-stale-branch-into-master.txt'
     )
-    const filePath = Path.resolve(relativePath)
-    const input = await FSE.readFile(filePath, { encoding: 'utf8' })
-
-    const result = parseMergeTreeResult(input)
+    const result = await parseMergeTreeResult(createReadStream(relativePath))
     expect(result.kind).toBe(ComputedAction.Conflicts)
-
-    const mergeResult = result as MergeTreeError
-    expect(mergeResult.conflictedFiles).toBe(1)
+    expect((result as MergeTreeError).conflictedFiles).toBe(1)
   })
 
   describe('desktop/desktop', () => {
@@ -68,13 +61,9 @@ describe('parseMergeResult', () => {
       const { ours, theirs } = extractBranchNames(f)
 
       it(`can parse conflicts from merging ${theirs} into ${ours}`, async () => {
-        const input = await FSE.readFile(f, { encoding: 'utf8' })
-
-        const result = parseMergeTreeResult(input)
+        const result = await parseMergeTreeResult(createReadStream(f))
         expect(result.kind).toBe(ComputedAction.Conflicts)
-
-        const mergeResult = result as MergeTreeError
-        expect(mergeResult.conflictedFiles).toBeGreaterThan(0)
+        expect((result as MergeTreeError).conflictedFiles).toBeGreaterThan(0)
       })
     }
   })
@@ -86,13 +75,9 @@ describe('parseMergeResult', () => {
       const { ours, theirs } = extractBranchNames(f)
 
       it(`can parse conflicts from merging ${theirs} into ${ours}`, async () => {
-        const input = await FSE.readFile(f, { encoding: 'utf8' })
-
-        const result = parseMergeTreeResult(input)
+        const result = await parseMergeTreeResult(createReadStream(f))
         expect(result.kind).toBe(ComputedAction.Conflicts)
-
-        const mergeResult = result as MergeTreeError
-        expect(mergeResult.conflictedFiles).toBeGreaterThan(0)
+        expect((result as MergeTreeError).conflictedFiles).toBeGreaterThan(0)
       })
     }
   })
@@ -104,13 +89,9 @@ describe('parseMergeResult', () => {
       const { ours, theirs } = extractBranchNames(f)
 
       it(`can parse conflicts from merging ${theirs} into ${ours}`, async () => {
-        const input = await FSE.readFile(f, { encoding: 'utf8' })
-
-        const result = parseMergeTreeResult(input)
+        const result = await parseMergeTreeResult(createReadStream(f))
         expect(result.kind).toBe(ComputedAction.Conflicts)
-
-        const mergeResult = result as MergeTreeError
-        expect(mergeResult.conflictedFiles).toBeGreaterThan(0)
+        expect((result as MergeTreeError).conflictedFiles).toBeGreaterThan(0)
       })
     }
   })
