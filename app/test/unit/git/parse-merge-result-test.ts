@@ -38,9 +38,7 @@ describe('parseMergeResult', () => {
       __dirname,
       '../../fixtures/merge-parser/desktop/valid-merge-master-into-script-upgrade.txt'
     )
-    const filePath = Path.resolve(relativePath)
-
-    const result = await parseMergeTreeResult(createReadStream(filePath))
+    const result = await parseMergeTreeResult(createReadStream(relativePath))
     expect(result.kind).toBe(ComputedAction.Clean)
   })
 
