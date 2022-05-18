@@ -276,6 +276,7 @@ export class Advanced extends React.Component<
       return (
         <>
           <br />
+          <br />
           <span className="warning-icon">⚠️</span> GitHub Desktop has no
           permission to display notifications. Please, enable them in the{' '}
           <LinkButton uri={notificationSettingsURL}>
