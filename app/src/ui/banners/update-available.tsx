@@ -15,7 +15,7 @@ import { RichText } from '../lib/rich-text'
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
   readonly newReleases: ReadonlyArray<ReleaseSummary> | null
-  readonly isUpdateShowCaseVisible: boolean
+  readonly isUpdateShowcaseVisible: boolean
   readonly emoji: Map<string, string>
   readonly onDismissed: () => void
 }
@@ -31,7 +31,7 @@ export class UpdateAvailable extends React.Component<
   public render() {
     return (
       <Banner id="update-available" onDismissed={this.props.onDismissed}>
-        {!this.props.isUpdateShowCaseVisible && (
+        {!this.props.isUpdateShowcaseVisible && (
           <Octicon
             className="download-icon"
             symbol={OcticonSymbol.desktopDownload}
@@ -44,7 +44,7 @@ export class UpdateAvailable extends React.Component<
   }
 
   private renderMessage = () => {
-    if (this.props.isUpdateShowCaseVisible) {
+    if (this.props.isUpdateShowcaseVisible) {
       const version =
         this.props.newReleases !== null
           ? ` with GitHub Desktop ${this.props.newReleases[0].latestVersion}`

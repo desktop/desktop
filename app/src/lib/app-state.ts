@@ -180,7 +180,7 @@ export interface IAppState {
   readonly isUpdateAvailableBannerVisible: boolean
 
   /** Whether there is an update to showcase */
-  readonly isUpdateShowCaseVisible: boolean
+  readonly isUpdateShowcaseVisible: boolean
 
   /** Whether we should ask the user to move the app to /Applications */
   readonly askToMoveToApplicationsFolderSetting: boolean
