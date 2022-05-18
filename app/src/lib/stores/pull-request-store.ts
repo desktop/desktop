@@ -317,7 +317,7 @@ export class PullRequestStore {
           sha: pr.base.sha,
           repoId: baseGitHubRepo.dbID,
         },
-        body: pr.body,
+        body: pr.body ?? '',
         author: pr.user.login,
         draft: pr.draft ?? false,
       })
