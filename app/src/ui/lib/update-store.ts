@@ -20,6 +20,11 @@ import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
+import { offsetFromNow } from '../../lib/offset-from'
+import { gte, SemVer } from 'semver'
+
+/** The last version a showcase was seen. */
+export const lastShowCaseVersionSeen = 'version-of-last-showcase'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -34,6 +39,9 @@ export enum UpdateStatus {
 
   /** An update has been downloaded and is ready to be installed. */
   UpdateReady,
+
+  /** We have not checked for an update yet. */
+  UpdateNotChecked,
 }
 
 export interface IUpdateState {
@@ -45,7 +53,7 @@ export interface IUpdateState {
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
   private emitter = new Emitter()
-  private status = UpdateStatus.UpdateNotAvailable
+  private status = UpdateStatus.UpdateNotChecked
   private lastSuccessfulCheck: Date | null = null
   private newReleases: ReadonlyArray<ReleaseSummary> | null = null
 
@@ -94,7 +102,9 @@ class UpdateStore {
     this.emitDidChange()
   }
 
-  private onUpdateNotAvailable = () => {
+  private onUpdateNotAvailable = async () => {
+    // This is so we can check for pretext changelog for showcasing a recent update
+    this.newReleases = await generateReleaseSummary()
     this.touchLastChecked()
     this.status = UpdateStatus.UpdateNotAvailable
     this.emitDidChange()
@@ -102,9 +112,7 @@ class UpdateStore {
 
   private onUpdateDownloaded = async () => {
     this.newReleases = await generateReleaseSummary()
-
     this.status = UpdateStatus.UpdateReady
-
     this.emitDidChange()
   }
 
@@ -184,6 +192,44 @@ class UpdateStore {
     // eslint-disable-next-line no-sync
     sendWillQuitSync()
     quitAndInstallUpdate()
+  }
+
+  /**
+   * Method to determine if we should show an update showcase call to action.
+   *
+   * @returns true if there is a pretext on the latest releases and that release
+   * was published in the last 15 days.
+   */
+  public async isUpdateShowcase() {
+    if (
+      (__RELEASE_CHANNEL__ === 'development' ||
+        __RELEASE_CHANNEL__ === 'test') &&
+      this.newReleases === null &&
+      this.status === UpdateStatus.UpdateNotChecked
+    ) {
+      // On prod or with test manual check for updates, we are doing this during
+      // the automatic check for updates
+      this.newReleases = await generateReleaseSummary()
+    }
+
+    if (this.newReleases === null) {
+      return false
+    }
+
+    const lastShowCaseVersion = localStorage.getItem(lastShowCaseVersionSeen)
+    if (lastShowCaseVersion !== null) {
+      const lastShowCaseSemVersion = new SemVer(lastShowCaseVersion)
+      const latestRelease = new SemVer(this.newReleases[0].latestVersion)
+      if (gte(lastShowCaseSemVersion, latestRelease)) {
+        return false
+      }
+    }
+
+    return this.newReleases
+      .filter(
+        r => new Date(r.datePublished).getTime() > offsetFromNow(-15, 'days')
+      )
+      .some(r => r.pretext.length > 0)
   }
 }
 

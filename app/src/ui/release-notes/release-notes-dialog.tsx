@@ -13,6 +13,7 @@ import {
   ReleaseNoteHeaderRightUri,
 } from '../../lib/release-notes'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
+import { Button } from '../lib/button'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -125,6 +126,32 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     )
   }
 
+  private onDismissed = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    this.props.onDismissed()
+  }
+
+  private renderButtons = () => {
+    const latestVersion = this.props.newReleases[0].latestVersion
+    if (latestVersion === __APP_VERSION__) {
+      return (
+        <Button type="submit" onClick={this.onDismissed}>
+          Close
+        </Button>
+      )
+    }
+
+    return (
+      <OkCancelButtonGroup
+        destructive={true}
+        okButtonText={
+          __DARWIN__ ? 'Install and Restart' : 'Install and restart'
+        }
+        cancelButtonText="Close"
+      />
+    )
+  }
+
   public render() {
     const release = this.getDisplayRelease()
 
@@ -172,13 +199,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
           <LinkButton onClick={this.showAllReleaseNotes}>
             View all release notes
           </LinkButton>
-          <OkCancelButtonGroup
-            destructive={true}
-            okButtonText={
-              __DARWIN__ ? 'Install and Restart' : 'Install and restart'
-            }
-            cancelButtonText="Close"
-          />
+          {this.renderButtons()}
         </DialogFooter>
       </Dialog>
     )

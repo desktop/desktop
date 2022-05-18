@@ -113,7 +113,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       case UpdateStatus.UpdateNotAvailable:
       case UpdateStatus.CheckingForUpdates:
       case UpdateStatus.UpdateAvailable:
-        const disabled = updateStatus !== UpdateStatus.UpdateNotAvailable
+      case UpdateStatus.UpdateNotChecked:
+        const disabled = ![
+          UpdateStatus.UpdateNotChecked,
+          UpdateStatus.UpdateNotAvailable,
+        ].includes(updateStatus)
 
         return (
           <Row>
@@ -197,6 +201,8 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         return this.renderUpdateNotAvailable()
       case UpdateStatus.UpdateReady:
         return this.renderUpdateReady()
+      case UpdateStatus.UpdateNotChecked:
+        return null
       default:
         return assertNever(
           updateState.status,
