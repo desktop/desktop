@@ -113,7 +113,7 @@ export async function mergeTree(
   }
 
   if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
-    return { kind: ComputedAction.Clean, entries: [] }
+    return { kind: ComputedAction.Clean }
   }
 
   const result = await spawnAndComplete(
@@ -126,7 +126,7 @@ export async function mergeTree(
 
   if (output.length === 0) {
     // the merge commit will be empty - this is fine!
-    return { kind: ComputedAction.Clean, entries: [] }
+    return { kind: ComputedAction.Clean }
   }
 
   return parseMergeTreeResult(output)

@@ -201,6 +201,6 @@ export function parseMergeTreeResult(text: string): MergeTreeResult {
       conflictedFiles: entriesWithConflicts.length,
     }
   } else {
-    return { kind: ComputedAction.Clean, entries }
+    return { kind: ComputedAction.Clean }
   }
 }
