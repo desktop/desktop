@@ -185,11 +185,11 @@ export class PullRequestQuickView extends React.Component<
   }
 
   private renderPR = () => {
-    const { title, pullRequestNumber, base, body, draft } =
+    const { title, pullRequestNumber, base, body, draft, parsedMarkdownBody } =
       this.props.pullRequest
     const displayBody =
-      body !== undefined && body !== null && body.trim() !== ''
-        ? body
+      body.trim() !== '' && parsedMarkdownBody !== undefined
+        ? parsedMarkdownBody
         : '_No description provided._'
 
     return (

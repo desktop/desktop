@@ -76,6 +76,9 @@ interface IPullRequestListProps {
   readonly onMouseLeavePullRequest: (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => void
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 interface IPullRequestListState {
@@ -172,6 +175,11 @@ export class PullRequestList extends React.Component<
     matches: IMatches
   ) => {
     const pr = item.pullRequest
+    // Parsing the markdown is done at the rendering of a pull request so we
+    // only do it for the prs that users can interact with. We wouldn't want the
+    // performance hit of pre-parsing all pr's for repos that have hundreds when
+    // the user likely won't be interacting with the majority of them.
+    pr.generateParsedMarkdownBody(this.props.emoji)
 
     return (
       <PullRequestListItem

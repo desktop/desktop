@@ -1,3 +1,8 @@
+import { enablePullRequestQuickView } from '../lib/feature-flag'
+import {
+  MarkdownEmitter,
+  parseMarkdown,
+} from '../lib/markdown-filters/markdown-filter'
 import { GitHubRepository } from './github-repository'
 
 /** Returns the commit ref for a given pull request number. */
@@ -20,6 +25,8 @@ export class PullRequestRef {
 }
 
 export class PullRequest {
+  public parsedMarkdownBody?: MarkdownEmitter
+
   /**
    * @param created The date on which the PR was created.
    * @param status The status of the PR. This will be `null` if we haven't looked up its
@@ -40,4 +47,16 @@ export class PullRequest {
     public readonly draft: boolean,
     public readonly body: string
   ) {}
+
+  public generateParsedMarkdownBody(emoji: Map<string, string>) {
+    if (this.parsedMarkdownBody !== undefined && enablePullRequestQuickView()) {
+      return
+    }
+
+    this.parsedMarkdownBody = parseMarkdown(this.body, {
+      emoji,
+      repository: this.base.gitHubRepository,
+      markdownContext: 'PullRequest',
+    })
+  }
 }
