@@ -157,7 +157,12 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   public componentWillUnmount() {
-    this.markdownEmitter?.dispose()
+    if (this.props.markdown !== 'string') {
+      this.markdownEmitter?.clear()
+    } else {
+      this.markdownEmitter?.dispose()
+    }
+
     this.resizeObserver.disconnect()
     document.removeEventListener('scroll', this.onDocumentScroll)
   }
