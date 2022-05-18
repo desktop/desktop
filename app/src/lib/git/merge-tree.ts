@@ -3,6 +3,7 @@ import { Branch } from '../../models/branch'
 import { ComputedAction } from '../../models/computed-action'
 import { MergeTreeResult } from '../../models/merge'
 import { Repository } from '../../models/repository'
+import { isErrnoException } from '../errno-exception'
 import { getMergeBase } from './merge'
 import { spawnGit } from './spawn'
 
@@ -57,7 +58,7 @@ export async function determineMergeability(
     'mergeTree'
   )
 
-  return await new Promise<MergeTreeResult>(resolve => {
+  return await new Promise<MergeTreeResult>((resolve, reject) => {
     let seenConflictMarker = false
     let conflictedFiles = 0
 
@@ -72,7 +73,25 @@ export async function determineMergeability(
       }
     })
 
+    process.on('error', err => {
+      // If this is an exception thrown by Node.js while attempting to
+      // spawn let's keep the salient details but include the name of
+      // the operation.
+      if (isErrnoException(err)) {
+        reject(new Error(`Failed to execute merge-tree: ${err.code}`))
+      } else {
+        // for unhandled errors raised by the process, let's surface this in the
+        // promise and make the caller handle it
+        reject(err)
+      }
+    })
+
     process.on('exit', (code, signal) => {
+      if (code !== 0) {
+        reject(new Error(`merge-tree exited with code '${code}'`))
+        return
+      }
+
       if (seenConflictMarker) {
         conflictedFiles++
       }
