@@ -46,6 +46,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * (like a circle badge icon)
    */
   --badge-icon-color: #{$white};
+  --warning-badge-icon-color: #{$orange};
 
   // Typography
   //
@@ -188,7 +189,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --commit-warning-badge-background-color: #{$gray-000};
   --commit-warning-badge-border-color: #{$gray-300};
-  --commit-warning-badge-icon-color: #{$gray-900};
+  --commit-warning-badge-icon-color: var(--warning-badge-icon-color);
 
   /**
    * The height of the title bar area on Win32 platforms
