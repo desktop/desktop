@@ -131,7 +131,6 @@ import {
   getRemotes,
   getWorkingDirectoryDiff,
   isCoAuthoredByTrailer,
-  mergeTree,
   pull as pullRepo,
   push as pushRepo,
   renameBranch,
@@ -296,6 +295,7 @@ import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
+import { determineMergeability } from '../git/merge-tree'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1295,7 +1295,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (tip.kind === TipState.Valid && aheadBehind.behind > 0) {
       const mergeTreePromise = promiseWithMinimumTimeout(
-        () => mergeTree(repository, tip.branch, action.branch),
+        () => determineMergeability(repository, tip.branch, action.branch),
         500
       )
         .catch(err => {
