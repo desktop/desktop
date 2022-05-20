@@ -304,7 +304,7 @@ export class CreateBranch extends React.Component<
         return
       }
 
-      startPoint = upstreamDefaultBranch.name
+      startPoint = upstreamDefaultBranch.upstream || upstreamDefaultBranch.name
       noTrack = true
     }
 
