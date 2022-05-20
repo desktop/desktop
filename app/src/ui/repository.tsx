@@ -33,7 +33,6 @@ import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
 import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 import { clamp } from '../lib/clamp'
-import { Branch } from '../models/branch'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -176,11 +175,9 @@ export class RepositoryView extends React.Component<
     const tip = this.props.state.branchesState.tip
 
     let branchName: string | null = null
-    let branch: Branch | null = null
 
     if (tip.kind === TipState.Valid) {
       branchName = tip.branch.name
-      branch = tip.branch
     } else if (tip.kind === TipState.Unborn) {
       branchName = tip.ref
     }
@@ -207,8 +204,7 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         changes={this.props.state.changesState}
-        branch={branch}
-        branchName={branchName}
+        branch={branchName}
         commitAuthor={this.props.state.commitAuthor}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}

@@ -1,5 +1,3 @@
-import { UpstreamRemoteName } from '../lib/stores'
-import { Branch } from './branch'
 import { createEqualityHash } from './equality-hash'
 import { Owner } from './owner'
 
@@ -79,16 +77,8 @@ export type ForkedGitHubRepository = GitHubRepository & {
  * (If their permissions are unknown, we assume they can.)
  */
 export function hasWritePermission(
-  gitHubRepository: GitHubRepository,
-  branch: Branch | null
+  gitHubRepository: GitHubRepository
 ): boolean {
-  if (
-    branch &&
-    branch.upstreamRemoteName === UpstreamRemoteName &&
-    gitHubRepository.parent !== null
-  ) {
-    gitHubRepository = gitHubRepository.parent
-  }
   return (
     gitHubRepository.permissions === null ||
     gitHubRepository.permissions !== 'read'

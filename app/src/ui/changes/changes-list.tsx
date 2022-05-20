@@ -51,7 +51,6 @@ import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
-import { Branch } from '../../models/branch'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -149,12 +148,7 @@ interface IChangesListProps {
   /**
    * The currently checked out branch (null if no branch is checked out).
    */
-  readonly branch: Branch | null
-  /**
-   * If the HEAD is unborn, this will be non-null
-   * while the `branch` prop is null.
-   */
-  readonly branchName: string | null
+  readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
@@ -395,8 +389,7 @@ export class ChangesList extends React.Component<
       {
         label: hasStash ? confirmStashAllChangesLabel : stashAllChangesLabel,
         action: this.onStashChanges,
-        enabled:
-          hasLocalChanges && this.props.branchName !== null && !hasConflicts,
+        enabled: hasLocalChanges && this.props.branch !== null && !hasConflicts,
       },
     ]
 
@@ -721,15 +714,12 @@ export class ChangesList extends React.Component<
     // restrict what the user can do at all
     const hasWritePermissionForRepository =
       this.props.repository.gitHubRepository === null ||
-      hasWritePermission(
-        this.props.repository.gitHubRepository,
-        this.props.branch
-      )
+      hasWritePermission(this.props.repository.gitHubRepository)
 
     return (
       <CommitMessage
         onCreateCommit={this.props.onCreateCommit}
-        branch={this.props.branchName}
+        branch={this.props.branch}
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
         anyFilesAvailable={fileCount > 0}
