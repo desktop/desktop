@@ -557,7 +557,7 @@ export async function insufficientGitHubRepoPermissions(
     return error
   }
 
-  if (hasWritePermission(repository.gitHubRepository)) {
+  if (hasWritePermission(repository.gitHubRepository, null)) {
     return error
   }
 

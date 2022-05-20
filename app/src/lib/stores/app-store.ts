@@ -1042,7 +1042,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // test for this scenario and show a message specifically
       // about write access before showing a branch protection
       // warning.
-      if (!hasWritePermission(gitHubRepo)) {
+      if (!hasWritePermission(gitHubRepo, null)) {
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: false,
         }))
@@ -2852,7 +2852,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (
         repository.gitHubRepository !== null &&
-        !hasWritePermission(repository.gitHubRepository)
+        !hasWritePermission(
+          repository.gitHubRepository,
+          gitStore.tip.kind === TipState.Valid ? gitStore.tip.branch : null
+        )
       ) {
         this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
         this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(

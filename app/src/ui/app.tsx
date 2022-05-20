@@ -1969,12 +1969,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
 
         const { tip } = repositoryState.branchesState
-        const currentBranchName: string | null =
-          tip.kind === TipState.Valid ? tip.branch.name : null
+        const currentBranch: Branch | null =
+          tip.kind === TipState.Valid ? tip.branch : null
 
         const hasWritePermissionForRepository =
           popup.repository.gitHubRepository === null ||
-          hasWritePermission(popup.repository.gitHubRepository)
+          hasWritePermission(popup.repository.gitHubRepository, currentBranch)
 
         const autocompletionProviders = buildAutocompletionProviders(
           popup.repository,
@@ -1994,7 +1994,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <CommitMessageDialog
             key="commit-message"
             autocompletionProviders={autocompletionProviders}
-            branch={currentBranchName}
+            branch={currentBranch ? currentBranch.name : null}
             coAuthors={popup.coAuthors}
             commitAuthor={repositoryState.commitAuthor}
             commitMessage={popup.commitMessage}

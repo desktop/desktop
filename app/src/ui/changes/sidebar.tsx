@@ -29,6 +29,7 @@ import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
+import { Branch } from '../../models/branch'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -43,7 +44,8 @@ interface IChangesSidebarProps {
   readonly changes: IChangesState
   readonly dispatcher: Dispatcher
   readonly commitAuthor: CommitIdentity | null
-  readonly branch: string | null
+  readonly branch: Branch | null
+  readonly branchName: string | null
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore
@@ -392,6 +394,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
+          branchName={this.props.branchName}
           commitMessage={commitMessage}
           focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
