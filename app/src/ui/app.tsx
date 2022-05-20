@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as crypto from 'crypto'
-import { escape } from 'querystring'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -691,7 +690,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const urlEncodedBranchName = escape(branchTip.branch.upstreamWithoutRemote)
+    const urlEncodedBranchName = encodeURIComponent(
+      branchTip.branch.upstreamWithoutRemote
+    )
 
     const url = `${htmlURL}/${view}/${urlEncodedBranchName}`
     this.props.dispatcher.openInBrowser(url)
