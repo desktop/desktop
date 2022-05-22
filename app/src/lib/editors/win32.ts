@@ -142,7 +142,6 @@ const executableShimPathsForJetBrainsIDE = (
   ]
 }
 
-
 const visualStudioInstaller : WindowsVisualStudioInstaller = {
   name: 'Microsoft Visual Studio Installer',
   registryKeys: [LocalMachineUninstallKey('{6F320B93-EE3C-4826-85E0-ADF79F8D4C61}')],
@@ -610,8 +609,7 @@ export async function getAvailableEditors(): Promise<
         })
       }
     }
-  }
-  
+  } 
 
   return results
 }
