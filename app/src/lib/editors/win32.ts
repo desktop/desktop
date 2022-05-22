@@ -151,16 +151,35 @@ const visualStudioInstaller : WindowsVisualStudioInstaller = {
   publisher: 'Microsoft Corporation'
 }
 
+/*
+  * Returns the path to VSWHERE.
+  *
+  * vswhere is a tool that is part of the Visual Studio Installer. It is used
+  * to find the path to the Visual Studio installation. 
+  * vswhere is included with the installer as of Visual Studio 2017 version 15.2 and later
+  * https://github.com/microsoft/vswhere
+  * 
+  */
 const getPathToVsWhere = async (visualStudioInstaller:WindowsVisualStudioInstaller): Promise<string | null> => {
     const path = await findApplication(visualStudioInstaller)
-    if (path !== null) {
-      log.debug("1 visualStudioInstaller.vswherePath: " + path)
-    } else {
+    if (!path) {
       log.debug('Visual Studio Installer not found');
-    }
+    } 
     return path;
 }
 
+/* 
+ * This list contains the list of Visual Studio IDEs that we support. 
+ * Add a new entry here to add support for a new Visual Studio version.
+ * 
+ * To find the product ID, please consult the following link:
+ * https://docs.microsoft.com/en-us/visualstudio/install/workload-and-component-ids?view=vs-2022 
+ * (change the year at the end of the url to the year you want)
+ * 
+ * To find the version, please consult the following link:
+ * https://docs.microsoft.com/en-us/visualstudio/install/visual-studio-build-numbers-and-release-dates?view=vs-2022
+ * (change the year at the end of the url to the year you want)
+ */
 const visualStudioEditors : WindowsVisualStudioEditor[] = [
   {
     name: 'Visual Studio Community 2022',
@@ -168,6 +187,62 @@ const visualStudioEditors : WindowsVisualStudioEditor[] = [
     publisher: 'Microsoft Corporation',
     version: '17',
     productId: 'Microsoft.VisualStudio.Product.Community',
+  },
+  {
+    name: 'Visual Studio Community 2019',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '16',
+    productId: 'Microsoft.VisualStudio.Product.Community',
+  },
+  {
+    name: 'Visual Studio Community 2017',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '15',
+    productId: 'Microsoft.VisualStudio.Product.Community',
+  },
+  {
+    name: 'Visual Studio Professional 2022',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '17',
+    productId: 'Microsoft.VisualStudio.Product.Professional',
+  },
+  {
+    name: 'Visual Studio Professional 2019',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '16',
+    productId: 'Microsoft.VisualStudio.Product.Professional',
+  },
+  {
+    name: 'Visual Studio Professional 2017',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '15',
+    productId: 'Microsoft.VisualStudio.Product.Professional',
+  },
+  {
+    name: 'Visual Studio Enterprise 2022',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '17',
+    productId: 'Microsoft.VisualStudio.Product.Enterprise',
+  },
+  {
+    name: 'Visual Studio Enterprise 2019',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '16',
+    productId: 'Microsoft.VisualStudio.Product.Enterprise',
+  },
+  {
+    name: 'Visual Studio Enterprise 2017',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '15',
+    productId: 'Microsoft.VisualStudio.Product.Enterprise',
   }
 ]
 
@@ -461,20 +536,20 @@ function getAppInfo(
   const installLocation = getKeyOrEmpty(
     keys,
     editor.installLocationRegistryKey ?? 'InstallLocation'
-  ).replace(/(^"|"$)/g, '')
+  ).replace(/(^"|"$)/g, '') // remove leading and trailing quotes
   return { displayName, publisher, installLocation }
 }
 
 async function findApplication(editor: WindowsExternalEditor) {
   for (const { key, subKey } of editor.registryKeys) {
-    log.debug("subkey " + subKey + " key " + key )
+
     const keys = enumerateValues(key, subKey)
     if (keys.length === 0) {
       continue
     }
 
     const { displayName, publisher, installLocation } = getAppInfo(editor, keys)
-    log.debug("i" + installLocation)
+
     if (
       !displayName.startsWith(editor.displayNamePrefix) ||
       publisher !== editor.publisher
@@ -512,7 +587,6 @@ export async function getAvailableEditors(): Promise<
 
   for (const editor of editors) {
     const path = await findApplication(editor)
-    log.debug("tiiiitttt")
     if (path) {
       results.push({
         editor: editor.name,
