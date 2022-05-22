@@ -66,7 +66,7 @@ type WindowsExternalEditorGenericInfo = {
 }
 
 type WindowsVisualStudioEditor = {
-  readonly version: string
+  readonly version: number
   readonly productId: string
 } & WindowsExternalEditorGenericInfo
 
@@ -184,63 +184,63 @@ const visualStudioEditors : WindowsVisualStudioEditor[] = [
     name: 'Visual Studio Community 2022',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '17',
+    version: 17,
     productId: 'Microsoft.VisualStudio.Product.Community',
   },
   {
     name: 'Visual Studio Community 2019',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '16',
+    version: 16,
     productId: 'Microsoft.VisualStudio.Product.Community',
   },
   {
     name: 'Visual Studio Community 2017',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '15',
+    version: 15,
     productId: 'Microsoft.VisualStudio.Product.Community',
   },
   {
     name: 'Visual Studio Professional 2022',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '17',
+    version: 17,
     productId: 'Microsoft.VisualStudio.Product.Professional',
   },
   {
     name: 'Visual Studio Professional 2019',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '16',
+    version: 16,
     productId: 'Microsoft.VisualStudio.Product.Professional',
   },
   {
     name: 'Visual Studio Professional 2017',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '15',
+    version: 15,
     productId: 'Microsoft.VisualStudio.Product.Professional',
   },
   {
     name: 'Visual Studio Enterprise 2022',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '17',
+    version: 17,
     productId: 'Microsoft.VisualStudio.Product.Enterprise',
   },
   {
     name: 'Visual Studio Enterprise 2019',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '16',
+    version: 16,
     productId: 'Microsoft.VisualStudio.Product.Enterprise',
   },
   {
     name: 'Visual Studio Enterprise 2017',
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publisher: 'Microsoft Corporation',
-    version: '15',
+    version: 15,
     productId: 'Microsoft.VisualStudio.Product.Enterprise',
   }
 ]
@@ -598,7 +598,7 @@ export async function getAvailableEditors(): Promise<
   const vswherePath = await getPathToVsWhere(visualStudioInstaller);
   if (vswherePath!==null) {
     for (const editor of visualStudioEditors) {
-      const output = await execFile(vswherePath, ['-version', editor.version, '-products', editor.productId, '-property', 'productPath'] );
+      const output = await execFile(vswherePath, ['-version', '['+String(editor.version)+','+String(editor.version+1)+')', '-products', editor.productId, '-property', 'productPath'] );
       const path = output.stdout.trim();
       const exists = await pathExists(path);
       if (exists) {
