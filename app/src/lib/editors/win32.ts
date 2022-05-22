@@ -10,6 +10,7 @@ import { pathExists } from '../../ui/lib/path-exists'
 
 import { IFoundEditor } from './found-editor'
 
+import { execFile } from '../exec-file'
 interface IWindowsAppInformation {
   displayName: string
   publisher: string
@@ -44,9 +45,6 @@ type WindowsExternalEditorPathInfo =
 
 /** Represents an external editor on Windows */
 type WindowsExternalEditor = {
-  /** Name of the editor. It will be used both as identifier and user-facing. */
-  readonly name: string
-
   /**
    * Set of registry keys associated with the installed application.
    *
@@ -54,13 +52,27 @@ type WindowsExternalEditor = {
    * tool - we should use whichever they have installed.
    */
   readonly registryKeys: ReadonlyArray<RegistryKey>
+} & WindowsExternalEditorPathInfo & WindowsExternalEditorGenericInfo
+
+type WindowsExternalEditorGenericInfo = {
+  /** Name of the editor. It will be used both as identifier and user-facing. */
+  readonly name: string
 
   /** Prefix of the DisplayName registry key that belongs to this editor. */
   readonly displayNamePrefix: string
 
   /** Value of the Publisher registry key that belongs to this editor. */
   readonly publisher: string
-} & WindowsExternalEditorPathInfo
+}
+
+type WindowsVisualStudioEditor = {
+  readonly version: string
+  readonly productId: string
+} & WindowsExternalEditorGenericInfo
+
+/* Represents the Installer for Visual Studio */
+type WindowsVisualStudioInstaller = { 
+} & WindowsExternalEditor
 
 const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
   key,
@@ -129,6 +141,35 @@ const executableShimPathsForJetBrainsIDE = (
     ['bin', `${baseName}.exe`],
   ]
 }
+
+
+const visualStudioInstaller : WindowsVisualStudioInstaller = {
+  name: 'Microsoft Visual Studio Installer',
+  registryKeys: [LocalMachineUninstallKey('{6F320B93-EE3C-4826-85E0-ADF79F8D4C61}')],
+  executableShimPaths: [['vswhere.exe']],
+  displayNamePrefix: 'Microsoft Visual Studio Installer',
+  publisher: 'Microsoft Corporation'
+}
+
+const getPathToVsWhere = async (visualStudioInstaller:WindowsVisualStudioInstaller): Promise<string | null> => {
+    const path = await findApplication(visualStudioInstaller)
+    if (path !== null) {
+      log.debug("1 visualStudioInstaller.vswherePath: " + path)
+    } else {
+      log.debug('Visual Studio Installer not found');
+    }
+    return path;
+}
+
+const visualStudioEditors : WindowsVisualStudioEditor[] = [
+  {
+    name: 'Visual Studio Community 2022',
+    displayNamePrefix: 'Microsoft Visual Studio Code',
+    publisher: 'Microsoft Corporation',
+    version: '17',
+    productId: 'Microsoft.VisualStudio.Product.Community',
+  }
+]
 
 /**
  * This list contains all the external editors supported on Windows. Add a new
@@ -420,19 +461,20 @@ function getAppInfo(
   const installLocation = getKeyOrEmpty(
     keys,
     editor.installLocationRegistryKey ?? 'InstallLocation'
-  )
+  ).replace(/(^"|"$)/g, '')
   return { displayName, publisher, installLocation }
 }
 
 async function findApplication(editor: WindowsExternalEditor) {
   for (const { key, subKey } of editor.registryKeys) {
+    log.debug("subkey " + subKey + " key " + key )
     const keys = enumerateValues(key, subKey)
     if (keys.length === 0) {
       continue
     }
 
     const { displayName, publisher, installLocation } = getAppInfo(editor, keys)
-
+    log.debug("i" + installLocation)
     if (
       !displayName.startsWith(editor.displayNamePrefix) ||
       publisher !== editor.publisher
@@ -470,7 +512,7 @@ export async function getAvailableEditors(): Promise<
 
   for (const editor of editors) {
     const path = await findApplication(editor)
-
+    log.debug("tiiiitttt")
     if (path) {
       results.push({
         editor: editor.name,
@@ -479,6 +521,23 @@ export async function getAvailableEditors(): Promise<
       })
     }
   }
+
+  const vswherePath = await getPathToVsWhere(visualStudioInstaller);
+  if (vswherePath!==null) {
+    for (const editor of visualStudioEditors) {
+      const output = await execFile(vswherePath, ['-version', editor.version, '-products', editor.productId, '-property', 'productPath'] );
+      const path = output.stdout.trim();
+      const exists = await pathExists(path);
+      if (exists) {
+        results.push({
+          editor: editor.name,
+          path,
+          usesShell: false,
+        })
+      }
+    }
+  }
+  
 
   return results
 }
