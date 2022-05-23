@@ -28,7 +28,7 @@
     "deep-equal": "^1.0.1",
     "desktop-notifications": "^0.2.0",
     "desktop-trampoline": "desktop/desktop-trampoline#v0.9.8",
-    "dexie": "^2.0.0",
+    "dexie": "^3.2.2",
     "dompurify": "^2.3.3",
     "dugite": "^1.109.0",
     "electron-window-state": "^5.0.3",
