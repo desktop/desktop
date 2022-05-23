@@ -134,6 +134,52 @@ export async function getCommitDiff(
 }
 
 /**
+ * Render the difference between two commits for a file
+ *
+ */
+export async function getCommitsDiff(
+  repository: Repository,
+  commits: ReadonlyArray<string>,
+  file: FileChange,
+  hideWhitespaceInDiff: boolean = false
+): Promise<IDiff> {
+  if (commits.length === 0) {
+    throw new Error('No commits to diff...')
+  }
+
+  const commitish =
+    commits.length === 1
+      ? `${commits.at(0)}^..${commits.at(0)}`
+      : `${commits.at(-1)}..${commits.at(0)}`
+  const oldestCommit = `${commits.at(-1)}`
+  const args = [
+    'diff',
+    commitish,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+    '--',
+    file.path,
+  ]
+
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
+  }
+
+  const { output } = await spawnAndComplete(
+    args,
+    repository.path,
+    'getCommitsDiff'
+  )
+
+  return buildDiff(output, repository, file, oldestCommit)
+}
+
+/**
  * Render the diff for a file within the repository working directory. The file will be
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
@@ -198,7 +244,7 @@ export async function getWorkingDirectoryDiff(
 async function getImageDiff(
   repository: Repository,
   file: FileChange,
-  commitish: string
+  oldestCommitish: string
 ): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
@@ -232,7 +278,7 @@ async function getImageDiff(
   } else {
     // File status can't be conflicted for a file in a commit
     if (file.status.kind !== AppFileStatusKind.Deleted) {
-      current = await getBlobImage(repository, file.path, commitish)
+      current = await getBlobImage(repository, file.path, oldestCommitish)
     }
 
     // File status can't be conflicted for a file in a commit
@@ -247,7 +293,7 @@ async function getImageDiff(
       previous = await getBlobImage(
         repository,
         getOldPathOrDefault(file),
-        `${commitish}^`
+        `${oldestCommitish}^`
       )
     }
   }
@@ -263,7 +309,7 @@ export async function convertDiff(
   repository: Repository,
   file: FileChange,
   diff: IRawDiff,
-  commitish: string,
+  oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   const extension = Path.extname(file.path).toLowerCase()
@@ -275,7 +321,7 @@ export async function convertDiff(
         kind: DiffType.Binary,
       }
     } else {
-      return getImageDiff(repository, file, commitish)
+      return getImageDiff(repository, file, oldestCommitish)
     }
   }
 
@@ -370,7 +416,7 @@ function buildDiff(
   buffer: Buffer,
   repository: Repository,
   file: FileChange,
-  commitish: string,
+  oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   if (!isValidBuffer(buffer)) {
@@ -396,7 +442,7 @@ function buildDiff(
     return Promise.resolve(largeTextDiff)
   }
 
-  return convertDiff(repository, file, diff, commitish, lineEndingsChange)
+  return convertDiff(repository, file, diff, oldestCommitish, lineEndingsChange)
 }
 
 /**
