@@ -690,7 +690,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const url = `${htmlURL}/${view}/${branchTip.branch.upstreamWithoutRemote}`
+    const urlEncodedBranchName = encodeURIComponent(
+      branchTip.branch.upstreamWithoutRemote
+    )
+
+    const url = `${htmlURL}/${view}/${urlEncodedBranchName}`
     this.props.dispatcher.openInBrowser(url)
   }
 

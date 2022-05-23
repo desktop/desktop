@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import { escape } from 'querystring'
 import {
   AccountsStore,
   CloningRepositoriesStore,
@@ -5788,7 +5787,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const urlEncodedBranchName = escape(branch.nameWithoutRemote)
+    const urlEncodedBranchName = encodeURIComponent(branch.nameWithoutRemote)
     const baseURL = `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
