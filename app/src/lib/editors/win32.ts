@@ -86,46 +86,52 @@ const LocalMachineUninstallKey = (subKey: string) =>
 const Wow64LocalMachineUninstallKey = (subKey: string) =>
   registryKey(HKEY.HKEY_LOCAL_MACHINE, wow64UninstallSubKey, subKey)
 
-  const registryKeysForVisualStudioIDE = (
+
+/* 
+* This function generates registry keys for a given Visual Studio product
+* Currently, we only support 64 bit versions of Visual Studio
+*
+* To find the product ID, please consult the following link:
+* https://docs.microsoft.com/en-us/visualstudio/install/workload-and-component-ids?view=vs-2022 
+* (change the year at the end of the url to the year you want)
+* 
+* To find the version, please consult the following link:
+* https://docs.microsoft.com/en-us/visualstudio/install/visual-studio-build-numbers-and-release-dates?view=vs-2022
+* (change the year at the end of the url to the year you want)
+*/
+const registryKeysForVisualStudioIDE = (
   version: number,
   productId: string
 ): ReadonlyArray<RegistryKey> => {
 
   const result = new Array<RegistryKey>()
+  /*
+  * vswhere is a tool that is part of the Visual Studio Installer. It is used
+  * to find the path to the Visual Studio installation. 
+  * vswhere is included with the installer as of Visual Studio 2017 version 15.2 and later
+  * https://github.com/microsoft/vswhere
+  * 
+  * According to the documentation, vswhere is installed in the following fixed location location:
+  * %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe for 64 bit
+  * %ProgramFiles%\Microsoft Visual Studio\Installer\vswhere.exe for 32 bit
+  * -https://github.com/Microsoft/vswhere/wiki/Installing
+  */
   let vswherePath = undefined;
   if(process.env['ProgramFiles(x86)']){
-    const path = Path.join(process.env['ProgramFiles(x86)'], 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
-    log.debug('Checking for vswhere.exe at ' + path);
-    if(existsSync(path)){
-      vswherePath = path;
-    }
+    vswherePath = Path.join(process.env['ProgramFiles(x86)'], 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
   } 
-  
-  if(process.env['ProgramFiles']){
-    const path = Path.join(process.env['ProgramFiles'], 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
-    log.debug('Checking for vswhere.exe at ' + path);
-    if(existsSync(path)){
-      vswherePath = path;
-    }
-  }
-  log.debug(`program file 86 path: ${process.env['ProgramFiles(x86)']}`);
-  log.debug(`program file 86 path: ${process.env['ProgramFiles']}`);
-  if(vswherePath !== undefined){
-    const test = execFileSync(vswherePath, ['-version', '['+String(version)+','+String(version+1)+')', '-products', productId, '-property', 'instanceId']);
-    
-    
-      
+  if(vswherePath !== undefined && existsSync(vswherePath)){
+    try {
+      const test = execFileSync(vswherePath, ['-version', '['+String(version)+','+String(version+1)+')', '-products', productId, '-property', 'instanceId'],{timeout: 200, killSignal: 'SIGKILL'});
       const instanceId = test.toString().trim();
-      log.debug(`Visual Studio instanceId: ${instanceId}`);
       result.push(Wow64LocalMachineUninstallKey(instanceId));
-
-
+    } catch (error) {
+      log.debug(`vswhere failed: ${error}`);
+    }
   } else {
     log.debug(`Unable to find Visual Studio: vswhere.exe not found`);
   }
-
   return result;
-  
 }
 
 // This function generates registry keys for a given JetBrains product for the
