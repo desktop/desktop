@@ -122,7 +122,7 @@ const registryKeysForVisualStudioIDE = (
   } 
   if(vswherePath !== undefined && existsSync(vswherePath)){
     try {
-      const vswhereStdOut = execFileSync(vswherePath, ['-version', '['+String(version)+','+String(version+1)+')', '-products', productId, '-property', 'instanceId'],{timeout: 200, killSignal: 'SIGKILL'});
+      const vswhereStdOut = execFileSync(vswherePath, ['-version', '['+String(version)+','+String(version+1)+')', '-products', productId, '-property', 'instanceId'],{timeout: 2000, killSignal: 'SIGKILL'});
       const instanceId = vswhereStdOut.toString().trim();
       result.push(Wow64LocalMachineUninstallKey(instanceId));
     } catch (error) {
