@@ -553,6 +553,9 @@ export interface ICommitSelection {
   /** The commits currently selected in the app */
   readonly shas: ReadonlyArray<string>
 
+  /** Whether or not the selection of commits contains the initial branch commit */
+  readonly selectionContainsInitialCommit: boolean
+
   /** The changeset data associated with the selected commit */
   readonly changesetData: IChangesetData
 

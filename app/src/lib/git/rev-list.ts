@@ -182,3 +182,27 @@ export async function getCommitsInRange(
 
   return commits
 }
+
+export async function getCountCommitsInBranch(
+  repository: Repository,
+  branchName: string
+) {
+  const args = ['rev-list', '--count', branchName]
+
+  const options = {
+    expectedErrors: new Set<GitError>([GitError.BadRevision]),
+  }
+
+  const result = await git(
+    args,
+    repository.path,
+    'getCountCommitsOnBranch',
+    options
+  )
+
+  if (result.gitError === GitError.BadRevision) {
+    return null
+  }
+
+  return parseInt(result.stdout, 10)
+}

@@ -41,7 +41,10 @@ interface ICommitListProps {
   readonly emptyListMessage: JSX.Element | string
 
   /** Callback which fires when a commit has been selected in the list */
-  readonly onCommitsSelected: (commits: ReadonlyArray<Commit>) => void
+  readonly onCommitsSelected: (
+    commits: ReadonlyArray<Commit>,
+    selectionContainsInitialCommit: boolean
+  ) => void
 
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
@@ -272,7 +275,15 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
     const selectedShas = sorted.map(r => this.props.commitSHAs[r])
     const selectedCommits = this.lookupCommits(selectedShas)
-    this.props.onCommitsSelected(selectedCommits)
+    const indexes = selectedCommits.map(v =>
+      this.props.commitSHAs.findIndex(sha => sha === v.sha)
+    )
+    const selectionContainsInitialCommit =
+      this.getLastRetainedCommitRef(indexes) === null
+    this.props.onCommitsSelected(
+      selectedCommits,
+      selectionContainsInitialCommit
+    )
   }
 
   // This is required along with onSelectedRangeChanged in the case of a user
@@ -280,8 +291,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   private onSelectedRowChanged = (row: number) => {
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
+    const selectionContainsInitialCommit =
+      this.getLastRetainedCommitRef([row]) === null
     if (commit) {
-      this.props.onCommitsSelected([commit])
+      this.props.onCommitsSelected([commit], selectionContainsInitialCommit)
     }
   }
 

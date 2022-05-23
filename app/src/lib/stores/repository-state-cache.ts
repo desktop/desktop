@@ -178,6 +178,7 @@ function getInitialRepositoryState(): IRepositoryState {
   return {
     commitSelection: {
       shas: [],
+      selectionContainsInitialCommit: false,
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,

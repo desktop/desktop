@@ -160,6 +160,7 @@ import {
   appendIgnoreFile,
   getRepositoryType,
   RepositoryType,
+  getCommitsDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -215,7 +216,10 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableHideWhitespaceInDiffOption } from '../feature-flag'
+import {
+  enableHideWhitespaceInDiffOption,
+  enableMultiCommitDiffs,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -1076,7 +1080,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeCommitSelection(
     repository: Repository,
-    shas: ReadonlyArray<string>
+    shas: ReadonlyArray<string>,
+    selectionContainsInitialCommit: boolean
   ): Promise<void> {
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
@@ -1089,6 +1094,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas,
+      selectionContainsInitialCommit,
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
@@ -1117,7 +1123,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (state.commitSelection.shas.length === 0 && commitSHAs.length > 0) {
-      this._changeCommitSelection(repository, [commitSHAs[0]])
+      this._changeCommitSelection(
+        repository,
+        [commitSHAs[0]],
+        commitSHAs.length === 1
+      )
       this._loadChangedFilesForCurrentSelection(repository)
     }
   }
@@ -1435,9 +1445,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       diff: null,
     }))
     this.emitUpdate()
-
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const shas = stateBeforeLoad.commitSelection.shas
+    const { shas, selectionContainsInitialCommit } =
+      stateBeforeLoad.commitSelection
 
     if (shas.length === 0) {
       if (__DEV__) {
@@ -1454,12 +1464,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const diff = await getCommitDiff(
-      repository,
-      file,
-      shas[0],
-      this.hideWhitespaceInHistoryDiff
-    )
+    const diff = enableMultiCommitDiffs()
+      ? await getCommitsDiff(
+          repository,
+          shas,
+          file,
+          this.hideWhitespaceInHistoryDiff,
+          selectionContainsInitialCommit
+        )
+      : await getCommitDiff(
+          repository,
+          file,
+          shas[0],
+          this.hideWhitespaceInHistoryDiff
+        )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection

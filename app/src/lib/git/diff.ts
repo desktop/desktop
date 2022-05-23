@@ -141,17 +141,24 @@ export async function getCommitsDiff(
   repository: Repository,
   commits: ReadonlyArray<string>,
   file: FileChange,
-  hideWhitespaceInDiff: boolean = false
+  hideWhitespaceInDiff: boolean = false,
+  selectionContainsInitialCommit: boolean
 ): Promise<IDiff> {
   if (commits.length === 0) {
     throw new Error('No commits to diff...')
   }
 
+  // hacky? We could derive - git hash-object -t tree /dev/null
+  const emptyTreeHash = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
+  const commitsToUse = selectionContainsInitialCommit
+    ? [...commits, emptyTreeHash]
+    : commits
   const commitish =
-    commits.length === 1
-      ? `${commits.at(0)}^..${commits.at(0)}`
-      : `${commits.at(-1)}..${commits.at(0)}`
-  const oldestCommit = `${commits.at(-1)}`
+    commitsToUse.length === 1
+      ? `${commitsToUse.at(0)}^..${commitsToUse.at(0)}`
+      : `${commitsToUse.at(-1)}..${commitsToUse.at(0)}`
+  const oldestCommit = `${commitsToUse.at(-1)}`
+
   const args = [
     'diff',
     commitish,

@@ -32,6 +32,7 @@ import {
   getBranches,
   getRebaseSnapshot,
   getRepositoryType,
+  getCountCommitsInBranch,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -235,9 +236,14 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    shas: ReadonlyArray<string>
+    shas: ReadonlyArray<string>,
+    selectionContainsInitialCommit: boolean
   ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, shas)
+    return this.appStore._changeCommitSelection(
+      repository,
+      shas,
+      selectionContainsInitialCommit
+    )
   }
 
   /**
@@ -3148,7 +3154,7 @@ export class Dispatcher {
 
     switch (cherryPickResult) {
       case CherryPickResult.CompletedWithoutError:
-        await this.changeCommitSelection(repository, [commits[0].sha])
+        await this.changeCommitSelection(repository, [commits[0].sha], false)
         await this.completeMultiCommitOperation(repository, commits.length)
         break
       case CherryPickResult.ConflictsEncountered:
@@ -3552,7 +3558,16 @@ export class Dispatcher {
           // TODO: Look at history back to last retained commit and search for
           // squashed commit based on new commit message ... if there is more
           // than one, just take the most recent. (not likely?)
-          await this.changeCommitSelection(repository, [status.currentTip])
+          await this.changeCommitSelection(
+            repository,
+            [status.currentTip],
+            status.currentBranch !== undefined
+              ? (await getCountCommitsInBranch(
+                  repository,
+                  status.currentBranch
+                )) === 1
+              : false
+          )
         }
 
         await this.completeMultiCommitOperation(
