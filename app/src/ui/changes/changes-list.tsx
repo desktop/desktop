@@ -27,6 +27,8 @@ import {
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
   CopyRelativeFilePathLabel,
+  CopySelectedPathsLabel,
+  CopySelectedRelativePathsLabel,
 } from '../lib/context-menu'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
@@ -426,6 +428,32 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private getCopySelectedPathsMenuItem = (
+    files: WorkingDirectoryFileChange[]
+  ): IMenuItem => {
+    return {
+      label: CopySelectedPathsLabel,
+      action: () => {
+        const fullPaths = files.map(file =>
+          Path.join(this.props.repository.path, file.path)
+        )
+        clipboard.writeText(fullPaths.join(' '))
+      },
+    }
+  }
+
+  private getCopySelectedRelativePathsMenuItem = (
+    files: WorkingDirectoryFileChange[]
+  ): IMenuItem => {
+    return {
+      label: CopySelectedRelativePathsLabel,
+      action: () => {
+        const paths = files.map(file => Path.normalize(file.path))
+        clipboard.writeText(paths.join(' '))
+      },
+    }
+  }
+
   private getRevealInFileManagerMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -556,15 +584,21 @@ export class ChangesList extends React.Component<
               this.props.onIncludeChanged(file.path, false)
             )
           },
-        }
+        },
+        { type: 'separator' },
+        this.getCopySelectedPathsMenuItem(selectedFiles),
+        this.getCopySelectedRelativePathsMenuItem(selectedFiles)
+      )
+    } else {
+      items.push(
+        { type: 'separator' },
+        this.getCopyPathMenuItem(file),
+        this.getCopyRelativePathMenuItem(file)
       )
     }
 
     const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(
-      { type: 'separator' },
-      this.getCopyPathMenuItem(file),
-      this.getCopyRelativePathMenuItem(file),
       { type: 'separator' },
       this.getRevealInFileManagerMenuItem(file),
       this.getOpenInExternalEditorMenuItem(file, enabled),
