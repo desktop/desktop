@@ -10,6 +10,10 @@ import { pathExists } from '../../ui/lib/path-exists'
 
 import { IFoundEditor } from './found-editor'
 
+import { execFileSync } from 'child_process'
+
+import {existsSync} from 'fs'
+
 interface IWindowsAppInformation {
   displayName: string
   publisher: string
@@ -81,6 +85,48 @@ const LocalMachineUninstallKey = (subKey: string) =>
 
 const Wow64LocalMachineUninstallKey = (subKey: string) =>
   registryKey(HKEY.HKEY_LOCAL_MACHINE, wow64UninstallSubKey, subKey)
+
+  const registryKeysForVisualStudioIDE = (
+  version: number,
+  productId: string
+): ReadonlyArray<RegistryKey> => {
+
+  const result = new Array<RegistryKey>()
+  let vswherePath = undefined;
+  if(process.env['ProgramFiles(x86)']){
+    const path = Path.join(process.env['ProgramFiles(x86)'], 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
+    log.debug('Checking for vswhere.exe at ' + path);
+    if(existsSync(path)){
+      vswherePath = path;
+    }
+  } 
+  
+  if(process.env['ProgramFiles']){
+    const path = Path.join(process.env['ProgramFiles'], 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
+    log.debug('Checking for vswhere.exe at ' + path);
+    if(existsSync(path)){
+      vswherePath = path;
+    }
+  }
+  log.debug(`program file 86 path: ${process.env['ProgramFiles(x86)']}`);
+  log.debug(`program file 86 path: ${process.env['ProgramFiles']}`);
+  if(vswherePath !== undefined){
+    const test = execFileSync(vswherePath, ['-version', '['+String(version)+','+String(version+1)+')', '-products', productId, '-property', 'instanceId']);
+    
+    
+      
+      const instanceId = test.toString().trim();
+      log.debug(`Visual Studio instanceId: ${instanceId}`);
+      result.push(Wow64LocalMachineUninstallKey(instanceId));
+
+
+  } else {
+    log.debug(`Unable to find Visual Studio: vswhere.exe not found`);
+  }
+
+  return result;
+  
+}
 
 // This function generates registry keys for a given JetBrains product for the
 // last 2 years, assuming JetBrains makes no more than 5 major releases and
@@ -198,6 +244,69 @@ const editors: WindowsExternalEditor[] = [
     ],
     executableShimPaths: [['bin', 'code-insiders.cmd']],
     displayNamePrefix: 'Microsoft Visual Studio Code Insiders',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Community 2022',
+    registryKeys: registryKeysForVisualStudioIDE(17, 'Microsoft.VisualStudio.Product.Community'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Community 2022',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Professional 2022',
+    registryKeys: registryKeysForVisualStudioIDE(17, 'Microsoft.VisualStudio.Product.Professional'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Professional 2022',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Enterprise 2022',
+    registryKeys: registryKeysForVisualStudioIDE(17, 'Microsoft.VisualStudio.Product.Enterprise'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Enterprise 2022',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Community 2019',
+    registryKeys: registryKeysForVisualStudioIDE(16, 'Microsoft.VisualStudio.Product.Community'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Community 2019',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Professional 2019',
+    registryKeys: registryKeysForVisualStudioIDE(16, 'Microsoft.VisualStudio.Product.Professional'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Professional 2019',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Enterprise 2019',
+    registryKeys: registryKeysForVisualStudioIDE(16, 'Microsoft.VisualStudio.Product.Enterprise'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Enterprise 2019',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Community 2017',
+    registryKeys: registryKeysForVisualStudioIDE(15, 'Microsoft.VisualStudio.Product.Community'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Community 2017',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Professional 2017',
+    registryKeys: registryKeysForVisualStudioIDE(15, 'Microsoft.VisualStudio.Product.Professional'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Professional 2017',
+    publisher: 'Microsoft Corporation',
+  },
+  {
+    name: 'Visual Studio Enterprise 2017',
+    registryKeys: registryKeysForVisualStudioIDE(15, 'Microsoft.VisualStudio.Product.Enterprise'),
+    executableShimPaths: [['common7', 'IDE', 'devenv.exe']],
+    displayNamePrefix: 'Visual Studio Enterprise 2017',
     publisher: 'Microsoft Corporation',
   },
   {
