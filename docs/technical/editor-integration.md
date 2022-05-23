@@ -43,6 +43,7 @@ These editors are currently supported:
  - [Brackets](http://brackets.io/)
  - [Notepad++](https://notepad-plus-plus.org/)
  - [RStudio](https://rstudio.com/)
+ - [Aptana Studio](http://www.aptana.com/)
 
 These are defined in a list at the top of the file:
 
@@ -233,6 +234,7 @@ These editors are currently supported:
  - [Android Studio](https://developer.android.com/studio)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [Nova](https://nova.app/)
+ - [Aptana Studio](http://www.aptana.com/)
 
 These are defined in a list at the top of the file:
 
