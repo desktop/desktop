@@ -193,7 +193,7 @@ export async function getCommitRangeDiff(
   if (result.gitError !== null) {
     // This shouldn't happen...
     throw new Error(
-      `getCommitRangeDiff: Error in diffing the commit range of: ${oldestCommitRef} to ${commits[0]}`
+      `getCommitRangeDiff: Error in diffing the commit range of: ${oldestCommitRef} to ${commits[0]} - ${result.combinedOutput}`
     )
   }
 
