@@ -160,7 +160,7 @@ import {
   appendIgnoreFile,
   getRepositoryType,
   RepositoryType,
-  getCommitsDiff,
+  getCommitRangeDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1459,7 +1459,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const diff = enableMultiCommitDiffs()
-      ? await getCommitsDiff(
+      ? await getCommitRangeDiff(
           repository,
           file,
           shas,

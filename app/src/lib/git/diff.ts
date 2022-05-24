@@ -28,6 +28,8 @@ import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
 import { forceUnwrap } from '../fatal-error'
 import { git } from '.'
+import { NullTreeSHA } from './diff-index'
+import { GitError } from 'dugite'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -138,24 +140,22 @@ export async function getCommitDiff(
  * Render the difference between two commits for a file
  *
  */
-export async function getCommitsDiff(
+export async function getCommitRangeDiff(
   repository: Repository,
   file: FileChange,
   commits: ReadonlyArray<string>,
-  hideWhitespaceInDiff: boolean = false
+  hideWhitespaceInDiff: boolean = false,
+  useNullTreeSHA: boolean = false
 ): Promise<IDiff> {
   if (commits.length === 0) {
     throw new Error('No commits to diff...')
   }
 
-  const commitish =
-    commits.length === 1
-      ? `${commits.at(0)}^..${commits.at(0)}`
-      : `${commits.at(-1)}..${commits.at(0)}`
-  const oldestCommit = `${commits.at(-1)}`
+  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${commits.at(-1)}^`
   const args = [
     'diff',
-    commitish,
+    oldestCommitRef,
+    commits[0],
     ...(hideWhitespaceInDiff ? ['-w'] : []),
     '--patch-with-raw',
     '-z',
@@ -173,13 +173,35 @@ export async function getCommitsDiff(
 
   const result = await git(args, repository.path, 'getCommitsDiff', {
     maxBuffer: Infinity,
+    expectedErrors: new Set([GitError.BadRevision]),
   })
+
+  // This should only happen if the oldest commit does not have a parent (ex:
+  // initial commit of a branch) and therefore `SHA^` is not a valid reference.
+  // In which case, we will retry with the null tree sha.
+  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
+    const useNullTreeSHA = true
+    return getCommitRangeDiff(
+      repository,
+      file,
+      commits,
+      hideWhitespaceInDiff,
+      useNullTreeSHA
+    )
+  }
+
+  if (result.gitError !== null) {
+    // This shouldn't happen...
+    throw new Error(
+      `getCommitRangeDiff: Error in diffing the commit range of: ${oldestCommitRef} to ${commits[0]}`
+    )
+  }
 
   return buildDiff(
     Buffer.from(result.combinedOutput),
     repository,
     file,
-    oldestCommit
+    oldestCommitRef
   )
 }
 
