@@ -140,8 +140,8 @@ export async function getCommitDiff(
  */
 export async function getCommitsDiff(
   repository: Repository,
-  commits: ReadonlyArray<string>,
   file: FileChange,
+  commits: ReadonlyArray<string>,
   hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
   if (commits.length === 0) {
