@@ -27,6 +27,7 @@ import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
 import { forceUnwrap } from '../fatal-error'
+import { git } from '.'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -170,13 +171,16 @@ export async function getCommitsDiff(
     args.push(file.status.oldPath)
   }
 
-  const { output } = await spawnAndComplete(
-    args,
-    repository.path,
-    'getCommitsDiff'
-  )
+  const result = await git(args, repository.path, 'getCommitsDiff', {
+    maxBuffer: Infinity,
+  })
 
-  return buildDiff(output, repository, file, oldestCommit)
+  return buildDiff(
+    Buffer.from(result.combinedOutput),
+    repository,
+    file,
+    oldestCommit
+  )
 }
 
 /**
