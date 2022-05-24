@@ -1458,19 +1458,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const diff = enableMultiCommitDiffs()
-      ? await getCommitRangeDiff(
-          repository,
-          file,
-          shas,
-          this.hideWhitespaceInHistoryDiff
-        )
-      : await getCommitDiff(
-          repository,
-          file,
-          shas[0],
-          this.hideWhitespaceInHistoryDiff
-        )
+    const diff =
+      enableMultiCommitDiffs() && shas.length > 1
+        ? await getCommitRangeDiff(
+            repository,
+            file,
+            shas,
+            this.hideWhitespaceInHistoryDiff
+          )
+        : await getCommitDiff(
+            repository,
+            file,
+            shas[0],
+            this.hideWhitespaceInHistoryDiff
+          )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection
