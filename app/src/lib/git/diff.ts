@@ -210,7 +210,11 @@ export async function getCommitRangeChangedFiles(
   repository: Repository,
   shas: ReadonlyArray<string>,
   useNullTreeSHA: boolean = false
-) {
+): Promise<{
+  files: ReadonlyArray<CommittedFileChange>
+  linesAdded: number
+  linesDeleted: number
+}> {
   if (shas.length === 0) {
     throw new Error('No commits to diff...')
   }
@@ -225,13 +229,25 @@ export async function getCommitRangeChangedFiles(
     '-z',
     '--raw',
     '--numstat',
+    '--',
   ]
 
   const result = await git(
     baseArgs,
     repository.path,
-    'getCommitRangeChangedFiles'
+    'getCommitRangeChangedFiles',
+    {
+      expectedErrors: new Set([GitError.BadRevision]),
+    }
   )
+
+  // This should only happen if the oldest commit does not have a parent (ex:
+  // initial commit of a branch) and therefore `SHA^` is not a valid reference.
+  // In which case, we will retry with the null tree sha.
+  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
+    const useNullTreeSHA = true
+    return getCommitRangeChangedFiles(repository, shas, useNullTreeSHA)
+  }
 
   return parseChangedFilesAndNumStat(
     result.combinedOutput,
