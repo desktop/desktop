@@ -1,8 +1,13 @@
 import { getFileHash } from '../file-system'
 import { TokenStore } from '../stores'
+import {
+  getSSHSecretStoreKey,
+  keepSSHSecretToStore,
+} from './ssh-secret-storage'
 
-const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub Desktop'
-const SSHKeyPassphraseTokenStoreKey = `${appName} - SSH key passphrases`
+const SSHKeyPassphraseTokenStoreKey = getSSHSecretStoreKey(
+  'SSH key passphrases'
+)
 
 async function getHashForSSHKey(keyPath: string) {
   return getFileHash(keyPath, 'sha256')
@@ -18,22 +23,6 @@ export async function getSSHKeyPassphrase(keyPath: string) {
     return null
   }
 }
-
-type SSHKeyPassphraseEntry = {
-  /** Hash of the SSH key file. */
-  keyHash: string
-
-  /** Passphrase for the SSH key. */
-  passphrase: string
-}
-
-/**
- * This map contains the SSH key passphrases that are pending to be stored.
- * What this means is that a git operation is currently in progress, and the
- * user wanted to store the passphrase for the SSH key, however we don't want
- * to store it until we know the git operation finished successfully.
- */
-const SSHKeyPassphrasesToStore = new Map<string, SSHKeyPassphraseEntry>()
 
 /**
  * Keeps the SSH key passphrase in memory to be stored later if the ongoing git
@@ -52,27 +41,13 @@ export async function keepSSHKeyPassphraseToStore(
 ) {
   try {
     const keyHash = await getHashForSSHKey(keyPath)
-    SSHKeyPassphrasesToStore.set(operationGUID, { keyHash, passphrase })
+    keepSSHSecretToStore(
+      operationGUID,
+      SSHKeyPassphraseTokenStoreKey,
+      keyHash,
+      passphrase
+    )
   } catch (e) {
     log.error('Could not store passphrase for SSH key:', e)
   }
-}
-
-/** Removes the SSH key passphrase from memory. */
-export function removePendingSSHKeyPassphraseToStore(operationGUID: string) {
-  SSHKeyPassphrasesToStore.delete(operationGUID)
-}
-
-/** Stores a pending SSH key passphrase if the operation succeeded. */
-export async function storePendingSSHKeyPassphrase(operationGUID: string) {
-  const entry = SSHKeyPassphrasesToStore.get(operationGUID)
-  if (entry === undefined) {
-    return
-  }
-
-  await TokenStore.setItem(
-    SSHKeyPassphraseTokenStoreKey,
-    entry.keyHash,
-    entry.passphrase
-  )
 }

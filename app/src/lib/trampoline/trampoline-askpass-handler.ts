@@ -2,12 +2,12 @@ import { getKeyForEndpoint } from '../auth'
 import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
-  removePendingSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
 import { TokenStore } from '../stores'
 import { TrampolineCommandHandler } from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
 import { parseAddSSHHostPrompt } from '../ssh/ssh'
+import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -65,7 +65,7 @@ async function handleSSHKeyPassphrase(
     return storedPassphrase
   }
 
-  const { passphrase, storePassphrase } =
+  const { secret: passphrase, storeSecret: storePassphrase } =
     await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
 
   // If the user wanted us to remember the passphrase, we'll keep it around to
@@ -78,7 +78,7 @@ async function handleSSHKeyPassphrase(
   if (passphrase !== undefined && storePassphrase) {
     keepSSHKeyPassphraseToStore(operationGUID, keyPath, passphrase)
   } else {
-    removePendingSSHKeyPassphraseToStore(operationGUID)
+    removePendingSSHSecretToStore(operationGUID)
   }
 
   return passphrase ?? ''
