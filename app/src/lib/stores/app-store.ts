@@ -1378,7 +1378,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
     const currentSHAs = commitSelection.shas
-    if (currentSHAs.length === 0) {
+    if (
+      currentSHAs.length === 0 ||
+      (currentSHAs.length !== 1 && !enableMultiCommitDiffs())
+    ) {
       return
     }
 
