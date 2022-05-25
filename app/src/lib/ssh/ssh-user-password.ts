@@ -1,5 +1,8 @@
 import { TokenStore } from '../stores'
-import { getSSHSecretStoreKey, keepSSHSecretToStore } from './ssh-token-storage'
+import {
+  getSSHSecretStoreKey,
+  keepSSHSecretToStore,
+} from './ssh-secret-storage'
 
 const SSHUserPasswordTokenStoreKey = getSSHSecretStoreKey('SSH user password')
 
