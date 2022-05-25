@@ -44,6 +44,19 @@ class TrampolineUIHelper {
       })
     })
   }
+
+  public promptSSHUserPassword(
+    username: string
+  ): Promise<PromptSSHSecretResponse> {
+    return new Promise(resolve => {
+      this.dispatcher.showPopup({
+        type: PopupType.SSHUserPassword,
+        username,
+        onSubmit: (password, storePassword) =>
+          resolve({ secret: password, storeSecret: storePassword }),
+      })
+    })
+  }
 }
 
 export const trampolineUIHelper = new TrampolineUIHelper()
