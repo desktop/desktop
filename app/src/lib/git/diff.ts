@@ -205,6 +205,14 @@ export async function getCommitRangeDiff(
   )
 }
 
+export function getCommitRangeChangedFiles(
+  repository: Repository,
+  shas: ReadonlyArray<string>,
+  useNullTreeSHA: boolean = false
+) {
+  return { files: [], linesAdded: 0, linesDeleted: 0 }
+}
+
 /**
  * Render the diff for a file within the repository working directory. The file will be
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
