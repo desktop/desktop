@@ -118,7 +118,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     this.frameContainingDivRef = frameContainingDivRef
   }
 
-  private initializeMarkdownEmitter = async () => {
+  private initializeMarkdownEmitter = () => {
     if (this.markdownEmitter !== undefined) {
       this.markdownEmitter.dispose()
     }
@@ -138,7 +138,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   public async componentDidMount() {
-    await this.initializeMarkdownEmitter()
+    this.initializeMarkdownEmitter()
 
     if (this.frameRef !== null) {
       this.setupFrameLoadListeners(this.frameRef)
