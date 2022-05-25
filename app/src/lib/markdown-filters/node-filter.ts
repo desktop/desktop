@@ -108,7 +108,7 @@ export async function applyNodeFilters(
   nodeFilters: ReadonlyArray<INodeFilter>,
   markdownEmitter: MarkdownEmitter
 ): Promise<void> {
-  if (markdownEmitter.latestMarkdown === null) {
+  if (markdownEmitter.latestMarkdown === null || markdownEmitter.isDisposed) {
     return
   }
 
@@ -119,6 +119,9 @@ export async function applyNodeFilters(
 
   for (const nodeFilter of nodeFilters) {
     await applyNodeFilter(nodeFilter, mdDoc)
+    if (markdownEmitter.isDisposed) {
+      break
+    }
     markdownEmitter.emit(mdDoc.documentElement.innerHTML)
   }
 }
