@@ -7,6 +7,7 @@ import {
   WorkingDirectoryFileChange,
   FileChange,
   AppFileStatusKind,
+  CommittedFileChange,
 } from '../../models/status'
 import {
   DiffType,
@@ -27,7 +28,7 @@ import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
 import { forceUnwrap } from '../fatal-error'
-import { git } from '.'
+import { git, mapStatus } from '.'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
 
@@ -205,12 +206,120 @@ export async function getCommitRangeDiff(
   )
 }
 
-export function getCommitRangeChangedFiles(
+export async function getCommitRangeChangedFiles(
   repository: Repository,
   shas: ReadonlyArray<string>,
   useNullTreeSHA: boolean = false
 ) {
-  return { files: [], linesAdded: 0, linesDeleted: 0 }
+  if (shas.length === 0) {
+    throw new Error('No commits to diff...')
+  }
+
+  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${shas.at(-1)}^`
+  const baseArgs = [
+    'diff',
+    oldestCommitRef,
+    shas[0],
+    '-C',
+    '-M',
+    '-z',
+    '--raw',
+    '--numstat',
+  ]
+
+  const result = await git(
+    baseArgs,
+    repository.path,
+    'getCommitRangeChangedFiles'
+  )
+
+  return parseChangedFilesAndNumStat(
+    result.combinedOutput,
+    `${oldestCommitRef}..${shas[0]}`
+  )
+}
+
+/**
+ * Parses output of diff flags -z --raw --numstat.
+ *
+ * Given the -z flag the new lines are separated by \0 character (left them as
+ * new lines below for ease of reading)
+ *
+ * For modified, added, deleted, untracked:
+ *    100644 100644 5716ca5 db3c77d M
+ *    file_one_path
+ *    :100644 100644 0835e4f 28096ea M
+ *    file_two_path
+ *    1    0       file_one_path
+ *    1    0       file_two_path
+ *
+ * For copied or renamed:
+ *    100644 100644 5716ca5 db3c77d M
+ *    file_one_original_path
+ *    file_one_new_path
+ *    :100644 100644 0835e4f 28096ea M
+ *    file_two_original_path
+ *    file_two_new_path
+ *    1    0
+ *    file_one_original_path
+ *    file_one_new_path
+ *    1    0
+ *    file_two_original_path
+ *    file_two_new_path
+ */
+function parseChangedFilesAndNumStat(stdout: string, committish: string) {
+  const lines = stdout.split('\0')
+  // Remove the trailing empty line
+  lines.splice(-1, 1)
+
+  const files: CommittedFileChange[] = []
+  let totalLinesAdded = 0
+  let totalLinesDeleted = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    const parts = lines[i].split('\t')
+
+    if (parts.length === 1) {
+      const statusParts = parts[0].split(' ')
+      const statusText = statusParts.at(-1) ?? ''
+      let oldPath: string | undefined = undefined
+
+      if (
+        statusText.length > 0 &&
+        (statusText[0] === 'R' || statusText[0] === 'C')
+      ) {
+        oldPath = lines[++i]
+      }
+
+      const status = mapStatus(statusText, oldPath)
+      const path = lines[++i]
+
+      files.push(new CommittedFileChange(path, status, committish))
+    }
+
+    if (parts.length === 3) {
+      const [added, deleted, file] = parts
+
+      if (added === '-' || deleted === '-') {
+        continue
+      }
+
+      totalLinesAdded += parseInt(added, 10)
+      totalLinesDeleted += parseInt(deleted, 10)
+
+      // If a file is not renamed or copied, the file name is with the
+      // add/deleted lines other wise the 2 files names are the next two lines
+      if (file === '' && lines[i + 1].split('\t').length === 1) {
+        i = i + 2
+      }
+    }
+  }
+
+  return {
+    files,
+    linesAdded: totalLinesAdded,
+    linesDeleted: totalLinesDeleted,
+  }
 }
 
 /**
