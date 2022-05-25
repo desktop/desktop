@@ -289,8 +289,8 @@ function parseChangedFilesAndNumStat(stdout: string, committish: string) {
   lines.splice(-1, 1)
 
   const files: CommittedFileChange[] = []
-  let totalLinesAdded = 0
-  let totalLinesDeleted = 0
+  let linesAdded = 0
+  let linesDeleted = 0
 
   for (let i = 0; i < lines.length; i++) {
     const parts = lines[i].split('\t')
@@ -320,8 +320,8 @@ function parseChangedFilesAndNumStat(stdout: string, committish: string) {
         continue
       }
 
-      totalLinesAdded += parseInt(added, 10)
-      totalLinesDeleted += parseInt(deleted, 10)
+      linesAdded += parseInt(added, 10)
+      linesDeleted += parseInt(deleted, 10)
 
       // If a file is not renamed or copied, the file name is with the
       // add/deleted lines other wise the 2 files names are the next two lines
@@ -333,8 +333,8 @@ function parseChangedFilesAndNumStat(stdout: string, committish: string) {
 
   return {
     files,
-    linesAdded: totalLinesAdded,
-    linesDeleted: totalLinesDeleted,
+    linesAdded,
+    linesDeleted,
   }
 }
 
