@@ -34,14 +34,15 @@ import { IChangesetData } from '../../lib/git'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
+import { enableMultiCommitDiffs } from '../../lib/feature-flag'
 
-interface ISelectedCommitProps {
+interface ISelectedCommitsProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
-  readonly selectedCommit: Commit | null
-  readonly isLocal: boolean
+  readonly selectedCommits: ReadonlyArray<Commit>
+  readonly localCommitSHAs: ReadonlyArray<string>
   readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
   readonly currentDiff: IDiff | null
@@ -77,27 +78,24 @@ interface ISelectedCommitProps {
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 
-  /** Whether multiple commits are selected. */
-  readonly areMultipleCommitsSelected: boolean
-
   /** Whether or not to show the drag overlay */
   readonly showDragOverlay: boolean
 }
 
-interface ISelectedCommitState {
+interface ISelectedCommitsState {
   readonly isExpanded: boolean
   readonly hideDescriptionBorder: boolean
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
-export class SelectedCommit extends React.Component<
-  ISelectedCommitProps,
-  ISelectedCommitState
+export class SelectedCommits extends React.Component<
+  ISelectedCommitsProps,
+  ISelectedCommitsState
 > {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private historyRef: HTMLDivElement | null = null
 
-  public constructor(props: ISelectedCommitProps) {
+  public constructor(props: ISelectedCommitsProps) {
     super(props)
 
     this.state = {
@@ -114,16 +112,12 @@ export class SelectedCommit extends React.Component<
     this.historyRef = ref
   }
 
-  public componentWillUpdate(nextProps: ISelectedCommitProps) {
+  public componentWillUpdate(nextProps: ISelectedCommitsProps) {
     // reset isExpanded if we're switching commits.
-    const currentValue = this.props.selectedCommit
-      ? this.props.selectedCommit.sha
-      : undefined
-    const nextValue = nextProps.selectedCommit
-      ? nextProps.selectedCommit.sha
-      : undefined
+    const currentValue = this.props.selectedCommits.join('')
+    const nextValue = nextProps.selectedCommits.join('')
 
-    if ((currentValue || nextValue) && currentValue !== nextValue) {
+    if (currentValue !== nextValue) {
       if (this.state.isExpanded) {
         this.setState({ isExpanded: false })
       }
@@ -250,13 +244,13 @@ export class SelectedCommit extends React.Component<
   }
 
   public render() {
-    const commit = this.props.selectedCommit
+    const { selectedCommits } = this.props
 
-    if (this.props.areMultipleCommitsSelected) {
+    if (selectedCommits.length > 1 && !enableMultiCommitDiffs()) {
       return this.renderMultipleCommitsSelected()
     }
 
-    if (commit == null) {
+    if (selectedCommits.length === 0) {
       return <NoCommitSelected />
     }
 
@@ -265,7 +259,8 @@ export class SelectedCommit extends React.Component<
 
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
-        {this.renderCommitSummary(commit)}
+        {selectedCommits.length === 1 &&
+          this.renderCommitSummary(selectedCommits[0])}
         <div className="commit-details">
           <Resizable
             width={commitSummaryWidth.value}
@@ -322,7 +317,14 @@ export class SelectedCommit extends React.Component<
   ) => {
     event.preventDefault()
 
-    const fullPath = Path.join(this.props.repository.path, file.path)
+    const {
+      selectedCommits,
+      localCommitSHAs,
+      repository,
+      externalEditorLabel,
+    } = this.props
+
+    const fullPath = Path.join(repository.path, file.path)
     const fileExistsOnDisk = await pathExists(fullPath)
     if (!fileExistsOnDisk) {
       showContextualMenu([
@@ -339,14 +341,14 @@ export class SelectedCommit extends React.Component<
     const extension = Path.extname(file.path)
 
     const isSafeExtension = isSafeFileExtension(extension)
-    const openInExternalEditor = this.props.externalEditorLabel
-      ? `Open in ${this.props.externalEditorLabel}`
+    const openInExternalEditor = externalEditorLabel
+      ? `Open in ${externalEditorLabel}`
       : DefaultEditorLabel
 
     const items: IMenuItem[] = [
       {
         label: RevealInFileManagerLabel,
-        action: () => revealInFileManager(this.props.repository, file.path),
+        action: () => revealInFileManager(repository, file.path),
         enabled: fileExistsOnDisk,
       },
       {
@@ -372,7 +374,7 @@ export class SelectedCommit extends React.Component<
     ]
 
     let viewOnGitHubLabel = 'View on GitHub'
-    const gitHubRepository = this.props.repository.gitHubRepository
+    const gitHubRepository = repository.gitHubRepository
 
     if (
       gitHubRepository &&
@@ -383,20 +385,21 @@ export class SelectedCommit extends React.Component<
 
     items.push({
       label: viewOnGitHubLabel,
-      action: () => this.onViewOnGitHub(file),
+      action: () => this.onViewOnGitHub(selectedCommits[0].sha, file),
       enabled:
-        !this.props.isLocal &&
+        // TODO: maybe we can assume to use last commit in multi commit
+        // scenario?
+        selectedCommits.length === 1 &&
+        !localCommitSHAs.includes(selectedCommits[0].sha) &&
         !!gitHubRepository &&
-        !!this.props.selectedCommit,
+        this.props.selectedCommits.length > 0,
     })
 
     showContextualMenu(items)
   }
 
-  private onViewOnGitHub = (file: CommittedFileChange) => {
-    if (this.props.selectedCommit && this.props.onViewCommitOnGitHub) {
-      this.props.onViewCommitOnGitHub(this.props.selectedCommit.sha, file.path)
-    }
+  private onViewOnGitHub = (sha: string, file: CommittedFileChange) => {
+    this.props.onViewCommitOnGitHub(sha, file.path)
   }
 }
 
