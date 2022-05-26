@@ -496,7 +496,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
-    const tags = this.props.commits[0].tags || []
+    const tags = this.props.commits.flatMap(c => c.tags) || []
 
     if (tags.length === 0) {
       return null
