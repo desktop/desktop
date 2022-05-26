@@ -387,8 +387,6 @@ export class SelectedCommits extends React.Component<
       label: viewOnGitHubLabel,
       action: () => this.onViewOnGitHub(selectedCommits[0].sha, file),
       enabled:
-        // TODO: maybe we can assume to use last commit in multi commit
-        // scenario?
         selectedCommits.length === 1 &&
         !localCommitSHAs.includes(selectedCommits[0].sha) &&
         !!gitHubRepository &&
