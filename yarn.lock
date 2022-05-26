@@ -960,10 +960,10 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.50.tgz#1e0caa9364d3fccd2931c3ed96fdbeaa5d4cca83"
   integrity sha512-C6N5s2ZFtuZRj54k2/zyRhNDjJwwcViAM3Nbm8zjBpbqAdZ00mr0CFxvSKeO8Y/e03WVFLpQMdHYVfUd6SB+Hw==
 
-"@types/event-kit@^1.2.28":
-  version "1.2.32"
-  resolved "https://registry.yarnpkg.com/@types/event-kit/-/event-kit-1.2.32.tgz#068cbdc69e8c969afae8c9f6e3a51ea4b1b5522e"
-  integrity sha512-v+dvA/8Uqp5OfLkd8PRPCZgIWyfz2n14yZdyHvMkZG3Kl4d5K/7son3w18p9bh8zXx3FeT5/DZnu3cM8dWh3sg==
+"@types/event-kit@^2.4.1":
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/@types/event-kit/-/event-kit-2.4.1.tgz#cc00a9b80bae9a387ea60d5c9031b5eb490cfa34"
+  integrity sha512-ZwGAHGQSj+ZRmqueYyjfIrXRfwLd5A2Z0mfzpP40M9F+BlbUI0v7qsVVFHcWNTE+rq5TLzHeFhEGwFp1zZBSUQ==
 
 "@types/events@*":
   version "1.2.0"

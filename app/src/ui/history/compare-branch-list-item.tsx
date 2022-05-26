@@ -7,7 +7,7 @@ import { Branch, IAheadBehind } from '../../models/branch'
 import { IMatches } from '../../lib/fuzzy-find'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { Repository } from '../../models/repository'
-import { IDisposable } from 'event-kit'
+import { DisposableLike } from 'event-kit'
 
 interface ICompareBranchListItemProps {
   readonly branch: Branch
@@ -50,7 +50,7 @@ export class CompareBranchListItem extends React.Component<
     return { aheadBehind, comparisonFrom: from, comparisonTo: to }
   }
 
-  private aheadBehindSubscription: IDisposable | null = null
+  private aheadBehindSubscription: DisposableLike | null = null
 
   public constructor(props: ICompareBranchListItemProps) {
     super(props)
