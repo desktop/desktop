@@ -213,11 +213,12 @@ export async function getCommitRangeChangedFiles(
     throw new Error('No commits to diff...')
   }
 
-  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${shas.at(-1)}^`
+  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${shas[0]}^`
+  const latestCommitRef = shas.at(-1) ?? '' // can't be undefined since shas.length > 0
   const baseArgs = [
     'diff',
     oldestCommitRef,
-    shas[0],
+    latestCommitRef,
     '-C',
     '-M',
     '-z',
@@ -245,7 +246,7 @@ export async function getCommitRangeChangedFiles(
 
   return parseChangedFilesAndNumStat(
     result.combinedOutput,
-    `${oldestCommitRef}..${shas[0]}`
+    `${oldestCommitRef}..${latestCommitRef}`
   )
 }
 
