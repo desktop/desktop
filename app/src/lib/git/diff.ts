@@ -151,11 +151,12 @@ export async function getCommitRangeDiff(
     throw new Error('No commits to diff...')
   }
 
-  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${commits.at(-1)}^`
+  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${commits[0]}^`
+  const latestCommit = commits.at(-1) ?? '' // can't be undefined since commits.length > 0
   const args = [
     'diff',
     oldestCommitRef,
-    commits[0],
+    latestCommit,
     ...(hideWhitespaceInDiff ? ['-w'] : []),
     '--patch-with-raw',
     '-z',
@@ -194,7 +195,7 @@ export async function getCommitRangeDiff(
     Buffer.from(result.combinedOutput),
     repository,
     file,
-    oldestCommitRef
+    latestCommit
   )
 }
 
