@@ -3,7 +3,7 @@ import { Octicon, OcticonSymbolType } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import classNames from 'classnames'
 import { GitHubRepository } from '../../models/github-repository'
-import { IDisposable } from 'event-kit'
+import { DisposableLike } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
 import {
   ICombinedRefCheck,
@@ -37,7 +37,7 @@ export class CIStatus extends React.PureComponent<
   ICIStatusProps,
   ICIStatusState
 > {
-  private statusSubscription: IDisposable | null = null
+  private statusSubscription: DisposableLike | null = null
 
   public constructor(props: ICIStatusProps) {
     super(props)
