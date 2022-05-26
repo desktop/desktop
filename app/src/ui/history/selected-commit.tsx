@@ -160,10 +160,10 @@ export class SelectedCommits extends React.Component<
     )
   }
 
-  private renderCommitSummary(commit: Commit) {
+  private renderCommitSummary(commits: ReadonlyArray<Commit>) {
     return (
       <CommitSummary
-        commit={commit}
+        commits={commits}
         changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
@@ -259,8 +259,7 @@ export class SelectedCommits extends React.Component<
 
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
-        {selectedCommits.length === 1 &&
-          this.renderCommitSummary(selectedCommits[0])}
+        {this.renderCommitSummary(selectedCommits)}
         <div className="commit-details">
           <Resizable
             width={commitSummaryWidth.value}

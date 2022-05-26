@@ -18,10 +18,11 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import { clipboard } from 'electron'
 import { TooltipDirection } from '../lib/tooltip'
 import { AppFileStatusKind } from '../../models/status'
+import _ from 'lodash'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
-  readonly commit: Commit
+  readonly commits: ReadonlyArray<Commit>
   readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
@@ -101,14 +102,17 @@ function createState(
   const tokenizer = new Tokenizer(props.emoji, props.repository)
 
   const { summary, body } = wrapRichTextCommitMessage(
-    props.commit.summary,
-    props.commit.body,
+    props.commits[0].summary,
+    props.commits[0].body,
     tokenizer
   )
 
-  const avatarUsers = getAvatarUsersForCommit(
-    props.repository.gitHubRepository,
-    props.commit
+  const allAvatarUsers = props.commits.flatMap(c =>
+    getAvatarUsersForCommit(props.repository.gitHubRepository, c)
+  )
+  const avatarUsers = _.uniqWith(
+    allAvatarUsers,
+    (a, b) => a.email === b.email && a.name === b.name
   )
 
   return { isOverflowed, summary, body, avatarUsers }
@@ -242,7 +246,7 @@ export class CommitSummary extends React.Component<
   }
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
-    if (!messageEquals(nextProps.commit, this.props.commit)) {
+    if (!messageEquals(nextProps.commits[0], this.props.commits[0])) {
       this.setState(createState(false, nextProps))
     }
   }
@@ -294,7 +298,7 @@ export class CommitSummary extends React.Component<
   }
 
   public render() {
-    const shortSHA = this.props.commit.shortSha
+    const shortSHA = this.props.commits[0].shortSha
 
     const className = classNames({
       expanded: this.props.isExpanded,
@@ -330,7 +334,7 @@ export class CommitSummary extends React.Component<
               <AvatarStack users={this.state.avatarUsers} />
               <CommitAttribution
                 gitHubRepository={this.props.repository.gitHubRepository}
-                commits={[this.props.commit]}
+                commits={[this.props.commits[0]]}
               />
             </li>
 
@@ -382,7 +386,7 @@ export class CommitSummary extends React.Component<
   private renderShaTooltip() {
     return (
       <>
-        <code>{this.props.commit.sha}</code>
+        <code>{this.props.commits[0].sha}</code>
         <button onClick={this.onCopyShaButtonClick}>Copy</button>
       </>
     )
@@ -390,7 +394,7 @@ export class CommitSummary extends React.Component<
 
   private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    clipboard.writeText(this.props.commit.sha)
+    clipboard.writeText(this.props.commits[0].sha)
   }
 
   private renderChangedFilesDescription = () => {
@@ -492,7 +496,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
-    const tags = this.props.commit.tags || []
+    const tags = this.props.commits[0].tags || []
 
     if (tags.length === 0) {
       return null
