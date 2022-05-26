@@ -297,9 +297,20 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  public render() {
-    const shortSHA = this.props.commits[0].shortSha
+  private getShaRef = (useShortSha?: boolean) => {
+    const { commits } = this.props
+    const oldest = useShortSha ? commits[0].shortSha : commits[0].sha
 
+    if (commits.length === 1) {
+      return oldest
+    }
+
+    const latest = useShortSha ? commits.at(-1)?.shortSha : commits.at(-1)?.sha
+
+    return `${oldest}^..${latest}`
+  }
+
+  public render() {
     const className = classNames({
       expanded: this.props.isExpanded,
       collapsed: !this.props.isExpanded,
@@ -350,7 +361,7 @@ export class CommitSummary extends React.Component<
                 interactive={true}
                 direction={TooltipDirection.SOUTH}
               >
-                {shortSHA}
+                {this.getShaRef(true)}
               </TooltippedContent>
             </li>
 
@@ -386,7 +397,7 @@ export class CommitSummary extends React.Component<
   private renderShaTooltip() {
     return (
       <>
-        <code>{this.props.commits[0].sha}</code>
+        <code>{this.getShaRef()}</code>
         <button onClick={this.onCopyShaButtonClick}>Copy</button>
       </>
     )
@@ -394,7 +405,7 @@ export class CommitSummary extends React.Component<
 
   private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    clipboard.writeText(this.props.commits[0].sha)
+    clipboard.writeText(this.getShaRef())
   }
 
   private renderChangedFilesDescription = () => {
