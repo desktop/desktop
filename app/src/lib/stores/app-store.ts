@@ -1458,13 +1458,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    // We do not get a diff when multiple commits selected
-    if (shas.length > 1) {
+    if (shas.length > 1 && !enableMultiCommitDiffs()) {
       return
     }
 
     const diff =
-      enableMultiCommitDiffs() && shas.length > 1
+      shas.length > 1
         ? await getCommitRangeDiff(
             repository,
             file,
@@ -1481,9 +1480,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection
     // A whole bunch of things could have happened since we initiated the diff load
-    if (shasAfter.length !== shas.length || shasAfter[0] !== shas[0]) {
+    if (
+      shasAfter.length !== shas.length ||
+      !shas.every((sha, i) => sha === shasAfter[i])
+    ) {
       return
     }
+
     if (!stateAfterLoad.commitSelection.file) {
       return
     }
