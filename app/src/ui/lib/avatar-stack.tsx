@@ -35,7 +35,8 @@ export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
     const className = classNames('AvatarStack', {
       'AvatarStack--small': true,
       'AvatarStack--two': users.length === 2,
-      'AvatarStack--three-plus': users.length >= MaxDisplayedAvatars,
+      'AvatarStack--three': users.length === 3,
+      'AvatarStack--plus': users.length > MaxDisplayedAvatars,
     })
 
     return (

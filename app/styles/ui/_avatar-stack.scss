@@ -11,7 +11,11 @@
     min-width: 36px;
   }
 
-  &.AvatarStack--three-plus {
+  &.AvatarStack--three {
+    min-width: 30px;
+  }
+
+  &.AvatarStack--plus {
     min-width: 46px;
   }
 
@@ -28,8 +32,12 @@
       min-width: 25px;
     }
 
-    &.AvatarStack--three-plus {
+    &.AvatarStack--three {
       min-width: 30px;
+    }
+
+    &.AvatarStack--plus {
+      min-width: 46px;
     }
 
     .avatar.avatar-more {
@@ -121,6 +129,7 @@
   z-index: 1;
   margin-right: 0;
   background: $gray-100;
+  width: 10px !important;
 
   &::before,
   &::after {
