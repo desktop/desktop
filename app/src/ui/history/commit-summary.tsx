@@ -321,6 +321,8 @@ export class CommitSummary extends React.Component<
     const hasEmptySummary = this.state.summary.length === 0
     const commitSummary = hasEmptySummary
       ? 'Empty commit message'
+      : this.props.commits.length > 1
+      ? `Viewing the diff of ${this.props.commits.length} commits`
       : this.state.summary
 
     const summaryClassNames = classNames('commit-summary-title', {
@@ -389,7 +391,7 @@ export class CommitSummary extends React.Component<
           </ul>
         </div>
 
-        {this.renderDescription()}
+        {this.props.commits.length === 1 && this.renderDescription()}
       </div>
     )
   }
