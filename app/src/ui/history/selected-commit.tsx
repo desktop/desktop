@@ -114,8 +114,8 @@ export class SelectedCommits extends React.Component<
 
   public componentWillUpdate(nextProps: ISelectedCommitsProps) {
     // reset isExpanded if we're switching commits.
-    const currentValue = this.props.selectedCommits.join('')
-    const nextValue = nextProps.selectedCommits.join('')
+    const currentValue = this.props.selectedCommits.map(c => c.sha).join('')
+    const nextValue = nextProps.selectedCommits.map(c => c.sha).join('')
 
     if (currentValue !== nextValue) {
       if (this.state.isExpanded) {

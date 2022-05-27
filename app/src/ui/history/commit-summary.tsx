@@ -246,7 +246,12 @@ export class CommitSummary extends React.Component<
   }
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
-    if (!messageEquals(nextProps.commits[0], this.props.commits[0])) {
+    if (
+      nextProps.commits.length !== this.props.commits.length ||
+      !nextProps.commits.every((nextCommit, i) =>
+        messageEquals(nextCommit, this.props.commits[i])
+      )
+    ) {
       this.setState(createState(false, nextProps))
     }
   }
