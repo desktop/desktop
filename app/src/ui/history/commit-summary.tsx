@@ -99,16 +99,29 @@ function createState(
   isOverflowed: boolean,
   props: ICommitSummaryProps
 ): ICommitSummaryState {
-  const tokenizer = new Tokenizer(props.emoji, props.repository)
+  const { emoji, repository, commits } = props
+  const tokenizer = new Tokenizer(emoji, repository)
+
+  const plainTextBody =
+    commits.length > 1
+      ? commits
+          .map(
+            c =>
+              `${c.shortSha} - ${c.summary}${
+                c.body.trim() !== '' ? `\n${c.body}` : ''
+              }`
+          )
+          .join('\n\n')
+      : commits[0].body
 
   const { summary, body } = wrapRichTextCommitMessage(
-    props.commits[0].summary,
-    props.commits[0].body,
+    commits[0].summary,
+    plainTextBody,
     tokenizer
   )
 
-  const allAvatarUsers = props.commits.flatMap(c =>
-    getAvatarUsersForCommit(props.repository.gitHubRepository, c)
+  const allAvatarUsers = commits.flatMap(c =>
+    getAvatarUsersForCommit(repository.gitHubRepository, c)
   )
   const avatarUsers = _.uniqWith(
     allAvatarUsers,
@@ -396,7 +409,7 @@ export class CommitSummary extends React.Component<
           </ul>
         </div>
 
-        {this.props.commits.length === 1 && this.renderDescription()}
+        {this.renderDescription()}
       </div>
     )
   }
