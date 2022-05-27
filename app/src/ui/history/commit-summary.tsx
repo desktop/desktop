@@ -365,7 +365,7 @@ export class CommitSummary extends React.Component<
               <AvatarStack users={this.state.avatarUsers} />
               <CommitAttribution
                 gitHubRepository={this.props.repository.gitHubRepository}
-                commits={[this.props.commits[0]]}
+                commits={this.props.commits}
               />
             </li>
 
