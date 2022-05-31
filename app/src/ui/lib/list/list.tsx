@@ -524,11 +524,14 @@ export class List extends React.Component<IListProps, IListState> {
       this.props.onRowKeyDown(rowIndex, event)
     }
 
+    const isSpecialShortcut = __DARWIN__ ? event.metaKey : event.ctrlKey
+
     // We give consumers the power to prevent the onRowClick event by subscribing
     // to the onRowKeyDown event and calling event.preventDefault. This lets
     // consumers add their own semantics for keyboard presses.
     if (
       !event.defaultPrevented &&
+      !isSpecialShortcut &&
       (event.key === 'Enter' || event.key === ' ')
     ) {
       this.toggleSelection(event)
@@ -537,8 +540,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onFocusContainerKeyDown = (event: React.KeyboardEvent<any>) => {
+    const isSpecialShortcut = __DARWIN__ ? event.metaKey : event.ctrlKey
+
     if (
       !event.defaultPrevented &&
+      !isSpecialShortcut &&
       (event.key === 'Enter' || event.key === ' ')
     ) {
       this.toggleSelection(event)

@@ -183,6 +183,11 @@ export class CommitMessage extends React.Component<
   public componentWillUnmount() {
     const { props, state } = this
     props.onPersistCommitMessage?.(pick(state, 'summary', 'description'))
+    window.removeEventListener('keydown', this.onKeyDown)
+  }
+
+  public componentDidMount() {
+    window.addEventListener('keydown', this.onKeyDown)
   }
 
   /**
@@ -331,15 +336,18 @@ export class CommitMessage extends React.Component<
     )
   }
 
-  private onKeyDown = (event: React.KeyboardEvent<Element>) => {
+  private onKeyDown = (event: React.KeyboardEvent<Element> | KeyboardEvent) => {
     if (event.defaultPrevented) {
       return
     }
 
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
-      this.createCommit()
-      event.preventDefault()
+      const openedDialogs = document.getElementsByTagName('dialog')
+      if (openedDialogs.length === 0) {
+        this.createCommit()
+        event.preventDefault()
+      }
     }
   }
 
