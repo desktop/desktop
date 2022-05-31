@@ -323,7 +323,8 @@ export class CommitSummary extends React.Component<
       return oldest
     }
 
-    const latest = useShortSha ? commits.at(-1)?.shortSha : commits.at(-1)?.sha
+    const latestCommit = commits.at(-1)
+    const latest = useShortSha ? latestCommit?.shortSha : latestCommit?.sha
 
     return `${oldest}^..${latest}`
   }
