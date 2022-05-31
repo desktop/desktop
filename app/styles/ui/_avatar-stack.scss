@@ -37,7 +37,7 @@
     }
 
     &.AvatarStack--plus {
-      min-width: 46px;
+      min-width: 40px;
     }
 
     .avatar.avatar-more {
@@ -74,6 +74,13 @@
     background: var(--box-alt-background-color);
   }
 
+  .avatar-container:nth-child(n + 5) {
+    .avatar {
+      display: none;
+      opacity: 0;
+    }
+  }
+
   .avatar {
     position: relative;
     z-index: 2;
@@ -100,13 +107,6 @@
     img {
       border-radius: 50%;
     }
-    // stylelint-enable selector-max-type
-
-    // Account for 4+ avatars
-    &:nth-child(n + 4) {
-      display: none;
-      opacity: 0;
-    }
   }
 
   &:hover {
@@ -114,9 +114,11 @@
       margin-right: 3px;
     }
 
-    .avatar:nth-child(n + 4) {
-      display: flex;
-      opacity: 1;
+    .avatar-container:nth-child(n + 5) {
+      .avatar {
+        display: flex;
+        opacity: 1;
+      }
     }
 
     .avatar-more {
