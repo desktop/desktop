@@ -25,7 +25,10 @@ export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
     const users = this.props.users
 
     for (let i = 0; i < this.props.users.length; i++) {
-      if (users.length > MaxDisplayedAvatars && i === MaxDisplayedAvatars - 1) {
+      if (
+        users.length > MaxDisplayedAvatars + 1 &&
+        i === MaxDisplayedAvatars - 1
+      ) {
         elems.push(<div key="more" className="avatar-more avatar" />)
       }
 
