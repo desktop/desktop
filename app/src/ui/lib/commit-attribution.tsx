@@ -80,7 +80,7 @@ export class CommitAttribution extends React.Component<
         : [author, ...coAuthors]
 
       for (const a of authors) {
-        if (allAuthors.get(a.toString()) === undefined) {
+        if (!allAuthors.has(a.toString())) {
           allAuthors.set(a.toString(), a)
         }
       }
