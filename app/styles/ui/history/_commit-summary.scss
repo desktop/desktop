@@ -25,7 +25,7 @@
 
   &.expanded {
     .commit-summary-description-scroll-view {
-      max-height: none;
+      max-height: 400px;
       overflow: auto;
 
       &:before {
