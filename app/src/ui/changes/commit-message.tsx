@@ -343,8 +343,8 @@ export class CommitMessage extends React.Component<
 
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
-      const openedDialogs = document.getElementsByTagName('dialog')
-      if (openedDialogs.length === 0) {
+      const openDialogs = document.getElementsByTagName('dialog')
+      if (openDialogs.length === 0) {
         this.createCommit()
         event.preventDefault()
       }
