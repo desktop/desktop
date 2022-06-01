@@ -114,8 +114,8 @@ export class SelectedCommits extends React.Component<
 
   public componentWillUpdate(nextProps: ISelectedCommitsProps) {
     // reset isExpanded if we're switching commits.
-    const currentValue = this.props.selectedCommits.join('')
-    const nextValue = nextProps.selectedCommits.join('')
+    const currentValue = this.props.selectedCommits.map(c => c.sha).join('')
+    const nextValue = nextProps.selectedCommits.map(c => c.sha).join('')
 
     if (currentValue !== nextValue) {
       if (this.state.isExpanded) {
@@ -160,10 +160,10 @@ export class SelectedCommits extends React.Component<
     )
   }
 
-  private renderCommitSummary(commit: Commit) {
+  private renderCommitSummary(commits: ReadonlyArray<Commit>) {
     return (
       <CommitSummary
-        commit={commit}
+        commits={commits}
         changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
@@ -259,8 +259,7 @@ export class SelectedCommits extends React.Component<
 
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
-        {selectedCommits.length === 1 &&
-          this.renderCommitSummary(selectedCommits[0])}
+        {this.renderCommitSummary(selectedCommits)}
         <div className="commit-details">
           <Resizable
             width={commitSummaryWidth.value}

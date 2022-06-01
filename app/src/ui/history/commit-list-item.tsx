@@ -174,7 +174,7 @@ export class CommitListItem extends React.PureComponent<
               <div className="byline">
                 <CommitAttribution
                   gitHubRepository={this.props.gitHubRepository}
-                  commit={commit}
+                  commits={[commit]}
                 />
                 {renderRelativeTime(date)}
               </div>

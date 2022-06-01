@@ -18,10 +18,11 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import { clipboard } from 'electron'
 import { TooltipDirection } from '../lib/tooltip'
 import { AppFileStatusKind } from '../../models/status'
+import _ from 'lodash'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
-  readonly commit: Commit
+  readonly commits: ReadonlyArray<Commit>
   readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
@@ -98,17 +99,33 @@ function createState(
   isOverflowed: boolean,
   props: ICommitSummaryProps
 ): ICommitSummaryState {
-  const tokenizer = new Tokenizer(props.emoji, props.repository)
+  const { emoji, repository, commits } = props
+  const tokenizer = new Tokenizer(emoji, repository)
+
+  const plainTextBody =
+    commits.length > 1
+      ? commits
+          .map(
+            c =>
+              `${c.shortSha} - ${c.summary}${
+                c.body.trim() !== '' ? `\n${c.body}` : ''
+              }`
+          )
+          .join('\n\n')
+      : commits[0].body
 
   const { summary, body } = wrapRichTextCommitMessage(
-    props.commit.summary,
-    props.commit.body,
+    commits[0].summary,
+    plainTextBody,
     tokenizer
   )
 
-  const avatarUsers = getAvatarUsersForCommit(
-    props.repository.gitHubRepository,
-    props.commit
+  const allAvatarUsers = commits.flatMap(c =>
+    getAvatarUsersForCommit(repository.gitHubRepository, c)
+  )
+  const avatarUsers = _.uniqWith(
+    allAvatarUsers,
+    (a, b) => a.email === b.email && a.name === b.name
   )
 
   return { isOverflowed, summary, body, avatarUsers }
@@ -242,7 +259,12 @@ export class CommitSummary extends React.Component<
   }
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
-    if (!messageEquals(nextProps.commit, this.props.commit)) {
+    if (
+      nextProps.commits.length !== this.props.commits.length ||
+      !nextProps.commits.every((nextCommit, i) =>
+        messageEquals(nextCommit, this.props.commits[i])
+      )
+    ) {
       this.setState(createState(false, nextProps))
     }
   }
@@ -293,9 +315,21 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  public render() {
-    const shortSHA = this.props.commit.shortSha
+  private getShaRef = (useShortSha?: boolean) => {
+    const { commits } = this.props
+    const oldest = useShortSha ? commits[0].shortSha : commits[0].sha
 
+    if (commits.length === 1) {
+      return oldest
+    }
+
+    const latestCommit = commits.at(-1)
+    const latest = useShortSha ? latestCommit?.shortSha : latestCommit?.sha
+
+    return `${oldest}^..${latest}`
+  }
+
+  public render() {
     const className = classNames({
       expanded: this.props.isExpanded,
       collapsed: !this.props.isExpanded,
@@ -306,6 +340,8 @@ export class CommitSummary extends React.Component<
     const hasEmptySummary = this.state.summary.length === 0
     const commitSummary = hasEmptySummary
       ? 'Empty commit message'
+      : this.props.commits.length > 1
+      ? `Viewing the diff of ${this.props.commits.length} commits`
       : this.state.summary
 
     const summaryClassNames = classNames('commit-summary-title', {
@@ -330,7 +366,7 @@ export class CommitSummary extends React.Component<
               <AvatarStack users={this.state.avatarUsers} />
               <CommitAttribution
                 gitHubRepository={this.props.repository.gitHubRepository}
-                commit={this.props.commit}
+                commits={this.props.commits}
               />
             </li>
 
@@ -346,7 +382,7 @@ export class CommitSummary extends React.Component<
                 interactive={true}
                 direction={TooltipDirection.SOUTH}
               >
-                {shortSHA}
+                {this.getShaRef(true)}
               </TooltippedContent>
             </li>
 
@@ -382,7 +418,7 @@ export class CommitSummary extends React.Component<
   private renderShaTooltip() {
     return (
       <>
-        <code>{this.props.commit.sha}</code>
+        <code>{this.getShaRef()}</code>
         <button onClick={this.onCopyShaButtonClick}>Copy</button>
       </>
     )
@@ -390,7 +426,7 @@ export class CommitSummary extends React.Component<
 
   private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    clipboard.writeText(this.props.commit.sha)
+    clipboard.writeText(this.getShaRef())
   }
 
   private renderChangedFilesDescription = () => {
@@ -492,7 +528,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
-    const tags = this.props.commit.tags || []
+    const tags = this.props.commits.flatMap(c => c.tags) || []
 
     if (tags.length === 0) {
       return null
