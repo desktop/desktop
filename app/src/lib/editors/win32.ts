@@ -300,6 +300,15 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'SlickEdit Inc.',
   },
   {
+    name: 'Aptana Studio 3',
+    registryKeys: [
+      Wow64LocalMachineUninstallKey('{2D6C1116-78C6-469C-9923-3E549218773F}'),
+    ],
+    executableShimPaths: [['AptanaStudio3.exe']],
+    displayNamePrefix: 'Aptana Studio',
+    publisher: 'Appcelerator',
+  },
+  {
     name: 'JetBrains Webstorm',
     registryKeys: registryKeysForJetBrainsIDE('WebStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('webstorm'),

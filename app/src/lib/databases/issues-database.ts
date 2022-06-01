@@ -1,4 +1,4 @@
-import Dexie from 'dexie'
+import Dexie, { Transaction } from 'dexie'
 import { BaseDatabase } from './base-database'
 
 export interface IIssue {
@@ -37,7 +37,7 @@ export class IssuesDatabase extends BaseDatabase {
   }
 }
 
-function clearIssues(transaction: Dexie.Transaction) {
+function clearIssues(transaction: Transaction) {
   // Clear deprecated localStorage keys, we compute the since parameter
   // using the database now.
   clearDeprecatedKeys()

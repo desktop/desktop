@@ -28,9 +28,10 @@ import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
 import { forceUnwrap } from '../fatal-error'
-import { git, mapStatus } from '.'
+import { git } from './core'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
+import { mapStatus } from './log'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -182,13 +183,12 @@ export async function getCommitRangeDiff(
   // initial commit of a branch) and therefore `SHA^` is not a valid reference.
   // In which case, we will retry with the null tree sha.
   if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
-    const useNullTreeSHA = true
     return getCommitRangeDiff(
       repository,
       file,
       commits,
       hideWhitespaceInDiff,
-      useNullTreeSHA
+      true
     )
   }
 

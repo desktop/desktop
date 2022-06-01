@@ -1,5 +1,25 @@
 {
   "releases": {
+    "3.0.1": [
+      "[Added] Add support for PyCharm Community Edition on Windows - #14411. Thanks @tsvetilian-ty!",
+      "[Added] Add support for highlighting .mjs/.cjs/.mts/.cts files as JavaScript/TypeScript - #14481. Thanks @j-f1!",
+      "[Fixed] Prevent crash when encountering a large number of conflicts while checking for ability to merge branch - #14485",
+      "[Fixed] Url encode branch names when 'Viewing Branch in Github' is selected - #14631. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix opening files with Android Studio - #14519",
+      "[Fixed] Checks popover summary correctly reflects a successful conclusion when skipped or neutral checks are present - #14508",
+      "[Fixed] Long lists of conflicted files to commit or files to discard can be scrolled - #14468",
+      "[Fixed] Fix random crashes when external apps probe GitHub Desktop trampoline port - #14471",
+      "[Improved] Display a banner when we have a pretext release note to highlight the new feature - #14620",
+      "[Improved] Enable interactions with notifications from previous app sessions - #14496",
+      "[Improved] Improve feedback about user permission to display notifications - #14496",
+      "[Improved] Add ability to have showcasing of features through release notes - #14488",
+      "[Improved] User can see all releases notes between their current version and the latest update - #14458",
+      "[Removed] Outdated new drag and drop and split diff new feature callouts removed - #14463"
+    ],
+    "3.0.1-beta2": [
+      "[Fixed] Prevent crash when encountering a large number of conflicts while checking for ability to merge branch - #14485",
+      "[Fixed] Url encode branch names when 'Viewing Branch in Github' is selected - #14631. Thanks @tsvetilian-ty!"
+    ],
     "3.0.1-beta1": [
       "[Added] Add support for PyCharm Community Edition on Windows - #14411. Thanks @tsvetilian-ty!",
       "[Added] Add support for highlighting .mjs/.cjs/.mts/.cts files as JavaScript/TypeScript - #14481. Thanks @j-f1!",
