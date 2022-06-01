@@ -27,7 +27,7 @@ import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
 import { forceUnwrap } from '../fatal-error'
-import { git } from '.'
+import { git } from './core'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
 
