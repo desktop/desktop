@@ -158,6 +158,7 @@ import {
   appendIgnoreFile,
   getRepositoryType,
   RepositoryType,
+  getCommitRangeDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -213,7 +214,10 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableHideWhitespaceInDiffOption } from '../feature-flag'
+import {
+  enableHideWhitespaceInDiffOption,
+  enableMultiCommitDiffs,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -1453,12 +1457,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const diff = await getCommitDiff(
-      repository,
-      file,
-      shas[0],
-      this.hideWhitespaceInHistoryDiff
-    )
+    const diff =
+      enableMultiCommitDiffs() && shas.length > 1
+        ? await getCommitRangeDiff(
+            repository,
+            file,
+            shas,
+            this.hideWhitespaceInHistoryDiff
+          )
+        : await getCommitDiff(
+            repository,
+            file,
+            shas[0],
+            this.hideWhitespaceInHistoryDiff
+          )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection

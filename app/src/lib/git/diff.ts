@@ -27,6 +27,9 @@ import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
 import { forceUnwrap } from '../fatal-error'
+import { git } from './core'
+import { NullTreeSHA } from './diff-index'
+import { GitError } from 'dugite'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -134,6 +137,68 @@ export async function getCommitDiff(
 }
 
 /**
+ * Render the difference between two commits for a file
+ *
+ */
+export async function getCommitRangeDiff(
+  repository: Repository,
+  file: FileChange,
+  commits: ReadonlyArray<string>,
+  hideWhitespaceInDiff: boolean = false,
+  useNullTreeSHA: boolean = false
+): Promise<IDiff> {
+  if (commits.length === 0) {
+    throw new Error('No commits to diff...')
+  }
+
+  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${commits[0]}^`
+  const latestCommit = commits.at(-1) ?? '' // can't be undefined since commits.length > 0
+  const args = [
+    'diff',
+    oldestCommitRef,
+    latestCommit,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+    '--',
+    file.path,
+  ]
+
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
+  }
+
+  const result = await git(args, repository.path, 'getCommitsDiff', {
+    maxBuffer: Infinity,
+    expectedErrors: new Set([GitError.BadRevision]),
+  })
+
+  // This should only happen if the oldest commit does not have a parent (ex:
+  // initial commit of a branch) and therefore `SHA^` is not a valid reference.
+  // In which case, we will retry with the null tree sha.
+  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
+    return getCommitRangeDiff(
+      repository,
+      file,
+      commits,
+      hideWhitespaceInDiff,
+      true
+    )
+  }
+
+  return buildDiff(
+    Buffer.from(result.combinedOutput),
+    repository,
+    file,
+    latestCommit
+  )
+}
+
+/**
  * Render the diff for a file within the repository working directory. The file will be
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
@@ -198,7 +263,7 @@ export async function getWorkingDirectoryDiff(
 async function getImageDiff(
   repository: Repository,
   file: FileChange,
-  commitish: string
+  oldestCommitish: string
 ): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
@@ -232,7 +297,7 @@ async function getImageDiff(
   } else {
     // File status can't be conflicted for a file in a commit
     if (file.status.kind !== AppFileStatusKind.Deleted) {
-      current = await getBlobImage(repository, file.path, commitish)
+      current = await getBlobImage(repository, file.path, oldestCommitish)
     }
 
     // File status can't be conflicted for a file in a commit
@@ -247,7 +312,7 @@ async function getImageDiff(
       previous = await getBlobImage(
         repository,
         getOldPathOrDefault(file),
-        `${commitish}^`
+        `${oldestCommitish}^`
       )
     }
   }
@@ -263,7 +328,7 @@ export async function convertDiff(
   repository: Repository,
   file: FileChange,
   diff: IRawDiff,
-  commitish: string,
+  oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   const extension = Path.extname(file.path).toLowerCase()
@@ -275,7 +340,7 @@ export async function convertDiff(
         kind: DiffType.Binary,
       }
     } else {
-      return getImageDiff(repository, file, commitish)
+      return getImageDiff(repository, file, oldestCommitish)
     }
   }
 
@@ -370,7 +435,7 @@ function buildDiff(
   buffer: Buffer,
   repository: Repository,
   file: FileChange,
-  commitish: string,
+  oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   if (!isValidBuffer(buffer)) {
@@ -396,7 +461,7 @@ function buildDiff(
     return Promise.resolve(largeTextDiff)
   }
 
-  return convertDiff(repository, file, diff, commitish, lineEndingsChange)
+  return convertDiff(repository, file, diff, oldestCommitish, lineEndingsChange)
 }
 
 /**

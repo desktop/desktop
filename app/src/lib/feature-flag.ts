@@ -172,3 +172,8 @@ export function enablePullRequestReviewNotifications(): boolean {
 export function enableReRunFailedAndSingleCheckJobs(): boolean {
   return true
 }
+
+/** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
+export function enableMultiCommitDiffs(): boolean {
+  return enableDevelopmentFeatures()
+}
