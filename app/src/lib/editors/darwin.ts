@@ -24,6 +24,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.github.atom'],
   },
   {
+    name: 'Aptana Studio',
+    bundleIdentifiers: ['aptana.studio'],
+  },
+  {
     name: 'MacVim',
     bundleIdentifiers: ['org.vim.MacVim'],
   },

@@ -18,7 +18,6 @@ export interface IMergeTreeEntry {
 
 export type MergeTreeSuccess = {
   readonly kind: ComputedAction.Clean
-  readonly entries: ReadonlyArray<IMergeTreeEntry>
 }
 
 export type MergeTreeError = {

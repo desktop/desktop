@@ -7,14 +7,14 @@ import { Tooltip } from './tooltip'
 import { createObservableRef } from './observable-ref'
 import { getObjectId } from './object-id'
 import { debounce } from 'lodash'
-import { parseMarkdown } from '../../lib/markdown-filters/markdown-filter'
+import {
+  MarkdownEmitter,
+  parseMarkdown,
+} from '../../lib/markdown-filters/markdown-filter'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
-  readonly markdown: string
-
-  /** Whether the markdown was pre-parsed - assumed false */
-  readonly isParsed?: boolean
+  readonly markdown: string | MarkdownEmitter
 
   /** The baseHref of the markdown content for when the markdown has relative links */
   readonly baseHref?: string
@@ -58,6 +58,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   private frameRef: HTMLIFrameElement | null = null
   private frameContainingDivRef: HTMLDivElement | null = null
   private contentDivRef: HTMLDivElement | null = null
+  private markdownEmitter?: MarkdownEmitter
 
   /**
    * Resize observer used for tracking height changes in the markdown
@@ -71,6 +72,18 @@ export class SandboxedMarkdown extends React.PureComponent<
       tooltipOffset: this.frameRef?.getBoundingClientRect() ?? new DOMRect(),
     })
   }, 100)
+
+  /**
+   * We debounce the markdown updating because it is updated on each custom
+   * markdown filter. Leading is true so that users will at a minimum see the
+   * markdown parsed by markedjs while the custom filters are being applied.
+   * (So instead of being updated, 10+ times it is updated 1 or 2 times.)
+   */
+  private onMarkdownUpdated = debounce(
+    markdown => this.mountIframeContents(markdown),
+    10,
+    { leading: true }
+  )
 
   public constructor(props: ISandboxedMarkdownProps) {
     super(props)
@@ -105,8 +118,27 @@ export class SandboxedMarkdown extends React.PureComponent<
     this.frameContainingDivRef = frameContainingDivRef
   }
 
+  private initializeMarkdownEmitter = () => {
+    if (this.markdownEmitter !== undefined) {
+      this.markdownEmitter.dispose()
+    }
+    const { emoji, repository, markdownContext } = this.props
+    this.markdownEmitter =
+      typeof this.props.markdown !== 'string'
+        ? this.props.markdown
+        : parseMarkdown(this.props.markdown, {
+            emoji,
+            repository,
+            markdownContext,
+          })
+
+    this.markdownEmitter.onMarkdownUpdated((markdown: string) => {
+      this.onMarkdownUpdated(markdown)
+    })
+  }
+
   public async componentDidMount() {
-    this.mountIframeContents()
+    this.initializeMarkdownEmitter()
 
     if (this.frameRef !== null) {
       this.setupFrameLoadListeners(this.frameRef)
@@ -120,11 +152,12 @@ export class SandboxedMarkdown extends React.PureComponent<
   public async componentDidUpdate(prevProps: ISandboxedMarkdownProps) {
     // rerender iframe contents if provided markdown changes
     if (prevProps.markdown !== this.props.markdown) {
-      this.mountIframeContents()
+      this.initializeMarkdownEmitter()
     }
   }
 
   public componentWillUnmount() {
+    this.markdownEmitter?.dispose()
     this.resizeObserver.disconnect()
     document.removeEventListener('scroll', this.onDocumentScroll)
   }
@@ -288,22 +321,12 @@ export class SandboxedMarkdown extends React.PureComponent<
   /**
    * Populates the mounted iframe with HTML generated from the provided markdown
    */
-  private async mountIframeContents() {
+  private async mountIframeContents(markdown: string) {
     if (this.frameRef === null) {
       return
     }
 
     const styleSheet = await this.getInlineStyleSheet()
-
-    const { emoji, repository, markdownContext } = this.props
-    const filteredHTML =
-      this.props.isParsed === true
-        ? this.props.markdown
-        : await parseMarkdown(this.props.markdown, {
-            emoji,
-            repository,
-            markdownContext,
-          })
 
     const src = `
       <html>
@@ -313,7 +336,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         </head>
         <body class="markdown-body">
           <div id="content">
-          ${filteredHTML}
+          ${markdown}
           </div>
         </body>
       </html>
