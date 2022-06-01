@@ -181,13 +181,12 @@ export async function getCommitRangeDiff(
   // initial commit of a branch) and therefore `SHA^` is not a valid reference.
   // In which case, we will retry with the null tree sha.
   if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
-    const useNullTreeSHA = true
     return getCommitRangeDiff(
       repository,
       file,
       commits,
       hideWhitespaceInDiff,
-      useNullTreeSHA
+      true
     )
   }
 
