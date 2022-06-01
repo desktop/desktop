@@ -22,7 +22,7 @@ import { enableLineChangesInCommit } from '../feature-flag'
  * Map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-function mapStatus(
+export function mapStatus(
   rawStatus: string,
   oldPath?: string
 ): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {

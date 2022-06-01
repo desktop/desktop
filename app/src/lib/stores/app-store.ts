@@ -159,6 +159,7 @@ import {
   getRepositoryType,
   RepositoryType,
   getCommitRangeDiff,
+  getCommitRangeChangedFiles,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1376,14 +1377,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
     const currentSHAs = commitSelection.shas
-    if (currentSHAs.length !== 1) {
-      // if none or multiple, we don't display a diff
+    if (
+      currentSHAs.length === 0 ||
+      (currentSHAs.length !== 1 && !enableMultiCommitDiffs())
+    ) {
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     const changesetData = await gitStore.performFailableOperation(() =>
-      getChangedFiles(repository, currentSHAs[0])
+      currentSHAs.length > 1
+        ? getCommitRangeChangedFiles(repository, currentSHAs)
+        : getChangedFiles(repository, currentSHAs[0])
     )
     if (!changesetData) {
       return
@@ -1394,7 +1399,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // SHA/path.
     if (
       commitSelection.shas.length !== currentSHAs.length ||
-      commitSelection.shas[0] !== currentSHAs[0]
+      !commitSelection.shas.every((sha, i) => sha === currentSHAs[i])
     ) {
       return
     }
