@@ -128,6 +128,8 @@ interface IChangesListProps {
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
+  readonly isShowingModal: boolean
+  readonly isShowingFoldout: boolean
   readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges: boolean
@@ -721,6 +723,8 @@ export class ChangesList extends React.Component<
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
         commitAuthor={this.props.commitAuthor}
+        isShowingModal={this.props.isShowingModal}
+        isShowingFoldout={this.props.isShowingFoldout}
         anyFilesSelected={anyFilesSelected}
         anyFilesAvailable={fileCount > 0}
         repository={repository}

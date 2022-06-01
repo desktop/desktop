@@ -54,6 +54,8 @@ interface ICommitMessageProps {
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly anyFilesSelected: boolean
+  readonly isShowingModal: boolean
+  readonly isShowingFoldout: boolean
 
   /**
    * Whether it's possible to select files for commit, affects messaging
@@ -336,18 +338,24 @@ export class CommitMessage extends React.Component<
     )
   }
 
+  private canExcecuteCommitShortcut(): boolean {
+    return !this.props.isShowingFoldout && !this.props.isShowingModal
+  }
+
   private onKeyDown = (event: React.KeyboardEvent<Element> | KeyboardEvent) => {
     if (event.defaultPrevented) {
       return
     }
 
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-    if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
-      const openDialogs = document.getElementsByTagName('dialog')
-      if (openDialogs.length === 0) {
-        this.createCommit()
-        event.preventDefault()
-      }
+    if (
+      isShortcutKey &&
+      event.key === 'Enter' &&
+      this.canCommit() &&
+      this.canExcecuteCommitShortcut()
+    ) {
+      this.createCommit()
+      event.preventDefault()
     }
   }
 

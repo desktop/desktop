@@ -219,6 +219,8 @@ export class RepositoryView extends React.Component<
           this.props.askForConfirmationOnDiscardChanges
         }
         accounts={this.props.accounts}
+        isShowingModal={this.props.isShowingModal}
+        isShowingFoldout={this.props.isShowingFoldout}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangesListScrolled={this.onChangesListScrolled}
