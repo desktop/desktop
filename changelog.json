@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.2-test1": ["[Fixed] Fix crash on macOS High Sierra"],
     "3.0.2-beta1": [
       "[Added] Add support for Aptana Studio - #14669. Thanks @tsvetilian-ty!"
     ],
