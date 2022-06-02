@@ -164,6 +164,9 @@ import {
   getCommitRangeChangedFiles,
   revRangeInclusive,
   getCommitsInRange,
+  getParentSha,
+  NullTreeSHA,
+  revRange,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1124,13 +1127,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return []
     }
 
-    const commitsOfDiff = await getCommitsInRange(
+    let commitsOfDiff = await getCommitsInRange(
       repository,
       revRangeInclusive(oldestCommitRef, latestCommit)
     )
 
+    // Should only happen if oldest commit was the initial commit and oldestCommit^ doesn't exist.
     if (commitsOfDiff === null) {
-      return []
+      const parentSha = await getParentSha(repository, oldestCommitRef)
+      if (parentSha !== '') {
+        // shouldn't happen...
+        return []
+      }
+
+      // This means oldest was the initial commit, retry with null sha
+      commitsOfDiff = await getCommitsInRange(
+        repository,
+        revRange(NullTreeSHA, latestCommit)
+      )
+
+      if (commitsOfDiff === null) {
+        // shouldn't happen...
+        return []
+      }
     }
 
     const commitsOfDiffShas = commitsOfDiff?.map(s => s.sha)
