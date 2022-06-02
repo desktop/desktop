@@ -162,6 +162,8 @@ import {
   RepositoryType,
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
+  revRangeInclusive,
+  getCommitsInRange,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1093,8 +1095,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const shasInDiff = await this.getShasInDiff(repository, shas, isContiguous)
+
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas,
+      shasInDiff,
       isContiguous,
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
@@ -1102,6 +1107,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+  }
+
+  private async getShasInDiff(
+    repository: Repository,
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean
+  ) {
+    if (shas.length <= 1 || !isContiguous) {
+      return []
+    }
+
+    const oldestCommitRef = shas[0]
+    const latestCommit = shas.at(-1)
+    if (latestCommit === undefined) {
+      return []
+    }
+
+    const commitsOfDiff = await getCommitsInRange(
+      repository,
+      revRangeInclusive(oldestCommitRef, latestCommit)
+    )
+
+    if (commitsOfDiff === null) {
+      return []
+    }
+
+    const commitsOfDiffShas = commitsOfDiff?.map(s => s.sha)
+    return shas.filter(sha => commitsOfDiffShas.includes(sha))
   }
 
   private updateOrSelectFirstCommit(
