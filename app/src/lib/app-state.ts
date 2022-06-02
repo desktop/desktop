@@ -554,6 +554,25 @@ export interface ICommitSelection {
   readonly shas: ReadonlyArray<string>
 
   /**
+   * When multiple commits are selected, the diff is created using the rev range
+   * of firstSha^..lastSha in the selected shas. Thus comparing the trees of the
+   * the lastSha and the first parent of the first sha. However, our history
+   * list shows commits in chronological order. Thus, when a branch is merged,
+   * the commits from that branch are injected in their chronological order into
+   * the history list. Therefore, given a branch history of A, B, C, D,
+   * MergeCommit where B and C are from the merged branch, diffing on the
+   * selection of A through D would not have the changes from B an C.
+   *
+   * This is a list of the shas that are reachable by following the parent links
+   * (aka the graph) from the lastSha to the firstSha^ in the selection.
+   *
+   * Other notes: Given a selection A through D, executing `git diff A..D` would
+   * give us the changes since A but not including A; since the user will have
+   * selected A, we do `git diff A^..D` so that we include the changes of A.
+   * */
+  readonly shasInDiff: ReadonlyArray<string>
+
+  /**
    * Whether the a selection of commits are group of adjacent to each other.
    * Example: Given these are indexes of sha's in history, 3, 4, 5, 6 is contiguous as
    * opposed to 3, 5, 8.

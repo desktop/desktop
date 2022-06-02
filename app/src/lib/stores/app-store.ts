@@ -1114,7 +1114,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     shas: ReadonlyArray<string>,
     isContiguous: boolean
   ): Promise<void> {
-    const { commitSelection } = this.repositoryStateCache.get(repository)
+    const { commitSelection, commitLookup } =
+      this.repositoryStateCache.get(repository)
 
     if (
       commitSelection.shas.length === shas.length &&
@@ -1123,8 +1124,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const shasInDiff = this.getShasInDiff(shas, isContiguous, commitLookup)
+
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas,
+      shasInDiff,
       isContiguous,
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
@@ -1132,6 +1136,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+  }
+
+  private getShasInDiff(
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean,
+    commitLookup: Map<string, Commit>
+  ) {
+    const shasInDiff = new Array<string>()
+
+    if (shas.length <= 1 || !isContiguous) {
+      return shasInDiff
+    }
+
+    let currentSha = shas.at(-1)
+
+    if (currentSha === undefined) {
+      // shouldn't happen - typing check
+      return shasInDiff
+    }
+
+    let traversing = true
+    while (traversing) {
+      shasInDiff.push(currentSha)
+      const commit = commitLookup.get(currentSha)
+      if (commit === undefined) {
+        // shouldn't happen - shas are selection of history which should be in lookup
+        traversing = false
+        continue
+      }
+
+      const firstParent = commit.parentSHAs[0]
+      const parent = shas.find(sha => sha === firstParent)
+      if (parent === undefined) {
+        traversing = false
+        continue
+      }
+      currentSha = parent
+    }
+
+    return shasInDiff
   }
 
   private updateOrSelectFirstCommit(

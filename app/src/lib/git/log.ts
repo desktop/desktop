@@ -302,3 +302,10 @@ export async function doMergeCommitsExistAfterCommit(
 
   return mergeCommits.length > 0
 }
+
+export async function getParentSha(repository: Repository, sha: string) {
+  const args = ['log', '-1', '--format=%P', sha, '--']
+
+  const result = await git(args, repository.path, 'getParentSha')
+  return result.stdout.trim()
+}
