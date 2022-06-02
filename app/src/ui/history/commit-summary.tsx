@@ -23,6 +23,7 @@ import _ from 'lodash'
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly selectedCommits: ReadonlyArray<Commit>
+  readonly shasInDiff: ReadonlyArray<string>
   readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
