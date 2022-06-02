@@ -100,12 +100,15 @@ function createState(
   isOverflowed: boolean,
   props: ICommitSummaryProps
 ): ICommitSummaryState {
-  const { emoji, repository, selectedCommits } = props
+  const { emoji, repository, selectedCommits, shasInDiff } = props
   const tokenizer = new Tokenizer(emoji, repository)
 
+  const diffCommits = selectedCommits.filter(({ sha }) =>
+    shasInDiff.includes(sha)
+  )
   const plainTextBody =
     selectedCommits.length > 1
-      ? selectedCommits.map(getCommitCombinedDescription).join('\n\n')
+      ? diffCommits.map(getCommitCombinedDescription).join('\n\n')
       : selectedCommits[0].body
 
   const { summary, body } = wrapRichTextCommitMessage(
