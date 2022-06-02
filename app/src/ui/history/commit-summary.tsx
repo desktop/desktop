@@ -22,7 +22,7 @@ import _ from 'lodash'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
-  readonly commits: ReadonlyArray<Commit>
+  readonly selectedCommits: ReadonlyArray<Commit>
   readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
@@ -99,12 +99,12 @@ function createState(
   isOverflowed: boolean,
   props: ICommitSummaryProps
 ): ICommitSummaryState {
-  const { emoji, repository, commits } = props
+  const { emoji, repository, selectedCommits } = props
   const tokenizer = new Tokenizer(emoji, repository)
 
   const plainTextBody =
-    commits.length > 1
-      ? commits
+    selectedCommits.length > 1
+      ? selectedCommits
           .map(
             c =>
               `${c.shortSha} - ${c.summary}${
@@ -112,15 +112,15 @@ function createState(
               }`
           )
           .join('\n\n')
-      : commits[0].body
+      : selectedCommits[0].body
 
   const { summary, body } = wrapRichTextCommitMessage(
-    commits[0].summary,
+    selectedCommits[0].summary,
     plainTextBody,
     tokenizer
   )
 
-  const allAvatarUsers = commits.flatMap(c =>
+  const allAvatarUsers = selectedCommits.flatMap(c =>
     getAvatarUsersForCommit(repository.gitHubRepository, c)
   )
   const avatarUsers = _.uniqWith(
@@ -260,9 +260,9 @@ export class CommitSummary extends React.Component<
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
     if (
-      nextProps.commits.length !== this.props.commits.length ||
-      !nextProps.commits.every((nextCommit, i) =>
-        messageEquals(nextCommit, this.props.commits[i])
+      nextProps.selectedCommits.length !== this.props.selectedCommits.length ||
+      !nextProps.selectedCommits.every((nextCommit, i) =>
+        messageEquals(nextCommit, this.props.selectedCommits[i])
       )
     ) {
       this.setState(createState(false, nextProps))
@@ -316,14 +316,16 @@ export class CommitSummary extends React.Component<
   }
 
   private getShaRef = (useShortSha?: boolean) => {
-    const { commits } = this.props
-    const oldest = useShortSha ? commits[0].shortSha : commits[0].sha
+    const { selectedCommits } = this.props
+    const oldest = useShortSha
+      ? selectedCommits[0].shortSha
+      : selectedCommits[0].sha
 
-    if (commits.length === 1) {
+    if (selectedCommits.length === 1) {
       return oldest
     }
 
-    const latestCommit = commits.at(-1)
+    const latestCommit = selectedCommits.at(-1)
     const latest = useShortSha ? latestCommit?.shortSha : latestCommit?.sha
 
     return `${oldest}^..${latest}`
@@ -340,8 +342,8 @@ export class CommitSummary extends React.Component<
     const hasEmptySummary = this.state.summary.length === 0
     const commitSummary = hasEmptySummary
       ? 'Empty commit message'
-      : this.props.commits.length > 1
-      ? `Viewing the diff of ${this.props.commits.length} commits`
+      : this.props.selectedCommits.length > 1
+      ? `Viewing the diff of ${this.props.selectedCommits.length} commits`
       : this.state.summary
 
     const summaryClassNames = classNames('commit-summary-title', {
@@ -366,7 +368,7 @@ export class CommitSummary extends React.Component<
               <AvatarStack users={this.state.avatarUsers} />
               <CommitAttribution
                 gitHubRepository={this.props.repository.gitHubRepository}
-                commits={this.props.commits}
+                commits={this.props.selectedCommits}
               />
             </li>
 
@@ -528,7 +530,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
-    const tags = this.props.commits.flatMap(c => c.tags) || []
+    const tags = this.props.selectedCommits.flatMap(c => c.tags) || []
 
     if (tags.length === 0) {
       return null
