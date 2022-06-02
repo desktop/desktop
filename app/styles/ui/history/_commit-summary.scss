@@ -82,11 +82,16 @@
   }
 
   &-title {
+    display: flex;
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+
+    .commit-exclusion-info {
+      margin-left: var(--spacing-half);
+    }
 
     &.empty-summary {
       color: var(--text-secondary-color);
