@@ -166,7 +166,7 @@ export class SelectedCommits extends React.Component<
   private renderCommitSummary(commits: ReadonlyArray<Commit>) {
     return (
       <CommitSummary
-        commits={commits}
+        selectedCommits={commits}
         changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
