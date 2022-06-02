@@ -42,6 +42,7 @@ interface ISelectedCommitsProps {
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommits: ReadonlyArray<Commit>
+  readonly shasInDiff: ReadonlyArray<string>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
@@ -167,6 +168,7 @@ export class SelectedCommits extends React.Component<
     return (
       <CommitSummary
         selectedCommits={commits}
+        shasInDiff={this.props.shasInDiff}
         changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
