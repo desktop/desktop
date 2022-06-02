@@ -105,14 +105,7 @@ function createState(
 
   const plainTextBody =
     selectedCommits.length > 1
-      ? selectedCommits
-          .map(
-            c =>
-              `${c.shortSha} - ${c.summary}${
-                c.body.trim() !== '' ? `\n${c.body}` : ''
-              }`
-          )
-          .join('\n\n')
+      ? selectedCommits.map(getCommitCombinedDescription).join('\n\n')
       : selectedCommits[0].body
 
   const { summary, body } = wrapRichTextCommitMessage(
@@ -130,6 +123,12 @@ function createState(
   )
 
   return { isOverflowed, summary, body, avatarUsers }
+}
+
+function getCommitCombinedDescription(commit: Commit) {
+  const { shortSha, summary, body } = commit
+  const displayBody = body.trim() !== '' ? `\n${body}` : ''
+  return `${shortSha} - ${summary}${displayBody}`
 }
 
 /**
