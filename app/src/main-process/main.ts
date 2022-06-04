@@ -45,7 +45,10 @@ import {
   requestNotificationsPermission,
   showNotification,
 } from 'desktop-notifications'
-import { initializeDesktopNotifications } from './notifications'
+import {
+  initializeDesktopNotifications,
+  terminateNotificationSystem,
+} from './notifications'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -737,6 +740,7 @@ function createWindow() {
   window.onClose(() => {
     mainWindow = null
     if (!__DARWIN__ && !preventQuit) {
+      terminateNotificationSystem()
       app.quit()
     }
   })
