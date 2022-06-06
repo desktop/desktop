@@ -493,6 +493,7 @@
     min-width: 0;
     min-height: 0;
     text-align: center;
+    box-sizing: content-box;
   }
 
   .image-diff-previous {
