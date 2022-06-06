@@ -304,7 +304,7 @@ export class SelectedCommits extends React.Component<
           <div>
             <p>
               Unable to display diff when multiple{' '}
-              {enableMultiCommitDiffs() ? 'non-adjacent ' : ' '}commits are
+              {enableMultiCommitDiffs() ? 'non-consecutive ' : ' '}commits are
               selected.
             </p>
             <div>You can:</div>
