@@ -311,7 +311,7 @@ export class SelectedCommits extends React.Component<
             <ul>
               <li>
                 Select a single commit{' '}
-                {enableMultiCommitDiffs() ? 'or a range of commits ' : ' '}to
+                {enableMultiCommitDiffs() ? 'or a range of consecutive commits ' : ' '}to
                 view a diff.
               </li>
               <li>Drag the commits to the branch menu to cherry-pick them.</li>
