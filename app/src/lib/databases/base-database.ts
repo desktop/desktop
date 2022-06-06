@@ -1,4 +1,4 @@
-import Dexie from 'dexie'
+import Dexie, { Transaction } from 'dexie'
 
 export abstract class BaseDatabase extends Dexie {
   private schemaVersion: number | undefined
@@ -23,7 +23,7 @@ export abstract class BaseDatabase extends Dexie {
   protected async conditionalVersion(
     version: number,
     schema: { [key: string]: string | null },
-    upgrade?: (t: Dexie.Transaction) => Promise<void>
+    upgrade?: (t: Transaction) => Promise<void>
   ) {
     if (this.schemaVersion != null && this.schemaVersion < version) {
       return

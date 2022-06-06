@@ -154,6 +154,7 @@ import { generateDevReleaseSummary } from '../lib/release-notes'
 import { PullRequestReview } from './notifications/pull-request-review'
 import { getPullRequestCommitRef } from '../models/pull-request'
 import { getRepositoryType } from '../lib/git'
+import { SSHUserPassword } from './ssh/ssh-user-password'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -690,7 +691,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const url = `${htmlURL}/${view}/${branchTip.branch.upstreamWithoutRemote}`
+    const urlEncodedBranchName = encodeURIComponent(
+      branchTip.branch.upstreamWithoutRemote
+    )
+
+    const url = `${htmlURL}/${view}/${urlEncodedBranchName}`
     this.props.dispatcher.openInBrowser(url)
   }
 
@@ -2104,6 +2109,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           <SSHKeyPassphrase
             key="ssh-key-passphrase"
             keyPath={popup.keyPath}
+            onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.SSHUserPassword: {
+        return (
+          <SSHUserPassword
+            key="ssh-user-password"
+            username={popup.username}
             onSubmit={popup.onSubmit}
             onDismissed={onPopupDismissedFn}
           />

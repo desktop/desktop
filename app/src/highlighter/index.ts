@@ -635,7 +635,11 @@ onmessage = async (ev: MessageEvent) => {
       continue
     }
 
-    const lineCtx = { lines, line: ix }
+    const lineCtx = {
+      lines,
+      line: ix,
+      lookAhead: (n: number) => lines[ix + n],
+    }
     const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {

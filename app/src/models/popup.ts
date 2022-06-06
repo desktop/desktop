@@ -78,6 +78,7 @@ export enum PopupType {
   InvalidatedToken,
   AddSSHHost,
   SSHKeyPassphrase,
+  SSHUserPassword,
   PullRequestChecksFailed,
   CICheckRunRerun,
   WarnForcePush,
@@ -316,6 +317,11 @@ export type Popup =
         passphrase: string | undefined,
         storePassphrase: boolean
       ) => void
+    }
+  | {
+      type: PopupType.SSHUserPassword
+      username: string
+      onSubmit: (password: string | undefined, storePassword: boolean) => void
     }
   | {
       type: PopupType.PullRequestChecksFailed
