@@ -36,7 +36,7 @@ export function initializeDesktopNotifications() {
   initializeNotifications({ toastActivatorClsid: windowsToastActivatorClsid })
 }
 
-export function terminateNotificationSystem() {
+export function terminateDesktopNotifications() {
   terminateNotifications()
 }
 
