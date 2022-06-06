@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.0.2-beta3": [
+      "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
+    ],
     "3.0.2-beta2": [
       "[Fixed] Fix crash launching the app on macOS High Sierra - #14712"
     ],
