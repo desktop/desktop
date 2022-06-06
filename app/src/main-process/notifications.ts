@@ -1,6 +1,7 @@
 import {
   initializeNotifications,
   onNotificationEvent,
+  terminateNotifications,
 } from 'desktop-notifications'
 import { BrowserWindow } from 'electron'
 import { findToastActivatorClsid } from '../lib/find-toast-activator-clsid'
@@ -33,6 +34,10 @@ export function initializeDesktopNotifications() {
 
   log.info(`Using toast activator CLSID ${windowsToastActivatorClsid}`)
   initializeNotifications({ toastActivatorClsid: windowsToastActivatorClsid })
+}
+
+export function terminateDesktopNotifications() {
+  terminateNotifications()
 }
 
 export function installNotificationCallback(window: BrowserWindow) {
