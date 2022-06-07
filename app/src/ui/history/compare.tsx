@@ -32,6 +32,7 @@ import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-autho
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { enableCommitReordering } from '../../lib/feature-flag'
+import { Button } from '../lib/button'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -149,28 +150,66 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-  public render() {
-    const { branches, filterText, showBranchList } = this.props.compareState
-    const placeholderText = getPlaceholderText(this.props.compareState)
+  private returnToHistory = () => {
+    const { dispatcher, repository } = this.props
+    dispatcher.executeCompare(repository, { kind: HistoryTabMode.History })
+  }
 
+  public render() {
+    const { branches, filterText, showBranchList, formState } =
+      this.props.compareState
+    const placeholderText = getPlaceholderText(this.props.compareState)
+    const showSearchBar = formState.kind !== HistoryTabMode.DiffCommits
     return (
       <div id="compare-view">
-        <div className="compare-form">
-          <FancyTextBox
-            symbol={OcticonSymbol.gitBranch}
-            type="search"
-            placeholder={placeholderText}
-            onFocus={this.onTextBoxFocused}
-            value={filterText}
-            disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
-            onRef={this.onTextBoxRef}
-            onValueChanged={this.onBranchFilterTextChanged}
-            onKeyDown={this.onBranchFilterKeyDown}
-            onSearchCleared={this.handleEscape}
-          />
-        </div>
+        {showSearchBar && (
+          <div className="compare-form">
+            <FancyTextBox
+              symbol={OcticonSymbol.gitBranch}
+              type="search"
+              placeholder={placeholderText}
+              onFocus={this.onTextBoxFocused}
+              value={filterText}
+              disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
+              onRef={this.onTextBoxRef}
+              onValueChanged={this.onBranchFilterTextChanged}
+              onKeyDown={this.onBranchFilterKeyDown}
+              onSearchCleared={this.handleEscape}
+            />
+          </div>
+        )}
+        {!showSearchBar && this.renderCommitDiffHeader()}
 
         {showBranchList ? this.renderFilterList() : this.renderCommits()}
+        {!showSearchBar && this.renderCommitDiffFooter()}
+      </div>
+    )
+  }
+
+  private renderCommitDiffHeader = () => {
+    const {
+      compareState: { commitSHAs },
+      commitLookup,
+    } = this.props
+
+    const latestCommit = commitLookup.get(commitSHAs[0])
+    const oldestCommit = commitLookup.get(commitSHAs.at(-1) ?? '')
+
+    return (
+      <div className="commit-diff-header">
+        <div>
+          Commits from {oldestCommit?.shortSha}^ to {latestCommit?.shortSha}
+        </div>
+      </div>
+    )
+  }
+
+  private renderCommitDiffFooter = () => {
+    return (
+      <div className="commit-diff-footer">
+        <Button type="submit" onClick={this.returnToHistory}>
+          Return to Branch History
+        </Button>
       </div>
     )
   }

@@ -26,6 +26,22 @@
     margin: 0;
   }
 
+  .commit-diff-header {
+    background: var(--box-alt-background-color);
+    padding: var(--spacing);
+    border-bottom: var(--base-border);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .commit-diff-footer {
+    button {
+      width: 100%;
+    }
+    background: var(--box-alt-background-color);
+    padding: var(--spacing-half);
+    border-top: var(--base-border);
+  }
+
   .compare-form {
     background: var(--box-alt-background-color);
     flex: initial;
