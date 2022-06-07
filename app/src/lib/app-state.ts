@@ -676,6 +676,7 @@ export interface IChangesState {
 export enum HistoryTabMode {
   History = 'History',
   Compare = 'Compare',
+  DiffCommits = 'DiffCommits',
 }
 
 /**
@@ -713,9 +714,16 @@ export interface ICompareBranch {
   readonly aheadBehind: IAheadBehind
 }
 
+/**
+ * When the user has chosen to view a diff of two commits
+ */
+export interface IDiffCommits {
+  readonly kind: HistoryTabMode.DiffCommits
+}
+
 export interface ICompareState {
   /** The current state of the compare form, based on user input */
-  readonly formState: IDisplayHistory | ICompareBranch
+  readonly formState: IDisplayHistory | ICompareBranch | IDiffCommits
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
   readonly mergeStatus: MergeTreeResult | null

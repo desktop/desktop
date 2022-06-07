@@ -108,6 +108,7 @@ import {
   isMergeConflictState,
   IMultiCommitOperationState,
   IConstrainedValue,
+  IDiffCommits,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -7052,9 +7053,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
  * view contents.
  */
 function getInitialAction(
-  cachedState: IDisplayHistory | ICompareBranch
+  cachedState: IDisplayHistory | ICompareBranch | IDiffCommits
 ): CompareAction {
-  if (cachedState.kind === HistoryTabMode.History) {
+  if (
+    cachedState.kind === HistoryTabMode.History ||
+    cachedState.kind === HistoryTabMode.DiffCommits
+  ) {
     return {
       kind: HistoryTabMode.History,
     }
