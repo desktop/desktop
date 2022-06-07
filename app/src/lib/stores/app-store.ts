@@ -1299,7 +1299,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.repositoryStateCache.updateCompareState(repository, () => ({
         formState: newState,
-        commitSHAs: shasInDiff,
+        commitSHAs: [...shasInDiff].reverse(),
       }))
 
       return this.emitUpdate()

@@ -31,7 +31,7 @@ import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { IMenuItem } from '../../lib/menu-item'
 import { IChangesetData } from '../../lib/git'
-import { IConstrainedValue } from '../../lib/app-state'
+import { HistoryTabMode, IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { enableMultiCommitDiffs } from '../../lib/feature-flag'
@@ -85,6 +85,9 @@ interface ISelectedCommitsProps {
 
   /** Whether or not the selection of commits is contiguous */
   readonly isContiguous: boolean
+
+  /** Whether or not viewing a multi commit diff */
+  readonly isViewingMultiCommitDiff: boolean
 }
 
 interface ISelectedCommitsState {
@@ -250,13 +253,15 @@ export class SelectedCommits extends React.Component<
   }
 
   public render() {
-    const { selectedCommits } = this.props
+    const { selectedCommits, isViewingMultiCommitDiff } = this.props
 
     if (selectedCommits.length > 1) {
-      if (enableMultiCommitDiffs()) {
+      if (!enableMultiCommitDiffs) {
+        return this.renderMultipleCommitsBlankSlate()
+      }
+      if (!isViewingMultiCommitDiff) {
         return this.renderMultipleCommitsSuggestions()
       }
-      return this.renderMultipleCommitsBlankSlate()
     }
 
     if (selectedCommits.length === 0) {
@@ -295,15 +300,20 @@ export class SelectedCommits extends React.Component<
   }
 
   private onCompareCommits = () => {
-    console.log('Compare')
+    this.props.dispatcher.executeCompare(this.props.repository, {
+      kind: HistoryTabMode.DiffCommits,
+    })
   }
 
   private renderNonActionSuggestions() {
     const description = (
       <>
-        <div>Onto a branch in the branch menu to cherry-pick them.</div>
-        <div>Onto another commit to squash them.</div>
-        <div>To a different position in the history to reorder them.</div>
+        <span>Onto a branch in the branch menu to cherry-pick them.</span>
+        <br />
+        <span>Onto another commit to squash them.</span>
+        <br />
+        <span>To a different position in the history to reorder them.</span>
+        <br />
       </>
     )
     return (
