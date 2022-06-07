@@ -3,6 +3,7 @@ import * as HTTPS from 'https'
 export interface IAPIPR {
   readonly title: string
   readonly body: string
+  readonly headRefName: string
 }
 
 type GraphQLResponse = {
@@ -49,6 +50,7 @@ export function fetchPR(id: number): Promise<IAPIPR | null> {
     pullRequest(number: ${id}) {
       title
       body
+      headRefName
     }
   }
 }
