@@ -35,6 +35,7 @@ import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { enableMultiCommitDiffs } from '../../lib/feature-flag'
+import { SuggestedAction, SuggestedActionGroup } from '../suggested-actions'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -249,12 +250,12 @@ export class SelectedCommits extends React.Component<
   }
 
   public render() {
-    const { selectedCommits, isContiguous } = this.props
+    const { selectedCommits } = this.props
 
-    if (
-      selectedCommits.length > 1 &&
-      (!isContiguous || !enableMultiCommitDiffs())
-    ) {
+    if (selectedCommits.length > 1) {
+      if (enableMultiCommitDiffs()) {
+        return this.renderMultipleCommitsSuggestions()
+      }
       return this.renderMultipleCommitsBlankSlate()
     }
 
@@ -293,6 +294,66 @@ export class SelectedCommits extends React.Component<
     return <div id="drag-overlay-background"></div>
   }
 
+  private onCompareCommits = () => {
+    console.log('Compare')
+  }
+
+  private renderNonActionSuggestions() {
+    const description = (
+      <>
+        <div>Onto a branch in the branch menu to cherry-pick them.</div>
+        <div>Onto another commit to squash them.</div>
+        <div>To a different position in the history to reorder them.</div>
+      </>
+    )
+    return (
+      <SuggestedAction
+        title={'Drag and drop them...'}
+        description={description}
+      ></SuggestedAction>
+    )
+  }
+
+  private renderDiffSuggestion = () => {
+    const { selectedCommits } = this.props
+
+    return (
+      <SuggestedAction
+        title={`Diff the first sha (${
+          selectedCommits.at(-1)?.shortSha
+        }) and last sha (${selectedCommits[0].shortSha})`}
+        description={'Something about how diffs are complicated'}
+        buttonText={'Compare'}
+        onClick={this.onCompareCommits}
+      />
+    )
+  }
+
+  private renderMultipleCommitsSuggestions(): JSX.Element {
+    return (
+      <div id="multiple-commits-selected-suggestions">
+        <div className="content">
+          <div className="header">
+            <div>
+              <h1>Multiple commits selected</h1>
+              <p>
+                You have selected multiple commits. Here are some friendly
+                suggestions for what you can do.
+              </p>
+            </div>
+          </div>
+
+          <SuggestedActionGroup>
+            {this.renderNonActionSuggestions()}
+            {this.renderDiffSuggestion()}
+          </SuggestedActionGroup>
+        </div>
+
+        {this.renderDragOverlay()}
+      </div>
+    )
+  }
+
   private renderMultipleCommitsBlankSlate(): JSX.Element {
     const BlankSlateImage = encodePathAsUrl(
       __dirname,
@@ -304,18 +365,10 @@ export class SelectedCommits extends React.Component<
         <div className="panel blankslate">
           <img src={BlankSlateImage} className="blankslate-image" />
           <div>
-            <p>
-              Unable to display diff when multiple{' '}
-              {enableMultiCommitDiffs() ? 'non-adjacent ' : ' '}commits are
-              selected.
-            </p>
+            <p>Unable to display diff when multiple commits are selected.</p>
             <div>You can:</div>
             <ul>
-              <li>
-                Select a single commit{' '}
-                {enableMultiCommitDiffs() ? 'or a range of commits ' : ' '}to
-                view a diff.
-              </li>
+              <li>Select a single commit to view a diff.</li>
               <li>Drag the commits to the branch menu to cherry-pick them.</li>
               <li>Drag the commits to squash or reorder them.</li>
               <li>Right click on multiple commits to see options.</li>
