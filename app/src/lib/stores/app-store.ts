@@ -1080,7 +1080,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeCommitSelection(
     repository: Repository,
-    shas: ReadonlyArray<string>
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean
   ): Promise<void> {
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
@@ -1093,6 +1094,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas,
+      isContiguous,
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
@@ -1122,7 +1124,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (selectedSHA === null && commitSHAs.length > 0) {
-      this._changeCommitSelection(repository, [commitSHAs[0]])
+      this._changeCommitSelection(repository, [commitSHAs[0]], true)
       this._loadChangedFilesForCurrentSelection(repository)
     }
   }
@@ -1377,10 +1379,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
-    const currentSHAs = commitSelection.shas
+    const { shas: currentSHAs, isContiguous } = commitSelection
     if (
       currentSHAs.length === 0 ||
-      (currentSHAs.length !== 1 && !enableMultiCommitDiffs())
+      (currentSHAs.length > 1 && (!enableMultiCommitDiffs() || !isContiguous))
     ) {
       return
     }
@@ -1446,7 +1448,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const shas = stateBeforeLoad.commitSelection.shas
+    const { shas, isContiguous } = stateBeforeLoad.commitSelection
 
     if (shas.length === 0) {
       if (__DEV__) {
@@ -1458,7 +1460,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (shas.length > 1 && !enableMultiCommitDiffs()) {
+    if (shas.length > 1 && (!enableMultiCommitDiffs() || !isContiguous)) {
       return
     }
 
