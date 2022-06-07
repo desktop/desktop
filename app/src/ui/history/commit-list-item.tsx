@@ -178,6 +178,7 @@ export class CommitListItem extends React.PureComponent<
                 />
                 {renderRelativeTime(date)}
               </div>
+              {renderCommitId(this.props.commit.shortSha)}
             </div>
           </div>
           {this.renderCommitIndicators()}
@@ -473,6 +474,18 @@ function renderRelativeTime(date: Date) {
     <>
       {` • `}
       <RelativeTime date={date} abbreviate={true} />
+    </>
+  )
+}
+
+function renderCommitId(sha: string) {
+  return (
+    <>
+      {` • `}
+      <span className="commit-summary-meta-item">
+        <Octicon symbol={OcticonSymbol.gitCommit} />
+        <span className="sha">{sha}</span>
+      </span>
     </>
   )
 }
