@@ -417,7 +417,7 @@ export class AppWindow {
   }
 
   public setWindowZoomFactor(zoomFactor: number) {
-    return this.window.webContents.zoomFactor = zoomFactor
+    return (this.window.webContents.zoomFactor = zoomFactor)
   }
 
   /**

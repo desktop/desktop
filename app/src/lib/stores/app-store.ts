@@ -585,23 +585,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.onWindowZoomFactorChanged(zoomFactor)
   }
 
-  /** 
+  /**
    * On Windows OS, whenever a user toggles their zoom factor, chromium stores it
    * in their `%AppData%/Roaming/GitHub Desktop/Preferences.js` denoted by the
    * file path to the application. That file path contains the apps version.
    * Thus, on every update, the users set zoom level gets reset as there is not
    * defined value for the current app version.
    * */
-  private checkZoomFactorLocalStorage(zoomFactor: number)  {
+  private checkZoomFactorLocalStorage(zoomFactor: number) {
     // One is the default value, we only care about checking the locally stored
     // value if it is one because that is the default value after an
     // update
-    if(zoomFactor !== 1 || !__WIN32__) { 
+    if (zoomFactor !== 1 || !__WIN32__) {
       return zoomFactor
     }
 
     const locallyStoredZoomFactor = getFloatNumber('zoom-factor')
-    if(locallyStoredZoomFactor !== undefined && locallyStoredZoomFactor !== zoomFactor) {
+    if (
+      locallyStoredZoomFactor !== undefined &&
+      locallyStoredZoomFactor !== zoomFactor
+    ) {
       setWindowZoomFactor(locallyStoredZoomFactor)
       return locallyStoredZoomFactor
     }
@@ -829,7 +832,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private onWindowZoomFactorChanged(zoomFactor: number) {
     const current = this.windowZoomFactor
     this.windowZoomFactor = zoomFactor
-    
+
     if (zoomFactor !== current) {
       setNumber('zoom-factor', zoomFactor)
       this.updateResizableConstraints()
