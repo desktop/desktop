@@ -1289,6 +1289,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.updateCompareToBranch(repository, action)
     }
 
+    if (action.kind === HistoryTabMode.DiffCommits) {
+      const { commitSelection } = this.repositoryStateCache.get(repository)
+      const { shasInDiff } = commitSelection
+
+      const newState: IDiffCommits = {
+        kind: HistoryTabMode.DiffCommits,
+      }
+
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        formState: newState,
+        commitSHAs: shasInDiff,
+      }))
+
+      return this.emitUpdate()
+    }
+
     return assertNever(action, `Unknown action: ${kind}`)
   }
 

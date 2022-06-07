@@ -785,10 +785,14 @@ export interface ICompareToBranch {
   readonly comparisonMode: ComparisonMode.Ahead | ComparisonMode.Behind
 }
 
+export interface IDiffCommits {
+  readonly kind: HistoryTabMode.DiffCommits
+}
+
 /**
  * An action to send to the application store to update the compare state
  */
-export type CompareAction = IViewHistory | ICompareToBranch
+export type CompareAction = IViewHistory | ICompareToBranch | IDiffCommits
 
 /**
  * Undo state associated with a multi commit operation being performed on a
