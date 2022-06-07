@@ -577,11 +577,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private initializeZoomFactor = async () => {
-    let zoomFactor = await getCurrentWindowZoomFactor()
+    const zoomFactor = await this.getWindowZoomFactor()
     if (zoomFactor === undefined) {
       return
     }
-    zoomFactor = this.checkZoomFactorLocalStorage(zoomFactor)
     this.onWindowZoomFactorChanged(zoomFactor)
   }
 
@@ -592,7 +591,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Thus, on every update, the users set zoom level gets reset as there is not
    * defined value for the current app version.
    * */
-  private checkZoomFactorLocalStorage(zoomFactor: number) {
+  private async getWindowZoomFactor() {
+    const zoomFactor = await getCurrentWindowZoomFactor()
     // One is the default value, we only care about checking the locally stored
     // value if it is one because that is the default value after an
     // update
