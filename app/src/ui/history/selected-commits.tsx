@@ -330,8 +330,8 @@ export class SelectedCommits extends React.Component<
     return (
       <SuggestedAction
         title={`Diff the first sha (${
-          selectedCommits.at(-1)?.shortSha
-        }) and last sha (${selectedCommits[0].shortSha})`}
+          selectedCommits[0]?.shortSha
+        }^) and last sha (${selectedCommits.at(-1)?.shortSha})`}
         description={'Something about how diffs are complicated'}
         buttonText={'Compare'}
         onClick={this.onCompareCommits}
