@@ -150,13 +150,17 @@ function getCommitSummary(
     ({ sha }) => !shasInDiff.includes(sha)
   )
 
-  const numInDiff = selectedCommits.length - excludedCommits.length
-  const countMsg =
+  const numInDiff = shasInDiff.length // selectedCommits.length - excludedCommits.length
+  let countMsg =
     excludedCommits.length === 0
       ? selectedCommits.length
       : `${numInDiff} of ${selectedCommits.length} selected `
 
-  return `Viewing the diff of ${countMsg} commits`
+  countMsg = `${shasInDiff[0].substring(0, 7)}^ and ${(
+    shasInDiff.at(-1) ?? ''
+  ).substring(0, 7)}`
+
+  return `Viewing the diff of ${countMsg}`
 }
 
 function getCommitCombinedDescription(commit: Commit) {
@@ -376,7 +380,7 @@ export class CommitSummary extends React.Component<
     )
 
     const countExcludedCommits = excludedCommits.length
-    if (countExcludedCommits === 0) {
+    if (countExcludedCommits === 0 || 1 === 1) {
       return
     }
 
