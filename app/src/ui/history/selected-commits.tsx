@@ -36,6 +36,7 @@ import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { enableMultiCommitDiffs } from '../../lib/feature-flag'
 import { SuggestedAction, SuggestedActionGroup } from '../suggested-actions'
+import { LinkButton } from '../lib/link-button'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -326,13 +327,18 @@ export class SelectedCommits extends React.Component<
 
   private renderDiffSuggestion = () => {
     const { selectedCommits } = this.props
-
+    const description = (
+      <>
+        This diff may not include all the commits in your selection.{' '}
+        <LinkButton> Learn why? </LinkButton>
+      </>
+    )
     return (
       <SuggestedAction
         title={`Diff the first sha (${
           selectedCommits[0]?.shortSha
         }^) and last sha (${selectedCommits.at(-1)?.shortSha})`}
-        description={'Something about how diffs are complicated'}
+        description={description}
         buttonText={'Compare'}
         onClick={this.onCompareCommits}
       />
