@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.0.2-beta4": [
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Fixed] Fix issue with some repositories not being properly persisted - #14748"
+    ],
     "3.0.2-beta3": [
       "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
     ],
