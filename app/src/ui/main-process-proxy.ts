@@ -155,6 +155,9 @@ export const getCurrentWindowZoomFactor = invokeProxy(
   0
 )
 
+/** Tell the main process to set the current window's zoom factor */
+export const setWindowZoomFactor = sendProxy('set-window-zoom-factor', 1)
+
 /** Tell the main process to check for app updates */
 export const checkForUpdates = invokeProxy('check-for-updates', 1)
 

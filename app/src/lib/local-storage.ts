@@ -50,7 +50,7 @@ export function setBoolean(key: string, value: boolean) {
 }
 
 /**
- * Retrieve a `number` value from a given local storage entry if found, or the
+ * Retrieve a integer number value from a given local storage entry if found, or the
  * provided `defaultValue` if the key doesn't exist or if the value cannot be
  * converted into a number
  *
@@ -70,6 +70,34 @@ export function getNumber(
   }
 
   const value = parseInt(numberAsText, 10)
+  if (isNaN(value)) {
+    return defaultValue
+  }
+
+  return value
+}
+
+/**
+ * Retrieve a floating point number value from a given local storage entry if
+ * found, or the provided `defaultValue` if the key doesn't exist or if the
+ * value cannot be converted into a number
+ *
+ * @param key local storage entry to read
+ * @param defaultValue fallback value if unable to find key or valid value
+ */
+export function getFloatNumber(key: string): number | undefined
+export function getFloatNumber(key: string, defaultValue: number): number
+export function getFloatNumber(
+  key: string,
+  defaultValue?: number
+): number | undefined {
+  const numberAsText = localStorage.getItem(key)
+
+  if (numberAsText === null || numberAsText.length === 0) {
+    return defaultValue
+  }
+
+  const value = parseFloat(numberAsText)
   if (isNaN(value)) {
     return defaultValue
   }

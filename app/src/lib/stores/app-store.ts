@@ -76,6 +76,7 @@ import {
   getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
   updateAccounts,
+  setWindowZoomFactor,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -205,6 +206,7 @@ import {
   getEnum,
   getObject,
   setObject,
+  getFloatNumber,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -575,11 +577,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private initializeZoomFactor = async () => {
-    const zoomFactor = await getCurrentWindowZoomFactor()
+    const zoomFactor = await this.getWindowZoomFactor()
     if (zoomFactor === undefined) {
       return
     }
     this.onWindowZoomFactorChanged(zoomFactor)
+  }
+
+  /**
+   * On Windows OS, whenever a user toggles their zoom factor, chromium stores it
+   * in their `%AppData%/Roaming/GitHub Desktop/Preferences.js` denoted by the
+   * file path to the application. That file path contains the apps version.
+   * Thus, on every update, the users set zoom level gets reset as there is not
+   * defined value for the current app version.
+   * */
+  private async getWindowZoomFactor() {
+    const zoomFactor = await getCurrentWindowZoomFactor()
+    // One is the default value, we only care about checking the locally stored
+    // value if it is one because that is the default value after an
+    // update
+    if (zoomFactor !== 1 || !__WIN32__) {
+      return zoomFactor
+    }
+
+    const locallyStoredZoomFactor = getFloatNumber('zoom-factor')
+    if (
+      locallyStoredZoomFactor !== undefined &&
+      locallyStoredZoomFactor !== zoomFactor
+    ) {
+      setWindowZoomFactor(locallyStoredZoomFactor)
+      return locallyStoredZoomFactor
+    }
+
+    return zoomFactor
   }
 
   private onTokenInvalidated = (endpoint: string) => {
@@ -804,6 +834,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.windowZoomFactor = zoomFactor
 
     if (zoomFactor !== current) {
+      setNumber('zoom-factor', zoomFactor)
       this.updateResizableConstraints()
       this.emitUpdate()
     }
