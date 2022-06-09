@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.0.2": [
+      "[Fixed] Fix crash launching the app on macOS High Sierra - #14712",
+      "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
+    ],
     "3.0.1": [
       "[Added] Add support for PyCharm Community Edition on Windows - #14411. Thanks @tsvetilian-ty!",
       "[Added] Add support for highlighting .mjs/.cjs/.mts/.cts files as JavaScript/TypeScript - #14481. Thanks @j-f1!",
