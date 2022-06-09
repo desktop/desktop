@@ -29,3 +29,4 @@ jobs:
             you answer our questions above, this issue will automatically
             reopen.
           daysUntilClose: 7
+          responseRequiredLabel: more-info-needed
