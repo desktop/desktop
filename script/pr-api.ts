@@ -90,7 +90,7 @@ export async function createPR(
   branch: string
 ): Promise<IAPIPR | null> {
   const options: HTTPS.RequestOptions = {
-    path: '/repos/sergiou87/desktop/pulls',
+    path: '/repos/desktop/desktop/pulls',
   }
 
   const response = await gitHubRequest(options, {
