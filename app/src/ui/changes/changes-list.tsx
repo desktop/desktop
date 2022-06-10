@@ -53,6 +53,7 @@ import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
+import { EOL } from 'os'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -437,7 +438,7 @@ export class ChangesList extends React.Component<
         const fullPaths = files.map(file =>
           Path.join(this.props.repository.path, file.path)
         )
-        clipboard.writeText(fullPaths.join('\r\n'))
+        clipboard.writeText(fullPaths.join(EOL))
       },
     }
   }
@@ -449,7 +450,7 @@ export class ChangesList extends React.Component<
       label: CopySelectedRelativePathsLabel,
       action: () => {
         const paths = files.map(file => Path.normalize(file.path))
-        clipboard.writeText(paths.join('\r\n'))
+        clipboard.writeText(paths.join(EOL))
       },
     }
   }
