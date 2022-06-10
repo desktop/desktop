@@ -5,7 +5,7 @@ import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
-import { IDisposable, Disposable } from 'event-kit'
+import { DisposableLike, Disposable } from 'event-kit'
 import {
   ICombinedRefCheck,
   IRefCheck,
@@ -465,7 +465,7 @@ export class CommitStatusStore {
     ref: string,
     callback: StatusCallBack,
     branchName?: string
-  ): IDisposable {
+  ): DisposableLike {
     const key = getCacheKeyForRepository(repository, ref)
     const subscription = this.getOrCreateSubscription(
       repository,

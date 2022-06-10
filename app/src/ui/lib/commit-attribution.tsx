@@ -7,10 +7,10 @@ import { isWebFlowCommitter } from '../../lib/web-flow-committer'
 
 interface ICommitAttributionProps {
   /**
-   * The commit from where to extract the author, committer
+   * The commit or commits from where to extract the author, committer
    * and co-authors from.
    */
-  readonly commit: Commit
+  readonly commits: ReadonlyArray<Commit>
 
   /**
    * The GitHub hosted repository that the given commit is
@@ -61,24 +61,34 @@ export class CommitAttribution extends React.Component<
   }
 
   public render() {
-    const commit = this.props.commit
-    const { author, committer, coAuthors } = commit
+    const { commits } = this.props
 
-    // do we need to attribute the committer separately from the author?
-    const committerAttribution =
-      !commit.authoredByCommitter &&
-      !(
-        this.props.gitHubRepository !== null &&
-        isWebFlowCommitter(commit, this.props.gitHubRepository)
-      )
+    const allAuthors = new Map<string, CommitIdentity | GitAuthor>()
+    for (const commit of commits) {
+      const { author, committer, coAuthors } = commit
 
-    const authors: Array<CommitIdentity | GitAuthor> = committerAttribution
-      ? [author, committer, ...coAuthors]
-      : [author, ...coAuthors]
+      // do we need to attribute the committer separately from the author?
+      const committerAttribution =
+        !commit.authoredByCommitter &&
+        !(
+          this.props.gitHubRepository !== null &&
+          isWebFlowCommitter(commit, this.props.gitHubRepository)
+        )
+
+      const authors: Array<CommitIdentity | GitAuthor> = committerAttribution
+        ? [author, committer, ...coAuthors]
+        : [author, ...coAuthors]
+
+      for (const a of authors) {
+        if (!allAuthors.has(a.toString())) {
+          allAuthors.set(a.toString(), a)
+        }
+      }
+    }
 
     return (
       <span className="commit-attribution-component">
-        {this.renderAuthors(authors)}
+        {this.renderAuthors(Array.from(allAuthors.values()))}
       </span>
     )
   }

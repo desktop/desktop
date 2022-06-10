@@ -5,9 +5,9 @@ import { getDesktopTrampolineFilename } from 'desktop-trampoline'
 import { TrampolineCommandIdentifier } from '../trampoline/trampoline-command'
 import { getSSHEnvironment } from '../ssh/ssh'
 import {
-  removePendingSSHKeyPassphraseToStore,
-  storePendingSSHKeyPassphrase,
-} from '../ssh/ssh-key-passphrase'
+  removePendingSSHSecretToStore,
+  storePendingSSHSecret,
+} from '../ssh/ssh-secret-storage'
 
 /**
  * Allows invoking a function with a set of environment variables to use when
@@ -46,11 +46,11 @@ export async function withTrampolineEnv<T>(
         ...sshEnv,
       })
 
-      await storePendingSSHKeyPassphrase(token)
+      await storePendingSSHSecret(token)
 
       return result
     } finally {
-      removePendingSSHKeyPassphraseToStore(token)
+      removePendingSSHSecretToStore(token)
     }
   })
 }

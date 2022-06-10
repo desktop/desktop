@@ -7,7 +7,7 @@ import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
-import { SelectedCommit, CompareSidebar } from './history'
+import { SelectedCommits, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -372,31 +372,29 @@ export class RepositoryView extends React.Component<
   }
 
   private renderContentForHistory(): JSX.Element {
-    const { commitSelection } = this.props.state
+    const { commitSelection, commitLookup, localCommitSHAs } = this.props.state
+    const { changesetData, file, diff, shas, isContiguous } = commitSelection
 
-    const sha =
-      commitSelection.shas.length === 1 ? commitSelection.shas[0] : null
-
-    const selectedCommit =
-      sha != null ? this.props.state.commitLookup.get(sha) || null : null
-
-    const isLocal =
-      selectedCommit != null &&
-      this.props.state.localCommitSHAs.includes(selectedCommit.sha)
-
-    const { changesetData, file, diff } = commitSelection
+    const selectedCommits = []
+    for (const sha of shas) {
+      const commit = commitLookup.get(sha)
+      if (commit !== undefined) {
+        selectedCommits.push(commit)
+      }
+    }
 
     const showDragOverlay = dragAndDropManager.isDragOfTypeInProgress(
       DragType.Commit
     )
 
     return (
-      <SelectedCommit
+      <SelectedCommits
         repository={this.props.repository}
         isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
-        selectedCommit={selectedCommit}
-        isLocal={isLocal}
+        selectedCommits={selectedCommits}
+        isContiguous={isContiguous}
+        localCommitSHAs={localCommitSHAs}
         changesetData={changesetData}
         selectedFile={file}
         currentDiff={diff}
@@ -411,7 +409,6 @@ export class RepositoryView extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
-        areMultipleCommitsSelected={commitSelection.shas.length > 1}
         showDragOverlay={showDragOverlay}
       />
     )

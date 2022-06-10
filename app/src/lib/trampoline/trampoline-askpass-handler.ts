@@ -2,12 +2,16 @@ import { getKeyForEndpoint } from '../auth'
 import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
-  removePendingSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
 import { TokenStore } from '../stores'
 import { TrampolineCommandHandler } from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
 import { parseAddSSHHostPrompt } from '../ssh/ssh'
+import {
+  getSSHUserPassword,
+  keepSSHUserPasswordToStore,
+} from '../ssh/ssh-user-password'
+import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -65,7 +69,7 @@ async function handleSSHKeyPassphrase(
     return storedPassphrase
   }
 
-  const { passphrase, storePassphrase } =
+  const { secret: passphrase, storeSecret: storePassphrase } =
     await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
 
   // If the user wanted us to remember the passphrase, we'll keep it around to
@@ -78,10 +82,37 @@ async function handleSSHKeyPassphrase(
   if (passphrase !== undefined && storePassphrase) {
     keepSSHKeyPassphraseToStore(operationGUID, keyPath, passphrase)
   } else {
-    removePendingSSHKeyPassphraseToStore(operationGUID)
+    removePendingSSHSecretToStore(operationGUID)
   }
 
   return passphrase ?? ''
+}
+
+async function handleSSHUserPassword(operationGUID: string, prompt: string) {
+  const promptRegex = /^(.+@.+)'s password: $/
+
+  const matches = promptRegex.exec(prompt)
+  if (matches === null || matches.length < 2) {
+    return undefined
+  }
+
+  const username = matches[1]
+
+  const storedPassword = await getSSHUserPassword(username)
+  if (storedPassword !== null) {
+    return storedPassword
+  }
+
+  const { secret: password, storeSecret: storePassword } =
+    await trampolineUIHelper.promptSSHUserPassword(username)
+
+  if (password !== undefined && storePassword) {
+    keepSSHUserPasswordToStore(operationGUID, username, password)
+  } else {
+    removePendingSSHSecretToStore(operationGUID)
+  }
+
+  return password ?? ''
 }
 
 export const askpassTrampolineHandler: TrampolineCommandHandler =
@@ -98,6 +129,10 @@ export const askpassTrampolineHandler: TrampolineCommandHandler =
 
     if (firstParameter.startsWith('Enter passphrase for key ')) {
       return handleSSHKeyPassphrase(command.trampolineToken, firstParameter)
+    }
+
+    if (firstParameter.endsWith("'s password: ")) {
+      return handleSSHUserPassword(command.trampolineToken, firstParameter)
     }
 
     const username = command.environmentVariables.get('DESKTOP_USERNAME')

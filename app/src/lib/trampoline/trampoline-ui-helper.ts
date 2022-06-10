@@ -1,9 +1,9 @@
 import { PopupType } from '../../models/popup'
 import { Dispatcher } from '../../ui/dispatcher'
 
-type PromptSSHKeyPassphraseResponse = {
-  readonly passphrase: string | undefined
-  readonly storePassphrase: boolean
+type PromptSSHSecretResponse = {
+  readonly secret: string | undefined
+  readonly storeSecret: boolean
 }
 
 class TrampolineUIHelper {
@@ -34,13 +34,26 @@ class TrampolineUIHelper {
 
   public promptSSHKeyPassphrase(
     keyPath: string
-  ): Promise<PromptSSHKeyPassphraseResponse> {
+  ): Promise<PromptSSHSecretResponse> {
     return new Promise(resolve => {
       this.dispatcher.showPopup({
         type: PopupType.SSHKeyPassphrase,
         keyPath,
         onSubmit: (passphrase, storePassphrase) =>
-          resolve({ passphrase, storePassphrase }),
+          resolve({ secret: passphrase, storeSecret: storePassphrase }),
+      })
+    })
+  }
+
+  public promptSSHUserPassword(
+    username: string
+  ): Promise<PromptSSHSecretResponse> {
+    return new Promise(resolve => {
+      this.dispatcher.showPopup({
+        type: PopupType.SSHUserPassword,
+        username,
+        onSubmit: (password, storePassword) =>
+          resolve({ secret: password, storeSecret: storePassword }),
       })
     })
   }

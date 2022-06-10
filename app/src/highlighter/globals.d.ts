@@ -19,6 +19,7 @@ declare namespace CodeMirror {
   interface StringStreamContext {
     lines: string[]
     line: number
+    lookAhead: (n: number) => string
   }
 
   /**
