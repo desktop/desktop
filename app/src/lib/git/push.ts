@@ -60,10 +60,8 @@ export async function push(
   },
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
-  const networkArguments = await gitNetworkArguments(repository, account)
-
   const args = [
-    ...networkArguments,
+    ...gitNetworkArguments(),
     'push',
     remote.name,
     remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,

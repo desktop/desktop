@@ -21,14 +21,12 @@ async function getPullArgs(
   account: IGitAccount | null,
   progressCallback?: (progress: IPullProgress) => void
 ) {
-  const networkArguments = await gitNetworkArguments(repository, account)
-
   const divergentPathArgs = await getDefaultPullDivergentBranchArguments(
     repository
   )
 
   const args = [
-    ...networkArguments,
+    ...gitNetworkArguments(),
     ...gitRebaseArguments(),
     'pull',
     ...divergentPathArgs,
