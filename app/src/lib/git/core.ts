@@ -465,37 +465,12 @@ export async function gitNetworkArguments(
   repository: Repository | null,
   account: IGitAccount | null
 ): Promise<ReadonlyArray<string>> {
-  const baseArgs = [
+  return [
     // Explicitly unset any defined credential helper, we rely on our
     // own askpass for authentication.
     '-c',
     'credential.helper=',
   ]
-
-  if (account === null) {
-    return baseArgs
-  }
-
-  const isDotComAccount = account.endpoint === getDotComAPIEndpoint()
-
-  if (!isDotComAccount) {
-    return baseArgs
-  }
-
-  const name = 'protocol.version'
-
-  const protocolVersion =
-    repository != null
-      ? await getConfigValue(repository, name)
-      : await getGlobalConfigValue(name)
-
-  if (protocolVersion !== null) {
-    // protocol.version is already set, we should not override it with our own
-    return baseArgs
-  }
-
-  // opt in for v2 of the Git Wire protocol for GitHub repositories
-  return [...baseArgs, '-c', 'protocol.version=2']
 }
 
 /**
