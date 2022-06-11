@@ -11,6 +11,11 @@ import * as ipcWebContents from './ipc-webcontents'
 let windowsToastActivatorClsid: string | undefined = undefined
 
 export function initializeDesktopNotifications() {
+  if (__LINUX__) {
+    // notifications not currently supported
+    return
+  }
+
   if (__DARWIN__) {
     initializeNotifications({})
     return
