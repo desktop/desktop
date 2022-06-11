@@ -13,6 +13,10 @@ export const CopySelectedRelativePathsLabel = __DARWIN__
   ? 'Copy Relative Paths'
   : 'Copy relative paths'
 
+export const CopyRepositoryLocationLabel = __DARWIN__
+  ? 'Copy Repository Path'
+  : 'Copy repository path'
+
 export const DefaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
   : 'Open in external editor'
