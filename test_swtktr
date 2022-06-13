@@ -1,0 +1,494 @@
+import numpy as np
+import csv
+import pyodbc
+import datetime as dt, calendar
+import pandas as pd
+import vertica_python
+from datetime import datetime, timedelta
+
+a_binary_string = "0b1001011 0b1101110 0b1101001 0b1101101 0b1100101 0b110001 0b110010 0b1000000"
+
+binary_values = a_binary_string.split()
+
+
+ascii_string = ""
+for binary_value in binary_values:
+    an_integer = int(binary_value, 2)
+
+
+
+    ascii_character = chr(an_integer)
+
+
+
+    ascii_string += ascii_character
+
+## vertical connection
+conn_info = {'host': 'bidb.chewy.local', 'port': 5433, 'database': 'bidb','user': 'skataria', 'password': ascii_string,'use_prepared_statements':False, 'autocommit': True}
+cxn = vertica_python.connect(**conn_info)
+cur = cxn.cursor()
+alpha = 0.95
+
+current_date = dt.datetime.now()
+
+cd = dt.datetime.now().date()
+
+current_hour = dt.datetime.now().hour
+
+week_day = calendar.day_name[current_date.weekday()]
+
+dow = calendar.day_name[current_date.weekday()]
+
+pr_training = pd.read_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\pr_training.csv')
+
+#master_backlog = pd.read_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\master_backlog.csv')
+
+#pr_training=pr_training[pr_training['wh_id']=='MCO1']
+pr_training['ReleaseDate'] = pd.to_datetime(pr_training['ReleaseDate'])
+pr_training['dow']=pr_training['ReleaseDate'].dt.dayofweek
+pr_training['dow']=pr_training['dow'].apply(lambda x: x+1 if x<6 else 0)
+
+
+planned_hc = pd.read_csv(r'\\chewy.local\common\Knime\fulfillment_center_analytics\planned_hc\RiskCalcNetworkWide\planned_hc.csv')
+
+master_headcount_multis = pd.read_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\master_headcount_multis.csv')
+master_headcount_singles = pd.read_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\master_headcount_singles.csv')
+master_headcount = pd.concat([master_headcount_multis,master_headcount_singles],axis=0)
+master_headcount.columns=['wh_id','process_path','Headcount']
+
+def dayofweekmapper(dow):
+    if dow == 'Sunday':
+        x = 0    
+    if dow == 'Monday':
+        x = 1
+    if dow == 'Tuesday':
+        x = 2
+    if dow == 'Wednesday':
+        x = 3
+    if dow == 'Thursday':
+        x = 4
+    if dow == 'Friday':
+        x = 5
+    if dow == 'Saturday':
+        x = 6
+    return x
+
+
+dayofweek = dayofweekmapper(dow)
+
+planned_hc=planned_hc.merge(master_headcount,on=['wh_id','process_path'],how='left')
+planned_hc=planned_hc.fillna(0)
+
+for i in planned_hc.index:
+    if (planned_hc.iloc[i].loc['dow'] ==dayofweek)&(planned_hc.iloc[i].loc['hour'] ==current_hour):
+        planned_hc.at[i,'PickersReqd'] = planned_hc.at[i,'Headcount']
+planned_hc=planned_hc.drop(columns=['Headcount'])
+
+master_backlog = pd.read_csv(r'\\chewy.local\common\Knime\fulfillment_center_analytics\planned_hc\RiskCalcNetworkWide\backlog.csv')
+
+
+master_backlog.columns=['wh_id','process_path','cutoff_time','date','backlog','picked']
+
+master_backlog['picked']=master_backlog['picked']-master_backlog['backlog']
+
+master_backlog['date']=pd.to_datetime(master_backlog['date']).dt.date
+master_backlog['dow']=pd.to_datetime(master_backlog['date']).dt.dayofweek
+master_backlog['dow']=master_backlog['dow'].apply(lambda x: x+1 if x<6 else 0)
+
+min_date=pd.DataFrame(master_backlog.groupby(['wh_id','cutoff_time'])['date'].min()).reset_index()
+master_backlog = master_backlog.merge(min_date,on=['wh_id','cutoff_time','date'],how='right')
+
+
+master_backlog.rename(columns={"date": "MinPromisedDate"},inplace=True)
+master_backlog=master_backlog.drop(['dow'],axis=1)
+
+query= """
+with max as
+(select wh_id as max_wh_id, date as max_date,MAX(current_hour) as latest_revision
+from sandbox_fulfillment.hourly_charge_forecast_master_v2 where wh_id in ( 'AVP1','DAY1','EFC3','CFC1','CLT1','MCO1') and date>=current_date group by 1,2)
+
+
+select 
+/*+label(K$skataria$fc_risks$Risk_PlannedHC)*/
+* from sandbox_fulfillment.hourly_charge_forecast_master_v2 hcf left join max on hcf.wh_id = max_wh_id 
+where hcf.wh_id in ( 'AVP1','DAY1','EFC3','CFC1','CLT1','MCO1') and hcf.date=max_date and current_hour = latest_revision
+"""
+master_fc=pd.read_sql(query,cxn)
+
+query = """
+select 
+/*+label(K$skataria$fc_risks$Risk_PlannedHC)*/
+DISTINCT wh_id, 
+cutoff_time,
+CASE WHEN cutoff_time = 0 or cutoff_time = 59 THEN 23 ELSE ROUND(cutoff_time/100,0)-1 END as ForecastFilterHour
+from sandbox_fulfillment.hourly_charge_forecast_master_v2
+where 
+
+wh_id in ('AVP1','DAY1','EFC3','CFC1','CLT1','MCO1') and
+date between current_date-7 and current_date-1
+and cutoff_time is not null
+"""
+
+forecast_hour_filter = pd.read_sql(query,cxn)
+forecast_hour_filter['cutoff_time'] = forecast_hour_filter['cutoff_time'].astype(int)
+
+master_fc['date'] = pd.to_datetime(master_fc['date'])
+
+master_fc['dow']=master_fc['date'].dt.dayofweek
+master_fc['dow']=master_fc['dow'].apply(lambda x: x+1 if x<6 else 0)
+
+master_fc_reqd = pd.DataFrame(master_fc.groupby(['wh_id','date','dow','hour','process_path','cutoff_time'])['ForecastedCharge'].sum()).reset_index()
+master_fc_reqd['cutoff_time'] = master_fc_reqd['cutoff_time'].astype(int)
+master_fc_reqd = master_fc_reqd.merge(forecast_hour_filter,on=['wh_id','cutoff_time'],how='left')
+master_fc_reqd = master_fc_reqd[(master_fc_reqd['process_path'] == 'Multis') | (master_fc_reqd['process_path'] == 'Singles')].reset_index(drop=True)
+
+master_fc_reqd['date']=pd.to_datetime(master_fc_reqd['date'])
+
+
+present=master_fc_reqd[master_fc_reqd['date']==pd.to_datetime(cd)]
+present = present[present['hour']>=current_hour]
+future=master_fc_reqd[master_fc_reqd['date']>pd.to_datetime(cd)]
+master_fc_reqd=pd.concat([present,future],axis=0)
+
+master_backlog['cutoff_time']=master_backlog['cutoff_time'].astype(int)
+
+net_volume_to_pick=master_fc_reqd.merge(master_backlog,on=['wh_id','process_path','cutoff_time'],how='left')
+promisedDate_check=net_volume_to_pick
+net_volume_to_pick=net_volume_to_pick.fillna(0)
+
+promisedDate_check=promisedDate_check.dropna()
+promisedDate_check['MinPromisedDate']=pd.to_datetime(promisedDate_check['MinPromisedDate'])
+
+df = promisedDate_check.groupby(['wh_id','date'])
+df2 =pd.DataFrame(df.agg(Minimum_Date=('MinPromisedDate', np.min))).reset_index()
+
+promisedDate_check=df2
+
+net_volume_to_pick=net_volume_to_pick.merge(promisedDate_check,on=['wh_id','date'],how='left')
+net_volume_to_pick=net_volume_to_pick.drop(['MinPromisedDate'],axis=1)
+net_volume_to_pick.rename(columns={"Minimum_Date": "MinPromisedDate"},inplace=True)
+net_volume_to_pick['Filter']=net_volume_to_pick['hour']<=net_volume_to_pick['ForecastFilterHour']
+true=net_volume_to_pick[net_volume_to_pick['Filter']==True]
+false=net_volume_to_pick[net_volume_to_pick['Filter']==False]
+false['Filter']=false['date']<false['MinPromisedDate']
+
+net_volume_to_pick=pd.concat([true,false],axis=0)
+net_volume_to_pick['Filter']=net_volume_to_pick['Filter'].apply(lambda x: 1 if x==True else 0)
+net_volume_to_pick['ForecastedCharge']=net_volume_to_pick['Filter']*net_volume_to_pick['ForecastedCharge']
+net_volume_to_pick=net_volume_to_pick.drop(['Filter'],axis=1)
+
+pr_training['ReleaseHour'] = pr_training['ReleaseHour'].astype(int)
+pr_training['UPH'] = pr_training['UPH'].astype(float)
+pr_training = pr_training.dropna()
+pr_training = pr_training[pr_training['UPH']>=20]
+pr_training_reqd = pd.DataFrame(pr_training.groupby(['wh_id','ProcessPath','ReleaseHour','dow'])['UPH'].mean()).reset_index()
+pr_training_reqd['ProcessPath'] = pr_training_reqd['ProcessPath'].apply(lambda x: 'Multis' if x == 'Multis Ground Picking' else 'Singles')
+
+data_check = pd.read_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\planned_hc\RiskCalcNetworkWide\data_check.csv')
+
+pr_training_reqd=data_check.merge(pr_training_reqd,on=['ProcessPath','ReleaseHour','dow'],how='left')
+pr_training_reqd=pr_training_reqd.fillna(0)
+
+pr_training_reqd.columns=['process_path','hour','dow','wh_id','UPH']
+
+master_headcount = planned_hc
+pr_training_reqd = pr_training_reqd.merge(master_headcount,on=['wh_id','process_path','hour','dow'],how='left')
+
+query = """
+select 
+/*+label(K$skataria$fc_risks$Risk_PlannedHC)*/
+DISTINCT 
+wh_id,
+process_path,
+cutoff_time,
+CASE WHEN cutoff_time = 0 or cutoff_time = 59 THEN 23 WHEN LEFT(cutoff_time,2) = 23 THEN 0 ELSE ROUND(cutoff_time/100,0)+1 END as PickCapacityFilterHour
+from aad.t_pick_container tpc
+where tpc.wh_id in ('AVP1','DAY1','EFC3','CFC1','CLT1','MCO1')
+and date(arrive_date) between current_date-14 and current_date-1
+and cutoff_time is not null
+"""
+
+pick_capacity_hour_filter = pd.read_sql(query,cxn)
+
+
+pick_capacity = pr_training_reqd.merge(pick_capacity_hour_filter,on=['wh_id','process_path'],how='left')
+
+capacity_by_process_path_by_cut_multis = pd.read_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\multis_cap.csv')
+capacity_by_process_path_by_cut_singles = pd.read_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\singles_cap.csv')
+
+
+def is_outlier(s):
+    lower_limit = s.mean() - (s.std() * 3)
+    upper_limit = s.mean() + (s.std() * 3)
+    return ~s.between(lower_limit, upper_limit)
+
+
+capacity_by_process_path_by_cut_multis = capacity_by_process_path_by_cut_multis[~capacity_by_process_path_by_cut_multis.groupby(['wh_id','Hour','cutoff_time'])['CutoffPerc'].apply(is_outlier)]
+capacity_by_process_path_by_cut_singles = capacity_by_process_path_by_cut_singles[~capacity_by_process_path_by_cut_singles.groupby(['wh_id','Hour','cutoff_time'])['CutoffPerc'].apply(is_outlier)]
+capacity_by_process_path_by_cut_multis = pd.DataFrame(capacity_by_process_path_by_cut_multis.groupby(['wh_id','Hour','cutoff_time'])['CutoffPerc'].mean()).reset_index()
+
+
+capacity_by_process_path_by_cut_singles = pd.DataFrame(capacity_by_process_path_by_cut_singles.groupby(['wh_id','Hour','cutoff_time'])['CutoffPerc'].mean()).reset_index()
+capacity_by_process_path_by_cut_multis['process_path'] = 'Multis'
+capacity_by_process_path_by_cut_singles['process_path'] = 'Singles'
+
+pro_rater = pd.DataFrame(capacity_by_process_path_by_cut_multis.groupby(['wh_id','Hour'])['CutoffPerc'].sum()).reset_index()
+capacity_by_process_path_by_cut_multis = capacity_by_process_path_by_cut_multis.merge(pro_rater, on = ['wh_id','Hour'],how = 'inner')
+capacity_by_process_path_by_cut_multis['CutoffPerc'] = capacity_by_process_path_by_cut_multis['CutoffPerc_x']/capacity_by_process_path_by_cut_multis['CutoffPerc_y']
+capacity_by_process_path_by_cut_multis = capacity_by_process_path_by_cut_multis[['wh_id','Hour','cutoff_time','process_path','CutoffPerc']]
+
+pro_rater = pd.DataFrame(capacity_by_process_path_by_cut_singles.groupby(['wh_id','Hour'])['CutoffPerc'].sum()).reset_index()
+capacity_by_process_path_by_cut_singles = capacity_by_process_path_by_cut_singles.merge(pro_rater, on = ['wh_id','Hour'],how = 'inner')
+capacity_by_process_path_by_cut_singles['CutoffPerc'] = capacity_by_process_path_by_cut_singles['CutoffPerc_x']/capacity_by_process_path_by_cut_singles['CutoffPerc_y']
+capacity_by_process_path_by_cut_singles = capacity_by_process_path_by_cut_singles[['wh_id','Hour','cutoff_time','process_path','CutoffPerc']]
+
+
+master_pick_capacity = pd.concat([capacity_by_process_path_by_cut_multis,capacity_by_process_path_by_cut_singles],axis=0)
+
+master_pick_capacity.columns=['wh_id','hour','cutoff_time','process_path','CutoffPerc']
+
+fc_cutoff=master_pick_capacity[['wh_id','cutoff_time']]
+fc_cutoff=fc_cutoff.drop_duplicates()
+fc_cutoff=fc_cutoff.reset_index(drop=True)
+
+hours=pd.DataFrame(master_pick_capacity['hour'].unique(),columns=['hour'])
+process_path=pd.DataFrame(master_pick_capacity['process_path'].unique(),columns=['process_path'])
+data_check=process_path.merge(hours,how='cross')
+fc_cutoff=fc_cutoff.merge(data_check,how='cross')
+master_pick_capacity=master_pick_capacity.merge(fc_cutoff,on=['wh_id','cutoff_time','process_path','hour'],how='right')
+master_pick_capacity=master_pick_capacity.fillna(0)
+
+pick_capacity_master = pr_training_reqd.merge(master_pick_capacity,on=['wh_id','process_path','hour'],how = 'right')
+pick_capacity_hour_filter['cutoff_time'] = pick_capacity_hour_filter['cutoff_time'].astype(int)
+
+pick_capacity_master = pick_capacity_master.merge(pick_capacity_hour_filter,on=['wh_id','process_path','cutoff_time'],how='left')
+
+pick_capacity_master=pick_capacity_master.drop(columns=['shift'])
+
+master_prod_minutes= pd.read_csv(r'\\chewy.local\common\Knime\fulfillment_center_analytics\planned_hc\RiskCalcNetworkWide\prod_min.csv')
+#master_prod_minutes=master_prod_minutes[master_prod_minutes['wh_id']=='AVP1','DAY1','EFC3','CFC1','CLT1','MCO1']
+master_prod_minutes.columns=['wh_id','dow','hour','ProductiveMin']
+
+
+pick_capacity_master['FilterCondition'] = pick_capacity_master['PickCapacityFilterHour'].apply(lambda x: 24 if x==0 else x )
+
+pick_capacity_master['FilterCondition'] = pick_capacity_master['hour'] <= pick_capacity_master['FilterCondition']
+#pick_capacity_master = pick_capacity_master[pick_capacity_master['FilterCondition'] == True]
+
+recommended_hours_pick_rate = pick_capacity_master
+pick_capacity_master = pick_capacity_master.reset_index(drop=True)
+pick_capacity_master = pick_capacity_master.merge(master_prod_minutes,on=['wh_id','hour','dow'],how='left')
+
+pick_capacity_master.rename(columns={"PickersReqd": "Headcount"},inplace=True)
+
+pick_capacity_master['MaxVolumePickable']=pick_capacity_master['UPH']*pick_capacity_master['Headcount']*pick_capacity_master['CutoffPerc']*pick_capacity_master['ProductiveMin']/60
+
+
+pick_capacity_master = pick_capacity_master.reset_index(drop=True)
+
+net_volume_to_pick['FilterCondition']=True
+
+promisedDate=net_volume_to_pick[net_volume_to_pick['MinPromisedDate']==net_volume_to_pick['date']]
+
+earlierDate=net_volume_to_pick[net_volume_to_pick['MinPromisedDate']>net_volume_to_pick['date']]
+promisedDate['FilterCondition'] = promisedDate['hour'] <= promisedDate['ForecastFilterHour']
+net_volume_to_pick=pd.concat([promisedDate,earlierDate],axis=0)
+net_volume_to_pick=net_volume_to_pick.drop(['FilterCondition'], axis=1)
+pick_capacity_master=pick_capacity_master.fillna(0)
+
+risk_master_east_coast = net_volume_to_pick.merge(pick_capacity_master,on=['wh_id','process_path','cutoff_time','dow','hour'],how='left') ##
+
+risk_master_east_coast=risk_master_east_coast.fillna(0)
+MaxCapacityByCutoff = pd.DataFrame(risk_master_east_coast.groupby(['wh_id','process_path','cutoff_time','FilterCondition'])['MaxVolumePickable'].sum()).reset_index()
+
+MaxCapacityByCutoff.rename(columns={"MaxVolumePickable": "SumMaxVolumePickable"},inplace=True)
+
+
+risk_master_east_coast=risk_master_east_coast.merge(MaxCapacityByCutoff,on = ['wh_id','process_path','cutoff_time','FilterCondition'],how = 'left')
+
+forecast_backlog=pd.DataFrame(net_volume_to_pick.groupby(['wh_id','process_path','cutoff_time','ForecastFilterHour','backlog','MinPromisedDate'])['ForecastedCharge'].sum()).reset_index()
+
+risk_master_east_coast=risk_master_east_coast.drop(['backlog','ForecastedCharge'],axis=1)
+risk_master_east_coast=risk_master_east_coast.merge(forecast_backlog,on=['wh_id','process_path','cutoff_time','ForecastFilterHour','MinPromisedDate'],how='left')
+
+risk_master_east_coast['ForecastedBacklog'] = risk_master_east_coast['ForecastedCharge'] + risk_master_east_coast['backlog']
+
+risk_master_east_coast=risk_master_east_coast[risk_master_east_coast['hour']==current_hour]
+
+risk_master_east_coast['RiskInUnits'] = risk_master_east_coast['ForecastedBacklog']-risk_master_east_coast['SumMaxVolumePickable']
+
+risk_master_east_coast['RiskInUnitsV2'] = risk_master_east_coast['RiskInUnits']
+
+def capacity_bleeder(x):
+    trial = pd.DataFrame()
+    for i in x['wh_id'].unique():
+        test1 = x[x['wh_id']==i]
+        for j in test1['process_path'].unique():
+            test2 = test1[test1['process_path']==j]
+            test2['cutoff_time'] = test2['cutoff_time'].astype(int)
+            test2 = test2.sort_values(by=['cutoff_time'],ascending=True)
+            test2 = test2.reset_index(drop=True)
+            for i in test2.index: 
+                if i <= len(test2)-2:    
+                    if test2.loc[i].loc['RiskInUnitsV2']<0:
+                        test2.at[i+1,'RiskInUnitsV2'] = test2.at[i+1,'RiskInUnitsV2'] + test2.at[i,'RiskInUnitsV2']
+                        test2.at[i,'RiskInUnitsV2'] = 0
+                elif test2.loc[len(test2)-1].loc['RiskInUnitsV2']<0:
+                        test2.at[i,'RiskInUnitsV2'] = 0
+                else:
+                    continue
+            
+            trial = pd.concat([trial,test2],axis=0)
+    return(trial)
+
+risk_master_with_bled_capacity = capacity_bleeder(risk_master_east_coast)
+
+pull_time_map_query = """
+select 
+/*+label(K$skataria$fc_risks$Risk_PlannedHC)*/
+
+distinct wh_id, cutoff_time, CAST(pull as time) as pull_time
+
+from aad.t_che_route_detail det
+join aad.t_che_route che
+on det.che_route_id = che.unique_id
+where wh_id in ('AVP1','DAY1','EFC3','CFC1','CLT1','MCO1') and description='Direct'
+"""
+
+pull_time_map = pd.read_sql(pull_time_map_query,cxn)
+
+
+pull_time_map['pull_time'] = pull_time_map['pull_time'].astype(str)
+pull_time_map['pull_time'] = pull_time_map['pull_time'].str.slice(0,5)
+pull_time_map['pull_time'] = pull_time_map['pull_time'].str.replace(':','')
+pull_time_map['cutoff_time'] = pull_time_map['cutoff_time'].astype(int)
+
+risk_master_with_bled_capacity = risk_master_with_bled_capacity.merge(pull_time_map,on = ['wh_id','cutoff_time'],how = 'inner')
+
+upc_query = """
+select 
+/*+label(K$skataria$fc_risks$Risk_PlannedHC)*/
+wh_id,
+process_path,
+--SUM(total_units) as total_units,
+--COUNT( DISTINCT container_id) as count_container,
+SUM(total_units)/COUNT( DISTINCT container_id) as UPC
+from aad.t_pick_container as pc
+where arrive_date between NOW() - INTERVAL '24 hours' and NOW()
+and wh_id in ('AVP1','DAY1','EFC3','CFC1','CLT1','MCO1')
+and process_path is not null
+and process_path in ('Multis','Singles')
+group by 1,2
+"""
+
+upc_map = pd.read_sql(upc_query,cxn)
+risk_master_with_bled_capacity = risk_master_with_bled_capacity.merge(upc_map,on=['wh_id','process_path'],how='left')
+
+risk_master_with_bled_capacity['ForecastedChargeInContainers'] = risk_master_with_bled_capacity['ForecastedCharge']/risk_master_with_bled_capacity['UPC']
+risk_master_with_bled_capacity['RiskInContainers'] = risk_master_with_bled_capacity['RiskInUnitsV2']/risk_master_with_bled_capacity['UPC']
+risk_master_with_bled_capacity['Backlog_Containers'] = risk_master_with_bled_capacity['backlog']/ risk_master_with_bled_capacity['UPC']
+risk_master_with_bled_capacity['ForecastedBacklogInContainers'] = risk_master_with_bled_capacity['ForecastedChargeInContainers']+risk_master_with_bled_capacity['Backlog_Containers']
+risk_master_with_bled_capacity['ShippedContainers'] = risk_master_with_bled_capacity['picked']/risk_master_with_bled_capacity['UPC']
+
+
+risk_master_with_bled_capacity['RiskPercent'] = risk_master_with_bled_capacity['RiskInUnitsV2']/(risk_master_with_bled_capacity['ForecastedBacklog']+risk_master_with_bled_capacity['picked'])
+                                                                                                 
+risk_master_with_bled_capacity = risk_master_with_bled_capacity.drop_duplicates()
+
+risk_master_with_bled_capacity['hour']=risk_master_with_bled_capacity['hour']
+
+#risk_master_with_bled_capacity.to_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\risk_DC_MCO1.csv', index = False, header=True)
+
+risk_master_with_bled_capacity['date'] = cd
+risk_master_with_bled_capacity['hour']=current_hour
+
+#risk_master_with_bled_capacity.to_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\risk_DC_MCO1.csv', index = False, header=True)
+
+master_headcount['Headcount']=master_headcount['PickersReqd']
+hc=master_headcount[['wh_id','process_path','hour','dow','Headcount']]
+hc=hc[hc['hour']==current_hour]
+risk_master_with_bled_capacity=risk_master_with_bled_capacity.drop(columns='Headcount')
+risk_master_with_bled_capacity=risk_master_with_bled_capacity.merge(hc,on=['wh_id','process_path','hour','dow'],how='left')
+
+for i in risk_master_with_bled_capacity.index:
+    if risk_master_with_bled_capacity.iloc[i].loc['RiskInUnitsV2'] <= 200:#to discuss if we need to remove this?
+        risk_master_with_bled_capacity.at[i,'RiskPercent'] = 0
+        risk_master_with_bled_capacity.at[i,'RecommendedHours'] = 0
+        risk_master_with_bled_capacity.at[i,'RiskInUnitsV2'] = 0
+        risk_master_with_bled_capacity.at[i,'RiskInContainers'] = 0
+
+for i in risk_master_with_bled_capacity.index:
+    if risk_master_with_bled_capacity.iloc[i].loc['RiskPercent'] > 0.30:
+        percent = risk_master_with_bled_capacity.at[i,'RiskPercent']/2
+        risk_master_with_bled_capacity.at[i,'RiskPercent'] = risk_master_with_bled_capacity.at[i,'RiskPercent']/2
+        risk_master_with_bled_capacity.at[i,'RiskInUnitsV2'] = percent*(risk_master_with_bled_capacity.at[i,'ForecastedBacklog']+risk_master_with_bled_capacity.at[i,'picked'])
+        risk_master_with_bled_capacity.at[i,'RiskInContainers'] = risk_master_with_bled_capacity.at[i,'RiskInUnitsV2']/ risk_master_with_bled_capacity.at[i,'UPC']
+
+risk_MCO1=risk_master_with_bled_capacity[risk_master_with_bled_capacity['wh_id']=='MCO1']
+#risk_MCO1.to_csv(r'\\chewy.local\common\knime\fulfillment_center_analytics\planned_hc\RiskCalcNetworkWide\risk_MCO1_planned.csv', index = False, header=True)                                                                     
+risk_master_with_bled_capacity = risk_master_with_bled_capacity[['date','MinPromisedDate','wh_id','hour','cutoff_time','RiskInUnits','Headcount','backlog','picked','process_path','ForecastedCharge','pull_time','RiskInContainers','ShippedContainers','ForecastedChargeInContainers','Backlog_Containers','RiskPercent','RiskInUnitsV2']]
+risk_master_with_bled_capacity.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+risk_master_with_bled_capacity = risk_master_with_bled_capacity.fillna(0)
+
+
+recommended_hours = pd.DataFrame(risk_master_with_bled_capacity.groupby(['wh_id','process_path','cutoff_time'])['RiskInUnitsV2'].mean()).reset_index()
+dynamic_trigger = pd.DataFrame(risk_master_with_bled_capacity.groupby(['wh_id','process_path','cutoff_time'])['RiskInUnitsV2'].mean()).reset_index()
+
+
+n_hours = len(pd.unique(recommended_hours_pick_rate['hour']))
+
+recommended_hours_pick_rate = pd.DataFrame(recommended_hours_pick_rate.groupby(['wh_id','process_path','cutoff_time'])['UPH'].mean()).reset_index()
+
+recommended_hours = recommended_hours.merge(recommended_hours_pick_rate,on=['wh_id','process_path','cutoff_time'],how='left')
+recommended_hours['RecommendedHours'] = (recommended_hours['RiskInUnitsV2']/recommended_hours['UPH'])/n_hours
+
+
+recommended_hours['date'] = cd
+recommended_hours['hour'] = current_hour
+
+recommended_hours = recommended_hours[['date','hour','wh_id','process_path','cutoff_time','RecommendedHours']]
+
+
+risk_master_with_bled_capacity=risk_master_with_bled_capacity.drop_duplicates(subset=None, keep='first', inplace=False)
+
+risk_master_with_bled_capacity=risk_master_with_bled_capacity.reset_index(drop=True)
+
+tableau_output_format = risk_master_with_bled_capacity.merge(recommended_hours,on=['date','hour','wh_id','process_path','cutoff_time'],how='inner')
+
+
+
+tableau_output_format = tableau_output_format.fillna(0)
+
+
+tableau_output_format['date'] = pd.to_datetime(tableau_output_format['date']).dt.date
+tableau_output_format['MinPromisedDate'] = pd.to_datetime(tableau_output_format['MinPromisedDate']).dt.date
+tableau_output_format['wh_id'] = tableau_output_format['wh_id'].astype(str)
+tableau_output_format['hour'] = tableau_output_format['hour'].astype(int)
+tableau_output_format['cutoff_time'] = tableau_output_format['cutoff_time'].astype(int)
+tableau_output_format['RiskInUnits'] = tableau_output_format['RiskInUnits'].astype(int)
+tableau_output_format['Headcount'] = tableau_output_format['Headcount'].astype(int)
+tableau_output_format['backlog'] = tableau_output_format['backlog'].astype(int)
+tableau_output_format['picked'] = tableau_output_format['picked'].astype(int)
+tableau_output_format['ShippedContainers'] = tableau_output_format['ShippedContainers'].astype(int)
+tableau_output_format['process_path'] = tableau_output_format['process_path'].astype(str)
+tableau_output_format['ForecastedCharge'] = tableau_output_format['ForecastedCharge'].astype(int)
+tableau_output_format['pull_time'] = tableau_output_format['pull_time'].astype(int)
+tableau_output_format['RiskInContainers'] = tableau_output_format['RiskInContainers'].astype(int)
+tableau_output_format['ForecastedChargeInContainers'] = tableau_output_format['ForecastedChargeInContainers'].astype(int)
+tableau_output_format['Backlog_Containers'] = tableau_output_format['Backlog_Containers'].astype(int)
+tableau_output_format['RiskPercent'] = tableau_output_format['RiskPercent'].astype(float)
+tableau_output_format['RiskInUnitsV2'] = tableau_output_format['RiskInUnitsV2'].astype(float)
+tableau_output_format['RecommendedHours'] = tableau_output_format['RecommendedHours'].astype(int)
+
+
+tableau_output_format.rename(columns={"backlog": "Backlog_Units"},inplace=True)
+tableau_output_format.rename(columns={"ForecastedCharge": "ForecastedChargeInUnits"},inplace=True)
+tableau_output_format.rename(columns={"MinPromisedDate": "PromisedDate"},inplace=True)
+tableau_output_format.rename(columns={"picked": "Shipped_Picked_Units"},inplace=True)
+tableau_output_format.rename(columns={"ShippedContainers": "Shipped_Picked_Containers"},inplace=True)
+
+output_table=tableau_output_format
+
+
+output_table.to_csv('r\\chewy.local\common\Knime\fulfillment_center_analytics\planned_hc\RiskCalcNetworkWide\Risk_withAPIFeeds_June13.csv')
