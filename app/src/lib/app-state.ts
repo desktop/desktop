@@ -553,6 +553,20 @@ export interface ICommitSelection {
   /** The commits currently selected in the app */
   readonly shas: ReadonlyArray<string>
 
+  /**
+   * Whether the a selection of commits are group of adjacent to each other.
+   * Example: Given these are indexes of sha's in history, 3, 4, 5, 6 is contiguous as
+   * opposed to 3, 5, 8.
+   *
+   * Technically order does not matter, but shas are stored in order.
+   *
+   * Contiguous selections can be diffed. Non-contiguous selections can be
+   * cherry-picked, reordered, or squashed.
+   *
+   * Assumed that a selections of zero or one commit are contiguous.
+   * */
+  readonly isContiguous: boolean
+
   /** The changeset data associated with the selected commit */
   readonly changesetData: IChangesetData
 

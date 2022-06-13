@@ -76,6 +76,7 @@ export type RequestChannels = {
   'set-native-theme-source': (themeName: ThemeSource) => void
   'focus-window': () => void
   'notification-event': NotificationCallback<DesktopAliveEvent>
+  'set-window-zoom-factor': (zoomFactor: number) => void
 }
 
 /**

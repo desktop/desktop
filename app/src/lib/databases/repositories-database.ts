@@ -1,4 +1,4 @@
-import Dexie from 'dexie'
+import Dexie, { Transaction } from 'dexie'
 import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { assertNonNullable } from '../fatal-error'
@@ -144,7 +144,7 @@ export class RepositoriesDatabase extends BaseDatabase {
 /**
  * Remove any duplicate GitHub repositories that have the same owner and name.
  */
-function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
+function removeDuplicateGitHubRepositories(transaction: Transaction) {
   const table = transaction.table<IDatabaseGitHubRepository, number>(
     'gitHubRepositories'
   )
@@ -164,7 +164,7 @@ function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
   })
 }
 
-async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
+async function ensureNoUndefinedParentID(tx: Transaction) {
   return tx
     .table<IDatabaseGitHubRepository, number>('gitHubRepositories')
     .toCollection()
@@ -185,7 +185,7 @@ async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
  * (https://github.com/desktop/desktop/pull/1242). This scenario ought to be
  * incredibly unlikely.
  */
-async function createOwnerKey(tx: Dexie.Transaction) {
+async function createOwnerKey(tx: Transaction) {
   const ownersTable = tx.table<IDatabaseOwner, number>('owners')
   const ghReposTable = tx.table<IDatabaseGitHubRepository, number>(
     'gitHubRepositories'

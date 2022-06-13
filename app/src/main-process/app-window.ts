@@ -416,6 +416,10 @@ export class AppWindow {
     return this.window.webContents.zoomFactor
   }
 
+  public setWindowZoomFactor(zoomFactor: number) {
+    this.window.webContents.zoomFactor = zoomFactor
+  }
+
   /**
    * Method to show the save dialog and return the first file path it returns.
    */

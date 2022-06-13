@@ -55,4 +55,8 @@ export class CommitIdentity {
     public readonly date: Date,
     public readonly tzOffset: number = new Date().getTimezoneOffset()
   ) {}
+
+  public toString() {
+    return `${this.name} <${this.email}>`
+  }
 }

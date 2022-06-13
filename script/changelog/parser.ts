@@ -37,6 +37,26 @@ function capitalized(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+/**
+ * Finds a release note in the PR body, which is under the 'Release notes'
+ * section, preceded by a 'Notes:' title.
+ *
+ * @param body Body of the PR to parse
+ * @returns    The release note if it exist, null if it's explicitly marked to
+ *             not have a release note (with no-notes), and undefined if there
+ *             is no 'Release notes' section at all.
+ */
+export function findReleaseNote(body: string): string | null | undefined {
+  const re = /^Notes: (.+)$/gm
+  const matches = re.exec(body)
+  if (!matches || matches.length < 2) {
+    return undefined
+  }
+
+  const note = matches[1].replace(/\.$/, '')
+  return note === 'no-notes' ? null : note
+}
+
 export function findIssueRef(body: string): string {
   let issueRef = ''
 
@@ -55,7 +75,12 @@ export function findIssueRef(body: string): string {
   return issueRef
 }
 
-function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
+function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string | null {
+  let attribution = ''
+  if (commit.owner !== OfficialOwner) {
+    attribution = `. Thanks @${commit.owner}!`
+  }
+
   let type = PlaceholderChangeType
   const description = capitalized(pr.title)
 
@@ -67,9 +92,12 @@ function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
     issueRef = ` #${commit.prID}`
   }
 
-  let attribution = ''
-  if (commit.owner !== OfficialOwner) {
-    attribution = `. Thanks @${commit.owner}!`
+  // Use release note from PR body if defined
+  const releaseNote = findReleaseNote(pr.body)
+  if (releaseNote !== undefined) {
+    return releaseNote === null
+      ? null
+      : `${releaseNote} -${issueRef}${attribution}`
   }
 
   return `[${type}] ${description} -${issueRef}${attribution}`
@@ -86,9 +114,15 @@ export async function convertToChangelogFormat(
       if (!pr) {
         throw new Error(`Unable to get PR from API: ${commit.prID}`)
       }
+      // Skip release PRs
+      if (pr.headRefName.startsWith('releases/')) {
+        continue
+      }
 
       const entry = getChangelogEntry(commit, pr)
-      entries.push(entry)
+      if (entry !== null) {
+        entries.push(entry)
+      }
     } catch (e) {
       console.warn('Unable to parse line, using the full message.', e)
 

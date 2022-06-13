@@ -4,6 +4,20 @@
       "[Fixed] Fix crash launching the app on macOS High Sierra - #14712",
       "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
     ],
+    "3.0.2-beta4": [
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Fixed] Fix issue with some repositories not being properly persisted - #14748"
+    ],
+    "3.0.2-beta3": [
+      "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
+    ],
+    "3.0.2-beta2": [
+      "[Fixed] Fix crash launching the app on macOS High Sierra - #14712"
+    ],
+    "3.0.2-beta1": [
+      "[Added] Add support for Aptana Studio - #14669. Thanks @tsvetilian-ty!"
+    ],
     "3.0.1": [
       "[Added] Add support for PyCharm Community Edition on Windows - #14411. Thanks @tsvetilian-ty!",
       "[Added] Add support for highlighting .mjs/.cjs/.mts/.cts files as JavaScript/TypeScript - #14481. Thanks @j-f1!",
