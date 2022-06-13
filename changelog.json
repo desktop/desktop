@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.2-test1": ["Testing new macOS cert"],
     "3.0.2-beta4": [
       "[Improved] Add support for SSH password prompts when accessing repositories - #14676",
       "[Fixed] Fix Markdown syntax highlighting - #14710",
