@@ -33,8 +33,8 @@
     padding: 2px 0 2px var(--spacing-half);
 
     &.diff-hunk-expandable-both {
-      padding-top: 14px;
-      padding-bottom: 14px;
+      padding-top: 7px;
+      padding-bottom: 7px;
     }
 
     &.diff-hunk:not(.diff-hunk-expandable-both) {
