@@ -47,3 +47,6 @@ and how things work:
     Desktop is currently packaged for all platforms 
  - **[Automatic Git Proxy support](technical/proxies.md)** - A pre-launch overview
     and troubleshooting guide for the Git automatic proxy support in GitHub Desktop.
+
+
+
