@@ -24,7 +24,7 @@ fi
 RELEASE_DESCRIPTION="v${VERSION} production release"
 if [[ "$VERSION" == *"-"* ]]; then
   BUILD_TYPE_AND_NUMBER=$(echo ${VERSION##*-})
-  if [[ "$BUILD_TYPE_AND_NUMBER" != *"beta" ]]; then
+  if [[ "$BUILD_TYPE_AND_NUMBER" != *"beta"* ]]; then
     echo "Only beta and production builds have release PRs"
   fi
   BUILD_TYPE="beta"
