@@ -31,7 +31,15 @@ export function installAuthenticatedAvatarFilter(
 
   return (accounts: ReadonlyArray<EndpointToken>) => {
     originTokens = new Map(
-      accounts.map(({ endpoint, token }) => [new URL(endpoint).origin, token])
-    )
-  }
-}
+      accounts.map(({ endpoint, token }) => [new URL(endpoint).origin, token]
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
