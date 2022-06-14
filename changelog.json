@@ -1022,6 +1022,9 @@
       "[Improved] Lighten scrollbars in dark theme for higher contrast - #9114. Thanks @jfgordon2!",
       "[Improved] Display pull requests from upstream repository in pull request list - #6383"
     ],
+    
+    
+    
     "2.4.1-beta1": [
       "[Added] Indicate which commits are un-pushed in \"History\" tab - #5873",
       "[Added] Show progress bar in taskbar during pushing and pulling changes - #8433. Thanks @ChamodyaDias!",
