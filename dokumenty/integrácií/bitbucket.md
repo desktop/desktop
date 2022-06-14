@@ -31,3 +31,9 @@ To authenticate against Bitbucket repositories you will need to create a persona
 ![](https://user-images.githubusercontent.com/721500/54835296-33d75200-4c98-11e9-9c6f-71bbfdd26336.png)
 
    - **Note:** Your Bitbucket credentials will be securely stored on your local machine so you will not need to repeat this process when cloning another repository from Bitbucket.
+
+
+
+
+
+
