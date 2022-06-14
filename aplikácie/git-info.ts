@@ -86,3 +86,14 @@ export function getSHA() {
 
   return revParse(Path.resolve(__dirname, '../.git'), 'HEAD')
 }
+
+
+
+
+
+
+
+
+
+
+
