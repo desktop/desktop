@@ -166,7 +166,11 @@ export class RepositoryListItem extends React.Component<
       ...this.buildAliasMenuItems(),
       {
         label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
-        action: this.copyToClipboard,
+        action: this.copyNameToClipboard,
+      },
+      {
+        label: __DARWIN__ ? 'Copy Repo Path' : 'Copy repo path',
+        action: this.copyPathToClipboard,
       },
       { type: 'separator' },
       {
@@ -258,8 +262,12 @@ export class RepositoryListItem extends React.Component<
     }
   }
 
-  private copyToClipboard = () => {
+  private copyNameToClipboard = () => {
     clipboard.writeText(this.props.repository.name)
+  }
+
+  private copyPathToClipboard = () => {
+    clipboard.writeText(this.props.repository.path)
   }
 }
 
