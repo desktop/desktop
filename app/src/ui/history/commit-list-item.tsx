@@ -55,7 +55,7 @@ interface ICommitProps {
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
-  readonly isCherryPickInProgress?: boolean
+  readonly disableCherryPicking?: boolean
   readonly disableSquashing?: boolean
 }
 
@@ -391,6 +391,7 @@ export class CommitListItem extends React.PureComponent<
           ? `Squash ${count} Commits…`
           : `Squash ${count} commits…`,
         action: this.onSquash,
+        enabled: !this.props.disableSquashing,
       })
     }
 
@@ -398,12 +399,11 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private canCherryPick(): boolean {
-    const { onCherryPick, isCherryPickInProgress } = this.props
+    const { onCherryPick, disableCherryPicking } = this.props
     return (
       onCherryPick !== undefined &&
       this.onSquash !== undefined &&
-      isCherryPickInProgress === false
-      // TODO: isSquashInProgress === false
+      disableCherryPicking === false
     )
   }
 

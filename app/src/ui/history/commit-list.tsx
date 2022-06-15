@@ -118,8 +118,8 @@ interface ICommitListProps {
   /** Whether or not commits in this list can be reordered. */
   readonly reorderingEnabled: boolean
 
-  /** Whether a cherry pick is progress */
-  readonly isCherryPickInProgress: boolean
+  /** Whether a cherry picking is disabled for example cherry-picking is in progress */
+  readonly disableCherryPicking: boolean
 
   /** Callback to render commit drag element */
   readonly onRenderCommitDragElement: (
@@ -207,7 +207,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onAmendCommit={this.props.onAmendCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
-        isCherryPickInProgress={this.props.isCherryPickInProgress}
+        disableCherryPicking={this.props.disableCherryPicking}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.props.onRemoveCommitDragElement}
         disableSquashing={this.props.disableSquashing}

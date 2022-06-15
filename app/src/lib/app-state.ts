@@ -661,6 +661,7 @@ export interface IChangesState {
 export enum HistoryTabMode {
   History = 'History',
   Compare = 'Compare',
+  DiffCommits = 'DiffCommits',
 }
 
 /**
@@ -698,9 +699,16 @@ export interface ICompareBranch {
   readonly aheadBehind: IAheadBehind
 }
 
+/**
+ * When the user has chosen to view a diff of two commits
+ */
+export interface IDiffCommits {
+  readonly kind: HistoryTabMode.DiffCommits
+}
+
 export interface ICompareState {
   /** The current state of the compare form, based on user input */
-  readonly formState: IDisplayHistory | ICompareBranch
+  readonly formState: IDisplayHistory | ICompareBranch | IDiffCommits
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
   readonly mergeStatus: MergeTreeResult | null
@@ -762,10 +770,14 @@ export interface ICompareToBranch {
   readonly comparisonMode: ComparisonMode.Ahead | ComparisonMode.Behind
 }
 
+export interface IViewDiffCommits {
+  readonly kind: HistoryTabMode.DiffCommits
+}
+
 /**
  * An action to send to the application store to update the compare state
  */
-export type CompareAction = IViewHistory | ICompareToBranch
+export type CompareAction = IViewHistory | ICompareToBranch | IViewDiffCommits
 
 /**
  * Undo state associated with a multi commit operation being performed on a

@@ -108,6 +108,7 @@ import {
   isMergeConflictState,
   IMultiCommitOperationState,
   IConstrainedValue,
+  IDiffCommits,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -161,6 +162,8 @@ import {
   RepositoryType,
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
+  getCommitsInRange,
+  revRange,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1266,7 +1269,63 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.updateCompareToBranch(repository, action)
     }
 
+    if (action.kind === HistoryTabMode.DiffCommits) {
+      return this.diffFirstAndLastOfSelectedCommits(repository)
+    }
+
     return assertNever(action, `Unknown action: ${kind}`)
+  }
+
+  private async diffFirstAndLastOfSelectedCommits(repository: Repository) {
+    const { commitSelection } = this.repositoryStateCache.get(repository)
+    const { shas } = commitSelection
+    const shasInDiff = await this.getShasInDiff(repository, shas)
+
+    const newState: IDiffCommits = {
+      kind: HistoryTabMode.DiffCommits,
+    }
+
+    // TODO: Refactor diffing of multiple commits to happen here instead of on
+    // every multiple commit selection. (On demand)
+
+    this.repositoryStateCache.updateCompareState(repository, () => ({
+      formState: newState,
+      commitSHAs: [...shasInDiff].reverse(),
+    }))
+
+    return this.emitUpdate()
+  }
+
+  /** Used to get the commits that influences the diff if comparing first sha in
+   * the array to the last */
+  private async getShasInDiff(
+    repository: Repository,
+    shas: ReadonlyArray<string>
+  ) {
+    const oldestCommitRef = shas[0]
+    const latestCommit = shas.at(-1)
+
+    if (shas.length <= 1 || latestCommit === undefined) {
+      return shas
+    }
+
+    const commitsOfDiff = await getCommitsInRange(
+      repository,
+      revRange(oldestCommitRef, latestCommit)
+    )
+
+    if (commitsOfDiff === null) {
+      // This shouldn't happen... would likely indicate a bad revision
+      log.error(
+        `Unable to obtain commits in: ${revRange(
+          oldestCommitRef,
+          latestCommit
+        )}`
+      )
+      return []
+    }
+
+    return commitsOfDiff.map(c => c.sha)
   }
 
   private async updateCompareToBranch(
@@ -7030,20 +7089,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
  * view contents.
  */
 function getInitialAction(
-  cachedState: IDisplayHistory | ICompareBranch
+  cachedState: IDisplayHistory | ICompareBranch | IDiffCommits
 ): CompareAction {
-  if (cachedState.kind === HistoryTabMode.History) {
-    return {
-      kind: HistoryTabMode.History,
-    }
-  }
+  const { kind } = cachedState
+  switch (kind) {
+    case HistoryTabMode.History:
+      return {
+        kind: HistoryTabMode.History,
+      }
+    case HistoryTabMode.Compare:
+      const { comparisonMode, comparisonBranch } = cachedState
 
-  const { comparisonMode, comparisonBranch } = cachedState
-
-  return {
-    kind: HistoryTabMode.Compare,
-    comparisonMode,
-    branch: comparisonBranch,
+      return {
+        kind: HistoryTabMode.Compare,
+        comparisonMode,
+        branch: comparisonBranch,
+      }
+    case HistoryTabMode.DiffCommits:
+      return {
+        kind: HistoryTabMode.DiffCommits,
+      }
+    default:
+      assertNever(kind, `Unknown State: ${kind}`)
   }
 }
 

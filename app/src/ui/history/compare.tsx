@@ -7,6 +7,7 @@ import {
   ICompareBranch,
   ComparisonMode,
   IDisplayHistory,
+  IDiffCommits,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -31,6 +32,7 @@ import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-autho
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { enableCommitReordering } from '../../lib/feature-flag'
+import { assertNever } from '../../lib/fatal-error'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -91,7 +93,7 @@ export class CompareSidebar extends React.Component<
 
     if (
       newFormState.kind !== oldFormState.kind &&
-      newFormState.kind === HistoryTabMode.History
+      newFormState.kind !== HistoryTabMode.Compare
     ) {
       this.setState({
         focusedBranch: null,
@@ -100,8 +102,8 @@ export class CompareSidebar extends React.Component<
     }
 
     if (
-      newFormState.kind !== HistoryTabMode.History &&
-      oldFormState.kind !== HistoryTabMode.History
+      newFormState.kind === HistoryTabMode.Compare &&
+      oldFormState.kind === HistoryTabMode.Compare
     ) {
       const oldBranch = oldFormState.comparisonBranch
       const newBranch = newFormState.comparisonBranch
@@ -179,7 +181,7 @@ export class CompareSidebar extends React.Component<
     const formState = this.props.compareState.formState
     return (
       <div className="compare-commit-list">
-        {formState.kind === HistoryTabMode.History
+        {formState.kind !== HistoryTabMode.Compare
           ? this.renderCommitList()
           : this.renderTabBar(formState)}
       </div>
@@ -200,17 +202,17 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-  private renderCommitList() {
-    const { formState, commitSHAs } = this.props.compareState
+  private getEmptyListMessage = (
+    formState: IDisplayHistory | ICompareBranch | IDiffCommits
+  ) => {
+    const { kind } = formState
+    switch (kind) {
+      case HistoryTabMode.History:
+        return 'No history'
+      case HistoryTabMode.Compare:
+        const currentlyComparedBranchName = formState.comparisonBranch.name
 
-    let emptyListMessage: string | JSX.Element
-    if (formState.kind === HistoryTabMode.History) {
-      emptyListMessage = 'No history'
-    } else {
-      const currentlyComparedBranchName = formState.comparisonBranch.name
-
-      emptyListMessage =
-        formState.comparisonMode === ComparisonMode.Ahead ? (
+        return formState.comparisonMode === ComparisonMode.Ahead ? (
           <p>
             The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
             to date with your branch
@@ -221,7 +223,18 @@ export class CompareSidebar extends React.Component<
             <Ref>{currentlyComparedBranchName}</Ref>)
           </p>
         )
+      case HistoryTabMode.DiffCommits:
+        // This shouldn't happen... you can't diff two commits without having at least one to show
+        return 'No commits to show for this diff.'
+      default:
+        assertNever(kind, `Unknown compare state: ${kind}`)
     }
+  }
+
+  private renderCommitList() {
+    const { formState, commitSHAs } = this.props.compareState
+
+    const emptyListMessage = this.getEmptyListMessage(formState)
 
     return (
       <CommitList
@@ -259,10 +272,13 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
-        isCherryPickInProgress={this.props.isCherryPickInProgress}
+        disableCherryPicking={
+          formState.kind === HistoryTabMode.DiffCommits ||
+          this.props.isCherryPickInProgress
+        }
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
-        disableSquashing={formState.kind === HistoryTabMode.Compare}
+        disableSquashing={formState.kind !== HistoryTabMode.History}
       />
     )
   }
@@ -366,7 +382,7 @@ export class CompareSidebar extends React.Component<
   private onTabClicked = (index: number) => {
     const formState = this.props.compareState.formState
 
-    if (formState.kind === HistoryTabMode.History) {
+    if (formState.kind !== HistoryTabMode.Compare) {
       return
     }
 
@@ -680,10 +696,11 @@ function getPlaceholderText(state: ICompareState) {
 // 1: History mode, 2: Comparison Mode with the 'Ahead' list shown.
 // When not exposed, the context menu item 'Revert this commit' is disabled.
 function ableToRevertCommit(
-  formState: IDisplayHistory | ICompareBranch
+  formState: IDisplayHistory | ICompareBranch | IDiffCommits
 ): boolean {
   return (
-    formState.kind === HistoryTabMode.History ||
-    formState.comparisonMode === ComparisonMode.Ahead
+    formState.kind !== HistoryTabMode.DiffCommits &&
+    (formState.kind === HistoryTabMode.History ||
+      formState.comparisonMode === ComparisonMode.Ahead)
   )
 }
