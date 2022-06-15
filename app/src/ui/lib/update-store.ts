@@ -22,6 +22,7 @@ import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
 import { offsetFromNow } from '../../lib/offset-from'
 import { gte, SemVer } from 'semver'
+import { getRendererGUID } from '../../lib/get-renderer-guid'
 
 /** The last version a showcase was seen. */
 export const lastShowCaseVersionSeen = 'version-of-last-showcase'
@@ -173,6 +174,7 @@ class UpdateStore {
         /\/desktop\/desktop\/(x64\/)?latest/,
         '/desktop/desktop/arm64/latest'
       )
+      url.searchParams.set('guid', await getRendererGUID())
       updatesURL = url.toString()
     }
 
