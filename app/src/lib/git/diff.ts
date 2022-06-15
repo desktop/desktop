@@ -29,8 +29,6 @@ import { getCaptures } from '../helpers/regex'
 import { readFile } from 'fs/promises'
 import { forceUnwrap } from '../fatal-error'
 import { git } from './core'
-import { NullTreeSHA } from './diff-index'
-import { GitError } from 'dugite'
 import { mapStatus } from './log'
 
 /**
@@ -146,15 +144,16 @@ export async function getCommitRangeDiff(
   repository: Repository,
   file: FileChange,
   commits: ReadonlyArray<string>,
-  hideWhitespaceInDiff: boolean = false,
-  useNullTreeSHA: boolean = false
+  hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
-  if (commits.length === 0) {
+  const oldestCommitRef = commits[0]
+  const latestCommit = commits.at(-1)
+
+  if (commits.length === 0 || latestCommit === undefined) {
+    // Latest commit can't be undefined if non-empty
     throw new Error('No commits to diff...')
   }
 
-  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${commits[0]}^`
-  const latestCommit = commits.at(-1) ?? '' // can't be undefined since commits.length > 0
   const args = [
     'diff',
     oldestCommitRef,
@@ -174,23 +173,7 @@ export async function getCommitRangeDiff(
     args.push(file.status.oldPath)
   }
 
-  const result = await git(args, repository.path, 'getCommitsDiff', {
-    maxBuffer: Infinity,
-    expectedErrors: new Set([GitError.BadRevision]),
-  })
-
-  // This should only happen if the oldest commit does not have a parent (ex:
-  // initial commit of a branch) and therefore `SHA^` is not a valid reference.
-  // In which case, we will retry with the null tree sha.
-  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
-    return getCommitRangeDiff(
-      repository,
-      file,
-      commits,
-      hideWhitespaceInDiff,
-      true
-    )
-  }
+  const result = await git(args, repository.path, 'getCommitsDiff')
 
   return buildDiff(
     Buffer.from(result.combinedOutput),
@@ -202,19 +185,20 @@ export async function getCommitRangeDiff(
 
 export async function getCommitRangeChangedFiles(
   repository: Repository,
-  shas: ReadonlyArray<string>,
-  useNullTreeSHA: boolean = false
+  shas: ReadonlyArray<string>
 ): Promise<{
   files: ReadonlyArray<CommittedFileChange>
   linesAdded: number
   linesDeleted: number
 }> {
-  if (shas.length === 0) {
+  const oldestCommitRef = shas[0]
+  const latestCommitRef = shas.at(-1)
+
+  if (shas.length === 0 || latestCommitRef === undefined) {
+    // latestCommitRef can only be undefined if no shas
     throw new Error('No commits to diff...')
   }
 
-  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${shas[0]}^`
-  const latestCommitRef = shas.at(-1) ?? '' // can't be undefined since shas.length > 0
   const baseArgs = [
     'diff',
     oldestCommitRef,
@@ -230,19 +214,8 @@ export async function getCommitRangeChangedFiles(
   const result = await git(
     baseArgs,
     repository.path,
-    'getCommitRangeChangedFiles',
-    {
-      expectedErrors: new Set([GitError.BadRevision]),
-    }
+    'getCommitRangeChangedFiles'
   )
-
-  // This should only happen if the oldest commit does not have a parent (ex:
-  // initial commit of a branch) and therefore `SHA^` is not a valid reference.
-  // In which case, we will retry with the null tree sha.
-  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
-    const useNullTreeSHA = true
-    return getCommitRangeChangedFiles(repository, shas, useNullTreeSHA)
-  }
 
   return parseChangedFilesAndNumStat(
     result.combinedOutput,
