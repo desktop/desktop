@@ -41,10 +41,7 @@ interface ICommitListProps {
   readonly emptyListMessage: JSX.Element | string
 
   /** Callback which fires when a commit has been selected in the list */
-  readonly onCommitsSelected: (
-    commits: ReadonlyArray<Commit>,
-    isContiguous: boolean
-  ) => void
+  readonly onCommitsSelected: (commits: ReadonlyArray<Commit>) => void
 
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
@@ -272,34 +269,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     // reordering, they will need to do multiple cherry-picks.
     // Goal: first commit in history -> first on array
     const sorted = [...rows].sort((a, b) => b - a)
+
     const selectedShas = sorted.map(r => this.props.commitSHAs[r])
     const selectedCommits = this.lookupCommits(selectedShas)
-    this.props.onCommitsSelected(selectedCommits, this.isContiguous(sorted))
-  }
-
-  /**
-   * Accepts a sorted array of numbers in descending order. If the numbers ar
-   * contiguous order, 4, 3, 2 not 5, 3, 1, returns true.
-   *
-   * Defined an array of 0 and 1 are considered contiguous.
-   */
-  private isContiguous(indexes: ReadonlyArray<number>) {
-    if (indexes.length <= 1) {
-      return true
-    }
-
-    for (let i = 0; i < indexes.length; i++) {
-      const current = indexes[i]
-      if (i + 1 === indexes.length) {
-        continue
-      }
-
-      if (current - 1 !== indexes[i + 1]) {
-        return false
-      }
-    }
-
-    return true
+    this.props.onCommitsSelected(selectedCommits)
   }
 
   // This is required along with onSelectedRangeChanged in the case of a user
@@ -308,7 +281,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
-      this.props.onCommitsSelected([commit], true)
+      this.props.onCommitsSelected([commit])
     }
   }
 

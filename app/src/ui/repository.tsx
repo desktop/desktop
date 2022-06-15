@@ -373,7 +373,7 @@ export class RepositoryView extends React.Component<
 
   private renderContentForHistory(): JSX.Element {
     const { commitSelection, commitLookup, localCommitSHAs } = this.props.state
-    const { changesetData, file, diff, shas, isContiguous } = commitSelection
+    const { changesetData, file, diff, shas } = commitSelection
 
     const selectedCommits = []
     for (const sha of shas) {
@@ -393,7 +393,6 @@ export class RepositoryView extends React.Component<
         isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommits={selectedCommits}
-        isContiguous={isContiguous}
         localCommitSHAs={localCommitSHAs}
         changesetData={changesetData}
         selectedFile={file}

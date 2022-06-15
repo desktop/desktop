@@ -80,9 +80,6 @@ interface ISelectedCommitsProps {
 
   /** Whether or not to show the drag overlay */
   readonly showDragOverlay: boolean
-
-  /** Whether or not the selection of commits is contiguous */
-  readonly isContiguous: boolean
 }
 
 interface ISelectedCommitsState {
@@ -247,13 +244,10 @@ export class SelectedCommits extends React.Component<
   }
 
   public render() {
-    const { selectedCommits, isContiguous } = this.props
+    const { selectedCommits } = this.props
 
-    if (
-      selectedCommits.length > 1 &&
-      (!isContiguous || !enableMultiCommitDiffs())
-    ) {
-      return this.renderMultipleCommitsBlankSlate()
+    if (selectedCommits.length > 1 && !enableMultiCommitDiffs()) {
+      return this.renderMultipleCommitsSelected()
     }
 
     if (selectedCommits.length === 0) {
@@ -291,7 +285,7 @@ export class SelectedCommits extends React.Component<
     return <div id="drag-overlay-background"></div>
   }
 
-  private renderMultipleCommitsBlankSlate(): JSX.Element {
+  private renderMultipleCommitsSelected(): JSX.Element {
     const BlankSlateImage = encodePathAsUrl(
       __dirname,
       'static/empty-no-commit.svg'
@@ -302,22 +296,11 @@ export class SelectedCommits extends React.Component<
         <div className="panel blankslate">
           <img src={BlankSlateImage} className="blankslate-image" />
           <div>
-            <p>
-              Unable to display diff when multiple{' '}
-              {enableMultiCommitDiffs() ? 'non-consecutive ' : ' '}commits are
-              selected.
-            </p>
+            <p>Unable to display diff when multiple commits are selected.</p>
             <div>You can:</div>
             <ul>
-              <li>
-                Select a single commit{' '}
-                {enableMultiCommitDiffs()
-                  ? 'or a range of consecutive commits '
-                  : ' '}
-                to view a diff.
-              </li>
+              <li>Select a single commit to view a diff.</li>
               <li>Drag the commits to the branch menu to cherry-pick them.</li>
-              <li>Drag the commits to squash or reorder them.</li>
               <li>Right click on multiple commits to see options.</li>
             </ul>
           </div>

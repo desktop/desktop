@@ -460,14 +460,10 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onCommitsSelected = (
-    commits: ReadonlyArray<Commit>,
-    isContiguous: boolean
-  ) => {
+  private onCommitsSelected = (commits: ReadonlyArray<Commit>) => {
     this.props.dispatcher.changeCommitSelection(
       this.props.repository,
-      commits.map(c => c.sha),
-      isContiguous
+      commits.map(c => c.sha)
     )
 
     this.loadChangedFilesScheduler.queue(() => {

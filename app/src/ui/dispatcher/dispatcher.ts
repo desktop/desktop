@@ -235,10 +235,9 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    shas: ReadonlyArray<string>,
-    isContiguous: boolean
+    shas: ReadonlyArray<string>
   ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, shas, isContiguous)
+    return this.appStore._changeCommitSelection(repository, shas)
   }
 
   /**
@@ -3149,7 +3148,7 @@ export class Dispatcher {
 
     switch (cherryPickResult) {
       case CherryPickResult.CompletedWithoutError:
-        await this.changeCommitSelection(repository, [commits[0].sha], true)
+        await this.changeCommitSelection(repository, [commits[0].sha])
         await this.completeMultiCommitOperation(repository, commits.length)
         break
       case CherryPickResult.ConflictsEncountered:
@@ -3553,11 +3552,7 @@ export class Dispatcher {
           // TODO: Look at history back to last retained commit and search for
           // squashed commit based on new commit message ... if there is more
           // than one, just take the most recent. (not likely?)
-          await this.changeCommitSelection(
-            repository,
-            [status.currentTip],
-            true
-          )
+          await this.changeCommitSelection(repository, [status.currentTip])
         }
 
         await this.completeMultiCommitOperation(
