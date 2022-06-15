@@ -45,4 +45,4 @@ jobs:
           body: ${{ env.PR_BODY }}
           branch: ${{ github.ref }}
           base: development
-          reviewers: desktop
+          draft: true
