@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.3-test1": ["[Add] Send guid to updates endpoint"],
     "3.0.2": [
       "[Fixed] Fix crash launching the app on macOS High Sierra - #14712",
       "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
