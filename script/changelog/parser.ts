@@ -2,7 +2,7 @@ import * as Path from 'path'
 import * as Fs from 'fs'
 import { gt as greaterThan } from 'semver'
 
-import { fetchPR, IAPIPR } from './api'
+import { fetchPR, IAPIPR } from '../pr-api'
 
 const PlaceholderChangeType = '???'
 const OfficialOwner = 'desktop'
