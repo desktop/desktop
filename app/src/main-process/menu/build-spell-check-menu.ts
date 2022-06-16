@@ -75,9 +75,10 @@ function getSpellCheckMenuItems(
  * Method to get a menu item to give user the option to use English or their
  * system language.
  *
- * If system language is english, it returns null. If spellchecker is not set to
- * english, it returns item that can set it to English. If spellchecker is set
- * to english, it returns the item that can set it to their system language.
+ * If system language is english or it's not part of the available languages,
+ * it returns null. If spellchecker is not set to english, it returns item
+ * that can set it to English. If spellchecker is set to english, it returns
+ * the item that can set it to their system language.
  */
 function getSpellCheckLanguageMenuItem(
   session: Electron.Session
@@ -85,10 +86,12 @@ function getSpellCheckLanguageMenuItem(
   const userLanguageCode = app.getLocale()
   const englishLanguageCode = 'en-US'
   const spellcheckLanguageCodes = session.getSpellCheckerLanguages()
+  const availableSpellcheckLanguages = session.availableSpellCheckerLanguages
 
   if (
     userLanguageCode === englishLanguageCode &&
-    spellcheckLanguageCodes.includes(englishLanguageCode)
+    spellcheckLanguageCodes.includes(englishLanguageCode) &&
+    !availableSpellcheckLanguages.includes(userLanguageCode)
   ) {
     return null
   }
