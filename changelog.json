@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.3-test4": ["[Added] Nothing again, just testing staggered releases"],
     "3.0.3-test3": ["[Fixed] Now actually send guid to updates endpoint"],
     "3.0.3-test2": ["[Added] Absolutely nothing"],
     "3.0.3-test1": ["[Added] Send guid to updates endpoint"],
