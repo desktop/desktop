@@ -10,13 +10,13 @@ interface IMultipleCommitsSelectedProps {
   readonly selectedCommits: ReadonlyArray<Commit>
 
   /** Method to execute comparing the first and last sha of the selection */
-  readonly diffFirstAndLastSelectedCommits?: () => void
+  readonly onDiffFirstAndLastSelectedCommits?: () => void
 }
 
 /** The component to display where multiple commits have been selected. */
 export class MultipleCommitsSelected extends React.Component<IMultipleCommitsSelectedProps> {
   private onDiffCommits = () => {
-    this.props.diffFirstAndLastSelectedCommits?.()
+    this.props.onDiffFirstAndLastSelectedCommits?.()
   }
 
   private renderNonActionSuggestions() {

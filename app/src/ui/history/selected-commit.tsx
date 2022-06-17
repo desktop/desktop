@@ -31,10 +31,11 @@ import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { IMenuItem } from '../../lib/menu-item'
 import { IChangesetData } from '../../lib/git'
-import { IConstrainedValue } from '../../lib/app-state'
+import { HistoryTabMode, IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { enableMultiCommitDiffs } from '../../lib/feature-flag'
+import { MultipleCommitsSelected } from './multiple-commits-selected'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -247,13 +248,13 @@ export class SelectedCommits extends React.Component<
   }
 
   public render() {
-    const { selectedCommits, isContiguous } = this.props
+    const { selectedCommits } = this.props
 
-    if (
-      selectedCommits.length > 1 &&
-      (!isContiguous || !enableMultiCommitDiffs())
-    ) {
-      return this.renderMultipleCommitsBlankSlate()
+    if (selectedCommits.length > 1) {
+      if (!enableMultiCommitDiffs()) {
+        return this.renderMultipleCommitsBlankSlate()
+      }
+      return this.renderMultipleCommitSuggestions()
     }
 
     if (selectedCommits.length === 0) {
@@ -289,6 +290,23 @@ export class SelectedCommits extends React.Component<
     }
 
     return <div id="drag-overlay-background"></div>
+  }
+
+  private onDiffFirstAndLastSelectedCommits = () => {
+    this.props.dispatcher.executeCompare(this.props.repository, {
+      kind: HistoryTabMode.DiffCommits,
+    })
+  }
+
+  private renderMultipleCommitSuggestions = () => {
+    return (
+      <MultipleCommitsSelected
+        selectedCommits={this.props.selectedCommits}
+        onDiffFirstAndLastSelectedCommits={
+          this.onDiffFirstAndLastSelectedCommits
+        }
+      />
+    )
   }
 
   private renderMultipleCommitsBlankSlate(): JSX.Element {
