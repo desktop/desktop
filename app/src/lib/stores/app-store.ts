@@ -1144,7 +1144,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     let selectedSHA =
       state.commitSelection.shas.length > 0
-        ? state.commitSelection.shas[0]
+        ? /* In the case of commit diffing, the last commit in the selection is the
+        only one we know will be in the diff commit list. */
+          state.commitSelection.shas.at(-1)
         : null
 
     if (selectedSHA != null) {
