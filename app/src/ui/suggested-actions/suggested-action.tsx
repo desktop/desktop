@@ -25,13 +25,13 @@ interface ISuggestedActionProps {
   /**
    * The text, or "label", for the action button.
    */
-  readonly buttonText: string | JSX.Element
+  readonly buttonText?: string | JSX.Element
 
   /**
    * A callback which is invoked when the user clicks
    * or activates the action using their keyboard.
    */
-  readonly onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
+  readonly onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * The type of action, currently supported actions are
@@ -83,13 +83,15 @@ export class SuggestedAction extends React.Component<ISuggestedActionProps> {
             </p>
           )}
         </div>
-        <Button
-          type={primary ? 'submit' : undefined}
-          onClick={this.props.onClick}
-          disabled={this.props.disabled}
-        >
-          {this.props.buttonText}
-        </Button>
+        {this.props.buttonText !== undefined && (
+          <Button
+            type={primary ? 'submit' : undefined}
+            onClick={this.props.onClick}
+            disabled={this.props.disabled}
+          >
+            {this.props.buttonText}
+          </Button>
+        )}
       </div>
     )
   }
