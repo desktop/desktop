@@ -92,6 +92,9 @@ interface ISpellCheckMenuItemOption {
   readonly languages: string[]
 }
 
+export const SpellcheckEnglishLabel = 'Set spellcheck to English'
+export const SpellcheckSystemLabel = 'Set spellcheck to system language'
+
 /**
  * Method to get a menu item options to give user the choice to use English or
  * their system language.
@@ -100,6 +103,12 @@ interface ISpellCheckMenuItemOption {
  * it returns null. If spellchecker is not set to english, it returns options
  * that can set it to English. If spellchecker is set to english, it returns
  * the options that can set it to their system language.
+ *
+ * @param userLanguageCode Language code based on user's locale.
+ * @param spellcheckLanguageCodes An array of language codes the spellchecker
+ * is enabled for.
+ * @param availableSpellcheckLanguages An array which consists of all available
+ * spellchecker languages.
  */
 export function getSpellCheckLanguageMenuItemOptions(
   userLanguageCode: string,
@@ -124,11 +133,11 @@ export function getSpellCheckLanguageMenuItemOptions(
 
   const label =
     languageCode === englishLanguageCode
-      ? 'Set spellcheck to English'
-      : 'Set spellcheck to system language'
+      ? SpellcheckEnglishLabel
+      : SpellcheckSystemLabel
 
   return {
-    label: label,
+    label,
     languages: [languageCode],
   }
 }
