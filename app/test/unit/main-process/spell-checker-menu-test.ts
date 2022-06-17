@@ -1,58 +1,48 @@
-import { getSpellCheckLanguageMenuItemOptions } from '../../../src/main-process/menu/build-spell-check-menu'
+import {
+  SpellcheckEnglishLabel,
+  getSpellCheckLanguageMenuItemOptions,
+  SpellcheckSystemLabel,
+} from '../../../src/main-process/menu/build-spell-check-menu'
 import { getAvailableSpellcheckerLanguages } from '../../helpers/menus/available-spellchecker-languages-helper'
 
 describe('spell-checker-menu', () => {
-  it('spell checker language is english && user language is english', () => {
-    const spellcheckerLanguage = ['en-US']
-    const userLanguageCode = 'en-US'
-
+  it('returns null menu item options when both spellchecker language and user language are english', () => {
     const spellcheckerMenuItem = getSpellCheckLanguageMenuItemOptions(
-      userLanguageCode,
-      spellcheckerLanguage,
+      'en-US',
+      ['en-US'],
       getAvailableSpellcheckerLanguages()
     )
 
     expect(spellcheckerMenuItem).toBeNull()
   })
 
-  it('spell checker language is english && user language is not english && user language is not supported', () => {
-    const spellcheckerLanguage = ['en-US']
-    const userLanguageCode = 'zh-CN'
-
+  it('returns null menu item options when spellchecker language is english, user language is not english and user language is not supported', () => {
     const spellcheckerMenuItem = getSpellCheckLanguageMenuItemOptions(
-      userLanguageCode,
-      spellcheckerLanguage,
+      'zh-CN',
+      ['en-US'],
       getAvailableSpellcheckerLanguages()
     )
 
     expect(spellcheckerMenuItem).toBeNull()
   })
 
-  it('spell checker language is english && user language is not english && user language is supported', () => {
-    const spellcheckerLanguage = ['en-US']
-    const userLanguageCode = 'bg'
-
+  it('returns set system language label when spellchecker language is english, user language is not english and user language is supported', () => {
     const spellcheckerMenuItem = getSpellCheckLanguageMenuItemOptions(
-      userLanguageCode,
-      spellcheckerLanguage,
+      'bg',
+      ['en-US'],
       getAvailableSpellcheckerLanguages()
     )
 
-    expect(spellcheckerMenuItem?.label).toBe(
-      'Set spellcheck to system language'
-    )
+    expect(spellcheckerMenuItem?.label).toBe(SpellcheckSystemLabel)
   })
 
-  it('spell checker language is no english', () => {
-    const spellcheckerLanguage = ['bg']
-    const userLanguageCode = 'en-US'
-
+  it('returns set to english label when spellchecker language is no english', () => {
     const spellcheckerMenuItem = getSpellCheckLanguageMenuItemOptions(
-      userLanguageCode,
-      spellcheckerLanguage,
+      'en-US',
+      ['bg'],
       getAvailableSpellcheckerLanguages()
     )
 
-    expect(spellcheckerMenuItem?.label).toBe('Set spellcheck to English')
+    expect(spellcheckerMenuItem?.label).toBe(SpellcheckEnglishLabel)
   })
 })
