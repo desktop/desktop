@@ -1,9 +1,8 @@
 import { RequestChannels, RequestResponseChannels } from '../lib/ipc-shared'
 // eslint-disable-next-line no-restricted-imports
-import { ipcMain, app } from 'electron'
+import { ipcMain } from 'electron'
 import { IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
-import * as path from 'path'
-import * as url from 'url'
+import { encodePathAsUrl } from '../lib/path'
 
 type RequestChannelListener<T extends keyof RequestChannels> = (
   event: IpcMainEvent,
@@ -24,7 +23,7 @@ export function on<T extends keyof RequestChannels>(
   channel: T,
   listener: RequestChannelListener<T>
 ) {
-  withVerifiedRequestSender(ipcMain.on, channel, listener)
+  ipcMain.on(channel, safeListener(listener))
 }
 
 /**
@@ -36,7 +35,7 @@ export function once<T extends keyof RequestChannels>(
   channel: T,
   listener: RequestChannelListener<T>
 ) {
-  withVerifiedRequestSender(ipcMain.once, channel, listener)
+  ipcMain.once(channel, safeListener(listener))
 }
 
 /**
@@ -48,45 +47,20 @@ export function handle<T extends keyof RequestResponseChannels>(
   channel: T,
   listener: RequestResponseChannelListener<T>
 ) {
-  withVerifiedRequestResponseSender(ipcMain.handle, channel, listener)
+  ipcMain.handle(channel, safeListener(listener))
 }
 
-function withVerifiedRequestSender<T extends keyof RequestChannels>(
-  ipcFunction: typeof ipcMain.on | typeof ipcMain.once,
-  channel: T,
-  listener: RequestChannelListener<T>
-) {
-  ipcFunction(channel, (event, ...args) => {
-    if (isValidSender(event.senderFrame.url)) {
+const validSenderUrl = encodePathAsUrl(__dirname, 'index.html').toString()
+
+function safeListener(listener: (...args: any[]) => any) {
+  return (event: IpcMainEvent | IpcMainInvokeEvent, ...args: any[]) => {
+    if (event.senderFrame.url !== validSenderUrl) {
       log.error(
-        `IPC request channel ${channel} called from invalid sender: ${event.senderFrame.url}`
+        `IPC message received from invalid sender: ${event.senderFrame.url}`
       )
       return
     }
-    return listener(event, ...(args as any))
-  })
-}
 
-function withVerifiedRequestResponseSender<
-  T extends keyof RequestResponseChannels
->(
-  ipcFunction: typeof ipcMain.handle,
-  channel: T,
-  listener: RequestResponseChannelListener<T>
-) {
-  ipcFunction(channel, (event, ...args) => {
-    if (isValidSender(event.senderFrame.url)) {
-      log.error(
-        `IPC request-response channel ${channel} called from invalid sender: ${event.senderFrame.url}`
-      )
-      return
-    }
-    return listener(event, ...(args as any))
-  })
-}
-
-function isValidSender(senderUrl: string) {
-  const validSenderPath = path.join(app.getAppPath(), 'index.html')
-  const validSenderUrl = url.pathToFileURL(validSenderPath).toString()
-  return senderUrl === validSenderUrl
+    return listener(event, ...args)
+  }
 }
