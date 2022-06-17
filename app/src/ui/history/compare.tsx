@@ -190,6 +190,7 @@ export class CompareSidebar extends React.Component<
     const latestCommit = commitLookup.get(selectedCommitShas.at(-1) ?? '')
     const filterText = `${earliestCommit?.shortSha}^..${latestCommit?.shortSha}`
 
+    // TODO: change input to something where commit selection looks like ref
     return (
       <FancyTextBox
         symbol={OcticonSymbol.gitCommit}
