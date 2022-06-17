@@ -10,3 +10,45 @@
     text-align: left;
   }
 }
+
+#multiple-commits-selected-suggestions {
+  padding: var(--spacing-quad);
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  .content {
+    width: 100%;
+    max-width: 600px;
+
+    .header {
+      display: flex;
+      flex-direction: row;
+
+      > div {
+        flex-grow: 1;
+        h1 {
+          padding: 0;
+          margin: 0;
+          font-size: var(--font-size-xl);
+          font-weight: var(--font-weight-light);
+        }
+
+        p {
+          margin: 0;
+        }
+      }
+
+      margin-bottom: var(--spacing-double);
+    }
+  }
+
+  /** Lessen the padding at 1.5x zoom and above  **/
+  @media screen and (max-width: 640px) {
+    padding: var(--spacing-double);
+  }
+}
