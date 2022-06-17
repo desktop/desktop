@@ -506,7 +506,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private handleCommitDiffEscape = () => {
-    this.viewHistoryForBranch()
+    this.props.dispatcher.restorePreviousCompareState(this.props.repository)
     if (this.textbox) {
       this.textbox.blur()
     }

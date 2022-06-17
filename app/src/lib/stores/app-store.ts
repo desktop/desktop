@@ -1298,6 +1298,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher` */
+  public async _restorePreviousCompareState(repository: Repository) {
+    const { previousCompareState } = this.repositoryStateCache.get(repository)
+    if (previousCompareState === null) {
+      return this._executeCompare(repository, {
+        kind: HistoryTabMode.History,
+      })
+    }
+
+    this.repositoryStateCache.updateCompareState(repository, () => ({
+      ...previousCompareState,
+    }))
+
+    return this._executeCompare(
+      repository,
+      getInitialAction(previousCompareState.formState)
+    )
+  }
+
   /** Used to get the commits that influences the diff if comparing first sha in
    * the array to the last */
   private async getShasInDiff(

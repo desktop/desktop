@@ -2254,6 +2254,13 @@ export class Dispatcher {
     return this.appStore._executeCompare(repository, action)
   }
 
+  /**
+   * Update the compare state to the previous one - default to History
+   */
+  public restorePreviousCompareState(repository: Repository) {
+    return this.appStore._restorePreviousCompareState(repository)
+  }
+
   /** Update the compare form state for the current repository */
   public updateCompareForm<K extends keyof ICompareFormUpdate>(
     repository: Repository,
