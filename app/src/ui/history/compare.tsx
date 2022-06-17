@@ -148,28 +148,57 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { branches, filterText, showBranchList } = this.props.compareState
+    const { branches, filterText, showBranchList, formState } =
+      this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
       <div id="compare-view">
         <div className="compare-form">
-          <FancyTextBox
-            symbol={OcticonSymbol.gitBranch}
-            type="search"
-            placeholder={placeholderText}
-            onFocus={this.onTextBoxFocused}
-            value={filterText}
-            disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
-            onRef={this.onTextBoxRef}
-            onValueChanged={this.onBranchFilterTextChanged}
-            onKeyDown={this.onBranchFilterKeyDown}
-            onSearchCleared={this.handleEscape}
-          />
+          {formState.kind === HistoryTabMode.DiffCommits ? (
+            this.renderCommitDiffForm()
+          ) : (
+            <FancyTextBox
+              symbol={OcticonSymbol.gitBranch}
+              type="search"
+              placeholder={placeholderText}
+              onFocus={this.onTextBoxFocused}
+              value={filterText}
+              disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
+              onRef={this.onTextBoxRef}
+              onValueChanged={this.onBranchFilterTextChanged}
+              onKeyDown={this.onBranchFilterKeyDown}
+              onSearchCleared={this.handleEscape}
+            />
+          )}
         </div>
 
         {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
+    )
+  }
+
+  private onCommitDiffFormKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    this.viewHistoryForBranch()
+  }
+
+  private renderCommitDiffForm = () => {
+    const { selectedCommitShas, commitLookup } = this.props
+    const earliestCommit = commitLookup.get(selectedCommitShas[0])
+    const latestCommit = commitLookup.get(selectedCommitShas.at(-1) ?? '')
+    const filterText = `${earliestCommit?.shortSha}^..${latestCommit?.shortSha}`
+
+    return (
+      <FancyTextBox
+        symbol={OcticonSymbol.gitCommit}
+        type="search"
+        value={filterText}
+        onRef={this.onTextBoxRef}
+        onKeyDown={this.onCommitDiffFormKeyDown}
+        onSearchCleared={this.handleCommitDiffEscape}
+      />
     )
   }
 
@@ -471,6 +500,13 @@ export class CompareSidebar extends React.Component<
 
   private handleEscape = () => {
     this.clearFilterState()
+    if (this.textbox) {
+      this.textbox.blur()
+    }
+  }
+
+  private handleCommitDiffEscape = () => {
+    this.viewHistoryForBranch()
     if (this.textbox) {
       this.textbox.blur()
     }
