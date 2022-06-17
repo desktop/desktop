@@ -59,7 +59,7 @@ export class MultipleCommitsSelected extends React.Component<IMultipleCommitsSel
 
   public render() {
     return (
-      <div id="multiple-commits-selected-suggestions">
+      <div className="multiple-commits-selected-suggestions">
         <div className="content">
           <div className="header">
             <div>

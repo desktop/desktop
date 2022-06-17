@@ -300,12 +300,15 @@ export class SelectedCommits extends React.Component<
 
   private renderMultipleCommitSuggestions = () => {
     return (
-      <MultipleCommitsSelected
-        selectedCommits={this.props.selectedCommits}
-        onDiffFirstAndLastSelectedCommits={
-          this.onDiffFirstAndLastSelectedCommits
-        }
-      />
+      <div className="multiple-commit-select-container">
+        <MultipleCommitsSelected
+          selectedCommits={this.props.selectedCommits}
+          onDiffFirstAndLastSelectedCommits={
+            this.onDiffFirstAndLastSelectedCommits
+          }
+        />
+        {this.renderDragOverlay()}
+      </div>
     )
   }
 
