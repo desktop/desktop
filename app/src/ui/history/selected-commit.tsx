@@ -84,6 +84,9 @@ interface ISelectedCommitsProps {
 
   /** Whether or not the selection of commits is contiguous */
   readonly isContiguous: boolean
+
+  /** Whether or not viewing a multi commit diff */
+  readonly isViewingMultiCommitDiff: boolean
 }
 
 interface ISelectedCommitsState {
@@ -248,13 +251,15 @@ export class SelectedCommits extends React.Component<
   }
 
   public render() {
-    const { selectedCommits } = this.props
+    const { selectedCommits, isViewingMultiCommitDiff } = this.props
 
     if (selectedCommits.length > 1) {
       if (!enableMultiCommitDiffs()) {
         return this.renderMultipleCommitsBlankSlate()
       }
-      return this.renderMultipleCommitSuggestions()
+      if (!isViewingMultiCommitDiff) {
+        return this.renderMultipleCommitSuggestions()
+      }
     }
 
     if (selectedCommits.length === 0) {

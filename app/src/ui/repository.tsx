@@ -15,6 +15,7 @@ import {
   RepositorySectionTab,
   ChangesSelectionKind,
   IConstrainedValue,
+  HistoryTabMode,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
@@ -372,7 +373,8 @@ export class RepositoryView extends React.Component<
   }
 
   private renderContentForHistory(): JSX.Element {
-    const { commitSelection, commitLookup, localCommitSHAs } = this.props.state
+    const { commitSelection, commitLookup, localCommitSHAs, compareState } =
+      this.props.state
     const { changesetData, file, diff, shas, isContiguous } = commitSelection
 
     const selectedCommits = []
@@ -410,6 +412,9 @@ export class RepositoryView extends React.Component<
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         showDragOverlay={showDragOverlay}
+        isViewingMultiCommitDiff={
+          compareState.formState.kind === HistoryTabMode.DiffCommits
+        }
       />
     )
   }
