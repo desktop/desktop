@@ -416,6 +416,7 @@ export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
   readonly compareState: ICompareState
+  readonly previousCompareState: ICompareState | null
   readonly selectedSection: RepositorySectionTab
 
   /**

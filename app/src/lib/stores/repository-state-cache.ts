@@ -69,11 +69,32 @@ export class RepositoryStateCache {
     repository: Repository,
     fn: (state: ICompareState) => Pick<ICompareState, K>
   ) {
+    const currentCompareState = this.get(repository).compareState
+    const changed = fn(currentCompareState)
+    if (Object.keys(changed).includes('formState')) {
+      this.updatePreviousCompareState(repository, () => currentCompareState)
+    }
+
     this.update(repository, state => {
       const compareState = state.compareState
       const newValues = fn(compareState)
 
       return { compareState: merge(compareState, newValues) }
+    })
+  }
+
+  public updatePreviousCompareState<K extends keyof ICompareState>(
+    repository: Repository,
+    fn: (state: ICompareState) => Pick<ICompareState, K>
+  ) {
+    this.update(repository, state => {
+      const previousCompareState = state.previousCompareState
+      const newValues =
+        previousCompareState === null
+          ? fn(state.compareState)
+          : fn(previousCompareState)
+
+      return { previousCompareState: merge(previousCompareState, newValues) }
     })
   }
 
@@ -223,6 +244,7 @@ function getInitialRepositoryState(): IRepositoryState {
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
     },
+    previousCompareState: null,
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
