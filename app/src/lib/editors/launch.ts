@@ -1,6 +1,10 @@
 import { spawn, SpawnOptions } from 'child_process'
 import { pathExists } from '../../ui/lib/path-exists'
-import { ExternalEditorError, FoundEditor } from './shared'
+import {
+  ExternalEditorError,
+  FoundEditor,
+  processEditorLaunchArgs,
+} from './shared'
 
 /**
  * Open a given file or folder in the desired external editor.
@@ -22,6 +26,13 @@ export async function launchExternalEditor(
     )
   }
 
+  const processedArgs = await processEditorLaunchArgs(
+    fullPath,
+    editor.launchArgs
+  )
+
+  log.info(`Launch editor ${editor.editor} with args: ${processedArgs}`)
+
   const opts: SpawnOptions = {
     // Make sure the editor processes are detached from the Desktop app.
     // Otherwise, some editors (like Notepad++) will be killed when the
@@ -34,8 +45,8 @@ export async function launchExternalEditor(
   } else if (__DARWIN__) {
     // In macOS we can use `open`, which will open the right executable file
     // for us, we only need the path to the editor .app folder.
-    spawn('open', ['-a', editorPath, fullPath], opts)
+    spawn('open', ['-a', editorPath, ...processedArgs], opts)
   } else {
-    spawn(editorPath, [fullPath], opts)
+    spawn(editorPath, processedArgs, opts)
   }
 }
