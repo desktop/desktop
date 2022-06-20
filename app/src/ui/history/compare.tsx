@@ -33,6 +33,7 @@ import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-d
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { enableCommitReordering } from '../../lib/feature-flag'
 import { assertNever } from '../../lib/fatal-error'
+import { TagsInput } from '../lib/tags-input'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -178,10 +179,8 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private onCommitDiffFormKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    this.viewHistoryForBranch()
+  private onCommitDiffFormChange = (value: any) => {
+    this.handleCommitDiffEscape()
   }
 
   private renderCommitDiffForm = () => {
@@ -190,16 +189,14 @@ export class CompareSidebar extends React.Component<
     const latestCommit = commitLookup.get(selectedCommitShas.at(-1) ?? '')
     const filterText = `${earliestCommit?.shortSha}^..${latestCommit?.shortSha}`
 
-    // TODO: change input to something where commit selection looks like ref
     return (
-      <FancyTextBox
-        symbol={OcticonSymbol.gitCommit}
-        type="search"
-        value={filterText}
-        onRef={this.onTextBoxRef}
-        onKeyDown={this.onCommitDiffFormKeyDown}
-        onSearchCleared={this.handleCommitDiffEscape}
-      />
+      <>
+        <TagsInput
+          symbol={OcticonSymbol.gitCommit}
+          values={[filterText]}
+          onChange={this.onCommitDiffFormChange}
+        />
+      </>
     )
   }
 
@@ -506,11 +503,10 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private handleCommitDiffEscape = () => {
-    this.props.dispatcher.restorePreviousCompareState(this.props.repository)
-    if (this.textbox) {
-      this.textbox.blur()
-    }
+  private handleCommitDiffEscape = async () => {
+    await this.props.dispatcher.restorePreviousCompareState(
+      this.props.repository
+    )
   }
 
   private onCommitsSelected = (

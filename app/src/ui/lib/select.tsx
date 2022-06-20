@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 
-interface ISelectProps {
+export interface ISelectProps {
   /** The label for the select control. */
   readonly label?: string
 
