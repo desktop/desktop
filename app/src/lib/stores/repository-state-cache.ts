@@ -72,7 +72,10 @@ export class RepositoryStateCache {
     const currentCompareState = this.get(repository).compareState
     const changed = fn(currentCompareState)
     if (Object.keys(changed).includes('formState')) {
-      this.updatePreviousCompareState(repository, () => currentCompareState)
+      const newState = merge(currentCompareState, changed)
+      if (newState.formState !== currentCompareState.formState) {
+        this.updatePreviousCompareState(repository, () => currentCompareState)
+      }
     }
 
     this.update(repository, state => {

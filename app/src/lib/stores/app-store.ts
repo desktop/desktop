@@ -1311,10 +1311,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ...previousCompareState,
     }))
 
-    return this._executeCompare(
-      repository,
-      getInitialAction(previousCompareState.formState)
-    )
+    return this.emitUpdate()
   }
 
   /** Used to get the commits that influences the diff if comparing first sha in
