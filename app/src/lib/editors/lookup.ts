@@ -1,10 +1,13 @@
-import { ExternalEditorError } from './shared'
+import { ExternalEditorError, FoundEditor } from './shared'
 import { IFoundEditor } from './found-editor'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
 import { getAvailableEditors as getAvailableEditorsLinux } from './linux'
+import { pathExists } from '../../ui/lib/path-exists'
 
 let editorCache: ReadonlyArray<IFoundEditor<string>> | null = null
+
+const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
 
 /**
  * Resolve a list of installed editors on the user's machine, using the known
@@ -57,7 +60,6 @@ export async function findEditorOrDefault(
   if (name) {
     const match = editors.find(p => p.editor === name) || null
     if (!match) {
-      const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
       const message = `The editor '${name}' could not be found. Please open ${menuItemName} and choose an available editor.`
 
       throw new ExternalEditorError(message, { openPreferences: true })
@@ -67,4 +69,32 @@ export async function findEditorOrDefault(
   }
 
   return editors[0]
+}
+
+/**
+ * Finds if the path to the executable of the editor picked by the user exists
+ *
+ * If the editor dosn't exist it will call findEditorOrDefault with null as param,
+ * Will throw an error if the path doesn't exist anymore
+ *
+ * @param editor the editor picked by the user
+ */
+export async function findCustomEditorOrDefault(
+  editor: FoundEditor | null
+): Promise<IFoundEditor<string> | null> {
+  if (editor !== null) {
+    if (await pathExists(editor.path)) {
+      return {
+        editor: editor.editor,
+        path: editor.path,
+        usesShell: editor.usesShell,
+        launchArgs: editor.launchArgs,
+      }
+    }
+
+    const message = `The custom editor you picked dosn't exist. Please open ${menuItemName} and choose an available editor.`
+    throw new ExternalEditorError(message, { openPreferences: true })
+  }
+
+  return await findEditorOrDefault(null)
 }
