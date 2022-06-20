@@ -110,6 +110,7 @@ import {
   IConstrainedValue,
 } from '../app-state'
 import {
+  findCustomEditorOrDefault,
   findEditorOrDefault,
   getAvailableEditors,
   launchExternalEditor,
@@ -208,7 +209,12 @@ import {
   setObject,
   getFloatNumber,
 } from '../local-storage'
-import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
+import {
+  CustomEditorPickedLabel,
+  ExternalEditorError,
+  FoundEditor,
+  suggestedExternalEditor,
+} from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
   updateChangedFiles,
@@ -333,6 +339,9 @@ const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
 
+const useExternalCustomEditorKey: string = 'useCustomExternalEditor'
+const customEditorKey: string = 'customExternalEditor'
+
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
 const externalEditorKey: string = 'externalEditor'
@@ -446,6 +455,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
   private selectedExternalEditor: string | null = null
+
+  private useExternalCustomEditor: boolean = false
+  private customExternalEditor: FoundEditor | null = null
 
   private resolvedExternalEditor: string | null = null
 
@@ -911,6 +923,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
+      useExternalCustomEditor: this.useExternalCustomEditor,
+      customExternalEditor: this.customExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInChangesDiff: this.hideWhitespaceInChangesDiff,
       hideWhitespaceInHistoryDiff: this.hideWhitespaceInHistoryDiff,
@@ -1889,8 +1903,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       getEnum(uncommittedChangesStrategyKey, UncommittedChangesStrategy) ??
       defaultUncommittedChangesStrategy
 
+    this.useExternalCustomEditor = getBoolean(useExternalCustomEditorKey, false)
+    this.customExternalEditor = getObject(customEditorKey) || null
+
     this.updateSelectedExternalEditor(
-      await this.lookupSelectedExternalEditor()
+      await this.lookupSelectedExternalEditor(),
+      this.useExternalCustomEditor,
+      this.customExternalEditor
     ).catch(e => log.error('Failed resolving current editor at startup', e))
 
     const shellValue = localStorage.getItem(shellKey)
@@ -1979,9 +1998,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private updateSelectedExternalEditor(
-    selectedEditor: string | null
+    selectedEditor: string | null,
+    useExternalCustomEditor: boolean,
+    customEditor: FoundEditor | null
   ): Promise<void> {
     this.selectedExternalEditor = selectedEditor
+    this.useExternalCustomEditor = useExternalCustomEditor
+    this.customExternalEditor = customEditor
 
     // Make sure we keep the resolved (cached) editor
     // in sync when the user changes their editor choice.
@@ -2039,11 +2062,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
+      useExternalCustomEditor,
     } = this
 
     const labels: MenuLabelsEvent = {
       selectedShell,
-      selectedExternalEditor,
+      selectedExternalEditor: useExternalCustomEditor
+        ? CustomEditorPickedLabel
+        : selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
@@ -5003,10 +5029,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Open a path to a repository or file using the user's configured editor */
   public async _openInExternalEditor(fullPath: string): Promise<void> {
-    const { selectedExternalEditor } = this.getState()
+    const {
+      selectedExternalEditor,
+      useExternalCustomEditor,
+      customExternalEditor,
+    } = this.getState()
 
     try {
-      const match = await findEditorOrDefault(selectedExternalEditor)
+      const match = useExternalCustomEditor
+        ? await findCustomEditorOrDefault(customExternalEditor)
+        : await findEditorOrDefault(selectedExternalEditor)
       if (match === null) {
         this.emitError(
           new ExternalEditorError(
@@ -5108,9 +5140,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: string) {
-    const promise = this.updateSelectedExternalEditor(selectedEditor)
-    localStorage.setItem(externalEditorKey, selectedEditor)
+  public _setExternalEditor(
+    selectedEditor: string,
+    customEditor: FoundEditor | null,
+    useExternalCustomEditor: boolean
+  ) {
+    const promise = this.updateSelectedExternalEditor(
+      selectedEditor,
+      useExternalCustomEditor,
+      customEditor
+    )
+
+    this.useExternalCustomEditor = useExternalCustomEditor
+    setBoolean(useExternalCustomEditorKey, this.useExternalCustomEditor)
+
+    if (this.useExternalCustomEditor) {
+      if (customEditor !== null) {
+        setObject(customEditorKey, customEditor)
+      }
+    } else {
+      localStorage.removeItem(customEditorKey)
+      localStorage.setItem(externalEditorKey, selectedEditor)
+    }
+
     this.emitUpdate()
 
     this.updateMenuLabelsForSelectedRepository()
@@ -6050,7 +6102,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _resolveCurrentEditor() {
-    const match = await findEditorOrDefault(this.selectedExternalEditor)
+    const match = this.useExternalCustomEditor
+      ? await findCustomEditorOrDefault(this.customExternalEditor)
+      : await findEditorOrDefault(this.selectedExternalEditor)
     const resolvedExternalEditor = match != null ? match.editor : null
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor

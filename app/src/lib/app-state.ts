@@ -47,6 +47,7 @@ import {
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
+import { FoundEditor } from './editors/shared'
 
 export enum SelectionType {
   Repository,
@@ -202,6 +203,12 @@ export interface IAppState {
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: string | null
+
+  /** Wheter or not the current editor is executable picked by the user */
+  readonly useExternalCustomEditor: boolean
+
+  /** The custom editor picked by the user */
+  readonly customExternalEditor: FoundEditor | null
 
   /** Whether or not the app should use Windows' OpenSSH client */
   readonly useWindowsOpenSSH: boolean
