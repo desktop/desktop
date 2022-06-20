@@ -16,6 +16,7 @@ interface ITagsInputProps {
 
 interface ITagsInputState {
   readonly isFocused: boolean
+  readonly tags: ReadonlyArray<string>
 }
 
 export class TagsInput extends React.Component<
@@ -25,7 +26,7 @@ export class TagsInput extends React.Component<
   public constructor(props: ITagsInputProps) {
     super(props)
 
-    this.state = { isFocused: false }
+    this.state = { isFocused: false, tags: props.values }
   }
 
   private onTagBoxFocused = () => {
@@ -36,9 +37,12 @@ export class TagsInput extends React.Component<
     this.setState({ isFocused: false })
   }
 
-  private onTagRemoved = (tag: string, index: number) => {
+  private onTagRemoved = (index: number) => {
     return () => {
-      this.props.onChange?.([])
+      const tags = [...this.state.tags]
+      tags.splice(index, 1)
+      this.setState({ tags })
+      this.props.onChange?.(tags)
     }
   }
 
@@ -46,7 +50,7 @@ export class TagsInput extends React.Component<
     return (
       <span className="tag" key={index}>
         {tag}
-        <span className="remove" onClick={this.onTagRemoved(tag, index)}>
+        <span className="remove" onClick={this.onTagRemoved(index)}>
           <Octicon symbol={OcticonSymbol.x} />
         </span>
       </span>
@@ -54,8 +58,9 @@ export class TagsInput extends React.Component<
   }
 
   public render() {
+    const { isFocused, tags } = this.state
     const classes = classNames('tags-input-component', {
-      focused: this.state.isFocused,
+      focused: isFocused,
     })
     return (
       <div
@@ -69,7 +74,7 @@ export class TagsInput extends React.Component<
           <Octicon className="tags-input-octicon" symbol={this.props.symbol} />
         ) : null}
         <div className="tag-box">
-          {this.props.values.map((v, i) => this.renderTag(v, i))}
+          {tags.map((v, i) => this.renderTag(v, i))}
         </div>
       </div>
     )

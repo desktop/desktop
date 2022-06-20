@@ -179,7 +179,7 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private onCommitDiffFormChange = (value: any) => {
+  private onCommitDiffFormChange = () => {
     this.handleCommitDiffEscape()
   }
 
