@@ -4,20 +4,35 @@ import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { Select } from '../lib/select'
 import { Shell, parse as parseShell } from '../../lib/shells'
-import { suggestedExternalEditor } from '../../lib/editors/shared'
+import {
+  CustomEditorRepoEntityPathValue,
+  FoundEditor,
+  suggestedExternalEditor,
+} from '../../lib/editors/shared'
+import { TextBox } from '../lib/text-box'
+import { Button } from '../lib/button'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
+  readonly customExternalEditor: FoundEditor | null
+  readonly useExternalCustomEditor: boolean
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly onuseExternalCustomEditorChange: (value: boolean) => void
+  readonly onOpenEditorPickerDialog: () => void
   readonly onSelectedEditorChanged: (editor: string) => void
+  readonly onArgsChanged: (args: string) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
 }
 
 interface IIntegrationsPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
+  readonly customExternalEditor: FoundEditor | null
+  readonly useExternalCustomEditor: boolean
+  readonly hasSuggestedArgument: boolean
 }
 
 export class Integrations extends React.Component<
@@ -30,6 +45,9 @@ export class Integrations extends React.Component<
     this.state = {
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
+      customExternalEditor: this.props.customExternalEditor,
+      useExternalCustomEditor: this.props.useExternalCustomEditor,
+      hasSuggestedArgument: true,
     }
   }
 
@@ -61,6 +79,8 @@ export class Integrations extends React.Component<
     this.setState({
       selectedExternalEditor,
       selectedShell,
+      useExternalCustomEditor: nextProps.useExternalCustomEditor,
+      customExternalEditor: nextProps.customExternalEditor,
     })
   }
 
@@ -74,6 +94,22 @@ export class Integrations extends React.Component<
     }
   }
 
+  private onuseExternalCustomEditorChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.setState({ useExternalCustomEditor: value })
+    this.props.onuseExternalCustomEditorChange(value)
+  }
+
+  private onLaunchArgumentsChanged = (value: string) => {
+    this.setState({
+      hasSuggestedArgument: value.includes(CustomEditorRepoEntityPathValue),
+    })
+
+    this.props.onArgsChanged(value)
+  }
+
   private onSelectedShellChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
@@ -85,7 +121,7 @@ export class Integrations extends React.Component<
   private renderExternalEditor() {
     const options = this.props.availableEditors
     const selectedEditor = this.state.selectedExternalEditor
-    const label = __DARWIN__ ? 'External Editor' : 'External editor'
+    const label = 'External Editor'
 
     if (options.length === 0) {
       // this is emulating the <Select/> component's UI so the styles are
@@ -111,6 +147,7 @@ export class Integrations extends React.Component<
         label={label}
         value={selectedEditor ? selectedEditor : undefined}
         onChange={this.onSelectedEditorChanged}
+        disabled={this.state.useExternalCustomEditor}
       >
         {options.map(n => (
           <option key={n} value={n}>
@@ -138,12 +175,92 @@ export class Integrations extends React.Component<
     )
   }
 
+  private renderCustomEditorCheckbox() {
+    return (
+      <Checkbox
+        label="Use external editor of your choise"
+        value={
+          this.state.useExternalCustomEditor
+            ? CheckboxValue.On
+            : CheckboxValue.Off
+        }
+        onChange={this.onuseExternalCustomEditorChanged}
+      />
+    )
+  }
+
+  private renderCustomEditorPicker() {
+    if (!this.state.useExternalCustomEditor) {
+      return
+    }
+
+    const customEditor = this.state.customExternalEditor
+
+    return (
+      <>
+        <TextBox
+          value={customEditor?.path ?? ''}
+          label={
+            __DARWIN__ ? 'Custom External Editor' : 'Custom external editor'
+          }
+          placeholder="path to custom external editor"
+          disabled={true}
+        />
+        <Button
+          onClick={this.props.onOpenEditorPickerDialog}
+          disabled={!this.state.useExternalCustomEditor}
+        >
+          Choose…
+        </Button>
+      </>
+    )
+  }
+
+  private renderCustomEditorLaunchArgs() {
+    if (!this.state.useExternalCustomEditor) {
+      return
+    }
+
+    const customEditor = this.state.customExternalEditor
+
+    return (
+      <TextBox
+        label="Launch arguments"
+        type="text"
+        value={customEditor?.launchArgs ?? CustomEditorRepoEntityPathValue}
+        disabled={customEditor === null}
+        onValueChanged={this.onLaunchArgumentsChanged}
+      />
+    )
+  }
+
+  private renderSuggestedArgWarning() {
+    if (
+      this.state.hasSuggestedArgument ||
+      this.state.customExternalEditor === null
+    ) {
+      return
+    }
+
+    return (
+      <p className="git-settings-description">
+        <span className="warning-icon">⚠️</span>{' '}
+        {CustomEditorRepoEntityPathValue} - reference to the current repository
+        folder path or a file path.
+      </p>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
         <h2>Applications</h2>
         <Row>{this.renderExternalEditor()}</Row>
         <Row>{this.renderSelectedShell()}</Row>
+        <Row>{this.renderCustomEditorCheckbox()}</Row>
+        <Row>{this.renderCustomEditorPicker()}</Row>
+        <Row>{this.renderCustomEditorLaunchArgs()}</Row>
+        {this.renderSuggestedArgWarning()}
       </DialogContent>
     )
   }

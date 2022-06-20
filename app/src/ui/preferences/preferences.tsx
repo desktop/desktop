@@ -40,6 +40,8 @@ import {
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
+import { CustomEditorPickedLabel, FoundEditor } from '../../lib/editors/shared'
+import { showOpenDialog } from '../main-process-proxy'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -57,6 +59,8 @@ interface IPreferencesProps {
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
+  readonly customExternalEditor: FoundEditor | null
+  readonly useCustomExternalEditor: boolean
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly customTheme?: ICustomTheme
@@ -82,6 +86,8 @@ interface IPreferencesState {
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
+  readonly customExternalEditor: FoundEditor | null
+  readonly useCustomExternalEditor: boolean
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   /**
@@ -125,6 +131,8 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
+      customExternalEditor: this.props.customExternalEditor,
+      useCustomExternalEditor: this.props.useCustomExternalEditor,
     }
   }
 
@@ -273,6 +281,13 @@ export class Preferences extends React.Component<
           <Integrations
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
+            useExternalCustomEditor={this.state.useCustomExternalEditor}
+            customExternalEditor={this.state.customExternalEditor}
+            onArgsChanged={this.onArgsChanged}
+            onOpenEditorPickerDialog={this.onEditorPickerDialog}
+            onuseExternalCustomEditorChange={
+              this.onUseExternalCustomEditorChange
+            }
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
@@ -439,6 +454,55 @@ export class Preferences extends React.Component<
     this.setState({ selectedExternalEditor: editor })
   }
 
+  private onUseExternalCustomEditorChange = (value: boolean) => {
+    this.setState({ useCustomExternalEditor: value })
+  }
+
+  private onEditorPickerDialog = async () => {
+    const editorPath = await showOpenDialog({
+      properties: ['openFile'],
+      filters: [
+        __DARWIN__
+          ? {
+              name: 'application',
+              extensions: ['app'],
+            }
+          : __WIN32__
+          ? {
+              name: 'executable',
+              extensions: ['exe'],
+            }
+          : {
+              name: 'executable',
+              extensions: [],
+            },
+      ],
+    })
+
+    if (editorPath === null) {
+      return
+    }
+
+    this.setState({
+      customExternalEditor: {
+        path: editorPath,
+        editor: CustomEditorPickedLabel,
+      },
+    })
+  }
+
+  private onArgsChanged = (args: string) => {
+    if (this.state.customExternalEditor) {
+      this.setState({
+        customExternalEditor: {
+          path: this.state.customExternalEditor.path,
+          editor: CustomEditorPickedLabel,
+          launchArgs: args,
+        },
+      })
+    }
+  }
+
   private onSelectedShellChanged = (shell: Shell) => {
     this.setState({ selectedShell: shell })
   }
@@ -552,11 +616,29 @@ export class Preferences extends React.Component<
       this.state.confirmForcePush
     )
 
-    if (this.state.selectedExternalEditor) {
-      await this.props.dispatcher.setExternalEditor(
-        this.state.selectedExternalEditor
-      )
+    if (this.state.useCustomExternalEditor) {
+      if (
+        this.state.customExternalEditor &&
+        this.state.customExternalEditor.path !== undefined
+      ) {
+        await this.props.dispatcher.setExternalEditor(
+          this.state.selectedExternalEditor
+            ? this.state.selectedExternalEditor
+            : this.state.customExternalEditor.editor,
+          this.state.customExternalEditor,
+          this.state.useCustomExternalEditor
+        )
+      }
+    } else {
+      if (this.state.selectedExternalEditor) {
+        await this.props.dispatcher.setExternalEditor(
+          this.state.selectedExternalEditor,
+          null,
+          this.state.useCustomExternalEditor
+        )
+      }
     }
+
     await this.props.dispatcher.setShell(this.state.selectedShell)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges

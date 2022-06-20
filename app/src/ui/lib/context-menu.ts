@@ -13,9 +13,7 @@ export const CopySelectedRelativePathsLabel = __DARWIN__
   ? 'Copy Relative Paths'
   : 'Copy relative paths'
 
-export const DefaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
+export const DefaultEditorLabel = 'Open in External Editor'
 
 export const RevealInFileManagerLabel = __DARWIN__
   ? 'Reveal in Finder'

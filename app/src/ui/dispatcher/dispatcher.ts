@@ -120,6 +120,7 @@ import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
+import { FoundEditor } from '../../lib/editors/shared'
 
 /**
  * An error handler function.
@@ -1890,8 +1891,16 @@ export class Dispatcher {
   /**
    * Sets the user's preference for an external program to open repositories in.
    */
-  public setExternalEditor(editor: string): Promise<void> {
-    return this.appStore._setExternalEditor(editor)
+  public setExternalEditor(
+    editor: string,
+    customExternalEditor: FoundEditor | null,
+    useExternalCustomEditor: boolean
+  ): Promise<void> {
+    return this.appStore._setExternalEditor(
+      editor,
+      customExternalEditor,
+      useExternalCustomEditor
+    )
   }
 
   /**

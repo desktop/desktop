@@ -1468,6 +1468,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
+            useCustomExternalEditor={this.state.useExternalCustomEditor}
+            customExternalEditor={this.state.customExternalEditor}
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
@@ -2435,7 +2437,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
-        externalEditorLabel={externalEditorLabel}
+        externalEditorLabel={
+          this.state.useExternalCustomEditor ? undefined : externalEditorLabel
+        }
         shellLabel={shellLabel}
         dispatcher={this.props.dispatcher}
       />
@@ -2801,7 +2805,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
-      const externalEditorLabel = state.selectedExternalEditor
+      const externalEditorLabel = state.useExternalCustomEditor
+        ? state.customExternalEditor?.editor
+        : state.selectedExternalEditor
         ? state.selectedExternalEditor
         : undefined
 
