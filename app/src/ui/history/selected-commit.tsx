@@ -43,6 +43,11 @@ interface ISelectedCommitsProps {
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommits: ReadonlyArray<Commit>
+
+  /** If displaying a diff between two commits, this reflects the rev-list from
+   * those two commits (which isn't the same as the selection) */
+  readonly commitsInDiff: ReadonlyArray<Commit>
+
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
@@ -170,7 +175,8 @@ export class SelectedCommits extends React.Component<
   private renderCommitSummary(commits: ReadonlyArray<Commit>) {
     return (
       <CommitSummary
-        commits={commits}
+        selectedCommits={commits}
+        commitsInDiff={this.props.commitsInDiff}
         changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}

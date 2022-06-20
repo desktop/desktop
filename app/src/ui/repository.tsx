@@ -376,12 +376,27 @@ export class RepositoryView extends React.Component<
     const { commitSelection, commitLookup, localCommitSHAs, compareState } =
       this.props.state
     const { changesetData, file, diff, shas, isContiguous } = commitSelection
+    const { formState, commitSHAs } = compareState
+
+    const isViewingMultiCommitDiff =
+      formState.kind === HistoryTabMode.DiffCommits
 
     const selectedCommits = []
     for (const sha of shas) {
       const commit = commitLookup.get(sha)
       if (commit !== undefined) {
         selectedCommits.push(commit)
+      }
+    }
+
+    let commitsInDiff = selectedCommits
+    if (isViewingMultiCommitDiff) {
+      commitsInDiff = []
+      for (const sha of commitSHAs) {
+        const commit = commitLookup.get(sha)
+        if (commit !== undefined) {
+          commitsInDiff.push(commit)
+        }
       }
     }
 
@@ -395,6 +410,7 @@ export class RepositoryView extends React.Component<
         isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommits={selectedCommits}
+        commitsInDiff={commitsInDiff}
         isContiguous={isContiguous}
         localCommitSHAs={localCommitSHAs}
         changesetData={changesetData}
@@ -412,9 +428,7 @@ export class RepositoryView extends React.Component<
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         showDragOverlay={showDragOverlay}
-        isViewingMultiCommitDiff={
-          compareState.formState.kind === HistoryTabMode.DiffCommits
-        }
+        isViewingMultiCommitDiff={isViewingMultiCommitDiff}
       />
     )
   }
