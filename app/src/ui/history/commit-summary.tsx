@@ -64,6 +64,11 @@ interface ICommitSummaryState {
   readonly summary: ReadonlyArray<TokenResult>
 
   /**
+   * Whether the commit summary was empty.
+   */
+  readonly hasEmptySummary: boolean
+
+  /**
    * The commit message body, i.e. anything after the first line of text in the
    * commit message. Note that this may differ from the body property in the
    * commit object passed through props, see the createState method for more
@@ -100,36 +105,60 @@ function createState(
   isOverflowed: boolean,
   props: ICommitSummaryProps
 ): ICommitSummaryState {
-  const { emoji, repository, selectedCommits } = props
+  const { emoji, repository, selectedCommits, shasInDiff } = props
   const tokenizer = new Tokenizer(emoji, repository)
 
-  const plainTextBody =
-    selectedCommits.length > 1
-      ? selectedCommits
-          .map(
-            c =>
-              `${c.shortSha} - ${c.summary}${
-                c.body.trim() !== '' ? `\n${c.body}` : ''
-              }`
-          )
-          .join('\n\n')
-      : selectedCommits[0].body
-
   const { summary, body } = wrapRichTextCommitMessage(
-    selectedCommits[0].summary,
-    plainTextBody,
+    getCommitSummary(selectedCommits, shasInDiff),
+    selectedCommits[0].body,
     tokenizer
   )
+
+  const hasEmptySummary =
+    selectedCommits.length === 1 && selectedCommits[0].summary.length === 0
 
   const allAvatarUsers = selectedCommits.flatMap(c =>
     getAvatarUsersForCommit(repository.gitHubRepository, c)
   )
+
   const avatarUsers = _.uniqWith(
     allAvatarUsers,
     (a, b) => a.email === b.email && a.name === b.name
   )
 
-  return { isOverflowed, summary, body, avatarUsers }
+  return { isOverflowed, summary, body, avatarUsers, hasEmptySummary }
+}
+
+function getCommitSummary(
+  selectedCommits: ReadonlyArray<Commit>,
+  shasInDiff: ReadonlyArray<string>
+) {
+  if (selectedCommits.length === 1) {
+    return selectedCommits[0].summary.length === 0
+      ? 'Empty commit message'
+      : selectedCommits[0].summary
+  }
+
+  const numInDiff =
+    selectedCommits.length -
+    getCountCommitsNotInDiff(selectedCommits, shasInDiff)
+
+  return `Showing changes from ${numInDiff} commits`
+}
+
+function getCountCommitsNotInDiff(
+  selectedCommits: ReadonlyArray<Commit>,
+  shasInDiff: ReadonlyArray<string>
+) {
+  if (selectedCommits.length === 1) {
+    return 0
+  }
+
+  const excludedCommits = selectedCommits.filter(
+    ({ sha }) => !shasInDiff.includes(sha)
+  )
+
+  return excludedCommits.length
 }
 
 /**
@@ -340,13 +369,7 @@ export class CommitSummary extends React.Component<
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
-    const hasEmptySummary = this.state.summary.length === 0
-    const commitSummary = hasEmptySummary
-      ? 'Empty commit message'
-      : this.props.selectedCommits.length > 1
-      ? `Viewing the diff of ${this.props.selectedCommits.length} commits`
-      : this.state.summary
-
+    const { summary, hasEmptySummary } = this.state
     const summaryClassNames = classNames('commit-summary-title', {
       'empty-summary': hasEmptySummary,
     })
@@ -358,9 +381,8 @@ export class CommitSummary extends React.Component<
             className={summaryClassNames}
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={commitSummary}
+            text={summary}
           />
-
           <ul className="commit-summary-meta">
             <li
               className="commit-summary-meta-item without-truncation"
