@@ -19,6 +19,7 @@ import { clipboard } from 'electron'
 import { TooltipDirection } from '../lib/tooltip'
 import { AppFileStatusKind } from '../../models/status'
 import _ from 'lodash'
+import { LinkButton } from '../lib/link-button'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -361,6 +362,29 @@ export class CommitSummary extends React.Component<
     return `${oldest}^..${latest}`
   }
 
+  private renderCommitsNotReachable = () => {
+    const { selectedCommits, shasInDiff } = this.props
+    if (selectedCommits.length === 1) {
+      return
+    }
+
+    const excludedCommitsCount = getCountCommitsNotInDiff(
+      selectedCommits,
+      shasInDiff
+    )
+
+    if (excludedCommitsCount === 0) {
+      return
+    }
+
+    return (
+      <div className="commit-unreachable-info">
+        <Octicon symbol={OcticonSymbol.info} /> {excludedCommitsCount}{' '}
+        unreachable commits not included. <LinkButton>Learn why</LinkButton>
+      </div>
+    )
+  }
+
   public render() {
     const className = classNames({
       expanded: this.props.isExpanded,
@@ -436,6 +460,7 @@ export class CommitSummary extends React.Component<
         </div>
 
         {this.renderDescription()}
+        {this.renderCommitsNotReachable()}
       </div>
     )
   }

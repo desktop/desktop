@@ -60,6 +60,21 @@
       }
     }
   }
+
+  .commit-unreachable-info {
+    padding: var(--spacing-half) var(--spacing);
+    border-bottom: var(--base-border);
+    display: flex;
+    align-items: center;
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+
+    .link-button-component {
+      margin-left: var(--spacing-half);
+    }
+  }
 }
 
 // NOTE: This isn't a real class, it's an SCSS hack to allow us to only write
