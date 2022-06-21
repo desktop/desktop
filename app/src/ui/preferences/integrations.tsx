@@ -12,6 +12,7 @@ import {
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { enableCustomExternalEditor } from '../../lib/feature-flag'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
@@ -234,6 +235,21 @@ export class Integrations extends React.Component<
     )
   }
 
+  private renderCustomExternalEditorLayout() {
+    if (!enableCustomExternalEditor()) {
+      return
+    }
+
+    return (
+      <>
+        <Row>{this.renderCustomEditorCheckbox()}</Row>
+        <Row>{this.renderCustomEditorPicker()}</Row>
+        <Row>{this.renderCustomEditorLaunchArgs()}</Row>
+        {this.renderSuggestedArgWarning()}
+      </>
+    )
+  }
+
   private renderSuggestedArgWarning() {
     if (
       this.state.hasSuggestedArgument ||
@@ -257,10 +273,7 @@ export class Integrations extends React.Component<
         <h2>Applications</h2>
         <Row>{this.renderExternalEditor()}</Row>
         <Row>{this.renderSelectedShell()}</Row>
-        <Row>{this.renderCustomEditorCheckbox()}</Row>
-        <Row>{this.renderCustomEditorPicker()}</Row>
-        <Row>{this.renderCustomEditorLaunchArgs()}</Row>
-        {this.renderSuggestedArgWarning()}
+        {this.renderCustomExternalEditorLayout()}
       </DialogContent>
     )
   }

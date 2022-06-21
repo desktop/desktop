@@ -177,3 +177,8 @@ export function enableReRunFailedAndSingleCheckJobs(): boolean {
 export function enableMultiCommitDiffs(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we enable custom external editor? */
+export function enableCustomExternalEditor(): boolean {
+  return enableDevelopmentFeatures()
+}
