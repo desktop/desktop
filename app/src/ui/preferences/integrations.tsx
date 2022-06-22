@@ -179,7 +179,7 @@ export class Integrations extends React.Component<
   private renderCustomEditorCheckbox() {
     return (
       <Checkbox
-        label="Use external editor of your choise"
+        label="Use external editor of your choice"
         value={
           this.state.useExternalCustomEditor
             ? CheckboxValue.On

@@ -42,7 +42,7 @@ export const CustomEditorPickedLabel = 'External Editor'
 export const CustomEditorRepoEntityPathValue = '%REPO_PATH%'
 
 /**
- * Returns an array of valid lauch arguments
+ * Returns an array of valid launch arguments
  *
  * @param repoPath A folder or file path to pass as an argument when launching the editor.
  * @param launchArgs List of unverified launch arguments
