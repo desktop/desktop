@@ -144,10 +144,6 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
     }
   }
 
-  private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    this.props.onContextMenu?.(event)
-  }
-
   private onButtonRef = (ref: Button | null) => {
     this.innerButton = ref
   }
@@ -217,7 +213,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
         )}
         <Button
           onClick={this.onClick}
-          onContextMenu={this.onContextMenu}
+          onContextMenu={this.props.onContextMenu}
           ref={this.onButtonRef}
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
