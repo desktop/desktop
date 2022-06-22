@@ -22,7 +22,7 @@ import { TooltipTarget } from '../lib/tooltip'
 import { BranchType, Branch } from '../../models/branch'
 import { PopupType } from '../../models/popup'
 import { generateBranchContextMenuItems } from '../branches/branch-list-item-context-menu'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher

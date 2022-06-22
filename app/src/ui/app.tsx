@@ -54,7 +54,6 @@ import * as OcticonSymbol from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
   sendReady,
-  showContextualMenu,
   isInApplicationFolder,
   selectAllWindowContents,
 } from './main-process-proxy'
@@ -2589,8 +2588,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       onShowRepository: this.showRepository,
       onOpenInShell: this.openInShell,
       onOpenInExternalEditor: this.openInExternalEditor,
-      askForConfirmationOnRemoveRepository: this.state
-        .askForConfirmationOnRepositoryRemoval,
+      askForConfirmationOnRemoveRepository:
+        this.state.askForConfirmationOnRepositoryRemoval,
       externalEditorLabel: externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
