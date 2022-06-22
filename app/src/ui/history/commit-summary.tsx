@@ -54,6 +54,9 @@ interface ICommitSummaryProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  /** called when user hovers over count of commits excluded from the diff */
+  readonly onHighlightShasNotInDiff: (shasNotInDiffHighlighted: boolean) => void
 }
 
 interface ICommitSummaryState {
@@ -351,6 +354,14 @@ export class CommitSummary extends React.Component<
     return useShortSha ? selectedCommits[0].shortSha : selectedCommits[0].sha
   }
 
+  private onHighlightShasInDiff = () => {
+    this.props.onHighlightShasNotInDiff(true)
+  }
+
+  private onRemoveHighlightShasInDiff = () => {
+    this.props.onHighlightShasNotInDiff(false)
+  }
+
   private renderCommitsNotReachable = () => {
     const { selectedCommits, shasInDiff } = this.props
     if (selectedCommits.length === 1) {
@@ -367,7 +378,11 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <div className="commit-unreachable-info">
+      <div
+        className="commit-unreachable-info"
+        onMouseOver={this.onHighlightShasInDiff}
+        onMouseOut={this.onRemoveHighlightShasInDiff}
+      >
         <Octicon symbol={OcticonSymbol.info} /> {excludedCommitsCount}{' '}
         unreachable commits not included. <LinkButton>Learn why</LinkButton>
       </div>

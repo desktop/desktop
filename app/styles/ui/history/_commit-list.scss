@@ -96,6 +96,10 @@
   padding-right: calc(var(--spacing) + var(--spacing-half));
   padding-left: var(--spacing);
 
+  &.not-in-diff {
+    opacity: 50%;
+  }
+
   .info {
     display: flex;
     flex: 1 1 auto;

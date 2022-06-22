@@ -1109,11 +1109,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeCommitSelection(
+  public _changeCommitSelection(
     repository: Repository,
     shas: ReadonlyArray<string>,
     isContiguous: boolean
-  ): Promise<void> {
+  ): void {
     const { commitSelection, commitLookup } =
       this.repositoryStateCache.get(repository)
 
@@ -1135,6 +1135,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       diff: null,
     }))
 
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _updateShasNotInDiffHighlighted(
+    repository: Repository,
+    shasNotInDiffHighlighted: boolean
+  ) {
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      shasNotInDiffHighlighted,
+    }))
     this.emitUpdate()
   }
 
@@ -1161,7 +1172,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const shasInDiff = new Array<string>()
 
     if (shas.length <= 1 || !isContiguous) {
-      return shasInDiff
+      return shas
     }
 
     let currentSha = shas.at(-1)

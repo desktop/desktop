@@ -238,7 +238,7 @@ export class RepositoryView extends React.Component<
       remote,
       compareState,
       branchesState,
-      commitSelection: { shas },
+      commitSelection: { shas, shasInDiff, shasNotInDiffHighlighted },
       commitLookup,
       localCommitSHAs,
       localTags,
@@ -265,6 +265,8 @@ export class RepositoryView extends React.Component<
         isLocalRepository={remote === null}
         compareState={compareState}
         selectedCommitShas={shas}
+        shasInDiff={shasInDiff}
+        shasNotInDiffHighlighted={shasNotInDiffHighlighted}
         currentBranch={currentBranch}
         emoji={emoji}
         commitLookup={commitLookup}

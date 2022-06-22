@@ -132,6 +132,12 @@ interface ICommitListProps {
 
   /** Whether squashing should be enabled on the commit list */
   readonly disableSquashing?: boolean
+
+  /** Which shas are shown in the diff */
+  readonly shasInDiff: ReadonlyArray<string>
+
+  /** Whether the shas not in the diff should be highlighted */
+  readonly shasNotInDiffHighlighted: boolean
 }
 
 /** A component which displays the list of commits. */
@@ -180,6 +186,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const isResettableCommit =
       row > 0 && row <= this.props.localCommitSHAs.length
 
+    const isNotInDiff =
+      this.props.selectedSHAs.includes(commit.sha) &&
+      !this.props.shasInDiff.includes(commit.sha) &&
+      this.props.shasNotInDiffHighlighted
+
     return (
       <CommitListItem
         key={commit.sha}
@@ -211,6 +222,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.props.onRemoveCommitDragElement}
         disableSquashing={this.props.disableSquashing}
+        isNotInDiff={isNotInDiff}
       />
     )
   }
@@ -363,6 +375,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
           selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
+          forceGridUpdate={this.props.shasNotInDiffHighlighted}
           rowRenderer={this.renderCommit}
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}

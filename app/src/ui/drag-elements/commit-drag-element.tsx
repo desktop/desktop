@@ -183,6 +183,7 @@ export class CommitDragElement extends React.Component<
             canBeResetTo={false}
             isLocal={false}
             showUnpushedIndicator={false}
+            isNotInDiff={false}
           />
         </div>
         {this.renderDragToolTip()}
