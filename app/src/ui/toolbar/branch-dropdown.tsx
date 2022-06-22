@@ -233,19 +233,15 @@ export class BranchDropdown extends React.Component<
   ): void => {
     event.preventDefault()
 
-    const repositoryState = this.props.repositoryState
-    const tip = repositoryState.branchesState.tip
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const { tip } = this.props.repositoryState.branchesState
 
-    if (currentBranch === null) {
+    if (tip.kind !== TipState.Valid) {
       return
     }
 
-    const isLocal = currentBranch.type === BranchType.Local
-
     const items = generateBranchContextMenuItems({
-      name: currentBranch.name,
-      isLocal: isLocal,
+      name: tip.branch.name,
+      isLocal: tip.branch.type === BranchType.Local,
       onRenameBranch: this.onRenameBranch,
       onDeleteBranch: this.onDeleteBranch,
     })
@@ -269,33 +265,34 @@ export class BranchDropdown extends React.Component<
     this.props.dispatcher.showPopup({
       type: PopupType.RenameBranch,
       repository: this.props.repository,
-      branch: branch,
+      branch,
     })
   }
 
   private onDeleteBranch = async (branchName: string) => {
     const branch = this.getBranchWithName(branchName)
+    const { dispatcher, repository } = this.props
 
     if (branch === undefined) {
       return
     }
 
     if (branch.type === BranchType.Remote) {
-      this.props.dispatcher.showPopup({
+      dispatcher.showPopup({
         type: PopupType.DeleteRemoteBranch,
-        repository: this.props.repository,
+        repository,
         branch,
       })
       return
     }
 
-    const aheadBehind = await this.props.dispatcher.getBranchAheadBehind(
-      this.props.repository,
+    const aheadBehind = await dispatcher.getBranchAheadBehind(
+      repository,
       branch
     )
-    this.props.dispatcher.showPopup({
+    dispatcher.showPopup({
       type: PopupType.DeleteBranch,
-      repository: this.props.repository,
+      repository,
       branch,
       existsOnRemote: aheadBehind !== null,
     })

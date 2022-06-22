@@ -74,10 +74,10 @@ export class BranchListItem extends React.Component<
     }
 
     const items = generateBranchContextMenuItems({
-      name: name,
-      isLocal: isLocal,
-      onRenameBranch: onRenameBranch,
-      onDeleteBranch: onDeleteBranch,
+      name,
+      isLocal,
+      onRenameBranch,
+      onDeleteBranch,
     })
 
     showContextualMenu(items)
