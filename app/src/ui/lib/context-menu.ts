@@ -3,6 +3,16 @@ export const CopyFilePathLabel = __DARWIN__
   ? 'Copy File Path'
   : 'Copy file path'
 
+export const CopyRelativeFilePathLabel = __DARWIN__
+  ? 'Copy Relative File Path'
+  : 'Copy relative file path'
+
+export const CopySelectedPathsLabel = __DARWIN__ ? 'Copy Paths' : 'Copy paths'
+
+export const CopySelectedRelativePathsLabel = __DARWIN__
+  ? 'Copy Relative Paths'
+  : 'Copy relative paths'
+
 export const DefaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
   : 'Open in external editor'

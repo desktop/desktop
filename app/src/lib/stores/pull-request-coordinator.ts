@@ -63,7 +63,7 @@ export class PullRequestCoordinator {
       .getAll()
       .then(x => x.filter(isRepositoryWithGitHubRepository))
       .catch(e => {
-        log.error(`PullRequestCoordinator: Error loading repositories`)
+        log.error(`PullRequestCoordinator: Error loading repositories`, e)
         return []
       })
   }

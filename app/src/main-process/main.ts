@@ -1,6 +1,14 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, BrowserWindow, shell, session } from 'electron'
+import {
+  app,
+  Menu,
+  BrowserWindow,
+  shell,
+  session,
+  systemPreferences,
+  nativeTheme,
+} from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
 
@@ -21,16 +29,23 @@ import {
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
-import { stat } from 'fs-extra'
-import { isApplicationBundle } from '../lib/is-application-bundle'
 import { OrderedWebRequest } from './ordered-webrequest'
 import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
-import { getArchitecture } from '../lib/get-architecture'
-import * as remoteMain from '@electron/remote/main'
-remoteMain.initialize()
+import {
+  getArchitecture,
+  isAppRunningUnderARM64Translation,
+} from '../lib/get-architecture'
+import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
+import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
+import {
+  getNotificationsPermission,
+  requestNotificationsPermission,
+  showNotification,
+} from 'desktop-notifications'
+import { initializeDesktopNotifications } from './notifications'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -135,6 +150,8 @@ if (__WIN32__ && process.argv.length > 1) {
     handlePossibleProtocolLauncherArgs(process.argv)
   }
 }
+
+initializeDesktopNotifications()
 
 function handleAppURL(url: string) {
   log.info('Processing protocol url')
@@ -443,13 +460,23 @@ app.on('ready', () => {
    * Handle the action to show a contextual menu.
    *
    * It responds an array of indices that maps to the path to reach
-   * the menu (or submenu) item that was clicked or null if the menu
-   * was closed without clicking on any item.
+   * the menu (or submenu) item that was clicked or null if the menu was closed
+   * without clicking on any item or the item click was handled by the main
+   * process as opposed to the renderer.
    */
-  ipcMain.handle('show-contextual-menu', (event, items) => {
-    return new Promise(resolve => {
-      const menu = buildContextMenu(items, indices => resolve(indices))
+  ipcMain.handle('show-contextual-menu', (event, items, addSpellCheckMenu) => {
+    return new Promise(async resolve => {
       const window = BrowserWindow.fromWebContents(event.sender) || undefined
+
+      const spellCheckMenuItems = addSpellCheckMenu
+        ? await buildSpellCheckMenu(window)
+        : undefined
+
+      const menu = buildContextMenu(
+        items,
+        indices => resolve(indices),
+        spellCheckMenuItems
+      )
 
       menu.popup({ window, callback: () => resolve(null) })
     })
@@ -471,12 +498,25 @@ app.on('ready', () => {
 
   ipcMain.on('close-window', () => mainWindow?.closeWindow())
 
+  ipcMain.handle(
+    'is-window-maximized',
+    async () => mainWindow?.isMaximized() ?? false
+  )
+
+  ipcMain.handle('get-apple-action-on-double-click', async () =>
+    systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+  )
+
   ipcMain.handle('get-current-window-state', async () =>
     mainWindow?.getCurrentWindowState()
   )
 
   ipcMain.handle('get-current-window-zoom-factor', async () =>
     mainWindow?.getCurrentWindowZoomFactor()
+  )
+
+  ipcMain.on('set-window-zoom-factor', (_, zoomFactor: number) =>
+    mainWindow?.setWindowZoomFactor(zoomFactor)
   )
 
   /**
@@ -523,75 +563,42 @@ app.on('ready', () => {
   /**
    * An event sent by the renderer asking for the app's architecture
    */
+  ipcMain.handle('get-path', async (_, path) => app.getPath(path))
+
+  /**
+   * An event sent by the renderer asking for the app's architecture
+   */
   ipcMain.handle('get-app-architecture', async () => getArchitecture(app))
+
+  /**
+   * An event sent by the renderer asking for the app's path
+   */
+  ipcMain.handle('get-app-path', async () => app.getAppPath())
+
+  /**
+   * An event sent by the renderer asking for whether the app is running under
+   * rosetta translation
+   */
+  ipcMain.handle('is-running-under-arm64-translation', async () =>
+    isAppRunningUnderARM64Translation(app)
+  )
 
   /**
    * An event sent by the renderer asking to move the app to the application
    * folder
    */
-  ipcMain.on('move-to-applications-folder', () => {
+  ipcMain.handle('move-to-applications-folder', async () => {
     app.moveToApplicationsFolder?.()
   })
 
   ipcMain.handle('move-to-trash', (_, path) => shell.trashItem(path))
+  ipcMain.handle('show-item-in-folder', async (_, path) =>
+    shell.showItemInFolder(path)
+  )
 
-  ipcMain.on('show-item-in-folder', (_, path) => {
-    Fs.stat(path, err => {
-      if (err) {
-        log.error(`Unable to find file at '${path}'`, err)
-        return
-      }
-      shell.showItemInFolder(path)
-    })
-  })
-
-  ipcMain.on('show-folder-contents', async (_, path) => {
-    const stats = await stat(path).catch(err => {
-      log.error(`Unable to retrieve file information for ${path}`, err)
-      return null
-    })
-
-    if (!stats) {
-      return
-    }
-
-    if (!stats.isDirectory()) {
-      log.error(
-        `Trying to get the folder contents of a non-folder at '${path}'`
-      )
-      shell.showItemInFolder(path)
-      return
-    }
-
-    // On Windows and Linux we can count on a directory being just a
-    // directory.
-    if (!__DARWIN__) {
-      UNSAFE_openDirectory(path)
-      return
-    }
-
-    // On macOS a directory might also be an app bundle and if it is
-    // and we attempt to open it we're gonna execute that app which
-    // it far from ideal so we'll look up the metadata for the path
-    // and attempt to determine whether it's an app bundle or not.
-    //
-    // If we fail loading the metadata we'll assume it's an app bundle
-    // out of an abundance of caution.
-    const isBundle = await isApplicationBundle(path).catch(err => {
-      log.error(`Failed to load metadata for path '${path}'`, err)
-      return true
-    })
-
-    if (isBundle) {
-      log.info(
-        `Preventing direct open of path '${path}' as it appears to be an application bundle`
-      )
-
-      shell.showItemInFolder(path)
-    } else {
-      UNSAFE_openDirectory(path)
-    }
-  })
+  ipcMain.on('unsafe-open-directory', async (_, path) =>
+    UNSAFE_openDirectory(path)
+  )
 
   /** An event sent by the renderer asking to select all of the window's contents */
   ipcMain.on('select-all-window-contents', () =>
@@ -647,6 +654,30 @@ app.on('ready', () => {
   ipcMain.on('focus-window', () => {
     mainWindow?.focus()
   })
+
+  ipcMain.on('set-native-theme-source', (_, themeName) => {
+    nativeTheme.themeSource = themeName
+  })
+
+  ipcMain.handle(
+    'should-use-dark-colors',
+    async () => nativeTheme.shouldUseDarkColors
+  )
+
+  ipcMain.handle('get-guid', () => getMainGUID())
+
+  ipcMain.handle('save-guid', (_, guid) => saveGUIDFile(guid))
+
+  ipcMain.handle('show-notification', async (_, title, body, userInfo) =>
+    showNotification(title, body, userInfo)
+  )
+
+  ipcMain.handle('get-notifications-permission', async () =>
+    getNotificationsPermission()
+  )
+  ipcMain.handle('request-notifications-permission', async () =>
+    requestNotificationsPermission()
+  )
 })
 
 app.on('activate', () => {
@@ -700,7 +731,9 @@ function createWindow() {
 
     for (const extension of extensions) {
       try {
-        installExtension(extension)
+        installExtension(extension, {
+          loadExtensionOptions: { allowFileAccess: true },
+        })
       } catch (e) {}
     }
   }

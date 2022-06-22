@@ -20,6 +20,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --text-color: #{$gray-900};
   --text-secondary-color: #{$gray-500};
+  --text-secondary-color-muted: #{lighten($gray-500, 30%)};
   --background-color: #{$white};
 
   --button-height: 25px;
@@ -45,6 +46,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * (like a circle badge icon)
    */
   --badge-icon-color: #{$white};
+  --warning-badge-icon-color: #{$orange};
 
   // Typography
   //
@@ -187,7 +189,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --commit-warning-badge-background-color: #{$gray-000};
   --commit-warning-badge-border-color: #{$gray-300};
-  --commit-warning-badge-icon-color: #{$gray-900};
+  --commit-warning-badge-icon-color: var(--warning-badge-icon-color);
 
   /**
    * The height of the title bar area on Win32 platforms
@@ -469,6 +471,15 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-500};
+
+  // PR review colors
+  --pr-timeline-line-color: var(--box-border-color);
+  --pr-changes-requested-icon-color: #{$white};
+  --pr-changes-requested-icon-background-color: #cf222e;
+  --pr-approved-icon-color: #{$white};
+  --pr-approved-icon-background-color: #2da44e;
+  --pr-commented-icon-color: var(--md-fg-muted-color);
+  --pr-commented-icon-background-color: #eaeef2;
 
   --call-to-action-bubble-border-color: #{$green};
   --call-to-action-bubble-color: #{$green};

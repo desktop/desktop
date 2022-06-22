@@ -21,10 +21,19 @@ import {
   AliveStore,
   DesktopAliveEvent,
   IDesktopChecksFailedAliveEvent,
+  IDesktopPullRequestReviewSubmitAliveEvent,
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
-import { showNotification } from './helpers/show-notification'
+import { showNotification } from '../notifications/show-notification'
 import { StatsStore } from '../stats'
+import { truncateWithEllipsis } from '../truncate-with-ellipsis'
+import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
+import { enablePullRequestReviewNotifications } from '../feature-flag'
+import {
+  isValidNotificationPullRequestReview,
+  ValidNotificationPullRequestReview,
+} from '../valid-notification-pull-request-review'
+import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -32,6 +41,13 @@ type OnChecksFailedCallback = (
   commitMessage: string,
   commitSha: string,
   checkRuns: ReadonlyArray<IRefCheck>
+) => void
+
+type OnPullRequestReviewSubmitCallback = (
+  repository: RepositoryWithGitHubRepository,
+  pullRequest: PullRequest,
+  review: ValidNotificationPullRequestReview,
+  numberOfComments: number
 ) => void
 
 /**
@@ -52,6 +68,8 @@ export function getNotificationsEnabled() {
 export class NotificationsStore {
   private repository: RepositoryWithGitHubRepository | null = null
   private onChecksFailedCallback: OnChecksFailedCallback | null = null
+  private onPullRequestReviewSubmitCallback: OnPullRequestReviewSubmitCallback | null =
+    null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
 
@@ -77,14 +95,103 @@ export class NotificationsStore {
     this.aliveStore.setEnabled(enabled)
   }
 
-  private onAliveEventReceived = async (e: DesktopAliveEvent) => {
+  private onAliveEventReceived = async (e: DesktopAliveEvent) =>
+    this.handleAliveEvent(e, false)
+
+  public onNotificationEventReceived: NotificationCallback<DesktopAliveEvent> =
+    async (event, id, userInfo) => this.handleAliveEvent(userInfo, true)
+
+  private async handleAliveEvent(
+    e: DesktopAliveEvent,
+    skipNotification: boolean
+  ) {
     switch (e.type) {
       case 'pr-checks-failed':
-        return this.handleChecksFailedEvent(e)
+        return this.handleChecksFailedEvent(e, skipNotification)
+      case 'pr-review-submit':
+        return this.handlePullRequestReviewSubmitEvent(e, skipNotification)
     }
   }
 
-  private async handleChecksFailedEvent(event: IDesktopChecksFailedAliveEvent) {
+  private async handlePullRequestReviewSubmitEvent(
+    event: IDesktopPullRequestReviewSubmitAliveEvent,
+    skipNotification: boolean
+  ) {
+    if (!enablePullRequestReviewNotifications()) {
+      return
+    }
+
+    const repository = this.repository
+    if (repository === null) {
+      return
+    }
+
+    const pullRequests = await this.pullRequestCoordinator.getAllPullRequests(
+      repository
+    )
+    const pullRequest = pullRequests.find(
+      pr => pr.pullRequestNumber === event.pull_request_number
+    )
+
+    // If the PR is not in cache, it probably means the user didn't work on it
+    // from Desktop, so we can maybe ignore it?
+    if (pullRequest === undefined) {
+      return
+    }
+
+    const { gitHubRepository } = repository
+    const api = await this.getAPIForRepository(gitHubRepository)
+
+    if (api === null) {
+      return
+    }
+
+    const review = await api.fetchPullRequestReview(
+      gitHubRepository.owner.login,
+      gitHubRepository.name,
+      pullRequest.pullRequestNumber.toString(),
+      event.review_id
+    )
+
+    if (review === null || !isValidNotificationPullRequestReview(review)) {
+      return
+    }
+
+    const reviewVerb = getVerbForPullRequestReview(review)
+    const title = `@${review.user.login} ${reviewVerb} your pull request`
+    const body = `${pullRequest.title} #${
+      pullRequest.pullRequestNumber
+    }\n${truncateWithEllipsis(review.body, 50)}`
+    const onClick = () => {
+      this.statsStore.recordPullRequestReviewNotificationClicked(review.state)
+
+      this.onPullRequestReviewSubmitCallback?.(
+        repository,
+        pullRequest,
+        review,
+        event.number_of_comments
+      )
+    }
+
+    if (skipNotification) {
+      onClick()
+      return
+    }
+
+    showNotification({
+      title,
+      body,
+      userInfo: event,
+      onClick,
+    })
+
+    this.statsStore.recordPullRequestReviewNotificationShown(review.state)
+  }
+
+  private async handleChecksFailedEvent(
+    event: IDesktopChecksFailedAliveEvent,
+    skipNotification: boolean
+  ) {
     const repository = this.repository
     if (repository === null) {
       return
@@ -137,12 +244,48 @@ export class NotificationsStore {
       return
     }
 
-    this.postChecksFailedNotification(
-      pullRequest,
-      checks,
-      commitSHA,
-      commit.summary
-    )
+    const numberOfFailedChecks = checks.filter(
+      check => check.conclusion === APICheckConclusion.Failure
+    ).length
+
+    // Sometimes we could get a checks-failed event for a PR whose checks just
+    // got restarted, so we won't get failed checks at that point. In that
+    // scenario, just ignore the event and don't show a notification.
+    if (numberOfFailedChecks === 0) {
+      return
+    }
+
+    const pluralChecks =
+      numberOfFailedChecks === 1 ? 'check was' : 'checks were'
+
+    const shortSHA = commitSHA.slice(0, 9)
+    const title = 'Pull Request checks failed'
+    const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
+    const onClick = () => {
+      this.statsStore.recordChecksFailedNotificationClicked()
+
+      this.onChecksFailedCallback?.(
+        repository,
+        pullRequest,
+        commit.summary,
+        commitSHA,
+        checks
+      )
+    }
+
+    if (skipNotification) {
+      onClick()
+      return
+    }
+
+    showNotification({
+      title,
+      body,
+      userInfo: event,
+      onClick,
+    })
+
+    this.statsStore.recordChecksFailedNotificationShown()
   }
 
   /**
@@ -170,51 +313,6 @@ export class NotificationsStore {
     }
 
     return API.fromAccount(account)
-  }
-
-  private postChecksFailedNotification(
-    pullRequest: PullRequest,
-    checks: ReadonlyArray<IRefCheck>,
-    sha: string,
-    commitMessage: string
-  ) {
-    if (this.repository === null) {
-      return
-    }
-
-    const repository = this.repository
-
-    const numberOfFailedChecks = checks.filter(
-      check => check.conclusion === APICheckConclusion.Failure
-    ).length
-
-    // Sometimes we could get a checks-failed event for a PR whose checks just
-    // got restarted, so we won't get failed checks at that point. In that
-    // scenario, just ignore the event and don't show a notification.
-    if (numberOfFailedChecks === 0) {
-      return
-    }
-
-    const pluralChecks =
-      numberOfFailedChecks === 1 ? 'check was' : 'checks were'
-
-    const shortSHA = sha.slice(0, 9)
-    const title = 'Pull Request checks failed'
-    const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
-
-    showNotification(title, body, () => {
-      this.statsStore.recordChecksFailedNotificationClicked()
-
-      this.onChecksFailedCallback?.(
-        repository,
-        pullRequest,
-        commitMessage,
-        sha,
-        checks
-      )
-    })
-
-    this.statsStore.recordChecksFailedNotificationShown()
   }
 
   private async getChecksForRef(
@@ -264,5 +362,12 @@ export class NotificationsStore {
   /** Observe when the user reacted to a "Checks Failed" notification. */
   public onChecksFailedNotification(callback: OnChecksFailedCallback) {
     this.onChecksFailedCallback = callback
+  }
+
+  /** Observe when the user reacted to a "PR review submit" notification. */
+  public onPullRequestReviewSubmitNotification(
+    callback: OnPullRequestReviewSubmitCallback
+  ) {
+    this.onPullRequestReviewSubmitCallback = callback
   }
 }

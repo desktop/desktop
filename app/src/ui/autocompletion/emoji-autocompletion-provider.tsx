@@ -27,7 +27,8 @@ export interface IEmojiHit {
 
 /** Autocompletion provider for emoji. */
 export class EmojiAutocompletionProvider
-  implements IAutocompletionProvider<IEmojiHit> {
+  implements IAutocompletionProvider<IEmojiHit>
+{
   public readonly kind = 'emoji'
 
   private readonly emoji: Map<string, string>
@@ -104,9 +105,11 @@ export class EmojiAutocompletionProvider
 
     return (
       <div className="title">
-        {emoji.substr(0, hit.matchStart)}
-        <mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>
-        {emoji.substr(hit.matchStart + hit.matchLength)}
+        {emoji.substring(0, hit.matchStart)}
+        <mark>
+          {emoji.substring(hit.matchStart, hit.matchStart + hit.matchLength)}
+        </mark>
+        {emoji.substring(hit.matchStart + hit.matchLength)}
       </div>
     )
   }

@@ -1,15 +1,16 @@
 import * as Path from 'path'
 import * as Os from 'os'
 
-import { pathExists, ensureDir, writeFile } from 'fs-extra'
+import { mkdir, writeFile } from 'fs/promises'
 import { spawn, getPathSegments, setPathSegments } from '../lib/process/win32'
+import { pathExists } from '../ui/lib/path-exists'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
 const updateDotExe = Path.resolve(Path.join(rootAppDir, 'Update.exe'))
 const exeName = Path.basename(process.execPath)
 
-// A lot of this code was cargo-culted from our Atom comrades:
+// A lot of this code was cargo-culted from our Atom collaborators:
 // https://github.com/atom/atom/blob/7c9f39e3f1d05ee423e0093e6b83f042ce11c90a/src/main-process/squirrel-update.coffee.
 
 /**
@@ -47,7 +48,7 @@ async function handleUpdated(): Promise<void> {
 
 async function installCLI(): Promise<void> {
   const binPath = getBinPath()
-  await ensureDir(binPath)
+  await mkdir(binPath, { recursive: true })
   await writeBatchScriptCLITrampoline(binPath)
   await writeShellScriptCLITrampoline(binPath)
   try {

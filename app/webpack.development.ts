@@ -13,7 +13,7 @@ const cliConfig = merge({}, common.cli, config)
 const highlighterConfig = merge({}, common.highlighter, config)
 
 const getRendererEntryPoint = () => {
-  const entry = common.renderer.entry as webpack.Entry
+  const entry = common.renderer.entry as webpack.EntryObject
   if (entry == null) {
     throw new Error(
       `Unable to resolve entry point. Check webpack.common.ts and try again`
@@ -54,9 +54,16 @@ const rendererConfig = merge({}, common.renderer, config, {
       // as a blob:// uri at runtime.
       {
         test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { sourceMap: true } },
+          'sass-loader?sourceMap',
+        ],
       },
     ],
+  },
+  infrastructureLogging: {
+    level: 'error',
   },
   plugins: [new webpack.HotModuleReplacementPlugin()],
 })
@@ -69,7 +76,11 @@ const crashConfig = merge({}, common.crash, config, {
       // as a blob:// uri at runtime.
       {
         test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { sourceMap: true } },
+          'sass-loader?sourceMap',
+        ],
       },
     ],
   },

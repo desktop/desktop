@@ -21,8 +21,8 @@ class ThemeChangeMonitor {
     onNativeThemeUpdated(this.onThemeNotificationUpdated)
   }
 
-  private onThemeNotificationUpdated = () => {
-    const theme = getCurrentlyAppliedTheme()
+  private onThemeNotificationUpdated = async () => {
+    const theme = await getCurrentlyAppliedTheme()
     this.emitThemeChanged(theme)
   }
 

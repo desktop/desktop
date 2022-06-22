@@ -7,7 +7,7 @@ import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
-import { SelectedCommit, CompareSidebar } from './history'
+import { SelectedCommits, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -31,10 +31,6 @@ import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
-import {
-  DragAndDropIntroType,
-  AvailableDragAndDropIntroKeys,
-} from './history/drag-and-drop-intro'
 import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 import { clamp } from '../lib/clamp'
 
@@ -96,9 +92,6 @@ interface IRepositoryViewProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
-
-  /* Types of drag and drop intros already seen by the user */
-  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
 }
 
 interface IRepositoryViewState {
@@ -115,8 +108,8 @@ export class RepositoryView extends React.Component<
   IRepositoryViewProps,
   IRepositoryViewState
 > {
-  private previousSection: RepositorySectionTab = this.props.state
-    .selectedSection
+  private previousSection: RepositorySectionTab =
+    this.props.state.selectedSection
 
   // Flag to force the app to use the scroll position in the state the next time
   // the Compare list is rendered.
@@ -148,8 +141,8 @@ export class RepositoryView extends React.Component<
   }
 
   private renderChangesBadge(): JSX.Element | null {
-    const filesChangedCount = this.props.state.changesState.workingDirectory
-      .files.length
+    const filesChangedCount =
+      this.props.state.changesState.workingDirectory.files.length
 
     if (filesChangedCount <= 0) {
       return null
@@ -172,24 +165,10 @@ export class RepositoryView extends React.Component<
         </span>
 
         <div className="with-indicator">
-          <span>History {this.renderNewCallToActionBubble()}</span>
+          <span>History</span>
         </div>
       </TabBar>
     )
-  }
-
-  private renderNewCallToActionBubble(): JSX.Element | null {
-    const { dragAndDropIntroTypesShown, state } = this.props
-    const { compareState } = state
-    const remainingDragAndDropIntros = AvailableDragAndDropIntroKeys.filter(
-      intro => !dragAndDropIntroTypesShown.has(intro)
-    )
-    const hasSeenAllDragAndDropIntros = remainingDragAndDropIntros.length === 0
-
-    if (hasSeenAllDragAndDropIntros || compareState.commitSHAs.length === 0) {
-      return null
-    }
-    return <span className="call-to-action-bubble">New</span>
   }
 
   private renderChangesSidebar(): JSX.Element {
@@ -253,14 +232,8 @@ export class RepositoryView extends React.Component<
   }
 
   private renderCompareSidebar(): JSX.Element {
-    const {
-      repository,
-      dispatcher,
-      state,
-      aheadBehindStore,
-      dragAndDropIntroTypesShown,
-      emoji,
-    } = this.props
+    const { repository, dispatcher, state, aheadBehindStore, emoji } =
+      this.props
     const {
       remote,
       compareState,
@@ -306,7 +279,6 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
-        dragAndDropIntroTypesShown={dragAndDropIntroTypesShown}
         isCherryPickInProgress={isCherryPickInProgress}
       />
     )
@@ -400,31 +372,29 @@ export class RepositoryView extends React.Component<
   }
 
   private renderContentForHistory(): JSX.Element {
-    const { commitSelection } = this.props.state
+    const { commitSelection, commitLookup, localCommitSHAs } = this.props.state
+    const { changesetData, file, diff, shas, isContiguous } = commitSelection
 
-    const sha =
-      commitSelection.shas.length === 1 ? commitSelection.shas[0] : null
-
-    const selectedCommit =
-      sha != null ? this.props.state.commitLookup.get(sha) || null : null
-
-    const isLocal =
-      selectedCommit != null &&
-      this.props.state.localCommitSHAs.includes(selectedCommit.sha)
-
-    const { changesetData, file, diff } = commitSelection
+    const selectedCommits = []
+    for (const sha of shas) {
+      const commit = commitLookup.get(sha)
+      if (commit !== undefined) {
+        selectedCommits.push(commit)
+      }
+    }
 
     const showDragOverlay = dragAndDropManager.isDragOfTypeInProgress(
       DragType.Commit
     )
 
     return (
-      <SelectedCommit
+      <SelectedCommits
         repository={this.props.repository}
         isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
-        selectedCommit={selectedCommit}
-        isLocal={isLocal}
+        selectedCommits={selectedCommits}
+        isContiguous={isContiguous}
+        localCommitSHAs={localCommitSHAs}
         changesetData={changesetData}
         selectedFile={file}
         currentDiff={diff}
@@ -439,7 +409,6 @@ export class RepositoryView extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
-        areMultipleCommitsSelected={commitSelection.shas.length > 1}
         showDragOverlay={showDragOverlay}
       />
     )

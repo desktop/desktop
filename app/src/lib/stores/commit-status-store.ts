@@ -5,7 +5,7 @@ import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
-import { IDisposable, Disposable } from 'event-kit'
+import { DisposableLike, Disposable } from 'event-kit'
 import {
   ICombinedRefCheck,
   IRefCheck,
@@ -18,7 +18,7 @@ import {
   manuallySetChecksToPending,
 } from '../ci-checks/ci-checks'
 import _ from 'lodash'
-import moment from 'moment'
+import { offsetFromNow } from '../offset-from'
 
 interface ICommitStatusCacheEntry {
   /**
@@ -371,16 +371,14 @@ export class CommitStatusStore {
       return mapped
     }
 
-    const checkRunsWithActionsWorkflows = await this.getCheckRunActionsWorkflowRuns(
-      key,
-      branchName,
-      checks
-    )
+    const checkRunsWithActionsWorkflows =
+      await this.getCheckRunActionsWorkflowRuns(key, branchName, checks)
 
-    const checkRunsWithActionsWorkflowJobs = await this.mapActionWorkflowRunsJobsToCheckRuns(
-      key,
-      checkRunsWithActionsWorkflows
-    )
+    const checkRunsWithActionsWorkflowJobs =
+      await this.mapActionWorkflowRunsJobsToCheckRuns(
+        key,
+        checkRunsWithActionsWorkflows
+      )
 
     return checkRunsWithActionsWorkflowJobs
   }
@@ -432,7 +430,7 @@ export class CommitStatusStore {
           // (cache/api limit). This sets this sub back to 61 so that on next
           // refresh triggered, it will be reretreived, as this time, it will be
           // different given the branch name is provided.
-          fetchedAt: moment(new Date()).subtract(61, 'minutes').toDate(),
+          fetchedAt: new Date(offsetFromNow(-61, 'minutes')),
         })
       }
 
@@ -467,7 +465,7 @@ export class CommitStatusStore {
     ref: string,
     callback: StatusCallBack,
     branchName?: string
-  ): IDisposable {
+  ): DisposableLike {
     const key = getCacheKeyForRepository(repository, ref)
     const subscription = this.getOrCreateSubscription(
       repository,
@@ -506,9 +504,8 @@ export class CommitStatusStore {
       return checkRuns
     }
 
-    const api = API.fromAccount(account)
     return getCheckRunActionsWorkflowRuns(
-      api,
+      account,
       owner,
       name,
       branchName,
@@ -552,6 +549,34 @@ export class CommitStatusStore {
 
     const api = API.fromAccount(account)
     return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
+  }
+
+  public async rerunJob(
+    repository: GitHubRepository,
+    jobId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerunJob(owner.login, name, jobId)
+  }
+
+  public async rerunFailedJobs(
+    repository: GitHubRepository,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerunFailedJobs(owner.login, name, workflowRunId)
   }
 
   public async fetchCheckSuite(

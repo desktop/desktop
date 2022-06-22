@@ -79,7 +79,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
-type GitHubAccountType = 'User' | 'Organization'
+export type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we want to request */
 const oauthScopes = ['repo', 'user', 'workflow']
@@ -192,9 +192,9 @@ export interface IAPIOrganization {
  */
 export interface IAPIIdentity {
   readonly id: number
-  readonly url: string
   readonly login: string
   readonly avatar_url: string
+  readonly html_url: string
   readonly type: GitHubAccountType
 }
 
@@ -208,7 +208,7 @@ export interface IAPIIdentity {
  */
 interface IAPIFullIdentity {
   readonly id: number
-  readonly url: string
+  readonly html_url: string
   readonly login: string
   readonly avatar_url: string
 
@@ -491,6 +491,21 @@ export interface IAPIPullRequest {
   readonly body: string
   readonly state: 'open' | 'closed'
   readonly draft?: boolean
+}
+
+/** Information about a pull request review as returned by the GitHub API. */
+export interface IAPIPullRequestReview {
+  readonly id: number
+  readonly user: IAPIIdentity
+  readonly body: string
+  readonly html_url: string
+  readonly submitted_at: string
+  readonly state:
+    | 'APPROVED'
+    | 'DISMISSED'
+    | 'PENDING'
+    | 'COMMENTED'
+    | 'CHANGES_REQUESTED'
 }
 
 /** The metadata about a GitHub server. */
@@ -779,9 +794,7 @@ export class API {
   }
 
   /** Fetch all repos a user has access to. */
-  public async fetchRepositories(): Promise<ReadonlyArray<
-    IAPIRepository
-  > | null> {
+  public async fetchRepositories(): Promise<ReadonlyArray<IAPIRepository> | null> {
     try {
       const repositories = await this.fetchAll<IAPIRepository>('user/repos')
       // "But wait, repositories can't have a null owner" you say.
@@ -982,7 +995,7 @@ export class API {
           // updated_at field we can safely say that if the last item
           // is modified after our sinceTime then haven't reached the
           // end of updated PRs.
-          const last = results[results.length - 1]
+          const last = results.at(-1)
           return last !== undefined && Date.parse(last.updated_at) > sinceTime
         },
         // We can't ignore errors here as that might mean that we haven't
@@ -1009,6 +1022,28 @@ export class API {
     } catch (e) {
       log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
       throw e
+    }
+  }
+
+  /**
+   * Fetch a single pull request review in the given repository
+   */
+  public async fetchPullRequestReview(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR review ${reviewId} for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return null
     }
   }
 
@@ -1066,7 +1101,7 @@ export class API {
    * List workflow runs for a repository filtered by branch and event type of
    * pull_request
    */
-  public async fetchPRWorkflowRuns(
+  public async fetchPRWorkflowRunsByBranchName(
     owner: string,
     name: string,
     branchName: string
@@ -1083,6 +1118,43 @@ export class API {
     } catch (err) {
       log.debug(
         `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Return the workflow run for a given check_suite_id.
+   *
+   * A check suite is a reference for a set check runs.
+   * A workflow run is a reference for set a of workflows for the GitHub Actions
+   * check runner.
+   *
+   * If a check suite is comprised of check runs ran by actions, there will be
+   * one workflow run that represents that check suite. Thus, if this api should
+   * either return an empty array indicating there are no actions runs for that
+   * check_suite_id (so check suite was not ran by actions) or an array with a
+   * single element.
+   */
+  public async fetchPRActionWorkflowRunByCheckSuiteId(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPIWorkflowRun | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&check_suite_id=${checkSuiteId}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      const apiWorkflowRuns = await parsedResponse<IAPIWorkflowRuns>(response)
+
+      if (apiWorkflowRuns.workflow_runs.length > 0) {
+        return apiWorkflowRuns.workflow_runs[0]
+      }
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${checkSuiteId} (${owner}/${name})`
       )
     }
     return null
@@ -1148,17 +1220,59 @@ export class API {
     checkSuiteId: number
   ): Promise<boolean> {
     const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
-    const response = await this.request('POST', path)
 
-    try {
-      return response.ok
-    } catch (_) {
-      log.debug(
-        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
-      )
-    }
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`,
+          err
+        )
+        return false
+      })
+  }
 
-    return false
+  /**
+   * Re-run all of the failed jobs and their dependent jobs in a workflow run
+   * using the id of the workflow run.
+   */
+  public async rerunFailedJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/runs/${workflowRunId}/rerun-failed-jobs`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Re-run a job and its dependent jobs in a workflow run.
+   */
+  public async rerunJob(
+    owner: string,
+    name: string,
+    jobId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/jobs/${jobId}/rerun`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun workflow job (${owner}/${name}): ${jobId}`,
+          err
+        )
+        return false
+      })
   }
 
   /**

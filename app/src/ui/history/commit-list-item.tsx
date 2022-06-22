@@ -6,7 +6,7 @@ import { RichText } from '../lib/rich-text'
 import { RelativeTime } from '../relative-time'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
@@ -174,7 +174,7 @@ export class CommitListItem extends React.PureComponent<
               <div className="byline">
                 <CommitAttribution
                   gitHubRepository={this.props.gitHubRepository}
-                  commit={commit}
+                  commits={[commit]}
                 />
                 {renderRelativeTime(date)}
               </div>

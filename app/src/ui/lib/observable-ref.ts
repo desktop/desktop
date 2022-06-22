@@ -13,7 +13,7 @@ export type ObservableRef<T> = {
  * exception that refs created using `createObservableRef` can notify consumers
  * when the underlying ref change without having to resort to callback refs.
  */
-export function createObservableRef<T>(): ObservableRef<T> {
+export function createObservableRef<T>(current?: T): ObservableRef<T> {
   const subscribers = new Set<RefCallback<T>>()
 
   const callback: ObservableRef<T> = Object.assign(
@@ -22,7 +22,7 @@ export function createObservableRef<T>(): ObservableRef<T> {
       subscribers.forEach(cb => cb(instance))
     },
     {
-      current: null,
+      current: current ?? null,
       subscribe: (cb: RefCallback<T>) => subscribers.add(cb),
       unsubscribe: (cb: RefCallback<T>) => subscribers.delete(cb),
     }

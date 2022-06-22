@@ -1,6 +1,48 @@
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../api'
 import { INodeFilter } from './node-filter'
+import { resolveOwnerRepo } from './resolve-owner-repo'
+
+/** A regular expression to match a group of any digit follow by a word
+ * bounding character.
+ * Example: 123 or 123.
+ */
+const IssueRefNumber = /(?<refNumber>\d+)\b/
+
+/** A regular expression to match a group of an repo name or name with owner
+ * Example: desktop/dugite or desktop
+ */
+const IssueOwnerOrOwnerRepo = /(?<ownerOrOwnerRepo>\w+(?:-\w+)*(?:\/[.\w-]+)?)/
+
+/** A regular expression to match a group possible of preceding markers are
+ * gh-, #, /issues/, /pull/, or /discussions/ followed by a digit
+ */
+const IssueMentionMarker =
+  /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/i
+
+/**
+ * A regular expression string of a lookbehind is used so that valid matches
+ * for the issue reference have the leader precede them but the leader is not
+ * considered part of the match. An issue reference much have a whitespace,
+ * beginning of line, or some other non-word character must precede it.
+ * */
+const IssueMentionLeader = /(?<=^|\W)/
+
+/**
+ * A regular expression matching an issue reference. Issue reference must:
+ * 1) Start with an issue marker: gh-, #, /issues/, /pull/, or /discussions/
+ * 2) The issue marker must be followed by a number
+ * 3) The number must end in a word bounding character. Additionally, the
+ *    issue reference match may be such that the marker may be preceded by a
+ *    repo references of owner/repo or owner
+ * */
+export const IssueReference = new RegExp(
+  IssueOwnerOrOwnerRepo.source +
+    '?' +
+    IssueMentionMarker.source +
+    IssueRefNumber.source,
+  'i'
+)
 
 /**
  * The Issue Mention filter matches for text issue references. For this purpose,
@@ -29,30 +71,6 @@ import { INodeFilter } from './node-filter'
  *
  */
 export class IssueMentionFilter implements INodeFilter {
-  /** A regular expression to match a group of any digit follow by a word
-   * bounding character.
-   * Example: 123 or 123.
-   */
-  private readonly refNumber = /(?<refNumber>\d+)\b/
-
-  /** A regular expression to match a group of an repo name or name with owner
-   * Example: desktop/dugite or desktop
-   */
-  private readonly ownerOrOwnerRepo = /(?<ownerOrOwnerRepo>\w+(?:-\w+)*(?:\/[.\w-]+)?)/
-
-  /** A regular expression to match a group possible of preceding markers are
-   * gh-, #, /issues/, /pull/, or /discussions/ followed by a digit
-   */
-  private readonly marker = /(?<marker>#|gh-|\/(?:issues|pull|discussions)\/)(?=\d)/i
-
-  /**
-   * A regular expression string of a lookbehind is used so that valid matches
-   * for the issue reference have the leader precede them but the leader is not
-   * considered part of the match. An issue reference much have a whitespace,
-   * beginning of line, or some other non-word character must precede it.
-   * */
-  private readonly leader = /(?<=^|\W)/
-
   /**
    * A regular expression matching an issue reference.
    * Issue reference must:
@@ -65,11 +83,7 @@ export class IssueMentionFilter implements INodeFilter {
    *    repo references of owner/repo or owner
    * */
   private readonly issueReferenceWithLeader = new RegExp(
-    this.leader.source +
-      this.ownerOrOwnerRepo.source +
-      '?' +
-      this.marker.source +
-      this.refNumber.source,
+    IssueMentionLeader.source + IssueReference.source,
     'ig'
   )
 
@@ -115,7 +129,7 @@ export class IssueMentionFilter implements INodeFilter {
     if (
       node.nodeType !== node.TEXT_NODE ||
       text === null ||
-      !this.marker.test(text)
+      !IssueMentionMarker.test(text)
     ) {
       return null
     }
@@ -169,7 +183,7 @@ export class IssueMentionFilter implements INodeFilter {
   ) {
     let text = `${marker}${refNumber}`
 
-    const ownerRepo = this.resolveOwnerRepo(ownerOrOwnerRepo)
+    const ownerRepo = resolveOwnerRepo(ownerOrOwnerRepo, this.repository)
     if (ownerRepo === null) {
       return null
     }
@@ -194,51 +208,5 @@ export class IssueMentionFilter implements INodeFilter {
     anchor.textContent = text
     anchor.href = href
     return anchor
-  }
-
-  /**
-   * The ownerOrOwnerRepo may be of the form owner or owner/repo.
-   * 1) If owner/repo and they don't both match the current repo, then we return
-   *    them as to distinguish them as a different from the current repo for the
-   *    reference url.
-   * 2) If (owner) and the owner !== current repo owner, it is an invalid
-   *    references - return null.
-   * 3) Otherwise, return [] as it is an valid references, but, was either and
-   *    empty string or in the current repo and is redundant owner/repo info.
-   */
-  private resolveOwnerRepo(
-    ownerOrOwnerRepo: string | undefined
-  ): ReadonlyArray<string> | null {
-    if (ownerOrOwnerRepo === undefined) {
-      return []
-    }
-
-    const ownerAndRepo = ownerOrOwnerRepo.split('/')
-    // Invalid - This shouldn't happen based on the regex, but would mean
-    // something/something/something/#1 which isn't an issue ref.
-    if (ownerAndRepo.length > 3) {
-      return null
-    }
-
-    // Invalid - If it is only something/#1 and that `something` isn't the
-    // current repositories owner login, then it is not an actual, 'relative to
-    // this user', issue ref.
-    if (
-      ownerAndRepo.length === 1 &&
-      ownerAndRepo[0] !== this.repository.owner.login
-    ) {
-      return null
-    }
-
-    // If owner and repo are provided, we only care if they differ from the current repo.
-    if (
-      ownerAndRepo.length === 2 &&
-      (ownerAndRepo[0] !== this.repository.owner.login ||
-        ownerAndRepo[1] !== this.repository.name)
-    ) {
-      return ownerAndRepo
-    }
-
-    return []
   }
 }

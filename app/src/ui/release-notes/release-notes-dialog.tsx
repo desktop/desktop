@@ -12,11 +12,13 @@ import {
   ReleaseNoteHeaderLeftUri,
   ReleaseNoteHeaderRightUri,
 } from '../../lib/release-notes'
+import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
+import { Button } from '../lib/button'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
   readonly emoji: Map<string, string>
-  readonly newRelease: ReleaseSummary
+  readonly newReleases: ReadonlyArray<ReleaseSummary>
 }
 
 /**
@@ -82,11 +84,86 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     )
   }
 
+  /**
+   * If there is just one release, it returns it. If multiple, it merges the release notes.
+   */
+  private getDisplayRelease = () => {
+    const { newReleases } = this.props
+
+    const latestRelease = newReleases.at(0)
+    const oldestRelease = newReleases.at(-1)
+
+    if (
+      latestRelease === undefined ||
+      oldestRelease === undefined ||
+      latestRelease === oldestRelease
+    ) {
+      return latestRelease
+    }
+
+    return {
+      latestVersion: `${oldestRelease.latestVersion} - ${latestRelease.latestVersion}`,
+      datePublished: `${oldestRelease.datePublished} to ${latestRelease.datePublished}`,
+      enhancements: newReleases.flatMap(r => r.enhancements),
+      bugfixes: newReleases.flatMap(r => r.bugfixes),
+      pretext: newReleases.flatMap(r => r.pretext),
+      other: [],
+      thankYous: [],
+    }
+  }
+
+  private renderPretext = (pretext: ReadonlyArray<ReleaseNote>) => {
+    if (pretext.length === 0) {
+      return
+    }
+
+    return (
+      <SandboxedMarkdown
+        markdown={pretext[0].message}
+        emoji={this.props.emoji}
+        onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+      />
+    )
+  }
+
+  private onDismissed = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    this.props.onDismissed()
+  }
+
+  private renderButtons = () => {
+    const latestVersion = this.props.newReleases[0].latestVersion
+    if (latestVersion === __APP_VERSION__) {
+      return (
+        <Button type="submit" onClick={this.onDismissed}>
+          Close
+        </Button>
+      )
+    }
+
+    return (
+      <OkCancelButtonGroup
+        destructive={true}
+        okButtonText={
+          __DARWIN__ ? 'Install and Restart' : 'Install and restart'
+        }
+        cancelButtonText="Close"
+      />
+    )
+  }
+
   public render() {
-    const release = this.props.newRelease
+    const release = this.getDisplayRelease()
+
+    if (release === undefined) {
+      return null
+    }
+
+    const { latestVersion, datePublished, enhancements, bugfixes, pretext } =
+      release
 
     const contents =
-      release.enhancements.length > 0 && release.bugfixes.length > 0
+      enhancements.length > 0 && bugfixes.length > 0
         ? this.drawTwoColumnLayout(release)
         : this.drawSingleColumnLayout(release)
 
@@ -97,8 +174,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
           src={ReleaseNoteHeaderLeftUri}
         />
         <div className="title">
-          <p className="version">Version {release.latestVersion}</p>
-          <p className="date">{release.datePublished}</p>
+          <p className="version">Version {latestVersion}</p>
+          <p className="date">{datePublished}</p>
         </div>
         <img
           className="release-note-graphic-right"
@@ -114,18 +191,15 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         onSubmit={this.updateNow}
         title={dialogHeader}
       >
-        <DialogContent>{contents}</DialogContent>
+        <DialogContent>
+          {this.renderPretext(pretext)}
+          {contents}
+        </DialogContent>
         <DialogFooter>
           <LinkButton onClick={this.showAllReleaseNotes}>
             View all release notes
           </LinkButton>
-          <OkCancelButtonGroup
-            destructive={true}
-            okButtonText={
-              __DARWIN__ ? 'Install and Restart' : 'Install and restart'
-            }
-            cancelButtonText="Close"
-          />
+          {this.renderButtons()}
         </DialogFooter>
       </Dialog>
     )
@@ -137,5 +211,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
 
   private showAllReleaseNotes = () => {
     shell.openExternal(ReleaseNotesUri)
+  }
+
+  private onMarkdownLinkClicked = (url: string) => {
+    shell.openExternal(url)
   }
 }

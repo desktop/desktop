@@ -1,5 +1,4 @@
-import { pathExists } from 'fs-extra'
-
+import { pathExists } from '../../ui/lib/path-exists'
 import { IFoundEditor } from './found-editor'
 
 /** Represents an external editor on Linux */

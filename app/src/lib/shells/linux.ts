@@ -1,8 +1,8 @@
 import { spawn, ChildProcess } from 'child_process'
-import { pathExists } from 'fs-extra'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { parseEnumValue } from '../enum'
+import { pathExists } from '../../ui/lib/path-exists'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',

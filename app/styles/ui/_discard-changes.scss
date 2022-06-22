@@ -1,12 +1,17 @@
 #discard-changes {
-  .dialog-content ul {
-    list-style: none;
-    margin: var(--spacing) 0;
-    padding: 0;
+  .dialog-content .file-list {
+    max-height: 175px;
+    overflow-y: auto;
 
-    li {
-      padding-left: 0;
-      margin-bottom: 0;
+    ul {
+      list-style: none;
+      margin: var(--spacing) 0;
+      padding: 0;
+
+      li {
+        padding-left: 0;
+        margin-bottom: 0;
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 import { spawn, SpawnOptions } from 'child_process'
-import { pathExists } from 'fs-extra'
+import { pathExists } from '../../ui/lib/path-exists'
 import { ExternalEditorError, FoundEditor } from './shared'
 
 /**

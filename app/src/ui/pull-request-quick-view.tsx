@@ -185,13 +185,8 @@ export class PullRequestQuickView extends React.Component<
   }
 
   private renderPR = () => {
-    const {
-      title,
-      pullRequestNumber,
-      base,
-      body,
-      draft,
-    } = this.props.pullRequest
+    const { title, pullRequestNumber, base, body, draft } =
+      this.props.pullRequest
     const displayBody =
       body !== undefined && body !== null && body.trim() !== ''
         ? body
@@ -211,8 +206,9 @@ export class PullRequestQuickView extends React.Component<
         <SandboxedMarkdown
           markdown={displayBody}
           emoji={this.props.emoji}
-          baseHref={base.gitHubRepository.htmlURL}
+          baseHref={base.gitHubRepository.htmlURL ?? undefined}
           repository={base.gitHubRepository}
+          markdownContext={'PullRequest'}
           onMarkdownLinkClicked={this.onMarkdownLinkClicked}
           onMarkdownParsed={this.onMarkdownParsed}
         />

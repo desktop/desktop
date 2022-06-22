@@ -14,12 +14,8 @@ export abstract class Squash extends BaseRebase {
       return
     }
 
-    const {
-      targetCommit,
-      lastRetainedCommitRef,
-      commitContext,
-      commits,
-    } = operationDetail
+    const { targetCommit, lastRetainedCommitRef, commitContext, commits } =
+      operationDetail
 
     return dispatcher.squash(
       repository,

@@ -1,16 +1,20 @@
-import moment from 'moment'
-
+import { readFile } from 'fs/promises'
+import * as Path from 'path'
+import * as semver from 'semver'
 import {
   ReleaseMetadata,
   ReleaseNote,
   ReleaseSummary,
 } from '../models/release-notes'
+import { getVersion } from '../ui/lib/app-proxy'
+import { formatDate } from './format-date'
+import { offsetFromNow } from './offset-from'
 import { encodePathAsUrl } from './path'
 
 // expects a release note entry to contain a header and then some text
 // example:
 //    [New] Fallback to Gravatar for loading avatars - #821
-const itemEntryRe = /^\[([a-z]{1,})\]\s(.*)/i
+const itemEntryRe = /^\[([a-z]{1,})\]\s((.|\n)*)/i
 
 function parseEntry(note: string): ReleaseNote | null {
   const text = note.trim()
@@ -68,14 +72,14 @@ export function getReleaseSummary(
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed' || e.kind === 'other')
   const thankYous = entries.filter(e => e.message.includes(' Thanks @'))
-
-  const datePublished = moment(latestRelease.pub_date).format('MMMM Do YYYY')
+  const pretext = entries.filter(e => e.kind === 'pretext')
 
   return {
     latestVersion: latestRelease.version,
-    datePublished,
-    // TODO: find pretext entry
-    pretext: undefined,
+    datePublished: formatDate(new Date(latestRelease.pub_date), {
+      dateStyle: 'long',
+    }),
+    pretext,
     enhancements,
     bugfixes,
     other,
@@ -90,8 +94,8 @@ export async function getChangeLog(
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
   )
 
-  if (__RELEASE_CHANNEL__ === 'beta') {
-    changelogURL.searchParams.set('env', 'beta')
+  if (__RELEASE_CHANNEL__ === 'beta' || __RELEASE_CHANNEL__ === 'test') {
+    changelogURL.searchParams.set('env', __RELEASE_CHANNEL__)
   }
 
   if (limit !== undefined) {
@@ -107,10 +111,51 @@ export async function getChangeLog(
   }
 }
 
-export async function generateReleaseSummary(): Promise<ReleaseSummary> {
-  const releases = await getChangeLog()
-  const latestRelease = releases[0]
-  return getReleaseSummary(latestRelease)
+export async function generateReleaseSummary(
+  version?: string
+): Promise<ReadonlyArray<ReleaseSummary>> {
+  const lastTenReleases = await getChangeLog()
+  const currentVersion = new semver.SemVer(version ?? getVersion())
+  const recentReleases = lastTenReleases.filter(
+    r =>
+      semver.gt(new semver.SemVer(r.version), currentVersion) &&
+      new Date(r.pub_date).getTime() > offsetFromNow(-90, 'days')
+  )
+
+  // We should only be pulling release notes when a release just happened, so
+  // there should be one within the past 90 days. Thus, this is just precaution
+  // to ensure we always show at least the last set of release notes.
+  return recentReleases.length > 0
+    ? recentReleases.map(getReleaseSummary)
+    : [getReleaseSummary(lastTenReleases[0])]
+}
+
+/**
+ * This method is used in conjunction with the Help > Show Popup > Release notes
+ * menu item to test release notes on dev builds.
+ **/
+export async function generateDevReleaseSummary(): Promise<
+  ReadonlyArray<ReleaseSummary>
+> {
+  // Remove version if want to use latest version in your dev build
+  const releases = [...(await generateReleaseSummary('3.0.0'))]
+
+  const pretextDraft = await readFile(
+    Path.join(__dirname, 'static', 'pretext-draft.md'),
+    'utf8'
+  ).catch(_ => null)
+
+  if (pretextDraft === null) {
+    return releases
+  }
+
+  return [
+    {
+      ...releases[0],
+      pretext: [{ kind: 'pretext', message: pretextDraft }],
+    },
+    ...releases.slice(1),
+  ]
 }
 
 export const ReleaseNoteHeaderLeftUri = encodePathAsUrl(

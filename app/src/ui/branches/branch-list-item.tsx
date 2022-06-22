@@ -5,7 +5,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
 import { TooltippedContent } from '../lib/tooltipped-content'
@@ -105,12 +105,8 @@ export class BranchListItem extends React.Component<
   }
 
   private onMouseUp = () => {
-    const {
-      onDropOntoBranch,
-      onDropOntoCurrentBranch,
-      name,
-      isCurrentBranch,
-    } = this.props
+    const { onDropOntoBranch, onDropOntoCurrentBranch, name, isCurrentBranch } =
+      this.props
 
     this.setState({ isDragInProgress: false })
 

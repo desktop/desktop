@@ -24,6 +24,7 @@ export type MenuEvent =
   | 'show-repository-settings'
   | 'open-in-shell'
   | 'compare-on-github'
+  | 'branch-on-github'
   | 'view-repository-on-github'
   | 'clone-repository'
   | 'show-about'
@@ -40,3 +41,4 @@ export type MenuEvent =
   | 'test-prune-branches'
   | 'find-text'
   | 'create-issue-in-repository-on-github'
+  | 'pull-request-check-run-failed'

@@ -22,7 +22,7 @@ export type ReleaseNote = {
 export type ReleaseSummary = {
   readonly latestVersion: string
   readonly datePublished: string
-  readonly pretext?: string
+  readonly pretext: ReadonlyArray<ReleaseNote>
   readonly enhancements: ReadonlyArray<ReleaseNote>
   readonly bugfixes: ReadonlyArray<ReleaseNote>
   readonly other: ReadonlyArray<ReleaseNote>

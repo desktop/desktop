@@ -67,8 +67,8 @@ export function wrapRichTextCommitMessage(
         // We always hard-wrap text, it'd be nice if we could attempt
         // to break at word boundaries in the future but that's too
         // complex for now.
-        summary.push(text(token.text.substr(0, remainder)))
-        overflow.push(text(token.text.substr(remainder)))
+        summary.push(text(token.text.substring(0, remainder)))
+        overflow.push(text(token.text.substring(remainder)))
       } else if (token.kind === TokenType.Emoji) {
         // Can't hard-wrap inside an emoji
         overflow.push(token)
@@ -79,8 +79,8 @@ export function wrapRichTextCommitMessage(
         // text showing otherwise we'll end up with weird links like "h"
         // or "@"
         if (!token.text.startsWith('#') && remainder > 5) {
-          summary.push(link(token.text.substr(0, remainder), token.text))
-          overflow.push(link(token.text.substr(remainder), token.text))
+          summary.push(link(token.text.substring(0, remainder), token.text))
+          overflow.push(link(token.text.substring(remainder), token.text))
         } else {
           overflow.push(token)
         }

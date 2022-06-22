@@ -6,8 +6,8 @@ import {
   RegistryValue,
   RegistryValueType,
 } from 'registry-js'
+import { pathExists } from '../../ui/lib/path-exists'
 
-import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 
 interface IWindowsAppInformation {
@@ -22,9 +22,11 @@ type WindowsExternalEditorPathInfo =
   | {
       /**
        * Registry key with the install location of the app. If not provided,
-       * 'InstallLocation' will be used.
+       * 'InstallLocation' or 'UninstallString' will be assumed.
        **/
-      readonly installLocationRegistryKey?: 'InstallLocation'
+      readonly installLocationRegistryKey?:
+        | 'InstallLocation'
+        | 'UninstallString'
 
       /**
        * List of lists of path components from the editor's installation folder to
@@ -233,6 +235,15 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'Sublime HQ Pty Ltd',
   },
   {
+    name: 'Brackets',
+    registryKeys: [
+      Wow64LocalMachineUninstallKey('{4F3B6E8C-401B-4EDE-A423-6481C239D6FF}'),
+    ],
+    executableShimPaths: [['Brackets.exe']],
+    displayNamePrefix: 'Brackets',
+    publisher: 'brackets.io',
+  },
+  {
     name: 'ColdFusion Builder',
     registryKeys: [
       // 64-bit version of ColdFusionBuilder3
@@ -289,6 +300,15 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'SlickEdit Inc.',
   },
   {
+    name: 'Aptana Studio 3',
+    registryKeys: [
+      Wow64LocalMachineUninstallKey('{2D6C1116-78C6-469C-9923-3E549218773F}'),
+    ],
+    executableShimPaths: [['AptanaStudio3.exe']],
+    displayNamePrefix: 'Aptana Studio',
+    publisher: 'Appcelerator',
+  },
+  {
     name: 'JetBrains Webstorm',
     registryKeys: registryKeysForJetBrainsIDE('WebStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('webstorm'),
@@ -301,6 +321,17 @@ const editors: WindowsExternalEditor[] = [
     executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
     displayNamePrefix: 'PhpStorm',
     publisher: 'JetBrains s.r.o.',
+  },
+  {
+    name: 'Android Studio',
+    registryKeys: [LocalMachineUninstallKey('Android Studio')],
+    installLocationRegistryKey: 'UninstallString',
+    executableShimPaths: [
+      ['..', 'bin', `studio64.exe`],
+      ['..', 'bin', `studio.exe`],
+    ],
+    displayNamePrefix: 'Android Studio',
+    publisher: 'Google LLC',
   },
   {
     name: 'Notepad++',
@@ -352,10 +383,31 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'JetBrains s.r.o.',
   },
   {
+    name: 'JetBrains PyCharm Community Edition',
+    registryKeys: registryKeysForJetBrainsIDE('PyCharm Community Edition'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('pycharm'),
+    displayNamePrefix: 'PyCharm Community Edition',
+    publisher: 'JetBrains s.r.o.',
+  },
+  {
     name: 'JetBrains CLion',
     registryKeys: registryKeysForJetBrainsIDE('CLion'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('clion'),
     displayNamePrefix: 'CLion ',
+    publisher: 'JetBrains s.r.o.',
+  },
+  {
+    name: 'JetBrains RubyMine',
+    registryKeys: registryKeysForJetBrainsIDE('RubyMine'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rubymine'),
+    displayNamePrefix: 'RubyMine ',
+    publisher: 'JetBrains s.r.o.',
+  },
+  {
+    name: 'JetBrains GoLand',
+    registryKeys: registryKeysForJetBrainsIDE('GoLand'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('goland'),
+    displayNamePrefix: 'GoLand ',
     publisher: 'JetBrains s.r.o.',
   },
 ]

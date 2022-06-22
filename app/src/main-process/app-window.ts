@@ -19,9 +19,12 @@ import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
-import * as remoteMain from '@electron/remote/main'
 import * as ipcMain from './ipc-main'
 import * as ipcWebContents from './ipc-webcontents'
+import {
+  installNotificationCallback,
+  terminateDesktopNotifications,
+} from './notifications'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -74,7 +77,8 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
-    remoteMain.enable(this.window.webContents)
+
+    installNotificationCallback(this.window)
 
     savedWindowState.manage(this.window)
     this.shouldMaximizeOnShow = savedWindowState.isMaximized
@@ -106,6 +110,7 @@ export class AppWindow {
       }
       nativeTheme.removeAllListeners()
       autoUpdater.removeAllListeners()
+      terminateDesktopNotifications()
     })
 
     if (__WIN32__) {
@@ -399,12 +404,20 @@ export class AppWindow {
     this.window.close()
   }
 
+  public isMaximized() {
+    return this.window.isMaximized()
+  }
+
   public getCurrentWindowState() {
     return getWindowState(this.window)
   }
 
   public getCurrentWindowZoomFactor() {
     return this.window.webContents.zoomFactor
+  }
+
+  public setWindowZoomFactor(zoomFactor: number) {
+    this.window.webContents.zoomFactor = zoomFactor
   }
 
   /**

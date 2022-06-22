@@ -31,13 +31,19 @@ These editors are currently supported:
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [JetBrains IntelliJ Idea](https://www.jetbrains.com/idea/)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
  - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [JetBrains CLion](https://www.jetbrains.com/clion/)
  - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
+ - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
+ - [JetBrains GoLand](https://www.jetbrains.com/go/)
+ - [Android Studio](https://developer.android.com/studio)
+ - [Brackets](http://brackets.io/)
  - [Notepad++](https://notepad-plus-plus.org/)
  - [RStudio](https://rstudio.com/)
+ - [Aptana Studio](http://www.aptana.com/)
 
 These are defined in a list at the top of the file:
 
@@ -228,6 +234,7 @@ These editors are currently supported:
  - [Android Studio](https://developer.android.com/studio)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [Nova](https://nova.app/)
+ - [Aptana Studio](http://www.aptana.com/)
 
 These are defined in a list at the top of the file:
 

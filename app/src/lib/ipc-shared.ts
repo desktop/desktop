@@ -11,6 +11,11 @@ import { ILaunchStats } from './stats'
 import { URLActionType } from './parse-app-url'
 import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
+import { PathType } from '../ui/lib/app-proxy'
+import { ThemeSource } from '../ui/lib/theme-source'
+import { DesktopNotificationPermission } from 'desktop-notifications/dist/notification-permission'
+import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
+import { DesktopAliveEvent } from './stores/alive-store'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -37,8 +42,7 @@ export type RequestChannels = {
     extra: Record<string, string>,
     nonFatal: boolean
   ) => void
-  'show-item-in-folder': (path: string) => void
-  'show-folder-contents': (path: string) => void
+  'unsafe-open-directory': (path: string) => void
   'menu-event': (name: MenuEvent) => void
   log: (level: LogLevel, message: string) => void
   'will-quit': () => void
@@ -69,8 +73,10 @@ export type RequestChannels = {
   'auto-updater-update-not-available': () => void
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
-  'move-to-applications-folder': () => void
+  'set-native-theme-source': (themeName: ThemeSource) => void
   'focus-window': () => void
+  'notification-event': NotificationCallback<DesktopAliveEvent>
+  'set-window-zoom-factor': (zoomFactor: number) => void
 }
 
 /**
@@ -82,14 +88,20 @@ export type RequestChannels = {
  * Return signatures must be promises
  */
 export type RequestResponseChannels = {
+  'get-path': (path: PathType) => Promise<string>
   'get-app-architecture': () => Promise<Architecture>
+  'get-app-path': () => Promise<string>
+  'is-running-under-arm64-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
+  'show-item-in-folder': (path: string) => Promise<void>
   'show-contextual-menu': (
-    items: ReadonlyArray<ISerializableMenuItem>
+    items: ReadonlyArray<ISerializableMenuItem>,
+    addSpellCheckMenu: boolean
   ) => Promise<ReadonlyArray<number> | null>
   'is-window-focused': () => Promise<boolean>
   'open-external': (path: string) => Promise<boolean>
   'is-in-application-folder': () => Promise<boolean | null>
+  'move-to-applications-folder': () => Promise<void>
   'check-for-updates': (url: string) => Promise<Error | undefined>
   'get-current-window-state': () => Promise<WindowState | undefined>
   'get-current-window-zoom-factor': () => Promise<number | undefined>
@@ -100,4 +112,16 @@ export type RequestResponseChannels = {
   'show-open-dialog': (
     options: Electron.OpenDialogOptions
   ) => Promise<string | null>
+  'is-window-maximized': () => Promise<boolean>
+  'get-apple-action-on-double-click': () => Promise<Electron.AppleActionOnDoubleClickPref>
+  'should-use-dark-colors': () => Promise<boolean>
+  'save-guid': (guid: string) => Promise<void>
+  'get-guid': () => Promise<string>
+  'show-notification': (
+    title: string,
+    body: string,
+    userInfo?: DesktopAliveEvent
+  ) => Promise<string | null>
+  'get-notifications-permission': () => Promise<DesktopNotificationPermission>
+  'request-notifications-permission': () => Promise<boolean>
 }

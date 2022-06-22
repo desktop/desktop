@@ -1,4 +1,4 @@
-import { pathExists } from 'fs-extra'
+import { pathExists } from '../../ui/lib/path-exists'
 import { IFoundEditor } from './found-editor'
 import appPath from 'app-path'
 
@@ -22,6 +22,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Atom',
     bundleIdentifiers: ['com.github.atom'],
+  },
+  {
+    name: 'Aptana Studio',
+    bundleIdentifiers: ['aptana.studio'],
   },
   {
     name: 'MacVim',

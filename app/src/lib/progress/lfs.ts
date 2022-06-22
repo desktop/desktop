@@ -1,12 +1,18 @@
-import * as FSE from 'fs-extra'
 import { getTempFilePath } from '../file-system'
 import { IGitProgress, IGitProgressInfo, IGitOutput } from './git'
 import { formatBytes } from '../../ui/lib/bytes'
+import { open } from 'fs/promises'
 
 /** Create the Git LFS progress reporting file and return the path. */
 export async function createLFSProgressFile(): Promise<string> {
   const path = await getTempFilePath('GitHubDesktop-lfs-progress')
-  await FSE.ensureFile(path)
+
+  // getTempFilePath will take care of creating the directory, we only need
+  // to make sure the file exists as well. We use `wx` to throw if the file
+  // already exists since we don't expect it to given that getTempFilePath
+  // creates a random path.
+  await open(path, 'wx').then(f => f.close())
+
   return path
 }
 

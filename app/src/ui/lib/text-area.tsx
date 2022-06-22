@@ -1,6 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 interface ITextAreaProps {
   /** The label for the textarea field. */

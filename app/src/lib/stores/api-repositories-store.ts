@@ -130,7 +130,7 @@ export class ApiRepositoriesStore extends BaseStore {
     this.emitUpdate()
   }
 
-  private updateAccount<T, K extends keyof IAccountRepositories>(
+  private updateAccount<K extends keyof IAccountRepositories>(
     account: Account,
     repositories: Pick<IAccountRepositories, K>
   ) {

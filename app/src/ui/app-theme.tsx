@@ -39,7 +39,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     this.clearThemes()
   }
 
-  private ensureTheme() {
+  private async ensureTheme() {
     const { customTheme, useCustomTheme } = this.props
     if (customTheme !== undefined && useCustomTheme) {
       this.clearThemes()
@@ -50,7 +50,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     let themeToDisplay = this.props.theme
 
     if (this.props.theme === ApplicationTheme.System) {
-      themeToDisplay = getCurrentlyAppliedTheme()
+      themeToDisplay = await getCurrentlyAppliedTheme()
     }
 
     const newThemeClassName = `theme-${getThemeName(themeToDisplay)}`
@@ -63,7 +63,15 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     ) {
       this.clearThemes()
       body.classList.add(newThemeClassName)
+      this.updateColorScheme()
     }
+  }
+
+  private updateColorScheme = () => {
+    const isDarkTheme = document.body.classList.contains('theme-dark')
+    const rootStyle = document.documentElement.style
+
+    rootStyle.colorScheme = isDarkTheme ? 'dark' : 'light'
   }
 
   /**
@@ -102,6 +110,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     styles.appendChild(document.createTextNode(customThemeStyles))
 
     body.appendChild(styles)
+    this.updateColorScheme()
   }
 
   private clearThemes() {

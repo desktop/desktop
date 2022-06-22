@@ -288,8 +288,8 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (ResizeObserver || false) {
       this.resizeObserver = new ResizeObserverClass(entries => {
-        for (const entry of entries) {
-          if (entry.target === this.list) {
+        for (const { target, contentRect } of entries) {
+          if (target === this.list && this.list !== null) {
             // We might end up causing a recursive update by updating the state
             // when we're reacting to a resize so we'll defer it until after
             // react is done with this frame.
@@ -299,8 +299,8 @@ export class List extends React.Component<IListProps, IListState> {
 
             this.updateSizeTimeoutId = setImmediate(
               this.onResized,
-              entry.target,
-              entry.contentRect
+              this.list,
+              contentRect
             )
           }
         }
@@ -469,7 +469,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private getNextPageRowIndex(direction: SelectionDirection) {
     const { selectedRows } = this.props
-    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
+    const lastSelection = selectedRows.at(-1) ?? 0
 
     return this.findNextPageSelectableRow(lastSelection, direction)
   }
@@ -592,9 +592,8 @@ export class List extends React.Component<IListProps, IListState> {
       return this.moveSelection(direction, source)
     }
 
-    const lastSelection = this.props.selectedRows[
-      this.props.selectedRows.length - 1
-    ]
+    const lastSelection =
+      this.props.selectedRows[this.props.selectedRows.length - 1]
 
     const selectionOrigin = this.props.selectedRows[0]
 
@@ -669,15 +668,12 @@ export class List extends React.Component<IListProps, IListState> {
     const firstSelection = selectedRows[0] ?? 0
     const range = createSelectionBetween(firstSelection, row)
 
-    if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(range, source)
-    }
+    this.props.onSelectionChanged?.(range, source)
 
-    if (this.props.onSelectedRangeChanged) {
-      const from = range[0] ?? 0
-      const to = range[range.length - 1] ?? 0
-      this.props.onSelectedRangeChanged(from, to, source)
-    }
+    const from = range.at(0) ?? 0
+    const to = range.at(-1) ?? 0
+
+    this.props.onSelectedRangeChanged?.(from, to, source)
 
     this.scrollRowToVisible(row)
   }
@@ -1234,14 +1230,11 @@ export class List extends React.Component<IListProps, IListState> {
    * This method is a noop if the list has not yet been mounted.
    */
   public focus() {
-    if (
-      this.props.selectedRows.length > 0 &&
-      this.props.selectedRows[this.props.selectedRows.length - 1] <
-        this.props.rowCount
-    ) {
-      this.scrollRowToVisible(
-        this.props.selectedRows[this.props.selectedRows.length - 1]
-      )
+    const { selectedRows, rowCount } = this.props
+    const lastSelectedRow = selectedRows.at(-1)
+
+    if (lastSelectedRow !== undefined && lastSelectedRow < rowCount) {
+      this.scrollRowToVisible(lastSelectedRow)
     } else {
       if (this.grid) {
         const element = ReactDOM.findDOMNode(this.grid) as HTMLDivElement

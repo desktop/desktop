@@ -8,6 +8,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { CICheckRunListItem } from './ci-check-run-list-item'
 import { FocusContainer } from '../lib/focus-container'
+import classNames from 'classnames'
 
 interface ICICheckRunListProps {
   /** List of check runs to display */
@@ -25,6 +26,9 @@ interface ICICheckRunListProps {
   /** Whether check runs can be expanded. Default: false */
   readonly notExpandable?: boolean
 
+  /** Showing a condensed view */
+  readonly isCondensedView?: boolean
+
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
   readonly onViewCheckDetails?: (checkRun: IRefCheck) => void
 
@@ -36,6 +40,9 @@ interface ICICheckRunListProps {
     checkRun: IRefCheck,
     step: IAPIWorkflowJobStep
   ) => void
+
+  /** Callback to rerun a job*/
+  readonly onRerunJob?: (checkRun: IRefCheck) => void
 }
 
 interface ICICheckRunListState {
@@ -55,10 +62,8 @@ export class CICheckRunList extends React.PureComponent<
   }
 
   public componentDidUpdate(prevProps: ICICheckRunListProps) {
-    const {
-      checkRunExpanded,
-      hasUserToggledCheckRun,
-    } = this.setupStateAfterCheckRunPropChange(this.props, this.state)
+    const { checkRunExpanded, hasUserToggledCheckRun } =
+      this.setupStateAfterCheckRunPropChange(this.props, this.state)
 
     let foundDiffStatus = false
     for (const prevCR of prevProps.checkRuns) {
@@ -167,6 +172,8 @@ export class CICheckRunList extends React.PureComponent<
           onCheckRunExpansionToggleClick={this.onCheckRunClick}
           onViewCheckExternally={this.props.onViewCheckDetails}
           onViewJobStep={this.props.onViewJobStep}
+          onRerunJob={this.props.onRerunJob}
+          isCondensedView={this.props.isCondensedView}
         />
       )
     })
@@ -179,14 +186,21 @@ export class CICheckRunList extends React.PureComponent<
   private renderList = (): JSX.Element | null => {
     const { checkRunGroups } = this.state
     const checkRunGroupNames = getCheckRunGroupNames(checkRunGroups)
-    if (checkRunGroupNames.length === 1 && checkRunGroupNames[0] === 'Other') {
+    if (
+      checkRunGroupNames.length === 1 &&
+      (checkRunGroupNames[0] === 'Other' || this.props.isCondensedView)
+    ) {
       return this.renderListItems(this.props.checkRuns)
     }
+
+    const groupHeaderClasses = classNames('ci-check-run-list-group-header', {
+      condensed: this.props.isCondensedView,
+    })
 
     const groups = checkRunGroupNames.map((groupName, i) => {
       return (
         <div className="ci-check-run-list-group" key={i}>
-          <div className="ci-check-run-list-group-header">{groupName}</div>
+          <div className={groupHeaderClasses}>{groupName}</div>
           {this.renderListItems(checkRunGroups.get(groupName))}
         </div>
       )

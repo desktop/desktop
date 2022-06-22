@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { Repositoryish } from './group-repositories'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -153,8 +153,8 @@ export class RepositoryListItem extends React.Component<
       onShowRepository: this.props.onShowRepository,
       onOpenInShell: this.props.onOpenInShell,
       onOpenInExternalEditor: this.props.onOpenInExternalEditor,
-      askForConfirmationOnRemoveRepository: this.props
-        .askForConfirmationOnRemoveRepository,
+      askForConfirmationOnRemoveRepository:
+        this.props.askForConfirmationOnRemoveRepository,
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.props.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.props.onRemoveRepositoryAlias,

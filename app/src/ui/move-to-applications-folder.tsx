@@ -97,11 +97,11 @@ export class MoveToApplicationsFolder extends React.Component<
     )
   }
 
-  private onSubmit = () => {
+  private onSubmit = async () => {
     this.props.onDismissed()
 
     try {
-      this.props.dispatcher.moveToApplicationsFolder()
+      await this.props.dispatcher.moveToApplicationsFolder()
     } catch (error) {
       this.props.dispatcher.postError(error)
     }

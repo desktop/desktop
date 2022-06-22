@@ -140,8 +140,7 @@ describe('GitProgressParser', () => {
 
     expect(result).toEqual({
       title: 'Receiving objects',
-      text:
-        'Receiving objects: 100% (167587/167587), 279.67 MiB | 2.43 MiB/s, done.',
+      text: 'Receiving objects: 100% (167587/167587), 279.67 MiB | 2.43 MiB/s, done.',
       value: 167587,
       done: true,
       percent: 100,

@@ -91,9 +91,7 @@ describe('text-diff-expansion', () => {
 
   it('does not add a dummy hunk to the bottom when last hunk reaches bottom', async () => {
     const { textDiff } = await prepareDiff(100, [99])
-
-    const lastHunk = textDiff.hunks[textDiff.hunks.length - 1]
-    expect(lastHunk.lines).toHaveLength(6)
+    expect(textDiff.hunks.at(-1)?.lines).toHaveLength(6)
   })
 
   it('expands the initial hunk without reaching the top', async () => {
@@ -193,13 +191,10 @@ describe('text-diff-expansion', () => {
   })
 
   it('expands the whole file', async () => {
-    const { textDiff, newContentLines } = await prepareDiff(35, [
-      20,
-      17,
-      8,
-      7,
-      6,
-    ])
+    const { textDiff, newContentLines } = await prepareDiff(
+      35,
+      [20, 17, 8, 7, 6]
+    )
 
     const expandedDiff = expandWholeTextDiff(textDiff, newContentLines)
     expect(expandedDiff!.hunks).toHaveLength(1)

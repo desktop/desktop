@@ -1,8 +1,19 @@
 import memoizeOne from 'memoize-one'
-import { GitHubRepository } from '../../models/github-repository'
 import { EmojiFilter } from './emoji-filter'
 import { IssueLinkFilter } from './issue-link-filter'
 import { IssueMentionFilter } from './issue-mention-filter'
+import { MentionFilter } from './mention-filter'
+import { VideoLinkFilter } from './video-link-filter'
+import { VideoTagFilter } from './video-tag-filter'
+import { TeamMentionFilter } from './team-mention-filter'
+import { CommitMentionFilter } from './commit-mention-filter'
+import {
+  CloseKeywordFilter,
+  isIssueClosingContext,
+} from './close-keyword-filter'
+import { CommitMentionLinkFilter } from './commit-mention-link-filter'
+import { MarkdownEmitter } from './markdown-filter'
+import { GitHubRepository } from '../../models/github-repository'
 
 export interface INodeFilter {
   /**
@@ -27,22 +38,61 @@ export interface INodeFilter {
   filter(node: Node): Promise<ReadonlyArray<Node> | null>
 }
 
+export interface ICustomMarkdownFilterOptions {
+  emoji: Map<string, string>
+  repository?: GitHubRepository
+  markdownContext?: MarkdownContext
+}
+
 /**
  * Builds an array of node filters to apply to markdown html. Referring to it as pipe
  * because they will be applied in the order they are entered in the returned
  * array. This is important as some filters impact others.
- *
- * @param emoji Map from the emoji shortcut (e.g., :+1:) to the image's local path.
  */
 export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
-  (
-    emoji: Map<string, string>,
-    repository: GitHubRepository
-  ): ReadonlyArray<INodeFilter> => [
-    new IssueMentionFilter(repository),
-    new IssueLinkFilter(repository),
-    new EmojiFilter(emoji),
-  ]
+  (options: ICustomMarkdownFilterOptions): ReadonlyArray<INodeFilter> => {
+    const { emoji, repository, markdownContext } = options
+    const filterPipe: Array<INodeFilter> = []
+
+    if (repository !== undefined) {
+      /* The CloseKeywordFilter must be applied before the IssueMentionFilter or
+       * IssueLinkFilter so we can scan for plain text or pasted link issue
+       * mentions in conjunction wth the keyword.
+       */
+      if (
+        markdownContext !== undefined &&
+        isIssueClosingContext(markdownContext)
+      ) {
+        filterPipe.push(new CloseKeywordFilter(markdownContext, repository))
+      }
+
+      filterPipe.push(
+        new IssueMentionFilter(repository),
+        new IssueLinkFilter(repository)
+      )
+    }
+
+    filterPipe.push(new EmojiFilter(emoji))
+
+    if (repository !== undefined) {
+      filterPipe.push(
+        // Note: TeamMentionFilter was placed before MentionFilter as they search
+        // for similar patterns with TeamMentionFilter having a larger application.
+        // @org/something vs @username. Thus, even tho the MentionFilter regex is
+        // meant to prevent this, in case a username could be encapsulated in the
+        // team mention like @username/something, we do the team mentions first to
+        // eliminate the possibility.
+        new TeamMentionFilter(repository),
+        new MentionFilter(repository),
+        new CommitMentionFilter(repository),
+        new CommitMentionLinkFilter(repository)
+      )
+    }
+
+    filterPipe.push(new VideoTagFilter(), new VideoLinkFilter())
+
+    return filterPipe
+  }
 )
 
 /**
@@ -56,15 +106,24 @@ export const buildCustomMarkDownNodeFilterPipe = memoizeOne(
  */
 export async function applyNodeFilters(
   nodeFilters: ReadonlyArray<INodeFilter>,
-  parsedMarkdown: string
-): Promise<string> {
-  const mdDoc = new DOMParser().parseFromString(parsedMarkdown, 'text/html')
+  markdownEmitter: MarkdownEmitter
+): Promise<void> {
+  if (markdownEmitter.latestMarkdown === null || markdownEmitter.disposed) {
+    return
+  }
+
+  const mdDoc = new DOMParser().parseFromString(
+    markdownEmitter.latestMarkdown,
+    'text/html'
+  )
 
   for (const nodeFilter of nodeFilters) {
     await applyNodeFilter(nodeFilter, mdDoc)
+    if (markdownEmitter.disposed) {
+      break
+    }
+    markdownEmitter.emit(mdDoc.documentElement.innerHTML)
   }
-
-  return mdDoc.documentElement.innerHTML
 }
 
 /**
@@ -95,3 +154,10 @@ async function applyNodeFilter(
     currentNode.parentNode?.removeChild(currentNode)
   }
 }
+
+/** The context of which markdown resides */
+export type MarkdownContext =
+  | 'PullRequest'
+  | 'PullRequestComment'
+  | 'IssueComment'
+  | 'Commit'

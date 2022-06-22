@@ -9,10 +9,7 @@ import {
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
-import {
-  getTrailerSeparatorCharacters,
-  parseRawUnfoldedTrailers,
-} from './interpret-trailers'
+import { parseRawUnfoldedTrailers } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
@@ -22,7 +19,7 @@ import { enableLineChangesInCommit } from '../feature-flag'
  * Map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-function mapStatus(
+export function mapStatus(
   rawStatus: string,
   oldPath?: string
 ): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {
@@ -117,7 +114,6 @@ export async function getCommits(
     return new Array<Commit>()
   }
 
-  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
   const parsed = parse(result.stdout)
 
   return parsed.map(commit => {
@@ -133,7 +129,14 @@ export async function getCommits(
       CommitIdentity.parseIdentity(commit.author),
       CommitIdentity.parseIdentity(commit.committer),
       commit.parents.length > 0 ? commit.parents.split(' ') : [],
-      parseRawUnfoldedTrailers(commit.trailers, trailerSeparators),
+      // We know for sure that the trailer separator will be ':' since we got
+      // them from %(trailers:unfold) above, see `git help log`:
+      //
+      //   "key_value_separator=<SEP>: specify a separator inserted between
+      //    trailer lines. When this option is not given each trailer key-value
+      //    pair is separated by ": ". Otherwise it shares the same semantics as
+      //    separator=<SEP> above."
+      parseRawUnfoldedTrailers(commit.trailers, ':'),
       tags
     )
   })
@@ -201,9 +204,10 @@ export async function getChangedFiles(
   }
 }
 
-function parseChangedFilesNumStat(
-  stdout: string
-): { linesAdded: number; linesDeleted: number } {
+function parseChangedFilesNumStat(stdout: string): {
+  linesAdded: number
+  linesDeleted: number
+} {
   const lines = stdout.split('\0')
   let totalLinesAdded = 0
   let totalLinesDeleted = 0

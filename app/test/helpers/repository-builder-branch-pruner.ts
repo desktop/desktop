@@ -77,7 +77,7 @@ export async function setupRepository(
       name: 'string',
       owner: {
         id: 0,
-        url: '',
+        html_url: '',
         login: '',
         avatar_url: '',
         type: 'User',

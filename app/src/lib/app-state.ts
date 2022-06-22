@@ -46,7 +46,6 @@ import {
   MultiCommitOperationDetail,
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
-import { DragAndDropIntroType } from '../ui/history/drag-and-drop-intro'
 import { IChangesetData } from './git'
 
 export enum SelectionType {
@@ -180,6 +179,9 @@ export interface IAppState {
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
 
+  /** Whether there is an update to showcase */
+  readonly isUpdateShowcaseVisible: boolean
+
   /** Whether we should ask the user to move the app to /Applications */
   readonly askToMoveToApplicationsFolderSetting: boolean
 
@@ -188,6 +190,9 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly askForConfirmationOnDiscardChangesPermanently: boolean
 
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
@@ -278,11 +283,6 @@ export interface IAppState {
    * Whether or not the app should use spell check on commit summary and description
    */
   readonly commitSpellcheckEnabled: boolean
-
-  /**
-   * List of drag & drop intro types that have been shown to the user.
-   */
-  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
 
   /**
    * Record of what logged in users have been checked to see if thank you is in
@@ -552,6 +552,20 @@ export interface IBranchesState {
 export interface ICommitSelection {
   /** The commits currently selected in the app */
   readonly shas: ReadonlyArray<string>
+
+  /**
+   * Whether the a selection of commits are group of adjacent to each other.
+   * Example: Given these are indexes of sha's in history, 3, 4, 5, 6 is contiguous as
+   * opposed to 3, 5, 8.
+   *
+   * Technically order does not matter, but shas are stored in order.
+   *
+   * Contiguous selections can be diffed. Non-contiguous selections can be
+   * cherry-picked, reordered, or squashed.
+   *
+   * Assumed that a selections of zero or one commit are contiguous.
+   * */
+  readonly isContiguous: boolean
 
   /** The changeset data associated with the selected commit */
   readonly changesetData: IChangesetData
