@@ -3,6 +3,7 @@ import { setCrashMenu } from './menu'
 import { formatError } from '../lib/logging/format-error'
 import { CrashWindow } from './crash-window'
 
+export let crashWindow: CrashWindow | null = null
 let hasReportedUncaughtException = false
 
 /** Show the uncaught exception UI. */
@@ -17,16 +18,13 @@ export function showUncaughtException(isLaunchError: boolean, error: Error) {
 
   setCrashMenu()
 
-  const crashWindow = new CrashWindow(
-    isLaunchError ? 'launch' : 'generic',
-    error
-  )
+  const window = new CrashWindow(isLaunchError ? 'launch' : 'generic', error)
 
-  crashWindow.onDidLoad(() => {
-    crashWindow.show()
+  window.onDidLoad(() => {
+    window.show()
   })
 
-  crashWindow.onFailedToLoad(async () => {
+  window.onFailedToLoad(async () => {
     await dialog.showMessageBox({
       type: 'error',
       title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
@@ -44,12 +42,14 @@ export function showUncaughtException(isLaunchError: boolean, error: Error) {
     app.quit()
   })
 
-  crashWindow.onClose(() => {
+  window.onClose(() => {
     if (!__DEV__) {
       app.relaunch()
     }
     app.quit()
   })
 
-  crashWindow.load()
+  window.load()
+
+  crashWindow = window
 }

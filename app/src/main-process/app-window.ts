@@ -211,6 +211,10 @@ export class AppWindow {
     return !!this.loadTime && !!this.rendererReadyTime
   }
 
+  public get webContentsId(): number {
+    return this.window.webContents.id
+  }
+
   public onClose(fn: () => void) {
     this.window.on('closed', fn)
   }

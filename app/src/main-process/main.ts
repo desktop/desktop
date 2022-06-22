@@ -50,7 +50,7 @@ import { initializeDesktopNotifications } from './notifications'
 app.setAppLogsPath()
 enableSourceMaps()
 
-let mainWindow: AppWindow | null = null
+export let mainWindow: AppWindow | null = null
 
 const launchTime = now()
 

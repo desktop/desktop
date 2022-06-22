@@ -56,6 +56,10 @@ export class CrashWindow {
     this.errorType = errorType
   }
 
+  public get webContentsId(): number {
+    return this.window.webContents.id
+  }
+
   public load() {
     log.debug('Starting crash process')
 
