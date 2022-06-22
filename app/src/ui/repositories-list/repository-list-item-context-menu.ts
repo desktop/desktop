@@ -39,6 +39,10 @@ export const generateRepositoryListContextMenu = (
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => clipboard.writeText(repository.name),
     },
+    {
+      label: __DARWIN__ ? 'Copy Repo Path' : 'Copy repo path',
+      action: () => clipboard.writeText(repository.path),
+    },
     { type: 'separator' },
     {
       label: 'View on GitHub',
