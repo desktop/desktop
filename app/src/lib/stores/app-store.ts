@@ -1160,7 +1160,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * selection of A through D would not have the changes from B an C.
    *
    * This method traverses the ancestral path from the last commit in the
-   * selection back to the first commit via checking the first parent. The
+   * selection back to the first commit via checking the parents. The
    * commits on this path are the commits whose changes will be seen in the
    * diff. This is equivalent to doing `git rev-list firstSha^..lastSha`.
    */
@@ -1175,15 +1175,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return shas
     }
 
-    let currentSha = shas.at(-1)
-
-    if (currentSha === undefined) {
-      // shouldn't happen - typing check
-      return shasInDiff
-    }
-
+    const shasToTraverse = [shas.at(-1)]
     let traversing = true
     while (traversing) {
+      const currentSha = shasToTraverse.pop()
+      if (currentSha === undefined) {
+        // no more to traverse
+        traversing = false
+        continue
+      }
+
       shasInDiff.push(currentSha)
       const commit = commitLookup.get(currentSha)
       if (commit === undefined) {
@@ -1192,13 +1193,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         continue
       }
 
-      const firstParent = commit.parentSHAs[0]
-      const parent = shas.find(sha => sha === firstParent)
-      if (parent === undefined) {
-        traversing = false
-        continue
+      for (const parentSha of commit.parentSHAs) {
+        const parent = shas.find(sha => sha === parentSha)
+        if (parent === undefined) {
+          continue
+        }
+        shasToTraverse.push(parent)
       }
-      currentSha = parent
     }
 
     return shasInDiff
