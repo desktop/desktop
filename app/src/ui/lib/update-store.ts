@@ -22,6 +22,7 @@ import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
 import { offsetFromNow } from '../../lib/offset-from'
 import { gte, SemVer } from 'semver'
+import { getRendererGUID } from '../../lib/get-renderer-guid'
 
 /** The last version a showcase was seen. */
 export const lastShowCaseVersionSeen = 'version-of-last-showcase'
@@ -160,7 +161,33 @@ class UpdateStore {
       return
     }
 
-    let updatesURL = __UPDATES_URL__
+    const updatesUrl = await this.getUpdatesUrl()
+
+    if (updatesUrl === null) {
+      return
+    }
+
+    this.userInitiatedUpdate = !inBackground
+
+    const error = await checkForUpdates(updatesUrl)
+
+    if (error !== undefined) {
+      this.emitError(error)
+    }
+  }
+
+  private async getUpdatesUrl() {
+    let url = null
+
+    try {
+      url = new URL(__UPDATES_URL__)
+    } catch (e) {
+      log.error('Error parsing updates url', e)
+      return __UPDATES_URL__
+    }
+
+    // Send the GUID to the update server for staggered release support
+    url.searchParams.set('guid', await getRendererGUID())
 
     // If the app is running under arm64 to x64 translation, we need to tweak the
     // update URL here to point at the arm64 binary.
@@ -168,21 +195,13 @@ class UpdateStore {
       enableUpdateFromEmulatedX64ToARM64() &&
       (await isRunningUnderARM64Translation()) === true
     ) {
-      const url = new URL(updatesURL)
       url.pathname = url.pathname.replace(
         /\/desktop\/desktop\/(x64\/)?latest/,
         '/desktop/desktop/arm64/latest'
       )
-      updatesURL = url.toString()
     }
 
-    this.userInitiatedUpdate = !inBackground
-
-    const error = await checkForUpdates(updatesURL)
-
-    if (error !== undefined) {
-      this.emitError(error)
-    }
+    return url.toString()
   }
 
   /** Quit and install the update. */
