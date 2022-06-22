@@ -348,18 +348,7 @@ export class CommitSummary extends React.Component<
 
   private getShaRef = (useShortSha?: boolean) => {
     const { selectedCommits } = this.props
-    const oldest = useShortSha
-      ? selectedCommits[0].shortSha
-      : selectedCommits[0].sha
-
-    if (selectedCommits.length === 1) {
-      return oldest
-    }
-
-    const latestCommit = selectedCommits.at(-1)
-    const latest = useShortSha ? latestCommit?.shortSha : latestCommit?.sha
-
-    return `${oldest}^..${latest}`
+    return useShortSha ? selectedCommits[0].shortSha : selectedCommits[0].sha
   }
 
   private renderCommitsNotReachable = () => {
@@ -382,6 +371,52 @@ export class CommitSummary extends React.Component<
         <Octicon symbol={OcticonSymbol.info} /> {excludedCommitsCount}{' '}
         unreachable commits not included. <LinkButton>Learn why</LinkButton>
       </div>
+    )
+  }
+
+  private renderAuthors = () => {
+    const { selectedCommits, repository } = this.props
+    const { avatarUsers } = this.state
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    return (
+      <li
+        className="commit-summary-meta-item without-truncation"
+        aria-label="Author"
+      >
+        <AvatarStack users={avatarUsers} />
+        <CommitAttribution
+          gitHubRepository={repository.gitHubRepository}
+          commits={selectedCommits}
+        />
+      </li>
+    )
+  }
+
+  private renderCommitRef = () => {
+    const { selectedCommits } = this.props
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    return (
+      <li
+        className="commit-summary-meta-item without-truncation"
+        aria-label="SHA"
+      >
+        <Octicon symbol={OcticonSymbol.gitCommit} />
+        <TooltippedContent
+          className="sha"
+          tooltip={this.renderShaTooltip()}
+          tooltipClassName="sha-hint"
+          interactive={true}
+          direction={TooltipDirection.SOUTH}
+        >
+          {this.getShaRef(true)}
+        </TooltippedContent>
+      </li>
     )
   }
 
@@ -408,33 +443,8 @@ export class CommitSummary extends React.Component<
             text={summary}
           />
           <ul className="commit-summary-meta">
-            <li
-              className="commit-summary-meta-item without-truncation"
-              aria-label="Author"
-            >
-              <AvatarStack users={this.state.avatarUsers} />
-              <CommitAttribution
-                gitHubRepository={this.props.repository.gitHubRepository}
-                commits={this.props.selectedCommits}
-              />
-            </li>
-
-            <li
-              className="commit-summary-meta-item without-truncation"
-              aria-label="SHA"
-            >
-              <Octicon symbol={OcticonSymbol.gitCommit} />
-              <TooltippedContent
-                className="sha"
-                tooltip={this.renderShaTooltip()}
-                tooltipClassName="sha-hint"
-                interactive={true}
-                direction={TooltipDirection.SOUTH}
-              >
-                {this.getShaRef(true)}
-              </TooltippedContent>
-            </li>
-
+            {this.renderAuthors()}
+            {this.renderCommitRef()}
             {this.renderChangedFilesDescription()}
             {this.renderLinesChanged()}
             {this.renderTags()}
@@ -578,10 +588,15 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
-    const tags = this.props.selectedCommits.flatMap(c => c.tags) || []
+    const { selectedCommits } = this.props
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    const tags = selectedCommits[0].tags
 
     if (tags.length === 0) {
-      return null
+      return
     }
 
     return (
