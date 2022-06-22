@@ -48,12 +48,21 @@ function capitalized(str: string): string {
  */
 export function findReleaseNote(body: string): string | null | undefined {
   const re = /^Notes: (.+)$/gm
-  const matches = re.exec(body)
-  if (!matches || matches.length < 2) {
+  let lastMatches = null
+
+  // There might be multiple lines starting with "Notes: ", but we're only
+  // interested in the last one.
+  let matches = re.exec(body)
+  while (matches) {
+    lastMatches = matches
+    matches = re.exec(body)
+  }
+
+  if (!lastMatches || lastMatches.length < 2) {
     return undefined
   }
 
-  const note = matches[1].replace(/\.$/, '')
+  const note = lastMatches[1].replace(/\.$/, '')
   return note === 'no-notes' ? null : note
 }
 
