@@ -156,6 +156,7 @@ import { PullRequestReview } from './notifications/pull-request-review'
 import { getPullRequestCommitRef } from '../models/pull-request'
 import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
+import { showContextualMenu } from '../lib/menu-item'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
