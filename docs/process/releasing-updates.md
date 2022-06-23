@@ -132,7 +132,7 @@ Add your new changelog entries to `changelog.json`, update the version in `app/p
 
 If a maintainer would like to backport a pull request to the next release, it is their responsibility to co-ordinate with the release owner and ensure they are fine with accepting this work.
 
-After pushing the branch, an action will create a release Pull Request for it. If that action fails for whatever reason, you can fall back to using the `yarn draft-release:pr` command, or create it manually.
+After pushing the branch, a [GitHub Action](https://github.com/desktop/desktop/blob/development/.github/workflows/release-pr.yml) will create a release Pull Request for it. If that action fails for whatever reason, you can fall back to using the `yarn draft-release:pr` command, or create it manually.
 
 Once your release branch is ready to review and ship, ask the other maintainers to review and approve the changes!
 
