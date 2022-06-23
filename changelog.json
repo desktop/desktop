@@ -1,5 +1,15 @@
 {
   "releases": {
+    "3.0.3": [
+      "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
+      "[Fixed] On Windows, remember the app's zoom level on update - #5315",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Improved] Add context menu option to copy repository paths - #14785. Thanks @novialriptide!",
+      "[Improved] Allow copying paths when multiple files are selected - #14638. Thanks @tsvetilian-ty!",
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676",
+      "[Improved] Add context menu to Current Branch and Current Repository toolbar items - #13664. Thanks @uttiya10!"
+    ],
     "3.0.3-beta1": [
       "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
       "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
