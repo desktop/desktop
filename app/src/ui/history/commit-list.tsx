@@ -375,7 +375,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
           selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
-          forceGridUpdate={this.props.shasNotInDiffHighlighted}
           rowRenderer={this.renderCommit}
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
@@ -390,6 +389,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             localCommitSHAs: this.props.localCommitSHAs,
             commitLookupHash: this.commitsHash(this.getVisibleCommits()),
             tagsToPush: this.props.tagsToPush,
+            shasNotInDiffHighlighted: this.props.shasNotInDiffHighlighted,
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
