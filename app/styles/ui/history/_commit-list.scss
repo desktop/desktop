@@ -52,6 +52,14 @@
     }
   }
 
+  .list-item {
+    transition: opacity 0.75s;
+
+    &.not-in-diff {
+      opacity: 50%;
+    }
+  }
+
   .focus-within {
     .list-item.selected {
       .commit {
@@ -95,10 +103,6 @@
   // We need to give a bit more padding to the right to make place for the scrollbar
   padding-right: calc(var(--spacing) + var(--spacing-half));
   padding-left: var(--spacing);
-
-  &.not-in-diff {
-    opacity: 50%;
-  }
 
   .info {
     display: flex;

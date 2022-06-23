@@ -186,11 +186,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const isResettableCommit =
       row > 0 && row <= this.props.localCommitSHAs.length
 
-    const isNotInDiff =
-      this.props.selectedSHAs.includes(commit.sha) &&
-      !this.props.shasInDiff.includes(commit.sha) &&
-      this.props.shasNotInDiffHighlighted
-
     return (
       <CommitListItem
         key={commit.sha}
@@ -222,7 +217,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.props.onRemoveCommitDragElement}
         disableSquashing={this.props.disableSquashing}
-        isNotInDiff={isNotInDiff}
       />
     )
   }
@@ -362,6 +356,24 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return this.props.commitSHAs.findIndex(s => s === sha)
   }
 
+  private getRowCustomClassMap = () => {
+    if (!this.props.shasNotInDiffHighlighted) {
+      return undefined
+    }
+
+    const rowsForShasNotInDiff = this.props.selectedSHAs
+      .filter(sha => !this.props.shasInDiff.includes(sha))
+      .map(sha => this.rowForSHA(sha))
+
+    if (rowsForShasNotInDiff.length === 0) {
+      return undefined
+    }
+
+    const rowClassMap = new Map<string, ReadonlyArray<number>>()
+    rowClassMap.set('not-in-diff', rowsForShasNotInDiff)
+    return rowClassMap
+  }
+
   public render() {
     if (this.props.commitSHAs.length === 0) {
       return (
@@ -392,6 +404,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             shasNotInDiffHighlighted: this.props.shasNotInDiffHighlighted,
           }}
           setScrollTop={this.props.compareListScrollTop}
+          rowCustomClassNameMap={this.getRowCustomClassMap()}
         />
       </div>
     )

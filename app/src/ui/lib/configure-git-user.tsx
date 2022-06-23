@@ -254,7 +254,6 @@ export class ConfigureGitUser extends React.Component<
           isLocal={false}
           showUnpushedIndicator={false}
           selectedCommits={[dummyCommit]}
-          isNotInDiff={false}
         />
       </div>
     )
