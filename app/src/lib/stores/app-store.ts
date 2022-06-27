@@ -1195,10 +1195,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       for (const parentSha of commit.parentSHAs) {
         const parent = shas.find(sha => sha === parentSha)
-        if (parent === undefined) {
-          continue
+        if (parent !== undefined) {
+          shasToTraverse.push(parent)
         }
-        shasToTraverse.push(parent)
       }
     }
 
