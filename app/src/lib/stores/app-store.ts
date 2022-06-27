@@ -1165,41 +1165,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * diff. This is equivalent to doing `git rev-list firstSha^..lastSha`.
    */
   private getShasInDiff(
-    shas: ReadonlyArray<string>,
+    selectedShas: ReadonlyArray<string>,
     isContiguous: boolean,
     commitLookup: Map<string, Commit>
   ) {
     const shasInDiff = new Array<string>()
 
-    if (shas.length <= 1 || !isContiguous) {
-      return shas
+    if (selectedShas.length <= 1 || !isContiguous) {
+      return selectedShas
     }
 
-    const shasToTraverse = [shas.at(-1)]
-    let traversing = true
-    while (traversing) {
+    const shasToTraverse = [selectedShas.at(-1)]
+    do {
       const currentSha = shasToTraverse.pop()
       if (currentSha === undefined) {
-        // no more to traverse
-        traversing = false
         continue
       }
 
       shasInDiff.push(currentSha)
-      const commit = commitLookup.get(currentSha)
-      if (commit === undefined) {
-        // shouldn't happen - shas are selection of history which should be in lookup
-        traversing = false
-        continue
-      }
 
-      for (const parentSha of commit.parentSHAs) {
-        const parent = shas.find(sha => sha === parentSha)
-        if (parent !== undefined) {
-          shasToTraverse.push(parent)
-        }
-      }
-    }
+      // shas are selection of history -> should be in lookup ->  `|| []` is for typing sake
+      const parentSHAs = commitLookup.get(currentSha)?.parentSHAs || []
+
+      const parentsInSelection = parentSHAs.filter(parentSha =>
+        selectedShas.includes(parentSha)
+      )
+
+      shasToTraverse.push(...parentsInSelection)
+    } while (shasToTraverse.length > 0)
 
     return shasInDiff
   }
