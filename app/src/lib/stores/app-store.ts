@@ -1139,12 +1139,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _updateShasNotInDiffHighlighted(
+  public async _updateShasToHighlight(
     repository: Repository,
-    shasNotInDiffHighlighted: boolean
+    shasToHighlight: ReadonlyArray<string>
   ) {
-    this.repositoryStateCache.updateCommitSelection(repository, () => ({
-      shasNotInDiffHighlighted,
+    this.repositoryStateCache.updateCompareState(repository, () => ({
+      shasToHighlight,
     }))
     this.emitUpdate()
   }

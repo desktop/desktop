@@ -55,8 +55,8 @@ interface ICommitSummaryProps {
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 
-  /** called when user hovers over count of commits excluded from the diff */
-  readonly onHighlightShasNotInDiff: (shasNotInDiffHighlighted: boolean) => void
+  /** Called to highlight certain shas in the history */
+  readonly onHighlightShas: (shasToHighlight: ReadonlyArray<string>) => void
 }
 
 interface ICommitSummaryState {
@@ -344,11 +344,18 @@ export class CommitSummary extends React.Component<
   }
 
   private onHighlightShasInDiff = () => {
-    this.props.onHighlightShasNotInDiff(true)
+    this.props.onHighlightShas(this.props.shasInDiff)
   }
 
-  private onRemoveHighlightShasInDiff = () => {
-    this.props.onHighlightShasNotInDiff(false)
+  private onHighlightShasNotInDiff = () => {
+    const { onHighlightShas, selectedCommits, shasInDiff } = this.props
+    onHighlightShas(
+      selectedCommits.filter(c => !shasInDiff.includes(c.sha)).map(c => c.sha)
+    )
+  }
+
+  private onRemoveHighlightOfShas = () => {
+    this.props.onHighlightShas([])
   }
 
   private showUnreachableCommits() {
@@ -373,8 +380,8 @@ export class CommitSummary extends React.Component<
     return (
       <div
         className="commit-unreachable-info"
-        onMouseOver={this.onHighlightShasInDiff}
-        onMouseOut={this.onRemoveHighlightShasInDiff}
+        onMouseOver={this.onHighlightShasNotInDiff}
+        onMouseOut={this.onRemoveHighlightOfShas}
       >
         <Octicon symbol={OcticonSymbol.info} />
         <LinkButton onClick={this.showUnreachableCommits}>
@@ -456,7 +463,11 @@ export class CommitSummary extends React.Component<
     return (
       <div className={summaryClassNames}>
         Showing changes from{' '}
-        <LinkButton onClick={this.showUnreachableCommits}>
+        <LinkButton
+          onMouseOver={this.onHighlightShasInDiff}
+          onMouseOut={this.onRemoveHighlightOfShas}
+          onClick={this.showUnreachableCommits}
+        >
           {numInDiff} commits
         </LinkButton>
       </div>

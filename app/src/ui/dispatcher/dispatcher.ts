@@ -241,15 +241,12 @@ export class Dispatcher {
     return this.appStore._changeCommitSelection(repository, shas, isContiguous)
   }
 
-  /** Update whether shas not in the diff should be highlighted (or opposite of highlighted..) */
-  public updateShasNotInDiffHighlighted(
+  /** Update the shas that should be highlighted */
+  public updateShasToHighlight(
     repository: Repository,
-    shasNotInDiffHighlighted: boolean
+    shasToHighlight: ReadonlyArray<string>
   ) {
-    this.appStore._updateShasNotInDiffHighlighted(
-      repository,
-      shasNotInDiffHighlighted
-    )
+    this.appStore._updateShasToHighlight(repository, shasToHighlight)
   }
 
   /**

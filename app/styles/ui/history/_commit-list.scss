@@ -52,11 +52,13 @@
     }
   }
 
-  .list-item {
-    transition: opacity 0.75s;
+  &.has-highlighted-commits {
+    .list-item {
+      transition: opacity 0.6s;
 
-    &.not-in-diff {
-      opacity: 50%;
+      &:not(.highlighted) {
+        opacity: 30%;
+      }
     }
   }
 

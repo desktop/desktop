@@ -181,15 +181,15 @@ export class SelectedCommits extends React.Component<
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-        onHighlightShasNotInDiff={this.onHighlightShasNotInDiff}
+        onHighlightShas={this.onHighlightShas}
       />
     )
   }
 
-  private onHighlightShasNotInDiff = (shasNotInDiffHighlighted: boolean) => {
-    this.props.dispatcher.updateShasNotInDiffHighlighted(
+  private onHighlightShas = (shasToHighlight: ReadonlyArray<string>) => {
+    this.props.dispatcher.updateShasToHighlight(
       this.props.repository,
-      shasNotInDiffHighlighted
+      shasToHighlight
     )
   }
 

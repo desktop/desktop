@@ -572,10 +572,6 @@ export interface ICommitSelection {
    * */
   readonly shasInDiff: ReadonlyArray<string>
 
-  /** Whether or not the shas not in the diff should be differentiated from the
-   * shas in the diff in the commit list */
-  readonly shasNotInDiffHighlighted: boolean
-
   /**
    * Whether the a selection of commits are group of adjacent to each other.
    * Example: Given these are indexes of sha's in history, 3, 4, 5, 6 is contiguous as
@@ -739,6 +735,9 @@ export interface ICompareState {
 
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
+
+  /** The SHAs of commits to highlight in the compare list */
+  readonly shasToHighlight: ReadonlyArray<string>
 
   /**
    * A list of branches (remote and local) except the current branch, and
