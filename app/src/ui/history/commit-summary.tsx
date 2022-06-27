@@ -109,11 +109,11 @@ function createState(
   isOverflowed: boolean,
   props: ICommitSummaryProps
 ): ICommitSummaryState {
-  const { emoji, repository, selectedCommits, shasInDiff } = props
+  const { emoji, repository, selectedCommits } = props
   const tokenizer = new Tokenizer(emoji, repository)
 
   const { summary, body } = wrapRichTextCommitMessage(
-    getCommitSummary(selectedCommits, shasInDiff),
+    getCommitSummary(selectedCommits),
     selectedCommits[0].body,
     tokenizer
   )
@@ -133,21 +133,10 @@ function createState(
   return { isOverflowed, summary, body, avatarUsers, hasEmptySummary }
 }
 
-function getCommitSummary(
-  selectedCommits: ReadonlyArray<Commit>,
-  shasInDiff: ReadonlyArray<string>
-) {
-  if (selectedCommits.length === 1) {
-    return selectedCommits[0].summary.length === 0
-      ? 'Empty commit message'
-      : selectedCommits[0].summary
-  }
-
-  const numInDiff =
-    selectedCommits.length -
-    getCountCommitsNotInDiff(selectedCommits, shasInDiff)
-
-  return `Showing changes from ${numInDiff} commits`
+function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
+  return selectedCommits[0].summary.length === 0
+    ? 'Empty commit message'
+    : selectedCommits[0].summary
 }
 
 function getCountCommitsNotInDiff(
@@ -362,6 +351,10 @@ export class CommitSummary extends React.Component<
     this.props.onHighlightShasNotInDiff(false)
   }
 
+  private showUnreachableCommits() {
+    // TODO: open to dialog with commits list of unreachable commits
+  }
+
   private renderCommitsNotReachable = () => {
     const { selectedCommits, shasInDiff } = this.props
     if (selectedCommits.length === 1) {
@@ -383,8 +376,11 @@ export class CommitSummary extends React.Component<
         onMouseOver={this.onHighlightShasInDiff}
         onMouseOut={this.onRemoveHighlightShasInDiff}
       >
-        <Octicon symbol={OcticonSymbol.info} /> {excludedCommitsCount}{' '}
-        unreachable commits not included. <LinkButton>Learn why</LinkButton>
+        <Octicon symbol={OcticonSymbol.info} />
+        <LinkButton onClick={this.showUnreachableCommits}>
+          {excludedCommitsCount} unreachable commits
+        </LinkButton>{' '}
+        not included.
       </div>
     )
   }
@@ -435,6 +431,38 @@ export class CommitSummary extends React.Component<
     )
   }
 
+  private renderSummary = () => {
+    const { selectedCommits, shasInDiff } = this.props
+    const { summary, hasEmptySummary } = this.state
+    const summaryClassNames = classNames('commit-summary-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
+    if (selectedCommits.length === 1) {
+      return (
+        <RichText
+          className={summaryClassNames}
+          emoji={this.props.emoji}
+          repository={this.props.repository}
+          text={summary}
+        />
+      )
+    }
+
+    const numInDiff =
+      selectedCommits.length -
+      getCountCommitsNotInDiff(selectedCommits, shasInDiff)
+
+    return (
+      <div className={summaryClassNames}>
+        Showing changes from{' '}
+        <LinkButton onClick={this.showUnreachableCommits}>
+          {numInDiff} commits
+        </LinkButton>
+      </div>
+    )
+  }
+
   public render() {
     const className = classNames({
       expanded: this.props.isExpanded,
@@ -443,20 +471,10 @@ export class CommitSummary extends React.Component<
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
-    const { summary, hasEmptySummary } = this.state
-    const summaryClassNames = classNames('commit-summary-title', {
-      'empty-summary': hasEmptySummary,
-    })
-
     return (
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
-          <RichText
-            className={summaryClassNames}
-            emoji={this.props.emoji}
-            repository={this.props.repository}
-            text={summary}
-          />
+          {this.renderSummary()}
           <ul className="commit-summary-meta">
             {this.renderAuthors()}
             {this.renderCommitRef()}
