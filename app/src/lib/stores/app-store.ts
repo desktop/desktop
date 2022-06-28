@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import { escape } from 'querystring'
 import {
   AccountsStore,
   CloningRepositoriesStore,
@@ -77,6 +76,7 @@ import {
   getCurrentWindowZoomFactor,
   updatePreferredAppMenuItemLabels,
   updateAccounts,
+  setWindowZoomFactor,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -114,7 +114,7 @@ import {
   getAvailableEditors,
   launchExternalEditor,
 } from '../editors'
-import { assertNever, fatalError } from '../fatal-error'
+import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -131,7 +131,6 @@ import {
   getRemotes,
   getWorkingDirectoryDiff,
   isCoAuthoredByTrailer,
-  mergeTree,
   pull as pullRepo,
   push as pushRepo,
   renameBranch,
@@ -139,7 +138,6 @@ import {
   appendIgnoreRule,
   createMergeCommit,
   getBranchesPointedAt,
-  isGitRepository,
   abortRebase,
   continueRebase,
   rebase,
@@ -159,6 +157,10 @@ import {
   getRebaseInternalState,
   getCommit,
   appendIgnoreFile,
+  getRepositoryType,
+  RepositoryType,
+  getCommitRangeDiff,
+  getCommitRangeChangedFiles,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -190,7 +192,6 @@ import { TypedBaseStore } from './base-store'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
-import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
@@ -205,6 +206,7 @@ import {
   getEnum,
   getObject,
   setObject,
+  getFloatNumber,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -215,7 +217,10 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableHideWhitespaceInDiffOption } from '../feature-flag'
+import {
+  enableHideWhitespaceInDiffOption,
+  enableMultiCommitDiffs,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -283,7 +288,6 @@ import {
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
-import { DragAndDropIntroType } from '../../ui/history/drag-and-drop-intro'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
 import { isConflictsFlow } from '../multi-commit-operation'
 import { clamp } from '../clamp'
@@ -298,6 +302,7 @@ import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
 import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
+import { determineMergeability } from '../git/merge-tree'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -360,8 +365,6 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 
 const MaxInvalidFoldersToDisplay = 3
 
-const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
-const dragAndDropIntroTypesShownKey = 'drag-and-drop-intro-types-shown'
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const customThemeKey = 'custom-theme-key'
 export class AppStore extends TypedBaseStore<IAppState> {
@@ -422,6 +425,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
+  private isUpdateShowcaseVisible: boolean = false
 
   private askToMoveToApplicationsFolderSetting: boolean =
     askToMoveToApplicationsFolderDefault
@@ -475,12 +479,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Which step the user needs to complete next in the onboarding tutorial */
   private currentOnboardingTutorialStep = TutorialStep.NotApplicable
   private readonly tutorialAssessor: OnboardingTutorialAssessor
-
-  /**
-   * List of drag & drop intro types shown to the user.
-   */
-  private dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType> =
-    new Set()
 
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
@@ -580,11 +578,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private initializeZoomFactor = async () => {
-    const zoomFactor = await getCurrentWindowZoomFactor()
+    const zoomFactor = await this.getWindowZoomFactor()
     if (zoomFactor === undefined) {
       return
     }
     this.onWindowZoomFactorChanged(zoomFactor)
+  }
+
+  /**
+   * On Windows OS, whenever a user toggles their zoom factor, chromium stores it
+   * in their `%AppData%/Roaming/GitHub Desktop/Preferences.js` denoted by the
+   * file path to the application. That file path contains the apps version.
+   * Thus, on every update, the users set zoom level gets reset as there is not
+   * defined value for the current app version.
+   * */
+  private async getWindowZoomFactor() {
+    const zoomFactor = await getCurrentWindowZoomFactor()
+    // One is the default value, we only care about checking the locally stored
+    // value if it is one because that is the default value after an
+    // update
+    if (zoomFactor !== 1 || !__WIN32__) {
+      return zoomFactor
+    }
+
+    const locallyStoredZoomFactor = getFloatNumber('zoom-factor')
+    if (
+      locallyStoredZoomFactor !== undefined &&
+      locallyStoredZoomFactor !== zoomFactor
+    ) {
+      setWindowZoomFactor(locallyStoredZoomFactor)
+      return locallyStoredZoomFactor
+    }
+
+    return zoomFactor
   }
 
   private onTokenInvalidated = (endpoint: string) => {
@@ -809,6 +835,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.windowZoomFactor = zoomFactor
 
     if (zoomFactor !== current) {
+      setNumber('zoom-factor', zoomFactor)
       this.updateResizableConstraints()
       this.emitUpdate()
     }
@@ -873,6 +900,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      isUpdateShowcaseVisible: this.isUpdateShowcaseVisible,
       currentBanner: this.currentBanner,
       askToMoveToApplicationsFolderSetting:
         this.askToMoveToApplicationsFolderSetting,
@@ -902,7 +930,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
-      dragAndDropIntroTypesShown: this.dragAndDropIntroTypesShown,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
@@ -1085,7 +1112,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeCommitSelection(
     repository: Repository,
-    shas: ReadonlyArray<string>
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean
   ): Promise<void> {
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
@@ -1098,6 +1126,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas,
+      isContiguous,
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
@@ -1112,9 +1141,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const state = this.repositoryStateCache.get(repository)
     let selectedSHA =
-      state.commitSelection.shas.length === 1
+      state.commitSelection.shas.length > 0
         ? state.commitSelection.shas[0]
         : null
+
     if (selectedSHA != null) {
       const index = commitSHAs.findIndex(sha => sha === selectedSHA)
       if (index < 0) {
@@ -1125,8 +1155,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (state.commitSelection.shas.length === 0 && commitSHAs.length > 0) {
-      this._changeCommitSelection(repository, [commitSHAs[0]])
+    if (selectedSHA === null && commitSHAs.length > 0) {
+      this._changeCommitSelection(repository, [commitSHAs[0]], true)
       this._loadChangedFilesForCurrentSelection(repository)
     }
   }
@@ -1304,7 +1334,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (tip.kind === TipState.Valid && aheadBehind.behind > 0) {
       const mergeTreePromise = promiseWithMinimumTimeout(
-        () => mergeTree(repository, tip.branch, action.branch),
+        () => determineMergeability(repository, tip.branch, action.branch),
         500
       )
         .catch(err => {
@@ -1381,15 +1411,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
-    const currentSHAs = commitSelection.shas
-    if (currentSHAs.length !== 1) {
-      // if none or multiple, we don't display a diff
+    const { shas: currentSHAs, isContiguous } = commitSelection
+    if (
+      currentSHAs.length === 0 ||
+      (currentSHAs.length > 1 && (!enableMultiCommitDiffs() || !isContiguous))
+    ) {
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     const changesetData = await gitStore.performFailableOperation(() =>
-      getChangedFiles(repository, currentSHAs[0])
+      currentSHAs.length > 1
+        ? getCommitRangeChangedFiles(repository, currentSHAs)
+        : getChangedFiles(repository, currentSHAs[0])
     )
     if (!changesetData) {
       return
@@ -1400,7 +1434,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // SHA/path.
     if (
       commitSelection.shas.length !== currentSHAs.length ||
-      commitSelection.shas[0] !== currentSHAs[0]
+      !commitSelection.shas.every((sha, i) => sha === currentSHAs[i])
     ) {
       return
     }
@@ -1446,7 +1480,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const shas = stateBeforeLoad.commitSelection.shas
+    const { shas, isContiguous } = stateBeforeLoad.commitSelection
 
     if (shas.length === 0) {
       if (__DEV__) {
@@ -1458,24 +1492,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    // We do not get a diff when multiple commits selected
-    if (shas.length > 1) {
+    if (shas.length > 1 && (!enableMultiCommitDiffs() || !isContiguous)) {
       return
     }
 
-    const diff = await getCommitDiff(
-      repository,
-      file,
-      shas[0],
-      this.hideWhitespaceInHistoryDiff
-    )
+    const diff =
+      shas.length > 1
+        ? await getCommitRangeDiff(
+            repository,
+            file,
+            shas,
+            this.hideWhitespaceInHistoryDiff
+          )
+        : await getCommitDiff(
+            repository,
+            file,
+            shas[0],
+            this.hideWhitespaceInHistoryDiff
+          )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection
     // A whole bunch of things could have happened since we initiated the diff load
-    if (shasAfter.length !== shas.length || shasAfter[0] !== shas[0]) {
+    if (
+      shasAfter.length !== shas.length ||
+      !shas.every((sha, i) => sha === shasAfter[i])
+    ) {
       return
     }
+
     if (!stateAfterLoad.commitSelection.file) {
       return
     }
@@ -1889,20 +1934,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
 
-    const hasShownCherryPickIntro = getBoolean(
-      hasShownCherryPickIntroKey,
-      false
-    )
-    const dragAndDropIntroTypesShown =
-      getObject<Array<DragAndDropIntroType>>(dragAndDropIntroTypesShownKey) ??
-      []
-
-    // Compatibility fallback for old persisted value
-    if (hasShownCherryPickIntro) {
-      dragAndDropIntroTypesShown.push(DragAndDropIntroType.CherryPick)
-    }
-
-    this.dragAndDropIntroTypesShown = new Set(dragAndDropIntroTypesShown)
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
     this.emitUpdateNow()
@@ -2974,7 +3005,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const foundRepository =
       (await pathExists(repository.path)) &&
-      (await isGitRepository(repository.path)) &&
+      (await getRepositoryType(repository.path)).kind === 'regular' &&
       (await this._loadStatus(repository)) !== null
 
     if (foundRepository) {
@@ -5151,6 +5182,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setUpdateShowCaseVisibility(visibility: boolean) {
+    this.isUpdateShowcaseVisible = visibility
+
+    this.emitUpdate()
+  }
+
   public _setBanner(state: Banner) {
     this.currentBanner = state
     this.emitUpdate()
@@ -5343,8 +5380,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     endpoint: string,
     apiRepository: IAPIFullRepository
   ) {
-    const validatedPath = await validatedRepositoryPath(path)
-    if (validatedPath) {
+    const type = await getRepositoryType(path)
+    if (type.kind === 'regular') {
+      const validatedPath = type.topLevelWorkingDirectory
       log.info(
         `[AppStore] adding tutorial repository at ${validatedPath} to store`
       )
@@ -5369,8 +5407,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const invalidPaths = new Array<string>()
 
     for (const path of paths) {
-      const validatedPath = await validatedRepositoryPath(path)
-      if (validatedPath) {
+      const repositoryType = await getRepositoryType(path).catch(e => {
+        log.error('Could not determine repository type', e)
+        return { kind: 'missing' } as RepositoryType
+      })
+
+      if (repositoryType.kind === 'unsafe') {
+        const repository = await this.repositoriesStore.addRepository(path, {
+          missing: true,
+        })
+
+        addedRepositories.push(repository)
+        continue
+      }
+
+      if (repositoryType.kind === 'regular') {
+        const validatedPath = repositoryType.topLevelWorkingDirectory
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
         const repositories = this.repositories
@@ -5793,7 +5845,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const urlEncodedBranchName = escape(branch.nameWithoutRemote)
+    const urlEncodedBranchName = encodeURIComponent(branch.nameWithoutRemote)
     const baseURL = `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
@@ -6279,26 +6331,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) {
-    if (commits.length === 0) {
-      // This shouldn't happen... but in case throw error.
-      throw new Error(
-        'Unable to initialize cherry-pick progress. No commits provided.'
-      )
-    }
+    // This shouldn't happen... but in case throw error.
+    const lastCommit = forceUnwrap(
+      'Unable to initialize cherry-pick progress. No commits provided.',
+      commits.at(-1)
+    )
 
     this.repositoryStateCache.updateMultiCommitOperationState(
       repository,
-      () => {
-        return {
-          progress: {
-            kind: 'multiCommitOperation',
-            value: 0,
-            position: 1,
-            totalCommitCount: commits.length,
-            currentCommitSummary: commits[commits.length - 1].summary,
-          },
-        }
-      }
+      () => ({
+        progress: {
+          kind: 'multiCommitOperation',
+          value: 0,
+          position: 1,
+          totalCommitCount: commits.length,
+          currentCommitSummary: lastCommit.summary,
+        },
+      })
     )
 
     this.emitUpdate()
@@ -6470,19 +6519,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         progress: snapshot.progress,
       })
     )
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _markDragAndDropIntroAsSeen(intro: DragAndDropIntroType) {
-    if (this.dragAndDropIntroTypesShown.has(intro)) {
-      return
-    }
-
-    const newIntros = [...this.dragAndDropIntroTypesShown, intro]
-    this.dragAndDropIntroTypesShown = new Set(newIntros)
-
-    setObject(dragAndDropIntroTypesShownKey, newIntros)
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

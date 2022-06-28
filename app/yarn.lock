@@ -363,14 +363,13 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-notifications@^0.1.7:
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.1.7.tgz#8aac705d374f1b527595030418d8c79de167cf96"
-  integrity sha512-3lSt/Ol/3yupnwf7teGRn2PixnFH0sAD1ZpFdeEga+ffhRqxSzHOY+VVd8k1RkecQiwVQWksDYkO4510wAmxeg==
+desktop-notifications@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.2.2.tgz#197a32ee504a894ad074793dab285681c533e5ac"
+  integrity sha512-XMnxdWV6ZfiCzLZNC00n6h30Jt3z8yv21FAPBt/kK6hANI0PaoYWsRKEYya0zMUAX/9lrh429R5OtRGOKWZQSw==
   dependencies:
-    node-addon-api "^4.3.0"
+    node-addon-api "^5.0.0"
     prebuild-install "^7.0.1"
-    quick-lru "^3.0.0"
     uuid "^8.3.2"
 
 desktop-trampoline@desktop/desktop-trampoline#v0.9.8:
@@ -399,10 +398,10 @@ devtron@^1.4.0:
     highlight.js "^9.3.0"
     humanize-plus "^1.8.1"
 
-dexie@^2.0.0:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/dexie/-/dexie-2.0.4.tgz#6027a5e05879424e8f9979d8c14e7420f27e3a11"
-  integrity sha512-aQ/s1U2wHxwBKRrt2Z/mwFNHMQWhESerFsMYzE+5P5OsIe5o1kgpFMWkzKTtkvkyyEni6mWr/T4HUJuY9xIHLA==
+dexie@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-3.2.2.tgz#fa6f2a3c0d6ed0766f8d97a03720056f88fe0e01"
+  integrity sha512-q5dC3HPmir2DERlX+toCBbHQXW5MsyrFqPFcovkH9N2S/UW/H3H5AWAB6iEOExeraAu+j+zRDG+zg/D7YhH0qg==
 
 dom-classlist@^1.0.1:
   version "1.0.1"
@@ -434,10 +433,10 @@ dompurify@^2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
-dugite@^1.104.0:
-  version "1.104.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.104.0.tgz#378ab4b86a875bf9173fb915d178c994ae528499"
-  integrity sha512-7fLSbie3OD3wDlCtauG082A8Ox7V0qG4065tFsBiNNP4yBWtKM28xY6u68ujpdjCPsSXCVmASNb8X4diKCqTDA==
+dugite@^1.109.0:
+  version "1.109.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.109.0.tgz#662f726befeefb47b697d6e08f940be865699b74"
+  integrity sha512-pPAs67j/sF6Y84pfI94VOtjMtCxX17OaNOggP+pJAZ4sA53OvcQj2zPgk87EnZaZoOmQYa0EdlH/tsEQhc+wVA==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"
@@ -984,15 +983,10 @@ minimatch@^3.0.4:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimist@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
-  integrity sha1-o1AIsg9BOD7sH7kU9M1d95omQoQ=
-
-minimist@^1.2.3, minimist@^1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
-  integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
+minimist@^1.2.0, minimist@^1.2.3, minimist@^1.2.5:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
+  integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
 
 minipass@^2.6.0, minipass@^2.9.0:
   version "2.9.0"
@@ -1064,6 +1058,11 @@ node-addon-api@^4.3.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-4.3.0.tgz#52a1a0b475193e0928e98e0426a0d1254782b77f"
   integrity sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==
+
+node-addon-api@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-5.0.0.tgz#7d7e6f9ef89043befdb20c1989c905ebde18c501"
+  integrity sha512-CvkDw2OEnme7ybCykJpVcKH+uAOLV2qLqiyla128dN9TkEWfrYmxG6C2boDe5KcNQqZF3orkqzGgOMvZ/JNekA==
 
 node-fetch@^1.0.1:
   version "1.7.3"

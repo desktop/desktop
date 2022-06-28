@@ -24,12 +24,10 @@ async function getCheckoutArgs(
   account: IGitAccount | null,
   progressCallback?: ProgressCallback
 ) {
-  const networkArguments = await gitNetworkArguments(repository, account)
-
   const baseArgs =
     progressCallback != null
-      ? [...networkArguments, 'checkout', '--progress']
-      : [...networkArguments, 'checkout']
+      ? [...gitNetworkArguments(), 'checkout', '--progress']
+      : [...gitNetworkArguments(), 'checkout']
 
   if (enableRecurseSubmodulesFlag()) {
     return branch.type === BranchType.Remote

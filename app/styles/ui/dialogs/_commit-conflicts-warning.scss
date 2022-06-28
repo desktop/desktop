@@ -1,14 +1,19 @@
 #commit-conflict-markers-warning {
-  .dialog-content ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    margin-bottom: var(--spacing);
+  .dialog-content .conflicted-files-text {
+    max-height: 175px;
+    overflow-y: auto;
 
-    li {
-      padding-left: 0;
-      margin-bottom: 0;
-      font-family: var(--font-family-monospace);
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      margin-bottom: var(--spacing);
+
+      li {
+        padding-left: 0;
+        margin-bottom: 0;
+        font-family: var(--font-family-monospace);
+      }
     }
   }
 }

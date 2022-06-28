@@ -6,14 +6,8 @@ import {
 } from 'dugite'
 
 import { assertNever } from '../fatal-error'
-import { getDotComAPIEndpoint } from '../api'
-
-import { IGitAccount } from '../../models/git-account'
-
 import * as GitPerf from '../../ui/lib/git-perf'
 import * as Path from 'path'
-import { Repository } from '../../models/repository'
-import { getConfigValue, getGlobalConfigValue } from './config'
 import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
 import { Readable } from 'stream'
@@ -434,6 +428,7 @@ function getDescriptionForError(error: DugiteError): string | null {
     case DugiteError.GPGFailedToSignData:
     case DugiteError.ConflictModifyDeletedInBranch:
     case DugiteError.MergeCommitNoMainlineOption:
+    case DugiteError.UnsafeDirectory:
       return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
@@ -445,57 +440,15 @@ function getDescriptionForError(error: DugiteError): string | null {
  * the default git configuration values provided by local, global, or system
  * level git configs.
  *
- * These arguments should be inserted before the subcommand, i.e in
- * the case of `git pull` these arguments needs to go before the `pull`
- * argument.
- *
- * @param repository the local repository associated with the command, to check
- *                   local, global and system config for an existing value.
- *                   If `null` if provided (for example, when cloning a new
- *                   repository), this function will check global and system
- *                   config for an existing `protocol.version` setting
- *
- * @param account the identity associated with the repository, or `null` if
- *                unknown. The `protocol.version` behaviour is currently only
- *                enabled for GitHub.com repositories that don't have an
- *                existing `protocol.version` setting.
+ * These arguments should be inserted before the subcommand, i.e in the case of
+ * `git pull` these arguments needs to go before the `pull` argument.
  */
-export async function gitNetworkArguments(
-  repository: Repository | null,
-  account: IGitAccount | null
-): Promise<ReadonlyArray<string>> {
-  const baseArgs = [
-    // Explicitly unset any defined credential helper, we rely on our
-    // own askpass for authentication.
-    '-c',
-    'credential.helper=',
-  ]
-
-  if (account === null) {
-    return baseArgs
-  }
-
-  const isDotComAccount = account.endpoint === getDotComAPIEndpoint()
-
-  if (!isDotComAccount) {
-    return baseArgs
-  }
-
-  const name = 'protocol.version'
-
-  const protocolVersion =
-    repository != null
-      ? await getConfigValue(repository, name)
-      : await getGlobalConfigValue(name)
-
-  if (protocolVersion !== null) {
-    // protocol.version is already set, we should not override it with our own
-    return baseArgs
-  }
-
-  // opt in for v2 of the Git Wire protocol for GitHub repositories
-  return [...baseArgs, '-c', 'protocol.version=2']
-}
+export const gitNetworkArguments = () => [
+  // Explicitly unset any defined credential helper, we rely on our
+  // own askpass for authentication.
+  '-c',
+  'credential.helper=',
+]
 
 /**
  * Returns the arguments to use on any git operation that can end up

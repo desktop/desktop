@@ -79,7 +79,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
-type GitHubAccountType = 'User' | 'Organization'
+export type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we want to request */
 const oauthScopes = ['repo', 'user', 'workflow']
@@ -995,7 +995,7 @@ export class API {
           // updated_at field we can safely say that if the last item
           // is modified after our sinceTime then haven't reached the
           // end of updated PRs.
-          const last = results[results.length - 1]
+          const last = results.at(-1)
           return last !== undefined && Date.parse(last.updated_at) > sinceTime
         },
         // We can't ignore errors here as that might mean that we haven't
@@ -1220,17 +1220,59 @@ export class API {
     checkSuiteId: number
   ): Promise<boolean> {
     const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
-    const response = await this.request('POST', path)
 
-    try {
-      return response.ok
-    } catch (_) {
-      log.debug(
-        `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`
-      )
-    }
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`,
+          err
+        )
+        return false
+      })
+  }
 
-    return false
+  /**
+   * Re-run all of the failed jobs and their dependent jobs in a workflow run
+   * using the id of the workflow run.
+   */
+  public async rerunFailedJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/runs/${workflowRunId}/rerun-failed-jobs`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Re-run a job and its dependent jobs in a workflow run.
+   */
+  public async rerunJob(
+    owner: string,
+    name: string,
+    jobId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/jobs/${jobId}/rerun`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun workflow job (${owner}/${name}): ${jobId}`,
+          err
+        )
+        return false
+      })
   }
 
   /**

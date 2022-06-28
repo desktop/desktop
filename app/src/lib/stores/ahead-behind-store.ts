@@ -1,6 +1,6 @@
 import pLimit from 'p-limit'
 import QuickLRU from 'quick-lru'
-import { IDisposable, Disposable } from 'event-kit'
+import { DisposableLike, Disposable } from 'event-kit'
 import { IAheadBehind } from '../../models/branch'
 import { revSymmetricDifference, getAheadBehind } from '../git'
 import { Repository } from '../../models/repository'
@@ -76,7 +76,7 @@ export class AheadBehindStore {
     from: string,
     to: string,
     callback: AheadBehindCallback
-  ): IDisposable {
+  ): DisposableLike {
     const key = getCacheKey(repository, from, to)
     const existing = this.cache.get(key)
     const disposable = new Disposable(() => {})

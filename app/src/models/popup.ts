@@ -78,6 +78,7 @@ export enum PopupType {
   InvalidatedToken,
   AddSSHHost,
   SSHKeyPassphrase,
+  SSHUserPassword,
   PullRequestChecksFailed,
   CICheckRunRerun,
   WarnForcePush,
@@ -170,7 +171,7 @@ export type Popup =
     }
   | {
       type: PopupType.ReleaseNotes
-      newRelease: ReleaseSummary
+      newReleases: ReadonlyArray<ReleaseSummary>
     }
   | {
       type: PopupType.DeletePullRequest
@@ -318,6 +319,11 @@ export type Popup =
       ) => void
     }
   | {
+      type: PopupType.SSHUserPassword
+      username: string
+      onSubmit: (password: string | undefined, storePassword: boolean) => void
+    }
+  | {
       type: PopupType.PullRequestChecksFailed
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
@@ -331,6 +337,7 @@ export type Popup =
       checkRuns: ReadonlyArray<IRefCheck>
       repository: GitHubRepository
       prRef: string
+      failedOnly: boolean
     }
   | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }
   | {

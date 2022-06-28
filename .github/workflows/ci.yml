@@ -83,10 +83,10 @@ jobs:
         run: yarn test:setup
       - name: Run unit tests
         if: matrix.arch == 'x64'
-        run: yarn test:unit:cov
+        run: yarn test:unit
       - name: Run script tests
         if: matrix.arch == 'x64'
-        run: yarn test:script:cov
+        run: yarn test:script
       - name: Publish production app
         run: yarn run publish
         env:

@@ -27,6 +27,8 @@ import {
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
   CopyRelativeFilePathLabel,
+  CopySelectedPathsLabel,
+  CopySelectedRelativePathsLabel,
 } from '../lib/context-menu'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
@@ -51,6 +53,7 @@ import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
+import { EOL } from 'os'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -426,6 +429,32 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private getCopySelectedPathsMenuItem = (
+    files: WorkingDirectoryFileChange[]
+  ): IMenuItem => {
+    return {
+      label: CopySelectedPathsLabel,
+      action: () => {
+        const fullPaths = files.map(file =>
+          Path.join(this.props.repository.path, file.path)
+        )
+        clipboard.writeText(fullPaths.join(EOL))
+      },
+    }
+  }
+
+  private getCopySelectedRelativePathsMenuItem = (
+    files: WorkingDirectoryFileChange[]
+  ): IMenuItem => {
+    return {
+      label: CopySelectedRelativePathsLabel,
+      action: () => {
+        const paths = files.map(file => Path.normalize(file.path))
+        clipboard.writeText(paths.join(EOL))
+      },
+    }
+  }
+
   private getRevealInFileManagerMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -534,11 +563,43 @@ export class ChangesList extends React.Component<
         })
       })
 
+    if (paths.length > 1) {
+      items.push(
+        { type: 'separator' },
+        {
+          label: __DARWIN__
+            ? 'Include Selected Files'
+            : 'Include selected files',
+          action: () => {
+            selectedFiles.map(file =>
+              this.props.onIncludeChanged(file.path, true)
+            )
+          },
+        },
+        {
+          label: __DARWIN__
+            ? 'Exclude Selected Files'
+            : 'Exclude selected files',
+          action: () => {
+            selectedFiles.map(file =>
+              this.props.onIncludeChanged(file.path, false)
+            )
+          },
+        },
+        { type: 'separator' },
+        this.getCopySelectedPathsMenuItem(selectedFiles),
+        this.getCopySelectedRelativePathsMenuItem(selectedFiles)
+      )
+    } else {
+      items.push(
+        { type: 'separator' },
+        this.getCopyPathMenuItem(file),
+        this.getCopyRelativePathMenuItem(file)
+      )
+    }
+
     const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(
-      { type: 'separator' },
-      this.getCopyPathMenuItem(file),
-      this.getCopyRelativePathMenuItem(file),
       { type: 'separator' },
       this.getRevealInFileManagerMenuItem(file),
       this.getOpenInExternalEditorMenuItem(file, enabled),

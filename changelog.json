@@ -1,5 +1,132 @@
 {
   "releases": {
+    "3.0.3": [
+      "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
+      "[Fixed] On Windows, remember the app's zoom level on update - #5315",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Improved] Add context menu option to copy repository paths - #14785. Thanks @novialriptide!",
+      "[Improved] Allow copying paths when multiple files are selected - #14638. Thanks @tsvetilian-ty!",
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676"
+    ],
+    "3.0.3-beta1": [
+      "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
+      "[Fixed] On Windows, remember the apps zoom level on update - #5315",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Improved] Add context menu option to copy repository paths - #14785. Thanks @novialriptide!",
+      "[Improved] Allow copying paths when multiple files are selected - #14638. Thanks @tsvetilian-ty!",
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676",
+      "[Improved] Upgrade to Electron v19.0.0 - #14813"
+    ],
+    "3.0.2": [
+      "[Fixed] Fix crash launching the app on macOS High Sierra - #14712",
+      "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
+    ],
+    "3.0.2-beta4": [
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Fixed] Fix issue with some repositories not being properly persisted - #14748"
+    ],
+    "3.0.2-beta3": [
+      "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
+    ],
+    "3.0.2-beta2": [
+      "[Fixed] Fix crash launching the app on macOS High Sierra - #14712"
+    ],
+    "3.0.2-beta1": [
+      "[Added] Add support for Aptana Studio - #14669. Thanks @tsvetilian-ty!"
+    ],
+    "3.0.1": [
+      "[Added] Add support for PyCharm Community Edition on Windows - #14411. Thanks @tsvetilian-ty!",
+      "[Added] Add support for highlighting .mjs/.cjs/.mts/.cts files as JavaScript/TypeScript - #14481. Thanks @j-f1!",
+      "[Fixed] Prevent crash when encountering a large number of conflicts while checking for ability to merge branch - #14485",
+      "[Fixed] Url encode branch names when 'Viewing Branch in Github' is selected - #14631. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix opening files with Android Studio - #14519",
+      "[Fixed] Checks popover summary correctly reflects a successful conclusion when skipped or neutral checks are present - #14508",
+      "[Fixed] Long lists of conflicted files to commit or files to discard can be scrolled - #14468",
+      "[Fixed] Fix random crashes when external apps probe GitHub Desktop trampoline port - #14471",
+      "[Improved] Display a banner when we have a pretext release note to highlight the new feature - #14620",
+      "[Improved] Enable interactions with notifications from previous app sessions - #14496",
+      "[Improved] Improve feedback about user permission to display notifications - #14496",
+      "[Improved] Add ability to have showcasing of features through release notes - #14488",
+      "[Improved] User can see all releases notes between their current version and the latest update - #14458",
+      "[Removed] Outdated new drag and drop and split diff new feature callouts removed - #14463"
+    ],
+    "3.0.1-beta2": [
+      "[Fixed] Prevent crash when encountering a large number of conflicts while checking for ability to merge branch - #14485",
+      "[Fixed] Url encode branch names when 'Viewing Branch in Github' is selected - #14631. Thanks @tsvetilian-ty!"
+    ],
+    "3.0.1-beta1": [
+      "[Added] Add support for PyCharm Community Edition on Windows - #14411. Thanks @tsvetilian-ty!",
+      "[Added] Add support for highlighting .mjs/.cjs/.mts/.cts files as JavaScript/TypeScript - #14481. Thanks @j-f1!",
+      "[Fixed] Fix opening files with Android Studio - #14519",
+      "[Fixed] Checks popover summary correctly reflects a successful conclusion when skipped or neutral checks are present - #14508",
+      "[Fixed] Long lists of conflicted files to commit or files to discard can be scrolled - #14468",
+      "[Fixed] Fix random crashes when external apps probe GitHub Desktop trampoline port - #14471",
+      "[Improved] Display a banner when we have a pretext release note to highlight the new feature - #14620",
+      "[Improved] Enable interactions with notifications from previous app sessions - #14496",
+      "[Improved] Improve feedback about user permission to display notifications - #14496",
+      "[Improved] Add ability to have showcasing of features through release notes - #14488",
+      "[Improved] User can see all releases notes between their current version and the latest update - #14458",
+      "[Removed] Outdated new drag and drop and split diff new feature callouts removed - #14463"
+    ],
+    "3.0.0": [
+      "[New] Get notified when your pull requests are reviewed - #14175",
+      "[Fixed] Default to merging when pulling without a configured preference between merge or rebase - #14431",
+      "[Improved] Add ability to re-run individual and failed GitHub Action checks - #14310"
+    ],
+    "2.9.16-beta2": [
+      "[Fixed] Use fast-forward flag as default for pulling divergent paths - #14431"
+    ],
+    "2.9.16-beta1": [
+      "[Improved] Add ability to re-run individual and failed GitHub Action checks - #14310"
+    ],
+    "2.9.15": [
+      "[Fixed] Support trusting repositories on network shares (Windows) - #14368",
+      "[Improved] Redesigned dialog for re-running checks - #14322"
+    ],
+    "2.9.15-beta2": [
+      "[Improved] Show progress indicator when trusting a repository directory - #14410",
+      "[Improved] Reduced noise on the rerun dialog user interface - #14322",
+      "[Improved] Upgrade embedded Git LFS to 3.1.4 - #14415"
+    ],
+    "2.9.15-beta1": [
+      "[Improved] Add UNC path prefix before adding to safe directory list - #14368",
+      "[Improved] Upgrade embedded Git to v2.35.3 on macOS, v2.35.3.windows.1 on Windows, and Git LFS to v3.1.2"
+    ],
+    "2.9.14": [
+      "[Improved] Surface Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user - #14336"
+    ],
+    "2.9.14-beta1": [
+      "[Improved] Surface Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user - #14336"
+    ],
+    "2.9.13": [
+      "[Added] Add ability to include or exclude multiple selected files for a commit from the context menu - #7790. Thanks @tsvetilian-ty!",
+      "[Added] Add \"View Branch on GitHub\" to the branches menu - #14224. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix CI check status popover not closing when clicking on PR badge - #14256",
+      "[Fixed] Fix checks list overflow handling on re-run checks dialog - #14246",
+      "[Fixed] Pull requests adhere to temporal laws again - #14238",
+      "[Fixed] Fix repository group header overflow when text is too long - #14233. Thanks @tsvetilian-ty!",
+      "[Fixed] Clone dialog \"Choose\" button uses an open dialog for directory selection on Windows - #12812",
+      "[Improved] Add a link under \"Enable notifications\" settings to the user's OS system notification settings - #14288"
+    ],
+    "2.9.13-beta2": [
+      "[Added] Add ability to include or exclude multiple selected files for a commit from the context menu - #7790. Thanks @tsvetilian-ty!",
+      "[Added] Add \"View Branch on GitHub\" to the branches menu - #14224. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix relative time of pull request review notification dialogs - #14261",
+      "[Fixed] Fix CI check status popover not closing when clicking on PR badge - #14256",
+      "[Fixed] Fix checks list overflow handling on re-run checks dialog - #14246",
+      "[Improved] Close keywords are now formatted and have informational tooltips in markdown - #14253",
+      "[Improved] Commit mentions in markdown are now formatted and linked - #14282",
+      "[Improved] Add a link under \"Enable notifications\" settings to the user's OS system notification settings - #14288"
+    ],
+    "2.9.13-beta1": [
+      "[New] Add support for notifications of pull request reviews - #14175",
+      "[Fixed] Pull requests adhere to temporal laws again - #14238",
+      "[Fixed] Fix repository group header overflow when text is too long - #14233. Thanks @tsvetilian-ty!",
+      "[Fixed] Clone dialog \"Choose\" button uses an open dialog for directory selection on Windows - #12812"
+    ],
     "2.9.12": [
       "[Added] Add support for Brackets Editor on Windows - #14069. Thanks @tsvetilian-ty!",
       "[Added] Add support for JetBrains RubyMine on Windows - #14068. Thanks @tsvetilian-ty!",

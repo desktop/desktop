@@ -40,6 +40,12 @@ import {
 } from '../lib/get-architecture'
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
 import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
+import {
+  getNotificationsPermission,
+  requestNotificationsPermission,
+  showNotification,
+} from 'desktop-notifications'
+import { initializeDesktopNotifications } from './notifications'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -144,6 +150,8 @@ if (__WIN32__ && process.argv.length > 1) {
     handlePossibleProtocolLauncherArgs(process.argv)
   }
 }
+
+initializeDesktopNotifications()
 
 function handleAppURL(url: string) {
   log.info('Processing protocol url')
@@ -507,6 +515,10 @@ app.on('ready', () => {
     mainWindow?.getCurrentWindowZoomFactor()
   )
 
+  ipcMain.on('set-window-zoom-factor', (_, zoomFactor: number) =>
+    mainWindow?.setWindowZoomFactor(zoomFactor)
+  )
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
@@ -652,13 +664,20 @@ app.on('ready', () => {
     async () => nativeTheme.shouldUseDarkColors
   )
 
-  ipcMain.handle('get-guid', () => {
-    return getMainGUID()
-  })
+  ipcMain.handle('get-guid', () => getMainGUID())
 
-  ipcMain.handle('save-guid', (_, guid) => {
-    return saveGUIDFile(guid)
-  })
+  ipcMain.handle('save-guid', (_, guid) => saveGUIDFile(guid))
+
+  ipcMain.handle('show-notification', async (_, title, body, userInfo) =>
+    showNotification(title, body, userInfo)
+  )
+
+  ipcMain.handle('get-notifications-permission', async () =>
+    getNotificationsPermission()
+  )
+  ipcMain.handle('request-notifications-permission', async () =>
+    requestNotificationsPermission()
+  )
 })
 
 app.on('activate', () => {

@@ -19,6 +19,7 @@ declare namespace CodeMirror {
   interface StringStreamContext {
     lines: string[]
     line: number
+    lookAhead: (n: number) => string
   }
 
   /**
@@ -106,7 +107,6 @@ declare namespace CodeMirror {
     public tabSize: number
 
     public constructor(
-      // tslint:disable-next-line:variable-name
       string: string,
       tabSize: number,
       context: StringStreamContext

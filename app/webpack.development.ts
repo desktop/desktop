@@ -54,7 +54,11 @@ const rendererConfig = merge({}, common.renderer, config, {
       // as a blob:// uri at runtime.
       {
         test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { sourceMap: true } },
+          'sass-loader?sourceMap',
+        ],
       },
     ],
   },
@@ -72,7 +76,11 @@ const crashConfig = merge({}, common.crash, config, {
       // as a blob:// uri at runtime.
       {
         test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { sourceMap: true } },
+          'sass-loader?sourceMap',
+        ],
       },
     ],
   },

@@ -56,13 +56,14 @@ import {
 } from 'fs'
 import { copySync } from 'fs-extra'
 
-const projectRoot = path.join(__dirname, '..')
-const entitlementsPath = `${projectRoot}/script/entitlements.plist`
-const extendInfoPath = `${projectRoot}/script/info.plist`
-const outRoot = path.join(projectRoot, 'out')
-
 const isPublishableBuild = isPublishable()
 const isDevelopmentBuild = getChannel() === 'development'
+
+const projectRoot = path.join(__dirname, '..')
+const entitlementsSuffix = isDevelopmentBuild ? '-dev' : ''
+const entitlementsPath = `${projectRoot}/script/entitlements${entitlementsSuffix}.plist`
+const extendInfoPath = `${projectRoot}/script/info.plist`
+const outRoot = path.join(projectRoot, 'out')
 
 console.log(`Building for ${getChannel()}…`)
 
@@ -209,6 +210,13 @@ function packageApp() {
       entitlements: entitlementsPath,
       'entitlements-inherit': entitlementsPath,
       type: isPublishableBuild ? 'distribution' : 'development',
+      // For development, we will use '-' as the identifier so that codesign
+      // will sign the app to run locally. We need to disable 'identity-validation'
+      // or otherwise it will replace '-' with one of the regular codesigning
+      // identities in our system.
+      identity: isDevelopmentBuild ? '-' : undefined,
+      'identity-validation': !isDevelopmentBuild,
+      'gatekeeper-assess': !isDevelopmentBuild,
     },
     osxNotarize: notarizationCredentials,
     protocols: [

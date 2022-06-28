@@ -149,6 +149,50 @@ export async function setGlobalConfigValue(
   return setConfigValueInPath(name, value, null, env)
 }
 
+/** Set the global config value by name. */
+export async function addGlobalConfigValue(
+  name: string,
+  value: string
+): Promise<void> {
+  await git(
+    ['config', '--global', '--add', name, value],
+    __dirname,
+    'addGlobalConfigValue'
+  )
+}
+
+/**
+ * Adds a path to the `safe.directories` configuration variable if it's not
+ * already present. Adding a path to `safe.directory` will cause Git to ignore
+ * if the path is owner by a different user than the current.
+ */
+export async function addSafeDirectory(path: string) {
+  // UNC-paths on Windows need to be prefixed with `%(prefix)/`, see
+  // https://github.com/git-for-windows/git/commit/e394a16023cbb62784e380f70ad8a833fb960d68
+  if (__WIN32__ && path[0] === '/') {
+    path = `%(prefix)/${path}`
+  }
+
+  await addGlobalConfigValueIfMissing('safe.directory', path)
+}
+
+/** Set the global config value by name. */
+export async function addGlobalConfigValueIfMissing(
+  name: string,
+  value: string
+): Promise<void> {
+  const { stdout, exitCode } = await git(
+    ['config', '--global', '-z', '--get-all', name, value],
+    __dirname,
+    'addGlobalConfigValue',
+    { successExitCodes: new Set([0, 1]) }
+  )
+
+  if (exitCode === 1 || !stdout.split('\0').includes(value)) {
+    await addGlobalConfigValue(name, value)
+  }
+}
+
 /**
  * Set config value by name
  *

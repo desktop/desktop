@@ -155,6 +155,9 @@ export const getCurrentWindowZoomFactor = invokeProxy(
   0
 )
 
+/** Tell the main process to set the current window's zoom factor */
+export const setWindowZoomFactor = sendProxy('set-window-zoom-factor', 1)
+
 /** Tell the main process to check for app updates */
 export const checkForUpdates = invokeProxy('check-for-updates', 1)
 
@@ -343,3 +346,18 @@ export const showOpenDialog = invokeProxy('show-open-dialog', 1)
 /** Tell the main process read/save the user GUID from/to file */
 export const saveGUID = invokeProxy('save-guid', 1)
 export const getGUID = invokeProxy('get-guid', 0)
+
+/** Tell the main process to show a notification */
+export const showNotification = invokeProxy('show-notification', 3)
+
+/** Tell the main process to obtain the app's permission to display notifications */
+export const getNotificationsPermission = invokeProxy(
+  'get-notifications-permission',
+  0
+)
+
+/** Tell the main process to request the app's permission to display notifications */
+export const requestNotificationsPermission = invokeProxy(
+  'request-notifications-permission',
+  0
+)

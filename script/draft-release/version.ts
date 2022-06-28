@@ -73,7 +73,26 @@ export function getNextVersionNumber(
         const firstBeta = `${nextVersion}-beta1`
         return firstBeta
       }
+    case 'test':
+      if (isBetaTag(semanticVersion)) {
+        throw new Error(
+          `Unable to draft test release using beta version '${version}'`
+        )
+      }
 
+      if (isTestTag(semanticVersion)) {
+        const tag = semanticVersion.prerelease[0]
+        const text = tag.substring(4)
+        const testNumber = parseInt(text, 10)
+        return semanticVersion.version.replace(
+          `-test${testNumber}`,
+          `-test${testNumber + 1}`
+        )
+      } else {
+        const nextVersion = inc(semanticVersion, 'patch')
+        const firstTest = `${nextVersion}-test1`
+        return firstTest
+      }
     default:
       throw new Error(
         `Resolving the next version is not implemented for channel ${channel}`

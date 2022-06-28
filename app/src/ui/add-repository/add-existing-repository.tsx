@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { Dispatcher } from '../dispatcher'
-import { getRepositoryType } from '../../lib/git'
+import { addSafeDirectory, getRepositoryType } from '../../lib/git'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -14,6 +14,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 import untildify from 'untildify'
 import { showOpenDialog } from '../main-process-proxy'
+import { Ref } from '../lib/ref'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -49,6 +50,9 @@ interface IAddExistingRepositoryState {
    */
   readonly showNonGitRepositoryWarning: boolean
   readonly isRepositoryBare: boolean
+  readonly isRepositoryUnsafe: boolean
+  readonly repositoryUnsafePath?: string
+  readonly isTrustingRepository: boolean
 }
 
 /** The component for adding an existing local repository. */
@@ -66,6 +70,8 @@ export class AddExistingRepository extends React.Component<
       isRepository: false,
       showNonGitRepositoryWarning: false,
       isRepositoryBare: false,
+      isRepositoryUnsafe: false,
+      isTrustingRepository: false,
     }
   }
 
@@ -75,6 +81,16 @@ export class AddExistingRepository extends React.Component<
     if (path.length !== 0) {
       await this.validatePath(path)
     }
+  }
+
+  private onTrustDirectory = async () => {
+    this.setState({ isTrustingRepository: true })
+    const { repositoryUnsafePath, path } = this.state
+    if (repositoryUnsafePath) {
+      await addSafeDirectory(repositoryUnsafePath)
+    }
+    await this.validatePath(path)
+    this.setState({ isTrustingRepository: false })
   }
 
   private async updatePath(path: string) {
@@ -94,13 +110,21 @@ export class AddExistingRepository extends React.Component<
 
     const type = await getRepositoryType(path)
 
-    const isRepository = type !== 'missing'
-    const isRepositoryBare = type === 'bare'
+    const isRepository = type.kind !== 'missing' && type.kind !== 'unsafe'
+    const isRepositoryUnsafe = type.kind === 'unsafe'
+    const isRepositoryBare = type.kind === 'bare'
     const showNonGitRepositoryWarning = !isRepository || isRepositoryBare
+    const repositoryUnsafePath = type.kind === 'unsafe' ? type.path : undefined
 
     this.setState(state =>
       path === state.path
-        ? { isRepository, isRepositoryBare, showNonGitRepositoryWarning }
+        ? {
+            isRepository,
+            isRepositoryBare,
+            isRepositoryUnsafe,
+            showNonGitRepositoryWarning,
+            repositoryUnsafePath,
+          }
         : null
     )
   }
@@ -118,6 +142,42 @@ export class AddExistingRepository extends React.Component<
             This directory appears to be a bare repository. Bare repositories
             are not currently supported.
           </p>
+        </Row>
+      )
+    }
+
+    const { isRepositoryUnsafe, repositoryUnsafePath, path } = this.state
+
+    if (isRepositoryUnsafe && repositoryUnsafePath !== undefined) {
+      // Git for Windows will replace backslashes with slashes in the error
+      // message so we'll do the same to not show "the repo at path c:/repo"
+      // when the entered path is `c:\repo`.
+      const convertedPath = __WIN32__ ? path.replaceAll('\\', '/') : path
+
+      return (
+        <Row className="warning-helper-text">
+          <Octicon symbol={OcticonSymbol.alert} />
+          <div>
+            <p>
+              The Git repository
+              {repositoryUnsafePath !== convertedPath && (
+                <>
+                  {' at '}
+                  <Ref>{repositoryUnsafePath}</Ref>
+                </>
+              )}{' '}
+              appears to be owned by another user on your machine. Adding
+              untrusted repositories may automatically execute files in the
+              repository.
+            </p>
+            <p>
+              If you trust the owner of the directory you can
+              <LinkButton onClick={this.onTrustDirectory}>
+                add an exception for this directory
+              </LinkButton>{' '}
+              in order to continue.
+            </p>
+          </div>
         </Row>
       )
     }
@@ -150,6 +210,7 @@ export class AddExistingRepository extends React.Component<
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
         onSubmit={this.addRepository}
         onDismissed={this.props.onDismissed}
+        loading={this.state.isTrustingRepository}
       >
         <DialogContent>
           <Row>

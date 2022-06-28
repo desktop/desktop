@@ -5,15 +5,7 @@ import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { Button } from '../lib/button'
-import { encodePathAsUrl } from '../../lib/path'
 import { DragData, DragType } from '../../models/drag-drop'
-import {
-  AvailableDragAndDropIntroKeys,
-  AvailableDragAndDropIntros,
-  DragAndDropIntroType,
-} from './drag-and-drop-intro'
 
 const RowHeight = 50
 
@@ -49,7 +41,10 @@ interface ICommitListProps {
   readonly emptyListMessage: JSX.Element | string
 
   /** Callback which fires when a commit has been selected in the list */
-  readonly onCommitsSelected: (commits: ReadonlyArray<Commit>) => void
+  readonly onCommitsSelected: (
+    commits: ReadonlyArray<Commit>,
+    isContiguous: boolean
+  ) => void
 
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
@@ -123,12 +118,6 @@ interface ICommitListProps {
   /** Whether or not commits in this list can be reordered. */
   readonly reorderingEnabled: boolean
 
-  /* Types of drag and drop intros already seen by the user */
-  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
-
-  /** Callback to fire when a drag & drop intro popover has been seen */
-  readonly onDragAndDropIntroSeen: (intro: DragAndDropIntroType) => void
-
   /** Whether a cherry pick is progress */
   readonly isCherryPickInProgress: boolean
 
@@ -145,29 +134,9 @@ interface ICommitListProps {
   readonly disableSquashing?: boolean
 }
 
-interface ICommitListState {
-  /** Remaining drag and drop intros to show in the popover. */
-  readonly remainingDragAndDropIntros: ReadonlyArray<DragAndDropIntroType>
-}
-
 /** A component which displays the list of commits. */
-export class CommitList extends React.Component<
-  ICommitListProps,
-  ICommitListState
-> {
+export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
-
-  public constructor(props: ICommitListProps) {
-    super(props)
-
-    const remainingDragAndDropIntros = AvailableDragAndDropIntroKeys.filter(
-      intro => !props.dragAndDropIntroTypesShown.has(intro)
-    )
-
-    this.state = {
-      remainingDragAndDropIntros,
-    }
-  }
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -303,10 +272,34 @@ export class CommitList extends React.Component<
     // reordering, they will need to do multiple cherry-picks.
     // Goal: first commit in history -> first on array
     const sorted = [...rows].sort((a, b) => b - a)
-
     const selectedShas = sorted.map(r => this.props.commitSHAs[r])
     const selectedCommits = this.lookupCommits(selectedShas)
-    this.props.onCommitsSelected(selectedCommits)
+    this.props.onCommitsSelected(selectedCommits, this.isContiguous(sorted))
+  }
+
+  /**
+   * Accepts a sorted array of numbers in descending order. If the numbers ar
+   * contiguous order, 4, 3, 2 not 5, 3, 1, returns true.
+   *
+   * Defined an array of 0 and 1 are considered contiguous.
+   */
+  private isContiguous(indexes: ReadonlyArray<number>) {
+    if (indexes.length <= 1) {
+      return true
+    }
+
+    for (let i = 0; i < indexes.length; i++) {
+      const current = indexes[i]
+      if (i + 1 === indexes.length) {
+        continue
+      }
+
+      if (current - 1 !== indexes[i + 1]) {
+        return false
+      }
+    }
+
+    return true
   }
 
   // This is required along with onSelectedRangeChanged in the case of a user
@@ -315,7 +308,7 @@ export class CommitList extends React.Component<
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
-      this.props.onCommitsSelected([commit])
+      this.props.onCommitsSelected([commit], true)
     }
   }
 
@@ -357,54 +350,6 @@ export class CommitList extends React.Component<
     return this.props.commitSHAs.findIndex(s => s === sha)
   }
 
-  private renderCherryPickIntroPopover() {
-    if (this.state.remainingDragAndDropIntros.length === 0) {
-      return null
-    }
-
-    const cherryPickIntro = encodePathAsUrl(
-      __dirname,
-      'static/cherry-pick-intro.png'
-    )
-
-    const nextButtonTitle =
-      this.state.remainingDragAndDropIntros.length > 1 ? 'Next' : 'Got it'
-
-    const introType = this.state.remainingDragAndDropIntros[0]
-    const intro = AvailableDragAndDropIntros[introType]
-
-    return (
-      <Popover caretPosition={PopoverCaretPosition.LeftTop}>
-        <img src={cherryPickIntro} className="cherry-pick-intro" />
-        <h3>
-          {intro.title}
-          <span className="call-to-action-bubble">New</span>
-        </h3>
-        <p>{intro.body}</p>
-        <div>
-          <Button onClick={this.onNextDragAndDropIntro} type="submit">
-            {nextButtonTitle}
-          </Button>
-        </div>
-      </Popover>
-    )
-  }
-
-  private onNextDragAndDropIntro = () => {
-    if (this.state.remainingDragAndDropIntros.length === 0) {
-      return
-    }
-
-    const intro = this.state.remainingDragAndDropIntros[0]
-
-    this.setState({
-      remainingDragAndDropIntros:
-        this.state.remainingDragAndDropIntros.slice(1),
-    })
-
-    this.props.onDragAndDropIntroSeen(intro)
-  }
-
   public render() {
     if (this.props.commitSHAs.length === 0) {
       return (
@@ -435,7 +380,6 @@ export class CommitList extends React.Component<
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
-        {this.renderCherryPickIntroPopover()}
       </div>
     )
   }

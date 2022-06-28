@@ -1,7 +1,8 @@
-import Dexie from 'dexie'
+import Dexie, { Transaction } from 'dexie'
 import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { assertNonNullable } from '../fatal-error'
+import { GitHubAccountType } from '../api'
 
 export interface IDatabaseOwner {
   readonly id?: number
@@ -12,6 +13,7 @@ export interface IDatabaseOwner {
   readonly key: string
   readonly login: string
   readonly endpoint: string
+  readonly type?: GitHubAccountType
 }
 
 export interface IDatabaseGitHubRepository {
@@ -25,7 +27,6 @@ export interface IDatabaseGitHubRepository {
 
   /** The database ID of the parent repository if the repository is a fork. */
   readonly parentID: number | null
-
   /** The last time a prune was attempted on the repository */
   readonly lastPruneDate: number | null
 
@@ -76,16 +77,22 @@ type BranchKey = [number, string]
 /** The repositories database. */
 export class RepositoriesDatabase extends BaseDatabase {
   /** The local repositories table. */
-  public repositories!: Dexie.Table<IDatabaseRepository, number>
+  public declare repositories: Dexie.Table<IDatabaseRepository, number>
 
   /** The GitHub repositories table. */
-  public gitHubRepositories!: Dexie.Table<IDatabaseGitHubRepository, number>
+  public declare gitHubRepositories: Dexie.Table<
+    IDatabaseGitHubRepository,
+    number
+  >
 
   /** A table containing the names of protected branches per repository. */
-  public protectedBranches!: Dexie.Table<IDatabaseProtectedBranch, BranchKey>
+  public declare protectedBranches: Dexie.Table<
+    IDatabaseProtectedBranch,
+    BranchKey
+  >
 
   /** The GitHub repository owners table. */
-  public owners!: Dexie.Table<IDatabaseOwner, number>
+  public declare owners: Dexie.Table<IDatabaseOwner, number>
 
   /**
    * Initialize a new repository database.
@@ -137,7 +144,7 @@ export class RepositoriesDatabase extends BaseDatabase {
 /**
  * Remove any duplicate GitHub repositories that have the same owner and name.
  */
-function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
+function removeDuplicateGitHubRepositories(transaction: Transaction) {
   const table = transaction.table<IDatabaseGitHubRepository, number>(
     'gitHubRepositories'
   )
@@ -157,7 +164,7 @@ function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
   })
 }
 
-async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
+async function ensureNoUndefinedParentID(tx: Transaction) {
   return tx
     .table<IDatabaseGitHubRepository, number>('gitHubRepositories')
     .toCollection()
@@ -178,7 +185,7 @@ async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
  * (https://github.com/desktop/desktop/pull/1242). This scenario ought to be
  * incredibly unlikely.
  */
-async function createOwnerKey(tx: Dexie.Transaction) {
+async function createOwnerKey(tx: Transaction) {
   const ownersTable = tx.table<IDatabaseOwner, number>('owners')
   const ghReposTable = tx.table<IDatabaseGitHubRepository, number>(
     'gitHubRepositories'

@@ -129,7 +129,14 @@ export class TrampolineServer {
     data: Buffer
   ) {
     const value = data.toString('utf8')
-    parser.processValue(value)
+
+    try {
+      parser.processValue(value)
+    } catch (error) {
+      log.error('Error processing trampoline data', error)
+      socket.end()
+      return
+    }
 
     if (!parser.hasFinished()) {
       return

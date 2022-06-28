@@ -84,12 +84,7 @@ export class Tokenizer {
     }
   }
 
-  private getLastProcessedChar(): string | null {
-    if (this._currentString.length) {
-      return this._currentString[this._currentString.length - 1]
-    }
-    return null
-  }
+  private getLastProcessedChar = () => this._currentString?.at(-1)
 
   private scanForEndOfWord(text: string, index: number): number {
     const indexOfNextNewline = text.indexOf('\n', index + 1)

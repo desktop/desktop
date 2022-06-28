@@ -20,6 +20,12 @@ import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
+import { offsetFromNow } from '../../lib/offset-from'
+import { gte, SemVer } from 'semver'
+import { getRendererGUID } from '../../lib/get-renderer-guid'
+
+/** The last version a showcase was seen. */
+export const lastShowCaseVersionSeen = 'version-of-last-showcase'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -34,20 +40,23 @@ export enum UpdateStatus {
 
   /** An update has been downloaded and is ready to be installed. */
   UpdateReady,
+
+  /** We have not checked for an update yet. */
+  UpdateNotChecked,
 }
 
 export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
-  newRelease: ReleaseSummary | null
+  newReleases: ReadonlyArray<ReleaseSummary> | null
 }
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
   private emitter = new Emitter()
-  private status = UpdateStatus.UpdateNotAvailable
+  private status = UpdateStatus.UpdateNotChecked
   private lastSuccessfulCheck: Date | null = null
-  private newRelease: ReleaseSummary | null = null
+  private newReleases: ReadonlyArray<ReleaseSummary> | null = null
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
@@ -94,17 +103,17 @@ class UpdateStore {
     this.emitDidChange()
   }
 
-  private onUpdateNotAvailable = () => {
+  private onUpdateNotAvailable = async () => {
+    // This is so we can check for pretext changelog for showcasing a recent update
+    this.newReleases = await generateReleaseSummary()
     this.touchLastChecked()
     this.status = UpdateStatus.UpdateNotAvailable
     this.emitDidChange()
   }
 
   private onUpdateDownloaded = async () => {
-    this.newRelease = await generateReleaseSummary()
-
+    this.newReleases = await generateReleaseSummary()
     this.status = UpdateStatus.UpdateReady
-
     this.emitDidChange()
   }
 
@@ -134,7 +143,7 @@ class UpdateStore {
     return {
       status: this.status,
       lastSuccessfulCheck: this.lastSuccessfulCheck,
-      newRelease: this.newRelease,
+      newReleases: this.newReleases,
     }
   }
 
@@ -152,7 +161,33 @@ class UpdateStore {
       return
     }
 
-    let updatesURL = __UPDATES_URL__
+    const updatesUrl = await this.getUpdatesUrl()
+
+    if (updatesUrl === null) {
+      return
+    }
+
+    this.userInitiatedUpdate = !inBackground
+
+    const error = await checkForUpdates(updatesUrl)
+
+    if (error !== undefined) {
+      this.emitError(error)
+    }
+  }
+
+  private async getUpdatesUrl() {
+    let url = null
+
+    try {
+      url = new URL(__UPDATES_URL__)
+    } catch (e) {
+      log.error('Error parsing updates url', e)
+      return __UPDATES_URL__
+    }
+
+    // Send the GUID to the update server for staggered release support
+    url.searchParams.set('guid', await getRendererGUID())
 
     // If the app is running under arm64 to x64 translation, we need to tweak the
     // update URL here to point at the arm64 binary.
@@ -160,21 +195,13 @@ class UpdateStore {
       enableUpdateFromEmulatedX64ToARM64() &&
       (await isRunningUnderARM64Translation()) === true
     ) {
-      const url = new URL(updatesURL)
       url.pathname = url.pathname.replace(
         /\/desktop\/desktop\/(x64\/)?latest/,
         '/desktop/desktop/arm64/latest'
       )
-      updatesURL = url.toString()
     }
 
-    this.userInitiatedUpdate = !inBackground
-
-    const error = await checkForUpdates(updatesURL)
-
-    if (error !== undefined) {
-      this.emitError(error)
-    }
+    return url.toString()
   }
 
   /** Quit and install the update. */
@@ -184,6 +211,44 @@ class UpdateStore {
     // eslint-disable-next-line no-sync
     sendWillQuitSync()
     quitAndInstallUpdate()
+  }
+
+  /**
+   * Method to determine if we should show an update showcase call to action.
+   *
+   * @returns true if there is a pretext on the latest releases and that release
+   * was published in the last 15 days.
+   */
+  public async isUpdateShowcase() {
+    if (
+      (__RELEASE_CHANNEL__ === 'development' ||
+        __RELEASE_CHANNEL__ === 'test') &&
+      this.newReleases === null &&
+      this.status === UpdateStatus.UpdateNotChecked
+    ) {
+      // On prod or with test manual check for updates, we are doing this during
+      // the automatic check for updates
+      this.newReleases = await generateReleaseSummary()
+    }
+
+    if (this.newReleases === null) {
+      return false
+    }
+
+    const lastShowCaseVersion = localStorage.getItem(lastShowCaseVersionSeen)
+    if (lastShowCaseVersion !== null) {
+      const lastShowCaseSemVersion = new SemVer(lastShowCaseVersion)
+      const latestRelease = new SemVer(this.newReleases[0].latestVersion)
+      if (gte(lastShowCaseSemVersion, latestRelease)) {
+        return false
+      }
+    }
+
+    return this.newReleases
+      .filter(
+        r => new Date(r.datePublished).getTime() > offsetFromNow(-15, 'days')
+      )
+      .some(r => r.pretext.length > 0)
   }
 }
 

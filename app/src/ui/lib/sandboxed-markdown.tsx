@@ -1,20 +1,23 @@
 import * as React from 'react'
 import * as Path from 'path'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
-import {
-  applyNodeFilters,
-  buildCustomMarkDownNodeFilterPipe,
-} from '../../lib/markdown-filters/node-filter'
+import { MarkdownContext } from '../../lib/markdown-filters/node-filter'
 import { GitHubRepository } from '../../models/github-repository'
 import { readFile } from 'fs/promises'
+import { Tooltip } from './tooltip'
+import { createObservableRef } from './observable-ref'
+import { getObjectId } from './object-id'
+import { debounce } from 'lodash'
+import {
+  MarkdownEmitter,
+  parseMarkdown,
+} from '../../lib/markdown-filters/markdown-filter'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
-  readonly markdown: string
+  readonly markdown: string | MarkdownEmitter
 
   /** The baseHref of the markdown content for when the markdown has relative links */
-  readonly baseHref: string | null
+  readonly baseHref?: string
 
   /**
    * A callback with the url of a link clicked in the parsed markdown
@@ -28,21 +31,34 @@ interface ISandboxedMarkdownProps {
   /** A callback for after the markdown has been parsed and the contents have
    * been mounted to the iframe */
   readonly onMarkdownParsed?: () => void
+
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 
-  /** The GitHub repository to use when looking up commit status. */
-  readonly repository: GitHubRepository
+  /** The GitHub repository for some markdown filters such as issue and commits. */
+  readonly repository?: GitHubRepository
+
+  /** The context of which markdown resides - such as PullRequest, PullRequestComment, Commit */
+  readonly markdownContext?: MarkdownContext
+}
+
+interface ISandboxedMarkdownState {
+  readonly tooltipElements: ReadonlyArray<HTMLElement>
+  readonly tooltipOffset?: DOMRect
 }
 
 /**
  * Parses and sanitizes markdown into html and outputs it inside a sandboxed
  * iframe.
  **/
-export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownProps> {
+export class SandboxedMarkdown extends React.PureComponent<
+  ISandboxedMarkdownProps,
+  ISandboxedMarkdownState
+> {
   private frameRef: HTMLIFrameElement | null = null
   private frameContainingDivRef: HTMLDivElement | null = null
   private contentDivRef: HTMLDivElement | null = null
+  private markdownEmitter?: MarkdownEmitter
 
   /**
    * Resize observer used for tracking height changes in the markdown
@@ -51,10 +67,29 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
 
+  private onDocumentScroll = debounce(() => {
+    this.setState({
+      tooltipOffset: this.frameRef?.getBoundingClientRect() ?? new DOMRect(),
+    })
+  }, 100)
+
+  /**
+   * We debounce the markdown updating because it is updated on each custom
+   * markdown filter. Leading is true so that users will at a minimum see the
+   * markdown parsed by markedjs while the custom filters are being applied.
+   * (So instead of being updated, 10+ times it is updated 1 or 2 times.)
+   */
+  private onMarkdownUpdated = debounce(
+    markdown => this.mountIframeContents(markdown),
+    10,
+    { leading: true }
+  )
+
   public constructor(props: ISandboxedMarkdownProps) {
     super(props)
 
     this.resizeObserver = new ResizeObserver(this.scheduleResizeEvent)
+    this.state = { tooltipElements: [] }
   }
 
   private scheduleResizeEvent = () => {
@@ -83,23 +118,48 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
     this.frameContainingDivRef = frameContainingDivRef
   }
 
+  private initializeMarkdownEmitter = () => {
+    if (this.markdownEmitter !== undefined) {
+      this.markdownEmitter.dispose()
+    }
+    const { emoji, repository, markdownContext } = this.props
+    this.markdownEmitter =
+      typeof this.props.markdown !== 'string'
+        ? this.props.markdown
+        : parseMarkdown(this.props.markdown, {
+            emoji,
+            repository,
+            markdownContext,
+          })
+
+    this.markdownEmitter.onMarkdownUpdated((markdown: string) => {
+      this.onMarkdownUpdated(markdown)
+    })
+  }
+
   public async componentDidMount() {
-    this.mountIframeContents()
+    this.initializeMarkdownEmitter()
 
     if (this.frameRef !== null) {
       this.setupFrameLoadListeners(this.frameRef)
     }
+
+    document.addEventListener('scroll', this.onDocumentScroll, {
+      capture: true,
+    })
   }
 
   public async componentDidUpdate(prevProps: ISandboxedMarkdownProps) {
     // rerender iframe contents if provided markdown changes
     if (prevProps.markdown !== this.props.markdown) {
-      this.mountIframeContents()
+      this.initializeMarkdownEmitter()
     }
   }
 
   public componentWillUnmount() {
+    this.markdownEmitter?.dispose()
     this.resizeObserver.disconnect()
+    document.removeEventListener('scroll', this.onDocumentScroll)
   }
 
   /**
@@ -154,7 +214,29 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
     frameRef.addEventListener('load', () => {
       this.setupContentDivRef(frameRef)
       this.setupLinkInterceptor(frameRef)
+      this.setupTooltips(frameRef)
       this.setFrameContainerHeight(frameRef)
+    })
+  }
+
+  private setupTooltips(frameRef: HTMLIFrameElement) {
+    if (frameRef.contentDocument === null) {
+      return
+    }
+
+    const tooltipElements = new Array<HTMLElement>()
+
+    for (const e of frameRef.contentDocument.querySelectorAll('[aria-label]')) {
+      if (frameRef.contentWindow?.HTMLElement) {
+        if (e instanceof frameRef.contentWindow.HTMLElement) {
+          tooltipElements.push(e)
+        }
+      }
+    }
+
+    this.setState({
+      tooltipElements,
+      tooltipOffset: frameRef.getBoundingClientRect(),
     })
   }
 
@@ -226,8 +308,8 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
   /**
    * Builds a <base> tag for cases where markdown has relative links
    */
-  private getBaseTag(baseHref: string | null): string {
-    if (baseHref == null) {
+  private getBaseTag(baseHref?: string): string {
+    if (baseHref === undefined) {
       return ''
     }
 
@@ -239,26 +321,12 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
   /**
    * Populates the mounted iframe with HTML generated from the provided markdown
    */
-  private async mountIframeContents() {
+  private async mountIframeContents(markdown: string) {
     if (this.frameRef === null) {
       return
     }
 
     const styleSheet = await this.getInlineStyleSheet()
-
-    const parsedMarkdown = marked(this.props.markdown ?? '', {
-      // https://marked.js.org/using_advanced  If true, use approved GitHub
-      // Flavored Markdown (GFM) specification.
-      gfm: true,
-      // https://marked.js.org/using_advanced, If true, add <br> on a single
-      // line break (copies GitHub behavior on comments, but not on rendered
-      // markdown files). Requires gfm be true.
-      breaks: true,
-    })
-
-    const sanitizedHTML = DOMPurify.sanitize(parsedMarkdown)
-
-    const filteredHTML = await this.applyCustomMarkdownFilters(sanitizedHTML)
 
     const src = `
       <html>
@@ -268,7 +336,7 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
         </head>
         <body class="markdown-body">
           <div id="content">
-          ${filteredHTML}
+          ${markdown}
           </div>
         </body>
       </html>
@@ -290,21 +358,9 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
     this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
   }
 
-  /**
-   * Applies custom markdown filters to parsed markdown html. This is done
-   * through converting the markdown html into a DOM document and then
-   * traversing the nodes to apply custom filters such as emoji, issue, username
-   * mentions, etc.
-   */
-  private applyCustomMarkdownFilters(parsedMarkdown: string): Promise<string> {
-    const nodeFilters = buildCustomMarkDownNodeFilterPipe(
-      this.props.emoji,
-      this.props.repository
-    )
-    return applyNodeFilters(nodeFilters, parsedMarkdown)
-  }
-
   public render() {
+    const { tooltipElements, tooltipOffset } = this.state
+
     return (
       <div
         className="sandboxed-markdown-iframe-container"
@@ -315,6 +371,15 @@ export class SandboxedMarkdown extends React.PureComponent<ISandboxedMarkdownPro
           sandbox=""
           ref={this.onFrameRef}
         />
+        {tooltipElements.map(e => (
+          <Tooltip
+            target={createObservableRef(e)}
+            key={getObjectId(e)}
+            tooltipOffset={tooltipOffset}
+          >
+            {e.ariaLabel}
+          </Tooltip>
+        ))}
       </div>
     )
   }

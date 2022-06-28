@@ -160,7 +160,6 @@ describe('repository-matching', () => {
         login: 'shiftkey',
         id: 1234,
         endpoint: 'https://api.github.com/',
-        hash: 'whatever',
       },
       isPrivate: false,
       htmlURL: 'https://github.com/shiftkey/desktop',
