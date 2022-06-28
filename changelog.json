@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.0.4-test1": [
+      "[Fixed] Fix notifications support for Windows Server 2016 (bis)"
+    ],
     "3.0.3-test5": [
       "[Fixed] Fix notifications support for Windows Server 2016"
     ],
