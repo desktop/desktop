@@ -104,7 +104,10 @@ import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
-import { findDefaultUpstreamBranch } from '../lib/branch'
+import {
+  findContributionTargetDefaultBranch,
+  findDefaultUpstreamBranch,
+} from '../lib/branch'
 import {
   GitHubRepository,
   hasWritePermission,
@@ -384,9 +387,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
-      case 'update-branch':
+      case 'update-branch-with-contribution-target-branch':
         this.props.dispatcher.recordMenuInitiatedUpdate()
-        return this.updateBranch()
+        return this.updateBranchWithContributionTargetBranch()
       case 'compare-to-branch':
         return this.showHistory(true)
       case 'merge-branch':
@@ -637,7 +640,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return enterpriseAccount || null
   }
 
-  private updateBranch() {
+  private updateBranchWithContributionTargetBranch() {
     const { selectedState } = this.state
     if (
       selectedState == null ||
@@ -647,19 +650,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const { state, repository } = selectedState
-    const defaultBranch = state.branchesState.defaultBranch
-    if (!defaultBranch) {
+
+    const contributionTargetDefaultBranch = findContributionTargetDefaultBranch(
+      repository,
+      state.branchesState
+    )
+    if (!contributionTargetDefaultBranch) {
       return
     }
 
     this.props.dispatcher.initializeMergeOperation(
       repository,
       false,
-      defaultBranch
+      contributionTargetDefaultBranch
     )
 
     const { mergeStatus } = state.compareState
-    this.props.dispatcher.mergeBranch(repository, defaultBranch, mergeStatus)
+    this.props.dispatcher.mergeBranch(
+      repository,
+      contributionTargetDefaultBranch,
+      mergeStatus
+    )
   }
 
   private mergeBranch(isSquash: boolean = false) {
