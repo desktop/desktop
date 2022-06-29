@@ -3,7 +3,10 @@ import { UpstreamRemoteName } from './stores'
 import {
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
+  isRepositoryWithGitHubRepository,
+  Repository,
 } from '../models/repository'
+import { IBranchesState } from './app-state'
 
 /**
  * Finds the default branch of the upstream repository of the passed repository.
@@ -40,4 +43,24 @@ export function findDefaultUpstreamBranch(
   )
 
   return foundBranch !== undefined ? foundBranch : null
+}
+
+/**
+ *
+ * @param repository The repository to use.
+ * @param branchesState The branches state of the repository.
+ * @returns The default branch of the user's contribution target, or null if it's not known.
+ *
+ * This method will return the fork's upstream default branch, if the user
+ * is contributing to the parent repository.
+ *
+ * Otherwise, this method will return the default branch of the passed in repository.
+ */
+export function findContributionTargetDefaultBranch(
+  repository: Repository,
+  { allBranches, defaultBranch }: IBranchesState
+): Branch | null {
+  return isRepositoryWithGitHubRepository(repository)
+    ? findDefaultUpstreamBranch(repository, allBranches) ?? defaultBranch
+    : defaultBranch
 }
