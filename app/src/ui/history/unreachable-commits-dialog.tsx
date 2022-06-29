@@ -3,6 +3,7 @@ import { Dialog, DialogFooter } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Commit } from '../../models/commit'
+import { CommitList } from './commit-list'
 
 export enum UnreachableCommitsTab {
   Unreachable,
@@ -21,6 +22,9 @@ interface IUnreachableCommitsDialogProps {
 
   /** Used to set the selected tab. */
   readonly selectedTab: UnreachableCommitsTab
+
+  /** The emoji lookup to render images inline */
+  readonly emoji: Map<string, string>
 
   /** Called to dismiss the  */
   readonly onDismissed: () => void
@@ -44,6 +48,15 @@ export class UnreachableCommitsDialog extends React.Component<
     }
   }
 
+  public componentWillUpdate(nextProps: IUnreachableCommitsDialogProps) {
+    const currentSelectedTab = this.props.selectedTab
+    const selectedTab = nextProps.selectedTab
+
+    if (currentSelectedTab !== selectedTab) {
+      this.setState({ selectedTab })
+    }
+  }
+
   private onTabClicked = (selectedTab: UnreachableCommitsTab) => {
     this.setState({ selectedTab })
   }
@@ -60,8 +73,31 @@ export class UnreachableCommitsDialog extends React.Component<
     )
   }
 
+  private getShasToDisplay = () => {
+    const { selectedTab } = this.state
+    const { shasInDiff, selectedShas } = this.props
+    if (selectedTab === UnreachableCommitsTab.Reachable) {
+      return shasInDiff
+    }
+
+    return selectedShas.filter(sha => !shasInDiff.includes(sha))
+  }
+
   private renderActiveTab() {
-    return 'A list of the commits for this tab!'
+    const { commitLookup, emoji } = this.props
+    return (
+      <div className="unreachable-commit-list">
+        <CommitList
+          gitHubRepository={null}
+          isLocalRepository={true}
+          commitLookup={commitLookup}
+          commitSHAs={this.getShasToDisplay()}
+          selectedSHAs={[]}
+          localCommitSHAs={[]}
+          emoji={emoji}
+        />
+      </div>
+    )
   }
 
   private renderFooter() {
