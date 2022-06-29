@@ -61,6 +61,16 @@ export class UnreachableCommitsDialog extends React.Component<
     this.setState({ selectedTab })
   }
 
+  private getShasToDisplay = () => {
+    const { selectedTab } = this.state
+    const { shasInDiff, selectedShas } = this.props
+    if (selectedTab === UnreachableCommitsTab.Reachable) {
+      return shasInDiff
+    }
+
+    return selectedShas.filter(sha => !shasInDiff.includes(sha))
+  }
+
   private renderTabs() {
     return (
       <TabBar
@@ -71,16 +81,6 @@ export class UnreachableCommitsDialog extends React.Component<
         <span>Reachable</span>
       </TabBar>
     )
-  }
-
-  private getShasToDisplay = () => {
-    const { selectedTab } = this.state
-    const { shasInDiff, selectedShas } = this.props
-    if (selectedTab === UnreachableCommitsTab.Reachable) {
-      return shasInDiff
-    }
-
-    return selectedShas.filter(sha => !shasInDiff.includes(sha))
   }
 
   private renderActiveTab() {
