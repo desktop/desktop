@@ -85,18 +85,22 @@ export class UnreachableCommitsDialog extends React.Component<
 
   private renderActiveTab() {
     const { commitLookup, emoji } = this.props
+
     return (
-      <div className="unreachable-commit-list">
-        <CommitList
-          gitHubRepository={null}
-          isLocalRepository={true}
-          commitLookup={commitLookup}
-          commitSHAs={this.getShasToDisplay()}
-          selectedSHAs={[]}
-          localCommitSHAs={[]}
-          emoji={emoji}
-        />
-      </div>
+      <>
+        {this.renderUnreachableCommitsMessage()}
+        <div className="unreachable-commit-list">
+          <CommitList
+            gitHubRepository={null}
+            isLocalRepository={true}
+            commitLookup={commitLookup}
+            commitSHAs={this.getShasToDisplay()}
+            selectedSHAs={[]}
+            localCommitSHAs={[]}
+            emoji={emoji}
+          />
+        </div>
+      </>
     )
   }
 
@@ -105,6 +109,24 @@ export class UnreachableCommitsDialog extends React.Component<
       <DialogFooter>
         <OkCancelButtonGroup cancelButtonVisible={false} />
       </DialogFooter>
+    )
+  }
+
+  private renderUnreachableCommitsMessage = () => {
+    const count = this.getShasToDisplay().length
+    const commitS = count > 1 ? 'commits' : 'commit'
+    return (
+      <div className="message">
+        Your changes represent commits reachable by following the ancestral path
+        starting at latest commit in your selection. You will{' '}
+        {this.state.selectedTab === UnreachableCommitsTab.Unreachable
+          ? 'NOT'
+          : ''}{' '}
+        see changes from the following {commitS}.{' '}
+        {this.state.selectedTab === UnreachableCommitsTab.Unreachable
+          ? `These ${commitS} likely originated from a different branch than what your latest commit originates from.`
+          : ''}
+      </div>
     )
   }
 
