@@ -456,20 +456,26 @@ export class CommitSummary extends React.Component<
       )
     }
 
-    const numInDiff =
-      selectedCommits.length -
-      getCountCommitsNotInDiff(selectedCommits, shasInDiff)
+    const commitsNotInDiff = getCountCommitsNotInDiff(
+      selectedCommits,
+      shasInDiff
+    )
+    const numInDiff = selectedCommits.length - commitsNotInDiff
 
     return (
       <div className={summaryClassNames}>
         Showing changes from{' '}
-        <LinkButton
-          onMouseOver={this.onHighlightShasInDiff}
-          onMouseOut={this.onRemoveHighlightOfShas}
-          onClick={this.showUnreachableCommits}
-        >
-          {numInDiff} commits
-        </LinkButton>
+        {commitsNotInDiff > 0 ? (
+          <LinkButton
+            onMouseOver={this.onHighlightShasInDiff}
+            onMouseOut={this.onRemoveHighlightOfShas}
+            onClick={this.showUnreachableCommits}
+          >
+            {numInDiff} commits
+          </LinkButton>
+        ) : (
+          <> {numInDiff} commits</>
+        )}
       </div>
     )
   }
