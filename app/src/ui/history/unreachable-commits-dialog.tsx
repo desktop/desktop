@@ -103,7 +103,7 @@ export class UnreachableCommitsDialog extends React.Component<
   private renderFooter() {
     return (
       <DialogFooter>
-        <OkCancelButtonGroup />
+        <OkCancelButtonGroup cancelButtonVisible={false} />
       </DialogFooter>
     )
   }
