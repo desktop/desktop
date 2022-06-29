@@ -160,6 +160,7 @@ import { getPullRequestCommitRef } from '../models/pull-request'
 import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
 import { showContextualMenu } from '../lib/menu-item'
+import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2210,6 +2211,30 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.UnreachableCommits: {
+        const { selectedState } = this.state
+        if (
+          selectedState == null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const {
+          commitLookup,
+          commitSelection: { shas, shasInDiff },
+        } = selectedState.state
+
+        return (
+          <UnreachableCommitsDialog
+            selectedShas={shas}
+            shasInDiff={shasInDiff}
+            commitLookup={commitLookup}
+            selectedTab={popup.selectedTab}
             onDismissed={onPopupDismissedFn}
           />
         )
