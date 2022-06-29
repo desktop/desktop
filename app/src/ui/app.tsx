@@ -618,12 +618,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setCommitMessageFocus(true)
   }
 
-  private checkForUpdates(inBackground: boolean) {
+  private checkForUpdates(inBackground: boolean, staggered: boolean = true) {
     if (__LINUX__ || __RELEASE_CHANNEL__ === 'development') {
       return
     }
 
-    updateStore.checkForUpdates(inBackground)
+    updateStore.checkForUpdates(inBackground, staggered)
   }
 
   private getDotComAccount(): Account | null {
@@ -1613,6 +1613,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             applicationVersion={version}
             applicationArchitecture={process.arch}
             onCheckForUpdates={this.onCheckForUpdates}
+            onCheckForNonStaggeredUpdates={this.onCheckForNonStaggeredUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
           />
@@ -2300,7 +2301,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.performRetry(retryAction)
   }
 
-  private onCheckForUpdates = () => this.checkForUpdates(false)
+  private onCheckForUpdates = () => this.checkForUpdates(false, true)
+  private onCheckForNonStaggeredUpdates = () =>
+    this.checkForUpdates(false, false)
 
   private showAcknowledgements = () => {
     this.props.dispatcher.showPopup({ type: PopupType.Acknowledgements })
