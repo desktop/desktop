@@ -388,7 +388,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
     const classes = classNames({
       'has-highlighted-commits':
-        shasToHighlight !== undefined && shasToHighlight.length > 1,
+        shasToHighlight !== undefined && shasToHighlight.length > 0,
     })
 
     return (

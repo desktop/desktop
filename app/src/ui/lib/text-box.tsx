@@ -1,7 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
-import { LinkButton } from './link-button'
 import { showContextualMenu } from '../../lib/menu-item'
 
 export interface ITextBoxProps {
@@ -46,34 +45,6 @@ export interface ITextBoxProps {
 
   /** The type of the input. Defaults to `text`. */
   readonly type?: 'text' | 'search' | 'password' | 'email'
-
-  /**
-   * An optional text for a link label element. A link label is, for the purposes
-   * of this control an anchor element that's rendered alongside (ie on the same)
-   * row as the the label element.
-   *
-   * Note that the link label will only be rendered if the textbox has a
-   * label text (specified through the label prop). A link label is used for
-   * presenting the user with a contextual link related to a specific text
-   * input such as a password recovery link for a password text box.
-   */
-  readonly labelLinkText?: string
-
-  /**
-   * An optional URL to be opened when the label link (if present, see the
-   * labelLinkText prop for more details) is clicked. The link will be opened using the
-   * standard semantics of a LinkButton, i.e. in the configured system browser.
-   *
-   * If not specified consumers need to subscribe to the onLabelLinkClick event.
-   */
-  readonly labelLinkUri?: string
-
-  /**
-   * An optional event handler which is invoked when the label link (if present,
-   * see the labelLinkText prop for more details) is clicked. See the onClick
-   * event on the LinkButton component for more details.
-   */
-  readonly onLabelLinkClick?: () => void
 
   /** The tab index of the input element. */
   readonly tabIndex?: number
@@ -213,35 +184,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
-  private renderLabelLink() {
-    if (!this.props.labelLinkText) {
-      return null
-    }
-
-    return (
-      <LinkButton
-        uri={this.props.labelLinkUri}
-        onClick={this.props.onLabelLinkClick}
-        className="link-label"
-      >
-        {this.props.labelLinkText}
-      </LinkButton>
-    )
-  }
-
-  private renderLabel() {
-    if (!this.props.label) {
-      return null
-    }
-
-    return (
-      <div className="label-container">
-        <label htmlFor={this.state.inputId}>{this.props.label}</label>
-        {this.renderLabelLink()}
-      </div>
-    )
-  }
-
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
     showContextualMenu([{ role: 'editMenu' }])
@@ -290,12 +232,12 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   public render() {
-    const className = classNames('text-box-component', this.props.className)
-    const inputId = this.props.label ? this.state.inputId : undefined
+    const { label, className } = this.props
+    const inputId = label ? this.state.inputId : undefined
 
     return (
-      <div className={className}>
-        {this.renderLabel()}
+      <div className={classNames('text-box-component', className)}>
+        {label && <label htmlFor={inputId}>{label}</label>}
 
         <input
           id={inputId}
