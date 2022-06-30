@@ -377,6 +377,8 @@ export class CommitSummary extends React.Component<
       return
     }
 
+    const commitsPluralized = excludedCommitsCount > 1 ? 'commits' : 'commit'
+
     return (
       <div
         className="commit-unreachable-info"
@@ -385,7 +387,7 @@ export class CommitSummary extends React.Component<
       >
         <Octicon symbol={OcticonSymbol.info} />
         <LinkButton onClick={this.showUnreachableCommits}>
-          {excludedCommitsCount} unreachable commits
+          {excludedCommitsCount} unreachable {commitsPluralized}
         </LinkButton>{' '}
         not included.
       </div>
@@ -461,7 +463,7 @@ export class CommitSummary extends React.Component<
       shasInDiff
     )
     const numInDiff = selectedCommits.length - commitsNotInDiff
-
+    const commitsPluralized = numInDiff > 1 ? 'commits' : 'commit'
     return (
       <div className={summaryClassNames}>
         Showing changes from{' '}
@@ -471,10 +473,13 @@ export class CommitSummary extends React.Component<
             onMouseOut={this.onRemoveHighlightOfShas}
             onClick={this.showUnreachableCommits}
           >
-            {numInDiff} commits
+            {numInDiff} {commitsPluralized}
           </LinkButton>
         ) : (
-          <> {numInDiff} commits</>
+          <>
+            {' '}
+            {numInDiff} {commitsPluralized}
+          </>
         )}
       </div>
     )
