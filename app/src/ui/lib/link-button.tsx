@@ -11,6 +11,12 @@ interface ILinkButtonProps {
   /** A function to call on click. */
   readonly onClick?: () => void
 
+  /** A function to call when mouse is hovered over */
+  readonly onMouseOver?: () => void
+
+  /** A function to call when mouse is moved off */
+  readonly onMouseOut?: () => void
+
   /** CSS classes attached to the component */
   readonly className?: string
 
@@ -42,6 +48,8 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
         ref={this.anchorRef}
         className={className}
         href={href}
+        onMouseOver={this.props.onMouseOver}
+        onMouseOut={this.props.onMouseOut}
         onClick={this.onClick}
         tabIndex={this.props.tabIndex}
       >
