@@ -2,8 +2,7 @@ import { RequestChannels, RequestResponseChannels } from '../lib/ipc-shared'
 // eslint-disable-next-line no-restricted-imports
 import { ipcMain } from 'electron'
 import { IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
-import { mainWindow } from './main'
-import { crashWindow } from './show-uncaught-exception'
+import { isTrustedIPCSender } from './trusted-ipc-sender'
 
 type RequestChannelListener<T extends keyof RequestChannels> = (
   event: IpcMainEvent,
@@ -55,13 +54,7 @@ function safeListener<E extends IpcMainEvent | IpcMainInvokeEvent, R>(
   listener: (event: E, ...a: any) => R
 ) {
   return (event: E, ...args: any) => {
-    const senderId = event.sender.id
-    // TODO: replace these ternary checks with optional chaining. We couldn't
-    // do that at the time of writing this because of a bug in Webpack <5.71.0:
-    // https://github.com/webpack/webpack/issues/12960
-    const rendererId = mainWindow ? mainWindow.webContentsId : null
-    const crashId = crashWindow ? crashWindow.webContentsId : null
-    if (![rendererId, crashId].includes(senderId)) {
+    if (!isTrustedIPCSender(event.sender)) {
       log.error(
         `IPC message received from invalid sender: ${event.senderFrame.url}`
       )

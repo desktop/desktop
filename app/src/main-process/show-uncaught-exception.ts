@@ -3,7 +3,6 @@ import { setCrashMenu } from './menu'
 import { formatError } from '../lib/logging/format-error'
 import { CrashWindow } from './crash-window'
 
-export let crashWindow: CrashWindow | null = null
 let hasReportedUncaughtException = false
 
 /** Show the uncaught exception UI. */
@@ -50,6 +49,4 @@ export function showUncaughtException(isLaunchError: boolean, error: Error) {
   })
 
   window.load()
-
-  crashWindow = window
 }

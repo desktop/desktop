@@ -5,6 +5,7 @@ import {
   BrowserWindow,
   autoUpdater,
   nativeTheme,
+  WebContents,
 } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
@@ -25,6 +26,7 @@ import {
   installNotificationCallback,
   terminateDesktopNotifications,
 } from './notifications'
+import { addTrustedIPCSender } from './trusted-ipc-sender'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -77,6 +79,7 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+    addTrustedIPCSender(this.window.webContents)
 
     installNotificationCallback(this.window)
 
@@ -211,8 +214,8 @@ export class AppWindow {
     return !!this.loadTime && !!this.rendererReadyTime
   }
 
-  public get webContentsId(): number {
-    return this.window.webContents.id
+  public get webContents(): WebContents {
+    return this.window.webContents
   }
 
   public onClose(fn: () => void) {
