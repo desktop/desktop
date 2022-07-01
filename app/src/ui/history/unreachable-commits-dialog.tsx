@@ -136,7 +136,7 @@ export class UnreachableCommitsDialog extends React.Component<
     return (
       <Dialog
         className="unreachable-commits"
-        title={__DARWIN__ ? 'Unreachable Commits' : 'Unreachable commits'}
+        title={__DARWIN__ ? 'Commit Reachability' : 'Commit reachability'}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
