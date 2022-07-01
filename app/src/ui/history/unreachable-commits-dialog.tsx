@@ -114,18 +114,20 @@ export class UnreachableCommitsDialog extends React.Component<
 
   private renderUnreachableCommitsMessage = () => {
     const count = this.getShasToDisplay().length
-    const commitS = count > 1 ? 'commits' : 'commit'
+    const commitsPluralized = count > 1 ? 'commits' : 'commit'
+    const pronounPluralized = count > 1 ? `they're` : `it's`
     return (
       <div className="message">
-        Your changes represent commits reachable by following the ancestral path
-        starting at latest commit in your selection. You will{' '}
+        You will{' '}
         {this.state.selectedTab === UnreachableCommitsTab.Unreachable
-          ? 'NOT'
+          ? 'not'
           : ''}{' '}
-        see changes from the following {commitS}.{' '}
+        see changes from the following {commitsPluralized} because{' '}
+        {pronounPluralized}{' '}
         {this.state.selectedTab === UnreachableCommitsTab.Unreachable
-          ? `These ${commitS} likely originated from a different branch than what your latest commit originates from.`
-          : ''}
+          ? 'not'
+          : ''}{' '}
+        in the ancestry path of the most recent commit in your selection.
       </div>
     )
   }
