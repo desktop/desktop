@@ -39,6 +39,13 @@ export interface IToolbarButtonProps {
   readonly onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
+   * An optional event handler for when the button's context menu
+   * is activated by a pointer event or by hitting the menu key
+   * while focused.
+   */
+  readonly onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
    * A function that's called when the user hovers over the button with
    * a pointer device.
    */
@@ -206,6 +213,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
         )}
         <Button
           onClick={this.onClick}
+          onContextMenu={this.props.onContextMenu}
           ref={this.onButtonRef}
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}

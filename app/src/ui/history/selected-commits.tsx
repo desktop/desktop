@@ -42,6 +42,7 @@ interface ISelectedCommitsProps {
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommits: ReadonlyArray<Commit>
+  readonly shasInDiff: ReadonlyArray<string>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
@@ -166,7 +167,8 @@ export class SelectedCommits extends React.Component<
   private renderCommitSummary(commits: ReadonlyArray<Commit>) {
     return (
       <CommitSummary
-        commits={commits}
+        selectedCommits={commits}
+        shasInDiff={this.props.shasInDiff}
         changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
@@ -179,7 +181,15 @@ export class SelectedCommits extends React.Component<
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+        onHighlightShas={this.onHighlightShas}
       />
+    )
+  }
+
+  private onHighlightShas = (shasToHighlight: ReadonlyArray<string>) => {
+    this.props.dispatcher.updateShasToHighlight(
+      this.props.repository,
+      shasToHighlight
     )
   }
 
