@@ -27,6 +27,7 @@
     .commit-summary-description-scroll-view {
       max-height: 400px;
       overflow: auto;
+      display: revert;
 
       &:before {
         content: none;
@@ -118,9 +119,11 @@
 
   &-description-scroll-view {
     overflow: hidden;
-    // The extra pixel makes the space align up with the commit list.
-    max-height: 70px;
     flex: 1;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    // Maximum amount of commit description lines to show before collapsing
+    -webkit-line-clamp: 3;
   }
 
   // Enable text selection inside the title and description elements.
