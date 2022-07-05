@@ -21,9 +21,8 @@ function findYarnVersion(callback: (path: string) => void) {
 
     // this ensures the paths returned by glob are sorted alphabetically
     files.sort()
-
     // use the latest version here if multiple are found
-    callback(forceUnwrap('Missing vendored yarn', files.at(-1)))
+    callback(forceUnwrap('Missing vendored yarn', files[files.length - 1]));
   })
 }
 
