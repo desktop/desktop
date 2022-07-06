@@ -83,11 +83,6 @@ export function enableCustomizeTheme(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow using Windows' OpenSSH? */
-export function enableWindowsOpenSSH(): boolean {
-  return true
-}
-
 /** Should we use SSH askpass? */
 export function enableSSHAskPass(): boolean {
   return true

@@ -1,6 +1,6 @@
 import memoizeOne from 'memoize-one'
 import { pathExists } from '../../ui/lib/path-exists'
-import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
+import { enableSSHAskPass } from '../feature-flag'
 import { getBoolean } from '../local-storage'
 import {
   getDesktopTrampolinePath,
@@ -13,7 +13,7 @@ export const UseWindowsOpenSSHKey: string = 'useWindowsOpenSSH'
 
 export const isWindowsOpenSSHAvailable = memoizeOne(
   async (): Promise<boolean> => {
-    if (!__WIN32__ || !enableWindowsOpenSSH()) {
+    if (!__WIN32__) {
       return false
     }
 
