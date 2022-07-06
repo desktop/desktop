@@ -233,9 +233,7 @@ function extractBranchFromMessage(message: string): string | null {
   return match === null || match[1].length === 0 ? null : match[1]
 }
 
-/**
- * Get the files that were changed in the given stash commit.
- */
+/** Get the files that were changed in the given stash commit */
 export async function getStashedFiles(
   repository: Repository,
   stashSha: string
