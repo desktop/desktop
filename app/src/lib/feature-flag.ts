@@ -103,11 +103,6 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should we enable high-signal notifications? */
-export function enableHighSignalNotifications(): boolean {
-  return true
-}
-
 /** Should we enable PR review notifications? */
 export function enablePullRequestReviewNotifications(): boolean {
   return true
