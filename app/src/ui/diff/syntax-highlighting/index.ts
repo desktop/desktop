@@ -15,7 +15,6 @@ import {
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
 import { getOldPathOrDefault } from '../../../lib/get-old-path'
-import { enableTextDiffExpansion } from '../../../lib/feature-flag'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -110,24 +109,12 @@ export async function getFileContents(
   file: ChangedFile,
   lineFilters: ILineFilters
 ): Promise<IFileContents> {
-  // If text-diff expansion is enabled, we'll always want to load both the old
-  // and the new contents, so that we can expand the diff as needed.
-  const oldContentsPromise =
-    enableTextDiffExpansion() || lineFilters.oldLineFilter.length
-      ? getOldFileContent(repo, file)
-      : Promise.resolve(null)
-
-  const newContentsPromise =
-    enableTextDiffExpansion() || lineFilters.newLineFilter.length
-      ? getNewFileContent(repo, file)
-      : Promise.resolve(null)
-
   const [oldContents, newContents] = await Promise.all([
-    oldContentsPromise.catch(e => {
+    getOldFileContent(repo, file).catch(e => {
       log.error('Could not load old contents for syntax highlighting', e)
       return null
     }),
-    newContentsPromise.catch(e => {
+    getNewFileContent(repo, file).catch(e => {
       log.error('Could not load new contents for syntax highlighting', e)
       return null
     }),
@@ -138,7 +125,6 @@ export async function getFileContents(
     oldContents: oldContents?.toString('utf8').split(/\r?\n/) ?? [],
     newContents: newContents?.toString('utf8').split(/\r?\n/) ?? [],
     canBeExpanded:
-      enableTextDiffExpansion() &&
       newContents !== null &&
       newContents.length <= MaxDiffExpansionNewContentLength,
   }

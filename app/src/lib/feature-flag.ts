@@ -56,11 +56,6 @@ export function enableUnhandledRejectionReporting(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow expanding text diffs? */
-export function enableTextDiffExpansion(): boolean {
-  return true
-}
-
 /**
  * Should we allow x64 apps running under ARM translation to auto-update to
  * ARM64 builds?
