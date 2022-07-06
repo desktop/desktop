@@ -5,6 +5,7 @@ import {
   PlainFileStatus,
   CopiedOrRenamedFileStatus,
   UntrackedFileStatus,
+  AppFileStatus,
 } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -13,6 +14,7 @@ import { parseRawUnfoldedTrailers } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
+import { forceUnwrap } from '../fatal-error'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -55,6 +57,12 @@ export function mapStatus(
 
   return { kind: AppFileStatusKind.Modified }
 }
+
+const isCopyOrRename = (
+  status: AppFileStatus
+): status is CopiedOrRenamedFileStatus =>
+  status.kind === AppFileStatusKind.Copied ||
+  status.kind === AppFileStatusKind.Renamed
 
 /**
  * Get the repository's commits using `revisionRange` and limited to `limit`
@@ -161,7 +169,7 @@ export async function getChangedFiles(
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
-  const baseArgs = [
+  const args = [
     'log',
     sha,
     '-C',
@@ -170,60 +178,46 @@ export async function getChangedFiles(
     '-1',
     '--no-show-signature',
     '--first-parent',
+    '--raw',
     '--format=format:',
+    '--numstat',
     '-z',
+    '--',
   ]
 
-  // Run `git log` to obtain the file names and their state
-  const resultNameStatus = await git(
-    [...baseArgs, '--name-status', '--'],
-    repository.path,
-    'getChangedFilesNameStatus'
-  )
+  const { stdout } = await git(args, repository.path, 'getChangesFiles')
+  const files = new Array<CommittedFileChange>()
+  let linesAdded = 0
+  let linesDeleted = 0
+  let numStatCount = 0
 
-  const files = parseChangedFiles(resultNameStatus.stdout, sha)
-
-  // Run `git log` again, but this time to get the number of lines added/deleted
-  // per file
-  const resultNumStat = await git(
-    [...baseArgs, '--numstat', '--'],
-    repository.path,
-    'getChangedFilesNumStats'
-  )
-
-  const linesChanged = parseChangedFilesNumStat(resultNumStat.stdout)
-
-  return {
-    files,
-    ...linesChanged,
-  }
-}
-
-function parseChangedFilesNumStat(stdout: string): {
-  linesAdded: number
-  linesDeleted: number
-} {
   const lines = stdout.split('\0')
-  let totalLinesAdded = 0
-  let totalLinesDeleted = 0
 
-  for (const line of lines) {
-    const parts = line.split('\t')
-    if (parts.length !== 3) {
-      continue
+  for (let i = 0; i < lines.length - 1; i++) {
+    const line = lines[i]
+    if (line.startsWith(':')) {
+      const status = forceUnwrap('Invalid log output', line.split(' ').at(-1))
+      const oldPath = /^R|C/.test(status)
+        ? forceUnwrap('Missing old path', lines.at(++i))
+        : undefined
+
+      const path = forceUnwrap('Missing path', lines.at(++i))
+
+      files.push(new CommittedFileChange(path, mapStatus(status, oldPath), sha))
+    } else {
+      const match = /^(\d+|-)\t(\d+|-)\t/.exec(line)
+      const [, added, deleted] = forceUnwrap('Invalid numstat line', match)
+      linesAdded += added === '-' ? 0 : parseInt(added, 10)
+      linesDeleted += deleted === '-' ? 0 : parseInt(deleted, 10)
+
+      if (isCopyOrRename(files[numStatCount].status)) {
+        i += 2
+      }
+      numStatCount++
     }
-
-    const [added, deleted] = parts
-
-    if (added === '-' || deleted === '-') {
-      continue
-    }
-
-    totalLinesAdded += parseInt(added, 10)
-    totalLinesDeleted += parseInt(deleted, 10)
   }
 
-  return { linesAdded: totalLinesAdded, linesDeleted: totalLinesDeleted }
+  return { files, linesAdded, linesDeleted }
 }
 
 /**
