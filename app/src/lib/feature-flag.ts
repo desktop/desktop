@@ -103,11 +103,6 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should we enable the rerunning of failed and single jobs aka action based checks */
-export function enableReRunFailedAndSingleCheckJobs(): boolean {
-  return true
-}
-
 /** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
 export function enableMultiCommitDiffs(): boolean {
   return enableDevelopmentFeatures()
