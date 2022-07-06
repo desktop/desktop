@@ -15,7 +15,6 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Draggable } from '../lib/draggable'
 import {
   enableAmendingCommits,
-  enableBranchFromCommit,
   enableResetToCommit,
   enableSquashing,
 } from '../../lib/feature-flag'
@@ -321,18 +320,16 @@ export class CommitListItem extends React.PureComponent<
 
     items.push({ type: 'separator' })
 
-    if (enableBranchFromCommit()) {
-      items.push({
-        label: __DARWIN__
-          ? 'Create Branch from Commit'
-          : 'Create branch from commit',
-        action: () => {
-          if (this.props.onCreateBranch) {
-            this.props.onCreateBranch(this.props.commit)
-          }
-        },
-      })
-    }
+    items.push({
+      label: __DARWIN__
+        ? 'Create Branch from Commit'
+        : 'Create branch from commit',
+      action: () => {
+        if (this.props.onCreateBranch) {
+          this.props.onCreateBranch(this.props.commit)
+        }
+      },
+    })
 
     items.push({
       label: 'Create Tag…',

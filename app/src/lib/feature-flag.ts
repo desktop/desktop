@@ -68,11 +68,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow to create branches from a commit? */
-export function enableBranchFromCommit(): boolean {
-  return true
-}
-
 /** Should we allow squashing? */
 export function enableSquashing(): boolean {
   return true
