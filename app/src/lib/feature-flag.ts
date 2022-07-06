@@ -68,11 +68,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow reordering commits? */
-export function enableCommitReordering(): boolean {
-  return true
-}
-
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
