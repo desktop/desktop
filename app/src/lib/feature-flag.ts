@@ -68,11 +68,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow setting repository aliases? */
-export function enableRepositoryAliases(): boolean {
-  return true
-}
-
 /** Should we allow to create branches from a commit? */
 export function enableBranchFromCommit(): boolean {
   return true

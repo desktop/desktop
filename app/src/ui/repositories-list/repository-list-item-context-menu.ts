@@ -1,6 +1,5 @@
 import { Repository } from '../../models/repository'
 import { IMenuItem } from '../../lib/menu-item'
-import { enableRepositoryAliases } from '../../lib/feature-flag'
 import { Repositoryish } from './group-repositories'
 import { clipboard } from 'electron'
 import {
@@ -79,7 +78,7 @@ const buildAliasMenuItems = (
 ): ReadonlyArray<IMenuItem> => {
   const { repository } = config
 
-  if (!(repository instanceof Repository) || !enableRepositoryAliases()) {
+  if (!(repository instanceof Repository)) {
     return []
   }
 
