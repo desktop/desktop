@@ -255,43 +255,6 @@ export function parseRawLogWithNumstat(stdout: string, sha: string) {
   return { files, linesAdded, linesDeleted }
 }
 
-/**
- * Parses git `log` or `diff` output into a list of changed files
- * (see `getChangedFiles` for an example of use)
- *
- * @param stdout raw output from a git `-z` and `--name-status` flags
- * @param committish commitish command was run against
- */
-export function parseChangedFiles(
-  stdout: string,
-  committish: string
-): ReadonlyArray<CommittedFileChange> {
-  const lines = stdout.split('\0')
-  // Remove the trailing empty line
-  lines.splice(-1, 1)
-  const files: CommittedFileChange[] = []
-  for (let i = 0; i < lines.length; i++) {
-    const statusText = lines[i]
-
-    let oldPath: string | undefined = undefined
-
-    if (
-      statusText.length > 0 &&
-      (statusText[0] === 'R' || statusText[0] === 'C')
-    ) {
-      oldPath = lines[++i]
-    }
-
-    const status = mapStatus(statusText, oldPath)
-
-    const path = lines[++i]
-
-    files.push(new CommittedFileChange(path, status, committish))
-  }
-
-  return files
-}
-
 /** Get the commit for the given ref. */
 export async function getCommit(
   repository: Repository,
