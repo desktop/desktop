@@ -235,9 +235,6 @@ function extractBranchFromMessage(message: string): string | null {
 
 /**
  * Get the files that were changed in the given stash commit.
- *
- * This is different than `getChangedFiles` because stashes
- * have _3 parents(!!!)_
  */
 export async function getStashedFiles(
   repository: Repository,
