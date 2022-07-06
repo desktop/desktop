@@ -42,11 +42,6 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app show hide whitespace in changes tab */
-export function enableHideWhitespaceInDiffOption(): boolean {
-  return true
-}
-
 /**
  * Should we use the new diff viewer for unified diffs?
  */
