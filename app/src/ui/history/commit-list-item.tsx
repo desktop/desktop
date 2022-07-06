@@ -13,10 +13,7 @@ import { IMenuItem } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Draggable } from '../lib/draggable'
-import {
-  enableAmendingCommits,
-  enableResetToCommit,
-} from '../../lib/feature-flag'
+import { enableResetToCommit } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
   DragType,
@@ -271,7 +268,7 @@ export class CommitListItem extends React.PureComponent<
 
     const items: IMenuItem[] = []
 
-    if (this.props.canBeAmended && enableAmendingCommits()) {
+    if (this.props.canBeAmended) {
       items.push({
         label: __DARWIN__ ? 'Amend Commit…' : 'Amend commit…',
         action: this.onAmendCommit,
