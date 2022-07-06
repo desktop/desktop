@@ -88,11 +88,6 @@ export function enableSSHAskPass(): boolean {
   return true
 }
 
-/** Should we show ci check runs? */
-export function enableCICheckRuns(): boolean {
-  return true
-}
-
 /** Should ci check runs show logs? */
 export function enableCICheckRunsLogs(): boolean {
   return false
