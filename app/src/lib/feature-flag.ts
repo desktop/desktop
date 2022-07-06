@@ -83,11 +83,6 @@ export function enableCustomizeTheme(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we use SSH askpass? */
-export function enableSSHAskPass(): boolean {
-  return true
-}
-
 /** Should ci check runs show logs? */
 export function enableCICheckRunsLogs(): boolean {
   return false
