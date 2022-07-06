@@ -1,4 +1,3 @@
-import { enableSquashMerging } from '../../lib/feature-flag'
 import { getCommitsBetweenCommits, getMergeBase } from '../../lib/git'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { Branch } from '../../models/branch'
@@ -17,14 +16,12 @@ export function getMergeOptions(): ReadonlyArray<IDropdownSelectButtonOption> {
       value: MultiCommitOperationKind.Merge,
     },
   ]
-  if (enableSquashMerging()) {
-    mergeOptions.push({
-      label: 'Squash and merge',
-      description:
-        'The commits in the selected branch will be combined into one commit in the current branch.',
-      value: MultiCommitOperationKind.Squash,
-    })
-  }
+  mergeOptions.push({
+    label: 'Squash and merge',
+    description:
+      'The commits in the selected branch will be combined into one commit in the current branch.',
+    value: MultiCommitOperationKind.Squash,
+  })
   mergeOptions.push({
     label: 'Rebase',
     description:

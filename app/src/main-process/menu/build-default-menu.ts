@@ -5,7 +5,6 @@ import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
-import { enableSquashMerging } from '../../lib/feature-flag'
 import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
 
@@ -401,16 +400,14 @@ export function buildDefaultMenu({
     },
   ]
 
-  if (enableSquashMerging()) {
-    branchSubmenu.push({
-      label: __DARWIN__
-        ? 'Squash and Merge into Current Branch…'
-        : 'Squas&h and merge into current branch…',
-      id: 'squash-and-merge-branch',
-      accelerator: 'CmdOrCtrl+Shift+H',
-      click: emit('squash-and-merge-branch'),
-    })
-  }
+  branchSubmenu.push({
+    label: __DARWIN__
+      ? 'Squash and Merge into Current Branch…'
+      : 'Squas&h and merge into current branch…',
+    id: 'squash-and-merge-branch',
+    accelerator: 'CmdOrCtrl+Shift+H',
+    click: emit('squash-and-merge-branch'),
+  })
 
   branchSubmenu.push(
     {
