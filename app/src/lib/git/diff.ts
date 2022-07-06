@@ -227,7 +227,7 @@ export async function getCommitRangeChangedFiles(
     '--',
   ]
 
-  const result = await git(
+  const { stdout, gitError } = await git(
     baseArgs,
     repository.path,
     'getCommitRangeChangedFiles',
@@ -239,13 +239,13 @@ export async function getCommitRangeChangedFiles(
   // This should only happen if the oldest commit does not have a parent (ex:
   // initial commit of a branch) and therefore `SHA^` is not a valid reference.
   // In which case, we will retry with the null tree sha.
-  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
+  if (gitError === GitError.BadRevision && useNullTreeSHA === false) {
     const useNullTreeSHA = true
     return getCommitRangeChangedFiles(repository, shas, useNullTreeSHA)
   }
 
   return parseRawLogWithNumstat(
-    result.combinedOutput,
+    stdout,
     `${oldestCommitRef}..${latestCommitRef}`
   )
 }
