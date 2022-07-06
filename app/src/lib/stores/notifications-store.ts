@@ -28,7 +28,6 @@ import { showNotification } from '../notifications/show-notification'
 import { StatsStore } from '../stats'
 import { truncateWithEllipsis } from '../truncate-with-ellipsis'
 import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
-import { enablePullRequestReviewNotifications } from '../feature-flag'
 import {
   isValidNotificationPullRequestReview,
   ValidNotificationPullRequestReview,
@@ -117,10 +116,6 @@ export class NotificationsStore {
     event: IDesktopPullRequestReviewSubmitAliveEvent,
     skipNotification: boolean
   ) {
-    if (!enablePullRequestReviewNotifications()) {
-      return
-    }
-
     const repository = this.repository
     if (repository === null) {
       return
