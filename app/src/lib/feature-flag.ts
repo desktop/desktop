@@ -68,11 +68,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow squashing? */
-export function enableSquashing(): boolean {
-  return true
-}
-
 /** Should we allow squash-merging? */
 export function enableSquashMerging(): boolean {
   return true

@@ -16,7 +16,6 @@ import { Draggable } from '../lib/draggable'
 import {
   enableAmendingCommits,
   enableResetToCommit,
-  enableSquashing,
 } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
@@ -92,7 +91,6 @@ export class CommitListItem extends React.PureComponent<
   private onMouseUp = () => {
     const { onSquash, selectedCommits, commit, disableSquashing } = this.props
     if (
-      enableSquashing() &&
       disableSquashing !== true &&
       dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
       onSquash !== undefined &&
@@ -110,7 +108,6 @@ export class CommitListItem extends React.PureComponent<
     if (
       disableSquashing !== true &&
       dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
-      enableSquashing() &&
       !isSelected
     ) {
       dragAndDropManager.emitEnterDropTarget({
@@ -382,14 +379,12 @@ export class CommitListItem extends React.PureComponent<
       enabled: this.canCherryPick(),
     })
 
-    if (enableSquashing()) {
-      items.push({
-        label: __DARWIN__
-          ? `Squash ${count} Commits…`
-          : `Squash ${count} commits…`,
-        action: this.onSquash,
-      })
-    }
+    items.push({
+      label: __DARWIN__
+        ? `Squash ${count} Commits…`
+        : `Squash ${count} commits…`,
+      action: this.onSquash,
+    })
 
     return items
   }
