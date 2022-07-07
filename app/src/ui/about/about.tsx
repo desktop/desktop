@@ -317,6 +317,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return
     }
 
+    if (__LINUX__) {
+      return
+    }
+
     return (
       <div>
         <p className="no-padding">Looking for the latest features?</p>
