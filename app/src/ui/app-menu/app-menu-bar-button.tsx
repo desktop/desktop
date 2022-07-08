@@ -209,6 +209,7 @@ export class AppMenuBarButton extends React.Component<
           highlightAccessKey={this.props.highlightMenuAccessKey}
           renderAcceleratorText={false}
           renderSubMenuArrow={false}
+          selected={false}
         />
       </ToolbarDropdown>
     )

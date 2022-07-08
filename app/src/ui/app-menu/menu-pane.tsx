@@ -75,16 +75,6 @@ interface IMenuPaneProps {
    * keyboard navigation by pressing access keys.
    */
   readonly enableAccessKeyNavigation: boolean
-
-  /**
-   * If true the MenuPane only takes up as much vertical space needed to
-   * show all menu items. This does not affect maximum height, i.e. if the
-   * visible menu items takes up more space than what is available the menu
-   * will still overflow and be scrollable.
-   *
-   * @default false
-   */
-  readonly autoHeight?: boolean
 }
 
 interface IMenuPaneState {
@@ -98,26 +88,11 @@ interface IMenuPaneState {
   readonly selectedIndex: number
 }
 
-const RowHeight = 30
-const SeparatorRowHeight = 10
-
 function getSelectedIndex(
   selectedItem: MenuItem | undefined,
   items: ReadonlyArray<MenuItem>
 ) {
   return selectedItem ? items.findIndex(i => i.id === selectedItem.id) : -1
-}
-
-export function getListHeight(menuItems: ReadonlyArray<MenuItem>) {
-  return menuItems.reduce((acc, item) => acc + getRowHeight(item), 0)
-}
-
-export function getRowHeight(item: MenuItem) {
-  if (!item.visible) {
-    return 0
-  }
-
-  return item.type === 'separator' ? SeparatorRowHeight : RowHeight
 }
 
 /**
@@ -172,16 +147,19 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     }
   }
 
-  private onRowClick = (row: number, source: ClickSource) => {
-    const item = this.state.items[row]
-
+  private onRowClick = (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
     if (item.type !== 'separator' && item.enabled) {
-      this.props.onItemClicked(this.props.depth, item, source)
+      this.props.onItemClicked(this.props.depth, item, {
+        kind: 'mouseclick',
+        event,
+      })
     }
   }
 
-  private onSelectedRowChanged = (row: number, source: SelectionSource) => {
-    const item = this.state.items[row]
+  private onSelectedRowChanged = (item: MenuItem, source: SelectionSource) => {
     this.props.onSelectionChanged(this.props.depth, item, source)
   }
 
@@ -217,51 +195,29 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     }
   }
 
-  private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
-    if (this.props.onItemKeyDown) {
-      const item = this.state.items[row]
-      this.props.onItemKeyDown(this.props.depth, item, event)
-    }
-  }
-
-  private canSelectRow = (row: number) => {
-    const item = this.state.items[row]
-    return itemIsSelectable(item)
-  }
-
-  private onListRef = (list: List | null) => {
-    this.list = list
+  private onRowKeyDown = (item: MenuItem, event: React.KeyboardEvent<any>) => {
+    this.props.onItemKeyDown?.(this.props.depth, item, event)
   }
 
   private onMouseEnter = (event: React.MouseEvent<any>) => {
-    if (this.props.onMouseEnter) {
-      this.props.onMouseEnter(this.props.depth)
+    this.props.onMouseEnter?.(this.props.depth)
+  }
+
+  private onRowMouseEnter = (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    if (itemIsSelectable(item)) {
+      this.onSelectedRowChanged(item, { kind: 'hover', event })
     }
   }
 
-  private renderMenuItem = (row: number) => {
-    const item = this.state.items[row]
-
-    return (
-      <MenuListItem
-        key={item.id}
-        item={item}
-        highlightAccessKey={this.props.enableAccessKeyNavigation}
-      />
-    )
-  }
-
-  private rowHeight = (info: { index: number }) => {
-    const item = this.state.items[info.index]
-    return item.type === 'separator' ? SeparatorRowHeight : RowHeight
-  }
+  private onRowMouseLeave = (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {}
 
   public render(): JSX.Element {
-    const style: React.CSSProperties =
-      this.props.autoHeight === true
-        ? { height: getListHeight(this.props.items) + 5, maxHeight: '100%' }
-        : {}
-
     const className = classNames('menu-pane', this.props.className)
 
     return (
@@ -269,22 +225,19 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
         className={className}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
-        style={style}
       >
-        <List
-          ref={this.onListRef}
-          rowCount={this.state.items.length}
-          rowHeight={this.rowHeight}
-          rowRenderer={this.renderMenuItem}
-          selectedRows={[this.state.selectedIndex]}
-          onRowClick={this.onRowClick}
-          onSelectedRowChanged={this.onSelectedRowChanged}
-          canSelectRow={this.canSelectRow}
-          onRowKeyDown={this.onRowKeyDown}
-          invalidationProps={this.state.items}
-          selectOnHover={true}
-          ariaMode="menu"
-        />
+        {this.state.items.map((item, ix) => (
+          <MenuListItem
+            key={ix + item.id}
+            item={item}
+            highlightAccessKey={this.props.enableAccessKeyNavigation}
+            selected={this.state.selectedIndex === ix}
+            onKeyDown={this.onRowKeyDown}
+            onMouseEnter={this.onRowMouseEnter}
+            onMouseLeave={this.onRowMouseLeave}
+            onClick={this.onRowClick}
+          />
+        ))}
       </div>
     )
   }

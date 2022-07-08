@@ -34,6 +34,27 @@ interface IMenuListItemProps {
    * Defaults to true if not specified (i.e. undefined)
    */
   readonly renderSubMenuArrow?: boolean
+
+  readonly selected: boolean
+
+  readonly onKeyDown?: (
+    item: MenuItem,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => void
+
+  readonly onMouseEnter?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+  readonly onMouseLeave?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+
+  readonly onClick?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 }
 
 /**
@@ -57,6 +78,22 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     }
 
     return null
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    this.props.onKeyDown?.(this.props.item, event)
+  }
+
+  private onMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onMouseEnter?.(this.props.item, event)
+  }
+
+  private onMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onMouseLeave?.(this.props.item, event)
+  }
+
+  private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onClick?.(this.props.item, event)
   }
 
   public render() {
@@ -95,7 +132,13 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     )
 
     return (
-      <div className={className}>
+      <div
+        className={className}
+        onKeyDown={this.onKeyDown}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onClick={this.onClick}
+      >
         {this.getIcon(item)}
         <div className="label">
           <AccessText

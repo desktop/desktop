@@ -295,7 +295,6 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
         key={key}
         ref={this.onMenuPaneRef}
         className={className}
-        autoHeight={this.props.autoHeight}
         depth={depth}
         items={menu.items}
         selectedItem={menu.selectedItem}
