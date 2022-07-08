@@ -13,6 +13,10 @@
     border-left: var(--base-border);
   }
 
+  &:focus {
+    outline: none;
+  }
+
   // No focus outline for the list itself. When the app menu is opened without
   // an initial selection the list is given focus so that up/down arrow keys
   // will work.
