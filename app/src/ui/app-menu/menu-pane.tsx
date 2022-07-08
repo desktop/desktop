@@ -97,15 +97,6 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
     }
   }
 
-  private trySelectItemAt(ix: number | null | undefined, source: ClickSource) {
-    const { items } = this.props
-    if (ix !== null && ix !== undefined && items[ix] !== undefined) {
-      this.props.onSelectionChanged(this.props.depth, items[ix], source)
-      return true
-    }
-    return false
-  }
-
   private tryMoveSelection(
     direction: 'up' | 'down' | 'first' | 'last',
     source: ClickSource
@@ -120,14 +111,16 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
     if (direction === 'up' || direction === 'down') {
       ix = findNextSelectableRow(count, { direction, row }, selectable)
     } else if (direction === 'first' || direction === 'last') {
-      ix = findLastSelectableRow(
-        direction === 'first' ? 'up' : 'down',
-        count,
-        selectable
-      )
+      const d = direction === 'first' ? 'up' : 'down'
+      ix = findLastSelectableRow(d, count, selectable)
     }
 
-    return this.trySelectItemAt(ix, source)
+    if (ix !== null && items[ix] !== undefined) {
+      this.props.onSelectionChanged(this.props.depth, items[ix], source)
+      return true
+    }
+
+    return false
   }
 
   private onKeyDown = (event: React.KeyboardEvent<any>) => {
