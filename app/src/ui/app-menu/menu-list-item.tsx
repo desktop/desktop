@@ -37,11 +37,6 @@ interface IMenuListItemProps {
 
   readonly selected: boolean
 
-  readonly onKeyDown?: (
-    item: MenuItem,
-    event: React.KeyboardEvent<HTMLDivElement>
-  ) => void
-
   readonly onMouseEnter?: (
     item: MenuItem,
     event: React.MouseEvent<HTMLDivElement>
@@ -55,6 +50,8 @@ interface IMenuListItemProps {
     item: MenuItem,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
+
+  readonly focusOnSelection?: boolean
 }
 
 /**
@@ -70,6 +67,8 @@ export function friendlyAcceleratorText(accelerator: string): string {
 }
 
 export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
+  private wrapperRef = React.createRef<HTMLDivElement>()
+
   private getIcon(item: MenuItem): JSX.Element | null {
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className="icon" symbol={OcticonSymbol.check} />
@@ -78,10 +77,6 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     }
 
     return null
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    this.props.onKeyDown?.(this.props.item, event)
   }
 
   private onMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -94,6 +89,19 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
 
   private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     this.props.onClick?.(this.props.item, event)
+  }
+
+  public componentDidMount() {
+    if (this.props.selected && this.props.focusOnSelection) {
+      this.wrapperRef.current?.focus()
+    }
+  }
+
+  public componentDidUpdate(prevProps: IMenuListItemProps) {
+    const { focusOnSelection, selected } = this.props
+    if (focusOnSelection && selected && !prevProps.selected) {
+      this.wrapperRef.current?.focus()
+    }
   }
 
   public render() {
@@ -120,24 +128,23 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         </div>
       ) : null
 
-    const className = classNames(
-      'menu-item',
-      { disabled: !item.enabled },
-      { checkbox: item.type === 'checkbox' },
-      { radio: item.type === 'radio' },
-      {
-        checked:
-          (item.type === 'checkbox' || item.type === 'radio') && item.checked,
-      }
-    )
+    const { type } = item
+
+    const className = classNames('menu-item', {
+      disabled: !item.enabled,
+      checkbox: type === 'checkbox',
+      radio: type === 'radio',
+      checked: type === 'checkbox' || (type === 'radio' && item.checked),
+      selected: this.props.selected,
+    })
 
     return (
       <div
         className={className}
-        onKeyDown={this.onKeyDown}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         onClick={this.onClick}
+        ref={this.wrapperRef}
       >
         {this.getIcon(item)}
         <div className="label">
