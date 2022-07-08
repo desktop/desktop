@@ -212,6 +212,7 @@ These editors are currently supported:
 
  - [Atom](https://atom.io/)
  - [MacVim](https://macvim-dev.github.io/macvim/)
+ - [Neovide](https://github.com/neovide/neovide)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
