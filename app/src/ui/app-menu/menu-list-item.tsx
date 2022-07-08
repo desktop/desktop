@@ -145,6 +145,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         onMouseLeave={this.onMouseLeave}
         onClick={this.onClick}
         ref={this.wrapperRef}
+        role="menuitem"
       >
         {this.getIcon(item)}
         <div className="label">

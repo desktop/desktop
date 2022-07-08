@@ -216,6 +216,7 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
         onKeyDown={this.onKeyDown}
         ref={this.paneRef}
         tabIndex={-1}
+        role="menu"
       >
         {this.props.items
           .filter(x => x.visible)
