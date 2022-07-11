@@ -5,7 +5,6 @@ import {
   BrowserWindow,
   autoUpdater,
   nativeTheme,
-  WebContents,
 } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
@@ -212,10 +211,6 @@ export class AppWindow {
   /** Is the page loaded and has the renderer signalled it's ready? */
   private get rendererLoaded(): boolean {
     return !!this.loadTime && !!this.rendererReadyTime
-  }
-
-  public get webContents(): WebContents {
-    return this.window.webContents
   }
 
   public onClose(fn: () => void) {
