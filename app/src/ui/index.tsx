@@ -202,6 +202,13 @@ process.on(
   }
 )
 
+// HACK: this is a workaround for a known crash in the Dev Tools on Electron 19
+// See https://github.com/electron/electron/issues/34350
+if (__DEV__) {
+  window.onerror = e =>
+    e === 'Uncaught EvalError: Possible side-effect in debug-evaluate'
+}
+
 /**
  * Chromium won't crash on an unhandled rejection (similar to how it won't crash
  * on an unhandled error). We've taken the approach that unhandled errors should
