@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.4": ["[Improved] Upgrade embedded Git to 2.35.4"],
     "3.0.3": [
       "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
       "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
