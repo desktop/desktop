@@ -429,6 +429,7 @@ function getDescriptionForError(error: DugiteError): string | null {
     case DugiteError.ConflictModifyDeletedInBranch:
     case DugiteError.MergeCommitNoMainlineOption:
     case DugiteError.UnsafeDirectory:
+    case DugiteError.PathExistsButNotInRef:
       return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
