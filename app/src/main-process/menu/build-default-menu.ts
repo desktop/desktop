@@ -38,12 +38,15 @@ export function buildDefaultMenu({
   askForConfirmationOnForcePush,
   askForConfirmationOnRepositoryRemoval,
   hasCurrentPullRequest = false,
-  defaultBranchName = defaultBranchNameValue,
+  contributionTargetDefaultBranch = defaultBranchNameValue,
   isForcePushForCurrentRepository = false,
   isStashedChangesVisible = false,
   askForConfirmationWhenStashingAllChanges = true,
 }: MenuLabelsEvent): Electron.Menu {
-  defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+  contributionTargetDefaultBranch = truncateWithEllipsis(
+    contributionTargetDefaultBranch,
+    25
+  )
 
   const removeRepoLabel = askForConfirmationOnRepositoryRemoval
     ? confirmRepositoryRemovalLabel
@@ -376,11 +379,11 @@ export function buildDefaultMenu({
     separator,
     {
       label: __DARWIN__
-        ? `Update from ${defaultBranchName}`
-        : `&Update from ${defaultBranchName}`,
-      id: 'update-branch',
+        ? `Update from ${contributionTargetDefaultBranch}`
+        : `&Update from ${contributionTargetDefaultBranch}`,
+      id: 'update-branch-with-contribution-target-branch',
       accelerator: 'CmdOrCtrl+Shift+U',
-      click: emit('update-branch'),
+      click: emit('update-branch-with-contribution-target-branch'),
     },
     {
       label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',

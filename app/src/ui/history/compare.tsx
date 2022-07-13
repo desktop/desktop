@@ -55,6 +55,7 @@ interface ICompareSidebarProps {
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
   readonly isCherryPickInProgress: boolean
+  readonly shasToHighlight: ReadonlyArray<string>
 }
 
 interface ICompareSidebarState {
@@ -230,6 +231,7 @@ export class CompareSidebar extends React.Component<
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
         selectedSHAs={this.props.selectedCommitShas}
+        shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}
         canResetToCommits={formState.kind === HistoryTabMode.History}
         canUndoCommits={formState.kind === HistoryTabMode.History}
