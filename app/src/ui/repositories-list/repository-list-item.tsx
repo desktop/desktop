@@ -1,24 +1,18 @@
 import * as React from 'react'
-import { clipboard } from 'electron'
 
 import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Repositoryish } from './group-repositories'
-import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { IAheadBehind } from '../../models/branch'
-import {
-  RevealInFileManagerLabel,
-  DefaultEditorLabel,
-} from '../lib/context-menu'
-import { enableRepositoryAliases } from '../../lib/feature-flag'
 import classNames from 'classnames'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip } from '../lib/tooltip'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { generateRepositoryListContextMenu } from './repository-list-item-context-menu'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -154,120 +148,22 @@ export class RepositoryListItem extends React.Component<
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
-    const repository = this.props.repository
-    const missing = repository instanceof Repository && repository.missing
-    const github =
-      repository instanceof Repository && repository.gitHubRepository != null
-    const openInExternalEditor = this.props.externalEditorLabel
-      ? `Open in ${this.props.externalEditorLabel}`
-      : DefaultEditorLabel
-
-    const items: ReadonlyArray<IMenuItem> = [
-      ...this.buildAliasMenuItems(),
-      {
-        label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
-        action: this.copyNameToClipboard,
-      },
-      {
-        label: __DARWIN__ ? 'Copy Repo Path' : 'Copy repo path',
-        action: this.copyPathToClipboard,
-      },
-      { type: 'separator' },
-      {
-        label: 'View on GitHub',
-        action: this.viewOnGitHub,
-        enabled: github,
-      },
-      {
-        label: `Open in ${this.props.shellLabel}`,
-        action: this.openInShell,
-        enabled: !missing,
-      },
-      {
-        label: RevealInFileManagerLabel,
-        action: this.showRepository,
-        enabled: !missing,
-      },
-      {
-        label: openInExternalEditor,
-        action: this.openInExternalEditor,
-        enabled: !missing,
-      },
-      { type: 'separator' },
-      {
-        label: this.props.askForConfirmationOnRemoveRepository
-          ? 'Remove…'
-          : 'Remove',
-        action: this.removeRepository,
-      },
-    ]
+    const items = generateRepositoryListContextMenu({
+      onRemoveRepository: this.props.onRemoveRepository,
+      onShowRepository: this.props.onShowRepository,
+      onOpenInShell: this.props.onOpenInShell,
+      onOpenInExternalEditor: this.props.onOpenInExternalEditor,
+      askForConfirmationOnRemoveRepository:
+        this.props.askForConfirmationOnRemoveRepository,
+      externalEditorLabel: this.props.externalEditorLabel,
+      onChangeRepositoryAlias: this.props.onChangeRepositoryAlias,
+      onRemoveRepositoryAlias: this.props.onRemoveRepositoryAlias,
+      onViewOnGitHub: this.props.onViewOnGitHub,
+      repository: this.props.repository,
+      shellLabel: this.props.shellLabel,
+    })
 
     showContextualMenu(items)
-  }
-
-  private buildAliasMenuItems(): ReadonlyArray<IMenuItem> {
-    const repository = this.props.repository
-
-    if (!(repository instanceof Repository) || !enableRepositoryAliases()) {
-      return []
-    }
-
-    const verb = repository.alias == null ? 'Create' : 'Change'
-    const items: Array<IMenuItem> = [
-      {
-        label: __DARWIN__ ? `${verb} Alias` : `${verb} alias`,
-        action: this.changeAlias,
-      },
-    ]
-
-    if (repository.alias !== null) {
-      items.push({
-        label: __DARWIN__ ? 'Remove Alias' : 'Remove alias',
-        action: this.removeAlias,
-      })
-    }
-
-    return items
-  }
-
-  private removeRepository = () => {
-    this.props.onRemoveRepository(this.props.repository)
-  }
-
-  private showRepository = () => {
-    this.props.onShowRepository(this.props.repository)
-  }
-
-  private viewOnGitHub = () => {
-    this.props.onViewOnGitHub(this.props.repository)
-  }
-
-  private openInShell = () => {
-    this.props.onOpenInShell(this.props.repository)
-  }
-
-  private openInExternalEditor = () => {
-    this.props.onOpenInExternalEditor(this.props.repository)
-  }
-
-  private changeAlias = () => {
-    if (this.props.repository instanceof Repository) {
-      this.props.onChangeRepositoryAlias(this.props.repository)
-    }
-  }
-
-  private removeAlias = () => {
-    if (this.props.repository instanceof Repository) {
-      this.props.onRemoveRepositoryAlias(this.props.repository)
-    }
-  }
-
-  private copyNameToClipboard = () => {
-    clipboard.writeText(this.props.repository.name)
-  }
-
-  private copyPathToClipboard = () => {
-    clipboard.writeText(this.props.repository.path)
   }
 }
 

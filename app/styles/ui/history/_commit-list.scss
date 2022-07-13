@@ -52,6 +52,22 @@
     }
   }
 
+  &.has-highlighted-commits {
+    .list-item {
+      transition: opacity 0.5s;
+
+      &:not(.highlighted) {
+        opacity: 30%;
+      }
+    }
+  }
+
+  &:not(.has-highlighted-commits) {
+    .list-item {
+      transition: opacity 0.25s;
+    }
+  }
+
   .focus-within {
     .list-item.selected {
       .commit {

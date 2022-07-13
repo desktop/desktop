@@ -6,6 +6,7 @@ import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { DragData, DragType } from '../../models/drag-drop'
+import classNames from 'classnames'
 
 const RowHeight = 50
 
@@ -132,6 +133,9 @@ interface ICommitListProps {
 
   /** Whether squashing should be enabled on the commit list */
   readonly disableSquashing?: boolean
+
+  /** Shas that should be highlighted */
+  readonly shasToHighlight: ReadonlyArray<string>
 }
 
 /** A component which displays the list of commits. */
@@ -350,19 +354,42 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return this.props.commitSHAs.findIndex(s => s === sha)
   }
 
-  public render() {
-    if (this.props.commitSHAs.length === 0) {
-      return (
-        <div className="panel blankslate">{this.props.emptyListMessage}</div>
-      )
+  private getRowCustomClassMap = () => {
+    const { commitSHAs, shasToHighlight } = this.props
+    if (shasToHighlight.length === 0) {
+      return undefined
     }
 
+    const rowsForShasNotInDiff = commitSHAs
+      .filter(sha => shasToHighlight.includes(sha))
+      .map(sha => this.rowForSHA(sha))
+
+    if (rowsForShasNotInDiff.length === 0) {
+      return undefined
+    }
+
+    const rowClassMap = new Map<string, ReadonlyArray<number>>()
+    rowClassMap.set('highlighted', rowsForShasNotInDiff)
+    return rowClassMap
+  }
+
+  public render() {
+    const { commitSHAs, selectedSHAs, shasToHighlight, emptyListMessage } =
+      this.props
+    if (commitSHAs.length === 0) {
+      return <div className="panel blankslate">{emptyListMessage}</div>
+    }
+
+    const classes = classNames({
+      'has-highlighted-commits': shasToHighlight.length > 0,
+    })
+
     return (
-      <div id="commit-list">
+      <div id="commit-list" className={classes}>
         <List
-          rowCount={this.props.commitSHAs.length}
+          rowCount={commitSHAs.length}
           rowHeight={RowHeight}
-          selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
+          selectedRows={selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
@@ -377,8 +404,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             localCommitSHAs: this.props.localCommitSHAs,
             commitLookupHash: this.commitsHash(this.getVisibleCommits()),
             tagsToPush: this.props.tagsToPush,
+            shasToHighlight: this.props.shasToHighlight,
           }}
           setScrollTop={this.props.compareListScrollTop}
+          rowCustomClassNameMap={this.getRowCustomClassMap()}
         />
       </div>
     )

@@ -25,6 +25,7 @@ import {
   installNotificationCallback,
   terminateDesktopNotifications,
 } from './notifications'
+import { addTrustedIPCSender } from './trusted-ipc-sender'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -77,6 +78,7 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+    addTrustedIPCSender(this.window.webContents)
 
     installNotificationCallback(this.window)
 
