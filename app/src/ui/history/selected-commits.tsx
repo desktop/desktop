@@ -35,6 +35,8 @@ import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { enableMultiCommitDiffs } from '../../lib/feature-flag'
+import { PopupType } from '../../models/popup'
+import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -182,8 +184,16 @@ export class SelectedCommits extends React.Component<
         onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
         onHighlightShas={this.onHighlightShas}
+        showUnreachableCommits={this.showUnreachableCommits}
       />
     )
+  }
+
+  private showUnreachableCommits = (selectedTab: UnreachableCommitsTab) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.UnreachableCommits,
+      selectedTab,
+    })
   }
 
   private onHighlightShas = (shasToHighlight: ReadonlyArray<string>) => {

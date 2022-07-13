@@ -20,6 +20,7 @@ import { TooltipDirection } from '../lib/tooltip'
 import { AppFileStatusKind } from '../../models/status'
 import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
+import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -57,6 +58,9 @@ interface ICommitSummaryProps {
 
   /** Called to highlight certain shas in the history */
   readonly onHighlightShas: (shasToHighlight: ReadonlyArray<string>) => void
+
+  /** Called to show unreachable commits dialog */
+  readonly showUnreachableCommits: (tab: UnreachableCommitsTab) => void
 }
 
 interface ICommitSummaryState {
@@ -358,8 +362,12 @@ export class CommitSummary extends React.Component<
     this.props.onHighlightShas([])
   }
 
-  private showUnreachableCommits() {
-    // TODO: open to dialog with commits list of unreachable commits
+  private showUnreachableCommits = () => {
+    this.props.showUnreachableCommits(UnreachableCommitsTab.Unreachable)
+  }
+
+  private showReachableCommits = () => {
+    this.props.showUnreachableCommits(UnreachableCommitsTab.Reachable)
   }
 
   private renderCommitsNotReachable = () => {
@@ -471,7 +479,7 @@ export class CommitSummary extends React.Component<
           <LinkButton
             onMouseOver={this.onHighlightShasInDiff}
             onMouseOut={this.onRemoveHighlightOfShas}
-            onClick={this.showUnreachableCommits}
+            onClick={this.showReachableCommits}
           >
             {numInDiff} {commitsPluralized}
           </LinkButton>
