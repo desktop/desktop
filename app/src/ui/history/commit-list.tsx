@@ -57,7 +57,7 @@ interface ICommitListProps {
   readonly onResetToCommit?: (commit: Commit) => void
 
   /** Callback to fire to revert a given commit in the current repository */
-  readonly onRevertCommit?: ((commit: Commit) => void) | undefined
+  readonly onRevertCommit?: (commit: Commit) => void
 
   readonly onAmendCommit?: (commit: Commit, isLocalCommit: boolean) => void
 
