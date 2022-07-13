@@ -140,18 +140,38 @@ function convertToAppStatus(
   if (entry.kind === 'ordinary') {
     switch (entry.type) {
       case 'added':
-        return { kind: AppFileStatusKind.New }
+        return {
+          kind: AppFileStatusKind.New,
+          submoduleStatus: entry.submoduleStatus ?? null,
+        }
       case 'modified':
-        return { kind: AppFileStatusKind.Modified }
+        return {
+          kind: AppFileStatusKind.Modified,
+          submoduleStatus: entry.submoduleStatus ?? null,
+        }
       case 'deleted':
-        return { kind: AppFileStatusKind.Deleted }
+        return {
+          kind: AppFileStatusKind.Deleted,
+          submoduleStatus: entry.submoduleStatus ?? null,
+        }
     }
   } else if (entry.kind === 'copied' && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath }
+    return {
+      kind: AppFileStatusKind.Copied,
+      oldPath,
+      submoduleStatus: entry.submoduleStatus ?? null,
+    }
   } else if (entry.kind === 'renamed' && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath }
+    return {
+      kind: AppFileStatusKind.Renamed,
+      oldPath,
+      submoduleStatus: entry.submoduleStatus ?? null,
+    }
   } else if (entry.kind === 'untracked') {
-    return { kind: AppFileStatusKind.Untracked }
+    return {
+      kind: AppFileStatusKind.Untracked,
+      submoduleStatus: entry.submoduleStatus ?? null,
+    }
   } else if (entry.kind === 'conflicted') {
     return parseConflictedState(entry, path, conflictDetails)
   }
@@ -270,7 +290,7 @@ function buildStatusMap(
   entry: IStatusEntry,
   conflictDetails: ConflictFilesDetails
 ): Map<string, WorkingDirectoryFileChange> {
-  const status = mapStatus(entry.statusCode)
+  const status = mapStatus(entry.statusCode, entry.submoduleStatusCode)
 
   if (status.kind === 'ordinary') {
     // when a file is added in the index but then removed in the working
