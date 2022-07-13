@@ -51,7 +51,7 @@ interface ICommitListProps {
   readonly onScroll?: (start: number, end: number) => void
 
   /** Callback to fire to undo a given commit in the current repository */
-  readonly onUndoCommit?: ((commit: Commit) => void) | undefined
+  readonly onUndoCommit?: (commit: Commit) => void
 
   /** Callback to fire to reset to a given commit in the current repository */
   readonly onResetToCommit?: (commit: Commit) => void
