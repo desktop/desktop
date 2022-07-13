@@ -14,7 +14,7 @@ interface IUnreachableCommitsDialogProps {
   /** The shas of the currently selected commits */
   readonly selectedShas: ReadonlyArray<string>
 
-  /** The shas of the shas showed in the diff */
+  /** The shas of the commits showed in the diff */
   readonly shasInDiff: ReadonlyArray<string>
 
   /** The commits loaded, keyed by their full SHA. */
