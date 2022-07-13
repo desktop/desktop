@@ -106,8 +106,7 @@ async function getNewFileContent(
 
 export async function getFileContents(
   repo: Repository,
-  file: ChangedFile,
-  lineFilters: ILineFilters
+  file: ChangedFile
 ): Promise<IFileContents> {
   const [oldContents, newContents] = await Promise.all([
     getOldFileContent(repo, file).catch(e => {
