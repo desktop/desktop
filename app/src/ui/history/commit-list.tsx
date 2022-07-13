@@ -379,9 +379,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     if (commitSHAs.length === 0) {
       return (
         <div className="panel blankslate">
-          {emptyListMessage === undefined
-            ? 'No commits to list'
-            : emptyListMessage}
+          {emptyListMessage ?? 'No commits to list'}
         </div>
       )
     }
