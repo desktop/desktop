@@ -57,27 +57,28 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState>
   }
 
   private renderTemplates() {
+    // Only show template selection UI if the user has an empty gitignore.
+    if (!this.state.gitIgnoreEmpty) {
+      return null;
+    }
+
     const templateNames = this.state.gitIgnoreNames || []
     const options = [NoGitIgnoreTemplateValue, ...templateNames]
 
     return (
-      <>
-        <p>It looks like <Ref>.gitignore</Ref> is empty. You can start from scratch or select a template to get started.</p>
-
-        <Row>
-          <Select
-            label={__DARWIN__ ? 'Git Ignore Template' : 'Git ignore template'}
-            value={this.state.gitIgnoreTemplateName}
-            onChange={this.onTemplateChange}
-          >
-            {options.map(n => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </Select>
-        </Row>
-      </>
+      <Row>
+        <Select
+          label={__DARWIN__ ? 'Use Ignore Template' : 'Use ignore template'}
+          value={this.state.gitIgnoreTemplateName}
+          onChange={this.onTemplateChange}
+        >
+          {options.map(n => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </Select>
+      </Row>
     )
   }
 
@@ -93,7 +94,7 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState>
           </LinkButton>
         </p>
 
-        {this.state.gitIgnoreEmpty && this.renderTemplates()}
+        {this.renderTemplates()}
 
         <TextArea
           placeholder="Ignored files"
