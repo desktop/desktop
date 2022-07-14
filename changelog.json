@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.0.5": [
+      "[Fixed] Surface again Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user"
+    ],
     "3.0.4": ["[Improved] Upgrade embedded Git to 2.35.4"],
     "3.0.3": [
       "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
