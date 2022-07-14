@@ -433,10 +433,10 @@ dompurify@^2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
-dugite@^1.109.0:
-  version "1.109.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.109.0.tgz#662f726befeefb47b697d6e08f940be865699b74"
-  integrity sha512-pPAs67j/sF6Y84pfI94VOtjMtCxX17OaNOggP+pJAZ4sA53OvcQj2zPgk87EnZaZoOmQYa0EdlH/tsEQhc+wVA==
+dugite@^1.110.0:
+  version "1.110.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.110.0.tgz#3db86bf66d3690fdbcf83c59575563909b79d27f"
+  integrity sha512-JPHd07QYajpUWJmZdeQSuuRL+OZ92tAWZvDqI+EJdETuwgNmMh+OyyXOaBcuGnlPznWEppQaHaEAEEqLdF9W/Q==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"
