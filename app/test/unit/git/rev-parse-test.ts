@@ -101,5 +101,13 @@ describe('git/rev-parse', () => {
         kind: 'missing',
       })
     })
+
+    it('returns unsafe for unsafe repository', async () => {
+      process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = '1'
+      expect(await getRepositoryType(repository.path)).toMatchObject({
+        kind: 'unsafe',
+      })
+      process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = undefined
+    })
   })
 })
