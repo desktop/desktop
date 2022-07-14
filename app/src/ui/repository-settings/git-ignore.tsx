@@ -3,7 +3,10 @@ import { DialogContent } from '../dialog'
 import { TextArea } from '../lib/text-area'
 import { LinkButton } from '../lib/link-button'
 import { Ref } from '../lib/ref'
-import { getGitIgnoreNames, getGitIgnoreText } from '../add-repository/gitignores'
+import {
+  getGitIgnoreNames,
+  getGitIgnoreText,
+} from '../add-repository/gitignores'
 import { Select } from '../lib/select'
 import { Row } from '../lib/row'
 
@@ -28,7 +31,10 @@ interface IGitIgnoreState {
 }
 
 /** A view for creating or modifying the repository's gitignore file */
-export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState> {
+export class GitIgnore extends React.Component<
+  IGitIgnoreProps,
+  IGitIgnoreState
+> {
   public constructor(props: IGitIgnoreProps) {
     super(props)
 
@@ -45,7 +51,9 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState>
     this.setState({ gitIgnoreNames })
   }
 
-  private onTemplateChange = async (event: React.FormEvent<HTMLSelectElement>) => {
+  private onTemplateChange = async (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
     const templateName = event.currentTarget.value
     if (templateName === NoGitIgnoreTemplateValue) {
       this.props.onIgnoreTextChanged('')
@@ -59,7 +67,7 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState>
   private renderTemplates() {
     // Only show template selection UI if the user has an empty gitignore.
     if (!this.state.gitIgnoreEmpty) {
-      return null;
+      return null
     }
 
     const templateNames = this.state.gitIgnoreNames || []
