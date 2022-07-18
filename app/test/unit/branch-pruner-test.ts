@@ -14,6 +14,8 @@ import {
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
 import { offsetFromNow } from '../../src/lib/offset-from'
+import * as FSE from 'fs-extra'
+import * as path from 'path'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -125,10 +127,11 @@ describe('BranchPruner', () => {
 
   it('does not prune if there is no default branch', async () => {
     const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
-    const path = await setupFixtureRepository('branch-prune-tests')
+    const repoPath = await setupFixtureRepository('branch-prune-tests')
+    FSE.unlink(path.join(repoPath, '.git', 'refs', 'remotes', 'origin', 'HEAD'))
 
     const repo = await setupRepository(
-      path,
+      repoPath,
       repositoriesStore,
       repositoriesStateCache,
       true,
