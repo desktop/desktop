@@ -244,10 +244,7 @@ export async function getCommitRangeChangedFiles(
     return getCommitRangeChangedFiles(repository, shas, useNullTreeSHA)
   }
 
-  return parseChangedFilesAndNumStat(
-    result.combinedOutput,
-    `${oldestCommitRef}..${latestCommitRef}`
-  )
+  return parseChangedFilesAndNumStat(result.combinedOutput, oldestCommitRef)
 }
 
 /**
