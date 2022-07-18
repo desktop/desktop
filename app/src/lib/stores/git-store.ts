@@ -71,6 +71,7 @@ import {
   deleteTag,
   MergeResult,
   createBranch,
+  updateRemoteHEAD,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -96,6 +97,7 @@ import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { stat } from 'fs/promises'
 import { findForkedRemotesToPrune } from './helpers/find-forked-remotes-to-prune'
+import { enableUpdateDefaultBranch } from '../feature-flag'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -507,7 +509,11 @@ export class GitStore extends BaseStore {
    */
   private async resolveDefaultBranch(): Promise<string> {
     const { gitHubRepository } = this.repository
-    if (gitHubRepository && gitHubRepository.defaultBranch != null) {
+    if (
+      !enableUpdateDefaultBranch() &&
+      gitHubRepository &&
+      gitHubRepository.defaultBranch != null
+    ) {
       return gitHubRepository.defaultBranch
     }
 
@@ -1040,7 +1046,12 @@ export class GitStore extends BaseStore {
       repository: this.repository,
     }
     await this.performFailableOperation(
-      () => fetchRepo(this.repository, account, remote, progressCallback),
+      async () => {
+        await fetchRepo(this.repository, account, remote, progressCallback)
+        if (enableUpdateDefaultBranch()) {
+          await updateRemoteHEAD(this.repository, account, remote)
+        }
+      },
       { backgroundTask, retryAction }
     )
   }

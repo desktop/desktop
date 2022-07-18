@@ -161,6 +161,7 @@ import {
   RepositoryType,
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
+  updateRemoteHEAD,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -220,6 +221,7 @@ import { BranchPruner } from './helpers/branch-pruner'
 import {
   enableHideWhitespaceInDiffOption,
   enableMultiCommitDiffs,
+  enableUpdateDefaultBranch,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -4308,13 +4310,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
 
           await gitStore.performFailableOperation(
-            () =>
-              pullRepo(repository, account, remote, progress => {
+            async () => {
+              await pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
                   value: progress.value * pullWeight,
                 })
-              }),
+              })
+
+              if (enableUpdateDefaultBranch()) {
+                await updateRemoteHEAD(repository, account, remote)
+              }
+            },
             {
               gitContext,
               retryAction,
