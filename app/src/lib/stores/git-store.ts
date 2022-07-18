@@ -1046,14 +1046,13 @@ export class GitStore extends BaseStore {
       repository: this.repository,
     }
     await this.performFailableOperation(
-      async () => {
-        await fetchRepo(this.repository, account, remote, progressCallback)
-        if (enableUpdateDefaultBranch()) {
-          await updateRemoteHEAD(this.repository, account, remote)
-        }
-      },
+      () => fetchRepo(this.repository, account, remote, progressCallback),
       { backgroundTask, retryAction }
     )
+
+    if (enableUpdateDefaultBranch()) {
+      await updateRemoteHEAD(this.repository, account, remote)
+    }
   }
 
   /**
