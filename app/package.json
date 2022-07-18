@@ -26,7 +26,7 @@
     "codemirror-mode-elixir": "^1.1.2",
     "compare-versions": "^3.6.0",
     "deep-equal": "^1.0.1",
-    "desktop-notifications": "^0.2.2",
+    "desktop-notifications": "^0.2.4",
     "desktop-trampoline": "desktop/desktop-trampoline#v0.9.8",
     "dexie": "^3.2.2",
     "dompurify": "^2.3.3",
