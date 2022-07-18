@@ -135,7 +135,6 @@ import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
 import { DragType, DropTargetSelector } from '../models/drag-drop'
-import { enableSquashing } from '../lib/feature-flag'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
@@ -2426,9 +2425,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentDragElement !== null && currentDragElement.type === DragType.Commit
     return classNames({
       'commit-being-dragged': isCommitBeingDragged,
-      // 'squashing-enabled' is due to feature flagging. If feature flag is
-      // removed, we can just delete this line with adjustment to the css file
-      'squashing-enabled': isCommitBeingDragged && enableSquashing(),
     })
   }
 

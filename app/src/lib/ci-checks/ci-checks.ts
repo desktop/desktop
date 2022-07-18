@@ -10,7 +10,6 @@ import {
   IAPIWorkflowRun,
 } from '../api'
 import JSZip from 'jszip'
-import { enableCICheckRunsLogs } from '../feature-flag'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { supportsRetrieveActionWorkflowByCheckSuiteId } from '../endpoint-capabilities'
@@ -379,16 +378,6 @@ export async function getLatestPRWorkflowRunsLogsForCheckRun(
     const matchingJob = workFlowRunJobs?.jobs.find(j => j.id === cr.id)
     if (matchingJob === undefined) {
       mappedCheckRuns.push(cr)
-      continue
-    }
-
-    if (!enableCICheckRunsLogs()) {
-      mappedCheckRuns.push({
-        ...cr,
-        htmlUrl: matchingJob.html_url,
-        actionJobSteps: matchingJob.steps,
-      })
-
       continue
     }
 

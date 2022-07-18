@@ -13,7 +13,6 @@ import { parseRawUnfoldedTrailers } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
-import { enableLineChangesInCommit } from '../feature-flag'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -183,10 +182,6 @@ export async function getChangedFiles(
   )
 
   const files = parseChangedFiles(resultNameStatus.stdout, sha)
-
-  if (!enableLineChangesInCommit()) {
-    return { files, linesAdded: 0, linesDeleted: 0 }
-  }
 
   // Run `git log` again, but this time to get the number of lines added/deleted
   // per file

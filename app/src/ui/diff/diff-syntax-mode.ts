@@ -4,7 +4,6 @@ import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
 
 import 'codemirror/mode/javascript/javascript'
-import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import { DefaultDiffExpansionStep } from './text-diff-expansion'
 import { getFirstAndLastClassesUnified } from './diff-helpers'
 
@@ -199,7 +198,7 @@ export class DiffSyntaxMode {
 
       // If it's a hunk header line, we want to make a few extra checks
       // depending on the distance to the previous hunk.
-      if (token === DiffSyntaxToken.Hunk && enableTextDiffExpansion()) {
+      if (token === DiffSyntaxToken.Hunk) {
         // First we grab the numbers in the hunk header
         const matches = stream.match(/\@ -(\d+),(\d+) \+\d+,\d+ \@\@/)
         if (matches !== null) {

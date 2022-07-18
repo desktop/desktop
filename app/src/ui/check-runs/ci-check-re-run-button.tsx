@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { APICheckConclusion } from '../../lib/api'
 import { IRefCheck } from '../../lib/ci-checks/ci-checks'
-import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
 import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
 import { Button } from '../lib/button'
 import { Octicon, syncClockwise } from '../octicons'
@@ -22,11 +21,7 @@ export class CICheckReRunButton extends React.PureComponent<ICICheckReRunButtonP
   }
 
   private onRerunChecks = () => {
-    if (
-      !enableReRunFailedAndSingleCheckJobs() ||
-      !this.props.canReRunFailed ||
-      !this.failedChecksExist
-    ) {
+    if (!this.props.canReRunFailed || !this.failedChecksExist) {
       this.props.onRerunChecks(false)
       return
     }
@@ -47,9 +42,7 @@ export class CICheckReRunButton extends React.PureComponent<ICICheckReRunButtonP
 
   public render() {
     const text =
-      enableReRunFailedAndSingleCheckJobs() &&
-      this.props.canReRunFailed &&
-      this.failedChecksExist ? (
+      this.props.canReRunFailed && this.failedChecksExist ? (
         <>
           Re-run <Octicon symbol={OcticonSymbol.triangleDown} />
         </>

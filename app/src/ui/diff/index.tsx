@@ -29,10 +29,7 @@ import {
 import { BinaryFile } from './binary-file'
 import { TextDiff } from './text-diff'
 import { SideBySideDiff } from './side-by-side-diff'
-import {
-  enableHideWhitespaceInDiffOption,
-  enableExperimentalDiffViewer,
-} from '../../lib/feature-flag'
+import { enableExperimentalDiffViewer } from '../../lib/feature-flag'
 import { IFileContents } from './syntax-highlighting'
 
 // image used when no diff is displayed
@@ -257,9 +254,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
-    const hideWhitespaceInDiff =
-      enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff
-
     if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
       return (
         <SideBySideDiff
@@ -267,7 +261,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           file={this.props.file}
           diff={diff}
           fileContents={this.props.fileContents}
-          hideWhitespaceInDiff={hideWhitespaceInDiff}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onIncludeChanged={this.props.onIncludeChanged}
           onDiscardChanges={this.props.onDiscardChanges}
@@ -286,7 +280,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         repository={this.props.repository}
         file={this.props.file}
         readOnly={this.props.readOnly}
-        hideWhitespaceInDiff={hideWhitespaceInDiff}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.props.onDiscardChanges}
         diff={diff}
