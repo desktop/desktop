@@ -187,6 +187,10 @@ export class CloneRepository extends React.Component<
     if (prevProps.selectedTab !== this.props.selectedTab) {
       this.validatePath()
     }
+
+    if (prevProps.initialURL !== this.props.initialURL) {
+      this.updateUrl(this.props.initialURL || '')
+    }
   }
 
   public componentDidMount() {

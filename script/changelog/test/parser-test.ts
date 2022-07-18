@@ -84,6 +84,19 @@ Notes: [Fixed] Fix lorem impsum dolor sit amet.
       )
     })
 
+    it('looks for the last Notes entry if there are several', () => {
+      const body = `
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sollicitudin turpis
+tempor euismod fermentum. Nullam hendrerit neque eget risus faucibus volutpat. Donec
+ultrices, orci quis auctor ultrices, nulla lacus gravida lectus, non rutrum dolor
+quam vel augue.
+Notes: ignore this notes
+
+Notes: These are valid notes
+`
+      expect(findReleaseNote(body)).toBe('These are valid notes')
+    })
+
     it('detected no release notes wanted for the PR', () => {
       const body = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sollicitudin turpis

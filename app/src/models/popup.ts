@@ -21,6 +21,7 @@ import { IAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
+import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -84,6 +85,7 @@ export enum PopupType {
   WarnForcePush,
   DiscardChangesRetry,
   PullRequestReview,
+  UnreachableCommits,
 }
 
 export type Popup =
@@ -352,4 +354,8 @@ export type Popup =
       numberOfComments: number
       shouldCheckoutBranch: boolean
       shouldChangeRepository: boolean
+    }
+  | {
+      type: PopupType.UnreachableCommits
+      selectedTab: UnreachableCommitsTab
     }

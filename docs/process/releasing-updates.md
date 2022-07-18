@@ -54,17 +54,15 @@ $ set GITHUB_ACCESS_TOKEN={your token here}
 $ $env:GITHUB_ACCESS_TOKEN="{your token here}"
 ```
 
-### 2. Create Release Branch
+### 2. Switch to the Commit of the Release
 
-Create a new branch to represent the work that will be released to users:
+You have to switch to the commit that represents the work that will be released to users:
 
- - for `beta` releases, branch from `development` to ensure the latest changes are published
- - for `production` releases, branch from the latest beta tag
+ - for `beta` releases, switch to `development` to ensure the latest changes are published
+ - for `production` releases, check out the latest beta tag
     - to find this tag: `git tag | grep 'beta' | sort -r | head -n 1`
 
-When naming the branch, ensure you use the `releases/[version]` pattern to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
-
-### 3. Create Draft Release
+### 3. Create Draft Release and Release Branch
 
 Run the script below (which relies on the your personal access token being set), which will determine the next version from what was previously published, based on the desired channel.
 
@@ -78,12 +76,11 @@ If you are creating a new beta release, the `yarn draft-release beta` command wi
 
 If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
-
-The script will output a draft changelog, which covers everything that's been merged, and probably needs some love.
-The output will then explain the next steps:
+The script will output a draft changelog, which covers everything that's been merged, and probably needs some love. It will also create the release branch for you. If that fails for whatever reason and you must create the branch manually, ensure you use the `releases/[version]` pattern for its name to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
 
 If you have pretext release note drafted in `app/static/common/pretext-draft.md`, you can add the `--pretext` flag to generate a pretext change log entry it. Example: `yarn draft-release test --pretext`
 
+The output will then explain the next steps:
 ```shellsession
 Here's what you should do next:
 
@@ -134,6 +131,8 @@ Here's an example of the previous changelog draft after it has been edited:
 Add your new changelog entries to `changelog.json`, update the version in `app/package.json`, commit the changes, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `development` without affecting your release.
 
 If a maintainer would like to backport a pull request to the next release, it is their responsibility to co-ordinate with the release owner and ensure they are fine with accepting this work.
+
+After pushing the branch, a [GitHub Action](https://github.com/desktop/desktop/blob/development/.github/workflows/release-pr.yml) will create a release Pull Request for it. If that action fails for whatever reason, you can fall back to using the `yarn draft-release:pr` command, or create it manually.
 
 Once your release branch is ready to review and ship, ask the other maintainers to review and approve the changes!
 

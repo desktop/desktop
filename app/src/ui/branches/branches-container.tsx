@@ -5,7 +5,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
 
@@ -40,6 +40,8 @@ interface IBranchesContainerProps {
   readonly currentBranch: Branch | null
   readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
+  readonly onRenameBranch: (branchName: string) => void
+  readonly onDeleteBranch: (branchName: string) => void
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
@@ -204,8 +206,8 @@ export class BranchesContainer extends React.Component<
       item,
       matches,
       this.props.currentBranch,
-      this.onRenameBranch,
-      this.onDeleteBranch,
+      this.props.onRenameBranch,
+      this.props.onDeleteBranch,
       this.onDropOntoBranch,
       this.onDropOntoCurrentBranch
     )
@@ -399,52 +401,6 @@ export class BranchesContainer extends React.Component<
     selectedPullRequest: PullRequest | null
   ) => {
     this.setState({ selectedPullRequest })
-  }
-
-  private getBranchWithName(branchName: string): Branch | undefined {
-    return this.props.allBranches.find(branch => branch.name === branchName)
-  }
-
-  private onRenameBranch = (branchName: string) => {
-    const branch = this.getBranchWithName(branchName)
-
-    if (branch === undefined) {
-      return
-    }
-
-    this.props.dispatcher.showPopup({
-      type: PopupType.RenameBranch,
-      repository: this.props.repository,
-      branch: branch,
-    })
-  }
-
-  private onDeleteBranch = async (branchName: string) => {
-    const branch = this.getBranchWithName(branchName)
-
-    if (branch === undefined) {
-      return
-    }
-
-    if (branch.type === BranchType.Remote) {
-      this.props.dispatcher.showPopup({
-        type: PopupType.DeleteRemoteBranch,
-        repository: this.props.repository,
-        branch,
-      })
-      return
-    }
-
-    const aheadBehind = await this.props.dispatcher.getBranchAheadBehind(
-      this.props.repository,
-      branch
-    )
-    this.props.dispatcher.showPopup({
-      type: PopupType.DeleteBranch,
-      repository: this.props.repository,
-      branch,
-      existsOnRemote: aheadBehind !== null,
-    })
   }
 
   /**

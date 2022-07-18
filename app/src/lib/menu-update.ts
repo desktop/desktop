@@ -112,7 +112,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'discard-all-changes',
   'stash-all-changes',
   'preferences',
-  'update-branch',
+  'update-branch-with-contribution-target-branch',
   'compare-to-branch',
   'merge-branch',
   'rebase-branch',
@@ -261,7 +261,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
-      'update-branch',
+      'update-branch-with-contribution-target-branch',
       onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
@@ -343,7 +343,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('discard-all-changes')
     menuStateBuilder.disable('stash-all-changes')
-    menuStateBuilder.disable('update-branch')
+    menuStateBuilder.disable('update-branch-with-contribution-target-branch')
     menuStateBuilder.disable('merge-branch')
     if (enableSquashMerging()) {
       menuStateBuilder.disable('squash-and-merge-branch')

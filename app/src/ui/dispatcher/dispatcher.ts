@@ -237,8 +237,16 @@ export class Dispatcher {
     repository: Repository,
     shas: ReadonlyArray<string>,
     isContiguous: boolean
-  ): Promise<void> {
+  ): void {
     return this.appStore._changeCommitSelection(repository, shas, isContiguous)
+  }
+
+  /** Update the shas that should be highlighted */
+  public updateShasToHighlight(
+    repository: Repository,
+    shasToHighlight: ReadonlyArray<string>
+  ) {
+    this.appStore._updateShasToHighlight(repository, shasToHighlight)
   }
 
   /**
