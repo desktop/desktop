@@ -15,6 +15,7 @@ import { RichText } from '../lib/rich-text'
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
   readonly newReleases: ReadonlyArray<ReleaseSummary> | null
+  readonly isX64ToARM64ImmediateAutoUpdate: boolean
   readonly isUpdateShowcaseVisible: boolean
   readonly emoji: Map<string, string>
   readonly onDismissed: () => void
@@ -44,6 +45,19 @@ export class UpdateAvailable extends React.Component<
   }
 
   private renderMessage = () => {
+    if (this.props.isX64ToARM64ImmediateAutoUpdate) {
+      return (
+        <span onSubmit={this.updateNow}>
+          An optimized version of GitHub Desktop is available for your machine
+          and will be installed at the next launch. You can also{' '}
+          <LinkButton onClick={this.updateNow}>
+            restart GitHub Desktop
+          </LinkButton>{' '}
+          now.
+        </span>
+      )
+    }
+
     if (this.props.isUpdateShowcaseVisible) {
       const version =
         this.props.newReleases !== null

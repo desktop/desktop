@@ -19,7 +19,10 @@ import { parseError } from '../../lib/squirrel-error-parser'
 import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
-import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
+import {
+  enableImmediateUpdateFromEmulatedX64ToARM64,
+  enableUpdateFromEmulatedX64ToARM64,
+} from '../../lib/feature-flag'
 import { offsetFromNow } from '../../lib/offset-from'
 import { gte, SemVer } from 'semver'
 import { getRendererGUID } from '../../lib/get-renderer-guid'
@@ -48,6 +51,7 @@ export enum UpdateStatus {
 export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
+  isX64ToARM64ImmediateAutoUpdate: boolean
   newReleases: ReadonlyArray<ReleaseSummary> | null
 }
 
@@ -57,6 +61,7 @@ class UpdateStore {
   private status = UpdateStatus.UpdateNotChecked
   private lastSuccessfulCheck: Date | null = null
   private newReleases: ReadonlyArray<ReleaseSummary> | null = null
+  private isX64ToARM64ImmediateAutoUpdate: boolean = false
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
@@ -113,6 +118,13 @@ class UpdateStore {
 
   private onUpdateDownloaded = async () => {
     this.newReleases = await generateReleaseSummary()
+    // We know it's an "immediate" auto-update from x64 to arm64 if the app is
+    // running on arm64 under x64 emulation and there aren't new releases (which
+    // means we spoofed Central with an old version of the app).
+    this.isX64ToARM64ImmediateAutoUpdate =
+      this.newReleases !== null &&
+      this.newReleases.length === 0 &&
+      (await isRunningUnderARM64Translation())
     this.status = UpdateStatus.UpdateReady
     this.emitDidChange()
   }
@@ -144,6 +156,7 @@ class UpdateStore {
       status: this.status,
       lastSuccessfulCheck: this.lastSuccessfulCheck,
       newReleases: this.newReleases,
+      isX64ToARM64ImmediateAutoUpdate: this.isX64ToARM64ImmediateAutoUpdate,
     }
   }
 
@@ -199,6 +212,13 @@ class UpdateStore {
         /\/desktop\/desktop\/(x64\/)?latest/,
         '/desktop/desktop/arm64/latest'
       )
+
+      // If we want the app to force an auto-update form x64 to arm64 right
+      // after being installed, we need to spoof a really old version to trick
+      // both Central and Squirrel into thinking we need the update.
+      if (enableImmediateUpdateFromEmulatedX64ToARM64()) {
+        url.searchParams.set('version', '1.6.4')
+      }
     }
 
     return url.toString()
