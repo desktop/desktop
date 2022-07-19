@@ -22,7 +22,6 @@ export interface IDatabaseGitHubRepository {
   readonly name: string
   readonly private: boolean | null
   readonly htmlURL: string | null
-  readonly defaultBranch: string | null
   readonly cloneURL: string | null
 
   /** The database ID of the parent repository if the repository is a fork. */
@@ -51,6 +50,7 @@ export interface IDatabaseRepository {
   readonly id?: number
   readonly gitHubRepositoryID: number | null
   readonly path: string
+  readonly defaultBranch: string | null
   readonly alias: string | null
   readonly missing: boolean
 
@@ -138,6 +138,7 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+    this.conditionalVersion(10, {}, migrateDefaultBranch)
   }
 }
 
@@ -232,6 +233,22 @@ async function createOwnerKey(tx: Transaction) {
   }
 
   await ownersTable.bulkDelete(ownersToDelete)
+}
+
+async function migrateDefaultBranch(tx: Transaction) {
+  const reposTable = tx.table<IDatabaseRepository, number>('repositories')
+  const ghReposTable = tx.table<IDatabaseGitHubRepository, number>(
+    'gitHubRepositories'
+  )
+  const allGHRepos = await ghReposTable.toArray()
+  await reposTable.toCollection().modify(repo => {
+    const ghRepo = allGHRepos.find(r => r.id === repo.gitHubRepositoryID)
+    ;(repo as any).defaultBranch = (ghRepo as any)?.defaultBranch ?? null
+  })
+
+  await ghReposTable.toCollection().modify(repo => {
+    delete (repo as any).defaultBranch
+  })
 }
 
 /* Creates a case-insensitive key used to uniquely identify an owner

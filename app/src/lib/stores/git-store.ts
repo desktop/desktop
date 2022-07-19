@@ -508,13 +508,8 @@ export class GitStore extends BaseStore {
    * name conventions.
    */
   private async resolveDefaultBranch(): Promise<string> {
-    const { gitHubRepository } = this.repository
-    if (
-      !enableUpdateDefaultBranch() &&
-      gitHubRepository &&
-      gitHubRepository.defaultBranch != null
-    ) {
-      return gitHubRepository.defaultBranch
+    if (!enableUpdateDefaultBranch() && this.repository.defaultBranch != null) {
+      return this.repository.defaultBranch
     }
 
     if (this.currentRemote !== null) {

@@ -39,7 +39,7 @@ export function findDefaultUpstreamBranch(
   const foundBranch = branches.find(
     b =>
       b.type === BranchType.Remote &&
-      b.name === `${UpstreamRemoteName}/${githubRepository.defaultBranch}`
+      b.name === `${UpstreamRemoteName}/${repository.defaultBranch}`
   )
 
   return foundBranch !== undefined ? foundBranch : null

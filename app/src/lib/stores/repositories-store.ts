@@ -130,7 +130,6 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.id,
       repo.private,
       repo.htmlURL,
-      repo.defaultBranch,
       repo.cloneURL,
       repo.issuesEnabled,
       repo.isArchived,
@@ -152,6 +151,7 @@ export class RepositoriesStore extends TypedBaseStore<
         ? await this.findGitHubRepositoryByID(repo.gitHubRepositoryID)
         : await Promise.resolve(null), // Dexie gets confused if we return null
       repo.missing,
+      repo.defaultBranch,
       enableRepositoryAliases() ? repo.alias : null,
       repo.workflowPreferences,
       repo.isTutorialRepository
@@ -218,6 +218,7 @@ export class RepositoriesStore extends TypedBaseStore<
           alias: null,
           gitHubRepositoryID: ghRepo.dbID,
           missing: false,
+          defaultBranch: apiRepo.default_branch,
           lastStashCheckDate: null,
           isTutorialRepository: true,
         })
@@ -252,6 +253,7 @@ export class RepositoriesStore extends TypedBaseStore<
           path,
           gitHubRepositoryID: null,
           missing: opts?.missing ?? false,
+          defaultBranch: null,
           lastStashCheckDate: null,
           alias: null,
         }
@@ -287,6 +289,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       missing,
+      repository.defaultBranch,
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository
@@ -337,6 +340,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       false,
+      repository.defaultBranch,
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository
@@ -449,7 +453,6 @@ export class RepositoriesStore extends TypedBaseStore<
 
         const skeletonRepo: IDatabaseGitHubRepository = {
           cloneURL: null,
-          defaultBranch: null,
           htmlURL: null,
           lastPruneDate: null,
           name: match.name,
@@ -484,6 +487,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.id,
       ghRepo,
       repo.missing,
+      repo.defaultBranch,
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository
@@ -557,7 +561,6 @@ export class RepositoriesStore extends TypedBaseStore<
       name: gitHubRepository.name,
       private: gitHubRepository.private,
       htmlURL: gitHubRepository.html_url,
-      defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID,
       lastPruneDate: existingRepo?.lastPruneDate ?? null,

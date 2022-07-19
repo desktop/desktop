@@ -51,6 +51,7 @@ export class Repository {
     public readonly id: number,
     public readonly gitHubRepository: GitHubRepository | null,
     public readonly missing: boolean,
+    public readonly defaultBranch: string | null = null,
     public readonly alias: string | null = null,
     public readonly workflowPreferences: WorkflowPreferences = {},
     /**
@@ -68,6 +69,7 @@ export class Repository {
       this.id,
       gitHubRepository?.hash,
       this.missing,
+      this.defaultBranch,
       this.alias,
       this.workflowPreferences.forkContributionTarget,
       this.isTutorialRepository
