@@ -119,6 +119,7 @@ import {
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
+import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 
 /**
  * An error handler function.
@@ -3929,5 +3930,14 @@ export class Dispatcher {
     reviewType: ValidNotificationPullRequestReviewState
   ) {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
+  }
+
+  public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
+    this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
+
+    this.showPopup({
+      type: PopupType.UnreachableCommits,
+      selectedTab,
+    })
   }
 }

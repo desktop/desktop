@@ -108,6 +108,7 @@ import {
   isMergeConflictState,
   IMultiCommitOperationState,
   IConstrainedValue,
+  ICompareState,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -1112,7 +1113,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     shas: ReadonlyArray<string>,
     isContiguous: boolean
   ): void {
-    const { commitSelection, commitLookup } =
+    const { commitSelection, commitLookup, compareState } =
       this.repositoryStateCache.get(repository)
 
     if (
@@ -1124,6 +1125,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const shasInDiff = this.getShasInDiff(shas, isContiguous, commitLookup)
 
+    if (shas.length > 1 && isContiguous) {
+      this.recordMultiCommitDiff(shas, shasInDiff, compareState)
+    }
+
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       shas,
       shasInDiff,
@@ -1134,6 +1139,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+  }
+
+  private recordMultiCommitDiff(
+    shas: ReadonlyArray<string>,
+    shasInDiff: ReadonlyArray<string>,
+    compareState: ICompareState
+  ) {
+    const isHistoryTab = compareState.formState.kind === HistoryTabMode.History
+
+    if (isHistoryTab) {
+      this.statsStore.recordMultiCommitDiffFromHistoryCount()
+    } else {
+      this.statsStore.recordMultiCommitDiffFromCompareCount()
+    }
+
+    const hasUnreachableCommitWarning = !shas.every(s => shasInDiff.includes(s))
+
+    if (hasUnreachableCommitWarning) {
+      this.statsStore.recordMultiCommitDiffWithUnreachableCommitWarningCount()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
