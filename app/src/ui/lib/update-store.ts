@@ -216,7 +216,7 @@ class UpdateStore {
         '/desktop/desktop/arm64/latest'
       )
 
-      // If we want the app to force an auto-update form x64 to arm64 right
+      // If we want the app to force an auto-update from x64 to arm64 right
       // after being installed, we need to spoof a really old version to trick
       // both Central and Squirrel into thinking we need the update.
       if (enableImmediateUpdateFromEmulatedX64ToARM64()) {
