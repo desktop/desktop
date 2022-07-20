@@ -181,7 +181,7 @@ export async function getChangedFiles(
     'getChangedFilesNameStatus'
   )
 
-  const files = parseChangedFiles(resultNameStatus.stdout, sha)
+  const files = parseChangedFiles(resultNameStatus.stdout, sha, `${sha}^`)
 
   // Run `git log` again, but this time to get the number of lines added/deleted
   // per file
@@ -235,7 +235,8 @@ function parseChangedFilesNumStat(stdout: string): {
  */
 export function parseChangedFiles(
   stdout: string,
-  committish: string
+  committish: string,
+  parentCommitish: string
 ): ReadonlyArray<CommittedFileChange> {
   const lines = stdout.split('\0')
   // Remove the trailing empty line
@@ -257,7 +258,9 @@ export function parseChangedFiles(
 
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, status, committish))
+    files.push(
+      new CommittedFileChange(path, status, committish, parentCommitish)
+    )
   }
 
   return files

@@ -246,7 +246,8 @@ export async function getCommitRangeChangedFiles(
 
   return parseChangedFilesAndNumStat(
     result.combinedOutput,
-    `${oldestCommitRef}..${latestCommitRef}`
+    latestCommitRef,
+    oldestCommitRef
   )
 }
 
@@ -278,7 +279,11 @@ export async function getCommitRangeChangedFiles(
  *    file_two_original_path
  *    file_two_new_path
  */
-function parseChangedFilesAndNumStat(stdout: string, committish: string) {
+function parseChangedFilesAndNumStat(
+  stdout: string,
+  committish: string,
+  parentCommitish: string
+) {
   const lines = stdout.split('\0')
   // Remove the trailing empty line
   lines.splice(-1, 1)
@@ -305,7 +310,9 @@ function parseChangedFilesAndNumStat(stdout: string, committish: string) {
       const status = mapStatus(statusText, oldPath)
       const path = lines[++i]
 
-      files.push(new CommittedFileChange(path, status, committish))
+      files.push(
+        new CommittedFileChange(path, status, committish, parentCommitish)
+      )
     }
 
     if (parts.length === 3) {
