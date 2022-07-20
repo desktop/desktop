@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.6-test2": ["[Fixed] Fix banner for auto-update from x64 to arm64"],
     "3.0.5": [
       "[Fixed] Surface again Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user"
     ],
