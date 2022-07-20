@@ -220,7 +220,7 @@ class UpdateStore {
       // after being installed, we need to spoof a really old version to trick
       // both Central and Squirrel into thinking we need the update.
       if (enableImmediateUpdateFromEmulatedX64ToARM64()) {
-        url.searchParams.set('version', '1.6.4')
+        url.searchParams.set('version', '0.0.64')
       }
     }
 
