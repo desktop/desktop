@@ -49,7 +49,7 @@ export class UpdateAvailable extends React.Component<
       return (
         <span onSubmit={this.updateNow}>
           An optimized version of GitHub Desktop is available for your{' '}
-          {__DARWIN__ ? 'Apple Silicon' : 'Arm64'} machine and will be installed
+          {__DARWIN__ ? 'Apple silicon' : 'Arm64'} machine and will be installed
           at the next launch or{' '}
           <LinkButton onClick={this.updateNow}>
             restart GitHub Desktop
