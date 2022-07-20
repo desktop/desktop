@@ -25,7 +25,7 @@ interface IMergeCallToActionWithConflictsProps {
 }
 
 interface IMergeCallToActionWithConflictsState {
-  readonly selectedOperation: MultiCommitOperationKind
+  readonly selectedOperation: MultiCommitOperationKind | 'PreviewMerge'
   readonly rebasePreview: RebasePreview | null
 }
 
@@ -66,7 +66,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     super(props)
 
     this.state = {
-      selectedOperation: MultiCommitOperationKind.Merge,
+      selectedOperation: 'PreviewMerge',
       rebasePreview: null,
     }
   }
@@ -113,8 +113,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
     const { dispatcher, repository } = this.props
 
     await this.dispatchOperation(
-      selectedOption.value as MultiCommitOperationKind
+      selectedOption.value as MultiCommitOperationKind | 'PreviewMerge'
     )
+
+    if (selectedOption.value === 'PreviewMerge') {
+      return
+    }
 
     dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.History,
@@ -127,7 +131,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
   }
 
   private async dispatchOperation(
-    operation: MultiCommitOperationKind
+    operation: MultiCommitOperationKind | 'PreviewMerge'
   ): Promise<void> {
     const {
       dispatcher,
@@ -136,6 +140,10 @@ export class MergeCallToActionWithConflicts extends React.Component<
       repository,
       mergeStatus,
     } = this.props
+
+    if (operation === 'PreviewMerge') {
+      return console.log(operation)
+    }
 
     if (operation === MultiCommitOperationKind.Rebase) {
       const commits =
@@ -177,13 +185,21 @@ export class MergeCallToActionWithConflicts extends React.Component<
     const disabled = this.isUpdateBranchDisabled()
     const mergeDetails = this.commitCount > 0 ? this.renderMergeStatus() : null
 
+    const mergeOptions = [...getMergeOptions()]
+    mergeOptions.unshift({
+      label: 'Preview Files Changed By Merge',
+      description:
+        'The files changed from creating a merge from the selected branch will be be displayed in the diff viewer.',
+      value: 'PreviewMerge',
+    })
+
     return (
       <div className="merge-cta">
         {mergeDetails}
 
         <DropdownSelectButton
           selectedValue={this.state.selectedOperation}
-          options={getMergeOptions()}
+          options={mergeOptions}
           disabled={disabled}
           onSelectChange={this.onOperationChange}
           onSubmit={this.onOperationInvoked}
