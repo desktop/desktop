@@ -26,6 +26,7 @@ import {
 import { offsetFromNow } from '../../lib/offset-from'
 import { gte, SemVer } from 'semver'
 import { getRendererGUID } from '../../lib/get-renderer-guid'
+import { getVersion } from './app-proxy'
 
 /** The last version a showcase was seen. */
 export const lastShowCaseVersionSeen = 'version-of-last-showcase'
@@ -119,11 +120,13 @@ class UpdateStore {
   private onUpdateDownloaded = async () => {
     this.newReleases = await generateReleaseSummary()
     // We know it's an "immediate" auto-update from x64 to arm64 if the app is
-    // running on arm64 under x64 emulation and there aren't new releases (which
-    // means we spoofed Central with an old version of the app).
+    // running on arm64 under x64 emulation and there is only one new release
+    // and it's the same version we have right now (which means we spoofed
+    // Central with an old version of the app).
     this.isX64ToARM64ImmediateAutoUpdate =
       this.newReleases !== null &&
-      this.newReleases.length === 0 &&
+      this.newReleases.length === 1 &&
+      this.newReleases[0].latestVersion === getVersion() &&
       (await isRunningUnderARM64Translation())
     this.status = UpdateStatus.UpdateReady
     this.emitDidChange()
