@@ -108,10 +108,15 @@ export async function getPartialBlobContentsCatchPathNotInRef(
 ): Promise<Buffer | null> {
   const args = ['show', `${commitish}:${path}`]
 
-  const result = await git(args, repository.path, 'getPartialBlobContents', {
-    maxBuffer: length,
-    expectedErrors: new Set([GitError.PathExistsButNotInRef]),
-  })
+  const result = await git(
+    args,
+    repository.path,
+    'getPartialBlobContentsCatchPathNotInRef',
+    {
+      maxBuffer: length,
+      expectedErrors: new Set([GitError.PathExistsButNotInRef]),
+    }
+  )
 
   if (result.gitError === GitError.PathExistsButNotInRef) {
     return null
