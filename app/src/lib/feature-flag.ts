@@ -110,5 +110,5 @@ export function enablePullRequestQuickView(): boolean {
 
 /** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
 export function enableMultiCommitDiffs(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
