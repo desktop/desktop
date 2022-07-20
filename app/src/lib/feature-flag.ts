@@ -73,11 +73,7 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
  * ARM64 builds IMMEDIATELY instead of waiting for the next release?
  */
 export function enableImmediateUpdateFromEmulatedX64ToARM64(): boolean {
-  return (
-    (__DARWIN__ && enableBetaFeatures()) ||
-    // No idea if this will work on win32, so let's keep that for test builds
-    (__WIN32__ && __RELEASE_CHANNEL__ === 'test')
-  )
+  return __RELEASE_CHANNEL__ === 'test'
 }
 
 /** Should we allow resetting to a previous commit? */
