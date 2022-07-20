@@ -142,7 +142,11 @@ export class MergeCallToActionWithConflicts extends React.Component<
     } = this.props
 
     if (operation === 'PreviewMerge') {
-      return console.log(operation)
+      return dispatcher.previewMerge(
+        repository,
+        comparisonBranch,
+        currentBranch
+      )
     }
 
     if (operation === MultiCommitOperationKind.Rebase) {

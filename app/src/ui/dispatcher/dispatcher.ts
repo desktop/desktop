@@ -3930,4 +3930,16 @@ export class Dispatcher {
   ) {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
+
+  /**
+   * Method to update the commit selection and diff to display a `git diff
+   * --merge-base` of the comparison and current branch
+   * */
+  public previewMerge(
+    repository: Repository,
+    comparisonBranch: Branch,
+    currentBranch: Branch
+  ) {
+    this.appStore._previewMerge(repository, comparisonBranch, currentBranch)
+  }
 }

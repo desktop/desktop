@@ -594,6 +594,9 @@ export interface ICommitSelection {
 
   /** The diff of the currently-selected file */
   readonly diff: IDiff | null
+
+  /** The comparison branch to use when diff against the current branch via merge base */
+  readonly diffComparisonBranch: Branch | null
 }
 
 export enum ChangesSelectionKind {

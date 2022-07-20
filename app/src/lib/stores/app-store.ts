@@ -161,6 +161,8 @@ import {
   RepositoryType,
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
+  getBranchMergeBaseChangedFiles,
+  getBranchMergeBaseDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1103,6 +1105,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
+      diffComparisonBranch: null,
     }))
   }
 
@@ -1131,7 +1134,66 @@ export class AppStore extends TypedBaseStore<IAppState> {
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
       diff: null,
+      diffComparisonBranch: null,
     }))
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _previewMerge(
+    repository: Repository,
+    diffComparisonBranch: Branch,
+    currentBranch: Branch
+  ): Promise<void> {
+    const state = this.repositoryStateCache.get(repository)
+    const { commitSelection, compareState } = state
+    const { shas } = commitSelection
+    const { commitSHAs } = compareState
+    if (commitSHAs.length === 0) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const changesetData = await gitStore.performFailableOperation(() =>
+      getBranchMergeBaseChangedFiles(
+        repository,
+        currentBranch,
+        diffComparisonBranch,
+        commitSHAs[0]
+      )
+    )
+
+    if (changesetData === undefined) {
+      return
+    }
+
+    // The selection could have changed between when we started loading the
+    // changed files and we finished.
+    if (
+      commitSelection.shas.length !== shas.length ||
+      !commitSelection.shas.every((sha, i) => sha === shas[i])
+    ) {
+      return
+    }
+
+    const file = changesetData.files.length
+      ? changesetData.files[0]
+      : commitSelection.file
+
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      shas: commitSHAs,
+      shasInDiff: commitSHAs,
+      isContiguous: true,
+      file,
+      changesetData,
+      diff: null,
+      diffComparisonBranch,
+    }))
+
+    if (file !== null) {
+      this._changeFileSelection(repository, file)
+    }
 
     this.emitUpdate()
   }
@@ -1540,7 +1602,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const { shas, isContiguous } = stateBeforeLoad.commitSelection
+    const { commitSelection, branchesState } = stateBeforeLoad
+    const { tip } = branchesState
+
+    const { shas, isContiguous, diffComparisonBranch } = commitSelection
 
     if (shas.length === 0) {
       if (__DEV__) {
@@ -1556,8 +1621,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const currentBranch =
+      diffComparisonBranch !== null && tip.kind === TipState.Valid
+        ? tip.branch
+        : null
+
     const diff =
-      shas.length > 1
+      currentBranch !== null && diffComparisonBranch !== null
+        ? await getBranchMergeBaseDiff(
+            repository,
+            file,
+            currentBranch,
+            diffComparisonBranch,
+            this.hideWhitespaceInHistoryDiff,
+            shas[0]
+          )
+        : shas.length > 1
         ? await getCommitRangeDiff(
             repository,
             file,
