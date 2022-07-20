@@ -373,9 +373,19 @@ export class RepositoryView extends React.Component<
   }
 
   private renderContentForHistory(): JSX.Element {
-    const { commitSelection, commitLookup, localCommitSHAs } = this.props.state
-    const { changesetData, file, diff, shas, shasInDiff, isContiguous } =
-      commitSelection
+    const { commitSelection, commitLookup, localCommitSHAs, branchesState } =
+      this.props.state
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const {
+      changesetData,
+      file,
+      diff,
+      shas,
+      shasInDiff,
+      isContiguous,
+      diffComparisonBranch,
+    } = commitSelection
 
     const selectedCommits = []
     for (const sha of shas) {
@@ -413,6 +423,8 @@ export class RepositoryView extends React.Component<
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         showDragOverlay={showDragOverlay}
+        diffBaseBranch={currentBranch}
+        diffComparisonBranch={diffComparisonBranch}
       />
     )
   }

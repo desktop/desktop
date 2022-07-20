@@ -37,6 +37,7 @@ import { pathExists } from '../lib/path-exists'
 import { enableMultiCommitDiffs } from '../../lib/feature-flag'
 import { PopupType } from '../../models/popup'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
+import { Branch } from '../../models/branch'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -86,6 +87,9 @@ interface ISelectedCommitsProps {
 
   /** Whether or not the selection of commits is contiguous */
   readonly isContiguous: boolean
+
+  readonly diffBaseBranch: Branch | null
+  readonly diffComparisonBranch: Branch | null
 }
 
 interface ISelectedCommitsState {
@@ -185,6 +189,8 @@ export class SelectedCommits extends React.Component<
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
         onHighlightShas={this.onHighlightShas}
         showUnreachableCommits={this.showUnreachableCommits}
+        diffBaseBranch={this.props.diffBaseBranch}
+        diffComparisonBranch={this.props.diffComparisonBranch}
       />
     )
   }

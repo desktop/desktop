@@ -21,11 +21,14 @@ import { AppFileStatusKind } from '../../models/status'
 import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
+import { Branch } from '../../models/branch'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly shasInDiff: ReadonlyArray<string>
+  readonly diffBaseBranch: Branch | null
+  readonly diffComparisonBranch: Branch | null
   readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
@@ -449,11 +452,31 @@ export class CommitSummary extends React.Component<
   }
 
   private renderSummary = () => {
-    const { selectedCommits, shasInDiff } = this.props
+    const {
+      selectedCommits,
+      shasInDiff,
+      diffBaseBranch,
+      diffComparisonBranch,
+    } = this.props
     const { summary, hasEmptySummary } = this.state
     const summaryClassNames = classNames('commit-summary-title', {
       'empty-summary': hasEmptySummary,
     })
+
+    if (diffBaseBranch !== null && diffComparisonBranch !== null) {
+      return (
+        <div className={summaryClassNames}>
+          Showing files changed if{' '}
+          <span className="ref-component">
+            {diffComparisonBranch.nameWithoutRemote}
+          </span>{' '}
+          is merged into{' '}
+          <span className="ref-component">
+            {diffBaseBranch.nameWithoutRemote}
+          </span>
+        </div>
+      )
+    }
 
     if (selectedCommits.length === 1) {
       return (
