@@ -219,10 +219,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     return (
       <div className="merge-status-component">
-        <ActionStatusIcon
-          status={{ kind: this.computedAction }}
-          classNamePrefix="merge-status"
-        />
+        {this.state.selectedOperation !== 'PreviewMerge' ? (
+          <ActionStatusIcon
+            status={{ kind: this.computedAction }}
+            classNamePrefix="merge-status"
+          />
+        ) : null}
 
         {this.renderStatusDetails()}
       </div>
@@ -288,10 +290,13 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     return (
       <div className="merge-message">
-        This will merge
+        {this.state.selectedOperation !== 'PreviewMerge'
+          ? 'This will merge'
+          : 'This will preview the files changed if the '}
         <strong>{` ${this.commitCount} ${pluralized}`}</strong>
         {` from `}
-        <strong>{branch.name}</strong>
+        <strong>{branch.name}</strong>{' '}
+        {this.state.selectedOperation !== 'PreviewMerge' ? '' : 'is merged '}
         {` into `}
         <strong>{currentBranch.name}</strong>
       </div>
