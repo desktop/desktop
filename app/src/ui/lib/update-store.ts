@@ -124,6 +124,7 @@ class UpdateStore {
     // and it's the same version we have right now (which means we spoofed
     // Central with an old version of the app).
     this.isX64ToARM64ImmediateAutoUpdate =
+      enableImmediateUpdateFromEmulatedX64ToARM64() &&
       this.newReleases !== null &&
       this.newReleases.length === 1 &&
       this.newReleases[0].latestVersion === getVersion() &&
