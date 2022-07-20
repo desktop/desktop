@@ -48,8 +48,9 @@ export class UpdateAvailable extends React.Component<
     if (this.props.isX64ToARM64ImmediateAutoUpdate) {
       return (
         <span onSubmit={this.updateNow}>
-          An optimized version of GitHub Desktop is available for your machine
-          and will be installed at the next launch. You can also{' '}
+          An optimized version of GitHub Desktop is available for your{' '}
+          {__DARWIN__ ? 'Apple Silicon' : 'Arm64'} machine and will be installed
+          at the next launch or{' '}
           <LinkButton onClick={this.updateNow}>
             restart GitHub Desktop
           </LinkButton>{' '}
