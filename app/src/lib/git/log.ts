@@ -182,7 +182,7 @@ export async function getChangedFiles(
     'getChangedFilesNameStatus'
   )
 
-  const files = parseChangedFiles(resultNameStatus.stdout, sha)
+  const files = parseChangedFiles(resultNameStatus.stdout, sha, `${sha}^`)
 
   if (!enableLineChangesInCommit()) {
     return { files, linesAdded: 0, linesDeleted: 0 }
@@ -240,7 +240,8 @@ function parseChangedFilesNumStat(stdout: string): {
  */
 export function parseChangedFiles(
   stdout: string,
-  committish: string
+  committish: string,
+  parentCommitish: string
 ): ReadonlyArray<CommittedFileChange> {
   const lines = stdout.split('\0')
   // Remove the trailing empty line
@@ -262,7 +263,9 @@ export function parseChangedFiles(
 
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, status, committish))
+    files.push(
+      new CommittedFileChange(path, status, committish, parentCommitish)
+    )
   }
 
   return files

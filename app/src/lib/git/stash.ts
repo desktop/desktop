@@ -285,7 +285,7 @@ async function getChangedFilesWithinStash(repository: Repository, sha: string) {
     successExitCodes: new Set([0, 128]),
   })
   if (result.exitCode === 0 && result.stdout.length > 0) {
-    return parseChangedFiles(result.stdout, sha)
+    return parseChangedFiles(result.stdout, sha, `${sha}^`)
   }
   return []
 }
