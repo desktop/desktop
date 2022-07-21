@@ -513,6 +513,13 @@ export interface IBranchesState {
   readonly defaultBranch: Branch | null
 
   /**
+   * The default branch of the upstream remote in a forked GitHub repository
+   * with the ForkContributionTarget.Parent behavior, or null if it cannot be
+   * inferred or is another kind of repository.
+   */
+  readonly upstreamDefaultBranch: Branch | null
+
+  /**
    * A list of all branches (remote and local) that's currently in
    * the repository.
    */

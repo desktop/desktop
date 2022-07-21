@@ -991,6 +991,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return {
         tip: gitStore.tip,
         defaultBranch: gitStore.defaultBranch,
+        upstreamDefaultBranch: gitStore.upstreamDefaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
         pullWithRebase: gitStore.pullWithRebase,
@@ -2080,16 +2081,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * `MissingRepository`, the menu labels will be updated but they will lack
    * the expected `IRepositoryState` and revert to the default values.
    */
-  private updateMenuLabelsForSelectedRepository() {
+  private async updateMenuLabelsForSelectedRepository() {
     const { selectedState } = this.getState()
 
     if (
       selectedState !== null &&
       selectedState.type === SelectionType.Repository
     ) {
-      this.updateMenuItemLabels(selectedState.state)
+      await this.updateMenuItemLabels(selectedState.state)
     } else {
-      this.updateMenuItemLabels(null)
+      await this.updateMenuItemLabels(null)
     }
   }
 
@@ -2099,7 +2100,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * @param state the current repository state, or `null` if the repository is
    *              being cloned or is missing
    */
-  private updateMenuItemLabels(state: IRepositoryState | null) {
+  private async updateMenuItemLabels(state: IRepositoryState | null) {
     const {
       selectedShell,
       selectedRepository,
@@ -2125,9 +2126,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let contributionTargetDefaultBranch: string | undefined
     if (selectedRepository instanceof Repository) {
-      contributionTargetDefaultBranch =
-        findContributionTargetDefaultBranch(selectedRepository, branchesState)
-          ?.name ?? undefined
+      const branch = await findContributionTargetDefaultBranch(
+        selectedRepository,
+        branchesState
+      )
+      contributionTargetDefaultBranch = branch?.name ?? undefined
     }
 
     const isForcePushForCurrentRepository = isCurrentBranchForcePush(
@@ -2550,7 +2553,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectWorkingDirectoryFiles(state, files)
     )
 
-    this.updateMenuLabelsForSelectedRepository()
+    await this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesWorkingDirectoryDiff(repository)
   }
@@ -2671,7 +2674,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _hideStashedChanges(repository: Repository) {
+  public async _hideStashedChanges(repository: Repository) {
     const { changesState } = this.repositoryStateCache.get(repository)
 
     // makes this safe to call even when the stash ui is not visible
@@ -2695,7 +2698,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     this.emitUpdate()
 
-    this.updateMenuLabelsForSelectedRepository()
+    await this.updateMenuLabelsForSelectedRepository()
   }
 
   /**
@@ -2762,7 +2765,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
-    this.updateMenuLabelsForSelectedRepository()
+    await this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesStashDiff(repository)
 
@@ -3142,7 +3145,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
-    this.updateMenuItemLabels(latestState)
+    await this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
 
@@ -4162,7 +4165,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updatePushPullFetchProgress(repository, null)
 
-        this.updateMenuLabelsForSelectedRepository()
+        await this.updateMenuLabelsForSelectedRepository()
 
         // Note that we're using `getAccountForRepository` here instead
         // of the `account` instance we've got and that's because recordPush
@@ -5126,13 +5129,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setConfirmRepositoryRemovalSetting(
+  public async _setConfirmRepositoryRemovalSetting(
     confirmRepoRemoval: boolean
   ): Promise<void> {
     this.askForConfirmationOnRepositoryRemoval = confirmRepoRemoval
     setBoolean(confirmRepoRemovalKey, confirmRepoRemoval)
 
-    this.updateMenuLabelsForSelectedRepository()
+    await this.updateMenuLabelsForSelectedRepository()
 
     this.emitUpdate()
 
@@ -5159,11 +5162,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setConfirmForcePushSetting(value: boolean): Promise<void> {
+  public async _setConfirmForcePushSetting(value: boolean): Promise<void> {
     this.askForConfirmationOnForcePush = value
     setBoolean(confirmForcePushKey, value)
 
-    this.updateMenuLabelsForSelectedRepository()
+    await this.updateMenuLabelsForSelectedRepository()
 
     this.emitUpdate()
 
@@ -5181,21 +5184,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: string) {
+  public async _setExternalEditor(selectedEditor: string) {
     const promise = this.updateSelectedExternalEditor(selectedEditor)
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
-    this.updateMenuLabelsForSelectedRepository()
+    await this.updateMenuLabelsForSelectedRepository()
     return promise
   }
 
-  public _setShell(shell: Shell): Promise<void> {
+  public async _setShell(shell: Shell): Promise<void> {
     this.selectedShell = shell
     localStorage.setItem(shellKey, shell)
     this.emitUpdate()
 
-    this.updateMenuLabelsForSelectedRepository()
+    await this.updateMenuLabelsForSelectedRepository()
 
     return Promise.resolve()
   }
@@ -5873,7 +5876,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // repository for which we received an update.
     if (selectedState && selectedState.type === SelectionType.Repository) {
       if (selectedState.repository.id === repository.id) {
-        this.updateMenuLabelsForSelectedRepository()
+        await this.updateMenuLabelsForSelectedRepository()
       }
     }
     this.emitUpdate()
