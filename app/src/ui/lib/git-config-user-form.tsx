@@ -47,7 +47,7 @@ export class GitConfigUserForm extends React.Component<
     super(props)
 
     this.state = {
-      emailIsOther: !this.accountEmails.includes(this.props.email),
+      emailIsOther: this.props.email ? !this.accountEmails.includes(this.props.email) : false
     }
   }
 
