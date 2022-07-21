@@ -67,7 +67,7 @@ export class GitConfigUserForm extends React.Component<
     // from the user, to prevent annoying UI glitches.
     if (prevProps.email !== this.props.email && !isEmailInputFocused) {
       this.setState({
-        emailIsOther: !this.accountEmails.includes(this.props.email),
+        emailIsOther: this.props.email ? !this.accountEmails.includes(this.props.email) : false,
       })
     }
 
