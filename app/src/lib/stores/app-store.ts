@@ -2080,16 +2080,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * `MissingRepository`, the menu labels will be updated but they will lack
    * the expected `IRepositoryState` and revert to the default values.
    */
-  private async updateMenuLabelsForSelectedRepository() {
+  private updateMenuLabelsForSelectedRepository() {
     const { selectedState } = this.getState()
 
     if (
       selectedState !== null &&
       selectedState.type === SelectionType.Repository
     ) {
-      await this.updateMenuItemLabels(selectedState.state)
+      this.updateMenuItemLabels(selectedState.state)
     } else {
-      await this.updateMenuItemLabels(null)
+      this.updateMenuItemLabels(null)
     }
   }
 
@@ -2099,7 +2099,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * @param state the current repository state, or `null` if the repository is
    *              being cloned or is missing
    */
-  private async updateMenuItemLabels(state: IRepositoryState | null) {
+  private updateMenuItemLabels(state: IRepositoryState | null) {
     const {
       selectedShell,
       selectedRepository,
@@ -2125,11 +2125,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let contributionTargetDefaultBranch: string | undefined
     if (selectedRepository instanceof Repository) {
-      const branch = await findContributionTargetDefaultBranch(
-        selectedRepository,
-        branchesState
-      )
-      contributionTargetDefaultBranch = branch?.name ?? undefined
+      contributionTargetDefaultBranch =
+        findContributionTargetDefaultBranch(selectedRepository, branchesState)
+          ?.name ?? undefined
     }
 
     const isForcePushForCurrentRepository = isCurrentBranchForcePush(
@@ -2552,7 +2550,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectWorkingDirectoryFiles(state, files)
     )
 
-    await this.updateMenuLabelsForSelectedRepository()
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesWorkingDirectoryDiff(repository)
   }
@@ -2673,7 +2671,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public async _hideStashedChanges(repository: Repository) {
+  public _hideStashedChanges(repository: Repository) {
     const { changesState } = this.repositoryStateCache.get(repository)
 
     // makes this safe to call even when the stash ui is not visible
@@ -2697,7 +2695,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     this.emitUpdate()
 
-    await this.updateMenuLabelsForSelectedRepository()
+    this.updateMenuLabelsForSelectedRepository()
   }
 
   /**
@@ -2764,7 +2762,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
-    await this.updateMenuLabelsForSelectedRepository()
+    this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesStashDiff(repository)
 
@@ -3144,7 +3142,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
-    await this.updateMenuItemLabels(latestState)
+    this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
 
@@ -4164,7 +4162,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updatePushPullFetchProgress(repository, null)
 
-        await this.updateMenuLabelsForSelectedRepository()
+        this.updateMenuLabelsForSelectedRepository()
 
         // Note that we're using `getAccountForRepository` here instead
         // of the `account` instance we've got and that's because recordPush
@@ -5126,13 +5124,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _setConfirmRepositoryRemovalSetting(
+  public _setConfirmRepositoryRemovalSetting(
     confirmRepoRemoval: boolean
   ): Promise<void> {
     this.askForConfirmationOnRepositoryRemoval = confirmRepoRemoval
     setBoolean(confirmRepoRemovalKey, confirmRepoRemoval)
 
-    await this.updateMenuLabelsForSelectedRepository()
+    this.updateMenuLabelsForSelectedRepository()
 
     this.emitUpdate()
 
@@ -5163,7 +5161,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnForcePush = value
     setBoolean(confirmForcePushKey, value)
 
-    await this.updateMenuLabelsForSelectedRepository()
+    this.updateMenuLabelsForSelectedRepository()
 
     this.emitUpdate()
 
@@ -5181,21 +5179,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _setExternalEditor(selectedEditor: string) {
+  public _setExternalEditor(selectedEditor: string) {
     const promise = this.updateSelectedExternalEditor(selectedEditor)
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
-    await this.updateMenuLabelsForSelectedRepository()
+    this.updateMenuLabelsForSelectedRepository()
     return promise
   }
 
-  public async _setShell(shell: Shell): Promise<void> {
+  public _setShell(shell: Shell): Promise<void> {
     this.selectedShell = shell
     localStorage.setItem(shellKey, shell)
     this.emitUpdate()
 
-    await this.updateMenuLabelsForSelectedRepository()
+    this.updateMenuLabelsForSelectedRepository()
 
     return Promise.resolve()
   }
@@ -5873,7 +5871,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // repository for which we received an update.
     if (selectedState && selectedState.type === SelectionType.Repository) {
       if (selectedState.repository.id === repository.id) {
-        await this.updateMenuLabelsForSelectedRepository()
+        this.updateMenuLabelsForSelectedRepository()
       }
     }
     this.emitUpdate()
