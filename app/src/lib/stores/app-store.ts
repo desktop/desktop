@@ -5157,7 +5157,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _setConfirmForcePushSetting(value: boolean): Promise<void> {
+  public _setConfirmForcePushSetting(value: boolean): Promise<void> {
     this.askForConfirmationOnForcePush = value
     setBoolean(confirmForcePushKey, value)
 
