@@ -221,7 +221,6 @@ import { BranchPruner } from './helpers/branch-pruner'
 import {
   enableHideWhitespaceInDiffOption,
   enableMultiCommitDiffs,
-  enableUpdateDefaultBranch,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -4326,9 +4325,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             }
           )
 
-          if (enableUpdateDefaultBranch()) {
-            await updateRemoteHEAD(repository, account, remote)
-          }
+          await updateRemoteHEAD(repository, account, remote)
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__

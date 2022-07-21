@@ -101,7 +101,6 @@ import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { stat } from 'fs/promises'
 import { findForkedRemotesToPrune } from './helpers/find-forked-remotes-to-prune'
-import { enableUpdateDefaultBranch } from '../feature-flag'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -537,10 +536,6 @@ export class GitStore extends BaseStore {
    * name conventions.
    */
   private async resolveDefaultBranch(): Promise<string> {
-    if (!enableUpdateDefaultBranch() && this.repository.defaultBranch != null) {
-      return this.repository.defaultBranch
-    }
-
     if (this.currentRemote !== null) {
       // the Git server should use [remote]/HEAD to advertise
       // it's default branch, so see if it exists and matches
@@ -1075,9 +1070,7 @@ export class GitStore extends BaseStore {
       { backgroundTask, retryAction }
     )
 
-    if (enableUpdateDefaultBranch()) {
-      await updateRemoteHEAD(this.repository, account, remote)
-    }
+    await updateRemoteHEAD(this.repository, account, remote)
   }
 
   /**

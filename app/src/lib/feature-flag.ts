@@ -177,8 +177,3 @@ export function enableReRunFailedAndSingleCheckJobs(): boolean {
 export function enableMultiCommitDiffs(): boolean {
   return enableDevelopmentFeatures()
 }
-
-/** Should we enable updating the default branch from the remote? */
-export function enableUpdateDefaultBranch(): boolean {
-  return enableBetaFeatures()
-}
