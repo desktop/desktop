@@ -19,7 +19,7 @@ export class WhitespaceHintPopover extends React.Component<IWhitespaceHintPopove
     return (
       <Popover
         caretPosition={this.props.caretPosition}
-        onClickOutside={this.onDismissed}
+        onMousedownOutside={this.onDismissed}
         className={'whitespace-hint'}
         style={this.props.style}
         appearEffect={PopoverAppearEffect.Shake}
