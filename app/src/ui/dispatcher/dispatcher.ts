@@ -3934,4 +3934,8 @@ export class Dispatcher {
       selectedTab,
     })
   }
+
+  public previewPullRequest(repository: Repository) {
+    console.log('test')
+  }
 }
