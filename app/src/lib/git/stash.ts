@@ -249,7 +249,8 @@ export async function getStashedFiles(
     '--no-show-signature',
     '--',
   ]
+
   const { stdout } = await git(args, repository.path, 'getStashedFiles')
 
-  return parseRawLogWithNumstat(stdout, stashSha).files
+  return parseRawLogWithNumstat(stdout, stashSha, `${stashSha}^`).files
 }

@@ -6,7 +6,6 @@ import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
 import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
-import { enableHighSignalNotifications } from '../../lib/feature-flag'
 import {
   getNotificationSettingsUrl,
   supportsNotifications,
@@ -200,10 +199,6 @@ export class Advanced extends React.Component<
   }
 
   private renderNotificationsSettings() {
-    if (!enableHighSignalNotifications()) {
-      return null
-    }
-
     return (
       <div className="advanced-section">
         <h2>Notifications</h2>

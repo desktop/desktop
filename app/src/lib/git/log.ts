@@ -186,7 +186,7 @@ export async function getChangedFiles(
   ]
 
   const { stdout } = await git(args, repository.path, 'getChangesFiles')
-  return parseRawLogWithNumstat(stdout, sha)
+  return parseRawLogWithNumstat(stdout, sha, `${sha}^`)
 }
 
 /**
@@ -217,12 +217,12 @@ export async function getChangedFiles(
  *    file_two_original_path
  *    file_two_new_path
  */
-export function parseRawLogWithNumstat(stdout: string, sha: string) {
+
+export function parseRawLogWithNumstat(stdout: string, sha: string, parentCommitish: string) {
   const files = new Array<CommittedFileChange>()
   let linesAdded = 0
   let linesDeleted = 0
   let numStatCount = 0
-
   const lines = stdout.split('\0')
 
   for (let i = 0; i < lines.length - 1; i++) {
@@ -235,7 +235,7 @@ export function parseRawLogWithNumstat(stdout: string, sha: string) {
 
       const path = forceUnwrap('Missing path', lines.at(++i))
 
-      files.push(new CommittedFileChange(path, mapStatus(status, oldPath), sha))
+      files.push(new CommittedFileChange(path, mapStatus(status, oldPath), sha, parentCommitish))
     } else {
       const match = /^(\d+|-)\t(\d+|-)\t/.exec(line)
       const [, added, deleted] = forceUnwrap('Invalid numstat line', match)

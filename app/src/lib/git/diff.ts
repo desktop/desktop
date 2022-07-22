@@ -246,7 +246,8 @@ export async function getCommitRangeChangedFiles(
 
   return parseRawLogWithNumstat(
     stdout,
-    `${oldestCommitRef}..${latestCommitRef}`
+    latestCommitRef,
+    oldestCommitRef
   )
 }
 

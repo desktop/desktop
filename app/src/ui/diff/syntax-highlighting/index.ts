@@ -65,7 +65,7 @@ async function getOldFileContent(
     // actually committed to get the appropriate content.
     commitish = 'HEAD'
   } else if (file instanceof CommittedFileChange) {
-    commitish = `${file.commitish}^`
+    commitish = file.parentCommitish
   } else {
     return assertNever(file, 'Unknown file change type')
   }
@@ -106,8 +106,7 @@ async function getNewFileContent(
 
 export async function getFileContents(
   repo: Repository,
-  file: ChangedFile,
-  lineFilters: ILineFilters
+  file: ChangedFile
 ): Promise<IFileContents> {
   const [oldContents, newContents] = await Promise.all([
     getOldFileContent(repo, file).catch(e => {

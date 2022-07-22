@@ -257,7 +257,7 @@ export class CompareSidebar extends React.Component<
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
-        tagsToPush={this.props.tagsToPush}
+        tagsToPush={this.props.tagsToPush ?? []}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}

@@ -4,6 +4,8 @@ import { git } from './core'
 import { spawnAndComplete } from './spawn'
 
 import { Repository } from '../../models/repository'
+import { GitError } from 'dugite'
+import { enableMultiCommitDiffs } from '../feature-flag'
 
 /**
  * Retrieve the binary contents of a blob from the repository at a given
@@ -73,7 +75,16 @@ export async function getPartialBlobContents(
   commitish: string,
   path: string,
   length: number
-): Promise<Buffer> {
+): Promise<Buffer | null> {
+  if (enableMultiCommitDiffs()) {
+    return getPartialBlobContentsCatchPathNotInRef(
+      repository,
+      commitish,
+      path,
+      length
+    )
+  }
+
   const successExitCodes = new Set([0, 1])
 
   const args = ['show', `${commitish}:${path}`]
@@ -87,4 +98,29 @@ export async function getPartialBlobContents(
   )
 
   return output
+}
+
+export async function getPartialBlobContentsCatchPathNotInRef(
+  repository: Repository,
+  commitish: string,
+  path: string,
+  length: number
+): Promise<Buffer | null> {
+  const args = ['show', `${commitish}:${path}`]
+
+  const result = await git(
+    args,
+    repository.path,
+    'getPartialBlobContentsCatchPathNotInRef',
+    {
+      maxBuffer: length,
+      expectedErrors: new Set([GitError.PathExistsButNotInRef]),
+    }
+  )
+
+  if (result.gitError === GitError.PathExistsButNotInRef) {
+    return null
+  }
+
+  return Buffer.from(result.combinedOutput)
 }
