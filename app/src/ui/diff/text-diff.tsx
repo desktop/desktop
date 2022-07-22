@@ -765,7 +765,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           action: () => this.onDiscardChanges(file, lineNumber),
           enabled:
             range.type !== DiffRangeType.Mixed &&
-            !this.props.onHideWhitespaceInDiffChanged,
+            !this.props.hideWhitespaceInDiff,
         },
       ]
     }
