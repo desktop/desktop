@@ -680,6 +680,7 @@ export interface IChangesState {
 export enum HistoryTabMode {
   History = 'History',
   Compare = 'Compare',
+  PullRequestPreview = 'PullRequestPreview',
 }
 
 /**
@@ -717,9 +718,21 @@ export interface ICompareBranch {
   readonly aheadBehind: IAheadBehind
 }
 
+/**
+ * When the user has chosen to preview all the changes in their current branch
+ * against a given branch. The comparison branch defaults to the repo's default
+ * branch.
+ */
+export interface IPullRequestPreview {
+  readonly kind: HistoryTabMode.PullRequestPreview
+
+  /** The branch to diff --merge-base against */
+  readonly comparisonBranch: Branch
+}
+
 export interface ICompareState {
   /** The current state of the compare form, based on user input */
-  readonly formState: IDisplayHistory | ICompareBranch
+  readonly formState: IDisplayHistory | ICompareBranch | IPullRequestPreview
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
   readonly mergeStatus: MergeTreeResult | null
@@ -784,10 +797,18 @@ export interface ICompareToBranch {
   readonly comparisonMode: ComparisonMode.Ahead | ComparisonMode.Behind
 }
 
+export interface IPreviewPullRequest {
+  readonly kind: HistoryTabMode.PullRequestPreview
+  readonly branch: Branch
+}
+
 /**
  * An action to send to the application store to update the compare state
  */
-export type CompareAction = IViewHistory | ICompareToBranch
+export type CompareAction =
+  | IViewHistory
+  | ICompareToBranch
+  | IPreviewPullRequest
 
 /**
  * Undo state associated with a multi commit operation being performed on a

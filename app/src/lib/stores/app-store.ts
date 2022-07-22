@@ -108,6 +108,8 @@ import {
   isMergeConflictState,
   IMultiCommitOperationState,
   IConstrainedValue,
+  IPullRequestPreview,
+  IPreviewPullRequest,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -1327,7 +1329,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.updateCompareToBranch(repository, action)
     }
 
+    if (action.kind === HistoryTabMode.PullRequestPreview) {
+      return this.updateToPreviewPullRequest(repository, action)
+    }
+
     return assertNever(action, `Unknown action: ${kind}`)
+  }
+
+  private async updateToPreviewPullRequest(
+    repository: Repository,
+    action: IPreviewPullRequest
+  ) {
+    console.log(action)
   }
 
   private async updateCompareToBranch(
@@ -7094,15 +7107,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
  * view contents.
  */
 function getInitialAction(
-  cachedState: IDisplayHistory | ICompareBranch
+  cachedState: IDisplayHistory | ICompareBranch | IPullRequestPreview
 ): CompareAction {
-  if (cachedState.kind === HistoryTabMode.History) {
+  const { kind } = cachedState
+  if (kind === HistoryTabMode.History) {
     return {
       kind: HistoryTabMode.History,
     }
   }
 
-  const { comparisonMode, comparisonBranch } = cachedState
+  const { comparisonBranch } = cachedState
+
+  if (kind === HistoryTabMode.PullRequestPreview) {
+    return {
+      kind: HistoryTabMode.PullRequestPreview,
+      branch: comparisonBranch,
+    }
+  }
+
+  const { comparisonMode } = cachedState
 
   return {
     kind: HistoryTabMode.Compare,

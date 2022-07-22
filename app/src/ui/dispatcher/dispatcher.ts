@@ -3930,4 +3930,12 @@ export class Dispatcher {
   ) {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
+
+  /**
+   *  Method to preview the merge of the current checked out branch against the
+   * repository's default branch.
+   * */
+  public previewPullRequest(repository: Repository) {
+    console.log('previewPullRequest')
+  }
 }

@@ -7,6 +7,7 @@ import {
   ICompareBranch,
   ComparisonMode,
   IDisplayHistory,
+  IPullRequestPreview,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -179,9 +180,9 @@ export class CompareSidebar extends React.Component<
     const formState = this.props.compareState.formState
     return (
       <div className="compare-commit-list">
-        {formState.kind === HistoryTabMode.History
-          ? this.renderCommitList()
-          : this.renderTabBar(formState)}
+        {formState.kind === HistoryTabMode.Compare
+          ? this.renderTabBar(formState)
+          : this.renderCommitList()}
       </div>
     )
   }
@@ -204,23 +205,33 @@ export class CompareSidebar extends React.Component<
     const { formState, commitSHAs } = this.props.compareState
 
     let emptyListMessage: string | JSX.Element
-    if (formState.kind === HistoryTabMode.History) {
-      emptyListMessage = 'No history'
-    } else {
-      const currentlyComparedBranchName = formState.comparisonBranch.name
-
-      emptyListMessage =
-        formState.comparisonMode === ComparisonMode.Ahead ? (
-          <p>
-            The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is up
-            to date with your branch
-          </p>
-        ) : (
+    switch (formState.kind) {
+      case HistoryTabMode.History:
+        emptyListMessage = 'No history'
+        break
+      case HistoryTabMode.PullRequestPreview:
+        emptyListMessage = (
           <p>
             Your branch is up to date with the compared branch (
-            <Ref>{currentlyComparedBranchName}</Ref>)
+            <Ref>{formState.comparisonBranch.name}</Ref>)
           </p>
         )
+        break
+      case HistoryTabMode.Compare:
+        const currentlyComparedBranchName = formState.comparisonBranch.name
+
+        emptyListMessage =
+          formState.comparisonMode === ComparisonMode.Ahead ? (
+            <p>
+              The compared branch (<Ref>{currentlyComparedBranchName}</Ref>) is
+              up to date with your branch
+            </p>
+          ) : (
+            <p>
+              Your branch is up to date with the compared branch (
+              <Ref>{currentlyComparedBranchName}</Ref>)
+            </p>
+          )
     }
 
     return (
@@ -679,10 +690,10 @@ function getPlaceholderText(state: ICompareState) {
 // 1: History mode, 2: Comparison Mode with the 'Ahead' list shown.
 // When not exposed, the context menu item 'Revert this commit' is disabled.
 function ableToRevertCommit(
-  formState: IDisplayHistory | ICompareBranch
+  formState: IDisplayHistory | ICompareBranch | IPullRequestPreview
 ): boolean {
   return (
-    formState.kind === HistoryTabMode.History ||
+    formState.kind === HistoryTabMode.Compare &&
     formState.comparisonMode === ComparisonMode.Ahead
   )
 }
