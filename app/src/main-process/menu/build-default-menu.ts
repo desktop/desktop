@@ -432,6 +432,14 @@ export function buildDefaultMenu({
       click: emit('open-pull-request'),
     },
   ]
+  if (!hasCurrentPullRequest) {
+    branchSubmenu.push({
+      label: __DARWIN__ ? 'Preview Pull Request' : 'Preview pull request',
+      id: 'preview-pull-request',
+      accelerator: 'CmdOrCtrl+Alt+P',
+      click: emit('preview-pull-request'),
+    })
+  }
 
   template.push({
     label: __DARWIN__ ? 'Branch' : '&Branch',

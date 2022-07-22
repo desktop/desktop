@@ -420,6 +420,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.goToCommitMessage()
       case 'open-pull-request':
         return this.openPullRequest()
+      case 'preview-pull-request':
+        return this.previewPullRequest()
       case 'install-cli':
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
@@ -2725,6 +2727,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else {
       dispatcher.showPullRequest(state.repository)
     }
+  }
+
+  private previewPullRequest = () => {
+    const state = this.state.selectedState
+
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.previewPullRequest(state.repository)
   }
 
   private openCreatePullRequestInBrowser = (
