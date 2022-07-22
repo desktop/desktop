@@ -16,9 +16,9 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 - Amend last commit: [#12353](https://github.com/desktop/desktop/pull/12353)
 - Create a branch from a previous commit: [#12160](https://github.com/desktop/desktop/pull/12160)
 
-#### Native support for Apple silicon (M1) machines (2.8.2)
+#### Native support for Apple silicon machines (2.8.2)
 
-- Provide support for Apple silicon (M1) machines: [#9691](https://github.com/desktop/desktop/pull/9691)
+- Provide support for Apple silicon machines: [#9691](https://github.com/desktop/desktop/pull/9691)
 
 #### Expanding diffs (2.8.0)
 
