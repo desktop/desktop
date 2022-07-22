@@ -218,7 +218,11 @@ export async function getChangedFiles(
  *    file_two_new_path
  */
 
-export function parseRawLogWithNumstat(stdout: string, sha: string, parentCommitish: string) {
+export function parseRawLogWithNumstat(
+  stdout: string,
+  sha: string,
+  parentCommitish: string
+) {
   const files = new Array<CommittedFileChange>()
   let linesAdded = 0
   let linesDeleted = 0
@@ -235,7 +239,14 @@ export function parseRawLogWithNumstat(stdout: string, sha: string, parentCommit
 
       const path = forceUnwrap('Missing path', lines.at(++i))
 
-      files.push(new CommittedFileChange(path, mapStatus(status, oldPath), sha, parentCommitish))
+      files.push(
+        new CommittedFileChange(
+          path,
+          mapStatus(status, oldPath),
+          sha,
+          parentCommitish
+        )
+      )
     } else {
       const match = /^(\d+|-)\t(\d+|-)\t/.exec(line)
       const [, added, deleted] = forceUnwrap('Invalid numstat line', match)
