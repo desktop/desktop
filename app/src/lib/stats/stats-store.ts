@@ -208,6 +208,10 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullRequestReviewChangesRequestedNotificationCount: 0,
   pullRequestReviewChangesRequestedNotificationClicked: 0,
   pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
+  multiCommitDiffWithUnreachableCommitWarningCount: 0,
+  multiCommitDiffFromHistoryCount: 0,
+  multiCommitDiffFromCompareCount: 0,
+  multiCommitDiffUnreachableCommitsDialogOpenedCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1792,6 +1796,32 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       checksFailedDialogRerunChecksCount:
         m.checksFailedDialogRerunChecksCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffFromHistoryCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromHistoryCount: m.multiCommitDiffFromHistoryCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffFromCompareCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromCompareCount: m.multiCommitDiffFromCompareCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffWithUnreachableCommitWarningCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffWithUnreachableCommitWarningCount:
+        m.multiCommitDiffWithUnreachableCommitWarningCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffUnreachableCommitsDialogOpenedCount:
+        m.multiCommitDiffUnreachableCommitsDialogOpenedCount + 1,
     }))
   }
 
