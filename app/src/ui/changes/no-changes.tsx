@@ -366,7 +366,7 @@ export class NoChanges extends React.Component<
       defaultBranch !== null && tip.branch.name === defaultBranch.name
 
     if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-      return this.renderCreatePullRequestAction(tip)
+      return this.renderPreviewPullRequestAction(tip)
     }
 
     return null
@@ -632,8 +632,8 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private renderCreatePullRequestAction(tip: IValidBranch) {
-    const itemId: MenuIDs = 'create-pull-request'
+  private renderPreviewPullRequestAction(tip: IValidBranch) {
+    const itemId: MenuIDs = 'preview-pull-request'
     const menuItem = this.getMenuItemInfo(itemId)
 
     if (menuItem === undefined) {
@@ -644,17 +644,16 @@ export class NoChanges extends React.Component<
     const description = (
       <>
         The current branch (<Ref>{tip.branch.name}</Ref>) is already published
-        to GitHub. Create a pull request to propose and collaborate on your
-        changes.
+        to GitHub. Preview a pull request into the default branch.
       </>
     )
 
-    const title = `Create a Pull Request from your current branch`
-    const buttonText = `Create Pull Request`
+    const title = `Preview a Pull Request into the default branch`
+    const buttonText = `Preview Pull Request`
 
     return (
       <MenuBackedSuggestedAction
-        key="create-pr-action"
+        key="preview-pr-action"
         title={title}
         menuItemId={itemId}
         description={description}
@@ -662,13 +661,14 @@ export class NoChanges extends React.Component<
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         type="primary"
         disabled={!menuItem.enabled}
-        onClick={this.onCreatePullRequestClicked}
+        // onClick={this.onCreatePullRequestClicked}
       />
     )
   }
-
-  private onCreatePullRequestClicked = () =>
+  /*
+    private onCreatePullRequestClicked = () =>
     this.props.dispatcher.recordSuggestedStepCreatePullRequest()
+  */
 
   private renderActions() {
     return (
