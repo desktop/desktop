@@ -51,6 +51,20 @@ async function getLatestRelease(options: {
   return latestTag instanceof SemVer ? latestTag.raw : latestTag
 }
 
+async function createReleaseBranch(version: string): Promise<void> {
+  try {
+    const versionBranch = `releases/${version}`
+    const currentBranch = (
+      await sh('git', 'rev-parse', '--abbrev-ref', 'HEAD')
+    ).trim()
+    if (currentBranch !== versionBranch) {
+      await sh('git', 'checkout', '-b', versionBranch)
+    }
+  } catch (error) {
+    console.log(`Failed to create release branch: ${error}`)
+  }
+}
+
 /** Converts a string to Channel type if possible */
 function parseChannel(arg: string): Channel {
   if (arg === 'production' || arg === 'beta' || arg === 'test') {
@@ -114,6 +128,10 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     excludeTestReleases: channel === 'production' || channel === 'beta',
   })
   const nextVersion = getNextVersionNumber(previousVersion, channel)
+
+  console.log(`Creating release branch for "${nextVersion}"...`)
+  createReleaseBranch(nextVersion)
+  console.log(`Done!`)
 
   console.log(`Setting app version to "${nextVersion}" in app/package.json...`)
 

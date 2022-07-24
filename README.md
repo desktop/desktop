@@ -1,7 +1,7 @@
 # [GitHub Desktop](https://desktop.github.com)
 
 [GitHub Desktop](https://desktop.github.com/) is an open source [Electron](https://www.electronjs.org/)-based
-GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
+GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
 uses [React](https://reactjs.org/).
 
 ![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
@@ -11,7 +11,7 @@ uses [React](https://reactjs.org/).
 Download the official installer for your operating system:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
- - [macOS (Apple Silicon)](https://central.github.com/deployments/desktop/desktop/latest/darwin-arm64)
+ - [macOS (Apple silicon)](https://central.github.com/deployments/desktop/desktop/latest/darwin-arm64)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
 
@@ -31,10 +31,10 @@ Want to test out new features and get fixes before everyone else? Install the
 beta channel to get access to early builds of Desktop:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
- - [macOS (Apple Silicon)](https://central.github.com/deployments/desktop/desktop/latest/darwin-arm64?env=beta)
+ - [macOS (Apple silicon)](https://central.github.com/deployments/desktop/desktop/latest/darwin-arm64?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
  - [Windows (ARM64)](https://central.github.com/deployments/desktop/desktop/latest/win32-arm64?env=beta)
- 
+
 The release notes for the latest beta versions are available [here](https://desktop.github.com/release-notes/?env=beta).
 
 ### Community Releases

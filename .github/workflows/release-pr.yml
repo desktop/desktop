@@ -1,0 +1,49 @@
+name: 'Create Release Pull Request'
+
+on: create
+
+jobs:
+  build:
+    name: Create Release Pull Request
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+        if: |
+          startsWith(github.ref, 'refs/heads/releases/') && !contains(github.ref, 'test')
+
+      - name: Create Pull Request content
+        if: |
+          startsWith(github.ref, 'refs/heads/releases/') && !contains(github.ref, 'test')
+        run: |
+          PR_TITLE=`./script/draft-release/release-pr-content.sh title ${GITHUB_REF#refs/heads/}`
+          PR_BODY=`./script/draft-release/release-pr-content.sh body ${GITHUB_REF#refs/heads/}`
+
+          echo "PR_BODY<<EOF" >> $GITHUB_ENV
+          echo "$PR_BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "PR_TITLE<<EOF" >> $GITHUB_ENV
+          echo "$PR_TITLE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        if: |
+          startsWith(github.ref, 'refs/heads/releases/') && !contains(github.ref, 'test')
+        with:
+          app_id: ${{ secrets.DESKTOP_RELEASES_APP_ID }}
+          private_key: ${{ secrets.DESKTOP_RELEASES_APP_PRIVATE_KEY }}
+
+      - name: Create Release Pull Request
+        uses: peter-evans/create-pull-request@v4.0.4
+        if: |
+          startsWith(github.ref, 'refs/heads/releases/') && !contains(github.ref, 'test')
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          title: ${{ env.PR_TITLE }}
+          body: ${{ env.PR_BODY }}
+          branch: ${{ github.ref }}
+          base: development
+          draft: true

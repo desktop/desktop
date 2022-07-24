@@ -28,11 +28,16 @@ export type MenuLabelsEvent = {
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
   /**
-   * Specify the default branch associated with the current repository.
+   * Specify the default branch of the user's contribution target.
+   *
+   * This value should be the fork's upstream default branch, if the user
+   * is contributing to the parent repository.
+   *
+   * Otherwise, this value should be the default branch of the repository.
    *
    * Omit this value to indicate that the default branch is unknown.
    */
-  readonly defaultBranchName?: string
+  readonly contributionTargetDefaultBranch?: string
 
   /**
    * Is the current branch in a state where it can be force pushed to the remote?

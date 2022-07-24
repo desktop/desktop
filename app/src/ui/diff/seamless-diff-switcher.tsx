@@ -17,11 +17,7 @@ import {
   ILargeTextDiff,
 } from '../../models/diff'
 import { Loading } from '../lib/loading'
-import {
-  getFileContents,
-  getLineFilters,
-  IFileContents,
-} from './syntax-highlighting'
+import { getFileContents, IFileContents } from './syntax-highlighting'
 import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
 
 /**
@@ -257,11 +253,9 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     this.loadingState = { file: fileToLoad, diff }
 
-    const lineFilters = getLineFilters(diff.hunks)
     const fileContents = await getFileContents(
       this.props.repository,
-      fileToLoad,
-      lineFilters
+      fileToLoad
     )
 
     this.loadingState = null

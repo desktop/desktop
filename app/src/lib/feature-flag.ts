@@ -42,11 +42,6 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app show hide whitespace in changes tab */
-export function enableHideWhitespaceInDiffOption(): boolean {
-  return true
-}
-
 /**
  * Should we use the new diff viewer for unified diffs?
  */
@@ -61,11 +56,6 @@ export function enableUnhandledRejectionReporting(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow expanding text diffs? */
-export function enableTextDiffExpansion(): boolean {
-  return true
-}
-
 /**
  * Should we allow x64 apps running under ARM translation to auto-update to
  * ARM64 builds?
@@ -78,44 +68,19 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should we allow setting repository aliases? */
-export function enableRepositoryAliases(): boolean {
-  return true
-}
-
-/** Should we allow to create branches from a commit? */
-export function enableBranchFromCommit(): boolean {
-  return true
-}
-
-/** Should we allow squashing? */
-export function enableSquashing(): boolean {
-  return true
-}
-
-/** Should we allow squash-merging? */
-export function enableSquashMerging(): boolean {
-  return true
-}
-
-/** Should we allow amending commits? */
-export function enableAmendingCommits(): boolean {
-  return true
-}
-
-/** Should we allow reordering commits? */
-export function enableCommitReordering(): boolean {
-  return true
+/**
+ * Should we allow x64 apps running under ARM translation to auto-update to
+ * ARM64 builds IMMEDIATELY instead of waiting for the next release?
+ */
+export function enableImmediateUpdateFromEmulatedX64ToARM64(): boolean {
+  // Because of how Squirrel.Windows works, this is only available for macOS.
+  // See: https://github.com/desktop/desktop/pull/14998
+  return __DARWIN__ && enableBetaFeatures()
 }
 
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
-}
-
-/** Should we show line changes (added/deleted) in commits? */
-export function enableLineChangesInCommit(): boolean {
-  return true
 }
 
 /** Should we allow high contrast theme option */
@@ -126,21 +91,6 @@ export function enableHighContrastTheme(): boolean {
 /** Should we allow customizing a theme */
 export function enableCustomizeTheme(): boolean {
   return enableBetaFeatures()
-}
-
-/** Should we allow using Windows' OpenSSH? */
-export function enableWindowsOpenSSH(): boolean {
-  return true
-}
-
-/** Should we use SSH askpass? */
-export function enableSSHAskPass(): boolean {
-  return true
-}
-
-/** Should we show ci check runs? */
-export function enableCICheckRuns(): boolean {
-  return true
 }
 
 /** Should ci check runs show logs? */
@@ -158,22 +108,7 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should we enable high-signal notifications? */
-export function enableHighSignalNotifications(): boolean {
-  return true
-}
-
-/** Should we enable PR review notifications? */
-export function enablePullRequestReviewNotifications(): boolean {
-  return true
-}
-
-/** Should we enable the rerunning of failed and single jobs aka action based checks */
-export function enableReRunFailedAndSingleCheckJobs(): boolean {
-  return true
-}
-
 /** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
 export function enableMultiCommitDiffs(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }

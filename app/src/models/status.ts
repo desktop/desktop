@@ -279,7 +279,8 @@ export class CommittedFileChange extends FileChange {
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly commitish: string
+    public readonly commitish: string,
+    public readonly parentCommitish: string
   ) {
     super(path, status)
 

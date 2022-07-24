@@ -515,6 +515,10 @@ app.on('ready', () => {
     mainWindow?.getCurrentWindowZoomFactor()
   )
 
+  ipcMain.on('set-window-zoom-factor', (_, zoomFactor: number) =>
+    mainWindow?.setWindowZoomFactor(zoomFactor)
+  )
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.

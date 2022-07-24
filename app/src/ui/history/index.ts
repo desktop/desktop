@@ -1,2 +1,2 @@
-export { SelectedCommits } from './selected-commit'
+export { SelectedCommits } from './selected-commits'
 export { CompareSidebar } from './compare'

@@ -30,7 +30,6 @@ import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
-import { enableCommitReordering } from '../../lib/feature-flag'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -55,6 +54,7 @@ interface ICompareSidebarProps {
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
   readonly isCherryPickInProgress: boolean
+  readonly shasToHighlight: ReadonlyArray<string>
 }
 
 interface ICompareSidebarState {
@@ -230,14 +230,13 @@ export class CompareSidebar extends React.Component<
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
         selectedSHAs={this.props.selectedCommitShas}
+        shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}
         canResetToCommits={formState.kind === HistoryTabMode.History}
         canUndoCommits={formState.kind === HistoryTabMode.History}
         canAmendCommits={formState.kind === HistoryTabMode.History}
         emoji={this.props.emoji}
-        reorderingEnabled={
-          enableCommitReordering() && formState.kind === HistoryTabMode.History
-        }
+        reorderingEnabled={formState.kind === HistoryTabMode.History}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onUndoCommit={this.onUndoCommit}
         onResetToCommit={this.onResetToCommit}
@@ -258,7 +257,7 @@ export class CompareSidebar extends React.Component<
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
-        tagsToPush={this.props.tagsToPush}
+        tagsToPush={this.props.tagsToPush ?? []}
         isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}

@@ -8,9 +8,17 @@ export interface IButtonProps {
    * A callback which is invoked when the button is clicked
    * using a pointer device or keyboard. The source event is
    * passed along and can be used to prevent the default action
-   * or stop the even from bubbling.
+   * or stop the event from bubbling.
    */
   readonly onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
+   * A callback which is invoked when the button's context menu
+   * is activated using a pointer device or keyboard. The source
+   * event is passed along and can be used to prevent the default
+   * action or stop the event from bubbling.
+   */
+  readonly onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * A function that's called when the user moves over the button with
@@ -118,6 +126,7 @@ export class Button extends React.Component<IButtonProps, {}> {
       <button
         className={className}
         onClick={disabled ? preventDefault : this.onClick}
+        onContextMenu={disabled ? preventDefault : this.onContextMenu}
         type={this.props.type || 'button'}
         ref={this.innerButtonRef}
         tabIndex={this.props.tabIndex}
@@ -146,6 +155,14 @@ export class Button extends React.Component<IButtonProps, {}> {
     if (this.props.onClick) {
       this.props.onClick(event)
     }
+
+    if (this.props.type === undefined) {
+      event.preventDefault()
+    }
+  }
+
+  private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    this.props.onContextMenu?.(event)
 
     if (this.props.type === undefined) {
       event.preventDefault()

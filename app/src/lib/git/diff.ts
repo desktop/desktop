@@ -31,7 +31,7 @@ import { forceUnwrap } from '../fatal-error'
 import { git } from './core'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
-import { mapStatus } from './log'
+import { parseRawLogWithNumstat } from './log'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -227,7 +227,7 @@ export async function getCommitRangeChangedFiles(
     '--',
   ]
 
-  const result = await git(
+  const { stdout, gitError } = await git(
     baseArgs,
     repository.path,
     'getCommitRangeChangedFiles',
@@ -239,98 +239,12 @@ export async function getCommitRangeChangedFiles(
   // This should only happen if the oldest commit does not have a parent (ex:
   // initial commit of a branch) and therefore `SHA^` is not a valid reference.
   // In which case, we will retry with the null tree sha.
-  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
+  if (gitError === GitError.BadRevision && useNullTreeSHA === false) {
     const useNullTreeSHA = true
     return getCommitRangeChangedFiles(repository, shas, useNullTreeSHA)
   }
 
-  return parseChangedFilesAndNumStat(
-    result.combinedOutput,
-    `${oldestCommitRef}..${latestCommitRef}`
-  )
-}
-
-/**
- * Parses output of diff flags -z --raw --numstat.
- *
- * Given the -z flag the new lines are separated by \0 character (left them as
- * new lines below for ease of reading)
- *
- * For modified, added, deleted, untracked:
- *    100644 100644 5716ca5 db3c77d M
- *    file_one_path
- *    :100644 100644 0835e4f 28096ea M
- *    file_two_path
- *    1    0       file_one_path
- *    1    0       file_two_path
- *
- * For copied or renamed:
- *    100644 100644 5716ca5 db3c77d M
- *    file_one_original_path
- *    file_one_new_path
- *    :100644 100644 0835e4f 28096ea M
- *    file_two_original_path
- *    file_two_new_path
- *    1    0
- *    file_one_original_path
- *    file_one_new_path
- *    1    0
- *    file_two_original_path
- *    file_two_new_path
- */
-function parseChangedFilesAndNumStat(stdout: string, committish: string) {
-  const lines = stdout.split('\0')
-  // Remove the trailing empty line
-  lines.splice(-1, 1)
-
-  const files: CommittedFileChange[] = []
-  let linesAdded = 0
-  let linesDeleted = 0
-
-  for (let i = 0; i < lines.length; i++) {
-    const parts = lines[i].split('\t')
-
-    if (parts.length === 1) {
-      const statusParts = parts[0].split(' ')
-      const statusText = statusParts.at(-1) ?? ''
-      let oldPath: string | undefined = undefined
-
-      if (
-        statusText.length > 0 &&
-        (statusText[0] === 'R' || statusText[0] === 'C')
-      ) {
-        oldPath = lines[++i]
-      }
-
-      const status = mapStatus(statusText, oldPath)
-      const path = lines[++i]
-
-      files.push(new CommittedFileChange(path, status, committish))
-    }
-
-    if (parts.length === 3) {
-      const [added, deleted, file] = parts
-
-      if (added === '-' || deleted === '-') {
-        continue
-      }
-
-      linesAdded += parseInt(added, 10)
-      linesDeleted += parseInt(deleted, 10)
-
-      // If a file is not renamed or copied, the file name is with the
-      // add/deleted lines other wise the 2 files names are the next two lines
-      if (file === '' && lines[i + 1].split('\t').length === 1) {
-        i = i + 2
-      }
-    }
-  }
-
-  return {
-    files,
-    linesAdded,
-    linesDeleted,
-  }
+  return parseRawLogWithNumstat(stdout, latestCommitRef, oldestCommitRef)
 }
 
 /**

@@ -363,10 +363,10 @@ delegates@^1.0.0:
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
   integrity sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=
 
-desktop-notifications@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.2.2.tgz#197a32ee504a894ad074793dab285681c533e5ac"
-  integrity sha512-XMnxdWV6ZfiCzLZNC00n6h30Jt3z8yv21FAPBt/kK6hANI0PaoYWsRKEYya0zMUAX/9lrh429R5OtRGOKWZQSw==
+desktop-notifications@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/desktop-notifications/-/desktop-notifications-0.2.4.tgz#d51db18be583784a296748efd361fe3a5aefea70"
+  integrity sha512-Au0CbBE4TQ09vsC4/L15FhDsCr/daIyYUY3vkx4S3Y0Sp9EPpbXxBdmz0ry1cOnQ8A47K45zTYsuKP7a+xHm7Q==
   dependencies:
     node-addon-api "^5.0.0"
     prebuild-install "^7.0.1"
@@ -433,10 +433,10 @@ dompurify@^2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
-dugite@^1.109.0:
-  version "1.109.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.109.0.tgz#662f726befeefb47b697d6e08f940be865699b74"
-  integrity sha512-pPAs67j/sF6Y84pfI94VOtjMtCxX17OaNOggP+pJAZ4sA53OvcQj2zPgk87EnZaZoOmQYa0EdlH/tsEQhc+wVA==
+dugite@^1.110.0:
+  version "1.110.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.110.0.tgz#3db86bf66d3690fdbcf83c59575563909b79d27f"
+  integrity sha512-JPHd07QYajpUWJmZdeQSuuRL+OZ92tAWZvDqI+EJdETuwgNmMh+OyyXOaBcuGnlPznWEppQaHaEAEEqLdF9W/Q==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"

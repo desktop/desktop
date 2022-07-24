@@ -28,7 +28,6 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
-import { enableRepositoryAliases } from '../feature-flag'
 
 type AddRepositoryOptions = {
   missing?: boolean
@@ -124,7 +123,7 @@ export class RepositoriesStore extends TypedBaseStore<
       )
     }
 
-    return new GitHubRepository(
+    const ghRepo = new GitHubRepository(
       repo.name,
       owner,
       repo.id,
@@ -137,6 +136,10 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.permissions,
       parent
     )
+
+    // Dexie gets confused if we return a non-promise value (e.g. if this function
+    // didn't need to await for the parent repo or the owner)
+    return Promise.resolve(ghRepo)
   }
 
   private async toRepository(repo: IDatabaseRepository) {
@@ -148,7 +151,7 @@ export class RepositoriesStore extends TypedBaseStore<
         ? await this.findGitHubRepositoryByID(repo.gitHubRepositoryID)
         : await Promise.resolve(null), // Dexie gets confused if we return null
       repo.missing,
-      enableRepositoryAliases() ? repo.alias : null,
+      repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository
     )

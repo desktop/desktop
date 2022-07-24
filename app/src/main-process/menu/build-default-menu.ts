@@ -5,7 +5,6 @@ import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
-import { enableSquashMerging } from '../../lib/feature-flag'
 import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
 
@@ -38,12 +37,15 @@ export function buildDefaultMenu({
   askForConfirmationOnForcePush,
   askForConfirmationOnRepositoryRemoval,
   hasCurrentPullRequest = false,
-  defaultBranchName = defaultBranchNameValue,
+  contributionTargetDefaultBranch = defaultBranchNameValue,
   isForcePushForCurrentRepository = false,
   isStashedChangesVisible = false,
   askForConfirmationWhenStashingAllChanges = true,
 }: MenuLabelsEvent): Electron.Menu {
-  defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+  contributionTargetDefaultBranch = truncateWithEllipsis(
+    contributionTargetDefaultBranch,
+    25
+  )
 
   const removeRepoLabel = askForConfirmationOnRepositoryRemoval
     ? confirmRepositoryRemovalLabel
@@ -376,11 +378,11 @@ export function buildDefaultMenu({
     separator,
     {
       label: __DARWIN__
-        ? `Update from ${defaultBranchName}`
-        : `&Update from ${defaultBranchName}`,
-      id: 'update-branch',
+        ? `Update from ${contributionTargetDefaultBranch}`
+        : `&Update from ${contributionTargetDefaultBranch}`,
+      id: 'update-branch-with-contribution-target-branch',
       accelerator: 'CmdOrCtrl+Shift+U',
-      click: emit('update-branch'),
+      click: emit('update-branch-with-contribution-target-branch'),
     },
     {
       label: __DARWIN__ ? 'Compare to Branch' : '&Compare to branch',
@@ -396,20 +398,14 @@ export function buildDefaultMenu({
       accelerator: 'CmdOrCtrl+Shift+M',
       click: emit('merge-branch'),
     },
-  ]
-
-  if (enableSquashMerging()) {
-    branchSubmenu.push({
+    {
       label: __DARWIN__
         ? 'Squash and Merge into Current Branch…'
         : 'Squas&h and merge into current branch…',
       id: 'squash-and-merge-branch',
       accelerator: 'CmdOrCtrl+Shift+H',
       click: emit('squash-and-merge-branch'),
-    })
-  }
-
-  branchSubmenu.push(
+    },
     {
       label: __DARWIN__ ? 'Rebase Current Branch…' : 'R&ebase current branch…',
       id: 'rebase-branch',
@@ -434,8 +430,8 @@ export function buildDefaultMenu({
       id: 'create-pull-request',
       accelerator: 'CmdOrCtrl+R',
       click: emit('open-pull-request'),
-    }
-  )
+    },
+  ]
 
   template.push({
     label: __DARWIN__ ? 'Branch' : '&Branch',

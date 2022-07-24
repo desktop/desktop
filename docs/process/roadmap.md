@@ -1,16 +1,24 @@
 # Roadmap
 
-The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
+The following are the larger areas of upcoming work the GitHub Desktop team intends to explore and has recently shipped. This is not inclusive of everything we're working on (see existing open pull requests for that), and it's not written in stone. We'll attempt to update this intermittently as priorities evolve, but can't guarantee that it stays up to date over time.
 
-#### Native arm64 support for macOS and Windows
+## Major features shipped in previous releases
 
-- Provide support for arm64 Windows machines: [#9691](https://github.com/desktop/desktop/pull/9691)
+#### High signal notifications (2.9.10 and 3.0.0)
 
-## Shipped in previous releases
+- Receive a notification when checks fail: [#13655](https://github.com/desktop/desktop/pull/14175)
+- Receive a notification when your pull request is reviewed: [#14175](https://github.com/desktop/desktop/pull/14175)
 
-#### Native support for Apple Silicon (M1)
+#### Improved commit history: reorder commits, squash commits, amend commits, and create a branch from previous commit (2.9.0)
 
-- Provide support for Apple Silicon (M1) machines: [#9691](https://github.com/desktop/desktop/pull/9691)
+- Reorder commits via drag/drop: [#12384](https://github.com/desktop/desktop/pull/12384)
+- Squash commits via drag/drop: [#12235](https://github.com/desktop/desktop/pull/12235)
+- Amend last commit: [#12353](https://github.com/desktop/desktop/pull/12353)
+- Create a branch from a previous commit: [#12160](https://github.com/desktop/desktop/pull/12160)
+
+#### Native support for Apple silicon machines (2.8.2)
+
+- Provide support for Apple silicon machines: [#9691](https://github.com/desktop/desktop/pull/9691)
 
 #### Expanding diffs (2.8.0)
 
