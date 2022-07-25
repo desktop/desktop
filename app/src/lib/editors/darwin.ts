@@ -64,6 +64,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.PyCharm'],
   },
   {
+    name: 'PyCharm Community Edition',
+    bundleIdentifiers: ['com.jetbrains.pycharm.ce'],
+  },
+  {
     name: 'RubyMine',
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
   },
