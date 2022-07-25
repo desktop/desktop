@@ -102,14 +102,11 @@ export type UntrackedFileStatus = {
 }
 
 /** The union of potential states associated with a file change in Desktop */
-export type AppFileStatus = {
-  submoduleStatus: SubmoduleStatus | null
-} & (
+export type AppFileStatus =
   | PlainFileStatus
   | CopiedOrRenamedFileStatus
   | ConflictedFileStatus
   | UntrackedFileStatus
-)
 
 export type SubmoduleStatus = {
   readonly commitChanged: boolean
@@ -127,7 +124,7 @@ type OrdinaryEntry = {
   /** the status of the working tree for this entry (if known) */
   readonly workingTree?: GitStatusEntry
   /** the submodule status for this entry */
-  readonly submoduleStatus?: SubmoduleStatus
+  readonly submoduleStatus: SubmoduleStatus | null
 }
 
 /** The porcelain status for a renamed or copied entry */
@@ -138,7 +135,7 @@ type RenamedOrCopiedEntry = {
   /** the status of the working tree for this entry (if known) */
   readonly workingTree?: GitStatusEntry
   /** the submodule status for this entry */
-  readonly submoduleStatus?: SubmoduleStatus
+  readonly submoduleStatus: SubmoduleStatus | null
 }
 
 export enum UnmergedEntrySummary {
@@ -215,7 +212,7 @@ type ManualConflictDetails =
 type ManualConflictEntry = {
   readonly kind: 'conflicted'
   /** the submodule status for this entry */
-  readonly submoduleStatus?: SubmoduleStatus
+  readonly submoduleStatus: SubmoduleStatus | null
 } & ManualConflictDetails
 
 /** The porcelain status for an unmerged entry */
@@ -225,7 +222,7 @@ export type UnmergedEntry = TextConflictEntry | ManualConflictEntry
 type UntrackedEntry = {
   readonly kind: 'untracked'
   /** the submodule status for this entry */
-  readonly submoduleStatus?: SubmoduleStatus
+  readonly submoduleStatus: SubmoduleStatus | null
 }
 
 /** The union of possible entries from the git status */
