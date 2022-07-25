@@ -1,3 +1,5 @@
+/* eslint-disable no-sync */
+// TODO: re-enforce no sync methods
 import * as React from 'react'
 import { TabBar, TabBarType } from '../tab-bar'
 import { Remote } from './remote'
@@ -13,7 +15,7 @@ import {
 } from '../../models/repository'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
-import { readGitIgnoreAtRoot } from '../../lib/git'
+import { getAuthorIdentity, readGitIgnoreAtRoot } from '../../lib/git'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ForkSettings } from './fork-settings'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
@@ -29,7 +31,10 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Account } from '../../models/account'
-
+import { License } from './licenses'
+import { writeLicense, ILicense} from '../add-repository/licenses'
+import * as FS from 'fs'
+import * as PATH from 'path'
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
   readonly dispatcher: Dispatcher
@@ -43,6 +48,7 @@ export enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
   GitConfig,
+  License ,
   ForkSettings,
 }
 
@@ -63,7 +69,17 @@ interface IRepositorySettingsState {
   readonly initialCommitterEmail: string | null
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
+  readonly license: ILicense | null 
+  readonly licenseTextHasChanged: boolean
 }
+
+const NoLicenseValue: ILicense = {
+  name: 'None',
+  featured: false,
+  body: '',
+  hidden: false,
+}
+
 
 export class RepositorySettings extends React.Component<
   IRepositorySettingsProps,
@@ -89,6 +105,8 @@ export class RepositorySettings extends React.Component<
       initialGitConfigLocation: GitConfigLocation.Global,
       initialCommitterName: null,
       initialCommitterEmail: null,
+      license: NoLicenseValue,
+      licenseTextHasChanged: false
     }
   }
 
@@ -181,6 +199,7 @@ export class RepositorySettings extends React.Component<
             <span>Remote</span>
             <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
             <span>{__DARWIN__ ? 'Git Config' : 'Git config'}</span>
+            <span>{__DARWIN__ ? 'License Info' : 'License info'}</span>
             {showForkSettings && (
               <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
             )}
@@ -250,7 +269,21 @@ export class RepositorySettings extends React.Component<
           />
         )
       }
-
+      
+      case RepositorySettingsTab.License:
+        {
+          const dir =  FS.readdirSync(this.props.repository.path)
+          const licenseFile = dir.find(x => x.toLowerCase().startsWith("license")); 
+          let licenseName = ""; 
+          if (licenseFile != null)
+          {
+            const licensePath = PATH.join(this.props.repository.path, licenseFile);
+            const fileContents = FS.readFileSync(licensePath, { encoding: "utf8" });
+            licenseName = fileContents.split("\n")[0].trim();
+          }
+          return (<License text={licenseName} onLicenseChanged={this.onLicenseChanged} onShowExamples={this.onShowLicenseExamples }>
+          </License>)
+        }
       case RepositorySettingsTab.GitConfig: {
         return (
           <GitConfig
@@ -267,6 +300,7 @@ export class RepositorySettings extends React.Component<
         )
       }
 
+    
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
     }
@@ -281,6 +315,10 @@ export class RepositorySettings extends React.Component<
 
   private onShowGitIgnoreExamples = () => {
     this.props.dispatcher.openInBrowser('https://git-scm.com/docs/gitignore')
+  }
+
+    private onShowLicenseExamples = () => {
+    this.props.dispatcher.openInBrowser('https://choosealicense.com/')
   }
 
   private onSubmit = async () => {
@@ -320,8 +358,32 @@ export class RepositorySettings extends React.Component<
       }
     }
 
+    if (this.state.licenseTextHasChanged && this.state.license !== null)
+    {
+      try {
+        const author = await getAuthorIdentity(this.props.repository);
+        writeLicense(this.props.repository.path, this.state.license,
+         {
+          fullname: author ? author.name : '',
+          email: author ? author.email : '',
+          year: new Date().getFullYear().toString(),
+          description: '',
+          project: this.props.repository.name,
+        })
+      }
+      catch (e)
+      {
+        log.error(
+          `RepositorySettings: unable to save license at ${this.props.repository.path}`,
+          e
+        )
+        errors.push(`Failed saving the license file: ${e}`)
+      }
+
+    }
+
     // only update this if it will be different from what we have stored
-    if (
+    {if (
       this.state.forkContributionTarget !==
       this.props.repository.workflowPreferences.forkContributionTarget
     ) {
@@ -332,7 +394,7 @@ export class RepositorySettings extends React.Component<
           forkContributionTarget: this.state.forkContributionTarget,
         }
       )
-    }
+    }}
 
     let shouldRefreshAuthor = false
     const gitLocationChanged =
@@ -426,5 +488,9 @@ export class RepositorySettings extends React.Component<
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
+  }
+
+  private onLicenseChanged = (license: ILicense) => {
+    this.setState({ license: license, licenseTextHasChanged: true })
   }
 }
