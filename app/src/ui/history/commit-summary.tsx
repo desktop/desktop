@@ -21,11 +21,14 @@ import { AppFileStatusKind } from '../../models/status'
 import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
+import { Branch } from '../../models/branch'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly shasInDiff: ReadonlyArray<string>
+  readonly pullRequestPreviewBranch: Branch | null
+  readonly pullRequestPreviewComparisonBranch: Branch | null
   readonly changesetData: IChangesetData
   readonly emoji: Map<string, string>
 
@@ -449,11 +452,36 @@ export class CommitSummary extends React.Component<
   }
 
   private renderSummary = () => {
-    const { selectedCommits, shasInDiff } = this.props
+    const {
+      selectedCommits,
+      shasInDiff,
+      pullRequestPreviewBranch,
+      pullRequestPreviewComparisonBranch,
+    } = this.props
     const { summary, hasEmptySummary } = this.state
     const summaryClassNames = classNames('commit-summary-title', {
       'empty-summary': hasEmptySummary,
     })
+
+    if (
+      pullRequestPreviewBranch !== null &&
+      pullRequestPreviewComparisonBranch
+    ) {
+      const commitsPluralized = shasInDiff.length > 1 ? 'commits' : 'commit'
+      return (
+        <div className={summaryClassNames}>
+          Showing files changed if {shasInDiff.length} {commitsPluralized} is
+          merged into
+          <span className="ref-component">
+            {pullRequestPreviewComparisonBranch.nameWithoutRemote}
+          </span>{' '}
+          from{' '}
+          <span className="ref-component">
+            {pullRequestPreviewBranch.nameWithoutRemote}
+          </span>
+        </div>
+      )
+    }
 
     if (selectedCommits.length === 1) {
       return (
