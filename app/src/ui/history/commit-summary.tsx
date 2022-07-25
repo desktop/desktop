@@ -467,10 +467,11 @@ export class CommitSummary extends React.Component<
       pullRequestPreviewBranch !== null &&
       pullRequestPreviewComparisonBranch
     ) {
-      const commitsPluralized = shasInDiff.length > 1 ? 'commits' : 'commit'
+      const commitsPluralized =
+        shasInDiff.length > 1 ? 'commits are ' : 'commit is '
       return (
         <div className={summaryClassNames}>
-          Showing files changed if {shasInDiff.length} {commitsPluralized} is
+          Showing files changed if {shasInDiff.length} {commitsPluralized}
           merged into
           <span className="ref-component">
             {pullRequestPreviewComparisonBranch.nameWithoutRemote}

@@ -1383,11 +1383,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       mergeStatus: null,
     }))
 
-    this.updateOrSelectFirstCommit(repository, commitSHAs)
-
     if (commitSHAs.length === 0) {
       return this.emitUpdate()
     }
+
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      shas: commitSHAs,
+      shasInDiff: commitSHAs,
+      isContiguous: true,
+      file: null,
+      changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
+      diff: null,
+    }))
+
+    this._loadChangedFilesForCurrentSelection(repository)
 
     return this.determineMergeabilityAfterCompare(
       repository,
