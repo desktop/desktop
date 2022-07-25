@@ -31,6 +31,7 @@ import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
+import { PullRequestPreviewCallToAction } from './pull-request-preview-call-to-action'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -189,6 +190,9 @@ export class CompareSidebar extends React.Component<
         {formState.kind === HistoryTabMode.Compare
           ? this.renderTabBar(formState)
           : this.renderCommitList()}
+        {formState.kind === HistoryTabMode.PullRequestPreview
+          ? this.renderPRCallToAction(formState)
+          : null}
       </div>
     )
   }
@@ -375,6 +379,23 @@ export class CompareSidebar extends React.Component<
         currentBranch={this.props.currentBranch}
         comparisonBranch={formState.comparisonBranch}
         commitsBehind={formState.aheadBehind.behind}
+      />
+    )
+  }
+
+  private renderPRCallToAction(formState: IPullRequestPreview) {
+    if (this.props.currentBranch == null) {
+      return null
+    }
+
+    return (
+      <PullRequestPreviewCallToAction
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        mergeStatus={this.props.compareState.mergeStatus}
+        currentBranch={this.props.currentBranch}
+        mergeBaseBranch={formState.mergeBaseBranch}
+        commitsToMergeCount={this.props.compareState.commitSHAs.length}
       />
     )
   }
