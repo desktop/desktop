@@ -129,7 +129,6 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.id,
       repo.private,
       repo.htmlURL,
-      repo.defaultBranch,
       repo.cloneURL,
       repo.issuesEnabled,
       repo.isArchived,
@@ -448,7 +447,6 @@ export class RepositoriesStore extends TypedBaseStore<
 
         const skeletonRepo: IDatabaseGitHubRepository = {
           cloneURL: null,
-          defaultBranch: null,
           htmlURL: null,
           lastPruneDate: null,
           name: match.name,
@@ -556,7 +554,6 @@ export class RepositoriesStore extends TypedBaseStore<
       name: gitHubRepository.name,
       private: gitHubRepository.private,
       htmlURL: gitHubRepository.html_url,
-      defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID,
       lastPruneDate: existingRepo?.lastPruneDate ?? null,

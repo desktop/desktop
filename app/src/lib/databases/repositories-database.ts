@@ -22,7 +22,6 @@ export interface IDatabaseGitHubRepository {
   readonly name: string
   readonly private: boolean | null
   readonly htmlURL: string | null
-  readonly defaultBranch: string | null
   readonly cloneURL: string | null
 
   /** The database ID of the parent repository if the repository is a fork. */

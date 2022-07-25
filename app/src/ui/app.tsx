@@ -104,10 +104,7 @@ import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
-import {
-  findContributionTargetDefaultBranch,
-  findDefaultUpstreamBranch,
-} from '../lib/branch'
+import { findContributionTargetDefaultBranch } from '../lib/branch'
 import {
   GitHubRepository,
   hasWritePermission,
@@ -1570,10 +1567,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (isRepositoryWithGitHubRepository(repository)) {
           upstreamGhRepo = getNonForkGitHubRepository(repository)
-          upstreamDefaultBranch = findDefaultUpstreamBranch(
-            repository,
-            branchesState.allBranches
-          )
+          upstreamDefaultBranch = branchesState.upstreamDefaultBranch
         }
 
         return (

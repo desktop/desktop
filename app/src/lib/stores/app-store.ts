@@ -162,6 +162,7 @@ import {
   RepositoryType,
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
+  updateRemoteHEAD,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -987,6 +988,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return {
         tip: gitStore.tip,
         defaultBranch: gitStore.defaultBranch,
+        upstreamDefaultBranch: gitStore.upstreamDefaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
         pullWithRebase: gitStore.pullWithRebase,
@@ -4342,6 +4344,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
               retryAction,
             }
           )
+
+          await updateRemoteHEAD(repository, account, remote)
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__

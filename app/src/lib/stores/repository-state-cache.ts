@@ -204,6 +204,7 @@ function getInitialRepositoryState(): IRepositoryState {
     branchesState: {
       tip: { kind: TipState.Unknown },
       defaultBranch: null,
+      upstreamDefaultBranch: null,
       allBranches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       openPullRequests: new Array<PullRequest>(),
