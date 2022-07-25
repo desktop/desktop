@@ -104,8 +104,14 @@ export class CompareSidebar extends React.Component<
       newFormState.kind !== HistoryTabMode.History &&
       oldFormState.kind !== HistoryTabMode.History
     ) {
-      const oldBranch = oldFormState.comparisonBranch
-      const newBranch = newFormState.comparisonBranch
+      const oldBranch =
+        oldFormState.kind === HistoryTabMode.Compare
+          ? oldFormState.comparisonBranch
+          : oldFormState.mergeBaseBranch
+      const newBranch =
+        newFormState.kind === HistoryTabMode.Compare
+          ? newFormState.comparisonBranch
+          : newFormState.mergeBaseBranch
 
       if (oldBranch.name !== newBranch.name) {
         // ensure the focused branch is in sync with the chosen branch
@@ -213,7 +219,7 @@ export class CompareSidebar extends React.Component<
         emptyListMessage = (
           <p>
             Your branch is up to date with the compared branch (
-            <Ref>{formState.comparisonBranch.name}</Ref>)
+            <Ref>{formState.mergeBaseBranch.name}</Ref>)
           </p>
         )
         break
@@ -376,7 +382,7 @@ export class CompareSidebar extends React.Component<
   private onTabClicked = (index: number) => {
     const formState = this.props.compareState.formState
 
-    if (formState.kind === HistoryTabMode.History) {
+    if (formState.kind !== HistoryTabMode.Compare) {
       return
     }
 

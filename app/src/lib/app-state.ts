@@ -727,7 +727,7 @@ export interface IPullRequestPreview {
   readonly kind: HistoryTabMode.PullRequestPreview
 
   /** The branch to diff --merge-base against */
-  readonly comparisonBranch: Branch
+  readonly mergeBaseBranch: Branch
 }
 
 export interface ICompareState {
@@ -799,7 +799,7 @@ export interface ICompareToBranch {
 
 export interface IPreviewPullRequest {
   readonly kind: HistoryTabMode.PullRequestPreview
-  readonly branch: Branch
+  readonly mergeBaseBranch: Branch
 }
 
 /**

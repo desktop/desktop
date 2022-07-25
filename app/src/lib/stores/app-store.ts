@@ -1347,7 +1347,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._executeCompare(repository, {
       kind: HistoryTabMode.PullRequestPreview,
-      comparisonBranch: defaultBranch,
+      mergeBaseBranch: defaultBranch,
     })
   }
 
@@ -1356,11 +1356,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     action: IPreviewPullRequest
   ) {
     const gitStore = this.gitStoreCache.get(repository)
-    const { comparisonBranch } = action
+    const { mergeBaseBranch } = action
 
-    const commits = await gitStore.getPreviewPullRequestCommits(
-      comparisonBranch
-    )
+    const commits = await gitStore.getPreviewPullRequestCommits(mergeBaseBranch)
 
     if (commits === null) {
       return
@@ -1378,9 +1376,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCompareState(repository, s => ({
       formState: {
         kind: HistoryTabMode.PullRequestPreview,
-        comparisonBranch,
+        mergeBaseBranch,
       },
-      filterText: comparisonBranch.name,
+      filterText: mergeBaseBranch.name,
       commitSHAs,
       mergeStatus: null,
     }))
@@ -1394,7 +1392,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.determineMergeabilityAfterCompare(
       repository,
       gitStore,
-      comparisonBranch
+      mergeBaseBranch
     )
   }
 
@@ -1639,7 +1637,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     const pullRequestComparisonBranch =
       formState.kind === HistoryTabMode.PullRequestPreview
-        ? formState.comparisonBranch
+        ? formState.mergeBaseBranch
         : null
 
     const diff =
@@ -7198,16 +7196,15 @@ function getInitialAction(
     }
   }
 
-  const { comparisonBranch } = cachedState
-
   if (kind === HistoryTabMode.PullRequestPreview) {
+    const { mergeBaseBranch } = cachedState
     return {
       kind: HistoryTabMode.PullRequestPreview,
-      branch: comparisonBranch,
+      mergeBaseBranch,
     }
   }
 
-  const { comparisonMode } = cachedState
+  const { comparisonMode, comparisonBranch } = cachedState
 
   return {
     kind: HistoryTabMode.Compare,

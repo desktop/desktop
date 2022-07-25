@@ -388,7 +388,7 @@ export class RepositoryView extends React.Component<
     const { formState } = compareState
     const pullRequestPreviewComparisonBranch =
       formState.kind === HistoryTabMode.PullRequestPreview
-        ? formState.comparisonBranch
+        ? formState.mergeBaseBranch
         : null
 
     const selectedCommits = []
