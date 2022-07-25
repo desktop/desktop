@@ -1648,6 +1648,28 @@ export class GitStore extends BaseStore {
     }
   }
 
+  /**
+   * Returns the commits associated with merging the checked out branch into
+   * another comparison branch
+   */
+  public async getPreviewPullRequestCommits(
+    comparisonBranch: Branch
+  ): Promise<ReadonlyArray<Commit> | null> {
+    if (this.tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const currentBranch = this.tip.branch
+    const revisionRange = revRange(comparisonBranch.name, currentBranch.name)
+    const commits = await getCommits(this.repository, revisionRange)
+
+    if (commits.length > 0) {
+      this.storeCommits(commits)
+    }
+
+    return commits
+  }
+
   public async pruneForkedRemotes(openPRs: ReadonlyArray<PullRequest>) {
     const remotes = await getRemotes(this.repository)
 

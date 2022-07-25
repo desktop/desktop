@@ -3936,6 +3936,6 @@ export class Dispatcher {
    * repository's default branch.
    * */
   public previewPullRequest(repository: Repository) {
-    console.log('previewPullRequest')
+    this.appStore._previewPullRequest(repository)
   }
 }

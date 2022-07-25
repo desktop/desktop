@@ -163,6 +163,7 @@ import {
   RepositoryType,
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
+  getBranchMergeBaseDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1336,11 +1337,65 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return assertNever(action, `Unknown action: ${kind}`)
   }
 
+  public _previewPullRequest(repository: Repository) {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+
+    if (defaultBranch === null) {
+      return
+    }
+
+    this._executeCompare(repository, {
+      kind: HistoryTabMode.PullRequestPreview,
+      comparisonBranch: defaultBranch,
+    })
+  }
+
   private async updateToPreviewPullRequest(
     repository: Repository,
     action: IPreviewPullRequest
   ) {
-    console.log(action)
+    const gitStore = this.gitStoreCache.get(repository)
+    const { comparisonBranch } = action
+
+    const commits = await gitStore.getPreviewPullRequestCommits(
+      comparisonBranch
+    )
+
+    if (commits === null) {
+      return
+    }
+
+    const { selectedSection } = this.repositoryStateCache.get(repository)
+    if (selectedSection !== RepositorySectionTab.History) {
+      this.repositoryStateCache.update(repository, state => ({
+        selectedSection: RepositorySectionTab.History,
+      }))
+    }
+
+    const commitSHAs = commits.map(c => c.sha)
+
+    this.repositoryStateCache.updateCompareState(repository, s => ({
+      formState: {
+        kind: HistoryTabMode.PullRequestPreview,
+        comparisonBranch,
+      },
+      filterText: comparisonBranch.name,
+      commitSHAs,
+      mergeStatus: null,
+    }))
+
+    this.updateOrSelectFirstCommit(repository, commitSHAs)
+
+    if (commitSHAs.length === 0) {
+      return this.emitUpdate()
+    }
+
+    return this.determineMergeabilityAfterCompare(
+      repository,
+      gitStore,
+      comparisonBranch
+    )
   }
 
   private async updateCompareToBranch(
@@ -1385,64 +1440,72 @@ export class AppStore extends TypedBaseStore<IAppState> {
       formState: newState,
       filterText: comparisonBranch.name,
       commitSHAs,
+      mergeStatus: null,
     }))
 
+    this.updateOrSelectFirstCommit(repository, commitSHAs)
+    if (aheadBehind.behind === 0) {
+      return this.emitUpdate()
+    }
+
+    return this.determineMergeabilityAfterCompare(
+      repository,
+      gitStore,
+      action.branch
+    )
+  }
+
+  private determineMergeabilityAfterCompare(
+    repository: Repository,
+    gitStore: GitStore,
+    comparisonBranch: Branch
+  ) {
     const tip = gitStore.tip
 
-    const loadingMerge: MergeTreeResult = {
-      kind: ComputedAction.Loading,
+    if (tip.kind !== TipState.Valid) {
+      return this.emitUpdate()
     }
 
     this.repositoryStateCache.updateCompareState(repository, () => ({
-      mergeStatus: loadingMerge,
+      mergeStatus: {
+        kind: ComputedAction.Loading,
+      },
     }))
 
     this.emitUpdate()
-
-    this.updateOrSelectFirstCommit(repository, commitSHAs)
 
     if (this.currentMergeTreePromise != null) {
       return this.currentMergeTreePromise
     }
 
-    if (tip.kind === TipState.Valid && aheadBehind.behind > 0) {
-      const mergeTreePromise = promiseWithMinimumTimeout(
-        () => determineMergeability(repository, tip.branch, action.branch),
-        500
-      )
-        .catch(err => {
-          log.warn(
-            `Error occurred while trying to merge ${tip.branch.name} (${tip.branch.tip.sha}) and ${action.branch.name} (${action.branch.tip.sha})`,
-            err
-          )
-          return null
-        })
-        .then(mergeStatus => {
-          this.repositoryStateCache.updateCompareState(repository, () => ({
-            mergeStatus,
-          }))
+    const mergeTreePromise = promiseWithMinimumTimeout(
+      () => determineMergeability(repository, tip.branch, comparisonBranch),
+      500
+    )
+      .catch(err => {
+        log.warn(
+          `Error occurred while trying to merge ${tip.branch.name} (${tip.branch.tip.sha}) and ${comparisonBranch.name} (${comparisonBranch.tip.sha})`,
+          err
+        )
+        return null
+      })
+      .then(mergeStatus => {
+        this.repositoryStateCache.updateCompareState(repository, () => ({
+          mergeStatus,
+        }))
 
-          this.emitUpdate()
-        })
+        this.emitUpdate()
+      })
 
-      const cleanup = () => {
-        this.currentMergeTreePromise = null
-      }
-
-      // TODO: when we have Promise.prototype.finally available we
-      //       should use that here to make this intent clearer
-      mergeTreePromise.then(cleanup, cleanup)
-
-      this.currentMergeTreePromise = mergeTreePromise
-
-      return this.currentMergeTreePromise
-    } else {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        mergeStatus: null,
-      }))
-
-      return this.emitUpdate()
+    const cleanup = () => {
+      this.currentMergeTreePromise = null
     }
+
+    mergeTreePromise.finally(cleanup)
+
+    this.currentMergeTreePromise = mergeTreePromise
+
+    return this.currentMergeTreePromise
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1575,6 +1638,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     const pullRequestComparisonBranch =
+      formState.kind === HistoryTabMode.PullRequestPreview
         ? formState.comparisonBranch
         : null
 
