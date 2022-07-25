@@ -1553,7 +1553,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const { shas, isContiguous } = stateBeforeLoad.commitSelection
+    const { commitSelection, branchesState, compareState } = stateBeforeLoad
+    const { tip } = branchesState
+    const { formState } = compareState
+
+    const { shas, isContiguous } = commitSelection
 
     if (shas.length === 0) {
       if (__DEV__) {
@@ -1569,8 +1573,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const pullRequestComparisonBranch =
+        ? formState.comparisonBranch
+        : null
+
     const diff =
-      shas.length > 1
+      currentBranch !== null && pullRequestComparisonBranch !== null
+        ? await getBranchMergeBaseDiff(
+            repository,
+            file,
+            currentBranch,
+            pullRequestComparisonBranch,
+            this.hideWhitespaceInHistoryDiff,
+            shas[0]
+          )
+        : shas.length > 1
         ? await getCommitRangeDiff(
             repository,
             file,
