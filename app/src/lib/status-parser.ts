@@ -178,9 +178,9 @@ function parseUntrackedEntry(field: string): IStatusEntry {
 
 function mapSubmoduleStatus(
   submoduleStatusCode: string
-): SubmoduleStatus | undefined {
+): SubmoduleStatus | null {
   if (!submoduleStatusCode.startsWith('S')) {
-    return undefined
+    return null
   }
 
   return {
@@ -295,6 +295,7 @@ export function mapStatus(
       kind: 'copied',
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Copied,
+      submoduleStatus,
     }
   }
 
@@ -410,5 +411,6 @@ export function mapStatus(
   return {
     kind: 'ordinary',
     type: 'modified',
+    submoduleStatus,
   }
 }

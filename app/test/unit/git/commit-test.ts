@@ -172,7 +172,7 @@ describe('git/commit', () => {
 
       const file = new WorkingDirectoryFileChange(
         newFileName,
-        { kind: AppFileStatusKind.New },
+        { kind: AppFileStatusKind.New, submoduleStatus: null },
         selection
       )
 
@@ -213,7 +213,7 @@ describe('git/commit', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         unselectedFile
       )
 
@@ -265,7 +265,7 @@ describe('git/commit', () => {
       )
       const modifiedFile = new WorkingDirectoryFileChange(
         fileName,
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         unselectedFile
       )
 
@@ -279,7 +279,7 @@ describe('git/commit', () => {
 
       const file = new WorkingDirectoryFileChange(
         fileName,
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         selection
       )
 
@@ -309,7 +309,7 @@ describe('git/commit', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         unselectedFile
       )
 
@@ -325,7 +325,7 @@ describe('git/commit', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         selection
       )
 
@@ -367,7 +367,7 @@ describe('git/commit', () => {
 
       const file = new WorkingDirectoryFileChange(
         deletedFile,
-        { kind: AppFileStatusKind.Deleted },
+        { kind: AppFileStatusKind.Deleted, submoduleStatus: null },
         selection
       )
 

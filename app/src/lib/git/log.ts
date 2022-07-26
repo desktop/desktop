@@ -27,35 +27,35 @@ export function mapStatus(
   const status = rawStatus.trim()
 
   if (status === 'M') {
-    return { kind: AppFileStatusKind.Modified }
+    return { kind: AppFileStatusKind.Modified, submoduleStatus: null }
   } // modified
   if (status === 'A') {
-    return { kind: AppFileStatusKind.New }
+    return { kind: AppFileStatusKind.New, submoduleStatus: null }
   } // added
   if (status === '?') {
-    return { kind: AppFileStatusKind.Untracked }
+    return { kind: AppFileStatusKind.Untracked, submoduleStatus: null }
   } // untracked
   if (status === 'D') {
-    return { kind: AppFileStatusKind.Deleted }
+    return { kind: AppFileStatusKind.Deleted, submoduleStatus: null }
   } // deleted
   if (status === 'R' && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus: null }
   } // renamed
   if (status === 'C' && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus: null }
   } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus: null }
   }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
   if (status.match(/C[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus: null }
   }
 
-  return { kind: AppFileStatusKind.Modified }
+  return { kind: AppFileStatusKind.Modified, submoduleStatus: null }
 }
 
 const isCopyOrRename = (

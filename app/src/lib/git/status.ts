@@ -102,9 +102,14 @@ function parseConflictedState(
           entry,
           conflictMarkerCount:
             conflictDetails.conflictCountsByPath.get(path) || 0,
+          submoduleStatus: null,
         }
       } else {
-        return { kind: AppFileStatusKind.Conflicted, entry }
+        return {
+          kind: AppFileStatusKind.Conflicted,
+          entry,
+          submoduleStatus: null,
+        }
       }
     }
     case UnmergedEntrySummary.BothModified: {
@@ -115,11 +120,13 @@ function parseConflictedState(
           entry,
           conflictMarkerCount:
             conflictDetails.conflictCountsByPath.get(path) || 0,
+          submoduleStatus: null,
         }
       } else {
         return {
           kind: AppFileStatusKind.Conflicted,
           entry,
+          submoduleStatus: null,
         }
       }
     }
@@ -127,6 +134,7 @@ function parseConflictedState(
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
+        submoduleStatus: null,
       }
   }
 }

@@ -166,13 +166,18 @@ type TextConflictDetails =
 
 type TextConflictEntry = {
   readonly kind: 'conflicted'
+  /** the submodule status for this entry */
+  readonly submoduleStatus: SubmoduleStatus | null
 } & TextConflictDetails
 
 /**
  * Valid Git index states where the user needs to choose one of `us` or `them`
  * in the app.
  */
-type ManualConflictDetails =
+type ManualConflictDetails = {
+  /** the submodule status for this entry */
+  readonly submoduleStatus: SubmoduleStatus | null
+} & (
   | {
       readonly action: UnmergedEntrySummary.BothAdded
       readonly us: GitStatusEntry.Added
@@ -208,6 +213,7 @@ type ManualConflictDetails =
       readonly us: GitStatusEntry.Deleted
       readonly them: GitStatusEntry.Deleted
     }
+)
 
 type ManualConflictEntry = {
   readonly kind: 'conflicted'

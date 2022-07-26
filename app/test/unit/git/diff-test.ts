@@ -52,7 +52,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-image.png',
-        { kind: AppFileStatusKind.New },
+        { kind: AppFileStatusKind.New, submoduleStatus: null },
         diffSelection
       )
       const current = await getWorkingDirectoryImage(repository, file)
@@ -67,7 +67,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-image.jpg',
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         diffSelection
       )
       const current = await getWorkingDirectoryImage(repository, file)
@@ -83,7 +83,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-image.jpg',
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         diffSelection
       )
       const current = await getBlobImage(repository, file.path, 'HEAD')
@@ -100,7 +100,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-animated-image.gif',
-        { kind: AppFileStatusKind.Deleted },
+        { kind: AppFileStatusKind.Deleted, submoduleStatus: null },
         diffSelection
       )
       const previous = await getBlobImage(repository, file.path, 'HEAD')
@@ -119,7 +119,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-image.jpg',
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         diffSelection
       )
       const diff = await getWorkingDirectoryDiff(repository, file)
@@ -140,7 +140,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-file.md',
-        { kind: AppFileStatusKind.New },
+        { kind: AppFileStatusKind.New, submoduleStatus: null },
         diffSelection
       )
       const diff = await getTextDiff(repository, file)
@@ -161,7 +161,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'new-file.md',
-        { kind: AppFileStatusKind.New },
+        { kind: AppFileStatusKind.New, submoduleStatus: null },
         diffSelection
       )
       const diff = await getTextDiff(repository, file)
@@ -186,7 +186,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'modified-file.md',
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         diffSelection
       )
       const diff = await getTextDiff(repository, file)
@@ -214,7 +214,7 @@ describe('git/diff', () => {
       )
       const file = new WorkingDirectoryFileChange(
         'staged-file.md',
-        { kind: AppFileStatusKind.Modified },
+        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
         diffSelection
       )
       const diff = await getTextDiff(repository, file)

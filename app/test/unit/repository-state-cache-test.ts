@@ -64,7 +64,7 @@ describe('RepositoryStateCache', () => {
     const files = [
       new WorkingDirectoryFileChange(
         'README.md',
-        { kind: AppFileStatusKind.New },
+        { kind: AppFileStatusKind.New, submoduleStatus: null },
         DiffSelection.fromInitialSelection(DiffSelectionType.All)
       ),
     ]
