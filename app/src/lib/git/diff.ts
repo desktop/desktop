@@ -19,6 +19,7 @@ import {
   parseLineEndingText,
   ILargeTextDiff,
   IUnrenderableDiff,
+  ISubmoduleDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -487,6 +488,12 @@ function buildDiff(
   oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
+  if (file.status.submoduleStatus !== null) {
+    return Promise.resolve<ISubmoduleDiff>({
+      kind: DiffType.Submodule,
+    })
+  }
+
   if (!isValidBuffer(buffer)) {
     // the buffer's diff is too large to be renderable in the UI
     return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })

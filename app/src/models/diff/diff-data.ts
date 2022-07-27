@@ -87,6 +87,10 @@ export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
 
+export interface ISubmoduleDiff {
+  readonly kind: DiffType.Submodule
+}
+
 export interface ILargeTextDiff extends ITextDiffData {
   readonly kind: DiffType.LargeText
 }
@@ -100,5 +104,6 @@ export type IDiff =
   | ITextDiff
   | IImageDiff
   | IBinaryDiff
+  | ISubmoduleDiff
   | ILargeTextDiff
   | IUnrenderableDiff
