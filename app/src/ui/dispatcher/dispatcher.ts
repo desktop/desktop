@@ -3953,6 +3953,6 @@ export class Dispatcher {
   }
 
   public previewPullRequest(repository: Repository) {
-    console.log('test')
+    this.appStore._previewPullRequest(repository)
   }
 }
