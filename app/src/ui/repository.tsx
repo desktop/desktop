@@ -33,6 +33,7 @@ import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
 import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 import { clamp } from '../lib/clamp'
+import { RepositoryPullRequestView } from './repository-pull-request-view/repository-pull-request-view'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -517,6 +518,10 @@ export class RepositoryView extends React.Component<
   }
 
   public render() {
+    if (this.props.state.pullRequestState !== null) {
+      return <RepositoryPullRequestView />
+    }
+
     return (
       <UiView id="repository">
         {this.renderSidebar()}
