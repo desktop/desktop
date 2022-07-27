@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.0.6-beta2": [
+      "[Fixed] Add PyCharm Community Edition support on macOS - #15016. Thanks @tsvetilian-ty!",
+      "[Fixed] Unified diff line gutter context menu items for discard changes no longer enabled when whitespace is hidden - #15003",
+      "[Fixed] 'Show Whitespace Changes' popover appears as expected on unified diff - #15003",
+      "[Fixed] On pull or fetch, make sure the default branch is updated to match the repository settings - #14266",
+      "[Fixed] Show 'Email' label on the preferences form when user is not signed in - #13736. Thanks @andymckay!"
+    ],
     "3.0.6-beta1": [
       "[Added] You can diff a consecutive range of commits. - #14682",
       "[Added] Add Warp terminal integration for macOS - #14329. Thanks @lhvy!",
