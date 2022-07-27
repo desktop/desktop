@@ -201,6 +201,7 @@ function getInitialRepositoryState(): IRepositoryState {
       currentBranchProtected: false,
     },
     selectedSection: RepositorySectionTab.Changes,
+    pullRequestState: null,
     branchesState: {
       tip: { kind: TipState.Unknown },
       defaultBranch: null,

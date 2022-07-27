@@ -417,6 +417,7 @@ export interface IRepositoryState {
   readonly changesState: IChangesState
   readonly compareState: ICompareState
   readonly selectedSection: RepositorySectionTab
+  readonly pullRequestState: IPullRequestState | null
 
   /**
    * The name and email that will be used for the author info
@@ -927,4 +928,8 @@ export interface IConstrainedValue {
   readonly value: number
   readonly max: number
   readonly min: number
+}
+
+export interface IPullRequestState {
+  readonly mergeBaseBranch: Branch
 }
