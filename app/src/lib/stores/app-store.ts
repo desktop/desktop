@@ -1357,6 +1357,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return assertNever(action, `Unknown action: ${kind}`)
   }
 
+  public _previewPullRequest(repository: Repository) {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch } = branchesState
+
+    if (defaultBranch === null) {
+      return
+    }
+
+    this.repositoryStateCache.setPullRequestState(repository, {
+      mergeBaseBranch: defaultBranch,
+    })
+
+    this.emitUpdate()
+  }
+
   private async updateCompareToBranch(
     repository: Repository,
     action: ICompareToBranch

@@ -18,6 +18,7 @@ import {
   ChangesSelectionKind,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
+  IPullRequestState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -164,6 +165,15 @@ export class RepositoryStateCache {
   ) {
     this.update(repository, () => {
       return { multiCommitOperationState }
+    })
+  }
+
+  public setPullRequestState(
+    repository: Repository,
+    pullRequestState: IPullRequestState | null
+  ) {
+    this.update(repository, () => {
+      return { pullRequestState }
     })
   }
 
