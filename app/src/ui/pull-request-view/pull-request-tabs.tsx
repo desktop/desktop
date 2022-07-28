@@ -4,20 +4,18 @@ import { TabBar } from '../tab-bar'
 
 interface IPullRequestTabsProps {
   readonly selectedSection: PullRequestSectionTab
+
+  readonly onTabClicked: (tab: PullRequestSectionTab) => void
 }
 
 export class PullRequestTabs extends React.Component<IPullRequestTabsProps> {
-  private onTabClicked = (tab: PullRequestSectionTab) => {
-    console.log(tab)
-  }
-
   public render() {
     return (
       <div className="pull-request-tabs">
         <div className="tab-container">
           <TabBar
             selectedIndex={this.props.selectedSection}
-            onTabClicked={this.onTabClicked}
+            onTabClicked={this.props.onTabClicked}
           >
             <span>
               <span>Files Changed</span>
