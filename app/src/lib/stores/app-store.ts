@@ -109,6 +109,7 @@ import {
   IMultiCommitOperationState,
   IConstrainedValue,
   ICompareState,
+  PullRequestSectionTab,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -1367,6 +1368,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.setPullRequestState(repository, {
       mergeBaseBranch: defaultBranch,
+      selectedSection: PullRequestSectionTab.FileChanged,
     })
 
     this.emitUpdate()
