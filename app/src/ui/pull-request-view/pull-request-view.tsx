@@ -3,6 +3,7 @@ import { IBranchesState, IPullRequestState } from '../../lib/app-state'
 import { TipState } from '../../models/tip'
 import { UiView } from '../ui-view'
 import { PullRequestCompareBar } from './pull-request-compare-bar'
+import { PullRequestTabs } from './pull-request-tabs'
 
 interface IPullRequestViewProps {
   readonly branchesState: IBranchesState
@@ -13,7 +14,7 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
   public render() {
     const { branchesState, pullRequestState } = this.props
     const { tip, allBranches } = branchesState
-    const { mergeBaseBranch } = pullRequestState
+    const { mergeBaseBranch, selectedSection } = pullRequestState
 
     if (tip.kind !== TipState.Valid) {
       return null
@@ -28,6 +29,7 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
           currentBranch={currentBranch}
           mergeBaseBranch={mergeBaseBranch}
         />
+        <PullRequestTabs selectedSection={selectedSection} />
       </UiView>
     )
   }
