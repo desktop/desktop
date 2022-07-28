@@ -1374,6 +1374,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _updatePullRequestSection(
+    repository: Repository,
+    tab: PullRequestSectionTab
+  ) {
+    this.repositoryStateCache.updatePullRequestState(repository, () => ({
+      selectedSection: tab,
+    }))
+    this.emitUpdate()
+  }
+
   private async updateCompareToBranch(
     repository: Repository,
     action: ICompareToBranch
