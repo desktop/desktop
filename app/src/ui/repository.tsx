@@ -524,6 +524,8 @@ export class RepositoryView extends React.Component<
         <PullRequestView
           branchesState={branchesState}
           pullRequestState={pullRequestState}
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
         />
       )
     }
