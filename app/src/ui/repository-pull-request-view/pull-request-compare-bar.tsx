@@ -3,18 +3,27 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { Select } from '../lib/select'
 import { Octicon } from '../octicons'
+import { Branch } from '../../models/branch'
 
-export class PullRequestCompareBar extends React.Component<{}> {
+interface IPullRequestCompareBarProps {
+  readonly branches: ReadonlyArray<Branch>
+  readonly currentBranch: Branch
+  readonly mergeBaseBranch: Branch
+}
+
+export class PullRequestCompareBar extends React.Component<IPullRequestCompareBarProps> {
   public render() {
     return (
       <div className="pull-request-compare-bar">
         <Octicon symbol={OcticonSymbol.gitCompare} />
 
         <div className="branch-box">
-          <Select value={'development'}>
-            <option key={'development'} value={'development'}>
-              {'development'}
-            </option>
+          <Select defaultValue={this.props.mergeBaseBranch.name}>
+            {this.props.branches.map(branch => (
+              <option key={branch.name} value={branch.name}>
+                {branch.name}
+              </option>
+            ))}
           </Select>
         </div>
 
@@ -24,7 +33,7 @@ export class PullRequestCompareBar extends React.Component<{}> {
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
             type="search"
-            value={'feature-branch'}
+            value={this.props.currentBranch.name}
             disabled={true}
           />
         </div>
