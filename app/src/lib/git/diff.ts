@@ -33,6 +33,8 @@ import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
 import { parseRawLogWithNumstat } from './log'
 import { getConfigValue } from './config'
+import { Branch } from '../../models/branch'
+import { getMergeBase } from './merge'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -140,6 +142,49 @@ export async function getCommitDiff(
 }
 
 /**
+ * Render the diff between two branches with --merge-base for a file
+ */
+export async function getBranchMergeBaseDiff(
+  repository: Repository,
+  file: FileChange,
+  baseBranch: Branch,
+  comparisonBranch: Branch,
+  hideWhitespaceInDiff: boolean = false,
+  latestCommit: string
+): Promise<IDiff> {
+  const args = [
+    'diff',
+    '--merge-base',
+    baseBranch.name,
+    comparisonBranch.name,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+    '--',
+    file.path,
+  ]
+
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
+  }
+
+  const result = await git(args, repository.path, 'getBranchMergeBaseDiff', {
+    maxBuffer: Infinity,
+  })
+
+  return buildDiff(
+    Buffer.from(result.combinedOutput),
+    repository,
+    file,
+    latestCommit
+  )
+}
+
+/**
  * Render the difference between two commits for a file
  *
  */
@@ -198,6 +243,48 @@ export async function getCommitRangeDiff(
     repository,
     file,
     latestCommit
+  )
+}
+
+export async function getBranchMergeBaseChangedFiles(
+  repository: Repository,
+  baseBranch: Branch,
+  comparisonBranch: Branch,
+  oldestCommitRef: string
+): Promise<{
+  files: ReadonlyArray<CommittedFileChange>
+  linesAdded: number
+  linesDeleted: number
+}> {
+  const baseArgs = [
+    'diff',
+    '--merge-base',
+    baseBranch.name,
+    comparisonBranch.name,
+    '-C',
+    '-M',
+    '-z',
+    '--raw',
+    '--numstat',
+    '--',
+  ]
+
+  const result = await git(
+    baseArgs,
+    repository.path,
+    'getBranchMergeBaseChangedFiles'
+  )
+
+  const mergeBaseCommit = await getMergeBase(
+    repository,
+    baseBranch.name,
+    comparisonBranch.name
+  )
+
+  return parseRawLogWithNumstat(
+    result.combinedOutput,
+    `${oldestCommitRef}`,
+    mergeBaseCommit ?? NullTreeSHA // TODO:  Shouldn't happen - need to investigate if this can be thing?
   )
 }
 
