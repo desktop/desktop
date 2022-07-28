@@ -932,4 +932,10 @@ export interface IConstrainedValue {
 
 export interface IPullRequestState {
   readonly mergeBaseBranch: Branch
+  readonly selectedSection: PullRequestSectionTab
+}
+
+export enum PullRequestSectionTab {
+  FileChanged = 0,
+  Commits = 1,
 }
