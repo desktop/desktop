@@ -19,6 +19,7 @@ import {
   ITextDiff,
   ILargeTextDiff,
   ImageDiffType,
+  ISubmoduleDiff,
 } from '../../models/diff'
 import { Button } from '../lib/button'
 import {
@@ -31,6 +32,7 @@ import { TextDiff } from './text-diff'
 import { SideBySideDiff } from './side-by-side-diff'
 import { enableExperimentalDiffViewer } from '../../lib/feature-flag'
 import { IFileContents } from './syntax-highlighting'
+import { SubmoduleDiff } from './submodule-diff'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -80,6 +82,9 @@ interface IDiffProps {
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
 
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule?: (fullPath: string) => void
+
   /**
    * Called when the user is viewing an image diff and requests
    * to change the diff presentation mode.
@@ -122,7 +127,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       case DiffType.Binary:
         return this.renderBinaryFile()
       case DiffType.Submodule:
-        return this.renderSubmoduleDiff()
+        return this.renderSubmoduleDiff(diff)
       case DiffType.Image:
         return this.renderImage(diff)
       case DiffType.LargeText: {
@@ -245,8 +250,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return this.renderTextDiff(diff)
   }
 
-  private renderSubmoduleDiff() {
-    return <h1>Hello world</h1>
+  private renderSubmoduleDiff(diff: ISubmoduleDiff) {
+    return (
+      <SubmoduleDiff onOpenSubmodule={this.props.onOpenSubmodule} diff={diff} />
+    )
   }
 
   private renderBinaryFile() {

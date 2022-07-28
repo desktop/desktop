@@ -18,8 +18,6 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
-  IUnrenderableDiff,
-  ISubmoduleDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -33,6 +31,7 @@ import { git } from './core'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
 import { parseRawLogWithNumstat } from './log'
+import { getConfigValue } from './config'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -481,7 +480,7 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(forceUnwrap(`Invalid diff output`, pieces.at(-1)))
 }
 
-function buildDiff(
+async function buildDiff(
   buffer: Buffer,
   repository: Repository,
   file: FileChange,
@@ -489,14 +488,21 @@ function buildDiff(
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   if (file.status.submoduleStatus !== null) {
-    return Promise.resolve<ISubmoduleDiff>({
+    const path = file.path
+    const fullPath = Path.join(repository.path, path)
+    const url =
+      (await getConfigValue(repository, `submodule.${path}.url`, true)) ?? ''
+    return {
       kind: DiffType.Submodule,
-    })
+      fullPath,
+      path,
+      url,
+    }
   }
 
   if (!isValidBuffer(buffer)) {
     // the buffer's diff is too large to be renderable in the UI
-    return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })
+    return { kind: DiffType.Unrenderable }
   }
 
   const diff = diffFromRawDiffOutput(buffer)
@@ -514,7 +520,7 @@ function buildDiff(
       hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
-    return Promise.resolve(largeTextDiff)
+    return largeTextDiff
   }
 
   return convertDiff(repository, file, diff, oldestCommitish, lineEndingsChange)

@@ -89,6 +89,9 @@ export interface IBinaryDiff {
 
 export interface ISubmoduleDiff {
   readonly kind: DiffType.Submodule
+  readonly fullPath: string
+  readonly path: string
+  readonly url: string
 }
 
 export interface ILargeTextDiff extends ITextDiffData {
