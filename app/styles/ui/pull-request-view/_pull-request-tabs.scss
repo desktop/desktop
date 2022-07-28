@@ -1,0 +1,14 @@
+.pull-request-tabs {
+  display: flex;
+
+  .after-tabs {
+    border-bottom: 1px solid var(--box-border-color);
+    flex-grow: 1;
+  }
+
+  .tab-container {
+    border-right: 1px solid var(--box-border-color) !important;
+    max-width: 600px;
+    flex-grow: 1;
+  }
+}
