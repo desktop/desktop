@@ -36,6 +36,8 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
 
   private renderSubmoduleInfo() {
     // TODO: only for GH submodules?
+    // TODO: test with submodules without URL (is that possible? maybe a submodule
+    // from a local repo??)
 
     const repoIdentifier = parseRepositoryIdentifier(this.props.diff.url)
     if (repoIdentifier === null) {
@@ -80,6 +82,12 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
   }
 
   private renderSubmodulesChangesInfo() {
+    const { diff } = this.props
+
+    if (!diff.status.untrackedChanges) {
+      return null
+    }
+
     return (
       <p>
         <Octicon symbol={OcticonSymbol.fileDiff} /> This submodule has modified
