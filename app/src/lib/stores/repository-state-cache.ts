@@ -19,6 +19,7 @@ import {
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
   IPullRequestState,
+  IPullRequestChangedFiles,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -185,13 +186,45 @@ export class RepositoryStateCache {
 
   public updatePullRequestState<K extends keyof IPullRequestState>(
     repository: Repository,
-    fn: (branchesState: IPullRequestState) => Pick<IPullRequestState, K>
+    fn: (pullRequestState: IPullRequestState) => Pick<IPullRequestState, K>
   ) {
     this.update(repository, state => {
       const changesState = state.pullRequestState
       const newState =
         changesState === null ? null : merge(changesState, fn(changesState))
       return { pullRequestState: newState }
+    })
+  }
+
+  public updatePullRequestChangedFilesState<
+    K extends keyof IPullRequestChangedFiles
+  >(
+    repository: Repository,
+    fn: (
+      pullRequestChangedFiles: IPullRequestChangedFiles
+    ) => Pick<IPullRequestChangedFiles, K>
+  ) {
+    this.update(repository, state => {
+      const oldState = state.pullRequestState
+      if (oldState == null || oldState.changedFiles == null) {
+        // This is not expected...
+        sendNonFatalException(
+          'PullRequestChangedFiles',
+          new Error(`Cannot update a null pull request state`)
+        )
+        return { pullRequestState: oldState }
+      }
+
+      const newPullRequestChangedFiles = merge(
+        oldState.changedFiles,
+        fn(oldState.changedFiles)
+      )
+      return {
+        pullRequestState: {
+          ...oldState,
+          changedFiles: newPullRequestChangedFiles,
+        },
+      }
     })
   }
 }

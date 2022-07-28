@@ -164,6 +164,8 @@ import {
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
   updateRemoteHEAD,
+  getBranchMergeBaseChangedFiles,
+  getBranchMergeBaseDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1358,18 +1360,106 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return assertNever(action, `Unknown action: ${kind}`)
   }
 
-  public _previewPullRequest(repository: Repository) {
+  public async _previewPullRequest(repository: Repository) {
     const { branchesState } = this.repositoryStateCache.get(repository)
-    const { defaultBranch } = branchesState
+    const { defaultBranch, tip } = branchesState
 
-    if (defaultBranch === null) {
+    if (defaultBranch === null || tip.kind !== TipState.Valid) {
       return
     }
+    const currentBranch = tip.branch
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
+      defaultBranch,
+      currentBranch
+    )
+
+    const changesetData =
+      pullRequestCommits !== null
+        ? await getBranchMergeBaseChangedFiles(
+            repository,
+            defaultBranch,
+            currentBranch,
+            pullRequestCommits[0].sha
+          )
+        : null
 
     this.repositoryStateCache.setPullRequestState(repository, {
       mergeBaseBranch: defaultBranch,
       selectedSection: PullRequestSectionTab.FileChanged,
+      changedFiles:
+        changesetData !== null
+          ? {
+              changesetData,
+              selectedFile: changesetData.files[0] ?? null,
+              diff: null,
+            }
+          : null,
+      commitSHAs:
+        pullRequestCommits !== null
+          ? pullRequestCommits?.map(c => c.sha)
+          : null,
     })
+
+    if (changesetData !== null && changesetData.files.length > 0) {
+      this._changePullRequestFileSelection(repository, changesetData.files[0])
+    } else {
+      this.emitUpdate()
+    }
+  }
+
+  public async _changePullRequestFileSelection(
+    repository: Repository,
+    selectedFile: CommittedFileChange
+  ): Promise<void> {
+    const stateBeforeLoad = this.repositoryStateCache.get(repository)
+    const { branchesState, pullRequestState } = stateBeforeLoad
+
+    if (
+      branchesState.tip.kind !== TipState.Valid ||
+      pullRequestState === null
+    ) {
+      return
+    }
+
+    const currentBranch = branchesState.tip.branch
+    const { mergeBaseBranch, commitSHAs } = pullRequestState
+    if (commitSHAs === null) {
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestChangedFilesState(
+      repository,
+      () => ({
+        selectedFile,
+        diff: null,
+      })
+    )
+    this.emitUpdate()
+
+    const diff = await getBranchMergeBaseDiff(
+      repository,
+      selectedFile,
+      mergeBaseBranch,
+      currentBranch,
+      this.hideWhitespaceInHistoryDiff,
+      commitSHAs[0]
+    )
+
+    if (
+      stateBeforeLoad.pullRequestState?.changedFiles?.selectedFile?.id !==
+      selectedFile.id
+    ) {
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestChangedFilesState(
+      repository,
+      () => ({
+        diff,
+      })
+    )
 
     this.emitUpdate()
   }

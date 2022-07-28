@@ -46,6 +46,11 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
           selectedSection={selectedSection}
           onTabClicked={this.onPullRequestTabChange}
         />
+        {selectedSection === PullRequestSectionTab.Commits
+          ? pullRequestState.commitSHAs?.join(', ')
+          : pullRequestState.changedFiles?.changesetData.files
+              .map(f => f.path)
+              .join('\n\n')}
       </UiView>
     )
   }
