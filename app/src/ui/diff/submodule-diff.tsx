@@ -63,12 +63,18 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
   }
 
   private renderCommitChangeInfo() {
+    const { diff } = this.props
+
+    if (!diff.status.commitChanged) {
+      return null
+    }
+
     return (
       <p>
         <Octicon symbol={OcticonSymbol.diffModified} /> This submodule has
-        changed its commit from <LinkButton>fe158c2</LinkButton> to{' '}
-        <LinkButton>0ab36d9</LinkButton>. This change can be committed to the
-        parent repository.
+        changed its commit from <LinkButton>{diff.oldSHA}</LinkButton> to{' '}
+        <LinkButton>{diff.newSHA}</LinkButton>. This change can be committed to
+        the parent repository.
       </p>
     )
   }

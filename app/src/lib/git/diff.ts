@@ -490,13 +490,43 @@ async function buildDiff(
   if (file.status.submoduleStatus !== null) {
     const path = file.path
     const fullPath = Path.join(repository.path, path)
+    const status = file.status.submoduleStatus
     const url =
       (await getConfigValue(repository, `submodule.${path}.url`, true)) ?? ''
+
+    let oldSHA = null
+    let newSHA = null
+
+    if (status.commitChanged) {
+      const diff = buffer.toString('utf-8')
+      const lines = diff.split('\n')
+      const baseRegex = 'Subproject commit ([^-]+)(-dirty)?$'
+      const oldSHARegex = new RegExp('-' + baseRegex)
+      const newSHARegex = new RegExp('\\+' + baseRegex)
+      oldSHA =
+        lines
+          .flatMap(line => {
+            const match = line.match(oldSHARegex)
+            return match ? match[1] : []
+          })
+          .at(0) ?? null
+      newSHA =
+        lines
+          .flatMap(line => {
+            const match = line.match(newSHARegex)
+            return match ? match[1] : []
+          })
+          .at(0) ?? null
+    }
+
     return {
       kind: DiffType.Submodule,
       fullPath,
       path,
       url,
+      status,
+      oldSHA,
+      newSHA,
     }
   }
 
