@@ -4,12 +4,12 @@ import { TipState } from '../../models/tip'
 import { UiView } from '../ui-view'
 import { PullRequestCompareBar } from './pull-request-compare-bar'
 
-interface IRepositoryPullRequestViewProps {
+interface IPullRequestViewProps {
   readonly branchesState: IBranchesState
   readonly pullRequestState: IPullRequestState
 }
 
-export class RepositoryPullRequestView extends React.Component<IRepositoryPullRequestViewProps> {
+export class PullRequestView extends React.Component<IPullRequestViewProps> {
   public render() {
     const { branchesState, pullRequestState } = this.props
     const { tip, allBranches } = branchesState
