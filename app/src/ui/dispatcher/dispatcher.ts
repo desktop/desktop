@@ -19,6 +19,7 @@ import {
   CherryPickConflictState,
   MultiCommitOperationConflictState,
   IMultiCommitOperationState,
+  PullRequestSectionTab,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
@@ -3954,5 +3955,12 @@ export class Dispatcher {
 
   public previewPullRequest(repository: Repository) {
     this.appStore._previewPullRequest(repository)
+  }
+
+  public updatePullRequestSection(
+    repository: Repository,
+    tab: PullRequestSectionTab
+  ) {
+    this.appStore._updatePullRequestSection(repository, tab)
   }
 }
