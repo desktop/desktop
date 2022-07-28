@@ -1,0 +1,13 @@
+.pull-request-compare-bar {
+  display: flex;
+  background-color: var(--box-alt-background-color);
+  padding: var(--spacing-half) var(--spacing-double);
+  align-items: center;
+  border-bottom: 1px solid var(--box-border-color);
+
+  .branch-box {
+    min-width: 200px;
+    padding: var(--spacing-half);
+    display: inline-block;
+  }
+}

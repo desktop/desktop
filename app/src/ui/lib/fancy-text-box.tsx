@@ -8,7 +8,7 @@ interface IFancyTextBoxProps extends ITextBoxProps {
   readonly symbol: OcticonSymbolType
 
   /** Callback used to get a reference to internal TextBox */
-  readonly onRef: (textbox: TextBox) => void
+  readonly onRef?: (textbox: TextBox) => void
 }
 
 interface IFancyTextBoxState {
