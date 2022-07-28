@@ -933,9 +933,22 @@ export interface IConstrainedValue {
 export interface IPullRequestState {
   readonly mergeBaseBranch: Branch
   readonly selectedSection: PullRequestSectionTab
+  readonly changedFiles: IPullRequestChangedFiles | null
+  readonly commitSHAs: ReadonlyArray<string> | null
 }
 
 export enum PullRequestSectionTab {
   FileChanged = 0,
   Commits = 1,
+}
+
+export interface IPullRequestChangedFiles {
+  /** The changeset data associated with the pull request */
+  readonly changesetData: IChangesetData
+
+  /** The selected file inside the selected commit */
+  readonly selectedFile: CommittedFileChange | null
+
+  /** The diff of the currently-selected file */
+  readonly diff: IDiff | null
 }
