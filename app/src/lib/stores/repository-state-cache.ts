@@ -168,6 +168,12 @@ export class RepositoryStateCache {
     })
   }
 
+  public clearMultiCommitOperationState(repository: Repository) {
+    this.update(repository, () => {
+      return { multiCommitOperationState: null }
+    })
+  }
+
   public setPullRequestState(
     repository: Repository,
     pullRequestState: IPullRequestState | null
@@ -177,9 +183,15 @@ export class RepositoryStateCache {
     })
   }
 
-  public clearMultiCommitOperationState(repository: Repository) {
-    this.update(repository, () => {
-      return { multiCommitOperationState: null }
+  public updatePullRequestState<K extends keyof IPullRequestState>(
+    repository: Repository,
+    fn: (branchesState: IPullRequestState) => Pick<IPullRequestState, K>
+  ) {
+    this.update(repository, state => {
+      const changesState = state.pullRequestState
+      const newState =
+        changesState === null ? null : merge(changesState, fn(changesState))
+      return { pullRequestState: newState }
     })
   }
 }
