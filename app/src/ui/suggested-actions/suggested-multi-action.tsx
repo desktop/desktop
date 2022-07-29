@@ -98,6 +98,7 @@ export class SuggestedMultiAction extends React.Component<
           disabled={disabled}
           onSelectChange={this.onActionChange}
           onSubmit={this.onActionSubmitted}
+          hideDescriptions={true}
         />
       </div>
     )

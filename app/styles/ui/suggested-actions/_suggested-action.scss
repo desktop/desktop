@@ -75,10 +75,10 @@
 
   .dropdown-select-button {
     flex-shrink: 0;
-    min-width: 190px;
+    min-width: 180px;
 
     .invoke-button {
-      padding-left: var(--spacing) !important;
+      padding: 0 0 0 var(--spacing) !important;
       width: 84%;
     }
 
