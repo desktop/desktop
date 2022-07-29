@@ -16,7 +16,7 @@ Download the official installer for your operating system:
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
-Desktop for Windows application.
+Desktop for Windows application. test
 
 Linux is not officially supported; however, you can find installers created for Linux from a fork of GitHub Desktop in the [Community Releases](https://github.com/desktop/desktop#community-releases) section.
 
