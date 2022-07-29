@@ -28,6 +28,9 @@ interface IDropdownSelectButtonProps {
   /** tooltip for the button */
   readonly tooltip?: string
 
+  /** Whether to hide the options descriptions */
+  readonly hideDescriptions?: boolean
+
   /** Callback for when the button selection changes*/
   readonly onSelectChange?: (
     selectedOption: IDropdownSelectButtonOption
@@ -146,7 +149,7 @@ export class DropdownSelectButton extends React.Component<
       return
     }
 
-    const { options } = this.props
+    const { options, hideDescriptions } = this.props
     const { optionsPositionBottom: bottom } = this.state
     const openClass = bottom !== undefined ? 'open-top' : 'open-bottom'
     const classes = classNames('dropdown-select-button-options', openClass)
@@ -162,7 +165,9 @@ export class DropdownSelectButton extends React.Component<
             <li key={o.value} onClick={this.onSelectionChange(o)}>
               {this.renderSelectedIcon(o)}
               <div className="option-title">{o.label}</div>
-              <div className="option-description">{o.description}</div>
+              {!hideDescriptions ? (
+                <div className="option-description">{o.description}</div>
+              ) : null}
             </li>
           ))}
         </ul>
