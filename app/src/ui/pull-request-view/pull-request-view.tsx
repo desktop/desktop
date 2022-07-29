@@ -37,6 +37,14 @@ interface IPullRequestViewProps {
 }
 
 export class PullRequestView extends React.Component<IPullRequestViewProps> {
+  private onCreatePullRequest = () => {
+    console.log('create')
+  }
+
+  private onCancelPullRequest = () => {
+    console.log('dismiss')
+  }
+
   private onPullRequestTabChange = (tab: PullRequestSectionTab) => {
     this.props.dispatcher.updatePullRequestSection(this.props.repository, tab)
   }
@@ -136,6 +144,8 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
           branches={allBranches}
           currentBranch={currentBranch}
           mergeBaseBranch={mergeBaseBranch}
+          onCreatePullRequest={this.onCreatePullRequest}
+          onCancelPullRequest={this.onCancelPullRequest}
         />
         <PullRequestTabs
           commitsCount={commitSHAs !== null ? commitSHAs.length : 0}
