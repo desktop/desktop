@@ -19,6 +19,10 @@ import { Dispatcher } from '../dispatcher'
 import { SuggestedActionGroup } from '../suggested-actions'
 import { PreferencesTab } from '../../models/preferences'
 import { PopupType } from '../../models/popup'
+import {
+  ISuggestedMultiActionOption,
+  SuggestedMultiAction,
+} from '../suggested-actions/suggested-multi-action'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -366,7 +370,7 @@ export class NoChanges extends React.Component<
       defaultBranch !== null && tip.branch.name === defaultBranch.name
 
     if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-      return this.renderPreviewPullRequestAction(tip)
+      return this.renderPullRequestAction(tip)
     }
 
     return null
@@ -632,43 +636,68 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private renderPreviewPullRequestAction(tip: IValidBranch) {
-    const itemId: MenuIDs = 'preview-pull-request'
-    const menuItem = this.getMenuItemInfo(itemId)
+  private renderPullRequestAction(tip: IValidBranch) {
+    const prItemId: MenuIDs = 'preview-pull-request'
+    const prMenuItem = this.getMenuItemInfo(prItemId)
+    const createPRItemId: MenuIDs = 'create-pull-request'
+    const createPRMenuItem = this.getMenuItemInfo(createPRItemId)
 
-    if (menuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
+    if (prMenuItem === undefined || createPRMenuItem === undefined) {
+      log.error(
+        `Could not find matching menu item for ${prItemId} or ${createPRItemId}`
+      )
       return null
     }
 
-    const description = (
-      <>
-        The current branch (<Ref>{tip.branch.name}</Ref>) is already published
-        to GitHub. Preview a pull request into the default branch.
-      </>
-    )
-
-    const title = `Preview a Pull Request into the default branch`
-    const buttonText = `Preview Pull Request`
-
+    const options = [
+      {
+        title: 'Compare changes of Pull Request from your current branch',
+        label: 'Compare & Pull Request',
+        value: 'Compare & Pull Request',
+        description: (
+          <>
+            The current branch (<Ref>{tip.branch.name}</Ref>) is already
+            published to GitHub. Preview a pull request into the default branch.
+          </>
+        ),
+        disabled: !prMenuItem.enabled,
+        menuItemId: prItemId,
+        discoverabilityContent: this.renderDiscoverabilityElements(prMenuItem),
+      },
+      {
+        title: 'Create a Pull Request from your current branch',
+        label: 'Create Pull Request',
+        value: 'Create Pull Request',
+        description: (
+          <>
+            The current branch (<Ref>{tip.branch.name}</Ref>) is already
+            published to GitHub. Create a pull request to propose and
+            collaborate on your changes.
+          </>
+        ),
+        disabled: !createPRMenuItem.enabled,
+        menuItemId: createPRItemId,
+        discoverabilityContent:
+          this.renderDiscoverabilityElements(createPRMenuItem),
+      },
+    ]
     return (
-      <MenuBackedSuggestedAction
-        key="preview-pr-action"
-        title={title}
-        menuItemId={itemId}
-        description={description}
-        buttonText={buttonText}
-        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
-        type="primary"
-        disabled={!menuItem.enabled}
-        // onClick={this.onCreatePullRequestClicked}
+      <SuggestedMultiAction
+        options={options}
+        onClick={this.onPullRequestClicked}
       />
     )
   }
-  /*
-    private onCreatePullRequestClicked = () =>
+
+  private onPullRequestClicked = (option: ISuggestedMultiActionOption) => {
+    if (option.menuItemId === 'create-pull-request') {
+      this.onCreatePullRequestClicked()
+    }
+  }
+
+  private onCreatePullRequestClicked = () => {
     this.props.dispatcher.recordSuggestedStepCreatePullRequest()
-  */
+  }
 
   private renderActions() {
     return (
