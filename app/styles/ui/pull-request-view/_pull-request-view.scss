@@ -1,2 +1,11 @@
 @import '_pull-request-compare-bar';
 @import '_pull-request-tabs';
+
+#pull-request-view {
+  .file-list {
+    display: flex;
+    flex: 1;
+
+    border-right: var(--base-border);
+  }
+}

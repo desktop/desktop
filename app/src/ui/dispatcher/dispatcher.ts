@@ -264,6 +264,16 @@ export class Dispatcher {
     return this.appStore._changeFileSelection(repository, file)
   }
 
+  /**
+   * Change the selected changed file in the pull request  view.
+   */
+  public changePullRequestFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return this.appStore._changePullRequestFileSelection(repository, file)
+  }
+
   /** Set the repository filter text. */
   public setRepositoryFilterText(text: string): Promise<void> {
     return this.appStore._setRepositoryFilterText(text)
