@@ -121,7 +121,8 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
   public render() {
     const { branchesState, pullRequestState } = this.props
     const { tip, allBranches } = branchesState
-    const { mergeBaseBranch, selectedSection } = pullRequestState
+    const { mergeBaseBranch, selectedSection, changedFiles, commitSHAs } =
+      pullRequestState
 
     if (tip.kind !== TipState.Valid) {
       return null
@@ -137,6 +138,10 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
           mergeBaseBranch={mergeBaseBranch}
         />
         <PullRequestTabs
+          commitsCount={commitSHAs !== null ? commitSHAs.length : 0}
+          filesChangedCount={
+            changedFiles !== null ? changedFiles.changesetData.files.length : 0
+          }
           selectedSection={selectedSection}
           onTabClicked={this.onPullRequestTabChange}
         />
