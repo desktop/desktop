@@ -17,5 +17,14 @@
       padding: var(--spacing-half);
       display: inline-block;
     }
+
+    .middle-box {
+      flex-grow: 1;
+    }
+
+    .button-component {
+      min-width: 150px;
+      margin-right: var(--spacing);
+    }
   }
 }

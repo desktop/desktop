@@ -4,11 +4,15 @@ import { FancyTextBox } from '../lib/fancy-text-box'
 import { Select } from '../lib/select'
 import { Octicon } from '../octicons'
 import { Branch } from '../../models/branch'
+import { Button } from '../lib/button'
 
 interface IPullRequestCompareBarProps {
   readonly branches: ReadonlyArray<Branch>
   readonly currentBranch: Branch
   readonly mergeBaseBranch: Branch
+
+  readonly onCreatePullRequest: () => void
+  readonly onCancelPullRequest: () => void
 }
 
 export class PullRequestCompareBar extends React.Component<IPullRequestCompareBarProps> {
@@ -39,6 +43,14 @@ export class PullRequestCompareBar extends React.Component<IPullRequestCompareBa
               disabled={true}
             />
           </div>
+
+          <div className="middle-box"></div>
+
+          <Button type="submit" onClick={this.props.onCreatePullRequest}>
+            Create Pull Request
+          </Button>
+
+          <Button onClick={this.props.onCancelPullRequest}>Cancel</Button>
         </div>
       </div>
     )
