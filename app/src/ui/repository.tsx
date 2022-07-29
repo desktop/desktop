@@ -526,6 +526,14 @@ export class RepositoryView extends React.Component<
           pullRequestState={pullRequestState}
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
+          commitSummaryWidth={this.props.commitSummaryWidth}
+          selectedDiffType={this.props.imageDiffType}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInHistoryDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          externalEditorLabel={this.props.externalEditorLabel}
+          onOpenBinaryFile={this.onOpenBinaryFile}
+          onChangeImageDiffType={this.onChangeImageDiffType}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       )
     }
