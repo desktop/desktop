@@ -15,27 +15,30 @@ export class PullRequestCompareBar extends React.Component<IPullRequestCompareBa
   public render() {
     return (
       <div className="pull-request-compare-bar">
-        <Octicon symbol={OcticonSymbol.gitCompare} />
+        <div className="title">Preview Pull Request</div>
+        <div className="controls">
+          <Octicon symbol={OcticonSymbol.gitCompare} />
 
-        <div className="branch-box">
-          <Select defaultValue={this.props.mergeBaseBranch.name}>
-            {this.props.branches.map(branch => (
-              <option key={branch.name} value={branch.name}>
-                {branch.name}
-              </option>
-            ))}
-          </Select>
-        </div>
+          <div className="branch-box">
+            <Select defaultValue={this.props.mergeBaseBranch.name}>
+              {this.props.branches.map(branch => (
+                <option key={branch.name} value={branch.name}>
+                  {branch.name}
+                </option>
+              ))}
+            </Select>
+          </div>
 
-        <Octicon symbol={OcticonSymbol.arrowLeft} />
+          <Octicon symbol={OcticonSymbol.arrowLeft} />
 
-        <div className="branch-box">
-          <FancyTextBox
-            symbol={OcticonSymbol.gitBranch}
-            type="search"
-            value={this.props.currentBranch.name}
-            disabled={true}
-          />
+          <div className="branch-box">
+            <FancyTextBox
+              symbol={OcticonSymbol.gitBranch}
+              type="search"
+              value={this.props.currentBranch.name}
+              disabled={true}
+            />
+          </div>
         </div>
       </div>
     )
