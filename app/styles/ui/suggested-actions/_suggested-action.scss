@@ -73,6 +73,20 @@
     flex-shrink: 0;
   }
 
+  .dropdown-select-button {
+    flex-shrink: 0;
+    min-width: 190px;
+
+    .invoke-button {
+      padding-left: var(--spacing) !important;
+      width: 84%;
+    }
+
+    .dropdown-button {
+      width: 16%;
+    }
+  }
+
   /** Switch to a vertical layout at 1.25x zoom and above **/
   @media screen and (max-width: 768px) {
     flex-direction: column;
