@@ -5,7 +5,7 @@ import classNames from 'classnames'
 
 interface IFancyTextBoxProps extends ITextBoxProps {
   /** Icon to render */
-  readonly symbol: OcticonSymbolType
+  readonly symbol?: OcticonSymbolType
 
   /** Callback used to get a reference to internal TextBox */
   readonly onRef?: (textbox: TextBox) => void
@@ -36,7 +36,9 @@ export class FancyTextBox extends React.Component<
 
     return (
       <div className={componentCSS}>
-        <Octicon className={octiconCSS} symbol={this.props.symbol} />
+        {this.props.symbol !== undefined ? (
+          <Octicon className={octiconCSS} symbol={this.props.symbol} />
+        ) : null}
         <TextBox
           value={this.props.value}
           onFocus={this.onFocus}

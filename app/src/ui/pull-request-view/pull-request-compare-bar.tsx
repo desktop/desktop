@@ -19,7 +19,11 @@ export class PullRequestCompareBar extends React.Component<IPullRequestCompareBa
   public render() {
     return (
       <div className="pull-request-compare-bar">
-        <div className="title">Preview Pull Request</div>
+        <div className="title">Comparing Changes</div>
+        <div className="subtitle">
+          Choose two branches to see what’s changed or to start a new pull
+          request.
+        </div>
         <div className="controls">
           <Octicon symbol={OcticonSymbol.gitCompare} />
 
@@ -37,7 +41,6 @@ export class PullRequestCompareBar extends React.Component<IPullRequestCompareBa
 
           <div className="branch-box">
             <FancyTextBox
-              symbol={OcticonSymbol.gitBranch}
               type="search"
               value={this.props.currentBranch.name}
               disabled={true}
