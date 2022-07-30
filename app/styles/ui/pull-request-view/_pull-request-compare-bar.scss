@@ -4,13 +4,24 @@
   border-bottom: 1px solid var(--box-border-color);
 
   .title {
-    font-size: 20px;
+    font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semi-bold);
+  }
+
+  .subtitle {
+    color: var(--text-secondary-color);
+    border-bottom: 1px solid var(--box-border-color);
+    margin-bottom: var(--spacing);
+    padding: var(--spacing-half) 0;
   }
 
   .controls {
     display: flex;
     align-items: center;
+
+    .octicon {
+      color: var(--text-secondary-color);
+    }
 
     .branch-box {
       min-width: 200px;
