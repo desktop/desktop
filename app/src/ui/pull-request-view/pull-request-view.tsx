@@ -38,11 +38,13 @@ interface IPullRequestViewProps {
 
 export class PullRequestView extends React.Component<IPullRequestViewProps> {
   private onCreatePullRequest = () => {
-    console.log('create')
+    this.props.dispatcher.createPullRequest(this.props.repository)
+    // TODO: create pr from preview pr stat?
+    this.props.dispatcher.recordCreatePullRequest()
   }
 
   private onCancelPullRequest = () => {
-    console.log('dismiss')
+    this.props.dispatcher.clearPullRequestPreview(this.props.repository)
   }
 
   private onPullRequestTabChange = (tab: PullRequestSectionTab) => {
