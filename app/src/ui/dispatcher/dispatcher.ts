@@ -3973,4 +3973,8 @@ export class Dispatcher {
   ) {
     this.appStore._updatePullRequestSection(repository, tab)
   }
+
+  public clearPullRequestPreview(repository: Repository) {
+    this.appStore._clearPullRequestPreview(repository)
+  }
 }

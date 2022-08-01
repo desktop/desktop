@@ -227,6 +227,12 @@ export class RepositoryStateCache {
       }
     })
   }
+
+  public clearPullRequestState(repository: Repository) {
+    this.update(repository, () => {
+      return { pullRequestState: null }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {

@@ -1474,6 +1474,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _clearPullRequestPreview(repository: Repository) {
+    this.repositoryStateCache.clearPullRequestState(repository)
+    this.emitUpdate()
+  }
+
   private async updateCompareToBranch(
     repository: Repository,
     action: ICompareToBranch
