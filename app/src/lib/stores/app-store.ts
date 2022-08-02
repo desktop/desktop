@@ -1413,8 +1413,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     selectedFile: CommittedFileChange
   ): Promise<void> {
-    const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const { branchesState, pullRequestState } = stateBeforeLoad
+    const { branchesState, pullRequestState } =
+      this.repositoryStateCache.get(repository)
 
     if (
       branchesState.tip.kind !== TipState.Valid ||
@@ -1447,10 +1447,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSHAs[0]
     )
 
-    if (
-      stateBeforeLoad.pullRequestState?.changedFiles?.selectedFile?.id !==
-      selectedFile.id
-    ) {
+    const { pullRequestState: stateAfterLoad } =
+      this.repositoryStateCache.get(repository)
+    const selectedFileAfterDiffLoad = stateAfterLoad?.changedFiles?.selectedFile
+
+    if (selectedFileAfterDiffLoad?.id !== selectedFile.id) {
+      // this means user has clicked on another file since loading the diff
       return
     }
 
