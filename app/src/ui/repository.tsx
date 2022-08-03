@@ -534,6 +534,7 @@ export class RepositoryView extends React.Component<
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           commitSummaryWidth={this.props.commitSummaryWidth}
+          sidebarWidth={this.props.sidebarWidth}
           selectedDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInHistoryDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
@@ -541,6 +542,10 @@ export class RepositoryView extends React.Component<
           onOpenBinaryFile={this.onOpenBinaryFile}
           onChangeImageDiffType={this.onChangeImageDiffType}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          commitLookup={this.props.state.commitLookup}
+          emoji={this.props.emoji}
+          imageDiffType={this.props.imageDiffType}
+          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         />
       )
     }
