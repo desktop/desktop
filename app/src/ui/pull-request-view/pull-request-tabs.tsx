@@ -16,23 +16,20 @@ export class PullRequestTabs extends React.Component<IPullRequestTabsProps> {
   public render() {
     return (
       <div className="pull-request-tabs">
-        <div className="tab-container">
-          <TabBar
-            selectedIndex={this.props.selectedSection}
-            onTabClicked={this.props.onTabClicked}
-          >
-            <div>
-              <Octicon symbol={OcticonSymbol.fileDiff} />
-              <span>{this.props.filesChangedCount} Files Changed</span>
-            </div>
+        <TabBar
+          selectedIndex={this.props.selectedSection}
+          onTabClicked={this.props.onTabClicked}
+        >
+          <div>
+            <Octicon symbol={OcticonSymbol.fileDiff} />
+            <span>{this.props.filesChangedCount} Files Changed</span>
+          </div>
 
-            <div>
-              <Octicon symbol={OcticonSymbol.gitCommit} />
-              <span>{this.props.commitsCount} Commits</span>
-            </div>
-          </TabBar>
-        </div>
-        <div className="after-tabs"></div>
+          <div>
+            <Octicon symbol={OcticonSymbol.gitCommit} />
+            <span>{this.props.commitsCount} Commits</span>
+          </div>
+        </TabBar>
       </div>
     )
   }
