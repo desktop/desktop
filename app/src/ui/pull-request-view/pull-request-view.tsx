@@ -269,7 +269,9 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
           selectedSection={selectedSection}
           onTabClicked={this.onPullRequestTabChange}
         />
-        {this.renderSelectedTab(selectedSection)}
+        <div className="tab-content">
+          {this.renderSelectedTab(selectedSection)}
+        </div>
       </UiView>
     )
   }
