@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IConstrainedValue } from '../../lib/app-state'
+import { IConstrainedValue, RepositorySectionTab } from '../../lib/app-state'
 import { Resizable } from '../resizable'
 import { FileList } from '../history/file-list'
 import { CommittedFileChange } from '../../models/status'
@@ -20,6 +20,9 @@ import { clipboard } from 'electron'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { Repository } from '../../models/repository'
+import { IChangesetData } from '../../lib/git'
+import { DiffOptions } from '../diff/diff-options'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface IFileDiffViewerProps {
   // Diff Width properties
@@ -28,7 +31,7 @@ interface IFileDiffViewerProps {
   readonly onDiffSizeReset: () => void
 
   // File list props
-  readonly files: ReadonlyArray<CommittedFileChange>
+  readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
   readonly repository: Repository
   readonly externalEditorLabel?: string
@@ -43,7 +46,9 @@ interface IFileDiffViewerProps {
   readonly hideWhitespaceInDiff: boolean
   readonly onHideWhitespaceInDiffChanged: (
     hideWhitespaceInDiff: boolean
-  ) => void
+  ) => Promise<void>
+  readonly onShowSideBySideDiffChanged: (checked: boolean) => void
+  readonly onDiffOptionsOpened: () => void
   readonly onOpenBinaryFile: (fullPath: string) => void
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
@@ -114,7 +119,12 @@ export class FileDiffViewer extends React.Component<IFileDiffViewerProps> {
   }
 
   private renderFileList() {
-    const { files, selectedFile, diffWidth, onFileSelected } = this.props
+    const {
+      changesetData: { files },
+      selectedFile,
+      diffWidth,
+      onFileSelected,
+    } = this.props
     if (files.length === 0) {
       return <div className="fill-window">No files</div>
     }
@@ -133,7 +143,11 @@ export class FileDiffViewer extends React.Component<IFileDiffViewerProps> {
   }
 
   private renderDiff() {
-    const { selectedFile, diff, files } = this.props
+    const {
+      selectedFile,
+      diff,
+      changesetData: { files },
+    } = this.props
 
     if (selectedFile == null) {
       // don't show both 'empty' messages
@@ -172,21 +186,73 @@ export class FileDiffViewer extends React.Component<IFileDiffViewerProps> {
     )
   }
 
+  private renderLinesChanged() {
+    const { linesAdded, linesDeleted } = this.props.changesetData
+    if (linesAdded + linesDeleted === 0) {
+      return null
+    }
+
+    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
+    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
+    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
+    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
+
+    return (
+      <>
+        <TooltippedContent
+          tagName="span"
+          className="without-truncation lines-added"
+          tooltip={linesAddedTitle}
+        >
+          +{linesAdded}
+        </TooltippedContent>
+        <TooltippedContent
+          tagName="span"
+          className="without-truncation lines-deleted"
+          tooltip={linesDeletedTitle}
+        >
+          -{linesDeleted}
+        </TooltippedContent>
+      </>
+    )
+  }
+
   public render() {
     const { diffWidth } = this.props
 
     return (
-      <div className="commit-details">
-        <Resizable
-          width={diffWidth.value}
-          minimumWidth={diffWidth.min}
-          maximumWidth={diffWidth.max}
-          onResize={this.props.onDiffResize}
-          onReset={this.props.onDiffSizeReset}
-        >
-          {this.renderFileList()}
-        </Resizable>
-        {this.renderDiff()}
+      <div className="file-diff-viewer">
+        <div className="file-diff-header">
+          <span> Changes from all commits</span>
+          <span className="middle"></span>
+          {this.renderLinesChanged()}
+          <span>
+            <DiffOptions
+              sourceTab={RepositorySectionTab.History}
+              hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+              onHideWhitespaceChangesChanged={
+                this.props.onHideWhitespaceInDiffChanged
+              }
+              showSideBySideDiff={this.props.showSideBySideDiff}
+              onShowSideBySideDiffChanged={
+                this.props.onShowSideBySideDiffChanged
+              }
+              onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+            />
+          </span>
+        </div>
+        <div className="diff-details">
+          <Resizable
+            width={diffWidth.value}
+            minimumWidth={diffWidth.min}
+            maximumWidth={diffWidth.max}
+            onResize={this.props.onDiffResize}
+            onReset={this.props.onDiffSizeReset}
+          >
+            {this.renderFileList()}
+          </Resizable>
+          {this.renderDiff()}
+        </div>
       </div>
     )
   }

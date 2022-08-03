@@ -11,7 +11,7 @@
       border-right: none;
       flex: none;
       padding: 0 var(--spacing-double);
-      border-bottom: 1px solid var(--box-border-color);
+      border-bottom: none !important;
 
       > div {
         display: flex;

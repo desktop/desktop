@@ -87,6 +87,10 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
     )
   }
 
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
+  }
+
   private onOpenFile = (path: string) => {
     const fullPath = Path.join(this.props.repository.path, path)
     openFile(fullPath, this.props.dispatcher)
@@ -96,12 +100,16 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
     selectedFile: CommittedFileChange | null
   ) => {
     return (hideWhitespaceInDiff: boolean) => {
-      this.props.dispatcher.onHideWhitespaceInHistoryDiffChanged(
+      return this.props.dispatcher.onHideWhitespaceInHistoryDiffChanged(
         hideWhitespaceInDiff,
         this.props.repository,
         selectedFile as CommittedFileChange
       )
     }
+  }
+
+  private onDiffOptionsOpened = () => {
+    this.props.dispatcher.recordDiffOptionsViewed()
   }
 
   private renderFilesChanged = () => {
@@ -110,18 +118,14 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
     if (changedFiles === null) {
       return
     }
-    const {
-      changesetData: { files },
-      selectedFile,
-      diff,
-    } = changedFiles
+    const { changesetData, selectedFile, diff } = changedFiles
 
     return (
       <FileDiffViewer
         diff={diff}
         diffWidth={this.props.commitSummaryWidth}
         externalEditorLabel={this.props.externalEditorLabel}
-        files={files}
+        changesetData={changesetData}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         selectedDiffType={this.props.selectedDiffType}
         showSideBySideDiff={this.props.showSideBySideDiff}
@@ -134,6 +138,8 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged(
           selectedFile
         )}
+        onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        onDiffOptionsOpened={this.onDiffOptionsOpened}
         onOpenBinaryFile={this.props.onOpenBinaryFile}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onOpenWithDefaultProgram={this.onOpenFile}
@@ -226,10 +232,6 @@ export class PullRequestView extends React.Component<IPullRequestViewProps> {
         />
       </div>
     )
-  }
-
-  private onDiffOptionsOpened = () => {
-    this.props.dispatcher.recordDiffOptionsViewed()
   }
 
   private renderSelectedTab = (selectedSection: PullRequestSectionTab) => {

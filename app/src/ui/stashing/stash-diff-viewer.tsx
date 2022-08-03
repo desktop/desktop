@@ -109,7 +109,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           dispatcher={dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
         />
-        <div className="commit-details">
+        <div className="diff-details">
           <Resizable
             width={fileListWidth.value}
             minimumWidth={fileListWidth.min}

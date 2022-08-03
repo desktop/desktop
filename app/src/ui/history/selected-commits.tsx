@@ -283,7 +283,7 @@ export class SelectedCommits extends React.Component<
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
         {this.renderCommitSummary(selectedCommits)}
-        <div className="commit-details">
+        <div className="diff-details">
           <Resizable
             width={commitSummaryWidth.value}
             minimumWidth={commitSummaryWidth.min}

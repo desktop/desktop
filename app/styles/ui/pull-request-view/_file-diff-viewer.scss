@@ -1,0 +1,49 @@
+.file-diff-viewer {
+  // Child resizable components won't display with out a defined height
+  height: 100%;
+
+  .file-list {
+    display: flex;
+    flex: 1;
+
+    border-right: var(--base-border);
+  }
+
+  .file-diff-header {
+    border-bottom: var(--base-border);
+    padding: var(--spacing);
+    display: flex;
+    align-items: flex-start;
+
+    .middle {
+      flex: 1;
+    }
+
+    span {
+      display: flex;
+      flex-direction: row;
+      min-width: 0;
+      margin-right: var(--spacing);
+      font-size: var(--font-size-sm);
+      flex-shrink: 1;
+
+      &:first-child {
+        font-weight: var(--font-weight-semibold);
+        font-size: var(--font-size);
+      }
+
+      &.lines-added {
+        color: var(--color-new);
+      }
+
+      &.lines-deleted {
+        color: var(--color-deleted);
+      }
+    }
+  }
+
+  .diff-details {
+    flex: 1 1 auto;
+    height: 100%;
+  }
+}
