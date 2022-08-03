@@ -77,6 +77,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /** Extra small font size, be very conservative with the use of this */
   --font-size-xs: 9px;
 
+  /** Font size for view header */
+  --app-view-header-font: 24px;
+
   /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
