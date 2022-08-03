@@ -452,6 +452,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** Inline paths and code */
   --path-segment-background: #{$blue-000};
+  --path-segment-background-darker: #{$blue-100};
   --path-segment-padding: var(--spacing-third);
 
   // http://easings.net/#easeOutBack
