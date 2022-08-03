@@ -8,4 +8,17 @@
 
     border-right: var(--base-border);
   }
+
+  .pr-commits-tab-view {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    border-top: var(--base-border);
+    height: 100%;
+    min-height: 0;
+
+    > div {
+      display: flex;
+    }
+  }
 }

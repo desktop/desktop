@@ -1146,6 +1146,42 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _changePullRequestCommitSelection(
+    repository: Repository,
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean
+  ): void {
+    const { pullRequestState } = this.repositoryStateCache.get(repository)
+
+    if (pullRequestState === null) {
+      return
+    }
+
+    const { commitSelection } = pullRequestState
+
+    if (
+      commitSelection.shas.length === shas.length &&
+      commitSelection.shas.every((sha, i) => sha === shas[i])
+    ) {
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        shas,
+        shasInDiff: shas,
+        isContiguous,
+        file: null,
+        changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
+        diff: null,
+      })
+    )
+
+    this.emitUpdate()
+  }
+
   private recordMultiCommitDiff(
     shas: ReadonlyArray<string>,
     shasInDiff: ReadonlyArray<string>,
@@ -1370,20 +1406,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentBranch = tip.branch
     const gitStore = this.gitStoreCache.get(repository)
 
+    // TODO: wrap in failable operation
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
       defaultBranch,
       currentBranch
     )
 
-    const changesetData =
-      pullRequestCommits !== null
-        ? await getBranchMergeBaseChangedFiles(
-            repository,
-            defaultBranch,
-            currentBranch,
-            pullRequestCommits[0].sha
-          )
-        : null
+    if (pullRequestCommits === null) {
+      // This may be possible, and may need a nullish pr state.
+      return
+    }
+
+    const commitSHAs = pullRequestCommits?.map(c => c.sha)
+    const firstCommit = commitSHAs[0]
+
+    // TODO: wrap in failable operation
+    const changesetData = await getBranchMergeBaseChangedFiles(
+      repository,
+      defaultBranch,
+      currentBranch,
+      firstCommit
+    )
+
+    const commitChangesetData = await getChangedFiles(repository, firstCommit)
 
     this.repositoryStateCache.setPullRequestState(repository, {
       mergeBaseBranch: defaultBranch,
@@ -1396,17 +1441,112 @@ export class AppStore extends TypedBaseStore<IAppState> {
               diff: null,
             }
           : null,
-      commitSHAs:
-        pullRequestCommits !== null
-          ? pullRequestCommits?.map(c => c.sha)
-          : null,
+      commitSHAs,
+      commitSelection: {
+        shas: [firstCommit],
+        shasInDiff: [firstCommit],
+        isContiguous: true,
+        changesetData: commitChangesetData,
+        file: commitChangesetData.files[0],
+        diff: null,
+      },
     })
 
-    if (changesetData !== null && changesetData.files.length > 0) {
+    if (changesetData.files.length > 0) {
       this._changePullRequestFileSelection(repository, changesetData.files[0])
     } else {
       this.emitUpdate()
     }
+
+    if (commitChangesetData.files.length > 0) {
+      this._changePullRequestCommitFileSelection(
+        repository,
+        commitChangesetData.files[0]
+      )
+    }
+  }
+
+  public async _changePullRequestCommitFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        file,
+        diff: null,
+      })
+    )
+    this.emitUpdate()
+
+    const { pullRequestState: beforeLoad } =
+      this.repositoryStateCache.get(repository)
+
+    if (beforeLoad === null) {
+      return
+    }
+
+    const { shas, isContiguous } = beforeLoad.commitSelection
+
+    if (shas.length === 0) {
+      if (__DEV__) {
+        throw new Error(
+          "No currently selected sha yet we've been asked to switch file selection"
+        )
+      } else {
+        return
+      }
+    }
+
+    if (!isContiguous) {
+      return
+    }
+
+    const diff =
+      shas.length > 1
+        ? await getCommitRangeDiff(
+            repository,
+            file,
+            shas,
+            this.hideWhitespaceInHistoryDiff
+          )
+        : await getCommitDiff(
+            repository,
+            file,
+            shas[0],
+            this.hideWhitespaceInHistoryDiff
+          )
+
+    const { pullRequestState: afterLoad } =
+      this.repositoryStateCache.get(repository)
+    if (afterLoad === null) {
+      return
+    }
+
+    const { shas: shasAfter } = afterLoad.commitSelection
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (
+      shasAfter.length !== shas.length ||
+      !shas.every((sha, i) => sha === shasAfter[i])
+    ) {
+      return
+    }
+
+    if (
+      !afterLoad.commitSelection.file ||
+      afterLoad.commitSelection.file.id !== file.id
+    ) {
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        diff,
+      })
+    )
+
+    this.emitUpdate()
   }
 
   public async _changePullRequestFileSelection(
@@ -1670,6 +1810,67 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (firstFileOrDefault !== null) {
       this._changeFileSelection(repository, firstFileOrDefault)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadPullRequestChangedFilesForCurrentSelection(
+    repository: Repository
+  ): Promise<void> {
+    const { pullRequestState } = this.repositoryStateCache.get(repository)
+    if (pullRequestState === null) {
+      return
+    }
+    const { commitSelection } = pullRequestState
+
+    const { shas: currentSHAs, isContiguous } = commitSelection
+    if (currentSHAs.length === 0 || !isContiguous) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const changesetData = await gitStore.performFailableOperation(() =>
+      currentSHAs.length > 1
+        ? getCommitRangeChangedFiles(repository, currentSHAs)
+        : getChangedFiles(repository, currentSHAs[0])
+    )
+    if (!changesetData) {
+      return
+    }
+
+    // The selection could have changed between when we started loading the
+    // changed files and we finished. We might wanna store the changed files per
+    // SHA/path.
+    if (
+      commitSelection.shas.length !== currentSHAs.length ||
+      !commitSelection.shas.every((sha, i) => sha === currentSHAs[i])
+    ) {
+      return
+    }
+
+    // if we're selecting a commit for the first time, we should select the
+    // first file in the commit and render the diff immediately
+
+    const noFileSelected = commitSelection.file === null
+
+    const firstFileOrDefault =
+      noFileSelected && changesetData.files.length
+        ? changesetData.files[0]
+        : commitSelection.file
+
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        file: firstFileOrDefault,
+        changesetData,
+        diff: null,
+      })
+    )
+
+    this.emitUpdate()
+
+    if (firstFileOrDefault !== null) {
+      this._changePullRequestCommitFileSelection(repository, firstFileOrDefault)
     }
   }
 

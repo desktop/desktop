@@ -228,6 +228,34 @@ export class RepositoryStateCache {
     })
   }
 
+  public updatePullRequestCommitSelection<K extends keyof ICommitSelection>(
+    repository: Repository,
+    fn: (prCommitSelection: ICommitSelection) => Pick<ICommitSelection, K>
+  ) {
+    this.update(repository, state => {
+      const oldState = state.pullRequestState
+      if (oldState == null || oldState.changedFiles == null) {
+        // This is not expected...
+        sendNonFatalException(
+          'PullRequestChangedFiles',
+          new Error(`Cannot update a null pull request state`)
+        )
+        return { pullRequestState: oldState }
+      }
+
+      const updatedPRCommitSelection = merge(
+        oldState.commitSelection,
+        fn(oldState.commitSelection)
+      )
+      return {
+        pullRequestState: {
+          ...oldState,
+          commitSelection: updatedPRCommitSelection,
+        },
+      }
+    })
+  }
+
   public clearPullRequestState(repository: Repository) {
     this.update(repository, () => {
       return { pullRequestState: null }

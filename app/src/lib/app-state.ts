@@ -935,6 +935,7 @@ export interface IPullRequestState {
   readonly selectedSection: PullRequestSectionTab
   readonly changedFiles: IPullRequestChangedFiles | null
   readonly commitSHAs: ReadonlyArray<string> | null
+  readonly commitSelection: ICommitSelection
 }
 
 export enum PullRequestSectionTab {

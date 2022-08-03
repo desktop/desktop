@@ -224,6 +224,15 @@ export class Dispatcher {
     return this.appStore._loadChangedFilesForCurrentSelection(repository)
   }
 
+  /** Load the changed files for the current pull request selection. */
+  public loadPullRequestChangedFilesForCurrentSelection(
+    repository: Repository
+  ): Promise<void> {
+    return this.appStore._loadPullRequestChangedFilesForCurrentSelection(
+      repository
+    )
+  }
+
   /**
    * Change the selected commit in the history view.
    *
@@ -239,6 +248,27 @@ export class Dispatcher {
     isContiguous: boolean
   ): void {
     return this.appStore._changeCommitSelection(repository, shas, isContiguous)
+  }
+
+  /**
+   * Change the selected commit in the pull request commit view.
+   *
+   * @param repository The currently active repository instance
+   *
+   * @param sha The object id of one of the commits currently
+   *            the history list, represented as a SHA-1 hash
+   *            digest. This should match exactly that of Commit.Sha
+   */
+  public changePullRequestCommitSelection(
+    repository: Repository,
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean
+  ): void {
+    return this.appStore._changePullRequestCommitSelection(
+      repository,
+      shas,
+      isContiguous
+    )
   }
 
   /** Update the shas that should be highlighted */
