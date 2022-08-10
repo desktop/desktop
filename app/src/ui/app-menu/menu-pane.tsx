@@ -56,9 +56,9 @@ interface IMenuPaneProps {
   ) => void
 
   /**
-   * A callback for when a keyboard key is pressed on a menu item. Note that
-   * this only picks up on keyboard events received by a MenuItem and does
-   * not cover keyboard events received on the MenuPane component itself.
+   * Called when the user presses down on a key while focused on, or within, the
+   * menu pane. Consumers should inspect isDefaultPrevented to determine whether
+   * the event was handled by the menu pane or not.
    */
   readonly onKeyDown?: (
     depth: number,
@@ -84,6 +84,10 @@ interface IMenuPaneProps {
    */
   readonly enableAccessKeyNavigation: boolean
 
+  /**
+   * Called to deselect the currently selected menu item (if any). This
+   * will be called when the user's pointer device leaves a menu item.
+   */
   readonly onClearSelection: (depth: number) => void
 }
 

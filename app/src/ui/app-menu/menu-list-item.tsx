@@ -35,22 +35,33 @@ interface IMenuListItemProps {
    */
   readonly renderSubMenuArrow?: boolean
 
+  /**
+   * Whether or not the menu item represented by this list item is the currently
+   * selected menu item.
+   */
   readonly selected: boolean
 
+  /** Called when the user's pointer device enter the list item */
   readonly onMouseEnter?: (
     item: MenuItem,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
+  /** Called when the user's pointer device leaves the list item */
   readonly onMouseLeave?: (
     item: MenuItem,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
 
+  /** Called when the user's pointer device clicks on the list item */
   readonly onClick?: (
     item: MenuItem,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
 
+  /**
+   * Whether the liste item should steal focus when selected. Defaults to
+   * false.
+   */
   readonly focusOnSelection?: boolean
 }
 
