@@ -166,7 +166,10 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     }
   }
 
-  private onPaneKeyDown = (depth: number, event: React.KeyboardEvent<any>) => {
+  private onPaneKeyDown = (
+    depth: number,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => {
     const { selectedItem } = this.props.state[depth]
 
     if (event.key === 'ArrowLeft' || event.key === 'Escape') {

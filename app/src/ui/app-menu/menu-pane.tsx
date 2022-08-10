@@ -60,7 +60,10 @@ interface IMenuPaneProps {
    * this only picks up on keyboard events received by a MenuItem and does
    * not cover keyboard events received on the MenuPane component itself.
    */
-  readonly onKeyDown?: (depth: number, event: React.KeyboardEvent<any>) => void
+  readonly onKeyDown?: (
+    depth: number,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => void
 
   /**
    * A callback for when the MenuPane selection changes (i.e. a new menu item is selected).
@@ -123,7 +126,7 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
     return false
   }
 
-  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.defaultPrevented) {
       return
     }
