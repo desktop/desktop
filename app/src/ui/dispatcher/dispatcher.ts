@@ -106,7 +106,6 @@ import { resolveWithin } from '../../lib/path'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
 import { DragElement, DragType } from '../../models/drag-drop'
-import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
@@ -119,7 +118,7 @@ import {
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
-import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
+import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 
 /**
  * An error handler function.
@@ -2552,11 +2551,7 @@ export class Dispatcher {
     const promises = new Array<Promise<boolean>>()
 
     // If it is one and in actions check, we can rerun it individually.
-    if (
-      checkRuns.length === 1 &&
-      checkRuns[0].actionsWorkflow !== undefined &&
-      enableReRunFailedAndSingleCheckJobs()
-    ) {
+    if (checkRuns.length === 1 && checkRuns[0].actionsWorkflow !== undefined) {
       promises.push(
         this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
       )
@@ -2566,11 +2561,7 @@ export class Dispatcher {
     const checkSuiteIds = new Set<number>()
     const workflowRunIds = new Set<number>()
     for (const cr of checkRuns) {
-      if (
-        failedOnly &&
-        cr.actionsWorkflow !== undefined &&
-        enableReRunFailedAndSingleCheckJobs()
-      ) {
+      if (failedOnly && cr.actionsWorkflow !== undefined) {
         workflowRunIds.add(cr.actionsWorkflow.id)
         continue
       }
@@ -3216,7 +3207,8 @@ export class Dispatcher {
     sourceBranch: Branch | null
   ): Promise<void> {
     const { branchesState } = this.repositoryStateManager.get(repository)
-    const { defaultBranch, allBranches, tip } = branchesState
+    const { defaultBranch, upstreamDefaultBranch, allBranches, tip } =
+      branchesState
 
     if (tip.kind !== TipState.Valid) {
       this.appStore._clearCherryPickingHead(repository, null)
@@ -3228,12 +3220,6 @@ export class Dispatcher {
     const isGHRepo = isRepositoryWithGitHubRepository(repository)
     const upstreamGhRepo = isGHRepo
       ? getNonForkGitHubRepository(repository as RepositoryWithGitHubRepository)
-      : null
-    const upstreamDefaultBranch = isGHRepo
-      ? findDefaultUpstreamBranch(
-          repository as RepositoryWithGitHubRepository,
-          allBranches
-        )
       : null
 
     this.initializeMultiCommitOperation(
@@ -3938,5 +3924,14 @@ export class Dispatcher {
     reviewType: ValidNotificationPullRequestReviewState
   ) {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
+  }
+
+  public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
+    this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
+
+    this.showPopup({
+      type: PopupType.UnreachableCommits,
+      selectedTab,
+    })
   }
 }

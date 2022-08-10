@@ -163,7 +163,6 @@ describe('repository-matching', () => {
       },
       isPrivate: false,
       htmlURL: 'https://github.com/shiftkey/desktop',
-      defaultBranch: 'master',
       parent: null,
       endpoint: 'https://api.github.com/',
       fork: true,

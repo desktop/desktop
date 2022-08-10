@@ -3,6 +3,9 @@ import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
+import { IGitAccount } from '../../models/git-account'
+import { getSymbolicRef } from './refs'
 
 /**
  * List the remotes, sorted alphabetically by `name`, for a repository.
@@ -87,4 +90,45 @@ export async function getRemoteURL(
   }
 
   return result.stdout
+}
+
+/**
+ * Update the HEAD ref of the remote, which is the default branch.
+ */
+export async function updateRemoteHEAD(
+  repository: Repository,
+  account: IGitAccount | null,
+  remote: IRemote
+): Promise<void> {
+  const options = {
+    successExitCodes: new Set([0, 1, 128]),
+    env: await envForRemoteOperation(account, remote.url),
+  }
+
+  await git(
+    ['remote', 'set-head', '-a', remote.name],
+    repository.path,
+    'updateRemoteHEAD',
+    options
+  )
+}
+
+export async function getRemoteHEAD(
+  repository: Repository,
+  remote: string
+): Promise<string | null> {
+  const remoteNamespace = `refs/remotes/${remote}/`
+  const match = await getSymbolicRef(repository, `${remoteNamespace}HEAD`)
+  if (
+    match != null &&
+    match.length > remoteNamespace.length &&
+    match.startsWith(remoteNamespace)
+  ) {
+    // strip out everything related to the remote because this
+    // is likely to be a tracked branch locally
+    // e.g. `main`, `develop`, etc
+    return match.substring(remoteNamespace.length)
+  }
+
+  return null
 }

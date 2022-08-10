@@ -9,7 +9,6 @@ import {
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
 
@@ -58,10 +57,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
    * progress or if the user has opted to hide whitespace changes.
    */
   private get lineSelectionDisabled() {
-    return (
-      this.props.isCommitting ||
-      (enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff)
-    )
+    return this.props.isCommitting || this.props.hideWhitespaceInDiff
   }
 
   private onDiffLineIncludeChanged = (selection: DiffSelection) => {

@@ -747,6 +747,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         {
           label: this.getDiscardLabel(range.type, range.to - range.from + 1),
           action: () => this.onDiscardChanges(file, range.from, range.to),
+          enabled: !this.props.hideWhitespaceInDiff,
         },
       ]
     }
@@ -762,7 +763,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         {
           label: this.getDiscardLabel(range.type, 1),
           action: () => this.onDiscardChanges(file, lineNumber),
-          enabled: range.type !== DiffRangeType.Mixed,
+          enabled:
+            range.type !== DiffRangeType.Mixed &&
+            !this.props.hideWhitespaceInDiff,
         },
       ]
     }

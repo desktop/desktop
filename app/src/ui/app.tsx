@@ -104,10 +104,7 @@ import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
-import {
-  findContributionTargetDefaultBranch,
-  findDefaultUpstreamBranch,
-} from '../lib/branch'
+import { findContributionTargetDefaultBranch } from '../lib/branch'
 import {
   GitHubRepository,
   hasWritePermission,
@@ -135,7 +132,6 @@ import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
 import { buildAutocompletionProviders } from './autocompletion'
 import { DragType, DropTargetSelector } from '../models/drag-drop'
-import { enableSquashing } from '../lib/feature-flag'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MultiCommitOperation } from './multi-commit-operation/multi-commit-operation'
 import { WarnLocalChangesBeforeUndo } from './undo/warn-local-changes-before-undo'
@@ -160,6 +156,7 @@ import { getPullRequestCommitRef } from '../models/pull-request'
 import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
 import { showContextualMenu } from '../lib/menu-item'
+import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1570,10 +1567,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (isRepositoryWithGitHubRepository(repository)) {
           upstreamGhRepo = getNonForkGitHubRepository(repository)
-          upstreamDefaultBranch = findDefaultUpstreamBranch(
-            repository,
-            branchesState.allBranches
-          )
+          upstreamDefaultBranch = branchesState.upstreamDefaultBranch
         }
 
         return (
@@ -2214,6 +2208,31 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.UnreachableCommits: {
+        const { selectedState, emoji } = this.state
+        if (
+          selectedState == null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const {
+          commitLookup,
+          commitSelection: { shas, shasInDiff },
+        } = selectedState.state
+
+        return (
+          <UnreachableCommitsDialog
+            selectedShas={shas}
+            shasInDiff={shasInDiff}
+            commitLookup={commitLookup}
+            selectedTab={popup.selectedTab}
+            emoji={emoji}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2400,9 +2419,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentDragElement !== null && currentDragElement.type === DragType.Commit
     return classNames({
       'commit-being-dragged': isCommitBeingDragged,
-      // 'squashing-enabled' is due to feature flagging. If feature flag is
-      // removed, we can just delete this line with adjustment to the css file
-      'squashing-enabled': isCommitBeingDragged && enableSquashing(),
     })
   }
 
@@ -2794,6 +2810,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
         newReleases={updateStore.state.newReleases}
+        isX64ToARM64ImmediateAutoUpdate={
+          updateStore.state.isX64ToARM64ImmediateAutoUpdate
+        }
         onDismissed={this.onUpdateAvailableDismissed}
         isUpdateShowcaseVisible={this.state.isUpdateShowcaseVisible}
         emoji={this.state.emoji}

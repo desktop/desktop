@@ -10,7 +10,6 @@ import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
-import { enableSquashMerging } from './feature-flag'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -102,10 +101,6 @@ function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
   return true
 }
 
-const squashAndMergeMenuIds: ReadonlyArray<MenuIDs> = enableSquashMerging()
-  ? ['squash-and-merge-branch']
-  : []
-
 const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
@@ -139,7 +134,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'clone-repository',
   'about',
   'create-pull-request',
-  ...squashAndMergeMenuIds,
+  'squash-and-merge-branch',
 ]
 
 function getAllMenusDisabledBuilder(): MenuStateBuilder {
@@ -265,9 +260,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
-    if (enableSquashMerging()) {
-      menuStateBuilder.setEnabled('squash-and-merge-branch', onBranch)
-    }
+    menuStateBuilder.setEnabled('squash-and-merge-branch', onBranch)
     menuStateBuilder.setEnabled('rebase-branch', onBranch)
     menuStateBuilder.setEnabled(
       'compare-on-github',
@@ -345,9 +338,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('stash-all-changes')
     menuStateBuilder.disable('update-branch-with-contribution-target-branch')
     menuStateBuilder.disable('merge-branch')
-    if (enableSquashMerging()) {
-      menuStateBuilder.disable('squash-and-merge-branch')
-    }
+    menuStateBuilder.disable('squash-and-merge-branch')
     menuStateBuilder.disable('rebase-branch')
 
     menuStateBuilder.disable('push')

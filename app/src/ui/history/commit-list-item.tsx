@@ -13,12 +13,7 @@ import { IMenuItem } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Draggable } from '../lib/draggable'
-import {
-  enableAmendingCommits,
-  enableBranchFromCommit,
-  enableResetToCommit,
-  enableSquashing,
-} from '../../lib/feature-flag'
+import { enableResetToCommit } from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
   DragType,
@@ -93,7 +88,6 @@ export class CommitListItem extends React.PureComponent<
   private onMouseUp = () => {
     const { onSquash, selectedCommits, commit, disableSquashing } = this.props
     if (
-      enableSquashing() &&
       disableSquashing !== true &&
       dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
       onSquash !== undefined &&
@@ -111,7 +105,6 @@ export class CommitListItem extends React.PureComponent<
     if (
       disableSquashing !== true &&
       dragAndDropManager.isDragOfTypeInProgress(DragType.Commit) &&
-      enableSquashing() &&
       !isSelected
     ) {
       dragAndDropManager.emitEnterDropTarget({
@@ -275,7 +268,7 @@ export class CommitListItem extends React.PureComponent<
 
     const items: IMenuItem[] = []
 
-    if (this.props.canBeAmended && enableAmendingCommits()) {
+    if (this.props.canBeAmended) {
       items.push({
         label: __DARWIN__ ? 'Amend Commit…' : 'Amend commit…',
         action: this.onAmendCommit,
@@ -307,22 +300,20 @@ export class CommitListItem extends React.PureComponent<
       })
     }
 
-    items.push({
-      label: __DARWIN__
-        ? 'Revert Changes in Commit'
-        : 'Revert changes in commit',
-      action: () => {
-        if (this.props.onRevertCommit) {
-          this.props.onRevertCommit(this.props.commit)
-        }
+    items.push(
+      {
+        label: __DARWIN__
+          ? 'Revert Changes in Commit'
+          : 'Revert changes in commit',
+        action: () => {
+          if (this.props.onRevertCommit) {
+            this.props.onRevertCommit(this.props.commit)
+          }
+        },
+        enabled: this.props.onRevertCommit !== undefined,
       },
-      enabled: this.props.onRevertCommit !== undefined,
-    })
-
-    items.push({ type: 'separator' })
-
-    if (enableBranchFromCommit()) {
-      items.push({
+      { type: 'separator' },
+      {
         label: __DARWIN__
           ? 'Create Branch from Commit'
           : 'Create branch from commit',
@@ -331,14 +322,13 @@ export class CommitListItem extends React.PureComponent<
             this.props.onCreateBranch(this.props.commit)
           }
         },
-      })
-    }
-
-    items.push({
-      label: 'Create Tag…',
-      action: this.onCreateTag,
-      enabled: this.props.onCreateTag !== undefined,
-    })
+      },
+      {
+        label: 'Create Tag…',
+        action: this.onCreateTag,
+        enabled: this.props.onCreateTag !== undefined,
+      }
+    )
 
     const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
 
@@ -351,13 +341,12 @@ export class CommitListItem extends React.PureComponent<
       )
     }
 
-    items.push({
-      label: __DARWIN__ ? 'Cherry-pick Commit…' : 'Cherry-pick commit…',
-      action: this.onCherryPick,
-      enabled: this.canCherryPick(),
-    })
-
     items.push(
+      {
+        label: __DARWIN__ ? 'Cherry-pick Commit…' : 'Cherry-pick commit…',
+        action: this.onCherryPick,
+        enabled: this.canCherryPick(),
+      },
       { type: 'separator' },
       {
         label: 'Copy SHA',
@@ -374,27 +363,23 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private getContextMenuMultipleCommits(): IMenuItem[] {
-    const items: IMenuItem[] = []
-
     const count = this.props.selectedCommits.length
-    items.push({
-      label: __DARWIN__
-        ? `Cherry-pick ${count} Commits…`
-        : `Cherry-pick ${count} commits…`,
-      action: this.onCherryPick,
-      enabled: this.canCherryPick(),
-    })
 
-    if (enableSquashing()) {
-      items.push({
+    return [
+      {
+        label: __DARWIN__
+          ? `Cherry-pick ${count} Commits…`
+          : `Cherry-pick ${count} commits…`,
+        action: this.onCherryPick,
+        enabled: this.canCherryPick(),
+      },
+      {
         label: __DARWIN__
           ? `Squash ${count} Commits…`
           : `Squash ${count} commits…`,
         action: this.onSquash,
-      })
-    }
-
-    return items
+      },
+    ]
   }
 
   private canCherryPick(): boolean {

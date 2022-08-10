@@ -30,6 +30,7 @@ export enum PopoverAppearEffect {
 
 interface IPopoverProps {
   readonly onClickOutside?: (event?: MouseEvent) => void
+  readonly onMousedownOutside?: (event?: MouseEvent) => void
   readonly caretPosition: PopoverCaretPosition
   readonly className?: string
   readonly style?: React.CSSProperties
@@ -52,10 +53,12 @@ export class Popover extends React.Component<IPopoverProps> {
 
   public componentDidMount() {
     document.addEventListener('click', this.onDocumentClick)
+    document.addEventListener('mousedown', this.onDocumentMouseDown)
   }
 
   public componentWillUnmount() {
     document.removeEventListener('click', this.onDocumentClick)
+    document.removeEventListener('mousedown', this.onDocumentMouseDown)
   }
 
   private onDocumentClick = (event: MouseEvent) => {
@@ -70,6 +73,21 @@ export class Popover extends React.Component<IPopoverProps> {
       this.props.onClickOutside !== undefined
     ) {
       this.props.onClickOutside(event)
+    }
+  }
+
+  private onDocumentMouseDown = (event: MouseEvent) => {
+    const { current: ref } = this.containerDivRef
+    const { target } = event
+
+    if (
+      ref !== null &&
+      ref.parentElement !== null &&
+      target instanceof Node &&
+      !ref.parentElement.contains(target) &&
+      this.props.onMousedownOutside !== undefined
+    ) {
+      this.props.onMousedownOutside(event)
     }
   }
 

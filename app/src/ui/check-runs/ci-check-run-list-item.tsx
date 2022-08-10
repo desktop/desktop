@@ -8,7 +8,6 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
-import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -170,11 +169,7 @@ export class CICheckRunListItem extends React.PureComponent<
     const { checkRun, onRerunJob } = this.props
     const { isMouseOver } = this.state
 
-    if (
-      !isMouseOver ||
-      onRerunJob === undefined ||
-      !enableReRunFailedAndSingleCheckJobs()
-    ) {
+    if (!isMouseOver || onRerunJob === undefined) {
       return null
     }
 
