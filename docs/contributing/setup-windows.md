@@ -19,7 +19,7 @@ $ node -v
 If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed.
 You can download Node from the [Node.js website](https://nodejs.org/), install the package, and restart your shell.
 
-If you see the output `v12.x.y` or later, you're good to go.
+If you see the output `v16.x.y` or later, you're good to go. You can see which version of Node the Desktop team is using by looking at our [.node-version](https://github.com/desktop/desktop/blob/development/.node-version) file.
 
 **Node.js installation notes:**
  - make sure you allow the Node.js installer to add `node` to the `PATH`.
