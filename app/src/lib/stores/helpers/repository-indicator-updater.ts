@@ -125,7 +125,7 @@ export class RepositoryIndicatorUpdater {
 
   private clearRefreshTimeout() {
     if (this.refreshTimeoutId !== null) {
-      window.clearTimeout()
+      window.clearTimeout(this.refreshTimeoutId)
       this.refreshTimeoutId = null
     }
   }
