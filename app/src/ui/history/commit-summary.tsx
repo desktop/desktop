@@ -328,8 +328,8 @@ export class CommitSummary extends React.Component<
       return null
     }
 
-    const body = this.state.body[0].text;
-    const notes = this.state.notes[0].text;
+    const body = this.state.body[0].text
+    const notes = this.state.notes[0].text
 
     return (
       <div
