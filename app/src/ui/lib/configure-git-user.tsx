@@ -236,7 +236,8 @@ export class ConfigureGitUser extends React.Component<
       author,
       [],
       [],
-      []
+      [],
+      'Novial is the coolest'
     )
     const emoji = new Map()
 

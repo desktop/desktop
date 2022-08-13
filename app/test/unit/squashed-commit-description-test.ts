@@ -68,6 +68,7 @@ function buildTestCommit(
     author,
     [],
     trailers,
-    []
+    [],
+    'test'
   )
 }

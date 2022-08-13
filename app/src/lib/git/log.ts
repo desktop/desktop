@@ -87,6 +87,7 @@ export async function getCommits(
     parents: '%P', // parent SHAs,
     trailers: '%(trailers:unfold,only)',
     refs: '%D',
+    notes: '%N',
   })
 
   const args = ['log']
@@ -144,7 +145,8 @@ export async function getCommits(
       //    pair is separated by ": ". Otherwise it shares the same semantics as
       //    separator=<SEP> above."
       parseRawUnfoldedTrailers(commit.trailers, ':'),
-      tags
+      tags,
+      commit.notes
     )
   })
 }

@@ -95,6 +95,12 @@ interface ICommitSummaryState {
    * the avatar stack and calculated whenever the commit prop changes.
    */
   readonly avatarUsers: ReadonlyArray<IAvatarUser>
+
+  /**
+   * The notes that are associated with this commit. Used when rendering
+   * the commit summary in a repository's history.
+   */
+  readonly notes: ReadonlyArray<TokenResult>
 }
 
 /**
@@ -134,7 +140,9 @@ function createState(
     (a, b) => a.email === b.email && a.name === b.name
   )
 
-  return { isOverflowed, summary, body, avatarUsers, hasEmptySummary }
+  const notes = tokenizer.tokenize(selectedCommits[0].notes)
+
+  return { isOverflowed, summary, body, avatarUsers, hasEmptySummary, notes }
 }
 
 function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
@@ -320,6 +328,9 @@ export class CommitSummary extends React.Component<
       return null
     }
 
+    const body = this.state.body[0].text;
+    const notes = this.state.notes[0].text;
+
     return (
       <div
         className="commit-summary-description-container"
@@ -333,7 +344,7 @@ export class CommitSummary extends React.Component<
             className="commit-summary-description"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.state.body}
+            text={`${body}\n\n** GIT NOTES **\n${notes}`}
           />
         </div>
 

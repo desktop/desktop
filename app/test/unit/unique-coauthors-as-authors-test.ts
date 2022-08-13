@@ -118,7 +118,8 @@ function buildTestCommit(trailers: ReadonlyArray<ITrailer>): Commit {
     author,
     [],
     trailers,
-    []
+    [],
+    'test'
   )
 }
 
