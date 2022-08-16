@@ -325,6 +325,17 @@ export class SideBySideDiff extends React.Component<
       this.props.file.id !== prevProps.file.id
     ) {
       this.virtualListRef.current.scrollToPosition(0)
+
+      // Reset selection
+      this.textSelectionStartRow = undefined
+      this.textSelectionEndRow = undefined
+
+      if (this.diffContainerRef.current) {
+        const selection = document.getSelection()
+        if (selection?.containsNode(this.diffContainerRef.current, true)) {
+          selection.empty()
+        }
+      }
     }
   }
 
