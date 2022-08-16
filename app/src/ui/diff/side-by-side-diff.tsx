@@ -75,6 +75,21 @@ export interface ISelection {
 
 type ModifiedLine = { line: DiffLine; diffLineNumber: number }
 
+const isElement = (n: Node): n is Element => n.nodeType === Node.ELEMENT_NODE
+const closestElement = (n: Node): Element | null =>
+  isElement(n) ? n : n.parentElement
+
+const closestRow = (n: Node) => {
+  const row = closestElement(n)?.closest('div[role=row]')
+  if (row && container.contains(row)) {
+    const rowIndex =
+      row.ariaRowIndex !== null ? parseInt(row.ariaRowIndex, 10) : NaN
+    return isNaN(rowIndex) ? undefined : rowIndex
+  }
+
+  return undefined
+}
+
 interface ISideBySideDiffProps {
   readonly repository: Repository
 
@@ -194,9 +209,13 @@ export class SideBySideDiff extends React.Component<
   ISideBySideDiffState
 > {
   private virtualListRef = React.createRef<List>()
+  private diffContainerRef = React.createRef<HTMLDivElement>()
 
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
+
+  private textSelection: { startRow: number; endRow: number } | undefined =
+    undefined
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -216,12 +235,67 @@ export class SideBySideDiff extends React.Component<
     // Listen for the custom event find-text (see app.tsx)
     // and trigger the search plugin if we see it.
     document.addEventListener('find-text', this.showSearch)
+
+    document.addEventListener('selectionchange', this.onDocumentSelectionChange)
+  }
+
+  private onDocumentSelectionChange = (ev: Event) => {
+    const selection = document.getSelection()
+
+    const currentTextSelection = this.textSelection
+    this.textSelection = undefined
+
+    if (!selection || selection.isCollapsed) {
+      console.log('no selection or collapsed')
+      return
+    }
+
+    const { anchorNode, focusNode } = selection
+    const container = this.diffContainerRef.current
+
+    if (!anchorNode || !focusNode || !container) {
+      console.log('missing container, anchor of focus')
+      return
+    }
+
+    if (!container.contains(anchorNode) || !container.contains(focusNode)) {
+      console.log('anchor of focus not inside container')
+      return
+    }
+
+    const anchorRowIndex = closestRow(anchorNode)
+    const focusRowIndex = closestRow(focusNode)
+
+    if (anchorRowIndex === undefined || focusRowIndex === undefined) {
+      console.log('failed to resolve row indices')
+      return
+    }
+
+    const newTextSelection = {
+      startRow: Math.min(anchorRowIndex, focusRowIndex),
+      endRow: Math.max(anchorRowIndex, focusRowIndex),
+    }
+
+    if (
+      newTextSelection.startRow === currentTextSelection?.startRow &&
+      newTextSelection.endRow === currentTextSelection?.endRow
+    ) {
+      this.textSelection = currentTextSelection
+      return
+    } else {
+      this.textSelection = newTextSelection
+      console.log(this.textSelection)
+    }
   }
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onWindowKeyDown)
     document.removeEventListener('mouseup', this.onEndSelection)
     document.removeEventListener('find-text', this.showSearch)
+    document.removeEventListener(
+      'selectionchange',
+      this.onDocumentSelectionChange
+    )
   }
 
   public componentDidUpdate(
@@ -285,7 +359,10 @@ export class SideBySideDiff extends React.Component<
             onClose={this.onSearchCancel}
           />
         )}
-        <div className="side-by-side-diff cm-s-default">
+        <div
+          className="side-by-side-diff cm-s-default"
+          ref={this.diffContainerRef}
+        >
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
               <List
@@ -363,7 +440,7 @@ export class SideBySideDiff extends React.Component<
         parent={parent}
         rowIndex={index}
       >
-        <div key={key} style={style}>
+        <div key={key} style={style} role="row" aria-rowindex={index}>
           <SideBySideDiffRow
             row={rowWithTokens}
             lineNumberWidth={lineNumberWidth}
