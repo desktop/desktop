@@ -26,6 +26,9 @@ import {
   CellMeasurerCache,
   CellMeasurer,
   ListRowProps,
+  OverscanIndicesGetterParams,
+  OverscanIndices,
+  defaultOverscanIndicesGetter,
 } from 'react-virtualized'
 import { SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
@@ -386,12 +389,23 @@ export class SideBySideDiff extends React.Component<
                 hoveredHunk={this.state.hoveredHunk}
                 isSelectable={canSelect(this.props.file)}
                 fileSelection={this.getSelection()}
+                overscanIndicesGetter={this.overscanIndicesGetter}
               />
             )}
           </AutoSizer>
         </div>
       </div>
     )
+  }
+
+  private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
+    return this.textSelection === undefined
+      ? defaultOverscanIndicesGetter(params)
+      : defaultOverscanIndicesGetter({
+          ...params,
+          startIndex: Math.min(params.startIndex, this.textSelection.startRow),
+          stopIndex: Math.max(params.stopIndex, this.textSelection.endRow),
+        })
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
