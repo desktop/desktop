@@ -289,28 +289,6 @@ export class SideBySideDiff extends React.Component<
     this.textSelectionEndRow = endRow
 
     console.log(startRow, endRow)
-
-    // const { anchorNode, focusNode } = selection
-
-    // let newAnchorRow =
-    //   anchorNode !== null && container.contains(anchorNode)
-    //     ? closestRow(anchorNode, container)
-    //     : undefined
-
-    // let newFocusRow =
-    //   (focusNode !== null) & container.contains(focusNode)
-    //     ? closestRow(focusNode, container)
-    //     : undefined
-
-    // if (newAnchorRow === undefined) {
-    //   console.log('failed to resolve row indices')
-    //   return
-    // }
-
-    // this.textSelectionAnchorRow = newAnchorRow
-    // this.textSelectionFocusRow = focusNode
-    //   ? closestRow(focusNode, container)
-    //   : undefined
   }
 
   public componentWillUnmount() {
@@ -421,7 +399,10 @@ export class SideBySideDiff extends React.Component<
   }
 
   private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
-    if (this.textSelectionStartRow === undefined) {
+    if (
+      this.textSelectionStartRow === undefined ||
+      this.textSelectionEndRow === undefined
+    ) {
       return defaultOverscanIndicesGetter(params)
     }
 
