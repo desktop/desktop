@@ -216,8 +216,8 @@ export class SideBySideDiff extends React.Component<
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
 
-  private textSelectionAnchorRow: number | undefined = undefined
-  private textSelectionFocusRow: number | undefined = undefined
+  private textSelectionStartRow: number | undefined = undefined
+  private textSelectionEndRow: number | undefined = undefined
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -244,8 +244,8 @@ export class SideBySideDiff extends React.Component<
   private onDocumentSelectionChange = (ev: Event) => {
     const selection = document.getSelection()
 
-    this.textSelectionAnchorRow = undefined
-    this.textSelectionFocusRow = undefined
+    this.textSelectionStartRow = undefined
+    this.textSelectionEndRow = undefined
 
     if (!selection || selection.isCollapsed) {
       console.log('no selection or collapsed')
@@ -264,7 +264,6 @@ export class SideBySideDiff extends React.Component<
     }
 
     const range = selection.getRangeAt(0)
-
     const { startContainer, endContainer } = range
 
     let startRow = closestRow(startContainer, container)
@@ -286,8 +285,8 @@ export class SideBySideDiff extends React.Component<
       }
     }
 
-    this.textSelectionAnchorRow = startRow
-    this.textSelectionFocusRow = endRow
+    this.textSelectionStartRow = startRow
+    this.textSelectionEndRow = endRow
 
     console.log(startRow, endRow)
 
@@ -422,24 +421,12 @@ export class SideBySideDiff extends React.Component<
   }
 
   private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
-    if (this.textSelectionAnchorRow === undefined) {
+    if (this.textSelectionStartRow === undefined) {
       return defaultOverscanIndicesGetter(params)
     }
 
-    console.log(params)
-
-    const textSelectionStart =
-      this.textSelectionFocusRow === undefined
-        ? this.textSelectionAnchorRow
-        : Math.min(this.textSelectionAnchorRow, this.textSelectionFocusRow)
-
-    const textSelectionEnd =
-      this.textSelectionFocusRow === undefined
-        ? undefined
-        : Math.max(this.textSelectionAnchorRow, this.textSelectionFocusRow)
-
-    const startIndex = Math.min(textSelectionStart, params.startIndex)
-    const stopIndex = Math.max(params.stopIndex, textSelectionEnd ?? -Infinity)
+    const startIndex = Math.min(this.textSelectionStartRow, params.startIndex)
+    const stopIndex = Math.max(params.stopIndex, this.textSelectionEndRow ?? 0)
 
     return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
   }
