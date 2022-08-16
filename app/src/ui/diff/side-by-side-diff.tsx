@@ -216,8 +216,8 @@ export class SideBySideDiff extends React.Component<
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
 
-  private textSelection: { startRow: number; endRow: number } | undefined =
-    undefined
+  private textSelectionAnchorRow: number | undefined = undefined
+  private textSelectionFocusRow: number | undefined = undefined
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -244,8 +244,8 @@ export class SideBySideDiff extends React.Component<
   private onDocumentSelectionChange = (ev: Event) => {
     const selection = document.getSelection()
 
-    const currentTextSelection = this.textSelection
-    this.textSelection = undefined
+    this.textSelectionAnchorRow = undefined
+    this.textSelectionFocusRow = undefined
 
     if (!selection || selection.isCollapsed) {
       console.log('no selection or collapsed')
@@ -255,39 +255,27 @@ export class SideBySideDiff extends React.Component<
     const { anchorNode, focusNode } = selection
     const container = this.diffContainerRef.current
 
-    if (!anchorNode || !focusNode || !container) {
-      console.log('missing container, anchor of focus')
+    if (!anchorNode || !container) {
+      console.log('missing container or anchor')
       return
     }
 
-    if (!container.contains(anchorNode) || !container.contains(focusNode)) {
+    if (!container.contains(anchorNode)) {
       console.log('anchor of focus not inside container')
       return
     }
 
-    const anchorRowIndex = closestRow(anchorNode, container)
-    const focusRowIndex = closestRow(focusNode, container)
+    const newAnchorRow = closestRow(anchorNode, container)
 
-    if (anchorRowIndex === undefined || focusRowIndex === undefined) {
+    if (newAnchorRow === undefined) {
       console.log('failed to resolve row indices')
       return
     }
 
-    const newTextSelection = {
-      startRow: Math.min(anchorRowIndex, focusRowIndex),
-      endRow: Math.max(anchorRowIndex, focusRowIndex),
-    }
-
-    if (
-      newTextSelection.startRow === currentTextSelection?.startRow &&
-      newTextSelection.endRow === currentTextSelection?.endRow
-    ) {
-      this.textSelection = currentTextSelection
-      return
-    } else {
-      this.textSelection = newTextSelection
-      console.log(this.textSelection)
-    }
+    this.textSelectionAnchorRow = newAnchorRow
+    this.textSelectionFocusRow = focusNode
+      ? closestRow(focusNode, container)
+      : undefined
   }
 
   public componentWillUnmount() {
@@ -398,13 +386,26 @@ export class SideBySideDiff extends React.Component<
   }
 
   private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
-    return this.textSelection === undefined
-      ? defaultOverscanIndicesGetter(params)
-      : defaultOverscanIndicesGetter({
-          ...params,
-          startIndex: Math.min(params.startIndex, this.textSelection.startRow),
-          stopIndex: Math.max(params.stopIndex, this.textSelection.endRow),
-        })
+    console.log(params.startIndex, params.stopIndex)
+
+    if (this.textSelectionAnchorRow === undefined) {
+      return defaultOverscanIndicesGetter(params)
+    }
+
+    const textSelectionStart =
+      this.textSelectionFocusRow === undefined
+        ? this.textSelectionAnchorRow
+        : Math.min(this.textSelectionAnchorRow, this.textSelectionFocusRow)
+
+    const textSelectionEnd =
+      this.textSelectionFocusRow === undefined
+        ? undefined
+        : Math.max(this.textSelectionAnchorRow, this.textSelectionFocusRow)
+
+    const startIndex = Math.min(textSelectionStart, params.startIndex)
+    const stopIndex = Math.max(params.stopIndex, textSelectionEnd ?? -Infinity)
+
+    return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
