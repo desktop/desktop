@@ -252,30 +252,66 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const { anchorNode, focusNode } = selection
     const container = this.diffContainerRef.current
 
-    if (!anchorNode || !container) {
-      console.log('missing container or anchor')
+    if (!container) {
       return
     }
 
-    if (!container.contains(anchorNode)) {
-      console.log('anchor of focus not inside container')
+    if (!selection.containsNode(container, true)) {
+      console.log('no selection within container')
       return
     }
 
-    const newAnchorRow = closestRow(anchorNode, container)
+    const range = selection.getRangeAt(0)
 
-    if (newAnchorRow === undefined) {
-      console.log('failed to resolve row indices')
-      return
+    const { startContainer, endContainer } = range
+
+    let startRow = closestRow(startContainer, container)
+    let endRow = closestRow(endContainer, container)
+
+    if (startRow === undefined) {
+      const firstRow = container.querySelector('div[role=row]:first-child')
+
+      if (firstRow && range.intersectsNode(firstRow)) {
+        startRow = closestRow(firstRow, container)
+      }
     }
 
-    this.textSelectionAnchorRow = newAnchorRow
-    this.textSelectionFocusRow = focusNode
-      ? closestRow(focusNode, container)
-      : undefined
+    if (endRow === undefined) {
+      const lastRow = container.querySelector('div[role=row]:last-child')
+
+      if (lastRow && range.intersectsNode(lastRow)) {
+        endRow = closestRow(lastRow, container)
+      }
+    }
+
+    this.textSelectionAnchorRow = startRow
+    this.textSelectionFocusRow = endRow
+
+    console.log(startRow, endRow)
+
+    // const { anchorNode, focusNode } = selection
+
+    // let newAnchorRow =
+    //   anchorNode !== null && container.contains(anchorNode)
+    //     ? closestRow(anchorNode, container)
+    //     : undefined
+
+    // let newFocusRow =
+    //   (focusNode !== null) & container.contains(focusNode)
+    //     ? closestRow(focusNode, container)
+    //     : undefined
+
+    // if (newAnchorRow === undefined) {
+    //   console.log('failed to resolve row indices')
+    //   return
+    // }
+
+    // this.textSelectionAnchorRow = newAnchorRow
+    // this.textSelectionFocusRow = focusNode
+    //   ? closestRow(focusNode, container)
+    //   : undefined
   }
 
   public componentWillUnmount() {
@@ -386,11 +422,11 @@ export class SideBySideDiff extends React.Component<
   }
 
   private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
-    console.log(params.startIndex, params.stopIndex)
-
     if (this.textSelectionAnchorRow === undefined) {
       return defaultOverscanIndicesGetter(params)
     }
+
+    console.log(params)
 
     const textSelectionStart =
       this.textSelectionFocusRow === undefined
