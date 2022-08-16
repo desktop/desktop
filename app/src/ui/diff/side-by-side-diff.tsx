@@ -79,7 +79,7 @@ const isElement = (n: Node): n is Element => n.nodeType === Node.ELEMENT_NODE
 const closestElement = (n: Node): Element | null =>
   isElement(n) ? n : n.parentElement
 
-const closestRow = (n: Node) => {
+const closestRow = (n: Node, container: Element) => {
   const row = closestElement(n)?.closest('div[role=row]')
   if (row && container.contains(row)) {
     const rowIndex =
@@ -263,8 +263,8 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const anchorRowIndex = closestRow(anchorNode)
-    const focusRowIndex = closestRow(focusNode)
+    const anchorRowIndex = closestRow(anchorNode, container)
+    const focusRowIndex = closestRow(focusNode, container)
 
     if (anchorRowIndex === undefined || focusRowIndex === undefined) {
       console.log('failed to resolve row indices')
