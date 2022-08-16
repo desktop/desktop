@@ -27,7 +27,6 @@ import {
   CellMeasurer,
   ListRowProps,
   OverscanIndicesGetterParams,
-  OverscanIndices,
   defaultOverscanIndicesGetter,
 } from 'react-virtualized'
 import { SideBySideDiffRow } from './side-by-side-diff-row'
