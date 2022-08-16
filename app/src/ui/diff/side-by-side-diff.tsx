@@ -401,8 +401,12 @@ export class SideBySideDiff extends React.Component<
   private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
     const [start, end] = [this.textSelectionStartRow, this.textSelectionEndRow]
 
-    const startIndex = Math.min(start ?? params.startIndex, params.startIndex)
-    const stopIndex = Math.max(params.stopIndex, end ?? params.stopIndex)
+    if (start === undefined || end === undefined) {
+      return defaultOverscanIndicesGetter(params)
+    }
+
+    const startIndex = Math.min(start, params.startIndex)
+    const stopIndex = Math.max(params.stopIndex, end)
 
     return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
   }
