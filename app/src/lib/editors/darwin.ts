@@ -148,11 +148,7 @@ async function findApplication(
           : Promise.reject(e)
       )
 
-      if (installPath === null) {
-        return null
-      }
-
-      if (await pathExists(installPath)) {
+      if (installPath && await pathExists(installPath)) {
         return installPath
       }
 
