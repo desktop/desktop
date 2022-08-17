@@ -211,7 +211,7 @@ export class SideBySideDiff extends React.Component<
   ISideBySideDiffState
 > {
   private virtualListRef = React.createRef<List>()
-  private diffContainerRef = React.createRef<HTMLDivElement>()
+  private diffContainer: HTMLDivElement | null = null
 
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
@@ -252,13 +252,11 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const container = this.diffContainerRef.current
-
-    if (!container) {
+    if (!this.diffContainer) {
       return
     }
 
-    if (!selection.containsNode(container, true)) {
+    if (!selection.containsNode(this.diffContainer, true)) {
       console.log('no selection within container')
       return
     }
@@ -266,22 +264,26 @@ export class SideBySideDiff extends React.Component<
     const range = selection.getRangeAt(0)
     const { startContainer, endContainer } = range
 
-    let startRow = closestRow(startContainer, container)
-    let endRow = closestRow(endContainer, container)
+    let startRow = closestRow(startContainer, this.diffContainer)
+    let endRow = closestRow(endContainer, this.diffContainer)
 
     if (startRow === undefined) {
-      const firstRow = container.querySelector('div[role=row]:first-child')
+      const firstRow = this.diffContainer.querySelector(
+        'div[role=row]:first-child'
+      )
 
       if (firstRow && range.intersectsNode(firstRow)) {
-        startRow = closestRow(firstRow, container)
+        startRow = closestRow(firstRow, this.diffContainer)
       }
     }
 
     if (endRow === undefined) {
-      const lastRow = container.querySelector('div[role=row]:last-child')
+      const lastRow = this.diffContainer.querySelector(
+        'div[role=row]:last-child'
+      )
 
       if (lastRow && range.intersectsNode(lastRow)) {
-        endRow = closestRow(lastRow, container)
+        endRow = closestRow(lastRow, this.diffContainer)
       }
     }
 
@@ -330,9 +332,9 @@ export class SideBySideDiff extends React.Component<
       this.textSelectionStartRow = undefined
       this.textSelectionEndRow = undefined
 
-      if (this.diffContainerRef.current) {
+      if (this.diffContainer) {
         const selection = document.getSelection()
-        if (selection?.containsNode(this.diffContainerRef.current, true)) {
+        if (selection?.containsNode(this.diffContainer, true)) {
           selection.empty()
         }
       }
@@ -346,6 +348,15 @@ export class SideBySideDiff extends React.Component<
       contents.canBeExpanded &&
       contents.newContents.length > 0
     )
+  }
+
+  private onDiffContainerRef = (ref: HTMLDivElement | null) => {
+    if (ref === null) {
+      this.diffContainer?.removeEventListener('select-all', this.onSelectAll)
+    } else {
+      this.diffContainer = ref
+      this.diffContainer.addEventListener('select-all', this.onSelectAll)
+    }
   }
 
   public render() {
@@ -365,7 +376,11 @@ export class SideBySideDiff extends React.Component<
     })
 
     return (
-      <div className={containerClassName} onMouseDown={this.onMouseDown}>
+      <div
+        className={containerClassName}
+        onMouseDown={this.onMouseDown}
+        onKeyDown={this.onKeyDown}
+      >
         {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
         {this.state.isSearching && (
           <DiffSearchInput
@@ -375,7 +390,7 @@ export class SideBySideDiff extends React.Component<
         )}
         <div
           className="side-by-side-diff cm-s-default"
-          ref={this.diffContainerRef}
+          ref={this.onDiffContainerRef}
         >
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
@@ -417,7 +432,10 @@ export class SideBySideDiff extends React.Component<
     }
 
     const startIndex = Math.min(start, params.startIndex)
-    const stopIndex = Math.max(params.stopIndex, end)
+    const stopIndex = Math.max(
+      params.stopIndex,
+      Math.min(params.cellCount - 1, end)
+    )
 
     return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
   }
@@ -738,6 +756,30 @@ export class SideBySideDiff extends React.Component<
     } else if (isSelectingAfterText !== null) {
       this.setState({ selectingTextInRow: 'after' })
     }
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const modifiers = event.altKey || event.metaKey || event.shiftKey
+
+    if (!__DARWIN__ && event.key === 'a' && event.ctrlKey && !modifiers) {
+      this.onSelectAll(event)
+    }
+  }
+
+  private onSelectAll = (ev: Event | React.SyntheticEvent<unknown>) => {
+    ev.preventDefault()
+
+    this.textSelectionStartRow = 0
+    this.textSelectionEndRow = Infinity
+
+    this.virtualListRef.current?.forceUpdate(() => {
+      console.log('selecting all')
+      const selection = document.getSelection()
+      if (selection && this.diffContainer) {
+        selection.empty()
+        selection.selectAllChildren(this.diffContainer)
+      }
+    })
   }
 
   private onStartSelection = (
