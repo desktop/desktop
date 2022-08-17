@@ -387,6 +387,7 @@ export class SideBySideDiff extends React.Component<
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
                 ref={this.virtualListRef}
+                overscanIndicesGetter={this.overscanIndicesGetter}
                 // The following properties are passed to the list
                 // to make sure that it gets re-rendered when any of
                 // them change.
@@ -400,7 +401,6 @@ export class SideBySideDiff extends React.Component<
                 hoveredHunk={this.state.hoveredHunk}
                 isSelectable={canSelect(this.props.file)}
                 fileSelection={this.getSelection()}
-                overscanIndicesGetter={this.overscanIndicesGetter}
               />
             )}
           </AutoSizer>
