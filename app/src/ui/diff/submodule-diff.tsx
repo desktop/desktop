@@ -18,7 +18,7 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
 
   public render() {
     return (
-      <div id="submodule-diff">
+      <div className="changes-interstitial submodule-diff">
         <div className="content">
           <div className="header">
             <div className="text">
@@ -51,8 +51,8 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
 
     return (
       <p>
-        <Octicon symbol={OcticonSymbol.info} /> This is a submodule based on the
-        repository{' '}
+        <Octicon symbol={OcticonSymbol.info} className="info-icon" /> This is a
+        submodule based on the repository{' '}
         <LinkButton
           uri={`https://${repoIdentifier.hostname}/${repoIdentifier.owner}/${repoIdentifier.name}`}
         >
@@ -73,8 +73,12 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
 
     return (
       <p>
-        <Octicon symbol={OcticonSymbol.diffModified} /> This submodule has
-        changed its commit from <LinkButton>{diff.oldSHA}</LinkButton> to{' '}
+        <Octicon
+          symbol={OcticonSymbol.diffModified}
+          className="modified-icon"
+        />{' '}
+        This submodule has changed its commit from{' '}
+        <LinkButton>{diff.oldSHA}</LinkButton> to{' '}
         <LinkButton>{diff.newSHA}</LinkButton>. This change can be committed to
         the parent repository.
       </p>
@@ -90,22 +94,25 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
 
     return (
       <p>
-        <Octicon symbol={OcticonSymbol.fileDiff} /> This submodule has modified
-        and untracked changes. Those changes must be committed inside of the
-        submodule before they can be part of the parent repository.
+        <Octicon symbol={OcticonSymbol.fileDiff} className="untracked-icon" />{' '}
+        This submodule has modified and untracked changes. Those changes must be
+        committed inside of the submodule before they can be part of the parent
+        repository.
       </p>
     )
   }
 
   private renderOpenSubmoduleAction() {
     return (
-      <SuggestedAction
-        title="Open this submodule on GitHub Desktop"
-        description="You can open this submodule on GitHub Desktop as a normal repository to manage and commit any changes in it."
-        buttonText={__DARWIN__ ? 'Open Repository' : 'Open repository'}
-        type="primary"
-        onClick={this.onOpenSubmoduleClick}
-      />
+      <span>
+        <SuggestedAction
+          title="Open this submodule on GitHub Desktop"
+          description="You can open this submodule on GitHub Desktop as a normal repository to manage and commit any changes in it."
+          buttonText={__DARWIN__ ? 'Open Repository' : 'Open repository'}
+          type="primary"
+          onClick={this.onOpenSubmoduleClick}
+        />
+      </span>
     )
   }
 

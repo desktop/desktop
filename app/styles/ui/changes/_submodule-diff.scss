@@ -1,0 +1,18 @@
+.submodule-diff {
+
+  .info-icon {
+    color: var(--dialog-information-color);
+  }
+
+  .modified-icon {
+    color: var(--color-modified);
+  }
+
+  .untracked-icon {
+    color: var(--color-deleted);
+  }
+
+  p {
+    font-size: var(--font-size-md);
+  }
+}

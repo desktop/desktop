@@ -2,6 +2,7 @@ import * as React from 'react'
 import { ChangedFileDetails } from './changed-file-details'
 import {
   DiffSelection,
+  DiffType,
   IDiff,
   ImageDiffType,
   ITextDiff,
@@ -11,6 +12,7 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
+import { SubmoduleDiff } from '../diff/submodule-diff'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -97,6 +99,15 @@ export class Changes extends React.Component<IChangesProps, {}> {
   }
 
   public render() {
+    if (this.props.diff?.kind === DiffType.Submodule) {
+      return (
+        <SubmoduleDiff
+          diff={this.props.diff}
+          onOpenSubmodule={this.props.onOpenSubmodule}
+        />
+      )
+    }
+
     return (
       <div className="changed-file">
         <ChangedFileDetails
