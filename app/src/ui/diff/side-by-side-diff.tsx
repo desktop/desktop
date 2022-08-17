@@ -242,31 +242,43 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onDocumentSelectionChange = (ev: Event) => {
+    if (!this.diffContainer) {
+      return
+    }
+
     const selection = document.getSelection()
 
     this.textSelectionStartRow = undefined
     this.textSelectionEndRow = undefined
 
     if (!selection || selection.isCollapsed) {
-      console.log('no selection or collapsed')
       return
     }
 
-    if (!this.diffContainer) {
-      return
-    }
-
+    // Check to see if there's at least a partial selection within the
+    // diff container. If there isn't then we want to get out of here as
+    // quickly as possible.
     if (!selection.containsNode(this.diffContainer, true)) {
-      console.log('no selection within container')
       return
     }
 
+    // Get the range to coerce uniform direction (i.e we don't want to have to
+    // care about whether the user is selecting right to left or left to right)
     const range = selection.getRangeAt(0)
     const { startContainer, endContainer } = range
 
+    // The (relative) happy path is when the user is currently selecting within
+    // the diff. That means that the start container will very likely be a text
+    // node somewhere within a row.
     let startRow = closestRow(startContainer, this.diffContainer)
-    let endRow = closestRow(endContainer, this.diffContainer)
 
+    // If we couldn't find the row by walking upwards it's likely that the user
+    // has moved their selection to the container itself or beyond (i.e dragged
+    // their selection all the way up to the point where they're now selecting
+    // inside the commit details).
+    //
+    // If so we attempt to check if the first row we're currently rendering is
+    // encompassed in the selection
     if (startRow === undefined) {
       const firstRow = this.diffContainer.querySelector(
         'div[role=row]:first-child'
@@ -276,6 +288,14 @@ export class SideBySideDiff extends React.Component<
         startRow = closestRow(firstRow, this.diffContainer)
       }
     }
+
+    // If we don't have  starting row there's no point in us trying to find
+    // the end row.
+    if (startRow === undefined) {
+      return
+    }
+
+    let endRow = closestRow(endContainer, this.diffContainer)
 
     if (endRow === undefined) {
       const lastRow = this.diffContainer.querySelector(
@@ -289,8 +309,6 @@ export class SideBySideDiff extends React.Component<
 
     this.textSelectionStartRow = startRow
     this.textSelectionEndRow = endRow
-
-    console.log(startRow, endRow)
   }
 
   public componentWillUnmount() {
@@ -769,11 +787,12 @@ export class SideBySideDiff extends React.Component<
   private onSelectAll = (ev: Event | React.SyntheticEvent<unknown>) => {
     ev.preventDefault()
 
+    // Expand the overscan to infinity (i.e. render it all) before selecting
+    // all of the diff contents.
     this.textSelectionStartRow = 0
     this.textSelectionEndRow = Infinity
 
     this.virtualListRef.current?.forceUpdate(() => {
-      console.log('selecting all')
       const selection = document.getSelection()
       if (selection && this.diffContainer) {
         selection.empty()
