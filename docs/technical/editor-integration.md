@@ -235,7 +235,7 @@ These editors are currently supported:
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [Nova](https://nova.app/)
  - [Aptana Studio](http://www.aptana.com/)
- - [Emacs] (https://www.gnu.org/software/emacs/)
+ - [Emacs](https://www.gnu.org/software/emacs/)
 
 These are defined in a list at the top of the file:
 
