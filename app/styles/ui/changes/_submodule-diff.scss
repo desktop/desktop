@@ -1,18 +1,32 @@
 .submodule-diff {
 
-  .info-icon {
-    color: var(--dialog-information-color);
-  }
+  .item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    gap: 3px;
+    margin-bottom: 1em;
 
-  .modified-icon {
-    color: var(--color-modified);
-  }
+    .content {
+      font-size: var(--font-size-md);
+      flex: 1;
+    }
 
-  .untracked-icon {
-    color: var(--color-deleted);
-  }
+    .octicon {
+      margin-top: 2px;
 
-  p {
-    font-size: var(--font-size-md);
+      &.info-icon {
+        color: var(--dialog-information-color);
+      }
+
+      &.modified-icon {
+        color: var(--color-modified);
+      }
+
+      &.untracked-icon {
+        color: var(--color-deleted);
+      }
+    }
   }
 }

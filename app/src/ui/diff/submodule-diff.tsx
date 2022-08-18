@@ -6,6 +6,20 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { SuggestedAction } from '../suggested-actions'
 
+type SubmoduleItemIcon =
+  | {
+      readonly octicon: typeof OcticonSymbol.info
+      readonly className: 'info-icon'
+    }
+  | {
+      readonly octicon: typeof OcticonSymbol.diffModified
+      readonly className: 'modified-icon'
+    }
+  | {
+      readonly octicon: typeof OcticonSymbol.fileDiff
+      readonly className: 'untracked-icon'
+    }
+
 interface ISubmoduleDiffProps {
   readonly onOpenSubmodule?: (fullPath: string) => void
   readonly diff: ISubmoduleDiff
@@ -49,10 +63,10 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
         ? ''
         : ` (${repoIdentifier.hostname})`
 
-    return (
-      <p>
-        <Octicon symbol={OcticonSymbol.info} className="info-icon" /> This is a
-        submodule based on the repository{' '}
+    return this.renderSubmoduleDiffItem(
+      { octicon: OcticonSymbol.info, className: 'info-icon' },
+      <>
+        This is a submodule based on the repository{' '}
         <LinkButton
           uri={`https://${repoIdentifier.hostname}/${repoIdentifier.owner}/${repoIdentifier.name}`}
         >
@@ -60,7 +74,7 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
           {hostname}
         </LinkButton>
         .
-      </p>
+      </>
     )
   }
 
@@ -71,17 +85,14 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
       return null
     }
 
-    return (
-      <p>
-        <Octicon
-          symbol={OcticonSymbol.diffModified}
-          className="modified-icon"
-        />{' '}
+    return this.renderSubmoduleDiffItem(
+      { octicon: OcticonSymbol.diffModified, className: 'modified-icon' },
+      <>
         This submodule has changed its commit from{' '}
         <LinkButton>{diff.oldSHA}</LinkButton> to{' '}
         <LinkButton>{diff.newSHA}</LinkButton>. This change can be committed to
         the parent repository.
-      </p>
+      </>
     )
   }
 
@@ -92,13 +103,25 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
       return null
     }
 
-    return (
-      <p>
-        <Octicon symbol={OcticonSymbol.fileDiff} className="untracked-icon" />{' '}
+    return this.renderSubmoduleDiffItem(
+      { octicon: OcticonSymbol.fileDiff, className: 'untracked-icon' },
+      <>
         This submodule has modified and untracked changes. Those changes must be
         committed inside of the submodule before they can be part of the parent
         repository.
-      </p>
+      </>
+    )
+  }
+
+  private renderSubmoduleDiffItem(
+    icon: SubmoduleItemIcon,
+    content: React.ReactElement
+  ) {
+    return (
+      <div className="item">
+        <Octicon symbol={icon.octicon} className={icon.className} />
+        <div className="content">{content}</div>
+      </div>
     )
   }
 
