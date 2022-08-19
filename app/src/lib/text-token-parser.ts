@@ -162,7 +162,14 @@ export class Tokenizer {
       return null
     }
 
-    const url = `${repository.htmlURL}/issues/${id}`
+    // handle an issue link to another repo
+    let repoUrl = repository.htmlURL;
+    const orgRepo = text.slice(0,index).match(/(\w+\/\w+)$/);
+    if (orgRepo) {
+      repoUrl = `https://github.com/${orgRepo[0]}`
+    }
+
+    const url = `${repoUrl}/issues/${id}`
     this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
     return { nextIndex }
   }
