@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.0.6-beta3": [
+      "[Fixed] Older versions of Sublime Text and SlickEdit are also recognized as external editors - #15117. Thanks @vbwx!",
+      "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) - #14689. Thanks @tsvetilian-ty!"
+    ],
     "3.0.6-beta2": [
       "[Fixed] Add PyCharm Community Edition support on macOS - #15016. Thanks @tsvetilian-ty!",
       "[Fixed] Unified diff line gutter context menu items for discard changes no longer enabled when whitespace is hidden - #15003",
