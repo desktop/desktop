@@ -144,10 +144,18 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           ? this.props.onCheckForNonStaggeredUpdates
           : this.props.onCheckForUpdates
 
+        const buttonTitle = this.state.altKeyPressed
+          ? 'Ensure Latest Version'
+          : 'Check for Updates'
+
+        const tooltip = this.state.altKeyPressed
+          ? "GitHub Desktop may release updates to our user base gradually to ensure we catch any problems early. This lets you bypass the gradual rollout and jump straight to the latest version if there's one available."
+          : ''
+
         return (
           <Row>
-            <Button disabled={disabled} onClick={onClick}>
-              Check for Updates{this.state.altKeyPressed ? ' (Forced)' : ''}
+            <Button disabled={disabled} onClick={onClick} tooltip={tooltip}>
+              {buttonTitle}
             </Button>
           </Row>
         )
