@@ -158,6 +158,7 @@
     "electron-builder": "^22.7.0",
     "electron-packager": "^15.1.0",
     "electron-winstaller": "^5.0.0",
+    "eslint-plugin-github": "^4.3.7",
     "eslint-plugin-primer-react": "^1.0.1",
     "jest-esm-transformer": "^1.0.0",
     "reserved-words": "^0.1.2",

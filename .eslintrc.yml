@@ -16,6 +16,7 @@ extends:
   - plugin:@typescript-eslint/recommended
   - prettier/@typescript-eslint
   - plugin:primer-react/recommended
+  - plugin:github/recommended
 
 rules:
   ##########
