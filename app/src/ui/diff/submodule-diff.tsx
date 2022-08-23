@@ -51,8 +51,6 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
 
   private renderSubmoduleInfo() {
     // TODO: only for GH submodules?
-    // TODO: test with submodules without URL (is that possible? maybe a submodule
-    // from a local repo??)
 
     const repoIdentifier = parseRepositoryIdentifier(this.props.diff.url)
     if (repoIdentifier === null) {
@@ -104,15 +102,22 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
   private renderSubmodulesChangesInfo() {
     const { diff } = this.props
 
-    if (!diff.status.untrackedChanges) {
+    if (!diff.status.untrackedChanges && !diff.status.modifiedChanges) {
       return null
     }
+
+    const changes =
+      diff.status.untrackedChanges && diff.status.modifiedChanges
+        ? 'modified and untracked'
+        : diff.status.untrackedChanges
+        ? 'untracked'
+        : 'modified'
 
     return this.renderSubmoduleDiffItem(
       { octicon: OcticonSymbol.fileDiff, className: 'untracked-icon' },
       <>
-        This submodule has modified and untracked changes. Those changes must be
-        committed inside of the submodule before they can be part of the parent
+        This submodule has {changes} changes. Those changes must be committed
+        inside of the submodule before they can be part of the parent
         repository.
       </>
     )
