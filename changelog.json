@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.6-test3": ["[Improved] Use new macos-11 runners to build this"],
     "3.0.6-beta3": [
       "[Fixed] Older versions of Sublime Text and SlickEdit are also recognized as external editors - #15117. Thanks @vbwx!",
       "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) - #14689. Thanks @tsvetilian-ty!",
