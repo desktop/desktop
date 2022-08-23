@@ -1,5 +1,6 @@
 import React from 'react'
 import { parseRepositoryIdentifier } from '../../lib/remote-parsing'
+import { shortenSHA } from '../../models/commit'
 import { ISubmoduleDiff } from '../../models/diff'
 import { LinkButton } from '../lib/link-button'
 import { Octicon } from '../octicons'
@@ -85,13 +86,17 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
       return null
     }
 
+    if (diff.oldSHA === null || diff.newSHA === null) {
+      return null
+    }
+
     return this.renderSubmoduleDiffItem(
       { octicon: OcticonSymbol.diffModified, className: 'modified-icon' },
       <>
         This submodule has changed its commit from{' '}
-        <LinkButton>{diff.oldSHA}</LinkButton> to{' '}
-        <LinkButton>{diff.newSHA}</LinkButton>. This change can be committed to
-        the parent repository.
+        <LinkButton>{shortenSHA(diff.oldSHA)}</LinkButton> to{' '}
+        <LinkButton>{shortenSHA(diff.newSHA)}</LinkButton>. This change can be
+        committed to the parent repository.
       </>
     )
   }
