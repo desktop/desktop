@@ -3,6 +3,8 @@ import { parseRepositoryIdentifier } from '../../lib/remote-parsing'
 import { shortenSHA } from '../../models/commit'
 import { ISubmoduleDiff } from '../../models/diff'
 import { LinkButton } from '../lib/link-button'
+import { Ref } from '../lib/ref'
+import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { SuggestedAction } from '../suggested-actions'
@@ -92,10 +94,19 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
       { octicon: OcticonSymbol.diffModified, className: 'modified-icon' },
       <>
         This submodule has changed its commit from{' '}
-        <LinkButton>{shortenSHA(diff.oldSHA)}</LinkButton> to{' '}
-        <LinkButton>{shortenSHA(diff.newSHA)}</LinkButton>. This change can be
+        {this.renderTooltippedCommitSHA(diff.oldSHA)} to{' '}
+        {this.renderTooltippedCommitSHA(diff.newSHA)}. This change can be
         committed to the parent repository.
       </>
+    )
+  }
+
+  private renderTooltippedCommitSHA(sha: string) {
+    return (
+      <TooltippedCommitSHA
+        shortSHA={<Ref>{shortenSHA(sha)}</Ref>}
+        longSHA={sha}
+      />
     )
   }
 
