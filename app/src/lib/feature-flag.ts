@@ -75,7 +75,7 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
 export function enableImmediateUpdateFromEmulatedX64ToARM64(): boolean {
   // Because of how Squirrel.Windows works, this is only available for macOS.
   // See: https://github.com/desktop/desktop/pull/14998
-  return __DARWIN__ && enableBetaFeatures()
+  return __DARWIN__
 }
 
 /** Should we allow resetting to a previous commit? */
