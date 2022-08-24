@@ -14,7 +14,6 @@
       "[Fixed] Fix commit description with three lines overflowing when it shouldn't - #14791. Thanks @HeCorr!",
       "[Fixed] Fix notifications on Windows 10 builds prior to the Creators Update - #14714",
       "[Fixed] 'Update from default branch` menu item allows quick merge of upstream - #14145. Thanks @uttiya10!",
-      "[Improved] On Apple silicon devices running unoptimized builds, auto-update on first run to an optimized build - #14998",
       "[Improved] Add ability to skip staggered release to ensure the latest version is downloaded - #14883"
     ],
     "3.0.6-beta3": [
