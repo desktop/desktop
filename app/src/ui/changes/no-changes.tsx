@@ -706,7 +706,7 @@ export class NoChanges extends React.Component<
     return (
       <div className="changes-interstitial">
         <div className="content">
-          <div className="header">
+          <div className="interstitial-header">
             <div className="text">
               <h1>No local changes</h1>
               <p>

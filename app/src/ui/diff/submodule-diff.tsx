@@ -35,7 +35,7 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
     return (
       <div className="changes-interstitial submodule-diff">
         <div className="content">
-          <div className="header">
+          <div className="interstitial-header">
             <div className="text">
               <h1>Submodule changes</h1>
             </div>
