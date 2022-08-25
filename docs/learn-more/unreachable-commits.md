@@ -54,11 +54,14 @@ A
 Still `E` and `D` are unreachable by `F`. But, you may think "I merged the `feature-branch` into `development`, I should be able to see changes from `E` and `D`". This is true if you start at a commit that has them in it's ancestral path. That is `G` and it is known as a **merge commit** and it is special in that it has two parents. The first is `E` as the last commit of the branch being merged and `F` as the last commit of the branch being merged into. Now, all the commits in this graph are ancestors of `G`. Thus, if we were to execute `git diff B..G`. We will see changes of all ancestral paths of `G` to `A`. Those paths are `G` -> `F` -> `C` -> `B` and `G`-> `E` -> `D` -> `C` -> `B`. Therefore we will see changes from `G`, `F`, `E`, `D`, and `C`.
 
 # GitHub Desktop
-In GitHub Desktop diffing across multiple commits is accomplished through a range selection. This results in executing `git diff` from first to last commit in that selection. Therefore, generating diffs on a branches where multiple branches are merged may result in unreachable commits inside a diff selection. This is because the commits are displayed chronological order. Thus, the graph from the section `Merge Commits` from the previous section would look like:
+In GitHub Desktop, commits are displayed linearly and in chronological order. Thus, the graph from the section `Merge Commits` from the previous section would look like:
 
-[Image from Desktop Here]
+![image](https://user-images.githubusercontent.com/75402236/186673232-8100fe29-4351-4a20-a96a-6043dd8d351d.png)
 
-Thus, when you select `F` through `A` to see a diff of `F` to `A` or `git diff A..F`, you may initially expect to see changes from `E` and `D`, but you won't because those changes are unreachable from `F`.
+In GitHub Desktop, diffing across multiple commits is accomplished through a range selection that results in executing `git diff` that shows the changes of comparing the first and last commit in the selection (inclusive). Therefore, generating diffs on a branches where merge commits exist may result in unreachable commits being inside a diff selection. The following shows the unreachable commit what the scenario described above in `Merge Commits`.
+
+https://user-images.githubusercontent.com/75402236/186671802-4ba49315-e25c-4a6c-93d1-70f2f24fbc19.mov
+
 
 
 
