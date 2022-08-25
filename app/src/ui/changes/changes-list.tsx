@@ -278,6 +278,18 @@ export class ChangesList extends React.Component<
 
     const file = workingDirectory.files[row]
     const selection = file.selection.getSelectionType()
+    const { submoduleStatus } = file.status
+
+    const isUncommittableSubmodule =
+      submoduleStatus !== null &&
+      file.status.kind === AppFileStatusKind.Modified &&
+      !submoduleStatus.commitChanged
+
+    const isPartiallyCommittableSubmodule =
+      submoduleStatus !== null &&
+      (submoduleStatus.commitChanged ||
+        file.status.kind === AppFileStatusKind.New) &&
+      (submoduleStatus.modifiedChanges || submoduleStatus.untrackedChanges)
 
     const includeAll =
       selection === DiffSelectionType.All
@@ -286,22 +298,31 @@ export class ChangesList extends React.Component<
         ? false
         : null
 
-    const include =
-      rebaseConflictState !== null
-        ? file.status.kind !== AppFileStatusKind.Untracked
-        : includeAll
+    const include = isUncommittableSubmodule
+      ? false
+      : rebaseConflictState !== null
+      ? file.status.kind !== AppFileStatusKind.Untracked
+      : includeAll
 
-    const disableSelection = isCommitting || rebaseConflictState !== null
+    const disableSelection =
+      isCommitting || rebaseConflictState !== null || isUncommittableSubmodule
+
+    const checkboxTooltip = isUncommittableSubmodule
+      ? 'This submodule cannot be checked in because it contains changes have not been committed.'
+      : isPartiallyCommittableSubmodule
+      ? 'Only changes that have been committed within the submodule will be checked in in this repository. You need to commit any other modified or untracked changes in the submodule before including them in this repository.'
+      : undefined
 
     return (
       <ChangedFile
         file={file}
-        include={include}
+        include={isPartiallyCommittableSubmodule && include ? null : include}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={onIncludeChanged}
         availableWidth={availableWidth}
         disableSelection={disableSelection}
+        checkboxTooltip={checkboxTooltip}
       />
     )
   }
