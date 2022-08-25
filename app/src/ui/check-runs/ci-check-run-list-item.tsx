@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
 import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
@@ -209,6 +211,7 @@ export class CICheckRunListItem extends React.PureComponent<
         <div
           className={classes}
           onClick={this.toggleCheckRunExpansion}
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           tabIndex={0}
         >
           {this.renderCheckStatusSymbol()}

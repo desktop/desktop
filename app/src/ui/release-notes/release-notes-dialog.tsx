@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 import { updateStore } from '../lib/update-store'

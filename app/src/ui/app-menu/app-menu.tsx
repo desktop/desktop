@@ -317,6 +317,7 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     this.paneRefs = this.paneRefs.slice(0, panes.length)
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div id="app-menu-foldout" onKeyDown={this.onKeyDown}>
         {panes}
       </div>

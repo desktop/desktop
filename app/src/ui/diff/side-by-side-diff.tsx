@@ -277,6 +277,7 @@ export class SideBySideDiff extends React.Component<
     })
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div className={containerClassName} onMouseDown={this.onMouseDown}>
         {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
         {this.state.isSearching && (

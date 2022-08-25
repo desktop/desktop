@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { GitHubRepository } from '../../models/github-repository'
 import { DisposableLike } from 'event-kit'
@@ -340,6 +341,7 @@ export class CICheckRunPopover extends React.PureComponent<
       )
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       <div className="ci-check-run-list-header" tabIndex={0}>
         <div className="completeness-indicator">
           {this.renderCompletenessIndicator(

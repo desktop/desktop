@@ -31,39 +31,6 @@ rules:
   # PLUGINS #
   ###########
 
-  # Accessibility
-  # From: primer-react/recommended
-  'jsx-a11y/alt-text':
-    - warn
-  'jsx-a11y/click-events-have-key-events':
-    - warn
-  'jsx-a11y/no-noninteractive-element-interactions':
-    - warn
-  'jsx-a11y/no-static-element-interactions':
-    - warn
-  'jsx-a11y/no-autofocus':
-    - warn
-  'jsx-a11y/no-noninteractive-element-to-interactive-role':
-    - warn
-  'jsx-a11y/aria-role':
-    - warn
-  'jsx-a11y/aria-activedescendant-has-tabindex':
-    - warn
-  'jsx-a11y/mouse-events-have-key-events':
-    - warn
-  'jsx-a11y/label-has-associated-control':
-    - warn
-  'jsx-a11y/anchor-is-valid':
-    - warn
-  'jsx-a11y/iframe-has-title':
-    - warn
-  'jsx-a11y/no-noninteractive-tabindex':
-    - warn
-  'jsx-a11y/role-supports-aria-props':
-    - warn
-  'jsx-a11y/interactive-supports-focus':
-    - warn
-
   # TYPESCRIPT
   '@typescript-eslint/naming-convention':
     - error

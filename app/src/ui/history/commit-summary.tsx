@@ -246,6 +246,7 @@ export class CommitSummary extends React.Component<
     const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
     return (
+      // eslint-disable-next-line jsx-a11y/anchor-is-valid, jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <a onClick={onClick} className="expander">
         <Octicon symbol={icon} />
         {expanded ? 'Collapse' : 'Expand'}
@@ -388,6 +389,7 @@ export class CommitSummary extends React.Component<
     const commitsPluralized = excludedCommitsCount > 1 ? 'commits' : 'commit'
 
     return (
+      // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
       <div
         className="commit-unreachable-info"
         onMouseOver={this.onHighlightShasNotInDiff}

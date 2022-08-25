@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { clipboard } from 'electron'
 import * as Path from 'path'

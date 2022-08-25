@@ -74,6 +74,7 @@ export class TextArea extends React.Component<ITextAreaProps, {}> {
         {this.props.label}
 
         <textarea
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
           className={this.props.textareaClassName}
           disabled={this.props.disabled}
