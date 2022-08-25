@@ -65,6 +65,82 @@ rules:
   'jsx-a11y/interactive-supports-focus':
     - warn
 
+  # From github/recommended
+  'github/array-foreach':
+    - off
+  'github/no-then':
+    - off
+  'import/no-namespace':
+    - off
+  'import/first':
+    - off
+  'import/no-duplicates':
+    - off
+  'import/no-commonjs':
+    - off
+  'import/no-unresolved':
+    - off
+  'import/no-dynamic-require':
+    - off
+  'import/named':
+    - off
+  'import/extensions':
+    - off
+  'eslint-comments/no-use':
+    - off
+  'eslint-comments/no-unused-disable':
+    - off
+  'eslint-comments/no-duplicate-disable':
+    - off
+  'filenames/match-regex':
+    - off
+  'i18n-text/no-en':
+    - off
+  'no-only-tests/no-only-tests':
+    - off
+  'no-console':
+    - off
+  'no-undef':
+    - off
+  'prefer-promise-reject-errors':
+    - off
+  'no-shadow':
+    - off
+  'no-case-declarations':
+    - off
+  'no-unused-vars':
+    - off
+  'no-invalid-this':
+    - off
+  'camelcase':
+    - off
+  'prefer-template':
+    - off
+  'no-useless-escape':
+    - off
+  'one-var':
+    - off
+  'object-shorthand':
+    - off
+  'func-style':
+    - off
+  'no-useless-concat':
+    - off
+  'no-extra-boolean-cast':
+    - off
+  'no-control-regex':
+    - off
+  'no-empty':
+    - off
+  'no-ex-assign':
+    - off
+  'no-fallthrough':
+    - off
+  'no-irregular-whitespace':
+    - off
+  'no-dupe-class-members':
+    - off
+
   # TYPESCRIPT
   '@typescript-eslint/naming-convention':
     - error
