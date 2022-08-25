@@ -13,6 +13,7 @@ A
 
 Since we can follow the graph from `C` to `A`, that means that `A` is **reachable** by or from `C`. This as known as following the ancestral path of `C`.
 
+## Unreachable Commits
 Now, if we create a new branch called `feature-branch` from `C` and commit `D` and `E` and then return to `development` and commit `F`. We would have the resulting graph:
 ```
 development
