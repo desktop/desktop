@@ -59,7 +59,7 @@ In GitHub Desktop, commits are displayed linearly and in chronological order. Th
 
 ![image](https://user-images.githubusercontent.com/75402236/186673232-8100fe29-4351-4a20-a96a-6043dd8d351d.png)
 
-In GitHub Desktop, diffing across multiple commits is accomplished through a range selection that results in executing `git diff` that shows the changes of comparing the first and last commit in the selection (inclusive). Therefore, generating diffs on a branches where merge commits exist may result in unreachable commits being inside a diff selection. The following shows the unreachable commit what the scenario described above in `Merge Commits`.
+In GitHub Desktop, diffing across multiple commits is accomplished through a range selection that results in executing `git diff` that shows the changes of comparing the first and last commit in the selection (inclusive). Therefore, generating a diff on a branch where merge commits exist may result in unreachable commits being inside a diff selection. The following shows the unreachable commit what the scenario described above in `Merge Commits`.
 
 https://user-images.githubusercontent.com/75402236/186671802-4ba49315-e25c-4a6c-93d1-70f2f24fbc19.mov
 
