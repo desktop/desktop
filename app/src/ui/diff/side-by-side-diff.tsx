@@ -239,7 +239,33 @@ export class SideBySideDiff extends React.Component<
     // and trigger the search plugin if we see it.
     document.addEventListener('find-text', this.showSearch)
 
+    document.addEventListener('cut', this.onCutOrCopy)
+    document.addEventListener('copy', this.onCutOrCopy)
+
     document.addEventListener('selectionchange', this.onDocumentSelectionChange)
+  }
+
+  private onCutOrCopy = (ev: ClipboardEvent) => {
+    if (ev.defaultPrevented || !this.isEntireDiffSelected()) {
+      return
+    }
+
+    const lineTypes = this.props.showSideBySideDiff
+      ? this.state.selectingTextInRow === 'before'
+        ? [DiffLineType.Delete, DiffLineType.Context]
+        : [DiffLineType.Add, DiffLineType.Context]
+      : [DiffLineType.Add, DiffLineType.Delete, DiffLineType.Context]
+
+    const contents = this.props.diff.hunks
+      .flatMap(h =>
+        h.lines
+          .filter(line => lineTypes.includes(line.type))
+          .map(line => line.content)
+      )
+      .join('\n')
+
+    ev.preventDefault()
+    ev.clipboardData?.setData('text/plain', contents)
   }
 
   private onDocumentSelectionChange = (ev: Event) => {
