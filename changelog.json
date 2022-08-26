@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.0.7-test2": [
+      "[Fixed] Do not show login popup when fetching repositories"
+    ],
     "3.0.7-test1": [
       "[Fixed] Do not show login popup when fetching repositories"
     ],
