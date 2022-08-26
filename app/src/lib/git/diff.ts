@@ -531,7 +531,7 @@ async function buildDiff(
   oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
-  if (file.status.submoduleStatus !== null) {
+  if (file.status.submoduleStatus !== undefined) {
     return buildSubmoduleDiff(
       buffer,
       repository,

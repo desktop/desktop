@@ -178,9 +178,9 @@ function parseUntrackedEntry(field: string): IStatusEntry {
 
 function mapSubmoduleStatus(
   submoduleStatusCode: string
-): SubmoduleStatus | null {
+): SubmoduleStatus | undefined {
   if (!submoduleStatusCode.startsWith('S')) {
-    return null
+    return undefined
   }
 
   return {

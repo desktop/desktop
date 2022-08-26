@@ -281,12 +281,12 @@ export class ChangesList extends React.Component<
     const { submoduleStatus } = file.status
 
     const isUncommittableSubmodule =
-      submoduleStatus !== null &&
+      submoduleStatus !== undefined &&
       file.status.kind === AppFileStatusKind.Modified &&
       !submoduleStatus.commitChanged
 
     const isPartiallyCommittableSubmodule =
-      submoduleStatus !== null &&
+      submoduleStatus !== undefined &&
       (submoduleStatus.commitChanged ||
         file.status.kind === AppFileStatusKind.New) &&
       (submoduleStatus.modifiedChanges || submoduleStatus.untrackedChanges)

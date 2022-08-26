@@ -25,12 +25,12 @@ const noneSelected = DiffSelection.fromInitialSelection(DiffSelectionType.None)
 const files = [
   new WorkingDirectoryFileChange(
     'README.md',
-    { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+    { kind: AppFileStatusKind.Modified },
     allSelected
   ),
   new WorkingDirectoryFileChange(
     'app/package.json',
-    { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+    { kind: AppFileStatusKind.Modified },
     noneSelected
   ),
 ]
@@ -49,7 +49,7 @@ describe('updateChangedFiles', () => {
 
       partiallySelectedFile = new WorkingDirectoryFileChange(
         'app/index.ts',
-        { kind: AppFileStatusKind.New, submoduleStatus: null },
+        { kind: AppFileStatusKind.New },
         partialFileSelection
       )
 

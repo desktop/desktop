@@ -24,7 +24,6 @@ async function parseDiff(diff: string): Promise<ITextDiff> {
   const repository = new Repository('', -1, null, false)
   const fileChange = new FileChange('file.txt', {
     kind: AppFileStatusKind.Modified,
-    submoduleStatus: null,
   })
   const output = await convertDiff(repository, fileChange, rawDiff, 'HEAD')
   expect(output.kind === DiffType.Text)
@@ -48,7 +47,7 @@ describe('patch formatting', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
@@ -69,7 +68,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
@@ -87,7 +86,7 @@ describe('patch formatting', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
@@ -108,7 +107,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
@@ -127,7 +126,7 @@ describe('patch formatting', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
@@ -147,7 +146,7 @@ describe('patch formatting', () => {
       )
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
@@ -167,7 +166,7 @@ describe('patch formatting', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
@@ -190,7 +189,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
@@ -256,7 +255,7 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         selection
       )
       const patch = formatPatch(file, diff)
@@ -287,7 +286,7 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        { kind: AppFileStatusKind.New, submoduleStatus: null },
+        { kind: AppFileStatusKind.New },
         selection
       )
       const patch = formatPatch(file, diff)
@@ -313,7 +312,7 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         selection
       )
       const patch = formatPatch(file, diff)
@@ -346,7 +345,7 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 

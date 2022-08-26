@@ -76,7 +76,7 @@ describe('git/apply', () => {
     async function getDiff(filePath: string) {
       const file = new WorkingDirectoryFileChange(
         filePath,
-        { kind: AppFileStatusKind.Modified, submoduleStatus: null },
+        { kind: AppFileStatusKind.Modified },
         DiffSelection.fromInitialSelection(DiffSelectionType.None)
       )
       return (await getWorkingDirectoryDiff(repository, file)) as ITextDiff

@@ -102,13 +102,11 @@ function parseConflictedState(
           entry,
           conflictMarkerCount:
             conflictDetails.conflictCountsByPath.get(path) || 0,
-          submoduleStatus: null,
         }
       } else {
         return {
           kind: AppFileStatusKind.Conflicted,
           entry,
-          submoduleStatus: null,
         }
       }
     }
@@ -120,13 +118,11 @@ function parseConflictedState(
           entry,
           conflictMarkerCount:
             conflictDetails.conflictCountsByPath.get(path) || 0,
-          submoduleStatus: null,
         }
       } else {
         return {
           kind: AppFileStatusKind.Conflicted,
           entry,
-          submoduleStatus: null,
         }
       }
     }
@@ -134,7 +130,6 @@ function parseConflictedState(
       return {
         kind: AppFileStatusKind.Conflicted,
         entry,
-        submoduleStatus: null,
       }
   }
 }
@@ -150,35 +145,35 @@ function convertToAppStatus(
       case 'added':
         return {
           kind: AppFileStatusKind.New,
-          submoduleStatus: entry.submoduleStatus ?? null,
+          submoduleStatus: entry.submoduleStatus,
         }
       case 'modified':
         return {
           kind: AppFileStatusKind.Modified,
-          submoduleStatus: entry.submoduleStatus ?? null,
+          submoduleStatus: entry.submoduleStatus,
         }
       case 'deleted':
         return {
           kind: AppFileStatusKind.Deleted,
-          submoduleStatus: entry.submoduleStatus ?? null,
+          submoduleStatus: entry.submoduleStatus,
         }
     }
   } else if (entry.kind === 'copied' && oldPath != null) {
     return {
       kind: AppFileStatusKind.Copied,
       oldPath,
-      submoduleStatus: entry.submoduleStatus ?? null,
+      submoduleStatus: entry.submoduleStatus,
     }
   } else if (entry.kind === 'renamed' && oldPath != null) {
     return {
       kind: AppFileStatusKind.Renamed,
       oldPath,
-      submoduleStatus: entry.submoduleStatus ?? null,
+      submoduleStatus: entry.submoduleStatus,
     }
   } else if (entry.kind === 'untracked') {
     return {
       kind: AppFileStatusKind.Untracked,
-      submoduleStatus: entry.submoduleStatus ?? null,
+      submoduleStatus: entry.submoduleStatus,
     }
   } else if (entry.kind === 'conflicted') {
     return parseConflictedState(entry, path, conflictDetails)
@@ -330,7 +325,7 @@ function buildStatusMap(
 
   const initialSelectionType =
     appStatus.kind === AppFileStatusKind.Modified &&
-    appStatus.submoduleStatus !== null &&
+    appStatus.submoduleStatus !== undefined &&
     !appStatus.submoduleStatus.commitChanged
       ? DiffSelectionType.None
       : DiffSelectionType.All
