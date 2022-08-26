@@ -52,7 +52,7 @@ B
 A
 ```
 
-Still `E` and `D` are unreachable by `F`. But, you may think "I merged the `feature-branch` into `development`, I should be able to see changes from `E` and `D`". This is true if you start at a commit that has them in it's ancestral path. That is `G` and it is known as a **merge commit** and it is special in that it has two parents. The first is `E` as the last commit of the branch being merged and `F` as the last commit of the branch being merged into. Now, all the commits in this graph are ancestors of `G`. Thus, if we were to execute `git diff B..G`. We will see changes of all ancestral paths of `G` to `B`. Those paths are `G` -> `F` -> `C` -> `B` and `G`-> `E` -> `D` -> `C` -> `B`. Therefore we will see changes from `G`, `F`, `E`, `D`, and `C`.
+Still `E` and `D` are unreachable by `F`. But, you may think "I merged the `feature-branch` into `development`, I should be able to see changes from `E` and `D`." This is true if you start at a commit that has them in its ancestral path. That is `G` and it is known as a **merge commit**, and it is special in that it has two parents. The first is `E` as the last commit of the branch being merged and `F` as the last commit of the branch being merged into. Now, all the commits in this graph are ancestors of `G`. Thus, if we were to execute `git diff B..G`. We will see changes of all ancestral paths of `G` to `B`. Those paths are `G` -> `F` -> `C` -> `B` and `G`-> `E` -> `D` -> `C` -> `B`. Therefore we will see changes from `G`, `F`, `E`, `D`, and `C`.
 
 # GitHub Desktop
 In GitHub Desktop, commits are displayed linearly and in chronological order. Thus, the graph from the previous section `Merge Commits` would look like:
