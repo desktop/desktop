@@ -8,6 +8,7 @@ import {
   FileChange,
   AppFileStatusKind,
   CommittedFileChange,
+  SubmoduleStatus,
 } from '../../models/status'
 import {
   DiffType,
@@ -480,6 +481,49 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(forceUnwrap(`Invalid diff output`, pieces.at(-1)))
 }
 
+async function buildSubmoduleDiff(
+  buffer: Buffer,
+  repository: Repository,
+  file: FileChange,
+  status: SubmoduleStatus
+): Promise<IDiff> {
+  const path = file.path
+  const fullPath = Path.join(repository.path, path)
+  const url =
+    (await getConfigValue(repository, `submodule.${path}.url`, true)) ?? ''
+
+  let oldSHA = null
+  let newSHA = null
+
+  if (status.commitChanged) {
+    const diff = buffer.toString('utf-8')
+    const lines = diff.split('\n')
+    const baseRegex = 'Subproject commit ([^-]+)(-dirty)?$'
+    const oldSHARegex = new RegExp('-' + baseRegex)
+    const newSHARegex = new RegExp('\\+' + baseRegex)
+    const lineMatch = (regex: RegExp) =>
+      lines
+        .flatMap(line => {
+          const match = line.match(regex)
+          return match ? match[1] : []
+        })
+        .at(0) ?? null
+
+    oldSHA = lineMatch(oldSHARegex)
+    newSHA = lineMatch(newSHARegex)
+  }
+
+  return {
+    kind: DiffType.Submodule,
+    fullPath,
+    path,
+    url,
+    status,
+    oldSHA,
+    newSHA,
+  }
+}
+
 async function buildDiff(
   buffer: Buffer,
   repository: Repository,
@@ -488,46 +532,12 @@ async function buildDiff(
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   if (file.status.submoduleStatus !== null) {
-    const path = file.path
-    const fullPath = Path.join(repository.path, path)
-    const status = file.status.submoduleStatus
-    const url =
-      (await getConfigValue(repository, `submodule.${path}.url`, true)) ?? ''
-
-    let oldSHA = null
-    let newSHA = null
-
-    if (status.commitChanged) {
-      const diff = buffer.toString('utf-8')
-      const lines = diff.split('\n')
-      const baseRegex = 'Subproject commit ([^-]+)(-dirty)?$'
-      const oldSHARegex = new RegExp('-' + baseRegex)
-      const newSHARegex = new RegExp('\\+' + baseRegex)
-      oldSHA =
-        lines
-          .flatMap(line => {
-            const match = line.match(oldSHARegex)
-            return match ? match[1] : []
-          })
-          .at(0) ?? null
-      newSHA =
-        lines
-          .flatMap(line => {
-            const match = line.match(newSHARegex)
-            return match ? match[1] : []
-          })
-          .at(0) ?? null
-    }
-
-    return {
-      kind: DiffType.Submodule,
-      fullPath,
-      path,
-      url,
-      status,
-      oldSHA,
-      newSHA,
-    }
+    return buildSubmoduleDiff(
+      buffer,
+      repository,
+      file,
+      file.status.submoduleStatus
+    )
   }
 
   if (!isValidBuffer(buffer)) {
