@@ -344,14 +344,14 @@ export class SideBySideDiff extends React.Component<
 
   private isEntireDiffSelected(selection = document.getSelection()) {
     const { diffContainer } = this
-    const range = selection?.getRangeAt(0)
+    const ancestor = selection?.getRangeAt(0).commonAncestorContainer
 
     // This is an artefact of the selectAllChildren call in the onSelectAll
     // handler. We can get away with checking for this since we're handling
     // the select-all event coupled with the fact that we have CSS rules which
     // prevents text selection within the diff unless focus resides within the
     // diff container.
-    return diffContainer && range?.commonAncestorContainer === diffContainer
+    return ancestor === diffContainer
   }
 
   public componentWillUnmount() {
