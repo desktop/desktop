@@ -1,6 +1,6 @@
 # Reachable and Unreachable Commits
 
-In Git, every commit will have at least one parent commit except the very first. Additionally, a repository may have any number of branches that begin at any particular commit. Because of this we can create a graph of the history of a commit by following the path from one commit's parent to the another. Given a branch `development`, whose initial commit is `A`, and we add commit `B` and `C`. A resulting graph would be as follows:
+In Git, every commit will have at least one parent commit except the very first. Additionally, a repository may have any number of branches that begin at any particular commit. Because of this we can create a graph of the history of a commit by following the path from one commit's parent to the another. Given a branch `development`, whose initial commit is `A`, and we add commit `B` and `C`, the resulting graph would be as follows:
 
 ```
 development
