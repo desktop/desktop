@@ -159,7 +159,7 @@ interface ISideBySideDiffState {
    * column is doing it. This allows us to limit text selection to that
    * specific column via CSS.
    */
-  readonly selectingTextInRow?: 'before' | 'after'
+  readonly selectingTextInRow: 'before' | 'after'
 
   /**
    * The current diff selection. This is used while
@@ -226,6 +226,7 @@ export class SideBySideDiff extends React.Component<
       diff: props.diff,
       isSearching: false,
       selectedSearchResult: undefined,
+      selectingTextInRow: 'before',
     }
   }
 
