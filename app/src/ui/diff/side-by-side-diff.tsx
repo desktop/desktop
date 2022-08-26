@@ -917,6 +917,10 @@ export class SideBySideDiff extends React.Component<
         role: selectionLength > 0 ? 'copy' : undefined,
         enabled: selectionLength > 0,
       },
+      {
+        label: __DARWIN__ ? 'Select All' : 'Select all',
+        action: () => this.onSelectAll(),
+      },
     ]
 
     const expandMenuItem = this.buildExpandMenuItem()
