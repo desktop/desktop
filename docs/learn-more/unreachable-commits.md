@@ -2,31 +2,29 @@
 
 In Git, every commit will have at least one parent commit except the very first. Additionally, a repository may have any number of branches that begin at any particular commit. Because of this we can create a graph of the history of a commit by following the path from one commit's parent to the another. Given a branch `main`, whose initial commit is `A`, and we add commit `B` and `C`, the resulting graph would be as follows:
 
-```
-main
-C
-|
-B
-|
-A
+```mermaid
+    gitGraph
+       commit id: "A"
+       commit id: "B"
+       commit id: "C"
 ```
 
 Since we can follow the graph from `C` to `A`, that means that `A` is **reachable** by or from `C`. This as known as following the ancestral path of `C`.
 
 ## Unreachable Commits
 Now, if we create a new branch called `feature-branch` from `C` and commit `D` and `E` and then return to `main` and commit `F`. We would have the resulting graph:
-```
-main
-F
-|  E
-|  |  <-- feature-branch
-|  D
-| /
-C
-|
-B
-|
-A
+
+```mermaid
+    gitGraph
+       commit id: "A"
+       commit id: "B"
+       commit id: "C"
+       branch feature-branch
+       checkout feature-branch
+       commit id: "D"
+       commit id: "E"
+       checkout main
+       commit id: "F"
 ```
 
 In the above example, `B` is reachable by `F` through the ancestral path of `F`-> `C` -> `B`,  and `B` is reachable by `E` through `E` -> `D` -> `C` -> `B`. However, there is no such path to get to `E` or `D` from `F`. Thus, `E` and `D` are **unreachable** from `F`.
@@ -36,20 +34,19 @@ Some Git commands use the ancestral path to determine what to show. One of those
 
 ## Merge Commits
 Now, let's say that we merge the `feature-branch` into our `main` branch. Our graph becomes:
-```
-main
-G
-| \
-F  |
-|  E
-|  |  <-- feature-branch
-|  D
-| /
-C
-|
-B
-|
-A
+
+```mermaid
+    gitGraph
+       commit id: "A"
+       commit id: "B"
+       commit id: "C"
+       branch feature-branch
+       checkout feature-branch
+       commit id: "D"
+       commit id: "E"
+       checkout main
+       commit id: "F"
+       merge feature-branch tag: "G"
 ```
 
 Still `E` and `D` are unreachable by `F`. But, you may think "I merged the `feature-branch` into `main`, I should be able to see changes from `E` and `D`." This is true if you start at a commit that has them in its ancestral path. That is `G` and it is known as a **merge commit**, and it is special in that it has two parents. The first is `F` as the last commit of the branch being merged into, and `E` as the last commit of the branch being merged. Now, all the commits in this graph are ancestors of `G`. Thus, if we were to execute `git diff B..G`. We will see changes of all ancestral paths of `G` to `B`. Those paths are `G` -> `F` -> `C` -> `B` and `G`-> `E` -> `D` -> `C` -> `B`. Therefore we will see changes from `G`, `F`, `E`, `D`, and `C`.
