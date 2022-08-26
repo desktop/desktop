@@ -372,9 +372,9 @@ export class SideBySideDiff extends React.Component<
     if (ref === null) {
       this.diffContainer?.removeEventListener('select-all', this.onSelectAll)
     } else {
-      this.diffContainer = ref
-      this.diffContainer.addEventListener('select-all', this.onSelectAll)
+      ref.addEventListener('select-all', this.onSelectAll)
     }
+    this.diffContainer = ref
   }
 
   public render() {
