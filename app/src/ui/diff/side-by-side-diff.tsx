@@ -263,6 +263,10 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
+    if (this.isEntireDiffSelected(selection)) {
+      return
+    }
+
     // Get the range to coerce uniform direction (i.e we don't want to have to
     // care about whether the user is selecting right to left or left to right)
     const range = selection.getRangeAt(0)
@@ -310,6 +314,18 @@ export class SideBySideDiff extends React.Component<
 
     this.textSelectionStartRow = startRow
     this.textSelectionEndRow = endRow
+  }
+
+  private isEntireDiffSelected(selection = document.getSelection()) {
+    const { diffContainer } = this
+    const range = selection?.getRangeAt(0)
+
+    // This is an artefact of the selectAllChildren call in the onSelectAll
+    // handler. We can get away with checking for this since we're handling
+    // the select-all event coupled with the fact that we have CSS rules which
+    // prevents text selection within the diff unless focus resides within the
+    // diff container.
+    return diffContainer && range?.commonAncestorContainer === diffContainer
   }
 
   public componentWillUnmount() {
@@ -785,21 +801,17 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private onSelectAll = (ev: Event | React.SyntheticEvent<unknown>) => {
-    ev.preventDefault()
-
-    // Expand the overscan to infinity (i.e. render it all) before selecting
-    // all of the diff contents.
-    this.textSelectionStartRow = 0
-    this.textSelectionEndRow = Infinity
-
-    this.virtualListRef.current?.forceUpdate(() => {
-      const selection = document.getSelection()
-      if (selection && this.diffContainer) {
-        selection.empty()
-        selection.selectAllChildren(this.diffContainer)
-      }
-    })
+  /**
+   * Called when the user presses CtrlOrCmd+A while focused within the diff
+   * container or when the user triggers the select-all event. Note that this
+   * deals with text-selection whereas several other methods in this component
+   * named similarly deals with selection within the gutter.
+   */
+  private onSelectAll = (ev?: Event | React.SyntheticEvent<unknown>) => {
+    if (this.diffContainer) {
+      ev?.preventDefault()
+      document.getSelection()?.selectAllChildren(this.diffContainer)
+    }
   }
 
   private onStartSelection = (
