@@ -1,4 +1,4 @@
-import { git } from './core'
+import { git, gitNetworkArguments } from './core'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
@@ -106,7 +106,7 @@ export async function updateRemoteHEAD(
   }
 
   await git(
-    ['remote', 'set-head', '-a', remote.name],
+    [...gitNetworkArguments(), 'remote', 'set-head', '-a', remote.name],
     repository.path,
     'updateRemoteHEAD',
     options

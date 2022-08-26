@@ -1,4 +1,4 @@
-import { git, gitNetworkArguments } from './core'
+import { git } from './core'
 import { Repository } from '../../models/repository'
 
 /**
@@ -43,7 +43,7 @@ export async function getSymbolicRef(
   ref: string
 ): Promise<string | null> {
   const result = await git(
-    [...gitNetworkArguments(), 'symbolic-ref', '-q', ref],
+    ['symbolic-ref', '-q', ref],
     repository.path,
     'getSymbolicRef',
     {
