@@ -108,9 +108,19 @@ export type AppFileStatus =
   | ConflictedFileStatus
   | UntrackedFileStatus
 
+/** The status of a submodule */
 export type SubmoduleStatus = {
+  /** Whether or not the submodule is pointing to a different commit */
   readonly commitChanged: boolean
+  /**
+   * Whether or not the submodule contains modified changes that haven't been
+   * committed yet
+   */
   readonly modifiedChanges: boolean
+  /**
+   * Whether or not the submodule contains untracked changes that haven't been
+   * committed yet
+   */
   readonly untrackedChanges: boolean
 }
 
