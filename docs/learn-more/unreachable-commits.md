@@ -35,7 +35,7 @@ In the above example, `B` is reachable by `F` through the ancestral path of `F`-
 Some git commands use the ancestral path to determine what to show. One of those is `git diff`, which is used to see the changes between two commits non inclusive of the first commit. If we execute `git diff A..C`, we will receive the set of changes from the commits along the ancestral path from `C` to `A` or `C` -> `B` -> `A`. Thus, we would see changes from `B` and `C`. Likewise, if we executed `git diff B..F`, you will get changes from reachable from `F`; thus, `F` -> `C` -> `B`. But, not changes from `E` and `D` as they are unreachable.
 
 ## Merge Commits
-Now, lets say we merge the `feature-branch` into our `development` branch. Our graph becomes:
+Now, let's say that we merge the `feature-branch` into our `development` branch. Our graph becomes:
 ```
 development
 G
