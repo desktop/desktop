@@ -58,6 +58,10 @@ const editors: ILinuxExternalEditor[] = [
     name: 'Code',
     paths: ['/usr/bin/io.elementary.code'],
   },
+  {
+    name: 'Lite XL',
+    paths: ['/usr/bin/lite-xl'],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
