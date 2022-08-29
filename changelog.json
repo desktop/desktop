@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.0.7": [
+      "[Fixed] Do not show login prompt when repositories are fetched - #15163",
+      "[Improved] On Apple silicon devices running unoptimized builds, auto-update on first run to an optimized build - #14998"
+    ],
     "3.0.6": [
       "[Added] Add Warp terminal integration for macOS - #14329. Thanks @lhvy!",
       "[Added] Add context menu to the Current Branch and Current Repository toolbar - #13148. Thanks @uttiya10!",
