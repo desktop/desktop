@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
@@ -143,10 +142,12 @@ export class NoRepositoriesView extends React.Component<
         <img
           className="no-repositories-graphic-top"
           src={WelcomeLeftTopImageUri}
+          alt=""
         />
         <img
           className="no-repositories-graphic-bottom"
           src={WelcomeLeftBottomImageUri}
+          alt=""
         />
       </UiView>
     )

@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { join } from 'path'
 import { LinkButton } from '../lib/link-button'
@@ -101,7 +100,7 @@ export class TutorialPanel extends React.Component<
       <div className="tutorial-panel-component panel">
         <div className="titleArea">
           <h3>Get started</h3>
-          <img src={TutorialPanelImage} />
+          <img src={TutorialPanelImage} alt="Partially checked check list" />
         </div>
         <ol>
           <TutorialStepInstructions

@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { compare } from '../../lib/compare'
@@ -91,7 +90,7 @@ export class EmojiAutocompletionProvider
 
     return (
       <div className="emoji" key={emoji}>
-        <img className="icon" src={this.emoji.get(emoji)} />
+        <img className="icon" src={this.emoji.get(emoji)} alt={emoji} />
         {this.renderHighlightedTitle(hit)}
       </div>
     )
