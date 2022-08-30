@@ -52,7 +52,7 @@ These are defined in a list at the top of the file:
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
  **/
-const editors: IWindowsExternalEditor[] = [
+const editors: WindowsExternalEditor[] = [
 ...
 ]
 ```
@@ -68,7 +68,7 @@ The steps for resolving each editor can be found in `findApplication()` and in
 pseudocode looks like this:
 
 ```ts
-async function findApplication(editor: IWindowsExternalEditor): Promise<string | null> {
+async function findApplication(editor: WindowsExternalEditor) {
   // find install location in registry
   // validate installation
   // find executable to launch
@@ -95,6 +95,8 @@ channels).
     CurrentUserUninstallKey('{771FD6B0-FA20-440A-A002-3B3BAC16DC50}_is1'),
     // 32-bit version of VSCode (user)
     CurrentUserUninstallKey('{D628A17A-9713-46BF-8D57-E671B46A741E}_is1'),
+    // ARM64 version of VSCode (user)
+    CurrentUserUninstallKey('{D9E514E7-1A56-452D-9337-2990C0DC4310}_is1'),
     // 64-bit version of VSCode (system) - was default before user scope installation
     LocalMachineUninstallKey('{EA457B21-F73E-494C-ACAB-524FDE069978}_is1'),
     // 32-bit version of VSCode (system)
@@ -143,7 +145,7 @@ you can see this code in `getAppInfo()`:
 
 ```ts
 function getAppInfo(
-  editor: IWindowsExternalEditor,
+  editor: WindowsExternalEditor,
   keys: ReadonlyArray<RegistryValue>
 ): IWindowsAppInformation {
   const displayName = getKeyOrEmpty(keys, 'DisplayName')
@@ -178,9 +180,8 @@ The second step is to validate the installation, and this is done in the
 {
   name: 'Visual Studio Code',
   ...
-  expectedInstallationChecker: (displayName, publisher) =>
-    displayName.startsWith('Microsoft Visual Studio Code') &&
-    publisher === 'Microsoft Corporation',
+  displayNamePrefix: 'Microsoft Visual Studio Code',
+  publisher: 'Microsoft Corporation',
 },
 ```
 
@@ -196,7 +197,7 @@ location with an interface that doesn't change between updates.
 {
   name: 'Visual Studio Code',
   ...
-  executableShimPath: ['bin', 'code.cmd'],
+  executableShimPaths: [['bin', 'code.cmd']],
 },
 ```
 
