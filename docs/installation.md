@@ -25,7 +25,7 @@ GitHub Desktop will create directories to manage the files and data it needs to
 function. If you manage a network of computers and want to install GitHub
 Desktop, here is more information about how things work.
 
-On macOs,
+On macOS,
 
 - `~/Library/Application Support/GitHub Desktop/` - this directory contains
 user-specific data which the application requires to run, and is created on
