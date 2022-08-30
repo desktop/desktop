@@ -25,7 +25,7 @@
     "compile:script": "tsc -P script/tsconfig.json",
     "lint": "yarn prettier && yarn lint:src && yarn markdownlint",
     "lint:fix": "yarn prettier --write && yarn lint:src:fix",
-    "markdownlint": "markdownlint **/*.{md,mdx} --config .markdownlint.js --rules node_modules/@github/markdownlint-github --ignore node_modules --ignore gemoji",
+    "markdownlint": "markdownlint **/*.{md,mdx} --config .markdownlint.js --rules node_modules/@github/markdownlint-github --ignore node_modules --ignore app/node_modules --ignore gemoji",
     "prettier": "prettier --check \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\"",
     "lint:src": "yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn eslint --fix",
