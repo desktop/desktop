@@ -303,6 +303,8 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [Neovim](https://neovim.io/)
+ - [Code](https://github.com/elementary/code)
 
 These are defined in a list at the top of the file:
 
@@ -331,6 +333,6 @@ editor might be found.
 ```ts
 {
   name: 'Visual Studio Code',
-  paths: ['/usr/bin/code'],
+  paths: ['/usr/share/code/bin/code', '/snap/bin/code', '/usr/bin/code'],
 },
 ```
