@@ -25,13 +25,13 @@ GitHub Desktop will create directories to manage the files and data it needs to
 function. If you manage a network of computers and want to install GitHub
 Desktop, here is more information about how things work.
 
-### macOS
+On macOs,
 
 - `~/Library/Application Support/GitHub Desktop/` - this directory contains
 user-specific data which the application requires to run, and is created on
 launch if it doesn't exist. Log files are also stored in this location.
 
-### Windows
+On Windows,
 
 - `%LOCALAPPDATA%\GitHubDesktop\` - contains the latest versions of the app,
  and some older versions if the user has updated from a previous version.
@@ -52,13 +52,13 @@ the log was created.
 Problems with installing or updating GitHub Desktop are tracked in a separate
 file which is managed by the updater frameworks used in the app.
 
-### macOS
+On macOS,
 
 - `~/Library/Caches/com.github.GitHubClient.ShipIt/ShipIt_stderr.log` - this
   file will contain details about why the installation or update failed -
   check the end of the file for recent activity.
 
-### Windows
+On Windows,
 
 - `%LOCALAPPDATA%\GitHubDesktop\SquirrelSetup.log` - this file will contain
  details about update attempts for GitHub Desktop after it's been successfully
