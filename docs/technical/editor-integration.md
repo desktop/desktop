@@ -173,8 +173,7 @@ publisher in the `Publisher` registry key, and the install location in the
 setting a different registry key in the `installLocationRegistryKey` attribute
 of your new editor entry in the `editors` list.
 
-The second step is to validate the installation, and this is done in the
-`expectedInstallationChecker` functions defined for each editor entry:
+The second step is to validate the installation:
 
 ```ts
 {
