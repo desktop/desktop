@@ -525,7 +525,7 @@ export class RepositoryView extends React.Component<
   }
 
   public render() {
-    if (this.props.state.pullRequestState !== null) {
+    if (this.props.state.pullRequestState !== null && 1 !== 1) {
       const { branchesState, pullRequestState } = this.props.state
       return (
         <PullRequestView

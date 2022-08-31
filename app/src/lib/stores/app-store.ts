@@ -1453,17 +1453,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     if (changesetData.files.length > 0) {
-      this._changePullRequestFileSelection(repository, changesetData.files[0])
-    } else {
-      this.emitUpdate()
+      await this._changePullRequestFileSelection(
+        repository,
+        changesetData.files[0]
+      )
     }
 
     if (commitChangesetData.files.length > 0) {
-      this._changePullRequestCommitFileSelection(
+      await this._changePullRequestCommitFileSelection(
         repository,
         commitChangesetData.files[0]
       )
     }
+
+    this._showPopup({
+      type: PopupType.OpenPullRequest,
+    })
   }
 
   public async _changePullRequestCommitFileSelection(
