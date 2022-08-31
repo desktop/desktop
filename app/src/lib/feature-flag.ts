@@ -102,3 +102,8 @@ export function enablePullRequestQuickView(): boolean {
 export function enableMultiCommitDiffs(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we enable the new interstitial for submodule diffs? */
+export function enableSubmoduleDiff(): boolean {
+  return enableBetaFeatures()
+}

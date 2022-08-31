@@ -64,6 +64,7 @@ export async function applyPatchToIndex(
     const { kind } = diff
     switch (diff.kind) {
       case DiffType.Binary:
+      case DiffType.Submodule:
       case DiffType.Image:
         throw new Error(
           `Can't create partial commit in binary file: ${file.path}`

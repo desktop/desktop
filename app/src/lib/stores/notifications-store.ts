@@ -16,7 +16,7 @@ import { AccountsStore } from './accounts-store'
 import { getCommit } from '../git'
 import { GitHubRepository } from '../../models/github-repository'
 import { PullRequestCoordinator } from './pull-request-coordinator'
-import { Commit } from '../../models/commit'
+import { Commit, shortenSHA } from '../../models/commit'
 import {
   AliveStore,
   DesktopAliveEvent,
@@ -253,7 +253,7 @@ export class NotificationsStore {
     const pluralChecks =
       numberOfFailedChecks === 1 ? 'check was' : 'checks were'
 
-    const shortSHA = commitSHA.slice(0, 9)
+    const shortSHA = shortenSHA(commitSHA)
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
     const onClick = () => {

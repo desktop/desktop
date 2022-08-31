@@ -15,12 +15,11 @@ import { DiffOptions } from '../diff/diff-options'
 import { RepositorySectionTab } from '../../lib/app-state'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
-import { clipboard } from 'electron'
-import { TooltipDirection } from '../lib/tooltip'
 import { AppFileStatusKind } from '../../models/status'
 import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
+import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -437,15 +436,11 @@ export class CommitSummary extends React.Component<
         aria-label="SHA"
       >
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedContent
+        <TooltippedCommitSHA
           className="sha"
-          tooltip={this.renderShaTooltip()}
-          tooltipClassName="sha-hint"
-          interactive={true}
-          direction={TooltipDirection.SOUTH}
-        >
-          {this.getShaRef(true)}
-        </TooltippedContent>
+          shortSHA={this.getShaRef(true)}
+          longSHA={this.getShaRef()}
+        />
       </li>
     )
   }
@@ -538,20 +533,6 @@ export class CommitSummary extends React.Component<
         {this.renderCommitsNotReachable()}
       </div>
     )
-  }
-
-  private renderShaTooltip() {
-    return (
-      <>
-        <code>{this.getShaRef()}</code>
-        <button onClick={this.onCopyShaButtonClick}>Copy</button>
-      </>
-    )
-  }
-
-  private onCopyShaButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    clipboard.writeText(this.getShaRef())
   }
 
   private renderChangedFilesDescription = () => {
