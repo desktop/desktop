@@ -308,9 +308,9 @@ export class ChangesList extends React.Component<
       isCommitting || rebaseConflictState !== null || isUncommittableSubmodule
 
     const checkboxTooltip = isUncommittableSubmodule
-      ? 'This submodule cannot be checked in because it contains changes have not been committed.'
+      ? 'This submodule change cannot be added to a commit in this repository because it contains changes that have not been committed.'
       : isPartiallyCommittableSubmodule
-      ? 'Only changes that have been committed within the submodule will be checked in in this repository. You need to commit any other modified or untracked changes in the submodule before including them in this repository.'
+      ? 'Only changes that have been committed within the submodule will be added to this repository. You need to commit any other modified or untracked changes in the submodule before including them in this repository.'
       : undefined
 
     return (
