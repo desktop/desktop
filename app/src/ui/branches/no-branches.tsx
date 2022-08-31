@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { encodePathAsUrl } from '../../lib/path'
 import { Button } from '../lib/button'
@@ -20,7 +19,7 @@ export class NoBranches extends React.Component<INoBranchesProps> {
     if (this.props.canCreateNewBranch) {
       return (
         <div className="no-branches">
-          <img src={BlankSlateImage} className="blankslate-image" />
+          <img src={BlankSlateImage} className="blankslate-image" alt="" />
 
           <div className="title">Sorry, I can't find that branch</div>
 

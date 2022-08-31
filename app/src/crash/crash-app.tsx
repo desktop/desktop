@@ -201,8 +201,9 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   }
 
   private renderBackgroundGraphics() {
-    // eslint-disable-next-line jsx-a11y/alt-text
-    return <img className="background-graphic-bottom" src={BottomImageUri} />
+    return (
+      <img className="background-graphic-bottom" alt="" src={BottomImageUri} />
+    )
   }
 
   public render() {

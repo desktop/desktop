@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { GitHubRepository } from '../../models/github-repository'
 import { DisposableLike } from 'event-kit'
@@ -243,7 +242,7 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderCheckRunLoadings(): JSX.Element {
     return (
       <div className="loading-check-runs">
-        <img src={BlankSlateImage} className="blankslate-image" />
+        <img src={BlankSlateImage} className="blankslate-image" alt="" />
         <div className="title">Stand By</div>
         <div className="call-to-action">Check runs incoming!</div>
       </div>

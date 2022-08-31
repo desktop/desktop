@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { encodePathAsUrl } from '../../lib/path'
 import { Ref } from '../lib/ref'
@@ -34,7 +33,7 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
   public render() {
     return (
       <div className="no-pull-requests">
-        <img src={BlankSlateImage} className="blankslate-image" />
+        <img src={BlankSlateImage} className="blankslate-image" alt="" />
         {this.renderTitle()}
         {this.renderCallToAction()}
       </div>

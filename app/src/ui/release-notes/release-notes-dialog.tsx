@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 import { updateStore } from '../lib/update-store'
@@ -173,6 +172,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         <img
           className="release-note-graphic-left"
           src={ReleaseNoteHeaderLeftUri}
+          alt=""
         />
         <div className="title">
           <p className="version">Version {latestVersion}</p>
@@ -181,6 +181,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         <img
           className="release-note-graphic-right"
           src={ReleaseNoteHeaderRightUri}
+          alt=""
         />
       </div>
     )

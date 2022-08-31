@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
@@ -176,7 +175,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderLargeTextDiff() {
     return (
       <div className="panel empty large-diff">
-        <img src={NoDiffImage} className="blankslate-image" />
+        <img src={NoDiffImage} className="blankslate-image" alt="" />
         <p>
           The diff is too large to be displayed by default.
           <br />
@@ -193,7 +192,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderUnrenderableDiff() {
     return (
       <div className="panel empty large-diff">
-        <img src={NoDiffImage} />
+        <img src={NoDiffImage} alt="" />
         <p>The diff is too large to be displayed.</p>
       </div>
     )

@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { clipboard } from 'electron'
 import * as Path from 'path'
@@ -317,7 +316,7 @@ export class SelectedCommits extends React.Component<
     return (
       <div id="multiple-commits-selected" className="blankslate">
         <div className="panel blankslate">
-          <img src={BlankSlateImage} className="blankslate-image" />
+          <img src={BlankSlateImage} className="blankslate-image" alt="" />
           <div>
             <p>
               Unable to display diff when multiple{' '}
@@ -442,7 +441,7 @@ function NoCommitSelected() {
 
   return (
     <div className="panel blankslate">
-      <img src={BlankSlateImage} className="blankslate-image" />
+      <img src={BlankSlateImage} className="blankslate-image" alt="" />
       No commit selected
     </div>
   )

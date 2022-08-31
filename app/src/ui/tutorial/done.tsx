@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 
 import { encodePathAsUrl } from '../../lib/path'
@@ -40,7 +39,11 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
                 some suggestions for what to do next.
               </p>
             </div>
-            <img src={ClappingHandsImage} className="image" />
+            <img
+              src={ClappingHandsImage}
+              className="image"
+              alt="Hands clapping"
+            />
           </div>
           <SuggestedActionGroup>
             <SuggestedAction
