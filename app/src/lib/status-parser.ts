@@ -4,6 +4,7 @@ import {
   SubmoduleStatus,
   UnmergedEntrySummary,
 } from '../models/status'
+import { enableSubmoduleDiff } from './feature-flag'
 
 type StatusItem = IStatusHeader | IStatusEntry
 
@@ -179,7 +180,7 @@ function parseUntrackedEntry(field: string): IStatusEntry {
 function mapSubmoduleStatus(
   submoduleStatusCode: string
 ): SubmoduleStatus | undefined {
-  if (!submoduleStatusCode.startsWith('S')) {
+  if (!enableSubmoduleDiff() || !submoduleStatusCode.startsWith('S')) {
     return undefined
   }
 
