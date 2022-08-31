@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
 import { Octicon, OcticonSymbolType } from '../octicons'
 import classNames from 'classnames'

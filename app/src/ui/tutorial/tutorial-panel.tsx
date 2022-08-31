@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react'
 import { join } from 'path'
 import { LinkButton } from '../lib/link-button'

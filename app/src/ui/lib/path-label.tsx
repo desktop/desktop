@@ -41,6 +41,7 @@ export class PathLabel extends React.Component<IPathLabelProps, {}> {
         ? availableWidth / 2 - ResizeArrowPadding
         : undefined
       return (
+        // eslint-disable-next-line jsx-a11y/label-has-associated-control
         <label {...props}>
           <PathText path={status.oldPath} availableWidth={segmentWidth} />
           <Octicon className="rename-arrow" symbol={OcticonSymbol.arrowRight} />
@@ -49,6 +50,7 @@ export class PathLabel extends React.Component<IPathLabelProps, {}> {
       )
     } else {
       return (
+        // eslint-disable-next-line jsx-a11y/label-has-associated-control
         <label {...props}>
           <PathText path={this.props.path} availableWidth={availableWidth} />
         </label>
