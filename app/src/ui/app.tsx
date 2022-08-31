@@ -157,6 +157,7 @@ import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
 import { showContextualMenu } from '../lib/menu-item'
 import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
+import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2238,6 +2239,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
+      }
+      case PopupType.OpenPullRequest: {
+        return <OpenPullRequestDialog onDismissed={onPopupDismissedFn} />
       }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
