@@ -2241,7 +2241,53 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.OpenPullRequest: {
-        return <OpenPullRequestDialog onDismissed={onPopupDismissedFn} />
+        const {
+          selectedState,
+          emoji,
+          commitSummaryWidth,
+          sidebarWidth,
+          imageDiffType,
+          hideWhitespaceInHistoryDiff,
+          showSideBySideDiff,
+          selectedExternalEditor,
+        } = this.state
+        if (
+          selectedState == null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const { state: repoState, repository } = selectedState
+        const { commitLookup, branchesState, pullRequestState } = repoState
+        if (pullRequestState === null) {
+          return null
+        }
+
+        const externalEditorLabel = selectedExternalEditor
+          ? selectedExternalEditor
+          : undefined
+
+        return (
+          <OpenPullRequestDialog
+            branchesState={branchesState}
+            pullRequestState={pullRequestState}
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            commitSummaryWidth={commitSummaryWidth}
+            sidebarWidth={sidebarWidth}
+            selectedDiffType={imageDiffType}
+            hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
+            showSideBySideDiff={showSideBySideDiff}
+            externalEditorLabel={externalEditorLabel}
+            commitLookup={commitLookup}
+            emoji={emoji}
+            imageDiffType={imageDiffType}
+            onOpenInExternalEditor={this.openFileInExternalEditor}
+            onViewCommitOnGitHub={this.onViewCommitOnGitHub}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
       }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)

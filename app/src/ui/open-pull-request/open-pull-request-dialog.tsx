@@ -1,8 +1,39 @@
 import * as React from 'react'
+import {
+  IBranchesState,
+  IPullRequestState,
+  IConstrainedValue,
+} from '../../lib/app-state'
+import { Commit } from '../../models/commit'
+import { ImageDiffType } from '../../models/diff'
+import { Repository } from '../../models/repository'
 import { Dialog, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Dispatcher } from '../dispatcher'
+import { Select } from '../lib/select'
 
 interface IOpenPullRequestDialogProps {
+  readonly branchesState: IBranchesState
+  readonly pullRequestState: IPullRequestState
+
+  readonly commitSummaryWidth: IConstrainedValue
+  readonly sidebarWidth: IConstrainedValue
+
+  readonly dispatcher: Dispatcher
+  readonly repository: Repository
+
+  readonly selectedDiffType: ImageDiffType
+  readonly showSideBySideDiff: boolean
+  readonly hideWhitespaceInDiff: boolean
+  readonly externalEditorLabel?: string
+
+  readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
+
+  readonly commitLookup: Map<string, Commit>
+  readonly emoji: Map<string, string>
+  readonly imageDiffType: ImageDiffType
+
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
 }
