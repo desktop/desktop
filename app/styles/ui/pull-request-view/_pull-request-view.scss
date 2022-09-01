@@ -20,3 +20,38 @@
     }
   }
 }
+
+.create-pull-request {
+  min-width: 920px;
+  max-width: 1200px;
+
+  .content {
+    padding: var(--spacing-double);
+  }
+
+  .pull-request-dialog-controls {
+    display: flex;
+
+    .select-component {
+      display: flex;
+      padding-right: var(--spacing-double);
+      flex-direction: row;
+      flex-grow: 0;
+
+      select {
+        width: auto;
+        height: auto;
+        color: var(--link-button-color);
+        border: 0;
+        margin-left: var(--spacing);
+        border-radius: 0;
+        max-width: 100px;
+
+        &:focus {
+          border-bottom: 1px solid var(--text-field-focus-shadow-color);
+          box-shadow: none;
+        }
+      }
+    }
+  }
+}

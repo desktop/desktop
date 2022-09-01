@@ -41,7 +41,54 @@ interface IOpenPullRequestDialogProps {
 /** The component for viewing the diff of a pull request. */
 export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialogProps> {
   private renderControls() {
-    return <>Controls Here</>
+    return (
+      <div className="pull-request-dialog-controls">
+        {this.renderComparisonDropdown()}
+        {this.renderCommitDropdown()}
+      </div>
+    )
+  }
+
+  private renderComparisonDropdown() {
+    const { allBranches } = this.props.branchesState
+    const { mergeBaseBranch } = this.props.pullRequestState
+    return (
+      <Select label={'Comparison Branch:'} defaultValue={mergeBaseBranch.name}>
+        {allBranches.map(branch => (
+          <option key={branch.name} value={branch.name}>
+            {branch.name}
+          </option>
+        ))}
+      </Select>
+    )
+  }
+
+  private renderCommitDropdown() {
+    const { commitSHAs } = this.props.pullRequestState
+    if (commitSHAs === null) {
+      return null
+    }
+
+    const commits = []
+    for (const sha of commitSHAs) {
+      const commit = this.props.commitLookup.get(sha)
+      if (commit) {
+        commits.push(commit)
+      }
+    }
+
+    return (
+      <Select label={'Showing Changes from:'} defaultValue={'all-commits'}>
+        <option key={'all-commits'} value={'all-commits'}>
+          all commits
+        </option>
+        {commits.map(commit => (
+          <option key={commit.sha} value={commit.sha}>
+            {commit.summary}
+          </option>
+        ))}
+      </Select>
+    )
   }
 
   private renderDiff() {
@@ -64,8 +111,11 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
-        {this.renderControls()}
-        {this.renderDiff()}
+        <div className="content">
+          {this.renderControls()}
+          {this.renderDiff()}
+        </div>
+
         {this.renderFooter()}
       </Dialog>
     )
