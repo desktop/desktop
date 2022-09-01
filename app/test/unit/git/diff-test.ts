@@ -12,6 +12,7 @@ import {
   DiffSelectionType,
   DiffSelection,
   DiffType,
+  ISubmoduleDiff,
 } from '../../../src/models/diff'
 import {
   setupFixtureRepository,
@@ -437,6 +438,94 @@ describe('git/diff', () => {
         expect(await getBinaryPaths(repo, 'MERGE_HEAD')).toEqual([
           'my-cool-image.png',
         ])
+      })
+    })
+  })
+
+  describe('with submodules', () => {
+    const submoduleRelativePath: string = path.join('foo', 'submodule')
+    let submodulePath: string
+
+    const getSubmoduleDiff = async () => {
+      const status = await getStatusOrThrow(repository)
+      const file = status.workingDirectory.files[0]
+      const diff = await getWorkingDirectoryDiff(repository, file)
+      expect(diff.kind).toBe(DiffType.Submodule)
+
+      return diff as ISubmoduleDiff
+    }
+
+    beforeEach(async () => {
+      const repoPath = await setupFixtureRepository('submodule-basic-setup')
+      repository = new Repository(repoPath, -1, null, false)
+      submodulePath = path.join(repoPath, submoduleRelativePath)
+    })
+
+    it('can get the diff for a submodule with the right paths', async () => {
+      // Just make any change to the submodule to get a diff
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.fullPath).toBe(submodulePath)
+      expect(diff.path).toBe(submoduleRelativePath)
+    })
+
+    it('can get the diff for a submodule with only modified changes', async () => {
+      // Modify README.md file. Now the submodule has modified changes.
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).toBeNull()
+      expect(diff.newSHA).toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: false,
+        modifiedChanges: true,
+        untrackedChanges: false,
+      })
+    })
+
+    it('can get the diff for a submodule with only untracked changes', async () => {
+      // Create NEW.md file. Now the submodule has untracked changes.
+      await FSE.writeFile(path.join(submodulePath, 'NEW.md'), 'hello\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).toBeNull()
+      expect(diff.newSHA).toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: false,
+        modifiedChanges: false,
+        untrackedChanges: true,
+      })
+    })
+
+    it('can get the diff for a submodule a commit change', async () => {
+      // Make a change and commit it. Now the submodule has a commit change.
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+      await GitProcess.exec(['commit', '-a', '-m', 'test'], submodulePath)
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).not.toBeNull()
+      expect(diff.newSHA).not.toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: true,
+        modifiedChanges: false,
+        untrackedChanges: false,
+      })
+    })
+
+    it('can get the diff for a submodule a all kinds of changes', async () => {
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+      await GitProcess.exec(['commit', '-a', '-m', 'test'], submodulePath)
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'bye\n')
+      await FSE.writeFile(path.join(submodulePath, 'NEW.md'), 'new!!\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).not.toBeNull()
+      expect(diff.newSHA).not.toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: true,
+        modifiedChanges: true,
+        untrackedChanges: true,
       })
     })
   })
