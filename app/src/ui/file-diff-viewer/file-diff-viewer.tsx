@@ -217,30 +217,38 @@ export class FileDiffViewer extends React.Component<IFileDiffViewerProps> {
     )
   }
 
+  public renderHeader() {
+    if (1 === 1) {
+      return null
+    }
+
+    return (
+      <div className="file-diff-header">
+        <span> Changes from all commits</span>
+        <span className="middle"></span>
+        {this.renderLinesChanged()}
+        <span>
+          <DiffOptions
+            sourceTab={RepositorySectionTab.History}
+            hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+            onHideWhitespaceChangesChanged={
+              this.props.onHideWhitespaceInDiffChanged
+            }
+            showSideBySideDiff={this.props.showSideBySideDiff}
+            onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
+            onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+          />
+        </span>
+      </div>
+    )
+  }
+
   public render() {
     const { diffWidth } = this.props
 
     return (
       <div className="file-diff-viewer">
-        <div className="file-diff-header">
-          <span> Changes from all commits</span>
-          <span className="middle"></span>
-          {this.renderLinesChanged()}
-          <span>
-            <DiffOptions
-              sourceTab={RepositorySectionTab.History}
-              hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-              onHideWhitespaceChangesChanged={
-                this.props.onHideWhitespaceInDiffChanged
-              }
-              showSideBySideDiff={this.props.showSideBySideDiff}
-              onShowSideBySideDiffChanged={
-                this.props.onShowSideBySideDiffChanged
-              }
-              onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-            />
-          </span>
-        </div>
+        {this.renderHeader()}
         <div className="diff-details">
           <Resizable
             width={diffWidth.value}

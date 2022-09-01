@@ -23,14 +23,48 @@
 
 .create-pull-request {
   min-width: 920px;
-  max-width: 1200px;
+  width: 920px;
 
   .content {
     padding: var(--spacing-double);
   }
 
+  .file-diff-viewer {
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    height: 400px;
+    overflow: hidden;
+  }
+
   .pull-request-dialog-controls {
     display: flex;
+    margin-bottom: var(--spacing);
+
+    span {
+      display: flex;
+      flex-direction: row;
+      min-width: 0;
+      margin-right: var(--spacing);
+      font-size: var(--font-size-sm);
+      flex-shrink: 1;
+
+      &:first-child {
+        font-weight: var(--font-weight-semibold);
+        font-size: var(--font-size);
+      }
+
+      &.lines-added {
+        color: var(--color-new);
+      }
+
+      &.lines-deleted {
+        color: var(--color-deleted);
+      }
+    }
+
+    .spacer {
+      flex-grow: 1;
+    }
 
     .select-component {
       display: flex;

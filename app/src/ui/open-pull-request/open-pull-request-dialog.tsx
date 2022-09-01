@@ -1,8 +1,10 @@
 import * as React from 'react'
+import * as Path from 'path'
 import {
   IBranchesState,
   IPullRequestState,
   IConstrainedValue,
+  RepositorySectionTab,
 } from '../../lib/app-state'
 import { Commit } from '../../models/commit'
 import { ImageDiffType } from '../../models/diff'
@@ -10,7 +12,12 @@ import { Repository } from '../../models/repository'
 import { Dialog, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Dispatcher } from '../dispatcher'
+import { FileDiffViewer } from '../file-diff-viewer/file-diff-viewer'
+import { openFile } from '../lib/open-file'
 import { Select } from '../lib/select'
+import { CommittedFileChange } from '../../models/status'
+import { DiffOptions } from '../diff/diff-options'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface IOpenPullRequestDialogProps {
   readonly branchesState: IBranchesState
@@ -41,11 +48,69 @@ interface IOpenPullRequestDialogProps {
 /** The component for viewing the diff of a pull request. */
 export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialogProps> {
   private renderControls() {
+    const { pullRequestState } = this.props
+    const { changedFiles } = pullRequestState
+    if (changedFiles === null) {
+      return
+    }
+    const { selectedFile } = changedFiles
+
     return (
       <div className="pull-request-dialog-controls">
         {this.renderComparisonDropdown()}
         {this.renderCommitDropdown()}
+        <div className="spacer"></div>
+        {this.renderLinesChanged()}
+        <div>
+          <DiffOptions
+            sourceTab={RepositorySectionTab.History}
+            hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+            onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged(
+              selectedFile
+            )}
+            showSideBySideDiff={this.props.showSideBySideDiff}
+            onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+            onDiffOptionsOpened={this.onDiffOptionsOpened}
+          />
+        </div>
       </div>
+    )
+  }
+
+  private renderLinesChanged() {
+    const { pullRequestState } = this.props
+    const { changedFiles } = pullRequestState
+    if (changedFiles === null) {
+      return
+    }
+    const { changesetData } = changedFiles
+    const { linesAdded, linesDeleted } = changesetData
+    if (linesAdded + linesDeleted === 0) {
+      return null
+    }
+
+    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
+    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
+    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
+    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
+
+    return (
+      <>
+        <TooltippedContent
+          tagName="span"
+          className="without-truncation lines-added"
+          tooltip={linesAddedTitle}
+        >
+          +{linesAdded}
+        </TooltippedContent>
+        <TooltippedContent
+          tagName="span"
+          className="without-truncation lines-deleted"
+          tooltip={linesDeletedTitle}
+        >
+          -{linesDeleted}
+        </TooltippedContent>
+      </>
     )
   }
 
@@ -91,8 +156,86 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     )
   }
 
+  private onCommitSummaryReset = () => {
+    this.props.dispatcher.resetCommitSummaryWidth()
+  }
+
+  private onCommitSummaryResize = (width: number) => {
+    this.props.dispatcher.setCommitSummaryWidth(width)
+  }
+  private onFileSelected = (file: CommittedFileChange) => {
+    this.props.dispatcher.changePullRequestFileSelection(
+      this.props.repository,
+      file
+    )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
+  }
+
+  private onOpenFile = (path: string) => {
+    const fullPath = Path.join(this.props.repository.path, path)
+    this.onOpenBinaryFile(fullPath)
+  }
+
+  private onOpenBinaryFile = (fullPath: string) => {
+    openFile(fullPath, this.props.dispatcher)
+  }
+
+  private onHideWhitespaceInDiffChanged = (
+    selectedFile: CommittedFileChange | null
+  ) => {
+    return (hideWhitespaceInDiff: boolean) => {
+      return this.props.dispatcher.onHideWhitespaceInHistoryDiffChanged(
+        hideWhitespaceInDiff,
+        this.props.repository,
+        selectedFile as CommittedFileChange
+      )
+    }
+  }
+
+  private onDiffOptionsOpened = () => {
+    this.props.dispatcher.recordDiffOptionsViewed()
+  }
+
+  private onChangeImageDiffType = (imageDiffType: ImageDiffType) => {
+    this.props.dispatcher.changeImageDiffType(imageDiffType)
+  }
+
   private renderDiff() {
-    return <>Diff Here</>
+    const { pullRequestState, repository } = this.props
+    const { changedFiles } = pullRequestState
+    if (changedFiles === null) {
+      return
+    }
+    const { changesetData, selectedFile, diff } = changedFiles
+
+    return (
+      <FileDiffViewer
+        diff={diff}
+        diffWidth={this.props.commitSummaryWidth}
+        externalEditorLabel={this.props.externalEditorLabel}
+        changesetData={changesetData}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        selectedDiffType={this.props.selectedDiffType}
+        showSideBySideDiff={this.props.showSideBySideDiff}
+        selectedFile={selectedFile}
+        repository={repository}
+        onChangeImageDiffType={this.onChangeImageDiffType}
+        onDiffResize={this.onCommitSummaryResize}
+        onDiffSizeReset={this.onCommitSummaryReset}
+        onFileSelected={this.onFileSelected}
+        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged(
+          selectedFile
+        )}
+        onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        onDiffOptionsOpened={this.onDiffOptionsOpened}
+        onOpenBinaryFile={this.onOpenBinaryFile}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onOpenWithDefaultProgram={this.onOpenFile}
+      />
+    )
   }
 
   private renderFooter() {
