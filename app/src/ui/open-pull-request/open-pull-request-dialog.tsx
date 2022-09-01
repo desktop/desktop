@@ -47,6 +47,12 @@ interface IOpenPullRequestDialogProps {
 
 /** The component for viewing the diff of a pull request. */
 export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialogProps> {
+  private onCreatePullRequest = () => {
+    this.props.dispatcher.createPullRequest(this.props.repository)
+    // TODO: create pr from dialog pr stat?
+    this.props.dispatcher.recordCreatePullRequest()
+  }
+
   private renderControls() {
     const { pullRequestState } = this.props
     const { changedFiles } = pullRequestState
@@ -241,7 +247,11 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   private renderFooter() {
     return (
       <DialogFooter>
-        <OkCancelButtonGroup cancelButtonVisible={false} />
+        <OkCancelButtonGroup
+          okButtonText="Create Pull Request"
+          okButtonTitle="Create pull request on GitHub."
+          cancelButtonText="Nevermind"
+        />
       </DialogFooter>
     )
   }
@@ -251,7 +261,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       <Dialog
         className="create-pull-request"
         title={__DARWIN__ ? 'Open a Pull Request' : 'Open a pull request'}
-        onSubmit={this.props.onDismissed}
+        onSubmit={this.onCreatePullRequest}
         onDismissed={this.props.onDismissed}
       >
         <div className="content">
