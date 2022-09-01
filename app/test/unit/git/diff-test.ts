@@ -467,7 +467,8 @@ describe('git/diff', () => {
 
       const diff = await getSubmoduleDiff()
       expect(diff.fullPath).toBe(submodulePath)
-      expect(diff.path).toBe(submoduleRelativePath)
+      // Even on Windows, the path separator is '/' for this specific attribute
+      expect(diff.path).toBe('foo/submodule')
     })
 
     it('can get the diff for a submodule with only modified changes', async () => {
