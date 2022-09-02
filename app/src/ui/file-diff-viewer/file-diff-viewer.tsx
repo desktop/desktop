@@ -47,6 +47,9 @@ interface IFileDiffViewerProps {
   readonly onHideWhitespaceInDiffChanged: (
     hideWhitespaceInDiff: boolean
   ) => Promise<void>
+  readonly byFile?: boolean
+
+  // Callbacks
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
   readonly onDiffOptionsOpened: () => void
   readonly onOpenBinaryFile: (fullPath: string) => void
@@ -243,24 +246,48 @@ export class FileDiffViewer extends React.Component<IFileDiffViewerProps> {
     )
   }
 
-  public render() {
+  public renderByFile() {
+    const {
+      changesetData: { files },
+    } = this.props
+
+    const filesOutput = files.map(f => {
+      return (
+        <div className="file-container" key={f.id}>
+          <div className="file-header">{f.path}</div>
+          <div className="file-diff">{this.renderDiff()}</div>
+        </div>
+      )
+    })
+
+    return <div className="diff-details-by-file">{filesOutput}</div>
+  }
+
+  public renderWithFileList() {
     const { diffWidth } = this.props
+    return (
+      <div className="diff-details">
+        <Resizable
+          width={diffWidth.value}
+          minimumWidth={diffWidth.min}
+          maximumWidth={diffWidth.max}
+          onResize={this.props.onDiffResize}
+          onReset={this.props.onDiffSizeReset}
+        >
+          {this.renderFileList()}
+        </Resizable>
+        {this.renderDiff()}
+      </div>
+    )
+  }
+
+  public render() {
+    const { byFile } = this.props
 
     return (
       <div className="file-diff-viewer">
         {this.renderHeader()}
-        <div className="diff-details">
-          <Resizable
-            width={diffWidth.value}
-            minimumWidth={diffWidth.min}
-            maximumWidth={diffWidth.max}
-            onResize={this.props.onDiffResize}
-            onReset={this.props.onDiffSizeReset}
-          >
-            {this.renderFileList()}
-          </Resizable>
-          {this.renderDiff()}
-        </div>
+        {byFile ? this.renderByFile() : this.renderWithFileList()}
       </div>
     )
   }

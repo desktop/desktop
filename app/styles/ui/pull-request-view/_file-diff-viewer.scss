@@ -46,4 +46,27 @@
     flex: 1 1 auto;
     height: 100%;
   }
+
+  .diff-details-by-file {
+    flex: 1 1 auto;
+    height: 400px;
+    overflow-y: scroll;
+    padding-right: var(--spacing);
+    flex-direction: column;
+
+    .file-container {
+      margin-bottom: var(--spacing-double);
+
+      .file-header {
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        background: var(--box-alt-background-color);
+        padding: var(--spacing);
+        border: 1px solid var(--box-border-color);
+      }
+
+      .file-diff {
+        border: 1px solid var(--box-border-color);
+      }
+    }
+  }
 }
