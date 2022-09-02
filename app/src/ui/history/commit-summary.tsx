@@ -342,11 +342,6 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  private getShaRef = (useShortSha?: boolean) => {
-    const { selectedCommits } = this.props
-    return useShortSha ? selectedCommits[0].shortSha : selectedCommits[0].sha
-  }
-
   private onHighlightShasInDiff = () => {
     this.props.onHighlightShas(this.props.shasInDiff)
   }
@@ -436,11 +431,7 @@ export class CommitSummary extends React.Component<
         aria-label="SHA"
       >
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA
-          className="sha"
-          shortSHA={this.getShaRef(true)}
-          longSHA={this.getShaRef()}
-        />
+        <TooltippedCommitSHA className="sha" commit={selectedCommits[0]} />
       </li>
     )
   }
