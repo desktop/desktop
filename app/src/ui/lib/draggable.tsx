@@ -174,6 +174,7 @@ export class Draggable extends React.Component<IDraggableProps> {
 
   public render() {
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div className="draggable" onMouseDown={this.onMouseDown}>
         {this.props.children}
       </div>

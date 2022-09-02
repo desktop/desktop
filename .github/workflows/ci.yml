@@ -16,17 +16,14 @@ jobs:
       fail-fast: false
       matrix:
         node: [16.13.0]
-        os: [macos-10.15, windows-2019]
+        os: [macos-11, windows-2019]
         arch: [x64, arm64]
         include:
-          - os: macos-10.15
+          - os: macos-11
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
     timeout-minutes: 60
-    env:
-      # Needed for macOS arm64 until hosted macos-11.0 runners become available
-      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
       - uses: actions/checkout@v3
         with:

@@ -34,6 +34,7 @@ export type PlainFileStatus = {
     | AppFileStatusKind.New
     | AppFileStatusKind.Modified
     | AppFileStatusKind.Deleted
+  submoduleStatus?: SubmoduleStatus
 }
 
 /**
@@ -46,6 +47,7 @@ export type PlainFileStatus = {
 export type CopiedOrRenamedFileStatus = {
   kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
   oldPath: string
+  submoduleStatus?: SubmoduleStatus
 }
 
 /**
@@ -56,6 +58,7 @@ export type ConflictsWithMarkers = {
   kind: AppFileStatusKind.Conflicted
   entry: TextConflictEntry
   conflictMarkerCount: number
+  submoduleStatus?: SubmoduleStatus
 }
 
 /**
@@ -65,6 +68,7 @@ export type ConflictsWithMarkers = {
 export type ManualConflict = {
   kind: AppFileStatusKind.Conflicted
   entry: ManualConflictEntry
+  submoduleStatus?: SubmoduleStatus
 }
 
 /** Union of potential conflict scenarios the application should handle */
@@ -92,7 +96,10 @@ export function isManualConflict(
 }
 
 /** Denotes an untracked file in the working directory) */
-export type UntrackedFileStatus = { kind: AppFileStatusKind.Untracked }
+export type UntrackedFileStatus = {
+  kind: AppFileStatusKind.Untracked
+  submoduleStatus?: SubmoduleStatus
+}
 
 /** The union of potential states associated with a file change in Desktop */
 export type AppFileStatus =
@@ -100,6 +107,22 @@ export type AppFileStatus =
   | CopiedOrRenamedFileStatus
   | ConflictedFileStatus
   | UntrackedFileStatus
+
+/** The status of a submodule */
+export type SubmoduleStatus = {
+  /** Whether or not the submodule is pointing to a different commit */
+  readonly commitChanged: boolean
+  /**
+   * Whether or not the submodule contains modified changes that haven't been
+   * committed yet
+   */
+  readonly modifiedChanges: boolean
+  /**
+   * Whether or not the submodule contains untracked changes that haven't been
+   * committed yet
+   */
+  readonly untrackedChanges: boolean
+}
 
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
@@ -110,6 +133,8 @@ type OrdinaryEntry = {
   readonly index?: GitStatusEntry
   /** the status of the working tree for this entry (if known) */
   readonly workingTree?: GitStatusEntry
+  /** the submodule status for this entry */
+  readonly submoduleStatus?: SubmoduleStatus
 }
 
 /** The porcelain status for a renamed or copied entry */
@@ -119,6 +144,8 @@ type RenamedOrCopiedEntry = {
   readonly index?: GitStatusEntry
   /** the status of the working tree for this entry (if known) */
   readonly workingTree?: GitStatusEntry
+  /** the submodule status for this entry */
+  readonly submoduleStatus?: SubmoduleStatus
 }
 
 export enum UnmergedEntrySummary {
@@ -149,13 +176,18 @@ type TextConflictDetails =
 
 type TextConflictEntry = {
   readonly kind: 'conflicted'
+  /** the submodule status for this entry */
+  readonly submoduleStatus?: SubmoduleStatus
 } & TextConflictDetails
 
 /**
  * Valid Git index states where the user needs to choose one of `us` or `them`
  * in the app.
  */
-type ManualConflictDetails =
+type ManualConflictDetails = {
+  /** the submodule status for this entry */
+  readonly submoduleStatus?: SubmoduleStatus
+} & (
   | {
       readonly action: UnmergedEntrySummary.BothAdded
       readonly us: GitStatusEntry.Added
@@ -191,9 +223,12 @@ type ManualConflictDetails =
       readonly us: GitStatusEntry.Deleted
       readonly them: GitStatusEntry.Deleted
     }
+)
 
 type ManualConflictEntry = {
   readonly kind: 'conflicted'
+  /** the submodule status for this entry */
+  readonly submoduleStatus?: SubmoduleStatus
 } & ManualConflictDetails
 
 /** The porcelain status for an unmerged entry */
@@ -202,6 +237,8 @@ export type UnmergedEntry = TextConflictEntry | ManualConflictEntry
 /** The porcelain status for an unmerged entry */
 type UntrackedEntry = {
   readonly kind: 'untracked'
+  /** the submodule status for this entry */
+  readonly submoduleStatus?: SubmoduleStatus
 }
 
 /** The union of possible entries from the git status */

@@ -55,6 +55,8 @@ interface IChangesSidebarProps {
   readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly accounts: ReadonlyArray<Account>
+  readonly isShowingModal: boolean
+  readonly isShowingFoldout: boolean
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
@@ -394,6 +396,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           branch={this.props.branch}
           commitMessage={commitMessage}
           focusCommitMessage={this.props.focusCommitMessage}
+          isShowingModal={this.props.isShowingModal}
+          isShowingFoldout={this.props.isShowingFoldout}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
           onIgnoreFile={this.onIgnoreFile}

@@ -65,6 +65,9 @@ interface ISeamlessDiffSwitcherProps {
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
 
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule?: (fullPath: string) => void
+
   /**
    * Called when the user is viewing an image diff and requests
    * to change the diff presentation mode.
@@ -309,6 +312,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       onDiscardChanges,
       file,
       onOpenBinaryFile,
+      onOpenSubmodule,
       onChangeImageDiffType,
       onHideWhitespaceInDiffChanged,
     } = this.state.propSnapshot
@@ -343,6 +347,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
             onDiscardChanges={isLoadingDiff ? noop : onDiscardChanges}
             onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
+            onOpenSubmodule={isLoadingDiff ? noop : onOpenSubmodule}
             onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
             onHideWhitespaceInDiffChanged={
               isLoadingDiff ? noop : onHideWhitespaceInDiffChanged

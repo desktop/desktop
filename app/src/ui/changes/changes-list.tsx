@@ -131,6 +131,8 @@ interface IChangesListProps {
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
+  readonly isShowingModal: boolean
+  readonly isShowingFoldout: boolean
   readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges: boolean
@@ -276,6 +278,18 @@ export class ChangesList extends React.Component<
 
     const file = workingDirectory.files[row]
     const selection = file.selection.getSelectionType()
+    const { submoduleStatus } = file.status
+
+    const isUncommittableSubmodule =
+      submoduleStatus !== undefined &&
+      file.status.kind === AppFileStatusKind.Modified &&
+      !submoduleStatus.commitChanged
+
+    const isPartiallyCommittableSubmodule =
+      submoduleStatus !== undefined &&
+      (submoduleStatus.commitChanged ||
+        file.status.kind === AppFileStatusKind.New) &&
+      (submoduleStatus.modifiedChanges || submoduleStatus.untrackedChanges)
 
     const includeAll =
       selection === DiffSelectionType.All
@@ -284,22 +298,31 @@ export class ChangesList extends React.Component<
         ? false
         : null
 
-    const include =
-      rebaseConflictState !== null
-        ? file.status.kind !== AppFileStatusKind.Untracked
-        : includeAll
+    const include = isUncommittableSubmodule
+      ? false
+      : rebaseConflictState !== null
+      ? file.status.kind !== AppFileStatusKind.Untracked
+      : includeAll
 
-    const disableSelection = isCommitting || rebaseConflictState !== null
+    const disableSelection =
+      isCommitting || rebaseConflictState !== null || isUncommittableSubmodule
+
+    const checkboxTooltip = isUncommittableSubmodule
+      ? 'This submodule change cannot be added to a commit in this repository because it contains changes that have not been committed.'
+      : isPartiallyCommittableSubmodule
+      ? 'Only changes that have been committed within the submodule will be added to this repository. You need to commit any other modified or untracked changes in the submodule before including them in this repository.'
+      : undefined
 
     return (
       <ChangedFile
         file={file}
-        include={include}
+        include={isPartiallyCommittableSubmodule && include ? null : include}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={onIncludeChanged}
         availableWidth={availableWidth}
         disableSelection={disableSelection}
+        checkboxTooltip={checkboxTooltip}
       />
     )
   }
@@ -756,6 +779,8 @@ export class ChangesList extends React.Component<
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
         commitAuthor={this.props.commitAuthor}
+        isShowingModal={this.props.isShowingModal}
+        isShowingFoldout={this.props.isShowingFoldout}
         anyFilesSelected={anyFilesSelected}
         anyFilesAvailable={fileCount > 0}
         repository={repository}
@@ -848,6 +873,7 @@ export class ChangesList extends React.Component<
     )
 
     return (
+      // eslint-disable-next-line jsx-a11y/role-supports-aria-props
       <button
         className={className}
         onClick={this.onStashEntryClicked}

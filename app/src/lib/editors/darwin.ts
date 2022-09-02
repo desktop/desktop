@@ -132,6 +132,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Nova',
     bundleIdentifiers: ['com.panic.Nova'],
   },
+  {
+    name: 'Emacs',
+    bundleIdentifiers: ['org.gnu.Emacs'],
+  },
 ]
 
 async function findApplication(
@@ -148,11 +152,7 @@ async function findApplication(
           : Promise.reject(e)
       )
 
-      if (installPath === null) {
-        return null
-      }
-
-      if (await pathExists(installPath)) {
+      if (installPath && (await pathExists(installPath))) {
         return installPath
       }
 

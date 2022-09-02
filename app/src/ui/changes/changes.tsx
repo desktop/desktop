@@ -29,6 +29,9 @@ interface IChangesProps {
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
 
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule: (fullPath: string) => void
+
   /**
    * Called when the user is viewing an image diff and requests
    * to change the diff presentation mode.
@@ -121,6 +124,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             this.props.askForConfirmationOnDiscardChanges
           }
           onOpenBinaryFile={this.props.onOpenBinaryFile}
+          onOpenSubmodule={this.props.onOpenSubmodule}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         />
