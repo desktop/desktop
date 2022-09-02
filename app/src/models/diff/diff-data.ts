@@ -90,11 +90,23 @@ export interface IBinaryDiff {
 
 export interface ISubmoduleDiff {
   readonly kind: DiffType.Submodule
+
+  /** Full path of the submodule */
   readonly fullPath: string
+
+  /** Path of the repository within its container repository */
   readonly path: string
+
+  /** URL of the submodule */
   readonly url: string
+
+  /** Status of the submodule */
   readonly status: SubmoduleStatus
+
+  /** Previous SHA of the submodule, or null if it hasn't changed */
   readonly oldSHA: string | null
+
+  /** New SHA of the submodule, or null if it hasn't changed */
   readonly newSHA: string | null
 }
 
