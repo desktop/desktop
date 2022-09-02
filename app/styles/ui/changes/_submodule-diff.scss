@@ -1,0 +1,31 @@
+.submodule-diff {
+  .item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    font-size: var(--font-size-md);
+    gap: 0.25em;
+    margin-bottom: 1em;
+
+    .content {
+      flex: 1;
+    }
+
+    .octicon {
+      margin-top: 0.2em;
+
+      &.info-icon {
+        color: var(--dialog-information-color);
+      }
+
+      &.modified-icon {
+        color: var(--color-modified);
+      }
+
+      &.untracked-icon {
+        color: var(--color-deleted);
+      }
+    }
+  }
+}

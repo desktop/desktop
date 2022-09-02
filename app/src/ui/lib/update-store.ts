@@ -19,10 +19,7 @@ import { parseError } from '../../lib/squirrel-error-parser'
 import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
 import { setNumber, getNumber } from '../../lib/local-storage'
-import {
-  enableImmediateUpdateFromEmulatedX64ToARM64,
-  enableUpdateFromEmulatedX64ToARM64,
-} from '../../lib/feature-flag'
+import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
 import { offsetFromNow } from '../../lib/offset-from'
 import { gte, SemVer } from 'semver'
 import { getRendererGUID } from '../../lib/get-renderer-guid'
@@ -124,13 +121,24 @@ class UpdateStore {
     // and it's the same version we have right now (which means we spoofed
     // Central with an old version of the app).
     this.isX64ToARM64ImmediateAutoUpdate =
-      enableImmediateUpdateFromEmulatedX64ToARM64() &&
+      this.supportsImmediateUpdateFromEmulatedX64ToARM64() &&
       this.newReleases !== null &&
       this.newReleases.length === 1 &&
       this.newReleases[0].latestVersion === getVersion() &&
       (await isRunningUnderARM64Translation())
     this.status = UpdateStatus.UpdateReady
     this.emitDidChange()
+  }
+
+  /**
+   * Whether or not the app supports auto-updating x64 apps running under ARM
+   * translation to ARM64 builds IMMEDIATELY instead of waiting for the next
+   * release.
+   */
+  private supportsImmediateUpdateFromEmulatedX64ToARM64(): boolean {
+    // Because of how Squirrel.Windows works, this is only available for macOS.
+    // See: https://github.com/desktop/desktop/pull/14998
+    return __DARWIN__
   }
 
   /** Register a function to call when the auto updater state changes. */
@@ -167,10 +175,13 @@ class UpdateStore {
   /**
    * Check for updates.
    *
-   * @param inBackground - Are we checking for updates in the background, or was
+   * @param inBackground  - Are we checking for updates in the background, or was
    *                       this check user-initiated?
+   * @param skipGuidCheck - If true, don't check the GUID. If true, this will
+   *                       effectively disable the staggered releases system and
+   *                       attempt to retrieve the latest available deployment.
    */
-  public async checkForUpdates(inBackground: boolean) {
+  public async checkForUpdates(inBackground: boolean, skipGuidCheck: boolean) {
     // An update has been downloaded and the app is waiting to be restarted.
     // Checking for updates again may result in the running app being nuked
     // when it finds a subsequent update.
@@ -178,7 +189,7 @@ class UpdateStore {
       return
     }
 
-    const updatesUrl = await this.getUpdatesUrl()
+    const updatesUrl = await this.getUpdatesUrl(skipGuidCheck)
 
     if (updatesUrl === null) {
       return
@@ -193,7 +204,7 @@ class UpdateStore {
     }
   }
 
-  private async getUpdatesUrl() {
+  private async getUpdatesUrl(skipGuidCheck: boolean) {
     let url = null
 
     try {
@@ -205,6 +216,12 @@ class UpdateStore {
 
     // Send the GUID to the update server for staggered release support
     url.searchParams.set('guid', await getRendererGUID())
+
+    if (skipGuidCheck) {
+      // This will effectively disable the staggered releases system and attempt
+      // to retrieve the latest available deployment.
+      url.searchParams.set('skipGuidCheck', '1')
+    }
 
     // If the app is running under arm64 to x64 translation, we need to tweak the
     // update URL here to point at the arm64 binary.
@@ -220,7 +237,7 @@ class UpdateStore {
       // If we want the app to force an auto-update from x64 to arm64 right
       // after being installed, we need to spoof a really old version to trick
       // both Central and Squirrel into thinking we need the update.
-      if (enableImmediateUpdateFromEmulatedX64ToARM64()) {
+      if (this.supportsImmediateUpdateFromEmulatedX64ToARM64()) {
         url.searchParams.set('version', '0.0.64')
       }
     }

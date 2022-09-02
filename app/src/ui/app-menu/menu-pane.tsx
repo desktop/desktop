@@ -265,6 +265,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     const className = classNames('menu-pane', this.props.className)
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
         className={className}
         onMouseEnter={this.onMouseEnter}

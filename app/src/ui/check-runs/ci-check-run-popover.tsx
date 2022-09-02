@@ -242,7 +242,7 @@ export class CICheckRunPopover extends React.PureComponent<
   private renderCheckRunLoadings(): JSX.Element {
     return (
       <div className="loading-check-runs">
-        <img src={BlankSlateImage} className="blankslate-image" />
+        <img src={BlankSlateImage} className="blankslate-image" alt="" />
         <div className="title">Stand By</div>
         <div className="call-to-action">Check runs incoming!</div>
       </div>
@@ -340,6 +340,7 @@ export class CICheckRunPopover extends React.PureComponent<
       )
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       <div className="ci-check-run-list-header" tabIndex={0}>
         <div className="completeness-indicator">
           {this.renderCompletenessIndicator(

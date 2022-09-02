@@ -489,6 +489,7 @@ export class RepositoryView extends React.Component<
           hideWhitespaceInDiff={this.props.hideWhitespaceInChangesDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={this.onOpenBinaryFile}
+          onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
@@ -501,6 +502,10 @@ export class RepositoryView extends React.Component<
 
   private onOpenBinaryFile = (fullPath: string) => {
     openFile(fullPath, this.props.dispatcher)
+  }
+
+  private onOpenSubmodule = (fullPath: string) => {
+    this.props.dispatcher.openOrAddRepository(fullPath)
   }
 
   private onChangeImageDiffType = (imageDiffType: ImageDiffType) => {

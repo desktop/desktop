@@ -68,16 +68,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   return enableBetaFeatures()
 }
 
-/**
- * Should we allow x64 apps running under ARM translation to auto-update to
- * ARM64 builds IMMEDIATELY instead of waiting for the next release?
- */
-export function enableImmediateUpdateFromEmulatedX64ToARM64(): boolean {
-  // Because of how Squirrel.Windows works, this is only available for macOS.
-  // See: https://github.com/desktop/desktop/pull/14998
-  return __DARWIN__ && enableBetaFeatures()
-}
-
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
@@ -110,5 +100,10 @@ export function enablePullRequestQuickView(): boolean {
 
 /** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
 export function enableMultiCommitDiffs(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we enable the new interstitial for submodule diffs? */
+export function enableSubmoduleDiff(): boolean {
   return enableBetaFeatures()
 }

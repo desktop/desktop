@@ -11,6 +11,7 @@ import {
 } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import { mkdirSync } from '../../helpers/temp'
+import { writeFile } from 'fs-extra'
 
 describe('git/rev-parse', () => {
   let repository: Repository
@@ -103,11 +104,31 @@ describe('git/rev-parse', () => {
     })
 
     it('returns unsafe for unsafe repository', async () => {
+      const previousHomeValue = process.env['HOME']
+
+      // Creating a stub global config so we can unset safe.directory config
+      // which will supersede any system config that might set * to ignore
+      // warnings about a different owner
+      //
+      // This is because safe.directory setting is ignored if found in local
+      // config, environment variables or command line arguments.
+      const testHomeDirectory = mkdirSync('test-home-directory')
+      const gitConfigPath = path.join(testHomeDirectory, '.gitconfig')
+      await writeFile(
+        gitConfigPath,
+        `[safe]
+directory=`
+      )
+
+      process.env['HOME'] = testHomeDirectory
       process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = '1'
+
       expect(await getRepositoryType(repository.path)).toMatchObject({
         kind: 'unsafe',
       })
+
       process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = undefined
+      process.env['HOME'] = previousHomeValue
     })
   })
 })

@@ -55,6 +55,7 @@ export class EnterpriseServerEntry extends React.Component<
       <Form onSubmit={this.onSubmit}>
         <TextBox
           label="Enterprise or AE address"
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={true}
           disabled={disableEntry}
           onValueChanged={this.onServerAddressChanged}

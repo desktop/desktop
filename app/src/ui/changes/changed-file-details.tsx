@@ -43,16 +43,7 @@ export class ChangedFileDetails extends React.Component<
         <PathLabel path={this.props.path} status={this.props.status} />
         {this.renderDecorator()}
 
-        <DiffOptions
-          sourceTab={RepositorySectionTab.Changes}
-          onHideWhitespaceChangesChanged={
-            this.props.onHideWhitespaceInDiffChanged
-          }
-          hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-          onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
-          showSideBySideDiff={this.props.showSideBySideDiff}
-          onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-        />
+        {this.renderDiffOptions()}
 
         <Octicon
           symbol={iconForStatus(status)}
@@ -60,6 +51,25 @@ export class ChangedFileDetails extends React.Component<
           title={fileStatus}
         />
       </div>
+    )
+  }
+
+  private renderDiffOptions() {
+    if (this.props.diff?.kind === DiffType.Submodule) {
+      return null
+    }
+
+    return (
+      <DiffOptions
+        sourceTab={RepositorySectionTab.Changes}
+        onHideWhitespaceChangesChanged={
+          this.props.onHideWhitespaceInDiffChanged
+        }
+        hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+        onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
+        showSideBySideDiff={this.props.showSideBySideDiff}
+        onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+      />
     )
   }
 
