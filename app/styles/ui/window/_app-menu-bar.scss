@@ -56,15 +56,5 @@
 
       pointer-events: all;
     }
-
-    .menu-item:hover {
-      &:not(.disabled) {
-        --text-color: var(--box-selected-active-text-color);
-        --text-secondary-color: var(--box-selected-active-text-color);
-
-        color: var(--text-color);
-        background-color: var(--box-selected-active-background-color);
-      }
-    }
   }
 }
