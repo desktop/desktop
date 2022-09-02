@@ -55,17 +55,37 @@
     flex-direction: column;
 
     .file-container {
-      margin-bottom: var(--spacing-double);
+      margin-bottom: var(--spacing);
 
       .file-header {
         border-radius: var(--border-radius) var(--border-radius) 0 0;
         background: var(--box-alt-background-color);
         padding: var(--spacing);
         border: 1px solid var(--box-border-color);
+
+        display: flex;
+        align-items: center;
+
+        .file-toggle {
+          padding: 0 var(--spacing-half) 0 0;
+        }
       }
 
       .file-diff {
         border: 1px solid var(--box-border-color);
+        border-top: none;
+      }
+
+      &.closed {
+        .file-header {
+          border-radius: var(--border-radius);
+        }
+
+        .file-diff {
+          height: 0;
+          border: none;
+          overflow: hidden;
+        }
       }
     }
   }

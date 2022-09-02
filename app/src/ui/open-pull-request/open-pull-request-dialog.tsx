@@ -220,7 +220,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     return (
       <FileDiffViewer
         diff={diff}
-        byFile={true}
+        byFile={false}
         diffWidth={this.props.commitSummaryWidth}
         externalEditorLabel={this.props.externalEditorLabel}
         changesetData={changesetData}

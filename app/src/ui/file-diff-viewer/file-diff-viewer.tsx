@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react'
 import { IConstrainedValue, RepositorySectionTab } from '../../lib/app-state'
 import { Resizable } from '../resizable'
@@ -23,6 +25,10 @@ import { Repository } from '../../models/repository'
 import { IChangesetData } from '../../lib/git'
 import { DiffOptions } from '../diff/diff-options'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import classNames from 'classnames'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { List } from 'react-virtualized'
 
 interface IFileDiffViewerProps {
   // Diff Width properties
@@ -56,10 +62,25 @@ interface IFileDiffViewerProps {
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
 
+interface IFileDiffViewerState {
+  readonly filesClosed: Map<string, boolean>
+}
+
 /**
  * Display a list of changed files as part of a commit or stash
  */
-export class FileDiffViewer extends React.Component<IFileDiffViewerProps> {
+export class FileDiffViewer extends React.Component<
+  IFileDiffViewerProps,
+  IFileDiffViewerState
+> {
+  public constructor(props: IFileDiffViewerProps) {
+    super(props)
+
+    this.state = {
+      filesClosed: new Map(),
+    }
+  }
+
   private onContextMenu = async (
     file: CommittedFileChange,
     event: React.MouseEvent<HTMLDivElement>
@@ -246,21 +267,64 @@ export class FileDiffViewer extends React.Component<IFileDiffViewerProps> {
     )
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+  toggleFileState(fileId: string) {
+    const filesClosed = this.state.filesClosed
+    return () => {
+      filesClosed.set(fileId, !filesClosed.get(fileId))
+      this.setState({ filesClosed })
+    }
+  }
+
+  public renderFileRow = ({ index }: { index: number }) => {
+    const {
+      changesetData: { files },
+    } = this.props
+
+    const f = files[index]
+
+    const isClosed = !!this.state.filesClosed.get(f.id)
+    const classes = classNames('file-container', { closed: isClosed })
+    return (
+      <div className={classes} key={f.id}>
+        <div className="file-header">
+          <span className="file-toggle" onClick={this.toggleFileState(f.id)}>
+            <Octicon
+              symbol={
+                isClosed
+                  ? OcticonSymbol.chevronRight
+                  : OcticonSymbol.chevronDown
+              }
+            />
+          </span>
+          <span>{f.path}</span>
+        </div>
+        <div className="file-diff">{this.renderDiff()}</div>
+      </div>
+    )
+  }
+
   public renderByFile() {
     const {
       changesetData: { files },
     } = this.props
 
-    const filesOutput = files.map(f => {
-      return (
-        <div className="file-container" key={f.id}>
-          <div className="file-header">{f.path}</div>
-          <div className="file-diff">{this.renderDiff()}</div>
-        </div>
-      )
-    })
+    if (1 === 1) {
+      const filesOutput = files.map((f, index) => this.renderFileRow({ index }))
+      return <div className="diff-details-by-file">{filesOutput}</div>
+    }
 
-    return <div className="diff-details-by-file">{filesOutput}</div>
+    return (
+      <div className="diff-details-by-file">
+        <List
+          width={870}
+          height={400}
+          rowHeight={200}
+          rowRenderer={this.renderFileRow}
+          rowCount={files.length}
+        ></List>
+      </div>
+    )
   }
 
   public renderWithFileList() {
