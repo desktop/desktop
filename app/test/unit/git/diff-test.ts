@@ -24,10 +24,12 @@ import {
   getWorkingDirectoryImage,
   getBlobImage,
   getBinaryPaths,
+  getBranchMergeBaseChangedFiles,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
 import { GitProcess } from 'dugite'
+import { makeCommit, switchTo } from '../../helpers/repository-scaffolding'
 
 async function getTextDiff(
   repo: Repository,
@@ -528,6 +530,51 @@ describe('git/diff', () => {
         modifiedChanges: true,
         untrackedChanges: true,
       })
+    })
+  })
+
+  describe('getBranchMergeBaseChangedFiles', () => {
+    it('loads the files changed between two branches if merged', async () => {
+      // create feature branch from initial master commit
+      await GitProcess.exec(['branch', 'feature-branch'], repository.path)
+
+      const firstCommit = {
+        entries: [{ path: 'A.md', contents: 'A' }],
+      }
+      await makeCommit(repository, firstCommit)
+
+      // switch to the feature branch and add feature.md and add foo.md
+      await switchTo(repository, 'feature-branch')
+
+      const secondCommit = {
+        entries: [{ path: 'feature.md', contents: 'feature' }],
+      }
+      await makeCommit(repository, secondCommit)
+
+      /*
+        Now, we have:
+
+           B
+        A  |  -- Feature
+        |  /
+        I -- Master
+
+        If we did `git diff master feature`, we would see files changes
+        from just A and B.
+
+        We are testing `git diff --merge-base master feature`, which will
+        display the diff of the resulting merge of `feature` into `master`.
+        Thus, we will see changes from B only.
+      */
+
+      const changesetData = await getBranchMergeBaseChangedFiles(
+        repository,
+        'master',
+        'feature-branch',
+        'irrelevantToTest'
+      )
+      expect(changesetData.files).toHaveLength(1)
+      expect(changesetData.files[0].path).toBe('feature.md')
     })
   })
 })

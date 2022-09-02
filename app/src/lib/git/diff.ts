@@ -155,8 +155,8 @@ export async function getBranchMergeBaseDiff(
   const args = [
     'diff',
     '--merge-base',
-    baseBranch.name,
-    comparisonBranch.name,
+    baseBranchName,
+    comparisonBranchName,
     ...(hideWhitespaceInDiff ? ['-w'] : []),
     '--patch-with-raw',
     '-z',
@@ -246,7 +246,10 @@ export async function getCommitRangeDiff(
   )
 }
 
-/** Get the files that were changed for the merge base comparison of two branches. */
+/**
+ * Get the files that were changed for the merge base comparison of two branches.
+ * (What would be the result of a merge)
+ */
 export async function getBranchMergeBaseChangedFiles(
   repository: Repository,
   baseBranchName: string,
