@@ -7,6 +7,13 @@
   user-select: contain;
   position: relative;
 
+  &:not(:focus-within) .content {
+    &,
+    * {
+      user-select: none;
+    }
+  }
+
   &.selecting-before .after,
   &.selecting-after .before {
     span,
