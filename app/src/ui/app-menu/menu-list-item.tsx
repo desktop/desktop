@@ -59,7 +59,7 @@ interface IMenuListItemProps {
   ) => void
 
   /**
-   * Whether the liste item should steal focus when selected. Defaults to
+   * Whether the list item should steal focus when selected. Defaults to
    * false.
    */
   readonly focusOnSelection?: boolean
