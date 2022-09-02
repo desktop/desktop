@@ -48,7 +48,7 @@ export class TooltippedCommitSHA extends React.Component<
     return this.props.asRef === true ? (
       <Ref>{this.shortSHA}</Ref>
     ) : (
-      <>{this.shortSHA}</>
+      this.shortSHA
     )
   }
 
