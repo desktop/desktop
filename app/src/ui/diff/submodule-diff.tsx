@@ -1,9 +1,7 @@
 import React from 'react'
 import { parseRepositoryIdentifier } from '../../lib/remote-parsing'
-import { shortenSHA } from '../../models/commit'
 import { ISubmoduleDiff } from '../../models/diff'
 import { LinkButton } from '../lib/link-button'
-import { Ref } from '../lib/ref'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -102,12 +100,7 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
   }
 
   private renderTooltippedCommitSHA(sha: string) {
-    return (
-      <TooltippedCommitSHA
-        shortSHA={<Ref>{shortenSHA(sha)}</Ref>}
-        longSHA={sha}
-      />
-    )
+    return <TooltippedCommitSHA commit={sha} asRef={true} />
   }
 
   private renderSubmodulesChangesInfo() {
