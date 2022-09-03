@@ -7,10 +7,12 @@ interface IPromptsPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
+  readonly confirmUndoCommit: boolean
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
+  readonly onConfirmUndoCommitChanged: (checked: boolean) => void
 }
 
 interface IPromptsPreferencesState {
@@ -18,6 +20,7 @@ interface IPromptsPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmForcePush: boolean
+  readonly confirmUndoCommit: boolean
 }
 
 export class Prompts extends React.Component<
@@ -33,6 +36,7 @@ export class Prompts extends React.Component<
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
       confirmForcePush: this.props.confirmForcePush,
+      confirmUndoCommit: this.props.confirmUndoCommit,
     }
   }
 
@@ -61,6 +65,15 @@ export class Prompts extends React.Component<
 
     this.setState({ confirmForcePush: value })
     this.props.onConfirmForcePushChanged(value)
+  }
+
+  private onConfirmUndoCommitChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmUndoCommit: value })
+    this.props.onConfirmUndoCommitChanged(value)
   }
 
   private onConfirmRepositoryRemovalChanged = (
@@ -110,7 +123,17 @@ export class Prompts extends React.Component<
           }
           onChange={this.onConfirmForcePushChanged}
         />
+        <Checkbox
+          label="Undo commit"
+          value={
+            this.state.confirmUndoCommit
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onConfirmUndoCommitChanged}
+        />
       </DialogContent>
+
     )
   }
 }
