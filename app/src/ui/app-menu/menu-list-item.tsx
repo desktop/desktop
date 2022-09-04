@@ -34,6 +34,35 @@ interface IMenuListItemProps {
    * Defaults to true if not specified (i.e. undefined)
    */
   readonly renderSubMenuArrow?: boolean
+
+  /**
+   * Whether or not the menu item represented by this list item is the currently
+   * selected menu item.
+   */
+  readonly selected: boolean
+
+  /** Called when the user's pointer device enter the list item */
+  readonly onMouseEnter?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+  /** Called when the user's pointer device leaves the list item */
+  readonly onMouseLeave?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+
+  /** Called when the user's pointer device clicks on the list item */
+  readonly onClick?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+
+  /**
+   * Whether the list item should steal focus when selected. Defaults to
+   * false.
+   */
+  readonly focusOnSelection?: boolean
 }
 
 /**
@@ -49,6 +78,8 @@ export function friendlyAcceleratorText(accelerator: string): string {
 }
 
 export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
+  private wrapperRef = React.createRef<HTMLDivElement>()
+
   private getIcon(item: MenuItem): JSX.Element | null {
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className="icon" symbol={OcticonSymbol.check} />
@@ -57,6 +88,31 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     }
 
     return null
+  }
+
+  private onMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onMouseEnter?.(this.props.item, event)
+  }
+
+  private onMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onMouseLeave?.(this.props.item, event)
+  }
+
+  private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onClick?.(this.props.item, event)
+  }
+
+  public componentDidMount() {
+    if (this.props.selected && this.props.focusOnSelection) {
+      this.wrapperRef.current?.focus()
+    }
+  }
+
+  public componentDidUpdate(prevProps: IMenuListItemProps) {
+    const { focusOnSelection, selected } = this.props
+    if (focusOnSelection && selected && !prevProps.selected) {
+      this.wrapperRef.current?.focus()
+    }
   }
 
   public render() {
@@ -83,19 +139,26 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         </div>
       ) : null
 
-    const className = classNames(
-      'menu-item',
-      { disabled: !item.enabled },
-      { checkbox: item.type === 'checkbox' },
-      { radio: item.type === 'radio' },
-      {
-        checked:
-          (item.type === 'checkbox' || item.type === 'radio') && item.checked,
-      }
-    )
+    const { type } = item
+
+    const className = classNames('menu-item', {
+      disabled: !item.enabled,
+      checkbox: type === 'checkbox',
+      radio: type === 'radio',
+      checked: (type === 'checkbox' || type === 'radio') && item.checked,
+      selected: this.props.selected,
+    })
 
     return (
-      <div className={className}>
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
+      <div
+        className={className}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onClick={this.onClick}
+        ref={this.wrapperRef}
+        role="menuitem"
+      >
         {this.getIcon(item)}
         <div className="label">
           <AccessText

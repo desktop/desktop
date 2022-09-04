@@ -1,4 +1,4 @@
-#no-changes {
+.changes-interstitial {
   padding: var(--spacing-quad);
   width: 100%;
   min-height: 100%;
@@ -8,7 +8,7 @@
   overflow-y: auto;
   overflow-x: hidden;
 
-  .header {
+  .interstitial-header {
     display: flex;
     flex-direction: row;
 

@@ -142,10 +142,12 @@ export class NoRepositoriesView extends React.Component<
         <img
           className="no-repositories-graphic-top"
           src={WelcomeLeftTopImageUri}
+          alt=""
         />
         <img
           className="no-repositories-graphic-bottom"
           src={WelcomeLeftBottomImageUri}
+          alt=""
         />
       </UiView>
     )
