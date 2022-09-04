@@ -236,6 +236,7 @@ These editors are currently supported:
  - [Nova](https://nova.app/)
  - [Aptana Studio](http://www.aptana.com/)
  - [Emacs](https://www.gnu.org/software/emacs/)
+ - [Lite XL](https://lite-xl.com/)
 
 These are defined in a list at the top of the file:
 
@@ -302,6 +303,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [Lite XL](https://lite-xl.com/)
 
 These are defined in a list at the top of the file:
 
