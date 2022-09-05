@@ -202,3 +202,11 @@ If either the user or an application has modified the `Command Processor` regist
 `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\`
 
 Check to see if there is an `Autorun` value in either of those location. If there is, deleting that value should resolve the `Authentication failed` error.
+
+### "Not enough resources" error when signing in
+
+Related issue: [#15217](https://github.com/desktop/desktop/issues/15217)
+
+If you see an error that says "Not enough resources are available to process this command" when signing in to GitHub Desktop, it's likely that you have too many credentials stored in Windows Credentials Manager.
+
+**Workaround:** open the Credential Manager application, click on Windows Credentials and go through the list to see if there are some you can delete.
