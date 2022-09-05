@@ -133,9 +133,6 @@ interface ITooltipState {
   /** The size and position of the target element relative to the window */
   readonly targetRect: DOMRect
 
-  /** The size and position of the tooltip parent relative to the window */
-  readonly hostRect: DOMRect
-
   /** The size of the window */
   readonly windowRect: DOMRect
 
@@ -166,7 +163,6 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       measure: false,
       show: false,
       targetRect: new DOMRect(),
-      hostRect: new DOMRect(),
       windowRect: new DOMRect(),
       tooltipRect: new DOMRect(),
       tooltipHost: tooltipHostFor(target),
@@ -402,7 +398,6 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       measure: true,
       show: false,
       targetRect: this.getTargetRect(target),
-      hostRect: tooltipHost.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
     })
   }
@@ -484,14 +479,14 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       return null
     }
     const visible = show && !measure
-    const { targetRect, hostRect, windowRect, tooltipRect } = this.state
+    const { targetRect, windowRect, tooltipRect } = this.state
 
     const direction = visible
       ? getDirection(this.props.direction, targetRect, windowRect, tooltipRect)
       : TooltipDirection.SOUTH
 
     const style: React.CSSProperties = visible
-      ? getTooltipPositionStyle(direction, targetRect, hostRect, tooltipRect)
+      ? getTooltipPositionStyle(direction, targetRect, tooltipRect)
       : { visibility: 'hidden', left: `0px`, top: `0px` }
 
     const className = classNames('tooltip', this.props.className, {
@@ -612,13 +607,9 @@ function getDirection(
 function getTooltipPositionStyle(
   direction: TooltipDirection,
   target: DOMRect,
-  host: DOMRect,
   tooltip: DOMRect
 ): React.CSSProperties {
   const r = getTooltipRectRelativeTo(target, direction, tooltip)
-  r.x -= host.x
-  r.y -= host.y
-
   return { transform: `translate(${r.left}px, ${r.top}px)` }
 }
 
