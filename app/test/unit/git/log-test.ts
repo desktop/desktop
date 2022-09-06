@@ -3,7 +3,6 @@ import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { AppFileStatusKind } from '../../../src/models/status'
 import { setupLocalConfig } from '../../helpers/local-config'
-import { GitProcess } from 'dugite'
 
 describe('git/log', () => {
   let repository: Repository
