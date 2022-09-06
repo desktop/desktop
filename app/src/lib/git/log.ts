@@ -33,7 +33,7 @@ function mapSubmoduleStatusFileModes(
 
   return srcMode === SubmoduleFileMode &&
     dstMode === SubmoduleFileMode &&
-    status == 'M'
+    status === 'M'
     ? {
         commitChanged: true,
         untrackedChanges: false,
