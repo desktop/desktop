@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.0.8": [
+      "[Fixed] Fix system animations on Windows - #14037",
+      "[Fixed] The app window doesn't overlap the taskbar on Windows - #14263",
+      "[Fixed] The app window doesn't fit on the screen when using scaled UI on Windows - #14263"
+    ],
     "3.0.7": [
       "[Fixed] Do not show login prompt when repositories are fetched - #15163",
       "[Improved] On Apple silicon devices running unoptimized builds, auto-update on first run to an optimized build - #14998"
