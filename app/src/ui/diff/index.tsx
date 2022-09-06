@@ -252,7 +252,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderSubmoduleDiff(diff: ISubmoduleDiff) {
     return (
-      <SubmoduleDiff onOpenSubmodule={this.props.onOpenSubmodule} diff={diff} />
+      <SubmoduleDiff
+        onOpenSubmodule={this.props.onOpenSubmodule}
+        diff={diff}
+        readOnly={this.props.readOnly}
+      />
     )
   }
 

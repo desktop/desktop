@@ -17,6 +17,14 @@ type SubmoduleItemIcon =
       readonly className: 'modified-icon'
     }
   | {
+      readonly octicon: typeof OcticonSymbol.diffAdded
+      readonly className: 'added-icon'
+    }
+  | {
+      readonly octicon: typeof OcticonSymbol.diffRemoved
+      readonly className: 'removed-icon'
+    }
+  | {
       readonly octicon: typeof OcticonSymbol.fileDiff
       readonly className: 'untracked-icon'
     }
@@ -24,6 +32,13 @@ type SubmoduleItemIcon =
 interface ISubmoduleDiffProps {
   readonly onOpenSubmodule?: (fullPath: string) => void
   readonly diff: ISubmoduleDiff
+
+  /**
+   * Whether the diff is readonly, e.g., displaying a historical diff, or the
+   * diff's content can be committed, e.g., displaying a change in the working
+   * directory.
+   */
+  readonly readOnly: boolean
 }
 
 export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
@@ -80,25 +95,42 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
   }
 
   private renderCommitChangeInfo() {
-    const { diff } = this.props
+    const { diff, readOnly } = this.props
+    const { oldSHA, newSHA } = diff
 
-    if (!diff.status.commitChanged) {
-      return null
+    const verb = readOnly ? 'was' : 'has been'
+    const suffix = readOnly
+      ? ''
+      : ' This change can be committed to the parent repository.'
+
+    if (oldSHA !== null && newSHA !== null) {
+      return this.renderSubmoduleDiffItem(
+        { octicon: OcticonSymbol.diffModified, className: 'modified-icon' },
+        <>
+          This submodule changed its commit from{' '}
+          {this.renderTooltippedCommitSHA(oldSHA)} to{' '}
+          {this.renderTooltippedCommitSHA(newSHA)}.{suffix}
+        </>
+      )
+    } else if (oldSHA === null && newSHA !== null) {
+      return this.renderSubmoduleDiffItem(
+        { octicon: OcticonSymbol.diffAdded, className: 'added-icon' },
+        <>
+          This submodule {verb} added pointing at commit{' '}
+          {this.renderTooltippedCommitSHA(newSHA)}.{suffix}
+        </>
+      )
+    } else if (oldSHA !== null && newSHA === null) {
+      return this.renderSubmoduleDiffItem(
+        { octicon: OcticonSymbol.diffRemoved, className: 'removed-icon' },
+        <>
+          This submodule {verb} removed while it was pointing at commit{' '}
+          {this.renderTooltippedCommitSHA(oldSHA)}.{suffix}
+        </>
+      )
     }
 
-    if (diff.oldSHA === null || diff.newSHA === null) {
-      return null
-    }
-
-    return this.renderSubmoduleDiffItem(
-      { octicon: OcticonSymbol.diffModified, className: 'modified-icon' },
-      <>
-        This submodule has changed its commit from{' '}
-        {this.renderTooltippedCommitSHA(diff.oldSHA)} to{' '}
-        {this.renderTooltippedCommitSHA(diff.newSHA)}. This change can be
-        committed to the parent repository.
-      </>
-    )
+    return null
   }
 
   private renderTooltippedCommitSHA(sha: string) {
@@ -142,6 +174,13 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
   }
 
   private renderOpenSubmoduleAction() {
+    // If no url is found for the submodule, it means it can't be opened
+    // This happens if the user is looking at an old commit which references
+    // a submodule that got later deleted.
+    if (this.props.diff.url === null) {
+      return null
+    }
+
     return (
       <span>
         <SuggestedAction
