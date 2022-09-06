@@ -269,10 +269,14 @@ export async function getWorkingDirectoryDiff(
     '--no-color',
   ]
   const successExitCodes = new Set([0])
+  const isSubmodule = file.status.submoduleStatus !== undefined
 
+  // For added submodules, we'll use the "default" parameters, which are able
+  // to output the submodule commit.
   if (
-    file.status.kind === AppFileStatusKind.New ||
-    file.status.kind === AppFileStatusKind.Untracked
+    !isSubmodule &&
+    (file.status.kind === AppFileStatusKind.New ||
+      file.status.kind === AppFileStatusKind.Untracked)
   ) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
@@ -494,7 +498,11 @@ async function buildSubmoduleDiff(
   let oldSHA = null
   let newSHA = null
 
-  if (status.commitChanged) {
+  if (
+    status.commitChanged ||
+    file.status.kind === AppFileStatusKind.New ||
+    file.status.kind === AppFileStatusKind.Deleted
+  ) {
     const diff = buffer.toString('utf-8')
     const lines = diff.split('\n')
     const baseRegex = 'Subproject commit ([^-]+)(-dirty)?$'
