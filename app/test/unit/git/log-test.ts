@@ -3,6 +3,7 @@ import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { AppFileStatusKind } from '../../../src/models/status'
 import { setupLocalConfig } from '../../helpers/local-config'
+import { GitProcess } from 'dugite'
 
 describe('git/log', () => {
   let repository: Repository
@@ -128,5 +129,15 @@ describe('git/log', () => {
         AppFileStatusKind.Modified
       )
     })
+  })
+
+  it('detects submodule changes within commits', async () => {
+    const repoPath = await setupFixtureRepository('submodule-basic-setup')
+    repository = new Repository(repoPath, -1, null, false)
+
+    const changesetData = await getChangedFiles(repository, 'HEAD')
+    expect(changesetData.files).toHaveLength(2)
+    expect(changesetData.files[1].path).toBe('foo/submodule')
+    expect(changesetData.files[1].status.submoduleStatus).not.toBeUndefined()
   })
 })
