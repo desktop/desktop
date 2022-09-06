@@ -161,7 +161,7 @@ export async function git(
     // from a terminal or if the system environment variables
     // have TERM set Git won't consider us as a smart terminal.
     // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
-    opts.env = { TERM: 'dumb', ...combinedEnv } as Object
+    opts.env = { TERM: 'dumb', ...combinedEnv } as object
 
     const commandName = `${name}: git ${args.join(' ')}`
 

@@ -21,7 +21,7 @@ import {
  *                  variables.
  */
 export async function withTrampolineEnv<T>(
-  fn: (env: Object) => Promise<T>
+  fn: (env: object) => Promise<T>
 ): Promise<T> {
   const sshEnv = await getSSHEnvironment()
 
