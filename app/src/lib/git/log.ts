@@ -271,7 +271,7 @@ export function parseRawLogWithNumstat(
       const lineComponents = line.split(' ')
       const srcMode = forceUnwrap(
         'Invalid log output (srcMode)',
-        lineComponents[0].replace(':', '')
+        lineComponents[0]?.replace(':', '')
       )
       const dstMode = forceUnwrap(
         'Invalid log output (dstMode)',
