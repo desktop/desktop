@@ -6,6 +6,7 @@ import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
 import { IGitAccount } from '../../models/git-account'
 import { getSymbolicRef } from './refs'
+import { gitNetworkArguments } from '.'
 
 /**
  * List the remotes, sorted alphabetically by `name`, for a repository.
@@ -106,7 +107,7 @@ export async function updateRemoteHEAD(
   }
 
   await git(
-    ['remote', 'set-head', '-a', remote.name],
+    [...gitNetworkArguments(), 'remote', 'set-head', '-a', remote.name],
     repository.path,
     'updateRemoteHEAD',
     options

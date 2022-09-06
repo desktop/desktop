@@ -39,7 +39,11 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
                 some suggestions for what to do next.
               </p>
             </div>
-            <img src={ClappingHandsImage} className="image" />
+            <img
+              src={ClappingHandsImage}
+              className="image"
+              alt="Hands clapping"
+            />
           </div>
           <SuggestedActionGroup>
             <SuggestedAction

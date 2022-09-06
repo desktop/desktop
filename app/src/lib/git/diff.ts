@@ -8,6 +8,7 @@ import {
   FileChange,
   AppFileStatusKind,
   CommittedFileChange,
+  SubmoduleStatus,
 } from '../../models/status'
 import {
   DiffType,
@@ -18,7 +19,6 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
-  IUnrenderableDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -32,6 +32,7 @@ import { git } from './core'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
 import { parseRawLogWithNumstat } from './log'
+import { getConfigValue } from './config'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -480,16 +481,68 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(forceUnwrap(`Invalid diff output`, pieces.at(-1)))
 }
 
-function buildDiff(
+async function buildSubmoduleDiff(
+  buffer: Buffer,
+  repository: Repository,
+  file: FileChange,
+  status: SubmoduleStatus
+): Promise<IDiff> {
+  const path = file.path
+  const fullPath = Path.join(repository.path, path)
+  const url =
+    (await getConfigValue(repository, `submodule.${path}.url`, true)) ?? ''
+
+  let oldSHA = null
+  let newSHA = null
+
+  if (status.commitChanged) {
+    const diff = buffer.toString('utf-8')
+    const lines = diff.split('\n')
+    const baseRegex = 'Subproject commit ([^-]+)(-dirty)?$'
+    const oldSHARegex = new RegExp('-' + baseRegex)
+    const newSHARegex = new RegExp('\\+' + baseRegex)
+    const lineMatch = (regex: RegExp) =>
+      lines
+        .flatMap(line => {
+          const match = line.match(regex)
+          return match ? match[1] : []
+        })
+        .at(0) ?? null
+
+    oldSHA = lineMatch(oldSHARegex)
+    newSHA = lineMatch(newSHARegex)
+  }
+
+  return {
+    kind: DiffType.Submodule,
+    fullPath,
+    path,
+    url,
+    status,
+    oldSHA,
+    newSHA,
+  }
+}
+
+async function buildDiff(
   buffer: Buffer,
   repository: Repository,
   file: FileChange,
   oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
+  if (file.status.submoduleStatus !== undefined) {
+    return buildSubmoduleDiff(
+      buffer,
+      repository,
+      file,
+      file.status.submoduleStatus
+    )
+  }
+
   if (!isValidBuffer(buffer)) {
     // the buffer's diff is too large to be renderable in the UI
-    return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })
+    return { kind: DiffType.Unrenderable }
   }
 
   const diff = diffFromRawDiffOutput(buffer)
@@ -507,7 +560,7 @@ function buildDiff(
       hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
-    return Promise.resolve(largeTextDiff)
+    return largeTextDiff
   }
 
   return convertDiff(repository, file, diff, oldestCommitish, lineEndingsChange)

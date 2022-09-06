@@ -367,6 +367,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         ref={this.onFrameContainingDivRef}
       >
         <iframe
+          title="sandboxed-markdown-component"
           className="sandboxed-markdown-component"
           sandbox=""
           ref={this.onFrameRef}

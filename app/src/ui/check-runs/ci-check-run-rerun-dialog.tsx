@@ -220,7 +220,7 @@ export class CICheckRunRerunDialog extends React.Component<
     if (this.state.loadingCheckSuites && this.props.checkRuns.length > 1) {
       return (
         <div className="loading-rerun-checks">
-          <img src={BlankSlateImage} className="blankslate-image" />
+          <img src={BlankSlateImage} className="blankslate-image" alt="" />
           <div className="title">Please wait</div>
           <div className="call-to-action">
             Determining which checks can be re-run.
