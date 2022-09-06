@@ -489,8 +489,7 @@ async function buildSubmoduleDiff(
 ): Promise<IDiff> {
   const path = file.path
   const fullPath = Path.join(repository.path, path)
-  const url =
-    (await getConfigValue(repository, `submodule.${path}.url`, true)) ?? ''
+  const url = await getConfigValue(repository, `submodule.${path}.url`, true)
 
   let oldSHA = null
   let newSHA = null

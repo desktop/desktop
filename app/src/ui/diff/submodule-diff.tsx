@@ -50,7 +50,9 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
   }
 
   private renderSubmoduleInfo() {
-    // TODO: only for GH submodules?
+    if (this.props.diff.url === null) {
+      return null
+    }
 
     const repoIdentifier = parseRepositoryIdentifier(this.props.diff.url)
     if (repoIdentifier === null) {

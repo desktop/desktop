@@ -98,7 +98,7 @@ export interface ISubmoduleDiff {
   readonly path: string
 
   /** URL of the submodule */
-  readonly url: string
+  readonly url: string | null
 
   /** Status of the submodule */
   readonly status: SubmoduleStatus
