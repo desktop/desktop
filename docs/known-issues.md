@@ -61,6 +61,21 @@ This issue seems to be caused by missing permissions for the `~/Library/Caches/c
    the "Read & Write" permissions
  - Start Desktop again and check for updates
 
+### GitHub Desktop prompts admin password to install helper tool very frequently
+
+Related issue: [#13956](https://github.com/desktop/desktop/issues/13956)
+
+Users who use macOS' Migration Assistant to keep their stuff intact when moving to a new computer might run into this problem because the Migration Assistant changes the owner of the `/Applications/GitHub Desktop.app` folder to `root`.
+
+Since GitHub Desktop is able to auto-update by changing the contents of the `/Applications/GitHub Desktop.app` folder, it needs to be able to write to it. If the owner of the folder is not the current user, the user will be prompted for an admin password every time GitHub Desktop tries to update itself.
+
+**Workaround:** you need to restore the ownership and permissions of the application folder to the current user. If your app is located in `/Applications/GitHub Desktop.app`, you can probably do this by just running the following commands in Terminal:
+
+```sh
+sudo chown -R ${USER}:staff /Applications/GitHub\ Desktop.app
+chmod -R g+w /Applications/GitHub\ Desktop.app
+```
+
 ## Windows
 
 ### Window is hidden after detaching secondary monitor
@@ -202,3 +217,11 @@ If either the user or an application has modified the `Command Processor` regist
 `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\`
 
 Check to see if there is an `Autorun` value in either of those location. If there is, deleting that value should resolve the `Authentication failed` error.
+
+### "Not enough resources" error when signing in
+
+Related issue: [#15217](https://github.com/desktop/desktop/issues/15217)
+
+If you see an error that says "Not enough resources are available to process this command" when signing in to GitHub Desktop, it's likely that you have too many credentials stored in Windows Credentials Manager.
+
+**Workaround:** open the Credential Manager application, click on Windows Credentials and go through the list to see if there are some you can delete.
