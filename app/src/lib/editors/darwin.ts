@@ -140,6 +140,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Emacs',
     bundleIdentifiers: ['org.gnu.Emacs'],
   },
+  {
+    name: 'Lite XL',
+    bundleIdentifiers: ['com.lite-xl'],
+  },
 ]
 
 async function findApplication(

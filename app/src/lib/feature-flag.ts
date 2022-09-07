@@ -30,7 +30,7 @@ function enableBetaFeatures(): boolean {
 
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export function enableReadmeOverwriteWarning(): boolean {
