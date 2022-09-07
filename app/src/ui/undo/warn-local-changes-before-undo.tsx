@@ -61,27 +61,26 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
   private getWarningDialog() {
     if (this.props.commit.isMergeCommit) {
       return this.getMergeCommitWarningDialog()
-    } else {
-      return (
-        <DialogContent>
-          <Row>
-            You have changes in progress. Undoing the commit might result in
-            some of these changes being lost. Do you want to continue anyway?
-          </Row>
-          <Row>
-            <Checkbox
-              label="Do not show this message again"
-              value={
-                this.state.confirmUndoCommit
-                  ? CheckboxValue.Off
-                  : CheckboxValue.On
-              }
-              onChange={this.onConfirmUndoCommitChanged}
-            />
-          </Row>
-        </DialogContent>
-      )
     }
+    return (
+      <DialogContent>
+        <Row>
+          You have changes in progress. Undoing the commit might result in some
+          of these changes being lost. Do you want to continue anyway?
+        </Row>
+        <Row>
+          <Checkbox
+            label="Do not show this message again"
+            value={
+              this.state.confirmUndoCommit
+                ? CheckboxValue.Off
+                : CheckboxValue.On
+            }
+            onChange={this.onConfirmUndoCommitChanged}
+          />
+        </Row>
+      </DialogContent>
+    )
   }
 
   private getMergeCommitWarningDialog() {
@@ -96,22 +95,21 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
           </Row>
         </DialogContent>
       )
-    } else {
-      return (
-        <DialogContent>
-          <Row>
-            You have changes in progress. Undoing the merge commit might result
-            in some of these changes being lost.
-            <br />
-            <br />
-            {this.getMergeCommitUndoWarningText()}
-            <br />
-            <br />
-            Do you want to continue anyway?
-          </Row>
-        </DialogContent>
-      )
     }
+    return (
+      <DialogContent>
+        <Row>
+          You have changes in progress. Undoing the merge commit might result in
+          some of these changes being lost.
+          <br />
+          <br />
+          {this.getMergeCommitUndoWarningText()}
+          <br />
+          <br />
+          Do you want to continue anyway?
+        </Row>
+      </DialogContent>
+    )
   }
 
   private getMergeCommitUndoWarningText() {
