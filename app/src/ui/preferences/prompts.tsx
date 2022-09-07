@@ -126,14 +126,11 @@ export class Prompts extends React.Component<
         <Checkbox
           label="Undo commit"
           value={
-            this.state.confirmUndoCommit
-              ? CheckboxValue.On
-              : CheckboxValue.Off
+            this.state.confirmUndoCommit ? CheckboxValue.On : CheckboxValue.Off
           }
           onChange={this.onConfirmUndoCommitChanged}
         />
       </DialogContent>
-
     )
   }
 }

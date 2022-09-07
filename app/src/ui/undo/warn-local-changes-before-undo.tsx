@@ -33,7 +33,7 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
     super(props)
     this.state = {
       isLoading: false,
-      confirmUndoCommit: props.confirmUndoCommit
+      confirmUndoCommit: props.confirmUndoCommit,
     }
   }
 
@@ -65,8 +65,8 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
       return (
         <DialogContent>
           <Row>
-            You have changes in progress. Undoing the commit might result in some
-            of these changes being lost. Do you want to continue anyway?
+            You have changes in progress. Undoing the commit might result in
+            some of these changes being lost. Do you want to continue anyway?
           </Row>
           <Row>
             <Checkbox
@@ -96,13 +96,12 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
           </Row>
         </DialogContent>
       )
-    }
-    else {
+    } else {
       return (
         <DialogContent>
           <Row>
-            You have changes in progress. Undoing the merge commit might result in
-            some of these changes being lost.
+            You have changes in progress. Undoing the merge commit might result
+            in some of these changes being lost.
             <br />
             <br />
             {this.getMergeCommitUndoWarningText()}
@@ -127,9 +126,7 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
     this.setState({ isLoading: true })
 
     try {
-      dispatcher.setConfirmUndoCommitSetting(
-        this.state.confirmUndoCommit
-      )
+      dispatcher.setConfirmUndoCommitSetting(this.state.confirmUndoCommit)
       await dispatcher.undoCommit(repository, commit, false)
     } finally {
       this.setState({ isLoading: false })
