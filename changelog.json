@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.0.8-beta1": [
+      "[Added] Add support for Lite XL editor on Linux & macOS - #15180. Thanks @KaMeHb-UA!",
+      "[Added] Add Neovide support on macOS - #14929. Thanks @Yohannfra!",
+      "[Fixed] Text selection is preserved while scrolling diffs in split mode - #13701",
+      "[Improved] Update submodules when fetching, pulling and checking out branches - #8221 #9174",
+      "[Improved] Avoid truncating long menu item labels on Windows - #14868",
+      "[Improved] Add \"Learn more\" link to \"Commit Reachability\" dialog - #15208",
+      "[Improved] Improve submodule support with a new diff screen with more detailed information - #15176"
+    ],
     "3.0.7": [
       "[Fixed] Do not show login prompt when repositories are fetched - #15163",
       "[Improved] On Apple silicon devices running unoptimized builds, auto-update on first run to an optimized build - #14998"
