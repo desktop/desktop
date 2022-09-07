@@ -23,6 +23,14 @@
         color: var(--color-modified);
       }
 
+      &.added-icon {
+        color: var(--color-new);
+      }
+
+      &.deleted-icon {
+        color: var(--color-deleted);
+      }
+
       &.untracked-icon {
         color: var(--color-deleted);
       }

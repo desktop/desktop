@@ -6,6 +6,7 @@ import {
   CopiedOrRenamedFileStatus,
   UntrackedFileStatus,
   AppFileStatus,
+  SubmoduleStatus,
 } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -15,47 +16,82 @@ import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
 import { forceUnwrap } from '../fatal-error'
+import { enableSubmoduleDiff } from '../feature-flag'
+
+// File mode 160000 is used by git specifically for submodules:
+// https://github.com/git/git/blob/v2.37.3/cache.h#L62-L69
+const SubmoduleFileMode = '160000'
+
+function mapSubmoduleStatusFileModes(
+  status: string,
+  srcMode: string,
+  dstMode: string
+): SubmoduleStatus | undefined {
+  if (!enableSubmoduleDiff()) {
+    return undefined
+  }
+
+  return srcMode === SubmoduleFileMode &&
+    dstMode === SubmoduleFileMode &&
+    status === 'M'
+    ? {
+        commitChanged: true,
+        untrackedChanges: false,
+        modifiedChanges: false,
+      }
+    : (srcMode === SubmoduleFileMode && status === 'D') ||
+      (dstMode === SubmoduleFileMode && status === 'A')
+    ? {
+        commitChanged: false,
+        untrackedChanges: false,
+        modifiedChanges: false,
+      }
+    : undefined
+}
 
 /**
  * Map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-export function mapStatus(
+function mapStatus(
   rawStatus: string,
-  oldPath?: string
+  oldPath: string | undefined,
+  srcMode: string,
+  dstMode: string
 ): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {
   const status = rawStatus.trim()
+  const submoduleStatus = mapSubmoduleStatusFileModes(status, srcMode, dstMode)
 
   if (status === 'M') {
-    return { kind: AppFileStatusKind.Modified }
+    return { kind: AppFileStatusKind.Modified, submoduleStatus }
   } // modified
   if (status === 'A') {
-    return { kind: AppFileStatusKind.New }
+    return { kind: AppFileStatusKind.New, submoduleStatus }
   } // added
   if (status === '?') {
-    return { kind: AppFileStatusKind.Untracked }
+    return { kind: AppFileStatusKind.Untracked, submoduleStatus }
   } // untracked
   if (status === 'D') {
-    return { kind: AppFileStatusKind.Deleted }
+    return { kind: AppFileStatusKind.Deleted, submoduleStatus }
   } // deleted
   if (status === 'R' && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus }
   } // renamed
   if (status === 'C' && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus }
   } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus }
   }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
   if (status.match(/C[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus }
   }
 
-  return { kind: AppFileStatusKind.Modified }
+  return { kind: AppFileStatusKind.Modified, submoduleStatus }
 }
 
 const isCopyOrRename = (
@@ -232,7 +268,19 @@ export function parseRawLogWithNumstat(
   for (let i = 0; i < lines.length - 1; i++) {
     const line = lines[i]
     if (line.startsWith(':')) {
-      const status = forceUnwrap('Invalid log output', line.split(' ').at(-1))
+      const lineComponents = line.split(' ')
+      const srcMode = forceUnwrap(
+        'Invalid log output (srcMode)',
+        lineComponents[0]?.replace(':', '')
+      )
+      const dstMode = forceUnwrap(
+        'Invalid log output (dstMode)',
+        lineComponents[1]
+      )
+      const status = forceUnwrap(
+        'Invalid log output (status)',
+        lineComponents.at(-1)
+      )
       const oldPath = /^R|C/.test(status)
         ? forceUnwrap('Missing old path', lines.at(++i))
         : undefined
@@ -242,7 +290,7 @@ export function parseRawLogWithNumstat(
       files.push(
         new CommittedFileChange(
           path,
-          mapStatus(status, oldPath),
+          mapStatus(status, oldPath, srcMode, dstMode),
           sha,
           parentCommitish
         )
