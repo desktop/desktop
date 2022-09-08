@@ -226,6 +226,7 @@ function getInitialRepositoryState(): IRepositoryState {
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
     },
+    pullRequestState: null,
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
