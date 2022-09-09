@@ -7,6 +7,7 @@ import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
+import { enableStartingPullRequests } from '../../lib/feature-flag'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
@@ -425,13 +426,23 @@ export function buildDefaultMenu({
       accelerator: 'CmdOrCtrl+Alt+B',
       click: emit('branch-on-github'),
     },
-    {
-      label: pullRequestLabel,
-      id: 'create-pull-request',
-      accelerator: 'CmdOrCtrl+R',
-      click: emit('open-pull-request'),
-    },
   ]
+
+  if (!hasCurrentPullRequest && enableStartingPullRequests()) {
+    branchSubmenu.push({
+      label: __DARWIN__ ? 'Start Pull Request' : 'Start pull request',
+      id: 'start-pull-request',
+      accelerator: 'CmdOrCtrl+Alt+P',
+      click: emit('start-pull-request'),
+    })
+  }
+
+  branchSubmenu.push({
+    label: pullRequestLabel,
+    id: 'create-pull-request',
+    accelerator: 'CmdOrCtrl+R',
+    click: emit('open-pull-request'),
+  })
 
   template.push({
     label: __DARWIN__ ? 'Branch' : '&Branch',
