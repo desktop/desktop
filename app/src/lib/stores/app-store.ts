@@ -163,6 +163,8 @@ import {
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
   updateRemoteHEAD,
+  getBranchMergeBaseChangedFiles,
+  getBranchMergeBaseDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -7114,6 +7116,121 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       numberOfComments,
     })
+  }
+
+  public async _previewPullRequest(repository: Repository) {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch, tip } = branchesState
+
+    if (defaultBranch === null || tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const currentBranch = tip.branch
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
+      defaultBranch,
+      currentBranch
+    )
+
+    const commitSHAs = pullRequestCommits.map(c => c.sha)
+    const firstCommit = commitSHAs[0]
+
+    const changesetData = await gitStore.performFailableOperation(() =>
+      getBranchMergeBaseChangedFiles(
+        repository,
+        defaultBranch.name,
+        currentBranch.name,
+        firstCommit
+      )
+    )
+
+    if (changesetData === undefined) {
+      return
+    }
+
+    this.repositoryStateCache.initializePullRequestState(repository, {
+      baseBranch: defaultBranch,
+      commitSHAs,
+      commitSelection: {
+        shas: commitSHAs,
+        shasInDiff: commitSHAs,
+        isContiguous: true,
+        changesetData,
+        file: null,
+        diff: null,
+      },
+    })
+
+    if (changesetData.files.length > 0) {
+      await this._changePullRequestFileSelection(
+        repository,
+        changesetData.files[0]
+      )
+    }
+  }
+
+  public async _changePullRequestFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    const { branchesState, pullRequestState } =
+      this.repositoryStateCache.get(repository)
+
+    if (
+      branchesState.tip.kind !== TipState.Valid ||
+      pullRequestState === null
+    ) {
+      return
+    }
+
+    const currentBranch = branchesState.tip.branch
+    const { baseBranch, commitSHAs } = pullRequestState
+    if (commitSHAs === null) {
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        file,
+        diff: null,
+      })
+    )
+    this.emitUpdate()
+
+    const diff =
+      (await this.gitStoreCache
+        .get(repository)
+        .performFailableOperation(() =>
+          getBranchMergeBaseDiff(
+            repository,
+            file,
+            baseBranch.name,
+            currentBranch.name,
+            this.hideWhitespaceInHistoryDiff,
+            commitSHAs[0]
+          )
+        )) ?? null
+
+    const { pullRequestState: stateAfterLoad } =
+      this.repositoryStateCache.get(repository)
+    const selectedFileAfterDiffLoad = stateAfterLoad?.commitSelection?.file
+
+    if (selectedFileAfterDiffLoad?.id !== file.id) {
+      // this means user has clicked on another file since loading the diff
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        diff,
+      })
+    )
+
+    this.emitUpdate()
   }
 }
 
