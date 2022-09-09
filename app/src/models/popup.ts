@@ -86,6 +86,7 @@ export enum PopupType {
   DiscardChangesRetry,
   PullRequestReview,
   UnreachableCommits,
+  StartPullRequest,
 }
 
 export type Popup =
@@ -358,4 +359,7 @@ export type Popup =
   | {
       type: PopupType.UnreachableCommits
       selectedTab: UnreachableCommitsTab
+    }
+  | {
+      type: PopupType.StartPullRequest
     }

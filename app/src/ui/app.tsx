@@ -157,6 +157,7 @@ import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
 import { showContextualMenu } from '../lib/menu-item'
 import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
+import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2239,6 +2240,31 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.StartPullRequest: {
+        const { selectedState } = this.state
+        if (
+          selectedState == null ||
+          selectedState.type !== SelectionType.Repository
+        ) {
+          return null
+        }
+
+        const { state: repoState, repository } = selectedState
+        const { pullRequestState } = repoState
+        if (pullRequestState === null) {
+          return null
+        }
+
+        return (
+          <OpenPullRequestDialog
+            key="open-pull-request"
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            pullRequestState={pullRequestState}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2730,7 +2756,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private startPullRequest = () => {
-    // TODO: start pull request
+    const state = this.state.selectedState
+
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.startPullRequest(state.repository)
   }
 
   private openCreatePullRequestInBrowser = (
