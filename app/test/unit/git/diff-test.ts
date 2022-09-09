@@ -5,6 +5,7 @@ import { Repository } from '../../../src/models/repository'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
+  FileChange,
 } from '../../../src/models/status'
 import {
   ITextDiff,
@@ -24,10 +25,13 @@ import {
   getWorkingDirectoryImage,
   getBlobImage,
   getBinaryPaths,
+  getBranchMergeBaseChangedFiles,
+  getBranchMergeBaseDiff,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
 import { GitProcess } from 'dugite'
+import { makeCommit, switchTo } from '../../helpers/repository-scaffolding'
 
 async function getTextDiff(
   repo: Repository,
@@ -528,6 +532,112 @@ describe('git/diff', () => {
         modifiedChanges: true,
         untrackedChanges: true,
       })
+    })
+  })
+
+  describe('getBranchMergeBaseChangedFiles', () => {
+    it('loads the files changed between two branches if merged', async () => {
+      // create feature branch from initial master commit
+      await GitProcess.exec(['branch', 'feature-branch'], repository.path)
+
+      const firstCommit = {
+        entries: [{ path: 'A.md', contents: 'A' }],
+      }
+      await makeCommit(repository, firstCommit)
+
+      // switch to the feature branch and add feature.md and add foo.md
+      await switchTo(repository, 'feature-branch')
+
+      const secondCommit = {
+        entries: [{ path: 'feature.md', contents: 'feature' }],
+      }
+      await makeCommit(repository, secondCommit)
+
+      /*
+        Now, we have:
+
+           B
+        A  |  -- Feature
+        |  /
+        I -- Master
+
+        If we did `git diff master feature`, we would see files changes
+        from just A and B.
+
+        We are testing `git diff --merge-base master feature`, which will
+        display the diff of the resulting merge of `feature` into `master`.
+        Thus, we will see changes from B only.
+      */
+
+      const changesetData = await getBranchMergeBaseChangedFiles(
+        repository,
+        'master',
+        'feature-branch',
+        'irrelevantToTest'
+      )
+      expect(changesetData.files).toHaveLength(1)
+      expect(changesetData.files[0].path).toBe('feature.md')
+    })
+  })
+
+  describe('getBranchMergeBaseDiff', () => {
+    it('loads the diff of a file between two branches if merged', async () => {
+      // Add foo.md to master
+      const fooPath = path.join(repository.path, 'foo.md')
+      await FSE.writeFile(fooPath, 'foo\n')
+      await GitProcess.exec(['commit', '-a', '-m', 'foo'], repository.path)
+
+      // Create feature branch from commit with foo.md
+      await GitProcess.exec(['branch', 'feature-branch'], repository.path)
+
+      // Commit a line "bar" to foo.md on master branch
+      await FSE.appendFile(fooPath, 'bar\n')
+      await GitProcess.exec(['add', fooPath], repository.path)
+      await GitProcess.exec(['commit', '-m', 'A'], repository.path)
+
+      // switch to the feature branch and add feature to foo.md
+      await switchTo(repository, 'feature-branch')
+
+      // Commit a line of "feature" to foo.md on feature branch
+      await FSE.appendFile(fooPath, 'feature\n')
+      await GitProcess.exec(['add', fooPath], repository.path)
+      await GitProcess.exec(['commit', '-m', 'B'], repository.path)
+
+      /*
+        Now, we have:
+
+           B
+        A  |  -- Feature
+        |  /
+        Foo -- Master
+
+        A adds line of "bar" to foo.md
+        B adds line "feature" to foo.md
+
+        If we did `git diff master feature`, we would see both lines
+        "bar" and "feature" added to foo.md
+
+        We are testing `git diff --merge-base master feature`, which will
+        display the diff of the resulting merge of `feature` into `master`.
+        Thus, we will see changes from B only or the line "feature".
+      */
+
+      const diff = await getBranchMergeBaseDiff(
+        repository,
+        new FileChange('foo.md', { kind: AppFileStatusKind.New }),
+        'master',
+        'feature-branch',
+        false,
+        'irrelevantToTest'
+      )
+      expect(diff.kind).toBe(DiffType.Text)
+
+      if (diff.kind !== DiffType.Text) {
+        return
+      }
+
+      expect(diff.text).not.toContain('bar')
+      expect(diff.text).toContain('feature')
     })
   })
 })
