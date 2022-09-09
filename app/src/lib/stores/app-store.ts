@@ -7118,7 +7118,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  public async _previewPullRequest(repository: Repository) {
+  public async _startPullRequest(repository: Repository) {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch, tip } = branchesState
 
