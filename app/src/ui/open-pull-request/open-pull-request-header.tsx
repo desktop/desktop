@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Branch } from '../../models/branch'
+import { BranchSelect } from '../branches/branch-select'
 import { DialogHeader } from '../dialog/header'
 import { createUniqueId } from '../lib/id-pool'
 import { Ref } from '../lib/ref'
@@ -43,7 +44,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
       >
         <div className="break"></div>
         <div className="base-branch-details">
-          Merge {commits} into <Ref>{baseBranch.name}</Ref> from{' '}
+          Merge {commits} into <BranchSelect selectedBranch={baseBranch} /> from{' '}
           <Ref>{currentBranch.name}</Ref>.
         </div>
       </DialogHeader>
