@@ -3,6 +3,7 @@ import { IPullRequestState } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
+import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -21,9 +22,13 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     this.props.dispatcher.recordCreatePullRequest()
   }
 
-  private renderHeader() {}
+  private renderHeader() {
+    return <OpenPullRequestDialogHeader onDismissed={this.props.onDismissed} />
+  }
 
-  private renderContent() {}
+  private renderContent() {
+    return <div>Content</div>
+  }
 
   private renderFooter() {
     return (
@@ -41,14 +46,11 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     return (
       <Dialog
         className="open-pull-request"
-        title={__DARWIN__ ? 'Open a Pull Request' : 'Open a pull request'}
         onSubmit={this.onCreatePullRequest}
         onDismissed={this.props.onDismissed}
       >
-        <div className="content">
-          {this.renderHeader()}
-          {this.renderContent()}
-        </div>
+        {this.renderHeader()}
+        <div className="content">{this.renderContent()}</div>
 
         {this.renderFooter()}
       </Dialog>
