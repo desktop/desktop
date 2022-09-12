@@ -197,6 +197,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** Should the app prompt the user to confirm an undo commit? */
+  readonly askForConfirmationOnUndoCommit: boolean
+
   /** How the app should handle uncommitted changes when switching branches */
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 
