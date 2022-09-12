@@ -23,7 +23,13 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderHeader() {
-    return <OpenPullRequestDialogHeader onDismissed={this.props.onDismissed} />
+    const { baseBranch } = this.props.pullRequestState
+    return (
+      <OpenPullRequestDialogHeader
+        baseBranch={baseBranch}
+        onDismissed={this.props.onDismissed}
+      />
+    )
   }
 
   private renderContent() {

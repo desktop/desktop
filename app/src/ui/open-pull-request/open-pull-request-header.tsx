@@ -1,9 +1,13 @@
 import * as React from 'react'
+import { Branch } from '../../models/branch'
 import { DialogHeader } from '../dialog/header'
 import { createUniqueId } from '../lib/id-pool'
 import { Ref } from '../lib/ref'
 
 interface IOpenPullRequestDialogHeaderProps {
+  /** The base branch of the pull request */
+  readonly baseBranch: Branch
+
   /**
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
@@ -21,16 +25,17 @@ export class OpenPullRequestDialogHeader extends React.Component<
 > {
   public render() {
     const title = __DARWIN__ ? 'Open a Pull Request' : 'Open a pull request'
+    const { baseBranch, onDismissed } = this.props
     return (
       <DialogHeader
         title={title}
         titleId={createUniqueId(`Dialog_${title}_${title}`)}
         dismissable={true}
-        onDismissed={this.props.onDismissed}
+        onDismissed={onDismissed}
       >
         <div className="break"></div>
         <div className="base-branch-details">
-          Merge {5} commit{'s'} into <Ref>base branch</Ref> from{' '}
+          Merge {5} commit{'s'} into <Ref>{baseBranch.name}</Ref> from{' '}
           <Ref>feature-branch</Ref>.
         </div>
       </DialogHeader>
