@@ -1,7 +1,31 @@
 .branch-select-component {
   display: inline-flex;
 
+  button {
+    border: none;
+    background-color: white;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-style: normal;
+    font-family: var(--font-family-monospace);
+  }
+
   .ref-component {
     display: inline-flex;
+  }
+
+  .branch-select-dropdown {
+    position: absolute;
+    overflow: hidden;
+    font-size: var(--font-size);
+    color: var(--text-color);
+    background-color: var(--box-alt-background-color);
+    background-clip: padding-box;
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    z-index: 100;
+    box-shadow: var(--base-box-shadow);
+    margin-top: 25px;
   }
 }
