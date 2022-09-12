@@ -5,8 +5,8 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IBranchSelectProps {
-  /** The selected branch. */
-  readonly selectedBranch: Branch
+  /** The initially selected branch. */
+  readonly branch: Branch
 
   /** Called when the user changes the selected branch. */
   readonly onChange?: (branch: Branch) => void

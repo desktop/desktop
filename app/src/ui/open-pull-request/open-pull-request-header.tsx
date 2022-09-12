@@ -44,7 +44,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
       >
         <div className="break"></div>
         <div className="base-branch-details">
-          Merge {commits} into <BranchSelect selectedBranch={baseBranch} /> from{' '}
+          Merge {commits} into <BranchSelect branch={baseBranch} /> from{' '}
           <Ref>{currentBranch.name}</Ref>.
         </div>
       </DialogHeader>
