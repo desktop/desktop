@@ -8,6 +8,9 @@ interface IOpenPullRequestDialogHeaderProps {
   /** The base branch of the pull request */
   readonly baseBranch: Branch
 
+  /** The branch of the pull request */
+  readonly currentBranch: Branch
+
   /** The count of commits of the pull request */
   readonly commitCount: number
 
@@ -28,7 +31,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
 > {
   public render() {
     const title = __DARWIN__ ? 'Open a Pull Request' : 'Open a pull request'
-    const { baseBranch, commitCount, onDismissed } = this.props
+    const { baseBranch, currentBranch, commitCount, onDismissed } = this.props
     const commits = `${commitCount} commit${commitCount > 1 ? 's' : ''}`
 
     return (
@@ -41,7 +44,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
         <div className="break"></div>
         <div className="base-branch-details">
           Merge {commits} into <Ref>{baseBranch.name}</Ref> from{' '}
-          <Ref>feature-branch</Ref>.
+          <Ref>{currentBranch.name}</Ref>.
         </div>
       </DialogHeader>
     )

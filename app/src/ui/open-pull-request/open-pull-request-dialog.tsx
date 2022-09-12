@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { IPullRequestState } from '../../lib/app-state'
+import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
@@ -9,6 +10,7 @@ interface IOpenPullRequestDialogProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly pullRequestState: IPullRequestState
+  readonly currentBranch: Branch
 
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
@@ -23,10 +25,12 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderHeader() {
-    const { baseBranch, commitSHAs } = this.props.pullRequestState
+    const { currentBranch, pullRequestState } = this.props
+    const { baseBranch, commitSHAs } = pullRequestState
     return (
       <OpenPullRequestDialogHeader
         baseBranch={baseBranch}
+        currentBranch={currentBranch}
         commitCount={commitSHAs?.length ?? 0}
         onDismissed={this.props.onDismissed}
       />
