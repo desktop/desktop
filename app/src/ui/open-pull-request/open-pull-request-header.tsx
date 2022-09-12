@@ -8,6 +8,9 @@ interface IOpenPullRequestDialogHeaderProps {
   /** The base branch of the pull request */
   readonly baseBranch: Branch
 
+  /** The count of commits of the pull request */
+  readonly commitCount: number
+
   /**
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
@@ -25,7 +28,9 @@ export class OpenPullRequestDialogHeader extends React.Component<
 > {
   public render() {
     const title = __DARWIN__ ? 'Open a Pull Request' : 'Open a pull request'
-    const { baseBranch, onDismissed } = this.props
+    const { baseBranch, commitCount, onDismissed } = this.props
+    const commits = `${commitCount} commit${commitCount > 1 ? 's' : ''}`
+
     return (
       <DialogHeader
         title={title}
@@ -35,7 +40,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
       >
         <div className="break"></div>
         <div className="base-branch-details">
-          Merge {5} commit{'s'} into <Ref>{baseBranch.name}</Ref> from{' '}
+          Merge {commits} into <Ref>{baseBranch.name}</Ref> from{' '}
           <Ref>feature-branch</Ref>.
         </div>
       </DialogHeader>

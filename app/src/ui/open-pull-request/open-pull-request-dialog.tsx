@@ -23,10 +23,11 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderHeader() {
-    const { baseBranch } = this.props.pullRequestState
+    const { baseBranch, commitSHAs } = this.props.pullRequestState
     return (
       <OpenPullRequestDialogHeader
         baseBranch={baseBranch}
+        commitCount={commitSHAs?.length ?? 0}
         onDismissed={this.props.onDismissed}
       />
     )
