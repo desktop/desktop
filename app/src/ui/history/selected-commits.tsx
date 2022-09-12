@@ -71,6 +71,9 @@ interface ISelectedCommitsProps {
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
 
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule: (fullPath: string) => void
+
   /**
    * Called when the user is viewing an image diff and requests
    * to change the diff presentation mode.
@@ -161,6 +164,7 @@ export class SelectedCommits extends React.Component<
         onOpenBinaryFile={this.props.onOpenBinaryFile}
         onChangeImageDiffType={this.props.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onOpenSubmodule={this.props.onOpenSubmodule}
       />
     )
   }
@@ -316,7 +320,7 @@ export class SelectedCommits extends React.Component<
     return (
       <div id="multiple-commits-selected" className="blankslate">
         <div className="panel blankslate">
-          <img src={BlankSlateImage} className="blankslate-image" />
+          <img src={BlankSlateImage} className="blankslate-image" alt="" />
           <div>
             <p>
               Unable to display diff when multiple{' '}
@@ -441,7 +445,7 @@ function NoCommitSelected() {
 
   return (
     <div className="panel blankslate">
-      <img src={BlankSlateImage} className="blankslate-image" />
+      <img src={BlankSlateImage} className="blankslate-image" alt="" />
       No commit selected
     </div>
   )

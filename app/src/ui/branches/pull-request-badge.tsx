@@ -77,6 +77,7 @@ export class PullRequestBadge extends React.Component<
   public render() {
     const ref = getPullRequestCommitRef(this.props.number)
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div className="pr-badge" onClick={this.onBadgeClick} ref={this.onRef}>
         <span className="number">#{this.props.number}</span>
         <CIStatus

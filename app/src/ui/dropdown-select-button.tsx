@@ -158,6 +158,7 @@ export class DropdownSelectButton extends React.Component<
       >
         <ul>
           {options.map(o => (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
             <li key={o.value} onClick={this.onSelectionChange(o)}>
               {this.renderSelectedIcon(o)}
               <div className="option-title">{o.label}</div>

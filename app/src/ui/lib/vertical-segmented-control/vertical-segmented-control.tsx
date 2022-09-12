@@ -194,6 +194,7 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
     }
 
     const label = this.props.label ? (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events
       <legend onClick={this.onLegendClick}>{this.props.label}</legend>
     ) : undefined
 

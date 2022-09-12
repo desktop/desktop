@@ -2,6 +2,11 @@ import { CommitIdentity } from './commit-identity'
 import { ITrailer, isCoAuthoredByTrailer } from '../lib/git/interpret-trailers'
 import { GitAuthor } from './git-author'
 
+/** Shortens a given SHA. */
+export function shortenSHA(sha: string) {
+  return sha.slice(0, 9)
+}
+
 /** Grouping of information required to create a commit */
 export interface ICommitContext {
   /**

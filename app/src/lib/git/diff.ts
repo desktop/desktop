@@ -8,6 +8,7 @@ import {
   FileChange,
   AppFileStatusKind,
   CommittedFileChange,
+  SubmoduleStatus,
 } from '../../models/status'
 import {
   DiffType,
@@ -18,7 +19,6 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
-  IUnrenderableDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -32,6 +32,8 @@ import { git } from './core'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
 import { parseRawLogWithNumstat } from './log'
+import { getConfigValue } from './config'
+import { getMergeBase } from './merge'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -139,6 +141,50 @@ export async function getCommitDiff(
 }
 
 /**
+ * Render the diff between two branches with --merge-base for a file
+ * (Show what would be the result of merge)
+ */
+export async function getBranchMergeBaseDiff(
+  repository: Repository,
+  file: FileChange,
+  baseBranchName: string,
+  comparisonBranchName: string,
+  hideWhitespaceInDiff: boolean = false,
+  latestCommit: string
+): Promise<IDiff> {
+  const args = [
+    'diff',
+    '--merge-base',
+    baseBranchName,
+    comparisonBranchName,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+    '--',
+    file.path,
+  ]
+
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
+  }
+
+  const result = await git(args, repository.path, 'getBranchMergeBaseDiff', {
+    maxBuffer: Infinity,
+  })
+
+  return buildDiff(
+    Buffer.from(result.combinedOutput),
+    repository,
+    file,
+    latestCommit
+  )
+}
+
+/**
  * Render the difference between two commits for a file
  *
  */
@@ -197,6 +243,52 @@ export async function getCommitRangeDiff(
     repository,
     file,
     latestCommit
+  )
+}
+
+/**
+ * Get the files that were changed for the merge base comparison of two branches.
+ * (What would be the result of a merge)
+ */
+export async function getBranchMergeBaseChangedFiles(
+  repository: Repository,
+  baseBranchName: string,
+  comparisonBranchName: string,
+  latestComparisonBranchCommitRef: string
+): Promise<{
+  files: ReadonlyArray<CommittedFileChange>
+  linesAdded: number
+  linesDeleted: number
+}> {
+  const baseArgs = [
+    'diff',
+    '--merge-base',
+    baseBranchName,
+    comparisonBranchName,
+    '-C',
+    '-M',
+    '-z',
+    '--raw',
+    '--numstat',
+    '--',
+  ]
+
+  const result = await git(
+    baseArgs,
+    repository.path,
+    'getBranchMergeBaseChangedFiles'
+  )
+
+  const mergeBaseCommit = await getMergeBase(
+    repository,
+    baseBranchName,
+    comparisonBranchName
+  )
+
+  return parseRawLogWithNumstat(
+    result.combinedOutput,
+    `${latestComparisonBranchCommitRef}`,
+    mergeBaseCommit ?? NullTreeSHA
   )
 }
 
@@ -268,10 +360,14 @@ export async function getWorkingDirectoryDiff(
     '--no-color',
   ]
   const successExitCodes = new Set([0])
+  const isSubmodule = file.status.submoduleStatus !== undefined
 
+  // For added submodules, we'll use the "default" parameters, which are able
+  // to output the submodule commit.
   if (
-    file.status.kind === AppFileStatusKind.New ||
-    file.status.kind === AppFileStatusKind.Untracked
+    !isSubmodule &&
+    (file.status.kind === AppFileStatusKind.New ||
+      file.status.kind === AppFileStatusKind.Untracked)
   ) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
@@ -480,16 +576,71 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(forceUnwrap(`Invalid diff output`, pieces.at(-1)))
 }
 
-function buildDiff(
+async function buildSubmoduleDiff(
+  buffer: Buffer,
+  repository: Repository,
+  file: FileChange,
+  status: SubmoduleStatus
+): Promise<IDiff> {
+  const path = file.path
+  const fullPath = Path.join(repository.path, path)
+  const url = await getConfigValue(repository, `submodule.${path}.url`, true)
+
+  let oldSHA = null
+  let newSHA = null
+
+  if (
+    status.commitChanged ||
+    file.status.kind === AppFileStatusKind.New ||
+    file.status.kind === AppFileStatusKind.Deleted
+  ) {
+    const diff = buffer.toString('utf-8')
+    const lines = diff.split('\n')
+    const baseRegex = 'Subproject commit ([^-]+)(-dirty)?$'
+    const oldSHARegex = new RegExp('-' + baseRegex)
+    const newSHARegex = new RegExp('\\+' + baseRegex)
+    const lineMatch = (regex: RegExp) =>
+      lines
+        .flatMap(line => {
+          const match = line.match(regex)
+          return match ? match[1] : []
+        })
+        .at(0) ?? null
+
+    oldSHA = lineMatch(oldSHARegex)
+    newSHA = lineMatch(newSHARegex)
+  }
+
+  return {
+    kind: DiffType.Submodule,
+    fullPath,
+    path,
+    url,
+    status,
+    oldSHA,
+    newSHA,
+  }
+}
+
+async function buildDiff(
   buffer: Buffer,
   repository: Repository,
   file: FileChange,
   oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
+  if (file.status.submoduleStatus !== undefined) {
+    return buildSubmoduleDiff(
+      buffer,
+      repository,
+      file,
+      file.status.submoduleStatus
+    )
+  }
+
   if (!isValidBuffer(buffer)) {
     // the buffer's diff is too large to be renderable in the UI
-    return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })
+    return { kind: DiffType.Unrenderable }
   }
 
   const diff = diffFromRawDiffOutput(buffer)
@@ -507,7 +658,7 @@ function buildDiff(
       hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
-    return Promise.resolve(largeTextDiff)
+    return largeTextDiff
   }
 
   return convertDiff(repository, file, diff, oldestCommitish, lineEndingsChange)

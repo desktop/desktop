@@ -25,20 +25,23 @@ export class TutorialWelcome extends React.Component {
         </div>
         <ul className="definitions">
           <li>
-            <img src={CodeImage} />
+            <img src={CodeImage} alt="Html syntax icon" />
             <p>
               <strong>Git</strong> is the version control system.
             </p>
           </li>
           <li>
-            <img src={TeamDiscussionImage} />
+            <img
+              src={TeamDiscussionImage}
+              alt="People with discussion bubbles overhead"
+            />
             <p>
               <strong>GitHub</strong> is where you store your code and
               collaborate with others.
             </p>
           </li>
           <li>
-            <img src={CloudServerImage} />
+            <img src={CloudServerImage} alt="Server stack with cloud" />
             <p>
               <strong>GitHub Desktop</strong> helps you work with GitHub
               locally.

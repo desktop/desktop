@@ -32,6 +32,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['org.vim.MacVim'],
   },
   {
+    name: 'Neovide',
+    bundleIdentifiers: ['com.neovide.neovide'],
+  },
+  {
     name: 'Visual Studio Code',
     bundleIdentifiers: ['com.microsoft.VSCode'],
   },
@@ -131,6 +135,14 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Nova',
     bundleIdentifiers: ['com.panic.Nova'],
+  },
+  {
+    name: 'Emacs',
+    bundleIdentifiers: ['org.gnu.Emacs'],
+  },
+  {
+    name: 'Lite XL',
+    bundleIdentifiers: ['com.lite-xl'],
   },
 ]
 

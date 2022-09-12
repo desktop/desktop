@@ -30,7 +30,7 @@ function enableBetaFeatures(): boolean {
 
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export function enableReadmeOverwriteWarning(): boolean {
@@ -100,5 +100,10 @@ export function enablePullRequestQuickView(): boolean {
 
 /** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
 export function enableMultiCommitDiffs(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we enable the new interstitial for submodule diffs? */
+export function enableSubmoduleDiff(): boolean {
   return enableBetaFeatures()
 }

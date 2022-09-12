@@ -52,7 +52,7 @@ These are defined in a list at the top of the file:
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
  **/
-const editors: IWindowsExternalEditor[] = [
+const editors: WindowsExternalEditor[] = [
 ...
 ]
 ```
@@ -68,7 +68,7 @@ The steps for resolving each editor can be found in `findApplication()` and in
 pseudocode looks like this:
 
 ```ts
-async function findApplication(editor: IWindowsExternalEditor): Promise<string | null> {
+async function findApplication(editor: WindowsExternalEditor) {
   // find install location in registry
   // validate installation
   // find executable to launch
@@ -95,6 +95,8 @@ channels).
     CurrentUserUninstallKey('{771FD6B0-FA20-440A-A002-3B3BAC16DC50}_is1'),
     // 32-bit version of VSCode (user)
     CurrentUserUninstallKey('{D628A17A-9713-46BF-8D57-E671B46A741E}_is1'),
+    // ARM64 version of VSCode (user)
+    CurrentUserUninstallKey('{D9E514E7-1A56-452D-9337-2990C0DC4310}_is1'),
     // 64-bit version of VSCode (system) - was default before user scope installation
     LocalMachineUninstallKey('{EA457B21-F73E-494C-ACAB-524FDE069978}_is1'),
     // 32-bit version of VSCode (system)
@@ -143,7 +145,7 @@ you can see this code in `getAppInfo()`:
 
 ```ts
 function getAppInfo(
-  editor: IWindowsExternalEditor,
+  editor: WindowsExternalEditor,
   keys: ReadonlyArray<RegistryValue>
 ): IWindowsAppInformation {
   const displayName = getKeyOrEmpty(keys, 'DisplayName')
@@ -171,16 +173,14 @@ publisher in the `Publisher` registry key, and the install location in the
 setting a different registry key in the `installLocationRegistryKey` attribute
 of your new editor entry in the `editors` list.
 
-The second step is to validate the installation, and this is done in the
-`expectedInstallationChecker` functions defined for each editor entry:
+The second step is to validate the installation:
 
 ```ts
 {
   name: 'Visual Studio Code',
   ...
-  expectedInstallationChecker: (displayName, publisher) =>
-    displayName.startsWith('Microsoft Visual Studio Code') &&
-    publisher === 'Microsoft Corporation',
+  displayNamePrefix: 'Microsoft Visual Studio Code',
+  publisher: 'Microsoft Corporation',
 },
 ```
 
@@ -196,7 +196,7 @@ location with an interface that doesn't change between updates.
 {
   name: 'Visual Studio Code',
   ...
-  executableShimPath: ['bin', 'code.cmd'],
+  executableShimPaths: [['bin', 'code.cmd']],
 },
 ```
 
@@ -212,6 +212,7 @@ These editors are currently supported:
 
  - [Atom](https://atom.io/)
  - [MacVim](https://macvim-dev.github.io/macvim/)
+ - [Neovide](https://github.com/neovide/neovide)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
@@ -235,6 +236,8 @@ These editors are currently supported:
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [Nova](https://nova.app/)
  - [Aptana Studio](http://www.aptana.com/)
+ - [Emacs](https://www.gnu.org/software/emacs/)
+ - [Lite XL](https://lite-xl.com/)
 
 These are defined in a list at the top of the file:
 
@@ -301,6 +304,9 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [Neovim](https://neovim.io/)
+ - [Code](https://github.com/elementary/code)
+ - [Lite XL](https://lite-xl.com/)
 
 These are defined in a list at the top of the file:
 
@@ -329,6 +335,6 @@ editor might be found.
 ```ts
 {
   name: 'Visual Studio Code',
-  paths: ['/usr/bin/code'],
+  paths: ['/usr/share/code/bin/code', '/snap/bin/code', '/usr/bin/code'],
 },
 ```
