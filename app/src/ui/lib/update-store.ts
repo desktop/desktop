@@ -184,8 +184,10 @@ class UpdateStore {
   public async checkForUpdates(inBackground: boolean, skipGuidCheck: boolean) {
     // An update has been downloaded and the app is waiting to be restarted.
     // Checking for updates again may result in the running app being nuked
-    // when it finds a subsequent update.
-    if (__WIN32__ && this.status === UpdateStatus.UpdateReady) {
+    // when it finds a subsequent update on Windows, or the "Quit and Update"
+    // button to crash the app if in the subsequent check, there is no update
+    // available anymore due to a disabled update.
+    if (this.status === UpdateStatus.UpdateReady) {
       return
     }
 
