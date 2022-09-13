@@ -111,9 +111,9 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
   }
 
-  private onQuitAndInstall = () => {
-    updateStore.quitAndInstallUpdate()
-  }
+  // private onQuitAndInstall = () => {
+  //   updateStore.quitAndInstallUpdate()
+  // }
 
   private renderUpdateButton() {
     if (__RELEASE_CHANNEL__ === 'development') {
@@ -124,13 +124,13 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
     switch (updateStatus) {
       case UpdateStatus.UpdateReady:
-        return (
-          <Row>
-            <Button onClick={this.onQuitAndInstall}>
-              Quit and Install Update
-            </Button>
-          </Row>
-        )
+      // return (
+      //   <Row>
+      //     <Button onClick={this.onQuitAndInstall}>
+      //       Quit and Install Update
+      //     </Button>
+      //   </Row>
+      // )
       case UpdateStatus.UpdateNotAvailable:
       case UpdateStatus.CheckingForUpdates:
       case UpdateStatus.UpdateAvailable:
