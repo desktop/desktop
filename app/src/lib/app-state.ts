@@ -421,7 +421,7 @@ export interface IRepositoryState {
   /**
    * The state of the current pull request view in the repository.
    *
-   * It will populated when a user initiates a pull request. It may have
+   * It will be populated when a user initiates a pull request. It may have
    * content to retain a users pull request state if they navigate
    * away from the current pull request view and then back. It is returned
    * to null after a pull request has been opened.
