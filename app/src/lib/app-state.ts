@@ -945,7 +945,7 @@ export interface IConstrainedValue {
 export interface IPullRequestState {
   /**
    * The base branch of a a pull request - the branch the currently checked out
-   *  branch would merge into
+   * branch would merge into
    */
   readonly baseBranch: Branch
 
