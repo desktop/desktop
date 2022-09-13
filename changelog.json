@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.0.9-test2": ["[Removed] Nothing..."],
     "3.0.9-test1": [
       "[Removed] Remove 'Quit and Install' button from About dialog"
     ],
