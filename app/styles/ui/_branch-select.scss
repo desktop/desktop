@@ -17,18 +17,17 @@
 
   .branch-select-dropdown {
     position: absolute;
-    overflow: hidden;
-    font-size: var(--font-size);
-    color: var(--text-color);
-    background-color: var(--box-alt-background-color);
-    background-clip: padding-box;
-    border: 1px solid var(--box-border-color);
-    border-radius: var(--border-radius);
-    z-index: 100;
-    box-shadow: var(--base-box-shadow);
-    margin-top: 25px;
     min-height: 200px;
     display: flex;
     width: 365px;
+    padding: 0;
+    margin-top: 25px;
+
+    &.popover-component {
+      &::before,
+      &::after {
+        display: none;
+      }
+    }
   }
 }

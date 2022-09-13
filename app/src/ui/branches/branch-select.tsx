@@ -3,6 +3,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { ClickSource } from '../lib/list'
+import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { Ref } from '../lib/ref'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -65,6 +66,10 @@ export class BranchSelect extends React.Component<
     this.setState({ showBranchDropdown: !this.state.showBranchDropdown })
   }
 
+  private closeBranchDropdown = () => {
+    this.setState({ showBranchDropdown: false })
+  }
+
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
@@ -94,7 +99,11 @@ export class BranchSelect extends React.Component<
     const { filterText, selectedBranch } = this.state
 
     return (
-      <div className="branch-select-dropdown">
+      <Popover
+        className="branch-select-dropdown"
+        caretPosition={PopoverCaretPosition.TopLeft}
+        onClickOutside={this.closeBranchDropdown}
+      >
         <BranchList
           allBranches={allBranches}
           currentBranch={currentBranch}
@@ -108,7 +117,7 @@ export class BranchSelect extends React.Component<
           renderBranch={this.renderBranch}
           onItemClick={this.onItemClick}
         />
-      </div>
+      </Popover>
     )
   }
 
