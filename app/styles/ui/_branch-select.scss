@@ -27,5 +27,8 @@
     z-index: 100;
     box-shadow: var(--base-box-shadow);
     margin-top: 25px;
+    min-height: 200px;
+    display: flex;
+    width: 365px;
   }
 }

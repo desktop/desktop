@@ -9,8 +9,31 @@ import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+
+  /**
+   * The IRepositoryState.pullRequestState
+   */
   readonly pullRequestState: IPullRequestState
+
+  /**
+   * The currently checked out branch
+   */
   readonly currentBranch: Branch
+
+  /**
+   * See IBranchesState.defaultBranch
+   */
+  readonly defaultBranch: Branch | null
+
+  /**
+   * See IBranchesState.allBranches
+   */
+  readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * See IBranchesState.recentBranches
+   */
+  readonly recentBranches: ReadonlyArray<Branch>
 
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
@@ -25,12 +48,21 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderHeader() {
-    const { currentBranch, pullRequestState } = this.props
+    const {
+      currentBranch,
+      pullRequestState,
+      defaultBranch,
+      allBranches,
+      recentBranches,
+    } = this.props
     const { baseBranch, commitSHAs } = pullRequestState
     return (
       <OpenPullRequestDialogHeader
         baseBranch={baseBranch}
         currentBranch={currentBranch}
+        defaultBranch={defaultBranch}
+        allBranches={allBranches}
+        recentBranches={recentBranches}
         commitCount={commitSHAs?.length ?? 0}
         onDismissed={this.props.onDismissed}
       />

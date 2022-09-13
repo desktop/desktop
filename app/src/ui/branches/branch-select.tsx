@@ -1,13 +1,38 @@
 import * as React from 'react'
+import { IMatches } from '../../lib/fuzzy-find'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
+import { ClickSource } from '../lib/list'
 import { Ref } from '../lib/ref'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { BranchList } from './branch-list'
+import { renderDefaultBranch } from './branch-renderer'
+import { IBranchListItem } from './group-branches'
 
 interface IBranchSelectProps {
   /** The initially selected branch. */
   readonly branch: Branch
+
+  /**
+   * See IBranchesState.defaultBranch
+   */
+  readonly defaultBranch: Branch | null
+
+  /**
+   * The currently checked out branch
+   */
+  readonly currentBranch: Branch
+
+  /**
+   * See IBranchesState.allBranches
+   */
+  readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * See IBranchesState.recentBranches
+   */
+  readonly recentBranches: ReadonlyArray<Branch>
 
   /** Called when the user changes the selected branch. */
   readonly onChange?: (branch: Branch) => void
@@ -15,7 +40,8 @@ interface IBranchSelectProps {
 
 interface IBranchSelectState {
   readonly showBranchDropdown: boolean
-  readonly selectedBranch: Branch
+  readonly selectedBranch: Branch | null
+  readonly filterText: string
 }
 
 /**
@@ -31,6 +57,7 @@ export class BranchSelect extends React.Component<
     this.state = {
       showBranchDropdown: false,
       selectedBranch: props.branch,
+      filterText: '',
     }
   }
 
@@ -38,12 +65,51 @@ export class BranchSelect extends React.Component<
     this.setState({ showBranchDropdown: !this.state.showBranchDropdown })
   }
 
+  private renderBranch = (item: IBranchListItem, matches: IMatches) => {
+    return renderDefaultBranch(item, matches, this.props.currentBranch)
+  }
+
+  private onItemClick = (branch: Branch, source: ClickSource) => {
+    source.event.preventDefault()
+    this.setState({ showBranchDropdown: false })
+    this.props.onChange?.(branch)
+  }
+
+  private onSelectionChanged = async (selectedBranch: Branch | null) => {
+    this.setState({ selectedBranch })
+  }
+
+  private onFilterTextChanged = (filterText: string) => {
+    this.setState({ filterText })
+  }
+
   public renderBranchDropdown() {
     if (!this.state.showBranchDropdown) {
       return
     }
 
-    return <div className="branch-select-dropdown">List of branches here!</div>
+    const { currentBranch, defaultBranch, recentBranches, allBranches } =
+      this.props
+
+    const { filterText, selectedBranch } = this.state
+
+    return (
+      <div className="branch-select-dropdown">
+        <BranchList
+          allBranches={allBranches}
+          currentBranch={currentBranch}
+          defaultBranch={defaultBranch}
+          recentBranches={recentBranches}
+          filterText={filterText}
+          onFilterTextChanged={this.onFilterTextChanged}
+          selectedBranch={selectedBranch}
+          onSelectionChanged={this.onSelectionChanged}
+          canCreateNewBranch={false}
+          renderBranch={this.renderBranch}
+          onItemClick={this.onItemClick}
+        />
+      </div>
+    )
   }
 
   public render() {
@@ -51,7 +117,7 @@ export class BranchSelect extends React.Component<
       <div className="branch-select-component">
         <Button onClick={this.toggleBranchDropdown}>
           <Ref>
-            {this.state.selectedBranch.name}{' '}
+            {this.state.selectedBranch?.name}
             <Octicon symbol={OcticonSymbol.triangleDown} />
           </Ref>
         </Button>
