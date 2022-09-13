@@ -76,12 +76,8 @@ export class BranchSelect extends React.Component<
 
   private onItemClick = (branch: Branch, source: ClickSource) => {
     source.event.preventDefault()
-    this.setState({ showBranchDropdown: false })
+    this.setState({ showBranchDropdown: false, selectedBranch: branch })
     this.props.onChange?.(branch)
-  }
-
-  private onSelectionChanged = async (selectedBranch: Branch | null) => {
-    this.setState({ selectedBranch })
   }
 
   private onFilterTextChanged = (filterText: string) => {
@@ -112,7 +108,6 @@ export class BranchSelect extends React.Component<
           filterText={filterText}
           onFilterTextChanged={this.onFilterTextChanged}
           selectedBranch={selectedBranch}
-          onSelectionChanged={this.onSelectionChanged}
           canCreateNewBranch={false}
           renderBranch={this.renderBranch}
           onItemClick={this.onItemClick}
