@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.0.9-test1": [
+      "[Removed] Remove 'Quit and Install' button from About dialog"
+    ],
     "3.0.8": [
       "[Fixed] Fix system animations on Windows - #14037",
       "[Fixed] The app window doesn't overlap the taskbar on Windows - #14263",
