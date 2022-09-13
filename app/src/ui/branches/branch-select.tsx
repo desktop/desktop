@@ -11,8 +11,8 @@ import { BranchList } from './branch-list'
 import { renderDefaultBranch } from './branch-renderer'
 import { IBranchListItem } from './group-branches'
 
-const defaultDropdownHeight = 300
-const maxDropdownHeight = 500
+const defaultDropdownListHeight = 300
+const maxDropdownListHeight = 500
 
 interface IBranchSelectProps {
   /** The initially selected branch. */
@@ -46,7 +46,7 @@ interface IBranchSelectState {
   readonly showBranchDropdown: boolean
   readonly selectedBranch: Branch | null
   readonly filterText: string
-  readonly dropdownHeight: number
+  readonly dropdownListHeight: number
 }
 
 /**
@@ -65,32 +65,36 @@ export class BranchSelect extends React.Component<
       showBranchDropdown: false,
       selectedBranch: props.branch,
       filterText: '',
-      dropdownHeight: defaultDropdownHeight,
+      dropdownListHeight: defaultDropdownListHeight,
     }
   }
 
   public componentDidMount() {
-    this.calculateDropDownHeight()
+    this.calculateDropdownListHeight()
   }
 
   public componentDidUpdate() {
-    this.calculateDropDownHeight()
+    this.calculateDropdownListHeight()
   }
 
-  private calculateDropDownHeight = () => {
+  private calculateDropdownListHeight = () => {
     if (this.invokeButtonRef === null) {
       return
     }
 
     const windowHeight = window.innerHeight
     const bottomOfButton = this.invokeButtonRef.getBoundingClientRect().bottom
-    // 15 pixels is just to give some padding room below it
-    const calcMaxHeight = Math.round(windowHeight - bottomOfButton - 15)
+    const listHeaderHeight = 75
+    const calcMaxHeight = Math.round(
+      windowHeight - bottomOfButton - listHeaderHeight
+    )
 
-    const dropdownHeight =
-      calcMaxHeight > maxDropdownHeight ? maxDropdownHeight : calcMaxHeight
-    if (dropdownHeight !== this.state.dropdownHeight) {
-      this.setState({ dropdownHeight })
+    const dropdownListHeight =
+      calcMaxHeight > maxDropdownListHeight
+        ? maxDropdownListHeight
+        : calcMaxHeight
+    if (dropdownListHeight !== this.state.dropdownListHeight) {
+      this.setState({ dropdownListHeight })
     }
   }
 
@@ -128,27 +132,41 @@ export class BranchSelect extends React.Component<
     const { currentBranch, defaultBranch, recentBranches, allBranches } =
       this.props
 
-    const { filterText, selectedBranch, dropdownHeight } = this.state
+    const { filterText, selectedBranch, dropdownListHeight } = this.state
 
     return (
       <Popover
         className="branch-select-dropdown"
         caretPosition={PopoverCaretPosition.TopLeft}
         onClickOutside={this.closeBranchDropdown}
-        style={{ height: `${dropdownHeight}px` }}
       >
-        <BranchList
-          allBranches={allBranches}
-          currentBranch={currentBranch}
-          defaultBranch={defaultBranch}
-          recentBranches={recentBranches}
-          filterText={filterText}
-          onFilterTextChanged={this.onFilterTextChanged}
-          selectedBranch={selectedBranch}
-          canCreateNewBranch={false}
-          renderBranch={this.renderBranch}
-          onItemClick={this.onItemClick}
-        />
+        <div className="branch-select-dropdown-header">
+          Choose a base branch
+          <button
+            className="close"
+            onClick={this.closeBranchDropdown}
+            aria-label="close"
+          >
+            <Octicon symbol={OcticonSymbol.x} />
+          </button>
+        </div>
+        <div
+          className="branch-select-dropdown-list"
+          style={{ height: `${dropdownListHeight}px` }}
+        >
+          <BranchList
+            allBranches={allBranches}
+            currentBranch={currentBranch}
+            defaultBranch={defaultBranch}
+            recentBranches={recentBranches}
+            filterText={filterText}
+            onFilterTextChanged={this.onFilterTextChanged}
+            selectedBranch={selectedBranch}
+            canCreateNewBranch={false}
+            renderBranch={this.renderBranch}
+            onItemClick={this.onItemClick}
+          />
+        </div>
       </Popover>
     )
   }
@@ -161,6 +179,7 @@ export class BranchSelect extends React.Component<
           onButtonRef={this.onInvokeButtonRef}
         >
           <Ref>
+            <span className="base-label">base:</span>
             {this.state.selectedBranch?.name}
             <Octicon symbol={OcticonSymbol.triangleDown} />
           </Ref>
