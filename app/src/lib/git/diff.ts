@@ -7,7 +7,6 @@ import {
   WorkingDirectoryFileChange,
   FileChange,
   AppFileStatusKind,
-  CommittedFileChange,
   SubmoduleStatus,
 } from '../../models/status'
 import {

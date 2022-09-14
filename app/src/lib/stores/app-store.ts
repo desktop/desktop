@@ -7156,16 +7156,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     const commitSHAs = pullRequestCommits.map(c => c.sha)
-    const firstCommit = commitSHAs[0]
 
-    const changesetData = await gitStore.performFailableOperation(() =>
-      getBranchMergeBaseChangedFiles(
-        repository,
-        defaultBranch.name,
-        currentBranch.name,
-        firstCommit
-      )
-    )
+    // A user may compare two branches with no changes between them.
+    const emptyChangeSet = { files: [], linesAdded: 0, linesDeleted: 0 }
+    const changesetData =
+      commitSHAs.length > 0
+        ? await gitStore.performFailableOperation(() =>
+            getBranchMergeBaseChangedFiles(
+              repository,
+              defaultBranch.name,
+              currentBranch.name,
+              commitSHAs[0]
+            )
+          )
+        : emptyChangeSet
 
     if (changesetData === undefined) {
       return
