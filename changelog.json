@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.0.8": [
+      "[Fixed] Fix system animations on Windows - #14037",
+      "[Fixed] The app window doesn't overlap the taskbar on Windows - #14263",
+      "[Fixed] The app window doesn't fit on the screen when using scaled UI on Windows - #13940"
+    ],
     "3.0.8-beta1": [
       "[Added] Add support for Lite XL editor on Linux & macOS - #15180. Thanks @KaMeHb-UA!",
       "[Added] Add Neovide support on macOS - #14929. Thanks @Yohannfra!",

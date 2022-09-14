@@ -197,6 +197,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** Should the app prompt the user to confirm an undo commit? */
+  readonly askForConfirmationOnUndoCommit: boolean
+
   /** How the app should handle uncommitted changes when switching branches */
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 
@@ -421,7 +424,7 @@ export interface IRepositoryState {
   /**
    * The state of the current pull request view in the repository.
    *
-   * It will populated when a user initiates a pull request. It may have
+   * It will be populated when a user initiates a pull request. It may have
    * content to retain a users pull request state if they navigate
    * away from the current pull request view and then back. It is returned
    * to null after a pull request has been opened.
@@ -945,7 +948,7 @@ export interface IConstrainedValue {
 export interface IPullRequestState {
   /**
    * The base branch of a a pull request - the branch the currently checked out
-   *  branch would merge into
+   * branch would merge into
    */
   readonly baseBranch: Branch
 
