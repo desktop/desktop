@@ -7,7 +7,6 @@ import {
   WorkingDirectoryFileChange,
   FileChange,
   AppFileStatusKind,
-  CommittedFileChange,
   SubmoduleStatus,
 } from '../../models/status'
 import {
@@ -31,7 +30,7 @@ import { forceUnwrap } from '../fatal-error'
 import { git } from './core'
 import { NullTreeSHA } from './diff-index'
 import { GitError } from 'dugite'
-import { parseRawLogWithNumstat } from './log'
+import { IChangesetData, parseRawLogWithNumstat } from './log'
 import { getConfigValue } from './config'
 import { getMergeBase } from './merge'
 
@@ -255,11 +254,7 @@ export async function getBranchMergeBaseChangedFiles(
   baseBranchName: string,
   comparisonBranchName: string,
   latestComparisonBranchCommitRef: string
-): Promise<{
-  files: ReadonlyArray<CommittedFileChange>
-  linesAdded: number
-  linesDeleted: number
-}> {
+): Promise<IChangesetData> {
   const baseArgs = [
     'diff',
     '--merge-base',
@@ -296,11 +291,7 @@ export async function getCommitRangeChangedFiles(
   repository: Repository,
   shas: ReadonlyArray<string>,
   useNullTreeSHA: boolean = false
-): Promise<{
-  files: ReadonlyArray<CommittedFileChange>
-  linesAdded: number
-  linesDeleted: number
-}> {
+): Promise<IChangesetData> {
   if (shas.length === 0) {
     throw new Error('No commits to diff...')
   }
