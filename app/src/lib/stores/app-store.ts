@@ -7221,7 +7221,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     this.emitUpdate()
 
-    if (commitShas.length === 0) {
+    if (commitSHAs.length === 0) {
       // Shouldn't happen at this point, but if so moving forward doesn't
       // make sense
       return
