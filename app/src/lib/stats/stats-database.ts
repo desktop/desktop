@@ -532,6 +532,12 @@ export interface IDailyMeasures {
 
   /** The number of times the user opens the unreachable commits dialog */
   readonly multiCommitDiffUnreachableCommitsDialogOpenedCount: number
+
+  /** The number of times the user opens a submodule diff from the changes list */
+  readonly submoduleDiffViewedFromChangesListCount: number
+
+  /** The number of times the user opens a submodule diff from the History view */
+  readonly submoduleDiffViewedFromHistoryCount: number
 }
 
 export class StatsDatabase extends Dexie {

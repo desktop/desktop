@@ -76,13 +76,13 @@ describe('AppStore', () => {
 
     const githubUserStore = new GitHubUserStore(db)
 
-    const repositoryStateManager = new RepositoryStateCache()
-
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
     const aliveStore = new AliveStore(accountsStore)
 
     const statsStore = new StatsStore(statsDb, new TestActivityMonitor())
+
+    const repositoryStateManager = new RepositoryStateCache(statsStore)
 
     const notificationsStore = new NotificationsStore(
       accountsStore,

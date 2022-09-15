@@ -251,7 +251,7 @@ const pullRequestCoordinator = new PullRequestCoordinator(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache()
+const repositoryStateManager = new RepositoryStateCache(statsStore)
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
