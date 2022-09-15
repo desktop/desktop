@@ -538,6 +538,9 @@ export interface IDailyMeasures {
 
   /** The number of times the user opens a submodule diff from the History view */
   readonly submoduleDiffViewedFromHistoryCount: number
+
+  /** The number of times the user opens a submodule repository from its diff */
+  readonly openSubmoduleFromDiffCount: number
 }
 
 export class StatsDatabase extends Dexie {
