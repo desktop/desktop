@@ -2252,17 +2252,22 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         const { state: repoState, repository } = selectedState
-        const { pullRequestState } = repoState
-        if (pullRequestState === null) {
+        const { pullRequestState, branchesState } = repoState
+        if (
+          pullRequestState === null ||
+          branchesState.tip.kind !== TipState.Valid
+        ) {
           return null
         }
+        const currentBranch = branchesState.tip.branch
 
         return (
           <OpenPullRequestDialog
             key="open-pull-request"
+            currentBranch={currentBranch}
             dispatcher={this.props.dispatcher}
-            repository={repository}
             pullRequestState={pullRequestState}
+            repository={repository}
             onDismissed={onPopupDismissedFn}
           />
         )
