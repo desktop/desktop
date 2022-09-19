@@ -107,3 +107,8 @@ export function enableMultiCommitDiffs(): boolean {
 export function enableSubmoduleDiff(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we enable starting pull requests? */
+export function enableStartingPullRequests(): boolean {
+  return enableDevelopmentFeatures()
+}

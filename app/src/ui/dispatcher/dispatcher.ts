@@ -3955,4 +3955,12 @@ export class Dispatcher {
       selectedTab,
     })
   }
+
+  public startPullRequest(repository: Repository) {
+    this.appStore._startPullRequest(repository)
+
+    this.showPopup({
+      type: PopupType.StartPullRequest,
+    })
+  }
 }
