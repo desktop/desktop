@@ -507,6 +507,7 @@ export class RepositoryView extends React.Component<
   }
 
   private onOpenSubmodule = (fullPath: string) => {
+    this.props.dispatcher.recordOpenSubmoduleFromDiffCount()
     this.props.dispatcher.openOrAddRepository(fullPath)
   }
 

@@ -2373,6 +2373,11 @@ export class Dispatcher {
     return this.statsStore.recordMergeConflictFromExplicitMerge()
   }
 
+  /** Increments the `openSubmoduleFromDiffCount` metric */
+  public recordOpenSubmoduleFromDiffCount() {
+    return this.statsStore.recordOpenSubmoduleFromDiffCount()
+  }
+
   /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
