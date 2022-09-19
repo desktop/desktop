@@ -163,6 +163,8 @@ import {
   getCommitRangeDiff,
   getCommitRangeChangedFiles,
   updateRemoteHEAD,
+  getBranchMergeBaseChangedFiles,
+  getBranchMergeBaseDiff,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -326,12 +328,14 @@ const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
+const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
+const confirmUndoCommitKey: string = 'confirmUndoCommit'
 
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
@@ -434,6 +438,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
+  private confirmUndoCommit: boolean = confirmUndoCommitDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInChangesDiff: boolean =
     hideWhitespaceInChangesDiffDefault
@@ -909,6 +914,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      askForConfirmationOnUndoCommit: this.confirmUndoCommit,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
@@ -1971,6 +1977,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnForcePush = getBoolean(
       confirmForcePushKey,
       askForConfirmationOnForcePushDefault
+    )
+
+    this.confirmUndoCommit = getBoolean(
+      confirmUndoCommitKey,
+      confirmUndoCommitDefault
     )
 
     this.uncommittedChangesStrategy =
@@ -4549,9 +4560,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changesState.workingDirectory.files.length === 0
 
     // Warn the user if there are changes in the working directory
+    // This warning can be disabled, except when the user tries to undo
+    // a merge commit.
     if (
       showConfirmationDialog &&
-      (!isWorkingDirectoryClean || commit.isMergeCommit)
+      ((this.confirmUndoCommit && !isWorkingDirectoryClean) ||
+        commit.isMergeCommit)
     ) {
       return this._showPopup({
         type: PopupType.WarnLocalChangesBeforeUndo,
@@ -5184,6 +5198,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(confirmForcePushKey, value)
 
     this.updateMenuLabelsForSelectedRepository()
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmUndoCommitSetting(value: boolean): Promise<void> {
+    this.confirmUndoCommit = value
+    setBoolean(confirmForcePushKey, value)
 
     this.emitUpdate()
 
@@ -7114,6 +7137,131 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       numberOfComments,
     })
+  }
+
+  public async _startPullRequest(repository: Repository) {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch, tip } = branchesState
+
+    if (defaultBranch === null || tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const currentBranch = tip.branch
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
+      defaultBranch,
+      currentBranch
+    )
+
+    const commitSHAs = pullRequestCommits.map(c => c.sha)
+
+    // A user may compare two branches with no changes between them.
+    const emptyChangeSet = { files: [], linesAdded: 0, linesDeleted: 0 }
+    const changesetData =
+      commitSHAs.length > 0
+        ? await gitStore.performFailableOperation(() =>
+            getBranchMergeBaseChangedFiles(
+              repository,
+              defaultBranch.name,
+              currentBranch.name,
+              commitSHAs[0]
+            )
+          )
+        : emptyChangeSet
+
+    if (changesetData === undefined) {
+      return
+    }
+
+    this.repositoryStateCache.initializePullRequestState(repository, {
+      baseBranch: defaultBranch,
+      commitSHAs,
+      commitSelection: {
+        shas: commitSHAs,
+        shasInDiff: commitSHAs,
+        isContiguous: true,
+        changesetData,
+        file: null,
+        diff: null,
+      },
+    })
+
+    if (changesetData.files.length > 0) {
+      await this._changePullRequestFileSelection(
+        repository,
+        changesetData.files[0]
+      )
+    }
+  }
+
+  public async _changePullRequestFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    const { branchesState, pullRequestState } =
+      this.repositoryStateCache.get(repository)
+
+    if (
+      branchesState.tip.kind !== TipState.Valid ||
+      pullRequestState === null
+    ) {
+      return
+    }
+
+    const currentBranch = branchesState.tip.branch
+    const { baseBranch, commitSHAs } = pullRequestState
+    if (commitSHAs === null) {
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        file,
+        diff: null,
+      })
+    )
+    this.emitUpdate()
+
+    if (commitSHAs.length === 0) {
+      // Shouldn't happen at this point, but if so moving forward doesn't
+      // make sense
+      return
+    }
+
+    const diff =
+      (await this.gitStoreCache
+        .get(repository)
+        .performFailableOperation(() =>
+          getBranchMergeBaseDiff(
+            repository,
+            file,
+            baseBranch.name,
+            currentBranch.name,
+            this.hideWhitespaceInHistoryDiff,
+            commitSHAs[0]
+          )
+        )) ?? null
+
+    const { pullRequestState: stateAfterLoad } =
+      this.repositoryStateCache.get(repository)
+    const selectedFileAfterDiffLoad = stateAfterLoad?.commitSelection?.file
+
+    if (selectedFileAfterDiffLoad?.id !== file.id) {
+      // this means user has clicked on another file since loading the diff
+      return
+    }
+
+    this.repositoryStateCache.updatePullRequestCommitSelection(
+      repository,
+      () => ({
+        diff,
+      })
+    )
+
+    this.emitUpdate()
   }
 }
 

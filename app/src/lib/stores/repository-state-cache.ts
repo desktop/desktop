@@ -18,6 +18,7 @@ import {
   ChangesSelectionKind,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
+  IPullRequestState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
@@ -172,6 +173,63 @@ export class RepositoryStateCache {
       return { multiCommitOperationState: null }
     })
   }
+
+  public initializePullRequestState(
+    repository: Repository,
+    pullRequestState: IPullRequestState | null
+  ) {
+    this.update(repository, () => {
+      return { pullRequestState }
+    })
+  }
+
+  private sendPullRequestStateNotExistsException() {
+    sendNonFatalException(
+      'PullRequestState',
+      new Error(`Cannot update a null pull request state`)
+    )
+  }
+
+  public updatePullRequestState<K extends keyof IPullRequestState>(
+    repository: Repository,
+    fn: (pullRequestState: IPullRequestState) => Pick<IPullRequestState, K>
+  ) {
+    const { pullRequestState } = this.get(repository)
+    if (pullRequestState === null) {
+      this.sendPullRequestStateNotExistsException()
+      return
+    }
+
+    this.update(repository, state => {
+      const oldState = state.pullRequestState
+      const pullRequestState =
+        oldState === null ? null : merge(oldState, fn(oldState))
+      return { pullRequestState }
+    })
+  }
+
+  public updatePullRequestCommitSelection<K extends keyof ICommitSelection>(
+    repository: Repository,
+    fn: (prCommitSelection: ICommitSelection) => Pick<ICommitSelection, K>
+  ) {
+    const { pullRequestState } = this.get(repository)
+    if (pullRequestState === null) {
+      this.sendPullRequestStateNotExistsException()
+      return
+    }
+
+    const oldState = pullRequestState.commitSelection
+    const commitSelection = merge(oldState, fn(oldState))
+    this.updatePullRequestState(repository, () => ({
+      commitSelection,
+    }))
+  }
+
+  public clearPullRequestState(repository: Repository) {
+    this.update(repository, () => {
+      return { pullRequestState: null }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
@@ -226,6 +284,7 @@ function getInitialRepositoryState(): IRepositoryState {
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
     },
+    pullRequestState: null,
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],

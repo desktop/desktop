@@ -197,6 +197,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** Should the app prompt the user to confirm an undo commit? */
+  readonly askForConfirmationOnUndoCommit: boolean
+
   /** How the app should handle uncommitted changes when switching branches */
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 
@@ -417,6 +420,16 @@ export interface IRepositoryState {
   readonly changesState: IChangesState
   readonly compareState: ICompareState
   readonly selectedSection: RepositorySectionTab
+
+  /**
+   * The state of the current pull request view in the repository.
+   *
+   * It will be populated when a user initiates a pull request. It may have
+   * content to retain a users pull request state if they navigate
+   * away from the current pull request view and then back. It is returned
+   * to null after a pull request has been opened.
+   */
+  readonly pullRequestState: IPullRequestState | null
 
   /**
    * The name and email that will be used for the author info
@@ -927,4 +940,29 @@ export interface IConstrainedValue {
   readonly value: number
   readonly max: number
   readonly min: number
+}
+
+/**
+ * The state of the current pull request view in the repository.
+ */
+export interface IPullRequestState {
+  /**
+   * The base branch of a a pull request - the branch the currently checked out
+   * branch would merge into
+   */
+  readonly baseBranch: Branch
+
+  /** The SHAs of commits of the pull request */
+  readonly commitSHAs: ReadonlyArray<string> | null
+
+  /**
+   * The commit selection, file selection and diff of the pull request.
+   *
+   * Note: By default the commit selection shas will be all the pull request
+   * shas and will mean the diff represents the merge base of the current branch
+   * and the the pull request base branch. This is different than the
+   * repositories commit selection where the diff of all commits represents the
+   * diff between the latest commit and the earliest commits parent.
+   */
+  readonly commitSelection: ICommitSelection
 }
