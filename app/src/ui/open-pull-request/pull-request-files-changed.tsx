@@ -5,6 +5,8 @@ import { CommittedFileChange } from '../../models/status'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { Dispatcher } from '../dispatcher'
 import { openFile } from '../lib/open-file'
+import { Resizable } from '../resizable'
+import { FileList } from '../history/file-list'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -12,6 +14,9 @@ interface IPullRequestFilesChangedProps {
 
   /** The file whose diff should be displayed. */
   readonly selectedFile: CommittedFileChange | null
+
+  /** The files changed in the pull request. */
+  readonly files: ReadonlyArray<CommittedFileChange>
 
   /** The diff that should be rendered */
   readonly diff: IDiff | null
@@ -89,8 +94,43 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
+  private onDiffResize(newWidth: number) {}
+
+  private onDiffSizeReset() {}
+
+  private onContextMenu() {}
+
+  private onFileSelected() {}
+
+  private renderFileList() {
+    const { files, selectedFile } = this.props
+
+    return (
+      <Resizable
+        width={200}
+        minimumWidth={100}
+        maximumWidth={300}
+        onResize={this.onDiffResize}
+        onReset={this.onDiffSizeReset}
+      >
+        <FileList
+          files={files}
+          onSelectedFileChanged={this.onFileSelected}
+          selectedFile={selectedFile}
+          availableWidth={400}
+          onContextMenu={this.onContextMenu}
+        />
+      </Resizable>
+    )
+  }
+
   public render() {
     // TODO: handle empty change set
-    return <div className="pull-request-diff-viewer">{this.renderDiff()}</div>
+    return (
+      <div className="pull-request-diff-viewer">
+        {this.renderFileList()}
+        {this.renderDiff()}
+      </div>
+    )
   }
 }

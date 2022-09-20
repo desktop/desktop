@@ -93,12 +93,14 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       repository,
     } = this.props
     const { commitSelection } = pullRequestState
-    const { diff, file } = commitSelection
+    const { diff, file, changesetData } = commitSelection
+    const { files } = changesetData
 
     return (
       <PullRequestFilesChanged
         diff={diff}
         dispatcher={dispatcher}
+        files={files}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         imageDiffType={imageDiffType}
         selectedFile={file}
