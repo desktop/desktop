@@ -15,4 +15,9 @@
       padding: var(--spacing-half);
     }
   }
+
+  .content {
+    height: 500px;
+    overflow: hidden;
+  }
 }

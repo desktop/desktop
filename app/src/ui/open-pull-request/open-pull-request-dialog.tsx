@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { IPullRequestState } from '../../lib/app-state'
 import { Branch } from '../../models/branch'
+import { ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
@@ -35,6 +36,15 @@ interface IOpenPullRequestDialogProps {
    * See IBranchesState.recentBranches
    */
   readonly recentBranches: ReadonlyArray<Branch>
+
+  /** Whether we should display side by side diffs. */
+  readonly showSideBySideDiff: boolean
+
+  /** Whether we should hide whitespace in diff. */
+  readonly hideWhitespaceInDiff: boolean
+
+  /** The type of image diff to display. */
+  readonly imageDiffType: ImageDiffType
 
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
@@ -71,13 +81,31 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderContent() {
-    return <div>{this.renderFilesChanged()}</div>
+    return <div className="content">{this.renderFilesChanged()}</div>
   }
 
   private renderFilesChanged() {
-    const { commitSelection } = this.props.pullRequestState
-    const { diff } = commitSelection
-    return <PullRequestDiff diff={diff} />
+    const {
+      dispatcher,
+      hideWhitespaceInDiff,
+      imageDiffType,
+      pullRequestState,
+      repository,
+    } = this.props
+    const { commitSelection } = pullRequestState
+    const { diff, file } = commitSelection
+
+    return (
+      <PullRequestDiff
+        diff={diff}
+        dispatcher={dispatcher}
+        hideWhitespaceInDiff={hideWhitespaceInDiff}
+        imageDiffType={imageDiffType}
+        selectedFile={file}
+        showSideBySideDiff={this.props.showSideBySideDiff}
+        repository={repository}
+      />
+    )
   }
 
   private renderFooter() {
@@ -100,8 +128,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         onDismissed={this.props.onDismissed}
       >
         {this.renderHeader()}
-        <div className="content">{this.renderContent()}</div>
-
+        {this.renderContent()}
         {this.renderFooter()}
       </Dialog>
     )

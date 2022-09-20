@@ -2243,7 +2243,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.StartPullRequest: {
-        const { selectedState } = this.state
+        const {
+          selectedState,
+          imageDiffType,
+          hideWhitespaceInHistoryDiff,
+          showSideBySideDiff,
+        } = this.state
         if (
           selectedState == null ||
           selectedState.type !== SelectionType.Repository
@@ -2270,9 +2275,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranch={currentBranch}
             defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
+            hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
+            imageDiffType={imageDiffType}
             pullRequestState={pullRequestState}
             recentBranches={recentBranches}
             repository={repository}
+            showSideBySideDiff={showSideBySideDiff}
             onDismissed={onPopupDismissedFn}
           />
         )
