@@ -212,6 +212,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   multiCommitDiffFromHistoryCount: 0,
   multiCommitDiffFromCompareCount: 0,
   multiCommitDiffUnreachableCommitsDialogOpenedCount: 0,
+  submoduleDiffViewedFromChangesListCount: 0,
+  submoduleDiffViewedFromHistoryCount: 0,
+  openSubmoduleFromDiffCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1872,6 +1875,26 @@ export class StatsStore implements IStatsStore {
       reviewType,
       'DialogSwitchToPullRequestCount'
     )
+  }
+
+  public recordSubmoduleDiffViewedFromChangesList(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromChangesListCount:
+        m.submoduleDiffViewedFromChangesListCount + 1,
+    }))
+  }
+
+  public recordSubmoduleDiffViewedFromHistory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromHistoryCount:
+        m.submoduleDiffViewedFromHistoryCount + 1,
+    }))
+  }
+
+  public recordOpenSubmoduleFromDiffCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      openSubmoduleFromDiffCount: m.openSubmoduleFromDiffCount + 1,
+    }))
   }
 
   /** Post some data to our stats endpoint. */

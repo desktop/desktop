@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Row } from '../lib/row'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Commit } from '../../models/commit'
 
@@ -11,11 +12,13 @@ interface IWarnLocalChangesBeforeUndoProps {
   readonly repository: Repository
   readonly commit: Commit
   readonly isWorkingDirectoryClean: boolean
+  readonly confirmUndoCommit: boolean
   readonly onDismissed: () => void
 }
 
 interface IWarnLocalChangesBeforeUndoState {
   readonly isLoading: boolean
+  readonly confirmUndoCommit: boolean
 }
 
 /**
@@ -28,7 +31,10 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
 > {
   public constructor(props: IWarnLocalChangesBeforeUndoProps) {
     super(props)
-    this.state = { isLoading: false }
+    this.state = {
+      isLoading: false,
+      confirmUndoCommit: props.confirmUndoCommit,
+    }
   }
 
   public render() {
@@ -44,9 +50,7 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
-        <DialogContent>
-          <Row>{this.getWarningText()}</Row>
-        </DialogContent>
+        {this.getWarningDialog()}
         <DialogFooter>
           <OkCancelButtonGroup destructive={true} okButtonText="Continue" />
         </DialogFooter>
@@ -54,13 +58,47 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
     )
   }
 
-  private getWarningText() {
-    if (
-      this.props.commit.isMergeCommit &&
-      !this.props.isWorkingDirectoryClean
-    ) {
+  private getWarningDialog() {
+    if (this.props.commit.isMergeCommit) {
+      return this.getMergeCommitWarningDialog()
+    }
+    return (
+      <DialogContent>
+        <Row>
+          You have changes in progress. Undoing the commit might result in some
+          of these changes being lost. Do you want to continue anyway?
+        </Row>
+        <Row>
+          <Checkbox
+            label="Do not show this message again"
+            value={
+              this.state.confirmUndoCommit
+                ? CheckboxValue.Off
+                : CheckboxValue.On
+            }
+            onChange={this.onConfirmUndoCommitChanged}
+          />
+        </Row>
+      </DialogContent>
+    )
+  }
+
+  private getMergeCommitWarningDialog() {
+    if (this.props.isWorkingDirectoryClean) {
       return (
-        <>
+        <DialogContent>
+          <Row>
+            {this.getMergeCommitUndoWarningText()}
+            <br />
+            <br />
+            Do you want to continue anyway?
+          </Row>
+        </DialogContent>
+      )
+    }
+    return (
+      <DialogContent>
+        <Row>
           You have changes in progress. Undoing the merge commit might result in
           some of these changes being lost.
           <br />
@@ -69,25 +107,9 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
           <br />
           <br />
           Do you want to continue anyway?
-        </>
-      )
-    } else if (this.props.commit.isMergeCommit) {
-      return (
-        <>
-          {this.getMergeCommitUndoWarningText()}
-          <br />
-          <br />
-          Do you want to continue anyway?
-        </>
-      )
-    } else {
-      return (
-        <>
-          You have changes in progress. Undoing the commit might result in some
-          of these changes being lost. Do you want to continue anyway?
-        </>
-      )
-    }
+        </Row>
+      </DialogContent>
+    )
   }
 
   private getMergeCommitUndoWarningText() {
@@ -102,11 +124,20 @@ export class WarnLocalChangesBeforeUndo extends React.Component<
     this.setState({ isLoading: true })
 
     try {
+      dispatcher.setConfirmUndoCommitSetting(this.state.confirmUndoCommit)
       await dispatcher.undoCommit(repository, commit, false)
     } finally {
       this.setState({ isLoading: false })
     }
 
     onDismissed()
+  }
+
+  private onConfirmUndoCommitChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = !event.currentTarget.checked
+
+    this.setState({ confirmUndoCommit: value })
   }
 }

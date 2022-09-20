@@ -2342,6 +2342,10 @@ export class Dispatcher {
     return this.appStore._setConfirmForcePushSetting(value)
   }
 
+  public setConfirmUndoCommitSetting(value: boolean) {
+    return this.appStore._setConfirmUndoCommitSetting(value)
+  }
+
   /**
    * Converts a local repository to use the given fork
    * as its default remote and associated `GitHubRepository`.
@@ -2367,6 +2371,11 @@ export class Dispatcher {
    */
   public mergeConflictDetectedFromExplicitMerge() {
     return this.statsStore.recordMergeConflictFromExplicitMerge()
+  }
+
+  /** Increments the `openSubmoduleFromDiffCount` metric */
+  public recordOpenSubmoduleFromDiffCount() {
+    return this.statsStore.recordOpenSubmoduleFromDiffCount()
   }
 
   /**

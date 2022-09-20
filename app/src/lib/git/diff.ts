@@ -7,7 +7,6 @@ import {
   WorkingDirectoryFileChange,
   FileChange,
   AppFileStatusKind,
-  CommittedFileChange,
   SubmoduleStatus,
 } from '../../models/status'
 import {
@@ -255,11 +254,7 @@ export async function getBranchMergeBaseChangedFiles(
   baseBranchName: string,
   comparisonBranchName: string,
   latestComparisonBranchCommitRef: string
-): Promise<{
-  files: ReadonlyArray<CommittedFileChange>
-  linesAdded: number
-  linesDeleted: number
-}> {
+): Promise<IChangesetData> {
   const baseArgs = [
     'diff',
     '--merge-base',

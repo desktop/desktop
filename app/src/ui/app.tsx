@@ -1482,6 +1482,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
+            confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
@@ -2079,6 +2080,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             commit={commit}
             isWorkingDirectoryClean={isWorkingDirectoryClean}
+            confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             onDismissed={onPopupDismissedFn}
           />
         )
