@@ -5,6 +5,7 @@ import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { OpenPullRequestDialogHeader } from './open-pull-request-header'
+import { PullRequestDiff } from './pull-request-diff'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -70,7 +71,13 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderContent() {
-    return <div>Content</div>
+    return <div>{this.renderFilesChanged()}</div>
+  }
+
+  private renderFilesChanged() {
+    const { commitSelection } = this.props.pullRequestState
+    const { diff } = commitSelection
+    return <PullRequestDiff diff={diff} />
   }
 
   private renderFooter() {
