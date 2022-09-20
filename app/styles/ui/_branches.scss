@@ -4,30 +4,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 365px;
+  width: 300px;
 
   & > .tab-bar {
     border-top: var(--base-border);
   }
 
   .branches-list {
-    width: 365px;
-    min-height: 0;
-  }
-
-  .branches-list-item {
-    height: 100%;
-
-    // While dragging we don't want tooltips from the underlying item to show
-    &.drop-target * {
-      pointer-events: none;
-    }
-
-    &.new-branch-drop {
-      margin-top: var(--spacing-half);
-      height: 30px;
-      flex-grow: revert;
-    }
+    width: 300px;
   }
 }
 
@@ -40,8 +24,8 @@
   .count {
     display: flex;
 
-    background: var(--tab-bar-count-background-color);
-    color: var(--tab-bar-count-color);
+    background: $gray-200;
+    color: var(--text-color);
 
     margin-left: var(--spacing-half);
 
@@ -65,14 +49,39 @@
   }
 }
 
+#pr-transition-div {
+  display: flex;
+  flex: 1;
+  position: relative;
+
+  .cross-fade-enter {
+    opacity: 0;
+  }
+
+  .cross-fade-enter.cross-fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-in;
+  }
+
+  .cross-fade-exit {
+    opacity: 1;
+  }
+
+  .cross-fade-exit.cross-fade-exit-active {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+  }
+}
+
 .pull-request-list {
+  position: absolute;
   height: 100%;
   width: 100%;
 
-  &.filter-list .filter-field-row {
+  .filter-list-filter-field {
     // The rows have built-in margin to their content so
     // we only need half a spacer here
-    margin-bottom: var(--spacing-half);
+    padding-bottom: var(--spacing-half);
   }
 
   .list-item.selected:focus {
@@ -88,12 +97,6 @@
     align-items: center;
     min-width: 0;
     flex-grow: 1;
-    height: 100%;
-
-    // While dragging we don't want tooltips from the underlying item to show
-    &.drop-target div {
-      pointer-events: none;
-    }
 
     .icon {
       margin-left: var(--spacing-half);
@@ -105,19 +108,12 @@
       margin-top: 2px;
     }
 
-    &.open .icon {
-      color: var(--pr-open-icon-color);
-    }
-    &.draft .icon {
-      color: var(--pr-draft-icon-color);
-    }
-
     .info {
       display: flex;
       flex-direction: column;
       min-width: 0;
       flex-grow: 1;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacing);
 
       .title {
         @include ellipsis;
@@ -134,16 +130,61 @@
       }
     }
 
-    .ci-status-container {
+    .ci-status {
       margin-right: var(--spacing-half);
-      min-width: 16px;
-      text-align: center;
-      flex-shrink: 0;
+    }
+
+    &.loading {
+      .icon {
+        color: var(--box-skeleton-background-color);
+      }
+
+      .info {
+        .title,
+        .subtitle {
+          background-color: var(--box-skeleton-background-color);
+          // The title with text in it is 18px (1em = 12px and with 1.5 x
+          // line height we'll get 18) but we don't want to fill the entire
+          // box because then we'll end up with one big slab of gray rather
+          // than two fake gray text lines. So we'll split the difference
+          // between 1em and 1.5em between the top and bottom margin so that
+          // it looks nicely positioned with the text that'll fade in later.
+          height: 1em;
+          margin-top: 0.2em;
+          margin-bottom: 0.3em;
+
+          border-radius: 1px;
+        }
+      }
+
+      .ci-status {
+        color: var(--box-skeleton-background-color);
+      }
+
+      &::after {
+        background: -webkit-linear-gradient(
+          left,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.5) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        content: '';
+        display: block;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        animation: loading-pulse 1.5s ease-in-out infinite;
+      }
     }
   }
+}
 
-  .filter-list-group-header {
-    @include ellipsis;
+@keyframes loading-pulse {
+  from {
+    transform: translate(-100%, 0);
+  }
+  to {
+    transform: translate(200%, 0);
   }
 }
 
@@ -189,16 +230,32 @@
       white-space: nowrap;
     }
   }
+
+  .filter-list-filter-field {
+    padding-right: 0;
+  }
+
+  // We need to beat Row's style at the specificity game :|
+  button.new-branch-button {
+    align-self: center;
+    margin-right: var(--spacing);
+    width: 60px;
+  }
 }
 
 .no-pull-requests {
-  width: 365px;
+  width: 300px;
   display: flex;
   flex-direction: column;
 
   align-items: center;
   text-align: center;
   padding: var(--spacing);
+
+  .blankslate-image {
+    width: 257px;
+    min-width: 0;
+  }
 
   .title {
     font-weight: var(--font-weight-semibold);
@@ -210,8 +267,5 @@
 
   .call-to-action {
     font-size: var(--font-size-sm);
-    .link-button-component {
-      display: unset;
-    }
   }
 }

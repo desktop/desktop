@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 
 interface IZoomInfoProps {
   readonly windowZoomFactor: number
@@ -83,25 +83,13 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
     this.setState({ renderTransitionGroup: false })
   }
 
-  private renderZoomInfo() {
-    if (!this.state.renderInfo) {
-      return null
-    }
-
-    const zoomPercent = `${(this.state.windowZoomFactor * 100).toFixed(0)}%`
+  private renderZoomInfo(): JSX.Element {
+    const zoomPercent = `${(this.state.windowZoomFactor * 100).toFixed(0)} %`
 
     return (
-      <CSSTransition
-        classNames={this.state.transitionName}
-        appear={true}
-        enter={false}
-        exit={true}
-        timeout={transitionDuration}
-      >
-        <div>
-          <span>{zoomPercent}</span>
-        </div>
-      </CSSTransition>
+      <div>
+        <span>{zoomPercent}</span>
+      </div>
     )
   }
 
@@ -110,10 +98,22 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
       return null
     }
 
+    if (!this.state.renderInfo) {
+      return null
+    }
+
     return (
-      <TransitionGroup id="window-zoom-info">
+      <CSSTransition
+        id="window-zoom-info"
+        classNames={this.state.transitionName}
+        component="div"
+        appear={true}
+        enter={false}
+        exit={true}
+        timeout={transitionDuration}
+      >
         {this.renderZoomInfo()}
-      </TransitionGroup>
+      </CSSTransition>
     )
   }
 }
