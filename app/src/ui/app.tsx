@@ -2265,6 +2265,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           defaultBranch,
           imageDiffType,
           hideWhitespaceInHistoryDiff,
+          externalEditorLabel,
           showSideBySideDiff,
           recentBranches,
           repository,
@@ -2282,6 +2283,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequestState={pullRequestState}
             recentBranches={recentBranches}
             repository={repository}
+            externalEditorLabel={externalEditorLabel}
             showSideBySideDiff={showSideBySideDiff}
             onDismissed={onPopupDismissedFn}
           />

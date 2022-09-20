@@ -7196,8 +7196,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { allBranches, recentBranches } = branchesState
-    const { imageDiffType, hideWhitespaceInHistoryDiff, showSideBySideDiff } =
-      this.getState()
+    const {
+      imageDiffType,
+      hideWhitespaceInHistoryDiff,
+      showSideBySideDiff,
+      selectedExternalEditor,
+    } = this.getState()
 
     this._showPopup({
       type: PopupType.StartPullRequest,
@@ -7209,6 +7213,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       recentBranches,
       repository,
       showSideBySideDiff,
+      externalEditorLabel: selectedExternalEditor ?? undefined,
     })
   }
 

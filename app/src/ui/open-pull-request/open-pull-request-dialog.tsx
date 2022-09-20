@@ -46,6 +46,9 @@ interface IOpenPullRequestDialogProps {
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
 
+  /** Label for selected external editor */
+  readonly externalEditorLabel?: string
+
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
 }
@@ -87,6 +90,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   private renderFilesChanged() {
     const {
       dispatcher,
+      externalEditorLabel,
       hideWhitespaceInDiff,
       imageDiffType,
       pullRequestState,
@@ -100,6 +104,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       <PullRequestFilesChanged
         diff={diff}
         dispatcher={dispatcher}
+        externalEditorLabel={externalEditorLabel}
         files={files}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         imageDiffType={imageDiffType}

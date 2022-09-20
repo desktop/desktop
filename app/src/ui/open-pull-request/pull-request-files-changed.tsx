@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Path from 'path'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { CommittedFileChange } from '../../models/status'
@@ -7,6 +8,18 @@ import { Dispatcher } from '../dispatcher'
 import { openFile } from '../lib/open-file'
 import { Resizable } from '../resizable'
 import { FileList } from '../history/file-list'
+import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
+import { pathExists } from '../lib/path-exists'
+import {
+  CopyFilePathLabel,
+  CopyRelativeFilePathLabel,
+  DefaultEditorLabel,
+  isSafeFileExtension,
+  OpenWithDefaultProgramLabel,
+  RevealInFileManagerLabel,
+} from '../lib/context-menu'
+import { revealInFileManager } from '../../lib/app-shell'
+import { clipboard } from 'electron'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -29,6 +42,9 @@ interface IPullRequestFilesChangedProps {
 
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
+
+  /** Label for selected external editor */
+  readonly externalEditorLabel?: string
 }
 
 /**
@@ -38,6 +54,11 @@ export class PullRequestFilesChanged extends React.Component<
   IPullRequestFilesChangedProps,
   {}
 > {
+  private onOpenFile = (path: string) => {
+    const fullPath = Path.join(this.props.repository.path, path)
+    this.onOpenBinaryFile(fullPath)
+  }
+
   /**
    * Opens a binary file in an the system-assigned application for
    * said file type.
@@ -99,7 +120,67 @@ export class PullRequestFilesChanged extends React.Component<
 
   private onDiffSizeReset() {}
 
-  private onContextMenu() {}
+  private onFileContextMenu = async (
+    file: CommittedFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault()
+
+    const { repository } = this.props
+
+    const fullPath = Path.join(repository.path, file.path)
+    const fileExistsOnDisk = await pathExists(fullPath)
+    if (!fileExistsOnDisk) {
+      showContextualMenu([
+        {
+          label: __DARWIN__
+            ? 'File Does Not Exist on Disk'
+            : 'File does not exist on disk',
+          enabled: false,
+        },
+      ])
+      return
+    }
+
+    const { externalEditorLabel, dispatcher } = this.props
+
+    const extension = Path.extname(file.path)
+    const isSafeExtension = isSafeFileExtension(extension)
+    const openInExternalEditor =
+      externalEditorLabel !== undefined
+        ? `Open in ${externalEditorLabel}`
+        : DefaultEditorLabel
+
+    const items: IMenuItem[] = [
+      {
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(repository, file.path),
+        enabled: fileExistsOnDisk,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => dispatcher.openInExternalEditor(fullPath),
+        enabled: fileExistsOnDisk,
+      },
+      {
+        label: OpenWithDefaultProgramLabel,
+        action: () => this.onOpenFile(file.path),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+      { type: 'separator' },
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
+      {
+        label: CopyRelativeFilePathLabel,
+        action: () => clipboard.writeText(Path.normalize(file.path)),
+      },
+      { type: 'separator' },
+    ]
+
+    showContextualMenu(items)
+  }
 
   private onFileSelected = (file: CommittedFileChange) => {
     this.props.dispatcher.changePullRequestFileSelection(
@@ -124,7 +205,7 @@ export class PullRequestFilesChanged extends React.Component<
           onSelectedFileChanged={this.onFileSelected}
           selectedFile={selectedFile}
           availableWidth={400}
-          onContextMenu={this.onContextMenu}
+          onContextMenu={this.onFileContextMenu}
         />
       </Resizable>
     )
