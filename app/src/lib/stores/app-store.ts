@@ -7195,18 +7195,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const { pullRequestState } = this.repositoryStateCache.get(repository)
-    if (pullRequestState === null) {
-      // This shouldn't happen.. we just initialized it.
-      sendNonFatalException(
-        'startPullRequest',
-        new Error(
-          'Failed to start pull request because pull request state was null'
-        )
-      )
-      return
-    }
-
     const { allBranches, recentBranches } = branchesState
     const { imageDiffType, hideWhitespaceInHistoryDiff, showSideBySideDiff } =
       this.getState()
@@ -7218,7 +7206,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultBranch,
       hideWhitespaceInHistoryDiff,
       imageDiffType,
-      pullRequestState,
       recentBranches,
       repository,
       showSideBySideDiff,
@@ -7252,6 +7239,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         diff: null,
       })
     )
+
     this.emitUpdate()
 
     if (commitSHAs.length === 0) {

@@ -65,13 +65,14 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   private renderDiff() {
-    const { diff, selectedFile } = this.props
+    const { selectedFile } = this.props
 
-    if (diff === null || selectedFile === null) {
+    if (selectedFile === null) {
       return
     }
 
     const {
+      diff,
       repository,
       imageDiffType,
       hideWhitespaceInDiff,
@@ -100,7 +101,12 @@ export class PullRequestFilesChanged extends React.Component<
 
   private onContextMenu() {}
 
-  private onFileSelected() {}
+  private onFileSelected = (file: CommittedFileChange) => {
+    this.props.dispatcher.changePullRequestFileSelection(
+      this.props.repository,
+      file
+    )
+  }
 
   private renderFileList() {
     const { files, selectedFile } = this.props
