@@ -6,7 +6,7 @@ import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { Dispatcher } from '../dispatcher'
 import { openFile } from '../lib/open-file'
 
-interface IPullRequestDiffProps {
+interface IPullRequestFilesChangedProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
@@ -29,8 +29,8 @@ interface IPullRequestDiffProps {
 /**
  * A component for viewing the file diff for a pull request.
  */
-export class PullRequestDiff extends React.Component<
-  IPullRequestDiffProps,
+export class PullRequestFilesChanged extends React.Component<
+  IPullRequestFilesChangedProps,
   {}
 > {
   /**
