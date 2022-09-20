@@ -7194,6 +7194,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
         changesetData.files[0]
       )
     }
+
+    const { pullRequestState } = this.repositoryStateCache.get(repository)
+    if (pullRequestState === null) {
+      // This shouldn't happen.. we just initialized it.
+      sendNonFatalException(
+        'startPullRequest',
+        new Error(
+          'Failed to start pull request because pull request state was null'
+        )
+      )
+      return
+    }
+
+    const { allBranches, recentBranches } = branchesState
+    const { imageDiffType, hideWhitespaceInHistoryDiff, showSideBySideDiff } =
+      this.getState()
+
+    this._showPopup({
+      type: PopupType.StartPullRequest,
+      allBranches,
+      currentBranch,
+      defaultBranch,
+      hideWhitespaceInHistoryDiff,
+      imageDiffType,
+      pullRequestState,
+      recentBranches,
+      repository,
+      showSideBySideDiff,
+    })
   }
 
   public async _changePullRequestFileSelection(

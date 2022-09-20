@@ -2244,29 +2244,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.StartPullRequest: {
         const {
-          selectedState,
+          allBranches,
+          currentBranch,
+          defaultBranch,
           imageDiffType,
           hideWhitespaceInHistoryDiff,
           showSideBySideDiff,
-        } = this.state
-        if (
-          selectedState == null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const { state: repoState, repository } = selectedState
-        const { pullRequestState, branchesState } = repoState
-        if (
-          pullRequestState === null ||
-          branchesState.tip.kind !== TipState.Valid
-        ) {
-          return null
-        }
-        const { allBranches, recentBranches, defaultBranch, tip } =
-          branchesState
-        const currentBranch = tip.branch
+          pullRequestState,
+          recentBranches,
+          repository,
+        } = popup
 
         return (
           <OpenPullRequestDialog
