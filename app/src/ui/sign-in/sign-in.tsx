@@ -171,7 +171,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogContent>
         <Row>
           <TextBox
-            label="Enterprise address"
+            label="Enterprise Server address"
             value={this.state.endpoint}
             onValueChanged={this.onEndpointChanged}
             placeholder="https://github.example.com"
@@ -201,7 +201,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         return (
           <DialogContent>
             <p>
-              Your GitHub Enterprise instance requires you to sign in with your
+              Your GitHub Enterprise Server instance requires you to sign in with your
               browser.
             </p>
           </DialogContent>
