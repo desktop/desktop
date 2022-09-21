@@ -2259,6 +2259,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
+        const { pullRequestFilesListWidth } = this.state
+
         const {
           allBranches,
           currentBranch,
@@ -2278,6 +2280,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranch={currentBranch}
             defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
+            fileListWidth={pullRequestFilesListWidth}
             hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
             imageDiffType={imageDiffType}
             pullRequestState={pullRequestState}

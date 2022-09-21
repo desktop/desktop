@@ -20,6 +20,8 @@ import {
 } from '../lib/context-menu'
 import { revealInFileManager } from '../../lib/app-shell'
 import { clipboard } from 'electron'
+import { IConstrainedValue } from '../../lib/app-state'
+import { clamp } from '../../lib/clamp'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -45,6 +47,9 @@ interface IPullRequestFilesChangedProps {
 
   /** Label for selected external editor */
   readonly externalEditorLabel?: string
+
+  /** Width to use for the files list pane */
+  readonly fileListWidth: IConstrainedValue
 }
 
 /**
@@ -116,9 +121,13 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
-  private onDiffResize(newWidth: number) {}
+  private onFileListResize = (width: number) => {
+    this.props.dispatcher.setPullRequestFileListWidth(width)
+  }
 
-  private onDiffSizeReset() {}
+  private onFileListSizeReset = () => {
+    this.props.dispatcher.resetPullRequestFileListWidth()
+  }
 
   private onFileContextMenu = async (
     file: CommittedFileChange,
@@ -190,21 +199,21 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   private renderFileList() {
-    const { files, selectedFile } = this.props
+    const { files, selectedFile, fileListWidth } = this.props
 
     return (
       <Resizable
-        width={200}
-        minimumWidth={100}
-        maximumWidth={300}
-        onResize={this.onDiffResize}
-        onReset={this.onDiffSizeReset}
+        width={fileListWidth.value}
+        minimumWidth={fileListWidth.min}
+        maximumWidth={fileListWidth.max}
+        onResize={this.onFileListResize}
+        onReset={this.onFileListSizeReset}
       >
         <FileList
           files={files}
           onSelectedFileChanged={this.onFileSelected}
           selectedFile={selectedFile}
-          availableWidth={400}
+          availableWidth={clamp(fileListWidth)}
           onContextMenu={this.onFileContextMenu}
         />
       </Resizable>

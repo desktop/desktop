@@ -323,6 +323,9 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const defaultStashedFilesWidth: number = 250
 const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 
+const defaultPullRequestFileListWidth: number = 250
+const pullRequestFileListConfigKey: string = 'stashed-files-width'
+
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
@@ -424,6 +427,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private sidebarWidth = constrain(defaultSidebarWidth)
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
+  private pullRequestFileListWidth = constrain(defaultPullRequestFileListWidth)
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
@@ -901,6 +905,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       stashedFilesWidth: this.stashedFilesWidth,
+      pullRequestFilesListWidth: this.pullRequestFileListWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
@@ -1951,8 +1956,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stashedFilesWidth = constrain(
       getNumber(stashedFilesWidthConfigKey, defaultStashedFilesWidth)
     )
+    this.pullRequestFileListWidth = constrain(
+      getNumber(pullRequestFileListConfigKey, defaultPullRequestFileListWidth)
+    )
 
     this.updateResizableConstraints()
+    // TODO: Initiliaze here for now... maybe move to dialog mounting
+    this.updatePullRequestResizableConstraints()
 
     this.askToMoveToApplicationsFolderSetting = getBoolean(
       askToMoveToApplicationsFolderKey,
@@ -2075,6 +2085,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, filesMax)
     this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, filesMax)
+  }
+
+  /**
+   * Calculate the constraints of the resizable pane in the pull request dialog
+   * whenever the window dimensions change.
+   */
+  private updatePullRequestResizableConstraints() {
+    // TODO: Get width of PR dialog -> determine if we will have default width
+    // for pr dialog. The goal is for it expand to fill some percent of
+    // available window so it will change on window resize. We may have some max
+    // value and min value of where to derive a default is we cannot obtain the
+    // width for some reason (like initialization nad no pr dialog is open)
+    // Thoughts -> ß
+    // 1. Use dialog id to grab dialog if exists, else use default
+    // 2. Pass dialog width up when and call this contrainst on dialog mounting
+    //    to initialize and subscribe to window resize inside dialog to be able
+    //    to pass up dialog width on window resize.
+
+    // Get the width of the dialog
+    const available = 850
+    const dialogPadding = 20
+
+    // This is a pretty silly width for a diff but it will fit ~9 chars per line
+    // in unified mode after subtracting the width of the unified gutter and ~4
+    // chars per side in split diff mode. No one would want to use it this way
+    // but it doesn't break the layout and it allows users to temporarily
+    // maximize the width of the file list to see long path names.
+    const diffPaneMinWidth = 150
+    const filesListMax = available - dialogPadding - diffPaneMinWidth
+
+    this.pullRequestFileListWidth = constrain(
+      this.pullRequestFileListWidth,
+      100,
+      filesListMax
+    )
   }
 
   private updateSelectedExternalEditor(
@@ -7284,6 +7329,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     this.emitUpdate()
+  }
+
+  public _setPullRequestFileListWidth(width: number): Promise<void> {
+    this.pullRequestFileListWidth = {
+      ...this.pullRequestFileListWidth,
+      value: width,
+    }
+    setNumber(pullRequestFileListConfigKey, width)
+    this.updatePullRequestResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetPullRequestFileListWidth(): Promise<void> {
+    this.pullRequestFileListWidth = {
+      ...this.pullRequestFileListWidth,
+      value: defaultPullRequestFileListWidth,
+    }
+    localStorage.removeItem(pullRequestFileListConfigKey)
+    this.updatePullRequestResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
 
