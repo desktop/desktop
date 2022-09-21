@@ -167,6 +167,14 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
+  private renderHeader() {
+    return (
+      <div className="files-changed-header">
+        <div>Showing changes from all commits</div>
+      </div>
+    )
+  }
+
   private renderFileList() {
     const { files, selectedFile, fileListWidth } = this.props
 
@@ -223,10 +231,12 @@ export class PullRequestFilesChanged extends React.Component<
   public render() {
     // TODO: handle empty change set
     return (
-      <div className="pull-request-diff-viewer">
+      <div className="pull-request-files-changed">
         {this.renderHeader()}
-        {this.renderFileList()}
-        {this.renderDiff()}
+        <div className="files-diff-viewer">
+          {this.renderFileList()}
+          {this.renderDiff()}
+        </div>
       </div>
     )
   }

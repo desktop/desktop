@@ -1,4 +1,14 @@
-.pull-request-diff-viewer {
-  height: 500px;
-  display: flex;
+.pull-request-files-changed {
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+
+  .files-changed-header {
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+  }
+
+  .files-diff-viewer {
+    height: 500px;
+    display: flex;
+  }
 }
