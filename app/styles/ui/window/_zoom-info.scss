@@ -11,11 +11,11 @@
   top: 0;
   left: 0;
 
-  & > div {
+  &>div {
     padding: var(--spacing);
     min-width: 100px;
-    background: var(--toast-notification-background-color);
-    color: var(--toast-notification-color);
+    background: rgba($gray-900, 0.6);
+    color: $gray-000;
     text-align: center;
     border-radius: 100px;
     font-size: var(--font-size-md);
@@ -27,25 +27,15 @@
   }
 
   .zoom-in {
-    &-appear {
-      transform: scale(0.25);
-      opacity: 0;
-    }
+    &-appear { transform: scale(0.25); opacity: 0; }
   }
 
   .zoom-out {
-    &-appear {
-      transform: scale(1.75);
-      opacity: 0;
-    }
+    &-appear { transform: scale(1.75); opacity: 0; }
   }
 
-  .zoom-in,
-  .zoom-out {
-    &-exit-active {
-      opacity: 0;
-      transition: opacity 100ms ease-out;
-    }
+  .zoom-in, .zoom-out {
+    &-exit-active { opacity: 0; transition: opacity 100ms ease-out; }
     &-appear-active {
       transform: scale(1);
       opacity: 1;

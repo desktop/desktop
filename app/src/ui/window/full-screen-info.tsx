@@ -1,23 +1,18 @@
 import * as React from 'react'
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 import { WindowState } from '../../lib/window-state'
 
 interface IFullScreenInfoProps {
-  readonly windowState: WindowState | null
+  readonly windowState: WindowState
 }
 
 interface IFullScreenInfoState {
   readonly renderInfo: boolean
   readonly renderTransitionGroup: boolean
-  /**
-   * The last seen window state which isn't 'hidden'. I.e. the
-   * "real" window state regardless of whether the app is in
-   * the background or not.
-   */
-  readonly windowState?: Exclude<WindowState, 'hidden'> | null
 }
 
-const toastTransitionTimeout = { appear: 100, exit: 250 }
+const transitionAppearDuration = 100
+const transitionLeaveDuration = 250
 const holdDuration = 3000
 
 /**
@@ -30,35 +25,11 @@ export class FullScreenInfo extends React.Component<
   IFullScreenInfoProps,
   IFullScreenInfoState
 > {
-  public static getDerivedStateFromProps(
-    props: IFullScreenInfoProps,
-    state: IFullScreenInfoState
-  ): Partial<IFullScreenInfoState> | null {
-    // We don't care about transitions to 'hidden', we only
-    // care about when we transition from a 'real' window state
-    // to 'full-screen'. See https://github.com/desktop/desktop/issues/7916
-    if (props.windowState === 'hidden') {
-      return null
-    }
-
-    if (state.windowState !== props.windowState) {
-      const fullScreen = props.windowState === 'full-screen'
-
-      return {
-        windowState: props.windowState,
-        renderInfo: fullScreen,
-        renderTransitionGroup: fullScreen,
-      }
-    }
-
-    return null
-  }
-
   private infoDisappearTimeoutId: number | null = null
   private transitionGroupDisappearTimeoutId: number | null = null
 
-  public constructor(props: IFullScreenInfoProps) {
-    super(props)
+  public constructor() {
+    super()
 
     this.state = {
       renderInfo: false,
@@ -66,67 +37,43 @@ export class FullScreenInfo extends React.Component<
     }
   }
 
-  public componentDidMount() {
-    if (this.state.renderInfo) {
-      this.scheduleInfoDisappear()
+  public componentWillReceiveProps(nextProps: IFullScreenInfoProps) {
+    // If the window state hasn't change we don't have to do anything
+    if (nextProps.windowState === this.props.windowState) {
+      return
     }
 
-    if (this.state.renderTransitionGroup) {
-      this.scheduleTransitionGroupDisappear()
-    }
-  }
-
-  public componentDidUpdate(
-    prevProps: IFullScreenInfoProps,
-    prevState: IFullScreenInfoState
-  ) {
-    if (prevState.renderInfo !== this.state.renderInfo) {
-      if (this.state.renderInfo) {
-        this.scheduleInfoDisappear()
-      } else {
-        this.clearInfoDisappearTimeout()
-      }
-    }
-
-    if (prevState.renderTransitionGroup !== this.state.renderTransitionGroup) {
-      if (this.state.renderTransitionGroup) {
-        this.scheduleTransitionGroupDisappear()
-      } else {
-        this.clearTransitionGroupDisappearTimeout()
-      }
-    }
-  }
-
-  public componentWillUnmount() {
-    this.clearInfoDisappearTimeout()
-    this.clearTransitionGroupDisappearTimeout()
-  }
-
-  private scheduleInfoDisappear() {
-    this.infoDisappearTimeoutId = window.setTimeout(
-      this.onInfoDisappearTimeout,
-      holdDuration
-    )
-  }
-
-  private clearInfoDisappearTimeout() {
+    // Clean up any stray timeout
     if (this.infoDisappearTimeoutId !== null) {
       window.clearTimeout(this.infoDisappearTimeoutId)
-      this.infoDisappearTimeoutId = null
     }
-  }
 
-  private scheduleTransitionGroupDisappear() {
-    this.transitionGroupDisappearTimeoutId = window.setTimeout(
-      this.onTransitionGroupDisappearTimeout,
-      toastTransitionTimeout.appear + holdDuration + toastTransitionTimeout.exit
-    )
-  }
-
-  private clearTransitionGroupDisappearTimeout() {
     if (this.transitionGroupDisappearTimeoutId !== null) {
       window.clearTimeout(this.transitionGroupDisappearTimeoutId)
-      this.transitionGroupDisappearTimeoutId = null
+    }
+
+    if (nextProps.windowState === 'full-screen') {
+      this.infoDisappearTimeoutId = window.setTimeout(
+        this.onInfoDisappearTimeout,
+        holdDuration
+      )
+
+      this.transitionGroupDisappearTimeoutId = window.setTimeout(
+        this.onTransitionGroupDisappearTimeout,
+        transitionAppearDuration + holdDuration + transitionLeaveDuration
+      )
+
+      this.setState({
+        renderTransitionGroup: true,
+        renderInfo: true,
+      })
+    } else if (this.state.renderInfo || this.state.renderTransitionGroup) {
+      // We're no longer in full-screen, let's get rid of the notification
+      // immediately without any transitions.
+      this.setState({
+        renderTransitionGroup: false,
+        renderInfo: false,
+      })
     }
   }
 
@@ -138,25 +85,13 @@ export class FullScreenInfo extends React.Component<
     this.setState({ renderTransitionGroup: false })
   }
 
-  private renderFullScreenNotification() {
-    if (!this.state.renderInfo) {
-      return null
-    }
-
+  private renderFullScreenNotification(): JSX.Element {
     const kbdShortcut = __DARWIN__ ? '⌃⌘F' : 'F11'
 
     return (
-      <CSSTransition
-        classNames="toast-animation"
-        appear={true}
-        enter={false}
-        exit={true}
-        timeout={toastTransitionTimeout}
-      >
-        <div key="notification" className="toast-notification">
-          Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
-        </div>
-      </CSSTransition>
+      <div key="notification" className="toast-notification">
+        Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
+      </div>
     )
   }
 
@@ -165,10 +100,23 @@ export class FullScreenInfo extends React.Component<
       return null
     }
 
+    if (!this.state.renderInfo) {
+      return null
+    }
+
     return (
-      <TransitionGroup className="toast-notification-container">
+      <CSSTransition
+        classNames="toast-notification-container toast-animation"
+        appear={true}
+        enter={false}
+        exit={true}
+        timeout={{
+          enter: transitionAppearDuration,
+          exit: transitionLeaveDuration,
+        }}
+      >
         {this.renderFullScreenNotification()}
-      </TransitionGroup>
+      </CSSTransition>
     )
   }
 }
