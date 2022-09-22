@@ -1,16 +1,15 @@
 import * as React from 'react'
-import { Editor } from 'codemirror'
 
 import { assertNever } from '../../lib/fatal-error'
 import { encodePathAsUrl } from '../../lib/path'
-import { ImageDiffType } from '../../lib/app-state'
-import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { Repository } from '../../models/repository'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
+  isManualConflict,
+  isConflictedFileStatus,
 } from '../../models/status'
 import {
   DiffSelection,
@@ -19,22 +18,21 @@ import {
   IImageDiff,
   ITextDiff,
   ILargeTextDiff,
+  ImageDiffType,
+  ISubmoduleDiff,
 } from '../../models/diff'
-
 import { Button } from '../lib/button'
-
 import {
   NewImageDiff,
   ModifiedImageDiff,
   DeletedImageDiff,
 } from './image-diffs'
 import { BinaryFile } from './binary-file'
-import { diffLineForIndex } from './diff-explorer'
-import { DiffLineGutter } from './diff-line-gutter'
-import { DiffSyntaxMode } from './diff-syntax-mode'
-
-import { ISelectionStrategy } from './selection/selection-strategy'
 import { TextDiff } from './text-diff'
+import { SideBySideDiff } from './side-by-side-diff'
+import { enableExperimentalDiffViewer } from '../../lib/feature-flag'
+import { IFileContents } from './syntax-highlighting'
+import { SubmoduleDiff } from './submodule-diff'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -61,11 +59,49 @@ interface IDiffProps {
   /** The diff that should be rendered */
   readonly diff: IDiff
 
-  /** propagate errors up to the main application */
-  readonly dispatcher: Dispatcher
+  /**
+   * Contents of the old and new files related to the current text diff.
+   */
+  readonly fileContents: IFileContents | null
 
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
+
+  /** Hiding whitespace in diff. */
+  readonly hideWhitespaceInDiff: boolean
+
+  /** Whether we should display side by side diffs. */
+  readonly showSideBySideDiff: boolean
+
+  /** Whether we should show a confirmation dialog when the user discards changes */
+  readonly askForConfirmationOnDiscardChanges?: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule?: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
+
+  /*
+   * Called when the user wants to discard a selection of the diff.
+   * Only applicable when readOnly is false.
+   */
+  readonly onDiscardChanges?: (
+    diff: ITextDiff,
+    diffSelection: DiffSelection
+  ) => void
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface IDiffState {
@@ -74,67 +110,11 @@ interface IDiffState {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, IDiffState> {
-  private codeMirror: Editor | null = null
-
-  /**
-   * Maintain the current state of the user interacting with the diff gutter
-   */
-  private selection: ISelectionStrategy | null = null
-
-  /**
-   *  a local cache of gutter elements, keyed by the row in the diff
-   */
-  private cachedGutterElements = new Map<number, DiffLineGutter>()
-
   public constructor(props: IDiffProps) {
     super(props)
 
     this.state = {
       forceShowLargeDiff: false,
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: IDiffProps) {
-    const codeMirror = this.codeMirror
-
-    if (
-      codeMirror &&
-      nextProps.diff.kind === DiffType.Text &&
-      (this.props.diff.kind !== DiffType.Text ||
-        this.props.diff.text !== nextProps.diff.text)
-    ) {
-      codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
-    }
-
-    // HACK: This entire section is a hack. Whenever we receive
-    // props we update all currently visible gutter elements with
-    // the selection state from the file.
-    if (nextProps.file instanceof WorkingDirectoryFileChange) {
-      const selection = nextProps.file.selection
-      const oldSelection =
-        this.props.file instanceof WorkingDirectoryFileChange
-          ? this.props.file.selection
-          : null
-
-      // Nothing has changed
-      if (oldSelection === selection) {
-        return
-      }
-
-      const diff = nextProps.diff
-      this.cachedGutterElements.forEach((element, index) => {
-        if (!element) {
-          console.error('expected DOM element for diff gutter not found')
-          return
-        }
-
-        if (diff.kind === DiffType.Text) {
-          const line = diffLineForIndex(diff.hunks, index)
-          const isIncludable = line ? line.isIncludeableLine() : false
-          const isSelected = selection.isSelected(index) && isIncludable
-          element.setSelected(isSelected)
-        }
-      })
     }
   }
 
@@ -146,6 +126,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         return this.renderText(diff)
       case DiffType.Binary:
         return this.renderBinaryFile()
+      case DiffType.Submodule:
+        return this.renderSubmoduleDiff(diff)
       case DiffType.Image:
         return this.renderImage(diff)
       case DiffType.LargeText: {
@@ -160,45 +142,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
-  /**
-   * Helper event listener, registered when starting a selection by
-   * clicking anywhere on or near the gutter. Immediately removes itself
-   * from the mouseup event on the document element and ends any current
-   * selection.
-   *
-   * TODO: Once Electron upgrades to Chrome 55 we can drop this in favor
-   * of the 'once' option in addEventListener, see
-   * https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
-   */
-  private onDocumentMouseUp = (ev: MouseEvent) => {
-    ev.preventDefault()
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
-    this.endSelection()
-  }
-
-  /**
-   * complete the selection gesture and apply the change to the diff
-   */
-  private endSelection = () => {
-    if (!this.props.onIncludeChanged || !this.selection) {
-      return
-    }
-
-    this.props.onIncludeChanged(this.selection.done())
-
-    // operation is completed, clean this up
-    this.selection = null
-  }
-
-  private onChangeImageDiffType = (type: ImageDiffType) => {
-    this.props.dispatcher.changeImageDiffType(type)
-  }
-
   private renderImage(imageDiff: IImageDiff) {
     if (imageDiff.current && imageDiff.previous) {
       return (
         <ModifiedImageDiff
-          onChangeDiffType={this.onChangeImageDiffType}
+          onChangeDiffType={this.props.onChangeImageDiffType}
           diffType={this.props.imageDiffType}
           current={imageDiff.current}
           previous={imageDiff.previous}
@@ -206,13 +154,17 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       )
     }
 
-    if (imageDiff.current && this.props.file.status === AppFileStatus.New) {
+    if (
+      imageDiff.current &&
+      (this.props.file.status.kind === AppFileStatusKind.New ||
+        this.props.file.status.kind === AppFileStatusKind.Untracked)
+    ) {
       return <NewImageDiff current={imageDiff.current} />
     }
 
     if (
       imageDiff.previous &&
-      this.props.file.status === AppFileStatus.Deleted
+      this.props.file.status.kind === AppFileStatusKind.Deleted
     ) {
       return <DeletedImageDiff previous={imageDiff.previous} />
     }
@@ -223,11 +175,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderLargeTextDiff() {
     return (
       <div className="panel empty large-diff">
-        <img src={NoDiffImage} />
+        <img src={NoDiffImage} className="blankslate-image" alt="" />
         <p>
           The diff is too large to be displayed by default.
           <br />
-          You can try to show it anyways, but performance may be negatively
+          You can try to show it anyway, but performance may be negatively
           impacted.
         </p>
         <Button onClick={this.showLargeDiff}>
@@ -240,7 +192,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderUnrenderableDiff() {
     return (
       <div className="panel empty large-diff">
-        <img src={NoDiffImage} />
+        <img src={NoDiffImage} alt="" />
         <p>The diff is too large to be displayed.</p>
       </div>
     )
@@ -253,6 +205,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       hunks: diff.hunks,
       kind: DiffType.Text,
       lineEndingsChange: diff.lineEndingsChange,
+      maxLineNumber: diff.maxLineNumber,
+      hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
     return this.renderTextDiff(textDiff)
@@ -260,16 +214,34 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderText(diff: ITextDiff) {
     if (diff.hunks.length === 0) {
-      if (this.props.file.status === AppFileStatus.New) {
+      if (
+        this.props.file.status.kind === AppFileStatusKind.New ||
+        this.props.file.status.kind === AppFileStatusKind.Untracked
+      ) {
         return <div className="panel empty">The file is empty</div>
       }
 
-      if (this.props.file.status === AppFileStatus.Renamed) {
+      if (this.props.file.status.kind === AppFileStatusKind.Renamed) {
         return (
           <div className="panel renamed">
             The file was renamed but not changed
           </div>
         )
+      }
+
+      if (
+        isConflictedFileStatus(this.props.file.status) &&
+        isManualConflict(this.props.file.status)
+      ) {
+        return (
+          <div className="panel empty">
+            The file is in conflict and must be resolved via the command line.
+          </div>
+        )
+      }
+
+      if (this.props.hideWhitespaceInDiff) {
+        return <div className="panel empty">Only whitespace changes found</div>
       }
 
       return <div className="panel empty">No content changes found</div>
@@ -278,25 +250,62 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return this.renderTextDiff(diff)
   }
 
+  private renderSubmoduleDiff(diff: ISubmoduleDiff) {
+    return (
+      <SubmoduleDiff
+        onOpenSubmodule={this.props.onOpenSubmodule}
+        diff={diff}
+        readOnly={this.props.readOnly}
+      />
+    )
+  }
+
   private renderBinaryFile() {
     return (
       <BinaryFile
         path={this.props.file.path}
         repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
+        onOpenBinaryFile={this.props.onOpenBinaryFile}
       />
     )
   }
 
   private renderTextDiff(diff: ITextDiff) {
+    if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
+      return (
+        <SideBySideDiff
+          repository={this.props.repository}
+          file={this.props.file}
+          diff={diff}
+          fileContents={this.props.fileContents}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onIncludeChanged={this.props.onIncludeChanged}
+          onDiscardChanges={this.props.onDiscardChanges}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
+          onHideWhitespaceInDiffChanged={
+            this.props.onHideWhitespaceInDiffChanged
+          }
+        />
+      )
+    }
+
     return (
       <TextDiff
         repository={this.props.repository}
         file={this.props.file}
         readOnly={this.props.readOnly}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         onIncludeChanged={this.props.onIncludeChanged}
-        text={diff.text}
-        hunks={diff.hunks}
+        onDiscardChanges={this.props.onDiscardChanges}
+        diff={diff}
+        fileContents={this.props.fileContents}
+        askForConfirmationOnDiscardChanges={
+          this.props.askForConfirmationOnDiscardChanges
+        }
+        onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
       />
     )
   }

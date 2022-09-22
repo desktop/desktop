@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { Avatar } from './avatar'
 import { IAvatarUser } from '../../models/avatar'
 
@@ -25,21 +25,21 @@ export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
     const users = this.props.users
 
     for (let i = 0; i < this.props.users.length; i++) {
-      const user = users[i]
-
-      if (users.length > MaxDisplayedAvatars && i === MaxDisplayedAvatars - 1) {
+      if (
+        users.length > MaxDisplayedAvatars + 1 &&
+        i === MaxDisplayedAvatars - 1
+      ) {
         elems.push(<div key="more" className="avatar-more avatar" />)
       }
 
-      elems.push(
-        <Avatar key={`${i}${user.avatarURL}`} user={user} title={null} />
-      )
+      elems.push(<Avatar key={`${i}`} user={users[i]} />)
     }
 
     const className = classNames('AvatarStack', {
       'AvatarStack--small': true,
       'AvatarStack--two': users.length === 2,
-      'AvatarStack--three-plus': users.length >= MaxDisplayedAvatars,
+      'AvatarStack--three': users.length === 3,
+      'AvatarStack--plus': users.length > MaxDisplayedAvatars,
     })
 
     return (

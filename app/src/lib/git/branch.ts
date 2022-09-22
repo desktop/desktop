@@ -1,8 +1,16 @@
 import { git, gitNetworkArguments } from './core'
-import { getBranches } from './for-each-ref'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
-import { IGitAccount, envForAuthentication } from './authentication'
+import { Branch } from '../../models/branch'
+import { IGitAccount } from '../../models/git-account'
+import { formatAsLocalRef } from './refs'
+import { deleteRef } from './update-ref'
+import { GitError as DugiteError } from 'dugite'
+import { getRemoteURL } from './remote'
+import {
+  envForRemoteOperation,
+  getFallbackUrlForProxyResolve,
+} from './environment'
+import { createForEachRefParser } from './git-delimiter-parser'
 
 /**
  * Create a new branch from the given start point.
@@ -16,20 +24,20 @@ import { IGitAccount, envForAuthentication } from './authentication'
 export async function createBranch(
   repository: Repository,
   name: string,
-  startPoint?: string
-): Promise<Branch | null> {
-  const args = startPoint ? ['branch', name, startPoint] : ['branch', name]
+  startPoint: string | null,
+  noTrack?: boolean
+): Promise<void> {
+  const args =
+    startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
-  try {
-    await git(args, repository.path, 'createBranch')
-    const branches = await getBranches(repository, `refs/heads/${name}`)
-    if (branches.length > 0) {
-      return branches[0]
-    }
-  } catch (err) {
-    log.error('createBranch failed', err)
+  // if we're branching directly from a remote branch, we don't want to track it
+  // tracking it will make the rest of desktop think we want to push to that
+  // remote branch's upstream (which would likely be the upstream of the fork)
+  if (noTrack) {
+    args.push('--no-track')
   }
-  return null
+
+  await git(args, repository.path, 'createBranch')
 }
 
 /** Rename the given branch to a new name. */
@@ -46,73 +54,126 @@ export async function renameBranch(
 }
 
 /**
- * Delete the branch. If the branch has a remote branch and `includeRemote` is true, it too will be
- * deleted. Silently deletes local branch if remote one is already deleted.
+ * Delete the branch locally.
  */
-export async function deleteBranch(
+export async function deleteLocalBranch(
   repository: Repository,
-  branch: Branch,
-  account: IGitAccount | null,
-  includeRemote: boolean
+  branchName: string
 ): Promise<true> {
-  if (branch.type === BranchType.Local) {
-    await git(
-      ['branch', '-D', branch.name],
-      repository.path,
-      'deleteLocalBranch'
-    )
-  }
+  await git(['branch', '-D', branchName], repository.path, 'deleteLocalBranch')
+  return true
+}
 
-  const remote = branch.remote
+/**
+ * Deletes a remote branch
+ *
+ * @param remoteName - the name of the remote to delete the branch from
+ * @param remoteBranchName - the name of the branch on the remote
+ */
+export async function deleteRemoteBranch(
+  repository: Repository,
+  account: IGitAccount | null,
+  remoteName: string,
+  remoteBranchName: string
+): Promise<true> {
+  const remoteUrl =
+    (await getRemoteURL(repository, remoteName).catch(err => {
+      // If we can't get the URL then it's very unlikely Git will be able to
+      // either and the push will fail. The URL is only used to resolve the
+      // proxy though so it's not critical.
+      log.error(`Could not resolve remote url for remote ${remoteName}`, err)
+      return null
+    })) || getFallbackUrlForProxyResolve(account, repository)
 
-  if (!includeRemote || !remote) {
-    return true
-  }
+  const args = [
+    ...gitNetworkArguments(),
+    'push',
+    remoteName,
+    `:${remoteBranchName}`,
+  ]
 
-  const branchExistsOnRemote = await checkIfBranchExistsOnRemote(
-    repository,
-    branch,
-    account,
-    remote
-  )
+  // If the user is not authenticated, the push is going to fail
+  // Let this propagate and leave it to the caller to handle
+  const result = await git(args, repository.path, 'deleteRemoteBranch', {
+    env: await envForRemoteOperation(account, remoteUrl),
+    expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
+  })
 
-  if (branchExistsOnRemote) {
-    const args = [
-      ...gitNetworkArguments,
-      'push',
-      remote,
-      `:${branch.nameWithoutRemote}`,
-    ]
-
-    const opts = { env: envForAuthentication(account) }
-
-    // If the user is not authenticated, the push is going to fail
-    // Let this propagate and leave it to the caller to handle
-    await git(args, repository.path, 'deleteRemoteBranch', opts)
+  // It's possible that the delete failed because the ref has already
+  // been deleted on the remote. If we identify that specific
+  // error we can safely remove our remote ref which is what would
+  // happen if the push didn't fail.
+  if (result.gitError === DugiteError.BranchDeletionFailed) {
+    const ref = `refs/remotes/${remoteName}/${remoteBranchName}`
+    await deleteRef(repository, ref)
   }
 
   return true
 }
 
-async function checkIfBranchExistsOnRemote(
+/**
+ * Finds branches that have a tip equal to the given committish
+ *
+ * @param repository within which to execute the command
+ * @param commitish a sha, HEAD, etc that the branch(es) tip should be
+ * @returns list branch names. null if an error is encountered
+ */
+export async function getBranchesPointedAt(
   repository: Repository,
-  branch: Branch,
-  account: IGitAccount | null,
-  remote: string
-): Promise<boolean> {
+  commitish: string
+): Promise<Array<string> | null> {
   const args = [
-    ...gitNetworkArguments,
-    'ls-remote',
-    '--heads',
-    remote,
-    branch.nameWithoutRemote,
+    'branch',
+    `--points-at=${commitish}`,
+    '--format=%(refname:short)',
   ]
-  const opts = { env: envForAuthentication(account) }
-  const result = await git(
+  // this command has an implicit \n delimiter
+  const { stdout, exitCode } = await git(
     args,
     repository.path,
-    'checkRemoteBranchExistence',
-    opts
+    'branchPointedAt',
+    {
+      // - 1 is returned if a common ancestor cannot be resolved
+      // - 129 is returned if ref is malformed
+      //   "warning: ignoring broken ref refs/remotes/origin/main."
+      successExitCodes: new Set([0, 1, 129]),
+    }
   )
-  return result.stdout.length > 0
+  if (exitCode === 1 || exitCode === 129) {
+    return null
+  }
+  // split (and remove trailing element cause its always an empty string)
+  return stdout.split('\n').slice(0, -1)
+}
+
+/**
+ * Gets all branches that have been merged into the given branch
+ *
+ * @param repository The repository in which to search
+ * @param branchName The to be used as the base branch
+ * @returns map of branch canonical refs paired to its sha
+ */
+export async function getMergedBranches(
+  repository: Repository,
+  branchName: string
+): Promise<Map<string, string>> {
+  const canonicalBranchRef = formatAsLocalRef(branchName)
+  const { formatArgs, parse } = createForEachRefParser({
+    sha: '%(objectname)',
+    canonicalRef: '%(refname)',
+  })
+
+  const args = ['branch', ...formatArgs, '--merged', branchName]
+  const mergedBranches = new Map<string, string>()
+  const { stdout } = await git(args, repository.path, 'mergedBranches')
+
+  for (const branch of parse(stdout)) {
+    // Don't include the branch we're using to compare against
+    // in the list of branches merged into that branch.
+    if (branch.canonicalRef !== canonicalBranchRef) {
+      mergedBranches.set(branch.canonicalRef, branch.sha)
+    }
+  }
+
+  return mergedBranches
 }

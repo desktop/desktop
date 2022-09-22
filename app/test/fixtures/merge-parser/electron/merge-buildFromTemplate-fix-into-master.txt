@@ -1,0 +1,23 @@
+changed in both
+  base   100644 dcc446587913f37a58c86f4d1bf612371589960e lib/browser/api/menu.js
+  our    100644 506e3525c10ce142cafe3fc1bf4de1c255e48503 lib/browser/api/menu.js
+  their  100644 21a60b52b0e5ea1d091c9b35f57254b8af8f017d lib/browser/api/menu.js
+@@ -165,7 +165,18 @@
+   const filtered = removeExtraSeparators(template)
+   const sorted = sortTemplate(filtered)
+ 
++<<<<<<< .our
+   sorted.forEach((item) => menu.append(new MenuItem(item)))
++=======
++  sorted.forEach((item) => {
++    if (typeof item !== 'object') {
++      throw new TypeError('Invalid template for MenuItem')
++    }
++    if( Object.keys(item).length > 0) {
++    menu.append(new MenuItem(item))
++    }
++  })
++>>>>>>> .their
+ 
+   return menu
+ }

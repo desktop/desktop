@@ -186,9 +186,9 @@ export class GitProgressParser {
   }
 
   /**
-   * Parse the given line of output from Git, returns either an IGitProgress
+   * Parse the given line of output from Git, returns either an `IGitProgress`
    * instance if the line could successfully be parsed as a Git progress
-   * event whose title was registered with this parser or an IGitOutput
+   * event whose title was registered with this parser or an `IGitOutput`
    * instance if the line couldn't be parsed or if the title wasn't
    * registered with the parser.
    */
@@ -253,8 +253,8 @@ export function parse(line: string): IGitProgressInfo | null {
     return null
   }
 
-  const title = line.substr(0, titleLength)
-  const progressText = line.substr(title.length + 2).trim()
+  const title = line.substring(0, titleLength)
+  const progressText = line.substring(title.length + 2).trim()
 
   if (!progressText.length) {
     return null

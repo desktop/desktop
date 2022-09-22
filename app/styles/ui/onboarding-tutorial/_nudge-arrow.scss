@@ -1,0 +1,139 @@
+.nudge-arrow {
+  // all arrows need this base styling
+  &::after {
+    position: absolute;
+    content: '';
+    z-index: var(--nudge-arrow-z-index);
+  }
+
+  // branch menu highlight arrow and
+  // push branch button highlight arrow
+  &.nudge-arrow-up::after {
+    // yes, this is the svg for an octicon arrow up
+    background-image: url("data:image/svg+xml,%3Csvg width='22' height='36' viewBox='0 0 22 36' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M11 6.59998L0 19.8H6.6V28.6H15.4V19.8H22L11 6.59998Z' fill='%232188FF'/%3E %3C/svg%3E ");
+    width: 22px;
+    height: 36px;
+    left: 35%;
+    // initially transparent
+    filter: opacity(0%);
+    animation: pointup 2s ease-out 6s infinite;
+  }
+
+  // commit message box highlight arrow
+  &.nudge-arrow-left::after {
+    // yes, this is the svg for an octicon arrow left
+    background-image: url("data:image/svg+xml,%3Csvg width='36' height='22' viewBox='0 0 36 22' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7 11L20.2 22V15.4L29 15.4V6.6L20.2 6.6V0L7 11Z' fill='%232188FF'/%3E %3C/svg%3E ");
+    width: 36px;
+    height: 22px;
+    top: 25%;
+    // initially transparent
+    filter: opacity(0%);
+    animation: pointleft 2s ease-out 6s infinite;
+  }
+
+  @keyframes pointup {
+    // Faded out
+    0% {
+      filter: opacity(0%);
+      bottom: -55px;
+    }
+
+    // Faded out hold
+    20% {
+      filter: opacity(0%);
+      bottom: -55px;
+    }
+
+    // Fade in
+    30% {
+      filter: opacity(100%) drop-shadow(0 0 2px var(--background-color));
+      bottom: -40px;
+    }
+
+    // Hold fade in
+    40% {
+      bottom: -40px;
+    }
+
+    // Pulse out
+    50% {
+      bottom: -55px;
+    }
+
+    // Pulse in
+    60% {
+      bottom: -40px;
+    }
+
+    // Hold
+    70% {
+      filter: opacity(100%);
+      bottom: -40px;
+    }
+
+    // Fade out
+    80% {
+      filter: opacity(0%);
+      bottom: -55px;
+    }
+
+    // Fade out hold
+    100% {
+      filter: opacity(0%);
+      bottom: -55px;
+    }
+  }
+
+  @keyframes pointleft {
+    // Faded out
+    0% {
+      filter: opacity(0%);
+      right: -65px;
+    }
+
+    // Faded out hold
+    20% {
+      filter: opacity(0%);
+      right: -65px;
+    }
+
+    // Fade in
+    30% {
+      filter: opacity(100%) drop-shadow(0 0 2px var(--background-color));
+      right: -50px;
+    }
+
+    // Hold fade in
+    40% {
+      right: -50px;
+    }
+
+    // Pulse out
+    50% {
+      right: -65px;
+    }
+
+    // Pulse in
+    60% {
+      right: -50px;
+    }
+
+    // Hold
+    70% {
+      filter: opacity(100%) drop-shadow(0 0 2px var(--background-color));
+      right: -50px;
+    }
+
+    // Fade out
+    80% {
+      filter: opacity(0%);
+      right: -65px;
+    }
+
+    // Fade out hold
+    100% {
+      filter: opacity(0%);
+      right: -65px;
+    }
+  }
+}

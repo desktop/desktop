@@ -1,0 +1,152 @@
+changed in both
+  base   100644 466ced9706b902e76304384bc2effc04c9b71360 src/vs/workbench/api/electron-browser/mainThreadTask.ts
+  our    100644 a1b5243fa6c16f6ebb0cd18d9a073d52f0a691f4 src/vs/workbench/api/electron-browser/mainThreadTask.ts
+  their  100644 ab2c0f3e367122750f4ac1724749784a79f37fdc src/vs/workbench/api/electron-browser/mainThreadTask.ts
+@@ -71,6 +71,7 @@
+ 		delete result._key;
+ 		return result;
+ 	}
++<<<<<<< .our
+ 	export function to(value: TaskDefinitionDTO, executeOnly: boolean): KeyedTaskIdentifier {
+ 		let result = TaskDefinition.createTaskIdentifier(value, console);
+ 		if (result === void 0 && executeOnly) {
+@@ -80,6 +81,10 @@
+ 			};
+ 		}
+ 		return result;
++=======
++	export function to(value: TaskDefinitionDTO): KeyedTaskIdentifier {
++		return TaskDefinition.createTaskIdentifier(value, console);
++>>>>>>> .their
+ 	}
+ }
+ 
+@@ -395,8 +400,13 @@
+ 
+ 	public $registerTaskProvider(handle: number): TPromise<void> {
+ 		this._taskService.registerTaskProvider(handle, {
++<<<<<<< .our
+ 			provideTasks: (validTypes: IStringDictionary<boolean>) => {
+ 				return this._proxy.$provideTasks(handle, validTypes).then((value) => {
++=======
++			provideTasks: () => {
++				return this._proxy.$provideTasks(handle).then((value) => {
++>>>>>>> .their
+ 					let tasks: Task[] = [];
+ 					for (let task of value.tasks) {
+ 						let taskTransfer = task._source as any as ExtensionTaskSourceTransfer;
+changed in both
+  base   100644 03c10b1ee810fd25378385e1f604ce77ac04243c src/vs/workbench/api/node/extHostTask.ts
+  our    100644 ee825674099281f31bafe1feebca54d478f9b15b src/vs/workbench/api/node/extHostTask.ts
+  their  100644 d4a10652e5d2f035f5c7a415d4a22dfa753148b5 src/vs/workbench/api/node/extHostTask.ts
+changed in both
+  base   100644 62db4699fa16947080f364a1c089c8dd05655a5f src/vs/workbench/api/node/extHostTypes.ts
+  our    100644 7e7572fe66c624d470c8506c4a3ebf35efe8320a src/vs/workbench/api/node/extHostTypes.ts
+  their  100644 5da741492352041412d508f78b0bf12cc50ff07f src/vs/workbench/api/node/extHostTypes.ts
+changed in both
+  base   100644 7a055bf14a96b97a4b0a77deb179c21bc6613f70 src/vs/workbench/parts/tasks/common/taskSystem.ts
+  our    100644 9ef94395b0f970a895f59a803fd410f6ff6fa897 src/vs/workbench/parts/tasks/common/taskSystem.ts
+  their  100644 38407b7894938b4cdad7292926b94876b2b7f827 src/vs/workbench/parts/tasks/common/taskSystem.ts
+changed in both
+  base   100644 f1528ca95ce936effa1e771ed167056249d2a52c src/vs/workbench/parts/tasks/common/tasks.ts
+  our    100644 9a771032c99cebab4d7cc264d0bbfbd5c11067ca src/vs/workbench/parts/tasks/common/tasks.ts
+  their  100644 c41e4ca76dc2f52f2de9fad0825c6ca0023bbe82 src/vs/workbench/parts/tasks/common/tasks.ts
+@@ -624,7 +624,11 @@
+ 		if (Types.isString(key)) {
+ 			return key === task._label || key === task.identifier || (compareId && key === task._id);
+ 		}
++<<<<<<< .our
+ 		let identifier = Task.getTaskDefinition(task, true);
++=======
++		let identifier = Task.getTaskDefinition(task);
++>>>>>>> .their
+ 		return identifier !== void 0 && identifier._key === key._key;
+ 	}
+ 
+changed in both
+  base   100644 4f3218fda3712056f065d93844893c1f503cd641 src/vs/workbench/parts/tasks/electron-browser/jsonSchema_v2.ts
+  our    100644 32352f92e5b6403e5d2a2dab5342a6748583e197 src/vs/workbench/parts/tasks/electron-browser/jsonSchema_v2.ts
+  their  100644 7ad25b8f045fe2370652a03025bc7bc71a38b54b src/vs/workbench/parts/tasks/electron-browser/jsonSchema_v2.ts
+changed in both
+  base   100644 dc3d73f3cee59dddc32e47a077e6066b1cc0c4d8 src/vs/workbench/parts/tasks/electron-browser/task.contribution.ts
+  our    100644 f6c79e586a73787324e35cffd199df14d720e4da src/vs/workbench/parts/tasks/electron-browser/task.contribution.ts
+  their  100644 ceea88273314b0b0556dd9ecd2b8124a8adaea70 src/vs/workbench/parts/tasks/electron-browser/task.contribution.ts
+@@ -74,7 +74,11 @@
+ import {
+ 	Task, CustomTask, ConfiguringTask, ContributedTask, InMemoryTask, TaskEvent,
+ 	TaskEventKind, TaskSet, TaskGroup, GroupType, ExecutionEngine, JsonSchemaVersion, TaskSourceKind,
++<<<<<<< .our
+ 	TaskSorter, TaskIdentifier, KeyedTaskIdentifier, TASK_RUNNING_STATE
++=======
++	TaskSorter, TaskIdentifier, KeyedTaskIdentifier
++>>>>>>> .their
+ } from 'vs/workbench/parts/tasks/common/tasks';
+ import { ITaskService, ITaskProvider, RunOptions, CustomizationProperties, TaskFilter } from 'vs/workbench/parts/tasks/common/taskService';
+ import { getTemplates as getTaskTemplates } from 'vs/workbench/parts/tasks/common/taskTemplates';
+@@ -1917,7 +1921,16 @@
+ 		if (!this.canRunCommand()) {
+ 			return;
+ 		}
++<<<<<<< .our
+ 		let identifier = this.getTaskIdentifier(arg);
++=======
++		let identifier: string | KeyedTaskIdentifier = undefined;
++		if (Types.isString(arg)) {
++			identifier = arg;
++		} else if (arg && Types.isString((arg as TaskIdentifier).type)) {
++			identifier = TaskDefinition.createTaskIdentifier(arg as TaskIdentifier, console);
++		}
++>>>>>>> .their
+ 		if (identifier !== void 0) {
+ 			this.getGroupedTasks().then((grouped) => {
+ 				let resolver = this.createResolver(grouped);
+changed in both
+  base   100644 3d7718062da0bdd736afb716e84cb9a4ada08bab src/vs/workbench/parts/tasks/electron-browser/terminalTaskSystem.ts
+  our    100644 6b4da35a3f141112a169ecfa12aadfaea48de26e src/vs/workbench/parts/tasks/electron-browser/terminalTaskSystem.ts
+  their  100644 72d858d7b51a7793eb9079165bd3f8dc74ddca5f src/vs/workbench/parts/tasks/electron-browser/terminalTaskSystem.ts
+changed in both
+  base   100644 0ad38de152abcd9f636fdde5111d4c500c85ff3d src/vs/workbench/parts/tasks/node/taskConfiguration.ts
+  our    100644 6b46b4eb0c3f506cf19665071c9a69cc86383d9a src/vs/workbench/parts/tasks/node/taskConfiguration.ts
+  their  100644 4bbc30ff45b71c762d1c00a345e6bdc3de41b0cc src/vs/workbench/parts/tasks/node/taskConfiguration.ts
+@@ -1180,7 +1180,11 @@
+ 			if (Types.isArray(external.dependsOn)) {
+ 				result.dependsOn = external.dependsOn.map(item => TaskDependency.from(item, context));
+ 			} else {
++<<<<<<< .our
+ 				result.dependsOn = [TaskDependency.from(external.dependsOn, context)];
++=======
++				result.dependsOn = [TaskDependency.from(external, context)];
++>>>>>>> .their
+ 			}
+ 		}
+ 		if (includeCommandOptions && (external.presentation !== void 0 || (external as LegacyCommandProperties).terminal !== void 0)) {
+@@ -1257,7 +1261,11 @@
+ 		if (taskIdentifier === void 0) {
+ 			context.problemReporter.error(nls.localize(
+ 				'ConfigurationParser.incorrectType',
++<<<<<<< .our
+ 				'Error: the task configuration \'{0}\' is using an unknown type. The task configuration will be ignored.', JSON.stringify(external, undefined, 0)
++=======
++				'Error: the task configuration \'{0}\' is using and unknown type. The task configuration will be ignored.', JSON.stringify(external, undefined, 0)
++>>>>>>> .their
+ 			));
+ 			return undefined;
+ 		}
+added in both
+  our    100644 a24e94c013ae4b1477ee310f0ed2c4d14b698418 src/vs/workbench/parts/tasks/node/tasks.ts
+  their  100644 c0cd15ad06df13e79c3df608c54b735ffe45ba88 src/vs/workbench/parts/tasks/node/tasks.ts
+@@ -27,10 +27,14 @@
+ 	export function createTaskIdentifier(external: TaskIdentifier, reporter: { error(message: string): void; }): KeyedTaskIdentifier | undefined {
+ 		let definition = TaskDefinitionRegistry.get(external.type);
+ 		if (definition === void 0) {
++<<<<<<< .our
+ 			// We have no task definition so we can't sanitize the literal. Take it as is
+ 			let copy = Objects.deepClone(external);
+ 			delete copy._key;
+ 			return KeyedTaskIdentifier.create(copy);
++=======
++			return undefined;
++>>>>>>> .their
+ 		}
+ 
+ 		let literal: { type: string;[name: string]: any } = Object.create(null);

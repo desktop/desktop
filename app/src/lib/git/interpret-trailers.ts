@@ -138,7 +138,7 @@ export async function parseTrailers(
  *                      message trailers. See the manpage for
  *                      git-interpret-trailers for more information.
  *
- * @param commitMessage A commit message with or withot existing commit
+ * @param commitMessage A commit message with or without existing commit
  *                      message trailers into which to merge the trailers
  *                      given in the trailers parameter
  *
@@ -156,6 +156,9 @@ export async function mergeTrailers(
   unfold: boolean = false
 ) {
   const args = ['interpret-trailers']
+
+  // See https://github.com/git/git/blob/ebf3c04b262aa/Documentation/git-interpret-trailers.txt#L129-L132
+  args.push('--no-divider')
 
   if (unfold) {
     args.push('--unfold')

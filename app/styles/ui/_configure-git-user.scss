@@ -3,6 +3,15 @@
     margin: var(--spacing-double) 0;
   }
 
+  .config-lock-file-exists-component {
+    background: var(--form-error-background);
+    border: 1px solid var(--form-error-border-color);
+    color: var(--form-error-text-color);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-half);
+    border-radius: var(--border-radius);
+  }
+
   // Styles for the commit list that's shown in the Configure Git component.
   .commit-list-example {
     position: relative;

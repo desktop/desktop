@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { GitLFSProgressParser } from '../../../src/lib/progress/lfs'
 
 describe('GitLFSProgressParser', () => {
@@ -11,12 +10,12 @@ describe('GitLFSProgressParser', () => {
 
     it('understands valid lines', () => {
       const result = parser.parse('download 1/2 5/300 my cool image.jpg')
-      expect(result.kind).to.equal('progress')
+      expect(result.kind).toBe('progress')
     })
 
     it("ignores lines it doesn't understand", () => {
       const result = parser.parse('All this happened, more or less.')
-      expect(result.kind).to.equal('context')
+      expect(result.kind).toBe('context')
     })
   })
 })

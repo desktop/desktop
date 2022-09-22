@@ -2,40 +2,42 @@ import * as React from 'react'
 import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
-import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
-import { Select } from '../lib/select'
-import { ExternalEditor, parse as parseEditor } from '../../lib/editors'
-import { Shell, parse as parseShell } from '../../lib/shells'
-import { TextBox } from '../lib/text-box'
-import { enableMergeTool } from '../../lib/feature-flag'
-import { IMergeTool } from '../../lib/git/config'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { RadioButton } from '../lib/radio-button'
+import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
+import {
+  getNotificationSettingsUrl,
+  supportsNotifications,
+  supportsNotificationsPermissionRequest,
+} from 'desktop-notifications'
+import {
+  getNotificationsPermission,
+  requestNotificationsPermission,
+} from '../main-process-proxy'
 
 interface IAdvancedPreferencesProps {
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
-  readonly confirmRepositoryRemoval: boolean
-  readonly confirmDiscardChanges: boolean
-  readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor?: ExternalEditor
-  readonly availableShells: ReadonlyArray<Shell>
-  readonly selectedShell: Shell
-  readonly onOptOutofReportingchanged: (checked: boolean) => void
-  readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
-  readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
-  readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
-  readonly onSelectedShellChanged: (shell: Shell) => void
-
-  readonly mergeTool: IMergeTool | null
-  readonly onMergeToolNameChanged: (name: string) => void
-  readonly onMergeToolCommandChanged: (command: string) => void
+  readonly notificationsEnabled: boolean
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly repositoryIndicatorsEnabled: boolean
+  readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
+  readonly onNotificationsEnabledChanged: (checked: boolean) => void
+  readonly onOptOutofReportingChanged: (checked: boolean) => void
+  readonly onUncommittedChangesStrategyChanged: (
+    value: UncommittedChangesStrategy
+  ) => void
+  readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
-  readonly selectedExternalEditor?: ExternalEditor
-  readonly selectedShell: Shell
-  readonly confirmRepositoryRemoval: boolean
-  readonly confirmDiscardChanges: boolean
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly canUseWindowsSSH: boolean
+  readonly suggestGrantNotificationPermission: boolean
+  readonly warnNotificationsDenied: boolean
+  readonly suggestConfigureNotifications: boolean
 }
 
 export class Advanced extends React.Component<
@@ -47,40 +49,21 @@ export class Advanced extends React.Component<
 
     this.state = {
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
-      confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
-      confirmDiscardChanges: this.props.confirmDiscardChanges,
-      selectedExternalEditor: this.props.selectedExternalEditor,
-      selectedShell: this.props.selectedShell,
+      uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
+      canUseWindowsSSH: false,
+      suggestGrantNotificationPermission: false,
+      warnNotificationsDenied: false,
+      suggestConfigureNotifications: false,
     }
   }
 
-  public async componentWillReceiveProps(nextProps: IAdvancedPreferencesProps) {
-    const editors = nextProps.availableEditors
-    let selectedExternalEditor = nextProps.selectedExternalEditor
-    if (editors.length) {
-      const indexOf = selectedExternalEditor
-        ? editors.indexOf(selectedExternalEditor)
-        : -1
-      if (indexOf === -1) {
-        selectedExternalEditor = editors[0]
-        nextProps.onSelectedEditorChanged(selectedExternalEditor)
-      }
-    }
+  public componentDidMount() {
+    this.checkSSHAvailability()
+    this.updateNotificationsState()
+  }
 
-    const shells = nextProps.availableShells
-    let selectedShell = nextProps.selectedShell
-    if (shells.length) {
-      const indexOf = shells.indexOf(selectedShell)
-      if (indexOf === -1) {
-        selectedShell = shells[0]
-        nextProps.onSelectedShellChanged(selectedShell)
-      }
-    }
-
-    this.setState({
-      selectedExternalEditor,
-      selectedShell,
-    })
+  private async checkSSHAvailability() {
+    this.setState({ canUseWindowsSSH: await isWindowsOpenSSHAvailable() })
   }
 
   private onReportingOptOutChanged = (
@@ -89,145 +72,99 @@ export class Advanced extends React.Component<
     const value = !event.currentTarget.checked
 
     this.setState({ optOutOfUsageTracking: value })
-    this.props.onOptOutofReportingchanged(value)
+    this.props.onOptOutofReportingChanged(value)
   }
 
-  private onConfirmDiscardChangesChanged = (
+  private onUncommittedChangesStrategyChanged = (
+    value: UncommittedChangesStrategy
+  ) => {
+    this.setState({ uncommittedChangesStrategy: value })
+    this.props.onUncommittedChangesStrategyChanged(value)
+  }
+
+  private onRepositoryIndicatorsEnabledChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmDiscardChanges: value })
-    this.props.onConfirmDiscardChangesChanged(value)
+    this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
   }
 
-  private onConfirmRepositoryRemovalChanged = (
+  private onUseWindowsOpenSSHChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmRepositoryRemoval: value })
-    this.props.onConfirmRepositoryRemovalChanged(value)
+    this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
 
-  private onSelectedEditorChanged = (
-    event: React.FormEvent<HTMLSelectElement>
+  private onNotificationsEnabledChanged = (
+    event: React.FormEvent<HTMLInputElement>
   ) => {
-    const value = parseEditor(event.currentTarget.value)
-    if (value) {
-      this.setState({ selectedExternalEditor: value })
-      this.props.onSelectedEditorChanged(value)
-    }
+    this.props.onNotificationsEnabledChanged(event.currentTarget.checked)
   }
 
-  private onSelectedShellChanged = (
-    event: React.FormEvent<HTMLSelectElement>
-  ) => {
-    const value = parseShell(event.currentTarget.value)
-    this.setState({ selectedShell: value })
-    this.props.onSelectedShellChanged(value)
-  }
-
-  public reportDesktopUsageLabel() {
+  private reportDesktopUsageLabel() {
     return (
       <span>
         Help GitHub Desktop improve by submitting{' '}
-        <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>
+        <LinkButton uri={SamplesURL}>usage stats</LinkButton>
       </span>
-    )
-  }
-
-  private renderExternalEditor() {
-    const options = this.props.availableEditors
-    const label = __DARWIN__ ? 'External Editor' : 'External editor'
-
-    if (options.length === 0) {
-      // this is emulating the <Select/> component's UI so the styles are
-      // consistent for either case.
-      //
-      // TODO: see whether it makes sense to have a fallback UI
-      // which we display when the select list is empty
-      return (
-        <div className="select-component no-options-found">
-          <label>{label}</label>
-          <span>
-            No editors found.{' '}
-            <LinkButton uri="https://atom.io/">Install Atom?</LinkButton>
-          </span>
-        </div>
-      )
-    }
-
-    return (
-      <Select
-        label={label}
-        value={this.state.selectedExternalEditor}
-        onChange={this.onSelectedEditorChanged}
-      >
-        {options.map(n => (
-          <option key={n} value={n}>
-            {n}
-          </option>
-        ))}
-      </Select>
-    )
-  }
-
-  private renderSelectedShell() {
-    const options = this.props.availableShells
-
-    return (
-      <Select
-        label="Shell"
-        value={this.state.selectedShell}
-        onChange={this.onSelectedShellChanged}
-      >
-        {options.map(n => (
-          <option key={n} value={n}>
-            {n}
-          </option>
-        ))}
-      </Select>
-    )
-  }
-
-  private renderMergeTool() {
-    if (!enableMergeTool()) {
-      return null
-    }
-
-    const mergeTool = this.props.mergeTool
-
-    return (
-      <div className="brutalism">
-        <strong>{__DARWIN__ ? 'Merge Tool' : 'Merge tool'}</strong>
-
-        <Row>
-          <TextBox
-            placeholder="Name"
-            value={mergeTool ? mergeTool.name : ''}
-            onValueChanged={this.props.onMergeToolNameChanged}
-          />
-        </Row>
-
-        <Row>
-          <TextBox
-            placeholder="Command"
-            value={mergeTool && mergeTool.command ? mergeTool.command : ''}
-            onValueChanged={this.props.onMergeToolCommandChanged}
-          />
-        </Row>
-      </div>
     )
   }
 
   public render() {
     return (
       <DialogContent>
-        <Row>{this.renderExternalEditor()}</Row>
-        <Row>{this.renderSelectedShell()}</Row>
-        {this.renderMergeTool()}
-        <Row>
+        <div className="advanced-section">
+          <h2>If I have changes and I switch branches...</h2>
+
+          <RadioButton
+            value={UncommittedChangesStrategy.AskForConfirmation}
+            checked={
+              this.state.uncommittedChangesStrategy ===
+              UncommittedChangesStrategy.AskForConfirmation
+            }
+            label="Ask me where I want the changes to go"
+            onSelected={this.onUncommittedChangesStrategyChanged}
+          />
+
+          <RadioButton
+            value={UncommittedChangesStrategy.MoveToNewBranch}
+            checked={
+              this.state.uncommittedChangesStrategy ===
+              UncommittedChangesStrategy.MoveToNewBranch
+            }
+            label="Always bring my changes to my new branch"
+            onSelected={this.onUncommittedChangesStrategyChanged}
+          />
+
+          <RadioButton
+            value={UncommittedChangesStrategy.StashOnCurrentBranch}
+            checked={
+              this.state.uncommittedChangesStrategy ===
+              UncommittedChangesStrategy.StashOnCurrentBranch
+            }
+            label="Always stash and leave my changes on the current branch"
+            onSelected={this.onUncommittedChangesStrategyChanged}
+          />
+        </div>
+        <div className="advanced-section">
+          <h2>Background updates</h2>
+          <Checkbox
+            label="Periodically fetch and refresh status of all repositories"
+            value={
+              this.props.repositoryIndicatorsEnabled
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onRepositoryIndicatorsEnabledChanged}
+          />
+          <p className="git-settings-description">
+            Allows the display of up-to-date status indicators in the repository
+            list. Disabling this may improve performance with many repositories.
+          </p>
+        </div>
+        {this.renderSSHSettings()}
+        {this.renderNotificationsSettings()}
+        <div className="advanced-section">
+          <h2>Usage</h2>
           <Checkbox
             label={this.reportDesktopUsageLabel()}
             value={
@@ -237,30 +174,127 @@ export class Advanced extends React.Component<
             }
             onChange={this.onReportingOptOutChanged}
           />
-        </Row>
-        <Row>
-          <Checkbox
-            label="Show confirmation dialog before removing repositories"
-            value={
-              this.state.confirmRepositoryRemoval
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmRepositoryRemovalChanged}
-          />
-        </Row>
-        <Row>
-          <Checkbox
-            label="Show confirmation dialog before discarding changes"
-            value={
-              this.state.confirmDiscardChanges
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmDiscardChangesChanged}
-          />
-        </Row>
+        </div>
       </DialogContent>
+    )
+  }
+
+  private renderSSHSettings() {
+    if (!this.state.canUseWindowsSSH) {
+      return null
+    }
+
+    return (
+      <div className="advanced-section">
+        <h2>SSH</h2>
+        <Checkbox
+          label="Use system OpenSSH (recommended)"
+          value={
+            this.props.useWindowsOpenSSH ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onUseWindowsOpenSSHChanged}
+        />
+      </div>
+    )
+  }
+
+  private renderNotificationsSettings() {
+    return (
+      <div className="advanced-section">
+        <h2>Notifications</h2>
+        <Checkbox
+          label="Enable notifications"
+          value={
+            this.props.notificationsEnabled
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onNotificationsEnabledChanged}
+        />
+        <p className="git-settings-description">
+          Allows the display of notifications when high-signal events take place
+          in the current repository.{this.renderNotificationHint()}
+        </p>
+      </div>
+    )
+  }
+
+  private onGrantNotificationPermission = async () => {
+    await requestNotificationsPermission()
+    this.updateNotificationsState()
+  }
+
+  private async updateNotificationsState() {
+    const notificationsPermission = await getNotificationsPermission()
+    this.setState({
+      suggestGrantNotificationPermission:
+        supportsNotificationsPermissionRequest() &&
+        notificationsPermission === 'default',
+      warnNotificationsDenied: notificationsPermission === 'denied',
+      suggestConfigureNotifications: notificationsPermission === 'granted',
+    })
+  }
+
+  private renderNotificationHint() {
+    // No need to bother the user if their environment doesn't support our
+    // notifications or if they've been explicitly disabled.
+    if (!supportsNotifications() || !this.props.notificationsEnabled) {
+      return null
+    }
+
+    const {
+      suggestGrantNotificationPermission,
+      warnNotificationsDenied,
+      suggestConfigureNotifications,
+    } = this.state
+
+    if (suggestGrantNotificationPermission) {
+      return (
+        <>
+          {' '}
+          You need to{' '}
+          <LinkButton onClick={this.onGrantNotificationPermission}>
+            grant permission
+          </LinkButton>{' '}
+          to display these notifications from GitHub Desktop.
+        </>
+      )
+    }
+
+    const notificationSettingsURL = getNotificationSettingsUrl()
+
+    if (notificationSettingsURL === null) {
+      return null
+    }
+
+    if (warnNotificationsDenied) {
+      return (
+        <>
+          <br />
+          <br />
+          <span className="warning-icon">⚠️</span> GitHub Desktop has no
+          permission to display notifications. Please, enable them in the{' '}
+          <LinkButton uri={notificationSettingsURL}>
+            Notifications Settings
+          </LinkButton>
+          .
+        </>
+      )
+    }
+
+    const verb = suggestConfigureNotifications
+      ? 'properly configured'
+      : 'enabled'
+
+    return (
+      <>
+        {' '}
+        Make sure notifications are {verb} for GitHub Desktop in the{' '}
+        <LinkButton uri={notificationSettingsURL}>
+          Notifications Settings
+        </LinkButton>
+        .
+      </>
     )
   }
 }

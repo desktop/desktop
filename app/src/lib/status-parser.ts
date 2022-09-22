@@ -1,4 +1,10 @@
-import { FileEntry, GitStatusEntry } from '../models/status'
+import {
+  FileEntry,
+  GitStatusEntry,
+  SubmoduleStatus,
+  UnmergedEntrySummary,
+} from '../models/status'
+import { enableSubmoduleDiff } from './feature-flag'
 
 type StatusItem = IStatusHeader | IStatusEntry
 
@@ -17,8 +23,23 @@ export interface IStatusEntry {
   /** The two character long status code */
   readonly statusCode: string
 
+  /** The four character long submodule status code */
+  readonly submoduleStatusCode: string
+
   /** The original path in the case of a renamed file */
   readonly oldPath?: string
+}
+
+export function isStatusHeader(
+  statusItem: StatusItem
+): statusItem is IStatusHeader {
+  return statusItem.kind === 'header'
+}
+
+export function isStatusEntry(
+  statusItem: StatusItem
+): statusItem is IStatusEntry {
+  return statusItem.kind === 'entry'
 }
 
 const ChangedEntryType = '1'
@@ -47,21 +68,21 @@ export function parsePorcelainStatus(
   // containing special characters are not specially formatted; no quoting or
   // backslash-escaping is performed.
 
-  const fields = output.split('\0')
-  let field: string | undefined
+  const tokens = output.split('\0')
 
-  while ((field = fields.shift())) {
+  for (let i = 0; i < tokens.length; i++) {
+    const field = tokens[i]
     if (field.startsWith('# ') && field.length > 2) {
-      entries.push({ kind: 'header', value: field.substr(2) })
+      entries.push({ kind: 'header', value: field.substring(2) })
       continue
     }
 
-    const entryKind = field.substr(0, 1)
+    const entryKind = field.substring(0, 1)
 
     if (entryKind === ChangedEntryType) {
       entries.push(parseChangedEntry(field))
     } else if (entryKind === RenamedOrCopiedEntryType) {
-      entries.push(parsedRenamedOrCopiedEntry(field, fields.shift()))
+      entries.push(parsedRenamedOrCopiedEntry(field, tokens[++i]))
     } else if (entryKind === UnmergedEntryType) {
       entries.push(parseUnmergedEntry(field))
     } else if (entryKind === UntrackedEntryType) {
@@ -75,24 +96,28 @@ export function parsePorcelainStatus(
 }
 
 // 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
-const changedEntryRe = /^1 ([MADRCUTX?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([\s\S]*?)$/
+const changedEntryRe =
+  /^1 ([MADRCUTX?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([\s\S]*?)$/
 
 function parseChangedEntry(field: string): IStatusEntry {
   const match = changedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(`Failed to parse status line for changed entry: ${field}`)
+    log.debug(`parseChangedEntry parse error: ${field}`)
+    throw new Error(`Failed to parse status line for changed entry`)
   }
 
   return {
     kind: 'entry',
     statusCode: match[1],
+    submoduleStatusCode: match[2],
     path: match[8],
   }
 }
 
 // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
-const renamedOrCopiedEntryRe = /^2 ([MADRCUTX?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) ([\s\S]*?)$/
+const renamedOrCopiedEntryRe =
+  /^2 ([MADRCUTX?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) ([\s\S]*?)$/
 
 function parsedRenamedOrCopiedEntry(
   field: string,
@@ -101,9 +126,8 @@ function parsedRenamedOrCopiedEntry(
   const match = renamedOrCopiedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(
-      `Failed to parse status line for renamed or copied entry: ${field}`
-    )
+    log.debug(`parsedRenamedOrCopiedEntry parse error: ${field}`)
+    throw new Error(`Failed to parse status line for renamed or copied entry`)
   }
 
   if (!oldPath) {
@@ -115,222 +139,272 @@ function parsedRenamedOrCopiedEntry(
   return {
     kind: 'entry',
     statusCode: match[1],
+    submoduleStatusCode: match[2],
     oldPath,
     path: match[9],
   }
 }
 
 // u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
-const unmergedEntryRe = /^u ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) ([\s\S]*?)$/
+const unmergedEntryRe =
+  /^u ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) ([\s\S]*?)$/
 
 function parseUnmergedEntry(field: string): IStatusEntry {
   const match = unmergedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(`Failed to parse status line for unmerged entry: ${field}`)
+    log.debug(`parseUnmergedEntry parse error: ${field}`)
+    throw new Error(`Failed to parse status line for unmerged entry`)
   }
 
   return {
     kind: 'entry',
     statusCode: match[1],
+    submoduleStatusCode: match[2],
     path: match[10],
   }
 }
 
 function parseUntrackedEntry(field: string): IStatusEntry {
-  const path = field.substr(2)
+  const path = field.substring(2)
   return {
     kind: 'entry',
     // NOTE: We return ?? instead of ? here to play nice with mapStatus,
     // might want to consider changing this (and mapStatus) in the future.
     statusCode: '??',
+    submoduleStatusCode: '????',
     path,
+  }
+}
+
+function mapSubmoduleStatus(
+  submoduleStatusCode: string
+): SubmoduleStatus | undefined {
+  if (!enableSubmoduleDiff() || !submoduleStatusCode.startsWith('S')) {
+    return undefined
+  }
+
+  return {
+    commitChanged: submoduleStatusCode[1] === 'C',
+    modifiedChanges: submoduleStatusCode[2] === 'M',
+    untrackedChanges: submoduleStatusCode[3] === 'U',
   }
 }
 
 /**
  * Map the raw status text from Git to a structure we can work with in the app.
  */
-export function mapStatus(status: string): FileEntry {
-  if (status === '??') {
-    return {
-      kind: 'untracked',
-    }
+export function mapStatus(
+  statusCode: string,
+  submoduleStatusCode: string
+): FileEntry {
+  const submoduleStatus = mapSubmoduleStatus(submoduleStatusCode)
+
+  if (statusCode === '??') {
+    return { kind: 'untracked', submoduleStatus }
   }
 
-  if (status === '.M') {
+  if (statusCode === '.M') {
     return {
       kind: 'ordinary',
       type: 'modified',
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Modified,
+      submoduleStatus,
     }
   }
 
-  if (status === 'M.') {
+  if (statusCode === 'M.') {
     return {
       kind: 'ordinary',
       type: 'modified',
       index: GitStatusEntry.Modified,
       workingTree: GitStatusEntry.Unchanged,
+      submoduleStatus,
     }
   }
 
-  if (status === '.A') {
+  if (statusCode === '.A') {
     return {
       kind: 'ordinary',
       type: 'added',
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Added,
+      submoduleStatus,
     }
   }
 
-  if (status === 'A.') {
+  if (statusCode === 'A.') {
     return {
       kind: 'ordinary',
       type: 'added',
       index: GitStatusEntry.Added,
       workingTree: GitStatusEntry.Unchanged,
+      submoduleStatus,
     }
   }
 
-  if (status === '.D') {
+  if (statusCode === '.D') {
     return {
       kind: 'ordinary',
       type: 'deleted',
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Deleted,
+      submoduleStatus,
     }
   }
 
-  if (status === 'D.') {
+  if (statusCode === 'D.') {
     return {
       kind: 'ordinary',
       type: 'deleted',
       index: GitStatusEntry.Deleted,
       workingTree: GitStatusEntry.Unchanged,
+      submoduleStatus,
     }
   }
 
-  if (status === 'R.') {
+  if (statusCode === 'R.') {
     return {
       kind: 'renamed',
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Unchanged,
+      submoduleStatus,
     }
   }
 
-  if (status === '.R') {
+  if (statusCode === '.R') {
     return {
       kind: 'renamed',
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Renamed,
+      submoduleStatus,
     }
   }
 
-  if (status === 'C.') {
+  if (statusCode === 'C.') {
     return {
       kind: 'copied',
       index: GitStatusEntry.Copied,
       workingTree: GitStatusEntry.Unchanged,
+      submoduleStatus,
     }
   }
 
-  if (status === '.C') {
+  if (statusCode === '.C') {
     return {
       kind: 'copied',
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Copied,
+      submoduleStatus,
     }
   }
 
-  if (status === 'AD') {
+  if (statusCode === 'AD') {
     return {
       kind: 'ordinary',
       type: 'added',
       index: GitStatusEntry.Added,
       workingTree: GitStatusEntry.Deleted,
+      submoduleStatus,
     }
   }
 
-  if (status === 'AM') {
+  if (statusCode === 'AM') {
     return {
       kind: 'ordinary',
       type: 'added',
       index: GitStatusEntry.Added,
       workingTree: GitStatusEntry.Modified,
+      submoduleStatus,
     }
   }
 
-  if (status === 'RM') {
+  if (statusCode === 'RM') {
     return {
       kind: 'renamed',
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Modified,
+      submoduleStatus,
     }
   }
 
-  if (status === 'RD') {
+  if (statusCode === 'RD') {
     return {
       kind: 'renamed',
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Deleted,
+      submoduleStatus,
     }
   }
 
-  if (status === 'DD') {
+  if (statusCode === 'DD') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.BothDeleted,
       us: GitStatusEntry.Deleted,
       them: GitStatusEntry.Deleted,
+      submoduleStatus,
     }
   }
 
-  if (status === 'AU') {
+  if (statusCode === 'AU') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.AddedByUs,
       us: GitStatusEntry.Added,
-      them: GitStatusEntry.Modified,
+      them: GitStatusEntry.UpdatedButUnmerged,
+      submoduleStatus,
     }
   }
 
-  if (status === 'UD') {
+  if (statusCode === 'UD') {
     return {
       kind: 'conflicted',
-      us: GitStatusEntry.Modified,
+      action: UnmergedEntrySummary.DeletedByThem,
+      us: GitStatusEntry.UpdatedButUnmerged,
       them: GitStatusEntry.Deleted,
+      submoduleStatus,
     }
   }
 
-  if (status === 'UA') {
+  if (statusCode === 'UA') {
     return {
       kind: 'conflicted',
-      us: GitStatusEntry.Modified,
+      action: UnmergedEntrySummary.AddedByThem,
+      us: GitStatusEntry.UpdatedButUnmerged,
       them: GitStatusEntry.Added,
+      submoduleStatus,
     }
   }
 
-  if (status === 'DU') {
+  if (statusCode === 'DU') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.DeletedByUs,
       us: GitStatusEntry.Deleted,
-      them: GitStatusEntry.Modified,
+      them: GitStatusEntry.UpdatedButUnmerged,
+      submoduleStatus,
     }
   }
 
-  if (status === 'AA') {
+  if (statusCode === 'AA') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.BothAdded,
       us: GitStatusEntry.Added,
       them: GitStatusEntry.Added,
+      submoduleStatus,
     }
   }
 
-  if (status === 'UU') {
+  if (statusCode === 'UU') {
     return {
       kind: 'conflicted',
-      us: GitStatusEntry.Modified,
-      them: GitStatusEntry.Modified,
+      action: UnmergedEntrySummary.BothModified,
+      us: GitStatusEntry.UpdatedButUnmerged,
+      them: GitStatusEntry.UpdatedButUnmerged,
+      submoduleStatus,
     }
   }
 
@@ -338,5 +412,6 @@ export function mapStatus(status: string): FileEntry {
   return {
     kind: 'ordinary',
     type: 'modified',
+    submoduleStatus,
   }
 }

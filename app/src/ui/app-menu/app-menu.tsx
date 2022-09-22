@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { MenuPane } from './menu-pane'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
 import { SelectionSource, ClickSource } from '../lib/list'
 
@@ -74,7 +74,7 @@ function menuPaneClassNameFromId(id: string) {
     // Get rid of the leading @. for auto-generated ids
     .replace(/^@\./, '')
     // No accelerator key modifier necessary
-    .replace('&', '')
+    .replace(/&/g, '')
     // Get rid of stuff that's not safe for css class names
     .replace(/[^a-z0-9_]+/gi, '-')
     // Get rid of redundant underscores
@@ -148,7 +148,8 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
       const sourceIsAccessKey =
         this.props.enableAccessKeyNavigation &&
         source.kind === 'keyboard' &&
-        (source.event.key !== 'Enter' && source.event.key !== ' ')
+        source.event.key !== 'Enter' &&
+        source.event.key !== ' '
 
       this.props.dispatcher.setAppMenuState(menu =>
         menu.withOpenedMenu(item, sourceIsAccessKey)
@@ -165,11 +166,12 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     }
   }
 
-  private onItemKeyDown = (
+  private onPaneKeyDown = (
     depth: number,
-    item: MenuItem,
-    event: React.KeyboardEvent<any>
+    event: React.KeyboardEvent<HTMLDivElement>
   ) => {
+    const { selectedItem } = this.props.state[depth]
+
     if (event.key === 'ArrowLeft' || event.key === 'Escape') {
       this.clearExpandCollapseTimer()
 
@@ -190,9 +192,9 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
       this.clearExpandCollapseTimer()
 
       // Open the submenu and select the first item
-      if (item.type === 'submenuItem') {
+      if (selectedItem?.type === 'submenuItem') {
         this.props.dispatcher.setAppMenuState(menu =>
-          menu.withOpenedMenu(item, true)
+          menu.withOpenedMenu(selectedItem, true)
         )
         this.focusPane = depth + 1
         event.preventDefault()
@@ -219,6 +221,12 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     this.expandCollapseTimer = window.setTimeout(() => {
       this.props.dispatcher.setAppMenuState(am => am.withLastMenu(menu))
     }, expandCollapseTimeout)
+  }
+
+  private onClearSelection = (depth: number) => {
+    this.props.dispatcher.setAppMenuState(appMenu =>
+      appMenu.withDeselectedMenu(this.props.state[depth])
+    )
   }
 
   private onSelectionChanged = (
@@ -279,12 +287,6 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
   }
 
   private renderMenuPane(depth: number, menu: IMenu): JSX.Element {
-    // NB: We use the menu id instead of depth as the key here to force
-    // a new MenuPane instance and List. This is because we used dynamic
-    // row heights and the react-virtualized Grid component isn't able to
-    // recompute row heights accurately. Without this row indices which
-    // previously held a separator item will retain that height and vice-
-    // versa.
     // If the menu doesn't have an id it's the root menu
     const key = menu.id || '@'
     const className = menu.id ? menuPaneClassNameFromId(menu.id) : undefined
@@ -294,15 +296,15 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
         key={key}
         ref={this.onMenuPaneRef}
         className={className}
-        autoHeight={this.props.autoHeight}
         depth={depth}
         items={menu.items}
         selectedItem={menu.selectedItem}
         onItemClicked={this.onItemClicked}
         onMouseEnter={this.onPaneMouseEnter}
-        onItemKeyDown={this.onItemKeyDown}
+        onKeyDown={this.onPaneKeyDown}
         onSelectionChanged={this.onSelectionChanged}
         enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
+        onClearSelection={this.onClearSelection}
       />
     )
   }
@@ -316,6 +318,7 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     this.paneRefs = this.paneRefs.slice(0, panes.length)
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div id="app-menu-foldout" onKeyDown={this.onKeyDown}>
         {panes}
       </div>

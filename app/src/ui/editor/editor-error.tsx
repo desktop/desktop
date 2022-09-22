@@ -1,9 +1,14 @@
 import * as React from 'react'
 
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DefaultDialogFooter,
+  OkCancelButtonGroup,
+} from '../dialog'
 import { shell } from '../../lib/app-shell'
+import { suggestedExternalEditor } from '../../lib/editors/shared'
 
 interface IEditorErrorProps {
   /**
@@ -22,8 +27,8 @@ interface IEditorErrorProps {
    */
   readonly message: string
 
-  /** Render the "Install Atom" link as the default action */
-  readonly suggestAtom?: boolean
+  /** Render the "Install ${Default}" link as the default action */
+  readonly suggestDefaultEditor?: boolean
 
   /** Render the "Open Preferences" link as the default action */
   readonly viewPreferences?: boolean
@@ -39,42 +44,49 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
   }
 
   private onExternalLink = () => {
-    const url = `https://atom.io/`
-    shell.openExternal(url)
+    shell.openExternal(suggestedExternalEditor.url)
   }
 
-  private onShowPreferencesDialog = () => {
+  private onShowPreferencesDialog = (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault()
     this.props.onDismissed()
     this.props.showPreferencesDialog()
+  }
+
+  private renderFooter() {
+    const { viewPreferences, suggestDefaultEditor } = this.props
+
+    if (viewPreferences) {
+      return (
+        <DialogFooter>
+          <OkCancelButtonGroup
+            okButtonText="Close"
+            cancelButtonText={__DARWIN__ ? 'Open Preferences' : 'Open options'}
+            onCancelButtonClick={this.onShowPreferencesDialog}
+          />
+        </DialogFooter>
+      )
+    } else if (suggestDefaultEditor) {
+      return (
+        <DialogFooter>
+          <OkCancelButtonGroup
+            okButtonText="Close"
+            cancelButtonText={`Download ${suggestedExternalEditor.name}`}
+            onCancelButtonClick={this.onExternalLink}
+          />
+        </DialogFooter>
+      )
+    }
+
+    return <DefaultDialogFooter />
   }
 
   public render() {
     const title = __DARWIN__
       ? 'Unable to Open External Editor'
       : 'Unable to open external editor'
-
-    let buttonGroup: JSX.Element | null = null
-    if (this.props.viewPreferences) {
-      buttonGroup = (
-        <ButtonGroup>
-          <Button type="submit" onClick={this.props.onDismissed}>
-            Close
-          </Button>
-          <Button onClick={this.onShowPreferencesDialog}>
-            {__DARWIN__ ? 'Open Preferences' : 'Open options'}
-          </Button>
-        </ButtonGroup>
-      )
-    } else if (this.props.suggestAtom) {
-      buttonGroup = (
-        <ButtonGroup>
-          <Button type="submit" onClick={this.props.onDismissed}>
-            Close
-          </Button>
-          <Button onClick={this.onExternalLink}>Download Atom</Button>
-        </ButtonGroup>
-      )
-    }
 
     return (
       <Dialog
@@ -87,7 +99,7 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
         <DialogContent>
           <p>{this.props.message}</p>
         </DialogContent>
-        <DialogFooter>{buttonGroup}</DialogFooter>
+        {this.renderFooter()}
       </Dialog>
     )
   }

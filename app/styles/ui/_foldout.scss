@@ -12,13 +12,17 @@
       box-shadow: none;
     }
 
-    background: black;
-    opacity: 0.4;
+    background: var(--overlay-background-color);
     height: 100%;
   }
 
   .foldout {
     background: var(--background-color);
     color: var(--text-color);
+
+    @include high-contrast {
+      border: 1px solid var(--hc-border-color);
+      overflow: hidden;
+    }
   }
 }

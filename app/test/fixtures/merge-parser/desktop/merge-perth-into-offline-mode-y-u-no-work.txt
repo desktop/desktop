@@ -1,0 +1,147 @@
+removed in local
+  base   100644 c73d6ac64904f79320bb3aab8699dd2051c26f34 app/src/lib/dispatcher/app-store.ts
+  their  100644 7f819e503ef633730d9323720fec769c7b3c490d app/src/lib/dispatcher/app-store.ts
+changed in both
+  base   100644 ebeee25a685c6c35ecab70e48552bfafee484bbe app/src/lib/logging/main/install.ts
+  our    100644 b2a2141977edc35369eb9e5d77ceb946ab0e23a7 app/src/lib/logging/main/install.ts
+  their  100644 0367ee9b85c798ec98a04c05dbd482cf18b829c4 app/src/lib/logging/main/install.ts
+@@ -14,6 +14,10 @@
+     log('info', '[main] ' + formatLogMessage(message, error))
+   },
+   debug(message: string, error?: Error) {
++    if (__RELEASE_CHANNEL__ !== 'development') {
++      return
++    }
++
+     log('debug', '[main] ' + formatLogMessage(message, error))
+   },
+ } as IDesktopLogger
+changed in both
+  base   100644 13da0924748c38d48d64c3c4a87b1cbf08c40d83 app/src/lib/logging/renderer/install.ts
+  our    100644 c4c24ae3dd53be71b91a1b9c22de630d64018cc7 app/src/lib/logging/renderer/install.ts
+  their  100644 f877721958807a3eaf850889e3b1feac8f5504c7 app/src/lib/logging/renderer/install.ts
+@@ -31,6 +31,10 @@
+     console.info(formatLogMessage(message, error))
+   },
+   debug(message: string, error?: Error) {
++    if (__RELEASE_CHANNEL__ !== 'development') {
++      return
++    }
++
+     log('debug', message, error)
+     console.debug(formatLogMessage(message, error))
+   },
+changed in both
+  base   100644 b530415f847b4f342cddfe700561206cb348954b app/src/ui/app.tsx
+  our    100644 c38c806e36c237ea70f3cdeee739941530c0c7cd app/src/ui/app.tsx
+  their  100644 4994bbc845f8e6e249c4bba1156ea156966bf36e app/src/ui/app.tsx
+@@ -239,9 +239,7 @@
+   }
+ 
+   private performDeferredLaunchActions() {
+-    // Loading emoji is super important but maybe less important that loading
+-    // the app. So defer it until we have some breathing space.
+-    this.props.appStore.loadEmoji()
++    this.props.appStore.loadDeferredState()
+ 
+     this.props.dispatcher.reportStats()
+     setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+changed in both
+  base   100644 eaf0696bc6fe368ab4f493cfcd8436854d7b765e app/src/ui/lib/update-store.ts
+  our    100644 043bd6b6ec57efda2974dff91759487d0537202f app/src/ui/lib/update-store.ts
+  their  100644 4705555385fa26a8732c820b4c24cc5d267ef42f app/src/ui/lib/update-store.ts
+@@ -1,8 +1,5 @@
+ import { remote } from 'electron'
+ 
+-// Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
+-// use with `remote`.
+-const autoUpdater = remote.autoUpdater
+ const lastSuccessfulCheckKey = 'last-successful-update-check'
+ 
+ import { Emitter, Disposable } from 'event-kit'
+@@ -53,12 +50,13 @@
+       }
+     }
+ 
+-    autoUpdater.on('error', this.onAutoUpdaterError)
+-    autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
+-    autoUpdater.on('update-available', this.onUpdateAvailable)
+-    autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
+-    autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
++    getAutoUpdater().on('error', this.onAutoUpdaterError)
++    getAutoUpdater().on('checking-for-update', this.onCheckingForUpdate)
++    getAutoUpdater().on('update-available', this.onUpdateAvailable)
++    getAutoUpdater().on('update-not-available', this.onUpdateNotAvailable)
++    getAutoUpdater().on('update-downloaded', this.onUpdateDownloaded)
+ 
++<<<<<<< .our
+     window.addEventListener('beforeunload', () => {
+       autoUpdater.removeListener('error', this.onAutoUpdaterError)
+       autoUpdater.removeListener(
+@@ -72,6 +70,32 @@
+       )
+       autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
+     })
++=======
++    // This seems to prevent tests from cleanly exiting on Appveyor (see
++    // https://ci.appveyor.com/project/github-windows/desktop/build/1466). So
++    // let's just avoid it.
++    if (!process.env.TEST_ENV) {
++      window.addEventListener('beforeunload', () => {
++        getAutoUpdater().removeListener('error', this.onAutoUpdaterError)
++        getAutoUpdater().removeListener(
++          'checking-for-update',
++          this.onCheckingForUpdate
++        )
++        getAutoUpdater().removeListener(
++          'update-available',
++          this.onUpdateAvailable
++        )
++        getAutoUpdater().removeListener(
++          'update-not-available',
++          this.onUpdateNotAvailable
++        )
++        getAutoUpdater().removeListener(
++          'update-downloaded',
++          this.onUpdateDownloaded
++        )
++      })
++    }
++>>>>>>> .their
+   }
+ 
+   private touchLastChecked() {
+@@ -161,8 +185,13 @@
+     this.userInitiatedUpdate = !inBackground
+ 
+     try {
++<<<<<<< .our
+       autoUpdater.setFeedURL({ url: __UPDATES_URL__ })
+       autoUpdater.checkForUpdates()
++=======
++      getAutoUpdater().setFeedURL(__UPDATES_URL__)
++      getAutoUpdater().checkForUpdates()
++>>>>>>> .their
+     } catch (e) {
+       this.emitError(e)
+     }
+@@ -174,8 +203,18 @@
+     // before we call the function to quit.
+     // eslint-disable-next-line no-sync
+     sendWillQuitSync()
+-    autoUpdater.quitAndInstall()
++    getAutoUpdater().quitAndInstall()
++  }
++}
++
++let autoUpdater_: Electron.AutoUpdater | null = null
++
++function getAutoUpdater(): Electron.AutoUpdater {
++  if (!autoUpdater_) {
++    autoUpdater_ = remote.autoUpdater
+   }
++
++  return autoUpdater_!
+ }
+ 
+ /** The store which contains the current state of the auto updater. */

@@ -12,6 +12,8 @@ const workerUri = encodePathAsUrl(__dirname, 'highlighter.js')
  *
  * @param contents  The actual contents which is to be used for
  *                  highlighting.
+ * @param basename  The file basename of the path in question as returned
+ *                  by node's basename() function (i.e. without a leading dot).
  * @param extension The file extension of the path in question as returned
  *                  by node's extname() function (i.e. with a leading dot).
  * @param tabSize   The width of a tab character. Defaults to 4. Used by the
@@ -26,14 +28,15 @@ const workerUri = encodePathAsUrl(__dirname, 'highlighter.js')
  *                  modes we can significantly speed up the highlight process.
  */
 export function highlight(
-  contents: string,
+  contentLines: ReadonlyArray<string>,
+  basename: string,
   extension: string,
   tabSize: number,
   lines: Array<number>
 ): Promise<ITokens> {
   // Bail early if there's no content to highlight or if we don't
   // need any lines from this file.
-  if (!contents.length || !lines.length) {
+  if (!contentLines.length || !lines.length) {
     return Promise.resolve({})
   }
 
@@ -67,7 +70,8 @@ export function highlight(
     }
 
     const request: IHighlightRequest = {
-      contents,
+      contentLines,
+      basename,
       extension,
       tabSize,
       lines,

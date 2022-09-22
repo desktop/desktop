@@ -59,13 +59,13 @@
     background: var(--box-alt-background-color);
     flex: initial;
     padding: var(--spacing-half);
-    border-bottom: var(--base-border);
   }
 
   .compare-commit-list {
     flex: 1;
     display: flex;
     flex-direction: column;
+    border-top: var(--base-border);
   }
 
   .merge-cta {
@@ -147,5 +147,9 @@
     display: flex;
     height: 100%;
     flex-direction: column;
+
+    .ref-component {
+      word-break: break-word;
+    }
   }
 }

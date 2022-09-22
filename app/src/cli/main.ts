@@ -1,4 +1,8 @@
-import * as mri from 'mri'
+import mri, {
+  DictionaryObject,
+  Options as MriOptions,
+  ArrayOrString,
+} from 'mri'
 import chalk from 'chalk'
 
 import { dasherizeOption, CommandError } from './util'
@@ -12,7 +16,8 @@ if (!args[0]) {
 const commandArg = args[0]
 args = args.slice(1)
 
-// tslint:disable-next-line whitespace
+const supportsCommand = (name: string) => Object.hasOwn(commands, name)
+
 ;(function attemptRun(name: string) {
   try {
     if (supportsCommand(name)) {
@@ -45,10 +50,10 @@ function logError(err: CommandError) {
 
 console.log() // nice blank line before the command prompt
 
-interface IMRIOpts extends mri.Options {
-  alias: mri.DictionaryObject<mri.ArrayOrString>
+interface IMRIOpts extends MriOptions {
+  alias: DictionaryObject<ArrayOrString>
   boolean: Array<string>
-  default: mri.DictionaryObject
+  default: DictionaryObject
   string: Array<string>
 }
 
@@ -66,7 +71,7 @@ function runCommand(name: string) {
       if (flagOptions.aliases) {
         opts.alias[flag] = flagOptions.aliases
       }
-      if (flagOptions.hasOwnProperty('default')) {
+      if (Object.hasOwn(flagOptions, 'default')) {
         opts.default[flag] = flagOptions.default
       }
       switch (flagOptions.type) {
@@ -99,7 +104,4 @@ function runCommand(name: string) {
     }
   }
   command.handler(parsedArgs, args)
-}
-function supportsCommand(name: string) {
-  return Object.prototype.hasOwnProperty.call(commands, name)
 }

@@ -49,9 +49,7 @@ export class Tailer {
    */
   public start() {
     if (this.state) {
-      throw new Error(
-        `Cannot start an already started Tailer for "${this.path}"!`
-      )
+      throw new Error(`Tailer already running`)
     }
 
     try {

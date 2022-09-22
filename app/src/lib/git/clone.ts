@@ -1,15 +1,9 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
-import { ICloneProgress } from '../app-state'
+import { ICloneProgress } from '../../models/progress'
+import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication, IGitAccount } from './authentication'
-
-/** Additional arguments to provide when cloning a repository */
-export type CloneOptions = {
-  /** The optional identity to provide when cloning. */
-  readonly account: IGitAccount | null
-  /** The branch to checkout after the clone has completed. */
-  readonly branch?: string
-}
+import { getDefaultBranch } from '../helpers/default-branch'
+import { envForRemoteOperation } from './environment'
 
 /**
  * Clones a repository from a given url into to the specified path.
@@ -37,9 +31,17 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
-  const env = envForAuthentication(options.account)
+  const env = await envForRemoteOperation(options.account, url)
 
-  const args = [...gitNetworkArguments, 'clone', '--recursive']
+  const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
+
+  const args = [
+    ...gitNetworkArguments(),
+    '-c',
+    `init.defaultBranch=${defaultBranch}`,
+    'clone',
+    '--recursive',
+  ]
 
   let opts: IGitExecutionOptions = { env }
 

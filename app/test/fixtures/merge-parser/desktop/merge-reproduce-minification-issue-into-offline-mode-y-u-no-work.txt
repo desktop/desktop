@@ -1,0 +1,305 @@
+merged
+  result 100644 f4900c37ac00d3742e619feca84299314005c1e5 .gitignore
+  our    100644 63a2cc1a341c354faf7c4979d2fffb86d5e93501 .gitignore
+@@ -1,4 +1,5 @@
+ out/
++out-repro/
+ dist/
+ node_modules/
+ npm-debug.log
+merged
+  result 100644 8f351133737a768c028df6b9274441ba702cf011 .prettierignore
+  our    100644 d247d9a68070ec5848c5feb83bddbfab02adbb6c .prettierignore
+@@ -1,4 +1,5 @@
+ out/
++out-repro/
+ dist/
+ node_modules/
+ npm-debug.log
+added in remote
+  their  100644 ff5f95e7e6aef0d6f48b7d95d4559da0a46a3ded app/webpack.repro.js
+@@ -0,0 +1,27 @@
++'use strict'
++
++const path = require('path')
++const webpack = require('webpack')
++const MinifyPlugin = require('babel-minify-webpack-plugin')
++
++module.exports = {
++  mode: 'none',
++  plugins: [
++    new MinifyPlugin(),
++    new webpack.DefinePlugin({
++      'process.env.NODE_ENV': JSON.stringify('production'),
++    }),
++    new webpack.optimize.ModuleConcatenationPlugin(),
++    new webpack.NoEmitOnErrorsPlugin(),
++  ],
++  entry: './out-repro/ui/lib/author-input.js',
++  target: 'electron-renderer',
++  output: {
++    path: path.resolve(__dirname, '..', 'dist'),
++    filename: 'author-input.bundle.js',
++  },
++  resolve: {
++    extensions: ['.js', '.ts', '.tsx'],
++    modules: [path.resolve(__dirname, 'node_modules/')],
++  },
++}
+changed in both
+  base   100644 b4df82455d0dcd44363b8ebb6b2c1d5fc4891d44 package.json
+  our    100644 2006bfb748810f6ea8bdbd26edf7c09524a1388a package.json
+  their  100644 02a214a6ad80830c93c0f9878ebd15f965b6d786 package.json
+@@ -38,7 +38,10 @@
+     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
+     "changelog": "ts-node script/changelog/index.ts",
+     "draft-release": "ts-node script/draft-release/index.ts",
+-    "validate-changelog": "ts-node script/validate-changelog.ts"
++    "validate-changelog": "ts-node script/validate-changelog.ts",
++    "build:repro": "tsc -p tsconfig-repro.json",
++    "bundle:repro": "webpack --config app/webpack.repro.js",
++    "minify:repro": "uglifyjs --compress --mangle -o ./out-repro/ui/lib/author-input-after.js -- ./out-repro/ui/lib/author-input.js"
+   },
+   "author": {
+     "name": "GitHub, Inc.",
+@@ -155,7 +158,13 @@
+     "electron": "2.0.5",
+     "electron-builder": "20.27.1",
+     "electron-mocha": "^6.0.1",
++<<<<<<< .our
+     "electron-packager": "^12.0.0",
+     "electron-winstaller": "2.5.2"
++=======
++    "electron-packager": "^11.0.0",
++    "electron-winstaller": "2.5.2",
++    "webpack-cli": "^3.0.2"
++>>>>>>> .their
+   }
+ }
+added in remote
+  their  100644 a06dcb5a88dce3efb3c8bd9731550e3c536b863d tsconfig-repro.json
+@@ -0,0 +1,26 @@
++{
++  "compilerOptions": {
++    "module": "commonjs",
++    "moduleResolution": "node",
++    "target": "es2017",
++    "noImplicitReturns": true,
++    "noFallthroughCasesInSwitch": true,
++    "noUnusedLocals": true,
++    "sourceMap": true,
++    "jsx": "react",
++    "strict": true,
++    "outDir": "./out-repro"
++  },
++  "include": [
++    "app/src/lib/globals.d.ts",
++    "app/src/ui/lib/author-input.tsx"
++  ],
++  "exclude": [
++    "node_modules",
++    "app/node_modules",
++    "dist",
++    "out",
++    "app/src/highlighter"
++  ],
++  "compileOnSave": false
++}
+changed in both
+  base   100644 96d27900c243924d7f9aa7f6ef5b348dcea93af4 yarn.lock
+  our    100644 45ddb8bf6902bbb22708d844324093dccda26c79 yarn.lock
+  their  100644 161de194f715ee122925a08b8c35349cd250029d yarn.lock
+@@ -218,6 +218,7 @@
+     "@types/prop-types" "*"
+     "@types/react" "*"
+ 
++<<<<<<< .our
+ "@types/react@*", "@types/react@^16.3.16":
+   version "16.3.16"
+   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.3.16.tgz#78fc44a90b45701f50c8a7008f733680ba51fc86"
+@@ -231,6 +232,11 @@
+ "@types/request@^2.0.9":
+   version "2.0.9"
+   resolved "https://registry.yarnpkg.com/@types/request/-/request-2.0.9.tgz#125b8a60d8a439e8d87e6d1335c61cccdc18343a"
++=======
++"@types/react@*", "@types/react@16.3.14":
++  version "16.3.14"
++  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.3.14.tgz#f90ac6834de172e13ecca430dcb6814744225d36"
++>>>>>>> .their
+   dependencies:
+     "@types/form-data" "*"
+     "@types/node" "*"
+@@ -3582,9 +3588,19 @@
+   dependencies:
+     ini "^1.3.4"
+ 
++<<<<<<< .our
+ globals@^11.7.0:
+   version "11.7.0"
+   resolved "https://registry.yarnpkg.com/globals/-/globals-11.7.0.tgz#a583faa43055b1aca771914bf68258e2fc125673"
++=======
++global-modules-path@^2.1.0:
++  version "2.1.0"
++  resolved "https://registry.yarnpkg.com/global-modules-path/-/global-modules-path-2.1.0.tgz#923ec524e8726bb0c1a4ed4b8e21e1ff80c88bbb"
++
++globals@^11.0.1:
++  version "11.0.1"
++  resolved "https://registry.yarnpkg.com/globals/-/globals-11.0.1.tgz#12a87bb010e5154396acc535e1e43fc753b0e5e8"
++>>>>>>> .their
+ 
+ globals@^9.18.0:
+   version "9.18.0"
+@@ -3949,6 +3965,13 @@
+   version "2.1.0"
+   resolved "https://registry.yarnpkg.com/import-lazy/-/import-lazy-2.1.0.tgz#05698e3d45c88e8d7e9d92cb0584e77f096f3e43"
+ 
++import-local@^1.0.0:
++  version "1.0.0"
++  resolved "https://registry.yarnpkg.com/import-local/-/import-local-1.0.0.tgz#5e4ffdc03f4fe6c009c6729beb29631c2f8227bc"
++  dependencies:
++    pkg-dir "^2.0.0"
++    resolve-cwd "^2.0.0"
++
+ imurmurhash@^0.1.4:
+   version "0.1.4"
+   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
+@@ -4008,6 +4031,24 @@
+     strip-ansi "^4.0.0"
+     through "^2.3.6"
+ 
++inquirer@^5.2.0:
++  version "5.2.0"
++  resolved "https://registry.yarnpkg.com/inquirer/-/inquirer-5.2.0.tgz#db350c2b73daca77ff1243962e9f22f099685726"
++  dependencies:
++    ansi-escapes "^3.0.0"
++    chalk "^2.0.0"
++    cli-cursor "^2.1.0"
++    cli-width "^2.0.0"
++    external-editor "^2.1.0"
++    figures "^2.0.0"
++    lodash "^4.3.0"
++    mute-stream "0.0.7"
++    run-async "^2.2.0"
++    rxjs "^5.5.2"
++    string-width "^2.1.0"
++    strip-ansi "^4.0.0"
++    through "^2.3.6"
++
+ inquirer@~3.0.6:
+   version "3.0.6"
+   resolved "https://registry.yarnpkg.com/inquirer/-/inquirer-3.0.6.tgz#e04aaa9d05b7a3cb9b0f407d04375f0447190347"
+@@ -4030,6 +4071,10 @@
+   version "1.0.4"
+   resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.0.4.tgz#820cdd588b868ffb191a809506d6c9c8f212b1b0"
+ 
++interpret@^1.1.0:
++  version "1.1.0"
++  resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.1.0.tgz#7ed1b1410c6a0e0f78cf95d3b8440c63f78b8614"
++
+ invariant@^2.2.2:
+   version "2.2.2"
+   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.2.tgz#9e1f56ac0acdb6bf303306f338be3b204ae60360"
+@@ -6501,10 +6546,20 @@
+   version "1.1.0"
+   resolved "https://registry.yarnpkg.com/requireindex/-/requireindex-1.1.0.tgz#e5404b81557ef75db6e49c5a72004893fe03e162"
+ 
++resolve-cwd@^2.0.0:
++  version "2.0.0"
++  resolved "https://registry.yarnpkg.com/resolve-cwd/-/resolve-cwd-2.0.0.tgz#00a9f7387556e27038eae232caa372a6a59b665a"
++  dependencies:
++    resolve-from "^3.0.0"
++
+ resolve-from@^1.0.0:
+   version "1.0.1"
+   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-1.0.1.tgz#26cbfe935d1aeeeabb29bc3fe5aeb01e93d44226"
+ 
++resolve-from@^3.0.0:
++  version "3.0.0"
++  resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-3.0.0.tgz#b22c7af7d9d6881bc8b6e653335eebcb0a188748"
++
+ resolve-url@^0.2.1, resolve-url@~0.2.1:
+   version "0.2.1"
+   resolved "https://registry.yarnpkg.com/resolve-url/-/resolve-url-0.2.1.tgz#2c637fe77c893afd2a663fe21aa9080068e2052a"
+@@ -7178,7 +7233,7 @@
+   dependencies:
+     has-flag "^2.0.0"
+ 
+-supports-color@^5.3.0:
++supports-color@^5.3.0, supports-color@^5.4.0:
+   version "5.4.0"
+   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.4.0.tgz#1c6b337402c2137605efe19f10fec390f6faab54"
+   dependencies:
+@@ -7200,9 +7255,15 @@
+   version "1.0.1"
+   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.0.1.tgz#8340fc4702c3122df5d22288f88283f513d3fdd4"
+ 
++<<<<<<< .our
+ table@^4.0.3:
+   version "4.0.3"
+   resolved "https://registry.yarnpkg.com/table/-/table-4.0.3.tgz#00b5e2b602f1794b9acaf9ca908a76386a7813bc"
++=======
++table@4.0.2:
++  version "4.0.2"
++  resolved "https://registry.yarnpkg.com/table/-/table-4.0.2.tgz#a33447375391e766ad34d3486e6e2aedc84d2e36"
++>>>>>>> .their
+   dependencies:
+     ajv "^6.0.1"
+     ajv-keywords "^3.0.0"
+@@ -7752,6 +7813,10 @@
+   version "3.1.0"
+   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
+ 
++v8-compile-cache@^2.0.0:
++  version "2.0.0"
++  resolved "https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.0.0.tgz#526492e35fc616864284700b7043e01baee09f0a"
++
+ validate-npm-package-license@^3.0.1:
+   version "3.0.1"
+   resolved "https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.1.tgz#2804babe712ad3379459acfbe24746ab2c303fbc"
+@@ -7855,6 +7920,22 @@
+     opener "^1.4.3"
+     ws "^4.0.0"
+ 
++webpack-cli@^3.0.2:
++  version "3.0.2"
++  resolved "https://registry.yarnpkg.com/webpack-cli/-/webpack-cli-3.0.2.tgz#e48c5662aff8ed5aac3db5f82f51d7f32e50459e"
++  dependencies:
++    chalk "^2.4.1"
++    cross-spawn "^6.0.5"
++    enhanced-resolve "^4.0.0"
++    global-modules-path "^2.1.0"
++    import-local "^1.0.0"
++    inquirer "^5.2.0"
++    interpret "^1.1.0"
++    loader-utils "^1.1.0"
++    supports-color "^5.4.0"
++    v8-compile-cache "^2.0.0"
++    yargs "^11.1.0"
++
+ webpack-dev-middleware@^3.1.3:
+   version "3.1.3"
+   resolved "https://registry.yarnpkg.com/webpack-dev-middleware/-/webpack-dev-middleware-3.1.3.tgz#8b32aa43da9ae79368c1bf1183f2b6cf5e1f39ed"
+@@ -8146,6 +8227,23 @@
+     y18n "^3.2.1 || ^4.0.0"
+     yargs-parser "^10.1.0"
+ 
++yargs@^11.1.0:
++  version "11.1.0"
++  resolved "https://registry.yarnpkg.com/yargs/-/yargs-11.1.0.tgz#90b869934ed6e871115ea2ff58b03f4724ed2d77"
++  dependencies:
++    cliui "^4.0.0"
++    decamelize "^1.1.1"
++    find-up "^2.1.0"
++    get-caller-file "^1.0.1"
++    os-locale "^2.0.0"
++    require-directory "^2.1.1"
++    require-main-filename "^1.0.1"
++    set-blocking "^2.0.0"
++    string-width "^2.0.0"
++    which-module "^2.0.0"
++    y18n "^3.2.1"
++    yargs-parser "^9.0.2"
++
+ yargs@^7.0.0:
+   version "7.1.0"
+   resolved "https://registry.yarnpkg.com/yargs/-/yargs-7.1.0.tgz#6ba318eb16961727f5d284f8ea003e8d6154d0c8"

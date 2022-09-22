@@ -3,7 +3,7 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState, PopupType } from '../../lib/app-state'
+import { ICommitMessage, IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases'
@@ -19,10 +19,8 @@ import {
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
-import { ITrailer } from '../../lib/git/interpret-trailers'
-import { Account } from '../../models/account'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -47,22 +45,12 @@ interface IChangesSidebarProps {
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly askForConfirmationOnDiscardChanges: boolean
-  readonly accounts: ReadonlyArray<Account>
-  /** The name of the currently selected external editor */
-  readonly externalEditorLabel?: string
-
-  /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private autocompletionProviders: ReadonlyArray<
     IAutocompletionProvider<any>
-  > | null = null
+  > | null
 
   public constructor(props: IChangesSidebarProps) {
     super(props)
@@ -77,8 +65,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private receiveProps(props: IChangesSidebarProps) {
     if (
       props.repository.id !== this.props.repository.id ||
-      !this.autocompletionProviders ||
-      props.accounts !== this.props.accounts
+      !this.autocompletionProviders
     ) {
       const autocompletionProviders: IAutocompletionProvider<any>[] = [
         new EmojiAutocompletionProvider(this.props.emoji),
@@ -94,16 +81,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
             props.dispatcher
           )
         )
-
-        const account = this.props.accounts.find(
-          a => a.endpoint === gitHubRepository.endpoint
-        )
-
         autocompletionProviders.push(
           new UserAutocompletionProvider(
             props.gitHubUserStore,
-            gitHubRepository,
-            account
+            gitHubRepository
           )
         )
       }
@@ -112,22 +93,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
-  ): Promise<boolean> => {
+  private onCreateCommit = (message: ICommitMessage): Promise<boolean> => {
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
-      summary,
-      description,
-      trailers
+      message
     )
   }
 
-  private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
-    const files = rows.map(i => this.props.changes.workingDirectory.files[i])
-    this.props.dispatcher.changeChangesSelection(this.props.repository, files)
+  private onFileSelectionChanged = (row: number) => {
+    const file = this.props.changes.workingDirectory.files[row]
+    this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
 
   private onIncludeChanged = (path: string, include: boolean) => {
@@ -170,16 +145,27 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onDiscardAllChanges = (
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) => {
-    this.props.dispatcher.showPopup({
-      type: PopupType.ConfirmDiscardChanges,
-      repository: this.props.repository,
-      showDiscardChangesSetting: false,
-      files,
-    })
+    if (!this.props.askForConfirmationOnDiscardChanges) {
+      this.props.dispatcher.discardChanges(this.props.repository, files)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardChanges,
+        repository: this.props.repository,
+        files,
+      })
+    }
   }
 
-  private onIgnore = (pattern: string | string[]) => {
+  private onIgnore = (pattern: string) => {
     this.props.dispatcher.ignore(this.props.repository, pattern)
+  }
+
+  /**
+   * Reveals a file from a repository in the native file manager.
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onRevealInFileManager = (path: string) => {
+    this.props.dispatcher.revealInFileManager(this.props.repository, path)
   }
 
   /**
@@ -219,18 +205,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
    * Handles click events from the List item container, note that this is
    * Not the same thing as the element returned by the row renderer in ChangesList
    */
-  private onChangedItemClick = (
-    rows: number | number[],
-    source: ClickSource
-  ) => {
+  private onChangedItemClick = (row: number, source: ClickSource) => {
     // Toggle selection when user presses the spacebar or enter while focused
-    // on a list item or on the list's container
+    // on a list item
     if (source.kind === 'keyboard') {
-      if (rows instanceof Array) {
-        rows.forEach(row => this.onToggleInclude(row))
-      } else {
-        this.onToggleInclude(rows)
-      }
+      this.onToggleInclude(row)
     }
   }
 
@@ -242,36 +221,31 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private renderMostRecentLocalCommit() {
+  private renderMostRecentLocalCommit(): JSX.Element | null {
     const commit = this.props.mostRecentLocalCommit
-    let child: JSX.Element | null = null
-    if (commit) {
-      child = (
+    if (commit == null) {
+      return null
+    }
+
+    return (
+      <CSSTransition
+        classNames="undo"
+        appear={true}
+        timeout={UndoCommitAnimationTimeout}
+      >
         <UndoCommit
           isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
           commit={commit}
           onUndo={this.onUndo}
           emoji={this.props.emoji}
         />
-      )
-    }
-
-    return (
-      <CSSTransitionGroup
-        transitionName="undo"
-        transitionAppear={true}
-        transitionAppearTimeout={UndoCommitAnimationTimeout}
-        transitionEnterTimeout={UndoCommitAnimationTimeout}
-        transitionLeaveTimeout={UndoCommitAnimationTimeout}
-      >
-        {child}
-      </CSSTransitionGroup>
+      </CSSTransition>
     )
   }
 
   public render() {
     const changesState = this.props.changes
-    const selectedFileIDs = changesState.selectedFileIDs
+    const selectedFileID = changesState.selectedFileID
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -289,13 +263,14 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
-          selectedFileIDs={selectedFileIDs}
+          selectedFileID={selectedFileID}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
           onDiscardAllChanges={this.onDiscardAllChanges}
+          onRevealInFileManager={this.onRevealInFileManager}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
@@ -307,10 +282,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.changes.showCoAuthoredBy}
-          coAuthors={this.props.changes.coAuthors}
-          externalEditorLabel={this.props.externalEditorLabel}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

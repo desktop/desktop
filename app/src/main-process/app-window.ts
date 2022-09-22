@@ -1,15 +1,31 @@
-import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
+import {
+  Menu,
+  app,
+  dialog,
+  BrowserWindow,
+  autoUpdater,
+  nativeTheme,
+} from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
-import { registerWindowStateChangedEvents } from '../lib/window-state'
+import {
+  getWindowState,
+  registerWindowStateChangedEvents,
+} from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
-
-let windowStateKeeper: any | null = null
+import windowStateKeeper from 'electron-window-state'
+import * as ipcMain from './ipc-main'
+import * as ipcWebContents from './ipc-webcontents'
+import {
+  installNotificationCallback,
+  terminateDesktopNotifications,
+} from './notifications'
+import { addTrustedIPCSender } from './trusted-ipc-sender'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -21,17 +37,14 @@ export class AppWindow {
   private minWidth = 960
   private minHeight = 660
 
-  public constructor() {
-    if (!windowStateKeeper) {
-      // `electron-window-state` requires Electron's `screen` module, which can
-      // only be required after the app has emitted `ready`. So require it
-      // lazily.
-      windowStateKeeper = require('electron-window-state')
-    }
+  // See https://github.com/desktop/desktop/pull/11162
+  private shouldMaximizeOnShow = false
 
+  public constructor() {
     const savedWindowState = windowStateKeeper({
       defaultWidth: this.minWidth,
       defaultHeight: this.minHeight,
+      maximize: false,
     })
 
     const windowOptions: Electron.BrowserWindowConstructorOptions = {
@@ -49,8 +62,9 @@ export class AppWindow {
         // Disable auxclick event
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
-        // Enable, among other things, the ResizeObserver
-        experimentalFeatures: true,
+        nodeIntegration: true,
+        spellcheck: true,
+        contextIsolation: false,
       },
       acceptFirstMouse: true,
     }
@@ -64,27 +78,63 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+    addTrustedIPCSender(this.window.webContents)
+
+    installNotificationCallback(this.window)
+
     savedWindowState.manage(this.window)
+    this.shouldMaximizeOnShow = savedWindowState.isMaximized
 
     let quitting = false
     app.on('before-quit', () => {
       quitting = true
     })
 
-    ipcMain.on('will-quit', (event: Electron.IpcMessageEvent) => {
+    ipcMain.on('will-quit', event => {
       quitting = true
       event.returnValue = true
     })
 
-    // on macOS, when the user closes the window we really just hide it. This
-    // lets us activate quickly and keep all our interesting logic in the
-    // renderer.
-    if (__DARWIN__) {
-      this.window.on('close', e => {
-        if (!quitting) {
-          e.preventDefault()
-          Menu.sendActionToFirstResponder('hide:')
+    this.window.on('close', e => {
+      // on macOS, when the user closes the window we really just hide it. This
+      // lets us activate quickly and keep all our interesting logic in the
+      // renderer.
+      if (__DARWIN__ && !quitting) {
+        e.preventDefault()
+        // https://github.com/desktop/desktop/issues/12838
+        if (this.window.isFullScreen()) {
+          this.window.setFullScreen(false)
+          this.window.once('leave-full-screen', () => app.hide())
+        } else {
+          app.hide()
         }
+        return
+      }
+      nativeTheme.removeAllListeners()
+      autoUpdater.removeAllListeners()
+      terminateDesktopNotifications()
+    })
+
+    if (__WIN32__) {
+      // workaround for known issue with fullscreen-ing the app and restoring
+      // is that some Chromium API reports the incorrect bounds, so that it
+      // will leave a small space at the top of the screen on every other
+      // maximize
+      //
+      // adapted from https://github.com/electron/electron/issues/12971#issuecomment-403956396
+      //
+      // can be tidied up once https://github.com/electron/electron/issues/12971
+      // has been confirmed as resolved
+      this.window.once('ready-to-show', () => {
+        this.window.on('unmaximize', () => {
+          setTimeout(() => {
+            const bounds = this.window.getBounds()
+            bounds.width += 1
+            this.window.setBounds(bounds)
+            bounds.width -= 1
+            this.window.setBounds(bounds)
+          }, 5)
+        })
       })
     }
   }
@@ -124,20 +174,26 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.once(
-      'renderer-ready',
-      (event: Electron.IpcMessageEvent, readyTime: number) => {
-        this._rendererReadyTime = readyTime
+    ipcMain.once('renderer-ready', (_, readyTime) => {
+      this._rendererReadyTime = readyTime
+      this.maybeEmitDidLoad()
+    })
 
-        this.maybeEmitDidLoad()
-      }
+    this.window.on('focus', () =>
+      ipcWebContents.send(this.window.webContents, 'focus')
     )
-
-    this.window.on('focus', () => this.window.webContents.send('focus'))
-    this.window.on('blur', () => this.window.webContents.send('blur'))
+    this.window.on('blur', () =>
+      ipcWebContents.send(this.window.webContents, 'blur')
+    )
 
     registerWindowStateChangedEvents(this.window)
     this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
+
+    nativeTheme.addListener('updated', (event: string, userInfo: any) => {
+      ipcWebContents.send(this.window.webContents, 'native-theme-updated')
+    })
+
+    this.setupAutoUpdater()
   }
 
   /**
@@ -182,32 +238,47 @@ export class AppWindow {
     this.window.restore()
   }
 
+  public isFocused() {
+    return this.window.isFocused()
+  }
+
   public focus() {
     this.window.focus()
+  }
+
+  /** Selects all the windows web contents */
+  public selectAllWindowContents() {
+    this.window.webContents.selectAll()
   }
 
   /** Show the window. */
   public show() {
     this.window.show()
+    if (this.shouldMaximizeOnShow) {
+      // Only maximize the window the first time it's shown, not every time.
+      // Otherwise, it causes the problem described in desktop/desktop#11590
+      this.shouldMaximizeOnShow = false
+      this.window.maximize()
+    }
   }
 
   /** Send the menu event to the renderer. */
   public sendMenuEvent(name: MenuEvent) {
     this.show()
 
-    this.window.webContents.send('menu-event', { name })
+    ipcWebContents.send(this.window.webContents, 'menu-event', name)
   }
 
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
     this.show()
 
-    this.window.webContents.send('url-action', { action })
+    ipcWebContents.send(this.window.webContents, 'url-action', action)
   }
 
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchStats) {
-    this.window.webContents.send('launch-timing-stats', { stats })
+    ipcWebContents.send(this.window.webContents, 'launch-timing-stats', stats)
   }
 
   /** Send the app menu to the renderer. */
@@ -215,7 +286,7 @@ export class AppWindow {
     const appMenu = Menu.getApplicationMenu()
     if (appMenu) {
       const menu = menuFromElectronMenu(appMenu)
-      this.window.webContents.send('app-menu', { menu })
+      ipcWebContents.send(this.window.webContents, 'app-menu', menu)
     }
   }
 
@@ -225,11 +296,13 @@ export class AppWindow {
     error: string,
     url: string
   ) {
-    this.window.webContents.send('certificate-error', {
+    ipcWebContents.send(
+      this.window.webContents,
+      'certificate-error',
       certificate,
       error,
-      url,
-    })
+      url
+    )
   }
 
   public showCertificateTrustDialog(
@@ -244,18 +317,6 @@ export class AppWindow {
       { certificate, message },
       () => {}
     )
-  }
-
-  /** Report the exception to the renderer. */
-  public sendException(error: Error) {
-    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
-    // we'll just manually copy the properties we care about.
-    const friendlyError = {
-      stack: error.stack,
-      message: error.message,
-      name: error.name,
-    }
-    this.window.webContents.send('main-process-exception', friendlyError)
   }
 
   /**
@@ -279,5 +340,104 @@ export class AppWindow {
 
   public destroy() {
     this.window.destroy()
+  }
+
+  public setupAutoUpdater() {
+    autoUpdater.on('error', (error: Error) => {
+      ipcWebContents.send(this.window.webContents, 'auto-updater-error', error)
+    })
+
+    autoUpdater.on('checking-for-update', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-checking-for-update'
+      )
+    })
+
+    autoUpdater.on('update-available', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-available'
+      )
+    })
+
+    autoUpdater.on('update-not-available', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-not-available'
+      )
+    })
+
+    autoUpdater.on('update-downloaded', () => {
+      ipcWebContents.send(
+        this.window.webContents,
+        'auto-updater-update-downloaded'
+      )
+    })
+  }
+
+  public checkForUpdates(url: string) {
+    try {
+      autoUpdater.setFeedURL({ url })
+      autoUpdater.checkForUpdates()
+    } catch (e) {
+      return e
+    }
+    return undefined
+  }
+
+  public quitAndInstallUpdate() {
+    autoUpdater.quitAndInstall()
+  }
+
+  public minimizeWindow() {
+    this.window.minimize()
+  }
+
+  public maximizeWindow() {
+    this.window.maximize()
+  }
+
+  public unmaximizeWindow() {
+    this.window.unmaximize()
+  }
+
+  public closeWindow() {
+    this.window.close()
+  }
+
+  public isMaximized() {
+    return this.window.isMaximized()
+  }
+
+  public getCurrentWindowState() {
+    return getWindowState(this.window)
+  }
+
+  public getCurrentWindowZoomFactor() {
+    return this.window.webContents.zoomFactor
+  }
+
+  public setWindowZoomFactor(zoomFactor: number) {
+    this.window.webContents.zoomFactor = zoomFactor
+  }
+
+  /**
+   * Method to show the save dialog and return the first file path it returns.
+   */
+  public async showSaveDialog(options: Electron.SaveDialogOptions) {
+    const { canceled, filePath } = await dialog.showSaveDialog(
+      this.window,
+      options
+    )
+    return !canceled && filePath !== undefined ? filePath : null
+  }
+
+  /**
+   * Method to show the open dialog and return the first file path it returns.
+   */
+  public async showOpenDialog(options: Electron.OpenDialogOptions) {
+    const { filePaths } = await dialog.showOpenDialog(this.window, options)
+    return filePaths.length > 0 ? filePaths[0] : null
   }
 }

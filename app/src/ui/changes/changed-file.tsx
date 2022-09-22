@@ -1,22 +1,24 @@
 import * as React from 'react'
 
-import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
-import { Octicon } from '../octicons'
+import { Octicon, iconForStatus } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { mapStatus } from '../../lib/status'
+import { WorkingDirectoryFileChange } from '../../models/status'
+import { TooltipDirection } from '../lib/tooltip'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface IChangedFileProps {
-  readonly path: string
-  readonly status: AppFileStatus
-  readonly oldPath?: string
+  readonly file: WorkingDirectoryFileChange
   readonly include: boolean | null
   readonly availableWidth: number
+  readonly disableSelection: boolean
+  readonly checkboxTooltip?: string
   readonly onIncludeChanged: (path: string, include: boolean) => void
 
   /** Callback called when user right-clicks on an item */
   readonly onContextMenu: (
-    path: string,
-    status: AppFileStatus,
+    file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
 }
@@ -25,7 +27,7 @@ interface IChangedFileProps {
 export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
-    this.props.onIncludeChanged(this.props.path, include)
+    this.props.onIncludeChanged(this.props.file.path, include)
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -39,7 +41,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   public render() {
-    const status = this.props.status
+    const { file, availableWidth, disableSelection, checkboxTooltip } =
+      this.props
+    const { status, path } = file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -48,7 +52,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     const filePadding = 5
 
     const availablePathWidth =
-      this.props.availableWidth -
+      availableWidth -
       listItemPadding -
       checkboxWidth -
       filePadding -
@@ -56,19 +60,25 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
     return (
       <div className="file" onContextMenu={this.onContextMenu}>
-        <Checkbox
-          // The checkbox doesn't need to be tab reachable since we emulate
-          // checkbox behavior on the list item itself, ie hitting space bar
-          // while focused on a row will toggle selection.
-          tabIndex={-1}
-          value={this.checkboxValue}
-          onChange={this.handleCheckboxChange}
-        />
+        <TooltippedContent
+          tooltip={checkboxTooltip}
+          direction={TooltipDirection.EAST}
+          tagName="div"
+        >
+          <Checkbox
+            // The checkbox doesn't need to be tab reachable since we emulate
+            // checkbox behavior on the list item itself, ie hitting space bar
+            // while focused on a row will toggle selection.
+            tabIndex={-1}
+            value={this.checkboxValue}
+            onChange={this.handleCheckboxChange}
+            disabled={disableSelection}
+          />
+        </TooltippedContent>
 
         <PathLabel
-          path={this.props.path}
-          oldPath={this.props.oldPath}
-          status={this.props.status}
+          path={path}
+          status={status}
           availableWidth={availablePathWidth}
         />
 
@@ -76,12 +86,13 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
+          tooltipDirection={TooltipDirection.EAST}
         />
       </div>
     )
   }
 
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onContextMenu(this.props.path, this.props.status, event)
+    this.props.onContextMenu(this.props.file, event)
   }
 }

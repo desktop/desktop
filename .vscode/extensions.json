@@ -1,9 +1,7 @@
 {
   "recommendations": [
-    "eg2.tslint",
-    "msjsdiag.debugger-for-chrome",
-    "samverschueren.final-newline",
-    "DmitryDorofeev.empty-indent",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "stkb.rewrap"
   ]
 }

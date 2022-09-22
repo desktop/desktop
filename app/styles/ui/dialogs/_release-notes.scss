@@ -1,0 +1,101 @@
+@import '../../../styles/variables';
+
+#release-notes {
+  max-height: 500px;
+  max-width: 800px;
+
+  .dialog-content {
+    // we'll own the layout inside here
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 335px;
+    padding: var(--spacing) var(--spacing-triple);
+  }
+
+  .dialog-header {
+    height: 100px;
+    position: relative;
+
+    .release-notes-header {
+      display: flex;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 0 var(--spacing-double);
+    }
+
+    .release-note-graphic-left {
+      margin-right: 20px;
+    }
+
+    .release-note-graphic-right {
+      margin-left: 20px;
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: center;
+      text-align: center;
+
+      p {
+        margin: 0;
+      }
+
+      .version {
+        font-size: 14px;
+        font-weight: var(--font-weight-semibold);
+        margin-bottom: 0;
+      }
+
+      .date {
+        font-size: 11px;
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+
+  .dialog-footer {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+
+    li {
+      padding-left: 0;
+    }
+  }
+
+  a.close {
+    align-self: flex-start;
+    z-index: 1;
+  }
+
+  .container {
+    width: 675px;
+    display: flex;
+    flex-direction: row;
+    overflow-x: hidden;
+    justify-content: space-around;
+
+    .column {
+      flex: 1 1 275px;
+      margin: 0 calc(var(--spacing) * 1.5) 0 0;
+      height: 100%;
+
+      .section {
+        margin: var(--spacing-double) 0;
+        .header {
+          font-size: 12px;
+          font-weight: var(--font-weight-semibold);
+        }
+      }
+    }
+  }
+}

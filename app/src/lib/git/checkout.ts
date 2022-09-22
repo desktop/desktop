@@ -1,19 +1,50 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
+import { ICheckoutProgress } from '../../models/progress'
+import { IGitAccount } from '../../models/git-account'
 import {
   CheckoutProgressParser,
   executionOptionsWithProgress,
 } from '../progress'
-import { ICheckoutProgress } from '../app-state'
-
+import { AuthenticationErrors } from './authentication'
+import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import {
-  IGitAccount,
-  envForAuthentication,
-  AuthenticationErrors,
-} from './authentication'
+  envForRemoteOperation,
+  getFallbackUrlForProxyResolve,
+} from './environment'
+import { WorkingDirectoryFileChange } from '../../models/status'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
+
+async function getCheckoutArgs(
+  repository: Repository,
+  branch: Branch,
+  account: IGitAccount | null,
+  progressCallback?: ProgressCallback
+) {
+  const baseArgs =
+    progressCallback != null
+      ? [...gitNetworkArguments(), 'checkout', '--progress']
+      : [...gitNetworkArguments(), 'checkout']
+
+  if (enableRecurseSubmodulesFlag()) {
+    return branch.type === BranchType.Remote
+      ? baseArgs.concat(
+          branch.name,
+          '-b',
+          branch.nameWithoutRemote,
+          '--recurse-submodules',
+          '--'
+        )
+      : baseArgs.concat(branch.name, '--recurse-submodules', '--')
+  } else {
+    return branch.type === BranchType.Remote
+      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
+      : baseArgs.concat(branch.name, '--')
+  }
+}
 
 /**
  * Check out the given branch.
@@ -34,9 +65,12 @@ export async function checkoutBranch(
   account: IGitAccount | null,
   branch: Branch,
   progressCallback?: ProgressCallback
-): Promise<void> {
+): Promise<true> {
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
+    env: await envForRemoteOperation(
+      account,
+      getFallbackUrlForProxyResolve(account, repository)
+    ),
     expectedErrors: AuthenticationErrors,
   }
 
@@ -62,17 +96,18 @@ export async function checkoutBranch(
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const baseArgs =
-    progressCallback != null
-      ? [...gitNetworkArguments, 'checkout', '--progress']
-      : [...gitNetworkArguments, 'checkout']
-
-  const args =
-    branch.type === BranchType.Remote
-      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
-      : baseArgs.concat(branch.name, '--')
+  const args = await getCheckoutArgs(
+    repository,
+    branch,
+    account,
+    progressCallback
+  )
 
   await git(args, repository.path, 'checkoutBranch', opts)
+
+  // we return `true` here so `GitStore.performFailableGitOperation`
+  // will return _something_ differentiable from `undefined` if this succeeds
+  return true
 }
 
 /** Check out the paths at HEAD. */
@@ -84,5 +119,21 @@ export async function checkoutPaths(
     ['checkout', 'HEAD', '--', ...paths],
     repository.path,
     'checkoutPaths'
+  )
+}
+
+/**
+ * Check out either stage #2 (ours) or #3 (theirs) for a conflicted
+ * file.
+ */
+export async function checkoutConflictedFile(
+  repository: Repository,
+  file: WorkingDirectoryFileChange,
+  resolution: ManualConflictResolution
+) {
+  await git(
+    ['checkout', `--${resolution}`, '--', file.path],
+    repository.path,
+    'checkoutConflictedFile'
   )
 }

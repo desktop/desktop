@@ -1,7 +1,12 @@
 // Use the platform default background color for text
 // selection when the editor has a selection _and_ is
 // focused.
-.CodeMirror-focused {
+// Unfortunately CodeMirror-focused isn't set when we
+// have a dialog open (which, at time of writing, only
+// happens when searching) so we'll apply the same styles
+// there as well.
+.CodeMirror-focused,
+.CodeMirror.dialog-opened {
   .CodeMirror-selected {
     background: Highlight;
   }
@@ -23,6 +28,15 @@
 }
 .CodeMirror-selected {
   background: inherit;
+}
+
+.CodeMirror-simplescroll-horizontal,
+.CodeMirror-simplescroll-vertical {
+  background: var(--box-alt-background-color);
+  div {
+    background: var(--scroll-bar-thumb-background-color);
+    border: none;
+  }
 }
 
 // Windows has custom scroll bars, see _scroll.scss

@@ -1,3 +1,17 @@
+# Table of contents
+
+- [macOS](#macos)
+  - ['The username or passphrase you entered is not correct' error after signing into account](#the-username-or-passphrase-you-entered-is-not-correct-error-after-signing-into-account)
+  - [Checking for updates triggers a 'Could not create temporary directory: Permission denied' message](#checking-for-updates-triggers-a-could-not-create-temporary-directory-permission-denied-message)
+- [Windows](#windows)
+  - [Window is hidden after detaching secondary monitor](#window-is-hidden-after-detaching-secondary-monitor)
+  - [Certificate revocation check fails](#certificate-revocation-check-fails)
+  - [Using a repository configured with Folder Redirection](#using-a-repository-configured-with-folder-redirection)
+  - [Enable Mandatory ASLR triggers cygheap errors](#enable-mandatory-aslr-triggers-cygheap-errors)
+  - [I get a black screen when launching Desktop](#i-get-a-black-screen-when-launching-desktop)
+  - [Failed to open CA file after an update](#failed-to-open-ca-file-after-an-update)
+  - [Authentication errors due to modified registry entries](#authentication-errors-due-to-modified-registry-entries)
+
 # Known Issues
 
 This document outlines acknowledged issues with GitHub Desktop, including workarounds if known.
@@ -14,13 +28,15 @@ Each known issue links off to an existing GitHub issue. If you have additional q
 
 ### My issue is not listed here?
 
-Please check the [open](https://github.com/desktop/desktop/labels/bug) and [closed](https://github.com/desktop/desktop/issues?q=is%3Aclosed+label%3Abug) bugs in the issue tracker for the details of your bug. If you can't find it, or if you're not sure, open a [new issue](https://github.com/desktop/desktop/issues/new).
+Please check the [open](https://github.com/desktop/desktop/labels/bug) and [closed](https://github.com/desktop/desktop/issues?q=is%3Aclosed+label%3Abug) bugs in the issue tracker for the details of your bug. If you can't find it, or if you're not sure, open a [new issue](https://github.com/desktop/desktop/issues/new?template=bug_report.md).
 
 ## macOS
 
-### 'The username or passphrase you entered is not correct' error after signing into account - [#3263](https://github.com/desktop/desktop/issues/3263)
+### 'The username or passphrase you entered is not correct' error after signing into account
 
-This seems to be caused by the Keychain being in an invalid state, affecting applications that try to use the keychain to store or retrieve credentials. Seems to be specific to macOS High Sierra (10.13).
+Related issue: [#3263](https://github.com/desktop/desktop/issues/3263)
+
+This seems to be caused by the Keychain being in an invalid state, affecting applications that try to use the keychain to store or retrieve credentials. This has been reported from macOS High Sierra 10.13 (17A365) to macOS Mojave 10.14.5 (18F132).
 
 **Workaround:**
 
@@ -29,7 +45,9 @@ This seems to be caused by the Keychain being in an invalid state, affecting app
 - Right-click on the `login` keychain and try unlocking it
 - Sign into your GitHub account again
 
-### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message - [#4115](https://github.com/desktop/desktop/issues/4115)
+### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message
+
+Related issue: [#4115](https://github.com/desktop/desktop/issues/4115)
 
 This issue seems to be caused by missing permissions for the `~/Library/Caches/com.github.GitHubClient.ShipIt` folder. This is a directory that Desktop uses to create and unpack temporary files as part of updating the application.
 
@@ -43,9 +61,26 @@ This issue seems to be caused by missing permissions for the `~/Library/Caches/c
    the "Read & Write" permissions
  - Start Desktop again and check for updates
 
+### GitHub Desktop prompts admin password to install helper tool very frequently
+
+Related issue: [#13956](https://github.com/desktop/desktop/issues/13956)
+
+Users who use macOS' Migration Assistant to keep their stuff intact when moving to a new computer might run into this problem because the Migration Assistant changes the owner of the `/Applications/GitHub Desktop.app` folder to `root`.
+
+Since GitHub Desktop is able to auto-update by changing the contents of the `/Applications/GitHub Desktop.app` folder, it needs to be able to write to it. If the owner of the folder is not the current user, the user will be prompted for an admin password every time GitHub Desktop tries to update itself.
+
+**Workaround:** you need to restore the ownership and permissions of the application folder to the current user. If your app is located in `/Applications/GitHub Desktop.app`, you can probably do this by just running the following commands in Terminal:
+
+```sh
+sudo chown -R ${USER}:staff /Applications/GitHub\ Desktop.app
+chmod -R g+w /Applications/GitHub\ Desktop.app
+```
+
 ## Windows
 
-### Window is hidden after detaching secondary monitor - [#2107](https://github.com/desktop/desktop/issues/2107)
+### Window is hidden after detaching secondary monitor
+
+Related issue: [#2107](https://github.com/desktop/desktop/issues/2107)
 
 This is related to Desktop tracking the window position between launches, but not changes to your display configuration such as removing the secondary monitor where Desktop was positioned.
 
@@ -54,7 +89,9 @@ This is related to Desktop tracking the window position between launches, but no
  - Remove `%APPDATA%\GitHub Desktop\window-state.json`
  - Restart Desktop
 
-### Certificate revocation check fails - [#3326](https://github.com/desktop/desktop/issues/3326)
+### Certificate revocation check fails
+
+Related issue: [#3326](https://github.com/desktop/desktop/issues/3326)
 
 If you are using Desktop on a corporate network, you may encounter an error like this:
 
@@ -66,20 +103,19 @@ GitHub Desktop by default uses the Windows Secure Channel (SChannel) APIs to val
 
 **Workaround:**
 
-To use the classic OpenSSL behavior in Git, you'll need a PEM file containing certificates that are considered trusted. The [public list](https://curl.haxx.se/docs/caextract.html) provided by the curl project can be used if you are not connecting to a GitHub Enterprise instance which has it's own distinct certificates.
+**We do not recommend setting this config value for normal Git usage**. This is intended to be an "escape hatch" for situations where the network administrator has restricted the normal usage of SChannel APIs on Windows that Git is trying to use.
 
-Once you've downloaded that PEM file somewhere, open a shell with Git and run these commands:
+Run this command in your Git shell to disable the revocation check:
 
 ```shellsession
-$ git config --global http.sslBackend "openssl"
-$ git config --global http.sslCAInfo "C:/path with spaces/to/directory/cacert.pem"
+$ git config --global http.schannelCheckRevoke false
 ```
 
-Ensure you use forward slashes for the path when setting the `sslCAInfo` value.
+### Using a repository configured with Folder Redirection
 
-### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
+Related issue: [#2972](https://github.com/desktop/desktop/issues/2972)
 
-[Folder Redirection](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc753996(v%3dws.11)) is an feature of Windows for administrators to ensure files and folders are managed on a network server, instead.
+[Folder Redirection](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc753996(v%3dws.11)) is a feature of Windows for administrators to ensure files and folders are managed on a network server, instead.
 
 **Not supported** as Git is not able to resolve the working directory correctly:
 
@@ -101,7 +137,9 @@ Error(s) during clone:
 git clone failed: exit status 128
 ```
 
-### Enable Mandatory ASLR triggers cygheap errors - #3096
+### Enable Mandatory ASLR triggers cygheap errors
+
+Related issue: [#3096](https://github.com/desktop/desktop/issues/3096)
 
 Windows 10 Fall Creators Edition (version 1709 or later) added enhancements to the Enhanced Mitigation Experience Toolkit, one being to enable Mandatory ASLR. This setting affects the embedded Git shipped in Desktop, and produces errors that look like this:
 
@@ -117,10 +155,73 @@ are unable to find another cygwin DLL.
 
 Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by Git for Windows to emulate process forking.
 
-**Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or whitelist all executables under `<Git>\usr\bin` which depend on MSYS2.
+**Not supported:** this is an upstream limitation of MSYS2, and it is recommended that you either disable Mandatory ASLR or explicitly allow all executables under `<Git>\usr\bin` which depend on MSYS2.
 
 ### I get a black screen when launching Desktop
 
+Related issue: [#3921](https://github.com/desktop/desktop/issues/3921)
+
 Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a black screen.
 
-**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
+**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable. Here are the steps to set the environment variable in PowerShell:
+
+1. Open PowerShell
+2. Run the command `$env:GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION=1`
+3. Launch GitHub Desktop
+
+### Failed to open CA file after an update
+
+Related issue: [#4832](https://github.com/desktop/desktop/issues/4832)
+
+A recent upgrade to Git for Windows changed how it uses `http.sslCAInfo`.
+
+An example of this error:
+
+> fatal: unable to access 'https://github.com/\<owner>/\<repo>.git/': schannel: failed to open CA file 'C:/Users/\<account>/AppData/Local/GitHubDesktop/app-1.2.2/resources/app/git/mingw64/bin/curl-ca-bundle.crt': No such file or directory
+
+This is occurring because some users have an existing Git for Windows installation that created a special config at `C:\ProgramData\Git\config`, and this config may contain an `http.sslCAInfo` entry, which is inherited by Desktop.
+
+There's two problems with this current state:
+
+ - Desktop doesn't need custom certificates for its Git operations - it uses SChannel by default, which uses the Windows Certificate Store to verify server certificates
+ - this `http.sslCAInfo` config value may resolve to a location or file that doesn't exist in Desktop's Git installation
+
+**Workaround:**
+
+1. Verify that you have the problem configuration by checking the output of this command:
+
+```
+> git config -l --show-origin
+```
+
+You should have an entry that looks like this:
+
+```
+file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
+```
+
+2. Open `C:\ProgramData\Git\config` (requires elevated privileges) and remove the corresponding lines that look like this:
+
+```
+[http]
+sslCAInfo = [some value here]
+```
+
+### Authentication errors due to modified registry entries
+
+Related issue: [#2623](https://github.com/desktop/desktop/issues/2623)
+
+If either the user or an application has modified the `Command Processor` registry entries it can cause GitHub Desktop to throw an `Authentication failed` error. To check if these registry entries have been modified open the Registry Editor (regedit.exe) and navigate to the following locations:
+
+`HKEY_CURRENT_USER\Software\Microsoft\Command Processor\`
+`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\`
+
+Check to see if there is an `Autorun` value in either of those location. If there is, deleting that value should resolve the `Authentication failed` error.
+
+### "Not enough resources" error when signing in
+
+Related issue: [#15217](https://github.com/desktop/desktop/issues/15217)
+
+If you see an error that says "Not enough resources are available to process this command" when signing in to GitHub Desktop, it's likely that you have too many credentials stored in Windows Credentials Manager.
+
+**Workaround:** open the Credential Manager application, click on Windows Credentials and go through the list to see if there are some you can delete.

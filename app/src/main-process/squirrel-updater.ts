@@ -1,15 +1,16 @@
 import * as Path from 'path'
 import * as Os from 'os'
 
-import { pathExists, ensureDir, writeFile } from 'fs-extra'
+import { mkdir, writeFile } from 'fs/promises'
 import { spawn, getPathSegments, setPathSegments } from '../lib/process/win32'
+import { pathExists } from '../ui/lib/path-exists'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
 const updateDotExe = Path.resolve(Path.join(rootAppDir, 'Update.exe'))
 const exeName = Path.basename(process.execPath)
 
-// A lot of this code was cargo-culted from our Atom comrades:
+// A lot of this code was cargo-culted from our Atom collaborators:
 // https://github.com/atom/atom/blob/7c9f39e3f1d05ee423e0093e6b83f042ce11c90a/src/main-process/squirrel-update.coffee.
 
 /**
@@ -47,12 +48,16 @@ async function handleUpdated(): Promise<void> {
 
 async function installCLI(): Promise<void> {
   const binPath = getBinPath()
-  await ensureDir(binPath)
+  await mkdir(binPath, { recursive: true })
   await writeBatchScriptCLITrampoline(binPath)
   await writeShellScriptCLITrampoline(binPath)
-  const paths = await getPathSegments()
-  if (paths.indexOf(binPath) < 0) {
-    await setPathSegments([...paths, binPath])
+  try {
+    const paths = getPathSegments()
+    if (paths.indexOf(binPath) < 0) {
+      await setPathSegments([...paths, binPath])
+    }
+  } catch (e) {
+    log.error('Failed inserting bin path into PATH environment variable', e)
   }
 }
 
@@ -93,10 +98,14 @@ function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
 }
 
 function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
+  // The path we get from `resolveVersionedPath` is a Win32 relative
+  // path (something like `..\app-2.5.0\resources\app\static\github.sh`).
+  // We need to make sure it's a POSIX path in order for WSL to be able
+  // to resolve it. See https://github.com/desktop/desktop/issues/4998
   const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.sh'
-  )
+  ).replace(/\\/g, '/')
 
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
@@ -127,10 +136,14 @@ function createShortcut(locations: ShortcutLocations): Promise<void> {
 async function handleUninstall(): Promise<void> {
   await removeShortcut()
 
-  const paths = await getPathSegments()
-  const binPath = getBinPath()
-  const pathsWithoutBinPath = paths.filter(p => p !== binPath)
-  return setPathSegments(pathsWithoutBinPath)
+  try {
+    const paths = getPathSegments()
+    const binPath = getBinPath()
+    const pathsWithoutBinPath = paths.filter(p => p !== binPath)
+    return setPathSegments(pathsWithoutBinPath)
+  } catch (e) {
+    log.error('Failed removing bin path from PATH environment variable', e)
+  }
 }
 
 function removeShortcut(): Promise<void> {

@@ -9,6 +9,7 @@ import {
   IFilterListGroup,
   SelectionSource,
 } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 
@@ -18,14 +19,7 @@ import {
   BranchGroupIdentifier,
 } from './group-branches'
 import { NoBranches } from './no-branches'
-
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const BranchesFilterList: new () => FilterList<
-  IBranchListItem
-> = FilterList as any
+import { SelectionDirection, ClickSource } from '../lib/list'
 
 const RowHeight = 30
 
@@ -64,7 +58,7 @@ interface IBranchListProps {
   ) => void
 
   /** Called when an item is clicked. */
-  readonly onItemClick?: (item: Branch) => void
+  readonly onItemClick?: (item: Branch, source: ClickSource) => void
 
   /**
    * This function will be called when the selection changes as a result of a
@@ -103,8 +97,19 @@ interface IBranchListProps {
    */
   readonly renderBranch: (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: IMatches
   ) => JSX.Element
+
+  /**
+   * Callback to fire when the items in the filter list are updated
+   */
+  readonly onFilterListResultsChanged?: (resultCount: number) => void
+
+  /** If true, we do not render the filter. */
+  readonly hideFilterRow?: boolean
+
+  /** Called to render content before/above the branches filter and list. */
+  readonly renderPreList?: () => JSX.Element | null
 }
 
 interface IBranchListState {
@@ -163,15 +168,15 @@ export class BranchList extends React.Component<
     this.setState(createState(nextProps))
   }
 
-  public selectFirstItem(focus: boolean = false) {
+  public selectNextItem(focus: boolean = false, direction: SelectionDirection) {
     if (this.branchFilterList !== null) {
-      this.branchFilterList.selectFirstItem(focus)
+      this.branchFilterList.selectNextItem(focus, direction)
     }
   }
 
   public render() {
     return (
-      <BranchesFilterList
+      <FilterList<IBranchListItem>
         ref={this.onBranchesFilterListRef}
         className="branches-list"
         rowHeight={RowHeight}
@@ -183,11 +188,15 @@ export class BranchList extends React.Component<
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
+        onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
         renderPostFilter={this.onRenderNewButton}
         renderNoItems={this.onRenderNoItems}
         filterTextBox={this.props.textbox}
+        hideFilterRow={this.props.hideFilterRow}
+        onFilterListResultsChanged={this.props.onFilterListResultsChanged}
+        renderPreList={this.props.renderPreList}
       />
     )
   }
@@ -198,10 +207,7 @@ export class BranchList extends React.Component<
     this.branchFilterList = filterList
   }
 
-  private renderItem = (
-    item: IBranchListItem,
-    matches: ReadonlyArray<number>
-  ) => {
+  private renderItem = (item: IBranchListItem, matches: IMatches) => {
     return this.props.renderBranch(item, matches)
   }
 
@@ -255,9 +261,9 @@ export class BranchList extends React.Component<
     ) : null
   }
 
-  private onItemClick = (item: IBranchListItem) => {
+  private onItemClick = (item: IBranchListItem, source: ClickSource) => {
     if (this.props.onItemClick) {
-      this.props.onItemClick(item.branch)
+      this.props.onItemClick(item.branch, source)
     }
   }
 

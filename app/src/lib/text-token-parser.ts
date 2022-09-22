@@ -1,4 +1,8 @@
-import { Repository } from '../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
+} from '../models/repository'
 import { GitHubRepository } from '../models/github-repository'
 import { getHTMLURL } from './api'
 
@@ -59,8 +63,8 @@ export class Tokenizer {
   public constructor(emoji: Map<string, string>, repository?: Repository) {
     this.emoji = emoji
 
-    if (repository) {
-      this.repository = repository.gitHubRepository
+    if (repository && isRepositoryWithGitHubRepository(repository)) {
+      this.repository = getNonForkGitHubRepository(repository)
     }
   }
 
@@ -80,12 +84,7 @@ export class Tokenizer {
     }
   }
 
-  private getLastProcessedChar(): string | null {
-    if (this._currentString.length) {
-      return this._currentString[this._currentString.length - 1]
-    }
-    return null
-  }
+  private getLastProcessedChar = () => this._currentString?.at(-1)
 
   private scanForEndOfWord(text: string, index: number): number {
     const indexOfNextNewline = text.indexOf('\n', index + 1)
@@ -131,14 +130,34 @@ export class Tokenizer {
     index: number,
     repository: GitHubRepository
   ): LookupResult | null {
-    const nextIndex = this.scanForEndOfWord(text, index)
-    const maybeIssue = text.slice(index, nextIndex)
+    let nextIndex = this.scanForEndOfWord(text, index)
+    let maybeIssue = text.slice(index, nextIndex)
+
+    // handle situation where issue reference is wrapped in parentheses
+    // like the generated "squash and merge" commits on GitHub
+    if (maybeIssue.endsWith(')')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
+    // release notes may add a full stop as part of formatting the entry
+    if (maybeIssue.endsWith('.')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
+    // handle list of issues
+    if (maybeIssue.endsWith(',')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
     if (!/^#\d+$/.test(maybeIssue)) {
       return null
     }
 
     this.flush()
-    const id = parseInt(maybeIssue.substr(1), 10)
+    const id = parseInt(maybeIssue.substring(1), 10)
     if (isNaN(id)) {
       return null
     }
@@ -156,18 +175,25 @@ export class Tokenizer {
     // to ensure this isn't part of an email address, peek at the previous
     // character - if something is found and it's not whitespace, bail out
     const lastItem = this.getLastProcessedChar()
-    if (lastItem && lastItem !== ' ') {
+    if (lastItem && !/\s/.test(lastItem)) {
       return null
     }
 
-    const nextIndex = this.scanForEndOfWord(text, index)
-    const maybeMention = text.slice(index, nextIndex)
+    let nextIndex = this.scanForEndOfWord(text, index)
+    let maybeMention = text.slice(index, nextIndex)
+
+    // release notes add a ! to the very last user, or use , to separate users
+    if (maybeMention.endsWith('!') || maybeMention.endsWith(',')) {
+      nextIndex -= 1
+      maybeMention = text.slice(index, nextIndex)
+    }
+
     if (!/^@[a-zA-Z0-9\-]+$/.test(maybeMention)) {
       return null
     }
 
     this.flush()
-    const name = maybeMention.substr(1)
+    const name = maybeMention.substring(1)
     const url = `${getHTMLURL(repository.endpoint)}/${name}`
     this._results.push({ kind: TokenType.Link, text: maybeMention, url })
     return { nextIndex }
@@ -181,7 +207,7 @@ export class Tokenizer {
     // to ensure this isn't just the part of some word - if something is
     // found and it's not whitespace, bail out
     const lastItem = this.getLastProcessedChar()
-    if (lastItem && lastItem !== ' ') {
+    if (lastItem && !/\s/.test(lastItem)) {
       return null
     }
 

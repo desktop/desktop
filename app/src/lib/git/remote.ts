@@ -1,13 +1,27 @@
 import { git } from './core'
+import { GitError } from 'dugite'
+
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
-import { findDefaultRemote } from '../stores/helpers/find-default-remote'
+import { envForRemoteOperation } from './environment'
+import { IGitAccount } from '../../models/git-account'
+import { getSymbolicRef } from './refs'
+import { gitNetworkArguments } from '.'
 
-/** Get the remote names. */
+/**
+ * List the remotes, sorted alphabetically by `name`, for a repository.
+ */
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  const result = await git(['remote', '-v'], repository.path, 'getRemotes')
+  const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
+    expectedErrors: new Set([GitError.NotAGitRepository]),
+  })
+
+  if (result.gitError === GitError.NotAGitRepository) {
+    return []
+  }
+
   const output = result.stdout
   const lines = output.split('\n')
   const remotes = lines
@@ -16,13 +30,6 @@ export async function getRemotes(
     .map(x => ({ name: x[0], url: x[1] }))
 
   return remotes
-}
-
-/** Get the name of the default remote. */
-export async function getDefaultRemote(
-  repository: Repository
-): Promise<IRemote | null> {
-  return findDefaultRemote(await getRemotes(repository))
 }
 
 /** Add a new remote with the given URL. */
@@ -42,7 +49,7 @@ export async function removeRemote(
   name: string
 ): Promise<void> {
   const options = {
-    successExitCodes: new Set([0, 128]),
+    successExitCodes: new Set([0, 2, 128]),
   }
 
   await git(
@@ -58,6 +65,71 @@ export async function setRemoteURL(
   repository: Repository,
   name: string,
   url: string
-): Promise<void> {
+): Promise<true> {
   await git(['remote', 'set-url', name, url], repository.path, 'setRemoteURL')
+  return true
+}
+
+/**
+ * Get the URL for the remote that matches the given name.
+ *
+ * Returns null if the remote could not be found
+ */
+export async function getRemoteURL(
+  repository: Repository,
+  name: string
+): Promise<string | null> {
+  const result = await git(
+    ['remote', 'get-url', name],
+    repository.path,
+    'getRemoteURL',
+    { successExitCodes: new Set([0, 2, 128]) }
+  )
+
+  if (result.exitCode !== 0) {
+    return null
+  }
+
+  return result.stdout
+}
+
+/**
+ * Update the HEAD ref of the remote, which is the default branch.
+ */
+export async function updateRemoteHEAD(
+  repository: Repository,
+  account: IGitAccount | null,
+  remote: IRemote
+): Promise<void> {
+  const options = {
+    successExitCodes: new Set([0, 1, 128]),
+    env: await envForRemoteOperation(account, remote.url),
+  }
+
+  await git(
+    [...gitNetworkArguments(), 'remote', 'set-head', '-a', remote.name],
+    repository.path,
+    'updateRemoteHEAD',
+    options
+  )
+}
+
+export async function getRemoteHEAD(
+  repository: Repository,
+  remote: string
+): Promise<string | null> {
+  const remoteNamespace = `refs/remotes/${remote}/`
+  const match = await getSymbolicRef(repository, `${remoteNamespace}HEAD`)
+  if (
+    match != null &&
+    match.length > remoteNamespace.length &&
+    match.startsWith(remoteNamespace)
+  ) {
+    // strip out everything related to the remote because this
+    // is likely to be a tracked branch locally
+    // e.g. `main`, `develop`, etc
+    return match.substring(remoteNamespace.length)
+  }
+
+  return null
 }

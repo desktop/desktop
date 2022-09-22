@@ -1,6 +1,5 @@
 /* eslint-disable no-sync */
 
-import * as fs from 'fs-extra'
 import * as cp from 'child_process'
 import * as path from 'path'
 import * as electronInstaller from 'electron-winstaller'
@@ -13,7 +12,10 @@ import {
   getWindowsInstallerName,
   shouldMakeDelta,
   getUpdatesURL,
+  getIconFileName,
 } from './dist-info'
+import { isAppveyor, isGitHubActions } from './build-platforms'
+import { existsSync, rmSync } from 'fs'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -32,12 +34,12 @@ if (process.platform === 'darwin') {
 
 function packageOSX() {
   const dest = getOSXZipPath()
-  fs.removeSync(dest)
+  rmSync(dest, { recursive: true, force: true })
 
+  console.log('Packaging for macOS…')
   cp.execSync(
     `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
   )
-  console.log(`Zipped to ${dest}`)
 }
 
 function packageWindows() {
@@ -50,8 +52,9 @@ function packageWindows() {
     'cleanup-windows-certificate.ps1'
   )
 
-  if (process.env.APPVEYOR) {
-    cp.execSync(`powershell ${setupCertificatePath}`)
+  if (isAppveyor() || isGitHubActions()) {
+    console.log('Installing signing certificate…')
+    cp.execSync(`powershell ${setupCertificatePath}`, { stdio: 'inherit' })
   }
 
   const iconSource = path.join(
@@ -60,10 +63,10 @@ function packageWindows() {
     'app',
     'static',
     'logos',
-    'icon-logo.ico'
+    `${getIconFileName()}.ico`
   )
 
-  if (!fs.existsSync(iconSource)) {
+  if (!existsSync(iconSource)) {
     console.error(`expected setup icon not found at location: ${iconSource}`)
     process.exit(1)
   }
@@ -73,14 +76,15 @@ function packageWindows() {
     '../app/static/logos/win32-installer-splash.gif'
   )
 
-  if (!fs.existsSync(splashScreenPath)) {
+  if (!existsSync(splashScreenPath)) {
     console.error(
       `expected setup splash screen gif not found at location: ${splashScreenPath}`
     )
     process.exit(1)
   }
 
-  const iconUrl = 'https://desktop.githubusercontent.com/app-icon.ico'
+  const iconUrl =
+    'https://desktop.githubusercontent.com/github-desktop/app-icon.ico'
 
   const nugetPkgName = getWindowsIdentifierName()
   const options: electronInstaller.Options = {
@@ -101,13 +105,12 @@ function packageWindows() {
     options.remoteReleases = getUpdatesURL()
   }
 
-  if (process.env.APPVEYOR) {
+  if (isAppveyor() || isGitHubActions()) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${
-      process.env.WINDOWS_CERT_PASSWORD
-    } /tr http://timestamp.digicert.com /td sha256`
+    options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
   }
 
+  console.log('Packaging for Windows…')
   electronInstaller
     .createWindowsInstaller(options)
     .then(() => {
@@ -141,5 +144,6 @@ function packageLinux() {
     configPath,
   ]
 
+  console.log('Packaging for Linux…')
   cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
 }

@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { getGlobalConfigPath } from '../../lib/git'
 import { shell } from '../../lib/app-shell'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IAttributeMismatchProps {
   /** Called when the dialog should be dismissed. */
@@ -52,7 +51,7 @@ export class AttributeMismatch extends React.Component<
   private showGlobalGitConfig = () => {
     const path = this.state.globalGitConfigPath
     if (path) {
-      shell.openItem(path)
+      shell.openPath(path)
     }
   }
 
@@ -66,7 +65,7 @@ export class AttributeMismatch extends React.Component<
             : 'Update existing Git LFS filters?'
         }
         onDismissed={this.props.onDismissed}
-        onSubmit={this.props.onUpdateExistingFilters}
+        onSubmit={this.onSubmit}
       >
         <DialogContent>
           <p>
@@ -77,18 +76,19 @@ export class AttributeMismatch extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">
-              {__DARWIN__
-                ? 'Update Existing Filters'
-                : 'Update existing filters'}
-            </Button>
-            <Button onClick={this.props.onDismissed}>
-              {__DARWIN__ ? 'Not Now' : 'Not now'}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={
+              __DARWIN__ ? 'Update Existing Filters' : 'Update existing filters'
+            }
+            cancelButtonText={__DARWIN__ ? 'Not Now' : 'Not now'}
+          />
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onSubmit = () => {
+    this.props.onUpdateExistingFilters()
+    this.props.onDismissed()
   }
 }

@@ -1,129 +1,174 @@
-import * as Path from 'path'
-import { pathExists } from 'fs-extra'
+import { pathExists } from '../../ui/lib/path-exists'
 import { IFoundEditor } from './found-editor'
-import { assertNever } from '../fatal-error'
+import appPath from 'app-path'
 
-export enum ExternalEditor {
-  Atom = 'Atom',
-  MacVim = 'MacVim',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
-  SublimeText = 'Sublime Text',
-  BBEdit = 'BBEdit',
-  PhpStorm = 'PhpStorm',
-  RubyMine = 'RubyMine',
-  TextMate = 'TextMate',
-}
+/** Represents an external editor on macOS */
+interface IDarwinExternalEditor {
+  /** Name of the editor. It will be used both as identifier and user-facing. */
+  readonly name: string
 
-export function parse(label: string): ExternalEditor | null {
-  if (label === ExternalEditor.Atom) {
-    return ExternalEditor.Atom
-  }
-  if (label === ExternalEditor.MacVim) {
-    return ExternalEditor.MacVim
-  }
-  if (label === ExternalEditor.VisualStudioCode) {
-    return ExternalEditor.VisualStudioCode
-  }
-  if (label === ExternalEditor.VisualStudioCodeInsiders) {
-    return ExternalEditor.VisualStudioCodeInsiders
-  }
-  if (label === ExternalEditor.SublimeText) {
-    return ExternalEditor.SublimeText
-  }
-  if (label === ExternalEditor.BBEdit) {
-    return ExternalEditor.BBEdit
-  }
-  if (label === ExternalEditor.PhpStorm) {
-    return ExternalEditor.PhpStorm
-  }
-  if (label === ExternalEditor.RubyMine) {
-    return ExternalEditor.RubyMine
-  }
-  if (label === ExternalEditor.TextMate) {
-    return ExternalEditor.TextMate
-  }
-  return null
+  /**
+   * List of bundle identifiers that are used by the app in its multiple
+   * versions.
+   **/
+  readonly bundleIdentifiers: string[]
 }
 
 /**
- * appPath will raise an error if it cannot find the program.
- */
-const appPath: (bundleId: string) => Promise<string> = require('app-path')
+ * This list contains all the external editors supported on macOS. Add a new
+ * entry here to add support for your favorite editor.
+ **/
+const editors: IDarwinExternalEditor[] = [
+  {
+    name: 'Atom',
+    bundleIdentifiers: ['com.github.atom'],
+  },
+  {
+    name: 'Aptana Studio',
+    bundleIdentifiers: ['aptana.studio'],
+  },
+  {
+    name: 'MacVim',
+    bundleIdentifiers: ['org.vim.MacVim'],
+  },
+  {
+    name: 'Neovide',
+    bundleIdentifiers: ['com.neovide.neovide'],
+  },
+  {
+    name: 'Visual Studio Code',
+    bundleIdentifiers: ['com.microsoft.VSCode'],
+  },
+  {
+    name: 'Visual Studio Code (Insiders)',
+    bundleIdentifiers: ['com.microsoft.VSCodeInsiders'],
+  },
+  {
+    name: 'VSCodium',
+    bundleIdentifiers: ['com.visualstudio.code.oss'],
+  },
+  {
+    name: 'Sublime Text',
+    bundleIdentifiers: [
+      'com.sublimetext.4',
+      'com.sublimetext.3',
+      'com.sublimetext.2',
+    ],
+  },
+  {
+    name: 'BBEdit',
+    bundleIdentifiers: ['com.barebones.bbedit'],
+  },
+  {
+    name: 'PhpStorm',
+    bundleIdentifiers: ['com.jetbrains.PhpStorm'],
+  },
+  {
+    name: 'PyCharm',
+    bundleIdentifiers: ['com.jetbrains.PyCharm'],
+  },
+  {
+    name: 'PyCharm Community Edition',
+    bundleIdentifiers: ['com.jetbrains.pycharm.ce'],
+  },
+  {
+    name: 'RubyMine',
+    bundleIdentifiers: ['com.jetbrains.RubyMine'],
+  },
+  {
+    name: 'RStudio',
+    bundleIdentifiers: ['org.rstudio.RStudio'],
+  },
+  {
+    name: 'TextMate',
+    bundleIdentifiers: ['com.macromates.TextMate'],
+  },
+  {
+    name: 'Brackets',
+    bundleIdentifiers: ['io.brackets.appshell'],
+  },
+  {
+    name: 'WebStorm',
+    bundleIdentifiers: ['com.jetbrains.WebStorm'],
+  },
+  {
+    name: 'Typora',
+    bundleIdentifiers: ['abnerworks.Typora'],
+  },
+  {
+    name: 'CodeRunner',
+    bundleIdentifiers: ['com.krill.CodeRunner'],
+  },
+  {
+    name: 'SlickEdit',
+    bundleIdentifiers: [
+      'com.slickedit.SlickEditPro2018',
+      'com.slickedit.SlickEditPro2017',
+      'com.slickedit.SlickEditPro2016',
+      'com.slickedit.SlickEditPro2015',
+    ],
+  },
+  {
+    name: 'IntelliJ',
+    bundleIdentifiers: ['com.jetbrains.intellij'],
+  },
+  {
+    name: 'IntelliJ Community Edition',
+    bundleIdentifiers: ['com.jetbrains.intellij.ce'],
+  },
+  {
+    name: 'Xcode',
+    bundleIdentifiers: ['com.apple.dt.Xcode'],
+  },
+  {
+    name: 'GoLand',
+    bundleIdentifiers: ['com.jetbrains.goland'],
+  },
+  {
+    name: 'Android Studio',
+    bundleIdentifiers: ['com.google.android.studio'],
+  },
+  {
+    name: 'Rider',
+    bundleIdentifiers: ['com.jetbrains.rider'],
+  },
+  {
+    name: 'Nova',
+    bundleIdentifiers: ['com.panic.Nova'],
+  },
+  {
+    name: 'Emacs',
+    bundleIdentifiers: ['org.gnu.Emacs'],
+  },
+  {
+    name: 'Lite XL',
+    bundleIdentifiers: ['com.lite-xl'],
+  },
+]
 
-function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
-  switch (editor) {
-    case ExternalEditor.Atom:
-      return ['com.github.atom']
-    case ExternalEditor.MacVim:
-      return ['org.vim.MacVim']
-    case ExternalEditor.VisualStudioCode:
-      return ['com.microsoft.VSCode']
-    case ExternalEditor.VisualStudioCodeInsiders:
-      return ['com.microsoft.VSCodeInsiders']
-    case ExternalEditor.SublimeText:
-      return ['com.sublimetext.3']
-    case ExternalEditor.BBEdit:
-      return ['com.barebones.bbedit']
-    case ExternalEditor.PhpStorm:
-      return ['com.jetbrains.PhpStorm']
-    case ExternalEditor.RubyMine:
-      return ['com.jetbrains.RubyMine']
-    case ExternalEditor.TextMate:
-      return ['com.macromates.TextMate']
-    default:
-      return assertNever(editor, `Unknown external editor: ${editor}`)
-  }
-}
-
-function getExecutableShim(
-  editor: ExternalEditor,
-  installPath: string
-): string {
-  switch (editor) {
-    case ExternalEditor.Atom:
-      return Path.join(installPath, 'Contents', 'Resources', 'app', 'atom.sh')
-    case ExternalEditor.VisualStudioCode:
-    case ExternalEditor.VisualStudioCodeInsiders:
-      return Path.join(
-        installPath,
-        'Contents',
-        'Resources',
-        'app',
-        'bin',
-        'code'
-      )
-    case ExternalEditor.MacVim:
-      return Path.join(installPath, 'Contents', 'MacOS', 'MacVim')
-    case ExternalEditor.SublimeText:
-      return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
-    case ExternalEditor.BBEdit:
-      return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
-    case ExternalEditor.PhpStorm:
-      return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
-    case ExternalEditor.RubyMine:
-      return Path.join(installPath, 'Contents', 'MacOS', 'rubymine')
-    case ExternalEditor.TextMate:
-      return Path.join(installPath, 'Contents', 'Resources', 'mate')
-    default:
-      return assertNever(editor, `Unknown external editor: ${editor}`)
-  }
-}
-
-async function findApplication(editor: ExternalEditor): Promise<string | null> {
-  const identifiers = getBundleIdentifiers(editor)
-  for (const identifier of identifiers) {
+async function findApplication(
+  editor: IDarwinExternalEditor
+): Promise<string | null> {
+  for (const identifier of editor.bundleIdentifiers) {
     try {
-      const installPath = await appPath(identifier)
-      const path = getExecutableShim(editor, installPath)
-      const exists = await pathExists(path)
-      if (exists) {
-        return path
+      // app-path not finding the app isn't an error, it just means the
+      // bundle isn't registered on the machine.
+      // https://github.com/sindresorhus/app-path/blob/0e776d4e132676976b4a64e09b5e5a4c6e99fcba/index.js#L7-L13
+      const installPath = await appPath(identifier).catch(e =>
+        e.message === "Couldn't find the app"
+          ? Promise.resolve(null)
+          : Promise.reject(e)
+      )
+
+      if (installPath && (await pathExists(installPath))) {
+        return installPath
       }
 
-      log.debug(`Command line interface for ${editor} not found at '${path}'`)
+      log.debug(
+        `App installation for ${editor.name} not found at '${installPath}'`
+      )
     } catch (error) {
-      log.debug(`Unable to locate ${editor} installation`, error)
+      log.debug(`Unable to locate ${editor.name} installation`, error)
     }
   }
 
@@ -135,69 +180,16 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
  * to register itself on a user's machine when installing.
  */
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<IFoundEditor<ExternalEditor>>
+  ReadonlyArray<IFoundEditor<string>>
 > {
-  const results: Array<IFoundEditor<ExternalEditor>> = []
+  const results: Array<IFoundEditor<string>> = []
 
-  const [
-    atomPath,
-    macVimPath,
-    codePath,
-    codeInsidersPath,
-    sublimePath,
-    bbeditPath,
-    phpStormPath,
-    rubyMinePath,
-    textMatePath,
-  ] = await Promise.all([
-    findApplication(ExternalEditor.Atom),
-    findApplication(ExternalEditor.MacVim),
-    findApplication(ExternalEditor.VisualStudioCode),
-    findApplication(ExternalEditor.VisualStudioCodeInsiders),
-    findApplication(ExternalEditor.SublimeText),
-    findApplication(ExternalEditor.BBEdit),
-    findApplication(ExternalEditor.PhpStorm),
-    findApplication(ExternalEditor.RubyMine),
-    findApplication(ExternalEditor.TextMate),
-  ])
+  for (const editor of editors) {
+    const path = await findApplication(editor)
 
-  if (atomPath) {
-    results.push({ editor: ExternalEditor.Atom, path: atomPath })
-  }
-
-  if (macVimPath) {
-    results.push({ editor: ExternalEditor.MacVim, path: macVimPath })
-  }
-
-  if (codePath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
-  }
-
-  if (codeInsidersPath) {
-    results.push({
-      editor: ExternalEditor.VisualStudioCodeInsiders,
-      path: codeInsidersPath,
-    })
-  }
-
-  if (sublimePath) {
-    results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
-  }
-
-  if (bbeditPath) {
-    results.push({ editor: ExternalEditor.BBEdit, path: bbeditPath })
-  }
-
-  if (phpStormPath) {
-    results.push({ editor: ExternalEditor.PhpStorm, path: phpStormPath })
-  }
-
-  if (rubyMinePath) {
-    results.push({ editor: ExternalEditor.RubyMine, path: rubyMinePath })
-  }
-
-  if (textMatePath) {
-    results.push({ editor: ExternalEditor.TextMate, path: textMatePath })
+    if (path) {
+      results.push({ editor: editor.name, path })
+    }
   }
 
   return results

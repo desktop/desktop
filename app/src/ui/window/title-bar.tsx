@@ -1,15 +1,33 @@
 import * as React from 'react'
-
-import { remote } from 'electron'
+import memoizeOne from 'memoize-one'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons/octicon'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { isMacOSBigSurOrLater } from '../../lib/get-os'
+import {
+  getAppleActionOnDoubleClick,
+  isWindowMaximized,
+  maximizeWindow,
+  minimizeWindow,
+  restoreWindow,
+} from '../main-process-proxy'
+
+/** Get the height (in pixels) of the title bar depending on the platform */
+export function getTitleBarHeight() {
+  if (__DARWIN__) {
+    // Big Sur has taller title bars, see #10980
+    return isMacOSBigSurOrLater() ? 26 : 22
+  }
+
+  return 28
+}
 
 interface ITitleBarProps {
   /**
    * The current state of the Window, ie maximized, minimized full-screen etc.
    */
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
@@ -27,56 +45,37 @@ interface ITitleBarProps {
   readonly windowZoomFactor?: number
 }
 
-interface ITitleBarState {
-  readonly style?: React.CSSProperties
-}
+export class TitleBar extends React.Component<ITitleBarProps> {
+  private getStyle = memoizeOne((windowZoomFactor: number | undefined) => {
+    const style: React.CSSProperties = { height: getTitleBarHeight() }
 
-function getState(props: ITitleBarProps): ITitleBarState {
-  // See windowZoomFactor in ITitleBarProps, this is only
-  // applicable on macOS.
-  if (!__DARWIN__) {
-    return { style: undefined }
-  }
-
-  return {
-    style: props.windowZoomFactor
-      ? { zoom: 1 / props.windowZoomFactor }
-      : undefined,
-  }
-}
-
-export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
-  public constructor(props: ITitleBarProps) {
-    super(props)
-    this.state = getState(props)
-  }
-
-  private onTitlebarDoubleClickDarwin = () => {
-    const actionOnDoubleClick = remote.systemPreferences.getUserDefault(
-      'AppleActionOnDoubleClick',
-      'string'
-    )
-    const mainWindow = remote.getCurrentWindow()
-
-    switch (actionOnDoubleClick) {
-      case 'Maximize':
-        if (mainWindow.isMaximized()) {
-          mainWindow.unmaximize()
-        } else {
-          mainWindow.maximize()
-        }
-        break
-      case 'Minimize':
-        mainWindow.minimize()
-        break
+    // See windowZoomFactor in ITitleBarProps, this is only applicable on macOS.
+    if (__DARWIN__ && windowZoomFactor !== undefined) {
+      style.zoom = 1 / windowZoomFactor
     }
-  }
 
-  public componentWillReceiveProps(nextProps: ITitleBarProps) {
-    if (__DARWIN__) {
-      if (this.props.windowZoomFactor !== nextProps.windowZoomFactor) {
-        this.setState(getState(nextProps))
-      }
+    return style
+  })
+
+  private onTitlebarDoubleClickDarwin = async () => {
+    const actionOnDoubleClick = await getAppleActionOnDoubleClick()
+
+    // Electron.AppleActionOnDoubleClickPre should only be 'Minimize',
+    // 'Maximize', or 'None'. But, if a user deletes their action on double
+    // click setting via terminal, then it returns an empty string. The macOs
+    // convention is to treat this as the default behavior of 'Maximize'.
+    switch (actionOnDoubleClick) {
+      case 'Minimize':
+        minimizeWindow()
+        break
+      case 'None':
+        return
+      default:
+        if (await isWindowMaximized()) {
+          restoreWindow()
+        } else {
+          maximizeWindow()
+        }
     }
   }
 
@@ -116,7 +115,7 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
         className={titleBarClass}
         id="desktop-app-title-bar"
         onDoubleClick={onTitlebarDoubleClick}
-        style={this.state.style}
+        style={this.getStyle(this.props.windowZoomFactor)}
       >
         {topResizeHandle}
         {leftResizeHandle}

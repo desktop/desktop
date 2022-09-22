@@ -1,36 +1,24 @@
 import { spawn, ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
-
-const appPath: (bundleId: string) => Promise<string> = require('app-path')
+import appPath from 'app-path'
+import { parseEnumValue } from '../enum'
 
 export enum Shell {
   Terminal = 'Terminal',
   Hyper = 'Hyper',
   iTerm2 = 'iTerm2',
   PowerShellCore = 'PowerShell Core',
+  Kitty = 'Kitty',
+  Alacritty = 'Alacritty',
+  WezTerm = 'WezTerm',
+  Warp = 'Warp',
 }
 
 export const Default = Shell.Terminal
 
 export function parse(label: string): Shell {
-  if (label === Shell.Terminal) {
-    return Shell.Terminal
-  }
-
-  if (label === Shell.Hyper) {
-    return Shell.Hyper
-  }
-
-  if (label === Shell.iTerm2) {
-    return Shell.iTerm2
-  }
-
-  if (label === Shell.PowerShellCore) {
-    return Shell.PowerShellCore
-  }
-
-  return Default
+  return parseEnumValue(Shell, label) ?? Default
 }
 
 function getBundleID(shell: Shell): string {
@@ -43,6 +31,14 @@ function getBundleID(shell: Shell): string {
       return 'co.zeit.hyper'
     case Shell.PowerShellCore:
       return 'com.microsoft.powershell'
+    case Shell.Kitty:
+      return 'net.kovidgoyal.kitty'
+    case Shell.Alacritty:
+      return 'io.alacritty'
+    case Shell.WezTerm:
+      return 'com.github.wez.wezterm'
+    case Shell.Warp:
+      return 'dev.warp.Warp-Stable'
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -66,11 +62,19 @@ export async function getAvailableShells(): Promise<
     hyperPath,
     iTermPath,
     powerShellCorePath,
+    kittyPath,
+    alacrittyPath,
+    wezTermPath,
+    warpPath,
   ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
     getShellPath(Shell.PowerShellCore),
+    getShellPath(Shell.Kitty),
+    getShellPath(Shell.Alacritty),
+    getShellPath(Shell.WezTerm),
+    getShellPath(Shell.Warp),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -90,6 +94,26 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.PowerShellCore, path: powerShellCorePath })
   }
 
+  if (kittyPath) {
+    const kittyExecutable = `${kittyPath}/Contents/MacOS/kitty`
+    shells.push({ shell: Shell.Kitty, path: kittyExecutable })
+  }
+
+  if (alacrittyPath) {
+    const alacrittyExecutable = `${alacrittyPath}/Contents/MacOS/alacritty`
+    shells.push({ shell: Shell.Alacritty, path: alacrittyExecutable })
+  }
+
+  if (wezTermPath) {
+    const wezTermExecutable = `${wezTermPath}/Contents/MacOS/wezterm`
+    shells.push({ shell: Shell.WezTerm, path: wezTermExecutable })
+  }
+
+  if (warpPath) {
+    const warpExecutable = `${warpPath}/Contents/MacOS/stable`
+    shells.push({ shell: Shell.Warp, path: warpExecutable })
+  }
+
   return shells
 }
 
@@ -97,7 +121,28 @@ export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
 ): ChildProcess {
-  const bundleID = getBundleID(foundShell.shell)
-  const commandArgs = ['-b', bundleID, path]
-  return spawn('open', commandArgs)
+  if (foundShell.shell === Shell.Kitty) {
+    // kitty does not handle arguments as expected when using `open` with
+    // an existing session but closed window (it reverts to the previous
+    // directory rather than using the new directory directory).
+    //
+    // This workaround launches the internal `kitty` executable which
+    // will open a new window to the desired path.
+    return spawn(foundShell.path, ['--single-instance', '--directory', path])
+  } else if (foundShell.shell === Shell.Alacritty) {
+    // Alacritty cannot open files in the folder format.
+    //
+    // It uses --working-directory command to start the shell
+    // in the specified working directory.
+    return spawn(foundShell.path, ['--working-directory', path])
+  } else if (foundShell.shell === Shell.WezTerm) {
+    // WezTerm, like Alacritty, "cannot open files in the 'folder' format."
+    //
+    // It uses the subcommand `start`, followed by the option `--cwd` to set
+    // the working directory, followed by the path.
+    return spawn(foundShell.path, ['start', '--cwd', path])
+  } else {
+    const bundleID = getBundleID(foundShell.shell)
+    return spawn('open', ['-b', bundleID, path])
+  }
 }

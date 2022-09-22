@@ -1,4 +1,10 @@
 rules:
   unicorn/no-process-exit: off
   import/no-commonjs: off
-  no-sync: off
+
+overrides:
+  - files: 'jest.config.js'
+    rules:
+      strict:
+        - error
+        - never

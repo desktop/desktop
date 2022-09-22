@@ -1,0 +1,190 @@
+changed in both
+  base   100644 42f08fa0c026dc955c1c38a589b499456fd2f8ae .yarnrc
+  our    100644 58d37cc88fb09a1944c25f4599a9bf93b42a143e .yarnrc
+  their  100644 f1749b387efcf5c522ec6acaf0e0c8382960783d .yarnrc
+@@ -1,3 +1,7 @@
+ disturl "https://atom.io/download/electron"
++<<<<<<< .our
+ target "2.0.7"
++=======
++target "2.0.5"
++>>>>>>> .their
+ runtime "electron"
+changed in both
+  base   100644 57f7c2075ff5cf0b05321418a6084098965b3a60 resources/linux/debian/control.template
+  our    100644 92dbac93f4519bf4f00f1ab0f0ca33f18aa18e4c resources/linux/debian/control.template
+  their  100644 eeaf96e07513593270ee96b3d906fc11fd591cd0 resources/linux/debian/control.template
+@@ -1,7 +1,11 @@
+ Package: @@NAME@@
+ Version: @@VERSION@@
+ Section: devel
++<<<<<<< .our
+ Depends: libnotify4, libnss3 (>= 2:3.26), gnupg, apt, libxkbfile1, libgconf-2-4, libsecret-1-0, libgtk-3-0 (>= 3.10.0)
++=======
++Depends: libnotify4, libnss3, gnupg, apt, libxkbfile1, libgconf-2-4, libsecret-1-0, libgtk-3-0 (>= 3.10.0)
++>>>>>>> .their
+ Priority: optional
+ Architecture: @@ARCHITECTURE@@
+ Maintainer: Microsoft Corporation <vscode-linux@microsoft.com>
+@@ -12,3 +16,4 @@
+ Replaces: visual-studio-@@NAME@@
+ Description: Code editing. Redefined.
+  Visual Studio Code is a new choice of tool that combines the simplicity of a code editor with what developers need for the core edit-build-debug cycle. See https://code.visualstudio.com/docs/setup/linux for installation instructions and FAQ.
++ 
+\ No newline at end of file
+changed in both
+  base   100644 850cda67f2de3d7d6de63db9129e61e34ac9adfc src/main.js
+  our    100644 711217d64e2bdc43f33652d0bed34caa052cc331 src/main.js
+  their  100644 ca00474ba1ea0b5647cdef34a3531c0c0876a9c4 src/main.js
+@@ -81,8 +81,14 @@
+ // TODO@Ben Electron 2.0.x: prevent localStorage migration from SQLite to LevelDB due to issues
+ app.commandLine.appendSwitch('disable-mojo-local-storage');
+ 
++<<<<<<< .our
+ // Force pre-Chrome-60 color profile handling (for https://github.com/Microsoft/vscode/issues/51791)
+ app.commandLine.appendSwitch('disable-features', 'ColorCorrectRendering');
++=======
++// TODO@Ben Electron 2.0.x: force srgb color profile (for https://github.com/Microsoft/vscode/issues/51791)
++// This also seems to fix: https://github.com/Microsoft/vscode/issues/48043
++app.commandLine.appendSwitch('force-color-profile', 'srgb');
++>>>>>>> .their
+ 
+ const minimist = require('minimist');
+ const paths = require('./paths');
+changed in both
+  base   100644 a16543734c3c5a66df49e28645030928adff3601 src/vs/code/electron-main/app.ts
+  our    100644 c0185b039e95315e65379ca7cda7ff397219bdf9 src/vs/code/electron-main/app.ts
+  their  100644 c95434267003a093913ac7cf317ef317487f70f4 src/vs/code/electron-main/app.ts
+changed in both
+  base   100644 11099c63863158ce791a50976807924cc7992c1e src/vs/code/electron-main/window.ts
+  our    100644 98a4328213e146b214e8da866ab92dc7f9c449a9 src/vs/code/electron-main/window.ts
+  their  100644 a3cd3bc01d4191bea802c62dff4231efcfad508f src/vs/code/electron-main/window.ts
+changed in both
+  base   100644 387e34f62d12aec51cf02a0de623898952c85481 src/vs/editor/browser/widget/codeEditorWidget.ts
+  our    100644 6f588e16445e2740e0f36730ce132f1ff91e44d8 src/vs/editor/browser/widget/codeEditorWidget.ts
+  their  100644 fee65bb4dc381878a8d59e570e19caed611f11b3 src/vs/editor/browser/widget/codeEditorWidget.ts
+changed in both
+  base   100644 13f5812793c1f6fbf6783ce371ab7f7746ff736c src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+  our    100644 52d0ff4ccf36e18a9e6bb376e85eb8574851026e src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+  their  100644 298c940d475d37c5481344f30ab43722b806aadf src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+@@ -22,15 +22,26 @@
+ import { IThemeService, registerThemingParticipant } from 'vs/platform/theme/common/themeService';
+ import { ACTIVITY_BAR_BACKGROUND, ACTIVITY_BAR_BORDER, ACTIVITY_BAR_FOREGROUND, ACTIVITY_BAR_BADGE_BACKGROUND, ACTIVITY_BAR_BADGE_FOREGROUND, ACTIVITY_BAR_DRAG_AND_DROP_BACKGROUND } from 'vs/workbench/common/theme';
+ import { contrastBorder } from 'vs/platform/theme/common/colorRegistry';
++<<<<<<< .our
+ import { CompositeBar } from 'vs/workbench/browser/parts/compositeBar';
+ import { isMacintosh } from 'vs/base/common/platform';
+ import { ILifecycleService, LifecyclePhase } from 'vs/platform/lifecycle/common/lifecycle';
+ import { scheduleAtNextAnimationFrame, Dimension, addClass } from 'vs/base/browser/dom';
++=======
++import { CompositeBar } from 'vs/workbench/browser/parts/compositebar/compositeBar';
++import { isMacintosh } from 'vs/base/common/platform';
++import { ILifecycleService, LifecyclePhase } from 'vs/platform/lifecycle/common/lifecycle';
++import { scheduleAtNextAnimationFrame, Dimension } from 'vs/base/browser/dom';
++>>>>>>> .their
+ import { Color } from 'vs/base/common/color';
+ import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
+ import { IExtensionService } from 'vs/workbench/services/extensions/common/extensions';
+ import URI from 'vs/base/common/uri';
++<<<<<<< .our
+ import { ToggleCompositePinnedAction } from 'vs/workbench/browser/parts/compositeBarActions';
++=======
++import { ToggleCompositePinnedAction } from 'vs/workbench/browser/parts/compositebar/compositeBarActions';
++>>>>>>> .their
+ import { ViewletDescriptor } from 'vs/workbench/browser/viewlet';
+ 
+ interface IPlaceholderComposite {
+@@ -190,7 +201,32 @@
+ 			});
+ 		}
+ 
++<<<<<<< .our
+ 		return content;
++=======
++		// TODO@Ben: workaround for https://github.com/Microsoft/vscode/issues/45700
++		// It looks like there are rendering glitches on macOS with Chrome 61 when
++		// using --webkit-mask with a background color that is different from the image
++		// The workaround is to promote the element onto its own drawing layer. We do
++		// this only after the workbench has loaded because otherwise there is ugly flicker.
++		if (isMacintosh) {
++			this.lifecycleService.when(LifecyclePhase.Running).then(() => {
++				scheduleAtNextAnimationFrame(() => { // another delay...
++					scheduleAtNextAnimationFrame(() => { // ...to prevent more flickering on startup
++						registerThemingParticipant((theme, collector) => {
++							const activityBarForeground = theme.getColor(ACTIVITY_BAR_FOREGROUND);
++							if (activityBarForeground && !activityBarForeground.equals(Color.white)) {
++								// only apply this workaround if the color is different from the image one (white)
++								collector.addRule('.monaco-workbench .activitybar > .content .monaco-action-bar .action-label { will-change: transform; }');
++							}
++						});
++					});
++				});
++			});
++		}
++
++		return $result.getHTMLElement();
++>>>>>>> .their
+ 	}
+ 
+ 	updateStyles(): void {
+changed in both
+  base   100644 0ba296dc6db1ca806fc8de27b8cf61afd7bb49de src/vs/workbench/services/configuration/node/configurationService.ts
+  our    100644 e954cacc4e16cfd2ccd8cba2d91f9096e6a67588 src/vs/workbench/services/configuration/node/configurationService.ts
+  their  100644 b21ed903322f0f848ed8956acb25f8151b00a781 src/vs/workbench/services/configuration/node/configurationService.ts
+changed in both
+  base   100644 8832ac16a31d6519aee201e9c91d8022ab1f51f2 src/vs/workbench/services/contextview/electron-browser/contextmenuService.ts
+  our    100644 22429b857153939331f29b91c98bd17d6fdbceeb src/vs/workbench/services/contextview/electron-browser/contextmenuService.ts
+  their  100644 c4fdf722b722b76cfe3b2c7e3526eef0e5e37dc1 src/vs/workbench/services/contextview/electron-browser/contextmenuService.ts
+@@ -44,8 +44,23 @@
+ 							delegate.onHide(undefined);
+ 						}
+ 
++<<<<<<< .our
+ 						this._onDidContextMenu.fire();
+ 					});
++=======
++			return TPromise.timeout(0).then(() => { // https://github.com/Microsoft/vscode/issues/3638
++				const onHide = once(() => {
++					if (delegate.onHide) {
++						delegate.onHide(undefined);
++					}
++
++					this._onDidContextMenu.fire();
++				});
++
++				const menu = this.createMenu(delegate, actions, onHide);
++				const anchor = delegate.getAnchor();
++				let x: number, y: number;
++>>>>>>> .their
+ 
+ 					const menu = this.createMenu(delegate, actions, onHide);
+ 					const anchor = delegate.getAnchor();
+@@ -62,6 +77,7 @@
+ 						y = pos.y;
+ 					}
+ 
++<<<<<<< .our
+ 					let zoom = webFrame.getZoomFactor();
+ 					x *= zoom;
+ 					y *= zoom;
+@@ -75,6 +91,16 @@
+ 					});
+ 				}, 0); // https://github.com/Microsoft/vscode/issues/3638
+ 			}
++=======
++				menu.popup({
++					window: remote.getCurrentWindow(),
++					x: Math.floor(x),
++					y: Math.floor(y),
++					positioningItem: delegate.autoSelectFirstItem ? 0 : void 0,
++					callback: () => onHide()
++				});
++			});
++>>>>>>> .their
+ 		});
+ 	}
+ 
+changed in both
+  base   100644 0b6dd68de6e12c2a2ca2fb01c5aaebc19d026c26 src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
+  our    100644 e30e323957d4065215ca39593ac4ac26251c0480 src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
+  their  100644 ab3dda8c90ec38994a0a2c706d9e430c4a0627b3 src/vs/workbench/services/extensions/electron-browser/extensionHost.ts

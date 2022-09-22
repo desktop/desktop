@@ -1,0 +1,7 @@
+0000000000000000000000000000000000000000 df0d73dc92ff496c6a61f10843d527b7461703f4 Brendan Forster <github@brendanforster.com> 1535720301 -0300	commit (initial): first commit on master
+df0d73dc92ff496c6a61f10843d527b7461703f4 df0d73dc92ff496c6a61f10843d527b7461703f4 Brendan Forster <github@brendanforster.com> 1535720306 -0300	checkout: moving from master to dev
+df0d73dc92ff496c6a61f10843d527b7461703f4 e07be33222f9b9b97f36f46a09339d44a689f0ba Brendan Forster <github@brendanforster.com> 1535720315 -0300	commit: first commit on dev
+e07be33222f9b9b97f36f46a09339d44a689f0ba 385067329e1ee51b3cf6eaf325df31b57a9fb157 Brendan Forster <github@brendanforster.com> 1535720320 -0300	commit: second commit on dev
+385067329e1ee51b3cf6eaf325df31b57a9fb157 2fa6ef6f6751ff2600f4cd5ba6e6f59f6913653e Brendan Forster <github@brendanforster.com> 1535720325 -0300	commit: third commit on dev
+2fa6ef6f6751ff2600f4cd5ba6e6f59f6913653e df0d73dc92ff496c6a61f10843d527b7461703f4 Brendan Forster <github@brendanforster.com> 1535720331 -0300	checkout: moving from dev to master
+df0d73dc92ff496c6a61f10843d527b7461703f4 c2aff1a324e3811300a48fc8f9b9aeb383c2fcb5 Brendan Forster <github@brendanforster.com> 1535720337 -0300	commit: second commit on master

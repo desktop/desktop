@@ -1,0 +1,35 @@
+@mixin close-button {
+  .close {
+    flex-shrink: 0;
+
+    border: 0;
+    height: 16px;
+    width: 16px;
+
+    // Set the left margin to auto so that flexbox positions the button
+    // on the right hand side of the dialog and add a -10px right hand
+    // side margin to put the button where it should be (we use a double
+    // margin for the header itself).
+    margin: 0 calc(var(--spacing) * -1) 0 auto;
+    padding: 0;
+    background: transparent;
+
+    color: var(--text-secondary-color);
+    cursor: pointer;
+
+    // Let the button deal with all mouse events.
+    // Without this the octicon resets the cursor when
+    // hovering over the <path>.
+    .octicon {
+      pointer-events: none;
+    }
+
+    &:hover {
+      color: var(--text-color);
+    }
+
+    &:focus {
+      outline: 0;
+    }
+  }
+}

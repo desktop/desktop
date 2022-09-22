@@ -21,7 +21,10 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
+import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
+import { NewCommitsBanner } from '../notification/new-commits-banner'
+import { CSSTransitionGroup } from 'react-transition-group';
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -33,8 +36,15 @@ interface ICompareSidebarProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly sidebarHasFocusWithin: boolean
+
+  /**
+   * A flag from the application to indicate the branches list should be expanded.
+   */
+  readonly shouldShowBranchesList: boolean
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
+
+  readonly isDivergingBannerVisible: boolean
 }
 
 interface ICompareSidebarState {
@@ -66,32 +76,62 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       filterText: '',
-      showBranchList: false,
+      showBranchList: props.shouldShowBranchesList,
       selectedCommit: null,
     }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
-    const hasFormStateChanged =
-      nextProps.compareState.formState.kind !==
-      this.props.compareState.formState.kind
-
     const newFormState = nextProps.compareState.formState
+    const oldFormState = this.props.compareState.formState
 
-    if (hasFormStateChanged && newFormState.kind === ComparisonView.None) {
-      // the comparison form should be reset to its default state
-      this.setState({ filterText: '', focusedBranch: null })
+    if (
+      newFormState.kind !== oldFormState.kind &&
+      newFormState.kind === ComparisonView.None
+    ) {
+      // reset form to it's default state
+      this.setState(
+        {
+          filterText: '',
+          focusedBranch: null,
+          showBranchList: nextProps.shouldShowBranchesList,
+        },
+        () => {
+          // ensure filter text behaviour matches the prop value
+          if (this.textbox !== null) {
+            if (nextProps.shouldShowBranchesList) {
+              this.textbox.focus()
+            } else {
+              this.textbox.blur()
+            }
+          }
+        }
+      )
       return
     }
 
-    if (!hasFormStateChanged && newFormState.kind !== ComparisonView.None) {
-      // ensure the filter text is in sync with the comparison branch
-      const branch = newFormState.comparisonBranch
+    if (
+      newFormState.kind !== ComparisonView.None &&
+      oldFormState.kind !== ComparisonView.None
+    ) {
+      const oldBranch = oldFormState.comparisonBranch
+      const newBranch = newFormState.comparisonBranch
 
-      this.setState({
-        filterText: branch.name,
-        focusedBranch: branch,
-      })
+      if (oldBranch.name !== newBranch.name) {
+        // ensure the filter text is in sync with the comparison branch
+        this.setState({
+          filterText: newBranch.name,
+          focusedBranch: newBranch,
+        })
+      }
+    }
+
+    if (
+      this.props.shouldShowBranchesList !== nextProps.shouldShowBranchesList
+    ) {
+      if (nextProps.shouldShowBranchesList === true) {
+        this.setState({ showBranchList: true })
+      }
     }
 
     if (nextProps.sidebarHasFocusWithin !== this.props.sidebarHasFocusWithin) {
@@ -118,9 +158,33 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const DivergingBannerAnimationTimeout = 500
+    let child: JSX.Element | null = null
+
+    if (this.props.compareState.defaultBranch !== null  && this.props.isDivergingBannerVisible == true) {
+      child = (
+        <div className="diverge-banner-wrapper">
+          <NewCommitsBanner
+            numCommits={4}
+            branch={this.props.compareState.defaultBranch}
+            dispatcher={this.props.dispatcher}
+          />
+        </div>
+      )
+    }
 
     return (
       <div id="compare-view">
+        <CSSTransitionGroup
+          transitionName="diverge-banner"
+          transitionAppear={true}
+          transitionAppearTimeout={DivergingBannerAnimationTimeout}
+          transitionEnterTimeout={DivergingBannerAnimationTimeout}
+          transitionLeaveTimeout={DivergingBannerAnimationTimeout}
+          >
+          {child}
+        </CSSTransitionGroup>
+
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -132,6 +196,7 @@ export class CompareSidebar extends React.Component<
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
+            onSearchCleared={this.onSearchCleared}
           />
         </div>
 
@@ -140,6 +205,10 @@ export class CompareSidebar extends React.Component<
           : this.renderCommits()}
       </div>
     )
+  }
+
+  private onSearchCleared = () => {
+    this.handleEscape()
   }
 
   private onBranchesListRef = (branchList: BranchList | null) => {
@@ -258,12 +327,12 @@ export class CompareSidebar extends React.Component<
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
 
-        {this.renderMergeDetails(formState)}
+        {this.renderMergeDetails(formState, this.props.currentBranch)}
       </div>
     )
   }
 
-  private renderMergeDetails(formState: ICompareBranch) {
+  private renderMergeDetails(formState: ICompareBranch, currentBranch: Branch) {
     const branch = formState.comparisonBranch
     const count = formState.aheadBehind.behind
 
@@ -275,6 +344,8 @@ export class CompareSidebar extends React.Component<
           <strong>{` ${count} ${pluralized}`}</strong>
           {` `}from{` `}
           <strong>{branch.name}</strong>
+          {` `}into{` `}
+          <strong>{currentBranch.name}</strong>
         </div>
       )
     }
@@ -315,7 +386,7 @@ export class CompareSidebar extends React.Component<
 
   private renderCompareBranchListItem = (
     item: IBranchListItem,
-    matches: ReadonlyArray<number>
+    matches: IMatches
   ) => {
     const currentBranch = this.props.currentBranch
 

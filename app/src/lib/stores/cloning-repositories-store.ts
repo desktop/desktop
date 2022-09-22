@@ -1,7 +1,9 @@
 import { CloningRepository } from '../../models/cloning-repository'
-import { clone as cloneRepo, CloneOptions } from '../git'
-import { ICloneProgress } from '../app-state'
-import { RetryAction, RetryActionType } from '../retry-actions'
+import { ICloneProgress } from '../../models/progress'
+import { CloneOptions } from '../../models/clone-options'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
+
+import { clone as cloneRepo } from '../git'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { BaseStore } from './base-store'
 
@@ -39,6 +41,7 @@ export class CloningRepositoriesStore extends BaseStore {
 
       const retryAction: RetryAction = {
         type: RetryActionType.Clone,
+        name: repository.name,
         url,
         path,
         options,

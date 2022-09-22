@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface IFocusContainerProps {
   readonly className?: string
@@ -100,6 +100,7 @@ export class FocusContainer extends React.Component<
     })
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
         className={className}
         ref={this.onWrapperRef}

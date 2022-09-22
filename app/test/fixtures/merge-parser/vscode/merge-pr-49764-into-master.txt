@@ -1,0 +1,218 @@
+changed in both
+  base   100644 15d41d443c931e1c1f4b22b8adb5aebd4d3e0a6a src/vs/workbench/parts/debug/browser/media/repl.css
+  our    100644 639dec3263509c20fe934860c23c7771b36d11df src/vs/workbench/parts/debug/browser/media/repl.css
+  their  100644 074e03874d617230ac0ffd269da2c1a780a09ecf src/vs/workbench/parts/debug/browser/media/repl.css
+@@ -170,6 +170,7 @@
+ .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-underline { text-decoration: underline; }
+ 
+ /* Regular and bright color codes are currently treated the same. */
++<<<<<<< .our
+ .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-foreground-30, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-foreground-90	{ color: gray; }
+ .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-foreground-31, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-foreground-91	{ color: #BE1717; }
+ .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-foreground-32, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-foreground-92	{ color: #338A2F; }
+@@ -223,6 +224,61 @@
+ .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-background-45, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-background-105 { background-color: #914191; }
+ .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-background-46, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-background-106 { background-color: #218D8D; }
+ .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-background-47, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-background-107 { background-color: #707070; }
++=======
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-30, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-90	{ color: gray; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-31, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-91	{ color: #BE1717; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-32, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-92	{ color: #338A2F; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-33, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-93	{ color: #BEB817; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-34, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-94	{ color: darkblue; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-35, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-95	{ color: darkmagenta; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-36, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-96	{ color: darkcyan; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-37, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-97	{ color: #BDBDBD; }
++
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-40, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-100 { background-color: gray; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-41, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-101 { background-color: #BE1717; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-42, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-102 { background-color: #338A2F; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-43, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-103 { background-color: #BEB817; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-44, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-104 { background-color: darkblue; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-45, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-105 { background-color: darkmagenta; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-46, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-106 { background-color: darkcyan; }
++.monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-47, .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-107 { background-color: #BDBDBD; }
++
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-30, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-90  { color: #A0A0A0; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-31, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-91  { color: #A74747; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-32, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-92  { color: #348F34; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-33, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-93  { color: #5F4C29; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-34, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-94  { color: #6286BB; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-35, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-95  { color: #914191; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-36, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-96  { color: #218D8D; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-37, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-97  { color: #707070; }
++
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-40, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-100 { background-color: #A0A0A0; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-41, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-101 { background-color: #A74747; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-42, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-102 { background-color: #348F34; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-43, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-103 { background-color: #5F4C29; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-44, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-104 { background-color: #6286BB; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-45, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-105 { background-color: #914191; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-46, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-106 { background-color: #218D8D; }
++.vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-47, .vs-dark .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-107 { background-color: #707070; }
++
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-30, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-90	{ color: gray; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-31, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-91	{ color: #A74747; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-32, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-92	{ color: #348F34; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-33, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-93	{ color: #5F4C29; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-34, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-94	{ color: #6286BB; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-35, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-95	{ color: #914191; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-36, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-96	{ color: #218D8D; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-37, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-fg-97	{ color: #707070; }
++>>>>>>> .their
++
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-40, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-100 { background-color: gray; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-41, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-101 { background-color: #A74747; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-42, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-102 { background-color: #348F34; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-43, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-103 { background-color: #5F4C29; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-44, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-104 { background-color: #6286BB; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-45, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-105 { background-color: #914191; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-46, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-106 { background-color: #218D8D; }
++.hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-47, .hc-black .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression .code-bg-107 { background-color: #707070; }
+ 
+ /* Links */
+ .monaco-workbench .repl .repl-tree .monaco-tree .monaco-tree-row > .content > .output.expression a {
+changed in both
+  base   100644 571e040eee475b637a60e87e311d22d677b50f13 src/vs/workbench/parts/debug/electron-browser/replViewer.ts
+  our    100644 e354f781465123204e048a6f387349cb8b6af9c4 src/vs/workbench/parts/debug/electron-browser/replViewer.ts
+  their  100644 fd5bbbcfe03794932801398032a4ac08423239c1 src/vs/workbench/parts/debug/electron-browser/replViewer.ts
+@@ -288,6 +288,139 @@
+ 		}
+ 	}
+ 
++<<<<<<< .our
++=======
++	/**
++	 * @param text The content to stylize.
++	 * @returns An {@link HTMLSpanElement} that contains the potentially stylized text.
++	 */
++	private handleANSIOutput(text: string): HTMLSpanElement {
++
++		const root: HTMLSpanElement = document.createElement('span');
++		const textLength: number = text.length;
++
++		let styleNames: string[] = [];
++		let currentPos: number = 0;
++		let buffer: string = '';
++
++		while (currentPos < textLength) {
++
++			// Potentially an ANSI escape sequence.
++			// See http://ascii-table.com/ansi-escape-sequences.php & https://en.wikipedia.org/wiki/ANSI_escape_code
++			if (text.charCodeAt(currentPos) === 27 && text.charAt(currentPos + 1) === '[') {
++
++				const startPos: number = currentPos;
++				currentPos += 2; // Ignore 'Esc[' as it's in every sequence.
++
++				let ansiSequence: string = '';
++				let sequenceFound: boolean = false;
++
++				while (currentPos < textLength) {
++					const char: string = text.charAt(currentPos);
++					ansiSequence += char;
++
++					currentPos++;
++
++					if (char.match(/^[ABCDHIJKfhmpsu]$/)) {
++						sequenceFound = true;
++						break;
++					}
++
++				}
++
++				if (sequenceFound) {
++
++					// Flush buffer with previous styles.
++					this.appendStylizedStringToContainer(root, buffer, styleNames);
++					buffer = '';
++
++					/*
++					 * Certain ranges that are matched here do not contain real graphics rendition sequences. For
++					 * the sake of having a simpler expression, they have been included anyway.
++					 */
++					if (ansiSequence.match(/^(?:[349][0-7]|10[0-7]|[0-8]|[34]9)(?:;(?:[349][0-7]|10[0-7]|[0-8]|[34]9))*;?m$/)) {
++
++						const styleCodes: number[] = ansiSequence.slice(0, -1)	// Remove final 'm' character.
++							.split(';')											// Separate style codes.
++							.filter(elem => elem !== '')						// Filter empty elems as '34;m' -> ['34', ''].
++							.map(elem => parseInt(elem, 10));					// Convert to numbers.
++
++						for (let code of styleCodes) {
++							if (code === 0) {
++								styleNames = [];
++							} else if (code === 1) {
++								styleNames.push('code-bold');
++							} else if (code === 4) {
++								styleNames.push('code-underline');
++							} else if ((code >= 30 && code <= 37) || (code >= 90 && code <= 97)) {
++								styleNames.push('code-fg-' + code);
++							} else if (code === 39) {
++								styleNames = styleNames.filter(style => !style.match(/^code-fg-\d+$/));
++							} else if ((code >= 40 && code <= 47) || (code >= 100 && code <= 107)) {
++								styleNames.push('code-bg-' + code);
++							} else if (code === 49) {
++								styleNames = styleNames.filter(style => !style.match(/^code-bg-\d+$/));
++							}
++						}
++
++					} else if (ansiSequence.match(/^.*[ABCDHIJKfhmpsu]$/)) {
++						// Unsupported sequence so simply hide it.
++					} else {
++						sequenceFound = false;
++					}
++
++				}
++
++				if (sequenceFound === false) {
++					/*
++					 * Reached end of text without ending the escape sequence,
++					 * or given sequence is currently unsupported. In either
++					 * case, treat sequence as regular text.
++					 */
++					currentPos = startPos + 1;
++				}
++
++			} else {
++				buffer += text.charAt(currentPos);
++				currentPos++;
++			}
++
++		}
++
++		// Flush remaining text buffer if not empty.
++		if (buffer) {
++			this.appendStylizedStringToContainer(root, buffer, styleNames);
++		}
++
++		return root;
++
++	}
++
++	/**
++	 * @param root The {@link HTMLElement} to append the content to.
++	 * @param stringContent The text content to be appended.
++	 * @param cssClasses The list of CSS styles to apply to the text content.
++	 */
++	private appendStylizedStringToContainer(root: HTMLElement, stringContent: string, cssClasses: string[]): void {
++		if (!root || !stringContent) {
++			return;
++		}
++
++		const content: string | HTMLElement = this.linkDetector.handleLinks(stringContent);
++		let container: HTMLElement;
++
++		if (typeof content === 'string') {
++			container = document.createElement('span');
++			container.textContent = content;
++		} else {
++			container = content;
++		}
++
++		container.className = cssClasses.join(' ');
++		root.appendChild(container);
++	}
++
++>>>>>>> .their
+ 	public disposeTemplate(tree: ITree, templateId: string, templateData: any): void {
+ 		if (templateData.toDispose) {
+ 			lifecycle.dispose(templateData.toDispose);

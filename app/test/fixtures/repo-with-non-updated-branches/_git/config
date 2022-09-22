@@ -1,0 +1,25 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[remote "origin"]
+	url = https://github.com/sergiou87/repo-with-non-updated-branches.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "branch-ahead-and-behind"]
+	remote = origin
+	merge = refs/heads/branch-ahead-and-behind
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[branch "branch-behind"]
+	remote = origin
+	merge = refs/heads/branch-behind
+[branch "branch-ahead"]
+	remote = origin
+	merge = refs/heads/branch-ahead
+[branch "branch-up-to-date"]
+	remote = origin
+	merge = refs/heads/branch-up-to-date

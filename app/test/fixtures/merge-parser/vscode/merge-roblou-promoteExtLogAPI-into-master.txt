@@ -1,0 +1,98 @@
+changed in both
+  base   100644 cfcb69a2975988bd249a5c473463ab626b93105f src/vs/vscode.d.ts
+  our    100644 6000b0300db361418bc31c0585263a9d663705f5 src/vs/vscode.d.ts
+  their  100644 7eb22ccc70d39d02ff5db7631e68eda876d5dafb src/vs/vscode.d.ts
+@@ -4539,11 +4539,69 @@
+ 		storagePath: string | undefined;
+ 
+ 		/**
++<<<<<<< .our
+ 		 * An absolute file path of a directory in which the extension can create log files.
+ 		 * The directory might not exist on disk and creation is up to the extension. However,
+ 		 * the parent directory is guaranteed to be existent.
+ 		 */
+ 		logPath: string;
++=======
++		 * This extension's logger
++		 */
++		logger: Logger;
++	}
++
++	/**
++	 * The severity level of a log message
++	 */
++	export enum LogLevel {
++		Trace = 1,
++		Debug = 2,
++		Info = 3,
++		Warning = 4,
++		Error = 5,
++		Critical = 6,
++		Off = 7
++	}
++
++	/**
++	 * A logger for writing to an extension's log file, and accessing its dedicated log directory.
++	 */
++	export interface Logger {
++		readonly onDidChangeLogLevel: Event<LogLevel>;
++		readonly currentLevel: LogLevel;
++		readonly logDirectory: Thenable<string>;
++
++		/**
++		 * Log a message with level `Trace`
++		 */
++		trace(message: string, ...args: any[]): void;
++
++		/**
++		 * Log a message with level `Debug`
++		 */
++		debug(message: string, ...args: any[]): void;
++
++		/**
++		 * Log a message with level `Info`
++		 */
++		info(message: string, ...args: any[]): void;
++
++		/**
++		 * Log a message with level `Warn`
++		 */
++		warn(message: string, ...args: any[]): void;
++
++		/**
++		 * Log a message with level `Error`
++		 */
++		error(message: string | Error, ...args: any[]): void;
++
++		/**
++		 * Log a message with level `Critical`
++		 */
++		critical(message: string | Error, ...args: any[]): void;
++>>>>>>> .their
+ 	}
+ 
+ 	/**
+changed in both
+  base   100644 757a2d143394115f021dd8b8335e791d7bc9e5bc src/vs/vscode.proposed.d.ts
+  our    100644 3de4a7af9dda9e3e523ba4b5774f1667d66b0b9b src/vs/vscode.proposed.d.ts
+  their  100644 11c0db76db37b727e9edf701c1373f0d81fe18f5 src/vs/vscode.proposed.d.ts
+@@ -417,6 +417,7 @@
+ 		debugAdapterExecutable?(folder: WorkspaceFolder | undefined, token?: CancellationToken): ProviderResult<DebugAdapterExecutable>;
+ 	}
+ 
++<<<<<<< .our
+ 	//#endregion
+ 
+ 	//#region Rob, Matt: logging
+@@ -467,6 +468,11 @@
+ 		 * @readonly
+ 		 */
+ 		export const logLevel: LogLevel;
++=======
++	export interface RenameInitialValue {
++		range: Range;
++		text?: string;
++>>>>>>> .their
+ 	}
+ 
+ 	//#endregion

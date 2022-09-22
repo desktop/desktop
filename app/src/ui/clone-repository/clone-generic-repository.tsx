@@ -37,12 +37,12 @@ export class CloneGenericRepository extends React.Component<
             placeholder="URL or username/repository"
             value={this.props.url}
             onValueChanged={this.onUrlChanged}
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus={true}
             label={
               <span>
                 Repository URL or GitHub username and repository
-                <br />
-                (<Ref>hubot/cool-repo</Ref>)
+                <br />(<Ref>hubot/cool-repo</Ref>)
               </span>
             }
           />
@@ -55,18 +55,10 @@ export class CloneGenericRepository extends React.Component<
             placeholder="repository path"
             onValueChanged={this.props.onPathChanged}
           />
-          <Button onClick={this.onChooseDirectory}>Choose…</Button>
+          <Button onClick={this.props.onChooseDirectory}>Choose…</Button>
         </Row>
       </DialogContent>
     )
-  }
-
-  private onChooseDirectory = async () => {
-    const path = await this.props.onChooseDirectory()
-
-    if (path) {
-      this.props.onPathChanged(path)
-    }
   }
 
   private onUrlChanged = (url: string) => {

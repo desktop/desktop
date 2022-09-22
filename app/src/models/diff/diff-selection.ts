@@ -5,11 +5,11 @@ import { assertNever } from '../../lib/fatal-error'
  */
 export enum DiffSelectionType {
   /** The entire file should be committed */
-  All,
+  All = 'All',
   /** A subset of lines in the file have been selected for committing */
-  Partial,
+  Partial = 'Partial',
   /** The file should be excluded from committing */
-  None,
+  None = 'None',
 }
 
 /**
@@ -51,16 +51,6 @@ function typeMatchesSelection(
  * whose selection state has diverged from the default selection state.
  */
 export class DiffSelection {
-  private readonly defaultSelectionType:
-    | DiffSelectionType.All
-    | DiffSelectionType.None
-
-  /* Any line numbers where the selection differs from the default state. */
-  private readonly divergingLines: Set<number> | null
-
-  /* Optional set of line numbers which can be selected. */
-  private readonly selectableLines: Set<number> | null
-
   /**
    * Initialize a new selection instance where either all lines are selected by default
    * or not lines are selected by default.
@@ -81,15 +71,17 @@ export class DiffSelection {
     return new DiffSelection(initialSelection, null, null)
   }
 
+  /**
+   * @param divergingLines Any line numbers where the selection differs from the default state.
+   * @param selectableLines Optional set of line numbers which can be selected.
+   */
   private constructor(
-    defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None,
-    divergingLines: Set<number> | null,
-    selectableLines: Set<number> | null
-  ) {
-    this.defaultSelectionType = defaultSelectionType
-    this.divergingLines = divergingLines || null
-    this.selectableLines = selectableLines || null
-  }
+    private readonly defaultSelectionType:
+      | DiffSelectionType.All
+      | DiffSelectionType.None,
+    private readonly divergingLines: Set<number> | null = null,
+    private readonly selectableLines: Set<number> | null = null
+  ) {}
 
   /** Returns a value indicating the computed overall state of the selection */
   public getSelectionType(): DiffSelectionType {
@@ -106,7 +98,7 @@ export class DiffSelection {
 
     // If we know which lines are selectable we need to check that
     // all lines are divergent and return the inverse of default selection.
-    // To avoid loopting through the set that often our happy path is
+    // To avoid looping through the set that often our happy path is
     // if there's a size mismatch.
     if (selectableLines && selectableLines.size === divergingLines.size) {
       const allSelectableLinesAreDivergent = [...selectableLines].every(i =>
@@ -268,7 +260,7 @@ export class DiffSelection {
 
   /**
    * Returns a copy of this selection instance with a specified set of
-   * selecable lines. By default a DiffSelection instance allows selecting
+   * selectable lines. By default a DiffSelection instance allows selecting
    * all lines (in fact, it has no notion of how many lines exists or what
    * it is that is being selected).
    *

@@ -1,16 +1,21 @@
 import * as React from 'react'
-import * as CodeMirror from 'codemirror'
-import * as URL from 'url'
-import * as classNames from 'classnames'
+import CodeMirror, {
+  Editor,
+  EditorConfiguration,
+  Doc,
+  Position,
+  TextMarkerOptions,
+} from 'codemirror'
+import classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
-import { Editor, Doc, Position } from 'codemirror'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
-import { OcticonSymbol } from '../octicons'
+import { syncClockwise } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IAuthor } from '../../models/author'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
+import { getLegacyStealthEmailForUser } from '../../lib/email'
 
 interface IAuthorInputProps {
   /**
@@ -68,7 +73,7 @@ function nextPosition(doc: Doc, pos: Position) {
  * are inclusive and this method takes that into account.
  */
 function posIsInsideMarkedText(doc: Doc, pos: Position) {
-  const marks = (doc.findMarksAt(pos) as any) as ActualTextMarker[]
+  const marks = doc.findMarksAt(pos) as any as ActualTextMarker[]
   const ix = doc.indexFromPos(pos)
 
   return marks.some(mark => {
@@ -174,21 +179,10 @@ function scanUntil(
   return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
 }
 
-/**
- * Given a cursor position, expand it into a range covering as
- * long of an autocompletable string as possible.
- */
-function getHintRangeFromCursor(doc: Doc, cursor: Position) {
-  return {
-    from: scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition),
-    to: scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition),
-  }
-}
-
 function appendTextMarker(
   cm: Editor,
   text: string,
-  options: CodeMirror.TextMarkerOptions
+  options: TextMarkerOptions
 ): ActualTextMarker {
   const doc = cm.getDoc()
   const from = doc.posFromIndex(Infinity)
@@ -196,7 +190,7 @@ function appendTextMarker(
   doc.replaceRange(text, from)
   const to = doc.posFromIndex(Infinity)
 
-  return (doc.markText(from, to, options) as any) as ActualTextMarker
+  return doc.markText(from, to, options) as any as ActualTextMarker
 }
 
 /**
@@ -216,8 +210,8 @@ function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
 
 // The types for CodeMirror.TextMarker is all wrong, this is what it
 // actually looks like
-// eslint-disable-next-line typescript/interface-name-prefix
-interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface ActualTextMarker extends TextMarkerOptions {
   /** Remove the mark. */
   clear(): void
 
@@ -284,17 +278,9 @@ function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
  * address.
  */
 function getEmailAddressForUser(user: IUserHit) {
-  if (user.email && user.email.length > 0) {
-    return user.email
-  }
-
-  const url = URL.parse(user.endpoint)
-  const host =
-    url.hostname && getDotComAPIEndpoint() !== user.endpoint
-      ? url.hostname
-      : 'github.com'
-
-  return `${user.username}@users.noreply.${host}`
+  return user.email && user.email.length > 0
+    ? user.email
+    : getLegacyStealthEmailForUser(user.username, user.endpoint)
 }
 
 function getDisplayTextForAuthor(author: IAuthor) {
@@ -321,7 +307,7 @@ function renderUnknownHandleMarkReplacementElement(
     ? `Could not find user with username ${username}`
     : `Searching for @${username}`
 
-  const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.sync
+  const symbol = isError ? OcticonSymbol.stop : syncClockwise
 
   const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   spinner.classList.add('icon')
@@ -352,13 +338,13 @@ function markRangeAsHandle(
 ): ActualTextMarker {
   const elem = renderHandleMarkReplacementElement(author)
 
-  return (doc.markText(from, to, {
+  return doc.markText(from, to, {
     atomic: true,
     className: 'handle',
     readOnly: false,
     replacedWith: elem,
     handleMouseEvents: true,
-  }) as any) as ActualTextMarker
+  }) as any as ActualTextMarker
 }
 
 function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
@@ -474,12 +460,16 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
             cancelAnimationFrame(this.resizeDebounceId)
             this.resizeDebounceId = null
           }
-          requestAnimationFrame(this.onResized)
+          this.resizeDebounceId = requestAnimationFrame(this.onResized)
         }
       }
     })
 
     this.state = {}
+  }
+
+  public focus() {
+    this.editor?.focus()
   }
 
   public componentWillUnmount() {
@@ -562,13 +552,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     // Create a temporary, atomic, marker so that the text can't be modified.
     // This marker will be styled in such a way as to indicate that it's
     // processing.
-    const tmpMark = (doc.markText(from, end, {
+    const tmpMark = doc.markText(from, end, {
       atomic: true,
       className: 'handle progress',
       readOnly: false,
       replacedWith: renderUnknownHandleMarkReplacementElement(username, false),
       handleMouseEvents: true,
-    }) as any) as ActualTextMarker
+    }) as any as ActualTextMarker
 
     // Note that it's important that this method isn't async up until
     // this point since show-hint expects a synchronous method
@@ -635,7 +625,10 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     const doc = cm.getDoc()
     const cursor = doc.getCursor() as Readonly<Position>
 
-    const { from, to } = getHintRangeFromCursor(doc, cursor)
+    // expand the current cursor position into a range covering as
+    // long of an autocompletable string as possible.
+    const from = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
+    const to = scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition)
 
     const word = doc.getRange(from, to)
 
@@ -700,14 +693,14 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   private getAllHandleMarks(cm: Editor): Array<ActualTextMarker> {
-    return (cm.getDoc().getAllMarks() as any) as ActualTextMarker[]
+    return cm.getDoc().getAllMarks() as any as ActualTextMarker[]
   }
 
   private initializeCodeMirror(host: HTMLDivElement) {
-    const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
+    const CodeMirrorOptions: EditorConfiguration & {
       hintOptions: any
     } = {
-      mode: null,
+      mode: 'null',
       lineWrapping: true,
       extraKeys: {
         Tab: false,
@@ -716,6 +709,12 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         'Ctrl-Space': 'autocomplete',
         'Ctrl-Enter': false,
         'Cmd-Enter': false,
+        // Disable all search-related shortcuts.
+        [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: false, // find
+        [__DARWIN__ ? 'Cmd-G' : 'Ctrl-G']: false, // findNext
+        [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
+        [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
+        [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
       },
       readOnly: this.props.disabled ? 'nocursor' : false,
       hintOptions: {
@@ -724,6 +723,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         closeOnUnfocus: true,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
+        container: host,
       },
     }
 
@@ -777,7 +777,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     return cm
   }
 
-  private onContextMenu(cm: Editor, e: PointerEvent) {
+  private onContextMenu(cm: Editor, e: MouseEvent) {
     e.preventDefault()
 
     const menu: IMenuItem[] = [

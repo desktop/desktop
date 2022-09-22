@@ -17,41 +17,36 @@ export function showUncaughtException(isLaunchError: boolean, error: Error) {
 
   setCrashMenu()
 
-  const crashWindow = new CrashWindow(
-    isLaunchError ? 'launch' : 'generic',
-    error
-  )
+  const window = new CrashWindow(isLaunchError ? 'launch' : 'generic', error)
 
-  crashWindow.onDidLoad(() => {
-    crashWindow.show()
+  window.onDidLoad(() => {
+    window.show()
   })
 
-  crashWindow.onFailedToLoad(() => {
-    dialog.showMessageBox(
-      {
-        type: 'error',
-        title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
-        message:
-          `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
-          `This has been reported to the team, but if you encounter this repeatedly please report ` +
-          `this issue to the GitHub Desktop issue tracker.\n\n${error.stack ||
-            error.message}`,
-      },
-      response => {
-        if (!__DEV__) {
-          app.relaunch()
-        }
-        app.quit()
-      }
-    )
-  })
+  window.onFailedToLoad(async () => {
+    await dialog.showMessageBox({
+      type: 'error',
+      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+      message:
+        `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
+        `This has been reported to the team, but if you encounter this repeatedly please report ` +
+        `this issue to the GitHub Desktop issue tracker.\n\n${
+          error.stack || error.message
+        }`,
+    })
 
-  crashWindow.onClose(() => {
     if (!__DEV__) {
       app.relaunch()
     }
     app.quit()
   })
 
-  crashWindow.load()
+  window.onClose(() => {
+    if (!__DEV__) {
+      app.relaunch()
+    }
+    app.quit()
+  })
+
+  window.load()
 }

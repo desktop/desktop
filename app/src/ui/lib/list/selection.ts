@@ -100,6 +100,14 @@ export function findNextSelectableRow(
   let currentRow =
     row < 0 || row >= rowCount ? (direction === 'up' ? rowCount - 1 : 0) : row
 
+  // handle specific case from switching from filter text to list
+  //
+  // locking currentRow to [0,rowCount) above means that the below loops
+  // will skip over the first entry
+  if (direction === 'down' && row === -1) {
+    currentRow = -1
+  }
+
   const delta = direction === 'up' ? -1 : 1
 
   // Iterate through all rows (starting offset from the
@@ -127,6 +135,28 @@ export function findNextSelectableRow(
 
     if (row !== currentRow && canSelectRow(currentRow)) {
       return currentRow
+    }
+  }
+
+  return null
+}
+
+/**
+ * Find the last selectable row in either direction, used
+ * for moving to the first or last selectable row in a list,
+ * i.e. Home/End key navigation.
+ */
+export function findLastSelectableRow(
+  direction: SelectionDirection,
+  rowCount: number,
+  canSelectRow: (row: number) => boolean
+) {
+  let i = direction === 'up' ? 0 : rowCount - 1
+  const delta = direction === 'up' ? 1 : -1
+
+  for (; i >= 0 && i < rowCount; i += delta) {
+    if (canSelectRow(i)) {
+      return i
     }
   }
 

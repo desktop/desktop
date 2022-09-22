@@ -40,7 +40,7 @@ A few reasons:
 
 ## How to Feature Flag?
 
-First add a new function to [feature-flag.ts](https://github.com/desktop/desktop/blob/3ee29eb1bd083a53f69fdbec2e2b10ec93404e44/app/src/lib/feature-flag.ts#L30). The function should usually check `enableDevelopmentFeatures()` or `enableBetaFeatures()`. Then, at runtime, your code should check either your feature flag function and either display the new feature or the existing one.
+First add a new function to [feature-flag.ts](https://github.com/desktop/desktop/blob/3ee29eb1bd083a53f69fdbec2e2b10ec93404e44/app/src/lib/feature-flag.ts#L30). The function should usually check `enableDevelopmentFeatures()` or `enableBetaFeatures()`. Then, at runtime, your code should check your feature flag function and either display the new feature or the existing one. 
 
 See pull request integration in [#3339](https://github.com/desktop/desktop/pull/3339) for an example.
 

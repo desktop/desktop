@@ -1,0 +1,210 @@
+changed in both
+  base   100644 1fde7dc8d1aa4deee2cbe792219a42c668a54ada atom/browser/api/atom_api_web_contents.cc
+  our    100644 20a1ac2e672f08ffea528b6e094ba530ff8083d1 atom/browser/api/atom_api_web_contents.cc
+  their  100644 1c2c3964cf0bcab0f42385db291e9e677f4fce2a atom/browser/api/atom_api_web_contents.cc
+@@ -355,6 +355,9 @@
+   // Whether to enable DevTools.
+   options.Get("devTools", &enable_devtools_);
+ 
++  // Whether to disable remote.
++  options.Get("disableRemote", &disable_remote_);
++
+   // Obtain the session.
+   std::string partition;
+   mate::Handle<api::Session> session;
+@@ -1879,7 +1882,15 @@
+   return mate::ConvertToV8(isolate, *web_preferences->last_preference());
+ }
+ 
++<<<<<<< .our
+ v8::Local<v8::Value> WebContents::GetOwnerBrowserWindow() const {
++=======
++bool WebContents::IsRemoteDisabled() const {
++  return disable_remote_;
++}
++
++v8::Local<v8::Value> WebContents::GetOwnerBrowserWindow() {
++>>>>>>> .their
+   if (owner_window())
+     return BrowserWindow::From(isolate(), owner_window());
+   else
+@@ -2029,6 +2040,7 @@
+       .SetMethod("_getPreloadPath", &WebContents::GetPreloadPath)
+       .SetMethod("getWebPreferences", &WebContents::GetWebPreferences)
+       .SetMethod("getLastWebPreferences", &WebContents::GetLastWebPreferences)
++      .SetMethod("_isRemoteDisabled", &WebContents::IsRemoteDisabled)
+       .SetMethod("getOwnerBrowserWindow", &WebContents::GetOwnerBrowserWindow)
+       .SetMethod("hasServiceWorker", &WebContents::HasServiceWorker)
+       .SetMethod("unregisterServiceWorker",
+changed in both
+  base   100644 b6d939307ea34ad61bbe5b667f9a69d6cf1fee2b atom/browser/api/atom_api_web_contents.h
+  our    100644 7939f8268aa8c3371623e0c15f3b6001d7f1efa4 atom/browser/api/atom_api_web_contents.h
+  their  100644 416bd1463e62f423e24bf30f03ac3eb108c0f958 atom/browser/api/atom_api_web_contents.h
+@@ -237,6 +237,8 @@
+   v8::Local<v8::Value> GetWebPreferences(v8::Isolate* isolate) const;
+   v8::Local<v8::Value> GetLastWebPreferences(v8::Isolate* isolate) const;
+ 
++  bool IsRemoteDisabled() const;
++
+   // Returns the owner window.
+   v8::Local<v8::Value> GetOwnerBrowserWindow() const;
+ 
+@@ -460,6 +462,9 @@
+   // Whether to enable devtools.
+   bool enable_devtools_ = true;
+ 
++  // Whether to disable remote.
++  bool disable_remote_ = false;
++
+   // Observers of this WebContents.
+   base::ObserverList<ExtendedWebContentsObserver> observers_;
+ 
+changed in both
+  base   100644 8e327693541201b54857467873935b3e37a9c9d5 docs/api/browser-window.md
+  our    100644 dff61dd336f047cf2f6f06228b2df2b98ff2304d docs/api/browser-window.md
+  their  100644 1f435d8ce87945474ded49344be8a5ec709107ed docs/api/browser-window.md
+@@ -270,6 +270,7 @@
+       are more limited. Read more about the option [here](sandbox-option.md).
+       **Note:** This option is currently experimental and may change or be
+       removed in future Electron releases.
++    * `disableRemote` Boolean (optional) - If set, this will disable the [`remote`](remote.md) module.
+     * `session` [Session](session.md#class-session) (optional) - Sets the session used by the
+       page. Instead of passing the Session object directly, you can also choose to
+       use the `partition` option instead, which accepts a partition string. When
+changed in both
+  base   100644 12ee9d4a1c98a7adb5d2ccd03853f1d463da04a4 lib/browser/rpc-server.js
+  our    100644 ff9f77321de3a4145946b67f3fe2a597f98e2510 lib/browser/rpc-server.js
+  their  100644 eb1fc32501c0966bff261a0f54e6bea2c65f9b14 lib/browser/rpc-server.js
+@@ -257,7 +257,18 @@
+   }
+ }
+ 
++const isRemoteDisabled = (event) => {
++  if (event.sender._isRemoteDisabled()) {
++    event.returnValue = exceptionToMeta(event.sender, new Error('remote is disabled'))
++    return true
++  }
++
++  return false
++}
++
+ ipcMain.on('ELECTRON_BROWSER_REQUIRE', function (event, contextId, module) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     event.returnValue = valueToMeta(event.sender, contextId, process.mainModule.require(module))
+   } catch (error) {
+@@ -266,6 +277,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_GET_BUILTIN', function (event, contextId, module) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     event.returnValue = valueToMeta(event.sender, contextId, electron[module])
+   } catch (error) {
+@@ -274,6 +287,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_GLOBAL', function (event, contextId, name) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     event.returnValue = valueToMeta(event.sender, contextId, global[name])
+   } catch (error) {
+@@ -282,6 +297,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_CURRENT_WINDOW', function (event, contextId) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     event.returnValue = valueToMeta(event.sender, contextId, event.sender.getOwnerBrowserWindow())
+   } catch (error) {
+@@ -290,10 +307,14 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_CURRENT_WEB_CONTENTS', function (event, contextId) {
++  if (isRemoteDisabled(event)) return
++
+   event.returnValue = valueToMeta(event.sender, contextId, event.sender)
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_CONSTRUCTOR', function (event, contextId, id, args) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     args = unwrapArgs(event.sender, contextId, args)
+     let constructor = objectsRegistry.get(id)
+@@ -309,6 +330,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_FUNCTION_CALL', function (event, contextId, id, args) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     args = unwrapArgs(event.sender, contextId, args)
+     let func = objectsRegistry.get(id)
+@@ -324,6 +347,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_MEMBER_CONSTRUCTOR', function (event, contextId, id, method, args) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     args = unwrapArgs(event.sender, contextId, args)
+     let object = objectsRegistry.get(id)
+@@ -339,6 +364,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_MEMBER_CALL', function (event, contextId, id, method, args) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     args = unwrapArgs(event.sender, contextId, args)
+     let obj = objectsRegistry.get(id)
+@@ -354,6 +381,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_MEMBER_SET', function (event, contextId, id, name, args) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     args = unwrapArgs(event.sender, contextId, args)
+     let obj = objectsRegistry.get(id)
+@@ -370,6 +399,8 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_MEMBER_GET', function (event, contextId, id, name) {
++  if (isRemoteDisabled(event)) return
++
+   try {
+     let obj = objectsRegistry.get(id)
+ 
+@@ -384,10 +415,14 @@
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_DEREFERENCE', function (event, contextId, id) {
++  if (isRemoteDisabled(event)) return
++
+   objectsRegistry.remove(event.sender, contextId, id)
+ })
+ 
+ ipcMain.on('ELECTRON_BROWSER_CONTEXT_RELEASE', (event, contextId) => {
++  if (isRemoteDisabled(event)) return
++
+   objectsRegistry.clear(event.sender, contextId)
+   event.returnValue = null
+ })
+merged
+  result 100644 c60e0bd80fc0cacceea223c6ccdeaafa388fb70e lib/renderer/api/remote.js
+  our    100644 59117f8f2dd977fc1817a6b1d540b616ddcb0dae lib/renderer/api/remote.js
+@@ -269,8 +269,6 @@
+ // Construct an exception error from the meta.
+ function metaToException (meta) {
+   const error = new Error(`${meta.message}\n${meta.stack}`)
+-  const remoteProcess = exports.process
+-  error.from = remoteProcess ? remoteProcess.type : null
+   error.cause = metaToValue(meta.cause)
+   return error
+ }

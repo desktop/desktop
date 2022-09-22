@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface IAccessTextProps {
   /**
@@ -8,7 +8,7 @@ interface IAccessTextProps {
    * highlighted when the highlight property is set. Literal ampersand
    * characters need to be escaped by using two ampersand characters (&&).
    *
-   * At most one character is allowed to have a preceeding ampersand character.
+   * At most one character is allowed to have a preceding ampersand character.
    */
   readonly text: string
 

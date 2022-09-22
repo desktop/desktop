@@ -1,18 +1,10 @@
+import { getBoolean } from '../../lib/local-storage'
+
 function getFeatureOverride(
   featureName: string,
   defaultValue: boolean
 ): boolean {
-  const override = localStorage.getItem(`features/${featureName}`)
-
-  if (override) {
-    if (override === '1' || override === 'true') {
-      return true
-    } else if (override === '0' || override === 'false') {
-      return false
-    }
-  }
-
-  return defaultValue
+  return getBoolean(`features/${featureName}`, defaultValue)
 }
 
 function featureFlag(
@@ -34,7 +26,7 @@ function featureFlag(
  * Gets a value indicating whether the renderer should be responsible for
  * rendering an application menu.
  *
- * Can be overriden with the localStorage variable
+ * Can be overridden with the localStorage variable
  *
  *  features/should-render-application-menu
  *

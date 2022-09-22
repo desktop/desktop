@@ -7,6 +7,7 @@ import { Button } from '../lib/button'
 interface IConfigureGitProps {
   readonly accounts: ReadonlyArray<Account>
   readonly advance: (step: WelcomeStep) => void
+  readonly done: () => void
 }
 
 /** The Welcome flow step to configure git. */
@@ -22,8 +23,8 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, {}> {
 
         <ConfigureGitUser
           accounts={this.props.accounts}
-          onSave={this.continue}
-          saveLabel="Continue"
+          onSave={this.props.done}
+          saveLabel="Finish"
         >
           <Button onClick={this.cancel}>Cancel</Button>
         </ConfigureGitUser>
@@ -33,9 +34,5 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, {}> {
 
   private cancel = () => {
     this.props.advance(WelcomeStep.Start)
-  }
-
-  private continue = () => {
-    this.props.advance(WelcomeStep.UsageOptOut)
   }
 }

@@ -1,0 +1,242 @@
+changed in both
+  base   100644 6979382b238cfe5314401e6016a0057fb0d3f097 src/vs/workbench/browser/layout.ts
+  our    100644 5089f6ff8af0179aa47698fb717ff2cbe9bb68be src/vs/workbench/browser/layout.ts
+  their  100644 0c562a852c2ceeee00d97a5ec3f7e0eec2c83bb9 src/vs/workbench/browser/layout.ts
+@@ -31,7 +31,7 @@
+ 
+ const TITLE_BAR_HEIGHT = isMacintosh ? 22 : 30;
+ const STATUS_BAR_HEIGHT = 22;
+-const ACTIVITY_BAR_WIDTH = 50;
++const ACTIVITY_BAR_WIDTH = 40;
+ 
+ const MIN_SIDEBAR_PART_WIDTH = 170;
+ const DEFAULT_SIDEBAR_PART_WIDTH = 300;
+changed in both
+  base   100644 5de79ae5dade3a5388795c8292cd9e5c6db1a612 src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+  our    100644 52d0ff4ccf36e18a9e6bb376e85eb8574851026e src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+  their  100644 69ebd7d8314400d8de017831e8230c75ca293cfa src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+@@ -339,6 +339,41 @@
+ 	shutdown(): void {
+ 		const state = this.viewletService.getViewlets().map(viewlet => ({ id: viewlet.id, iconUrl: viewlet.iconUrl }));
+ 		this.storageService.store(ActivitybarPart.PLACEHOLDER_VIEWLETS, JSON.stringify(state), StorageScope.GLOBAL);
++<<<<<<< .our
++=======
++		super.shutdown();
++	}
++
++	public dispose(): void {
++		if (this.compositeBar) {
++			this.compositeBar.dispose();
++			this.compositeBar = null;
++		}
++
++		if (this.globalActionBar) {
++			this.globalActionBar.dispose();
++			this.globalActionBar = null;
++		}
++
++		super.dispose();
++	}
++}
++
++class PlaceHolderViewletActivityAction extends ViewletActivityAction {
++
++	constructor(
++		id: string, iconUrl: URI,
++		@IViewletService viewletService: IViewletService,
++		@IPartService partService: IPartService,
++		@ITelemetryService telemetryService: ITelemetryService
++	) {
++		super({ id, name: id, cssClass: `extensionViewlet-placeholder-${id.replace(/\./g, '-')}` }, viewletService, partService, telemetryService);
++		// Generate Placeholder CSS to show the icon in the activity bar
++		const iconClass = `.monaco-workbench > .activitybar .monaco-action-bar .action-label.${this.class}`;
++		createCSSRule(iconClass, `-webkit-mask: url('${iconUrl || ''}') no-repeat 50% 50%; -webkit-mask-size: 18px`);
++		this.enabled = false;
++	}
++>>>>>>> .their
+ 
+ 		super.shutdown();
+ 	}
+merged
+  result 100644 18ab22ac047f4d7bc9c330b954ce14c9137e1b9a src/vs/workbench/browser/parts/activitybar/media/activityaction.css
+  our    100644 3f07bfcb0d04cc8bd2c92452ec7400587647419a src/vs/workbench/browser/parts/activitybar/media/activityaction.css
+@@ -6,7 +6,7 @@
+ .monaco-workbench > .activitybar > .content .monaco-action-bar .action-item {
+ 	display: block;
+ 	position: relative;
+-	padding: 5px 0;
++	padding: 0;
+ }
+ 
+ .monaco-workbench > .activitybar > .content .monaco-action-bar .action-label {
+@@ -15,7 +15,7 @@
+ 	height: 40px;
+ 	line-height: 40px;
+ 	margin-right: 0;
+-	padding: 0 0 0 50px;
++	padding: 0;
+ 	box-sizing: border-box;
+ 	font-size: 15px;
+ }
+@@ -43,22 +43,24 @@
+ 
+ .monaco-workbench > .activitybar > .content .monaco-action-bar .badge {
+ 	position: absolute;
+-	top: 5px;
++	top: 0;
+ 	left: 0;
+ 	overflow: hidden;
+-	width: 50px;
+-	height: 40px;
++	width: 100%;
++	height: 100%;
+ }
+ 
+ .monaco-workbench > .activitybar > .content .monaco-action-bar .badge .badge-content {
+ 	position: absolute;
+-	top: 20px;
+-	right: 8px;
+-	font-size: 11px;
+-	min-width: 8px;
+-	height: 18px;
+-	line-height: 18px;
+-	padding: 0 5px;
++	top: 12px;
++	bottom: 0;
++	margin: auto;
++	right: 6px;
++	font-size: 9px;
++	min-width: 7px;
++	height: 14px;
++	line-height: 14px;
++	padding: 0 4px;
+ 	border-radius: 20px;
+ 	text-align: center;
+ }
+merged
+  result 100644 b41e5bb0d76358d3fbab1e53898fbd8afcfe8fa9 src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
+  our    100644 5a92b2e1f52f2221f3bb176ec29ec3b97debcc6e src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
+@@ -4,7 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ .monaco-workbench > .part.activitybar {
+-	width: 50px;
++	width: 40px;
+ }
+ 
+ .monaco-workbench > .activitybar > .content {
+merged
+  result 100644 086470435f36edf278e97154ff5dd796a8768427 src/vs/workbench/parts/debug/browser/media/debug-dark.svg
+  our    100644 cedddacf03edb2c516a8d00c6aa4e44b3f995bd6 src/vs/workbench/parts/debug/browser/media/debug-dark.svg
+@@ -1 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><defs><style>.icon-white{fill:#fff;}</style></defs><title>debug-dark</title><g id="iconBg"><path class="icon-white" d="M8.667,10.325v2.832c0,.308.06.843-.249.843H7.333v-.667H8V11.207l-.115-.12a2.362,2.362,0,0,1-3.113.072C4,10.385,4.079,9.333,4.917,8H2.667v.667H2V7.582c0-.309.535-.249.843-.249H5.579Zm-2-6.992H6V2.667H7.3c.307,0,.7.147.7.455v2.23l.491.583a1.3,1.3,0,0,1,1.276-1.14A.6.6,0,0,1,10,4.821V3.333h.667V5.079a.413.413,0,0,0,.255.255h1.745V6H11.178c.018,0,.028.1.028.2a1.31,1.31,0,0,1-1.141,1.288L10.648,8h2.231c.308,0,.455.389.455.7V10h-.667V9.333h-1.68l-4.32-4.2ZM8,0a8,8,0,1,0,8,8A8,8,0,0,0,8,0Zm6.667,8a6.634,6.634,0,0,1-1.508,4.216L3.784,2.841A6.662,6.662,0,0,1,14.667,8ZM1.333,8A6.633,6.633,0,0,1,2.841,3.784l9.375,9.376A6.663,6.663,0,0,1,1.333,8Z"/></g></svg>
+\ No newline at end of file
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20.8 22.6v3.2c0 .3.1.9-.3.9h-1.2V26h.7v-2.4l-.1-.1c-1 .9-2.5.9-3.5.1-.9-.9-.8-2.1.2-3.6H14v.8h-.8v-1.2c0-.3.6-.3.9-.3h3.1l3.6 3.3zm-2.3-7.9h-.8V14h1.5c.3 0 .8.2.8.5V17l.6.7c.1-.7.7-1.3 1.4-1.3h.3v-1.7h.7v2c0 .1.2.2.3.3h2v.7h-1.7v.2c0 .7-.6 1.4-1.3 1.4l.7.7h2.5c.3 0 .5.4.5.8v1.5h-.8v-.8h-1.9l-4.9-4.7.1-2.1zM20 11c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9zm7.5 9c0 1.7-.6 3.4-1.7 4.7L15.3 14.2c3.2-2.6 7.9-2.2 10.5 1 1.1 1.4 1.7 3.1 1.7 4.8zm-15 0c0-1.7.6-3.4 1.7-4.7l10.5 10.5c-3.2 2.6-7.9 2.2-10.5-1.1-1.1-1.3-1.7-3-1.7-4.7z" fill="#fff"/></svg>
+\ No newline at end of file
+merged
+  result 100644 008dbec10eae5dea5f0b38944fc8fcaef568cb36 src/vs/workbench/parts/debug/browser/media/debug.contribution.css
+  our    100644 6637cb84e531d20fe5539f00f525133ab315aa00 src/vs/workbench/parts/debug/browser/media/debug.contribution.css
+@@ -6,7 +6,6 @@
+ /* Activity Bar */
+ .monaco-workbench > .activitybar .monaco-action-bar .action-label.debug {
+ 	-webkit-mask: url('debug-dark.svg') no-repeat 50% 50%;
+-	-webkit-mask-size: 28px;
+ }
+ 
+ .monaco-editor .debug-top-stack-frame-line,
+merged
+  result 100644 9ece85da562cd66b53672bb80519cf1f3d994f18 src/vs/workbench/parts/extensions/electron-browser/media/extensions-dark.svg
+  our    100644 4a1571a3c5c9a8badff0f68279b5e8f4c5b9e6bd src/vs/workbench/parts/extensions/electron-browser/media/extensions-dark.svg
+@@ -1,6 +1 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+-	 viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve">
+-	<path class="st0" d="M12.9,47.1H30V60H0V0h25.7v12.9H12.9V47.1z M17.1,42.9h25.7V17.1H17.1V42.9z M30,0v12.9h8.6V8.6h12.9v12.9
+-		h-4.3V30H60V0H30z M47.1,47.1H34.3V60H60V34.3H47.1V47.1z" fill="#fff"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M15.4 24.6H20V28h-8V12h6.9v3.4h-3.4v9.2zm1.2-1.2h6.9v-6.9h-6.9v6.9zM20 12v3.4h2.3v-1.1h3.4v3.4h-1.1V20H28v-8h-8zm4.6 12.6h-3.4V28H28v-6.9h-3.4v3.5z" fill="#fff"/></svg>
+\ No newline at end of file
+changed in both
+  base   100644 848c0382f9a5986f291af49fdcb05f63f5d099df src/vs/workbench/parts/extensions/electron-browser/media/extensions.css
+  our    100644 a879a47e71a142625b4f801e010da6e260c16aa0 src/vs/workbench/parts/extensions/electron-browser/media/extensions.css
+  their  100644 8e5cb028358f42b86ead7d131d57c0d04c4695ca src/vs/workbench/parts/extensions/electron-browser/media/extensions.css
+@@ -5,10 +5,13 @@
+ 
+ .monaco-workbench > .activitybar > .content .monaco-action-bar .action-label.extensions {
+ 	-webkit-mask: url('extensions-dark.svg') no-repeat 50% 50%;
++<<<<<<< .our
+ 	-webkit-mask-size: 21px;
+ }
+ 
+ .extensions .split-view-view .panel-header .count-badge-wrapper {
+ 	position: absolute;
+ 	right: 12px;
++=======
++>>>>>>> .their
+ }
+\ No newline at end of file
+merged
+  result 100644 01944479a84e34284983f28503649f5456cb4f8f src/vs/workbench/parts/files/electron-browser/media/files-dark.svg
+  our    100644 7e3e59b370b0753d2449d39c761dc4e476f8b3e6 src/vs/workbench/parts/files/electron-browser/media/files-dark.svg
+@@ -1 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path d="M17.705 8h-8.705s-2 .078-2 2v15s0 2 2 2l11-.004c2 .004 2-1.996 2-1.996v-11.491l-4.295-5.509zm-1.705 2v5h4v10h-11v-15h7zm5.509-6h-8.493s-2.016.016-2.031 2h8.015v.454l3.931 4.546h1.069v12c2 0 2-1.995 2-1.995v-11.357l-4.491-5.648z" fill="#fff"/></svg>
+\ No newline at end of file
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M21 14.2h-6.9s-1.6.1-1.6 1.6v11.7s0 1.6 1.6 1.6h8.7c1.6 0 1.6-1.6 1.6-1.6v-9c-.1-.1-3.4-4.4-3.4-4.3zm-1.3 1.5v3.9h3.1v7.9h-8.7V15.7h5.6zM24 11h-6.6s-1.6 0-1.6 1.6h6.3v.3l3 3.6h.8v9.3c1.6 0 1.6-1.6 1.6-1.6v-8.9c0 .1-3.5-4.3-3.5-4.3z" fill="#fff"/></svg>
+\ No newline at end of file
+merged
+  result 100644 a4359af4bf9c0292780516e46eff6b2ef5715c38 src/vs/workbench/parts/scm/electron-browser/media/icon-dark.svg
+  our    100644 2b8f14d282b162961d94d085415c7df3e8950aaa src/vs/workbench/parts/scm/electron-browser/media/icon-dark.svg
+@@ -1,12 +1 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<svg width="10px" height="16px" viewBox="0 0 10 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+-    <!-- Generator: Sketch 40.3 (33839) - http://www.bohemiancoding.com/sketch -->
+-    <title>repo-forked</title>
+-    <desc>Created with Sketch.</desc>
+-    <defs></defs>
+-    <g id="Octicons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+-        <g id="repo-forked" fill="#fff">
+-            <path d="M8,1 C6.89,1 6,1.89 6,3 C6,3.73 6.41,4.38 7,4.72 L7,6 L5,8 L3,6 L3,4.72 C3.59,4.38 4,3.74 4,3 C4,1.89 3.11,1 2,1 C0.89,1 0,1.89 0,3 C0,3.73 0.41,4.38 1,4.72 L1,6.5 L4,9.5 L4,11.28 C3.41,11.62 3,12.26 3,13 C3,14.11 3.89,15 5,15 C6.11,15 7,14.11 7,13 C7,12.27 6.59,11.62 6,11.28 L6,9.5 L9,6.5 L9,4.72 C9.59,4.38 10,3.74 10,3 C10,1.89 9.11,1 8,1 L8,1 Z M2,4.2 C1.34,4.2 0.8,3.65 0.8,3 C0.8,2.35 1.35,1.8 2,1.8 C2.65,1.8 3.2,2.35 3.2,3 C3.2,3.65 2.65,4.2 2,4.2 L2,4.2 Z M5,14.2 C4.34,14.2 3.8,13.65 3.8,13 C3.8,12.35 4.35,11.8 5,11.8 C5.65,11.8 6.2,12.35 6.2,13 C6.2,13.65 5.65,14.2 5,14.2 L5,14.2 Z M8,4.2 C7.34,4.2 6.8,3.65 6.8,3 C6.8,2.35 7.35,1.8 8,1.8 C8.65,1.8 9.2,2.35 9.2,3 C9.2,3.65 8.65,4.2 8,4.2 L8,4.2 Z" id="Shape"></path>
+-        </g>
+-    </g>
+-</svg>
+\ No newline at end of file
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M24.1 10.5c-1.5 0-2.7 1.2-2.7 2.7 0 .9.5 1.9 1.4 2.3v1.7L20 19.9l-2.7-2.7v-1.7c.8-.4 1.4-1.4 1.4-2.3 0-1.5-1.2-2.7-2.7-2.7-1.6 0-2.7 1.2-2.7 2.7 0 .9.5 1.9 1.4 2.3V18l4.1 4.1v2.4c-.8.4-1.4 1.4-1.4 2.3 0 1.5 1.2 2.7 2.7 2.7 1.6 0 2.7-1.2 2.7-2.7 0-.9-.5-1.9-1.4-2.3V22l4.1-4.1v-2.4c.8-.4 1.4-1.4 1.4-2.3-.2-1.5-1.3-2.7-2.8-2.7zm-8.2 4.3c-.8 0-1.6-.7-1.6-1.6 0-.8.7-1.6 1.6-1.6.8 0 1.6.7 1.6 1.6 0 .9-.6 1.6-1.6 1.6zM20 28.3c-.8 0-1.6-.7-1.6-1.6 0-.8.7-1.6 1.6-1.6.8 0 1.6.7 1.6 1.6 0 .9-.8 1.6-1.6 1.6zm4.1-13.5c-.8 0-1.6-.7-1.6-1.6 0-.8.6-1.7 1.6-1.7.8 0 1.6.7 1.6 1.6 0 .9-.8 1.7-1.6 1.7z" fill="#fff"/></svg>
+\ No newline at end of file
+changed in both
+  base   100644 f6e3ec0c18a34cfb173a9a0313b469b55777d98f src/vs/workbench/parts/scm/electron-browser/media/scmViewlet.css
+  our    100644 108bf404719559f73faa5505a09f2babbb1a04f8 src/vs/workbench/parts/scm/electron-browser/media/scmViewlet.css
+  their  100644 e631d80a073176fc2ed1f03abbe794824b417197 src/vs/workbench/parts/scm/electron-browser/media/scmViewlet.css
+@@ -5,7 +5,6 @@
+ 
+ .monaco-workbench > .activitybar > .content .monaco-action-bar .action-label.scm {
+ 	-webkit-mask: url('icon-dark.svg') no-repeat 50% 50%;
+-	-webkit-mask-size: 19px;
+ }
+ 
+ .monaco-workbench .viewlet.scm-viewlet .collapsible.header .actions {
+merged
+  result 100644 5f331c9a362bc9f019dcadfb7b5d8fb57bc1e21b src/vs/workbench/parts/search/electron-browser/media/search-dark.svg
+  our    100644 35bda969be727d7cc7ec97f7902d0b4608e12ad7 src/vs/workbench/parts/search/electron-browser/media/search-dark.svg
+@@ -1 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path d="M19.23 4.095c-4.842 0-8.769 3.928-8.769 8.771 0 1.781.539 3.43 1.449 4.815 0 0-5.482 5.455-7.102 7.102-1.621 1.646 1.001 4.071 2.602 2.409 1.602-1.659 7.006-7.005 7.006-7.005 1.384.911 3.035 1.45 4.814 1.45 4.845 0 8.772-3.93 8.772-8.771.001-4.844-3.927-8.771-8.772-8.771zm0 15.035c-3.459 0-6.265-2.804-6.265-6.264 0-3.46 2.805-6.265 6.265-6.265 3.462 0 6.266 2.804 6.266 6.265 0 3.46-2.804 6.264-6.266 6.264z" fill="#fff"/></svg>
+\ No newline at end of file
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M22.3 11c-3.7 0-6.7 3-6.7 6.7 0 1.4.5 2.6 1.1 3.7l-5.4 5.4c-1.2 1.2.8 3 2 1.8l5.3-5.3c1 .7 2.3 1.1 3.6 1.1 3.7 0 6.7-3 6.7-6.7C29 14 26 11 22.3 11zm0 11.5c-2.6 0-4.7-2.1-4.7-4.7s2.1-4.7 4.7-4.7 4.7 2.1 4.7 4.7-2.1 4.7-4.7 4.7z" fill="#fff"/></svg>
+\ No newline at end of file
+changed in both
+  base   100644 4e602f932a2a6b35b13311317f0f22efd8c5b98f src/vs/workbench/parts/update/electron-browser/media/update.contribution.css
+  our    100644 54537cdcfa7fcc9af764bd371cd6d8c125e9abc3 src/vs/workbench/parts/update/electron-browser/media/update.contribution.css
+  their  100644 51357eda7eea98700f88593bdb11a676efd56545 src/vs/workbench/parts/update/electron-browser/media/update.contribution.css
+@@ -5,5 +5,4 @@
+ 
+ .update-activity {
+ 	-webkit-mask: url('update.svg') no-repeat 50% 50%;
+-	-webkit-mask-size: 22px;
+ }
+merged
+  result 100644 42a081a2c3aba37c24c6ce5d2bd4aa92d26cf80f src/vs/workbench/parts/update/electron-browser/media/update.svg
+  our    100644 c97bb48bdcc535015e00a5f3cd2112edd7ca34f8 src/vs/workbench/parts/update/electron-browser/media/update.svg
+@@ -1 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><defs><style>.icon-canvas-transparent,.icon-vs-out{fill:#f6f6f6;}.icon-canvas-transparent{opacity:0;}.icon-vs-bg{fill:#424242;}</style></defs><title>configure</title><g id="canvas"><path class="icon-canvas-transparent" d="M16,0V16H0V0Z"/></g><g id="outline" style="display: none;"><path class="icon-vs-out" d="M16,10.015l-2.238.372,1.318,1.847L12.233,15.08l-1.847-1.318L10.013,16H5.986l-.373-2.237L3.767,15.08.919,12.233l1.319-1.847L0,10.013V5.986l2.238-.373L.919,3.767,3.768.919,5.613,2.238,5.986,0h4.028l.372,2.238L12.233.919,15.08,3.768,13.762,5.613,16,5.986Z"/></g><g id="iconBg"><path class="icon-vs-bg" d="M12.876,9.521,15,9.167V6.834L12.879,6.48a5.12,5.12,0,0,0-.354-.854l1.25-1.75-1.65-1.65L10.373,3.477c-.137-.072-.262-.159-.408-.219s-.3-.087-.444-.133L9.167,1H6.834L6.48,3.121a5.118,5.118,0,0,0-.854.354l-1.75-1.25-1.65,1.65L3.477,5.627c-.072.137-.159.262-.219.408s-.087.3-.133.444L1,6.833V9.166l2.121.354a5.122,5.122,0,0,0,.354.854l-1.25,1.75,1.65,1.65,1.752-1.252c.137.072.262.159.408.22s.3.087.444.133L6.833,15H9.166l.354-2.121a5.121,5.121,0,0,0,.854-.354l1.75,1.25,1.65-1.65-1.252-1.752c.072-.137.159-.263.219-.409S12.83,9.669,12.876,9.521ZM8,10.212A2.212,2.212,0,1,1,10.212,8,2.212,2.212,0,0,1,8,10.212Z"/></g></svg>
+\ No newline at end of file
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 38"><style>.st0{fill:#f6f6f6;fill-opacity:0}.st1{display:none}.st2{display:inline;fill:#f6f6f6}.st3{fill:#424242}</style><title>configure</title><path class="st0" d="M27 11v16H11V11h16z" id="canvas"/><g id="outline" class="st1" style="display: none;"><path class="st2" d="M27 21l-2.2.4 1.3 1.8-2.8 2.8-1.8-1.3L21 27h-4l-.4-2.2-1.8 1.3-2.8-2.8 1.3-1.8L11 21v-4l2.2-.4-1.3-1.8 2.8-2.8 1.8 1.3.5-2.3h4l.4 2.2 1.8-1.3 2.8 2.8-1.3 1.8 2.3.5v4z"/></g><path class="st3" d="M24.6 20.7l2.4-.4v-2.7l-2.4-.4c-.1-.3-.2-.7-.4-1l1.4-2-1.9-1.9-2 1.4c-.2-.1-.3-.2-.5-.3-.2-.1-.3-.1-.5-.2l-.4-2.2h-2.7l-.4 2.4c-.3.1-.7.2-1 .4l-2-1.4-1.9 1.9 1.4 2c-.1.2-.2.3-.3.5-.1.2-.1.3-.2.5l-2.2.4v2.7l2.4.4c.1.3.2.7.4 1l-1.4 2 1.9 1.9 2-1.4c.2.1.3.2.5.3.2.1.3.1.5.2l.4 2.4h2.7l.4-2.4c.3-.1.7-.2 1-.4l2 1.4 1.9-1.9-1.4-2c.1-.2.2-.3.3-.5-.1-.3-.1-.5 0-.7zm-5.6.8c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" id="iconBg"/></svg>
+\ No newline at end of file

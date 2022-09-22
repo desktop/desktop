@@ -11,9 +11,64 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
-import { getAvatarWithEnterpriseFallback } from './gravatar'
+import username from 'username'
+import { GitProtocol } from './remote-parsing'
+import { Emitter } from 'event-kit'
+import JSZip from 'jszip'
+import { updateEndpointVersion } from './endpoint-capabilities'
 
-const username: () => Promise<string> = require('username')
+const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
+const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
+const envAdditionalCookies =
+  process.env['DESKTOP_GITHUB_DOTCOM_ADDITIONAL_COOKIES']
+
+if (envAdditionalCookies !== undefined) {
+  document.cookie += '; ' + envAdditionalCookies
+}
+
+/**
+ * Optional set of configurable settings for the fetchAll method
+ */
+interface IFetchAllOptions<T> {
+  /**
+   * The number of results to ask for on each page when making
+   * requests to paged API endpoints.
+   */
+  perPage?: number
+
+  /**
+   * An optional predicate which determines whether or not to
+   * continue loading results from the API. This can be used
+   * to put a limit on the number of results to return from
+   * a paged API resource.
+   *
+   * As an example, to stop loading results after 500 results:
+   *
+   * `(results) => results.length < 500`
+   *
+   * @param results  All results retrieved thus far
+   */
+  continue?: (results: ReadonlyArray<T>) => boolean
+
+  /**
+   * Calculate the next page path given the response.
+   *
+   * Optional, see `getNextPagePathFromLink` for the default
+   * implementation.
+   */
+  getNextPagePath?: (response: Response) => string | null
+
+  /**
+   * Whether or not to silently suppress request errors and
+   * return the results retrieved thus far. If this field is
+   * `true` the fetchAll method will suppress errors (this is
+   * also the default behavior if no value is provided for
+   * this field). Setting this field to false will cause the
+   * fetchAll method to throw if it encounters an API error
+   * on any page.
+   */
+  suppressErrors?: boolean
+}
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
@@ -24,8 +79,10 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
-/** The OAuth scopes we need. */
-const Scopes = ['repo', 'user']
+export type GitHubAccountType = 'User' | 'Organization'
+
+/** The OAuth scopes we want to request */
+const oauthScopes = ['repo', 'user', 'workflow']
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -40,13 +97,73 @@ const NoteURL = 'https://desktop.github.com/'
  */
 export interface IAPIRepository {
   readonly clone_url: string
+  readonly ssh_url: string
   readonly html_url: string
   readonly name: string
-  readonly owner: IAPIUser
+  readonly owner: IAPIIdentity
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
-  readonly parent: IAPIRepository | null
+  readonly pushed_at: string
+  readonly has_issues: boolean
+  readonly archived: boolean
+}
+
+/** Information needed to clone a repository. */
+export interface IAPIRepositoryCloneInfo {
+  /** Canonical clone URL of the repository. */
+  readonly url: string
+
+  /**
+   * Default branch of the repository, if any. This is usually either retrieved
+   * from the API for GitHub repositories, or undefined for other repositories.
+   */
+  readonly defaultBranch?: string
+}
+
+export interface IAPIFullRepository extends IAPIRepository {
+  /**
+   * The parent repository of a fork.
+   *
+   * HACK: BEWARE: This is defined as `parent: IAPIRepository | undefined`
+   * rather than `parent?: ...` even though the parent property is actually
+   * optional in the API response. So we're lying a bit to the type system
+   * here saying that this will be present but the only time the difference
+   * between omission and explicit undefined matters is when using constructs
+   * like `x in y` or `y.hasOwnProperty('x')` which we do very rarely.
+   *
+   * Without at least one non-optional type in this interface TypeScript will
+   * happily let us pass an IAPIRepository in place of an IAPIFullRepository.
+   */
+  readonly parent: IAPIRepository | undefined
+
+  /**
+   * The high-level permissions that the currently authenticated
+   * user enjoys for the repository. Undefined if the API call
+   * was made without an authenticated user or if the repository
+   * isn't the primarily requested one (i.e. if this is the parent
+   * repository of the requested repository)
+   *
+   * The permissions hash will also be omitted when the repository
+   * information is embedded within another object such as a pull
+   * request (base.repo or head.repo).
+   *
+   * In other words, the only time when the permissions property
+   * will be present is when explicitly fetching the repository
+   * through the `/repos/user/name` endpoint or similar.
+   */
+  readonly permissions?: IAPIRepositoryPermissions
+}
+
+/*
+ * Information about how the user is permitted to interact with a repository.
+ */
+export interface IAPIRepositoryPermissions {
+  readonly admin: boolean
+  /* aka 'write' */
+  readonly push: boolean
+  /* aka 'read' */
+  readonly pull: boolean
 }
 
 /**
@@ -54,15 +171,44 @@ export interface IAPIRepository {
  */
 export interface IAPICommit {
   readonly sha: string
-  readonly author: IAPIUser | null
+  readonly author: IAPIIdentity | {} | null
 }
 
 /**
- * Information about a user as returned by the GitHub API.
+ * Entity returned by the `/user/orgs` endpoint.
+ *
+ * Because this is specific to one endpoint it omits the `type` member from
+ * `IAPIIdentity` that callers might expect.
  */
-export interface IAPIUser {
+export interface IAPIOrganization {
   readonly id: number
   readonly url: string
+  readonly login: string
+  readonly avatar_url: string
+}
+
+/**
+ * Minimum subset of an identity returned by the GitHub API
+ */
+export interface IAPIIdentity {
+  readonly id: number
+  readonly login: string
+  readonly avatar_url: string
+  readonly html_url: string
+  readonly type: GitHubAccountType
+}
+
+/**
+ * Complete identity details returned in some situations by the GitHub API.
+ *
+ * If you are not sure what is returned as part of an API response, you should
+ * use `IAPIIdentity` as that contains the known subset of an identity and does
+ * not cover scenarios where privacy settings of a user control what information
+ * is returned.
+ */
+interface IAPIFullIdentity {
+  readonly id: number
+  readonly html_url: string
   readonly login: string
   readonly avatar_url: string
 
@@ -77,23 +223,41 @@ export interface IAPIUser {
    * specified a public email address in their profile.
    */
   readonly email: string | null
-  readonly type: 'User' | 'Organization'
+  readonly type: GitHubAccountType
 }
 
 /** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {
+  /**
+   * A url to an avatar image chosen by the user
+   */
   readonly avatar_url: string
 
   /**
-   * Note that this may be an empty string *or* null in the case where the user
-   * has no public email address.
+   * The user's attributable email address or null if the
+   * user doesn't have an email address that they can be
+   * attributed by
    */
   readonly email: string | null
 
+  /**
+   * The username or "handle" of the user
+   */
   readonly login: string
 
-  readonly name: string
+  /**
+   * The user's real name (or at least the name that the user
+   * has configured to be shown) or null if the user hasn't provided
+   * a real name for their public profile.
+   */
+  readonly name: string | null
 }
+
+/**
+ * Error thrown by `fetchUpdatedPullRequests` when receiving more results than
+ * what the `maxResults` parameter allows for.
+ */
+export class MaxResultsError extends Error {}
 
 /**
  * `null` can be returned by the API for legacy reasons. A non-null value is
@@ -121,7 +285,26 @@ export interface IAPIIssue {
 }
 
 /** The combined state of a ref. */
-export type APIRefState = 'failure' | 'pending' | 'success'
+export type APIRefState = 'failure' | 'pending' | 'success' | 'error'
+
+/** The overall status of a check run */
+export enum APICheckStatus {
+  Queued = 'queued',
+  InProgress = 'in_progress',
+  Completed = 'completed',
+}
+
+/** The conclusion of a completed check run */
+export enum APICheckConclusion {
+  ActionRequired = 'action_required',
+  Canceled = 'cancelled',
+  TimedOut = 'timed_out',
+  Failure = 'failure',
+  Neutral = 'neutral',
+  Success = 'success',
+  Skipped = 'skipped',
+  Stale = 'stale',
+}
 
 /**
  * The API response for a combined view of a commit
@@ -129,17 +312,160 @@ export type APIRefState = 'failure' | 'pending' | 'success'
  */
 export interface IAPIRefStatusItem {
   readonly state: APIRefState
-  readonly target_url: string
+  readonly target_url: string | null
   readonly description: string
   readonly context: string
   readonly id: number
 }
 
 /** The API response to a ref status request. */
-interface IAPIRefStatus {
+export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+}
+
+export interface IAPIRefCheckRun {
+  readonly id: number
+  readonly url: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly name: string
+  readonly check_suite: IAPIRefCheckRunCheckSuite
+  readonly app: IAPIRefCheckRunApp
+  readonly completed_at: string
+  readonly started_at: string
+  readonly html_url: string
+  readonly pull_requests: ReadonlyArray<IAPIPullRequest>
+}
+
+// NB. Only partially mapped
+export interface IAPIRefCheckRunApp {
+  readonly name: string
+}
+
+// NB. Only partially mapped
+export interface IAPIRefCheckRunOutput {
+  readonly title: string | null
+  readonly summary: string | null
+  readonly text: string | null
+}
+
+export interface IAPIRefCheckRunCheckSuite {
+  readonly id: number
+}
+
+export interface IAPICheckSuite {
+  readonly id: number
+  readonly rerequestable: boolean
+  readonly runs_rerequestable: boolean
+  readonly status: APICheckStatus
+  readonly created_at: string
+}
+
+export interface IAPIRefCheckRuns {
+  readonly total_count: number
+  readonly check_runs: IAPIRefCheckRun[]
+}
+
+interface IAPIWorkflowRuns {
+  readonly total_count: number
+  readonly workflow_runs: ReadonlyArray<IAPIWorkflowRun>
+}
+// NB. Only partially mapped
+export interface IAPIWorkflowRun {
+  readonly id: number
+  /**
+   * The workflow_id is the id of the workflow not the individual run.
+   **/
+  readonly workflow_id: number
+  readonly cancel_url: string
+  readonly created_at: string
+  readonly logs_url: string
+  readonly name: string
+  readonly rerun_url: string
+  readonly check_suite_id: number
+  readonly event: string
+}
+
+export interface IAPIWorkflowJobs {
+  readonly total_count: number
+  readonly jobs: IAPIWorkflowJob[]
+}
+
+// NB. Only partially mapped
+export interface IAPIWorkflowJob {
+  readonly id: number
+  readonly name: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
+  readonly html_url: string
+}
+
+export interface IAPIWorkflowJobStep {
+  readonly name: string
+  readonly number: number
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly log: string
+}
+
+/** Protected branch information returned by the GitHub API */
+export interface IAPIPushControl {
+  /**
+   * What status checks are required before merging?
+   *
+   * Empty array if user is admin and branch is not admin-enforced
+   */
+  required_status_checks: Array<string>
+
+  /**
+   * How many reviews are required before merging?
+   *
+   * 0 if user is admin and branch is not admin-enforced
+   */
+  required_approving_review_count: number
+
+  /**
+   * Is user permitted?
+   *
+   * Always `true` for admins.
+   * `true` if `Restrict who can push` is not enabled.
+   * `true` if `Restrict who can push` is enabled and user is in list.
+   * `false` if `Restrict who can push` is enabled and user is not in list.
+   */
+  allow_actor: boolean
+
+  /**
+   * Currently unused properties
+   */
+  pattern: string | null
+  required_signatures: boolean
+  required_linear_history: boolean
+  allow_deletions: boolean
+  allow_force_pushes: boolean
+}
+
+/** Branch information returned by the GitHub API */
+export interface IAPIBranch {
+  /**
+   * The name of the branch stored on the remote.
+   *
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/main`)
+   */
+  readonly name: string
+  /**
+   * Branch protection settings:
+   *
+   *  - `true` indicates that the branch is protected in some way
+   *  - `false` indicates no branch protection set
+   */
+  readonly protected: boolean
 }
 
 interface IAPIPullRequestRef {
@@ -158,9 +484,28 @@ export interface IAPIPullRequest {
   readonly number: number
   readonly title: string
   readonly created_at: string
-  readonly user: IAPIUser
+  readonly updated_at: string
+  readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
+  readonly body: string
+  readonly state: 'open' | 'closed'
+  readonly draft?: boolean
+}
+
+/** Information about a pull request review as returned by the GitHub API. */
+export interface IAPIPullRequestReview {
+  readonly id: number
+  readonly user: IAPIIdentity
+  readonly body: string
+  readonly html_url: string
+  readonly submitted_at: string
+  readonly state:
+    | 'APPROVED'
+    | 'DISMISSED'
+    | 'PENDING'
+    | 'COMMENTED'
+    | 'CHANGES_REQUESTED'
 }
 
 /** The metadata about a GitHub server. */
@@ -186,13 +531,8 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string | null
+  readonly etag: string | undefined
   readonly users: ReadonlyArray<IAPIMentionableUser>
-}
-
-/** The response for search results. */
-interface ISearchResults<T> {
-  readonly items: ReadonlyArray<T>
 }
 
 /**
@@ -201,7 +541,7 @@ interface ISearchResults<T> {
  *
  * If no link rel next header is found this method returns null.
  */
-function getNextPagePath(response: Response): string | null {
+function getNextPagePathFromLink(response: Response): string | null {
   const linkHeader = response.headers.get('Link')
 
   if (!linkHeader) {
@@ -222,6 +562,91 @@ function getNextPagePath(response: Response): string | null {
 }
 
 /**
+ * Parses the 'next' Link header from GitHub using
+ * `getNextPagePathFromLink`. Unlike `getNextPagePathFromLink`
+ * this method will attempt to double the page size when
+ * the current page index and the page size allows for it
+ * leading to a ramp up in page size.
+ *
+ * This might sound confusing, and it is, but the primary use
+ * case for this is when retrieving updated PRs. By specifying
+ * an initial page size of, for example, 10 this method will
+ * increase the page size to 20 once the second page has been
+ * loaded. See the table below for an example. The ramp-up
+ * will stop at a page size of 100 since that's the maximum
+ * that the GitHub API supports.
+ *
+ * ```
+ * |-----------|------|-----------|-----------------|
+ * | Request # | Page | Page size | Retrieved items |
+ * |-----------|------|-----------|-----------------|
+ * | 1         | 1    | 10        | 10              |
+ * | 2         | 2    | 10        | 20              |
+ * | 3         | 2    | 20        | 40              |
+ * | 4         | 2    | 40        | 80              |
+ * | 5         | 2    | 80        | 160             |
+ * | 6         | 3    | 80        | 240             |
+ * | 7         | 4    | 80        | 320             |
+ * | 8         | 5    | 80        | 400             |
+ * | 9         | 5    | 100       | 500             |
+ * |-----------|------|-----------|-----------------|
+ * ```
+ * This algorithm means we can have the best of both worlds.
+ * If there's a small number of changed pull requests since
+ * our last update we'll do small requests that use minimal
+ * bandwidth but if we encounter a repository where a lot
+ * of PRs have changed since our last fetch (like a very
+ * active repository or one we haven't fetched in a long time)
+ * we'll spool up our page size in just a few requests and load
+ * in bulk.
+ *
+ * As an example I used a very active internal repository and
+ * asked for all PRs updated in the last 24 hours which was 320.
+ * With the previous regime of fetching with a page size of 10
+ * that obviously took 32 requests. With this new regime it
+ * would take 7.
+ */
+export function getNextPagePathWithIncreasingPageSize(response: Response) {
+  const nextPath = getNextPagePathFromLink(response)
+
+  if (!nextPath) {
+    return null
+  }
+
+  const { pathname, query } = URL.parse(nextPath, true)
+  const { per_page, page } = query
+
+  const pageSize = typeof per_page === 'string' ? parseInt(per_page, 10) : NaN
+  const pageNumber = typeof page === 'string' ? parseInt(page, 10) : NaN
+
+  if (!pageSize || !pageNumber) {
+    return nextPath
+  }
+
+  // Confusing, but we're looking at the _next_ page path here
+  // so the current is whatever came before it.
+  const currentPage = pageNumber - 1
+
+  // Number of received items thus far
+  const received = currentPage * pageSize
+
+  // Can't go above 100, that's the max the API will allow.
+  const nextPageSize = Math.min(100, pageSize * 2)
+
+  // Have we received exactly the amount of items
+  // such that doubling the page size and loading the
+  // second page would seamlessly fit? No sense going
+  // above 100 since that's the max the API supports
+  if (pageSize !== nextPageSize && received % nextPageSize === 0) {
+    query.per_page = `${nextPageSize}`
+    query.page = `${received / nextPageSize + 1}`
+    return URL.format({ pathname, query })
+  }
+
+  return nextPath
+}
+
+/**
  * Returns an ISO 8601 time string with second resolution instead of
  * the standard javascript toISOString which returns millisecond
  * resolution. The GitHub API doesn't return dates with milliseconds
@@ -231,28 +656,38 @@ function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
-interface IUserWithTokenScopes {
-  /**
-   * The details associated with the current user
-   */
-  readonly user: IAPIUser
-  /**
-   * The list of scopes assigned to the current token
-   */
-  readonly scopes: ReadonlyArray<string>
+interface IAPIAliveSignedChannel {
+  readonly channel_name: string
+  readonly signed_channel: string
+}
+
+interface IAPIAliveWebSocket {
+  readonly url: string
 }
 
 /**
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private endpoint: string
-  private token: string
+  private static readonly TOKEN_INVALIDATED_EVENT = 'token-invalidated'
+
+  private static readonly emitter = new Emitter()
+
+  public static onTokenInvalidated(callback: (endpoint: string) => void) {
+    API.emitter.on(API.TOKEN_INVALIDATED_EVENT, callback)
+  }
+
+  private static emitTokenInvalidated(endpoint: string) {
+    API.emitter.emit(API.TOKEN_INVALIDATED_EVENT, endpoint)
+  }
 
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
   }
+
+  private endpoint: string
+  private token: string
 
   /** Create a new API client for the endpoint, authenticated with the token. */
   public constructor(endpoint: string, token: string) {
@@ -260,48 +695,129 @@ export class API {
     this.token = token
   }
 
+  /**
+   * Retrieves the name of the Alive channel used by Desktop to receive
+   * high-signal notifications.
+   */
+  public async getAliveDesktopChannel(): Promise<IAPIAliveSignedChannel | null> {
+    try {
+      const res = await this.request('GET', '/desktop_internal/alive-channel')
+      const signedChannel = await parsedResponse<IAPIAliveSignedChannel>(res)
+      return signedChannel
+    } catch (e) {
+      log.warn(`Alive channel request failed: ${e}`)
+      return null
+    }
+  }
+
+  /**
+   * Retrieves the URL for the Alive websocket.
+   *
+   * @returns The websocket URL if the request succeeded, null if the request
+   * failed with 404, otherwise it will throw an error.
+   *
+   * This behavior is expected by the AliveSession class constructor, to prevent
+   * it from hitting the endpoint many times if it's disabled.
+   */
+  public async getAliveWebSocketURL(): Promise<string | null> {
+    try {
+      const res = await this.request('GET', '/alive_internal/websocket-url')
+      if (res.status === HttpStatusCode.NotFound) {
+        return null
+      }
+      const websocket = await parsedResponse<IAPIAliveWebSocket>(res)
+      return websocket.url
+    } catch (e) {
+      log.warn(`Alive web socket request failed: ${e}`)
+      throw e
+    }
+  }
+
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(
     owner: string,
     name: string
-  ): Promise<IAPIRepository | null> {
+  ): Promise<IAPIFullRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
         return null
       }
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
     }
   }
 
+  /**
+   * Fetch info needed to clone a repository. That includes:
+   *  - The canonical clone URL for a repository, respecting the protocol
+   *    preference if provided.
+   *  - The default branch of the repository, in case the repository is empty.
+   *    Only available for GitHub repositories.
+   *
+   * Returns null if the request returned a 404 (NotFound). NotFound doesn't
+   * necessarily mean that the repository doesn't exist, it could exist and
+   * the current user just doesn't have the permissions to see it. GitHub.com
+   * doesn't differentiate between not found and permission denied for private
+   * repositories as that would leak the existence of a private repository.
+   *
+   * Note that unlike `fetchRepository` this method will throw for all errors
+   * except 404 NotFound responses.
+   *
+   * @param owner    The repository owner (nodejs in https://github.com/nodejs/node)
+   * @param name     The repository name (node in https://github.com/nodejs/node)
+   * @param protocol The preferred Git protocol (https or ssh)
+   */
+  public async fetchRepositoryCloneInfo(
+    owner: string,
+    name: string,
+    protocol: GitProtocol | undefined
+  ): Promise<IAPIRepositoryCloneInfo | null> {
+    const response = await this.request('GET', `repos/${owner}/${name}`, {
+      // Make sure we don't run into cache issues when fetching the repositories,
+      // specially after repositories have been renamed.
+      reloadCache: true,
+    })
+
+    if (response.status === HttpStatusCode.NotFound) {
+      return null
+    }
+
+    const repo = await parsedResponse<IAPIRepository>(response)
+    return {
+      url: protocol === 'ssh' ? repo.ssh_url : repo.clone_url,
+      defaultBranch: repo.default_branch,
+    }
+  }
+
   /** Fetch all repos a user has access to. */
-  public async fetchRepositories(): Promise<ReadonlyArray<
-    IAPIRepository
-  > | null> {
+  public async fetchRepositories(): Promise<ReadonlyArray<IAPIRepository> | null> {
     try {
-      return await this.fetchAll<IAPIRepository>('user/repos')
+      const repositories = await this.fetchAll<IAPIRepository>('user/repos')
+      // "But wait, repositories can't have a null owner" you say.
+      // Ordinarily you'd be correct but turns out there's super
+      // rare circumstances where a user has been deleted but the
+      // repository hasn't. Such cases are usually addressed swiftly
+      // but in some cases like GitHub Enterprise instances
+      // they can linger for longer than we'd like so we'll make
+      // sure to exclude any such dangling repository, chances are
+      // they won't be cloneable anyway.
+      return repositories.filter(x => x.owner !== null)
     } catch (error) {
       log.warn(`fetchRepositories: ${error}`)
       return null
     }
   }
 
-  /** Fetch the logged in account and the current scopes associated with the token. */
-  public async fetchAccount(): Promise<IUserWithTokenScopes> {
+  /** Fetch the logged in account. */
+  public async fetchAccount(): Promise<IAPIFullIdentity> {
     try {
       const response = await this.request('GET', 'user')
-      const user = await parsedResponse<IAPIUser>(response)
-      const scopeHeader = response.headers.get('X-OAuth-Scopes')
-      const scopes =
-        scopeHeader == null
-          ? []
-          : scopeHeader.split(',').map(scope => scope.trim())
-
-      return { user, scopes }
+      const result = await parsedResponse<IAPIFullIdentity>(response)
+      return result
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
       throw e
@@ -321,51 +837,10 @@ export class API {
     }
   }
 
-  /** Fetch a commit from the repository. */
-  public async fetchCommit(
-    owner: string,
-    name: string,
-    sha: string
-  ): Promise<IAPICommit | null> {
-    try {
-      const path = `repos/${owner}/${name}/commits/${sha}`
-      const response = await this.request('GET', path)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchCommit: '${path}' returned a 404`)
-        return null
-      }
-      return parsedResponse<IAPICommit>(response)
-    } catch (e) {
-      log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
-      return null
-    }
-  }
-
-  /** Search for a user with the given public email. */
-  public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
-    try {
-      const params = { q: `${email} in:email type:user` }
-      const url = urlWithQueryString('search/users', params)
-      const response = await this.request('GET', url)
-      const result = await parsedResponse<ISearchResults<IAPIUser>>(response)
-      const items = result.items
-      if (items.length) {
-        // The results are sorted by score, best to worst. So the first result
-        // is our best match.
-        return items[0]
-      } else {
-        return null
-      }
-    } catch (e) {
-      log.warn(`searchForUserWithEmail: not found '${email}'`, e)
-      return null
-    }
-  }
-
   /** Fetch all the orgs to which the user belongs. */
-  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
+  public async fetchOrgs(): Promise<ReadonlyArray<IAPIOrganization>> {
     try {
-      return this.fetchAll<IAPIUser>('user/orgs')
+      return await this.fetchAll<IAPIOrganization>('user/orgs')
     } catch (e) {
       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
@@ -374,22 +849,29 @@ export class API {
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(
-    org: IAPIUser | null,
+    org: IAPIOrganization | null,
     name: string,
     description: string,
     private_: boolean
-  ): Promise<IAPIRepository> {
+  ): Promise<IAPIFullRepository> {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
       const response = await this.request('POST', apiPath, {
-        name,
-        description,
-        private: private_,
+        body: {
+          name,
+          description,
+          private: private_,
+        },
       })
 
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       if (e instanceof APIError) {
+        if (org !== null) {
+          throw new Error(
+            `Unable to create repository for organization '${org.login}'. Verify that the repository does not already exist and that you have permission to create a repository there.`
+          )
+        }
         throw e
       }
 
@@ -397,6 +879,24 @@ export class API {
       throw new Error(
         `Unable to publish repository. Please check if you have an internet connection and try again.`
       )
+    }
+  }
+
+  /** Create a new GitHub fork of this repository (owner and name) */
+  public async forkRepository(
+    owner: string,
+    name: string
+  ): Promise<IAPIFullRepository> {
+    try {
+      const apiPath = `/repos/${owner}/${name}/forks`
+      const response = await this.request('POST', apiPath)
+      return await parsedResponse<IAPIFullRepository>(response)
+    } catch (e) {
+      log.error(
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${this.endpoint}`,
+        e
+      )
+      throw e
     }
   }
 
@@ -429,39 +929,429 @@ export class API {
     }
   }
 
-  /** Fetch the pull requests in the given repository. */
-  public async fetchPullRequests(
-    owner: string,
-    name: string,
-    state: 'open' | 'closed' | 'all'
-  ): Promise<ReadonlyArray<IAPIPullRequest>> {
-    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+  /** Fetch all open pull requests in the given repository. */
+  public async fetchAllOpenPullRequests(owner: string, name: string) {
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
+      state: 'open',
+    })
     try {
-      const prs = await this.fetchAll<IAPIPullRequest>(url)
-      return prs
+      return await this.fetchAll<IAPIPullRequest>(url)
     } catch (e) {
-      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      log.warn(`failed fetching open PRs for repository ${owner}/${name}`, e)
       throw e
     }
   }
 
-  /** Get the combined status for the given ref. */
+  /**
+   * Fetch all pull requests in the given repository that have been
+   * updated on or after the provided date.
+   *
+   * Note: The GitHub API doesn't support providing a last-updated
+   * limitation for PRs like it does for issues so we're emulating
+   * the issues API by sorting PRs descending by last updated and
+   * only grab as many pages as we need to until we no longer receive
+   * PRs that have been update more recently than the `since`
+   * parameter.
+   *
+   * If there's more than `maxResults` updated PRs since the last time
+   * we fetched this method will throw an error such that we can abort
+   * this strategy and commence loading all open PRs instead.
+   */
+  public async fetchUpdatedPullRequests(
+    owner: string,
+    name: string,
+    since: Date,
+    // 320 is chosen because with a ramp-up page size starting with
+    // a page size of 10 we'll reach 320 in exactly 7 pages. See
+    // getNextPagePathWithIncreasingPageSize
+    maxResults = 320
+  ) {
+    const sinceTime = since.getTime()
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
+      state: 'all',
+      sort: 'updated',
+      direction: 'desc',
+    })
+
+    try {
+      const prs = await this.fetchAll<IAPIPullRequest>(url, {
+        // We use a page size smaller than our default 100 here because we
+        // expect that the majority use case will return much less than
+        // 100 results. Given that as long as _any_ PR has changed we'll
+        // get the full list back (PRs doesn't support ?since=) we want
+        // to keep this number fairly conservative in order to not use
+        // up bandwidth needlessly while balancing it such that we don't
+        // have to use a lot of requests to update our database. We then
+        // ramp up the page size (see getNextPagePathWithIncreasingPageSize)
+        // if it turns out there's a lot of updated PRs.
+        perPage: 10,
+        getNextPagePath: getNextPagePathWithIncreasingPageSize,
+        continue(results) {
+          if (results.length >= maxResults) {
+            throw new MaxResultsError('got max pull requests, aborting')
+          }
+
+          // Given that we sort the results in descending order by their
+          // updated_at field we can safely say that if the last item
+          // is modified after our sinceTime then haven't reached the
+          // end of updated PRs.
+          const last = results.at(-1)
+          return last !== undefined && Date.parse(last.updated_at) > sinceTime
+        },
+        // We can't ignore errors here as that might mean that we haven't
+        // retrieved enough pages to fully capture the changes since the
+        // last time we updated. Ignoring errors here would mean that we'd
+        // store an incorrect lastUpdated field in the database.
+        suppressErrors: false,
+      })
+      return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
+    } catch (e) {
+      log.warn(`failed fetching updated PRs for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /**
+   * Fetch a single pull request in the given repository
+   */
+  public async fetchPullRequest(owner: string, name: string, prNumber: string) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequest>(response)
+    } catch (e) {
+      log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
+      throw e
+    }
+  }
+
+  /**
+   * Fetch a single pull request review in the given repository
+   */
+  public async fetchPullRequestReview(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR review ${reviewId} for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return null
+    }
+  }
+
+  /**
+   * Get the combined status for the given ref.
+   */
   public async fetchCombinedRefStatus(
     owner: string,
     name: string,
     ref: string
-  ): Promise<IAPIRefStatus> {
-    const path = `repos/${owner}/${name}/commits/${ref}/status`
+  ): Promise<IAPIRefStatus | null> {
+    const safeRef = encodeURIComponent(ref)
+    const path = `repos/${owner}/${name}/commits/${safeRef}/status?per_page=100`
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPIRefStatus>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching check runs for ref ${ref} (${owner}/${name})`,
+        err
+      )
+      return null
+    }
+  }
+
+  /**
+   * Get any check run results for the given ref.
+   */
+  public async fetchRefCheckRuns(
+    owner: string,
+    name: string,
+    ref: string
+  ): Promise<IAPIRefCheckRuns | null> {
+    const safeRef = encodeURIComponent(ref)
+    const path = `repos/${owner}/${name}/commits/${safeRef}/check-runs?per_page=100`
+    const headers = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+
+    const response = await this.request('GET', path, { customHeaders: headers })
+
+    try {
+      return await parsedResponse<IAPIRefCheckRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching check runs for ref ${ref} (${owner}/${name})`,
+        err
+      )
+      return null
+    }
+  }
+
+  /**
+   * List workflow runs for a repository filtered by branch and event type of
+   * pull_request
+   */
+  public async fetchPRWorkflowRunsByBranchName(
+    owner: string,
+    name: string,
+    branchName: string
+  ): Promise<IAPIWorkflowRuns | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${encodeURIComponent(
+      branchName
+    )}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      return await parsedResponse<IAPIWorkflowRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Return the workflow run for a given check_suite_id.
+   *
+   * A check suite is a reference for a set check runs.
+   * A workflow run is a reference for set a of workflows for the GitHub Actions
+   * check runner.
+   *
+   * If a check suite is comprised of check runs ran by actions, there will be
+   * one workflow run that represents that check suite. Thus, if this api should
+   * either return an empty array indicating there are no actions runs for that
+   * check_suite_id (so check suite was not ran by actions) or an array with a
+   * single element.
+   */
+  public async fetchPRActionWorkflowRunByCheckSuiteId(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPIWorkflowRun | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&check_suite_id=${checkSuiteId}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      const apiWorkflowRuns = await parsedResponse<IAPIWorkflowRuns>(response)
+
+      if (apiWorkflowRuns.workflow_runs.length > 0) {
+        return apiWorkflowRuns.workflow_runs[0]
+      }
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * List workflow run jobs for a given workflow run
+   */
+  public async fetchWorkflowRunJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<IAPIWorkflowJobs | null> {
+    const path = `repos/${owner}/${name}/actions/runs/${workflowRunId}/jobs`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, {
+      customHeaders,
+    })
+    try {
+      return await parsedResponse<IAPIWorkflowJobs>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Get JSZip for a workflow run log archive.
+   *
+   * If it fails to retrieve or parse the zip file, it will return null.
+   */
+  public async fetchWorkflowRunJobLogs(logsUrl: string): Promise<JSZip | null> {
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', logsUrl, {
+      customHeaders,
+    })
+
+    try {
+      const zipBlob = await response.blob()
+      return new JSZip().loadAsync(zipBlob)
+    } catch (e) {
+      // Sometimes a workflow provides a log url, but still returns a 404
+      // because a log file doesn't make sense for the workflow. Thus, we just
+      // want to fail without raising an error.
+    }
+
+    return null
+  }
+
+  /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Re-run all of the failed jobs and their dependent jobs in a workflow run
+   * using the id of the workflow run.
+   */
+  public async rerunFailedJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/runs/${workflowRunId}/rerun-failed-jobs`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Re-run a job and its dependent jobs in a workflow run.
+   */
+  public async rerunJob(
+    owner: string,
+    name: string,
+    jobId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/jobs/${jobId}/rerun`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun workflow job (${owner}/${name}): ${jobId}`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}`
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPICheckSuite>(response)
+    } catch (_) {
+      log.debug(
+        `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return null
+  }
+
+  /**
+   * Get branch protection info to determine if a user can push to a given branch.
+   *
+   * Note: if request fails, the default returned value assumes full access for the user
+   */
+  public async fetchPushControl(
+    owner: string,
+    name: string,
+    branch: string
+  ): Promise<IAPIPushControl> {
+    const path = `repos/${owner}/${name}/branches/${encodeURIComponent(
+      branch
+    )}/push_control`
+
+    const headers: any = {
+      Accept: 'application/vnd.github.phandalin-preview',
+    }
+
+    try {
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
+      return await parsedResponse<IAPIPushControl>(response)
+    } catch (err) {
+      log.info(
+        `[fetchPushControl] unable to check if branch is potentially pushable`,
+        err
+      )
+      return {
+        pattern: null,
+        required_signatures: false,
+        required_status_checks: [],
+        required_approving_review_count: 0,
+        required_linear_history: false,
+        allow_actor: true,
+        allow_deletions: true,
+        allow_force_pushes: true,
+      }
+    }
+  }
+
+  public async fetchProtectedBranches(
+    owner: string,
+    name: string
+  ): Promise<ReadonlyArray<IAPIBranch>> {
+    const path = `repos/${owner}/${name}/branches?protected=true`
     try {
       const response = await this.request('GET', path)
-      const status = await parsedResponse<IAPIRefStatus>(response)
-      return status
-    } catch (e) {
-      log.warn(
-        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
-        e
+      return await parsedResponse<IAPIBranch[]>(response)
+    } catch (err) {
+      log.info(
+        `[fetchProtectedBranches] unable to list protected branches`,
+        err
       )
-      throw e
+      return new Array<IAPIBranch>()
     }
   }
 
@@ -472,43 +1362,68 @@ export class API {
    * pages when available, buffers all items and returns them in
    * one array when done.
    */
-  private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
+  private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
+    const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
+    const params = { per_page: `${opts.perPage}` }
 
-    const params = {
-      per_page: '100',
-    }
     let nextPath: string | null = urlWithQueryString(path, params)
-
     do {
-      const response = await this.request('GET', nextPath)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
-        return []
-      }
-      if (response.status === HttpStatusCode.NotModified) {
-        log.warn(`fetchAll: '${path}' returned a 304`)
-        return []
+      const response: Response = await this.request('GET', nextPath)
+      if (opts.suppressErrors !== false && !response.ok) {
+        log.warn(`fetchAll: '${path}' returned a ${response.status}`)
+        return buf
       }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
       }
-      nextPath = getNextPagePath(response)
-    } while (nextPath)
+
+      nextPath = opts.getNextPagePath
+        ? opts.getNextPagePath(response)
+        : getNextPagePathFromLink(response)
+    } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
   }
 
   /** Make an authenticated request to the client's endpoint with its token. */
-  private request(
+  private async request(
     method: HTTPMethod,
     path: string,
-    body?: Object,
-    customHeaders?: Object
+    options: {
+      body?: Object
+      customHeaders?: Object
+      reloadCache?: boolean
+    } = {}
   ): Promise<Response> {
-    return request(this.endpoint, this.token, method, path, body, customHeaders)
+    const response = await request(
+      this.endpoint,
+      this.token,
+      method,
+      path,
+      options.body,
+      options.customHeaders,
+      options.reloadCache
+    )
+
+    // Only consider invalid token when the status is 401 and the response has
+    // the X-GitHub-Request-Id header, meaning it comes from GH(E) and not from
+    // any kind of proxy/gateway. For more info see #12943
+    // We're also not considering a token has been invalidated when the reason
+    // behind a 401 is the fact that any kind of 2 factor auth is required.
+    if (
+      response.status === 401 &&
+      response.headers.has('X-GitHub-Request-Id') &&
+      !response.headers.has('X-GitHub-OTP')
+    ) {
+      API.emitTokenInvalidated(this.endpoint)
+    }
+
+    tryUpdateEndpointVersionFromResponse(this.endpoint, response)
+
+    return response
   }
 
   /**
@@ -538,20 +1453,22 @@ export class API {
   public async fetchMentionables(
     owner: string,
     name: string,
-    etag: string | null
+    etag: string | undefined
   ): Promise<IAPIMentionablesResponse | null> {
     // NB: this custom `Accept` is required for the `mentionables` endpoint.
     const headers: any = {
       Accept: 'application/vnd.github.jerry-maguire-preview',
     }
 
-    if (etag) {
+    if (etag !== undefined) {
       headers['If-None-Match'] = etag
     }
 
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
-      const response = await this.request('GET', path, undefined, headers)
+      const response = await this.request('GET', path, {
+        customHeaders: headers,
+      })
 
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchMentionables: '${path}' returned a 404`)
@@ -564,7 +1481,7 @@ export class API {
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const etag = response.headers.get('etag')
+      const etag = response.headers.get('etag') || undefined
       return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
@@ -576,7 +1493,7 @@ export class API {
    * Retrieve the public profile information of a user with
    * a given username.
    */
-  public async fetchUser(login: string): Promise<IAPIUser | null> {
+  public async fetchUser(login: string): Promise<IAPIFullIdentity | null> {
     try {
       const response = await this.request(
         'GET',
@@ -587,7 +1504,7 @@ export class API {
         return null
       }
 
-      return await parsedResponse<IAPIUser>(response)
+      return await parsedResponse<IAPIFullIdentity>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
       throw e
@@ -603,6 +1520,11 @@ export enum AuthorizationResponseKind {
   PersonalAccessTokenBlocked,
   Error,
   EnterpriseTooOld,
+  /**
+   * The API has indicated that the user is required to go through
+   * the web authentication flow.
+   */
+  WebFlowRequired,
 }
 
 export type AuthorizationResponse =
@@ -616,6 +1538,7 @@ export type AuthorizationResponse =
   | { kind: AuthorizationResponseKind.UserRequiresVerification }
   | { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
   | { kind: AuthorizationResponseKind.EnterpriseTooOld }
+  | { kind: AuthorizationResponseKind.WebFlowRequired }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -639,7 +1562,7 @@ export async function createAuthorization(
     'POST',
     'authorizations',
     {
-      scopes: Scopes,
+      scopes: oauthScopes,
       client_id: ClientID,
       client_secret: ClientSecret,
       note: note,
@@ -651,6 +1574,8 @@ export async function createAuthorization(
       ...optHeader,
     }
   )
+
+  tryUpdateEndpointVersionFromResponse(endpoint, response)
 
   try {
     const result = await parsedResponse<IAPIAuthorization>(response)
@@ -696,6 +1621,8 @@ export async function createAuthorization(
       ) {
         // Authorization API does not support providing personal access tokens
         return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+      } else if (response.status === 410) {
+        return { kind: AuthorizationResponseKind.WebFlowRequired }
       } else if (response.status === 422) {
         if (apiError.errors) {
           for (const error of apiError.errors) {
@@ -727,23 +1654,17 @@ export async function fetchUser(
 ): Promise<Account> {
   const api = new API(endpoint, token)
   try {
-    const { user, scopes } = await api.fetchAccount()
+    const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    const defaultEmail = emails[0].email || ''
-    const avatarURL = getAvatarWithEnterpriseFallback(
-      user.avatar_url,
-      defaultEmail,
-      endpoint
-    )
+
     return new Account(
       user.login,
       endpoint,
       token,
       emails,
-      avatarURL,
+      user.avatar_url,
       user.id,
-      user.name || user.login,
-      scopes
+      user.name || user.login
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
@@ -762,6 +1683,8 @@ export async function fetchMetadata(
       'Content-Type': 'application/json',
     })
 
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
     const result = await parsedResponse<IServerMetadata>(response)
     if (!result || result.verifiable_password_authentication === undefined) {
       return null
@@ -779,13 +1702,13 @@ export async function fetchMetadata(
 
 /** The note used for created authorizations. */
 async function getNote(): Promise<string> {
-  let localUsername = 'unknown'
-  try {
-    localUsername = await username()
-  } catch (e) {
+  let localUsername = await username()
+
+  if (localUsername === undefined) {
+    localUsername = 'unknown'
+
     log.error(
-      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`,
-      e
+      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`
     )
   }
 
@@ -814,6 +1737,10 @@ export function getEndpointForRepository(url: string): string {
  * http://github.mycompany.com/api -> http://github.mycompany.com/
  */
 export function getHTMLURL(endpoint: string): string {
+  if (envHTMLURL !== undefined) {
+    return envHTMLURL
+  }
+
   // In the case of GitHub.com, the HTML site lives on the parent domain.
   //  E.g., https://api.github.com -> https://github.com
   //
@@ -822,7 +1749,7 @@ export function getHTMLURL(endpoint: string): string {
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //
   // We need to normalize them.
-  if (endpoint === getDotComAPIEndpoint()) {
+  if (endpoint === getDotComAPIEndpoint() && !envEndpoint) {
     return 'https://github.com'
   } else {
     const parsed = URL.parse(endpoint)
@@ -842,7 +1769,11 @@ export function getEnterpriseAPIURL(endpoint: string): string {
 
 /** Get github.com's API endpoint. */
 export function getDotComAPIEndpoint(): string {
-  const envEndpoint = process.env['API_ENDPOINT']
+  // NOTE:
+  // `DESKTOP_GITHUB_DOTCOM_API_ENDPOINT` only needs to be set if you are
+  // developing against a local version of GitHub the Website, and need to debug
+  // the server-side interaction. For all other cases you should leave this
+  // unset.
   if (envEndpoint && envEndpoint.length > 0) {
     return envEndpoint
   }
@@ -863,13 +1794,13 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scope = encodeURIComponent(Scopes.join(' '))
+  const scopes = oauthScopes
+  const scope = encodeURIComponent(scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
 export async function requestOAuthToken(
   endpoint: string,
-  state: string,
   code: string
 ): Promise<string | null> {
   try {
@@ -883,13 +1814,24 @@ export async function requestOAuthToken(
         client_id: ClientID,
         client_secret: ClientSecret,
         code: code,
-        state: state,
       }
     )
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
     const result = await parsedResponse<IAPIAccessToken>(response)
     return result.access_token
   } catch (e) {
     log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
     return null
+  }
+}
+
+function tryUpdateEndpointVersionFromResponse(
+  endpoint: string,
+  response: Response
+) {
+  const gheVersion = response.headers.get('x-github-enterprise-version')
+  if (gheVersion !== null) {
+    updateEndpointVersion(endpoint, gheVersion)
   }
 }

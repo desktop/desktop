@@ -68,7 +68,7 @@ function getNoRenameIndexStatus(status: string): NoRenameIndexStatus {
 }
 
 /** The SHA for the null tree. */
-const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
+export const NullTreeSHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
 
 /**
  * Get a list of files which have recorded changes in the index as compared to

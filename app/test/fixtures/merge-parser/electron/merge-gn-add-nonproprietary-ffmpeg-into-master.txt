@@ -1,0 +1,13 @@
+added in both
+  our    100644 3b5ac0267219454a366cb89ac02eb8fa4d5fa39e build/args/ffmpeg.gn
+  their  100644 5e7dd760ad6ec10e3f880b4a43d9963e5cc17487 build/args/ffmpeg.gn
+@@ -1,3 +1,9 @@
+ import("release.gn")
++<<<<<<< .our
+ proprietary_codecs = false
+ ffmpeg_branding = "Chromium"
++=======
++
++ffmpeg_branding = "Chromium"
++proprietary_codecs = false
++>>>>>>> .their

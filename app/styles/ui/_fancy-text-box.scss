@@ -1,7 +1,7 @@
 @import '../mixins';
 
 .fancy-text-box-component {
-  background: var(--background-color);
+  background: var(--box-background-color);
   display: flex;
   align-items: center;
   border: var(--base-border);

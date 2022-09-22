@@ -1,41 +1,46 @@
+import { createEqualityHash } from './equality-hash'
 import { Owner } from './owner'
+
+export type GitHubRepositoryPermission = 'read' | 'write' | 'admin' | null
 
 /** A GitHub repository. */
 export class GitHubRepository {
   /**
-   * The ID of the repository in the app's local database. This is no relation
-   * to the API ID.
+   * A hash of the properties of the object.
    *
-   * May be `null` if it hasn't been inserted or retrieved from the database.
+   * Objects with the same hash are guaranteed to be structurally equal.
    */
-  public readonly dbID: number | null
-
-  public readonly name: string
-  public readonly owner: Owner
-  public readonly private: boolean | null
-  public readonly htmlURL: string | null
-  public readonly defaultBranch: string | null
-  public readonly cloneURL: string | null
-  public readonly parent: GitHubRepository | null
+  public readonly hash: string
 
   public constructor(
-    name: string,
-    owner: Owner,
-    dbID: number | null,
-    private_: boolean | null = null,
-    htmlURL: string | null = null,
-    defaultBranch: string | null = 'master',
-    cloneURL: string | null = null,
-    parent: GitHubRepository | null = null
+    public readonly name: string,
+    public readonly owner: Owner,
+    /**
+     * The ID of the repository in the app's local database. This is no relation
+     * to the API ID.
+     */
+    public readonly dbID: number,
+    public readonly isPrivate: boolean | null = null,
+    public readonly htmlURL: string | null = null,
+    public readonly cloneURL: string | null = null,
+    public readonly issuesEnabled: boolean | null = null,
+    public readonly isArchived: boolean | null = null,
+    /** The user's permissions for this github repository. `null` if unknown. */
+    public readonly permissions: GitHubRepositoryPermission = null,
+    public readonly parent: GitHubRepository | null = null
   ) {
-    this.name = name
-    this.owner = owner
-    this.dbID = dbID
-    this.private = private_
-    this.htmlURL = htmlURL
-    this.defaultBranch = defaultBranch
-    this.cloneURL = cloneURL
-    this.parent = parent
+    this.hash = createEqualityHash(
+      this.name,
+      this.owner.login,
+      this.dbID,
+      this.isPrivate,
+      this.htmlURL,
+      this.cloneURL,
+      this.issuesEnabled,
+      this.isArchived,
+      this.permissions,
+      this.parent?.hash
+    )
   }
 
   public get endpoint(): string {
@@ -51,20 +56,29 @@ export class GitHubRepository {
   public get fork(): boolean {
     return !!this.parent
   }
+}
 
-  /**
-   * A hash of the properties of the object.
-   *
-   * Objects with the same hash are guaranteed to be structurally equal.
-   */
-  public get hash(): string {
-    return `${this.dbID}+
-      ${this.defaultBranch}+
-      ${this.private}+
-      ${this.cloneURL}+
-      ${this.name}+
-      ${this.htmlURL}+
-      ${this.owner.hash}+
-      ${this.parent && this.parent.hash}`
-  }
+/**
+ * Identical to `GitHubRepository`, except it **must** have a `parent`
+ * (i.e it's a fork).
+ *
+ * See `isRepositoryWithForkedGitHubRepository`
+ */
+export type ForkedGitHubRepository = GitHubRepository & {
+  readonly parent: GitHubRepository
+  readonly fork: true
+}
+
+/**
+ * Can the user push to this GitHub repository?
+ *
+ * (If their permissions are unknown, we assume they can.)
+ */
+export function hasWritePermission(
+  gitHubRepository: GitHubRepository
+): boolean {
+  return (
+    gitHubRepository.permissions === null ||
+    gitHubRepository.permissions !== 'read'
+  )
 }

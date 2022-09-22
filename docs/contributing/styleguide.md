@@ -1,11 +1,11 @@
 # TypeScript Style Guide
 
-Most of our preferred style when writing typescript is configured in our [`tslint.json`](../../tslint.json) and [`.eslintrc.yml`](../../.eslintrc.yml) files.
+Most of our preferred style when writing typescript is configured in our [`.eslintrc.yml`](../../.eslintrc.yml) files.
 
 ## Do
  - Use camelCase for methods
  - Use PascalCase for class names
- - Enable [TSLint](https://palantir.github.io/tslint/usage/third-party-tools/) and [ESLint](https://eslint.org/docs/user-guide/integrations) in your editor
+ - [ESLint](https://eslint.org/docs/user-guide/integrations) in your editor
 
 # Documenting your code
 
@@ -39,9 +39,9 @@ and leave a blank line before you go into detail, similar to a git commit messag
 
 ## Visibility of AppStore Methods
 
-The [`Dispatcher`](https://github.com/desktop/desktop/blob/master/app/src/lib/dispatcher/dispatcher.ts)
+The [`Dispatcher`](https://github.com/desktop/desktop/blob/development/app/src/lib/dispatcher/dispatcher.ts)
 is the entry point for most interactions with the application which update state,
-and for most usages this work is then delegated to the [`AppStore`](https://github.com/desktop/desktop/blob/master/app/src/lib/dispatcher/app-store.ts).
+and for most usages this work is then delegated to the [`AppStore`](https://github.com/desktop/desktop/blob/development/app/src/lib/stores/app-store.ts).
 Due to this coupling, we need to discourage callers directly manipulating
 specific methods in the `AppStore` unless there's a compelling reason.
 

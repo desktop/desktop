@@ -1,11 +1,9 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Monospaced } from '../lib/monospaced'
 import { PathText } from '../lib/path-text'
 import { LinkButton } from '../lib/link-button'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 const LFSURL = 'https://git-lfs.github.com/'
 
@@ -37,18 +35,17 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
       <Dialog
         id="initialize-lfs"
         title="Initialize Git LFS"
-        onDismissed={this.props.onDismissed}
+        dismissable={false}
         onSubmit={this.onInitialize}
       >
         <DialogContent>{this.renderRepositories()}</DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Initialize Git LFS</Button>
-            <Button onClick={this.props.onDismissed}>
-              {__DARWIN__ ? 'Not Now' : 'Not now'}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText="Initialize Git LFS"
+            cancelButtonText={__DARWIN__ ? 'Not Now' : 'Not now'}
+            onCancelButtonClick={this.props.onDismissed}
+          />
         </DialogFooter>
       </Dialog>
     )
@@ -56,6 +53,7 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
 
   private onInitialize = () => {
     this.props.onInitialize(this.props.repositories)
+    this.props.onDismissed()
   }
 
   private renderRepositories() {
@@ -84,9 +82,7 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
           <ul>
             {this.props.repositories.map(r => (
               <li key={r.id}>
-                <Monospaced>
-                  <PathText path={r.path} />
-                </Monospaced>
+                <PathText path={r.path} />
               </li>
             ))}
           </ul>

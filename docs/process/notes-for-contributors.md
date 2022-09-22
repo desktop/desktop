@@ -24,10 +24,10 @@ some general tips:
  - make small, meaningful and logical commits - these make the review process easier
  - [write good commit messages](https://chris.beams.io/posts/git-commit/) -
    these help the reviewer to understand the changes
- - keep up to date with `master` - not only does this address potential merge
+ - keep up to date with `development` - not only does this address potential merge
    conflicts, it ensures you're integrating with the latest code
 
-When merging, we prefer you merge `master` into your branch, but for small
+When merging, we prefer you merge `development` into your branch, but for small
 PRs a rebase is fine.
 
 ### These Things Take Time

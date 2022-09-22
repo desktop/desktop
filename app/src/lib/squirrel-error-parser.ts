@@ -2,14 +2,16 @@
 const squirrelMissingRegex = /^Can not find Squirrel$/
 
 // an error that occurs when Squirrel isn't able to reach the update server
-const squirrelDNSRegex = /System\.Net\.WebException: The remote name could not be resolved: 'central\.github\.com'/
+const squirrelDNSRegex =
+  /System\.Net\.WebException: The remote name could not be resolved: 'central\.github\.com'/
 
 // an error that occurs when the connection times out during updating
-const squirrelTimeoutRegex = /A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond/
+const squirrelTimeoutRegex =
+  /A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond/
 
 /**
  * This method parses known error messages from Squirrel.Windows and returns a
- * friendier message to the user.
+ * friendlier message to the user.
  *
  * @param error The underlying error from Squirrel.
  *

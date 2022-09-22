@@ -1,0 +1,2159 @@
+merged
+  result 100644 0a0e48c9ff2f3d28fdde103e591095de77618042 build/lib/snapshotLoader.js
+  our    100644 eb22844b08af4869827440f39489c1195b028e74 build/lib/snapshotLoader.js
+@@ -30,7 +30,7 @@
+     snapshotLoader(loaderFilepath, startupBlobFilepath);
+     function snapshotLoader(loaderFilepath, startupBlobFilepath) {
+         var inputFile = fs.readFileSync(loaderFilepath);
+-        var wrappedInputFile = "\n\t\tvar Monaco_Loader_Init;\n\t\t(function() {\n\t\t\tvar doNotInitLoader = true;\n\t\t\t" + inputFile.toString() + ";\n\t\t\tMonaco_Loader_Init = function() {\n\t\t\t\tAMDLoader.init();\n\t\t\t\tCSSLoaderPlugin.init();\n\t\t\t\tNLSLoaderPlugin.init();\n\n\t\t\t\treturn { define, require };\n\t\t\t}\n\t\t})();\n\t\t";
++        var wrappedInputFile = "\n\t\tvar Monaco_Loader_Init;\n\t\t(function() {\n\t\t\tvar doNotInitLoader = true;\n\t\t\t" + inputFile.toString() + ";\n\t\t\tMonaco_Loader_Init = function() {\n\t\t\t\tAMDLoader.init();\n\t\t\t\t// CSSLoaderPlugin.init();\n\t\t\t\t// NLSLoaderPlugin.init();\n\n\t\t\t\treturn { define, require };\n\t\t\t}\n\t\t})();\n\t\t";
+         var wrappedInputFilepath = path.join(os.tmpdir(), 'wrapped-loader.js');
+         console.log(wrappedInputFilepath);
+         fs.writeFileSync(wrappedInputFilepath, wrappedInputFile);
+merged
+  result 100644 e64085eea7667a480dd7d22f5f578b2d4bf1af87 build/lib/snapshotLoader.ts
+  our    100644 4d4eef1ea94984fd1f71c1b7ea553075b50a924a build/lib/snapshotLoader.ts
+@@ -47,8 +47,8 @@
+ 			${inputFile.toString()};
+ 			Monaco_Loader_Init = function() {
+ 				AMDLoader.init();
+-				CSSLoaderPlugin.init();
+-				NLSLoaderPlugin.init();
++				// CSSLoaderPlugin.init();
++				// NLSLoaderPlugin.init();
+ 
+ 				return { define, require };
+ 			}
+added in remote
+  their  100644 71109a5eacbed8b0067d009568bddc3743d07950 scripts/prepare.js
+@@ -0,0 +1,1209 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++const fs = require('fs');
++const path = require('path');
++const product = require('../product.json');
++const package = require('../package.json');
++const cp = require('child_process');
++const vm = require('vm');
++
++const PREFIX = [
++	'vs/loader.js',
++	'vs/css.js',
++	'vs/nls.js',
++];
++
++const CONTENTS = [
++	'vs/base/browser/iframe',
++	'vs/base/browser/ui/list/rangeMap',
++	'vs/base/browser/ui/scrollbar/scrollbarState',
++	'vs/base/common/assert',
++	'vs/base/common/collections',
++	'vs/base/common/color',
++	'vs/base/common/date',
++	'vs/base/common/decorators',
++	'vs/base/common/diff/diffChange',
++	'vs/base/common/diff/diff',
++	'vs/base/common/functional',
++	'vs/base/common/hash',
++	'vs/base/common/idGenerator',
++	'vs/base/common/iterator',
++	'vs/base/common/history',
++	'vs/base/common/json',
++	'vs/base/common/jsonFormatter',
++	'vs/base/common/jsonEdit',
++	'vs/base/common/keyCodes',
++	'vs/base/common/lifecycle',
++	'vs/base/common/linkedList',
++	'vs/base/common/marked/raw.marked',
++	'vs/base/common/marked/marked',
++	'vs/base/common/network',
++	'vs/base/common/numbers',
++	'vs/base/common/performance',
++	'vs/base/common/platform',
++	'vs/base/common/diagnostics',
++	'vs/base/common/processes',
++	'vs/base/common/stopwatch',
++	'vs/base/common/types',
++	'vs/base/common/graph',
++	'vs/base/common/objects',
++	'vs/base/common/parsers',
++	'vs/base/common/uri',
++	'vs/base/common/map',
++	'vs/base/common/marshalling',
++	'vs/base/common/strings',
++	'vs/base/common/filters',
++	'vs/base/common/octicon',
++	'vs/base/common/paths',
++	'vs/base/common/comparers',
++	'vs/base/common/labels',
++	'vs/base/common/resources',
++	'vs/base/common/uuid',
++	'vs/base/common/winjs.base.raw',
++	'vs/base/common/winjs.base',
++	'vs/base/common/arrays',
++	'vs/base/common/cache',
++	'vs/base/common/errors',
++	'vs/base/common/event',
++	'vs/base/browser/browser',
++	'vs/base/browser/event',
++	'vs/base/browser/keyboardEvent',
++	'vs/base/browser/mouseEvent',
++	'vs/base/common/actions',
++	'vs/base/common/cancellation',
++	'vs/base/common/async',
++	'vs/base/browser/dom',
++	'vs/base/browser/fastDomNode',
++	'vs/base/browser/globalMouseMoveMonitor',
++	'vs/base/browser/touch',
++	'vs/base/browser/ui/list/rowCache',
++	'vs/base/browser/ui/selectBox/selectBoxNative',
++	'vs/base/browser/ui/widget',
++	'vs/base/browser/ui/scrollbar/scrollbarArrow',
++	'vs/base/common/glob',
++	'vs/base/common/htmlContent',
++	'vs/base/browser/htmlContentRenderer',
++	'vs/base/common/mime',
++	'vs/base/common/paging',
++	'vs/base/common/scrollable',
++	'vs/base/browser/ui/scrollbar/scrollbarVisibilityController',
++	'vs/base/browser/ui/scrollbar/abstractScrollbar',
++	'vs/base/browser/ui/scrollbar/horizontalScrollbar',
++	'vs/base/browser/ui/scrollbar/verticalScrollbar',
++	'vs/base/common/sequence',
++	'vs/base/common/worker/simpleWorker',
++	'vs/base/node/console',
++	'vs/base/node/decoder',
++	'vs/base/node/flow',
++	'vs/base/node/id',
++	'vs/base/node/ports',
++	'vs/base/node/proxy',
++	'vs/base/node/stdFork',
++	'vs/base/node/stream',
++	'vs/base/node/encoding',
++	'vs/base/node/extfs',
++	'vs/base/node/config',
++	'vs/base/node/mime',
++	'vs/base/node/pfs',
++	'vs/base/parts/ipc/common/ipc',
++	'vs/base/parts/ipc/common/ipc.electron',
++	'vs/base/parts/ipc/electron-browser/ipc.electron-browser',
++	'vs/base/parts/ipc/node/ipc.net',
++	'vs/base/parts/quickopen/browser/quickOpenViewer',
++	'vs/base/parts/quickopen/common/quickOpen',
++	'vs/base/parts/quickopen/common/quickOpenScorer',
++	'vs/base/parts/tree/browser/tree',
++	'vs/base/parts/tree/browser/treeDnd',
++	'vs/base/parts/tree/browser/treeModel',
++	'vs/base/parts/tree/browser/treeViewModel',
++	'vs/base/worker/defaultWorkerFactory',
++	'vs/base/browser/builder',
++	'vs/base/browser/dnd',
++	'vs/base/browser/ui/button/button',
++	'vs/base/browser/ui/checkbox/checkbox',
++	'vs/base/browser/ui/contextview/contextview',
++	'vs/base/browser/ui/countBadge/countBadge',
++	'vs/base/browser/ui/dropdown/dropdown',
++	'vs/base/browser/ui/octiconLabel/octiconLabel',
++	'vs/base/browser/ui/highlightedlabel/highlightedLabel',
++	'vs/base/browser/ui/iconLabel/iconLabel',
++	'vs/base/browser/ui/progressbar/progressbar',
++	'vs/base/browser/ui/sash/sash',
++	'vs/base/browser/ui/scrollbar/scrollableElement',
++	'vs/base/browser/ui/list/listView',
++	'vs/base/browser/ui/list/listWidget',
++	'vs/base/browser/ui/list/listPaging',
++	'vs/base/parts/tree/browser/treeView',
++	'vs/base/browser/ui/splitview/splitview',
++	'vs/base/browser/ui/splitview/panelview',
++	'vs/editor/browser/config/charWidthReader',
++	'vs/editor/browser/config/elementSizeObserver',
++	'vs/editor/browser/core/editorState',
++	'vs/editor/browser/editorDom',
++	'vs/editor/browser/services/abstractCodeEditorService',
++	'vs/editor/common/config/editorZoom',
++	'vs/editor/common/controller/cursorEvents',
++	'vs/editor/common/core/position',
++	'vs/editor/common/core/range',
++	'vs/editor/browser/widget/diffNavigator',
++	'vs/editor/common/core/editOperation',
++	'vs/editor/common/commands/trimTrailingWhitespaceCommand',
++	'vs/editor/common/core/rgba',
++	'vs/editor/common/core/selection',
++	'vs/editor/common/commands/replaceCommand',
++	'vs/editor/common/commands/surroundSelectionCommand',
++	'vs/editor/common/core/stringBuilder',
++	'vs/editor/browser/view/viewLayer',
++	'vs/editor/common/core/token',
++	'vs/editor/common/core/uint',
++	'vs/editor/common/core/characterClassifier',
++	'vs/editor/common/controller/wordCharacterClassifier',
++	'vs/editor/common/diff/diffComputer',
++	'vs/editor/common/editorAction',
++	'vs/editor/common/editorCommon',
++	'vs/editor/browser/editorBrowser',
++	'vs/editor/common/model',
++	'vs/editor/browser/controller/textAreaState',
++	'vs/editor/browser/controller/textAreaInput',
++	'vs/editor/common/model/chunksTextBuffer/bufferPiece',
++	'vs/editor/common/model/chunksTextBuffer/chunksTextBuffer',
++	'vs/editor/common/model/chunksTextBuffer/chunksTextBufferBuilder',
++	'vs/editor/common/model/editStack',
++	'vs/editor/common/model/indentationGuesser',
++	'vs/editor/common/model/intervalTree',
++	'vs/editor/common/model/linesTextBuffer/textSource',
++	'vs/editor/common/model/pieceTreeTextBuffer/rbTreeBase',
++	'vs/editor/common/model/pieceTreeTextBuffer/pieceTreeBase',
++	'vs/editor/common/model/pieceTreeTextBuffer/pieceTreeTextBuffer',
++	'vs/editor/common/model/pieceTreeTextBuffer/pieceTreeTextBufferBuilder',
++	'vs/editor/common/model/textModelEvents',
++	'vs/editor/common/model/textModelSearch',
++	'vs/editor/common/model/wordHelper',
++	'vs/editor/common/modes/abstractMode',
++	'vs/editor/common/modes/languageConfiguration',
++	'vs/editor/common/modes/languageSelector',
++	'vs/editor/common/modes/languageFeatureRegistry',
++	'vs/editor/common/modes/linkComputer',
++	'vs/editor/common/modes/supports/characterPair',
++	'vs/editor/common/modes/supports/indentRules',
++	'vs/editor/common/modes/supports/inplaceReplaceSupport',
++	'vs/editor/common/modes/supports/onEnter',
++	'vs/editor/common/modes/supports/richEditBrackets',
++	'vs/editor/common/modes/supports/tokenization',
++	'vs/editor/common/modes/tokenizationRegistry',
++	'vs/editor/common/modes',
++	'vs/editor/common/core/lineTokens',
++	'vs/editor/common/modes/nullMode',
++	'vs/editor/common/model/textModelTokens',
++	'vs/editor/common/modes/supports',
++	'vs/editor/common/modes/supports/electricCharacter',
++	'vs/editor/common/modes/languageConfigurationRegistry',
++	'vs/editor/common/modes/textToHtmlTokenizer',
++	'vs/editor/common/standalone/standaloneBase',
++	'vs/editor/common/view/minimapCharRenderer',
++	'vs/editor/common/view/overviewZoneManager',
++	'vs/editor/common/view/renderingContext',
++	'vs/editor/browser/viewParts/lines/rangeUtil',
++	'vs/editor/common/view/runtimeMinimapCharRenderer',
++	'vs/editor/common/view/viewContext',
++	'vs/editor/common/view/viewEventDispatcher',
++	'vs/editor/common/view/viewEvents',
++	'vs/editor/common/viewLayout/lineDecorations',
++	'vs/editor/common/viewLayout/viewLineRenderer',
++	'vs/editor/common/viewLayout/viewLinesViewportData',
++	'vs/editor/common/viewLayout/whitespaceComputer',
++	'vs/editor/common/viewLayout/linesLayout',
++	'vs/editor/common/viewModel/prefixSumComputer',
++	'vs/editor/common/model/linesTextBuffer/linesTextBuffer',
++	'vs/editor/common/model/linesTextBuffer/linesTextBufferBuilder',
++	'vs/editor/common/model/mirrorTextModel',
++	'vs/editor/common/services/editorSimpleWorker',
++	'vs/editor/common/viewModel/viewEventHandler',
++	'vs/editor/browser/view/dynamicViewOverlay',
++	'vs/editor/browser/view/viewPart',
++	'vs/editor/browser/viewParts/contentWidgets/contentWidgets',
++	'vs/editor/browser/viewParts/decorations/decorations',
++	'vs/editor/browser/viewParts/glyphMargin/glyphMargin',
++	'vs/editor/browser/viewParts/linesDecorations/linesDecorations',
++	'vs/editor/browser/viewParts/margin/margin',
++	'vs/editor/browser/viewParts/marginDecorations/marginDecorations',
++	'vs/editor/browser/viewParts/overlayWidgets/overlayWidgets',
++	'vs/editor/browser/viewParts/overviewRuler/overviewRuler',
++	'vs/editor/browser/viewParts/viewZones/viewZones',
++	'vs/editor/common/viewModel/viewModel',
++	'vs/editor/common/viewLayout/viewLayout',
++	'vs/editor/common/viewModel/viewModelDecorations',
++	'vs/editor/contrib/caretOperations/moveCaretCommand',
++	'vs/editor/contrib/colorPicker/color',
++	'vs/editor/contrib/colorPicker/colorPickerModel',
++	'vs/editor/contrib/comment/blockCommentCommand',
++	'vs/editor/contrib/comment/lineCommentCommand',
++	'vs/editor/contrib/dnd/dragAndDropCommand',
++	'vs/editor/contrib/find/findState',
++	'vs/editor/contrib/find/replaceAllCommand',
++	'vs/editor/contrib/find/replacePattern',
++	'vs/editor/contrib/folding/foldingRanges',
++	'vs/editor/contrib/folding/foldingModel',
++	'vs/editor/contrib/folding/hiddenRangeModel',
++	'vs/editor/contrib/format/formatCommand',
++	'vs/editor/contrib/goToDeclaration/clickLinkGesture',
++	'vs/editor/contrib/hover/hoverOperation',
++	'vs/editor/contrib/hover/hoverWidgets',
++	'vs/editor/contrib/hover/modesGlyphHover',
++	'vs/editor/contrib/inPlaceReplace/inPlaceReplaceCommand',
++	'vs/editor/contrib/indentation/indentUtils',
++	'vs/editor/contrib/linesOperations/copyLinesCommand',
++	'vs/editor/contrib/linesOperations/deleteLinesCommand',
++	'vs/editor/contrib/linesOperations/sortLinesCommand',
++	'vs/editor/contrib/quickFix/codeActionTrigger',
++	'vs/editor/contrib/quickFix/quickFixWidget',
++	'vs/editor/contrib/smartSelect/tokenTree',
++	'vs/editor/contrib/snippet/snippetParser',
++	'vs/editor/contrib/snippet/snippetVariables',
++	'vs/editor/contrib/suggest/completionModel',
++	'vs/base/browser/ui/aria/aria',
++	'vs/base/browser/ui/findinput/findInputCheckboxes',
++	'vs/base/browser/ui/selectBox/selectBoxCustom',
++	'vs/base/browser/ui/selectBox/selectBox',
++	'vs/base/browser/ui/actionbar/actionbar',
++	'vs/base/browser/ui/inputbox/inputBox',
++	'vs/base/browser/ui/findinput/findInput',
++	'vs/base/browser/ui/toolbar/toolbar',
++	'vs/base/common/errorMessage',
++	'vs/base/common/jsonErrorMessages',
++	'vs/base/common/keybindingLabels',
++	'vs/base/browser/ui/keybindingLabel/keybindingLabel',
++	'vs/base/common/severity',
++	'vs/base/node/processes',
++	'vs/base/parts/ipc/node/ipc.cp',
++	'vs/base/parts/quickopen/browser/quickOpenModel',
++	'vs/base/parts/tree/browser/treeDefaults',
++	'vs/base/parts/tree/browser/treeImpl',
++	'vs/base/parts/quickopen/browser/quickOpenWidget',
++	'vs/editor/common/config/editorOptions',
++	'vs/editor/common/config/fontInfo',
++	'vs/editor/common/model/textModel',
++	'vs/editor/common/controller/cursorCommon',
++	'vs/editor/common/commands/shiftCommand',
++	'vs/editor/common/controller/cursorColumnSelection',
++	'vs/editor/common/controller/cursorMoveOperations',
++	'vs/editor/common/controller/cursorDeleteOperations',
++	'vs/editor/common/controller/cursorTypeOperations',
++	'vs/editor/common/controller/cursorWordOperations',
++	'vs/editor/common/controller/cursorMoveCommands',
++	'vs/editor/common/controller/oneCursor',
++	'vs/editor/common/controller/cursorCollection',
++	'vs/editor/common/viewModel/splitLinesCollection',
++	'vs/editor/common/viewModel/characterHardWrappingLineMapper',
++	'vs/editor/common/viewModel/viewModelImpl',
++	'vs/editor/contrib/folding/foldingDecorations',
++	'vs/editor/contrib/folding/indentRangeProvider',
++	'vs/editor/contrib/linesOperations/moveLinesCommand',
++	'vs/editor/contrib/quickFix/lightBulbWidget',
++	'vs/editor/contrib/zoneWidget/zoneWidget',
++	'vs/editor/common/controller/cursor',
++	'vs/editor/contrib/referenceSearch/referencesModel',
++	'vs/platform/clipboard/electron-browser/clipboardService',
++	'vs/platform/extensionManagement/common/extensionManagementIpc',
++	'vs/platform/extensions/common/extensionHost',
++	'vs/platform/extensions/node/extensionValidator',
++	'vs/platform/files/node/files',
++	'vs/platform/instantiation/common/descriptors',
++	'vs/platform/instantiation/common/extensions',
++	'vs/platform/instantiation/common/instantiation',
++	'vs/editor/browser/services/codeEditorService',
++	'vs/editor/common/services/editorWorkerService',
++	'vs/editor/common/services/modeService',
++	'vs/editor/common/services/modelService',
++	'vs/editor/common/services/resolverService',
++	'vs/editor/common/services/resourceConfiguration',
++	'vs/editor/common/services/editorWorkerServiceImpl',
++	'vs/editor/common/services/webWorker',
++	'vs/editor/contrib/smartSelect/tokenSelectionSupport',
++	'vs/platform/clipboard/common/clipboardService',
++	'vs/editor/contrib/snippet/snippetSession',
++	'vs/platform/commands/common/commands',
++	'vs/editor/contrib/links/getLinks',
++	'vs/platform/contextkey/common/contextkey',
++	'vs/editor/common/editorContextKeys',
++	'vs/platform/actions/common/actions',
++	'vs/platform/actions/common/menu',
++	'vs/platform/contextview/browser/contextView',
++	'vs/platform/editor/common/editor',
++	'vs/platform/environment/common/environment',
++	'vs/platform/extensionManagement/common/extensionManagement',
++	'vs/platform/extensionManagement/common/extensionManagementUtil',
++	'vs/platform/extensionManagement/node/extensionManagementUtil',
++	'vs/platform/extensions/common/extensions',
++	'vs/platform/actions/common/menuService',
++	'vs/platform/files/common/files',
++	'vs/platform/instantiation/common/serviceCollection',
++	'vs/editor/common/commonCodeEditor',
++	'vs/platform/instantiation/common/instantiationService',
++	'vs/platform/integrity/common/integrity',
++	'vs/platform/issue/common/issue',
++	'vs/platform/issue/common/issueIpc',
++	'vs/platform/keybinding/common/abstractKeybindingService',
++	'vs/platform/keybinding/common/keybinding',
++	'vs/platform/keybinding/common/keybindingResolver',
++	'vs/platform/keybinding/common/resolvedKeybindingItem',
++	'vs/platform/keybinding/common/usLayoutResolvedKeybinding',
++	'vs/platform/lifecycle/common/lifecycle',
++	'vs/platform/localizations/common/localizations',
++	'vs/platform/localizations/common/localizationsIpc',
++	'vs/platform/log/common/log',
++	'vs/platform/broadcast/electron-browser/broadcastService',
++	'vs/platform/commands/common/commandService',
++	'vs/platform/log/common/logIpc',
++	'vs/platform/log/node/spdlogService',
++	'vs/platform/markers/common/markerService',
++	'vs/platform/markers/common/markers',
++	'vs/platform/message/common/message',
++	'vs/platform/actions/browser/menuItemActionItem',
++	'vs/platform/message/common/messageIpc',
++	'vs/platform/node/package',
++	'vs/base/node/paths',
++	'vs/platform/node/product',
++	'vs/platform/environment/node/environmentService',
++	'vs/platform/opener/common/opener',
++	'vs/editor/contrib/markdown/markdownRenderer',
++	'vs/platform/progress/common/progress',
++	'vs/editor/browser/services/bulkEdit',
++	'vs/platform/quickOpen/common/quickOpen',
++	'vs/platform/registry/common/platform',
++	'vs/editor/common/modes/modesRegistry',
++	'vs/platform/jsonschemas/common/jsonContributionRegistry',
++	'vs/platform/configuration/common/configurationRegistry',
++	'vs/editor/common/config/commonEditorConfig',
++	'vs/editor/common/services/languagesRegistry',
++	'vs/editor/common/services/modeServiceImpl',
++	'vs/platform/configuration/common/configuration',
++	'vs/editor/common/services/resourceConfigurationImpl',
++	'vs/platform/configuration/common/configurationModels',
++	'vs/platform/configuration/node/configuration',
++	'vs/platform/contextkey/browser/contextKeyService',
++	'vs/platform/extensions/common/extensionsRegistry',
++	'vs/platform/actions/electron-browser/menusExtensionPoint',
++	'vs/platform/jsonschemas/common/jsonValidationExtensionPoint',
++	'vs/platform/keybinding/common/keybindingsRegistry',
++	'vs/platform/markers/common/problemMatcher',
++	'vs/platform/request/node/request',
++	'vs/platform/search/common/replace',
++	'vs/platform/search/common/search',
++	'vs/platform/statusbar/common/statusbar',
++	'vs/platform/storage/common/storage',
++	'vs/editor/browser/config/configuration',
++	'vs/editor/browser/view/viewOverlays',
++	'vs/editor/browser/viewParts/viewCursors/viewCursor',
++	'vs/editor/contrib/suggest/suggestMemory',
++	'vs/platform/integrity/node/integrityServiceImpl',
++	'vs/platform/storage/common/storageService',
++	'vs/platform/storage/common/migration',
++	'vs/platform/telemetry/browser/errorTelemetry',
++	'vs/platform/telemetry/common/experiments',
++	'vs/platform/telemetry/common/telemetry',
++	'vs/editor/browser/editorExtensions',
++	'vs/editor/browser/controller/coreCommands',
++	'vs/editor/browser/view/viewController',
++	'vs/editor/contrib/caretOperations/caretOperations',
++	'vs/editor/contrib/caretOperations/transpose',
++	'vs/editor/contrib/clipboard/clipboard',
++	'vs/editor/contrib/codelens/codelens',
++	'vs/editor/contrib/colorPicker/colorDetector',
++	'vs/editor/contrib/comment/comment',
++	'vs/editor/contrib/contextmenu/contextmenu',
++	'vs/editor/contrib/cursorUndo/cursorUndo',
++	'vs/editor/contrib/dnd/dnd',
++	'vs/editor/contrib/folding/folding',
++	'vs/editor/contrib/format/format',
++	'vs/editor/contrib/format/formatActions',
++	'vs/editor/contrib/goToDeclaration/goToDeclaration',
++	'vs/editor/contrib/hover/getHover',
++	'vs/editor/contrib/indentation/indentation',
++	'vs/editor/contrib/linesOperations/linesOperations',
++	'vs/editor/contrib/parameterHints/provideSignatureHelp',
++	'vs/editor/contrib/quickFix/quickFix',
++	'vs/editor/contrib/quickFix/quickFixModel',
++	'vs/editor/contrib/quickFix/quickFixCommands',
++	'vs/editor/contrib/quickOpen/quickOpen',
++	'vs/editor/contrib/smartSelect/smartSelect',
++	'vs/editor/contrib/suggest/suggest',
++	'vs/editor/contrib/snippet/snippetController2',
++	'vs/editor/contrib/suggest/suggestModel',
++	'vs/editor/contrib/toggleTabFocusMode/toggleTabFocusMode',
++	'vs/editor/contrib/wordOperations/wordOperations',
++	'vs/platform/contextview/browser/contextViewService',
++	'vs/platform/telemetry/common/telemetryIpc',
++	'vs/platform/telemetry/common/telemetryService',
++	'vs/platform/telemetry/common/telemetryUtils',
++	'vs/platform/opener/browser/openerService',
++	'vs/platform/opener/browser/opener.contribution',
++	'vs/platform/telemetry/node/commonProperties',
++	'vs/platform/telemetry/node/telemetryNodeUtils',
++	'vs/platform/telemetry/node/workbenchCommonProperties',
++	'vs/platform/theme/common/colorRegistry',
++	'vs/platform/theme/common/colorExtensionPoint',
++	'vs/platform/theme/common/styler',
++	'vs/platform/theme/common/themeService',
++	'vs/editor/browser/services/codeEditorServiceImpl',
++	'vs/editor/browser/viewParts/editorScrollbar/editorScrollbar',
++	'vs/editor/browser/viewParts/lines/viewLine',
++	'vs/editor/browser/controller/mouseTarget',
++	'vs/editor/browser/controller/mouseHandler',
++	'vs/editor/browser/controller/pointerHandler',
++	'vs/editor/browser/view/viewOutgoingEvents',
++	'vs/editor/browser/viewParts/lines/viewLines',
++	'vs/editor/browser/viewParts/minimap/minimap',
++	'vs/editor/browser/viewParts/scrollDecoration/scrollDecoration',
++	'vs/editor/browser/viewParts/selections/selections',
++	'vs/editor/common/view/editorColorRegistry',
++	'vs/editor/browser/viewParts/currentLineHighlight/currentLineHighlight',
++	'vs/editor/browser/viewParts/currentLineMarginHighlight/currentLineMarginHighlight',
++	'vs/editor/browser/viewParts/indentGuides/indentGuides',
++	'vs/editor/browser/viewParts/lineNumbers/lineNumbers',
++	'vs/editor/browser/controller/textAreaHandler',
++	'vs/editor/browser/viewParts/overviewRuler/decorationsOverviewRuler',
++	'vs/editor/browser/viewParts/rulers/rulers',
++	'vs/editor/browser/viewParts/viewCursors/viewCursors',
++	'vs/editor/browser/view/viewImpl',
++	'vs/editor/browser/widget/codeEditorWidget',
++	'vs/editor/browser/codeEditor',
++	'vs/editor/browser/widget/diffReview',
++	'vs/editor/browser/widget/diffEditorWidget',
++	'vs/editor/browser/widget/embeddedCodeEditorWidget',
++	'vs/editor/common/services/modelServiceImpl',
++	'vs/editor/contrib/bracketMatching/bracketMatching',
++	'vs/editor/contrib/codelens/codelensWidget',
++	'vs/editor/contrib/codelens/codelensController',
++	'vs/editor/contrib/colorPicker/colorPickerWidget',
++	'vs/editor/contrib/find/findDecorations',
++	'vs/editor/contrib/find/findModel',
++	'vs/editor/contrib/find/findOptionsWidget',
++	'vs/editor/contrib/find/findWidget',
++	'vs/editor/contrib/find/findController',
++	'vs/editor/contrib/find/simpleFindWidget',
++	'vs/editor/contrib/gotoError/gotoError',
++	'vs/editor/contrib/hover/modesContentHover',
++	'vs/editor/contrib/hover/hover',
++	'vs/editor/contrib/inPlaceReplace/inPlaceReplace',
++	'vs/editor/contrib/links/links',
++	'vs/editor/contrib/message/messageController',
++	'vs/editor/contrib/multicursor/multicursor',
++	'vs/editor/contrib/parameterHints/parameterHintsWidget',
++	'vs/editor/contrib/parameterHints/parameterHints',
++	'vs/editor/contrib/referenceSearch/peekViewWidget',
++	'vs/editor/contrib/rename/renameInputField',
++	'vs/editor/contrib/rename/rename',
++	'vs/editor/contrib/suggest/suggestWidget',
++	'vs/editor/contrib/suggest/suggestController',
++	'vs/editor/contrib/wordHighlighter/wordHighlighter',
++	'vs/platform/update/common/update',
++	'vs/platform/update/common/updateIpc',
++	'vs/platform/update/node/update.config.contribution',
++	'vs/platform/url/common/url',
++	'vs/platform/windows/common/windows',
++	'vs/platform/lifecycle/electron-browser/lifecycleService',
++	'vs/platform/url/common/urlIpc',
++	'vs/platform/windows/common/windowsIpc',
++	'vs/platform/windows/electron-browser/windowService',
++	'vs/platform/workbench/common/contextkeys',
++	'vs/platform/list/browser/listService',
++	'vs/platform/workspaces/common/workspaces',
++	'vs/platform/workspace/common/workspace',
++	'vs/editor/contrib/referenceSearch/referencesWidget',
++	'vs/editor/contrib/referenceSearch/referencesController',
++	'vs/editor/contrib/goToDeclaration/goToDeclarationCommands',
++	'vs/editor/contrib/goToDeclaration/goToDeclarationMouse',
++	'vs/editor/contrib/referenceSearch/referenceSearch',
++	'vs/editor/editor.all',
++	'vs/platform/extensionManagement/common/extensionEnablementService',
++	'vs/platform/workspaces/common/workspacesIpc',
++	'vs/platform/workspaces/node/workspaces',
++	'vs/workbench/api/electron-browser/extHostCustomers',
++	'vs/workbench/api/node/extHostTypes',
++	'vs/workbench/browser/actions',
++	'vs/workbench/browser/parts/quickopen/quickopen',
++	'vs/workbench/browser/parts/statusbar/statusbar',
++	'vs/workbench/common/actions',
++	'vs/workbench/browser/actions/toggleTabsVisibility',
++	'vs/workbench/common/activity',
++	'vs/workbench/common/contributions',
++	'vs/workbench/common/editor',
++	'vs/workbench/browser/quickopen',
++	'vs/workbench/common/editor/diffEditorModel',
++	'vs/workbench/common/editor/editorStacksModel',
++	'vs/workbench/common/editor/textDiffEditorModel',
++	'vs/workbench/common/editor/textEditorModel',
++	'vs/workbench/common/editor/diffEditorInput',
++	'vs/workbench/common/editor/resourceEditorModel',
++	'vs/workbench/common/memento',
++	'vs/workbench/common/resources',
++	'vs/workbench/common/editor/binaryEditorModel',
++	'vs/workbench/common/editor/dataUriEditorInput',
++	'vs/workbench/common/theme',
++	'vs/workbench/common/component',
++	'vs/workbench/browser/composite',
++	'vs/workbench/browser/panel',
++	'vs/workbench/browser/part',
++	'vs/workbench/browser/parts/editor/baseEditor',
++	'vs/workbench/browser/editor',
++	'vs/workbench/browser/parts/editor/sideBySideEditor',
++	'vs/workbench/browser/parts/editor/webviewEditor',
++	'vs/workbench/common/views',
++	'vs/workbench/electron-browser/resources',
++	'vs/workbench/parts/cache/node/nodeCachedDataManager',
++	'vs/workbench/parts/cache/node/cache.contribution',
++	'vs/workbench/parts/cli/electron-browser/cli.contribution',
++	'vs/workbench/parts/codeEditor/electron-browser/accessibility',
++	'vs/workbench/parts/codeEditor/electron-browser/menuPreventer',
++	'vs/workbench/parts/codeEditor/electron-browser/selectionClipboard',
++	'vs/workbench/parts/codeEditor/electron-browser/toggleMinimap',
++	'vs/workbench/parts/codeEditor/electron-browser/toggleMultiCursorModifier',
++	'vs/workbench/parts/codeEditor/electron-browser/toggleRenderControlCharacter',
++	'vs/workbench/parts/codeEditor/electron-browser/toggleRenderWhitespace',
++	'vs/workbench/parts/codeEditor/electron-browser/toggleWordWrap',
++	'vs/workbench/parts/debug/common/debug',
++	'vs/workbench/parts/debug/browser/breakpointWidget',
++	'vs/workbench/parts/debug/browser/debugActionItems',
++	'vs/workbench/parts/debug/browser/debugStatus',
++	'vs/workbench/parts/debug/common/debugSource',
++	'vs/workbench/parts/debug/browser/debugContentProvider',
++	'vs/workbench/parts/debug/common/debugModel',
++	'vs/workbench/parts/debug/browser/baseDebugView',
++	'vs/workbench/parts/debug/common/debugViewModel',
++	'vs/workbench/parts/debug/common/replHistory',
++	'vs/workbench/parts/debug/electron-browser/electronDebugActions',
++	'vs/workbench/parts/debug/electron-browser/terminalSupport',
++	'vs/workbench/parts/debug/node/debugAdapter',
++	'vs/workbench/parts/debug/node/v8Protocol',
++	'vs/workbench/parts/emmet/browser/actions/showEmmetCommands',
++	'vs/workbench/parts/emmet/browser/emmet.browser.contribution',
++	'vs/workbench/parts/execution/common/execution',
++	'vs/workbench/parts/execution/electron-browser/terminal',
++	'vs/workbench/parts/execution/electron-browser/terminalService',
++	'vs/workbench/parts/extensions/common/extensionQuery',
++	'vs/workbench/parts/extensions/common/extensions',
++	'vs/workbench/parts/extensions/browser/dependenciesViewer',
++	'vs/workbench/parts/extensions/browser/extensionsWidgets',
++	'vs/workbench/parts/extensions/common/extensionsFileTemplate',
++	'vs/workbench/parts/extensions/common/extensionsInput',
++	'vs/workbench/parts/extensions/electron-browser/extensionsUtils',
++	'vs/workbench/parts/files/common/explorerModel',
++	'vs/workbench/parts/files/browser/files',
++	'vs/workbench/parts/files/electron-browser/views/explorerDecorationsProvider',
++	'vs/workbench/parts/html/browser/webviewEditor',
++	'vs/workbench/parts/html/browser/webviewFindWidget',
++	'vs/workbench/parts/html/browser/webview',
++	'vs/workbench/parts/logs/common/logConstants',
++	'vs/workbench/parts/markers/common/constants',
++	'vs/workbench/parts/markers/common/messages',
++	'vs/workbench/parts/markers/common/markersModel',
++	'vs/workbench/parts/markers/browser/markersTreeController',
++	'vs/workbench/parts/output/common/output',
++	'vs/workbench/parts/logs/electron-browser/logsActions',
++	'vs/workbench/parts/logs/electron-browser/logs.contribution',
++	'vs/workbench/parts/output/common/outputLinkProvider',
++	'vs/workbench/parts/performance/electron-browser/stats',
++	'vs/workbench/parts/preferences/browser/keybindingWidgets',
++	'vs/workbench/parts/preferences/browser/preferencesWidgets',
++	'vs/workbench/parts/preferences/common/keybindingsEditorModel',
++	'vs/workbench/parts/preferences/common/preferences',
++	'vs/workbench/parts/preferences/common/preferencesModels',
++	'vs/workbench/parts/preferences/common/smartSnippetInserter',
++	'vs/workbench/parts/quickopen/browser/helpHandler',
++	'vs/workbench/parts/relauncher/electron-browser/relauncher.contribution',
++	'vs/workbench/parts/scm/common/scm',
++	'vs/workbench/parts/scm/electron-browser/scmUtil',
++	'vs/workbench/parts/scm/electron-browser/scmMenus',
++	'vs/workbench/parts/search/browser/patternInputWidget',
++	'vs/workbench/parts/search/common/constants',
++	'vs/workbench/parts/search/common/queryBuilder',
++	'vs/workbench/parts/search/common/replace',
++	'vs/workbench/parts/search/common/search',
++	'vs/workbench/parts/search/common/searchModel',
++	'vs/workbench/parts/search/browser/replaceService',
++	'vs/workbench/parts/search/browser/replaceContributions',
++	'vs/workbench/parts/snippets/electron-browser/snippets.contribution',
++	'vs/workbench/parts/snippets/electron-browser/configureSnippets',
++	'vs/workbench/parts/snippets/electron-browser/snippetsFile',
++	'vs/workbench/parts/snippets/electron-browser/insertSnippet',
++	'vs/workbench/parts/stats/node/workspaceStats',
++	'vs/workbench/parts/stats/node/stats.contribution',
++	'vs/workbench/parts/surveys/electron-browser/languageSurveys.contribution',
++	'vs/workbench/parts/surveys/electron-browser/nps.contribution',
++	'vs/workbench/parts/tasks/common/problemCollectors',
++	'vs/workbench/parts/tasks/common/taskDefinitionRegistry',
++	'vs/workbench/parts/tasks/common/taskSystem',
++	'vs/workbench/parts/tasks/common/taskTemplates',
++	'vs/workbench/parts/tasks/common/tasks',
++	'vs/workbench/parts/tasks/common/taskService',
++	'vs/workbench/parts/tasks/browser/quickOpen',
++	'vs/workbench/parts/tasks/browser/taskQuickOpen',
++	'vs/workbench/parts/tasks/electron-browser/jsonSchemaCommon',
++	'vs/workbench/parts/tasks/electron-browser/jsonSchema_v1',
++	'vs/workbench/parts/tasks/electron-browser/jsonSchema_v2',
++	'vs/workbench/parts/tasks/electron-browser/terminalTaskSystem',
++	'vs/workbench/parts/tasks/node/processRunnerDetector',
++	'vs/workbench/parts/tasks/node/processTaskSystem',
++	'vs/workbench/parts/tasks/node/taskConfiguration',
++	'vs/workbench/parts/terminal/browser/terminalWidgetManager',
++	'vs/workbench/parts/terminal/common/terminal',
++	'vs/workbench/parts/debug/electron-browser/rawDebugSession',
++	'vs/workbench/parts/terminal/browser/terminalQuickOpen',
++	'vs/workbench/parts/terminal/electron-browser/terminal',
++	'vs/workbench/parts/terminal/electron-browser/terminalColorRegistry',
++	'vs/workbench/parts/terminal/electron-browser/terminalCommands',
++	'vs/workbench/parts/terminal/electron-browser/terminalFindWidget',
++	'vs/workbench/parts/terminal/electron-browser/terminalLinkHandler',
++	'vs/workbench/parts/terminal/electron-browser/windowsShellHelper',
++	'vs/workbench/parts/update/electron-browser/releaseNotesInput',
++	'vs/workbench/parts/welcome/gettingStarted/electron-browser/gettingStarted',
++	'vs/workbench/parts/welcome/gettingStarted/electron-browser/gettingStarted.contribution',
++	'vs/workbench/parts/welcome/page/electron-browser/vs_code_welcome_page',
++	'vs/workbench/parts/welcome/walkThrough/node/walkThroughUtils',
++	'vs/workbench/services/activity/common/activity',
++	'vs/workbench/browser/parts/compositebar/compositeBarActions',
++	'vs/workbench/browser/parts/compositebar/compositeBar',
++	'vs/workbench/parts/markers/common/markers',
++	'vs/workbench/services/backup/common/backup',
++	'vs/workbench/common/editor/untitledEditorModel',
++	'vs/workbench/services/backup/node/backupFileService',
++	'vs/workbench/services/configuration/common/configuration',
++	'vs/workbench/parts/feedback/electron-browser/feedback',
++	'vs/workbench/parts/feedback/electron-browser/feedbackStatusbarItem',
++	'vs/workbench/parts/feedback/electron-browser/feedback.contribution',
++	'vs/workbench/parts/terminal/electron-browser/terminalConfigHelper',
++	'vs/workbench/parts/trust/electron-browser/unsupportedWorkspaceSettings.contribution',
++	'vs/workbench/services/configuration/common/configurationExtensionPoint',
++	'vs/workbench/services/configuration/common/configurationModels',
++	'vs/workbench/services/configuration/common/jsonEditing',
++	'vs/workbench/services/configuration/node/configuration',
++	'vs/workbench/services/configurationResolver/common/configurationResolver',
++	'vs/workbench/services/contextview/electron-browser/contextmenuService',
++	'vs/workbench/services/crashReporter/electron-browser/crashReporterService',
++	'vs/workbench/services/decorations/browser/decorations',
++	'vs/workbench/parts/markers/browser/markersFileDecorations',
++	'vs/workbench/services/decorations/browser/decorationsService',
++	'vs/workbench/services/extensions/electron-browser/extensionHost',
++	'vs/workbench/services/extensions/electron-browser/extensionHostProfiler',
++	'vs/workbench/services/extensions/node/extensionDescriptionRegistry',
++	'vs/workbench/services/extensions/node/extensionPoints',
++	'vs/workbench/services/extensions/node/lazyPromise',
++	'vs/workbench/services/extensions/node/proxyIdentifier',
++	'vs/workbench/api/node/extHost.protocol',
++	'vs/workbench/api/electron-browser/mainThreadCommands',
++	'vs/workbench/api/electron-browser/mainThreadConfiguration',
++	'vs/workbench/api/electron-browser/mainThreadDebugService',
++	'vs/workbench/api/electron-browser/mainThreadDecorations',
++	'vs/workbench/api/electron-browser/mainThreadDiagnostics',
++	'vs/workbench/api/electron-browser/mainThreadDialogs',
++	'vs/workbench/api/electron-browser/mainThreadEditor',
++	'vs/workbench/api/electron-browser/mainThreadErrors',
++	'vs/workbench/api/electron-browser/mainThreadFileSystemEventService',
++	'vs/workbench/api/electron-browser/mainThreadHeapService',
++	'vs/workbench/api/electron-browser/mainThreadLanguages',
++	'vs/workbench/api/electron-browser/mainThreadLogService',
++	'vs/workbench/api/electron-browser/mainThreadMessageService',
++	'vs/workbench/api/electron-browser/mainThreadProgress',
++	'vs/workbench/api/electron-browser/mainThreadQuickOpen',
++	'vs/workbench/api/electron-browser/mainThreadStatusBar',
++	'vs/workbench/api/electron-browser/mainThreadStorage',
++	'vs/workbench/api/electron-browser/mainThreadTask',
++	'vs/workbench/api/electron-browser/mainThreadTelemetry',
++	'vs/workbench/api/electron-browser/mainThreadTerminalService',
++	'vs/workbench/api/electron-browser/mainThreadTreeViews',
++	'vs/workbench/api/electron-browser/mainThreadWindow',
++	'vs/workbench/services/extensions/node/rpcProtocol',
++	'vs/workbench/services/files/node/watcher/common',
++	'vs/workbench/services/files/node/watcher/nsfw/watcherIpc',
++	'vs/workbench/services/files/node/watcher/nsfw/watcherService',
++	'vs/workbench/services/files/node/watcher/unix/watcherIpc',
++	'vs/workbench/services/files/node/watcher/unix/watcherService',
++	'vs/workbench/services/files/node/watcher/win32/csharpWatcherService',
++	'vs/workbench/services/files/node/watcher/win32/watcherService',
++	'vs/workbench/services/files/node/fileService',
++	'vs/workbench/services/files/electron-browser/fileService',
++	'vs/workbench/services/files/electron-browser/remoteFileService',
++	'vs/workbench/services/group/common/groupService',
++	'vs/workbench/api/electron-browser/mainThreadDocumentContentProviders',
++	'vs/workbench/browser/actions/toggleEditorLayout',
++	'vs/workbench/browser/parts/editor/resourceViewer',
++	'vs/workbench/browser/parts/editor/binaryEditor',
++	'vs/workbench/browser/parts/editor/binaryDiffEditor',
++	'vs/workbench/parts/preferences/common/preferencesContribution',
++	'vs/workbench/services/hash/common/hashService',
++	'vs/workbench/common/editor/resourceEditorInput',
++	'vs/workbench/parts/html/common/htmlInput',
++	'vs/workbench/parts/welcome/walkThrough/node/walkThroughInput',
++	'vs/workbench/parts/welcome/walkThrough/electron-browser/walkThroughPart',
++	'vs/workbench/services/hash/node/hashService',
++	'vs/workbench/services/history/common/history',
++	'vs/workbench/services/issue/common/issue',
++	'vs/workbench/services/issue/electron-browser/workbenchIssueService',
++	'vs/workbench/services/keybinding/common/keyboardMapper',
++	'vs/workbench/services/keybinding/common/scanCode',
++	'vs/workbench/services/keybinding/common/keybindingIO',
++	'vs/workbench/services/keybinding/common/macLinuxFallbackKeyboardMapper',
++	'vs/workbench/services/keybinding/common/macLinuxKeyboardMapper',
++	'vs/workbench/services/keybinding/common/windowsKeyboardMapper',
++	'vs/workbench/parts/preferences/browser/keybindingsEditorContribution',
++	'vs/workbench/services/keybinding/electron-browser/keybindingService',
++	'vs/workbench/services/message/browser/messageList',
++	'vs/workbench/services/message/browser/messageService',
++	'vs/workbench/services/message/electron-browser/messageService',
++	'vs/workbench/services/mode/common/workbenchModeService',
++	'vs/workbench/parts/snippets/electron-browser/snippetsService',
++	'vs/workbench/parts/snippets/electron-browser/tabCompletion',
++	'vs/workbench/parts/debug/electron-browser/replEditor',
++	'vs/workbench/services/panel/common/panelService',
++	'vs/workbench/parts/output/electron-browser/outputServices',
++	'vs/workbench/parts/terminal/electron-browser/terminalInstance',
++	'vs/workbench/parts/terminal/electron-browser/terminalTab',
++	'vs/workbench/services/activity/browser/activityService',
++	'vs/workbench/services/part/common/partService',
++	'vs/workbench/api/electron-browser/mainThreadOutputService',
++	'vs/workbench/browser/actions/toggleActivityBarVisibility',
++	'vs/workbench/browser/actions/toggleSidebarPosition',
++	'vs/workbench/browser/actions/toggleSidebarVisibility',
++	'vs/workbench/browser/actions/toggleStatusbarVisibility',
++	'vs/workbench/browser/actions/toggleZenMode',
++	'vs/workbench/browser/parts/panel/panelActions',
++	'vs/workbench/parts/debug/browser/statusbarColorProvider',
++	'vs/workbench/parts/html/browser/htmlPreviewPart',
++	'vs/workbench/parts/markers/browser/markersPanelActions',
++	'vs/workbench/parts/output/browser/outputActions',
++	'vs/workbench/parts/terminal/common/terminalService',
++	'vs/workbench/parts/terminal/electron-browser/terminalService',
++	'vs/workbench/parts/update/electron-browser/releaseNotesEditor',
++	'vs/workbench/services/scm/common/scm',
++	'vs/workbench/api/electron-browser/mainThreadSCM',
++	'vs/workbench/parts/scm/electron-browser/scmActivity',
++	'vs/workbench/services/scm/common/scmService',
++	'vs/workbench/services/search/node/searchIpc',
++	'vs/workbench/services/textMate/electron-browser/TMGrammars',
++	'vs/workbench/parts/emmet/electron-browser/emmetActions',
++	'vs/workbench/parts/emmet/electron-browser/actions/expandAbbreviation',
++	'vs/workbench/parts/emmet/electron-browser/emmet.contribution',
++	'vs/workbench/services/textMate/electron-browser/TMHelper',
++	'vs/workbench/services/textMate/electron-browser/textMateService',
++	'vs/workbench/parts/codeEditor/electron-browser/languageConfiguration/languageConfigurationExtensionPoint',
++	'vs/workbench/services/textfile/common/textfiles',
++	'vs/workbench/api/node/extHostTypeConverters',
++	'vs/workbench/api/electron-browser/mainThreadLanguageFeatures',
++	'vs/workbench/browser/parts/editor/textEditor',
++	'vs/workbench/common/editor/untitledEditorInput',
++	'vs/workbench/browser/parts/editor/textResourceEditor',
++	'vs/workbench/parts/files/common/files',
++	'vs/workbench/parts/files/browser/editors/binaryFileEditor',
++	'vs/workbench/parts/files/common/editors/fileEditorInput',
++	'vs/workbench/parts/output/browser/logViewer',
++	'vs/workbench/parts/output/browser/outputPanel',
++	'vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider',
++	'vs/workbench/services/configuration/node/jsonEditingService',
++	'vs/workbench/services/keybinding/common/keybindingEditing',
++	'vs/workbench/services/textfile/common/textFileEditorModel',
++	'vs/workbench/api/electron-browser/mainThreadSaveParticipant',
++	'vs/workbench/services/textfile/common/textFileEditorModelManager',
++	'vs/workbench/services/textfile/common/textFileService',
++	'vs/workbench/services/themes/common/colorThemeSchema',
++	'vs/workbench/services/themes/common/fileIconThemeSchema',
++	'vs/workbench/services/themes/common/workbenchThemeService',
++	'vs/workbench/parts/codeEditor/electron-browser/textMate/inspectTMScopes',
++	'vs/workbench/services/textMate/electron-browser/TMSyntax',
++	'vs/workbench/services/themes/electron-browser/fileIconThemeData',
++	'vs/workbench/services/themes/electron-browser/fileIconThemeStore',
++	'vs/workbench/services/themes/electron-browser/themeCompatibility',
++	'vs/workbench/services/themes/electron-browser/colorThemeData',
++	'vs/workbench/services/themes/electron-browser/colorThemeStore',
++	'vs/workbench/services/themes/electron-browser/workbenchThemeService',
++	'vs/workbench/services/timer/common/timerService',
++	'vs/workbench/services/timer/node/timerService',
++	'vs/workbench/services/title/common/titleService',
++	'vs/workbench/services/untitled/common/untitledEditorService',
++	'vs/workbench/api/electron-browser/mainThreadDocuments',
++	'vs/workbench/browser/labels',
++	'vs/workbench/parts/backup/common/backupModelTracker',
++	'vs/workbench/parts/markers/browser/markersTreeViewer',
++	'vs/workbench/services/editor/common/editorService',
++	'vs/workbench/api/electron-browser/mainThreadEditors',
++	'vs/workbench/api/electron-browser/mainThreadDocumentsAndEditors',
++	'vs/workbench/api/electron-browser/mainThreadWebview',
++	'vs/workbench/browser/dnd',
++	'vs/workbench/browser/parts/editor/editorPicker',
++	'vs/workbench/browser/parts/editor/editorStatus',
++	'vs/workbench/browser/parts/editor/rangeDecorations',
++	'vs/workbench/browser/parts/editor/textDiffEditor',
++	'vs/workbench/browser/parts/editor/editorCommands',
++	'vs/workbench/browser/parts/editor/editorActions',
++	'vs/workbench/browser/parts/editor/editor.contribution',
++	'vs/workbench/browser/parts/editor/titleControl',
++	'vs/workbench/browser/parts/editor/noTabsTitleControl',
++	'vs/workbench/browser/parts/editor/tabsTitleControl',
++	'vs/workbench/browser/parts/editor/editorGroupsControl',
++	'vs/workbench/browser/parts/quickopen/quickOpenController',
++	'vs/workbench/browser/parts/quickopen/quickopen.contribution',
++	'vs/workbench/browser/parts/statusbar/statusbarPart',
++	'vs/workbench/browser/parts/titlebar/titlebarPart',
++	'vs/workbench/parts/backup/common/backupRestorer',
++	'vs/workbench/parts/backup/common/backup.contribution',
++	'vs/workbench/parts/codeEditor/electron-browser/inspectKeybindings',
++	'vs/workbench/parts/codeEditor/codeEditor.contribution',
++	'vs/workbench/parts/debug/browser/debugActions',
++	'vs/workbench/parts/debug/browser/debugActionsWidget',
++	'vs/workbench/parts/debug/browser/debugQuickOpen',
++	'vs/workbench/parts/debug/browser/linkDetector',
++	'vs/workbench/parts/debug/browser/exceptionWidget',
++	'vs/workbench/parts/debug/electron-browser/debugConfigurationManager',
++	'vs/workbench/parts/debug/electron-browser/replViewer',
++	'vs/workbench/parts/debug/electron-browser/repl',
++	'vs/workbench/parts/execution/electron-browser/execution.contribution',
++	'vs/workbench/parts/extensions/node/extensionsWorkbenchService',
++	'vs/workbench/parts/files/browser/editors/fileEditorTracker',
++	'vs/workbench/parts/files/common/dirtyFilesTracker',
++	'vs/workbench/parts/html/browser/webviewCommands',
++	'vs/workbench/parts/html/browser/webview.contribution',
++	'vs/workbench/parts/html/browser/html.contribution',
++	'vs/workbench/parts/localizations/browser/localizationsActions',
++	'vs/workbench/parts/localizations/browser/localizations.contribution',
++	'vs/workbench/parts/markers/browser/markersPanel',
++	'vs/workbench/parts/markers/browser/markersWorkbenchContributions',
++	'vs/workbench/parts/markers/electron-browser/markersElectronContributions',
++	'vs/workbench/parts/markers/markers.contribution',
++	'vs/workbench/parts/output/electron-browser/output.contribution',
++	'vs/workbench/parts/preferences/browser/keybindingsEditor',
++	'vs/workbench/parts/preferences/browser/preferencesRenderers',
++	'vs/workbench/parts/preferences/browser/preferencesEditor',
++	'vs/workbench/parts/preferences/browser/preferencesService',
++	'vs/workbench/parts/quickopen/browser/commandsHandler',
++	'vs/workbench/parts/quickopen/browser/gotoLineHandler',
++	'vs/workbench/parts/quickopen/browser/gotoSymbolHandler',
++	'vs/workbench/parts/scm/electron-browser/dirtydiffDecorator',
++	'vs/workbench/parts/search/browser/openFileHandler',
++	'vs/workbench/parts/search/browser/openSymbolHandler',
++	'vs/workbench/parts/search/browser/openAnythingHandler',
++	'vs/workbench/parts/themes/test/electron-browser/themes.test.contribution',
++	'vs/workbench/parts/welcome/overlay/browser/welcomeOverlay',
++	'vs/workbench/parts/welcome/page/electron-browser/welcomePage',
++	'vs/workbench/parts/welcome/page/electron-browser/welcomePage.contribution',
++	'vs/workbench/parts/welcome/walkThrough/electron-browser/editor/editorWalkThrough',
++	'vs/workbench/parts/welcome/walkThrough/electron-browser/walkThroughActions',
++	'vs/workbench/parts/welcome/walkThrough/electron-browser/walkThrough.contribution',
++	'vs/workbench/services/configuration/node/configurationEditingService',
++	'vs/workbench/services/configuration/node/configurationService',
++	'vs/workbench/services/configurationResolver/electron-browser/configurationResolverService',
++	'vs/workbench/services/history/electron-browser/history',
++	'vs/workbench/services/search/node/searchService',
++	'vs/workbench/services/textfile/electron-browser/textFileService',
++	'vs/workbench/services/textmodelResolver/common/textModelResolverService',
++	'vs/workbench/services/viewlet/browser/viewlet',
++	'vs/workbench/browser/layout',
++	'vs/workbench/browser/parts/activitybar/activitybarActions',
++	'vs/workbench/browser/parts/activitybar/activitybarPart',
++	'vs/workbench/browser/viewlet',
++	'vs/workbench/browser/parts/views/panelViewlet',
++	'vs/workbench/browser/parts/views/viewsViewlet',
++	'vs/workbench/browser/parts/views/customView',
++	'vs/workbench/browser/parts/views/customViewPanel',
++	'vs/workbench/api/browser/viewsExtensionPoint',
++	'vs/workbench/electron-browser/actions',
++	'vs/workbench/parts/debug/browser/breakpointsView',
++	'vs/workbench/parts/debug/browser/debugCommands',
++	'vs/workbench/parts/debug/browser/debugEditorActions',
++	'vs/workbench/parts/debug/browser/debugEditorModelManager',
++	'vs/workbench/parts/debug/browser/debugViewlet',
++	'vs/workbench/parts/debug/electron-browser/callStackView',
++	'vs/workbench/parts/debug/electron-browser/debugService',
++	'vs/workbench/parts/debug/electron-browser/variablesView',
++	'vs/workbench/parts/debug/electron-browser/debugHover',
++	'vs/workbench/parts/debug/electron-browser/debugEditorContribution',
++	'vs/workbench/parts/debug/electron-browser/watchExpressionsView',
++	'vs/workbench/parts/debug/electron-browser/debug.contribution',
++	'vs/workbench/parts/extensions/browser/extensionsQuickOpen',
++	'vs/workbench/parts/extensions/electron-browser/extensionsActions',
++	'vs/workbench/parts/files/browser/editors/textFileEditor',
++	'vs/workbench/parts/performance/electron-browser/startupProfiler',
++	'vs/workbench/parts/performance/electron-browser/performance.contribution',
++	'vs/workbench/parts/quickopen/browser/viewPickerHandler',
++	'vs/workbench/parts/quickopen/browser/quickopen.contribution',
++	'vs/workbench/parts/scm/electron-browser/scmViewlet',
++	'vs/workbench/parts/scm/electron-browser/scm.contribution',
++	'vs/workbench/parts/search/browser/searchActions',
++	'vs/workbench/parts/search/browser/searchResultsView',
++	'vs/workbench/parts/search/browser/searchWidget',
++	'vs/workbench/parts/tasks/electron-browser/task.contribution',
++	'vs/workbench/parts/themes/electron-browser/themes.contribution',
++	'vs/workbench/services/extensions/electron-browser/extensionService',
++	'vs/workbench/api/electron-browser/mainThreadExtensionService',
++	'vs/workbench/services/progress/browser/progressService',
++	'vs/workbench/browser/parts/compositePart',
++	'vs/workbench/browser/parts/editor/editorPart',
++	'vs/workbench/browser/parts/panel/panelPart',
++	'vs/workbench/browser/parts/sidebar/sidebarPart',
++	'vs/workbench/services/progress/browser/progressService2',
++	'vs/workbench/services/viewlet/browser/viewletService',
++	'vs/workbench/services/workspace/common/workspaceEditing',
++	'vs/workbench/api/electron-browser/mainThreadFileSystem',
++	'vs/workbench/api/electron-browser/mainThreadWorkspace',
++	'vs/workbench/api/electron-browser/extensionHost.contribution',
++	'vs/workbench/browser/actions/workspaceCommands',
++	'vs/workbench/browser/actions/workspaceActions',
++	'vs/workbench/electron-browser/window',
++	'vs/workbench/parts/extensions/browser/extensionsActions',
++	'vs/workbench/parts/extensions/browser/extensionEditor',
++	'vs/workbench/parts/extensions/browser/extensionsList',
++	'vs/workbench/parts/extensions/electron-browser/runtimeExtensionsEditor',
++	'vs/workbench/parts/extensions/electron-browser/extensionProfileService',
++	'vs/workbench/parts/files/electron-browser/fileCommands',
++	'vs/workbench/parts/files/electron-browser/fileActions',
++	'vs/workbench/parts/files/electron-browser/saveErrorHandler',
++	'vs/workbench/parts/files/electron-browser/views/emptyView',
++	'vs/workbench/parts/files/electron-browser/views/explorerViewer',
++	'vs/workbench/parts/files/electron-browser/views/explorerView',
++	'vs/workbench/parts/files/electron-browser/views/openEditorsView',
++	'vs/workbench/parts/files/electron-browser/explorerViewlet',
++	'vs/workbench/parts/files/electron-browser/files.contribution',
++	'vs/workbench/parts/preferences/browser/preferencesActions',
++	'vs/workbench/parts/extensions/electron-browser/extensionsViews',
++	'vs/workbench/parts/extensions/electron-browser/extensionsViewlet',
++	'vs/workbench/parts/files/electron-browser/fileActions.contribution',
++	'vs/workbench/parts/search/browser/searchViewlet',
++	'vs/workbench/parts/search/electron-browser/search.contribution',
++	'vs/workbench/parts/terminal/electron-browser/terminalActions',
++	'vs/workbench/parts/terminal/electron-browser/terminalPanel',
++	'vs/workbench/parts/terminal/electron-browser/terminal.contribution',
++	'vs/workbench/parts/watermark/electron-browser/watermark',
++	'vs/workbench/services/workspace/node/workspaceEditingService',
++	'vs/workbench/electron-browser/workbench',
++	'vs/workbench/electron-browser/commands',
++	'vs/workbench/electron-browser/main.contribution',
++	'vs/base/node/request',
++	'vs/platform/extensionManagement/node/extensionGalleryService',
++	'vs/platform/request/node/requestService',
++	'vs/platform/request/electron-browser/requestService',
++	'vs/workbench/electron-browser/shell',
++	'vs/workbench/electron-browser/main',
++	'vs/workbench/parts/extensions/electron-browser/extensionTipsService',
++	'vs/workbench/parts/extensions/electron-browser/extensions.contribution',
++	'vs/workbench/parts/preferences/electron-browser/preferencesSearch',
++	'vs/workbench/parts/preferences/electron-browser/preferences.contribution',
++	'vs/workbench/parts/update/electron-browser/update',
++	'vs/workbench/parts/update/electron-browser/update.contribution',
++	'vs/workbench/workbench.main'
++];
++
++let loader = [];
++let results = [];
++
++function getFileContents(file) {
++	const filePath = path.join(__dirname, '../out', file);
++	const fileContents = fs.readFileSync(filePath);
++	return fileContents.toString('utf8');
++}
++
++PREFIX.forEach((file) => {
++	const fileContents = getFileContents(file);
++	loader.push(fileContents);
++});
++
++var CSS = [];
++CONTENTS.forEach((file) => {
++	let fileContents = getFileContents(file + '.js');
++	fileContents = fileContents.replace(/define\(\[/g, `define("${file}", [`);
++
++	let changed = false;
++	do {
++		changed = false;
++		let m = fileContents.match(/, "vs\/css!([^"]+)"/);
++		if (m) {
++			let cssPath = m[1];
++			let result = cssPath;
++			if (/^(\.\/)|(\.\.\/)/.test(result)) {
++				result = path.join(file + '/../', result);
++			}
++			// console.log(`${file} + ${cssPath} ===> ${result}`);
++			CSS.push(`vs/css!${result}`);
++			fileContents = fileContents.replace(/, "vs\/css!([^"]+)"/, '');
++			changed = true;
++		}
++	} while(changed);
++
++	results.push(fileContents);
++});
++
++// TODO@snapshot
++const productNameLong = product.nameLong;
++// if (!false || process.env['VSCODE_DEV']) {
++// 	product.nameShort += ' Dev';
++// 	product.nameLong += ' Dev';
++// 	product.dataFolderName += '-dev';
++// }
++
++
++product.commit = "05ea088890f0b0a70fa883047b67bf64c005b5b1";
++product.date = "2018-02-13T16:38:50.446Z";
++product.settingsSearchBuildId = 121000243;
++
++// TODO@snapshot
++package.name = 'Code - OSS';
++
++const startupFileContents = `
++var Monaco_Loader_Init;
++var Monaco_CSS = ${JSON.stringify(CSS)};
++// var Monaco_Node_Modules = null;
++(function() {
++	var doNotInitLoader = true;
++	var MonacoSnapshotPlatform = '${process.platform}';
++	var MonacoSnapshotArch = '${process.arch}';
++	var MonacoSnapshotGlobal = this;
++	var MonacoSnapshotPackage = ${JSON.stringify(package)};
++	var MonacoSnapshotProduct = ${JSON.stringify(product)};
++	var MonacoSnapshotInitializeCallbacks = [];
++	var navigator = {
++		userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) code-oss-dev/1.21.0 Chrome/58.0.3029.110 Electron/1.7.9 Safari/537.36'
++	};
++	${loader.join('\n;\n').toString()};
++	(function() {
++		var NODE_MODULES = [
++			'assert',
++			'child_process',
++			'crypto',
++			'electron',
++			'fs',
++			'graceful-fs',
++			'iconv-lite',
++			'native-keymap',
++			'net',
++			'os',
++			'path',
++			'semver',
++			'spdlog',
++			'stream',
++			'string_decoder',
++			'url',
++			'util',
++			'zlib',
++		];
++		// Monaco_Node_Modules = Object.create(null);
++		var bindModule = function(moduleName) {
++			define(moduleName, function() {
++				// Monaco_Node_Modules[moduleName] = {};
++				// return Monaco_Node_Modules[moduleName];
++
++				var loaded = false;
++				var actual = null;
++				var cache = Object.create(null);
++				var cached = Object.create(null);
++				var handler = {
++					get: (target, name) => {
++						// console.log('get for ' + moduleName + '.' + name);
++						// console.log(typeof require.__$__nodeRequire);
++						if (!loaded) {
++							loaded = true;
++							if (moduleName === 'fs') {
++								actual = require.__$__nodeRequire('original-fs');
++							} else {
++								actual = require.__$__nodeRequire(moduleName);
++							}
++						}
++
++						if (!cached[name]) {
++							let result = actual[name];
++							// console.log('===> ' + typeof actual[name]);
++							if (typeof result === 'function') {
++								result = result.bind(actual);
++							}
++							cache[name] = result;
++							cached[name] = true;
++						}
++
++
++						return cache[name];
++					},
++					set: (target, name, value) => {
++						// console.log('set for ' + moduleName + '.' + name);
++						cache[name] = value;
++						cached[name] = true;
++					}
++				};
++				return new Proxy(Object.create(null), handler);
++
++			});
++		};
++		NODE_MODULES.forEach(bindModule);
++	})();
++	${results.join('\n;\n').toString()};
++	Monaco_Loader_Init = function() {
++		AMDLoader.init();
++		// Object.keys(Monaco_Node_Modules).forEach(function(moduleName) {
++		// 	var actual = require.__$__nodeRequire(moduleName);
++		// 	var target = Monaco_Node_Modules[moduleName];
++
++		// 	//console.log('required ' + moduleName);
++		// 	Object.keys(actual).forEach(function(key) {
++		// 		if (moduleName === 'crypto') {
++		// 			if (key === 'createCredentials' || key === 'Credentials') {
++		// 				return;
++		// 			}
++		// 		}
++		// 		target[key] = actual[key];
++		// 	});
++		// });
++		MonacoSnapshotInitializeCallbacks.forEach(function(callback) {
++			callback();
++		});
++		[
++			'assert',
++			'child_process',
++			'crypto',
++			'electron',
++			'fs',
++			'graceful-fs',
++			'iconv-lite',
++			'native-keymap',
++			'net',
++			'os',
++			'path',
++			'semver',
++			'spdlog',
++			'stream',
++			'string_decoder',
++			'url',
++			'util',
++			'zlib',
++		].forEach(function(moduleName) {
++			require.__$__nodeRequire(moduleName);
++		});
++		return { define, require };
++	};
++})();
++`;
++
++const startupFile = path.join(__dirname, 'start.js');
++fs.writeFileSync(startupFile, startupFileContents);
++
++const startupBlobFilepath = path.join(__dirname, `../.build/electron/${productNameLong}.app/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`);
++// startupBlobFilepath = `VSCode-${process.platform}-${arch}/snapshot_blob.bin`;
++
++// Restore original
++try { fs.unlinkSync(startupBlobFilepath); } catch (err) { /**/ }
++// fs.copyFileSync(startupBlobFilepath + '.original', startupBlobFilepath);
++// process.exit(0);
++
++// Check that the file works!
++vm.runInNewContext(startupFileContents, undefined, { filename: startupFile, displayErrors: true });
++
++const mksnapshot = path.join(__dirname, `../node_modules/.bin/${process.platform === 'win32' ? 'mksnapshot.cmd' : 'mksnapshot'}`);
++cp.execFileSync(mksnapshot, [`--no-use_ic`, `--no-lazy`, startupFile, `--startup_blob`, startupBlobFilepath]);
++
++// --ignition --turbo
++
++console.log(`FILE SIZE: ${fs.statSync(startupBlobFilepath).size}`);
++
++
++// Extra copy
++const startupBlobFilepath2 = path.join(__dirname, `../../VSCode-darwin/Code - OSS.app/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`);
++try { fs.unlinkSync(startupBlobFilepath2); } catch (err) { /**/ }
++fs.copyFileSync(startupBlobFilepath, startupBlobFilepath2);
+merged
+  result 100644 857a568d8ad526c7ccda27932372100b09543cd2 src/paths.js
+  our    100644 1fa7c625ee19b191343c1708382a4bab066ae3a5 src/paths.js
+@@ -7,6 +7,7 @@
+ var os = require('os');
+ var pkg = require('../package.json');
+ 
++// TODO@snapshot: duplicated in vs/base/node/paths.ts
+ function getAppDataPath(platform) {
+ 	switch (platform) {
+ 		case 'win32': return process.env['VSCODE_APPDATA'] || process.env['APPDATA'] || path.join(process.env['USERPROFILE'], 'AppData', 'Roaming');
+@@ -16,9 +17,10 @@
+ 	}
+ }
+ 
++// TODO@snapshot: duplicated in vs/base/node/paths.ts
+ function getDefaultUserDataPath(platform) {
+ 	return path.join(getAppDataPath(platform), pkg.name);
+ }
+ 
+ exports.getAppDataPath = getAppDataPath;
+-exports.getDefaultUserDataPath = getDefaultUserDataPath;
+\ No newline at end of file
++exports.getDefaultUserDataPath = getDefaultUserDataPath;
+changed in both
+  base   100644 5bee1d98f35e1a39a67f65b85f1f92e18ce37cd1 src/vs/base/common/platform.ts
+  our    100644 277929ed5d02284c4e3e3de3c755086c00b03837 src/vs/base/common/platform.ts
+  their  100644 51fad79347f6862af3f32e4457e58d8d6b75fd01 src/vs/base/common/platform.ts
+@@ -4,6 +4,9 @@
+  *--------------------------------------------------------------------------------------------*/
+ 'use strict';
+ 
++declare var MonacoSnapshotPlatform: 'win32' | 'darwin' | 'linux';
++declare var MonacoSnapshotGlobal: any;
++
+ let _isWindows = false;
+ let _isMacintosh = false;
+ let _isLinux = false;
+@@ -42,7 +45,18 @@
+ export const LANGUAGE_DEFAULT = 'en';
+ 
+ // OS detection
++<<<<<<< .our
+ if (typeof process === 'object' && typeof process.nextTick === 'function' && typeof process.platform === 'string') {
++=======
++if (typeof MonacoSnapshotPlatform === 'string') {
++	_isWindows = (MonacoSnapshotPlatform === 'win32');
++	_isMacintosh = (MonacoSnapshotPlatform === 'darwin');
++	_isLinux = (MonacoSnapshotPlatform === 'linux');
++	_locale = 'en-us';
++	_language = 'en';
++	_isNative = true;
++} else if (typeof process === 'object') {
++>>>>>>> .their
+ 	_isWindows = (process.platform === 'win32');
+ 	_isMacintosh = (process.platform === 'darwin');
+ 	_isLinux = (process.platform === 'linux');
+@@ -119,7 +133,12 @@
+  */
+ export const translationsConfigFile = _translationsConfigFile;
+ 
+-const _globals = (typeof self === 'object' ? self : typeof global === 'object' ? global : {} as any);
++const _globals = (
++	typeof self === 'object' ? self :
++		typeof global === 'object' ? global :
++			typeof MonacoSnapshotGlobal !== 'undefined' ? MonacoSnapshotGlobal :
++				{} as any
++);
+ export const globals: any = _globals;
+ 
+ let _setImmediate: (callback: (...args: any[]) => void) => number = null;
+removed in local
+  base   100644 d827548303e3092ab26a5ac75904e219c3c5a899 src/vs/base/common/winjs.base.raw.js
+  their  100644 70ce72215f12cb2e09aa30cbc8a20d304ebbb1c4 src/vs/base/common/winjs.base.raw.js
+changed in both
+  base   100644 dfdc28def8a697a0227f28ae05141400ec1e496d src/vs/base/node/paths.ts
+  our    100644 66930cdaf4bc6cf04b361862f6dcfa7a313455af src/vs/base/node/paths.ts
+  their  100644 6e20a48e0239f0e4f759a34a7a104c2c8490ba63 src/vs/base/node/paths.ts
+@@ -3,14 +3,32 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
++<<<<<<< .our
+ import { getPathFromAmdModule } from 'vs/base/common/amd';
++=======
++import * as path from 'path';
++import * as os from 'os';
++import pkg from 'vs/platform/node/package';
++>>>>>>> .their
+ 
+-interface IPaths {
+-	getAppDataPath(platform: string): string;
+-	getDefaultUserDataPath(platform: string): string;
++// TODO@snapshot: duplicated in paths.js
++export function getAppDataPath(platform: string): string {
++	switch (platform) {
++		case 'win32': return process.env['VSCODE_APPDATA'] || process.env['APPDATA'] || path.join(process.env['USERPROFILE'], 'AppData', 'Roaming');
++		case 'darwin': return process.env['VSCODE_APPDATA'] || path.join(os.homedir(), 'Library', 'Application Support');
++		case 'linux': return process.env['VSCODE_APPDATA'] || process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
++		default: throw new Error('Platform not supported');
++	}
+ }
+ 
++<<<<<<< .our
+ const pathsPath = getPathFromAmdModule(require, 'paths');
+ const paths = require.__$__nodeRequire<IPaths>(pathsPath);
+ export const getAppDataPath = paths.getAppDataPath;
+ export const getDefaultUserDataPath = paths.getDefaultUserDataPath;
++=======
++// TODO@snapshot: duplicated in paths.js
++export function getDefaultUserDataPath(platform: string): string {
++	return path.join(getAppDataPath(platform), pkg.name);
++}
++>>>>>>> .their
+changed in both
+  base   100644 cd669a4a94b4e88ed6c049f9f47cd24277afc7c5 src/vs/editor/common/services/editorSimpleWorker.ts
+  our    100644 884fba7fa029c1f7e19eb6f3082961988cc818ec src/vs/editor/common/services/editorSimpleWorker.ts
+  their  100644 91380f07ecfa88ee6f56d62b587e5ba09a6bf3b9 src/vs/editor/common/services/editorSimpleWorker.ts
+@@ -627,6 +627,7 @@
+ declare function importScripts(...urls: string[]): void;
+ 
+ if (typeof importScripts === 'function') {
++	// TODO@snapshot
+ 	// Running in a web worker
+ 	globals.monaco = createMonacoBaseAPI();
+ }
+changed in both
+  base   100644 cc1adabd5fde1ab1dae154ea37de655d659834b8 src/vs/platform/environment/node/environmentService.ts
+  our    100644 2224b6afd174362bfa9961df6a595526ecac9042 src/vs/platform/environment/node/environmentService.ts
+  their  100644 ebc86ccb7abc06f3d9d2e689fc693a637efbee5d src/vs/platform/environment/node/environmentService.ts
+@@ -17,7 +17,16 @@
+ 
+ // Read this before there's any chance it is overwritten
+ // Related to https://github.com/Microsoft/vscode/issues/30624
+-const xdgRuntimeDir = process.env['XDG_RUNTIME_DIR'];
++let xdgRuntimeDir: string = null;
++let _initialize = () => {
++	xdgRuntimeDir = process.env['XDG_RUNTIME_DIR'];
++};
++declare var MonacoSnapshotInitializeCallbacks;
++if (typeof MonacoSnapshotInitializeCallbacks !== 'undefined') {
++	MonacoSnapshotInitializeCallbacks.push(_initialize);
++} else {
++	_initialize();
++}
+ 
+ function getNixIPCHandle(userDataPath: string, type: string): string {
+ 	if (xdgRuntimeDir) {
+merged
+  result 100644 be6e32995ee2e32daff84dfa2271f6a992bfbe0f src/vs/platform/files/node/files.ts
+  our    100644 629a67e84998155d3f24356db42533d1c713606f src/vs/platform/files/node/files.ts
+@@ -7,9 +7,11 @@
+ const WIN32_MAX_FILE_SIZE = 300 * 1024 * 1024; // 300 MB
+ const GENERAL_MAX_FILE_SIZE = 16 * 1024 * 1024 * 1024; // 16 GB
+ 
++declare var MonacoSnapshotArch: string;
++const arch: string = (typeof MonacoSnapshotArch !== 'undefined' ? MonacoSnapshotArch : process.arch);
+ // See https://github.com/v8/v8/blob/5918a23a3d571b9625e5cce246bdd5b46ff7cd8b/src/heap/heap.cc#L149
+ const WIN32_MAX_HEAP_SIZE = 700 * 1024 * 1024; // 700 MB
+ const GENERAL_MAX_HEAP_SIZE = 700 * 2 * 1024 * 1024; // 1400 MB
+ 
+-export const MAX_FILE_SIZE = process.arch === 'ia32' ? WIN32_MAX_FILE_SIZE : GENERAL_MAX_FILE_SIZE;
+-export const MAX_HEAP_SIZE = process.arch === 'ia32' ? WIN32_MAX_HEAP_SIZE : GENERAL_MAX_HEAP_SIZE;
+\ No newline at end of file
++export const MAX_FILE_SIZE = arch === 'ia32' ? WIN32_MAX_FILE_SIZE : GENERAL_MAX_FILE_SIZE;
++export const MAX_HEAP_SIZE = arch === 'ia32' ? WIN32_MAX_HEAP_SIZE : GENERAL_MAX_HEAP_SIZE;
+changed in both
+  base   100644 fff85d911f2d8c95fb743cf594b8534ef00dfd68 src/vs/platform/node/package.ts
+  our    100644 93c32bc7117b6dfb65e98dc59de6a1e4ebf4eb4d src/vs/platform/node/package.ts
+  their  100644 b678c0473c0fe029e5b0777d313462f9472a1f17 src/vs/platform/node/package.ts
+@@ -11,6 +11,19 @@
+ 	version: string;
+ }
+ 
++<<<<<<< .our
+ const rootPath = path.dirname(getPathFromAmdModule(require, ''));
+ const packageJsonPath = path.join(rootPath, 'package.json');
+ export default require.__$__nodeRequire(packageJsonPath) as IPackageConfiguration;
++=======
++let packageJSONContents: IPackageConfiguration = null;
++declare var MonacoSnapshotPackage: any;
++if (typeof MonacoSnapshotPackage !== 'undefined') {
++	packageJSONContents = MonacoSnapshotPackage;
++} else {
++	const rootPath = path.dirname(uri.parse(require.toUrl('')).fsPath);
++	const packageJsonPath = path.join(rootPath, 'package.json');
++	packageJSONContents = require.__$__nodeRequire(packageJsonPath) as IPackageConfiguration;
++}
++export default packageJSONContents;
++>>>>>>> .their
+changed in both
+  base   100644 0e902be82db231e6f04e82c7b03cf6e16caac0cf src/vs/platform/node/product.ts
+  our    100644 dbb84fd473f8212ea96a20a8f12d66c5b703786a src/vs/platform/node/product.ts
+  their  100644 b76bcd1a2a8bd00732171682e1d4f5b15cc5381d src/vs/platform/node/product.ts
+@@ -90,6 +90,7 @@
+ 	userProbability: number;
+ }
+ 
++<<<<<<< .our
+ const rootPath = path.dirname(getPathFromAmdModule(require, ''));
+ const productJsonPath = path.join(rootPath, 'product.json');
+ const product = require.__$__nodeRequire(productJsonPath) as IProductConfiguration;
+@@ -98,6 +99,21 @@
+ 	product.nameShort += ' Dev';
+ 	product.nameLong += ' Dev';
+ 	product.dataFolderName += '-dev';
++=======
++let product: IProductConfiguration = null;
++declare var MonacoSnapshotProduct: any;
++if (typeof MonacoSnapshotProduct !== 'undefined') {
++	product = MonacoSnapshotProduct;
++} else {
++	const rootPath = path.dirname(uri.parse(require.toUrl('')).fsPath);
++	const productJsonPath = path.join(rootPath, 'product.json');
++	product = require.__$__nodeRequire(productJsonPath) as IProductConfiguration;
++	if (process.env['VSCODE_DEV']) {
++		product.nameShort += ' Dev';
++		product.nameLong += ' Dev';
++		product.dataFolderName += '-dev';
++	}
++>>>>>>> .their
+ }
+ 
+ export default product;
+changed in both
+  base   100644 d4b6e878238499763c21a1c5fa51871cfc6232eb src/vs/workbench/electron-browser/bootstrap/index.js
+  our    100644 8cbef8ef0a0c1d16b84ce10ca0692af3015de2e2 src/vs/workbench/electron-browser/bootstrap/index.js
+  their  100644 90e76750db5cdcfe92154b45e914eab880bfb701 src/vs/workbench/electron-browser/bootstrap/index.js
+@@ -7,7 +7,7 @@
+ 
+ 'use strict';
+ 
+-/*global window,document,define*/
++/*global window,document,define,Monaco_Loader_Init,Monaco_CSS*/
+ 
+ const perf = require('../../../base/common/performance');
+ perf.mark('renderer/started');
+@@ -280,17 +280,33 @@
+ 	const enableDeveloperTools = (process.env['VSCODE_DEV'] || !!configuration.extensionDevelopmentPath) && !configuration.extensionTestsPath;
+ 	const unbind = registerListeners(enableDeveloperTools);
+ 
+-	// Load the loader and start loading the workbench
+-	const loaderFilename = configuration.appRoot + '/out/vs/loader.js';
+-	const loaderSource = require('fs').readFileSync(loaderFilename);
+-	require('vm').runInThisContext(loaderSource, { filename: loaderFilename });
+-	var define = global.define;
+-	global.define = undefined;
++<<<<<<< .our
++=======
++	// disable pinch zoom & apply zoom level early to avoid glitches
++	const zoomLevel = configuration.zoomLevel;
++	webFrame.setVisualZoomLevelLimits(1, 1);
++	if (typeof zoomLevel === 'number' && zoomLevel !== 0) {
++		webFrame.setZoomLevel(zoomLevel);
++	}
+ 
+-	window.nodeRequire = require.__$__nodeRequire;
++	var define = null;
+ 
+-	define('fs', ['original-fs'], function (originalFS) { return originalFS; }); // replace the patched electron fs with the original node fs for all AMD code
++>>>>>>> .their
++	// Load the loader and start loading the workbench
++	if (typeof Monaco_Loader_Init === 'function') {
++		// There has been a snapshot
++		define = Monaco_Loader_Init().define;
++	} else {
++		const loaderFilename = configuration.appRoot + '/out/vs/loader.js';
++		const loaderSource = require('fs').readFileSync(loaderFilename);
++		require('vm').runInThisContext(loaderSource, { filename: loaderFilename });
++		define = global.define;
++		global.define = undefined;
+ 
++		define('fs', ['original-fs'], function (originalFS) { return originalFS; }); // replace the patched electron fs with the original node fs for all AMD code
++	}
++
++	window.nodeRequire = require.__$__nodeRequire;
+ 	window.MonacoEnvironment = {};
+ 
+ 	const onNodeCachedData = window.MonacoEnvironment.onNodeCachedData = [];
+@@ -310,11 +326,15 @@
+ 	}
+ 
+ 	perf.mark('willLoadWorkbenchMain');
+-	require([
++	var loadModules = [
+ 		'vs/workbench/workbench.main',
+ 		'vs/nls!vs/workbench/workbench.main',
+ 		'vs/css!vs/workbench/workbench.main'
+-	], function () {
++	];
++	if (typeof Monaco_CSS !== 'undefined' && process.env['VSCODE_DEV']) {
++		loadModules = loadModules.concat(Monaco_CSS);
++	}
++	require(loadModules, function () {
+ 		perf.mark('didLoadWorkbenchMain');
+ 
+ 		process.lazyEnv.then(function () {
+changed in both
+  base   100644 da39162e0b2c7ba7d7ac37245a3e4fe0a86b2995 src/vs/workbench/electron-browser/main.contribution.ts
+  our    100644 b5ea1f2025fd492a8d56b60ad98cd59a2319f383 src/vs/workbench/electron-browser/main.contribution.ts
+  their  100644 10218dbf8066051275994fe21ede703c447f2e51 src/vs/workbench/electron-browser/main.contribution.ts
+@@ -664,6 +664,7 @@
+ });
+ 
+ // Configuration: Window
++<<<<<<< .our
+ 
+ configurationRegistry.registerConfiguration({
+ 	'id': 'window',
+@@ -813,9 +814,131 @@
+ 			'scope': ConfigurationScope.APPLICATION,
+ 			'description': nls.localize('window.clickThroughInactive', "If enabled, clicking on an inactive window will both activate the window and trigger the element under the mouse if it is clickable. If disabled, clicking anywhere on an inactive window will activate it only and a second click is required on the element."),
+ 			'included': isMacintosh
++=======
++let _initialize = () => {
++	configurationRegistry.registerConfiguration({
++		'id': 'window',
++		'order': 8,
++		'title': nls.localize('windowConfigurationTitle', "Window"),
++		'type': 'object',
++		'properties': {
++			'window.openFilesInNewWindow': {
++				'type': 'string',
++				'enum': ['on', 'off', 'default'],
++				'enumDescriptions': [
++					nls.localize('window.openFilesInNewWindow.on', "Files will open in a new window"),
++					nls.localize('window.openFilesInNewWindow.off', "Files will open in the window with the files' folder open or the last active window"),
++					nls.localize('window.openFilesInNewWindow.default', "Files will open in the window with the files' folder open or the last active window unless opened via the dock or from finder (macOS only)")
++				],
++				'default': 'off',
++				'description':
++					nls.localize('openFilesInNewWindow', "Controls if files should open in a new window.\n- default: files will open in the window with the files' folder open or the last active window unless opened via the dock or from finder (macOS only)\n- on: files will open in a new window\n- off: files will open in the window with the files' folder open or the last active window\nNote that there can still be cases where this setting is ignored (e.g. when using the -new-window or -reuse-window command line option).")
++			},
++			'window.openFoldersInNewWindow': {
++				'type': 'string',
++				'enum': ['on', 'off', 'default'],
++				'enumDescriptions': [
++					nls.localize('window.openFoldersInNewWindow.on', "Folders will open in a new window"),
++					nls.localize('window.openFoldersInNewWindow.off', "Folders will replace the last active window"),
++					nls.localize('window.openFoldersInNewWindow.default', "Folders will open in a new window unless a folder is picked from within the application (e.g. via the File menu)")
++				],
++				'default': 'default',
++				'description': nls.localize('openFoldersInNewWindow', "Controls if folders should open in a new window or replace the last active window.\n- default: folders will open in a new window unless a folder is picked from within the application (e.g. via the File menu)\n- on: folders will open in a new window\n- off: folders will replace the last active window\nNote that there can still be cases where this setting is ignored (e.g. when using the -new-window or -reuse-window command line option).")
++			},
++			'window.restoreWindows': {
++				'type': 'string',
++				'enum': ['all', 'folders', 'one', 'none'],
++				'enumDescriptions': [
++					nls.localize('window.reopenFolders.all', "Reopen all windows."),
++					nls.localize('window.reopenFolders.folders', "Reopen all folders. Empty workspaces will not be restored."),
++					nls.localize('window.reopenFolders.one', "Reopen the last active window."),
++					nls.localize('window.reopenFolders.none', "Never reopen a window. Always start with an empty one.")
++				],
++				'default': 'one',
++				'description': nls.localize('restoreWindows', "Controls how windows are being reopened after a restart. Select 'none' to always start with an empty workspace, 'one' to reopen the last window you worked on, 'folders' to reopen all windows that had folders opened or 'all' to reopen all windows of your last session.")
++			},
++			'window.restoreFullscreen': {
++				'type': 'boolean',
++				'default': false,
++				'description': nls.localize('restoreFullscreen', "Controls if a window should restore to full screen mode if it was exited in full screen mode.")
++			},
++			'window.zoomLevel': {
++				'type': 'number',
++				'default': 0,
++				'description': nls.localize('zoomLevel', "Adjust the zoom level of the window. The original size is 0 and each increment above (e.g. 1) or below (e.g. -1) represents zooming 20% larger or smaller. You can also enter decimals to adjust the zoom level with a finer granularity.")
++			},
++			'window.title': {
++				'type': 'string',
++				'default': isMacintosh ? '${activeEditorShort}${separator}${rootName}' : '${dirty}${activeEditorShort}${separator}${rootName}${separator}${appName}',
++				'description': nls.localize({ comment: ['This is the description for a setting. Values surrounded by parenthesis are not to be translated.'], key: 'title' },
++					"Controls the window title based on the active editor. Variables are substituted based on the context:\n\${activeEditorShort}: the file name (e.g. myFile.txt)\n\${activeEditorMedium}: the path of the file relative to the workspace folder (e.g. myFolder/myFile.txt)\n\${activeEditorLong}: the full path of the file (e.g. /Users/Development/myProject/myFolder/myFile.txt)\n\${folderName}: name of the workspace folder the file is contained in (e.g. myFolder)\n\${folderPath}: file path of the workspace folder the file is contained in (e.g. /Users/Development/myFolder)\n\${rootName}: name of the workspace (e.g. myFolder or myWorkspace)\n\${rootPath}: file path of the workspace (e.g. /Users/Development/myWorkspace)\n\${appName}: e.g. VS Code\n\${dirty}: a dirty indicator if the active editor is dirty\n\${separator}: a conditional separator (\" - \") that only shows when surrounded by variables with values")
++			},
++			'window.newWindowDimensions': {
++				'type': 'string',
++				'enum': ['default', 'inherit', 'maximized', 'fullscreen'],
++				'enumDescriptions': [
++					nls.localize('window.newWindowDimensions.default', "Open new windows in the center of the screen."),
++					nls.localize('window.newWindowDimensions.inherit', "Open new windows with same dimension as last active one."),
++					nls.localize('window.newWindowDimensions.maximized', "Open new windows maximized."),
++					nls.localize('window.newWindowDimensions.fullscreen', "Open new windows in full screen mode.")
++				],
++				'default': 'default',
++				'description': nls.localize('newWindowDimensions', "Controls the dimensions of opening a new window when at least one window is already opened. By default, a new window will open in the center of the screen with small dimensions. When set to 'inherit', the window will get the same dimensions as the last window that was active. When set to 'maximized', the window will open maximized and fullscreen if configured to 'fullscreen'. Note that this setting does not have an impact on the first window that is opened. The first window will always restore the size and location as you left it before closing.")
++			},
++			'window.closeWhenEmpty': {
++				'type': 'boolean',
++				'default': false,
++				'description': nls.localize('closeWhenEmpty', "Controls if closing the last editor should also close the window. This setting only applies for windows that do not show folders.")
++			},
++			'window.menuBarVisibility': {
++				'type': 'string',
++				'enum': ['default', 'visible', 'toggle', 'hidden'],
++				'enumDescriptions': [
++					nls.localize('window.menuBarVisibility.default', "Menu is only hidden in full screen mode."),
++					nls.localize('window.menuBarVisibility.visible', "Menu is always visible even in full screen mode."),
++					nls.localize('window.menuBarVisibility.toggle', "Menu is hidden but can be displayed via Alt key."),
++					nls.localize('window.menuBarVisibility.hidden', "Menu is always hidden.")
++				],
++				'default': 'default',
++				'description': nls.localize('menuBarVisibility', "Control the visibility of the menu bar. A setting of 'toggle' means that the menu bar is hidden and a single press of the Alt key will show it. By default, the menu bar will be visible, unless the window is full screen."),
++				'included': isWindows || isLinux
++			},
++			'window.enableMenuBarMnemonics': {
++				'type': 'boolean',
++				'default': true,
++				'description': nls.localize('enableMenuBarMnemonics', "If enabled, the main menus can be opened via Alt-key shortcuts. Disabling mnemonics allows to bind these Alt-key shortcuts to editor commands instead."),
++				'included': isWindows || isLinux
++			},
++			'window.autoDetectHighContrast': {
++				'type': 'boolean',
++				'default': true,
++				'description': nls.localize('autoDetectHighContrast', "If enabled, will automatically change to high contrast theme if Windows is using a high contrast theme, and to dark theme when switching away from a Windows high contrast theme."),
++				'included': isWindows
++			},
++			'window.titleBarStyle': {
++				'type': 'string',
++				'enum': ['native', 'custom'],
++				'default': 'custom',
++				'description': nls.localize('titleBarStyle', "Adjust the appearance of the window title bar. Changes require a full restart to apply."),
++				'included': isMacintosh
++			},
++			'window.nativeTabs': {
++				'type': 'boolean',
++				'default': false,
++				'description': nls.localize('window.nativeTabs', "Enables macOS Sierra window tabs. Note that changes require a full restart to apply and that native tabs will disable a custom title bar style if configured."),
++				'included': isMacintosh && parseFloat(os.release()) >= 16 // Minimum: macOS Sierra (10.12.x = darwin 16.x)
++			}
++>>>>>>> .their
+ 		}
+-	}
+-});
++	});
++};
++
++declare var MonacoSnapshotInitializeCallbacks: any;
++if (typeof MonacoSnapshotInitializeCallbacks !== 'undefined') {
++	MonacoSnapshotInitializeCallbacks.push(_initialize);
++} else {
++	_initialize();
++}
+ 
+ // Configuration: Zen Mode
+ configurationRegistry.registerConfiguration({
+changed in both
+  base   100644 6c93107c6ccb7e1568e8ff6a836071a868129a07 src/vs/workbench/electron-browser/main.ts
+  our    100644 f69daf2f901dbd47817c934f8ea25b566e08e690 src/vs/workbench/electron-browser/main.ts
+  their  100644 1df36b05d47872961dfe4c7430bd5161b9f90ed5 src/vs/workbench/electron-browser/main.ts
+@@ -23,7 +23,12 @@
+ import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
+ import { realpath } from 'vs/base/node/pfs';
+ import { EnvironmentService } from 'vs/platform/environment/node/environmentService';
++<<<<<<< .our
+ import * as gracefulFs from 'graceful-fs';
++=======
++import { IInitData } from 'vs/workbench/services/timer/common/timerService';
++import { TimerService } from 'vs/workbench/services/timer/node/timerService';
++>>>>>>> .their
+ import { KeyboardMapperFactory } from 'vs/workbench/services/keybinding/electron-browser/keybindingService';
+ import { IWindowConfiguration, IWindowsService } from 'vs/platform/windows/common/windows';
+ import { WindowsChannelClient } from 'vs/platform/windows/common/windowsIpc';
+@@ -39,17 +44,40 @@
+ import { WorkspacesChannelClient } from 'vs/platform/workspaces/common/workspacesIpc';
+ import { IWorkspacesService, ISingleFolderWorkspaceIdentifier } from 'vs/platform/workspaces/common/workspaces';
+ import { createSpdLogService } from 'vs/platform/log/node/spdlogService';
++<<<<<<< .our
+ import * as fs from 'fs';
++=======
++
++// TODO@snapshot
++// import gracefulFs = require('graceful-fs');
++// import fs = require('fs');
++>>>>>>> .their
+ import { ConsoleLogService, MultiplexLogService, ILogService } from 'vs/platform/log/common/log';
+ import { IssueChannelClient } from 'vs/platform/issue/common/issueIpc';
+ import { IIssueService } from 'vs/platform/issue/common/issue';
+ import { LogLevelSetterChannelClient, FollowerLogService } from 'vs/platform/log/common/logIpc';
++<<<<<<< .our
+ import { RelayURLService } from 'vs/platform/url/common/urlService';
+ import { MenubarChannelClient } from 'vs/platform/menubar/common/menubarIpc';
+ import { IMenubarService } from 'vs/platform/menubar/common/menubar';
+ import { Schemas } from 'vs/base/common/network';
+ 
+ gracefulFs.gracefulify(fs); // enable gracefulFs
++=======
++
++let _initialize = () => {
++	// TODO@snapshot
++	// gracefulFs.gracefulify(fs); // enable gracefulFs
++};
++
++declare var MonacoSnapshotInitializeCallbacks: any;
++if (typeof MonacoSnapshotInitializeCallbacks !== 'undefined') {
++	MonacoSnapshotInitializeCallbacks.push(_initialize);
++} else {
++	_initialize();
++}
++
++>>>>>>> .their
+ 
+ export function startup(configuration: IWindowConfiguration): TPromise<void> {
+ 
+changed in both
+  base   100644 42d312d8c7e8c8e27b0fad62190559ec62518af3 src/vs/workbench/parts/codeEditor/codeEditor.contribution.ts
+  our    100644 d66877173a11e6363e68df153c77b1db5a3da12b src/vs/workbench/parts/codeEditor/codeEditor.contribution.ts
+  their  100644 1b940190635ee1d8280b240bcc6691f1acc92d58 src/vs/workbench/parts/codeEditor/codeEditor.contribution.ts
+@@ -14,4 +14,23 @@
+ import './electron-browser/toggleRenderControlCharacter';
+ import './electron-browser/toggleRenderWhitespace';
+ import './electron-browser/toggleWordWrap';
+-import './electron-browser/workbenchReferenceSearch';
+\ No newline at end of file
++<<<<<<< .our
++import './electron-browser/workbenchReferenceSearch';
++=======
++import { OPTIONS, TextBufferType } from 'vs/editor/common/model/textModel';
++
++let _initialize = () => {
++	// Configure text buffer implementation
++	if (process.env['VSCODE_PIECE_TREE']) {
++		console.log(`Using TextBufferType.PieceTree (env variable VSCODE_PIECE_TREE)`);
++		OPTIONS.TEXT_BUFFER_IMPLEMENTATION = TextBufferType.PieceTree;
++	}
++};
++
++declare var MonacoSnapshotInitializeCallbacks: any;
++if (typeof MonacoSnapshotInitializeCallbacks !== 'undefined') {
++	MonacoSnapshotInitializeCallbacks.push(_initialize);
++} else {
++	_initialize();
++}
++>>>>>>> .their
+changed in both
+  base   100644 e56fffecff5a2e70662d77daed82b262549fee4f src/vs/workbench/parts/execution/electron-browser/execution.contribution.ts
+  our    100644 8687e81f62d2fa201c3da1a398d6dea00fcd8ffb src/vs/workbench/parts/execution/electron-browser/execution.contribution.ts
+  their  100644 2645d037c874ee2d0c6eac9eb61f44d675f81cf9 src/vs/workbench/parts/execution/electron-browser/execution.contribution.ts
+@@ -37,6 +37,7 @@
+ 	registerSingleton(ITerminalService, LinuxTerminalService);
+ }
+ 
++<<<<<<< .our
+ getDefaultTerminalLinuxReady().then(defaultTerminalLinux => {
+ 	let configurationRegistry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
+ 	configurationRegistry.registerConfiguration({
+@@ -75,10 +76,56 @@
+ 				description: nls.localize('terminal.external.linuxExec', "Customizes which terminal to run on Linux."),
+ 				default: defaultTerminalLinux,
+ 				scope: ConfigurationScope.APPLICATION
++=======
++let _initialize = () => {
++	getDefaultTerminalLinuxReady().then(defaultTerminalLinux => {
++		let configurationRegistry = <IConfigurationRegistry>Registry.as(Extensions.Configuration);
++		configurationRegistry.registerConfiguration({
++			'id': 'externalTerminal',
++			'order': 100,
++			'title': nls.localize('terminalConfigurationTitle', "External Terminal"),
++			'type': 'object',
++			'properties': {
++				'terminal.explorerKind': {
++					'type': 'string',
++					'enum': [
++						'integrated',
++						'external'
++					],
++					'description': nls.localize('explorer.openInTerminalKind', "Customizes what kind of terminal to launch."),
++					'default': 'integrated',
++					'isExecutable': false
++				},
++				'terminal.external.windowsExec': {
++					'type': 'string',
++					'description': nls.localize('terminal.external.windowsExec', "Customizes which terminal to run on Windows."),
++					'default': getDefaultTerminalWindows(),
++					'isExecutable': true
++				},
++				'terminal.external.osxExec': {
++					'type': 'string',
++					'description': nls.localize('terminal.external.osxExec', "Customizes which terminal application to run on OS X."),
++					'default': DEFAULT_TERMINAL_OSX,
++					'isExecutable': true
++				},
++				'terminal.external.linuxExec': {
++					'type': 'string',
++					'description': nls.localize('terminal.external.linuxExec', "Customizes which terminal to run on Linux."),
++					'default': defaultTerminalLinux,
++					'isExecutable': true
++				}
++>>>>>>> .their
+ 			}
+-		}
++		});
+ 	});
+-});
++};
++
++declare var MonacoSnapshotInitializeCallbacks: any;
++if (typeof MonacoSnapshotInitializeCallbacks !== 'undefined') {
++	MonacoSnapshotInitializeCallbacks.push(_initialize);
++} else {
++	_initialize();
++}
+ 
+ const OPEN_IN_TERMINAL_COMMAND_ID = 'openInTerminal';
+ CommandsRegistry.registerCommand({
+changed in both
+  base   100644 b94b3f695b27ac60dd20749c78a927a2c9b0ad65 src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+  our    100644 9ef058f2994595d2b04a5e832c71a30592895aac src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+  their  100644 f87cee85bb607136699b21a02aab30babed02379 src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+@@ -67,6 +67,7 @@
+ const actionBarRegistry = Registry.as<IActionBarRegistry>(ActionBarExtensions.Actionbar);
+ actionBarRegistry.registerActionBarContributor(Scope.VIEWER, QuickOpenActionTermContributor);
+ 
++<<<<<<< .our
+ const configurationRegistry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
+ configurationRegistry.registerConfiguration({
+ 	id: 'terminal',
+@@ -359,6 +360,251 @@
+ 		}
+ 	}
+ });
++=======
++let configurationRegistry = <IConfigurationRegistry>Registry.as(Extensions.Configuration);
++let _initialize = () => {
++	configurationRegistry.registerConfiguration({
++		'id': 'terminal',
++		'order': 100,
++		'title': nls.localize('terminalIntegratedConfigurationTitle', "Integrated Terminal"),
++		'type': 'object',
++		'properties': {
++			'terminal.integrated.shell.linux': {
++				'description': nls.localize('terminal.integrated.shell.linux', "The path of the shell that the terminal uses on Linux."),
++				'type': 'string',
++				'default': getTerminalDefaultShellUnixLike()
++			},
++			'terminal.integrated.shellArgs.linux': {
++				'description': nls.localize('terminal.integrated.shellArgs.linux', "The command line arguments to use when on the Linux terminal."),
++				'type': 'array',
++				'items': {
++					'type': 'string'
++				},
++				'default': []
++			},
++			'terminal.integrated.shell.osx': {
++				'description': nls.localize('terminal.integrated.shell.osx', "The path of the shell that the terminal uses on OS X."),
++				'type': 'string',
++				'default': getTerminalDefaultShellUnixLike()
++			},
++			'terminal.integrated.shellArgs.osx': {
++				'description': nls.localize('terminal.integrated.shellArgs.osx', "The command line arguments to use when on the OS X terminal."),
++				'type': 'array',
++				'items': {
++					'type': 'string'
++				},
++				// Unlike on Linux, ~/.profile is not sourced when logging into a macOS session. This
++				// is the reason terminals on macOS typically run login shells by default which set up
++				// the environment. See http://unix.stackexchange.com/a/119675/115410
++				'default': ['-l']
++			},
++			'terminal.integrated.shell.windows': {
++				'description': nls.localize('terminal.integrated.shell.windows', "The path of the shell that the terminal uses on Windows. When using shells shipped with Windows (cmd, PowerShell or Bash on Ubuntu)."),
++				'type': 'string',
++				'default': getTerminalDefaultShellWindows()
++			},
++			'terminal.integrated.shellArgs.windows': {
++				'description': nls.localize('terminal.integrated.shellArgs.windows', "The command line arguments to use when on the Windows terminal."),
++				'type': 'array',
++				'items': {
++					'type': 'string'
++				},
++				'default': []
++			},
++			'terminal.integrated.macOptionIsMeta': {
++				'description': nls.localize('terminal.integrated.macOptionIsMeta', "Treat the option key as the meta key in the terminal on macOS."),
++				'type': 'boolean',
++				'default': false
++			},
++			'terminal.integrated.copyOnSelection': {
++				'description': nls.localize('terminal.integrated.copyOnSelection', "When set, text selected in the terminal will be copied to the clipboard."),
++				'type': 'boolean',
++				'default': false
++			},
++			'terminal.integrated.fontFamily': {
++				'description': nls.localize('terminal.integrated.fontFamily', "Controls the font family of the terminal, this defaults to editor.fontFamily's value."),
++				'type': 'string'
++			},
++			// TODO: Support font ligatures
++			// 'terminal.integrated.fontLigatures': {
++			// 	'description': nls.localize('terminal.integrated.fontLigatures', "Controls whether font ligatures are enabled in the terminal."),
++			// 	'type': 'boolean',
++			// 	'default': false
++			// },
++			'terminal.integrated.fontSize': {
++				'description': nls.localize('terminal.integrated.fontSize', "Controls the font size in pixels of the terminal."),
++				'type': 'number',
++				'default': EDITOR_FONT_DEFAULTS.fontSize
++			},
++			'terminal.integrated.lineHeight': {
++				'description': nls.localize('terminal.integrated.lineHeight', "Controls the line height of the terminal, this number is multiplied by the terminal font size to get the actual line-height in pixels."),
++				'type': 'number',
++				'default': 1
++			},
++			'terminal.integrated.fontWeight': {
++				'type': 'string',
++				'enum': ['normal', 'bold', '100', '200', '300', '400', '500', '600', '700', '800', '900'],
++				'description': nls.localize('terminal.integrated.fontWeight', "The font weight to use within the terminal for non-bold text."),
++				'default': 'normal'
++			},
++			'terminal.integrated.fontWeightBold': {
++				'type': 'string',
++				'enum': ['normal', 'bold', '100', '200', '300', '400', '500', '600', '700', '800', '900'],
++				'description': nls.localize('terminal.integrated.fontWeightBold', "The font weight to use within the terminal for bold text."),
++				'default': 'bold'
++			},
++			'terminal.integrated.cursorBlinking': {
++				'description': nls.localize('terminal.integrated.cursorBlinking', "Controls whether the terminal cursor blinks."),
++				'type': 'boolean',
++				'default': false
++			},
++			'terminal.integrated.cursorStyle': {
++				'description': nls.localize('terminal.integrated.cursorStyle', "Controls the style of terminal cursor."),
++				'enum': [TerminalCursorStyle.BLOCK, TerminalCursorStyle.LINE, TerminalCursorStyle.UNDERLINE],
++				'default': TerminalCursorStyle.BLOCK
++			},
++			'terminal.integrated.scrollback': {
++				'description': nls.localize('terminal.integrated.scrollback', "Controls the maximum amount of lines the terminal keeps in its buffer."),
++				'type': 'number',
++				'default': 1000
++			},
++			'terminal.integrated.setLocaleVariables': {
++				'description': nls.localize('terminal.integrated.setLocaleVariables', "Controls whether locale variables are set at startup of the terminal, this defaults to true on OS X, false on other platforms."),
++				'type': 'boolean',
++				'default': platform.isMacintosh
++			},
++			'terminal.integrated.rightClickBehavior': {
++				'type': 'string',
++				'enum': ['default', 'copyPaste', 'selectWord'],
++				default: platform.isMacintosh ? 'selectWord' : platform.isWindows ? 'copyPaste' : 'default',
++				description: nls.localize('terminal.integrated.rightClickBehavior', "Controls how terminal reacts to right click, possibilities are 'default', 'copyPaste', and 'selectWord'. 'default' will show the context menu, 'copyPaste' will copy when there is a selection otherwise paste, 'selectWord' will select the word under the cursor and show the context menu.")
++			},
++			'terminal.integrated.cwd': {
++				'description': nls.localize('terminal.integrated.cwd', "An explicit start path where the terminal will be launched, this is used as the current working directory (cwd) for the shell process. This may be particularly useful in workspace settings if the root directory is not a convenient cwd."),
++				'type': 'string',
++				'default': undefined
++			},
++			'terminal.integrated.confirmOnExit': {
++				'description': nls.localize('terminal.integrated.confirmOnExit', "Whether to confirm on exit if there are active terminal sessions."),
++				'type': 'boolean',
++				'default': false
++			},
++			'terminal.integrated.enableBell': {
++				'description': nls.localize('terminal.integrated.enableBell', "Whether the terminal bell is enabled or not."),
++				'type': 'boolean',
++				'default': false
++			},
++			'terminal.integrated.commandsToSkipShell': {
++				'description': nls.localize('terminal.integrated.commandsToSkipShell', "A set of command IDs whose keybindings will not be sent to the shell and instead always be handled by Code. This allows the use of keybindings that would normally be consumed by the shell to act the same as when the terminal is not focused, for example ctrl+p to launch Quick Open."),
++				'type': 'array',
++				'items': {
++					'type': 'string'
++				},
++				'default': [
++					ToggleTabFocusModeAction.ID,
++					FocusActiveGroupAction.ID,
++					QUICKOPEN_ACTION_ID,
++					QUICKOPEN_FOCUS_SECONDARY_ACTION_ID,
++					ShowAllCommandsAction.ID,
++					CreateNewTerminalAction.ID,
++					CreateNewInActiveWorkspaceTerminalAction.ID,
++					CopyTerminalSelectionAction.ID,
++					KillTerminalAction.ID,
++					FocusActiveTerminalAction.ID,
++					FocusPreviousTerminalAction.ID,
++					FocusNextTerminalAction.ID,
++					'workbench.action.tasks.build',
++					'workbench.action.tasks.restartTask',
++					'workbench.action.tasks.runTask',
++					'workbench.action.tasks.showLog',
++					'workbench.action.tasks.showTasks',
++					'workbench.action.tasks.terminate',
++					'workbench.action.tasks.test',
++					'workbench.action.terminal.focusAtIndex1',
++					'workbench.action.terminal.focusAtIndex2',
++					'workbench.action.terminal.focusAtIndex3',
++					'workbench.action.terminal.focusAtIndex4',
++					'workbench.action.terminal.focusAtIndex5',
++					'workbench.action.terminal.focusAtIndex6',
++					'workbench.action.terminal.focusAtIndex7',
++					'workbench.action.terminal.focusAtIndex8',
++					'workbench.action.terminal.focusAtIndex9',
++					TerminalPasteAction.ID,
++					RunSelectedTextInTerminalAction.ID,
++					RunActiveFileInTerminalAction.ID,
++					ToggleTerminalAction.ID,
++					ScrollDownTerminalAction.ID,
++					ScrollDownPageTerminalAction.ID,
++					ScrollToBottomTerminalAction.ID,
++					ScrollUpTerminalAction.ID,
++					ScrollUpPageTerminalAction.ID,
++					ScrollToTopTerminalAction.ID,
++					ClearTerminalAction.ID,
++					debugActions.StartAction.ID,
++					debugActions.StopAction.ID,
++					debugActions.RunAction.ID,
++					debugActions.RestartAction.ID,
++					debugActions.ContinueAction.ID,
++					debugActions.PauseAction.ID,
++					debugActions.StepIntoAction.ID,
++					debugActions.StepOutAction.ID,
++					debugActions.StepOverAction.ID,
++					OpenNextRecentlyUsedEditorInGroupAction.ID,
++					OpenPreviousRecentlyUsedEditorInGroupAction.ID,
++					FocusFirstGroupAction.ID,
++					FocusSecondGroupAction.ID,
++					FocusThirdGroupAction.ID,
++					SelectAllTerminalAction.ID,
++					FocusTerminalFindWidgetAction.ID,
++					HideTerminalFindWidgetAction.ID,
++					ShowPreviousFindTermTerminalFindWidgetAction.ID,
++					ShowNextFindTermTerminalFindWidgetAction.ID,
++					NavigateUpAction.ID,
++					NavigateDownAction.ID,
++					NavigateRightAction.ID,
++					NavigateLeftAction.ID,
++					DeleteWordLeftTerminalAction.ID,
++					DeleteWordRightTerminalAction.ID,
++					MoveToLineStartTerminalAction.ID,
++					MoveToLineEndTerminalAction.ID,
++					TogglePanelAction.ID,
++					'workbench.action.quickOpenView',
++					SplitVerticalTerminalAction.ID,
++					FocusTerminalLeftAction.ID,
++					FocusTerminalRightAction.ID
++				].sort()
++			},
++			'terminal.integrated.env.osx': {
++				'description': nls.localize('terminal.integrated.env.osx', "Object with environment variables that will be added to the VS Code process to be used by the terminal on OS X"),
++				'type': 'object',
++				'default': {}
++			},
++			'terminal.integrated.env.linux': {
++				'description': nls.localize('terminal.integrated.env.linux', "Object with environment variables that will be added to the VS Code process to be used by the terminal on Linux"),
++				'type': 'object',
++				'default': {}
++			},
++			'terminal.integrated.env.windows': {
++				'description': nls.localize('terminal.integrated.env.windows', "Object with environment variables that will be added to the VS Code process to be used by the terminal on Windows"),
++				'type': 'object',
++				'default': {}
++			},
++			'terminal.integrated.showExitAlert': {
++				'description': nls.localize('terminal.integrated.showExitAlert', "Show alert `The terminal process terminated with exit code` when exit code is non-zero."),
++				'type': 'boolean',
++				'default': true
++			},
++		}
++	});
++};
++
++declare var MonacoSnapshotInitializeCallbacks: any;
++if (typeof MonacoSnapshotInitializeCallbacks !== 'undefined') {
++	MonacoSnapshotInitializeCallbacks.push(_initialize);
++} else {
++	_initialize();
++}
++>>>>>>> .their
+ 
+ registerSingleton(ITerminalService, TerminalService);
+ 
+changed in both
+  base   100644 f33d45cb29d42564f70b008a2fdd82a9f787799f src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
+  our    100644 77a0eb4cd9ec4b638661e8eafb091dee6d5b72c6 src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
+  their  100644 1c436277ff80e656b22ea9ef4448b4470fbd7d51 src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
+@@ -594,6 +594,7 @@
+ let schemaRegistry = Registry.as<IJSONContributionRegistry>(Extensions.JSONContribution);
+ schemaRegistry.registerSchema(schemaId, schema);
+ 
++<<<<<<< .our
+ const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigExtensions.Configuration);
+ const keyboardConfiguration: IConfigurationNode = {
+ 	'id': 'keyboard',
+@@ -614,8 +615,39 @@
+ 			'default': true,
+ 			'description': nls.localize('touchbar.enabled', "Enables the macOS touchbar buttons on the keyboard if available."),
+ 			'included': OS === OperatingSystem.Macintosh && parseFloat(release()) >= 16 // Minimum: macOS Sierra (10.12.x = darwin 16.x)
++=======
++const configurationRegistry = <IConfigurationRegistry>Registry.as(ConfigExtensions.Configuration);
++
++let _initialize = () => {
++	const keyboardConfiguration: IConfigurationNode = {
++		'id': 'keyboard',
++		'order': 15,
++		'type': 'object',
++		'title': nls.localize('keyboardConfigurationTitle', "Keyboard"),
++		'overridable': true,
++		'properties': {
++			'keyboard.dispatch': {
++				'type': 'string',
++				'enum': ['code', 'keyCode'],
++				'default': 'code',
++				'description': nls.localize('dispatch', "Controls the dispatching logic for key presses to use either `code` (recommended) or `keyCode`."),
++				'included': OS === OperatingSystem.Macintosh || OS === OperatingSystem.Linux
++			},
++			'keyboard.touchbar.enabled': {
++				'type': 'boolean',
++				'default': true,
++				'description': nls.localize('touchbar.enabled', "Enables the macOS touchbar buttons on the keyboard if available."),
++				'included': OS === OperatingSystem.Macintosh && parseFloat(release()) >= 16 // Minimum: macOS Sierra (10.12.x = darwin 16.x)
++			}
++>>>>>>> .their
+ 		}
+-	}
+-};
++	};
+ 
+-configurationRegistry.registerConfiguration(keyboardConfiguration);
++	configurationRegistry.registerConfiguration(keyboardConfiguration);
++};
++declare var MonacoSnapshotInitializeCallbacks;
++if (typeof MonacoSnapshotInitializeCallbacks !== 'undefined') {
++	MonacoSnapshotInitializeCallbacks.push(_initialize);
++} else {
++	_initialize();
++}

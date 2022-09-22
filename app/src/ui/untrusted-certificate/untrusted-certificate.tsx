@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as URL from 'url'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IUntrustedCertificateProps {
   /** The untrusted certificate. */
@@ -24,6 +23,10 @@ interface IUntrustedCertificateProps {
 /**
  * The dialog we display when an API request encounters an untrusted
  * certificate.
+ *
+ * An easy way to test this dialog is to attempt to sign in to GitHub
+ * Enterprise using  one of the badssl.com domains, such
+ * as https://self-signed.badssl.com/
  */
 export class UntrustedCertificate extends React.Component<
   IUntrustedCertificateProps,
@@ -31,24 +34,13 @@ export class UntrustedCertificate extends React.Component<
 > {
   public render() {
     const host = URL.parse(this.props.url).hostname
-    const type = __DARWIN__ ? 'warning' : 'error'
-    const buttonGroup = __DARWIN__ ? (
-      <ButtonGroup destructive={true}>
-        <Button type="submit">Cancel</Button>
-        <Button onClick={this.onContinue}>View Certificate</Button>
-      </ButtonGroup>
-    ) : (
-      <ButtonGroup>
-        <Button type="submit">Close</Button>
-        <Button onClick={this.onContinue}>Add certificate</Button>
-      </ButtonGroup>
-    )
+
     return (
       <Dialog
         title={__DARWIN__ ? 'Untrusted Server' : 'Untrusted server'}
         onDismissed={this.props.onDismissed}
-        onSubmit={this.props.onDismissed}
-        type={type}
+        onSubmit={this.onContinue}
+        type={__DARWIN__ ? 'warning' : 'error'}
       >
         <DialogContent>
           <p>
@@ -71,12 +63,18 @@ export class UntrustedCertificate extends React.Component<
             administrator.
           </p>
         </DialogContent>
-        <DialogFooter>{buttonGroup}</DialogFooter>
+        <DialogFooter>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={__DARWIN__ ? 'View Certificate' : 'Add certificate'}
+          />
+        </DialogFooter>
       </Dialog>
     )
   }
 
   private onContinue = () => {
+    this.props.onDismissed()
     this.props.onContinue(this.props.certificate)
   }
 }

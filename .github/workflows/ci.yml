@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - development
+      - __release-*
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    permissions: read-all
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [16.13.0]
+        os: [macos-11, windows-2019]
+        arch: [x64, arm64]
+        include:
+          - os: macos-11
+            friendlyName: macOS
+          - os: windows-2019
+            friendlyName: Windows
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+            ${{ runner.os }}-yarn-
+
+      # This step can be removed as soon as official Windows arm64 builds are published:
+      # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
+      - name: Get NodeJS node-gyp lib for Windows arm64
+        if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
+        run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
+
+      - name: Install and build dependencies
+        run: yarn
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          TARGET_ARCH: ${{ matrix.arch }}
+      - name: Lint
+        run: yarn lint
+      - name: Validate changelog
+        run: yarn validate-changelog
+      - name: Ensure a clean working directory
+        run: git diff --name-status --exit-code
+      - name: Build production app
+        run: yarn build:prod
+        env:
+          DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
+          DESKTOP_OAUTH_CLIENT_SECRET:
+            ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          npm_config_arch: ${{ matrix.arch }}
+          TARGET_ARCH: ${{ matrix.arch }}
+      - name: Prepare testing environment
+        if: matrix.arch == 'x64'
+        run: yarn test:setup
+      - name: Run unit tests
+        if: matrix.arch == 'x64'
+        run: yarn test:unit
+      - name: Run script tests
+        if: matrix.arch == 'x64'
+        run: yarn test:script
+      - name: Publish production app
+        run: yarn run publish
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
+          AZURE_BLOB_CONTAINER: ${{ secrets.AZURE_BLOB_CONTAINER }}
+          AZURE_STORAGE_URL: ${{ secrets.AZURE_STORAGE_URL }}

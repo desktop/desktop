@@ -1,0 +1,511 @@
+changed in both
+  base   100644 a69cba8b969eeb8c7f06b9d246981d9291dae0ed docs/api/dialog.md
+  our    100644 11101ae3ec01954b61266051ee74078ebfe8b299 docs/api/dialog.md
+  their  100644 b5305dd70baa738b2125f53c2b7a4017c29e02ea docs/api/dialog.md
+@@ -23,10 +23,10 @@
+ 
+ The `dialog` module has the following methods:
+ 
+-### `dialog.showOpenDialog([browserWindow, ]options[, callback])`
++### `dialog.showOpenDialog(options)`
+ 
+-* `browserWindow` [BrowserWindow](browser-window.md) (optional)
+ * `options` Object
++  * `browserWindow` [BrowserWindow](browser-window.md) (optional)
+   * `title` String (optional)
+   * `defaultPath` String (optional)
+   * `buttonLabel` String (optional) - Custom label for the confirmation button, when
+@@ -51,9 +51,9 @@
+   * `message` String (optional) _macOS_ - Message to display above input
+     boxes.
+   * `securityScopedBookmarks` Boolean (optional) _masOS_ _mas_ - Create [security scoped bookmarks](https://developer.apple.com/library/content/documentation/Security/Conceptual/AppSandboxDesignGuide/AppSandboxInDepth/AppSandboxInDepth.html#//apple_ref/doc/uid/TP40011183-CH3-SW16) when packaged for the Mac App Store.
+-* `callback` Function (optional)
+-  * `filePaths` String[] - An array of file paths chosen by the user
+-  * `bookmarks` String[] _macOS_ _mas_ - An array matching the `filePaths` array of base64 encoded strings which contains security scoped bookmark data. `securityScopedBookmarks` must be enabled for this to be populated.
++  * `callback` Function (optional)
++    * `filePaths` String[] - An array of file paths chosen by the user
++    * `bookmarks` String[] _macOS_ _mas_ - An array matching the `filePaths` array of base64 encoded strings which contains security scoped bookmark data. `securityScopedBookmarks` must be enabled for this to be populated.
+ 
+ Returns `String[]`, an array of file paths chosen by the user,
+ if the callback is provided it returns `undefined`.
+@@ -86,10 +86,10 @@
+ `['openFile', 'openDirectory']` on these platforms, a directory selector will be
+ shown.
+ 
+-### `dialog.showSaveDialog([browserWindow, ]options[, callback])`
++### `dialog.showSaveDialog(options)`
+ 
+-* `browserWindow` [BrowserWindow](browser-window.md) (optional)
+ * `options` Object
++  * `browserWindow` [BrowserWindow](browser-window.md) (optional)
+   * `title` String (optional)
+   * `defaultPath` String (optional) - Absolute directory path, absolute file
+     path, or file name to use by default.
+@@ -102,9 +102,9 @@
+   * `showsTagField` Boolean (optional) _macOS_ - Show the tags input box,
+     defaults to `true`.
+   * `securityScopedBookmarks` Boolean (optional) _masOS_ _mas_ - Create a [security scoped bookmark](https://developer.apple.com/library/content/documentation/Security/Conceptual/AppSandboxDesignGuide/AppSandboxInDepth/AppSandboxInDepth.html#//apple_ref/doc/uid/TP40011183-CH3-SW16) when packaged for the Mac App Store. If this option is enabled and the file doesn't already exist a blank file will be created at the chosen path.
+-* `callback` Function (optional)
+-  * `filename` String
+-  * `bookmark` String _macOS_ _mas_ - Base64 encoded string which contains the security scoped bookmark data for the saved file. `securityScopedBookmarks` must be enabled for this to be present.
++  * `callback` Function (optional)
++    * `filename` String
++    * `bookmark` String _macOS_ _mas_ - Base64 encoded string which contains the security scoped bookmark data for the saved file. `securityScopedBookmarks` must be enabled for this to be present.
+ 
+ Returns `String`, the path of the file chosen by the user,
+ if a callback is provided it returns `undefined`.
+@@ -117,10 +117,10 @@
+ If a `callback` is passed, the API call will be asynchronous and the result
+ will be passed via `callback(filename)`.
+ 
+-### `dialog.showMessageBox([browserWindow, ]options[, callback])`
++### `dialog.showMessageBox(options)`
+ 
+-* `browserWindow` [BrowserWindow](browser-window.md) (optional)
+ * `options` Object
++  * `browserWindow` [BrowserWindow](browser-window.md) (optional)
+   * `type` String (optional) - Can be `"none"`, `"info"`, `"error"`, `"question"` or
+   `"warning"`. On Windows, `"question"` displays the same icon as `"info"`, unless
+   you set an icon using the `"icon"` option. On macOS, both `"warning"` and
+@@ -155,10 +155,10 @@
+     untouched on Windows. For example, a button label of `Vie&w` will be
+     converted to `Vie_w` on Linux and `View` on macOS and can be selected
+     via `Alt-W` on Windows and Linux.
+-* `callback` Function (optional)
+-  * `response` Number - The index of the button that was clicked.
+-  * `checkboxChecked` Boolean - The checked state of the checkbox if
+-    `checkboxLabel` was set. Otherwise `false`.
++  * `callback` Function (optional)
++    * `response` Number - The index of the button that was clicked.
++    * `checkboxChecked` Boolean - The checked state of the checkbox if
++      `checkboxLabel` was set. Otherwise `false`.
+ 
+ Returns `Integer`, the index of the clicked button, if a callback is provided
+ it returns undefined.
+merged
+  result 100644 96ba70832349719b898b0919ccab869fb639031f lib/browser/api/dialog.js
+  our    100644 d7545a7687a6c168a79c09c9e7866af05d336d12 lib/browser/api/dialog.js
+@@ -1,6 +1,6 @@
+ 'use strict'
+ 
+-const {app, BrowserWindow} = require('electron')
++const {app} = require('electron')
+ const binding = process.atomBinding('dialog')
+ const v8Util = process.atomBinding('v8_util')
+ 
+@@ -15,32 +15,17 @@
+   treatPackageAsDirectory: 1 << 7
+ }
+ 
++const Type = {
++  OPEN: 'open',
++  SAVE: 'save'
++}
++
+ const messageBoxTypes = ['none', 'info', 'warning', 'error', 'question']
+ 
+ const messageBoxOptions = {
+   noLink: 1 << 0
+ }
+ 
+-const parseArgs = function (window, options, callback, ...args) {
+-  if (window != null && window.constructor !== BrowserWindow) {
+-    // Shift.
+-    [callback, options, window] = [options, window, null]
+-  }
+-
+-  if ((callback == null) && typeof options === 'function') {
+-    // Shift.
+-    [callback, options] = [options, null]
+-  }
+-
+-  // Fallback to using very last argument as the callback function
+-  const lastArgument = args[args.length - 1]
+-  if ((callback == null) && typeof lastArgument === 'function') {
+-    callback = lastArgument
+-  }
+-
+-  return [window, options, callback]
+-}
+-
+ const normalizeAccessKey = (text) => {
+   if (typeof text !== 'string') return text
+ 
+@@ -70,195 +55,135 @@
+   }
+ }
+ 
+-module.exports = {
+-  showOpenDialog: function (...args) {
+-    checkAppInitialized()
+-
+-    let [window, options, callback] = parseArgs(...args)
+-
+-    if (options == null) {
+-      options = {
+-        title: 'Open',
+-        properties: ['openFile']
+-      }
+-    }
+-
+-    let {buttonLabel, defaultPath, filters, properties, title, message, securityScopedBookmarks = false} = options
+-
+-    if (properties == null) {
+-      properties = ['openFile']
+-    } else if (!Array.isArray(properties)) {
+-      throw new TypeError('Properties must be an array')
+-    }
++const setupDialog = (type, {
++    window,
++    buttonLabel = '',
++    defaultPath = '',
++    filters = [],
++    properties = ['openFile'],
++    title = '',
++    message = '',
++    securityScopedBookmarks = false,
++    callback,
++    nameFieldLabel = '',
++    showsTagField = true
++  }) => {
++  if (!Array.isArray(properties)) {
++    throw new TypeError('Properties must be an array')
++  }
+ 
+-    let dialogProperties = 0
++  let dialogProperties = 0
++  // check extra parameters for showOpenDialog
++  if (type === Type.OPEN) {
+     for (const prop in fileDialogProperties) {
+       if (properties.includes(prop)) {
+         dialogProperties |= fileDialogProperties[prop]
+       }
+     }
++  }
+ 
+-    if (title == null) {
+-      title = ''
+-    } else if (typeof title !== 'string') {
+-      throw new TypeError('Title must be a string')
+-    }
++  // check parameter types
++  if (typeof title !== 'string') {
++    throw new TypeError('Title must be a string')
++  }
++  if (typeof buttonLabel !== 'string') {
++    throw new TypeError('Button label must be a string')
++  }
++  if (typeof defaultPath !== 'string') {
++    throw new TypeError('Default path must be a string')
++  }
++  if (typeof message !== 'string') {
++    throw new TypeError('Message must be a string')
++  }
+ 
+-    if (buttonLabel == null) {
+-      buttonLabel = ''
+-    } else if (typeof buttonLabel !== 'string') {
+-      throw new TypeError('Button label must be a string')
++  // check extra parameters for showSaveDialog
++  if (type === Type.SAVE) {
++    if (typeof nameFieldLabel !== 'string') {
++      throw new TypeError('Name field label must be a string')
+     }
+-
+-    if (defaultPath == null) {
+-      defaultPath = ''
+-    } else if (typeof defaultPath !== 'string') {
+-      throw new TypeError('Default path must be a string')
++    if (typeof showsTagField !== 'boolean') {
++      throw new TypeError('Shows tag option must be a boolean')
+     }
++  }
+ 
+-    if (filters == null) {
+-      filters = []
+-    }
++  let wrappedCallback = null
++  if (typeof callback === 'function') {
++    wrappedCallback = (success, result, bookmarkData) => success ? callback(result, bookmarkData) : callback()
++  }
+ 
+-    if (message == null) {
+-      message = ''
+-    } else if (typeof message !== 'string') {
+-      throw new TypeError('Message must be a string')
+-    }
++  let settings
++  if (type === Type.OPEN) {
++    settings = {window, buttonLabel, defaultPath, filters, properties, title, message, securityScopedBookmarks, callback}
++  } else {
++    settings = {window, buttonLabel, defaultPath, filters, title, message, securityScopedBookmarks, callback, nameFieldLabel, showsTagField}
++  }
++
++  return {settings, dialogProperties, wrappedCallback}
++}
+ 
+-    const wrappedCallback = typeof callback === 'function' ? function (success, result, bookmarkData) {
+-      return success ? callback(result, bookmarkData) : callback()
+-    } : null
+-    const settings = {title, buttonLabel, defaultPath, filters, message, securityScopedBookmarks, window}
++module.exports = {
++  showOpenDialog: function (options = {
++    title: 'Open',
++    properties: ['openFile']
++  }) {
++    checkAppInitialized()
++
++    const {settings, dialogProperties, wrappedCallback} = setupDialog(Type.OPEN, options)
+     settings.properties = dialogProperties
+     return binding.showOpenDialog(settings, wrappedCallback)
+   },
+ 
+-  showSaveDialog: function (...args) {
++  showSaveDialog: function (options = {title: 'Save'}) {
+     checkAppInitialized()
+ 
+-    let [window, options, callback] = parseArgs(...args)
+-
+-    if (options == null) {
+-      options = {
+-        title: 'Save'
+-      }
+-    }
+-
+-    let {buttonLabel, defaultPath, filters, title, message, securityScopedBookmarks = false, nameFieldLabel, showsTagField} = options
+-
+-    if (title == null) {
+-      title = ''
+-    } else if (typeof title !== 'string') {
+-      throw new TypeError('Title must be a string')
+-    }
+-
+-    if (buttonLabel == null) {
+-      buttonLabel = ''
+-    } else if (typeof buttonLabel !== 'string') {
+-      throw new TypeError('Button label must be a string')
+-    }
+-
+-    if (defaultPath == null) {
+-      defaultPath = ''
+-    } else if (typeof defaultPath !== 'string') {
+-      throw new TypeError('Default path must be a string')
+-    }
+-
+-    if (filters == null) {
+-      filters = []
+-    }
+-
+-    if (message == null) {
+-      message = ''
+-    } else if (typeof message !== 'string') {
+-      throw new TypeError('Message must be a string')
+-    }
+-
+-    if (nameFieldLabel == null) {
+-      nameFieldLabel = ''
+-    } else if (typeof nameFieldLabel !== 'string') {
+-      throw new TypeError('Name field label must be a string')
+-    }
+-
+-    if (showsTagField == null) {
+-      showsTagField = true
+-    }
+-
+-    const wrappedCallback = typeof callback === 'function' ? function (success, result, bookmarkData) {
+-      return success ? callback(result, bookmarkData) : callback()
+-    } : null
+-    const settings = {title, buttonLabel, defaultPath, filters, message, securityScopedBookmarks, nameFieldLabel, showsTagField, window}
++    const {settings, wrappedCallback} = setupDialog(Type.SAVE, options)
+     return binding.showSaveDialog(settings, wrappedCallback)
+   },
+ 
+-  showMessageBox: function (...args) {
++  showMessageBox: ({
++      window,
++      buttons = [],
++      cancelId,
++      checkboxLabel = '',
++      checkboxChecked = false,
++      defaultId = -1,
++      detail = '',
++      icon,
++      normalizeAccessKeys,
++      noLink,
++      message = '',
++      title = '',
++      type = 'none',
++      callback
++    }) => {
+     checkAppInitialized()
+ 
+-    let [window, options, callback] = parseArgs(...args)
+-
+-    if (options == null) {
+-      options = {
+-        type: 'none'
+-      }
+-    }
+-
+-    let {
+-      buttons, cancelId, checkboxLabel, checkboxChecked, defaultId, detail,
+-      icon, message, title, type
+-    } = options
+-
+-    if (type == null) {
+-      type = 'none'
+-    }
+-
+-    const messageBoxType = messageBoxTypes.indexOf(type)
+-    if (messageBoxType === -1) {
++    // check type value validity
++    let messageBoxType = messageBoxTypes.indexOf(type)
++    if (!messageBoxTypes.include(type)) {
+       throw new TypeError('Invalid message box type')
+     }
+-
+-    if (buttons == null) {
+-      buttons = []
+-    } else if (!Array.isArray(buttons)) {
++    if (!Array.isArray(buttons)) {
+       throw new TypeError('Buttons must be an array')
+     }
+-
+-    if (options.normalizeAccessKeys) {
+-      buttons = buttons.map(normalizeAccessKey)
+-    }
+-
+-    if (title == null) {
+-      title = ''
+-    } else if (typeof title !== 'string') {
++    if (typeof title !== 'string') {
+       throw new TypeError('Title must be a string')
+     }
+-
+-    if (message == null) {
+-      message = ''
+-    } else if (typeof message !== 'string') {
++    if (typeof message !== 'string') {
+       throw new TypeError('Message must be a string')
+     }
+-
+-    if (detail == null) {
+-      detail = ''
+-    } else if (typeof detail !== 'string') {
++    if (typeof detail !== 'string') {
+       throw new TypeError('Detail must be a string')
+     }
+-
+-    checkboxChecked = !!checkboxChecked
+-
+-    if (checkboxLabel == null) {
+-      checkboxLabel = ''
+-    } else if (typeof checkboxLabel !== 'string') {
+-      throw new TypeError('checkboxLabel must be a string')
++    if (typeof checkboxLabel !== 'string') {
++      throw new TypeError('Checkbox label must be a string')
+     }
+-
+-    if (icon == null) {
+-      icon = null
++    if (typeof checkboxChecked !== 'boolean') {
++      throw new TypeError('Checkbox checked value must be a boolean')
+     }
+ 
+-    if (defaultId == null) {
+-      defaultId = -1
++    if (normalizeAccessKeys) {
++      buttons = buttons.map(normalizeAccessKey)
+     }
+ 
+     // Choose a default button to get selected when dialog is cancelled.
+@@ -273,31 +198,35 @@
+       }
+     }
+ 
+-    const flags = options.noLink ? messageBoxOptions.noLink : 0
++    const flags = noLink ? messageBoxOptions.noLink : 0
++
+     return binding.showMessageBox(messageBoxType, buttons, defaultId, cancelId,
+                                   flags, title, message, detail, checkboxLabel,
+                                   checkboxChecked, icon, window, callback)
+   },
+ 
+-  showErrorBox: function (...args) {
++  showErrorBox: (...args) => {
+     return binding.showErrorBox(...args)
+   },
+ 
+-  showCertificateTrustDialog: function (...args) {
+-    let [window, options, callback] = parseArgs(...args)
+-
+-    if (options == null || typeof options !== 'object') {
++  showCertificateTrustDialog: ({
++      window,
++      certificate,
++      message = '',
++      callback
++    }) => {
++    if (arguments == null || typeof arguments !== 'object') {
+       throw new TypeError('options must be an object')
+     }
+ 
+-    let {certificate, message} = options
+     if (certificate == null || typeof certificate !== 'object') {
+       throw new TypeError('certificate must be an object')
+     }
++    if (callback == null || typeof callback !== 'function') {
++      throw new TypeError('You must pass in a valid callback')
++    }
+ 
+-    if (message == null) {
+-      message = ''
+-    } else if (typeof message !== 'string') {
++    if (typeof message !== 'string') {
+       throw new TypeError('message must be a string')
+     }
+ 
+changed in both
+  base   100644 601e28ca53ca622759f9901a1227995ec47872ac spec/api-dialog-spec.js
+  our    100644 da43cc1dde89d99491403b651a2045707550b016 spec/api-dialog-spec.js
+  their  100644 cc40655cc653e1bad5a6e142a15e7026d4200437 spec/api-dialog-spec.js
+@@ -52,6 +52,7 @@
+ 
+   describe('showMessageBox', () => {
+     it('throws errors when the options are invalid', () => {
++<<<<<<< .our
+       expect(() => {
+         dialog.showMessageBox(undefined, {type: 'not-a-valid-type'})
+       }).to.throw(/Invalid message box type/)
+@@ -59,6 +60,15 @@
+       expect(() => {
+         dialog.showMessageBox(null, {buttons: false})
+       }).to.throw(/Buttons must be an array/)
++=======
++      assert.throws(() => {
++        dialog.showMessageBox({type: 'not-a-valid-type'})
++      }, /Invalid message box type/)
++
++      assert.throws(() => {
++        dialog.showMessageBox({buttons: false})
++      }, /Buttons must be an array/)
++>>>>>>> .their
+ 
+       expect(() => {
+         dialog.showMessageBox({title: 300})
+@@ -104,9 +114,15 @@
+         dialog.showCertificateTrustDialog({})
+       }).to.throw(/certificate must be an object/)
+ 
++<<<<<<< .our
+       expect(() => {
+         dialog.showCertificateTrustDialog({certificate: {}, message: false})
+       }).to.throw(/message must be a string/)
++=======
++      assert.throws(() => {
++        dialog.showCertificateTrustDialog({certificate: {}, message: false, callback: () => {}})
++      }, /message must be a string/)
++>>>>>>> .their
+     })
+   })
+ })

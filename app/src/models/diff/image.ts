@@ -3,17 +3,13 @@
  */
 export class Image {
   /**
-   * The base64 encoded contents of the image
+   * @param contents The base64 encoded contents of the image.
+   * @param mediaType The data URI media type, so the browser can render the image correctly.
+   * @param bytes Size of the file in bytes.
    */
-  public readonly contents: string
-
-  /**
-   * The data URI media type, so the browser can render the image correctly
-   */
-  public readonly mediaType: string
-
-  public constructor(contents: string, mediaType: string) {
-    this.contents = contents
-    this.mediaType = mediaType
-  }
+  public constructor(
+    public readonly contents: string,
+    public readonly mediaType: string,
+    public readonly bytes: number
+  ) {}
 }

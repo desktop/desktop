@@ -3,6 +3,7 @@
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
+  max-height: 100%;
 
   .header {
     span {
@@ -16,24 +17,23 @@
     flex-direction: row;
     flex-shrink: 0;
     flex-grow: 0;
+    align-items: center;
 
     padding: var(--spacing-half) var(--spacing);
 
-    .path {
-      flex-grow: 1;
-      align-self: center;
-      display: flex;
-      min-width: 0;
-    }
-
     @include octicon-status;
 
-    .octicon {
+    .diff-options-component {
+      margin-right: var(--spacing-half);
+      flex-shrink: 0;
+    }
+
+    .octicon.status {
       flex-shrink: 0;
       vertical-align: text-bottom;
       position: relative;
-      top: 1px;
       align-self: center;
+      flex-shrink: 0;
     }
 
     .line-endings {
@@ -59,12 +59,10 @@
       margin: var(--spacing-double);
       text-align: center;
       justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
     }
   }
-}
-
-.diff-wrapper {
-  display: flex;
-  flex-grow: 1;
-  min-width: 0;
 }

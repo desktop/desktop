@@ -1,0 +1,195 @@
+changed in both
+  base   100644 e446465273863afd8bd06bc50f91067e16aea112 src/vs/editor/browser/widget/codeEditorWidget.ts
+  our    100644 6f588e16445e2740e0f36730ce132f1ff91e44d8 src/vs/editor/browser/widget/codeEditorWidget.ts
+  their  100644 0ac7250c85ee715991dae118322fb50fe74b804a src/vs/editor/browser/widget/codeEditorWidget.ts
+@@ -44,7 +44,12 @@
+ import { IEditorContributionCtor, EditorExtensionsRegistry } from 'vs/editor/browser/editorExtensions';
+ import { IMouseEvent } from 'vs/base/browser/mouseEvent';
+ import { InternalEditorAction } from 'vs/editor/common/editorAction';
++<<<<<<< .our
+ import { ICommandDelegate } from 'vs/editor/browser/view/viewController';
++=======
++import { IEditorOptions } from 'vs/editor/common/config/editorOptions';
++import { IPosition, Position } from 'vs/editor/common/core/position';
++>>>>>>> .their
+ import { CoreEditorCommand } from 'vs/editor/browser/controller/coreCommands';
+ import { editorErrorForeground, editorErrorBorder, editorWarningForeground, editorWarningBorder, editorInfoBorder, editorInfoForeground, editorHintForeground, editorHintBorder, editorUnnecessaryCodeOpacity, editorUnnecessaryCodeBorder } from 'vs/editor/common/view/editorColorRegistry';
+ import { Color } from 'vs/base/common/color';
+@@ -1454,9 +1459,24 @@
+ 		viewEventBus.onKeyDown = (e) => this._onKeyDown.fire(e);
+ 	}
+ 
++<<<<<<< .our
+ 	protected _postDetachModelCleanup(detachedModel: ITextModel): void {
+ 		if (detachedModel) {
+ 			detachedModel.removeAllDecorationsWithOwnerId(this.id);
++=======
++	public restoreViewState(s: editorCommon.ICodeEditorViewState): void {
++		super.restoreViewState(s);
++		if (!this.cursor || !this.hasView) {
++			return;
++		}
++		if (s && s.cursorState && s.viewState) {
++			const reducedState = this.viewModel.viewLayout.reduceRestoreState(s.viewState);
++			const linesViewportData = this.viewModel.viewLayout.getLinesViewportDataAtScrollTop(reducedState.scrollTop);
++			const startViewPosition = this.viewModel.coordinatesConverter.convertViewPositionToModelPosition(new Position(linesViewportData.startLineNumber, 1));
++			const endViewPosition = this.viewModel.coordinatesConverter.convertViewPositionToModelPosition(new Position(linesViewportData.endLineNumber, 1));
++			this.model.tokenizeViewport(startViewPosition.lineNumber, endViewPosition.lineNumber);
++			this._view.restoreState(reducedState);
++>>>>>>> .their
+ 		}
+ 	}
+ 
+changed in both
+  base   100644 45fd9bd7642c9c5b258f30544696e807ac390bdf src/vs/editor/common/model.ts
+  our    100644 d37319c25b5e71dd40306946eded5114625db617 src/vs/editor/common/model.ts
+  their  100644 f25360e9e83fe2e811fb68431e50128555388d87 src/vs/editor/common/model.ts
+@@ -669,6 +669,16 @@
+ 	isDisposed(): boolean;
+ 
+ 	/**
++<<<<<<< .our
++=======
++	 * @internal
++	 */
++	tokenizeViewport(startLineNumber: number, endLineNumber: number): void;
++
++	/**
++	 * Only basic mode supports allowed on this model because it is simply too large.
++	 * (tokenization is allowed and other basic supports)
++>>>>>>> .their
+ 	 * @internal
+ 	 */
+ 	tokenizeViewport(startLineNumber: number, endLineNumber: number): void;
+changed in both
+  base   100644 70a0ce610a16771e49300bfd767d906bf9c8dd85 src/vs/editor/common/model/textModel.ts
+  our    100644 7bddfeb4441c40816473a53ecd1cea58bfc814c4 src/vs/editor/common/model/textModel.ts
+  their  100644 405c389cd83ee78972d7bfa2e56054ba93ab67e5 src/vs/editor/common/model/textModel.ts
+@@ -1754,6 +1754,7 @@
+ 			return;
+ 		}
+ 
++<<<<<<< .our
+ 		// we tokenize `this._tokens.inValidLineStartIndex` lines in around 20ms so it's a good baseline.
+ 		const contextBefore = Math.floor(this._tokens.inValidLineStartIndex * 0.3);
+ 		startLineNumber = Math.max(1, startLineNumber - contextBefore);
+@@ -1768,6 +1769,16 @@
+ 		let fakeLines = [];
+ 		let i = startLineNumber - 1;
+ 		let initialState = null;
++=======
++		const eventBuilder = new ModelTokensChangedEventBuilder();
++		const viewPortLimit = 120;
++		const context = Math.floor(Math.max(viewPortLimit - (endLineNumber - startLineNumber), 0) / 2);
++		startLineNumber = Math.max(1, startLineNumber - context);
++		let nonWhitespaceColumn = this.getLineFirstNonWhitespaceColumn(startLineNumber);
++
++		let fakeLines = [];
++		let i = startLineNumber - 1;
++>>>>>>> .their
+ 		if (nonWhitespaceColumn > 0) {
+ 			while (nonWhitespaceColumn > 0 && i >= 1) {
+ 				let newNonWhitespaceIndex = this.getLineFirstNonWhitespaceColumn(i);
+@@ -1778,10 +1789,13 @@
+ 				}
+ 
+ 				if (newNonWhitespaceIndex < nonWhitespaceColumn) {
++<<<<<<< .our
+ 					initialState = this._tokens._getState(i - 1);
+ 					if (initialState) {
+ 						break;
+ 					}
++=======
++>>>>>>> .their
+ 					fakeLines.push(this.getLineContent(i));
+ 					nonWhitespaceColumn = newNonWhitespaceIndex;
+ 				}
+@@ -1790,6 +1804,7 @@
+ 			}
+ 		}
+ 
++<<<<<<< .our
+ 		if (!initialState) {
+ 			initialState = this._tokens.tokenizationSupport.getInitialState();
+ 		}
+@@ -1797,6 +1812,12 @@
+ 		let state = initialState.clone();
+ 		for (let i = fakeLines.length - 1; i >= 0; i--) {
+ 			let r = this._tokens._tokenizeText(this._buffer, fakeLines[i], state);
++=======
++		const initialState = this._tokens.tokenizationSupport.getInitialState();
++		let state = initialState.clone();
++		for (let i = fakeLines.length - 1; i >= 0; i--) {
++			let r = this._tokens._tokenizeOneLine2(this._buffer, fakeLines[i], state, eventBuilder);
++>>>>>>> .their
+ 			if (r) {
+ 				state = r.endState.clone();
+ 			} else {
+@@ -1804,6 +1825,7 @@
+ 			}
+ 		}
+ 
++<<<<<<< .our
+ 		const contextAfter = Math.floor(this._tokens.inValidLineStartIndex * 0.4);
+ 		endLineNumber = Math.min(this.getLineCount(), endLineNumber + contextAfter);
+ 		for (let i = startLineNumber; i <= endLineNumber; i++) {
+@@ -1819,6 +1841,15 @@
+ 				this._tokens._setIsInvalid(i - 1, false);
+ 				this._tokens._setState(i - 1, state);
+ 				state = r.endState.clone();
++=======
++		endLineNumber = Math.min(this.getLineCount(), endLineNumber + context);
++		for (let i = startLineNumber; i <= endLineNumber; i++) {
++			let text = this.getLineContent(i);
++			let r = this._tokens._tokenizeOneLine2(this._buffer, text, state, eventBuilder);
++			if (r) {
++				state = r.endState.clone();
++				this._tokens._setTokens(this._tokens.languageIdentifier.id, i - 1, text.length, r.tokens);
++>>>>>>> .their
+ 				eventBuilder.registerChangedTokens(i);
+ 			} else {
+ 				state = initialState.clone();
+changed in both
+  base   100644 cb7c7bf2c7d18ed36d62ab2066f351d3c74b38de src/vs/editor/common/model/textModelTokens.ts
+  our    100644 ab4e221927f80cd5f52953dce3c0e93b35c70b88 src/vs/editor/common/model/textModelTokens.ts
+  their  100644 72c589287393d21dba1f5cb1db9e8e498f82bd55 src/vs/editor/common/model/textModelTokens.ts
+@@ -233,7 +233,11 @@
+ 		}
+ 	}
+ 
++<<<<<<< .our
+ 	_setIsInvalid(lineIndex: number, invalid: boolean): void {
++=======
++	private _setIsInvalid(lineIndex: number, invalid: boolean): void {
++>>>>>>> .their
+ 		if (lineIndex < this._tokens.length && this._tokens[lineIndex]) {
+ 			this._tokens[lineIndex]._invalid = invalid;
+ 		}
+@@ -278,7 +282,11 @@
+ 		target._lineTokens = tokens.buffer;
+ 	}
+ 
++<<<<<<< .our
+ 	_setState(lineIndex: number, state: IState): void {
++=======
++	private _setState(lineIndex: number, state: IState): void {
++>>>>>>> .their
+ 		if (lineIndex < this._tokens.length && this._tokens[lineIndex]) {
+ 			this._tokens[lineIndex]._state = state;
+ 		} else {
+@@ -380,7 +388,15 @@
+ 		return lineNumber;
+ 	}
+ 
++<<<<<<< .our
+ 	public _tokenizeText(buffer: ITextBuffer, text: string, state: IState): TokenizationResult2 {
++=======
++	public _tokenizeOneLine2(buffer: ITextBuffer, text: string, state: IState, eventBuilder: ModelTokensChangedEventBuilder): TokenizationResult2 {
++		if (!this.hasLinesToTokenize(buffer)) {
++			return null;
++		}
++
++>>>>>>> .their
+ 		let r: TokenizationResult2 = null;
+ 
+ 		try {

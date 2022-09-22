@@ -1,8 +1,7 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
-
-const fileUriToPath: (uri: string) => string = require('file-uri-to-path')
-const sourceMapSupport = require('source-map-support')
+import sourceMapSupport from 'source-map-support'
+import { fileURLToPath } from 'url'
 
 /**
  * This array tells the source map logic which files that we can expect to
@@ -24,7 +23,7 @@ function retrieveSourceMap(source: string) {
 
   // We get a file uri when we're inside a renderer, convert to a path
   if (source.startsWith('file://')) {
-    source = fileUriToPath(source)
+    source = fileURLToPath(source)
   }
 
   // We store our source maps right next to the bundle
@@ -39,9 +38,9 @@ function retrieveSourceMap(source: string) {
         return { url: Path.basename(path), map: xhr.responseText }
       }
     } catch (error) {
-      return
+      return null
     }
-    return
+    return null
   }
 
   // We don't have an option here, see
@@ -50,7 +49,7 @@ function retrieveSourceMap(source: string) {
   // property on an error object and has to be synchronous :/
   // eslint-disable-next-line no-sync
   if (!Fs.existsSync(path)) {
-    return
+    return null
   }
 
   try {
@@ -58,7 +57,7 @@ function retrieveSourceMap(source: string) {
     const map = Fs.readFileSync(path, 'utf8')
     return { url: Path.basename(path), map }
   } catch (error) {
-    return
+    return null
   }
 }
 

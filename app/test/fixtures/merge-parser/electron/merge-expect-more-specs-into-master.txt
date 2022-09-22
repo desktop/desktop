@@ -1,0 +1,298 @@
+merged
+  result 100644 9820ddfae4751c478b2d7f1625a4b89bd77e6a12 spec/api-notification-spec.js
+  our    100644 f2e9a4f801c111b427bf37def51d66b2204f7cf6 spec/api-notification-spec.js
+@@ -1,4 +1,8 @@
+-const assert = require('assert')
++const chai = require('chai')
++const dirtyChai = require('dirty-chai')
++
++const {expect} = chai
++chai.use(dirtyChai)
+ 
+ const {Notification} = require('electron').remote
+ 
+@@ -13,29 +17,29 @@
+       closeButtonText: 'closeButtonText'
+     })
+ 
+-    assert.equal(n.title, 'title')
++    expect(n.title).to.equal('title')
+     n.title = 'title1'
+-    assert.equal(n.title, 'title1')
++    expect(n.title).to.equal('title1')
+ 
+-    assert.equal(n.subtitle, 'subtitle')
++    expect(n.subtitle).equal('subtitle')
+     n.subtitle = 'subtitle1'
+-    assert.equal(n.subtitle, 'subtitle1')
++    expect(n.subtitle).equal('subtitle1')
+ 
+-    assert.equal(n.body, 'body')
++    expect(n.body).to.equal('body')
+     n.body = 'body1'
+-    assert.equal(n.body, 'body1')
++    expect(n.body).to.equal('body1')
+ 
+-    assert.equal(n.replyPlaceholder, 'replyPlaceholder')
++    expect(n.replyPlaceholder).to.equal('replyPlaceholder')
+     n.replyPlaceholder = 'replyPlaceholder1'
+-    assert.equal(n.replyPlaceholder, 'replyPlaceholder1')
++    expect(n.replyPlaceholder).to.equal('replyPlaceholder1')
+ 
+-    assert.equal(n.sound, 'sound')
++    expect(n.sound).to.equal('sound')
+     n.sound = 'sound1'
+-    assert.equal(n.sound, 'sound1')
++    expect(n.sound).to.equal('sound1')
+ 
+-    assert.equal(n.closeButtonText, 'closeButtonText')
++    expect(n.closeButtonText).to.equal('closeButtonText')
+     n.closeButtonText = 'closeButtonText1'
+-    assert.equal(n.closeButtonText, 'closeButtonText1')
++    expect(n.closeButtonText).to.equal('closeButtonText1')
+   })
+ 
+   it('inits, gets and sets basic boolean properties correctly', () => {
+@@ -44,13 +48,13 @@
+       hasReply: true
+     })
+ 
+-    assert.equal(n.silent, true)
++    expect(n.silent).to.be.true()
+     n.silent = false
+-    assert.equal(n.silent, false)
++    expect(n.silent).to.be.false()
+ 
+-    assert.equal(n.hasReply, true)
++    expect(n.hasReply).to.be.true()
+     n.hasReply = false
+-    assert.equal(n.hasReply, false)
++    expect(n.hasReply).to.be.false()
+   })
+ 
+   it('inits, gets and sets actions correctly', () => {
+@@ -66,10 +70,10 @@
+       ]
+     })
+ 
+-    assert.equal(n.actions[0].type, 'button')
+-    assert.equal(n.actions[0].text, '1')
+-    assert.equal(n.actions[1].type, 'button')
+-    assert.equal(n.actions[1].text, '2')
++    expect(n.actions[0].type).to.equal('button')
++    expect(n.actions[0].text).to.equal('1')
++    expect(n.actions[1].type).to.equal('button')
++    expect(n.actions[1].text).to.equal('2')
+ 
+     n.actions = [
+       {
+@@ -81,10 +85,10 @@
+       }
+     ]
+ 
+-    assert.equal(n.actions[0].type, 'button')
+-    assert.equal(n.actions[0].text, '3')
+-    assert.equal(n.actions[1].type, 'button')
+-    assert.equal(n.actions[1].text, '4')
++    expect(n.actions[0].type).to.equal('button')
++    expect(n.actions[0].text).to.equal('3')
++    expect(n.actions[1].type).to.equal('button')
++    expect(n.actions[1].text).to.equal('4')
+   })
+ 
+   // TODO(sethlu): Find way to test init with notification icon?
+merged
+  result 100644 9b53c95b8523947fbe9c8868bd9979bbc36bbccf spec/api-power-monitor-spec.js
+  our    100644 aa1e3b050ce0e8c604725c93f3b7d21c75ed1f55 spec/api-power-monitor-spec.js
+@@ -6,10 +6,14 @@
+ //
+ // See https://pypi.python.org/pypi/python-dbusmock for more information about
+ // python-dbusmock.
+-const assert = require('assert')
++const chai = require('chai')
++const dirtyChai = require('dirty-chai')
+ const dbus = require('dbus-native')
+ const Promise = require('bluebird')
+ 
++const {expect} = chai
++chai.use(dirtyChai)
++
+ const skip = process.platform !== 'linux' || !process.env.DBUS_SYSTEM_BUS_ADDRESS
+ 
+ // TODO(alexeykuzmin): [Ch66] Crashes on Linux ia32. Fix it and enable back.
+@@ -27,9 +31,7 @@
+       reset = Promise.promisify(logindMock.Reset, {context: logindMock})
+     })
+ 
+-    after(async () => {
+-      await reset()
+-    })
++    after(async () => { await reset() })
+   }
+ 
+   (skip ? describe.skip : describe)('when powerMonitor module is loaded with dbus mock', () => {
+@@ -41,7 +43,7 @@
+       return cb
+     }
+ 
+-    before((done) => {
++    before(done => {
+       logindMock.on('MethodCalled', onceMethodCalled(done))
+       // lazy load powerMonitor after we listen to MethodCalled mock signal
+       dbusMockPowerMonitor = require('electron').remote.powerMonitor
+@@ -49,8 +51,8 @@
+ 
+     it('should call Inhibit to delay suspend', async () => {
+       const calls = await getCalls()
+-      assert.equal(calls.length, 1)
+-      assert.deepEqual(calls[0].slice(1), [
++      expect(calls.length).to.equal(1)
++      expect(calls[0].slice(1)).to.deep.equal([
+         'Inhibit', [
+           [[{type: 's', child: []}], ['sleep']],
+           [[{type: 's', child: []}], ['electron']],
+@@ -68,7 +70,7 @@
+       })
+ 
+       describe('when PrepareForSleep(false) signal is sent by logind', () => {
+-        it('should emit "resume" event', (done) => {
++        it('should emit "resume" event', done => {
+           dbusMockPowerMonitor.once('resume', () => done())
+           emitSignal('org.freedesktop.login1.Manager', 'PrepareForSleep',
+             'b', [['b', false]])
+@@ -76,8 +78,8 @@
+ 
+         it('should have called Inhibit again', async () => {
+           const calls = await getCalls()
+-          assert.equal(calls.length, 2)
+-          assert.deepEqual(calls[1].slice(1), [
++          expect(calls.length).to.equal(2)
++          expect(calls[1].slice(1)).to.deep.equal([
+             'Inhibit', [
+               [[{type: 's', child: []}], ['sleep']],
+               [[{type: 's', child: []}], ['electron']],
+@@ -92,14 +94,14 @@
+     describe('when a listener is added to shutdown event', () => {
+       before(async () => {
+         const calls = await getCalls()
+-        assert.equal(calls.length, 2)
++        expect(calls.length).to.equal(2)
+         dbusMockPowerMonitor.once('shutdown', () => { })
+       })
+ 
+       it('should call Inhibit to delay shutdown', async () => {
+         const calls = await getCalls()
+-        assert.equal(calls.length, 3)
+-        assert.deepEqual(calls[2].slice(1), [
++        expect(calls.length).to.equal(3)
++        expect(calls[2].slice(1)).to.deep.equal([
+           'Inhibit', [
+             [[{type: 's', child: []}], ['shutdown']],
+             [[{type: 's', child: []}], ['electron']],
+@@ -110,7 +112,7 @@
+       })
+ 
+       describe('when PrepareForShutdown(true) signal is sent by logind', () => {
+-        it('should emit "shutdown" event', (done) => {
++        it('should emit "shutdown" event', done => {
+           dbusMockPowerMonitor.once('shutdown', () => { done() })
+           emitSignal('org.freedesktop.login1.Manager', 'PrepareForShutdown',
+             'b', [['b', true]])
+@@ -126,35 +128,32 @@
+     })
+ 
+     describe('powerMonitor.querySystemIdleState', () => {
+-      it('notify current system idle state', (done) => {
+-        powerMonitor.querySystemIdleState(1, (idleState) => {
+-          assert.ok(idleState)
++      it('notify current system idle state', done => {
++        powerMonitor.querySystemIdleState(1, idleState => {
++          expect(idleState).to.be.true()
+           done()
+         })
+       })
+ 
+       it('does not accept non positive integer threshold', () => {
+-        assert.throws(() => {
+-          powerMonitor.querySystemIdleState(-1, (idleState) => {
+-          })
+-        })
++        expect(() => {
++          powerMonitor.querySystemIdleState(-1, (idleState) => {})
++        }).to.throw()
+ 
+-        assert.throws(() => {
+-          powerMonitor.querySystemIdleState(NaN, (idleState) => {
+-          })
+-        })
++        expect(() => {
++          powerMonitor.querySystemIdleState(NaN, (idleState) => {})
++        }).to.throw()
+ 
+-        assert.throws(() => {
+-          powerMonitor.querySystemIdleState('a', (idleState) => {
+-          })
+-        })
++        expect(() => {
++          powerMonitor.querySystemIdleState('a', (idleState) => {})
++        }).to.throw()
+       })
+     })
+ 
+     describe('powerMonitor.querySystemIdleTime', () => {
+-      it('notify current system idle time', (done) => {
+-        powerMonitor.querySystemIdleTime((idleTime) => {
+-          assert.ok(idleTime >= 0)
++      it('notify current system idle time', done => {
++        powerMonitor.querySystemIdleTime(idleTime => {
++          expect(idleTime).to.be.at.least(0)
+           done()
+         })
+       })
+merged
+  result 100644 50d5bef547616a864243ca5326b268ac6929c805 spec/api-power-save-blocker-spec.js
+  our    100644 be97bcb301a675c711740ca5073608098223edae spec/api-power-save-blocker-spec.js
+@@ -1,13 +1,17 @@
+ const {powerSaveBlocker} = require('electron').remote
+-const assert = require('assert')
++const chai = require('chai')
++const dirtyChai = require('dirty-chai')
++
++const {expect} = chai
++chai.use(dirtyChai)
+ 
+ describe('powerSaveBlocker module', () => {
+   it('can be started and stopped', () => {
+-    assert.equal(powerSaveBlocker.isStarted(-1), false)
++    expect(powerSaveBlocker.isStarted(-1)).to.be.false()
+     const id = powerSaveBlocker.start('prevent-app-suspension')
+-    assert.ok(id != null)
+-    assert.equal(powerSaveBlocker.isStarted(id), true)
++    expect(id).to.not.be.null()
++    expect(powerSaveBlocker.isStarted(id)).to.be.true()
+     powerSaveBlocker.stop(id)
+-    assert.equal(powerSaveBlocker.isStarted(id), false)
++    expect(powerSaveBlocker.isStarted(id)).to.be.false()
+   })
+ })
+changed in both
+  base   100644 1de5e1a19dc7175eac1338b89d0f882a37bd91c0 spec/api-process-spec.js
+  our    100644 ad8f1faea14208d2659c505105c1e70938bba2b9 spec/api-process-spec.js
+  their  100644 4fc37cf7f0051bd7235e903887ecb645f238a5b3 spec/api-process-spec.js
+@@ -31,6 +31,7 @@
+       expect(ioCounters.readTransferCount).to.be.a('number')
+       expect(ioCounters.writeTransferCount).to.be.a('number')
+       expect(ioCounters.otherTransferCount).to.be.a('number')
++<<<<<<< .our
+     })
+   })
+ 
+@@ -49,6 +50,8 @@
+       const systemMemoryInfo = process.getSystemMemoryInfo()
+       expect(systemMemoryInfo.free).to.be.a('number')
+       expect(systemMemoryInfo.total).to.be.a('number')
++=======
++>>>>>>> .their
+     })
+   })
+ 

@@ -1,5 +1,6 @@
-import { ITrailer, mergeTrailers } from './git/interpret-trailers'
+import { mergeTrailers } from './git/interpret-trailers'
 import { Repository } from '../models/repository'
+import { ICommitContext } from '../models/commit'
 
 /**
  * Formats a summary and a description into a git-friendly
@@ -16,10 +17,10 @@ import { Repository } from '../models/repository'
  */
 export async function formatCommitMessage(
   repository: Repository,
-  summary: string,
-  description: string | null,
-  trailers?: ReadonlyArray<ITrailer>
+  context: ICommitContext
 ) {
+  const { summary, description, trailers } = context
+
   // Git always trim whitespace at the end of commit messages
   // so we concatenate the summary with the description, ensuring
   // that they're separated by two newlines. If we don't have a

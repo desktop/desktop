@@ -63,11 +63,11 @@
     transition: opacity 300ms ease-in;
   }
 
-  .cross-fade-leave {
+  .cross-fade-exit {
     opacity: 1;
   }
 
-  .cross-fade-leave.cross-fade-leave-active {
+  .cross-fade-exit.cross-fade-exit-active {
     opacity: 0;
     transition: opacity 200ms ease-in;
   }
@@ -239,6 +239,7 @@
   button.new-branch-button {
     align-self: center;
     margin-right: var(--spacing);
+    width: 60px;
   }
 }
 
@@ -250,6 +251,11 @@
   align-items: center;
   text-align: center;
   padding: var(--spacing);
+
+  .blankslate-image {
+    width: 257px;
+    min-width: 0;
+  }
 
   .title {
     font-weight: var(--font-weight-semibold);

@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { ensureItemIds } from '../../../src/main-process/menu'
 
 describe('main-process menu', () => {
@@ -11,7 +9,7 @@ describe('main-process menu', () => {
 
       ensureItemIds(template)
 
-      expect(template[0].id).to.equal('foo')
+      expect(template[0].id).toBe('foo')
     })
 
     it('assigns ids to items which lack it', () => {
@@ -21,7 +19,7 @@ describe('main-process menu', () => {
 
       ensureItemIds(template)
 
-      expect(template[0].id).to.equal('@.File')
+      expect(template[0].id).toBe('@.File')
     })
 
     it('assigns ids recursively', () => {
@@ -42,19 +40,19 @@ describe('main-process menu', () => {
 
       ensureItemIds(template)
 
-      expect(template[0].id).to.equal('foo')
+      expect(template[0].id).toBe('foo')
 
       const firstSubmenu = template[0]
         .submenu! as Electron.MenuItemConstructorOptions[]
 
-      expect(firstSubmenu[0].id).to.equal('foo.Open')
-      expect(firstSubmenu[1].id).to.equal('foo.Close')
-      expect(firstSubmenu[2].id).to.equal('foo.More')
+      expect(firstSubmenu[0].id).toBe('foo.Open')
+      expect(firstSubmenu[1].id).toBe('foo.Close')
+      expect(firstSubmenu[2].id).toBe('foo.More')
 
       const secondSubmenu = firstSubmenu[2]
         .submenu! as Electron.MenuItemConstructorOptions[]
 
-      expect(secondSubmenu[0].id).to.equal('foo.More.Even more')
+      expect(secondSubmenu[0].id).toBe('foo.More.Even more')
     })
 
     it('handles duplicate generated ids', () => {
@@ -65,8 +63,8 @@ describe('main-process menu', () => {
 
       ensureItemIds(template)
 
-      expect(template[0].id).to.equal('@.foo')
-      expect(template[1].id).to.equal('@.foo1')
+      expect(template[0].id).toBe('@.foo')
+      expect(template[1].id).toBe('@.foo1')
     })
   })
 })

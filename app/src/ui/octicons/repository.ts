@@ -1,4 +1,4 @@
-import { OcticonSymbol } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Repository } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
 
@@ -19,7 +19,7 @@ export function iconForRepository(repository: Repository | CloningRepository) {
     return OcticonSymbol.deviceDesktop
   }
 
-  if (gitHubRepo.private) {
+  if (gitHubRepo.isPrivate) {
     return OcticonSymbol.lock
   }
   if (gitHubRepo.fork) {
