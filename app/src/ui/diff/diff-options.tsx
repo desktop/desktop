@@ -10,7 +10,7 @@ interface IDiffOptionsProps {
   readonly hideWhitespaceChanges: boolean
   readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
-  ) => Promise<void>
+  ) => Promise<void> | void
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void

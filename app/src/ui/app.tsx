@@ -2261,7 +2261,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const {
           pullRequestFilesListWidth,
-          hideWhitespaceInHistoryDiff,
+          hideWhitespaceInPullRequestDiff,
           showSideBySideDiff,
         } = this.state
 
@@ -2284,7 +2284,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
             fileListWidth={pullRequestFilesListWidth}
-            hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
+            hideWhitespaceInDiff={hideWhitespaceInPullRequestDiff}
             imageDiffType={imageDiffType}
             nonLocalCommitSHA={nonLocalCommitSHA}
             pullRequestState={pullRequestState}

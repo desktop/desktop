@@ -60,7 +60,7 @@ interface IPullRequestFilesChangedProps {
 }
 
 /**
- * A component for viewing the file diff for a pull request.
+ * A component for viewing the file changes for a pull request.
  */
 export class PullRequestFilesChanged extends React.Component<
   IPullRequestFilesChangedProps,
@@ -82,7 +82,7 @@ export class PullRequestFilesChanged extends React.Component<
   /** Called when the user changes the hide whitespace in diffs setting. */
   private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {
     const { selectedFile } = this.props
-    return this.props.dispatcher.onHideWhitespaceInHistoryDiffChanged(
+    return this.props.dispatcher.onHideWhitespaceInPullRequestDiffChanged(
       hideWhitespaceInDiff,
       this.props.repository,
       selectedFile as CommittedFileChange

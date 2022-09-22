@@ -351,6 +351,8 @@ const hideWhitespaceInChangesDiffDefault = false
 const hideWhitespaceInChangesDiffKey = 'hide-whitespace-in-changes-diff'
 const hideWhitespaceInHistoryDiffDefault = false
 const hideWhitespaceInHistoryDiffKey = 'hide-whitespace-in-diff'
+const hideWhitespaceInPullRequestDiffDefault = false
+const hideWhitespaceInPullRequestDiffKey = 'hide-whitespace-in-diff'
 
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
@@ -448,6 +450,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     hideWhitespaceInChangesDiffDefault
   private hideWhitespaceInHistoryDiff: boolean =
     hideWhitespaceInHistoryDiffDefault
+  private hideWhitespaceInPullRequestDiff: boolean =
+    hideWhitespaceInPullRequestDiffDefault
   /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
@@ -925,6 +929,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType: this.imageDiffType,
       hideWhitespaceInChangesDiff: this.hideWhitespaceInChangesDiff,
       hideWhitespaceInHistoryDiff: this.hideWhitespaceInHistoryDiff,
+      hideWhitespaceInPullRequestDiff: this.hideWhitespaceInPullRequestDiff,
       showSideBySideDiff: this.showSideBySideDiff,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
@@ -2019,6 +2024,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     this.hideWhitespaceInHistoryDiff = getBoolean(
       hideWhitespaceInHistoryDiffKey,
+      false
+    )
+    this.hideWhitespaceInPullRequestDiff = getBoolean(
+      hideWhitespaceInPullRequestDiffKey,
       false
     )
     this.commitSpellcheckEnabled = getBoolean(
@@ -5324,6 +5333,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  public _setHideWhitespaceInPullRequestDiff(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null
+  ) {
+    setBoolean(hideWhitespaceInPullRequestDiffKey, hideWhitespaceInDiff)
+    this.hideWhitespaceInPullRequestDiff = hideWhitespaceInDiff
+
+    if (file !== null) {
+      this._changePullRequestFileSelection(repository, file)
+    }
+  }
+
   public _setShowSideBySideDiff(showSideBySideDiff: boolean) {
     if (showSideBySideDiff !== this.showSideBySideDiff) {
       setShowSideBySideDiff(showSideBySideDiff)
@@ -7305,7 +7327,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             file,
             baseBranch.name,
             currentBranch.name,
-            this.hideWhitespaceInHistoryDiff,
+            this.hideWhitespaceInPullRequestDiff,
             commitSHAs[0]
           )
         )) ?? null
