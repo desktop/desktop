@@ -24,6 +24,7 @@ import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { createCommitURL } from '../../lib/commit-url'
+import { DiffOptions } from '../diff/diff-options'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -86,6 +87,14 @@ export class PullRequestFilesChanged extends React.Component<
       this.props.repository,
       selectedFile as CommittedFileChange
     )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
+  }
+
+  private onDiffOptionsOpened = () => {
+    this.props.dispatcher.recordDiffOptionsViewed()
   }
 
   /**
@@ -209,6 +218,16 @@ export class PullRequestFilesChanged extends React.Component<
     return (
       <div className="files-changed-header">
         <div>Showing changes from all commits</div>
+        <span>
+          <DiffOptions
+            isInteractiveDiff={false}
+            hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+            onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
+            showSideBySideDiff={this.props.showSideBySideDiff}
+            onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+            onDiffOptionsOpened={this.onDiffOptionsOpened}
+          />
+        </span>
       </div>
     )
   }
