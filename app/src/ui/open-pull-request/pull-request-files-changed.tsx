@@ -215,6 +215,7 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   private renderHeader() {
+    const { hideWhitespaceInDiff, showSideBySideDiff } = this.props
     return (
       <div className="files-changed-header">
         <div className="commits-displayed">
@@ -222,9 +223,9 @@ export class PullRequestFilesChanged extends React.Component<
         </div>
         <DiffOptions
           isInteractiveDiff={false}
-          hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+          hideWhitespaceChanges={hideWhitespaceInDiff}
           onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
-          showSideBySideDiff={this.props.showSideBySideDiff}
+          showSideBySideDiff={showSideBySideDiff}
           onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
           onDiffOptionsOpened={this.onDiffOptionsOpened}
         />
