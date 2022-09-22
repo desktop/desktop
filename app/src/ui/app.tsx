@@ -2259,17 +2259,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const { pullRequestFilesListWidth } = this.state
+        const {
+          pullRequestFilesListWidth,
+          hideWhitespaceInHistoryDiff,
+          showSideBySideDiff,
+        } = this.state
 
         const {
           allBranches,
           currentBranch,
           defaultBranch,
           imageDiffType,
-          hideWhitespaceInHistoryDiff,
           externalEditorLabel,
           nonLocalCommitSHA,
-          showSideBySideDiff,
           recentBranches,
           repository,
         } = popup
