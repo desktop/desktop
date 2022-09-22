@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Branch } from '../../models/branch'
+import { BranchSelect } from '../branches/branch-select'
 import { DialogHeader } from '../dialog/header'
 import { createUniqueId } from '../lib/id-pool'
 import { Ref } from '../lib/ref'
@@ -10,6 +11,21 @@ interface IOpenPullRequestDialogHeaderProps {
 
   /** The branch of the pull request */
   readonly currentBranch: Branch
+
+  /**
+   * See IBranchesState.defaultBranch
+   */
+  readonly defaultBranch: Branch | null
+
+  /**
+   * See IBranchesState.allBranches
+   */
+  readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * See IBranchesState.recentBranches
+   */
+  readonly recentBranches: ReadonlyArray<Branch>
 
   /** The count of commits of the pull request */
   readonly commitCount: number
@@ -31,7 +47,15 @@ export class OpenPullRequestDialogHeader extends React.Component<
 > {
   public render() {
     const title = __DARWIN__ ? 'Open a Pull Request' : 'Open a pull request'
-    const { baseBranch, currentBranch, commitCount, onDismissed } = this.props
+    const {
+      baseBranch,
+      currentBranch,
+      defaultBranch,
+      allBranches,
+      recentBranches,
+      commitCount,
+      onDismissed,
+    } = this.props
     const commits = `${commitCount} commit${commitCount > 1 ? 's' : ''}`
 
     return (
@@ -43,8 +67,15 @@ export class OpenPullRequestDialogHeader extends React.Component<
       >
         <div className="break"></div>
         <div className="base-branch-details">
-          Merge {commits} into <Ref>{baseBranch.name}</Ref> from{' '}
-          <Ref>{currentBranch.name}</Ref>.
+          Merge {commits} into{' '}
+          <BranchSelect
+            branch={baseBranch}
+            defaultBranch={defaultBranch}
+            currentBranch={currentBranch}
+            allBranches={allBranches}
+            recentBranches={recentBranches}
+          />{' '}
+          from <Ref>{currentBranch.name}</Ref>.
         </div>
       </DialogHeader>
     )

@@ -2259,14 +2259,19 @@ export class App extends React.Component<IAppProps, IAppState> {
         ) {
           return null
         }
-        const currentBranch = branchesState.tip.branch
+        const { allBranches, recentBranches, defaultBranch, tip } =
+          branchesState
+        const currentBranch = tip.branch
 
         return (
           <OpenPullRequestDialog
             key="open-pull-request"
+            allBranches={allBranches}
             currentBranch={currentBranch}
+            defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
             pullRequestState={pullRequestState}
+            recentBranches={recentBranches}
             repository={repository}
             onDismissed={onPopupDismissedFn}
           />
