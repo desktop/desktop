@@ -48,13 +48,6 @@
     padding: 0;
     margin-top: 25px;
 
-    &.popover-component {
-      &::before,
-      &::after {
-        display: none;
-      }
-    }
-
     .branch-select-dropdown-header {
       padding: var(--spacing);
       font-weight: var(--font-weight-semibold);

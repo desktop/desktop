@@ -3,7 +3,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { ClickSource } from '../lib/list'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { Popover } from '../lib/popover'
 import { Ref } from '../lib/ref'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -137,7 +137,6 @@ export class BranchSelect extends React.Component<
     return (
       <Popover
         className="branch-select-dropdown"
-        caretPosition={PopoverCaretPosition.TopLeft}
         onClickOutside={this.closeBranchDropdown}
       >
         <div className="branch-select-dropdown-header">
