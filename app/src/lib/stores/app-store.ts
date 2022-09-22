@@ -7242,23 +7242,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { allBranches, recentBranches } = branchesState
-    const {
-      imageDiffType,
-      hideWhitespaceInHistoryDiff,
-      showSideBySideDiff,
-      selectedExternalEditor,
-    } = this.getState()
+    const { imageDiffType, selectedExternalEditor } = this.getState()
 
     this._showPopup({
       type: PopupType.StartPullRequest,
       allBranches,
       currentBranch,
       defaultBranch,
-      hideWhitespaceInHistoryDiff,
       imageDiffType,
       recentBranches,
       repository,
-      showSideBySideDiff,
       externalEditorLabel: selectedExternalEditor ?? undefined,
       nonLocalCommitSHA:
         commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
