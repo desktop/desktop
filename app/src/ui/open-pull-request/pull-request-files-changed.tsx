@@ -217,17 +217,17 @@ export class PullRequestFilesChanged extends React.Component<
   private renderHeader() {
     return (
       <div className="files-changed-header">
-        <div>Showing changes from all commits</div>
-        <span>
-          <DiffOptions
-            isInteractiveDiff={false}
-            hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-            onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
-            showSideBySideDiff={this.props.showSideBySideDiff}
-            onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
-            onDiffOptionsOpened={this.onDiffOptionsOpened}
-          />
-        </span>
+        <div className="commits-displayed">
+          Showing changes from all commits
+        </div>
+        <DiffOptions
+          isInteractiveDiff={false}
+          hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+          onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+          onDiffOptionsOpened={this.onDiffOptionsOpened}
+        />
       </div>
     )
   }

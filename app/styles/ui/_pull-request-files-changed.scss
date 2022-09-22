@@ -5,6 +5,11 @@
   .files-changed-header {
     padding: var(--spacing);
     border-bottom: var(--base-border);
+    display: flex;
+
+    .commits-displayed {
+      flex-grow: 1;
+    }
   }
 
   .files-diff-viewer {
