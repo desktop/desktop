@@ -3,11 +3,13 @@ import { Button } from './button'
 import { Popover, PopoverCaretPosition } from './popover'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import classNames from 'classnames'
 
 const defaultPopoverContentHeight = 300
 const maxPopoverContentHeight = 500
 
 interface IPopoverDropdownProps {
+  readonly className?: string
   readonly contentTitle: string
   readonly buttonContent: JSX.Element | string
 }
@@ -18,9 +20,10 @@ interface IPopoverDropdownState {
 }
 
 /**
- * A select element for filter and selecting a branch.
+ * A dropdown component for displaying a dropdown button that opens
+ * a popover to display contents relative to the button content.
  */
-export class PopoverSelect extends React.Component<
+export class PopoverDropdown extends React.Component<
   IPopoverDropdownProps,
   IPopoverDropdownState
 > {
@@ -72,11 +75,11 @@ export class PopoverSelect extends React.Component<
     this.setState({ showPopover: !this.state.showPopover })
   }
 
-  private closePopover = () => {
+  public closePopover = () => {
     this.setState({ showPopover: false })
   }
 
-  public renderPopover() {
+  private renderPopover() {
     if (!this.state.showPopover) {
       return
     }
@@ -109,13 +112,16 @@ export class PopoverSelect extends React.Component<
   }
 
   public render() {
+    const { className, buttonContent } = this.props
+    const cn = classNames('popover-dropdown-component', className)
+
     return (
-      <div className="popover-dropdown-component">
+      <div className={cn}>
         <Button
           onClick={this.togglePopover}
           onButtonRef={this.onInvokeButtonRef}
         >
-          <span className="button-content">{this.props.buttonContent}</span>
+          <span className="button-content">{buttonContent}</span>
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
         {this.renderPopover()}
