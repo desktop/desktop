@@ -45,7 +45,10 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'VSCodium',
-    bundleIdentifiers: ['com.visualstudio.code.oss'],
+    bundleIdentifiers: [
+      'com.visualstudio.code.oss',
+      'com.vscodium',
+    ],
   },
   {
     name: 'Sublime Text',
