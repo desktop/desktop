@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.0.9-beta1": [
+      "[Fixed] Enable update from upstream default branch when contributing to a fork - #15299",
+      "[Fixed] Fix crash installing updates that were downloaded a long time ago on macOS - #15275",
+      "[Fixed] Tooltips are positioned accurately when the user prefers reduced motion - #15249",
+      "[Fixed] Add option to disable Undo Commit popup - #15134. Thanks @geophilusd!"
+    ],
     "3.0.8": [
       "[Fixed] Fix system animations on Windows - #14037",
       "[Fixed] The app window doesn't overlap the taskbar on Windows - #14263",
