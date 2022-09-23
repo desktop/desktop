@@ -91,7 +91,11 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderContent() {
-    return <div className="content">{this.renderFilesChanged()}</div>
+    return (
+      <div className="open-pull-request-content">
+        {this.renderFilesChanged()}
+      </div>
+    )
   }
 
   private renderFilesChanged() {
