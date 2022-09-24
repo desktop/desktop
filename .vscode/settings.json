@@ -35,5 +35,8 @@
     "javascriptreact",
     "typescript",
     "typescriptreact"
+  ],
+  "githubPullRequests.ignoredPullRequestBranches": [
+    "development"
   ]
 }
