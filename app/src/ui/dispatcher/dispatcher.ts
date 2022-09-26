@@ -4001,4 +4001,8 @@ export class Dispatcher {
   public resetPullRequestFileListWidth(): Promise<void> {
     return this.appStore._resetPullRequestFileListWidth()
   }
+
+  public updatePullRequestBaseBranch(repository: Repository, branch: Branch) {
+    this.appStore._updatePullRequestBaseBranch(repository, branch)
+  }
 }

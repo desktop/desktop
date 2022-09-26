@@ -7377,6 +7377,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+  public _updatePullRequestBaseBranch(repository: Repository, branch: Branch) {}
 }
 
 /**
