@@ -7215,12 +7215,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (defaultBranch === null || tip.kind !== TipState.Valid) {
       return
     }
-
     const currentBranch = tip.branch
+    this._initializePullRequestPreview(repository, defaultBranch, currentBranch)
+  }
+
+  private async _initializePullRequestPreview(
+    repository: Repository,
+    baseBranch: Branch,
+    currentBranch: Branch
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
 
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
-      defaultBranch,
+      baseBranch,
       currentBranch
     )
 
@@ -7233,7 +7240,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? await gitStore.performFailableOperation(() =>
             getBranchMergeBaseChangedFiles(
               repository,
-              defaultBranch.name,
+              baseBranch.name,
               currentBranch.name,
               commitSHAs[0]
             )
@@ -7245,7 +7252,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.repositoryStateCache.initializePullRequestState(repository, {
-      baseBranch: defaultBranch,
+      baseBranch,
       commitSHAs,
       commitSelection: {
         shas: commitSHAs,
@@ -7256,6 +7263,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         diff: null,
       },
     })
+
+    this.emitUpdate()
 
     if (changesetData.files.length > 0) {
       await this._changePullRequestFileSelection(
@@ -7377,7 +7386,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
-  public _updatePullRequestBaseBranch(repository: Repository, branch: Branch) {}
+
+  public _updatePullRequestBaseBranch(
+    repository: Repository,
+    baseBranch: Branch
+  ) {
+    const { branchesState, pullRequestState } =
+      this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    if (pullRequestState === null) {
+      // This would mean the user submitted PR after requesting base branch
+      // update.
+      return
+    }
+
+    this._initializePullRequestPreview(repository, baseBranch, tip.branch)
+  }
 }
 
 /**
