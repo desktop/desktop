@@ -2243,25 +2243,17 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.StartPullRequest: {
-        const { selectedState } = this.state
-        if (
-          selectedState == null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const { state: repoState, repository } = selectedState
-        const { pullRequestState, branchesState } = repoState
-        if (
-          pullRequestState === null ||
-          branchesState.tip.kind !== TipState.Valid
-        ) {
-          return null
-        }
-        const { allBranches, recentBranches, defaultBranch, tip } =
-          branchesState
-        const currentBranch = tip.branch
+        const {
+          allBranches,
+          currentBranch,
+          defaultBranch,
+          imageDiffType,
+          hideWhitespaceInHistoryDiff,
+          showSideBySideDiff,
+          pullRequestState,
+          recentBranches,
+          repository,
+        } = popup
 
         return (
           <OpenPullRequestDialog
@@ -2270,9 +2262,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranch={currentBranch}
             defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
+            hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
+            imageDiffType={imageDiffType}
             pullRequestState={pullRequestState}
             recentBranches={recentBranches}
             repository={repository}
+            showSideBySideDiff={showSideBySideDiff}
             onDismissed={onPopupDismissedFn}
           />
         )
