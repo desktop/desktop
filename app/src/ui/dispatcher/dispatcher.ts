@@ -2338,6 +2338,10 @@ export class Dispatcher {
     await this.appStore._loadStatus(repository)
   }
 
+  public setConfirmDiscardStashSetting(value: boolean) {
+    return this.appStore._setConfirmDiscardStashSetting(value)
+  }
+
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
   }

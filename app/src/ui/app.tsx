@@ -1481,6 +1481,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChangesPermanently={
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
+            confirmDiscardStash={this.state.askForConfirmationOnDiscardStash}
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
