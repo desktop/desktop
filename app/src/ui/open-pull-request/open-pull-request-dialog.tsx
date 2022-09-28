@@ -5,6 +5,9 @@ import { ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
+import { Ref } from '../lib/ref'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 
@@ -136,13 +139,24 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderNoChanges() {
-    const { shas } = this.props.pullRequestState.commitSelection
+    const { pullRequestState, currentBranch } = this.props
+    const { commitSelection, baseBranch } = pullRequestState
+    const { shas } = commitSelection
 
     if (shas.length !== 0) {
       return
     }
 
-    return <div className="open-pull-request-no-changes"> No changes!</div>
+    return (
+      <div className="open-pull-request-no-changes">
+        <div>
+          <Octicon symbol={OcticonSymbol.gitPullRequest} />
+          <h3>There are no changes.</h3>
+          <Ref>{baseBranch.name}</Ref> is up to date with all commits from{' '}
+          <Ref>{currentBranch.name}</Ref>.
+        </div>
+      </div>
+    )
   }
 
   private renderFooter() {
