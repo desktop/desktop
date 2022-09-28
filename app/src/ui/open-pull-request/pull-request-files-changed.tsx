@@ -85,7 +85,7 @@ export class PullRequestFilesChanged extends React.Component<
     return this.props.dispatcher.onHideWhitespaceInPullRequestDiffChanged(
       hideWhitespaceInDiff,
       this.props.repository,
-      selectedFile as CommittedFileChange
+      selectedFile
     )
   }
 
