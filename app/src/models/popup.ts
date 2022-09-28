@@ -370,4 +370,5 @@ export type Popup =
       recentBranches: ReadonlyArray<Branch>
       repository: Repository
       nonLocalCommitSHA: string | null
+      showSideBySideDiff: boolean
     }

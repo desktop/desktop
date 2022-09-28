@@ -2259,11 +2259,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const {
-          pullRequestFilesListWidth,
-          hideWhitespaceInPullRequestDiff,
-          showSideBySideDiff,
-        } = this.state
+        const { pullRequestFilesListWidth, hideWhitespaceInPullRequestDiff } =
+          this.state
 
         const {
           allBranches,
@@ -2274,6 +2271,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           nonLocalCommitSHA,
           recentBranches,
           repository,
+          showSideBySideDiff,
         } = popup
 
         return (
