@@ -2951,6 +2951,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
           }
+          askForConfirmationOnDiscardStash={
+            state.askForConfirmationOnDiscardStash
+          }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           resolvedExternalEditor={state.resolvedExternalEditor}
