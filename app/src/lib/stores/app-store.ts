@@ -7208,8 +7208,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { branchesState, localCommitSHAs } =
-      this.repositoryStateCache.get(repository)
+    const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch, tip } = branchesState
 
     if (defaultBranch === null || tip.kind !== TipState.Valid) {
@@ -7224,6 +7223,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: Branch,
     currentBranch: Branch
   ) {
+    const { branchesState, localCommitSHAs } =
+      this.repositoryStateCache.get(repository)
     const gitStore = this.gitStoreCache.get(repository)
 
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
@@ -7273,7 +7274,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const { allBranches, recentBranches } = branchesState
+    const { allBranches, recentBranches, defaultBranch } = branchesState
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
