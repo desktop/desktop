@@ -2122,6 +2122,19 @@ export class Dispatcher {
     )
   }
 
+  /** Change the hide whitespace in pull request diff setting */
+  public onHideWhitespaceInPullRequestDiffChanged(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null = null
+  ) {
+    this.appStore._setHideWhitespaceInPullRequestDiff(
+      hideWhitespaceInDiff,
+      repository,
+      file
+    )
+  }
+
   /** Change the side by side diff setting */
   public onShowSideBySideDiffChanged(showSideBySideDiff: boolean) {
     return this.appStore._setShowSideBySideDiff(showSideBySideDiff)

@@ -2259,19 +2259,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const { pullRequestFilesListWidth } = this.state
+        const { pullRequestFilesListWidth, hideWhitespaceInPullRequestDiff } =
+          this.state
 
         const {
           allBranches,
           currentBranch,
           defaultBranch,
           imageDiffType,
-          hideWhitespaceInHistoryDiff,
           externalEditorLabel,
           nonLocalCommitSHA,
-          showSideBySideDiff,
           recentBranches,
           repository,
+          showSideBySideDiff,
         } = popup
 
         return (
@@ -2282,7 +2282,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
             fileListWidth={pullRequestFilesListWidth}
-            hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
+            hideWhitespaceInDiff={hideWhitespaceInPullRequestDiff}
             imageDiffType={imageDiffType}
             nonLocalCommitSHA={nonLocalCommitSHA}
             pullRequestState={pullRequestState}

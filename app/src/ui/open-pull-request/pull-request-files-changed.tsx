@@ -24,6 +24,7 @@ import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { createCommitURL } from '../../lib/commit-url'
+import { DiffOptions } from '../diff/diff-options'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -58,13 +59,23 @@ interface IPullRequestFilesChangedProps {
   readonly nonLocalCommitSHA: string | null
 }
 
+interface IPullRequestFilesChangedState {
+  readonly showSideBySideDiff: boolean
+}
+
 /**
- * A component for viewing the file diff for a pull request.
+ * A component for viewing the file changes for a pull request.
  */
 export class PullRequestFilesChanged extends React.Component<
   IPullRequestFilesChangedProps,
-  {}
+  IPullRequestFilesChangedState
 > {
+  public constructor(props: IPullRequestFilesChangedProps) {
+    super(props)
+
+    this.state = { showSideBySideDiff: props.showSideBySideDiff }
+  }
+
   private onOpenFile = (path: string) => {
     const fullPath = Path.join(this.props.repository.path, path)
     this.onOpenBinaryFile(fullPath)
@@ -81,11 +92,19 @@ export class PullRequestFilesChanged extends React.Component<
   /** Called when the user changes the hide whitespace in diffs setting. */
   private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {
     const { selectedFile } = this.props
-    return this.props.dispatcher.onHideWhitespaceInHistoryDiffChanged(
+    return this.props.dispatcher.onHideWhitespaceInPullRequestDiffChanged(
       hideWhitespaceInDiff,
       this.props.repository,
-      selectedFile as CommittedFileChange
+      selectedFile
     )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.setState({ showSideBySideDiff })
+  }
+
+  private onDiffOptionsOpened = () => {
+    this.props.dispatcher.recordDiffOptionsViewed()
   }
 
   /**
@@ -206,9 +225,21 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   private renderHeader() {
+    const { hideWhitespaceInDiff } = this.props
+    const { showSideBySideDiff } = this.state
     return (
       <div className="files-changed-header">
-        <div>Showing changes from all commits</div>
+        <div className="commits-displayed">
+          Showing changes from all commits
+        </div>
+        <DiffOptions
+          isInteractiveDiff={false}
+          hideWhitespaceChanges={hideWhitespaceInDiff}
+          onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
+          showSideBySideDiff={showSideBySideDiff}
+          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+          onDiffOptionsOpened={this.onDiffOptionsOpened}
+        />
       </div>
     )
   }
@@ -242,13 +273,9 @@ export class PullRequestFilesChanged extends React.Component<
       return
     }
 
-    const {
-      diff,
-      repository,
-      imageDiffType,
-      hideWhitespaceInDiff,
-      showSideBySideDiff,
-    } = this.props
+    const { diff, repository, imageDiffType, hideWhitespaceInDiff } = this.props
+
+    const { showSideBySideDiff } = this.state
 
     return (
       <SeamlessDiffSwitcher
