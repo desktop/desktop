@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as crypto from 'crypto'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -159,6 +158,7 @@ import { showContextualMenu } from '../lib/menu-item'
 import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
+import { createCommitURL } from '../lib/commit-url'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -3076,22 +3076,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const baseURL = repository.gitHubRepository.htmlURL
+    const commitURL = createCommitURL(
+      repository.gitHubRepository,
+      SHA,
+      filePath
+    )
 
-    let fileSuffix = ''
-    if (filePath != null) {
-      const fileHash = crypto
-        .createHash('sha256')
-        .update(filePath)
-        .digest('hex')
-      fileSuffix = '#diff-' + fileHash
+    if (commitURL === null) {
+      return
     }
 
-    if (baseURL) {
-      this.props.dispatcher.openInBrowser(
-        `${baseURL}/commit/${SHA}${fileSuffix}`
-      )
-    }
+    this.props.dispatcher.openInBrowser(commitURL)
   }
 
   private onBranchDeleted = (repository: Repository) => {
