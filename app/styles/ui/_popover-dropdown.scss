@@ -1,0 +1,47 @@
+.popover-dropdown-component {
+  display: inline-flex;
+
+  button {
+    border: none;
+    background-color: inherit;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: var(--link-button-color);
+    font-weight: bold;
+    text-decoration: underline;
+
+    &.button-component {
+      overflow: visible;
+
+      &:hover,
+      &:focus {
+        border: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  .popover-dropdown-popover {
+    position: absolute;
+    min-height: 200px;
+    width: 365px;
+    padding: 0;
+    margin-top: 25px;
+
+    .popover-dropdown-header {
+      padding: var(--spacing);
+      font-weight: var(--font-weight-semibold);
+      display: flex;
+      border-bottom: var(--base-border);
+
+      .close {
+        margin-right: 0;
+      }
+    }
+
+    .popover-dropdown-content {
+      display: flex;
+    }
+  }
+}

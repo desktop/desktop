@@ -96,37 +96,6 @@ export class PullRequestFilesChanged extends React.Component<
     this.props.dispatcher.changeImageDiffType(imageDiffType)
   }
 
-  private renderDiff() {
-    const { selectedFile } = this.props
-
-    if (selectedFile === null) {
-      return
-    }
-
-    const {
-      diff,
-      repository,
-      imageDiffType,
-      hideWhitespaceInDiff,
-      showSideBySideDiff,
-    } = this.props
-
-    return (
-      <SeamlessDiffSwitcher
-        repository={repository}
-        imageDiffType={imageDiffType}
-        file={selectedFile}
-        diff={diff}
-        readOnly={true}
-        hideWhitespaceInDiff={hideWhitespaceInDiff}
-        showSideBySideDiff={showSideBySideDiff}
-        onOpenBinaryFile={this.onOpenBinaryFile}
-        onChangeImageDiffType={this.onChangeImageDiffType}
-        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
-      />
-    )
-  }
-
   private onFileListResize = (width: number) => {
     this.props.dispatcher.setPullRequestFileListWidth(width)
   }
@@ -236,6 +205,14 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
+  private renderHeader() {
+    return (
+      <div className="files-changed-header">
+        <div>Showing changes from all commits</div>
+      </div>
+    )
+  }
+
   private renderFileList() {
     const { files, selectedFile, fileListWidth } = this.props
 
@@ -258,12 +235,46 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
+  private renderDiff() {
+    const { selectedFile } = this.props
+
+    if (selectedFile === null) {
+      return
+    }
+
+    const {
+      diff,
+      repository,
+      imageDiffType,
+      hideWhitespaceInDiff,
+      showSideBySideDiff,
+    } = this.props
+
+    return (
+      <SeamlessDiffSwitcher
+        repository={repository}
+        imageDiffType={imageDiffType}
+        file={selectedFile}
+        diff={diff}
+        readOnly={true}
+        hideWhitespaceInDiff={hideWhitespaceInDiff}
+        showSideBySideDiff={showSideBySideDiff}
+        onOpenBinaryFile={this.onOpenBinaryFile}
+        onChangeImageDiffType={this.onChangeImageDiffType}
+        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+      />
+    )
+  }
+
   public render() {
     // TODO: handle empty change set
     return (
-      <div className="pull-request-diff-viewer">
-        {this.renderFileList()}
-        {this.renderDiff()}
+      <div className="pull-request-files-changed">
+        {this.renderHeader()}
+        <div className="files-diff-viewer">
+          {this.renderFileList()}
+          {this.renderDiff()}
+        </div>
       </div>
     )
   }

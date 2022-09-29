@@ -19,8 +19,7 @@
     }
   }
 
-  .content {
-    height: 500px;
-    overflow: hidden;
+  .open-pull-request-content {
+    padding: var(--spacing);
   }
 }
