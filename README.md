@@ -1,5 +1,7 @@
 # [GitHub Desktop](https://desktop.github.com)
 
+![image](docs/assets/octocat-shy-violet.png)
+
 [GitHub Desktop](https://desktop.github.com/) is an open source [Electron](https://www.electronjs.org/)-based
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
 uses [React](https://reactjs.org/).
