@@ -2268,6 +2268,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           imageDiffType,
           hideWhitespaceInHistoryDiff,
           externalEditorLabel,
+          nonLocalCommitSHA,
           showSideBySideDiff,
           recentBranches,
           repository,
@@ -2283,6 +2284,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             fileListWidth={pullRequestFilesListWidth}
             hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
             imageDiffType={imageDiffType}
+            nonLocalCommitSHA={nonLocalCommitSHA}
             pullRequestState={pullRequestState}
             recentBranches={recentBranches}
             repository={repository}

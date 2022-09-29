@@ -52,6 +52,10 @@ interface IOpenPullRequestDialogProps {
   /** Width to use for the files list pane in the files changed view */
   readonly fileListWidth: IConstrainedValue
 
+  /** If the latest commit of the pull request is not local, this will contain
+   * it's SHA  */
+  readonly nonLocalCommitSHA: string | null
+
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
 }
@@ -99,6 +103,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       pullRequestState,
       repository,
       fileListWidth,
+      nonLocalCommitSHA,
     } = this.props
     const { commitSelection } = pullRequestState
     const { diff, file, changesetData } = commitSelection
@@ -113,6 +118,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         files={files}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         imageDiffType={imageDiffType}
+        nonLocalCommitSHA={nonLocalCommitSHA}
         selectedFile={file}
         showSideBySideDiff={this.props.showSideBySideDiff}
         repository={repository}

@@ -50,6 +50,10 @@ interface IPullRequestFilesChangedProps {
 
   /** Width to use for the files list pane */
   readonly fileListWidth: IConstrainedValue
+
+  /** If the latest commit of the pull request is not local, this will contain
+   * it's SHA  */
+  readonly nonLocalCommitSHA: string | null
 }
 
 /**
