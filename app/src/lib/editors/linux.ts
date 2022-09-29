@@ -69,7 +69,7 @@ const editors: ILinuxExternalEditor[] = [
   {
     name: 'Jetbrains WebStorm',
     paths: ['/snap/bin/webstorm'],
-  }
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
