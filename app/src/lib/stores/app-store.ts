@@ -352,7 +352,8 @@ const hideWhitespaceInChangesDiffKey = 'hide-whitespace-in-changes-diff'
 const hideWhitespaceInHistoryDiffDefault = false
 const hideWhitespaceInHistoryDiffKey = 'hide-whitespace-in-diff'
 const hideWhitespaceInPullRequestDiffDefault = false
-const hideWhitespaceInPullRequestDiffKey = 'hide-whitespace-in-pull-request-diff'
+const hideWhitespaceInPullRequestDiffKey =
+  'hide-whitespace-in-pull-request-diff'
 
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
