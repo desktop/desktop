@@ -7185,7 +7185,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { branchesState, localCommitSHAs } =
+      this.repositoryStateCache.get(repository)
     const { defaultBranch, tip } = branchesState
 
     if (defaultBranch === null || tip.kind !== TipState.Valid) {
@@ -7259,6 +7260,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       showSideBySideDiff,
       externalEditorLabel: selectedExternalEditor ?? undefined,
+      nonLocalCommitSHA:
+        commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
+          ? commitSHAs[0]
+          : null,
     })
   }
 
