@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as crypto from 'crypto'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -158,6 +157,8 @@ import { SSHUserPassword } from './ssh/ssh-user-password'
 import { showContextualMenu } from '../lib/menu-item'
 import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
+import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
+import { createCommitURL } from '../lib/commit-url'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2243,14 +2244,32 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.StartPullRequest: {
+        // Intentionally chose to get the current pull request state  on
+        // rerender because state variables such as file selection change
+        // via the dispatcher.
+        const pullRequestState = this.getPullRequestState()
+        if (pullRequestState === null) {
+          // This shouldn't happen..
+          sendNonFatalException(
+            'FailedToStartPullRequest',
+            new Error(
+              'Failed to start pull request because pull request state was null'
+            )
+          )
+          return null
+        }
+
+        const { pullRequestFilesListWidth } = this.state
+
         const {
           allBranches,
           currentBranch,
           defaultBranch,
           imageDiffType,
           hideWhitespaceInHistoryDiff,
+          externalEditorLabel,
+          nonLocalCommitSHA,
           showSideBySideDiff,
-          pullRequestState,
           recentBranches,
           repository,
         } = popup
@@ -2262,11 +2281,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranch={currentBranch}
             defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
+            fileListWidth={pullRequestFilesListWidth}
             hideWhitespaceInDiff={hideWhitespaceInHistoryDiff}
             imageDiffType={imageDiffType}
+            nonLocalCommitSHA={nonLocalCommitSHA}
             pullRequestState={pullRequestState}
             recentBranches={recentBranches}
             repository={repository}
+            externalEditorLabel={externalEditorLabel}
             showSideBySideDiff={showSideBySideDiff}
             onDismissed={onPopupDismissedFn}
           />
@@ -2275,6 +2297,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private getPullRequestState() {
+    const { selectedState } = this.state
+    if (
+      selectedState == null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+
+    return selectedState.state.pullRequestState
   }
 
   private getWarnForcePushDialogOnBegin(
@@ -3044,22 +3078,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const baseURL = repository.gitHubRepository.htmlURL
+    const commitURL = createCommitURL(
+      repository.gitHubRepository,
+      SHA,
+      filePath
+    )
 
-    let fileSuffix = ''
-    if (filePath != null) {
-      const fileHash = crypto
-        .createHash('sha256')
-        .update(filePath)
-        .digest('hex')
-      fileSuffix = '#diff-' + fileHash
+    if (commitURL === null) {
+      return
     }
 
-    if (baseURL) {
-      this.props.dispatcher.openInBrowser(
-        `${baseURL}/commit/${SHA}${fileSuffix}`
-      )
-    }
+    this.props.dispatcher.openInBrowser(commitURL)
   }
 
   private onBranchDeleted = (repository: Repository) => {

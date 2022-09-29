@@ -3964,4 +3964,28 @@ export class Dispatcher {
   public startPullRequest(repository: Repository) {
     this.appStore._startPullRequest(repository)
   }
+
+  /**
+   * Change the selected changed file of the current pull request state.
+   */
+  public changePullRequestFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return this.appStore._changePullRequestFileSelection(repository, file)
+  }
+
+  /**
+   * Set the width of the file list column in the pull request files changed
+   */
+  public setPullRequestFileListWidth(width: number): Promise<void> {
+    return this.appStore._setPullRequestFileListWidth(width)
+  }
+
+  /**
+   * Reset the width of the file list column in the pull request files changed
+   */
+  public resetPullRequestFileListWidth(): Promise<void> {
+    return this.appStore._resetPullRequestFileListWidth()
+  }
 }

@@ -22,7 +22,6 @@ import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
-import { IPullRequestState } from '../lib/app-state'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -366,10 +365,11 @@ export type Popup =
       allBranches: ReadonlyArray<Branch>
       currentBranch: Branch
       defaultBranch: Branch | null
+      externalEditorLabel?: string
       hideWhitespaceInHistoryDiff: boolean
       imageDiffType: ImageDiffType
-      pullRequestState: IPullRequestState
       recentBranches: ReadonlyArray<Branch>
       repository: Repository
       showSideBySideDiff: boolean
+      nonLocalCommitSHA: string | null
     }

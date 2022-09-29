@@ -1,10 +1,29 @@
 import * as React from 'react'
+import * as Path from 'path'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { CommittedFileChange } from '../../models/status'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { Dispatcher } from '../dispatcher'
 import { openFile } from '../lib/open-file'
+import { Resizable } from '../resizable'
+import { FileList } from '../history/file-list'
+import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
+import { pathExists } from '../lib/path-exists'
+import {
+  CopyFilePathLabel,
+  CopyRelativeFilePathLabel,
+  DefaultEditorLabel,
+  isSafeFileExtension,
+  OpenWithDefaultProgramLabel,
+  RevealInFileManagerLabel,
+} from '../lib/context-menu'
+import { revealInFileManager } from '../../lib/app-shell'
+import { clipboard } from 'electron'
+import { IConstrainedValue } from '../../lib/app-state'
+import { clamp } from '../../lib/clamp'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { createCommitURL } from '../../lib/commit-url'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -12,6 +31,9 @@ interface IPullRequestFilesChangedProps {
 
   /** The file whose diff should be displayed. */
   readonly selectedFile: CommittedFileChange | null
+
+  /** The files changed in the pull request. */
+  readonly files: ReadonlyArray<CommittedFileChange>
 
   /** The diff that should be rendered */
   readonly diff: IDiff | null
@@ -24,6 +46,16 @@ interface IPullRequestFilesChangedProps {
 
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
+
+  /** Label for selected external editor */
+  readonly externalEditorLabel?: string
+
+  /** Width to use for the files list pane */
+  readonly fileListWidth: IConstrainedValue
+
+  /** If the latest commit of the pull request is not local, this will contain
+   * it's SHA  */
+  readonly nonLocalCommitSHA: string | null
 }
 
 /**
@@ -33,6 +65,11 @@ export class PullRequestFilesChanged extends React.Component<
   IPullRequestFilesChangedProps,
   {}
 > {
+  private onOpenFile = (path: string) => {
+    const fullPath = Path.join(this.props.repository.path, path)
+    this.onOpenBinaryFile(fullPath)
+  }
+
   /**
    * Opens a binary file in an the system-assigned application for
    * said file type.
@@ -60,13 +97,14 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   private renderDiff() {
-    const { diff, selectedFile } = this.props
+    const { selectedFile } = this.props
 
-    if (diff === null || selectedFile === null) {
+    if (selectedFile === null) {
       return
     }
 
     const {
+      diff,
       repository,
       imageDiffType,
       hideWhitespaceInDiff,
@@ -89,8 +127,144 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
+  private onFileListResize = (width: number) => {
+    this.props.dispatcher.setPullRequestFileListWidth(width)
+  }
+
+  private onFileListSizeReset = () => {
+    this.props.dispatcher.resetPullRequestFileListWidth()
+  }
+
+  private onViewOnGitHub = (file: CommittedFileChange) => {
+    const { nonLocalCommitSHA, repository, dispatcher } = this.props
+    const { gitHubRepository } = repository
+
+    if (gitHubRepository === null || nonLocalCommitSHA === null) {
+      return
+    }
+
+    const commitURL = createCommitURL(
+      gitHubRepository,
+      nonLocalCommitSHA,
+      file.path
+    )
+
+    if (commitURL === null) {
+      return
+    }
+
+    dispatcher.openInBrowser(commitURL)
+  }
+
+  private onFileContextMenu = async (
+    file: CommittedFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault()
+
+    const { repository } = this.props
+
+    const fullPath = Path.join(repository.path, file.path)
+    const fileExistsOnDisk = await pathExists(fullPath)
+    if (!fileExistsOnDisk) {
+      showContextualMenu([
+        {
+          label: __DARWIN__
+            ? 'File Does Not Exist on Disk'
+            : 'File does not exist on disk',
+          enabled: false,
+        },
+      ])
+      return
+    }
+
+    const { externalEditorLabel, dispatcher } = this.props
+
+    const extension = Path.extname(file.path)
+    const isSafeExtension = isSafeFileExtension(extension)
+    const openInExternalEditor =
+      externalEditorLabel !== undefined
+        ? `Open in ${externalEditorLabel}`
+        : DefaultEditorLabel
+
+    const items: IMenuItem[] = [
+      {
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(repository, file.path),
+        enabled: fileExistsOnDisk,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => dispatcher.openInExternalEditor(fullPath),
+        enabled: fileExistsOnDisk,
+      },
+      {
+        label: OpenWithDefaultProgramLabel,
+        action: () => this.onOpenFile(file.path),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+      { type: 'separator' },
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
+      {
+        label: CopyRelativeFilePathLabel,
+        action: () => clipboard.writeText(Path.normalize(file.path)),
+      },
+      { type: 'separator' },
+    ]
+
+    const { nonLocalCommitSHA } = this.props
+    const { gitHubRepository } = repository
+    const isEnterprise =
+      gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
+
+    items.push({
+      label: `View on GitHub${isEnterprise ? ' Enterprise' : ''}`,
+      action: () => this.onViewOnGitHub(file),
+      enabled: nonLocalCommitSHA !== null && gitHubRepository !== null,
+    })
+
+    showContextualMenu(items)
+  }
+
+  private onFileSelected = (file: CommittedFileChange) => {
+    this.props.dispatcher.changePullRequestFileSelection(
+      this.props.repository,
+      file
+    )
+  }
+
+  private renderFileList() {
+    const { files, selectedFile, fileListWidth } = this.props
+
+    return (
+      <Resizable
+        width={fileListWidth.value}
+        minimumWidth={fileListWidth.min}
+        maximumWidth={fileListWidth.max}
+        onResize={this.onFileListResize}
+        onReset={this.onFileListSizeReset}
+      >
+        <FileList
+          files={files}
+          onSelectedFileChanged={this.onFileSelected}
+          selectedFile={selectedFile}
+          availableWidth={clamp(fileListWidth)}
+          onContextMenu={this.onFileContextMenu}
+        />
+      </Resizable>
+    )
+  }
+
   public render() {
     // TODO: handle empty change set
-    return <div className="pull-request-diff-viewer">{this.renderDiff()}</div>
+    return (
+      <div className="pull-request-diff-viewer">
+        {this.renderFileList()}
+        {this.renderDiff()}
+      </div>
+    )
   }
 }

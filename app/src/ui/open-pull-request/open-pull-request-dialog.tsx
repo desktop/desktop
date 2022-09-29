@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IPullRequestState } from '../../lib/app-state'
+import { IConstrainedValue, IPullRequestState } from '../../lib/app-state'
 import { Branch } from '../../models/branch'
 import { ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
@@ -46,6 +46,16 @@ interface IOpenPullRequestDialogProps {
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
 
+  /** Label for selected external editor */
+  readonly externalEditorLabel?: string
+
+  /** Width to use for the files list pane in the files changed view */
+  readonly fileListWidth: IConstrainedValue
+
+  /** If the latest commit of the pull request is not local, this will contain
+   * it's SHA  */
+  readonly nonLocalCommitSHA: string | null
+
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
 }
@@ -87,20 +97,28 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   private renderFilesChanged() {
     const {
       dispatcher,
+      externalEditorLabel,
       hideWhitespaceInDiff,
       imageDiffType,
       pullRequestState,
       repository,
+      fileListWidth,
+      nonLocalCommitSHA,
     } = this.props
     const { commitSelection } = pullRequestState
-    const { diff, file } = commitSelection
+    const { diff, file, changesetData } = commitSelection
+    const { files } = changesetData
 
     return (
       <PullRequestFilesChanged
         diff={diff}
         dispatcher={dispatcher}
+        externalEditorLabel={externalEditorLabel}
+        fileListWidth={fileListWidth}
+        files={files}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         imageDiffType={imageDiffType}
+        nonLocalCommitSHA={nonLocalCommitSHA}
         selectedFile={file}
         showSideBySideDiff={this.props.showSideBySideDiff}
         repository={repository}
