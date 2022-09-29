@@ -22,6 +22,8 @@ import { revealInFileManager } from '../../lib/app-shell'
 import { clipboard } from 'electron'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { createCommitURL } from '../../lib/commit-url'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -133,6 +135,27 @@ export class PullRequestFilesChanged extends React.Component<
     this.props.dispatcher.resetPullRequestFileListWidth()
   }
 
+  private onViewOnGitHub = (file: CommittedFileChange) => {
+    const { nonLocalCommitSHA, repository, dispatcher } = this.props
+    const { gitHubRepository } = repository
+
+    if (gitHubRepository === null || nonLocalCommitSHA === null) {
+      return
+    }
+
+    const commitURL = createCommitURL(
+      gitHubRepository,
+      nonLocalCommitSHA,
+      file.path
+    )
+
+    if (commitURL === null) {
+      return
+    }
+
+    dispatcher.openInBrowser(commitURL)
+  }
+
   private onFileContextMenu = async (
     file: CommittedFileChange,
     event: React.MouseEvent<HTMLDivElement>
@@ -191,6 +214,17 @@ export class PullRequestFilesChanged extends React.Component<
       },
       { type: 'separator' },
     ]
+
+    const { nonLocalCommitSHA } = this.props
+    const { gitHubRepository } = repository
+    const isEnterprise =
+      gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
+
+    items.push({
+      label: `View on GitHub${isEnterprise ? ' Enterprise' : ''}`,
+      action: () => this.onViewOnGitHub(file),
+      enabled: nonLocalCommitSHA !== null && gitHubRepository !== null,
+    })
 
     showContextualMenu(items)
   }
