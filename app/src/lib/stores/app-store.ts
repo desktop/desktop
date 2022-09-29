@@ -324,7 +324,7 @@ const defaultStashedFilesWidth: number = 250
 const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 
 const defaultPullRequestFileListWidth: number = 250
-const pullRequestFileListConfigKey: string = 'stashed-files-width'
+const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
