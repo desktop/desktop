@@ -1,0 +1,27 @@
+name: Auto-format with Prettier
+on:
+  push:
+    branches: ['development']
+  pull_request:
+    branches: ['development']
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16.13.0'
+      - name: Install and build dependencies
+        run: yarn
+      - name: Run prettier
+        run: yarn prettier-write
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply prettier formatting changes
+          branch: ${{ github.head_ref }}
