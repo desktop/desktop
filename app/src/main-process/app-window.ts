@@ -213,7 +213,7 @@ export class AppWindow {
     return !!this.loadTime && !!this.rendererReadyTime
   }
 
-  public onClose(fn: () => void) {
+  public onClosed(fn: () => void) {
     this.window.on('closed', fn)
   }
 

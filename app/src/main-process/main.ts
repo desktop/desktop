@@ -738,7 +738,7 @@ function createWindow() {
     }
   }
 
-  window.onClose(() => {
+  window.onClosed(() => {
     mainWindow = null
     if (!__DARWIN__ && !preventQuit) {
       app.quit()
