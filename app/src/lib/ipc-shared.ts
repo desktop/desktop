@@ -77,6 +77,7 @@ export type RequestChannels = {
   'focus-window': () => void
   'notification-event': NotificationCallback<DesktopAliveEvent>
   'set-window-zoom-factor': (zoomFactor: number) => void
+  'show-installing-update': () => void
 }
 
 /**

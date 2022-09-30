@@ -200,6 +200,12 @@ export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
 }
 
+/** Subscribes to the "show installing update dialog" event originating from the
+ * main process */
+export function onShowInstallingUpdate(eventHandler: () => void) {
+  ipcRenderer.on('show-installing-update', eventHandler)
+}
+
 /** Tell the main process to set the native theme source */
 export const setNativeThemeSource = sendProxy('set-native-theme-source', 1)
 

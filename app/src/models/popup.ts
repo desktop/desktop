@@ -87,6 +87,7 @@ export enum PopupType {
   PullRequestReview,
   UnreachableCommits,
   StartPullRequest,
+  InstallingUpdate,
 }
 
 export type Popup =
@@ -371,4 +372,7 @@ export type Popup =
       repository: Repository
       nonLocalCommitSHA: string | null
       showSideBySideDiff: boolean
+    }
+  | {
+      type: PopupType.InstallingUpdate
     }

@@ -159,6 +159,7 @@ import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
+import { InstallingUpdate } from './installing-update/installing-update'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2290,6 +2291,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             externalEditorLabel={externalEditorLabel}
             showSideBySideDiff={showSideBySideDiff}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.InstallingUpdate: {
+        return (
+          <InstallingUpdate
+            key="installing-update"
             onDismissed={onPopupDismissedFn}
           />
         )
