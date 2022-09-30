@@ -1,4 +1,5 @@
-name: Auto-format with Prettier
+name: Auto-format
+
 on:
   push:
     branches: ['development']
@@ -18,10 +19,10 @@ jobs:
           node-version: '16.13.0'
       - name: Install and build dependencies
         run: yarn
-      - name: Run prettier
-        run: yarn prettier-write
-      - name: Commit changes
+      - name: Run Lint fix
+        run: yarn lint:fix
+      - name: Commit linter changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Apply prettier formatting changes
+          commit_message: Apply auto-formatting changes
           branch: ${{ github.head_ref }}
