@@ -1850,6 +1850,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           <ConfirmDiscardStashDialog
             key="confirm-discard-stash-dialog"
             dispatcher={this.props.dispatcher}
+            askForConfirmationOnDiscardStash={
+              this.state.askForConfirmationOnDiscardStash
+            }
             repository={repository}
             stash={stash}
             onDismissed={onPopupDismissedFn}
