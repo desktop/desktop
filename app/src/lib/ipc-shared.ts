@@ -46,6 +46,7 @@ export type RequestChannels = {
   'menu-event': (name: MenuEvent) => void
   log: (level: LogLevel, message: string) => void
   'will-quit': () => void
+  'will-quit-even-updating': () => void
   'crash-ready': () => void
   'crash-quit': () => void
   'window-state-changed': (windowState: WindowState) => void

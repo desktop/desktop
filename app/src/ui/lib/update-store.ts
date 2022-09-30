@@ -56,7 +56,7 @@ export interface IUpdateState {
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
   private emitter = new Emitter()
-  private status = UpdateStatus.UpdateNotChecked
+  private status = UpdateStatus.UpdateAvailable // UpdateStatus.UpdateNotChecked
   private lastSuccessfulCheck: Date | null = null
   private newReleases: ReadonlyArray<ReleaseSummary> | null = null
   private isX64ToARM64ImmediateAutoUpdate: boolean = false

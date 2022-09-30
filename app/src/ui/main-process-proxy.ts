@@ -280,6 +280,18 @@ export function sendWillQuitSync() {
 }
 
 /**
+ * Tell the main process that we're going to quit, even if the app is installing
+ * an update. This means it should allow the window to close.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendWillQuitEvenUpdatingSync() {
+  // eslint-disable-next-line no-sync
+  ipcRenderer.sendSync('will-quit-even-updating')
+}
+
+/**
  * Tell the main process to move the application to the application folder
  */
 export const moveToApplicationsFolder = invokeProxy(

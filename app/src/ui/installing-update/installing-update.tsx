@@ -11,8 +11,13 @@ import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
 import { Loading } from '../lib/loading'
 import { assertNever } from '../../lib/fatal-error'
-import { closeWindow, sendWillQuitSync } from '../main-process-proxy'
+import {
+  closeWindow,
+  sendWillQuitEvenUpdatingSync,
+  sendWillQuitSync,
+} from '../main-process-proxy'
 import { DialogHeader } from '../dialog/header'
+import { app } from 'electron'
 
 interface IInstallingUpdateProps {
   /**
@@ -49,8 +54,10 @@ export class InstallingUpdate extends React.Component<
 
     // If the update is not being downloaded (`UpdateStatus.UpdateAvailable`),
     // i.e. if it's already downloaded or not available, close the window.
-      closeWindow()
     if (updateState.status !== UpdateStatus.UpdateAvailable) {
+      sendWillQuitSync()
+      closeWindow()
+      app.quit()
     }
   }
 
@@ -111,8 +118,9 @@ export class InstallingUpdate extends React.Component<
   }
 
   private onQuitAnywayButtonClicked = () => {
-    sendWillQuitSync()
+    sendWillQuitEvenUpdatingSync()
     closeWindow()
+    app.quit()
   }
 
   public render() {

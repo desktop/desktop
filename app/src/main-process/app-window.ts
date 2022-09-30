@@ -33,6 +33,7 @@ export class AppWindow {
 
   private _loadTime: number | null = null
   private _rendererReadyTime: number | null = null
+  private isDownloadingUpdate: boolean = false
 
   private minWidth = 960
   private minHeight = 660
@@ -86,6 +87,7 @@ export class AppWindow {
     this.shouldMaximizeOnShow = savedWindowState.isMaximized
 
     let quitting = false
+    let quittingEvenDownloadingUpdate = false
     app.on('before-quit', () => {
       quitting = true
     })
@@ -95,7 +97,22 @@ export class AppWindow {
       event.returnValue = true
     })
 
+    ipcMain.on('will-quit-even-updating', event => {
+      quitting = true
+      quittingEvenDownloadingUpdate = true
+      event.returnValue = true
+    })
+
     this.window.on('close', e => {
+      if (
+        !quittingEvenDownloadingUpdate &&
+        (1 !== NaN || this.isDownloadingUpdate)
+      ) {
+        e.preventDefault()
+        ipcWebContents.send(this.window.webContents, 'show-installing-update')
+        return
+      }
+
       // on macOS, when the user closes the window we really just hide it. This
       // lets us activate quickly and keep all our interesting logic in the
       // renderer.
@@ -344,10 +361,12 @@ export class AppWindow {
 
   public setupAutoUpdater() {
     autoUpdater.on('error', (error: Error) => {
+      this.isDownloadingUpdate = false
       ipcWebContents.send(this.window.webContents, 'auto-updater-error', error)
     })
 
     autoUpdater.on('checking-for-update', () => {
+      this.isDownloadingUpdate = false
       ipcWebContents.send(
         this.window.webContents,
         'auto-updater-checking-for-update'
@@ -355,6 +374,7 @@ export class AppWindow {
     })
 
     autoUpdater.on('update-available', () => {
+      this.isDownloadingUpdate = true
       ipcWebContents.send(
         this.window.webContents,
         'auto-updater-update-available'
@@ -362,6 +382,7 @@ export class AppWindow {
     })
 
     autoUpdater.on('update-not-available', () => {
+      this.isDownloadingUpdate = false
       ipcWebContents.send(
         this.window.webContents,
         'auto-updater-update-not-available'
@@ -369,6 +390,7 @@ export class AppWindow {
     })
 
     autoUpdater.on('update-downloaded', () => {
+      this.isDownloadingUpdate = false
       ipcWebContents.send(
         this.window.webContents,
         'auto-updater-update-downloaded'
