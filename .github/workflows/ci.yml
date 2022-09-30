@@ -57,8 +57,6 @@ jobs:
         env:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
-      - name: Lint
-        run: yarn lint
       - name: Validate changelog
         run: yarn validate-changelog
       - name: Ensure a clean working directory
