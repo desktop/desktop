@@ -363,7 +363,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 }
 
 function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
-  if (state.currentPopup) {
+  if (state.popupStack.length > 0) {
     return getAllMenusDisabledBuilder().state
   }
 

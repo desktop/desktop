@@ -394,7 +394,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private showWelcomeFlow = false
   private focusCommitMessage = false
-  private currentPopup: Popup | null = null
+  private popupStack: Array<Popup> = []
   private currentFoldout: Foldout | null = null
   private currentBanner: Banner | null = null
   private errors: ReadonlyArray<Error> = new Array<Error>()
@@ -636,7 +636,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // If there is a currently open popup, don't do anything here. Since the
     // app can only show one popup at a time, we don't want to close the current
     // one in favor of the error we're about to show.
-    if (this.currentPopup !== null) {
+    if (this.popupStack.length > 0) {
       return
     }
 
@@ -901,7 +901,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
-      currentPopup: this.currentPopup,
+      popupStack: this.popupStack,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
       showWelcomeFlow: this.showWelcomeFlow,
@@ -2495,7 +2495,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (
       displayingBanner ||
-      isConflictsFlow(this.currentPopup, multiCommitOperationState)
+      isConflictsFlow(this.popupStack, multiCommitOperationState)
     ) {
       return
     }
@@ -2585,7 +2585,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { multiCommitOperationState } = state
     if (
       userIsStartingMultiCommitOperation(
-        this.currentPopup,
+        this.popupStack,
         multiCommitOperationState
       )
     ) {
@@ -3467,32 +3467,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
-    this._closePopup()
-
     // Always close the app menu when showing a pop up. This is only
     // applicable on Windows where we draw a custom app menu.
     this._closeFoldout(FoldoutType.AppMenu)
 
-    this.currentPopup = popup
+    this.popupStack.push(popup)
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(popupType?: PopupType) {
-    const currentPopup = this.currentPopup
-    if (currentPopup == null) {
+    const currentPopup = this.popupStack.at(-1)
+
+    if (currentPopup === undefined) {
       return
     }
 
-    if (popupType !== undefined && currentPopup.type !== popupType) {
+    if (popupType !== undefined) {
+      this.popupStack = this.popupStack.filter(p => p.type !== popupType)
+    } else if (currentPopup.type !== popupType) {
       return
+    } else {
+      this.popupStack.pop()
     }
 
     if (currentPopup.type === PopupType.CloneRepository) {
       this._completeOpenInDesktop(() => Promise.resolve(null))
     }
 
-    this.currentPopup = null
     this.emitUpdate()
   }
 
@@ -6474,16 +6476,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
         name,
         path,
         (title, value, description) => {
-          if (
-            this.currentPopup !== null &&
-            this.currentPopup.type === PopupType.CreateTutorialRepository
-          ) {
-            this.currentPopup = {
-              ...this.currentPopup,
-              progress: { kind: 'generic', title, value, description },
+          const refreshedStack = []
+          for (let currentPopup of this.popupStack) {
+            if (
+              currentPopup !== undefined &&
+              currentPopup.type === PopupType.CreateTutorialRepository
+            ) {
+              currentPopup = {
+                ...currentPopup,
+                progress: { kind: 'generic', title, value, description },
+              }
             }
-            this.emitUpdate()
+            refreshedStack.push(currentPopup)
           }
+          this.popupStack = refreshedStack
+
+          this.emitUpdate()
         }
       )
 
@@ -7434,14 +7442,14 @@ function getInitialAction(
 }
 
 function userIsStartingMultiCommitOperation(
-  currentPopup: Popup | null,
+  currentPopups: ReadonlyArray<Popup>,
   state: IMultiCommitOperationState | null
 ) {
-  if (currentPopup === null || state === null) {
+  if (currentPopups.length === 0 || state === null) {
     return false
   }
 
-  if (currentPopup.type !== PopupType.MultiCommitOperation) {
+  if (!currentPopups.some(p => p.type === PopupType.MultiCommitOperation)) {
     return false
   }
 

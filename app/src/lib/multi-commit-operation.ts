@@ -39,12 +39,12 @@ export function getMultiCommitOperationChooseBranchStep(
 }
 
 export function isConflictsFlow(
-  currentPopup: Popup | null,
+  currentPopups: ReadonlyArray<Popup>,
   multiCommitOperationState: IMultiCommitOperationState | null
 ): boolean {
   return (
-    currentPopup !== null &&
-    currentPopup.type === PopupType.MultiCommitOperation &&
+    currentPopups.length > 0 &&
+    currentPopups.some(p => p.type === PopupType.MultiCommitOperation) &&
     multiCommitOperationState !== null &&
     conflictSteps.includes(multiCommitOperationState.step.kind)
   )

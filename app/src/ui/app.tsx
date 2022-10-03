@@ -215,7 +215,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * modal dialog such as the preferences, or an error dialog.
    */
   private get isShowingModal() {
-    return this.state.currentPopup !== null || this.state.errors.length > 0
+    return this.state.popupStack.length > 0 || this.state.errors.length > 0
   }
 
   /**
@@ -1375,7 +1375,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const popup = this.state.currentPopup
+    const popup = this.state.popupStack.at(-1)
 
     if (!popup) {
       return null

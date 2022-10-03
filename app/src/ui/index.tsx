@@ -144,8 +144,9 @@ const sendErrorWithContext = (
           extra.currentBanner = currentState.currentBanner.type
         }
 
-        if (currentState.currentPopup !== null) {
-          extra.currentPopup = `${currentState.currentPopup.type}`
+        const currentPopup = currentState.popupStack.at(-1)
+        if (currentPopup !== undefined) {
+          extra.currentPopup = `${currentPopup.type}`
         }
 
         if (currentState.selectedState !== null) {

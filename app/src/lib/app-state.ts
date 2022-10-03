@@ -115,7 +115,7 @@ export interface IAppState {
 
   readonly showWelcomeFlow: boolean
   readonly focusCommitMessage: boolean
-  readonly currentPopup: Popup | null
+  readonly popupStack: Array<Popup>
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
 
