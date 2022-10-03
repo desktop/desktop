@@ -12,12 +12,11 @@ import { Disposable } from 'event-kit'
 import { Loading } from '../lib/loading'
 import { assertNever } from '../../lib/fatal-error'
 import {
-  closeWindow,
+  quitApp,
+  sendCancelQuitSync,
   sendWillQuitEvenUpdatingSync,
-  sendWillQuitSync,
 } from '../main-process-proxy'
 import { DialogHeader } from '../dialog/header'
-import { app } from 'electron'
 
 interface IInstallingUpdateProps {
   /**
@@ -55,9 +54,7 @@ export class InstallingUpdate extends React.Component<
     // If the update is not being downloaded (`UpdateStatus.UpdateAvailable`),
     // i.e. if it's already downloaded or not available, close the window.
     if (updateState.status !== UpdateStatus.UpdateAvailable) {
-      sendWillQuitSync()
-      closeWindow()
-      app.quit()
+      quitApp()
     }
   }
 
@@ -118,9 +115,16 @@ export class InstallingUpdate extends React.Component<
   }
 
   private onQuitAnywayButtonClicked = () => {
+    log.info('User chose to quit anyway')
     sendWillQuitEvenUpdatingSync()
-    closeWindow()
-    app.quit()
+    log.info('Quitting')
+    quitApp()
+    log.info('Quitted')
+  }
+
+  private onCancel = () => {
+    sendCancelQuitSync()
+    this.props.onDismissed()
   }
 
   public render() {
@@ -139,7 +143,7 @@ export class InstallingUpdate extends React.Component<
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Quit Anyway' : 'Quit anyway'}
             onOkButtonClick={this.onQuitAnywayButtonClicked}
-            onCancelButtonClick={this.props.onDismissed}
+            onCancelButtonClick={this.onCancel}
           />
         </DialogFooter>
       </Dialog>

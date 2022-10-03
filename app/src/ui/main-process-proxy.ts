@@ -164,6 +164,9 @@ export const checkForUpdates = invokeProxy('check-for-updates', 1)
 /** Tell the main process to quit the app and install updates */
 export const quitAndInstallUpdate = sendProxy('quit-and-install-updates', 0)
 
+/** Tell the main process to quit the app */
+export const quitApp = sendProxy('quit-app', 0)
+
 /** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
   errorHandler: (evt: Electron.IpcRendererEvent, error: Error) => void
@@ -289,6 +292,17 @@ export function sendWillQuitSync() {
 export function sendWillQuitEvenUpdatingSync() {
   // eslint-disable-next-line no-sync
   ipcRenderer.sendSync('will-quit-even-updating')
+}
+
+/**
+ * Tell the main process that the user cancelled quitting.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendCancelQuitSync() {
+  // eslint-disable-next-line no-sync
+  ipcRenderer.sendSync('cancel-quit')
 }
 
 /**

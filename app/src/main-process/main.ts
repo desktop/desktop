@@ -490,6 +490,8 @@ app.on('ready', () => {
     mainWindow?.quitAndInstallUpdate()
   )
 
+  ipcMain.on('quit-app', () => app.quit())
+
   ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
 
   ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())

@@ -103,13 +103,31 @@ export class AppWindow {
       event.returnValue = true
     })
 
+    ipcMain.on('cancel-quit', event => {
+      quitting = false
+      quittingEvenDownloadingUpdate = false
+      event.returnValue = true
+    })
+
     this.window.on('close', e => {
+      // On macOS, closing the window doesn't mean the app is quitting. If the
+      // app is updating, we will prevent the window from closing only when the
+      // app is also quitting.
       if (
+        (!__DARWIN__ || quitting) &&
         !quittingEvenDownloadingUpdate &&
+        // TODO: DON'T MERGE THIS 1!== NaN!!!!
         (1 !== NaN || this.isDownloadingUpdate)
       ) {
         e.preventDefault()
         ipcWebContents.send(this.window.webContents, 'show-installing-update')
+
+        // Make sure the window is visible, so the user can see why we're
+        // preventing the app from quitting. This is important on macOS, where
+        // the window could be hidden/closed when the user tries to quit.
+        // It could also happen on Windows if the user quits the app from the
+        // task bar while it's in the background.
+        this.show()
         return
       }
 
