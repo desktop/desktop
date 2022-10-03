@@ -7208,19 +7208,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { branchesState, localCommitSHAs } =
-      this.repositoryStateCache.get(repository)
+    const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch, tip } = branchesState
 
     if (defaultBranch === null || tip.kind !== TipState.Valid) {
       return
     }
-
     const currentBranch = tip.branch
+    this._initializePullRequestPreview(repository, defaultBranch, currentBranch)
+  }
+
+  private async _initializePullRequestPreview(
+    repository: Repository,
+    baseBranch: Branch,
+    currentBranch: Branch
+  ) {
+    const { branchesState, localCommitSHAs } =
+      this.repositoryStateCache.get(repository)
     const gitStore = this.gitStoreCache.get(repository)
 
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
-      defaultBranch,
+      baseBranch,
       currentBranch
     )
 
@@ -7233,7 +7241,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? await gitStore.performFailableOperation(() =>
             getBranchMergeBaseChangedFiles(
               repository,
-              defaultBranch.name,
+              baseBranch.name,
               currentBranch.name,
               commitSHAs[0]
             )
@@ -7245,7 +7253,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.repositoryStateCache.initializePullRequestState(repository, {
-      baseBranch: defaultBranch,
+      baseBranch,
       commitSHAs,
       commitSelection: {
         shas: commitSHAs,
@@ -7257,6 +7265,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     })
 
+    this.emitUpdate()
+
     if (changesetData.files.length > 0) {
       await this._changePullRequestFileSelection(
         repository,
@@ -7264,7 +7274,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const { allBranches, recentBranches } = branchesState
+    const { allBranches, recentBranches, defaultBranch } = branchesState
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
@@ -7376,6 +7386,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _updatePullRequestBaseBranch(
+    repository: Repository,
+    baseBranch: Branch
+  ) {
+    const { branchesState, pullRequestState } =
+      this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    if (pullRequestState === null) {
+      // This would mean the user submitted PR after requesting base branch
+      // update.
+      return
+    }
+
+    this._initializePullRequestPreview(repository, baseBranch, tip.branch)
   }
 }
 

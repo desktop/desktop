@@ -30,6 +30,9 @@ interface IOpenPullRequestDialogHeaderProps {
   /** The count of commits of the pull request */
   readonly commitCount: number
 
+  /** When the branch selection changes */
+  readonly onBranchChange: (branch: Branch) => void
+
   /**
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
@@ -54,6 +57,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
       allBranches,
       recentBranches,
       commitCount,
+      onBranchChange,
       onDismissed,
     } = this.props
     const commits = `${commitCount} commit${commitCount > 1 ? 's' : ''}`
@@ -74,6 +78,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
             currentBranch={currentBranch}
             allBranches={allBranches}
             recentBranches={recentBranches}
+            onChange={onBranchChange}
           />{' '}
           from <Ref>{currentBranch.name}</Ref>.
         </div>
