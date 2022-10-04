@@ -5206,7 +5206,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setConfirmUndoCommitSetting(value: boolean): Promise<void> {
     this.confirmUndoCommit = value
-    setBoolean(confirmForcePushKey, value)
+    setBoolean(confirmUndoCommitKey, value)
 
     this.emitUpdate()
 
