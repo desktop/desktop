@@ -24,7 +24,9 @@ Linux is not officially supported; however, you can find installers created for 
 repositories into the new application - you can drag-and-drop your repositories
 from disk onto the application to get started.
 
+Commit 1
 
+COmmit 2
 ### Beta Channel
 
 Want to test out new features and get fixes before everyone else? Install the
