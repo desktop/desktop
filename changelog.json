@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.1.0": [
+      "[Added] You can diff a consecutive range of commits - #14682",
+      "[Added] Submodule changes now display an explanatory, interactive diff screen - #15176",
+      "[Fixed] Enable update from upstream default branch when contributing to a fork - #15299",
+      "[Fixed] Fix crash installing updates that were downloaded a long time ago on macOS - #15275",
+      "[Fixed] Tooltips are positioned accurately when the user prefers reduced motion - #15249",
+      "[Improved] Add option to disable Undo Commit confirmation - #15134. Thanks @geophilusd!",
+      "[Improved] Update submodules when fetching, pulling and checking out branches - #8221 #9174"
+    ],
     "3.0.9-beta1": [
       "[Fixed] Enable update from upstream default branch when contributing to a fork - #15299",
       "[Fixed] Fix crash installing updates that were downloaded a long time ago on macOS - #15275",
