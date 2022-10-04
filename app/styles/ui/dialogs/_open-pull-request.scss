@@ -31,4 +31,12 @@
     justify-content: center;
     padding: var(--spacing-double);
   }
+
+  .dialog-footer {
+    flex-direction: row;
+  }
+
+  .pull-request-merge-status {
+    flex-grow: 1;
+  }
 }

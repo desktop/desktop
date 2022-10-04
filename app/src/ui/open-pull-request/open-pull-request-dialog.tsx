@@ -11,6 +11,7 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
+import { PullRequestMergeStatus } from './pull-request-merge-status'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -167,6 +168,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderFooter() {
+    const { mergeStatus } = this.props.pullRequestState
     const gitHubRepository = this.props.repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
@@ -176,6 +178,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
 
     return (
       <DialogFooter>
+        <PullRequestMergeStatus mergeStatus={mergeStatus} />
         <OkCancelButtonGroup
           okButtonText={
             __DARWIN__ ? 'Create Pull Request' : 'Create pull request'
