@@ -7308,14 +7308,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
         file: null,
         diff: null,
       },
-      mergeStatus: {
-        kind: ComputedAction.Loading,
-      },
+      mergeStatus:
+        commitSHAs.length > 0
+          ? {
+              kind: ComputedAction.Loading,
+            }
+          : null,
     })
 
     this.emitUpdate()
 
-    this.setupPRMergeTreePromise(repository, baseBranch, currentBranch)
+    if (commitSHAs.length > 0) {
+      this.setupPRMergeTreePromise(repository, baseBranch, currentBranch)
+    }
 
     if (changesetData.files.length > 0) {
       await this._changePullRequestFileSelection(
