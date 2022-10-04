@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { IConstrainedValue, IPullRequestState } from '../../lib/app-state'
+import { getDotComAPIEndpoint } from '../../lib/api'
 import { Branch } from '../../models/branch'
 import { ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
@@ -137,11 +138,20 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderFooter() {
+    const gitHubRepository = this.props.repository.gitHubRepository
+    const isEnterprise =
+      gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    const buttonTitle = `Create pull request on GitHub${
+      isEnterprise ? ' Enterprise' : ''
+    }.`
+
     return (
       <DialogFooter>
         <OkCancelButtonGroup
-          okButtonText="Create Pull Request"
-          okButtonTitle="Create pull request on GitHub."
+          okButtonText={
+            __DARWIN__ ? 'Create Pull Request' : 'Create pull request'
+          }
+          okButtonTitle={buttonTitle}
           cancelButtonText="Cancel"
         />
       </DialogFooter>
