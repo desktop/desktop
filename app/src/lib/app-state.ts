@@ -974,4 +974,7 @@ export interface IPullRequestState {
    * diff between the latest commit and the earliest commits parent.
    */
   readonly commitSelection: ICommitSelection
+
+  /** The result of merging the pull request branch into the base branch */
+  readonly mergeStatus: MergeTreeResult | null
 }

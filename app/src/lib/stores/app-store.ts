@@ -473,6 +473,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private repositoryFilterText: string = ''
 
   private currentMergeTreePromise: Promise<void> | null = null
+  private currentPRMergeTreePromise: Promise<void> | null = null
 
   /** The function to resolve the current Open in Desktop flow. */
   private resolveOpenInDesktop:
@@ -1478,6 +1479,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return this.emitUpdate()
     }
+  }
+
+  private setupMergabilityPromise(
+    repository: Repository,
+    baseBranch: Branch,
+    compareBranch: Branch,
+    onLoad: (mergeTreeResult: MergeTreeResult | null) => void,
+    cleanup: () => void
+  ) {
+    const mergeTreePromise = promiseWithMinimumTimeout(
+      () => determineMergeability(repository, baseBranch, compareBranch),
+      500
+    )
+      .catch(err => {
+        log.warn(
+          `Error occurred while trying to merge ${baseBranch.name} (${baseBranch.tip.sha}) and ${compareBranch.name} (${compareBranch.tip.sha})`,
+          err
+        )
+        return null
+      })
+      .then(mergeStatus => {
+        this.repositoryStateCache.updateCompareState(repository, () => ({
+          mergeStatus,
+        }))
+
+        this.emitUpdate()
+      })
+      .finally(() => {
+        this.currentMergeTreePromise = null
+      })
+
+    this.currentMergeTreePromise = mergeTreePromise
+
+    return this.currentMergeTreePromise
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -7281,9 +7316,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         file: null,
         diff: null,
       },
+      mergeStatus: {
+        kind: ComputedAction.Loading,
+      },
     })
 
     this.emitUpdate()
+
+    this.setupPRMergeTreePromise(repository, baseBranch, currentBranch)
 
     if (changesetData.files.length > 0) {
       await this._changePullRequestFileSelection(
@@ -7425,6 +7465,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this._initializePullRequestPreview(repository, baseBranch, tip.branch)
+  }
+
+  private setupPRMergeTreePromise(
+    repository: Repository,
+    baseBranch: Branch,
+    compareBranch: Branch
+  ) {
+    // Not sure why we do this..following pattern from compare branch setup
+    if (this.currentPRMergeTreePromise != null) {
+      return
+    }
+
+    this.currentPRMergeTreePromise = this.setupMergabilityPromise(
+      repository,
+      baseBranch,
+      compareBranch,
+      (mergeStatus: MergeTreeResult | null) => {
+        this.repositoryStateCache.updatePullRequestState(repository, () => ({
+          mergeStatus,
+        }))
+        this.emitUpdate()
+      },
+      () => {
+        this.currentPRMergeTreePromise = null
+      }
+    )
   }
 }
 
