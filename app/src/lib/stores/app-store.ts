@@ -1442,34 +1442,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (tip.kind === TipState.Valid && aheadBehind.behind > 0) {
-      const mergeTreePromise = promiseWithMinimumTimeout(
-        () => determineMergeability(repository, tip.branch, action.branch),
-        500
-      )
-        .catch(err => {
-          log.warn(
-            `Error occurred while trying to merge ${tip.branch.name} (${tip.branch.tip.sha}) and ${action.branch.name} (${action.branch.tip.sha})`,
-            err
-          )
-          return null
-        })
-        .then(mergeStatus => {
+      this.currentMergeTreePromise = this.setupMergabilityPromise(
+        repository,
+        tip.branch,
+        action.branch,
+        mergeStatus => {
           this.repositoryStateCache.updateCompareState(repository, () => ({
             mergeStatus,
           }))
 
           this.emitUpdate()
-        })
-
-      const cleanup = () => {
-        this.currentMergeTreePromise = null
-      }
-
-      // TODO: when we have Promise.prototype.finally available we
-      //       should use that here to make this intent clearer
-      mergeTreePromise.then(cleanup, cleanup)
-
-      this.currentMergeTreePromise = mergeTreePromise
+        },
+        () => {
+          this.currentMergeTreePromise = null
+        }
+      )
 
       return this.currentMergeTreePromise
     } else {
