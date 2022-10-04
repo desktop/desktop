@@ -6,6 +6,9 @@ import { ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
+import { Ref } from '../lib/ref'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 
@@ -100,6 +103,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   private renderContent() {
     return (
       <div className="open-pull-request-content">
+        {this.renderNoChanges()}
         {this.renderFilesChanged()}
       </div>
     )
@@ -117,8 +121,12 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       nonLocalCommitSHA,
     } = this.props
     const { commitSelection } = pullRequestState
-    const { diff, file, changesetData } = commitSelection
+    const { diff, file, changesetData, shas } = commitSelection
     const { files } = changesetData
+
+    if (shas.length === 0) {
+      return
+    }
 
     return (
       <PullRequestFilesChanged
@@ -134,6 +142,27 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         showSideBySideDiff={this.props.showSideBySideDiff}
         repository={repository}
       />
+    )
+  }
+
+  private renderNoChanges() {
+    const { pullRequestState, currentBranch } = this.props
+    const { commitSelection, baseBranch } = pullRequestState
+    const { shas } = commitSelection
+
+    if (shas.length !== 0) {
+      return
+    }
+
+    return (
+      <div className="open-pull-request-no-changes">
+        <div>
+          <Octicon symbol={OcticonSymbol.gitPullRequest} />
+          <h3>There are no changes.</h3>
+          <Ref>{baseBranch.name}</Ref> is up to date with all commits from{' '}
+          <Ref>{currentBranch.name}</Ref>.
+        </div>
+      </div>
     )
   }
 
