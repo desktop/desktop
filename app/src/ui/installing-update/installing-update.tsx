@@ -115,11 +115,8 @@ export class InstallingUpdate extends React.Component<
   }
 
   private onQuitAnywayButtonClicked = () => {
-    log.info('User chose to quit anyway')
     sendWillQuitEvenUpdatingSync()
-    log.info('Quitting')
     quitApp()
-    log.info('Quitted')
   }
 
   private onCancel = () => {
