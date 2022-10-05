@@ -80,27 +80,25 @@ export class BranchSelect extends React.Component<
     const { filterText, selectedBranch } = this.state
 
     return (
-      <div className="branch-select-component">
-        <span className="base-label">base:</span>
-        <PopoverDropdown
-          contentTitle="Choose a base branch"
-          buttonContent={selectedBranch?.name ?? ''}
-          ref={this.popoverRef}
-        >
-          <BranchList
-            allBranches={allBranches}
-            currentBranch={currentBranch}
-            defaultBranch={defaultBranch}
-            recentBranches={recentBranches}
-            filterText={filterText}
-            onFilterTextChanged={this.onFilterTextChanged}
-            selectedBranch={selectedBranch}
-            canCreateNewBranch={false}
-            renderBranch={this.renderBranch}
-            onItemClick={this.onItemClick}
-          />
-        </PopoverDropdown>
-      </div>
+      <PopoverDropdown
+        contentTitle="Choose a base branch"
+        buttonContent={selectedBranch?.name ?? ''}
+        label="base:"
+        ref={this.popoverRef}
+      >
+        <BranchList
+          allBranches={allBranches}
+          currentBranch={currentBranch}
+          defaultBranch={defaultBranch}
+          recentBranches={recentBranches}
+          filterText={filterText}
+          onFilterTextChanged={this.onFilterTextChanged}
+          selectedBranch={selectedBranch}
+          canCreateNewBranch={false}
+          renderBranch={this.renderBranch}
+          onItemClick={this.onItemClick}
+        />
+      </PopoverDropdown>
     )
   }
 }
