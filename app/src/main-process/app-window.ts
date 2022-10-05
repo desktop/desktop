@@ -103,7 +103,7 @@ export class AppWindow {
       event.returnValue = true
     })
 
-    ipcMain.on('cancel-quit', event => {
+    ipcMain.on('cancel-quitting', event => {
       quitting = false
       quittingEvenIfUpdating = false
       event.returnValue = true

@@ -78,6 +78,9 @@ import {
   updateAccounts,
   setWindowZoomFactor,
   onShowInstallingUpdate,
+  sendWillQuitEvenIfUpdatingSync,
+  quitApp,
+  sendCancelQuittingSync,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -7385,6 +7388,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _quitApp(evenIfUpdating: boolean) {
+    if (evenIfUpdating) {
+      sendWillQuitEvenIfUpdatingSync()
+    }
+
+    quitApp()
+  }
+
+  public _cancelQuittingApp() {
+    sendCancelQuittingSync()
   }
 }
 

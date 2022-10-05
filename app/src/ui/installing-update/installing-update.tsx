@@ -11,12 +11,8 @@ import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
 import { Loading } from '../lib/loading'
 import { assertNever } from '../../lib/fatal-error'
-import {
-  quitApp,
-  sendCancelQuitSync,
-  sendWillQuitEvenIfUpdatingSync,
-} from '../main-process-proxy'
 import { DialogHeader } from '../dialog/header'
+import { Dispatcher } from '../dispatcher'
 
 interface IInstallingUpdateProps {
   /**
@@ -24,6 +20,8 @@ interface IInstallingUpdateProps {
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
+
+  readonly dispatcher: Dispatcher
 }
 
 interface IInstallingUpdateState {
@@ -54,7 +52,7 @@ export class InstallingUpdate extends React.Component<
     // If the update is not being downloaded (`UpdateStatus.UpdateAvailable`),
     // i.e. if it's already downloaded or not available, close the window.
     if (updateState.status !== UpdateStatus.UpdateAvailable) {
-      quitApp()
+      this.props.dispatcher.quitApp(false)
     }
   }
 
@@ -115,12 +113,11 @@ export class InstallingUpdate extends React.Component<
   }
 
   private onQuitAnywayButtonClicked = () => {
-    sendWillQuitEvenIfUpdatingSync()
-    quitApp()
+    this.props.dispatcher.quitApp(true)
   }
 
   private onCancel = () => {
-    sendCancelQuitSync()
+    this.props.dispatcher.cancelQuittingApp()
     this.props.onDismissed()
   }
 

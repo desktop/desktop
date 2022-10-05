@@ -4001,4 +4001,24 @@ export class Dispatcher {
   public resetPullRequestFileListWidth(): Promise<void> {
     return this.appStore._resetPullRequestFileListWidth()
   }
+
+  /**
+   * Attempts to quit the app if it's not updating, unless requested to quit
+   * even if it is updating.
+   *
+   * @param evenIfUpdating Whether to quit even if the app is updating.
+   */
+  public quitApp(evenIfUpdating: boolean) {
+    this.appStore._quitApp(evenIfUpdating)
+  }
+
+  /**
+   * Cancels quitting the app. This could be needed if, on macOS, the user tries
+   * to quit the app while an update is in progress, but then after being
+   * informed about the issues that could cause they decided to not close the
+   * app yet.
+   */
+  public cancelQuittingApp() {
+    this.appStore._cancelQuittingApp()
+  }
 }
