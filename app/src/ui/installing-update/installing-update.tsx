@@ -10,7 +10,6 @@ import {
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
 import { Loading } from '../lib/loading'
-import { assertNever } from '../../lib/fatal-error'
 import { DialogHeader } from '../dialog/header'
 import { Dispatcher } from '../dispatcher'
 
@@ -24,31 +23,18 @@ interface IInstallingUpdateProps {
   readonly dispatcher: Dispatcher
 }
 
-interface IInstallingUpdateState {
-  readonly updateState: IUpdateState
-}
-
 /**
  * A dialog that presents information about the
  * running application such as name and version.
  */
-export class InstallingUpdate extends React.Component<
-  IInstallingUpdateProps,
-  IInstallingUpdateState
-> {
+export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
   private updateStoreEventHandle: Disposable | null = null
 
   public constructor(props: IInstallingUpdateProps) {
     super(props)
-
-    this.state = {
-      updateState: updateStore.state,
-    }
   }
 
   private onUpdateStateChanged = (updateState: IUpdateState) => {
-    this.setState({ updateState })
-
     // If the update is not being downloaded (`UpdateStatus.UpdateAvailable`),
     // i.e. if it's already downloaded or not available, close the window.
     if (updateState.status !== UpdateStatus.UpdateAvailable) {
@@ -72,46 +58,6 @@ export class InstallingUpdate extends React.Component<
     }
   }
 
-  private renderUpdateAvailable() {
-    return (
-      <Row className="update-status">
-        <Loading />
-        <span>
-          Installing update… please, do not close GitHub Desktop until the
-          update is completely installed.
-        </span>
-      </Row>
-    )
-  }
-
-  private renderUpdateReady() {
-    return (
-      <p className="update-status">
-        An update has been downloaded, you can close GitHub Desktop now.
-      </p>
-    )
-  }
-
-  private renderUpdateDetails() {
-    const updateState = this.state.updateState
-
-    switch (updateState.status) {
-      case UpdateStatus.UpdateAvailable:
-        return this.renderUpdateAvailable()
-      case UpdateStatus.UpdateReady:
-        return this.renderUpdateReady()
-      case UpdateStatus.CheckingForUpdates:
-      case UpdateStatus.UpdateNotAvailable:
-      case UpdateStatus.UpdateNotChecked:
-        return null
-      default:
-        return assertNever(
-          updateState.status,
-          `Unknown update status ${updateState.status}`
-        )
-    }
-  }
-
   private onQuitAnywayButtonClicked = () => {
     this.props.dispatcher.quitApp(true)
   }
@@ -129,10 +75,18 @@ export class InstallingUpdate extends React.Component<
         dismissable={false}
       >
         <DialogHeader
-          title={__DARWIN__ ? 'Installing Update' : 'Installing update'}
+          title={__DARWIN__ ? 'Installing Update…' : 'Installing update…'}
           dismissable={false}
         />
-        <DialogContent>{this.renderUpdateDetails()}</DialogContent>
+        <DialogContent>
+          <Row className="updating-message">
+            <Loading />
+            <span>
+              Please, do not close GitHub Desktop until the update is completely
+              installed.
+            </span>
+          </Row>
+        </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Quit Anyway' : 'Quit anyway'}
