@@ -2299,6 +2299,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <InstallingUpdate
             key="installing-update"
+            dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
           />
         )
