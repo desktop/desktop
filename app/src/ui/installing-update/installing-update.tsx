@@ -14,7 +14,7 @@ import { assertNever } from '../../lib/fatal-error'
 import {
   quitApp,
   sendCancelQuitSync,
-  sendWillQuitEvenUpdatingSync,
+  sendWillQuitEvenIfUpdatingSync,
 } from '../main-process-proxy'
 import { DialogHeader } from '../dialog/header'
 
@@ -115,7 +115,7 @@ export class InstallingUpdate extends React.Component<
   }
 
   private onQuitAnywayButtonClicked = () => {
-    sendWillQuitEvenUpdatingSync()
+    sendWillQuitEvenIfUpdatingSync()
     quitApp()
   }
 

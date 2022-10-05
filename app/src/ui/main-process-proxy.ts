@@ -289,7 +289,7 @@ export function sendWillQuitSync() {
  * This event is sent synchronously to avoid any races with subsequent calls
  * that would tell the app to quit.
  */
-export function sendWillQuitEvenUpdatingSync() {
+export function sendWillQuitEvenIfUpdatingSync() {
   // eslint-disable-next-line no-sync
   ipcRenderer.sendSync('will-quit-even-if-updating')
 }
