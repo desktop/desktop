@@ -330,11 +330,13 @@ const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
+const confirmDiscardStashDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const confirmDiscardStashKey: string = 'confirmDiscardStash'
 const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
@@ -444,6 +446,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
+  private confirmDiscardStash: boolean = confirmDiscardStashDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private confirmUndoCommit: boolean = confirmUndoCommitDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -923,6 +926,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
+      askForConfirmationOnDiscardStash: this.confirmDiscardStash,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       askForConfirmationOnUndoCommit: this.confirmUndoCommit,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
@@ -1988,6 +1992,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChangesPermanently = getBoolean(
       confirmDiscardChangesPermanentlyKey,
       confirmDiscardChangesPermanentlyDefault
+    )
+
+    this.confirmDiscardStash = getBoolean(
+      confirmDiscardStashKey,
+      confirmDiscardStashDefault
     )
 
     this.askForConfirmationOnForcePush = getBoolean(
@@ -5243,6 +5252,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChangesPermanently = value
 
     setBoolean(confirmDiscardChangesPermanentlyKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmDiscardStashSetting(value: boolean): Promise<void> {
+    this.confirmDiscardStash = value
+
+    setBoolean(confirmDiscardStashKey, value)
     this.emitUpdate()
 
     return Promise.resolve()
