@@ -87,7 +87,7 @@ export class AppWindow {
     this.shouldMaximizeOnShow = savedWindowState.isMaximized
 
     let quitting = false
-    let quittingEvenDownloadingUpdate = false
+    let quittingEvenIfUpdating = false
     app.on('before-quit', () => {
       quitting = true
     })
@@ -97,15 +97,15 @@ export class AppWindow {
       event.returnValue = true
     })
 
-    ipcMain.on('will-quit-even-updating', event => {
+    ipcMain.on('will-quit-even-if-updating', event => {
       quitting = true
-      quittingEvenDownloadingUpdate = true
+      quittingEvenIfUpdating = true
       event.returnValue = true
     })
 
     ipcMain.on('cancel-quit', event => {
       quitting = false
-      quittingEvenDownloadingUpdate = false
+      quittingEvenIfUpdating = false
       event.returnValue = true
     })
 
@@ -115,7 +115,7 @@ export class AppWindow {
       // app is also quitting.
       if (
         (!__DARWIN__ || quitting) &&
-        !quittingEvenDownloadingUpdate &&
+        !quittingEvenIfUpdating &&
         // TODO: DON'T MERGE THIS 1!== NaN!!!!
         (1 !== NaN || this.isDownloadingUpdate)
       ) {

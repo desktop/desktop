@@ -291,7 +291,7 @@ export function sendWillQuitSync() {
  */
 export function sendWillQuitEvenUpdatingSync() {
   // eslint-disable-next-line no-sync
-  ipcRenderer.sendSync('will-quit-even-updating')
+  ipcRenderer.sendSync('will-quit-even-if-updating')
 }
 
 /**
