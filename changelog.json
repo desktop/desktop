@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.1.2-beta1": [
+      "[Added] You can preview the changes a pull request from your current branch would make - #11517",
+      "[Fixed] App correctly remembers undo commit prompt setting - #15408",
+      "[Improved] Added support zooming out for the 67%, 75%, 80% and 90% zoom levels - #15401. Thanks @sathvikrijo!",
+      "[Improved] Add option to disable discard stash confirmation - #15379. Thanks @tsvetilian-ty!"
+    ],
     "3.1.1": [
       "[Fixed] App correctly remembers undo commit prompt setting - #15408"
     ],
