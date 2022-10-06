@@ -168,7 +168,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderFooter() {
-    const { mergeStatus } = this.props.pullRequestState
+    const { mergeStatus, commitSHAs } = this.props.pullRequestState
     const gitHubRepository = this.props.repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
@@ -185,6 +185,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
           }
           okButtonTitle={buttonTitle}
           cancelButtonText="Cancel"
+          okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
         />
       </DialogFooter>
     )
