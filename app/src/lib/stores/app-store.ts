@@ -1444,18 +1444,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentMergeTreePromise = this.setupMergabilityPromise(
         repository,
         tip.branch,
-        action.branch,
-        mergeStatus => {
+        action.branch
+      )
+        .then(mergeStatus => {
           this.repositoryStateCache.updateCompareState(repository, () => ({
             mergeStatus,
           }))
 
           this.emitUpdate()
-        },
-        () => {
+        })
+        .finally(() => {
           this.currentMergeTreePromise = null
-        }
-      )
+        })
 
       return this.currentMergeTreePromise
     } else {
@@ -1470,27 +1470,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private setupMergabilityPromise(
     repository: Repository,
     baseBranch: Branch,
-    compareBranch: Branch,
-    onLoad: (mergeTreeResult: MergeTreeResult | null) => void,
-    cleanup?: () => void
+    compareBranch: Branch
   ) {
     return promiseWithMinimumTimeout(
       () => determineMergeability(repository, baseBranch, compareBranch),
       500
-    )
-      .catch(err => {
-        log.warn(
-          `Error occurred while trying to merge ${baseBranch.name} (${baseBranch.tip.sha}) and ${compareBranch.name} (${compareBranch.tip.sha})`,
-          err
-        )
-        return null
-      })
-      .then(mergeStatus => {
-        onLoad(mergeStatus)
-      })
-      .finally(() => {
-        cleanup?.()
-      })
+    ).catch(err => {
+      log.warn(
+        `Error occurred while trying to merge ${baseBranch.name} (${baseBranch.tip.sha}) and ${compareBranch.name} (${compareBranch.tip.sha})`,
+        err
+      )
+      return null
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -7455,10 +7446,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: Branch,
     compareBranch: Branch
   ) {
-    this.setupMergabilityPromise(
-      repository,
-      baseBranch,
-      compareBranch,
+    this.setupMergabilityPromise(repository, baseBranch, compareBranch).then(
       (mergeStatus: MergeTreeResult | null) => {
         this.repositoryStateCache.updatePullRequestState(repository, () => ({
           mergeStatus,
