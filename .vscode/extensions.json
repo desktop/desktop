@@ -1,4 +1,186 @@
-{
+# shaft O
+# bitore.sig
+#crafts.u
+ Skip to content
+Search or jump to…
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@zakwarlord7 
+Your account has been flagged.
+Because of that, your profile is hidden from the public. If you believe this is a mistake, contact support to have your account status reviewed.
+desktop
+/
+desktop
+Public
+Code
+Issues
+719
+Pull requests
+16
+Actions
+Projects
+2
+Security
+Insights
+make the app-shell more javascript-y
+ development (#935)
+ release-3.1.2-beta1 
+…
+ demo-tag
+@shiftkey
+shiftkey committed on Feb 10, 2017 
+1 parent b99da14 commit cc31bc188a46da0baa06b63f515dc4b62ab84efa
+Show file tree Hide file tree
+Showing 5 changed files with 19 additions and 21 deletions.
+Filter changed files
+ 12  
+app/src/lib/dispatcher/app-shell.ts
+@@ -1,7 +1,9 @@
+import { shell } from 'electron'
+import { shell as electronShell } from 'electron'
+
+export class AppShell {
+  public moveItemToTrash(path: string): boolean {
+    return shell.moveItemToTrash(path)
+  }
+export interface IAppShell {
+  moveItemToTrash: (path: string) => boolean
+}
+
+export const shell: IAppShell = {
+  moveItemToTrash: (path: string) => electronShell.moveItemToTrash(path),
+}
+  6  
+app/src/lib/dispatcher/app-store.ts
+@@ -29,7 +29,7 @@ import { Commit } from '../../models/commit'
+import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
+import { IGitHubUser } from './github-user-database'
+import { GitHubUserStore } from './github-user-store'
+import { AppShell } from './app-shell'
+import { shell as appShell } from './app-shell'
+import { EmojiStore } from './emoji-store'
+import { GitStore, ICommitMessage } from './git-store'
+import { assertNever } from '../fatal-error'
+@@ -78,8 +78,6 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
+export class AppStore {
+  private emitter = new Emitter()
+
+  private readonly appShell = new AppShell()
+
+  private users: ReadonlyArray<User> = new Array<User>()
+  private repositories: ReadonlyArray<Repository> = new Array<Repository>()
+
+@@ -344,7 +342,7 @@ export class AppStore {
+  private getGitStore(repository: Repository): GitStore {
+    let gitStore = this.gitStores.get(repository.id)
+    if (!gitStore) {
+      gitStore = new GitStore(repository, this.appShell)
+      gitStore = new GitStore(repository, appShell)
+      gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
+      gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
+      gitStore.onDidError(error => this._postError(error))
+  6  
+app/src/lib/dispatcher/git-store.ts
+@@ -9,7 +9,7 @@ import { User } from '../../models/user'
+import { Commit } from '../../models/commit'
+import { IRemote } from '../../models/remote'
+
+import { AppShell } from '../../lib/dispatcher/app-shell'
+import { IAppShell } from '../../lib/dispatcher/app-shell'
+
+import {
+  reset,
+@@ -68,7 +68,7 @@ export interface ICommitMessage {
+export class GitStore {
+  private readonly emitter = new Emitter()
+
+  private readonly shell: AppShell
+  private readonly shell: IAppShell
+
+  /** The commits keyed by their SHA. */
+  public readonly commits = new Map<string, Commit>()
+@@ -100,7 +100,7 @@ export class GitStore {
+
+  private _gitIgnoreText: string | null = null
+
+  public constructor(repository: Repository, shell: AppShell) {
+  public constructor(repository: Repository, shell: IAppShell) {
+    this.repository = repository
+    this.shell = shell
+  }
+ 10  
+app/test/test-app-shell.ts
+@@ -1,10 +1,10 @@
+import { AppShell } from '../src/lib/dispatcher/app-shell'
+import { IAppShell } from '../src/lib/dispatcher/app-shell'
+
+import * as Fs from 'fs'
+
+export class TestAppShell extends AppShell {
+  public moveItemToTrash(path: string): boolean {
+    Fs.unlinkSync(path)
+export const shell: IAppShell = {
+  moveItemToTrash: (path: string): boolean => {
+        Fs.unlinkSync(path)
+    return true
+  }
+  },
+}
+  6  
+app/test/unit/git-store-test.ts
+@@ -7,7 +7,7 @@ import * as Path from 'path'
+
+import { GitStore } from '../../src/lib/dispatcher/git-store'
+import { FileStatus } from '../../src/models/status'
+import { TestAppShell } from '../test-app-shell'
+import { shell } from '../test-app-shell'
+
+import {
+  getStatus,
+@@ -17,10 +17,8 @@ import { GitProcess } from 'git-kitchen-sink'
+describe('GitStore', () => {
+  it('can discard changes from a repository', async () => {
+
+    const testShell = new TestAppShell()
+
+    const repo = await setupEmptyRepository()
+    const gitStore = new GitStore(repo, testShell)
+    const gitStore = new GitStore(repo, shell)
+
+    const file = 'README.md'
+    const filePath = Path.join(repo.path, file)
+0 comments on commit cc31bc1
+@zakwarlord7
+ 
+Add heading textAdd bold text, <Ctrl+b>Add italic text, <Ctrl+i>
+Add a quote, <Ctrl+Shift+.>Add code, <Ctrl+e>Add a link, <Ctrl+k>
+Add a bulleted list, <Ctrl+Shift+8>Add a numbered list, <Ctrl+Shift+7>Add a task list, <Ctrl+Shift+l>
+Directly mention a user or team
+Reference an issue, pull request, or discussion
+Add saved reply
+Leave a comment
+No file chosen
+Attach files by dragging & dropping, selecting or pasting them.
+Styling with Markdown is supported
+ You’re not receiving notifications from this thread.
+Footer
+© 2022 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+make the app-shell more javascript-y · desktop/desktop@cc31bc1{
   "recommendations": [
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
