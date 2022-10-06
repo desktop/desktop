@@ -7254,18 +7254,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentBranch
     )
 
-    const commitSHAs = pullRequestCommits.map(c => c.sha)
+    const commitsBetweenBranches = pullRequestCommits.map(c => c.sha)
 
     // A user may compare two branches with no changes between them.
     const emptyChangeSet = { files: [], linesAdded: 0, linesDeleted: 0 }
     const changesetData =
-      commitSHAs.length > 0
+      commitsBetweenBranches.length > 0
         ? await gitStore.performFailableOperation(() =>
             getBranchMergeBaseChangedFiles(
               repository,
               baseBranch.name,
               currentBranch.name,
-              commitSHAs[0]
+              commitsBetweenBranches[0]
             )
           )
         : emptyChangeSet
@@ -7274,6 +7274,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const hasMergeBase = changesetData !== null
+    // We don't care how many commits exist on the unrelated history that
+    // can't be merged.
+    const commitSHAs = hasMergeBase ? commitsBetweenBranches : []
+
     this.repositoryStateCache.initializePullRequestState(repository, {
       baseBranch,
       commitSHAs,
@@ -7281,14 +7286,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         shas: commitSHAs,
         shasInDiff: commitSHAs,
         isContiguous: true,
-        changesetData: changesetData !== null ? changesetData : emptyChangeSet,
+        changesetData: changesetData ?? emptyChangeSet,
         file: null,
         diff: null,
       },
       mergeStatus:
-        commitSHAs.length > 0
+        commitSHAs.length > 0 || !hasMergeBase
           ? {
-              kind: ComputedAction.Loading,
+              kind: hasMergeBase
+                ? ComputedAction.Loading
+                : ComputedAction.Invalid,
             }
           : null,
     })
