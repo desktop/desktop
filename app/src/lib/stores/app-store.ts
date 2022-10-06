@@ -7281,7 +7281,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         shas: commitSHAs,
         shasInDiff: commitSHAs,
         isContiguous: true,
-        changesetData,
+        changesetData: changesetData !== null ? changesetData : emptyChangeSet,
         file: null,
         diff: null,
       },
@@ -7299,7 +7299,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.setupPRMergeTreePromise(repository, baseBranch, currentBranch)
     }
 
-    if (changesetData.files.length > 0) {
+    if (changesetData !== null && changesetData.files.length > 0) {
       await this._changePullRequestFileSelection(
         repository,
         changesetData.files[0]

@@ -575,8 +575,37 @@ describe('git/diff', () => {
         'feature-branch',
         'irrelevantToTest'
       )
+
+      expect(changesetData).not.toBeNull()
+      if (changesetData === null) {
+        return
+      }
+
       expect(changesetData.files).toHaveLength(1)
       expect(changesetData.files[0].path).toBe('feature.md')
+    })
+
+    it('returns null for unrelated histories', async () => {
+      // create a second branch that's orphaned from our current branch
+      await GitProcess.exec(
+        ['checkout', '--orphan', 'orphaned-branch'],
+        repository.path
+      )
+
+      // add a commit to this new branch
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', `first commit on gh-pages`],
+        repository.path
+      )
+
+      const changesetData = await getBranchMergeBaseChangedFiles(
+        repository,
+        'master',
+        'feature-branch',
+        'irrelevantToTest'
+      )
+
+      expect(changesetData).toBeNull()
     })
   })
 

@@ -254,7 +254,7 @@ export async function getBranchMergeBaseChangedFiles(
   baseBranchName: string,
   comparisonBranchName: string,
   latestComparisonBranchCommitRef: string
-): Promise<IChangesetData> {
+): Promise<IChangesetData | null> {
   const baseArgs = [
     'diff',
     '--merge-base',
@@ -268,22 +268,26 @@ export async function getBranchMergeBaseChangedFiles(
     '--',
   ]
 
-  const result = await git(
-    baseArgs,
-    repository.path,
-    'getBranchMergeBaseChangedFiles'
-  )
-
   const mergeBaseCommit = await getMergeBase(
     repository,
     baseBranchName,
     comparisonBranchName
   )
 
+  if (mergeBaseCommit === null) {
+    return null
+  }
+
+  const result = await git(
+    baseArgs,
+    repository.path,
+    'getBranchMergeBaseChangedFiles'
+  )
+
   return parseRawLogWithNumstat(
     result.combinedOutput,
     `${latestComparisonBranchCommitRef}`,
-    mergeBaseCommit ?? NullTreeSHA
+    mergeBaseCommit
   )
 }
 
