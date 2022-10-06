@@ -11,6 +11,8 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
+import { PullRequestMergeStatus } from './pull-request-merge-status'
+import { ComputedAction } from '../../models/computed-action'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -147,26 +149,37 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
 
   private renderNoChanges() {
     const { pullRequestState, currentBranch } = this.props
-    const { commitSelection, baseBranch } = pullRequestState
+    const { commitSelection, baseBranch, mergeStatus } = pullRequestState
     const { shas } = commitSelection
 
     if (shas.length !== 0) {
       return
     }
-
+    const hasMergeBase = mergeStatus?.kind !== ComputedAction.Invalid
+    const message = hasMergeBase ? (
+      <>
+        <Ref>{baseBranch.name}</Ref> is up to date with all commits from{' '}
+        <Ref>{currentBranch.name}</Ref>.
+      </>
+    ) : (
+      <>
+        <Ref>{baseBranch.name}</Ref> and <Ref>{currentBranch.name}</Ref> are
+        entirely different commit histories.
+      </>
+    )
     return (
       <div className="open-pull-request-no-changes">
         <div>
           <Octicon symbol={OcticonSymbol.gitPullRequest} />
           <h3>There are no changes.</h3>
-          <Ref>{baseBranch.name}</Ref> is up to date with all commits from{' '}
-          <Ref>{currentBranch.name}</Ref>.
+          {message}
         </div>
       </div>
     )
   }
 
   private renderFooter() {
+    const { mergeStatus, commitSHAs } = this.props.pullRequestState
     const gitHubRepository = this.props.repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
@@ -176,12 +189,14 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
 
     return (
       <DialogFooter>
+        <PullRequestMergeStatus mergeStatus={mergeStatus} />
         <OkCancelButtonGroup
           okButtonText={
             __DARWIN__ ? 'Create Pull Request' : 'Create pull request'
           }
           okButtonTitle={buttonTitle}
           cancelButtonText="Cancel"
+          okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
         />
       </DialogFooter>
     )

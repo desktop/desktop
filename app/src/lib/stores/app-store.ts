@@ -1441,17 +1441,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (tip.kind === TipState.Valid && aheadBehind.behind > 0) {
-      const mergeTreePromise = promiseWithMinimumTimeout(
-        () => determineMergeability(repository, tip.branch, action.branch),
-        500
+      this.currentMergeTreePromise = this.setupMergabilityPromise(
+        repository,
+        tip.branch,
+        action.branch
       )
-        .catch(err => {
-          log.warn(
-            `Error occurred while trying to merge ${tip.branch.name} (${tip.branch.tip.sha}) and ${action.branch.name} (${action.branch.tip.sha})`,
-            err
-          )
-          return null
-        })
         .then(mergeStatus => {
           this.repositoryStateCache.updateCompareState(repository, () => ({
             mergeStatus,
@@ -1459,16 +1453,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           this.emitUpdate()
         })
-
-      const cleanup = () => {
-        this.currentMergeTreePromise = null
-      }
-
-      // TODO: when we have Promise.prototype.finally available we
-      //       should use that here to make this intent clearer
-      mergeTreePromise.then(cleanup, cleanup)
-
-      this.currentMergeTreePromise = mergeTreePromise
+        .finally(() => {
+          this.currentMergeTreePromise = null
+        })
 
       return this.currentMergeTreePromise
     } else {
@@ -1478,6 +1465,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return this.emitUpdate()
     }
+  }
+
+  private setupMergabilityPromise(
+    repository: Repository,
+    baseBranch: Branch,
+    compareBranch: Branch
+  ) {
+    return promiseWithMinimumTimeout(
+      () => determineMergeability(repository, baseBranch, compareBranch),
+      500
+    ).catch(err => {
+      log.warn(
+        `Error occurred while trying to merge ${baseBranch.name} (${baseBranch.tip.sha}) and ${compareBranch.name} (${compareBranch.tip.sha})`,
+        err
+      )
+      return null
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -7250,18 +7254,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentBranch
     )
 
-    const commitSHAs = pullRequestCommits.map(c => c.sha)
+    const commitsBetweenBranches = pullRequestCommits.map(c => c.sha)
 
     // A user may compare two branches with no changes between them.
     const emptyChangeSet = { files: [], linesAdded: 0, linesDeleted: 0 }
     const changesetData =
-      commitSHAs.length > 0
+      commitsBetweenBranches.length > 0
         ? await gitStore.performFailableOperation(() =>
             getBranchMergeBaseChangedFiles(
               repository,
               baseBranch.name,
               currentBranch.name,
-              commitSHAs[0]
+              commitsBetweenBranches[0]
             )
           )
         : emptyChangeSet
@@ -7270,6 +7274,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const hasMergeBase = changesetData !== null
+    // We don't care how many commits exist on the unrelated history that
+    // can't be merged.
+    const commitSHAs = hasMergeBase ? commitsBetweenBranches : []
+
     this.repositoryStateCache.initializePullRequestState(repository, {
       baseBranch,
       commitSHAs,
@@ -7277,15 +7286,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
         shas: commitSHAs,
         shasInDiff: commitSHAs,
         isContiguous: true,
-        changesetData,
+        changesetData: changesetData ?? emptyChangeSet,
         file: null,
         diff: null,
       },
+      mergeStatus:
+        commitSHAs.length > 0 || !hasMergeBase
+          ? {
+              kind: hasMergeBase
+                ? ComputedAction.Loading
+                : ComputedAction.Invalid,
+            }
+          : null,
     })
 
     this.emitUpdate()
 
-    if (changesetData.files.length > 0) {
+    if (commitSHAs.length > 0) {
+      this.setupPRMergeTreePromise(repository, baseBranch, currentBranch)
+    }
+
+    if (changesetData !== null && changesetData.files.length > 0) {
       await this._changePullRequestFileSelection(
         repository,
         changesetData.files[0]
@@ -7425,6 +7446,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this._initializePullRequestPreview(repository, baseBranch, tip.branch)
+  }
+
+  private setupPRMergeTreePromise(
+    repository: Repository,
+    baseBranch: Branch,
+    compareBranch: Branch
+  ) {
+    this.setupMergabilityPromise(repository, baseBranch, compareBranch).then(
+      (mergeStatus: MergeTreeResult | null) => {
+        this.repositoryStateCache.updatePullRequestState(repository, () => ({
+          mergeStatus,
+        }))
+        this.emitUpdate()
+      }
+    )
   }
 }
 
