@@ -3,6 +3,8 @@ import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
+import { IConstrainedValue } from '../../lib/app-state'
+import { clamp } from '../../lib/clamp'
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -104,6 +106,16 @@ interface IDialogProps {
    * of the loading operation.
    */
   readonly loading?: boolean
+
+  /**
+   * An option width for the dialog given as value, min and max.
+   * This is used to make a dialog width's responsive.
+   *
+   * On component mounting, it will ge set at the value. On window resize, the
+   * dialog will adjust to fill the app window width sans padding within the
+   * constrains of the min and max.
+   */
+  readonly width?: IConstrainedValue
 }
 
 interface IDialogState {
@@ -180,6 +192,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
+    if (this.props.width !== undefined) {
+      const { min, max } = this.props.width
+      const widthSansPadding = window.innerWidth - 40
+      const newWidth = clamp(widthSansPadding, min, max)
+      this.dialogElement.style.width = `${newWidth}px`
+    }
+
     const { offsetTop, offsetHeight } = this.dialogElement
 
     // Not much we can do if the dialog is bigger than the window
@@ -244,6 +263,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   public componentDidMount() {
     if (!this.dialogElement) {
       return
+    }
+
+    if (this.props.width !== undefined) {
+      this.dialogElement.style.width = `${this.props.width.value}px`
     }
 
     this.dialogElement.showModal()
