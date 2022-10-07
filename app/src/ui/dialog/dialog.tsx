@@ -3,8 +3,8 @@ import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
-import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
+import { infinity } from '../octicons/octicons.generated'
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -108,14 +108,13 @@ interface IDialogProps {
   readonly loading?: boolean
 
   /**
-   * An option width for the dialog given as value, min and max.
+   * An optional max width for the dialog.
    * This is used to make a dialog width's responsive.
    *
-   * On component mounting, it will ge set at the value. On window resize, the
-   * dialog will adjust to fill the app window width sans padding within the
+   * On window resize, the dialog will adjust to fill the app window width sans padding within the
    * constrains of the min and max.
    */
-  readonly width?: IConstrainedValue
+  readonly maxWidth?: number
 }
 
 interface IDialogState {
@@ -192,10 +191,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    if (this.props.width !== undefined) {
-      const { min, max } = this.props.width
+    if (this.props.maxWidth !== undefined) {
       const widthSansPadding = window.innerWidth - 40
-      const newWidth = clamp(widthSansPadding, min, max)
+      const newWidth = clamp(widthSansPadding, -infinity, this.props.maxWidth)
       this.dialogElement.style.width = `${newWidth}px`
     }
 
@@ -263,10 +261,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   public componentDidMount() {
     if (!this.dialogElement) {
       return
-    }
-
-    if (this.props.width !== undefined) {
-      this.dialogElement.style.width = `${this.props.width.value}px`
     }
 
     this.dialogElement.showModal()

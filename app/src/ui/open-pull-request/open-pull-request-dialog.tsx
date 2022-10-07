@@ -208,7 +208,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         className="open-pull-request"
         onSubmit={this.onCreatePullRequest}
         onDismissed={this.props.onDismissed}
-        width={{ value: 900, max: 1100, min: 850 }}
+        maxWidth={2000}
       >
         {this.renderHeader()}
         {this.renderContent()}
