@@ -4,6 +4,8 @@ import { CommittedFileChange } from '../../models/status'
 import { List } from '../lib/list'
 import { CommittedFileItem } from './committed-file-item'
 
+export const fileListItemHeight = 29
+
 interface IFileListProps {
   readonly files: ReadonlyArray<CommittedFileChange>
   readonly selectedFile: CommittedFileChange | null
@@ -44,7 +46,7 @@ export class FileList extends React.Component<IFileListProps> {
         <List
           rowRenderer={this.renderFile}
           rowCount={this.props.files.length}
-          rowHeight={29}
+          rowHeight={fileListItemHeight}
           selectedRows={[this.rowForFile(this.props.selectedFile)]}
           onSelectedRowChanged={this.onSelectedRowChanged}
         />

@@ -7,7 +7,7 @@ import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { Dispatcher } from '../dispatcher'
 import { openFile } from '../lib/open-file'
 import { Resizable } from '../resizable'
-import { FileList } from '../history/file-list'
+import { FileList, fileListItemHeight } from '../history/file-list'
 import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
 import { pathExists } from '../lib/path-exists'
 import {
@@ -70,10 +70,69 @@ export class PullRequestFilesChanged extends React.Component<
   IPullRequestFilesChangedProps,
   IPullRequestFilesChangedState
 > {
+  private fileDiffContainer = React.createRef<HTMLDivElement>()
+
   public constructor(props: IPullRequestFilesChangedProps) {
     super(props)
 
     this.state = { showSideBySideDiff: props.showSideBySideDiff }
+  }
+
+  public componentDidMount() {
+    this.setfileDiffContainerHeight()
+    window.addEventListener('resize', this.setfileDiffContainerHeight)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('resize', this.setfileDiffContainerHeight)
+  }
+
+  private getPullRequestHeaderHeight() {
+    const query = document.querySelectorAll('.open-pull-request .dialog-header')
+    const elHeight = query.length > 0 ? query.item(0).clientHeight : 0
+    return elHeight > 0 ? elHeight : 87
+  }
+
+  private getPullRequestFillDiffHeaderHeight() {
+    const query = document.querySelectorAll(
+      '.open-pull-request .files-changed-header'
+    )
+    const elHeight = query.length > 0 ? query.item(0).clientHeight : 0
+    return elHeight > 0 ? elHeight : 39
+  }
+
+  private getPullRequestFooterHeight() {
+    const query = document.querySelectorAll('.open-pull-request .dialog-footer')
+    const elHeight = query.length > 0 ? query.item(0).clientHeight : 0
+    return elHeight > 0 ? elHeight : 67
+  }
+
+  private getDiffContainerHeightOffset() {
+    const dialogMargin = 100
+    const diffMargin = 20
+    return (
+      this.getPullRequestHeaderHeight() +
+      this.getPullRequestFillDiffHeaderHeight() +
+      this.getPullRequestFooterHeight() +
+      dialogMargin +
+      diffMargin
+    )
+  }
+
+  private setfileDiffContainerHeight = () => {
+    if (this.fileDiffContainer.current === null) {
+      return
+    }
+
+    const container = this.fileDiffContainer.current
+    const offset = this.getDiffContainerHeightOffset()
+    const maxHeight = window.innerHeight - offset
+    // 660 is the app minimum height
+    const minHeight = 660 - offset
+
+    const fileHeights = this.props.files.length * fileListItemHeight
+
+    container.style.height = `${clamp(fileHeights, minHeight, maxHeight)}px`
   }
 
   private onOpenFile = (path: string) => {
@@ -297,7 +356,7 @@ export class PullRequestFilesChanged extends React.Component<
     return (
       <div className="pull-request-files-changed">
         {this.renderHeader()}
-        <div className="files-diff-viewer">
+        <div ref={this.fileDiffContainer} className="files-diff-viewer">
           {this.renderFileList()}
           {this.renderDiff()}
         </div>
