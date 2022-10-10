@@ -104,6 +104,12 @@ interface IBranchListProps {
    * Callback to fire when the items in the filter list are updated
    */
   readonly onFilterListResultsChanged?: (resultCount: number) => void
+
+  /** If true, we do not render the filter. */
+  readonly hideFilterRow?: boolean
+
+  /** Called to render content before/above the branches filter and list. */
+  readonly renderPreList?: () => JSX.Element | null
 }
 
 interface IBranchListState {
@@ -182,12 +188,15 @@ export class BranchList extends React.Component<
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
+        onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
         renderPostFilter={this.onRenderNewButton}
         renderNoItems={this.onRenderNoItems}
         filterTextBox={this.props.textbox}
+        hideFilterRow={this.props.hideFilterRow}
         onFilterListResultsChanged={this.props.onFilterListResultsChanged}
+        renderPreList={this.props.renderPreList}
       />
     )
   }

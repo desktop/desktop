@@ -3,6 +3,7 @@ import * as Path from 'path'
 
 import { getSHA } from './git-info'
 import { getUpdatesURL, getChannel } from '../script/dist-info'
+import { version, productName } from './package.json'
 
 const projectRoot = Path.dirname(__dirname)
 
@@ -24,6 +25,8 @@ export function getCLICommands() {
 const s = JSON.stringify
 
 export function getReplacements() {
+  const isDevBuild = channel === 'development'
+
   return {
     __OAUTH_CLIENT_ID__: s(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
     __OAUTH_SECRET__: s(
@@ -32,7 +35,9 @@ export function getReplacements() {
     __DARWIN__: process.platform === 'darwin',
     __WIN32__: process.platform === 'win32',
     __LINUX__: process.platform === 'linux',
-    __DEV__: channel === 'development',
+    __APP_NAME__: s(productName),
+    __APP_VERSION__: s(version),
+    __DEV__: isDevBuild,
     __RELEASE_CHANNEL__: s(channel),
     __UPDATES_URL__: s(getUpdatesURL()),
     __SHA__: s(getSHA()),

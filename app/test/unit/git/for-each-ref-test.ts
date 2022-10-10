@@ -4,18 +4,21 @@ import {
   setupEmptyRepository,
   setupEmptyDirectory,
 } from '../../helpers/repositories'
-import { getBranches } from '../../../src/lib/git/for-each-ref'
+import {
+  getBranches,
+  getBranchesDifferingFromUpstream,
+} from '../../../src/lib/git/for-each-ref'
 import { BranchType } from '../../../src/models/branch'
 
 describe('git/for-each-ref', () => {
   let repository: Repository
 
-  beforeEach(async () => {
-    const testRepoPath = await setupFixtureRepository('repo-with-many-refs')
-    repository = new Repository(testRepoPath, -1, null, false)
-  })
-
   describe('getBranches', () => {
+    beforeEach(async () => {
+      const testRepoPath = await setupFixtureRepository('repo-with-many-refs')
+      repository = new Repository(testRepoPath, -1, null, false)
+    })
+
     it('fetches branches using for-each-ref', async () => {
       const branches = (await getBranches(repository)).filter(
         b => b.type === BranchType.Local
@@ -56,6 +59,33 @@ describe('git/for-each-ref', () => {
       const repo = setupEmptyDirectory()
       const status = await getBranches(repo)
       expect(status).toHaveLength(0)
+    })
+  })
+
+  describe('getBranchesDifferingFromUpstream', () => {
+    beforeEach(async () => {
+      const testRepoPath = await setupFixtureRepository(
+        'repo-with-non-updated-branches'
+      )
+      repository = new Repository(testRepoPath, -1, null, false)
+    })
+
+    it('filters branches differing from upstream using for-each-ref', async () => {
+      const branches = await getBranchesDifferingFromUpstream(repository)
+
+      const branchRefs = branches.map(branch => branch.ref)
+      expect(branchRefs).toHaveLength(3)
+
+      // All branches that are behind and/or ahead must be included
+      expect(branchRefs).toContain('refs/heads/branch-behind')
+      expect(branchRefs).toContain('refs/heads/branch-ahead')
+      expect(branchRefs).toContain('refs/heads/branch-ahead-and-behind')
+
+      // `main` is the current branch, and shouldn't be included
+      expect(branchRefs).not.toContain('refs/heads/main')
+
+      // Branches that are up to date shouldn't be included
+      expect(branchRefs).not.toContain('refs/heads/branch-up-to-date')
     })
   })
 })

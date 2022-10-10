@@ -18,6 +18,10 @@
       .git-settings-description {
         margin-top: var(--spacing);
       }
+
+      .warning-icon {
+        color: var(--warning-badge-icon-color);
+      }
     }
   }
 
@@ -82,5 +86,48 @@
 
   p {
     word-wrap: break-word;
+  }
+}
+
+.custom-theme-selector {
+  .custom-theme-selecter-header {
+    display: flex;
+    width: 375px;
+    button {
+      margin-left: auto;
+    }
+    h2 {
+      margin-bottom: 0;
+    }
+  }
+
+  .swatch-box {
+    width: 31%;
+    float: left;
+    background-color: rgb(228, 228, 228);
+    border: 1px solid black;
+    color: black;
+    text-align: center;
+    margin: 1%;
+    padding: 1px;
+    border-radius: 5px;
+  }
+
+  .theme-option-swatch {
+    display: inline-block;
+    border-radius: 5px;
+    border: 1px solid black;
+    width: 100%;
+    height: 50px;
+    &:hover {
+      border-width: 2px;
+      outline: 1px solid rgb(228, 228, 228);
+    }
+    margin: auto;
+  }
+
+  .color-picker-container {
+    position: absolute;
+    width: 100px;
   }
 }

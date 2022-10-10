@@ -1,3 +1,4 @@
+import { createEqualityHash } from './equality-hash'
 import { Owner } from './owner'
 
 export type GitHubRepositoryPermission = 'read' | 'write' | 'admin' | null
@@ -21,7 +22,6 @@ export class GitHubRepository {
     public readonly dbID: number,
     public readonly isPrivate: boolean | null = null,
     public readonly htmlURL: string | null = null,
-    public readonly defaultBranch: string | null = null,
     public readonly cloneURL: string | null = null,
     public readonly issuesEnabled: boolean | null = null,
     public readonly isArchived: boolean | null = null,
@@ -29,19 +29,18 @@ export class GitHubRepository {
     public readonly permissions: GitHubRepositoryPermission = null,
     public readonly parent: GitHubRepository | null = null
   ) {
-    this.hash = [
+    this.hash = createEqualityHash(
       this.name,
       this.owner.login,
       this.dbID,
       this.isPrivate,
       this.htmlURL,
-      this.defaultBranch,
       this.cloneURL,
       this.issuesEnabled,
       this.isArchived,
       this.permissions,
-      this.parent?.hash,
-    ].join('+')
+      this.parent?.hash
+    )
   }
 
   public get endpoint(): string {

@@ -9,8 +9,8 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Repository } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Dispatcher } from '../dispatcher'
-import { assertNever } from '../../lib/fatal-error'
 import { PathText } from '../lib/path-text'
+import { assertNever } from '../../lib/fatal-error'
 
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
@@ -170,6 +170,15 @@ export class LocalChangesOverwrittenDialog extends React.Component<
         return 'fetch'
       case RetryActionType.Push:
         return 'push'
+      case RetryActionType.CherryPick:
+      case RetryActionType.CreateBranchForCherryPick:
+        return 'cherry-pick'
+      case RetryActionType.Squash:
+        return 'squash'
+      case RetryActionType.Reorder:
+        return 'reorder'
+      case RetryActionType.DiscardChanges:
+        return 'discard changes'
       default:
         assertNever(
           this.props.retryAction,

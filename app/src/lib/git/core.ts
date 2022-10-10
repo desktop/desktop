@@ -6,15 +6,15 @@ import {
 } from 'dugite'
 
 import { assertNever } from '../fatal-error'
-import { getDotComAPIEndpoint } from '../api'
-
-import { IGitAccount } from '../../models/git-account'
-
 import * as GitPerf from '../../ui/lib/git-perf'
 import * as Path from 'path'
-import { Repository } from '../../models/repository'
-import { getConfigValue, getGlobalConfigValue } from './config'
 import { isErrnoException } from '../errno-exception'
+import { ChildProcess } from 'child_process'
+import { Readable } from 'stream'
+import split2 from 'split2'
+import { getFileFromExceedsError } from '../helpers/regex'
+import { merge } from '../merge'
+import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
 /**
  * An extension of the execution options in dugite that
@@ -54,6 +54,9 @@ export interface IGitResult extends DugiteResult {
   /** The human-readable error description, based on `gitError`. */
   readonly gitErrorDescription: string | null
 
+  /** Both stdout and stderr combined. */
+  readonly combinedOutput: string
+
   /**
    * The path that the Git command was executed from, i.e. the
    * process working directory (not to be confused with the Git
@@ -61,22 +64,6 @@ export interface IGitResult extends DugiteResult {
    */
   readonly path: string
 }
-
-function getResultMessage(result: IGitResult) {
-  const description = result.gitErrorDescription
-  if (description) {
-    return description
-  }
-
-  if (result.stderr.length) {
-    return result.stderr
-  } else if (result.stdout.length) {
-    return result.stdout
-  } else {
-    return 'Unknown error'
-  }
-}
-
 export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
@@ -84,12 +71,35 @@ export class GitError extends Error {
   /** The args for the failed command. */
   public readonly args: ReadonlyArray<string>
 
+  /**
+   * Whether or not the error message is just the raw output of the git command.
+   */
+  public readonly isRawMessage: boolean
+
   public constructor(result: IGitResult, args: ReadonlyArray<string>) {
-    super(getResultMessage(result))
+    let rawMessage = true
+    let message
+
+    if (result.gitErrorDescription) {
+      message = result.gitErrorDescription
+      rawMessage = false
+    } else if (result.combinedOutput.length > 0) {
+      message = result.combinedOutput
+    } else if (result.stderr.length) {
+      message = result.stderr
+    } else if (result.stdout.length) {
+      message = result.stdout
+    } else {
+      message = 'Unknown error'
+      rawMessage = false
+    }
+
+    super(message)
 
     this.name = 'GitError'
     this.result = result
     this.args = args
+    this.isRawMessage = rawMessage
   }
 }
 
@@ -123,79 +133,119 @@ export async function git(
     expectedErrors: new Set(),
   }
 
-  const opts = { ...defaultOptions, ...options }
+  let combinedOutput = ''
+  const opts = {
+    ...defaultOptions,
+    ...options,
+  }
 
-  // Explicitly set TERM to 'dumb' so that if Desktop was launched
-  // from a terminal or if the system environment variables
-  // have TERM set Git won't consider us as a smart terminal.
-  // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
-  opts.env = { TERM: 'dumb', ...opts.env }
+  opts.processCallback = (process: ChildProcess) => {
+    options?.processCallback?.(process)
 
-  const commandName = `${name}: git ${args.join(' ')}`
-
-  const result = await GitPerf.measure(commandName, () =>
-    GitProcess.exec(args, path, opts)
-  ).catch(err => {
-    // If this is an exception thrown by Node.js (as opposed to
-    // dugite) let's keep the salient details but include the name of
-    // the operation.
-    if (isErrnoException(err)) {
-      throw new Error(`Failed to execute ${name}: ${err.code}`)
+    const combineOutput = (readable: Readable | null) => {
+      if (readable) {
+        readable.pipe(split2()).on('data', (line: string) => {
+          combinedOutput += line + '\n'
+        })
+      }
     }
 
-    throw err
-  })
+    combineOutput(process.stderr)
+    combineOutput(process.stdout)
+  }
 
-  const exitCode = result.exitCode
+  return withTrampolineEnv(async env => {
+    const combinedEnv = merge(opts.env, env)
 
-  let gitError: DugiteError | null = null
-  const acceptableExitCode = opts.successExitCodes
-    ? opts.successExitCodes.has(exitCode)
-    : false
-  if (!acceptableExitCode) {
-    gitError = GitProcess.parseError(result.stderr)
-    if (!gitError) {
-      gitError = GitProcess.parseError(result.stdout)
+    // Explicitly set TERM to 'dumb' so that if Desktop was launched
+    // from a terminal or if the system environment variables
+    // have TERM set Git won't consider us as a smart terminal.
+    // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
+    opts.env = { TERM: 'dumb', ...combinedEnv } as object
+
+    const commandName = `${name}: git ${args.join(' ')}`
+
+    const result = await GitPerf.measure(commandName, () =>
+      GitProcess.exec(args, path, opts)
+    ).catch(err => {
+      // If this is an exception thrown by Node.js (as opposed to
+      // dugite) let's keep the salient details but include the name of
+      // the operation.
+      if (isErrnoException(err)) {
+        throw new Error(`Failed to execute ${name}: ${err.code}`)
+      }
+
+      throw err
+    })
+
+    const exitCode = result.exitCode
+
+    let gitError: DugiteError | null = null
+    const acceptableExitCode = opts.successExitCodes
+      ? opts.successExitCodes.has(exitCode)
+      : false
+    if (!acceptableExitCode) {
+      gitError = GitProcess.parseError(result.stderr)
+      if (!gitError) {
+        gitError = GitProcess.parseError(result.stdout)
+      }
     }
-  }
 
-  const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
-  const gitResult = { ...result, gitError, gitErrorDescription, path }
+    const gitErrorDescription = gitError
+      ? getDescriptionForError(gitError)
+      : null
+    const gitResult = {
+      ...result,
+      gitError,
+      gitErrorDescription,
+      combinedOutput,
+      path,
+    }
 
-  let acceptableError = true
-  if (gitError && opts.expectedErrors) {
-    acceptableError = opts.expectedErrors.has(gitError)
-  }
+    let acceptableError = true
+    if (gitError && opts.expectedErrors) {
+      acceptableError = opts.expectedErrors.has(gitError)
+    }
 
-  if ((gitError && acceptableError) || acceptableExitCode) {
-    return gitResult
-  }
+    if ((gitError && acceptableError) || acceptableExitCode) {
+      return gitResult
+    }
 
-  // The caller should either handle this error, or expect that exit code.
-  const errorMessage = new Array<string>()
-  errorMessage.push(
-    `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
-  )
-
-  if (result.stdout) {
-    errorMessage.push('stdout:')
-    errorMessage.push(result.stdout)
-  }
-
-  if (result.stderr) {
-    errorMessage.push('stderr:')
-    errorMessage.push(result.stderr)
-  }
-
-  if (gitError) {
+    // The caller should either handle this error, or expect that exit code.
+    const errorMessage = new Array<string>()
     errorMessage.push(
-      `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+      `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
     )
-  }
 
-  log.error(errorMessage.join('\n'))
+    if (result.stdout) {
+      errorMessage.push('stdout:')
+      errorMessage.push(result.stdout)
+    }
 
-  throw new GitError(gitResult, args)
+    if (result.stderr) {
+      errorMessage.push('stderr:')
+      errorMessage.push(result.stderr)
+    }
+
+    if (gitError) {
+      errorMessage.push(
+        `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+      )
+    }
+
+    log.error(errorMessage.join('\n'))
+
+    if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
+      const result = getFileFromExceedsError(errorMessage.join())
+      const files = result.join('\n')
+
+      if (files !== '') {
+        gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+      }
+    }
+
+    throw new GitError(gitResult, args)
+  })
 }
 
 /**
@@ -267,7 +317,9 @@ function getDescriptionForError(error: DugiteError): string | null {
 - You may need to log out and log back in to refresh your token.
 - You do not have permission to access this repository.
 - The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
-- If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.`
+- If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.
+- If you use SSH authentication, ensure the host key verification passes for your repository hosting service.
+- If you used username / password authentication, you might need to use a Personal Access Token instead of your account password. Check the documentation of your repository hosting service.`
   }
 
   switch (error) {
@@ -373,6 +425,11 @@ function getDescriptionForError(error: DugiteError): string | null {
       return 'A tag with that name already exists'
     case DugiteError.MergeWithLocalChanges:
     case DugiteError.RebaseWithLocalChanges:
+    case DugiteError.GPGFailedToSignData:
+    case DugiteError.ConflictModifyDeletedInBranch:
+    case DugiteError.MergeCommitNoMainlineOption:
+    case DugiteError.UnsafeDirectory:
+    case DugiteError.PathExistsButNotInRef:
       return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
@@ -384,57 +441,15 @@ function getDescriptionForError(error: DugiteError): string | null {
  * the default git configuration values provided by local, global, or system
  * level git configs.
  *
- * These arguments should be inserted before the subcommand, i.e in
- * the case of `git pull` these arguments needs to go before the `pull`
- * argument.
- *
- * @param repository the local repository associated with the command, to check
- *                   local, global and system config for an existing value.
- *                   If `null` if provided (for example, when cloning a new
- *                   repository), this function will check global and system
- *                   config for an existing `protocol.version` setting
- *
- * @param account the identity associated with the repository, or `null` if
- *                unknown. The `protocol.version` behaviour is currently only
- *                enabled for GitHub.com repositories that don't have an
- *                existing `protocol.version` setting.
+ * These arguments should be inserted before the subcommand, i.e in the case of
+ * `git pull` these arguments needs to go before the `pull` argument.
  */
-export async function gitNetworkArguments(
-  repository: Repository | null,
-  account: IGitAccount | null
-): Promise<ReadonlyArray<string>> {
-  const baseArgs = [
-    // Explicitly unset any defined credential helper, we rely on our
-    // own askpass for authentication.
-    '-c',
-    'credential.helper=',
-  ]
-
-  if (account === null) {
-    return baseArgs
-  }
-
-  const isDotComAccount = account.endpoint === getDotComAPIEndpoint()
-
-  if (!isDotComAccount) {
-    return baseArgs
-  }
-
-  const name = 'protocol.version'
-
-  const protocolVersion =
-    repository != null
-      ? await getConfigValue(repository, name)
-      : await getGlobalConfigValue(name)
-
-  if (protocolVersion !== null) {
-    // protocol.version is already set, we should not override it with our own
-    return baseArgs
-  }
-
-  // opt in for v2 of the Git Wire protocol for GitHub repositories
-  return [...baseArgs, '-c', 'protocol.version=2']
-}
+export const gitNetworkArguments = () => [
+  // Explicitly unset any defined credential helper, we rely on our
+  // own askpass for authentication.
+  '-c',
+  'credential.helper=',
+]
 
 /**
  * Returns the arguments to use on any git operation that can end up

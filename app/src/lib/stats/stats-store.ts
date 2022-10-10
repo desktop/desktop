@@ -4,7 +4,6 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { getOS } from '../get-os'
-import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
@@ -22,7 +21,26 @@ import {
 } from '../local-storage'
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
-import { remote } from 'electron'
+import { getAppArchitecture } from '../../ui/main-process-proxy'
+import { Architecture } from '../get-architecture'
+import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
+import { getNotificationsEnabled } from '../stores/notifications-store'
+import { isInApplicationFolder } from '../../ui/main-process-proxy'
+import { getRendererGUID } from '../get-renderer-guid'
+import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
+
+type PullRequestReviewStatFieldInfix =
+  | 'Approved'
+  | 'ChangesRequested'
+  | 'Commented'
+
+type PullRequestReviewStatFieldSuffix =
+  | 'NotificationCount'
+  | 'NotificationClicked'
+  | 'DialogSwitchToPullRequestCount'
+
+type PullRequestReviewStatField =
+  `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -61,6 +79,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   coAuthoredCommits: 0,
+  commitsUndoneWithChanges: 0,
+  commitsUndoneWithoutChanges: 0,
   branchComparisons: 0,
   defaultBranchComparisons: 0,
   mergesInitiatedFromComparison: 0,
@@ -140,6 +160,61 @@ const DefaultDailyMeasures: IDailyMeasures = {
   diffOptionsViewedCount: 0,
   repositoryViewChangeCount: 0,
   unhandledRejectionCount: 0,
+  cherryPickSuccessfulCount: 0,
+  cherryPickViaDragAndDropCount: 0,
+  cherryPickViaContextMenuCount: 0,
+  dragStartedAndCanceledCount: 0,
+  cherryPickConflictsEncounteredCount: 0,
+  cherryPickSuccessfulWithConflictsCount: 0,
+  cherryPickMultipleCommitsCount: 0,
+  cherryPickUndoneCount: 0,
+  cherryPickBranchCreatedCount: 0,
+  amendCommitStartedCount: 0,
+  amendCommitSuccessfulWithFileChangesCount: 0,
+  amendCommitSuccessfulWithoutFileChangesCount: 0,
+  reorderSuccessfulCount: 0,
+  reorderStartedCount: 0,
+  reorderConflictsEncounteredCount: 0,
+  reorderSuccessfulWithConflictsCount: 0,
+  reorderMultipleCommitsCount: 0,
+  reorderUndoneCount: 0,
+  squashConflictsEncounteredCount: 0,
+  squashMultipleCommitsInvokedCount: 0,
+  squashSuccessfulCount: 0,
+  squashSuccessfulWithConflictsCount: 0,
+  squashViaContextMenuInvokedCount: 0,
+  squashViaDragAndDropInvokedCount: 0,
+  squashUndoneCount: 0,
+  squashMergeIntoCurrentBranchMenuCount: 0,
+  squashMergeSuccessfulWithConflictsCount: 0,
+  squashMergeSuccessfulCount: 0,
+  squashMergeInvokedCount: 0,
+  resetToCommitCount: 0,
+  opensCheckRunsPopover: 0,
+  viewsCheckOnline: 0,
+  viewsCheckJobStepOnline: 0,
+  rerunsChecks: 0,
+  checksFailedNotificationCount: 0,
+  checksFailedNotificationClicked: 0,
+  checksFailedDialogOpenCount: 0,
+  checksFailedDialogSwitchToPullRequestCount: 0,
+  checksFailedDialogRerunChecksCount: 0,
+  pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationClicked: 0,
+  pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationClicked: 0,
+  pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationClicked: 0,
+  pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
+  multiCommitDiffWithUnreachableCommitWarningCount: 0,
+  multiCommitDiffFromHistoryCount: 0,
+  multiCommitDiffFromCompareCount: 0,
+  multiCommitDiffUnreachableCommitsDialogOpenedCount: 0,
+  submoduleDiffViewedFromChangesListCount: 0,
+  submoduleDiffViewedFromHistoryCount: 0,
+  openSubmoduleFromDiffCount: 0,
 }
 
 interface IOnboardingStats {
@@ -245,20 +320,6 @@ interface IOnboardingStats {
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
-/**
- * Returns the account id of the current user's GitHub.com account or null if the user
- * is not currently signed in to GitHub.com.
- *
- * @param accounts The active accounts stored in Desktop
- */
-function findDotComAccountId(accounts: ReadonlyArray<Account>): number | null {
-  const gitHubAccount = accounts.find(
-    a => a.endpoint === getDotComAPIEndpoint()
-  )
-
-  return gitHubAccount !== undefined ? gitHubAccount.id : null
-}
-
 interface ICalculatedStats {
   /** The app version. */
   readonly version: string
@@ -268,6 +329,9 @@ interface ICalculatedStats {
 
   /** The platform. */
   readonly platform: string
+
+  /** The architecture. */
+  readonly architecture: Architecture
 
   /** The number of total repositories. */
   readonly repositoryCount: number
@@ -319,6 +383,9 @@ interface ICalculatedStats {
    * only relevant on macOS, null will be sent otherwise.
    */
   readonly launchedFromApplicationsFolder: boolean | null
+
+  /** Whether or not the user has enabled high-signal notifications */
+  readonly notificationsEnabled: boolean
 }
 
 type DailyStats = ICalculatedStats &
@@ -406,10 +473,7 @@ export class StatsStore implements IStatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts, repositories)
-
-    const user_id = findDotComAccountId(accounts)
-    const payload = user_id === null ? stats : { ...stats, user_id }
+    const payload = await this.getDailyStats(accounts, repositories)
 
     try {
       const response = await this.post(payload)
@@ -489,22 +553,25 @@ export class StatsStore implements IStatsStore {
     const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
     // isInApplicationsFolder is undefined when not running on Darwin
-    const launchedFromApplicationsFolder =
-      remote.app.isInApplicationsFolder?.() ?? null
+    const launchedFromApplicationsFolder = __DARWIN__
+      ? await isInApplicationFolder()
+      : null
 
     return {
       eventType: 'usage',
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
+      architecture: await getAppArchitecture(),
       theme: getPersistedThemeName(),
       selectedTerminalEmulator,
       selectedTextEditor,
+      notificationsEnabled: getNotificationsEnabled(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
       ...onboardingStats,
-      guid: getGUID(),
+      guid: await getRendererGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
@@ -573,9 +640,8 @@ export class StatsStore implements IStatsStore {
 
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
-    const launches:
-      | ReadonlyArray<ILaunchStats>
-      | undefined = await this.db.launches.toArray()
+    const launches: ReadonlyArray<ILaunchStats> | undefined =
+      await this.db.launches.toArray()
     if (!launches || !launches.length) {
       return {
         mainReadyTime: -1,
@@ -608,9 +674,9 @@ export class StatsStore implements IStatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    const measures:
-      | IDailyMeasures
-      | undefined = await this.db.dailyMeasures.limit(1).first()
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures
+      .limit(1)
+      .first()
     return {
       ...DefaultDailyMeasures,
       ...measures,
@@ -655,6 +721,55 @@ export class StatsStore implements IStatsStore {
   public recordCoAuthoredCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       coAuthoredCommits: m.coAuthoredCommits + 1,
+    }))
+  }
+
+  /**
+   * Record that a commit was undone.
+   *
+   * @param cleanWorkingDirectory Whether the working directory is clean.
+   */
+  public recordCommitUndone(cleanWorkingDirectory: boolean): Promise<void> {
+    if (cleanWorkingDirectory) {
+      return this.updateDailyMeasures(m => ({
+        commitsUndoneWithoutChanges: m.commitsUndoneWithoutChanges + 1,
+      }))
+    }
+    return this.updateDailyMeasures(m => ({
+      commitsUndoneWithChanges: m.commitsUndoneWithChanges + 1,
+    }))
+  }
+
+  /** Record that the user started amending a commit */
+  public recordAmendCommitStarted(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      amendCommitStartedCount: m.amendCommitStartedCount + 1,
+    }))
+  }
+
+  /**
+   * Record that the user amended a commit.
+   *
+   * @param withFileChanges Whether the amendment included file changes or not.
+   */
+  public recordAmendCommitSuccessful(withFileChanges: boolean): Promise<void> {
+    if (withFileChanges) {
+      return this.updateDailyMeasures(m => ({
+        amendCommitSuccessfulWithFileChangesCount:
+          m.amendCommitSuccessfulWithFileChangesCount + 1,
+      }))
+    }
+
+    return this.updateDailyMeasures(m => ({
+      amendCommitSuccessfulWithoutFileChangesCount:
+        m.amendCommitSuccessfulWithoutFileChangesCount + 1,
+    }))
+  }
+
+  /** Record that the user reset to a previous commit */
+  public recordResetToCommitCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      resetToCommitCount: m.resetToCommitCount + 1,
     }))
   }
 
@@ -709,7 +824,14 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
-  public recordMenuInitiatedMerge(): Promise<void> {
+  public recordMenuInitiatedMerge(isSquash: boolean = false): Promise<void> {
+    if (isSquash) {
+      return this.updateDailyMeasures(m => ({
+        squashMergeIntoCurrentBranchMenuCount:
+          m.squashMergeIntoCurrentBranchMenuCount + 1,
+      }))
+    }
+
     return this.updateDailyMeasures(m => ({
       mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
     }))
@@ -903,9 +1025,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
-    void
-  > {
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       anyConflictsLeftOnMergeConflictsDialogDismissalCount:
         m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
@@ -1129,9 +1249,7 @@ export class StatsStore implements IStatsStore {
    * Record the number of times the user experiences the error
    * "Some of your changes would be overwritten" when switching branches
    */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
-    void
-  > {
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       errorWhenSwitchingBranchesWithUncommmittedChanges:
         m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
@@ -1384,6 +1502,398 @@ export class StatsStore implements IStatsStore {
   public recordUnhandledRejection() {
     return this.updateDailyMeasures(m => ({
       unhandledRejectionCount: m.unhandledRejectionCount + 1,
+    }))
+  }
+
+  private recordCherryPickSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
+    }))
+  }
+
+  public recordCherryPickViaDragAndDrop(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickViaDragAndDropCount: m.cherryPickViaDragAndDropCount + 1,
+    }))
+  }
+
+  public recordCherryPickViaContextMenu(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickViaContextMenuCount: m.cherryPickViaContextMenuCount + 1,
+    }))
+  }
+
+  public recordDragStartedAndCanceled(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      dragStartedAndCanceledCount: m.dragStartedAndCanceledCount + 1,
+    }))
+  }
+
+  public recordCherryPickConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickConflictsEncounteredCount:
+        m.cherryPickConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordCherryPickSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickSuccessfulWithConflictsCount:
+        m.cherryPickSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordCherryPickMultipleCommits(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickMultipleCommitsCount: m.cherryPickMultipleCommitsCount + 1,
+    }))
+  }
+
+  private recordCherryPickUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
+    }))
+  }
+
+  public recordCherryPickBranchCreatedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
+    }))
+  }
+
+  private recordReorderSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderSuccessfulCount: m.reorderSuccessfulCount + 1,
+    }))
+  }
+
+  public recordReorderStarted(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderStartedCount: m.reorderStartedCount + 1,
+    }))
+  }
+
+  private recordReorderConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderConflictsEncounteredCount: m.reorderConflictsEncounteredCount + 1,
+    }))
+  }
+
+  private recordReorderSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderSuccessfulWithConflictsCount:
+        m.reorderSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordReorderMultipleCommits(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderMultipleCommitsCount: m.reorderMultipleCommitsCount + 1,
+    }))
+  }
+
+  private recordReorderUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      reorderUndoneCount: m.reorderUndoneCount + 1,
+    }))
+  }
+
+  private recordSquashConflictsEncountered(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashConflictsEncounteredCount: m.squashConflictsEncounteredCount + 1,
+    }))
+  }
+
+  public recordSquashMultipleCommitsInvoked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMultipleCommitsInvokedCount:
+        m.squashMultipleCommitsInvokedCount + 1,
+    }))
+  }
+
+  private recordSquashSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashSuccessfulCount: m.squashSuccessfulCount + 1,
+    }))
+  }
+
+  private recordSquashSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashSuccessfulWithConflictsCount:
+        m.squashSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordSquashViaContextMenuInvoked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashViaContextMenuInvokedCount: m.squashViaContextMenuInvokedCount + 1,
+    }))
+  }
+
+  public recordSquashViaDragAndDropInvokedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashViaDragAndDropInvokedCount: m.squashViaDragAndDropInvokedCount + 1,
+    }))
+  }
+
+  private recordSquashUndone(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashUndoneCount: m.squashUndoneCount + 1,
+    }))
+  }
+
+  public async recordOperationConflictsEncounteredCount(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashConflictsEncountered()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderConflictsEncountered()
+      case MultiCommitOperationKind.Rebase:
+        // ignored because rebase records different stats
+        return
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Merge:
+        log.error(
+          `[recordOperationConflictsEncounteredCount] - Operation not supported: ${kind}`
+        )
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public async recordOperationSuccessful(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashSuccessful()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderSuccessful()
+      case MultiCommitOperationKind.CherryPick:
+        return this.recordCherryPickSuccessful()
+      case MultiCommitOperationKind.Rebase:
+        // ignored because rebase records different stats
+        return
+      case MultiCommitOperationKind.Merge:
+        log.error(
+          `[recordOperationSuccessful] - Operation not supported: ${kind}`
+        )
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public async recordOperationSuccessfulWithConflicts(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashSuccessfulWithConflicts()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderSuccessfulWithConflicts()
+      case MultiCommitOperationKind.Rebase:
+        return this.recordRebaseSuccessAfterConflicts()
+      case MultiCommitOperationKind.CherryPick:
+      case MultiCommitOperationKind.Merge:
+        log.error(
+          `[recordOperationSuccessfulWithConflicts] - Operation not supported: ${kind}`
+        )
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public async recordOperationUndone(
+    kind: MultiCommitOperationKind
+  ): Promise<void> {
+    switch (kind) {
+      case MultiCommitOperationKind.Squash:
+        return this.recordSquashUndone()
+      case MultiCommitOperationKind.Reorder:
+        return this.recordReorderUndone()
+      case MultiCommitOperationKind.CherryPick:
+        return this.recordCherryPickUndone()
+      case MultiCommitOperationKind.Rebase:
+      case MultiCommitOperationKind.Merge:
+        log.error(`[recordOperationUndone] - Operation not supported: ${kind}`)
+        return
+      default:
+        return assertNever(kind, `Unknown operation kind of ${kind}.`)
+    }
+  }
+
+  public recordSquashMergeSuccessfulWithConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeSuccessfulWithConflictsCount:
+        m.squashMergeSuccessfulWithConflictsCount + 1,
+    }))
+  }
+
+  public recordSquashMergeSuccessful(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeSuccessfulCount: m.squashMergeSuccessfulCount + 1,
+    }))
+  }
+
+  public recordSquashMergeInvokedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      squashMergeInvokedCount: m.squashMergeInvokedCount + 1,
+    }))
+  }
+
+  public recordCheckRunsPopoverOpened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      opensCheckRunsPopover: m.opensCheckRunsPopover + 1,
+    }))
+  }
+
+  public recordCheckViewedOnline(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      viewsCheckOnline: m.viewsCheckOnline + 1,
+    }))
+  }
+
+  public recordCheckJobStepViewedOnline(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      viewsCheckJobStepOnline: m.viewsCheckJobStepOnline + 1,
+    }))
+  }
+
+  public recordRerunChecks(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rerunsChecks: m.rerunsChecks + 1,
+    }))
+  }
+
+  public recordChecksFailedNotificationShown(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationCount: m.checksFailedNotificationCount + 1,
+    }))
+  }
+
+  public recordChecksFailedNotificationClicked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogOpen(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogOpenCount: m.checksFailedDialogOpenCount + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogSwitchToPullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogSwitchToPullRequestCount:
+        m.checksFailedDialogSwitchToPullRequestCount + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogRerunChecks(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogRerunChecksCount:
+        m.checksFailedDialogRerunChecksCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffFromHistoryCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromHistoryCount: m.multiCommitDiffFromHistoryCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffFromCompareCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromCompareCount: m.multiCommitDiffFromCompareCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffWithUnreachableCommitWarningCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffWithUnreachableCommitWarningCount:
+        m.multiCommitDiffWithUnreachableCommitWarningCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffUnreachableCommitsDialogOpenedCount:
+        m.multiCommitDiffUnreachableCommitsDialogOpenedCount + 1,
+    }))
+  }
+
+  // Generates the stat field name for the given PR review type and suffix.
+  private getStatFieldForRequestReviewState(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ): PullRequestReviewStatField {
+    const infixMap: Record<
+      ValidNotificationPullRequestReviewState,
+      PullRequestReviewStatFieldInfix
+    > = {
+      CHANGES_REQUESTED: 'ChangesRequested',
+      APPROVED: 'Approved',
+      COMMENTED: 'Commented',
+    }
+
+    return `pullRequestReview${infixMap[reviewType]}${suffix}`
+  }
+
+  // Generic method to record stats related to Pull Request review notifications.
+  private recordPullRequestReviewStat(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ) {
+    const statField = this.getStatFieldForRequestReviewState(reviewType, suffix)
+    return this.updateDailyMeasures(
+      m => ({ [statField]: m[statField] + 1 } as any)
+    )
+  }
+
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  public recordPullRequestReviewNotificationClicked(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationClicked')
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'DialogSwitchToPullRequestCount'
+    )
+  }
+
+  public recordSubmoduleDiffViewedFromChangesList(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromChangesListCount:
+        m.submoduleDiffViewedFromChangesListCount + 1,
+    }))
+  }
+
+  public recordSubmoduleDiffViewedFromHistory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromHistoryCount:
+        m.submoduleDiffViewedFromHistoryCount + 1,
+    }))
+  }
+
+  public recordOpenSubmoduleFromDiffCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      openSubmoduleFromDiffCount: m.openSubmoduleFromDiffCount + 1,
     }))
   }
 

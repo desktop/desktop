@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Commit } from '../../models/commit'
+import { Commit, CommitOneLine, ICommitContext } from '../../models/commit'
 import {
   HistoryTabMode,
   ICompareState,
@@ -11,7 +11,7 @@ import {
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../dispatcher'
+import { defaultErrorHandler, Dispatcher } from '../dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
@@ -19,12 +19,17 @@ import { IBranchListItem } from '../branches/group-branches'
 import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
-import { OcticonSymbol } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
+import { DragType } from '../../models/drag-drop'
+import { PopupType } from '../../models/popup'
+import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
+import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
+import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -35,14 +40,21 @@ interface ICompareSidebarProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
-  readonly selectedCommitSha: string | null
+  readonly selectedCommitShas: ReadonlyArray<string>
   readonly onRevertCommit: (commit: Commit) => void
+  readonly onAmendCommit: (commit: Commit, isLocalCommit: boolean) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
+  readonly onCherryPick: (
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
+  readonly isCherryPickInProgress: boolean
+  readonly shasToHighlight: ReadonlyArray<string>
 }
 
 interface ICompareSidebarState {
@@ -217,25 +229,85 @@ export class CompareSidebar extends React.Component<
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
-        selectedSHA={this.props.selectedCommitSha}
+        selectedSHAs={this.props.selectedCommitShas}
+        shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}
+        canResetToCommits={formState.kind === HistoryTabMode.History}
+        canUndoCommits={formState.kind === HistoryTabMode.History}
+        canAmendCommits={formState.kind === HistoryTabMode.History}
         emoji={this.props.emoji}
+        reorderingEnabled={formState.kind === HistoryTabMode.History}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onUndoCommit={this.onUndoCommit}
+        onResetToCommit={this.onResetToCommit}
         onRevertCommit={
           ableToRevertCommit(this.props.compareState.formState)
             ? this.props.onRevertCommit
             : undefined
         }
-        onCommitSelected={this.onCommitSelected}
+        onAmendCommit={this.props.onAmendCommit}
+        onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
+        onCreateBranch={this.onCreateBranch}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
+        onCherryPick={this.onCherryPick}
+        onDropCommitInsertion={this.onDropCommitInsertion}
+        onSquash={this.onSquash}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
-        tagsToPush={this.props.tagsToPush}
+        tagsToPush={this.props.tagsToPush ?? []}
+        isCherryPickInProgress={this.props.isCherryPickInProgress}
+        onRenderCommitDragElement={this.onRenderCommitDragElement}
+        onRemoveCommitDragElement={this.onRemoveCommitDragElement}
+        disableSquashing={formState.kind === HistoryTabMode.Compare}
       />
     )
+  }
+
+  private onDropCommitInsertion = async (
+    baseCommit: Commit | null,
+    commitsToInsert: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ) => {
+    if (
+      await doMergeCommitsExistAfterCommit(
+        this.props.repository,
+        lastRetainedCommitRef
+      )
+    ) {
+      defaultErrorHandler(
+        new Error(
+          `Unable to reorder. Reordering replays all commits up to the last one required for the reorder. A merge commit cannot exist among those commits.`
+        ),
+        this.props.dispatcher
+      )
+      return
+    }
+
+    return this.props.dispatcher.reorderCommits(
+      this.props.repository,
+      commitsToInsert,
+      baseCommit,
+      lastRetainedCommitRef
+    )
+  }
+
+  private onRenderCommitDragElement = (
+    commit: Commit,
+    selectedCommits: ReadonlyArray<Commit>
+  ) => {
+    this.props.dispatcher.setDragElement({
+      type: DragType.Commit,
+      commit,
+      selectedCommits,
+      gitHubRepository: this.props.repository.gitHubRepository,
+    })
+  }
+
+  private onRemoveCommitDragElement = () => {
+    this.props.dispatcher.clearDragElement()
   }
 
   private renderActiveTab(view: ICompareBranch) {
@@ -250,12 +322,8 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const {
-      defaultBranch,
-      branches,
-      recentBranches,
-      filterText,
-    } = this.props.compareState
+    const { defaultBranch, branches, recentBranches, filterText } =
+      this.props.compareState
 
     return (
       <BranchList
@@ -391,10 +459,14 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onCommitSelected = (commit: Commit) => {
+  private onCommitsSelected = (
+    commits: ReadonlyArray<Commit>,
+    isContiguous: boolean
+  ) => {
     this.props.dispatcher.changeCommitSelection(
       this.props.repository,
-      commit.sha
+      commits.map(c => c.sha),
+      isContiguous
     )
 
     this.loadChangedFilesScheduler.queue(() => {
@@ -418,7 +490,7 @@ export class CompareSidebar extends React.Component<
     if (commits.length - end <= CloseToBottomThreshold) {
       if (this.loadingMoreCommitsPromise != null) {
         // as this callback fires for any scroll event we need to guard
-        // against re-entrant calls to loadNextHistoryBatch
+        // against re-entrant calls to loadCommitBatch
         return
       }
 
@@ -501,8 +573,90 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private onUndoCommit = (commit: Commit) => {
+    this.props.dispatcher.undoCommit(this.props.repository, commit)
+  }
+
+  private onResetToCommit = (commit: Commit) => {
+    this.props.dispatcher.resetToCommit(this.props.repository, commit)
+  }
+
+  private onCreateBranch = (commit: CommitOneLine) => {
+    const { repository, dispatcher } = this.props
+
+    dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository,
+      targetCommit: commit,
+    })
+  }
+
   private onDeleteTag = (tagName: string) => {
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
+  }
+
+  private onCherryPick = (commits: ReadonlyArray<CommitOneLine>) => {
+    this.props.onCherryPick(this.props.repository, commits)
+  }
+
+  private onSquash = async (
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string | null,
+    isInvokedByContextMenu: boolean
+  ) => {
+    const toSquashSansSquashOnto = toSquash.filter(
+      c => c.sha !== squashOnto.sha
+    )
+
+    const allCommitsInSquash = [...toSquashSansSquashOnto, squashOnto]
+    const coAuthors = getUniqueCoauthorsAsAuthors(allCommitsInSquash)
+
+    const squashedDescription = getSquashedCommitDescription(
+      toSquashSansSquashOnto,
+      squashOnto
+    )
+
+    if (
+      await doMergeCommitsExistAfterCommit(
+        this.props.repository,
+        lastRetainedCommitRef
+      )
+    ) {
+      defaultErrorHandler(
+        new Error(
+          `Unable to squash. Squashing replays all commits up to the last one required for the squash. A merge commit cannot exist among those commits.`
+        ),
+        this.props.dispatcher
+      )
+      return
+    }
+
+    this.props.dispatcher.recordSquashInvoked(isInvokedByContextMenu)
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.CommitMessage,
+      repository: this.props.repository,
+      coAuthors,
+      showCoAuthoredBy: coAuthors.length > 0,
+      commitMessage: {
+        summary: squashOnto.summary,
+        description: squashedDescription,
+      },
+      dialogTitle: `Squash ${allCommitsInSquash.length} Commits`,
+      dialogButtonText: `Squash ${allCommitsInSquash.length} Commits`,
+      prepopulateCommitSummary: true,
+      onSubmitCommitMessage: async (context: ICommitContext) => {
+        this.props.dispatcher.squash(
+          this.props.repository,
+          toSquashSansSquashOnto,
+          squashOnto,
+          lastRetainedCommitRef,
+          context
+        )
+        return true
+      },
+    })
   }
 }
 

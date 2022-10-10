@@ -2,9 +2,9 @@ import * as React from 'react'
 import { PathLabel } from '../lib/path-label'
 import { AppFileStatus } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
-import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
+import { Octicon, iconForStatus } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { mapStatus } from '../../lib/status'
-import { enableSideBySideDiffs } from '../../lib/feature-flag'
 import { DiffOptions } from '../diff/diff-options'
 
 interface IChangedFileDetailsProps {
@@ -17,6 +17,12 @@ interface IChangedFileDetailsProps {
 
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
+
+  /** Whether we should hide whitespace in diffs. */
+  readonly hideWhitespaceInDiff: boolean
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
@@ -36,13 +42,7 @@ export class ChangedFileDetails extends React.Component<
         <PathLabel path={this.props.path} status={this.props.status} />
         {this.renderDecorator()}
 
-        {enableSideBySideDiffs() && (
-          <DiffOptions
-            onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
-            showSideBySideDiff={this.props.showSideBySideDiff}
-            onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-          />
-        )}
+        {this.renderDiffOptions()}
 
         <Octicon
           symbol={iconForStatus(status)}
@@ -50,6 +50,25 @@ export class ChangedFileDetails extends React.Component<
           title={fileStatus}
         />
       </div>
+    )
+  }
+
+  private renderDiffOptions() {
+    if (this.props.diff?.kind === DiffType.Submodule) {
+      return null
+    }
+
+    return (
+      <DiffOptions
+        isInteractiveDiff={true}
+        onHideWhitespaceChangesChanged={
+          this.props.onHideWhitespaceInDiffChanged
+        }
+        hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+        onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
+        showSideBySideDiff={this.props.showSideBySideDiff}
+        onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+      />
     )
   }
 

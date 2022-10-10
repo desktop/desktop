@@ -66,12 +66,13 @@
     overflow: hidden;
   }
 
-  /* Limit the progress text to one line. Without
-   * this the entire container will jump around in
-   * y-pos due to the change in height */
   .details {
     max-width: 100%;
-    @include ellipsis;
+    height: 30vh;
+    margin-bottom: 20vh;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   progress {

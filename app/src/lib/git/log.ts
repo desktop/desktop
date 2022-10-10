@@ -5,15 +5,49 @@ import {
   PlainFileStatus,
   CopiedOrRenamedFileStatus,
   UntrackedFileStatus,
+  AppFileStatus,
+  SubmoduleStatus,
 } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
-import {
-  getTrailerSeparatorCharacters,
-  parseRawUnfoldedTrailers,
-} from './interpret-trailers'
+import { parseRawUnfoldedTrailers } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
+import { createLogParser } from './git-delimiter-parser'
+import { revRange } from '.'
+import { forceUnwrap } from '../fatal-error'
+import { enableSubmoduleDiff } from '../feature-flag'
+
+// File mode 160000 is used by git specifically for submodules:
+// https://github.com/git/git/blob/v2.37.3/cache.h#L62-L69
+const SubmoduleFileMode = '160000'
+
+function mapSubmoduleStatusFileModes(
+  status: string,
+  srcMode: string,
+  dstMode: string
+): SubmoduleStatus | undefined {
+  if (!enableSubmoduleDiff()) {
+    return undefined
+  }
+
+  return srcMode === SubmoduleFileMode &&
+    dstMode === SubmoduleFileMode &&
+    status === 'M'
+    ? {
+        commitChanged: true,
+        untrackedChanges: false,
+        modifiedChanges: false,
+      }
+    : (srcMode === SubmoduleFileMode && status === 'D') ||
+      (dstMode === SubmoduleFileMode && status === 'A')
+    ? {
+        commitChanged: false,
+        untrackedChanges: false,
+        modifiedChanges: false,
+      }
+    : undefined
+}
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -21,150 +55,153 @@ import { getCaptures } from '../helpers/regex'
  */
 function mapStatus(
   rawStatus: string,
-  oldPath?: string
+  oldPath: string | undefined,
+  srcMode: string,
+  dstMode: string
 ): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {
   const status = rawStatus.trim()
+  const submoduleStatus = mapSubmoduleStatusFileModes(status, srcMode, dstMode)
 
   if (status === 'M') {
-    return { kind: AppFileStatusKind.Modified }
+    return { kind: AppFileStatusKind.Modified, submoduleStatus }
   } // modified
   if (status === 'A') {
-    return { kind: AppFileStatusKind.New }
+    return { kind: AppFileStatusKind.New, submoduleStatus }
   } // added
   if (status === '?') {
-    return { kind: AppFileStatusKind.Untracked }
+    return { kind: AppFileStatusKind.Untracked, submoduleStatus }
   } // untracked
   if (status === 'D') {
-    return { kind: AppFileStatusKind.Deleted }
+    return { kind: AppFileStatusKind.Deleted, submoduleStatus }
   } // deleted
   if (status === 'R' && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus }
   } // renamed
   if (status === 'C' && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus }
   } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus }
   }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
   if (status.match(/C[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus }
   }
 
-  return { kind: AppFileStatusKind.Modified }
+  return { kind: AppFileStatusKind.Modified, submoduleStatus }
 }
+
+const isCopyOrRename = (
+  status: AppFileStatus
+): status is CopiedOrRenamedFileStatus =>
+  status.kind === AppFileStatusKind.Copied ||
+  status.kind === AppFileStatusKind.Renamed
 
 /**
  * Get the repository's commits using `revisionRange` and limited to `limit`
  */
 export async function getCommits(
   repository: Repository,
-  revisionRange: string,
-  limit: number,
+  revisionRange?: string,
+  limit?: number,
+  skip?: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
-  const delimiter = '1F'
-  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
-  const prettyFormat = [
-    '%H', // SHA
-    '%h', // short SHA
-    '%s', // summary
-    '%b', // body
+  const { formatArgs, parse } = createLogParser({
+    sha: '%H', // SHA
+    shortSha: '%h', // short SHA
+    summary: '%s', // summary
+    body: '%b', // body
     // author identity string, matching format of GIT_AUTHOR_IDENT.
     //   author name <author email> <author date>
     // author date format dependent on --date arg, should be raw
-    '%an <%ae> %ad',
-    '%cn <%ce> %cd',
-    '%P', // parent SHAs,
-    '%(trailers:unfold,only)',
-    '%D', // refs
-  ].join(`%x${delimiter}`)
+    author: '%an <%ae> %ad',
+    committer: '%cn <%ce> %cd',
+    parents: '%P', // parent SHAs,
+    trailers: '%(trailers:unfold,only)',
+    refs: '%D',
+  })
 
-  const result = await git(
-    [
-      'log',
-      revisionRange,
-      `--date=raw`,
-      `--max-count=${limit}`,
-      `--pretty=${prettyFormat}`,
-      '-z',
-      '--no-show-signature',
-      '--no-color',
-      ...additionalArgs,
-      '--',
-    ],
-    repository.path,
-    'getCommits',
-    { successExitCodes: new Set([0, 128]) }
+  const args = ['log']
+
+  if (revisionRange !== undefined) {
+    args.push(revisionRange)
+  }
+
+  args.push('--date=raw')
+
+  if (limit !== undefined) {
+    args.push(`--max-count=${limit}`)
+  }
+
+  if (skip !== undefined) {
+    args.push(`--skip=${skip}`)
+  }
+
+  args.push(
+    ...formatArgs,
+    '--no-show-signature',
+    '--no-color',
+    ...additionalArgs,
+    '--'
   )
+  const result = await git(args, repository.path, 'getCommits', {
+    successExitCodes: new Set([0, 128]),
+  })
 
   // if the repository has an unborn HEAD, return an empty history of commits
   if (result.exitCode === 128) {
     return new Array<Commit>()
   }
 
-  const out = result.stdout
-  const lines = out.split('\0')
-  // Remove the trailing empty line
-  lines.splice(-1, 1)
+  const parsed = parse(result.stdout)
 
-  if (lines.length === 0) {
-    return []
-  }
-
-  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
-
-  const commits = lines.map(line => {
-    const pieces = line.split(delimiterString)
-    const sha = pieces[0]
-    const shortSha = pieces[1]
-    const summary = pieces[2]
-    const body = pieces[3]
-    const authorIdentity = pieces[4]
-    const committerIdentity = pieces[5]
-    const shaList = pieces[6]
-
-    const parentSHAs = shaList.length ? shaList.split(' ') : []
-    const trailers = parseRawUnfoldedTrailers(pieces[7], trailerSeparators)
-    const tags = getCaptures(pieces[8], /tag: ([^\s,]+)/g)
+  return parsed.map(commit => {
+    const tags = getCaptures(commit.refs, /tag: ([^\s,]+)/g)
       .filter(i => i[0] !== undefined)
       .map(i => i[0])
-    const author = CommitIdentity.parseIdentity(authorIdentity)
-
-    if (!author) {
-      throw new Error(`Couldn't parse author identity for '${shortSha}'`)
-    }
-
-    const committer = CommitIdentity.parseIdentity(committerIdentity)
-
-    if (!committer) {
-      throw new Error(`Couldn't parse committer identity for '${shortSha}'`)
-    }
 
     return new Commit(
-      sha,
-      shortSha,
-      summary,
-      body,
-      author,
-      committer,
-      parentSHAs,
-      trailers,
+      commit.sha,
+      commit.shortSha,
+      commit.summary,
+      commit.body,
+      CommitIdentity.parseIdentity(commit.author),
+      CommitIdentity.parseIdentity(commit.committer),
+      commit.parents.length > 0 ? commit.parents.split(' ') : [],
+      // We know for sure that the trailer separator will be ':' since we got
+      // them from %(trailers:unfold) above, see `git help log`:
+      //
+      //   "key_value_separator=<SEP>: specify a separator inserted between
+      //    trailer lines. When this option is not given each trailer key-value
+      //    pair is separated by ": ". Otherwise it shares the same semantics as
+      //    separator=<SEP> above."
+      parseRawUnfoldedTrailers(commit.trailers, ':'),
       tags
     )
   })
+}
 
-  return commits
+/** This interface contains information of a changeset. */
+export interface IChangesetData {
+  /** Files changed in the changeset. */
+  readonly files: ReadonlyArray<CommittedFileChange>
+
+  /** Number of lines added in the changeset. */
+  readonly linesAdded: number
+
+  /** Number of lines deleted in the changeset. */
+  readonly linesDeleted: number
 }
 
 /** Get the files that were changed in the given commit. */
 export async function getChangedFiles(
   repository: Repository,
   sha: string
-): Promise<ReadonlyArray<CommittedFileChange>> {
+): Promise<IChangesetData> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
@@ -177,51 +214,104 @@ export async function getChangedFiles(
     '-1',
     '--no-show-signature',
     '--first-parent',
-    '--name-status',
+    '--raw',
     '--format=format:',
+    '--numstat',
     '-z',
     '--',
   ]
-  const result = await git(args, repository.path, 'getChangedFiles')
 
-  return parseChangedFiles(result.stdout, sha)
+  const { stdout } = await git(args, repository.path, 'getChangesFiles')
+  return parseRawLogWithNumstat(stdout, sha, `${sha}^`)
 }
 
 /**
- * Parses git `log` or `diff` output into a list of changed files
- * (see `getChangedFiles` for an example of use)
+ * Parses output of diff flags -z --raw --numstat.
  *
- * @param stdout raw output from a git `-z` and `--name-status` flags
- * @param committish commitish command was run against
+ * Given the -z flag the new lines are separated by \0 character (left them as
+ * new lines below for ease of reading)
+ *
+ * For modified, added, deleted, untracked:
+ *    100644 100644 5716ca5 db3c77d M
+ *    file_one_path
+ *    :100644 100644 0835e4f 28096ea M
+ *    file_two_path
+ *    1    0       file_one_path
+ *    1    0       file_two_path
+ *
+ * For copied or renamed:
+ *    100644 100644 5716ca5 db3c77d M
+ *    file_one_original_path
+ *    file_one_new_path
+ *    :100644 100644 0835e4f 28096ea M
+ *    file_two_original_path
+ *    file_two_new_path
+ *    1    0
+ *    file_one_original_path
+ *    file_one_new_path
+ *    1    0
+ *    file_two_original_path
+ *    file_two_new_path
  */
-export function parseChangedFiles(
+
+export function parseRawLogWithNumstat(
   stdout: string,
-  committish: string
-): ReadonlyArray<CommittedFileChange> {
+  sha: string,
+  parentCommitish: string
+) {
+  const files = new Array<CommittedFileChange>()
+  let linesAdded = 0
+  let linesDeleted = 0
+  let numStatCount = 0
   const lines = stdout.split('\0')
-  // Remove the trailing empty line
-  lines.splice(-1, 1)
-  const files: CommittedFileChange[] = []
-  for (let i = 0; i < lines.length; i++) {
-    const statusText = lines[i]
 
-    let oldPath: string | undefined = undefined
+  for (let i = 0; i < lines.length - 1; i++) {
+    const line = lines[i]
+    if (line.startsWith(':')) {
+      const lineComponents = line.split(' ')
+      const srcMode = forceUnwrap(
+        'Invalid log output (srcMode)',
+        lineComponents[0]?.replace(':', '')
+      )
+      const dstMode = forceUnwrap(
+        'Invalid log output (dstMode)',
+        lineComponents[1]
+      )
+      const status = forceUnwrap(
+        'Invalid log output (status)',
+        lineComponents.at(-1)
+      )
+      const oldPath = /^R|C/.test(status)
+        ? forceUnwrap('Missing old path', lines.at(++i))
+        : undefined
 
-    if (
-      statusText.length > 0 &&
-      (statusText[0] === 'R' || statusText[0] === 'C')
-    ) {
-      oldPath = lines[++i]
+      const path = forceUnwrap('Missing path', lines.at(++i))
+
+      files.push(
+        new CommittedFileChange(
+          path,
+          mapStatus(status, oldPath, srcMode, dstMode),
+          sha,
+          parentCommitish
+        )
+      )
+    } else {
+      const match = /^(\d+|-)\t(\d+|-)\t/.exec(line)
+      const [, added, deleted] = forceUnwrap('Invalid numstat line', match)
+      linesAdded += added === '-' ? 0 : parseInt(added, 10)
+      linesDeleted += deleted === '-' ? 0 : parseInt(deleted, 10)
+
+      // If this entry denotes a rename or copy the old and new paths are on
+      // two separate fields (separated by \0). Otherwise they're on the same
+      // line as the added and deleted lines.
+      if (isCopyOrRename(files[numStatCount].status)) {
+        i += 2
+      }
+      numStatCount++
     }
-
-    const status = mapStatus(statusText, oldPath)
-
-    const path = lines[++i]
-
-    files.push(new CommittedFileChange(path, status, committish))
   }
 
-  return files
+  return { files, linesAdded, linesDeleted }
 }
 
 /** Get the commit for the given ref. */
@@ -235,4 +325,26 @@ export async function getCommit(
   }
 
   return commits[0]
+}
+
+/**
+ * Determine if merge commits exist in history after given commit
+ * If no commitRef is null, goes back to HEAD of branch.
+ */
+export async function doMergeCommitsExistAfterCommit(
+  repository: Repository,
+  commitRef: string | null
+): Promise<boolean> {
+  const commitRevRange =
+    commitRef === null ? undefined : revRange(commitRef, 'HEAD')
+
+  const mergeCommits = await getCommits(
+    repository,
+    commitRevRange,
+    undefined,
+    undefined,
+    ['--merges']
+  )
+
+  return mergeCommits.length > 0
 }

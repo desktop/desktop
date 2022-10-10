@@ -35,6 +35,12 @@ interface ISegmentedItemProps<T> {
    * a pointer device.
    */
   readonly onClick: (value: T) => void
+
+  /**
+   * A function that's called when a user double-clicks on the item
+   * using a pointer device.
+   */
+  readonly onDoubleClick: (value: T) => void
 }
 
 export class SegmentedItem<T> extends React.Component<
@@ -43,6 +49,10 @@ export class SegmentedItem<T> extends React.Component<
 > {
   private onClick = () => {
     this.props.onClick(this.props.value)
+  }
+
+  private onDoubleClick = () => {
+    this.props.onDoubleClick(this.props.value)
   }
 
   public render() {
@@ -54,9 +64,12 @@ export class SegmentedItem<T> extends React.Component<
     const className = isSelected ? 'selected' : undefined
 
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <li
         className={className}
         onClick={this.onClick}
+        onDoubleClick={this.onDoubleClick}
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role
         role="radio"
         id={this.props.id}
         aria-checked={isSelected ? 'true' : 'false'}

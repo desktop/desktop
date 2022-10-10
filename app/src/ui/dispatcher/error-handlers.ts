@@ -5,7 +5,10 @@ import {
 
 import { Dispatcher } from '.'
 import { ExternalEditorError } from '../../lib/editors/shared'
-import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import {
+  DiscardChangesError,
+  ErrorWithMetadata,
+} from '../../lib/error-with-metadata'
 import { AuthenticationErrors } from '../../lib/git/authentication'
 import { GitError, isAuthFailureError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
@@ -16,9 +19,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
-import { enableCreateForkFlow } from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
 import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
 
@@ -194,12 +195,12 @@ export async function externalEditorErrorHandler(
     return error
   }
 
-  const { suggestAtom, openPreferences } = e.metadata
+  const { suggestDefaultEditor, openPreferences } = e.metadata
 
   await dispatcher.showPopup({
     type: PopupType.ExternalEditorFailed,
     message: e.message,
-    suggestAtom,
+    suggestDefaultEditor,
     openPreferences,
   })
 
@@ -315,12 +316,11 @@ export async function mergeConflictHandler(
 
   const { currentBranch, theirBranch } = gitContext
 
-  dispatcher.showPopup({
-    type: PopupType.MergeConflicts,
+  dispatcher.handleConflictsDetectedOnError(
     repository,
-    ourBranch: currentBranch,
-    theirBranch,
-  })
+    currentBranch,
+    theirBranch
+  )
 
   return null
 }
@@ -419,12 +419,13 @@ export async function rebaseConflictsHandler(
 
   const { currentBranch } = gitContext
 
-  dispatcher.launchRebaseFlow(repository, currentBranch)
+  dispatcher.launchRebaseOperation(repository, currentBranch)
 
   return null
 }
 
-const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
+const rejectedPathRe =
+  /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
 
 /**
  * Attempts to detect whether an error is the result of a failed push
@@ -450,12 +451,7 @@ export async function refusedWorkflowUpdate(
     return error
   }
 
-  if (repository.gitHubRepository === null) {
-    return error
-  }
-
-  // DotCom only for now.
-  if (repository.gitHubRepository.endpoint !== getDotComAPIEndpoint()) {
+  if (!isRepositoryWithGitHubRepository(repository)) {
     return error
   }
 
@@ -474,7 +470,8 @@ export async function refusedWorkflowUpdate(
   return null
 }
 
-const samlReauthErrorMessageRe = /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
+const samlReauthErrorMessageRe =
+  /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
 
 /**
  * Attempts to detect whether an error is the result of a failed push
@@ -533,12 +530,6 @@ export async function insufficientGitHubRepoPermissions(
   error: Error,
   dispatcher: Dispatcher
 ) {
-  // no need to do anything here if we don't want to show
-  // the new `CreateForkDialog` UI
-  if (!enableCreateForkFlow()) {
-    return error
-  }
-
   const e = asErrorWithMetadata(error)
   if (!e) {
     return error
@@ -630,6 +621,32 @@ export async function localChangesOverwrittenHandler(
 }
 
 /**
+ * Handler for when an action the user attempts to discard changes and they
+ * cannot be moved to trash/recycle bin
+ */
+export async function discardChangesHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  if (!(error instanceof DiscardChangesError)) {
+    return error
+  }
+
+  const { retryAction } = error.metadata
+
+  if (retryAction === undefined) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.DiscardChangesRetry,
+    retryAction,
+  })
+
+  return null
+}
+
+/**
  * Extract lines from Git's stderr output starting with the
  * prefix `remote: `. Useful to extract server-specific
  * error messages from network operations (fetch, push, pull,
@@ -641,6 +658,6 @@ function getRemoteMessage(stderr: string) {
   return stderr
     .split(/\r?\n/)
     .filter(x => x.startsWith(needle))
-    .map(x => x.substr(needle.length))
+    .map(x => x.substring(needle.length))
     .join('\n')
 }

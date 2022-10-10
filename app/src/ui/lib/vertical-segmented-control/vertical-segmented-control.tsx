@@ -116,10 +116,25 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
     }
   }
 
+  private submitForm() {
+    const form = this.formRef
+    if (form) {
+      // NB: In order to play nicely with React's custom event dispatching,
+      // we dispatch an event instead of calling `submit` directly on the
+      // form.
+      form.dispatchEvent(new Event('submit'))
+    }
+  }
+
   private onItemClick = (key: T) => {
     if (key !== this.props.selectedKey) {
       this.props.onSelectionChanged(key)
     }
+  }
+
+  private onItemDoubleClick = (key: T) => {
+    this.onItemClick(key)
+    this.submitForm()
   }
 
   private getListItemId(index: number) {
@@ -136,6 +151,7 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
         isSelected={item.key === this.props.selectedKey}
         value={item.key}
         onClick={this.onItemClick}
+        onDoubleClick={this.onItemDoubleClick}
       />
     )
   }
@@ -154,13 +170,7 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
       }
       event.preventDefault()
     } else if (event.key === 'Enter') {
-      const form = this.formRef
-      if (form) {
-        // NB: In order to play nicely with React's custom event dispatching,
-        // we dispatch an event instead of calling `submit` directly on the
-        // form.
-        form.dispatchEvent(new Event('submit'))
-      }
+      this.submitForm()
     }
   }
 
@@ -184,6 +194,7 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
     }
 
     const label = this.props.label ? (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events
       <legend onClick={this.onLegendClick}>{this.props.label}</legend>
     ) : undefined
 

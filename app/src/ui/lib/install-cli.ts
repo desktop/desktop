@@ -1,7 +1,7 @@
-import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
 import * as fsAdmin from 'fs-admin'
+import { mkdir, readlink, symlink, unlink } from 'fs/promises'
 
 /** The path for the installed command line tool. */
 export const InstalledCLIPath = '/usr/local/bin/github'
@@ -26,7 +26,7 @@ export async function installCLI(): Promise<void> {
 
 async function getResolvedInstallPath(): Promise<string | null> {
   try {
-    return await FSE.readlink(InstalledCLIPath)
+    return await readlink(InstalledCLIPath)
   } catch {
     return null
   }
@@ -34,7 +34,7 @@ async function getResolvedInstallPath(): Promise<string | null> {
 
 function removeExistingSymlink(asAdmin: boolean) {
   if (!asAdmin) {
-    return FSE.unlink(InstalledCLIPath)
+    return unlink(InstalledCLIPath)
   }
 
   return new Promise<void>((resolve, reject) => {
@@ -57,7 +57,7 @@ function createDirectories(asAdmin: boolean) {
   const path = Path.dirname(InstalledCLIPath)
 
   if (!asAdmin) {
-    return FSE.mkdirp(path)
+    return mkdir(path, { recursive: true })
   }
 
   return new Promise<void>((resolve, reject) => {
@@ -78,7 +78,7 @@ function createDirectories(asAdmin: boolean) {
 
 function createNewSymlink(asAdmin: boolean) {
   if (!asAdmin) {
-    return FSE.symlink(PackagedPath, InstalledCLIPath)
+    return symlink(PackagedPath, InstalledCLIPath)
   }
 
   return new Promise<void>((resolve, reject) => {

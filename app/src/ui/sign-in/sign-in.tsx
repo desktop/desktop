@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-autofocus */
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import {
@@ -9,7 +10,8 @@ import {
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
@@ -264,8 +266,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label="Authentication code"
             value={this.state.otpToken}
             onValueChanged={this.onOTPTokenChanged}
-            labelLinkText={`What's this?`}
-            labelLinkUri="https://help.github.com/articles/providing-your-2fa-authentication-code/"
             autoFocus={true}
           />
         </Row>

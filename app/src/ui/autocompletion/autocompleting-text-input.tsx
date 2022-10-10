@@ -15,7 +15,7 @@ interface IRange {
 }
 
 import getCaretCoordinates from 'textarea-caret'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -35,6 +35,9 @@ interface IAutocompletingTextInputProps<ElementType> {
 
   /** Indicates if input field should be required */
   readonly isRequired?: boolean
+
+  /** Indicates if input field applies spellcheck */
+  readonly spellcheck?: boolean
 
   /**
    * Called when the user changes the value in the input field.
@@ -281,6 +284,7 @@ export abstract class AutocompletingTextInput<
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
       'aria-required': this.props.isRequired ? true : false,
+      spellCheck: this.props.spellcheck,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
@@ -319,7 +323,6 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className}>
         {this.renderAutocompletions()}
-
         {this.renderTextInput()}
       </div>
     )
@@ -340,15 +343,15 @@ export abstract class AutocompletingTextInput<
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
     const range = autocompletionState.range
-    const autoCompleteText = autocompletionState.provider.getCompletionText(
-      item
-    )
+    const autoCompleteText =
+      autocompletionState.provider.getCompletionText(item)
 
     const textWithAutoCompleteText =
       originalText.substr(0, range.start - 1) + autoCompleteText + ' '
 
     const newText =
-      textWithAutoCompleteText + originalText.substr(range.start + range.length)
+      textWithAutoCompleteText +
+      originalText.substring(range.start + range.length)
 
     element.value = newText
 

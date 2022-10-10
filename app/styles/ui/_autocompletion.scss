@@ -172,3 +172,14 @@
     }
   }
 }
+
+.author-input-component {
+  ul.CodeMirror-hints {
+    margin-top: var(--spacing-double);
+    padding: 0;
+    li {
+      margin-bottom: auto;
+      padding-left: var(--spacing);
+    }
+  }
+}

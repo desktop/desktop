@@ -122,30 +122,14 @@ function getConflictState(
   status: IStatusResult,
   manualResolutions: Map<string, ManualConflictResolution>
 ): ConflictState | null {
-  if (status.mergeHeadFound) {
-    const { currentBranch, currentTip } = status
-    if (currentBranch == null || currentTip == null) {
-      return null
-    }
-    return {
-      kind: 'merge',
-      currentBranch,
-      currentTip,
-      manualResolutions,
-    }
-  }
-
   if (status.rebaseInternalState !== null) {
     const { currentTip } = status
     if (currentTip == null) {
       return null
     }
 
-    const {
-      targetBranch,
-      originalBranchTip,
-      baseBranchTip,
-    } = status.rebaseInternalState
+    const { targetBranch, originalBranchTip, baseBranchTip } =
+      status.rebaseInternalState
 
     return {
       kind: 'rebase',
@@ -157,7 +141,38 @@ function getConflictState(
     }
   }
 
-  return null
+  if (status.isCherryPickingHeadFound) {
+    const { currentBranch: targetBranchName } = status
+    if (targetBranchName == null) {
+      return null
+    }
+    return {
+      kind: 'cherryPick',
+      manualResolutions,
+      targetBranchName,
+    }
+  }
+
+  const { currentBranch, currentTip, mergeHeadFound, squashMsgFound } = status
+  if (
+    currentBranch == null ||
+    currentTip == null ||
+    (!mergeHeadFound && !squashMsgFound) ||
+    // If there are no conflicts, we want to ignore the squash msg found.
+    // However, we do want to prompt the conflicts showing all resolved
+    // if a regular merge conflicts are all resolves so user can
+    // commit the merge commit.
+    (!mergeHeadFound && !status.doConflictedFilesExist)
+  ) {
+    return null
+  }
+
+  return {
+    kind: 'merge',
+    currentBranch,
+    currentTip,
+    manualResolutions,
+  }
 }
 
 function performEffectsForMergeStateChange(

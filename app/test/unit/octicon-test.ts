@@ -1,4 +1,5 @@
-import { OcticonSymbol, iconForRepository } from '../../src/ui/octicons'
+import { iconForRepository } from '../../src/ui/octicons'
+import * as OcticonSymbol from '../../src/ui/octicons/octicons.generated'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { Repository } from '../../src/models/repository'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'

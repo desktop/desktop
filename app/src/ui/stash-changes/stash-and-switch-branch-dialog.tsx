@@ -6,7 +6,8 @@ import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import { Row } from '../lib/row'
 import { Branch } from '../../models/branch'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { PopupType } from '../../models/popup'
 import { startTimer } from '../lib/timing'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -126,12 +127,8 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
-    const {
-      repository,
-      branchToCheckout,
-      dispatcher,
-      hasAssociatedStash,
-    } = this.props
+    const { repository, branchToCheckout, dispatcher, hasAssociatedStash } =
+      this.props
     const { selectedStashAction } = this.state
 
     if (

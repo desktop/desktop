@@ -6,4 +6,6 @@ export type CloneOptions = {
   readonly account: IGitAccount | null
   /** The branch to checkout after the clone has completed. */
   readonly branch?: string
+  /** The default branch name in case we're cloning an empty repository. */
+  readonly defaultBranch?: string
 }

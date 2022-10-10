@@ -21,11 +21,6 @@ function enableDevelopmentFeatures(): boolean {
   return false
 }
 
-/** Should we show progress bars on the Windows app taskbar icon? */
-export function enableProgressBarOnIcon(): boolean {
-  return enableBetaFeatures()
-}
-
 /** Should the app enable beta features? */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore: this will be used again in the future
@@ -35,7 +30,7 @@ function enableBetaFeatures(): boolean {
 
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export function enableReadmeOverwriteWarning(): boolean {
@@ -48,82 +43,6 @@ export function enableWSLDetection(): boolean {
 }
 
 /**
- * Should we show the create fork dialog flow?
- */
-export function enableCreateForkFlow(): boolean {
-  return true
-}
-
-/**
- * Whether or not to enable support for automatically resolving the
- * system-configured proxy url and passing that to Git.
- */
-export function enableAutomaticGitProxyConfiguration(): boolean {
-  return true
-}
-
-/**
- * Should we show the "Create Issue on GitHub" item under
- * "Repository" in the app menu?
- */
-export function enableCreateGitHubIssueFromMenu(): boolean {
-  return true
-}
-
-/**
- * Should we update remote url if it has changed?
- */
-export function enableUpdateRemoteUrl(): boolean {
-  return true
-}
-
-/**
- * Should we show the fork-specific, "branch from the upstream
- * default branch" version of the create branch dialog?
- */
-export function enableForkyCreateBranchUI(): boolean {
-  return true
-}
-
-/**
- * Should we show the git tag information in the app UI?
- */
-export function enableGitTagsDisplay(): boolean {
-  return true
-}
-
-/**
- * Should we allow users to create git tags from the app?
- */
-export function enableGitTagsCreation(): boolean {
-  return true
-}
-
-/**
- * Should we show the dialogs to allow users customize which is the
- * main repository when opening a fork?
- */
-export function enableForkSettings(): boolean {
-  return true
-}
-
-/**
- * Should we show the discard lines/hunks context menu item?
- */
-export function enableDiscardLines(): boolean {
-  return true
-}
-
-/**
- * Should we show the checkbox to enable side by side diffs?
- *
- * Note: side by side diffs will use the new diff viewer.
- */
-export function enableSideBySideDiffs(): boolean {
-  return true
-}
-
-/**
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
@@ -131,15 +50,65 @@ export function enableExperimentalDiffViewer(): boolean {
 }
 
 /**
- * Should we allow to change the default branch when creating new repositories?
- */
-export function enableDefaultBranchSetting(): boolean {
-  return true
-}
-
-/**
  * Should we allow reporting unhandled rejections as if they were crashes?
  */
 export function enableUnhandledRejectionReporting(): boolean {
+  return enableBetaFeatures()
+}
+
+/**
+ * Should we allow x64 apps running under ARM translation to auto-update to
+ * ARM64 builds?
+ */
+export function enableUpdateFromEmulatedX64ToARM64(): boolean {
+  if (__DARWIN__) {
+    return true
+  }
+
+  return enableBetaFeatures()
+}
+
+/** Should we allow resetting to a previous commit? */
+export function enableResetToCommit(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+/** Should we allow high contrast theme option */
+export function enableHighContrastTheme(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we allow customizing a theme */
+export function enableCustomizeTheme(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should ci check runs show logs? */
+export function enableCICheckRunsLogs(): boolean {
+  return false
+}
+
+/** Should we show previous tags as suggestions? */
+export function enablePreviousTagSuggestions(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we show a pull-requests quick view? */
+export function enablePullRequestQuickView(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+/** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
+export function enableMultiCommitDiffs(): boolean {
+  return true
+}
+
+/** Should we enable the new interstitial for submodule diffs? */
+export function enableSubmoduleDiff(): boolean {
+  return true
+}
+
+/** Should we enable starting pull requests? */
+export function enableStartingPullRequests(): boolean {
   return enableBetaFeatures()
 }

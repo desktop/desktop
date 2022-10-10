@@ -41,6 +41,12 @@ export interface IDailyMeasures {
   /** The number of commits created with one or more co-authors. */
   readonly coAuthoredCommits: number
 
+  /** The number of commits undone by the user with a dirty working directory. */
+  readonly commitsUndoneWithChanges: number
+
+  /** The number of commits undone by the user with a clean working directory. */
+  readonly commitsUndoneWithoutChanges: number
+
   /** The number of times a branch is compared to an arbitrary branch */
   readonly branchComparisons: number
 
@@ -355,11 +361,191 @@ export interface IDailyMeasures {
 
   /** Number of times the user has encountered an unhandled rejection */
   readonly unhandledRejectionCount: number
+
+  /** The number of times a successful cherry pick occurs */
+  readonly cherryPickSuccessfulCount: number
+
+  /** The number of times a cherry pick is initiated through drag and drop */
+  readonly cherryPickViaDragAndDropCount: number
+
+  /** The number of times a cherry pick is initiated through the context menu */
+  readonly cherryPickViaContextMenuCount: number
+
+  /** The number of times a drag operation was started and canceled */
+  readonly dragStartedAndCanceledCount: number
+
+  /** The number of times conflicts encountered during a cherry pick  */
+  readonly cherryPickConflictsEncounteredCount: number
+
+  /** The number of times cherry pick ended successfully after conflicts  */
+  readonly cherryPickSuccessfulWithConflictsCount: number
+
+  /** The number of times cherry pick of multiple commits initiated  */
+  readonly cherryPickMultipleCommitsCount: number
+
+  /** The number of times a cherry pick was undone  */
+  readonly cherryPickUndoneCount: number
+
+  /** The number of times a branch was created during a cherry-pick */
+  readonly cherryPickBranchCreatedCount: number
+
+  /** The number of times the user started amending a commit */
+  readonly amendCommitStartedCount: number
+
+  /** The number of times the user amended a commit with file changes */
+  readonly amendCommitSuccessfulWithFileChangesCount: number
+
+  /** The number of times the user amended a commit without file changes */
+  readonly amendCommitSuccessfulWithoutFileChangesCount: number
+
+  /** The number of times a successful reorder occurs */
+  readonly reorderSuccessfulCount: number
+
+  /** The number of times a reorder is initiated */
+  readonly reorderStartedCount: number
+
+  /** The number of times conflicts encountered during a reorder  */
+  readonly reorderConflictsEncounteredCount: number
+
+  /** The number of times reorder ended successfully after conflicts  */
+  readonly reorderSuccessfulWithConflictsCount: number
+
+  /** The number of times reorder of multiple commits initiated  */
+  readonly reorderMultipleCommitsCount: number
+
+  /** The number of times a reorder was undone  */
+  readonly reorderUndoneCount: number
+
+  /** The number of times conflicts encountered during a squash */
+  readonly squashConflictsEncounteredCount: number
+
+  /** The number of times squash of multiple commits invoked  */
+  readonly squashMultipleCommitsInvokedCount: number
+
+  /** The number of times a successful squash occurs */
+  readonly squashSuccessfulCount: number
+
+  /** The number of times squash ended successfully after conflicts  */
+  readonly squashSuccessfulWithConflictsCount: number
+
+  /** The number of times a squash is initiated through the context menu */
+  readonly squashViaContextMenuInvokedCount: number
+
+  /** The number of times a squash is initiated through drag and drop */
+  readonly squashViaDragAndDropInvokedCount: number
+
+  /** The number of times a squash was undone  */
+  readonly squashUndoneCount: number
+
+  /** The number of times the `Branch -> Squash and Merge Into Current Branch` menu item is used */
+  readonly squashMergeIntoCurrentBranchMenuCount: number
+
+  /** The number of times squash merge ended successfully after conflicts  */
+  readonly squashMergeSuccessfulWithConflictsCount: number
+
+  /** The number of times a successful squash merge occurs */
+  readonly squashMergeSuccessfulCount: number
+
+  /** The number of times a squash merge is initiated */
+  readonly squashMergeInvokedCount: number
+
+  /** The number of times the user reset to a previous commit. */
+  readonly resetToCommitCount: number
+
+  /** The number of times the user opens the check run popover. */
+  readonly opensCheckRunsPopover: number
+
+  /** The number of times the user clicks link to view a check online */
+  readonly viewsCheckOnline: number
+
+  /** The number of times the user clicks link to view a check job step online */
+  readonly viewsCheckJobStepOnline: number
+
+  /** The number of times the user reruns checks */
+  readonly rerunsChecks: number
+
+  /** The number of "checks failed" notifications the user received */
+  readonly checksFailedNotificationCount: number
+
+  /** The number of "checks failed" notifications the user clicked */
+  readonly checksFailedNotificationClicked: number
+
+  /** The number of times the "checks failed" dialog was opened */
+  readonly checksFailedDialogOpenCount: number
+
+  /**
+   * The number of times the user decided to switch to the affected pull request
+   * from the "checks failed" dialog.
+   */
+  readonly checksFailedDialogSwitchToPullRequestCount: number
+
+  /**
+   * The number of times the user decided to re-run the checks from the "checks
+   * failed" dialog.
+   */
+  readonly checksFailedDialogRerunChecksCount: number
+
+  /** The number of "approved PR" notifications the user received */
+  readonly pullRequestReviewApprovedNotificationCount: number
+
+  /** The number of "approved PR" notifications the user clicked */
+  readonly pullRequestReviewApprovedNotificationClicked: number
+
+  /**
+   * The number of times the user decided to switch to the affected pull request
+   * from the "approved PR" dialog.
+   */
+  readonly pullRequestReviewApprovedDialogSwitchToPullRequestCount: number
+
+  /** The number of "commented PR" notifications the user received */
+  readonly pullRequestReviewCommentedNotificationCount: number
+
+  /** The number of "commented PR" notifications the user clicked */
+  readonly pullRequestReviewCommentedNotificationClicked: number
+
+  /**
+   * The number of times the user decided to switch to the affected pull request
+   * from the "commented PR" dialog.
+   */
+  readonly pullRequestReviewCommentedDialogSwitchToPullRequestCount: number
+
+  /** The number of "changes requested" notifications the user received */
+  readonly pullRequestReviewChangesRequestedNotificationCount: number
+
+  /** The number of "changes requested" notifications the user clicked */
+  readonly pullRequestReviewChangesRequestedNotificationClicked: number
+
+  /**
+   * The number of times the user decided to switch to the affected pull request
+   * from the "changes requested" dialog.
+   */
+  readonly pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: number
+
+  /** The number of times the user did a multi commit diff where there were unreachable commits */
+  readonly multiCommitDiffWithUnreachableCommitWarningCount: number
+
+  /** The number of times the user does a multi commit diff from the history view */
+  readonly multiCommitDiffFromHistoryCount: number
+
+  /** The number of times the user does a multi commit diff from the compare */
+  readonly multiCommitDiffFromCompareCount: number
+
+  /** The number of times the user opens the unreachable commits dialog */
+  readonly multiCommitDiffUnreachableCommitsDialogOpenedCount: number
+
+  /** The number of times the user opens a submodule diff from the changes list */
+  readonly submoduleDiffViewedFromChangesListCount: number
+
+  /** The number of times the user opens a submodule diff from the History view */
+  readonly submoduleDiffViewedFromHistoryCount: number
+
+  /** The number of times the user opens a submodule repository from its diff */
+  readonly openSubmoduleFromDiffCount: number
 }
 
 export class StatsDatabase extends Dexie {
-  public launches!: Dexie.Table<ILaunchStats, number>
-  public dailyMeasures!: Dexie.Table<IDailyMeasures, number>
+  public declare launches: Dexie.Table<ILaunchStats, number>
+  public declare dailyMeasures: Dexie.Table<IDailyMeasures, number>
 
   public constructor(name: string) {
     super(name)

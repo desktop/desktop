@@ -63,6 +63,19 @@ export async function setupEmptyRepository(): Promise<Repository> {
 }
 
 /**
+ * Initializes a new, empty, git repository at in a temporary location with
+ * default branch of main.
+ *
+ * @returns the new local repository
+ */
+export async function setupEmptyRepositoryDefaultMain(): Promise<Repository> {
+  const repoPath = mkdirSync('desktop-empty-repo-')
+  await GitProcess.exec(['init', '-b', 'main'], repoPath)
+
+  return new Repository(repoPath, -1, null, false)
+}
+
+/**
  * Initialize a new, empty folder that is incorrectly associated with a Git
  * repository. This should only be used to test error handling of the Git
  * interactions.
@@ -123,9 +136,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
  *
  * The conflicted file will be 'foo'. There will also be uncommitted changes unrelated to the merge in 'perlin'.
  */
-export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise<
-  Repository
-> {
+export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise<Repository> {
   const repo = await setupEmptyRepository()
 
   const firstCommit = {
@@ -171,9 +182,7 @@ export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise
  *
  * The conflicted files will be 'foo', 'bar', and 'baz'.
  */
-export async function setupConflictedRepoWithMultipleFiles(): Promise<
-  Repository
-> {
+export async function setupConflictedRepoWithMultipleFiles(): Promise<Repository> {
   const repo = await setupEmptyRepository()
 
   const firstCommit = {

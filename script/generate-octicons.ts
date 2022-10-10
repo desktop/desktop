@@ -8,6 +8,7 @@
 import * as fs from 'fs'
 import * as Path from 'path'
 import * as cp from 'child_process'
+import { check } from 'reserved-words'
 
 import xml2js from 'xml2js'
 import toCamelCase from 'to-camel-case'
@@ -43,6 +44,12 @@ function readXml(xml: string): Promise<IXML2JSNode> {
   })
 }
 
+function getJsFriendlyName(name: string) {
+  const sanitizedName = toCamelCase(name)
+
+  return check(sanitizedName, 'es6', true) ? sanitizedName + '_' : sanitizedName
+}
+
 async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
   const octicons = require('@primer/octicons')
 
@@ -73,8 +80,8 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 
     const result = await readXml(octiconData.path)
     const pathData = result.path.$.d
+    const jsFriendlyName = getJsFriendlyName(octicon.symbol)
     const fillRule = result.path.$['fill-rule']
-    const jsFriendlyName = toCamelCase(octicon.symbol)
 
     results.push({
       jsFriendlyName,
@@ -105,22 +112,19 @@ generateIconData().then(result => {
   out.write(' * Manually changing this file will only lead to sadness.\n')
   out.write(' */\n\n')
 
-  out.write('export class OcticonSymbol {\n')
-
   out.write(
-    "\n  public constructor(public w: number, public h: number, public d: string, public fr?: React.SVGAttributes<SVGElement>['fillRule']) { }\n\n"
+    "export type OcticonSymbolType = {readonly w: number, readonly h: number, readonly d: string, readonly fr?: React.SVGAttributes<SVGElement>['fillRule']}\n\n"
   )
 
   result.forEach(function (symbol) {
     const { jsFriendlyName, pathData, width, height, fillRule } = symbol
     out.write(
-      `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${width}, ${height}, '${pathData}', ${
+      `export const ${jsFriendlyName}: OcticonSymbolType = {w: ${width}, h: ${height}, d: '${pathData}', fr: ${
         fillRule ? `'${fillRule}'` : 'undefined'
-      } ) }\n`
+      }}\n\n`
     )
   })
 
-  out.write('}\n')
   out.end()
 
   console.log('Ensuring generated file is formatted correctly...')

@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import {
   WelcomeLeftTopImageUri,
   WelcomeLeftBottomImageUri,
@@ -141,10 +142,12 @@ export class NoRepositoriesView extends React.Component<
         <img
           className="no-repositories-graphic-top"
           src={WelcomeLeftTopImageUri}
+          alt=""
         />
         <img
           className="no-repositories-graphic-bottom"
           src={WelcomeLeftBottomImageUri}
+          alt=""
         />
       </UiView>
     )
@@ -340,7 +343,7 @@ export class NoRepositoriesView extends React.Component<
   private onShowClone = () => this.props.onClone()
 
   private renderButtonGroupButton(
-    symbol: OcticonSymbol,
+    symbol: OcticonSymbolType,
     title: string,
     onClick: () => void,
     type?: 'submit'

@@ -134,7 +134,7 @@
       - [ ] User can sign out of either account
       - [ ] User can be signed-in to both Enterprise and GitHub.com at same time  
     - [ ] Integrations
-      - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
+      - [ ] External Editor options shown in dropdown; else show link to install the default editor
       - [ ] Shell options shown in dropdown
     - [ ] Git
       - [ ] Username and email are displayed if `.gitconfig` configured for Welcome flow
@@ -207,7 +207,7 @@
   - [ ] Show in Finder/Explorer (Mac: `⇧⌘F`; Windows: `Ctrl+Shift+F`)
     - [ ] Local repository is opened
   - [ ] Open in [insert editor] (Mac: `⇧⌘A`; Windows: `Ctrl+Shift+A`); see External Editor option in preferences
-    - [ ] Secondary modal appears if no Editors set; option to Download Atom 
+    - [ ] Secondary modal appears if no Editors set; option to download the default editor
   - [ ] Repository settings...
     - [ ] Remote path can be edited for existing repository; origin already set. Cannot be empty string, else error message.
       - [ ] `Saved` button saves last entry

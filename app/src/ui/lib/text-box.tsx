@@ -1,8 +1,7 @@
 import * as React from 'react'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
-import { LinkButton } from './link-button'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 export interface ITextBoxProps {
   /** The label for the input field. */
@@ -41,36 +40,11 @@ export interface ITextBoxProps {
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
+  /** Called when the Enter key is pressed in field of type search */
+  readonly onEnterPressed?: (text: string) => void
+
   /** The type of the input. Defaults to `text`. */
   readonly type?: 'text' | 'search' | 'password' | 'email'
-
-  /**
-   * An optional text for a link label element. A link label is, for the purposes
-   * of this control an anchor element that's rendered alongside (ie on the same)
-   * row as the the label element.
-   *
-   * Note that the link label will only be rendered if the textbox has a
-   * label text (specified through the label prop). A link label is used for
-   * presenting the user with a contextual link related to a specific text
-   * input such as a password recovery link for a password text box.
-   */
-  readonly labelLinkText?: string
-
-  /**
-   * An optional URL to be opened when the label link (if present, see the
-   * labelLinkText prop for more details) is clicked. The link will be opened using the
-   * standard semantics of a LinkButton, i.e. in the configured system browser.
-   *
-   * If not specified consumers need to subscribe to the onLabelLinkClick event.
-   */
-  readonly labelLinkUri?: string
-
-  /**
-   * An optional event handler which is invoked when the label link (if present,
-   * see the labelLinkText prop for more details) is clicked. See the onClick
-   * event on the LinkButton component for more details.
-   */
-  readonly onLabelLinkClick?: () => void
 
   /** The tab index of the input element. */
   readonly tabIndex?: number
@@ -91,6 +65,9 @@ export interface ITextBoxProps {
    * Callback used when the user has cleared the search text.
    */
   readonly onSearchCleared?: () => void
+
+  /** Indicates if input field applies spellcheck */
+  readonly spellcheck?: boolean
 }
 
 interface ITextBoxState {
@@ -138,6 +115,15 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     if (this.inputElement !== null) {
       this.inputElement.select()
     }
+  }
+
+  /** Determines if the contained text input element is currently focused. */
+  public get isFocused() {
+    return (
+      this.inputElement !== null &&
+      document.activeElement !== null &&
+      this.inputElement === document.activeElement
+    )
   }
 
   /**
@@ -198,35 +184,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
-  private renderLabelLink() {
-    if (!this.props.labelLinkText) {
-      return null
-    }
-
-    return (
-      <LinkButton
-        uri={this.props.labelLinkUri}
-        onClick={this.props.onLabelLinkClick}
-        className="link-label"
-      >
-        {this.props.labelLinkText}
-      </LinkButton>
-    )
-  }
-
-  private renderLabel() {
-    if (!this.props.label) {
-      return null
-    }
-
-    return (
-      <div className="label-container">
-        <label htmlFor={this.state.inputId}>{this.props.label}</label>
-        {this.renderLabelLink()}
-      </div>
-    )
-  }
-
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
     showContextualMenu([{ role: 'editMenu' }])
@@ -259,6 +216,14 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           this.inputElement.blur()
         }
       }
+    } else if (
+      this.props.type === 'search' &&
+      event.key === 'Enter' &&
+      value !== undefined &&
+      value !== '' &&
+      this.props.onEnterPressed !== undefined
+    ) {
+      this.props.onEnterPressed(value)
     }
 
     if (this.props.onKeyDown !== undefined) {
@@ -267,18 +232,19 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   public render() {
-    const className = classNames('text-box-component', this.props.className)
-    const inputId = this.props.label ? this.state.inputId : undefined
+    const { label, className } = this.props
+    const inputId = label ? this.state.inputId : undefined
 
     return (
-      <div className={className}>
-        {this.renderLabel()}
+      <div className={classNames('text-box-component', className)}>
+        {label && <label htmlFor={inputId}>{label}</label>}
 
         <input
           id={inputId}
           ref={this.onInputRef}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
@@ -288,6 +254,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
           onContextMenu={this.onContextMenu}
+          spellCheck={this.props.spellcheck === true}
         />
       </div>
     )

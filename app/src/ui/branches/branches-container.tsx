@@ -16,7 +16,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
@@ -25,6 +26,10 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DragType, DropTargetType } from '../../models/drag-drop'
+import { enablePullRequestQuickView } from '../../lib/feature-flag'
+import { PullRequestQuickView } from '../pull-request-quick-view'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -35,12 +40,17 @@ interface IBranchesContainerProps {
   readonly currentBranch: Branch | null
   readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
+  readonly onRenameBranch: (branchName: string) => void
+  readonly onDeleteBranch: (branchName: string) => void
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 interface IBranchesContainerState {
@@ -53,6 +63,10 @@ interface IBranchesContainerState {
   readonly selectedPullRequest: PullRequest | null
   readonly selectedBranch: Branch | null
   readonly branchFilterText: string
+  readonly pullRequestBeingViewed: {
+    pr: PullRequest
+    prListItemTop: number
+  } | null
 }
 
 /** The unified Branches and Pull Requests component. */
@@ -74,6 +88,8 @@ export class BranchesContainer extends React.Component<
     return null
   }
 
+  private pullRequestQuickViewTimerId: number | null = null
+
   public constructor(props: IBranchesContainerProps) {
     super(props)
 
@@ -82,7 +98,12 @@ export class BranchesContainer extends React.Component<
       selectedPullRequest: props.currentPullRequest,
       currentPullRequest: props.currentPullRequest,
       branchFilterText: '',
+      pullRequestBeingViewed: null,
     }
+  }
+
+  public componentWillUnmount = () => {
+    this.clearPullRequestQuickViewTimer()
   }
 
   public render() {
@@ -91,8 +112,42 @@ export class BranchesContainer extends React.Component<
         {this.renderTabBar()}
         {this.renderSelectedTab()}
         {this.renderMergeButtonRow()}
+        {this.renderPullRequestQuickView()}
       </div>
     )
+  }
+
+  private renderPullRequestQuickView = (): JSX.Element | null => {
+    if (
+      !enablePullRequestQuickView() ||
+      this.state.pullRequestBeingViewed === null
+    ) {
+      return null
+    }
+
+    const { pr, prListItemTop } = this.state.pullRequestBeingViewed
+
+    return (
+      <PullRequestQuickView
+        dispatcher={this.props.dispatcher}
+        emoji={this.props.emoji}
+        pullRequest={pr}
+        pullRequestItemTop={prListItemTop}
+        onMouseEnter={this.onMouseEnterPullRequestQuickView}
+        onMouseLeave={this.onMouseLeavePullRequestQuickView}
+      />
+    )
+  }
+
+  private onMouseEnterPullRequestQuickView = () => {
+    this.clearPullRequestQuickViewTimer()
+  }
+
+  private onMouseLeavePullRequestQuickView = () => {
+    this.setState({
+      pullRequestBeingViewed: null,
+    })
+    this.clearPullRequestQuickViewTimer()
   }
 
   private renderMergeButtonRow() {
@@ -135,6 +190,7 @@ export class BranchesContainer extends React.Component<
       <TabBar
         onTabClicked={this.onTabClicked}
         selectedIndex={this.props.selectedTab}
+        allowDragOverSwitching={true}
       >
         <span>Branches</span>
         <span className="pull-request-tab">
@@ -146,7 +202,15 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
-    return renderDefaultBranch(item, matches, this.props.currentBranch)
+    return renderDefaultBranch(
+      item,
+      matches,
+      this.props.currentBranch,
+      this.props.onRenameBranch,
+      this.props.onDeleteBranch,
+      this.onDropOntoBranch,
+      this.onDropOntoCurrentBranch
+    )
   }
 
   private renderSelectedTab() {
@@ -171,6 +235,10 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
+              DragType.Commit
+            )}
+            renderPreList={this.renderPreList}
           />
         )
 
@@ -180,6 +248,61 @@ export class BranchesContainer extends React.Component<
       default:
         return assertNever(tab, `Unknown Branches tab: ${tab}`)
     }
+  }
+
+  private renderPreList = () => {
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      return null
+    }
+
+    const label = __DARWIN__ ? 'New Branch' : 'New branch'
+
+    return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+      <div
+        className="branches-list-item new-branch-drop"
+        onMouseEnter={this.onMouseEnterNewBranchDrop}
+        onMouseLeave={this.onMouseLeaveNewBranchDrop}
+        onMouseUp={this.onMouseUpNewBranchDrop}
+      >
+        <Octicon className="icon" symbol={OcticonSymbol.plus} />
+        <div className="name">{label}</div>
+      </div>
+    )
+  }
+
+  private onMouseUpNewBranchDrop = async () => {
+    const { dragData } = dragAndDropManager
+    if (dragData === null || dragData.type !== DragType.Commit) {
+      return
+    }
+
+    const { dispatcher, repository, currentBranch } = this.props
+
+    await dispatcher.setCherryPickCreateBranchFlowStep(
+      repository,
+      '',
+      dragData.commits,
+      currentBranch
+    )
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.MultiCommitOperation,
+      repository,
+    })
+  }
+
+  private onMouseEnterNewBranchDrop = () => {
+    // This is just used for displaying on windows drag ghost.
+    // Thus, it doesn't have to be an actual branch name.
+    dragAndDropManager.emitEnterDropTarget({
+      type: DropTargetType.Branch,
+      branchName: 'a new branch',
+    })
+  }
+
+  private onMouseLeaveNewBranchDrop = () => {
+    dragAndDropManager.emitLeaveDropTarget()
   }
 
   private renderPullRequests() {
@@ -205,7 +328,29 @@ export class BranchesContainer extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        onMouseEnterPullRequest={this.onMouseEnterPullRequestListItem}
+        onMouseLeavePullRequest={this.onMouseLeavePullRequestListItem}
       />
+    )
+  }
+
+  private onMouseEnterPullRequestListItem = (
+    pr: PullRequest,
+    prListItemTop: number
+  ) => {
+    this.clearPullRequestQuickViewTimer()
+    this.setState({ pullRequestBeingViewed: null })
+    this.pullRequestQuickViewTimerId = window.setTimeout(
+      () => this.setState({ pullRequestBeingViewed: { pr, prListItemTop } }),
+      250
+    )
+  }
+
+  private onMouseLeavePullRequestListItem = async () => {
+    this.clearPullRequestQuickViewTimer()
+    this.pullRequestQuickViewTimerId = window.setTimeout(
+      () => this.setState({ pullRequestBeingViewed: null }),
+      500
     )
   }
 
@@ -219,10 +364,7 @@ export class BranchesContainer extends React.Component<
 
   private onMergeClick = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.showPopup({
-      type: PopupType.MergeBranch,
-      repository: this.props.repository,
-    })
+    this.props.dispatcher.startMergeBranchOperation(this.props.repository)
   }
 
   private onBranchItemClick = (branch: Branch) => {
@@ -260,5 +402,48 @@ export class BranchesContainer extends React.Component<
     selectedPullRequest: PullRequest | null
   ) => {
     this.setState({ selectedPullRequest })
+  }
+
+  /**
+   * Method is to handle when something is dragged and dropped onto a branch
+   * in the branch dropdown.
+   *
+   * Currently this is being implemented with cherry picking. But, this could be
+   * expanded if we ever dropped something else on a branch; in which case,
+   * we would likely have to check the app state to see what action is being
+   * performed. As this branch container is not being used anywhere except
+   * for the branch dropdown, we are not going to pass the repository state down
+   * during this implementation.
+   */
+  private onDropOntoBranch = (branchName: string) => {
+    const branch = this.props.allBranches.find(b => b.name === branchName)
+    if (branch === undefined) {
+      log.warn(
+        '[branches-container] - Branch name of branch dropped on does not exist.'
+      )
+      return
+    }
+
+    if (dragAndDropManager.isDragOfType(DragType.Commit)) {
+      this.props.dispatcher.startCherryPickWithBranch(
+        this.props.repository,
+        branch
+      )
+    }
+  }
+
+  private onDropOntoCurrentBranch = () => {
+    if (dragAndDropManager.isDragOfType(DragType.Commit)) {
+      this.props.dispatcher.recordDragStartedAndCanceled()
+    }
+  }
+
+  private clearPullRequestQuickViewTimer = () => {
+    if (this.pullRequestQuickViewTimerId === null) {
+      return
+    }
+
+    window.clearTimeout(this.pullRequestQuickViewTimerId)
+    this.pullRequestQuickViewTimerId = null
   }
 }

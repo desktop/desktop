@@ -4,6 +4,7 @@ import * as Path from 'path'
 import { spawnSync, SpawnSyncOptions } from 'child_process'
 
 import glob from 'glob'
+import { forceUnwrap } from '../app/src/lib/fatal-error'
 
 const root = Path.dirname(__dirname)
 
@@ -22,9 +23,7 @@ function findYarnVersion(callback: (path: string) => void) {
     files.sort()
 
     // use the latest version here if multiple are found
-    const latestVersion = files[files.length - 1]
-
-    callback(latestVersion)
+    callback(forceUnwrap('Missing vendored yarn', files.at(-1)))
   })
 }
 
@@ -44,12 +43,6 @@ findYarnVersion(path => {
     ['submodule', 'update', '--recursive', '--init'],
     options
   )
-
-  if (result.status !== 0) {
-    process.exit(result.status || 1)
-  }
-
-  result = spawnSync('node', [path, 'compile:tslint'], options)
 
   if (result.status !== 0) {
     process.exit(result.status || 1)

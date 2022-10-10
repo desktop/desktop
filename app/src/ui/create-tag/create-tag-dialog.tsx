@@ -8,6 +8,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
 import { Ref } from '../lib/ref'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
+import { enablePreviousTagSuggestions } from '../../lib/feature-flag'
 
 interface ICreateTagProps {
   readonly repository: Repository
@@ -28,6 +29,7 @@ interface ICreateTagState {
    * shown in its place.
    */
   readonly isCreatingTag: boolean
+  readonly previousTags: Array<string> | null
 }
 
 const MaxTagNameLength = 245
@@ -43,6 +45,7 @@ export class CreateTag extends React.Component<
     this.state = {
       tagName: props.initialName || '',
       isCreatingTag: false,
+      previousTags: this.getExistingTagsFiltered(),
     }
   }
 
@@ -67,6 +70,8 @@ export class CreateTag extends React.Component<
             initialValue={this.props.initialName}
             onValueChange={this.updateTagName}
           />
+
+          {this.renderPreviousTags()}
         </DialogContent>
 
         <DialogFooter>
@@ -76,6 +81,35 @@ export class CreateTag extends React.Component<
           />
         </DialogFooter>
       </Dialog>
+    )
+  }
+
+  private renderPreviousTags() {
+    if (!enablePreviousTagSuggestions()) {
+      return null
+    }
+
+    const { localTags } = this.props
+    const { previousTags, tagName } = this.state
+
+    if (previousTags === null || localTags === null || localTags.size === 0) {
+      return null
+    }
+
+    const title = __DARWIN__ ? 'Previous Tags' : 'Previous tags'
+    const lastThreeTags = previousTags.slice(-3)
+
+    return (
+      <>
+        <p>{title}</p>
+        {lastThreeTags.length === 0 ? (
+          <p>{`No matches found for '${tagName}'`}</p>
+        ) : (
+          lastThreeTags.map((item: string, index: number) => (
+            <Ref key={index}>{item}</Ref>
+          ))
+        )}
+      </>
     )
   }
 
@@ -99,9 +133,18 @@ export class CreateTag extends React.Component<
     return null
   }
 
+  private getExistingTagsFiltered(filter: string = ''): Array<string> | null {
+    if (this.props.localTags === null) {
+      return null
+    }
+    const previousTags = Array.from(this.props.localTags.keys())
+    return previousTags.filter(item => item.includes(filter))
+  }
+
   private updateTagName = (tagName: string) => {
     this.setState({
       tagName,
+      previousTags: this.getExistingTagsFiltered(tagName),
     })
   }
 

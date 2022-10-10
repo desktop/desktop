@@ -10,7 +10,6 @@
   - [Enable Mandatory ASLR triggers cygheap errors](#enable-mandatory-aslr-triggers-cygheap-errors)
   - [I get a black screen when launching Desktop](#i-get-a-black-screen-when-launching-desktop)
   - [Failed to open CA file after an update](#failed-to-open-ca-file-after-an-update)
-  - [`ask-pass-trampoline.bat` errors](#ask-pass-trampolinebat-errors)
   - [Authentication errors due to modified registry entries](#authentication-errors-due-to-modified-registry-entries)
 
 # Known Issues
@@ -61,6 +60,21 @@ This issue seems to be caused by missing permissions for the `~/Library/Caches/c
  - If you do not see the "You can read and write" message, add yourself with
    the "Read & Write" permissions
  - Start Desktop again and check for updates
+
+### GitHub Desktop prompts admin password to install helper tool very frequently
+
+Related issue: [#13956](https://github.com/desktop/desktop/issues/13956)
+
+Users who use macOS' Migration Assistant to keep their stuff intact when moving to a new computer might run into this problem because the Migration Assistant changes the owner of the `/Applications/GitHub Desktop.app` folder to `root`.
+
+Since GitHub Desktop is able to auto-update by changing the contents of the `/Applications/GitHub Desktop.app` folder, it needs to be able to write to it. If the owner of the folder is not the current user, the user will be prompted for an admin password every time GitHub Desktop tries to update itself.
+
+**Workaround:** you need to restore the ownership and permissions of the application folder to the current user. If your app is located in `/Applications/GitHub Desktop.app`, you can probably do this by just running the following commands in Terminal:
+
+```sh
+sudo chown -R ${USER}:staff /Applications/GitHub\ Desktop.app
+chmod -R g+w /Applications/GitHub\ Desktop.app
+```
 
 ## Windows
 
@@ -141,7 +155,7 @@ are unable to find another cygwin DLL.
 
 Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by Git for Windows to emulate process forking.
 
-**Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or explicitly allow all executables under `<Git>\usr\bin` which depend on MSYS2.
+**Not supported:** this is an upstream limitation of MSYS2, and it is recommended that you either disable Mandatory ASLR or explicitly allow all executables under `<Git>\usr\bin` which depend on MSYS2.
 
 ### I get a black screen when launching Desktop
 
@@ -193,35 +207,6 @@ file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
 sslCAInfo = [some value here]
 ```
 
-### `ask-pass-trampoline.bat` errors
-
-Related issues: - [#2623](https://github.com/desktop/desktop/issues/2623), [#4124](https://github.com/desktop/desktop/issues/4124), [#6882](https://github.com/desktop/desktop/issues/6882), [#6789](https://github.com/desktop/desktop/issues/6879)
-
-An example of the error message:
-
-```
-The system cannot find the path specified.
-error: unable to read askpass response from 'C:\Users\User\AppData\Local\GitHubDesktop\app-1.6.2\resources\app\static\ask-pass-trampoline.bat'
-fatal: could not read Username for 'https://github.com': terminal prompts disabled"
-```
-
-Known causes and workarounds:
-
--  Modifying the `AutoRun` registry entry. To check if this entry has been modified open `Regedit.exe` and navigate to `HKEY_CURRENT_USER\Software\Microsoft\Command Processor\autorun` and `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\autorun` to see if there is anything set (sometimes applications will also modify this). See [#6789](https://github.com/desktop/desktop/issues/6879#issuecomment-471042891) and [#2623](https://github.com/desktop/desktop/issues/2623#issuecomment-334305916) for examples of this.
-
-- Special characters in your Windows username like a `&` or `-` can cause this error to be thrown. See [#7064](https://github.com/desktop/desktop/issues/7064) for an example of this. Try installing GitHub Desktop in a new user account to verify if this is the case.
-
-- Antivirus software can sometimes prevent GitHub Desktop from installing correctly. If you are running antivirus software that could be causing this try temporarily disabling it and reinstalling GitHub Desktop.
-
-- Restrictive permissions on your Windows user account. If you are running GitHub Desktop as a non-admin user try launching the application as an administrator (right-click -> `Run as administrator`). See [#5082](https://github.com/desktop/desktop/issues/5082#issuecomment-483067198).
-
-- If none of these potential causes are present on your machine, try performing a fresh installation of GitHub Desktop to see if that gets things working again. Here are the steps you can take to do that:
-
-  1. Close GitHub Desktop
-  2. Delete the `%AppData%\GitHub Desktop\` directory
-  3. Delete the `%LocalAppData%\GitHubDesktop\` directory
-  4. Reinstall GitHub Desktop from [desktop.github.com](https://desktop.github.com)
-
 ### Authentication errors due to modified registry entries
 
 Related issue: [#2623](https://github.com/desktop/desktop/issues/2623)
@@ -232,3 +217,11 @@ If either the user or an application has modified the `Command Processor` regist
 `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\`
 
 Check to see if there is an `Autorun` value in either of those location. If there is, deleting that value should resolve the `Authentication failed` error.
+
+### "Not enough resources" error when signing in
+
+Related issue: [#15217](https://github.com/desktop/desktop/issues/15217)
+
+If you see an error that says "Not enough resources are available to process this command" when signing in to GitHub Desktop, it's likely that you have too many credentials stored in Windows Credentials Manager.
+
+**Workaround:** open the Credential Manager application, click on Windows Credentials and go through the list to see if there are some you can delete.

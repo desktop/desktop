@@ -83,13 +83,15 @@ export function groupRepositories(
       names.set(repository.name, existingCount + 1)
     }
 
-    repositories.sort((x, y) => caseInsensitiveCompare(x.name, y.name))
+    repositories.sort((x, y) =>
+      caseInsensitiveCompare(repositorySortingKey(x), repositorySortingKey(y))
+    )
     const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
       const nameCount = names.get(r.name) || 0
       const { aheadBehind, changedFilesCount } =
         localRepositoryStateLookup.get(r.id) || fallbackValue
       const repositoryText =
-        r instanceof Repository ? [r.name, nameOf(r)] : [r.name]
+        r instanceof Repository ? [r.alias ?? r.name, nameOf(r)] : [r.name]
 
       return {
         text: repositoryText,
@@ -132,8 +134,10 @@ export function makeRecentRepositoriesGroup(
   for (const id of recentRepositories) {
     const repository = repositories.find(r => r.id === id)
     if (repository !== undefined) {
-      const existingCount = names.get(repository.name) || 0
-      names.set(repository.name, existingCount + 1)
+      const alias = repository instanceof Repository ? repository.alias : null
+      const name = alias ?? repository.name
+      const existingCount = names.get(name) || 0
+      names.set(name, existingCount + 1)
     }
   }
 
@@ -147,11 +151,13 @@ export function makeRecentRepositoriesGroup(
 
     const { aheadBehind, changedFilesCount } =
       localRepositoryStateLookup.get(id) || fallbackValue
+    const repositoryAlias =
+      repository instanceof Repository ? repository.alias : null
     const repositoryText =
       repository instanceof Repository
-        ? [repository.name, nameOf(repository)]
+        ? [repositoryAlias ?? repository.name, nameOf(repository)]
         : [repository.name]
-    const nameCount = names.get(repository.name) || 0
+    const nameCount = names.get(repositoryAlias ?? repository.name) || 0
     items.push({
       text: repositoryText,
       id: id.toString(),
@@ -167,3 +173,8 @@ export function makeRecentRepositoriesGroup(
     items,
   }
 }
+
+// Use either the configured alias or the repository name when sorting the
+// repository list.
+const repositorySortingKey = (r: Repositoryish) =>
+  r instanceof Repository && r.alias !== null ? r.alias : r.name

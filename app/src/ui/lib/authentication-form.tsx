@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
@@ -103,6 +104,7 @@ export class AuthenticationForm extends React.Component<
         <TextBox
           label="Username or email address"
           disabled={disabled}
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={true}
           onValueChanged={this.onUsernameChange}
         />

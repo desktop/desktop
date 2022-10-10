@@ -50,7 +50,7 @@ export function setBoolean(key: string, value: boolean) {
 }
 
 /**
- * Retrieve a `number` value from a given local storage entry if found, or the
+ * Retrieve a integer number value from a given local storage entry if found, or the
  * provided `defaultValue` if the key doesn't exist or if the value cannot be
  * converted into a number
  *
@@ -70,6 +70,34 @@ export function getNumber(
   }
 
   const value = parseInt(numberAsText, 10)
+  if (isNaN(value)) {
+    return defaultValue
+  }
+
+  return value
+}
+
+/**
+ * Retrieve a floating point number value from a given local storage entry if
+ * found, or the provided `defaultValue` if the key doesn't exist or if the
+ * value cannot be converted into a number
+ *
+ * @param key local storage entry to read
+ * @param defaultValue fallback value if unable to find key or valid value
+ */
+export function getFloatNumber(key: string): number | undefined
+export function getFloatNumber(key: string, defaultValue: number): number
+export function getFloatNumber(
+  key: string,
+  defaultValue?: number
+): number | undefined {
+  const numberAsText = localStorage.getItem(key)
+
+  if (numberAsText === null || numberAsText.length === 0) {
+    return defaultValue
+  }
+
+  const value = parseFloat(numberAsText)
   if (isNaN(value)) {
     return defaultValue
   }
@@ -176,4 +204,37 @@ export function getEnum<T extends string>(
 ): T | undefined {
   const storedValue = localStorage.getItem(key)
   return storedValue === null ? undefined : parseEnumValue(enumObj, storedValue)
+}
+
+/**
+ * Retrieve an object of type T's value from a given local
+ * storage entry, if found. If not found, return undefined.
+ *
+ * @param key local storage entry to read
+ */
+export function getObject<T>(key: string): T | undefined {
+  const rawData = localStorage.getItem(key)
+
+  if (rawData === null) {
+    return
+  }
+
+  try {
+    return JSON.parse(rawData)
+  } catch (e) {
+    // If corrupted and can't be parsed, we return undefined.
+    return
+  }
+}
+
+/**
+ * Set the provided key in local storage to an object, or update the
+ * existing value if a key is already defined.
+ *
+ * @param key local storage entry to update
+ * @param value the object to set
+ */
+export function setObject(key: string, value: object) {
+  const rawData = JSON.stringify(value)
+  localStorage.setItem(key, rawData)
 }

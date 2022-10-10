@@ -4,7 +4,8 @@ import { encodePathAsUrl } from '../../lib/path'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { SuggestedAction } from '../suggested-actions'
 import { SuggestedActionGroup } from '../suggested-actions'
 
@@ -38,7 +39,11 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
                 some suggestions for what to do next.
               </p>
             </div>
-            <img src={ClappingHandsImage} className="image" />
+            <img
+              src={ClappingHandsImage}
+              className="image"
+              alt="Hands clapping"
+            />
           </div>
           <SuggestedActionGroup>
             <SuggestedAction

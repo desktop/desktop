@@ -1,12 +1,16 @@
 import * as React from 'react'
-import moment from 'moment'
 import classNames from 'classnames'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { CIStatus } from './ci-status'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { DropTargetType } from '../../models/drag-drop'
+import { getPullRequestCommitRef } from '../../models/pull-request'
+import { formatRelative } from '../../lib/format-relative'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -40,21 +44,74 @@ export interface IPullRequestListItemProps {
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+
+  /** When a drag element has landed on a pull request */
+  readonly onDropOntoPullRequest: (prNumber: number) => void
+
+  /** When mouse enters a PR */
+  readonly onMouseEnter: (prNumber: number, prListItemTop: number) => void
+
+  /** When mouse leaves a PR */
+  readonly onMouseLeave: (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => void
+}
+
+interface IPullRequestListItemState {
+  readonly isDragInProgress: boolean
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
 export class PullRequestListItem extends React.Component<
-  IPullRequestListItemProps
+  IPullRequestListItemProps,
+  IPullRequestListItemState
 > {
+  public constructor(props: IPullRequestListItemProps) {
+    super(props)
+    this.state = { isDragInProgress: false }
+  }
+
   private getSubtitle() {
     if (this.props.loading === true) {
       return undefined
     }
 
-    const timeAgo = moment(this.props.created).fromNow()
+    const timeAgo = formatRelative(this.props.created.getTime() - Date.now())
     const subtitle = `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
 
     return this.props.draft ? `${subtitle} • Draft` : subtitle
+  }
+
+  private onMouseEnter = (e: React.MouseEvent) => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: true })
+
+      dragAndDropManager.emitEnterDropTarget({
+        type: DropTargetType.Branch,
+        branchName: this.props.title,
+      })
+    }
+    const { top } = e.currentTarget.getBoundingClientRect()
+    this.props.onMouseEnter(this.props.number, top)
+  }
+
+  private onMouseLeave = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: false })
+
+      dragAndDropManager.emitLeaveDropTarget()
+    }
+    this.props.onMouseLeave(event)
+  }
+
+  private onMouseUp = () => {
+    if (dragAndDropManager.isDragInProgress) {
+      this.setState({ isDragInProgress: false })
+
+      this.props.onDropOntoPullRequest(this.props.number)
+    }
   }
 
   public render() {
@@ -65,11 +122,27 @@ export class PullRequestListItem extends React.Component<
       loading: this.props.loading === true,
       open: !this.props.draft,
       draft: this.props.draft,
+      'drop-target': this.state.isDragInProgress,
     })
 
     return (
-      <div className={className}>
-        <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+      <div
+        className={className}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onMouseUp={this.onMouseUp}
+      >
+        <div>
+          <Octicon
+            className="icon"
+            symbol={
+              this.props.draft
+                ? OcticonSymbol.gitPullRequestDraft
+                : OcticonSymbol.gitPullRequest
+            }
+          />
+        </div>
         <div className="info">
           <div className="title" title={title}>
             <HighlightText text={title || ''} highlight={matches.title} />
@@ -84,7 +157,7 @@ export class PullRequestListItem extends React.Component<
   }
 
   private renderPullRequestStatus() {
-    const ref = `refs/pull/${this.props.number}/head`
+    const ref = getPullRequestCommitRef(this.props.number)
     return (
       <div className="ci-status-container">
         <CIStatus

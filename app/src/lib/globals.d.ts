@@ -18,6 +18,20 @@ declare const __WIN32__: boolean
 declare const __LINUX__: boolean
 
 /**
+ * The product name of the app, this is intended to be a compile-time
+ * replacement for app.getName
+ * (https://www.electronjs.org/docs/latest/api/app#appgetname)
+ */
+declare const __APP_NAME__: string
+
+/**
+ * The current version of the app, this is intended to be a compile-time
+ * replacement for app.getVersion
+ * (https://www.electronjs.org/docs/latest/api/app#appgetname)
+ */
+declare const __APP_VERSION__: string
+
+/**
  * The commit id of the repository HEAD at build time.
  * Represented as a 40 character SHA-1 hexadecimal digest string.
  */
@@ -39,63 +53,7 @@ declare const __UPDATES_URL__: string
  * The currently executing process kind, this is specific to desktop
  * and identifies the processes that we have.
  */
-declare const __PROCESS_KIND__:
-  | 'main'
-  | 'ui'
-  | 'crash'
-  | 'askpass'
-  | 'highlighter'
-
-/**
- * The IdleDeadline interface is used as the data type of the input parameter to
- * idle callbacks established by calling Window.requestIdleCallback(). It offers
- * a method, timeRemaining(), which lets you determine how much longer the user
- * agent estimates it will remain idle and a property, didTimeout, which lets
- * you determine if your callback is executing because its timeout duration
- * expired.
- *
- * https://developer.mozilla.org/en-US/docs/Web/API/IdleDeadline
- */
-interface IdleDeadline {
-  readonly didTimeout: boolean
-  readonly timeRemaining: () => DOMHighResTimeStamp
-}
-
-/**
- * Contains optional configuration parameters for the requestIdleCallback
- * function.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
- */
-interface IdleCallbackOptions {
-  /**
-   * If timeout is specified and has a positive value, and the callback has not
-   * already been called by the time timeout milliseconds have passed, the
-   * timeout will be called during the next idle period, even if doing so risks
-   * causing a negative performance impact..
-   */
-  readonly timeout: number
-}
-
-/**
- * The window.requestIdleCallback() method queues a function to be called during
- * a browser's idle periods. This enables developers to perform background and
- * low priority work on the main event loop, without impacting latency-critical
- * events such as animation and input response. Functions are generally called
- * in first-in-first-out order; however, callbacks which have a timeout
- * specified may be called out-of-order if necessary in order to run them before
- * the timeout elapses.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
- *
- * @param options Contains optional configuration parameters. Currently only one
- *                property is defined:
- *                  timeout:
- */
-declare function requestIdleCallback(
-  fn: (deadline: IdleDeadline) => void,
-  options?: IdleCallbackOptions
-): number
+declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'highlighter'
 
 interface IDesktopLogger {
   /**
@@ -172,9 +130,6 @@ declare const log: IDesktopLogger
 
 declare namespace NodeJS {
   interface Process extends EventEmitter {
-    once(event: 'exit', listener: Function): this
-    once(event: 'uncaughtException', listener: (error: Error) => void): this
-    on(event: 'uncaughtException', listener: (error: Error) => void): this
     on(
       event: 'send-non-fatal-exception',
       listener: (error: Error, context?: { [key: string]: string }) => void
@@ -188,21 +143,7 @@ declare namespace NodeJS {
   }
 }
 
-interface XMLHttpRequest extends XMLHttpRequestEventTarget {
-  /**
-   * Initiates the request. The optional argument provides the request body. The argument is ignored if request method is GET or HEAD.
-   * Throws an "InvalidStateError" DOMException if either state is not opened or the send() flag is set.
-   */
-  send(body?: Document | BodyInit | null): void
-}
-
 declare namespace Electron {
-  interface RequestOptions {
-    readonly method: string
-    readonly url: string
-    readonly headers: any
-  }
-
   type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
   interface SystemPreferences {
@@ -213,21 +154,21 @@ declare namespace Electron {
   }
 }
 
-// https://wicg.github.io/ResizeObserver/#resizeobserverentry
-interface IResizeObserverEntry {
-  readonly target: HTMLElement
-  readonly contentRect: ClientRect
+// https://github.com/microsoft/TypeScript/issues/21568#issuecomment-362473070
+interface Window {
+  Element: typeof Element
+  HTMLElement: typeof HTMLElement
 }
 
-declare class ResizeObserver {
-  public constructor(cb: (entries: ReadonlyArray<IResizeObserverEntry>) => void)
-
-  public disconnect(): void
-  public observe(e: HTMLElement): void
+interface HTMLDialogElement {
+  showModal: () => void
 }
+/**
+ * Obtain the number of elements of a tuple type
+ *
+ * See https://itnext.io/implementing-arithmetic-within-typescripts-type-system-a1ef140a6f6f
+ */
+type Length<T extends any[]> = T extends { length: infer L } ? L : never
 
-declare module 'file-metadata' {
-  // eslint-disable-next-line no-restricted-syntax
-  function fileMetadata(path: string): Promise<plist.PlistObject>
-  export = fileMetadata
-}
+/** Obtain the the number of parameters of a function type */
+type ParameterCount<T extends (...args: any) => any> = Length<Parameters<T>>
