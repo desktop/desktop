@@ -1483,6 +1483,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChangesPermanently={
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
+            confirmDiscardStash={this.state.askForConfirmationOnDiscardStash}
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
@@ -1851,6 +1852,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           <ConfirmDiscardStashDialog
             key="confirm-discard-stash-dialog"
             dispatcher={this.props.dispatcher}
+            askForConfirmationOnDiscardStash={
+              this.state.askForConfirmationOnDiscardStash
+            }
             repository={repository}
             stash={stash}
             onDismissed={onPopupDismissedFn}
@@ -2993,6 +2997,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
+          }
+          askForConfirmationOnDiscardStash={
+            state.askForConfirmationOnDiscardStash
           }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}

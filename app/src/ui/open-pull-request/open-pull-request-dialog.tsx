@@ -1,12 +1,18 @@
 import * as React from 'react'
 import { IConstrainedValue, IPullRequestState } from '../../lib/app-state'
+import { getDotComAPIEndpoint } from '../../lib/api'
 import { Branch } from '../../models/branch'
 import { ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
+import { Ref } from '../lib/ref'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
+import { PullRequestMergeStatus } from './pull-request-merge-status'
+import { ComputedAction } from '../../models/computed-action'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -68,6 +74,11 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     this.props.dispatcher.recordCreatePullRequest()
   }
 
+  private onBranchChange = (branch: Branch) => {
+    const { repository } = this.props
+    this.props.dispatcher.updatePullRequestBaseBranch(repository, branch)
+  }
+
   private renderHeader() {
     const {
       currentBranch,
@@ -85,6 +96,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         allBranches={allBranches}
         recentBranches={recentBranches}
         commitCount={commitSHAs?.length ?? 0}
+        onBranchChange={this.onBranchChange}
         onDismissed={this.props.onDismissed}
       />
     )
@@ -93,6 +105,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   private renderContent() {
     return (
       <div className="open-pull-request-content">
+        {this.renderNoChanges()}
         {this.renderFilesChanged()}
       </div>
     )
@@ -110,8 +123,12 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       nonLocalCommitSHA,
     } = this.props
     const { commitSelection } = pullRequestState
-    const { diff, file, changesetData } = commitSelection
+    const { diff, file, changesetData, shas } = commitSelection
     const { files } = changesetData
+
+    if (shas.length === 0) {
+      return
+    }
 
     return (
       <PullRequestFilesChanged
@@ -130,13 +147,56 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     )
   }
 
+  private renderNoChanges() {
+    const { pullRequestState, currentBranch } = this.props
+    const { commitSelection, baseBranch, mergeStatus } = pullRequestState
+    const { shas } = commitSelection
+
+    if (shas.length !== 0) {
+      return
+    }
+    const hasMergeBase = mergeStatus?.kind !== ComputedAction.Invalid
+    const message = hasMergeBase ? (
+      <>
+        <Ref>{baseBranch.name}</Ref> is up to date with all commits from{' '}
+        <Ref>{currentBranch.name}</Ref>.
+      </>
+    ) : (
+      <>
+        <Ref>{baseBranch.name}</Ref> and <Ref>{currentBranch.name}</Ref> are
+        entirely different commit histories.
+      </>
+    )
+    return (
+      <div className="open-pull-request-no-changes">
+        <div>
+          <Octicon symbol={OcticonSymbol.gitPullRequest} />
+          <h3>There are no changes.</h3>
+          {message}
+        </div>
+      </div>
+    )
+  }
+
   private renderFooter() {
+    const { mergeStatus, commitSHAs } = this.props.pullRequestState
+    const gitHubRepository = this.props.repository.gitHubRepository
+    const isEnterprise =
+      gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    const buttonTitle = `Create pull request on GitHub${
+      isEnterprise ? ' Enterprise' : ''
+    }.`
+
     return (
       <DialogFooter>
+        <PullRequestMergeStatus mergeStatus={mergeStatus} />
         <OkCancelButtonGroup
-          okButtonText="Create Pull Request"
-          okButtonTitle="Create pull request on GitHub."
+          okButtonText={
+            __DARWIN__ ? 'Create Pull Request' : 'Create pull request'
+          }
+          okButtonTitle={buttonTitle}
           cancelButtonText="Cancel"
+          okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
         />
       </DialogFooter>
     )

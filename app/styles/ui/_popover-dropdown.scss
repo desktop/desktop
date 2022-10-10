@@ -1,25 +1,14 @@
 .popover-dropdown-component {
   display: inline-flex;
 
-  button {
-    border: none;
-    background-color: inherit;
-    border: none;
-    padding: 0;
-    margin: 0;
-    color: var(--link-button-color);
-    font-weight: bold;
-    text-decoration: underline;
+  .button-content,
+  .popover-dropdown-button-label {
+    font-weight: var(--font-weight-semibold);
+  }
 
-    &.button-component {
-      overflow: visible;
-
-      &:hover,
-      &:focus {
-        border: none;
-        box-shadow: none;
-      }
-    }
+  .popover-dropdown-button-label {
+    color: var(--text-secondary-color);
+    margin: 0 var(--spacing-half);
   }
 
   .popover-dropdown-popover {

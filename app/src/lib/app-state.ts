@@ -197,6 +197,9 @@ export interface IAppState {
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChangesPermanently: boolean
 
+  /** Should the app prompt the user to confirm a discard stash */
+  readonly askForConfirmationOnDiscardStash: boolean
+
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
@@ -971,4 +974,7 @@ export interface IPullRequestState {
    * diff between the latest commit and the earliest commits parent.
    */
   readonly commitSelection: ICommitSelection
+
+  /** The result of merging the pull request branch into the base branch */
+  readonly mergeStatus: MergeTreeResult | null
 }

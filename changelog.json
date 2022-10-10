@@ -1,5 +1,23 @@
 {
   "releases": {
+    "3.1.2-beta1": [
+      "[Added] You can preview the changes a pull request from your current branch would make - #11517",
+      "[Fixed] App correctly remembers undo commit prompt setting - #15408",
+      "[Improved] Add support for zooming out at the 67%, 75%, 80% and 90% zoom levels - #15401. Thanks @sathvikrijo!",
+      "[Improved] Add option to disable discard stash confirmation - #15379. Thanks @tsvetilian-ty!"
+    ],
+    "3.1.1": [
+      "[Fixed] App correctly remembers undo commit prompt setting - #15408"
+    ],
+    "3.1.0": [
+      "[Added] You can diff a consecutive range of commits - #14682",
+      "[Added] Submodule changes now display an explanatory, interactive diff screen - #15176",
+      "[Fixed] Enable update from upstream default branch when contributing to a fork - #15299",
+      "[Fixed] Fix crash installing updates that were downloaded a long time ago on macOS - #15275",
+      "[Fixed] Tooltips are positioned accurately when the user prefers reduced motion - #15249",
+      "[Improved] Add option to disable Undo Commit confirmation - #15134. Thanks @geophilusd!",
+      "[Improved] Update submodules when fetching, pulling and checking out branches - #8221 #9174"
+    ],
     "3.0.9-beta1": [
       "[Fixed] Enable update from upstream default branch when contributing to a fork - #15299",
       "[Fixed] Fix crash installing updates that were downloaded a long time ago on macOS - #15275",
