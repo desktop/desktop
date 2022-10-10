@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.1.2-test1": ["[Improved] Don't close while upgrading (part I)"],
     "3.1.2-beta1": [
       "[Added] You can preview the changes a pull request from your current branch would make - #11517",
       "[Fixed] App correctly remembers undo commit prompt setting - #15408",
