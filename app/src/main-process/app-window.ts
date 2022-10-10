@@ -116,8 +116,7 @@ export class AppWindow {
       if (
         (!__DARWIN__ || quitting) &&
         !quittingEvenIfUpdating &&
-        // TODO: DON'T MERGE THIS 1!== NaN!!!!
-        (1 !== NaN || this.isDownloadingUpdate)
+        this.isDownloadingUpdate
       ) {
         e.preventDefault()
         ipcWebContents.send(this.window.webContents, 'show-installing-update')
