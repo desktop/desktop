@@ -9,7 +9,6 @@ import {
 } from '../dialog'
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
-import { Loading } from '../lib/loading'
 import { DialogHeader } from '../dialog/header'
 import { Dispatcher } from '../dispatcher'
 
@@ -76,15 +75,14 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
       >
         <DialogHeader
           title={__DARWIN__ ? 'Installing Update…' : 'Installing update…'}
-          dismissable={false}
+          loading={true}
+          dismissable={true}
+          onDismissed={this.onCancel}
         />
         <DialogContent>
           <Row className="updating-message">
-            <Loading />
-            <span>
-              Please, do not close GitHub Desktop until the update is completely
-              installed.
-            </span>
+            Please, do not close GitHub Desktop until the update is completely
+            installed.
           </Row>
         </DialogContent>
         <DialogFooter>
