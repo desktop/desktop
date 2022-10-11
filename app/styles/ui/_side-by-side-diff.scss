@@ -334,9 +334,19 @@
         }
         .hunk-expansion-handle {
           background: var(--diff-hunk-gutter-background-color);
-          border-right-width: 4px;
+          border-right-width: 1px;
           border-right-style: solid;
           border-color: var(--diff-hunk-gutter-background-color);
+          &.selectable:hover {
+            border-color: var(--diff-hover-background-color);
+          }
+          &:not(.selectable) span {
+            // This must be the height of an octicon, so that when a hunk handle
+            // of any type is replaced by an "empty" hunk handle (e.g. when a
+            // file is completely expanded), the height of the whole line
+            // remains the same.
+            height: 16px;
+          }
         }
       }
 
@@ -358,8 +368,13 @@
       }
     }
 
-    &.editable .row .line-number {
-      border-right-width: 4px;
+    &.editable .row {
+      .line-number {
+        border-right-width: 4px;
+      }
+      .hunk-expansion-handle {
+        border-right-width: 4px;
+      }
     }
   }
 
