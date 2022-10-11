@@ -84,6 +84,10 @@ resources relevant to the project.
 
 If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
 
+## Building Desktop
+
+To get your development environment set up for building Desktop, see [setup.md](./docs/contributing/setup.md).
+
 ## More Resources
 
 See [desktop.github.com](https://desktop.github.com) for more product-oriented
