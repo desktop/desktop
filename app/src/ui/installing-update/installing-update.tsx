@@ -82,9 +82,8 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
         />
         <DialogContent>
           <Row className="updating-message">
-            Please, do not close GitHub Desktop until the update is completely
-            installed. Quitting the app now may result in a corrupted
-            installation.
+            Do not close GitHub Desktop while the update is in progress. Closing
+            now may break your installation.
           </Row>
         </DialogContent>
         <DialogFooter>
