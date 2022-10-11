@@ -256,7 +256,7 @@ export class SideBySideDiff extends React.Component<
         : [DiffLineType.Add, DiffLineType.Context]
       : [DiffLineType.Add, DiffLineType.Delete, DiffLineType.Context]
 
-    const contents = this.props.diff.hunks
+    const contents = this.state.diff.hunks
       .flatMap(h =>
         h.lines
           .filter(line => lineTypes.includes(line.type))
