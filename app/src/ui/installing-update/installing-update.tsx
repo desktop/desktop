@@ -72,6 +72,7 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
         id="installing-update"
         onSubmit={this.props.onDismissed}
         dismissable={false}
+        type="warning"
       >
         <DialogHeader
           title={__DARWIN__ ? 'Installing Update…' : 'Installing update…'}
@@ -82,7 +83,8 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
         <DialogContent>
           <Row className="updating-message">
             Please, do not close GitHub Desktop until the update is completely
-            installed.
+            installed. Quitting the app now may result in a corrupted
+            installation.
           </Row>
         </DialogContent>
         <DialogFooter>
@@ -90,6 +92,7 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
             okButtonText={__DARWIN__ ? 'Quit Anyway' : 'Quit anyway'}
             onOkButtonClick={this.onQuitAnywayButtonClicked}
             onCancelButtonClick={this.onCancel}
+            destructive={true}
           />
         </DialogFooter>
       </Dialog>
