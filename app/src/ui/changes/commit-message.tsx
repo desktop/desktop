@@ -351,7 +351,7 @@ export class CommitMessage extends React.Component<
     if (
       isShortcutKey &&
       event.key === 'Enter' &&
-      this.canCommit() &&
+      (this.canCommit() || this.canAmend()) &&
       this.canExcecuteCommitShortcut()
     ) {
       this.createCommit()
