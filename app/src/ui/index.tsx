@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 import { App } from './app'
-import {
+import {asdfasd
   Dispatcher,
   gitAuthenticationErrorHandler,
   externalEditorErrorHandler,
