@@ -177,7 +177,7 @@ export function getUpdatesURL() {
 export function shouldMakeDelta() {
   // Only production and beta channels include deltas. Test releases aren't
   // necessarily sequential so deltas wouldn't make sense.
-  const channelsWithDeltas = ['production', 'beta']
+  const channelsWithDeltas = ['production', 'beta', 'test']
   return channelsWithDeltas.indexOf(getChannel()) > -1
 }
 
