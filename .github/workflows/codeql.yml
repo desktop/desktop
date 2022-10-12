@@ -17,6 +17,9 @@ jobs:
       security-events: write
 
     steps:
+      - name: Fail immediately
+        run: exit 1
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
