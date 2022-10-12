@@ -99,7 +99,7 @@ function packageWindows() {
     title: productName,
     setupExe: getWindowsStandaloneName(),
     setupMsi: getWindowsInstallerName(),
-  }
+  }asdfasdf
 
   if (shouldMakeDelta()) {
     options.remoteReleases = getUpdatesURL()
