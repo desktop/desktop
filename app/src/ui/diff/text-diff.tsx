@@ -273,6 +273,7 @@ const defaultEditorOptions: EditorConfiguration = {
     [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
     [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
     [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
+    [__DARWIN__ ? 'Cmd-D' : 'Ctrl-D'] : false, // toggleDiffDisplayMode
     Down: scrollEditorVertically(1, 'line'),
     Up: scrollEditorVertically(-1, 'line'),
     PageDown: scrollEditorVertically(1, 'page'),
