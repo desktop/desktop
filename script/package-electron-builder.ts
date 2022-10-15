@@ -9,6 +9,17 @@ const globPromise = promisify(glob)
 
 import { getDistPath, getDistRoot } from './dist-info'
 
+function getArchitecture() {
+  switch (process.arch) {
+    case 'arm64':
+      return '--arm64'
+    case 'arm':
+      return '--armv7l'
+    default:
+      return '--x64'
+  }
+}
+
 export async function packageElectronBuilder(): Promise<Array<string>> {
   const distPath = getDistPath()
   const distRoot = getDistRoot()
@@ -27,7 +38,7 @@ export async function packageElectronBuilder(): Promise<Array<string>> {
     'build',
     '--prepackaged',
     distPath,
-    '--x64',
+    getArchitecture(),
     '--config',
     configPath,
   ]

@@ -9,6 +9,17 @@ import { rename } from 'fs-extra'
 import { getVersion } from '../app/package-info'
 import { getDistPath, getDistRoot } from './dist-info'
 
+function getArchitecture() {
+  switch (process.arch) {
+    case 'arm64':
+      return 'aarch64'
+    case 'arm':
+      return 'armv7l'
+    default:
+      return 'x86_64'
+  }
+}
+
 const distRoot = getDistRoot()
 
 // best guess based on documentation
@@ -16,7 +27,7 @@ type RedhatOptions = {
   // required
   src: string
   dest: string
-  arch: 'x86_64'
+  arch: string
   // optional
   description?: string
   productDescription?: string
@@ -36,7 +47,7 @@ type RedhatOptions = {
 const options: RedhatOptions = {
   src: getDistPath(),
   dest: distRoot,
-  arch: 'x86_64',
+  arch: getArchitecture(),
   description: 'Simple collaboration from your desktop',
   productDescription:
     'This is the unofficial port of GitHub Desktop for Linux distributions',
