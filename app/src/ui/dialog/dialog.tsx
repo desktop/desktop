@@ -112,7 +112,8 @@ interface IDialogProps {
    * This is used to make a dialog width's responsive.
    *
    * On window resize, the dialog will adjust to fill the app window width sans
-   * padding within the constrains of the this max width and a css defined min.
+   * padding within the constrains of the this max width and a css defined
+   * minimum.
    */
   readonly maxWidth?: number
 }

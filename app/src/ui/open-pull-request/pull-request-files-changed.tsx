@@ -108,6 +108,7 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   private getDiffContainerHeightOffset() {
+    // At least 80 is required or the footer starts being clipped
     const dialogMargin = 100
     const diffMargin = 20
     return (
