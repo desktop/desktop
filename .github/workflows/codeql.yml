@@ -17,7 +17,7 @@ jobs:
       security-events: write
 
     steps:
-      - name: Fail immediately #test
+      - name: Fail immediately # test
         run: exit 1
 
       - name: Checkout repository
