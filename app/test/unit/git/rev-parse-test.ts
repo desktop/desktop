@@ -57,7 +57,16 @@ describe('git/rev-parse', () => {
         secondRepoPath,
         ''
       )
-      await git(['submodule', 'add', '../repo2'], firstRepoPath, '')
+
+      await git(
+        [
+          // Git 2.38 (backported into 2.35.5) changed the default here to 'user'
+          ...['-c', 'protocol.file.allow=always'],
+          ...['submodule', 'add', '../repo2'],
+        ],
+        firstRepoPath,
+        ''
+      )
 
       expect(await getRepositoryType(firstRepoPath)).toMatchObject({
         kind: 'regular',
