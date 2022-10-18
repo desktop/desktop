@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.1.2": ["[Improved] Upgrade embedded Git to 2.35.5"],
     "3.1.1": [
       "[Fixed] App correctly remembers undo commit prompt setting - #15408"
     ],
