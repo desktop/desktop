@@ -22,7 +22,6 @@ import {
   ICloneProgress,
   IMultiCommitOperationProgress,
 } from '../models/progress'
-import { Popup } from '../models/popup'
 
 import { SignInState } from './stores/sign-in-store'
 
@@ -115,7 +114,6 @@ export interface IAppState {
 
   readonly showWelcomeFlow: boolean
   readonly focusCommitMessage: boolean
-  readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
 

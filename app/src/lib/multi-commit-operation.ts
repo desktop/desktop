@@ -4,9 +4,10 @@ import {
   conflictSteps,
   MultiCommitOperationStepKind,
 } from '../models/multi-commit-operation'
-import { Popup, PopupType } from '../models/popup'
+import { PopupType } from '../models/popup'
 import { TipState } from '../models/tip'
 import { IMultiCommitOperationState, IRepositoryState } from './app-state'
+import { popupManager } from './popup-manager'
 
 /**
  * Setup the multi commit operation state when the user needs to select a branch as the
@@ -39,12 +40,10 @@ export function getMultiCommitOperationChooseBranchStep(
 }
 
 export function isConflictsFlow(
-  currentPopup: Popup | null,
   multiCommitOperationState: IMultiCommitOperationState | null
 ): boolean {
   return (
-    currentPopup !== null &&
-    currentPopup.type === PopupType.MultiCommitOperation &&
+    popupManager.isPopupsOfType(PopupType.MultiCommitOperation) &&
     multiCommitOperationState !== null &&
     conflictSteps.includes(multiCommitOperationState.step.kind)
   )

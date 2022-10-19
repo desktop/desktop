@@ -79,6 +79,7 @@ import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
+import { popupManager } from '../lib/popup-manager'
 
 if (__DEV__) {
   installDevGlobals()
@@ -144,8 +145,8 @@ const sendErrorWithContext = (
           extra.currentBanner = currentState.currentBanner.type
         }
 
-        if (currentState.currentPopup !== null) {
-          extra.currentPopup = `${currentState.currentPopup.type}`
+        if (popupManager.currentPopup !== undefined) {
+          extra.currentPopup = `${popupManager.currentPopup.type}`
         }
 
         if (currentState.selectedState !== null) {
