@@ -1,5 +1,5 @@
+import uuid from 'uuid'
 import { Popup, PopupType } from '../models/popup'
-import { getObjectId } from '../ui/lib/object-id'
 
 /**
  * The popup manager is to manage the stack of currently open popups.
@@ -16,7 +16,7 @@ export class PopupManager {
   }
 
   public getPopupsOfType(popupType: PopupType): ReadonlyArray<Popup> {
-    return [...this.popupStack.filter(p => p.type !== popupType)]
+    return [...this.popupStack.filter(p => p.type === popupType)]
   }
 
   public isPopupsOfType(popupType: PopupType): boolean {
@@ -24,20 +24,26 @@ export class PopupManager {
   }
 
   public addPopup(popupToAdd: Popup): Popup {
-    const popup = { id: getObjectId(popupToAdd), ...popupToAdd }
+    const existingPopup = this.getPopupsOfType(popupToAdd.type)
+    if (existingPopup.length > 0) {
+      log.warn(`Attempted to add a popup of already existing type.`)
+      return popupToAdd
+    }
+
+    const popup = { id: uuid(), ...popupToAdd }
     this.popupStack.push(popup)
     return popup
   }
 
   public updatePopup(popupToUpdate: Popup): Popup {
     if (popupToUpdate.id === null) {
-      console.warn(`Attempted to update a popup without an id.`)
+      log.warn(`Attempted to update a popup without an id.`)
       return popupToUpdate
     }
 
     const index = this.popupStack.findIndex(p => p.id === popupToUpdate.id)
     if (index < 0) {
-      console.warn(`Attempted to update a popup not in the stack.`)
+      log.warn(`Attempted to update a popup not in the stack.`)
       return popupToUpdate
     }
 
@@ -51,7 +57,7 @@ export class PopupManager {
 
   public removePopup(popup: Popup) {
     if (popup.id === null) {
-      console.warn(`Attempted to remove a popup without an id.`)
+      log.warn(`Attempted to remove a popup without an id.`)
       return
     }
     this.popupStack = this.popupStack.filter(p => p.id !== popup.id)
