@@ -7,22 +7,39 @@ import { Popup, PopupType } from '../models/popup'
 export class PopupManager {
   private popupStack = new Array<Popup>()
 
+  /**
+   * Returns the last popup added to the stack.
+   */
   public get currentPopup(): Popup | undefined {
     return this.popupStack.at(-1)
   }
 
+  /**
+   * Returns whether there are any popups in the stack.
+   */
   public get isAPopupOpen(): boolean {
     return this.currentPopup !== undefined
   }
 
+  /**
+   * Returns an array of all popups in the stack of the provided type.
+   **/
   public getPopupsOfType(popupType: PopupType): ReadonlyArray<Popup> {
     return [...this.popupStack.filter(p => p.type === popupType)]
   }
 
+  /**
+   * Returns whether there are any popups of a given type in the stack.
+   */
   public isPopupsOfType(popupType: PopupType): boolean {
     return this.popupStack.some(p => p.type === popupType)
   }
 
+  /**
+   * Adds a popup to the stack.
+   * - The popup will be given a unique id and returned.
+   * - It will not add multiple popups of the same type to the stack
+   **/
   public addPopup(popupToAdd: Popup): Popup {
     const existingPopup = this.getPopupsOfType(popupToAdd.type)
     if (existingPopup.length > 0) {
@@ -35,6 +52,10 @@ export class PopupManager {
     return popup
   }
 
+  /**
+   * Updates a popup in the stack and returns it.
+   * - It uses the popup id to find and update the popup.
+   */
   public updatePopup(popupToUpdate: Popup): Popup {
     if (popupToUpdate.id === null) {
       log.warn(`Attempted to update a popup without an id.`)
@@ -55,6 +76,9 @@ export class PopupManager {
     return popupToUpdate
   }
 
+  /**
+   * Removes a popup based on it's id.
+   */
   public removePopup(popup: Popup) {
     if (popup.id === null) {
       log.warn(`Attempted to remove a popup without an id.`)
@@ -63,6 +87,9 @@ export class PopupManager {
     this.popupStack = this.popupStack.filter(p => p.id !== popup.id)
   }
 
+  /**
+   * Removes any popup of the given type from the stack
+   */
   public removePopupByType(popupType: PopupType) {
     this.popupStack = this.popupStack.filter(p => p.type !== popupType)
   }
