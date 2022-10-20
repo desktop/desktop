@@ -1,5 +1,13 @@
 import uuid from 'uuid'
 import { Popup, PopupType } from '../models/popup'
+import { sendNonFatalException } from './helpers/non-fatal-exception'
+
+/**
+ * The limit of how many popups allowed in the stack. Working under the
+ * assumption that a user should only be dealing with a couple of popups at a
+ * time, if a user hits the limit this would indicate a problem.
+ */
+const popupStackLimit = 50
 
 /**
  * The popup manager is to manage the stack of currently open popups.
@@ -43,12 +51,26 @@ export class PopupManager {
   public addPopup(popupToAdd: Popup): Popup {
     const existingPopup = this.getPopupsOfType(popupToAdd.type)
     if (existingPopup.length > 0) {
-      log.warn(`Attempted to add a popup of already existing type.`)
+      log.warn(
+        `Attempted to add a popup of already existing type - ${popupToAdd.type}.`
+      )
       return popupToAdd
     }
 
     const popup = { id: uuid(), ...popupToAdd }
     this.popupStack.push(popup)
+
+    if (this.popupStack.length > popupStackLimit) {
+      // Remove the oldest
+      const oldest = this.popupStack[0]
+      sendNonFatalException(
+        'TooManyPopups',
+        new Error(
+          `Max number of ${popupStackLimit} popups reached while adding popup of type ${popup.type}. Removing last popup from the stack -> type ${oldest.type} `
+        )
+      )
+      this.popupStack = this.popupStack.slice(1)
+    }
     return popup
   }
 
