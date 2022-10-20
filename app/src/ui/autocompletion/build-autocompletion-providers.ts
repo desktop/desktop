@@ -35,7 +35,8 @@ export function buildAutocompletionProviders(
       new IssuesAutocompletionProvider(
         issuesStore,
         gitHubRepository,
-        dispatcher
+        dispatcher,
+        emoji
       )
     )
 

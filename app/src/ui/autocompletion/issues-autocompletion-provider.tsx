@@ -4,6 +4,8 @@ import { IssuesStore, IIssueHit } from '../../lib/stores/issues-store'
 import { Dispatcher } from '../dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
+import { RichText } from '../lib/rich-text'
+import { TooltipDirection } from '../lib/tooltip'
 
 /** The interval we should use to throttle the issues update. */
 const UpdateIssuesThrottleInterval = 1000 * 60
@@ -17,6 +19,7 @@ export class IssuesAutocompletionProvider
   private readonly issuesStore: IssuesStore
   private readonly repository: GitHubRepository
   private readonly dispatcher: Dispatcher
+  private readonly emoji: Map<string, string>
 
   /**
    * The scheduler used to throttle calls to update the issues for
@@ -29,11 +32,13 @@ export class IssuesAutocompletionProvider
   public constructor(
     issuesStore: IssuesStore,
     repository: GitHubRepository,
-    dispatcher: Dispatcher
+    dispatcher: Dispatcher,
+    emoji: Map<string, string>
   ) {
     this.issuesStore = issuesStore
     this.repository = repository
     this.dispatcher = dispatcher
+    this.emoji = emoji
   }
 
   public getRegExp(): RegExp {
@@ -53,8 +58,12 @@ export class IssuesAutocompletionProvider
   public renderItem(item: IIssueHit): JSX.Element {
     return (
       <div className="issue" key={item.number}>
-        <span className="number">#{item.number}</span>
-        <span className="title">{item.title}</span>
+        <RichText
+          emoji={this.emoji}
+          text={`#${item.number} ${item.title}`}
+          renderUrlsAsLinks={false}
+          tooltipDirection={TooltipDirection.EAST}
+        />
       </div>
     )
   }

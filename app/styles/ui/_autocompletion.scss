@@ -129,14 +129,8 @@
     height: 100%;
     width: 100%;
 
-    .number {
-      margin-right: var(--spacing-half);
-    }
-
-    .title {
-      @include ellipsis;
-      font-weight: var(--font-weight-semibold);
-    }
+    @include ellipsis;
+    font-weight: var(--font-weight-semibold);
   }
 
   .user {

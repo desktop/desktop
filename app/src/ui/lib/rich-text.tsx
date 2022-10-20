@@ -6,7 +6,7 @@ import { Tokenizer, TokenType, TokenResult } from '../../lib/text-token-parser'
 import { assertNever } from '../../lib/fatal-error'
 import memoizeOne from 'memoize-one'
 import { createObservableRef } from './observable-ref'
-import { Tooltip } from './tooltip'
+import { Tooltip, TooltipDirection } from './tooltip'
 
 interface IRichTextProps {
   readonly className?: string
@@ -24,6 +24,14 @@ interface IRichTextProps {
 
   /** Should URLs be rendered as clickable links. Default true. */
   readonly renderUrlsAsLinks?: boolean
+
+  /**
+  /**
+   * The desired position of the tooltip in relation to the target.
+   *
+   * @see Tooltip.direction
+   */
+  readonly tooltipDirection?: TooltipDirection
 
   /**
    * The repository to use as the source for URLs for the rich text.
@@ -131,7 +139,7 @@ export class RichText extends React.Component<IRichTextProps, IRichTextState> {
   }
 
   public render() {
-    const { emoji, repository, renderUrlsAsLinks, text } = this.props
+    const { emoji, repository, renderUrlsAsLinks, tooltipDirection, text } = this.props
 
     // If we've been given an empty string then return null so that we don't end
     // up introducing an extra empty <span>.
@@ -142,7 +150,12 @@ export class RichText extends React.Component<IRichTextProps, IRichTextState> {
     return (
       <div ref={this.containerRef} className={this.props.className}>
         {this.state.overflowed && (
-          <Tooltip target={this.containerRef}>{this.getTitle(text)}</Tooltip>
+          <Tooltip
+            target={this.containerRef}
+            direction={tooltipDirection}
+          >
+            {this.getTitle(text)}
+          </Tooltip>
         )}
         {this.getElements(emoji, repository, renderUrlsAsLinks, text)}
       </div>
