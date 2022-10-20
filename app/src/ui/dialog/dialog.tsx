@@ -4,7 +4,6 @@ import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 import { clamp } from '../../lib/clamp'
-import { infinity } from '../octicons/octicons.generated'
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -194,7 +193,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     if (this.props.maxWidth !== undefined) {
       const widthSansPadding = window.innerWidth - 40
-      const newWidth = clamp(widthSansPadding, -infinity, this.props.maxWidth)
+      const newWidth = clamp(widthSansPadding, -Infinity, this.props.maxWidth)
       this.dialogElement.style.width = `${newWidth}px`
     }
 
