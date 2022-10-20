@@ -25,7 +25,7 @@ import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { createCommitURL } from '../../lib/commit-url'
 import { DiffOptions } from '../diff/diff-options'
-import { spacingDouble } from '../lib/spacial-constants'
+import { spacingDouble, spacingQuint } from '../lib/spacial-constants'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -108,11 +108,20 @@ export class PullRequestFilesChanged extends React.Component<
     return elHeight > 0 ? elHeight : 67
   }
 
+  /** The dialog contents technically fill to the height of the window below the
+   * title bar so this must be taken into account as well. The title bar doesn't
+   * exist in full screen mac so it can be zero. */
+  private getTitleBarHeight() {
+    const titleBar = document.getElementById('desktop-app-title-bar')
+    const elHeight = titleBar?.clientHeight
+    return elHeight ?? 0
+  }
+
   private getDiffContainerHeightOffset() {
-    // At least 80 is required or the footer starts being clipped
-    const dialogMargin = 100
+    const dialogMargin = spacingQuint
     const diffMargin = spacingDouble
     return (
+      this.getTitleBarHeight() +
       this.getPullRequestHeaderHeight() +
       this.getPullRequestFillDiffHeaderHeight() +
       this.getPullRequestFooterHeight() +

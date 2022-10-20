@@ -16,3 +16,7 @@ export const spacingDouble = spacing * 2
 /** Four times the app width for standard padding as defined in the
  * 'variables.sccs */
 export const spacingQuad = spacing * 4
+
+/** Five times the app width for standard padding as defined in the
+ * 'variables.sccs */
+export const spacingQuint = spacing * 5
