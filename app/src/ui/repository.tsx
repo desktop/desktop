@@ -31,7 +31,6 @@ import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
-import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 import { clamp } from '../lib/clamp'
 
 interface IRepositoryViewProps {
@@ -249,10 +248,6 @@ export class RepositoryView extends React.Component<
     } = state
     const { tip } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const isCherryPickInProgress =
-      mcos !== null &&
-      mcos.operationDetail.kind === MultiCommitOperationKind.CherryPick
-
     const scrollTop =
       this.forceCompareListScrollTop ||
       this.previousSection === RepositorySectionTab.Changes
@@ -282,7 +277,7 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
-        isCherryPickInProgress={isCherryPickInProgress}
+        isMultiCommitOperationInProgress={mcos !== null}
       />
     )
   }
