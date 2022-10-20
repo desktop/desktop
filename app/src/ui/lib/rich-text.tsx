@@ -139,7 +139,8 @@ export class RichText extends React.Component<IRichTextProps, IRichTextState> {
   }
 
   public render() {
-    const { emoji, repository, renderUrlsAsLinks, tooltipDirection, text } = this.props
+    const { emoji, repository, renderUrlsAsLinks, tooltipDirection, text } =
+      this.props
 
     // If we've been given an empty string then return null so that we don't end
     // up introducing an extra empty <span>.
@@ -150,10 +151,7 @@ export class RichText extends React.Component<IRichTextProps, IRichTextState> {
     return (
       <div ref={this.containerRef} className={this.props.className}>
         {this.state.overflowed && (
-          <Tooltip
-            target={this.containerRef}
-            direction={tooltipDirection}
-          >
+          <Tooltip target={this.containerRef} direction={tooltipDirection}>
             {this.getTitle(text)}
           </Tooltip>
         )}
