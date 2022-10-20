@@ -180,7 +180,7 @@ import {
   matchExistingRepository,
   urlMatchesRemote,
 } from '../repository-matching'
-import { isCurrentBranchForcePush } from '../rebase'
+import { ForcePushBranchState, getCurrentBranchForcePushState } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
@@ -2231,10 +2231,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ?.name ?? undefined
     }
 
-    const isForcePushForCurrentRepository = isCurrentBranchForcePush(
-      branchesState,
-      aheadBehind
-    )
+    // From the menu, we'll offer to force-push whenever it's possible, regardless
+    // of whether or not the user performed any action we know whould be followed
+    // by a force-push.
+    const isForcePushForCurrentRepository =
+      getCurrentBranchForcePushState(branchesState, aheadBehind) !==
+      ForcePushBranchState.NotAvailable
 
     const isStashedChangesVisible =
       changesState.selection.kind === ChangesSelectionKind.Stash
