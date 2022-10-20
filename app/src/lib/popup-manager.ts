@@ -39,7 +39,7 @@ export class PopupManager {
   /**
    * Returns whether there are any popups of a given type in the stack.
    */
-  public isPopupsOfType(popupType: PopupType): boolean {
+  public arePopupsOfType(popupType: PopupType): boolean {
     return this.popupStack.some(p => p.type === popupType)
   }
 

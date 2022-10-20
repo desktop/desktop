@@ -43,7 +43,7 @@ export function isConflictsFlow(
   multiCommitOperationState: IMultiCommitOperationState | null
 ): boolean {
   return (
-    popupManager.isPopupsOfType(PopupType.MultiCommitOperation) &&
+    popupManager.arePopupsOfType(PopupType.MultiCommitOperation) &&
     multiCommitOperationState !== null &&
     conflictSteps.includes(multiCommitOperationState.step.kind)
   )
