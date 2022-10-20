@@ -57,7 +57,7 @@ export class PopupManager {
    * - It uses the popup id to find and update the popup.
    */
   public updatePopup(popupToUpdate: Popup): Popup {
-    if (popupToUpdate.id === null) {
+    if (popupToUpdate.id === undefined) {
       log.warn(`Attempted to update a popup without an id.`)
       return popupToUpdate
     }
