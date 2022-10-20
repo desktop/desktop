@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
+import { FoldoutType } from '../../lib/app-state'
 import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
@@ -728,6 +729,7 @@ export class CloneRepository extends React.Component<
 
     const { url, defaultBranch } = cloneInfo
 
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     try {
       this.cloneImpl(url.trim(), path, defaultBranch)
     } catch (e) {

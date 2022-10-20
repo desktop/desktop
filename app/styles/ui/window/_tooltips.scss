@@ -11,6 +11,7 @@ body > .tooltip,
   max-width: 300px;
 
   word-wrap: break-word;
+  word-break: break-word;
   overflow-wrap: break-word;
 
   background-color: var(--tooltip-background-color);
