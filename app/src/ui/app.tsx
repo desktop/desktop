@@ -13,6 +13,7 @@ import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
+import { FetchType } from '../models/fetch'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -358,6 +359,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.push({ forceWithLease: true })
       case 'pull':
         return this.pull()
+      case 'fetch':
+        return this.fetch()
       case 'show-changes':
         return this.showChanges()
       case 'show-history':
@@ -947,6 +950,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.pull(state.repository)
+  }
+
+  private async fetch() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.fetch(state.repository, FetchType.UserInitiatedTask)
   }
 
   private showStashedChanges() {
