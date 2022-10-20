@@ -25,6 +25,7 @@ import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { createCommitURL } from '../../lib/commit-url'
 import { DiffOptions } from '../diff/diff-options'
+import { spacingDouble } from '../lib/spacial-constants'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -110,7 +111,7 @@ export class PullRequestFilesChanged extends React.Component<
   private getDiffContainerHeightOffset() {
     // At least 80 is required or the footer starts being clipped
     const dialogMargin = 100
-    const diffMargin = 20
+    const diffMargin = spacingDouble
     return (
       this.getPullRequestHeaderHeight() +
       this.getPullRequestFillDiffHeaderHeight() +
