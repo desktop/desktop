@@ -640,7 +640,7 @@ function emit(name: MenuEvent): ClickHandler {
 }
 
 /** The zoom steps that we support, these factors must sorted */
-const ZoomInFactors = [1, 1.1, 1.25, 1.5, 1.75, 2]
+const ZoomInFactors = [0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2]
 const ZoomOutFactors = ZoomInFactors.slice().reverse()
 
 /**

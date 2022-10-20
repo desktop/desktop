@@ -110,5 +110,5 @@ export function enableSubmoduleDiff(): boolean {
 
 /** Should we enable starting pull requests? */
 export function enableStartingPullRequests(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }

@@ -14,7 +14,7 @@ import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
-import { ITextDiff, DiffSelection } from './diff'
+import { ITextDiff, DiffSelection, ImageDiffType } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
@@ -362,4 +362,13 @@ export type Popup =
     }
   | {
       type: PopupType.StartPullRequest
+      allBranches: ReadonlyArray<Branch>
+      currentBranch: Branch
+      defaultBranch: Branch | null
+      externalEditorLabel?: string
+      imageDiffType: ImageDiffType
+      recentBranches: ReadonlyArray<Branch>
+      repository: Repository
+      nonLocalCommitSHA: string | null
+      showSideBySideDiff: boolean
     }

@@ -170,6 +170,9 @@ export interface IAppState {
   /** The width of the files list in the stash view */
   readonly stashedFilesWidth: IConstrainedValue
 
+  /** The width of the files list in the pull request files changed view */
+  readonly pullRequestFilesListWidth: IConstrainedValue
+
   /**
    * Used to highlight access keys throughout the app when the
    * Alt key is pressed. Only applicable on non-macOS platforms.
@@ -193,6 +196,9 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChangesPermanently: boolean
+
+  /** Should the app prompt the user to confirm a discard stash */
+  readonly askForConfirmationOnDiscardStash: boolean
 
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
@@ -229,6 +235,9 @@ export interface IAppState {
 
   /** Whether we should hide white space changes in history diff */
   readonly hideWhitespaceInHistoryDiff: boolean
+
+  /** Whether we should hide white space changes in the pull request diff */
+  readonly hideWhitespaceInPullRequestDiff: boolean
 
   /** Whether we should show side by side diffs */
   readonly showSideBySideDiff: boolean
@@ -965,4 +974,7 @@ export interface IPullRequestState {
    * diff between the latest commit and the earliest commits parent.
    */
   readonly commitSelection: ICommitSelection
+
+  /** The result of merging the pull request branch into the base branch */
+  readonly mergeStatus: MergeTreeResult | null
 }
