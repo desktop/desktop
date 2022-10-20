@@ -79,12 +79,12 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   public componentDidMount() {
-    this.setfileDiffContainerHeight()
-    window.addEventListener('resize', this.setfileDiffContainerHeight)
+    this.setFileDiffContainerHeight()
+    window.addEventListener('resize', this.setFileDiffContainerHeight)
   }
 
   public componentWillUnmount() {
-    window.removeEventListener('resize', this.setfileDiffContainerHeight)
+    window.removeEventListener('resize', this.setFileDiffContainerHeight)
   }
 
   private getPullRequestHeaderHeight() {
@@ -120,7 +120,7 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
-  private setfileDiffContainerHeight = () => {
+  private setFileDiffContainerHeight = () => {
     if (this.fileDiffContainer.current === null) {
       return
     }
