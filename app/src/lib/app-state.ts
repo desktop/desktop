@@ -46,6 +46,7 @@ import {
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
+import { Popup } from '../models/popup'
 
 export enum SelectionType {
   Repository,
@@ -114,6 +115,7 @@ export interface IAppState {
 
   readonly showWelcomeFlow: boolean
   readonly focusCommitMessage: boolean
+  readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
 

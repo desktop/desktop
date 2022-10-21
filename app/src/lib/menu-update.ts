@@ -11,7 +11,6 @@ import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
 import { findContributionTargetDefaultBranch } from './branch'
-import { popupManager } from './popup-manager'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -364,7 +363,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 }
 
 function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
-  if (popupManager.isAPopupOpen) {
+  if (state.currentPopup) {
     return getAllMenusDisabledBuilder().state
   }
 

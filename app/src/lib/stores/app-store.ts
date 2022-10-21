@@ -304,7 +304,7 @@ import { offsetFromNow } from '../offset-from'
 import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
-import { popupManager } from '../popup-manager'
+import { PopupManager } from '../popup-manager'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -500,6 +500,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private lastThankYou: ILastThankYou | undefined
   private showCIStatusPopover: boolean = false
 
+  /** A service for managing the stack of open popups */
+  private popupManager = new PopupManager()
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
@@ -639,7 +642,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // If there is a currently open popup, don't do anything here. Since the
     // app can only show one popup at a time, we don't want to close the current
     // one in favor of the error we're about to show.
-    if (popupManager.isAPopupOpen) {
+    if (this.popupManager.isAPopupOpen) {
       return
     }
 
@@ -904,6 +907,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
+      currentPopup: this.popupManager.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
       showWelcomeFlow: this.showWelcomeFlow,
@@ -2505,7 +2509,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentBanner !== null &&
       this.currentBanner.type === BannerType.ConflictsFound
 
-    if (displayingBanner || isConflictsFlow(multiCommitOperationState)) {
+    if (
+      displayingBanner ||
+      isConflictsFlow(
+        this.popupManager.arePopupsOfType(PopupType.MultiCommitOperation),
+        multiCommitOperationState
+      )
+    ) {
       return
     }
 
@@ -2592,7 +2602,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private clearConflictsFlowVisuals(state: IRepositoryState) {
     const { multiCommitOperationState } = state
-    if (userIsStartingMultiCommitOperation(multiCommitOperationState)) {
+    if (
+      userIsStartingMultiCommitOperation(
+        this.popupManager.currentPopup,
+        multiCommitOperationState
+      )
+    ) {
       return
     }
 
@@ -3475,19 +3490,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // applicable on Windows where we draw a custom app menu.
     this._closeFoldout(FoldoutType.AppMenu)
 
-    popupManager.addPopup(popup)
+    this.popupManager.addPopup(popup)
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(popupType?: PopupType) {
-    const currentPopup = popupManager.currentPopup
-    if (currentPopup === undefined) {
+    const currentPopup = this.popupManager.currentPopup
+    if (currentPopup === null) {
       return
     }
 
     if (popupType === undefined) {
-      popupManager.removePopup(currentPopup)
+      this.popupManager.removePopup(currentPopup)
     } else {
       if (currentPopup.type !== popupType) {
         return
@@ -3497,7 +3512,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this._completeOpenInDesktop(() => Promise.resolve(null))
       }
 
-      popupManager.removePopupByType(popupType)
+      this.popupManager.removePopupByType(popupType)
     }
 
     this.emitUpdate()
@@ -6491,12 +6506,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         path,
         (title, value, description) => {
           if (
-            popupManager.currentPopup !== undefined &&
-            popupManager.currentPopup.type ===
-              PopupType.CreateTutorialRepository
+            this.popupManager.currentPopup?.type ===
+            PopupType.CreateTutorialRepository
           ) {
-            popupManager.updatePopup({
-              ...popupManager.currentPopup,
+            this.popupManager.updatePopup({
+              ...this.popupManager.currentPopup,
               progress: { kind: 'generic', title, value, description },
             })
             this.emitUpdate()
@@ -7483,13 +7497,14 @@ function getInitialAction(
 }
 
 function userIsStartingMultiCommitOperation(
+  currentPopup: Popup | null,
   state: IMultiCommitOperationState | null
 ) {
-  if (!popupManager.isAPopupOpen || state === null) {
+  if (currentPopup === null || state === null) {
     return false
   }
 
-  if (popupManager.currentPopup?.type !== PopupType.MultiCommitOperation) {
+  if (currentPopup.type !== PopupType.MultiCommitOperation) {
     return false
   }
 

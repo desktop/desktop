@@ -159,7 +159,6 @@ import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
-import { popupManager } from '../lib/popup-manager'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -216,7 +215,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * modal dialog such as the preferences, or an error dialog.
    */
   private get isShowingModal() {
-    return popupManager.isAPopupOpen || this.state.errors.length > 0
+    return this.state.currentPopup !== null || this.state.errors.length > 0
   }
 
   /**
@@ -1376,7 +1375,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const popup = popupManager.currentPopup
+    const popup = this.state.currentPopup
 
     if (!popup) {
       return null

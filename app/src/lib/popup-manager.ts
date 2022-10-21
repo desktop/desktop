@@ -18,15 +18,15 @@ export class PopupManager {
   /**
    * Returns the last popup added to the stack.
    */
-  public get currentPopup(): Popup | undefined {
-    return this.popupStack.at(-1)
+  public get currentPopup(): Popup | null {
+    return this.popupStack.at(-1) ?? null
   }
 
   /**
    * Returns whether there are any popups in the stack.
    */
   public get isAPopupOpen(): boolean {
-    return this.currentPopup !== undefined
+    return this.currentPopup !== null
   }
 
   /**
@@ -116,5 +116,3 @@ export class PopupManager {
     this.popupStack = this.popupStack.filter(p => p.type !== popupType)
   }
 }
-
-export const popupManager = new PopupManager()
