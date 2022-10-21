@@ -133,6 +133,7 @@ dialog {
   // swoop. This resets all styles for that fieldset.
   & > form {
     min-height: 0;
+    height: 100%;
     & > fieldset {
       border: 0;
       margin: 0;
@@ -140,6 +141,7 @@ dialog {
       min-width: 0;
       min-height: 0;
       max-height: 100%;
+      height: 100%;
 
       display: flex;
       flex-direction: column;
