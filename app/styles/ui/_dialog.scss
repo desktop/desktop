@@ -27,6 +27,9 @@
 // allow easy layout using generalized components and elements such as <Row>
 // and <p>.
 dialog {
+  display: flex;
+  flex-direction: column;
+
   overflow: unset;
   // These are the 24px versions of the alert and stop octicons
   // from oction v10.0.0
@@ -128,11 +131,19 @@ dialog {
   // The dialog embeds a fieldset as the first child of the form element
   // in order to be able to disable all form elements and buttons in one
   // swoop. This resets all styles for that fieldset.
-  & > form > fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
+  & > form {
+    min-height: 0;
+    & > fieldset {
+      border: 0;
+      margin: 0;
+      padding: 0;
+      min-width: 0;
+      min-height: 0;
+      max-height: 100%;
+
+      display: flex;
+      flex-direction: column;
+    }
   }
 
   .dialog-header {
