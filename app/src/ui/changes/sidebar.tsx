@@ -79,6 +79,7 @@ interface IChangesSidebarProps {
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
+  private changesList: ChangesList | null = null
   private autocompletionProviders: ReadonlyArray<
     IAutocompletionProvider<any>
   > | null = null
@@ -108,6 +109,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         props.gitHubUserStore,
         props.accounts
       )
+    }
+  }
+
+  public focus() {
+    if (this.changesList !== null) {
+      this.changesList.focus()
     }
   }
 
@@ -342,6 +349,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     return this.renderMostRecentLocalCommit()
   }
 
+  private onChangesListRef = (ref: ChangesList | null) => {
+    this.changesList = ref
+  }
+
   public render() {
     const {
       workingDirectory,
@@ -373,6 +384,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     return (
       <div className="panel">
         <ChangesList
+          ref={this.onChangesListRef}
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           repositoryAccount={repositoryAccount}

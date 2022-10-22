@@ -1267,15 +1267,15 @@ export class List extends React.Component<IListProps, IListState> {
     const { selectedRows, rowCount } = this.props
     const lastSelectedRow = selectedRows.at(-1)
 
+    if (this.grid) {
+      const element = ReactDOM.findDOMNode(this.grid) as HTMLDivElement
+      if (element) {
+        element.focus()
+      }
+    }
+
     if (lastSelectedRow !== undefined && lastSelectedRow < rowCount) {
       this.scrollRowToVisible(lastSelectedRow)
-    } else {
-      if (this.grid) {
-        const element = ReactDOM.findDOMNode(this.grid) as HTMLDivElement
-        if (element) {
-          element.focus()
-        }
-      }
     }
   }
 }

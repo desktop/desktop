@@ -141,7 +141,15 @@ interface ICommitListProps {
 
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
+  private list: List | null = null
+
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
+
+  public focus() {
+    if (this.list !== null) {
+      this.list.focus()
+    }
+  }
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -376,6 +384,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return rowClassMap
   }
 
+  private onListRef = (ref: List | null) => {
+    this.list = ref
+  }
+
   public render() {
     const {
       commitSHAs,
@@ -401,6 +413,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return (
       <div id="commit-list" className={classes}>
         <List
+          ref={this.onListRef}
           rowCount={commitSHAs.length}
           rowHeight={RowHeight}
           selectedRows={selectedSHAs.map(sha => this.rowForSHA(sha))}

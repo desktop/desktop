@@ -74,6 +74,7 @@ export class CompareSidebar extends React.Component<
   ICompareSidebarState
 > {
   private textbox: TextBox | null = null
+  private commitList: CommitList | null = null
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private branchList: BranchList | null = null
   private loadingMoreCommitsPromise: Promise<void> | null = null
@@ -143,6 +144,16 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.updateCompareForm(this.props.repository, {
       showBranchList: false,
     })
+  }
+
+  public focus() {
+    if (this.commitList !== null) {
+      this.commitList.focus()
+    }
+  }
+
+  private onCommitListRef = (ref: CommitList | null) => {
+    this.commitList = ref
   }
 
   public render() {
@@ -225,6 +236,7 @@ export class CompareSidebar extends React.Component<
 
     return (
       <CommitList
+        ref={this.onCommitListRef}
         gitHubRepository={this.props.repository.gitHubRepository}
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}

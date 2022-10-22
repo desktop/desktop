@@ -108,6 +108,10 @@ export class RepositoryView extends React.Component<
   IRepositoryViewProps,
   IRepositoryViewState
 > {
+  private changesSidebar: ChangesSidebar | null = null
+  private compareSidebar: CompareSidebar | null = null
+  private selectedCommits: SelectedCommits | null = null
+
   private previousSection: RepositorySectionTab =
     this.props.state.selectedSection
 
@@ -138,6 +142,18 @@ export class RepositoryView extends React.Component<
 
   private onCompareListScrolled = (scrollTop: number) => {
     this.setState({ compareListScrollTop: scrollTop })
+  }
+
+  private onChangesSidebarRef = (ref: ChangesSidebar | null) => {
+    this.changesSidebar = ref
+  }
+
+  private onCompareSidebarRef = (ref: CompareSidebar | null) => {
+    this.compareSidebar = ref
+  }
+
+  private onSelectedCommitsRef = (ref: SelectedCommits | null) => {
+    this.selectedCommits = ref
   }
 
   private renderChangesBadge(): JSX.Element | null {
@@ -201,6 +217,7 @@ export class RepositoryView extends React.Component<
 
     return (
       <ChangesSidebar
+        ref={this.onChangesSidebarRef}
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         changes={this.props.state.changesState}
@@ -259,6 +276,7 @@ export class RepositoryView extends React.Component<
 
     return (
       <CompareSidebar
+        ref={this.onCompareSidebarRef}
         repository={repository}
         isLocalRepository={remote === null}
         compareState={compareState}
@@ -393,6 +411,7 @@ export class RepositoryView extends React.Component<
 
     return (
       <SelectedCommits
+        ref={this.onSelectedCommitsRef}
         repository={this.props.repository}
         isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
@@ -549,10 +568,32 @@ export class RepositoryView extends React.Component<
 
   public componentDidMount() {
     window.addEventListener('keydown', this.onGlobalKeyDown)
+    this.focus()
   }
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown)
+  }
+
+  public componentDidUpdate(prevProps: IRepositoryViewProps) {
+    // only force focus if switch between section
+    if (prevProps.state.selectedSection !== this.props.state.selectedSection) {
+      this.focus()
+    }
+  }
+
+  private focus() {
+    if (this.props.state.selectedSection === RepositorySectionTab.Changes) {
+      if (this.changesSidebar !== null) {
+        this.changesSidebar.focus()
+      }
+    } else if (
+      this.props.state.selectedSection === RepositorySectionTab.History
+    ) {
+      if (this.compareSidebar !== null) {
+        this.compareSidebar.focus()
+      }
+    }
   }
 
   private onGlobalKeyDown = (event: KeyboardEvent) => {
@@ -564,12 +605,40 @@ export class RepositoryView extends React.Component<
       return
     }
 
+    const isCmdOrCtrl = __DARWIN__
+      ? event.metaKey && !event.ctrlKey
+      : event.ctrlKey
+
     // Toggle tab selection on Ctrl+Tab. Note that we don't care
     // about the shift key here, we can get away with that as long
     // as there's only two tabs.
     if (event.ctrlKey && event.key === 'Tab') {
       this.changeTab()
       event.preventDefault()
+    } else if (
+      !isCmdOrCtrl &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key === 'ArrowLeft'
+    ) {
+      if (this.props.state.selectedSection === RepositorySectionTab.History) {
+        if (this.compareSidebar !== null) {
+          this.compareSidebar.focus()
+        }
+        event.preventDefault()
+      }
+    } else if (
+      !isCmdOrCtrl &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key === 'ArrowRight'
+    ) {
+      if (this.props.state.selectedSection === RepositorySectionTab.History) {
+        if (this.selectedCommits !== null) {
+          this.selectedCommits.focus()
+        }
+        event.preventDefault()
+      }
     }
   }
 

@@ -102,6 +102,7 @@ export class SelectedCommits extends React.Component<
 > {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private historyRef: HTMLDivElement | null = null
+  private fileList: FileList | null = null
 
   public constructor(props: ISelectedCommitsProps) {
     super(props)
@@ -134,6 +135,12 @@ export class SelectedCommits extends React.Component<
 
   public componentWillUnmount() {
     this.loadChangedFilesScheduler.clear()
+  }
+
+  public focus() {
+    if (this.fileList !== null) {
+      this.fileList.focus()
+    }
   }
 
   private renderDiff() {
@@ -236,6 +243,10 @@ export class SelectedCommits extends React.Component<
     this.props.dispatcher.setCommitSummaryWidth(width)
   }
 
+  private onFileListRef = (ref: FileList | null) => {
+    this.fileList = ref
+  }
+
   private renderFileList() {
     const files = this.props.changesetData.files
     if (files.length === 0) {
@@ -247,6 +258,7 @@ export class SelectedCommits extends React.Component<
 
     return (
       <FileList
+        ref={this.onFileListRef}
         files={files}
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.selectedFile}

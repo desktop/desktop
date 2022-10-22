@@ -240,6 +240,7 @@ export class ChangesList extends React.Component<
   IChangesState
 > {
   private headerRef = createObservableRef<HTMLDivElement>()
+  private list: List | null = null
 
   public constructor(props: IChangesListProps) {
     super(props)
@@ -259,6 +260,12 @@ export class ChangesList extends React.Component<
       )
     ) {
       this.setState({ selectedRows: getSelectedRowsFromProps(nextProps) })
+    }
+  }
+
+  public focus() {
+    if (this.list !== null) {
+      this.list.focus()
     }
   }
 
@@ -903,6 +910,10 @@ export class ChangesList extends React.Component<
     return
   }
 
+  private onListRef = (ref: List | null) => {
+    this.list = ref
+  }
+
   public render() {
     const { workingDirectory, rebaseConflictState, isCommitting } = this.props
     const { files } = workingDirectory
@@ -943,6 +954,7 @@ export class ChangesList extends React.Component<
         </div>
         <List
           id="changes-list"
+          ref={this.onListRef}
           rowCount={files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
