@@ -13,6 +13,7 @@ import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import classNames from 'classnames'
+import { ForcePushBranchState } from '../../lib/rebase'
 
 interface IPushPullButtonProps {
   /**
@@ -52,8 +53,8 @@ interface IPushPullButtonProps {
   /** Is the detached HEAD state related to a rebase or not? */
   readonly rebaseInProgress: boolean
 
-  /** If the current branch has been rebased, the user is permitted to force-push */
-  readonly isForcePush: boolean
+  /** Force-push state of the the current branch */
+  readonly forcePushState: ForcePushBranchState
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
@@ -62,6 +63,11 @@ interface IPushPullButtonProps {
    * The number of tags that would get pushed if the user performed a push.
    */
   readonly numTagsToPush: number
+}
+
+interface IPushPullButtonState {
+  /** Whether or not alt/option button is pressed */
+  readonly altPressed: boolean
 }
 
 function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
@@ -297,7 +303,40 @@ function forcePushButton(
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
+export class PushPullButton extends React.Component<
+  IPushPullButtonProps,
+  IPushPullButtonState
+> {
+  public constructor(props: IPushPullButtonProps) {
+    super(props)
+
+    this.state = {
+      altPressed: false,
+    }
+  }
+
+  public componentDidMount() {
+    document.addEventListener('keydown', this.onKeyDown)
+    document.addEventListener('keyup', this.onKeyUp)
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener('keydown', this.onKeyDown)
+    document.removeEventListener('keyup', this.onKeyUp)
+  }
+
+  private onKeyDown = (event: KeyboardEvent) => {
+    if (event.altKey) {
+      this.setState({ altPressed: true })
+    }
+  }
+
+  private onKeyUp = (event: KeyboardEvent) => {
+    if (!event.altKey) {
+      this.setState({ altPressed: false })
+    }
+  }
+
   private push = () => {
     this.props.dispatcher.push(this.props.repository)
   }
@@ -329,7 +368,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       rebaseInProgress,
       lastFetched,
       pullWithRebase,
-      isForcePush,
+      forcePushState,
     } = this.props
 
     if (progress !== null) {
@@ -369,7 +408,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       )
     }
 
-    if (isForcePush) {
+    if (
+      forcePushState === ForcePushBranchState.Recommended ||
+      (forcePushState === ForcePushBranchState.Available &&
+        this.state.altPressed)
+    ) {
       return forcePushButton(
         remoteName,
         aheadBehind,
