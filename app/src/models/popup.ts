@@ -87,6 +87,7 @@ export enum PopupType {
   PullRequestReview = 'PullRequestReview',
   UnreachableCommits = 'UnreachableCommits',
   StartPullRequest = 'StartPullRequest',
+  Error = 'Error',
 }
 
 interface IBasePopup {
@@ -378,6 +379,10 @@ export type PopupDetail =
       repository: Repository
       nonLocalCommitSHA: string | null
       showSideBySideDiff: boolean
+    }
+  | {
+      type: PopupType.Error
+      error: Error
     }
 
 export type Popup = IBasePopup & PopupDetail

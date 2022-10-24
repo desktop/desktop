@@ -216,7 +216,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * modal dialog such as the preferences, or an error dialog.
    */
   private get isShowingModal() {
-    return this.state.currentPopup !== null || this.state.errors.length > 0
+    return this.state.currentPopup !== null
   }
 
   /**
@@ -1375,11 +1375,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private currentPopupContent(): JSX.Element | null {
-    // Hide any dialogs while we're displaying an error
-    if (this.state.errors.length) {
-      return null
-    }
-
     const popup = this.state.currentPopup
 
     if (!popup) {
@@ -2303,6 +2298,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.Error: {
+        return (
+          <AppError
+            errors={this.state.errors}
+            onClearError={this.clearError}
+            onShowPopup={this.showPopup}
+            onRetryAction={this.onRetryAction}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2478,17 +2483,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setConfirmDiscardChangesPermanentlySetting(value)
   }
 
-  private renderAppError() {
-    return (
-      <AppError
-        errors={this.state.errors}
-        onClearError={this.clearError}
-        onShowPopup={this.showPopup}
-        onRetryAction={this.onRetryAction}
-      />
-    )
-  }
-
   private onRetryAction = (retryAction: RetryAction) => {
     this.props.dispatcher.performRetry(retryAction)
   }
@@ -2516,7 +2510,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
-        {this.renderAppError()}
         {this.renderDragElement()}
       </div>
     )
