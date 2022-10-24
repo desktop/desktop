@@ -1,5 +1,6 @@
 import uuid from 'uuid'
 import { Popup, PopupType } from '../models/popup'
+import { enableStackedPopups } from './feature-flag'
 import { sendNonFatalException } from './helpers/non-fatal-exception'
 
 /**
@@ -50,6 +51,12 @@ export class PopupManager {
    **/
   public addPopup(popupToAdd: Popup): Popup {
     const existingPopup = this.getPopupsOfType(popupToAdd.type)
+
+    if (!enableStackedPopups()) {
+      this.popupStack = [popupToAdd]
+      return popupToAdd
+    }
+
     if (existingPopup.length > 0) {
       log.warn(
         `Attempted to add a popup of already existing type - ${popupToAdd.type}.`
