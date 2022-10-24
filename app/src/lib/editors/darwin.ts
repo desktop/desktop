@@ -144,6 +144,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Lite XL',
     bundleIdentifiers: ['com.lite-xl'],
   },
+  {
+    name: 'Spyder',
+    bundleIdentifiers: ['org.spyder-ide.Spyder'],
+  }
 ]
 
 async function findApplication(
