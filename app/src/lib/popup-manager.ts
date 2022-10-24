@@ -102,7 +102,7 @@ export class PopupManager {
    * Removes a popup based on it's id.
    */
   public removePopup(popup: Popup) {
-    if (popup.id === null) {
+    if (popup.id === undefined) {
       log.warn(`Attempted to remove a popup without an id.`)
       return
     }
