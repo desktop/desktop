@@ -163,6 +163,7 @@ import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
+import { uuid } from '../lib/uuid'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -351,7 +352,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onMenuEvent(name: MenuEvent): any {
     // Don't react to menu events when an error dialog is shown.
-    if (this.state.errors.length) {
+    if (name !== 'show-app-error' && this.state.errors.length) {
       return
     }
 
@@ -450,6 +451,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.findText()
       case 'pull-request-check-run-failed':
         return this.testPullRequestCheckRunFailed()
+      case 'show-app-error':
+        return this.props.dispatcher.postError(
+          new Error('Test Error - to use default error handler' + uuid())
+        )
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }

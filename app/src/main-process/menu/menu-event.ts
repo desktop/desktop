@@ -44,3 +44,4 @@ export type MenuEvent =
   | 'create-issue-in-repository-on-github'
   | 'pull-request-check-run-failed'
   | 'start-pull-request'
+  | 'show-app-error'
