@@ -33,7 +33,7 @@ export class PopupManager {
    * Returns an array of all popups in the stack of the provided type.
    **/
   public getPopupsOfType(popupType: PopupType): ReadonlyArray<Popup> {
-    return [...this.popupStack.filter(p => p.type === popupType)]
+    return this.popupStack.filter(p => p.type === popupType)
   }
 
   /**
