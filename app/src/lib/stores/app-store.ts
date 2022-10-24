@@ -2512,7 +2512,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       displayingBanner ||
       isConflictsFlow(
-        this.popupManager.arePopupsOfType(PopupType.MultiCommitOperation),
+        this.popupManager.areTherePopupsOfType(PopupType.MultiCommitOperation),
         multiCommitOperationState
       )
     ) {
