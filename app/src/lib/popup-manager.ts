@@ -1,20 +1,22 @@
-import uuid from 'uuid'
 import { Popup, PopupType } from '../models/popup'
 import { enableStackedPopups } from './feature-flag'
 import { sendNonFatalException } from './helpers/non-fatal-exception'
+import { uuid } from './uuid'
 
 /**
  * The limit of how many popups allowed in the stack. Working under the
  * assumption that a user should only be dealing with a couple of popups at a
  * time, if a user hits the limit this would indicate a problem.
  */
-const popupStackLimit = 50
+const defaultPopupStackLimit = 50
 
 /**
  * The popup manager is to manage the stack of currently open popups.
  */
 export class PopupManager {
   private popupStack = new Array<Popup>()
+
+  public constructor(private readonly popupLimit = defaultPopupStackLimit) {}
 
   /**
    * Returns the last popup added to the stack.
@@ -67,13 +69,13 @@ export class PopupManager {
     const popup = { id: uuid(), ...popupToAdd }
     this.popupStack.push(popup)
 
-    if (this.popupStack.length > popupStackLimit) {
+    if (this.popupStack.length > this.popupLimit) {
       // Remove the oldest
       const oldest = this.popupStack[0]
       sendNonFatalException(
         'TooManyPopups',
         new Error(
-          `Max number of ${popupStackLimit} popups reached while adding popup of type ${popup.type}. Removing last popup from the stack -> type ${oldest.type} `
+          `Max number of ${this.popupLimit} popups reached while adding popup of type ${popup.type}. Removing last popup from the stack -> type ${oldest.type} `
         )
       )
       this.popupStack = this.popupStack.slice(1)
@@ -85,16 +87,16 @@ export class PopupManager {
    * Updates a popup in the stack and returns it.
    * - It uses the popup id to find and update the popup.
    */
-  public updatePopup(popupToUpdate: Popup): Popup {
+  public updatePopup(popupToUpdate: Popup) {
     if (popupToUpdate.id === undefined) {
       log.warn(`Attempted to update a popup without an id.`)
-      return popupToUpdate
+      return
     }
 
     const index = this.popupStack.findIndex(p => p.id === popupToUpdate.id)
     if (index < 0) {
       log.warn(`Attempted to update a popup not in the stack.`)
-      return popupToUpdate
+      return
     }
 
     this.popupStack = [
@@ -102,7 +104,6 @@ export class PopupManager {
       popupToUpdate,
       ...this.popupStack.slice(index + 1),
     ]
-    return popupToUpdate
   }
 
   /**
