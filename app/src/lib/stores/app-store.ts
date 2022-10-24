@@ -3939,6 +3939,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const newErrors = Array.from(this.errors)
     newErrors.push(error)
     this.errors = newErrors
+    this.popupManager.addErrorPopup(error)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -3947,6 +3948,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _clearError(error: Error): Promise<void> {
     this.errors = this.errors.filter(e => e !== error)
+    this.popupManager.removeErrorPopup(error)
     this.emitUpdate()
 
     return Promise.resolve()

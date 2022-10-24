@@ -19,10 +19,13 @@ export class PopupManager {
   public constructor(private readonly popupLimit = defaultPopupStackLimit) {}
 
   /**
-   * Returns the last popup added to the stack.
+   * Returns the last popup in the stack.
+   *  If there are error popups, it returns the last popup of type error,
+   *  otherwise returns the first non-error type popup.
    */
   public get currentPopup(): Popup | null {
-    return this.popupStack.at(-1) ?? null
+    const errorPopups = this.getPopupsOfType(PopupType.Error)
+    return errorPopups.at(-1) ?? this.popupStack.at(-1) ?? null
   }
 
   /**
@@ -49,7 +52,8 @@ export class PopupManager {
   /**
    * Adds a popup to the stack.
    * - The popup will be given a unique id and returned.
-   * - It will not add multiple popups of the same type to the stack
+   * - It will not add multiple popups of the same type onto the stack
+   *   - NB: Error types are the only duplicates allowed
    **/
   public addPopup(popupToAdd: Popup): Popup {
     const existingPopup = this.getPopupsOfType(popupToAdd.type)
@@ -68,19 +72,34 @@ export class PopupManager {
 
     const popup = { id: uuid(), ...popupToAdd }
     this.popupStack.push(popup)
+    this.checkStackLength()
+    return popup
+  }
 
+  /*
+   * Adds an Error Popup to the stack
+   * - The popup will be given a unique id.
+   * - Multiple popups of a type error.
+   **/
+  public addErrorPopup(error: Error): Popup {
+    const popup: Popup = { id: uuid(), type: PopupType.Error, error }
+    this.popupStack.push(popup)
+    this.checkStackLength()
+    return popup
+  }
+
+  private checkStackLength() {
     if (this.popupStack.length > this.popupLimit) {
       // Remove the oldest
       const oldest = this.popupStack[0]
       sendNonFatalException(
         'TooManyPopups',
         new Error(
-          `Max number of ${this.popupLimit} popups reached while adding popup of type ${popup.type}. Removing last popup from the stack -> type ${oldest.type} `
+          `Max number of ${this.popupLimit} popups reached while adding popup of type ${this.currentPopup?.type}. Removing last popup from the stack -> type ${oldest.type} `
         )
       )
       this.popupStack = this.popupStack.slice(1)
     }
-    return popup
   }
 
   /**
@@ -122,5 +141,14 @@ export class PopupManager {
    */
   public removePopupByType(popupType: PopupType) {
     this.popupStack = this.popupStack.filter(p => p.type !== popupType)
+  }
+
+  /**
+   * Removes any popup with the given error
+   */
+  public removeErrorPopup(error: Error) {
+    this.popupStack = this.popupStack.filter(
+      p => p.type !== PopupType.Error || p.error !== error
+    )
   }
 }
