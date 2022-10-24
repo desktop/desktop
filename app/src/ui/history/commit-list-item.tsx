@@ -219,6 +219,10 @@ export class CommitListItem extends React.PureComponent<
     clipboard.writeText(this.props.commit.sha)
   }
 
+  private onCopyTags = () => {
+    clipboard.writeText(this.props.commit.tags.join(', '))
+  }
+
   private onViewOnGitHub = () => {
     if (this.props.onViewCommitOnGitHub) {
       this.props.onViewCommitOnGitHub(this.props.commit.sha)
@@ -352,6 +356,11 @@ export class CommitListItem extends React.PureComponent<
       {
         label: 'Copy SHA',
         action: this.onCopySHA,
+      },
+      {
+        label: 'Copy Tags',
+        action: this.onCopyTags,
+        enabled: this.props.commit.tags.length > 0
       },
       {
         label: viewOnGitHubLabel,
