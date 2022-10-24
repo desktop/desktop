@@ -33,7 +33,7 @@ export class PopupManager {
    * Returns an array of all popups in the stack of the provided type.
    **/
   public getPopupsOfType(popupType: PopupType): ReadonlyArray<Popup> {
-    return [...this.popupStack.filter(p => p.type === popupType)]
+    return this.popupStack.filter(p => p.type === popupType)
   }
 
   /**
@@ -102,7 +102,7 @@ export class PopupManager {
    * Removes a popup based on it's id.
    */
   public removePopup(popup: Popup) {
-    if (popup.id === null) {
+    if (popup.id === undefined) {
       log.warn(`Attempted to remove a popup without an id.`)
       return
     }
