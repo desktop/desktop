@@ -165,7 +165,9 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
     this.resizeObserver.observe(this.codeMirror.getWrapperElement())
 
-    document.addEventListener('dialog-appeared', this.onDialogAppeared)
+    if (this.wrapper !== null && this.wrapper.closest('dialog') !== null) {
+      document.addEventListener('dialog-appeared', this.onDialogAppeared)
+    }
   }
 
   private onDialogAppeared = () => {
