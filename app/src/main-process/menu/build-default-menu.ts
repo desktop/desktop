@@ -286,6 +286,12 @@ export function buildDefaultMenu({
         click: emit('pull'),
       },
       {
+        id: 'fetch',
+        label: __DARWIN__ ? 'Fetch' : '&Fetch',
+        accelerator: 'CmdOrCtrl+Shift+T',
+        click: emit('fetch'),
+      },
+      {
         label: removeRepoLabel,
         id: 'remove-repository',
         accelerator: 'CmdOrCtrl+Backspace',
