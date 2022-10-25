@@ -3519,8 +3519,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopupById(popupId: string) {
-    const currentPopup = this.popupManager.currentPopup
-    if (currentPopup === null) {
+    if (this.popupManager.currentPopup === null) {
       return
     }
 
