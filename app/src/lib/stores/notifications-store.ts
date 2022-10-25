@@ -127,6 +127,8 @@ export class NotificationsStore {
     if (!this.isValidRepositoryForEvent(repository, event)) {
       if (this.isRecentRepositoryEvent(event)) {
         this.statsStore.recordPullRequestReviewNotiificationFromRecentRepo()
+      } else {
+        this.statsStore.recordPullRequestReviewNotiificationFromNonRecentRepo()
       }
       return
     }
@@ -205,6 +207,8 @@ export class NotificationsStore {
     if (!this.isValidRepositoryForEvent(repository, event)) {
       if (this.isRecentRepositoryEvent(event)) {
         this.statsStore.recordChecksFailedNotificationFromRecentRepo()
+      } else {
+        this.statsStore.recordChecksFailedNotificationFromNonRecentRepo()
       }
       return
     }

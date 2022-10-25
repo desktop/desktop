@@ -196,11 +196,13 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rerunsChecks: 0,
   checksFailedNotificationCount: 0,
   checksFailedNotificationFromRecentRepoCount: 0,
+  checksFailedNotificationFromNonRecentRepoCount: 0,
   checksFailedNotificationClicked: 0,
   checksFailedDialogOpenCount: 0,
   checksFailedDialogSwitchToPullRequestCount: 0,
   checksFailedDialogRerunChecksCount: 0,
   pullRequestReviewNotificationFromRecentRepoCount: 0,
+  pullRequestReviewNotificationFromNonRecentRepoCount: 0,
   pullRequestReviewApprovedNotificationCount: 0,
   pullRequestReviewApprovedNotificationClicked: 0,
   pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
@@ -1785,6 +1787,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordChecksFailedNotificationFromNonRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationFromNonRecentRepoCount:
+        m.checksFailedNotificationFromNonRecentRepoCount + 1,
+    }))
+  }
+
   public recordChecksFailedNotificationClicked(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
@@ -1858,6 +1867,13 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       pullRequestReviewNotificationFromRecentRepoCount:
         m.pullRequestReviewNotificationFromRecentRepoCount + 1,
+    }))
+  }
+
+  public recordPullRequestReviewNotiificationFromNonRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      pullRequestReviewNotificationFromNonRecentRepoCount:
+        m.pullRequestReviewNotificationFromNonRecentRepoCount + 1,
     }))
   }
 
