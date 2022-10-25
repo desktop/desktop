@@ -29,10 +29,6 @@ interface IInstallingUpdateProps {
 export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
   private updateStoreEventHandle: Disposable | null = null
 
-  public constructor(props: IInstallingUpdateProps) {
-    super(props)
-  }
-
   private onUpdateStateChanged = (updateState: IUpdateState) => {
     // If the update is not being downloaded (`UpdateStatus.UpdateAvailable`),
     // i.e. if it's already downloaded or not available, close the window.
