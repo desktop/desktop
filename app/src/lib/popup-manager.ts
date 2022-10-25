@@ -12,6 +12,29 @@ const defaultPopupStackLimit = 50
 
 /**
  * The popup manager is to manage the stack of currently open popups.
+ *
+ * Popup Flow Notes:
+ * 1. We have many types of popups. We only support opening one popup type at a
+ *    time with the exception of PopupType.Error. If the app is to produce
+ *    multiple errors, we want the user to be able to be informed of all them.
+ * 2. Error popups are viewed first ahead of any other popup types. Otherwise,
+ *    popups ordered by last on last off.
+ * 3. There are custom error handling popups that are not categorized as errors:
+ *     - When a error is captured in the app, we use the dispatcher method
+ *       'postError` to run through all the error handlers defined in
+ *       `errorHandler.ts`.
+ *     - If a custom error handler picks the error up, it handles it in a custom
+ *       way. Commonly, it users the dispatcher to open a popup specific to the
+ *       error - likely to allow interaction with the user. This is not an error
+ *       popup.
+ *    -  Otherwise, the error is captured by the `defaultErrorHandler` defined
+ *       in `errorHandler.ts` which simply dispatches to `presentError`. This
+ *       method requests ends up in the app-store to add a popup of type `Error`
+ *       to the stack. Then, it is rendered as a popup with the AppError
+ *       component.
+ *    - The AppError component additionally does some custom error handling for
+ *      cloning errors and for author errors. But, most errors are just
+ *      displayed as error text with a ok button.
  */
 export class PopupManager {
   private popupStack = new Array<Popup>()
