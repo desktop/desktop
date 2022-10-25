@@ -144,11 +144,9 @@ export class PopupManager {
   }
 
   /**
-   * Removes any popup with the given error
+   * Removes popup from the stack by it's id
    */
-  public removeErrorPopup(error: Error) {
-    this.popupStack = this.popupStack.filter(
-      p => p.type !== PopupType.Error || p.error !== error
-    )
+  public removePopupById(popupId: string) {
+    this.popupStack = this.popupStack.filter(p => p.id !== popupId)
   }
 }

@@ -145,7 +145,7 @@ export interface IAppState {
    */
   readonly appMenuState: ReadonlyArray<IMenu>
 
-  readonly errors: ReadonlyArray<Error>
+  readonly errorCount: number
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>

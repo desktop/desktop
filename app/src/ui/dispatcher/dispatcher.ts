@@ -384,6 +384,13 @@ export class Dispatcher {
     return this.appStore._closePopup(popupType)
   }
 
+  /**
+   * Close the popup with given id.
+   */
+  public closePopupById(popupId: string) {
+    return this.appStore._closePopupById(popupId)
+  }
+
   /** Show the foldout. This will close any current popup. */
   public showFoldout(foldout: Foldout): Promise<void> {
     return this.appStore._showFoldout(foldout)
@@ -763,11 +770,6 @@ export class Dispatcher {
    */
   public presentError(error: Error): Promise<void> {
     return this.appStore._pushError(error)
-  }
-
-  /** Clear the given error. */
-  public clearError(error: Error): Promise<void> {
-    return this.appStore._clearError(error)
   }
 
   /**

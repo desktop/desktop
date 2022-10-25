@@ -21,7 +21,7 @@ describe('PopupManager', () => {
       expect(currentPopup).toBeNull()
     })
 
-    it('returns last added popup', () => {
+    it('returns last added non-error popup', () => {
       const popupAbout: Popup = { type: PopupType.About }
       const popupSignIn: Popup = { type: PopupType.SignIn }
       popupManager.addPopup(popupAbout)
@@ -30,6 +30,18 @@ describe('PopupManager', () => {
       const currentPopup = popupManager.currentPopup
       expect(currentPopup).not.toBeNull()
       expect(currentPopup?.type).toBe(PopupType.SignIn)
+    })
+
+    it('returns last added error popup', () => {
+      const popupAbout: Popup = { type: PopupType.About }
+      const popupSignIn: Popup = { type: PopupType.SignIn }
+      popupManager.addPopup(popupAbout)
+      popupManager.addErrorPopup(new Error('an error'))
+      popupManager.addPopup(popupSignIn)
+
+      const currentPopup = popupManager.currentPopup
+      expect(currentPopup).not.toBeNull()
+      expect(currentPopup?.type).toBe(PopupType.Error)
     })
   })
 
@@ -155,6 +167,39 @@ describe('PopupManager', () => {
     })
   })
 
+  describe('addErrorPopup', () => {
+    it('adds a popup of type error to the stack', () => {
+      popupManager.addErrorPopup(new Error('an error'))
+
+      const popupsOfType = popupManager.getPopupsOfType(PopupType.Error)
+      const currentPopup = popupManager.currentPopup
+      expect(popupsOfType).toBeArrayOfSize(1)
+      expect(currentPopup).not.toBeNull()
+      expect(currentPopup?.type).toBe(PopupType.Error)
+      expect(currentPopup?.id).toBe(0)
+    })
+
+    it('adds multiple popups of type error to the stack', () => {
+      popupManager.addErrorPopup(new Error('an error'))
+      popupManager.addErrorPopup(new Error('an error'))
+
+      const popupsOfType = popupManager.getPopupsOfType(PopupType.Error)
+      expect(popupsOfType).toBeArrayOfSize(2)
+    })
+
+    it('trims oldest popup when limit is reached', () => {
+      const limit = 2
+      popupManager = new PopupManager(limit)
+      popupManager.addErrorPopup(new Error('an error'))
+      popupManager.addErrorPopup(new Error('an error'))
+      popupManager.addErrorPopup(new Error('an error'))
+      popupManager.addErrorPopup(new Error('an error'))
+
+      const errorPopups = popupManager.getPopupsOfType(PopupType.Error)
+      expect(errorPopups).toBeArrayOfSize(limit)
+    })
+  })
+
   describe('updatePopup', () => {
     it('updates the given popup', () => {
       const mockAccount = new Account('test', '', 'deadbeef', [], '', 1, '')
@@ -233,13 +278,35 @@ describe('PopupManager', () => {
   })
 
   describe('removePopupByType', () => {
-    it('returns popups of a given type', () => {
+    it('removes the popups of a given type', () => {
       popupManager.addPopup({ type: PopupType.About })
       popupManager.addPopup({
         type: PopupType.SignIn,
       })
 
       popupManager.removePopupByType(PopupType.About)
+
+      const aboutPopups = popupManager.getPopupsOfType(PopupType.About)
+      expect(aboutPopups).toBeArrayOfSize(0)
+
+      const signInPopups = popupManager.getPopupsOfType(PopupType.SignIn)
+      expect(signInPopups).toBeArrayOfSize(1)
+    })
+  })
+
+  describe('removePopupById', () => {
+    it('removes the popup by its id', () => {
+      const popupAbout: Popup = popupManager.addPopup({ type: PopupType.About })
+      popupManager.addPopup({
+        type: PopupType.SignIn,
+      })
+
+      expect(popupAbout.id).toBeDefined()
+      if (popupAbout.id === undefined) {
+        return
+      }
+
+      popupManager.removePopupById(popupAbout.id)
 
       const aboutPopups = popupManager.getPopupsOfType(PopupType.About)
       expect(aboutPopups).toBeArrayOfSize(0)
