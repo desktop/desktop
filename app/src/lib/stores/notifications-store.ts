@@ -68,6 +68,7 @@ export function getNotificationsEnabled() {
  */
 export class NotificationsStore {
   private repository: RepositoryWithGitHubRepository | null = null
+  private recentRepositories: ReadonlyArray<Repository> = []
   private onChecksFailedCallback: OnChecksFailedCallback | null = null
   private onPullRequestReviewSubmitCallback: OnPullRequestReviewSubmitCallback | null =
     null
@@ -124,6 +125,9 @@ export class NotificationsStore {
     }
 
     if (!this.isValidRepositoryForEvent(repository, event)) {
+      if (this.isRecentRepositoryEvent(event)) {
+        this.statsStore.recordPullRequestReviewNotiificationFromRecentRepo()
+      }
       return
     }
 
@@ -199,6 +203,9 @@ export class NotificationsStore {
     }
 
     if (!this.isValidRepositoryForEvent(repository, event)) {
+      if (this.isRecentRepositoryEvent(event)) {
+        this.statsStore.recordChecksFailedNotificationFromRecentRepo()
+      }
       return
     }
 
@@ -318,6 +325,14 @@ export class NotificationsStore {
     )
   }
 
+  private isRecentRepositoryEvent(event: DesktopAliveEvent) {
+    return this.recentRepositories.some(
+      r =>
+        isRepositoryWithGitHubRepository(r) &&
+        this.isValidRepositoryForEvent(r, event)
+    )
+  }
+
   /**
    * Makes the store to keep track of the currently selected repository. Only
    * notifications for the currently selected repository will be shown.
@@ -326,6 +341,15 @@ export class NotificationsStore {
     this.repository = isRepositoryWithGitHubRepository(repository)
       ? repository
       : null
+  }
+
+  /**
+   * For stats purposes, we need to know which are the recent repositories. This
+   * will allow the notification store when a notification is related to one of
+   * these repositories.
+   */
+  public setRecentRepositories(repositories: ReadonlyArray<Repository>) {
+    this.recentRepositories = repositories
   }
 
   private async getAccountForRepository(repository: GitHubRepository) {

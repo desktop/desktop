@@ -195,10 +195,12 @@ const DefaultDailyMeasures: IDailyMeasures = {
   viewsCheckJobStepOnline: 0,
   rerunsChecks: 0,
   checksFailedNotificationCount: 0,
+  checksFailedNotificationFromRecentRepoCount: 0,
   checksFailedNotificationClicked: 0,
   checksFailedDialogOpenCount: 0,
   checksFailedDialogSwitchToPullRequestCount: 0,
   checksFailedDialogRerunChecksCount: 0,
+  pullRequestReviewNotificationFromRecentRepoCount: 0,
   pullRequestReviewApprovedNotificationCount: 0,
   pullRequestReviewApprovedNotificationClicked: 0,
   pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
@@ -1776,6 +1778,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordChecksFailedNotificationFromRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationFromRecentRepoCount:
+        m.checksFailedNotificationFromRecentRepoCount + 1,
+    }))
+  }
+
   public recordChecksFailedNotificationClicked(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
@@ -1843,6 +1852,13 @@ export class StatsStore implements IStatsStore {
     }
 
     return `pullRequestReview${infixMap[reviewType]}${suffix}`
+  }
+
+  public recordPullRequestReviewNotiificationFromRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      pullRequestReviewNotificationFromRecentRepoCount:
+        m.pullRequestReviewNotificationFromRecentRepoCount + 1,
+    }))
   }
 
   // Generic method to record stats related to Pull Request review notifications.
