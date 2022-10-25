@@ -51,15 +51,15 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
+
+    // This will ensure the app doesn't try to quit after the update is
+    // installed once the dialog is closed (explicitly or implicitly, by
+    // opening another dialog on top of this one).
+    this.props.dispatcher.cancelQuittingApp()
   }
 
   private onQuitAnywayButtonClicked = () => {
     this.props.dispatcher.quitApp(true)
-  }
-
-  private onCancel = () => {
-    this.props.dispatcher.cancelQuittingApp()
-    this.props.onDismissed()
   }
 
   public render() {
@@ -74,7 +74,7 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
           title={__DARWIN__ ? 'Installing Update…' : 'Installing update…'}
           loading={true}
           dismissable={true}
-          onDismissed={this.onCancel}
+          onDismissed={this.props.onDismissed}
         />
         <DialogContent>
           <Row className="updating-message">
@@ -86,7 +86,7 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Quit Anyway' : 'Quit anyway'}
             onOkButtonClick={this.onQuitAnywayButtonClicked}
-            onCancelButtonClick={this.onCancel}
+            onCancelButtonClick={this.props.onDismissed}
             destructive={true}
           />
         </DialogFooter>
