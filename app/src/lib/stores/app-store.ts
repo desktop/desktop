@@ -2232,7 +2232,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // From the menu, we'll offer to force-push whenever it's possible, regardless
-    // of whether or not the user performed any action we know whould be followed
+    // of whether or not the user performed any action we know would be followed
     // by a force-push.
     const isForcePushForCurrentRepository =
       getCurrentBranchForcePushState(branchesState, aheadBehind) !==
