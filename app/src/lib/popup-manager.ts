@@ -56,10 +56,14 @@ export class PopupManager {
    *   - NB: Error types are the only duplicates allowed
    **/
   public addPopup(popupToAdd: Popup): Popup {
+    if (popupToAdd.type === PopupType.Error) {
+      return this.addErrorPopup(popupToAdd.error)
+    }
+
     const existingPopup = this.getPopupsOfType(popupToAdd.type)
 
     if (!enableStackedPopups()) {
-      this.popupStack = [popupToAdd]
+      this.popupStack = [popupToAdd, ...this.getPopupsOfType(PopupType.Error)]
       return popupToAdd
     }
 
