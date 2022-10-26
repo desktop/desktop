@@ -3,6 +3,26 @@ import { IAheadBehind } from '../models/branch'
 import { TipState } from '../models/tip'
 import { clamp } from './clamp'
 
+/** Represents the force-push availability state of a branch. */
+export enum ForcePushBranchState {
+  /** The branch cannot be force-pushed (it hasn't diverged from its upstream) */
+  NotAvailable,
+
+  /**
+   * The branch can be force-pushed, but the user didn't do any operation that
+   * we consider should be followed by a force-push, like rebasing or amending a
+   * pushed commit.
+   */
+  Available,
+
+  /**
+   * The branch can be force-pushed, and the user did some operation that we
+   * consider should be followed by a force-push, like rebasing or amending a
+   * pushed commit.
+   */
+  Recommended,
+}
+
 /**
  * Format rebase percentage to ensure it's a value between 0 and 1, but to also
  * constrain it to two significant figures, avoiding the remainder that comes
@@ -16,17 +36,23 @@ export function formatRebaseValue(value: number) {
  * Check application state to see whether the action applied to the current
  * branch should be a force push
  */
-export function isCurrentBranchForcePush(
+export function getCurrentBranchForcePushState(
   branchesState: IBranchesState,
   aheadBehind: IAheadBehind | null
-) {
+): ForcePushBranchState {
   if (aheadBehind === null) {
     // no tracking branch found
-    return false
+    return ForcePushBranchState.NotAvailable
+  }
+
+  const { ahead, behind } = aheadBehind
+
+  if (behind === 0 || ahead === 0) {
+    // no a diverged branch to force push
+    return ForcePushBranchState.NotAvailable
   }
 
   const { tip, forcePushBranches } = branchesState
-  const { ahead, behind } = aheadBehind
 
   let canForcePushBranch = false
   if (tip.kind === TipState.Valid) {
@@ -36,5 +62,7 @@ export function isCurrentBranchForcePush(
     canForcePushBranch = foundEntry === sha
   }
 
-  return canForcePushBranch && behind > 0 && ahead > 0
+  return canForcePushBranch
+    ? ForcePushBranchState.Recommended
+    : ForcePushBranchState.Available
 }

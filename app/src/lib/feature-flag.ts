@@ -113,6 +113,11 @@ export function enableStartingPullRequests(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should we enable starting pull requests? */
+export function enableStackedPopups(): boolean {
+  return enableDevelopmentFeatures()
+}
+
 /** Should we enable mechanism to prevent closing while the app is updating? */
 export function enablePreventClosingWhileUpdating(): boolean {
   return enableBetaFeatures()
