@@ -77,6 +77,10 @@ import {
   updatePreferredAppMenuItemLabels,
   updateAccounts,
   setWindowZoomFactor,
+  onShowInstallingUpdate,
+  sendWillQuitEvenIfUpdatingSync,
+  quitApp,
+  sendCancelQuittingSync,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -585,6 +589,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.notificationsStore.onPullRequestReviewSubmitNotification(
       this.onPullRequestReviewSubmitNotification
     )
+
+    onShowInstallingUpdate(this.onShowInstallingUpdate)
   }
 
   private initializeWindowState = async () => {
@@ -652,6 +658,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._showPopup({
       type: PopupType.InvalidatedToken,
       account,
+    })
+  }
+
+  private onShowInstallingUpdate = () => {
+    this._showPopup({
+      type: PopupType.InstallingUpdate,
     })
   }
 
@@ -7472,6 +7484,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.emitUpdate()
       }
     )
+  }
+
+  public _quitApp(evenIfUpdating: boolean) {
+    if (evenIfUpdating) {
+      sendWillQuitEvenIfUpdatingSync()
+    }
+
+    quitApp()
+  }
+
+  public _cancelQuittingApp() {
+    sendCancelQuittingSync()
   }
 }
 

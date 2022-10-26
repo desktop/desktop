@@ -87,6 +87,7 @@ export enum PopupType {
   PullRequestReview = 'PullRequestReview',
   UnreachableCommits = 'UnreachableCommits',
   StartPullRequest = 'StartPullRequest',
+  InstallingUpdate = 'InstallingUpdate',
 }
 
 interface IBasePopup {
@@ -378,6 +379,9 @@ export type PopupDetail =
       repository: Repository
       nonLocalCommitSHA: string | null
       showSideBySideDiff: boolean
+    }
+  | {
+      type: PopupType.InstallingUpdate
     }
 
 export type Popup = IBasePopup & PopupDetail

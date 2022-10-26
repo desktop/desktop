@@ -117,3 +117,8 @@ export function enableStartingPullRequests(): boolean {
 export function enableStackedPopups(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/** Should we enable mechanism to prevent closing while the app is updating? */
+export function enablePreventClosingWhileUpdating(): boolean {
+  return enableBetaFeatures()
+}
