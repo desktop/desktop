@@ -1,5 +1,20 @@
 {
   "releases": {
+    "3.1.3-beta2": [
+      "[Added] Enable menu option to Force-push branches that have diverged - #15521",
+      "[Added] Add menu option to Fetch the current repository at any time - #15520",
+      "[Added] Support CLion as an external editor - #13739. Thanks @daniel-ciaglia!",
+      "[Fixed] Prevent closing the GitHub Desktop while it's being updated - #15416",
+      "[Fixed] Notifications are shown only when they are relevant to the current repository - #15487",
+      "[Fixed] Disable reorder, squashing, cherry-picking while an action of this type is in progress. - #15468",
+      "[Fixed] Fix repository change indicator not visible if selected and in focus - #15475. Thanks @angusdev!",
+      "[Fixed] Close 'Resolve conflicts before Rebase' dialog will not disable menu items - #15471. Thanks @angusdev!",
+      "[Fixed] Tooltips are positioned properly if mouse is not moved - #15462. Thanks @angusdev!",
+      "[Fixed] Fix tooltips of long commit author emails not breaking properly - #15460. Thanks @angusdev!",
+      "[Fixed] Clone repository progress bar no longer hidden by repository list - #15465. Thanks @angusdev!",
+      "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) while amending a commit - #15445",
+      "[Improved] Pull request preview dialog width and height is responsive - #15500"
+    ],
     "3.1.3-beta1": ["[Improved] Upgrade embedded Git to 2.35.5"],
     "3.1.2": ["[Improved] Upgrade embedded Git to 2.35.5"],
     "3.1.2-beta1": [
