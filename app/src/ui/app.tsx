@@ -288,9 +288,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       // the case on a windows instance where there was not space on the hard
       // drive to download the installer. In this case, we want to override the
       // error message so the user is not given a blank dialog.
-      const isErrorMsg = error.message.trim().length > 0
+      const hasErrorMsg = error.message.trim().length > 0
       this.props.dispatcher.postError(
-        isErrorMsg ? error : new Error('Checking for updates failed.')
+        hasErrorMsg ? error : new Error('Checking for updates failed.')
       )
     })
 
