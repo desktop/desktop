@@ -22,7 +22,6 @@ import {
   ICloneProgress,
   IMultiCommitOperationProgress,
 } from '../models/progress'
-import { Popup } from '../models/popup'
 
 import { SignInState } from './stores/sign-in-store'
 
@@ -47,6 +46,7 @@ import {
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
+import { Popup } from '../models/popup'
 
 export enum SelectionType {
   Repository,
