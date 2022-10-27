@@ -5,7 +5,7 @@ import {
   isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
-import { PullRequest } from '../../models/pull-request'
+import { getPullRequestCommitRef, PullRequest } from '../../models/pull-request'
 import { API, APICheckConclusion } from '../api'
 import {
   createCombinedCheckFromChecks,
@@ -244,7 +244,20 @@ export class NotificationsStore {
       return
     }
 
-    const checks = await this.getChecksForRef(repository, pullRequest.head.ref)
+    const isForkContributingToParent =
+      isRepositoryWithForkedGitHubRepository(repository) &&
+      repository.workflowPreferences.forkContributionTarget ===
+        ForkContributionTarget.Parent
+
+    // Checks must be retrieved from the repository the PR belongs to
+    const checksRepository = isForkContributingToParent
+      ? repository.gitHubRepository.parent
+      : repository.gitHubRepository
+
+    const checks = await this.getChecksForRef(
+      checksRepository,
+      getPullRequestCommitRef(pullRequest.pullRequestNumber)
+    )
     if (checks === null) {
       return
     }
@@ -345,14 +358,10 @@ export class NotificationsStore {
     return API.fromAccount(account)
   }
 
-  private async getChecksForRef(
-    repository: RepositoryWithGitHubRepository,
-    ref: string
-  ) {
-    const { gitHubRepository } = repository
-    const { owner, name } = gitHubRepository
+  private async getChecksForRef(repository: GitHubRepository, ref: string) {
+    const { owner, name } = repository
 
-    const api = await this.getAPIForRepository(gitHubRepository)
+    const api = await this.getAPIForRepository(repository)
 
     if (api === null) {
       return null
