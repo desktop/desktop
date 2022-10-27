@@ -73,6 +73,7 @@ export class NotificationsStore {
     null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
+  private skipCheckSuites: Set<number> = new Set()
 
   public constructor(
     private readonly accountsStore: AccountsStore,
@@ -202,6 +203,10 @@ export class NotificationsStore {
       return
     }
 
+    if (this.skipCheckSuites.has(event.check_suite_id)) {
+      return
+    }
+
     const pullRequests = await this.pullRequestCoordinator.getAllPullRequests(
       repository
     )
@@ -273,6 +278,14 @@ export class NotificationsStore {
       return
     }
 
+    // Ignore any remaining notification for check suites that started along
+    // with this one.
+    for (const check of checks) {
+      if (check.checkSuiteId !== null) {
+        this.skipCheckSuites.add(check.checkSuiteId)
+      }
+    }
+
     const pluralChecks =
       numberOfFailedChecks === 1 ? 'check was' : 'checks were'
 
@@ -336,9 +349,20 @@ export class NotificationsStore {
    * notifications for the currently selected repository will be shown.
    */
   public selectRepository(repository: Repository) {
+    if (repository.hash === this.repository?.hash) {
+      return
+    }
+
     this.repository = isRepositoryWithGitHubRepository(repository)
       ? repository
       : null
+    this.resetCache()
+  }
+
+  private resetCache() {
+    this.cachedCommits.clear()
+    this.skipCommitShas.clear()
+    this.skipCheckSuites.clear()
   }
 
   private async getAccountForRepository(repository: GitHubRepository) {
