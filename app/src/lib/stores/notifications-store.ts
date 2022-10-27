@@ -358,9 +358,11 @@ export class NotificationsStore {
       return null
     }
 
+    // Hit these API endpoints reloading the cache to make sure we have the
+    // latest data at the time the notification is received.
     const [statuses, checkRuns] = await Promise.all([
-      api.fetchCombinedRefStatus(owner.login, name, ref),
-      api.fetchRefCheckRuns(owner.login, name, ref),
+      api.fetchCombinedRefStatus(owner.login, name, ref, true),
+      api.fetchRefCheckRuns(owner.login, name, ref, true),
     ])
 
     const checks = new Array<IRefCheck>()
