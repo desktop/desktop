@@ -336,15 +336,11 @@
           border-right-width: 1px;
           border-right-style: solid;
           border-color: var(--diff-hunk-gutter-background-color);
+          align-self: stretch;
+          align-items: center;
+          
           &.selectable:hover {
             border-color: var(--diff-hover-background-color);
-          }
-          &:not(.selectable) span {
-            // This must be the height of an octicon, so that when a hunk handle
-            // of any type is replaced by an "empty" hunk handle (e.g. when a
-            // file is completely expanded), the height of the whole line
-            // remains the same.
-            height: 16px;
           }
         }
       }
