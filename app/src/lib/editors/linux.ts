@@ -1,5 +1,6 @@
 import { pathExists } from '../../ui/lib/path-exists'
 import { IFoundEditor } from './found-editor'
+import { IShellInfo } from './shell-info'
 
 /** Represents an external editor on Linux */
 interface ILinuxExternalEditor {
@@ -8,6 +9,9 @@ interface ILinuxExternalEditor {
 
   /** List of possible paths where the editor's executable might be located. */
   readonly paths: string[]
+
+  /** Additional information for opening folders/files from a shell */
+  readonly shellInfo?: IShellInfo
 }
 
 /**
@@ -70,6 +74,14 @@ const editors: ILinuxExternalEditor[] = [
     name: 'Jetbrains WebStorm',
     paths: ['/snap/bin/webstorm'],
   },
+  {
+    name: 'Spyder',
+    paths: ['/usr/bin/spyder'],
+    shellInfo: {
+      fileArgs: [],
+      folderArgs: ['-p'],
+    },
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
@@ -90,7 +102,7 @@ export async function getAvailableEditors(): Promise<
   for (const editor of editors) {
     const path = await getAvailablePath(editor.paths)
     if (path) {
-      results.push({ editor: editor.name, path })
+      results.push({ editor: editor.name, path, shellInfo: editor.shellInfo })
     }
   }
 

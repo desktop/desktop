@@ -1,5 +1,6 @@
 import { pathExists } from '../../ui/lib/path-exists'
 import { IFoundEditor } from './found-editor'
+import { IShellInfo } from './shell-info'
 import appPath from 'app-path'
 
 /** Represents an external editor on macOS */
@@ -12,6 +13,11 @@ interface IDarwinExternalEditor {
    * versions.
    **/
   readonly bundleIdentifiers: string[]
+
+  /**
+   * Additional information for opening folders/files from a shell rather than bundle identifier
+   **/
+  readonly shellInfo?: IShellInfo
 }
 
 /**
@@ -144,6 +150,14 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Lite XL',
     bundleIdentifiers: ['com.lite-xl'],
   },
+  {
+    name: 'Spyder',
+    bundleIdentifiers: ['org.spyder-ide.Spyder'],
+    shellInfo: {
+      fileArgs: [],
+      folderArgs: ['-p'],
+    },
+  },
 ]
 
 async function findApplication(
@@ -188,7 +202,7 @@ export async function getAvailableEditors(): Promise<
     const path = await findApplication(editor)
 
     if (path) {
-      results.push({ editor: editor.name, path })
+      results.push({ editor: editor.name, path, shellInfo: editor.shellInfo })
     }
   }
 

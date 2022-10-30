@@ -1,3 +1,5 @@
+import { IShellInfo } from './shell-info'
+
 /**
  * A found external editor on the user's machine
  */
@@ -11,9 +13,9 @@ export type FoundEditor = {
    */
   path: string
   /**
-   * the editor requires a shell spawn to launch
+   * Additional information for opening folders/files from a shell
    */
-  usesShell?: boolean
+  shellInfo?: IShellInfo
 }
 
 interface IErrorMetadata {

@@ -44,6 +44,7 @@ These editors are currently supported:
  - [Notepad++](https://notepad-plus-plus.org/)
  - [RStudio](https://rstudio.com/)
  - [Aptana Studio](http://www.aptana.com/)
+ - [Spyder](https://www.spyder-ide.org/)
 
 These are defined in a list at the top of the file:
 

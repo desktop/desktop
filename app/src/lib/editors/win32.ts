@@ -10,6 +10,8 @@ import { pathExists } from '../../ui/lib/path-exists'
 
 import { IFoundEditor } from './found-editor'
 
+import { IShellInfo } from './shell-info'
+
 interface IWindowsAppInformation {
   displayName: string
   publisher: string
@@ -60,6 +62,9 @@ type WindowsExternalEditor = {
 
   /** Value of the Publisher registry key that belongs to this editor. */
   readonly publisher: string
+
+  /** Additional information for opening folders/files from a shell */
+  readonly shellInfo?: IShellInfo
 } & WindowsExternalEditorPathInfo
 
 const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
@@ -410,6 +415,17 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'GoLand ',
     publisher: 'JetBrains s.r.o.',
   },
+  {
+    name: 'Spyder',
+    registryKeys: [LocalMachineUninstallKey('Spyder')],
+    executableShimPaths: [['Python', 'pythonw.exe']],
+    displayNamePrefix: 'Spyder',
+    publisher: 'Spyder Project Contributors and others',
+    shellInfo: {
+      fileArgs: [`"C:\\Program Files\\Spyder\\Spyder.launch.pyw"`],
+      folderArgs: [`"C:\\Program Files\\Spyder\\Spyder.launch.pyw"`, '-p'],
+    },
+  },
 ]
 
 function getKeyOrEmpty(
@@ -485,6 +501,7 @@ export async function getAvailableEditors(): Promise<
         editor: editor.name,
         path,
         usesShell: path.endsWith('.cmd'),
+        shellInfo: editor.shellInfo,
       })
     }
   }
