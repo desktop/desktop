@@ -272,7 +272,6 @@ export class CreateRepository extends React.Component<
 
     this.setState({ creating: true })
 
-    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     try {
       await initGitRepository(fullPath)
     } catch (e) {
@@ -393,6 +392,7 @@ export class CreateRepository extends React.Component<
 
     this.updateDefaultDirectory()
 
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     this.props.dispatcher.selectRepository(repository)
     this.props.dispatcher.recordCreateRepository()
     this.props.onDismissed()
