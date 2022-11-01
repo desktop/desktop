@@ -266,7 +266,7 @@ export class AddExistingRepository extends React.Component<
     const repositories = await dispatcher.addRepositories([resolvedPath])
 
     if (repositories.length > 0) {
-      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+      dispatcher.closeFoldout(FoldoutType.Repository)
       dispatcher.selectRepository(repositories[0])
       dispatcher.recordAddExistingRepository()
     }
