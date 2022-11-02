@@ -74,6 +74,14 @@ interface IListProps {
    * The currently selected rows indexes. Used to attach a special
    * selection class on those row's containers as well as being used
    * for keyboard selection.
+   *
+   * It is expected that the use case for this is setting of the initially
+   * selected rows or clearing a list selection.
+   *
+   * N.B. Since it is used for keyboard selection, changing the ordering of
+   * elements in this array in a parent component may result in unexpected
+   * behaviors when a user modifies their selection via key commands.
+   * See #15536 lessons learned.
    */
   readonly selectedRows: ReadonlyArray<number>
 
