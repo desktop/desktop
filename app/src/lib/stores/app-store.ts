@@ -6477,6 +6477,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /**
+   * Multi selection on the commit list can give an order of 1, 5, 3 if that is
+   * how the user selected them. However, we want to main chronological ordering
+   * of the commits to reduce the chance of conflicts during interact rebasing.
+   * Thus, assuming 1 is the first commit made by the user and 5 is the last. We
+   * want the order to be, 1, 3, 5.
+   */
+  private orderCommitsByHistory(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    const { compareState } = this.repositoryStateCache.get(repository)
+    const { commitSHAs } = compareState
+
+    return [...commits].sort(
+      (a, b) => commitSHAs.indexOf(b.sha) - commitSHAs.indexOf(a.sha)
+    )
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _cherryPick(
     repository: Repository,
@@ -6487,13 +6506,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return CherryPickResult.UnableToStart
     }
 
+    const orderedCommits = this.orderCommitsByHistory(repository, commits)
+
     await this._refreshRepository(repository)
 
     const progressCallback =
       this.getMultiCommitOperationProgressCallBack(repository)
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
-      cherryPick(repository, commits, progressCallback)
+      cherryPick(repository, orderedCommits, progressCallback)
     )
 
     return result || CherryPickResult.Error
