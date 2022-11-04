@@ -64,12 +64,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private onDismissed = () => {
-    this.props.onDismissed()
-  }
-
   private showPreferencesDialog = () => {
-    this.onDismissed()
+    this.props.onDismissed()
 
     //This is a hacky solution to resolve multiple dialog windows
     //being open at the same time.
@@ -80,7 +76,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   private onRetryAction = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    this.onDismissed()
+    this.props.onDismissed()
 
     const { error } = this.state
 
@@ -162,7 +158,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    this.onDismissed()
+    this.props.onDismissed()
   }
 
   private renderFooter(error: Error) {
@@ -225,8 +221,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         key="error"
         title={this.getTitle(error)}
         dismissable={false}
-        onSubmit={this.onDismissed}
-        onDismissed={this.onDismissed}
+        onSubmit={this.props.onDismissed}
+        onDismissed={this.props.onDismissed}
         disabled={this.state.disabled}
         className={
           isRawGitError(this.state.error) ? 'raw-git-error' : undefined
