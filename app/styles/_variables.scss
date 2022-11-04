@@ -20,6 +20,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --text-color: #{$gray-900};
   --text-secondary-color: #{$gray-500};
+  --text-secondary-color-muted: #{lighten($gray-500, 30%)};
   --background-color: #{$white};
 
   --button-height: 25px;
@@ -32,6 +33,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --link-button-color: #{$blue};
   --link-button-hover-color: #{$blue-600};
+  --link-button-selected-hover-color: #{$blue-200};
 
   --secondary-button-background: #{$gray-000};
   --secondary-button-hover-background: #{$white};
@@ -44,6 +46,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * (like a circle badge icon)
    */
   --badge-icon-color: #{$white};
+  --warning-badge-icon-color: #{$orange};
 
   // Typography
   //
@@ -131,6 +134,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * implement a hover state since this will conflict with
    * selection and active selection
    */
+  --box-hover-background-color: #{$gray-100};
 
   /**
    * Text color for selected boxes without keyboard focus
@@ -146,6 +150,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for selected boxes with active keyboard focus
    */
   --box-selected-active-background-color: #{$blue};
+
+  /**
+   * Border styles for selected boxes with active keyboard focus
+   */
+  --box-selected-active-border: none;
 
   /**
    * Text color for selected boxes with active keyboard focus
@@ -180,7 +189,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --commit-warning-badge-background-color: #{$gray-000};
   --commit-warning-badge-border-color: #{$gray-300};
-  --commit-warning-badge-icon-color: #{$gray-900};
+  --commit-warning-badge-icon-color: var(--warning-badge-icon-color);
 
   /**
    * The height of the title bar area on Win32 platforms
@@ -288,23 +297,23 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --win32-scroll-bar-size: 10px;
 
   /**
-   * The z-index for popups. Nothing should be higher, but other z-indexes can
+   * The z-index for tooltips. Nothing should be higher, but other z-indexes can
    * be defined in terms of it.
    *
-   * 10 seems arbitrary (because it is) but we have to go that high because
+   * 20 seems arbitrary (because it is) but we have to go that high because
    * codemirror is all over the place with their z-indexes and uses at least
    * 0-6.
    */
-  --popup-z-index: 20;
-  --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
-  --foldout-z-index: calc(var(--popup-z-index) - 2);
-  --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
-  --drag-overlay-z-index: calc(var(--popup-z-index) - 3);
-  /**
-   * This is 7 to make sure it appears on top code mirror
-   * but behind popups, overlays, and foldouts
-   */
-  --side-panel-z-index: calc(var(--popup-z-index) - 4);
+  --tooltip-z-index: 20;
+  --popup-z-index: 19;
+  --popup-overlay-z-index: 18;
+  --foldout-z-index: 17;
+  --nudge-arrow-z-index: 16;
+  --drag-overlay-z-index: 15;
+  --side-panel-z-index: 14;
+  // We want second level to fall under top level when scrolling
+  --list-sticky-header-top-level-z-index: 11;
+  --list-sticky-header-second-level-z-index: 10;
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
@@ -428,8 +437,19 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
 
+  /** File warning */
+  --file-warning-background-color: #{$yellow-200};
+  --file-warning-color: #{$yellow-800};
+  --file-warning-border-color: #{rgba($yellow-700, 0.4)};
+
+  /** Tooltips */
+  --tooltip-background-color: #{$gray-900};
+  --tooltip-color: #{$gray-100};
+  --tooltip-shadow-color: #{rgba($gray-900, 0.65)};
+
   /** Inline paths and code */
   --path-segment-background: #{$blue-000};
+  --path-segment-background-focus: #{darken($blue-000, 5%)};
   --path-segment-padding: var(--spacing-third);
 
   // http://easings.net/#easeOutBack
@@ -453,11 +473,32 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-500};
 
+  // PR review colors
+  --pr-timeline-line-color: var(--box-border-color);
+  --pr-changes-requested-icon-color: #{$white};
+  --pr-changes-requested-icon-background-color: #cf222e;
+  --pr-approved-icon-color: #{$white};
+  --pr-approved-icon-background-color: #2da44e;
+  --pr-commented-icon-color: var(--md-fg-muted-color);
+  --pr-commented-icon-background-color: #eaeef2;
+
   --call-to-action-bubble-border-color: #{$green};
   --call-to-action-bubble-color: #{$green};
 
   --title-tool-tip-background-color: rgb(236, 236, 236);
   --title-tool-tip-shadow: 1px 2px 5px 0px rgb(125, 125, 125, 0.5);
+
+  // Markdown colors
+  --md-border-default-color: #d0d7de;
+  --md-border-muted-color: hsla(210, 18%, 87%, 1);
+  --md-canvas-default-color: #ffffff;
+  --md-canvas-subtle-color: #f6f8fa;
+  --md-fg-default-color: #24292f;
+  --md-fg-muted-color: #57606a;
+  --md-danger-fg-color: #cf222e;
+  --md-neutral-muted-color: rgba(175, 184, 193, 0.2);
+  --md-accent-emphasis-color: #0969da;
+  --md-accent-fg-color: #0969da;
 }
 
 ::backdrop {

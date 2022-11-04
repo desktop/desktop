@@ -47,6 +47,9 @@ interface IAboutProps {
   /** A function to call to kick off an update check. */
   readonly onCheckForUpdates: () => void
 
+  /** A function to call to kick off a non-staggered update check. */
+  readonly onCheckForNonStaggeredUpdates: () => void
+
   readonly onShowAcknowledgements: () => void
 
   /** A function to call when the user wants to see Terms and Conditions. */
@@ -55,6 +58,7 @@ interface IAboutProps {
 
 interface IAboutState {
   readonly updateState: IUpdateState
+  readonly altKeyPressed: boolean
 }
 
 /**
@@ -69,6 +73,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
     this.state = {
       updateState: updateStore.state,
+      altKeyPressed: false,
     }
   }
 
@@ -81,12 +86,28 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.onUpdateStateChanged
     )
     this.setState({ updateState: updateStore.state })
+    window.addEventListener('keydown', this.onKeyDown)
+    window.addEventListener('keyup', this.onKeyUp)
   }
 
   public componentWillUnmount() {
     if (this.updateStoreEventHandle) {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
+    }
+    window.removeEventListener('keydown', this.onKeyDown)
+    window.removeEventListener('keyup', this.onKeyUp)
+  }
+
+  private onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Alt') {
+      this.setState({ altKeyPressed: true })
+    }
+  }
+
+  private onKeyUp = (event: KeyboardEvent) => {
+    if (event.key === 'Alt') {
+      this.setState({ altKeyPressed: false })
     }
   }
 
@@ -95,10 +116,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateButton() {
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__RELEASE_CHANNEL__ === 'development') {
       return null
     }
 
@@ -116,12 +134,28 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       case UpdateStatus.UpdateNotAvailable:
       case UpdateStatus.CheckingForUpdates:
       case UpdateStatus.UpdateAvailable:
-        const disabled = updateStatus !== UpdateStatus.UpdateNotAvailable
+      case UpdateStatus.UpdateNotChecked:
+        const disabled = ![
+          UpdateStatus.UpdateNotChecked,
+          UpdateStatus.UpdateNotAvailable,
+        ].includes(updateStatus)
+
+        const onClick = this.state.altKeyPressed
+          ? this.props.onCheckForNonStaggeredUpdates
+          : this.props.onCheckForUpdates
+
+        const buttonTitle = this.state.altKeyPressed
+          ? 'Ensure Latest Version'
+          : 'Check for Updates'
+
+        const tooltip = this.state.altKeyPressed
+          ? "GitHub Desktop may release updates to our user base gradually to ensure we catch any problems early. This lets you bypass the gradual rollout and jump straight to the latest version if there's one available."
+          : ''
 
         return (
           <Row>
-            <Button disabled={disabled} onClick={this.props.onCheckForUpdates}>
-              Check for Updates
+            <Button disabled={disabled} onClick={onClick} tooltip={tooltip}>
+              {buttonTitle}
             </Button>
           </Row>
         )
@@ -180,14 +214,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__RELEASE_CHANNEL__ === 'development') {
       return (
         <p>
-          The application is currently running in development or test mode and
-          will not receive any updates.
+          The application is currently running in development and will not
+          receive any updates.
         </p>
       )
     }
@@ -203,6 +234,8 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         return this.renderUpdateNotAvailable()
       case UpdateStatus.UpdateReady:
         return this.renderUpdateReady()
+      case UpdateStatus.UpdateNotChecked:
+        return null
       default:
         return assertNever(
           updateState.status,
@@ -216,10 +249,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (__RELEASE_CHANNEL__ === 'development') {
       return null
     }
 
@@ -234,6 +264,24 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
 
     return null
+  }
+
+  private renderBetaLink() {
+    if (__RELEASE_CHANNEL__ === 'beta') {
+      return
+    }
+
+    return (
+      <div>
+        <p className="no-padding">Looking for the latest features?</p>
+        <p className="no-padding">
+          Check out the{' '}
+          <LinkButton uri="https://desktop.github.com/beta">
+            Beta Channel
+          </LinkButton>
+        </p>
+      </div>
+    )
   }
 
   public render() {
@@ -280,6 +328,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
+          {this.renderBetaLink()}
         </DialogContent>
         <DefaultDialogFooter />
       </Dialog>

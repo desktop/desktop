@@ -5,7 +5,9 @@ What GitHub Desktop issue does this PR address? (for example, #1234)
 Closes #[issue number]
 
 ## Description
-
+<!--
+A summary of the changes made along with any other information that would be helpful to a reviewer such as potential tradeoffs or alternative approaches you considered.
+-->
 -
 
 ### Screenshots

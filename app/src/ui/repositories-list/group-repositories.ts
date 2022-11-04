@@ -83,7 +83,9 @@ export function groupRepositories(
       names.set(repository.name, existingCount + 1)
     }
 
-    repositories.sort((x, y) => caseInsensitiveCompare(x.name, y.name))
+    repositories.sort((x, y) =>
+      caseInsensitiveCompare(repositorySortingKey(x), repositorySortingKey(y))
+    )
     const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
       const nameCount = names.get(r.name) || 0
       const { aheadBehind, changedFilesCount } =
@@ -171,3 +173,8 @@ export function makeRecentRepositoriesGroup(
     items,
   }
 }
+
+// Use either the configured alias or the repository name when sorting the
+// repository list.
+const repositorySortingKey = (r: Repositoryish) =>
+  r instanceof Repository && r.alias !== null ? r.alias : r.name

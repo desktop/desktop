@@ -1,4 +1,4 @@
-import { pathExists } from 'fs-extra'
+import { pathExists } from '../../ui/lib/path-exists'
 import { IFoundEditor } from './found-editor'
 import appPath from 'app-path'
 
@@ -24,8 +24,16 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.github.atom'],
   },
   {
+    name: 'Aptana Studio',
+    bundleIdentifiers: ['aptana.studio'],
+  },
+  {
     name: 'MacVim',
     bundleIdentifiers: ['org.vim.MacVim'],
+  },
+  {
+    name: 'Neovide',
+    bundleIdentifiers: ['com.neovide.neovide'],
   },
   {
     name: 'Visual Studio Code',
@@ -37,7 +45,7 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'VSCodium',
-    bundleIdentifiers: ['com.visualstudio.code.oss'],
+    bundleIdentifiers: ['com.visualstudio.code.oss', 'com.vscodium'],
   },
   {
     name: 'Sublime Text',
@@ -58,6 +66,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'PyCharm',
     bundleIdentifiers: ['com.jetbrains.PyCharm'],
+  },
+  {
+    name: 'PyCharm Community Edition',
+    bundleIdentifiers: ['com.jetbrains.pycharm.ce'],
   },
   {
     name: 'RubyMine',
@@ -124,6 +136,14 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Nova',
     bundleIdentifiers: ['com.panic.Nova'],
   },
+  {
+    name: 'Emacs',
+    bundleIdentifiers: ['org.gnu.Emacs'],
+  },
+  {
+    name: 'Lite XL',
+    bundleIdentifiers: ['com.lite-xl'],
+  },
 ]
 
 async function findApplication(
@@ -131,15 +151,24 @@ async function findApplication(
 ): Promise<string | null> {
   for (const identifier of editor.bundleIdentifiers) {
     try {
-      const installPath = await appPath(identifier)
-      const exists = await pathExists(installPath)
-      if (exists) {
+      // app-path not finding the app isn't an error, it just means the
+      // bundle isn't registered on the machine.
+      // https://github.com/sindresorhus/app-path/blob/0e776d4e132676976b4a64e09b5e5a4c6e99fcba/index.js#L7-L13
+      const installPath = await appPath(identifier).catch(e =>
+        e.message === "Couldn't find the app"
+          ? Promise.resolve(null)
+          : Promise.reject(e)
+      )
+
+      if (installPath && (await pathExists(installPath))) {
         return installPath
       }
 
-      log.debug(`App installation for ${editor} not found at '${installPath}'`)
+      log.debug(
+        `App installation for ${editor.name} not found at '${installPath}'`
+      )
     } catch (error) {
-      log.debug(`Unable to locate ${editor} installation`, error)
+      log.debug(`Unable to locate ${editor.name} installation`, error)
     }
   }
 

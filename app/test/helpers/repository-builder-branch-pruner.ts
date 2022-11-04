@@ -77,7 +77,7 @@ export async function setupRepository(
       name: 'string',
       owner: {
         id: 0,
-        url: '',
+        html_url: '',
         login: '',
         avatar_url: '',
         type: 'User',
@@ -139,6 +139,7 @@ async function primeCaches(
   repositoriesStateCache.updateBranchesState(repository, () => ({
     tip: gitStore.tip,
     defaultBranch: gitStore.defaultBranch,
+    upstreamDefaultBranch: gitStore.upstreamDefaultBranch,
     allBranches: gitStore.allBranches,
     recentBranches: gitStore.recentBranches,
   }))

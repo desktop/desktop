@@ -1,52 +1,57 @@
-import { remote } from 'electron'
 import {
   isMacOSMojaveOrLater,
   isWindows10And1809Preview17666OrLater,
 } from '../../lib/get-os'
 import { getBoolean } from '../../lib/local-storage'
+import {
+  setNativeThemeSource,
+  shouldUseDarkColors,
+} from '../main-process-proxy'
+import { ThemeSource } from './theme-source'
+
+/** Interface for set of customizable styles */
+export interface ICustomTheme {
+  // application background color
+  background: string
+  // application border color
+  border: string
+  // main application text color
+  text: string
+  // used to indicate a selected item or action button
+  activeItem: string
+  // text used on selected item or action button
+  activeText: string
+}
 
 /**
  * A set of the user-selectable appearances (aka themes)
  */
 export enum ApplicationTheme {
-  Light,
-  Dark,
-  System,
+  Light = 'light',
+  Dark = 'dark',
+  System = 'system',
+  HighContrast = 'highContrast',
 }
 
-export type ApplicableTheme = ApplicationTheme.Light | ApplicationTheme.Dark
+export type ApplicableTheme =
+  | ApplicationTheme.Light
+  | ApplicationTheme.Dark
+  | ApplicationTheme.HighContrast
 
 /**
  * Gets the friendly name of an application theme for use
  * in persisting to storage and/or calculating the required
  * body class name to set in order to apply the theme.
  */
-export function getThemeName(
-  theme: ApplicationTheme
-): 'light' | 'dark' | 'system' {
+export function getThemeName(theme: ApplicationTheme): ThemeSource {
   switch (theme) {
     case ApplicationTheme.Light:
       return 'light'
     case ApplicationTheme.Dark:
+    case ApplicationTheme.HighContrast:
       return 'dark'
     default:
       return 'system'
-  }
-}
-
-/**
- * Load the currently selected theme
- */
-export function getPersistedTheme(): ApplicationTheme {
-  const currentTheme = getPersistedThemeName()
-
-  switch (currentTheme) {
-    case 'light':
-      return ApplicationTheme.Light
-    case 'dark':
-      return ApplicationTheme.Dark
-    default:
-      return ApplicationTheme.System
   }
 }
 
@@ -81,39 +86,35 @@ const applicationThemeKey = 'theme'
 /**
  * Returns User's theme preference or 'system' if not set or parsable
  */
-function getApplicationThemeSetting(): 'light' | 'dark' | 'system' {
+function getApplicationThemeSetting(): ApplicationTheme {
   const themeSetting = localStorage.getItem(applicationThemeKey)
 
-  if (themeSetting === null) {
-    return 'system'
-  }
-
   if (
-    themeSetting === 'light' ||
-    themeSetting === 'dark' ||
-    themeSetting === 'system'
+    themeSetting === ApplicationTheme.Light ||
+    themeSetting === ApplicationTheme.Dark ||
+    themeSetting === ApplicationTheme.HighContrast
   ) {
     return themeSetting
   }
 
-  return 'system'
+  return ApplicationTheme.System
 }
 
 /**
  * Load the name of the currently selected theme
  */
-export function getCurrentlyAppliedTheme(): ApplicableTheme {
-  return isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
+export async function getCurrentlyAppliedTheme(): Promise<ApplicableTheme> {
+  return (await isDarkModeEnabled())
+    ? ApplicationTheme.Dark
+    : ApplicationTheme.Light
 }
 
 /**
  * Load the name of the currently selected theme
  */
-export function getPersistedThemeName(): string {
-  const setting = migrateAutomaticallySwitchSetting()
-
-  if (setting === 'system') {
-    return setting
+export function getPersistedThemeName(): ApplicationTheme {
+  if (migrateAutomaticallySwitchSetting() === 'system') {
+    return ApplicationTheme.System
   }
 
   return getApplicationThemeSetting()
@@ -124,8 +125,8 @@ export function getPersistedThemeName(): string {
  */
 export function setPersistedTheme(theme: ApplicationTheme): void {
   const themeName = getThemeName(theme)
-  localStorage.setItem(applicationThemeKey, themeName)
-  remote.nativeTheme.themeSource = themeName
+  localStorage.setItem(applicationThemeKey, theme)
+  setNativeThemeSource(themeName)
 }
 
 /**
@@ -144,6 +145,6 @@ export function supportsSystemThemeChanges(): boolean {
   return false
 }
 
-function isDarkModeEnabled(): boolean {
-  return remote.nativeTheme.shouldUseDarkColors
+function isDarkModeEnabled(): Promise<boolean> {
+  return shouldUseDarkColors()
 }

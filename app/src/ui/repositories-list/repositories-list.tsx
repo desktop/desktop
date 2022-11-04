@@ -16,10 +16,11 @@ import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import { encodePathAsUrl } from '../../lib/path'
+import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
@@ -48,6 +49,9 @@ interface IRepositoriesListProps {
 
   /** Called when the repository should be shown in Finder/Explorer/File Manager. */
   readonly onShowRepository: (repository: Repositoryish) => void
+
+  /** Called when the repository should be opened on GitHub in the default web browser. */
+  readonly onViewOnGitHub: (repository: Repositoryish) => void
 
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
@@ -137,6 +141,7 @@ export class RepositoriesList extends React.Component<
         }
         onRemoveRepository={this.props.onRemoveRepository}
         onShowRepository={this.props.onShowRepository}
+        onViewOnGitHub={this.props.onViewOnGitHub}
         onOpenInShell={this.props.onOpenInShell}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangeRepositoryAlias={this.onChangeRepositoryAlias}
@@ -165,9 +170,15 @@ export class RepositoriesList extends React.Component<
     const label = this.getGroupLabel(identifier)
 
     return (
-      <div key={identifier} className="filter-list-group-header">
+      <TooltippedContent
+        key={identifier}
+        className="filter-list-group-header"
+        tooltip={label}
+        onlyWhenOverflowed={true}
+        tagName="div"
+      >
         {label}
-      </div>
+      </TooltippedContent>
     )
   }
 
@@ -241,7 +252,7 @@ export class RepositoriesList extends React.Component<
   private renderNoItems = () => {
     return (
       <div className="no-items no-results-found">
-        <img src={BlankSlateImage} className="blankslate-image" />
+        <img src={BlankSlateImage} className="blankslate-image" alt="" />
         <div className="title">Sorry, I can't find that repository</div>
 
         <div className="protip">

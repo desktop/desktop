@@ -1,4 +1,4 @@
-import * as FSE from 'fs-extra'
+import { appendFile, rm } from 'fs/promises'
 import { getCommits, revRange } from '.'
 import { Commit } from '../../models/commit'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
@@ -67,10 +67,7 @@ export async function reorder(
         // If it is toMove commit and we have found the base commit, we
         // can go ahead and insert them (as we will hold any picks till after)
         if (foundBaseCommitInLog) {
-          await FSE.appendFile(
-            todoPath,
-            `pick ${commit.sha} ${commit.summary}\n`
-          )
+          await appendFile(todoPath, `pick ${commit.sha} ${commit.summary}\n`)
         } else {
           // However, if we have not found the base commit yet we want to
           // keep track of them in the order of the log. Thus, we use a new
@@ -89,7 +86,7 @@ export async function reorder(
         toReplayAfterReorder.push(commit)
 
         for (let j = 0; j < toReplayBeforeBaseCommit.length; j++) {
-          await FSE.appendFile(
+          await appendFile(
             todoPath,
             `pick ${toReplayBeforeBaseCommit[j].sha} ${toReplayBeforeBaseCommit[j].summary}\n`
           )
@@ -108,12 +105,12 @@ export async function reorder(
 
       // If it is not one toMove nor the base commit and have not found the base
       // commit, we simply record it is an unchanged pick (before the base commit)
-      await FSE.appendFile(todoPath, `pick ${commit.sha} ${commit.summary}\n`)
+      await appendFile(todoPath, `pick ${commit.sha} ${commit.summary}\n`)
     }
 
     if (toReplayAfterReorder.length > 0) {
       for (let i = 0; i < toReplayAfterReorder.length; i++) {
-        await FSE.appendFile(
+        await appendFile(
           todoPath,
           `pick ${toReplayAfterReorder[i].sha} ${toReplayAfterReorder[i].summary}\n`
         )
@@ -122,7 +119,7 @@ export async function reorder(
 
     if (beforeCommit === null) {
       for (let i = 0; i < toReplayBeforeBaseCommit.length; i++) {
-        await FSE.appendFile(
+        await appendFile(
           todoPath,
           `pick ${toReplayBeforeBaseCommit[i].sha} ${toReplayBeforeBaseCommit[i].summary}\n`
         )
@@ -147,7 +144,7 @@ export async function reorder(
     return RebaseResult.Error
   } finally {
     if (todoPath !== undefined) {
-      FSE.remove(todoPath)
+      await rm(todoPath, { recursive: true, force: true })
     }
   }
 

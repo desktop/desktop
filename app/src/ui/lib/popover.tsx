@@ -1,6 +1,7 @@
 import * as React from 'react'
 import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
+import classNames from 'classnames'
 
 /**
  * Position of the caret relative to the pop up. It's composed by 2 dimensions:
@@ -15,14 +16,29 @@ import { Options as FocusTrapOptions } from 'focus-trap'
  * position.
  **/
 export enum PopoverCaretPosition {
+  Top = 'top',
   TopRight = 'top-right',
   TopLeft = 'top-left',
   LeftTop = 'left-top',
   LeftBottom = 'left-bottom',
+  RightTop = 'right-top',
+  None = 'none',
 }
+
+export enum PopoverAppearEffect {
+  Shake = 'shake',
+}
+
 interface IPopoverProps {
-  readonly onClickOutside?: () => void
-  readonly caretPosition: PopoverCaretPosition
+  readonly onClickOutside?: (event?: MouseEvent) => void
+  readonly onMousedownOutside?: (event?: MouseEvent) => void
+  /** The position of the caret or pointer towards the content to which the the
+   * popover refers. If the caret position is not provided, the popup will have
+   * no caret.  */
+  readonly caretPosition?: PopoverCaretPosition
+  readonly className?: string
+  readonly style?: React.CSSProperties
+  readonly appearEffect?: PopoverAppearEffect
 }
 
 export class Popover extends React.Component<IPopoverProps> {
@@ -40,11 +56,28 @@ export class Popover extends React.Component<IPopoverProps> {
   }
 
   public componentDidMount() {
+    document.addEventListener('click', this.onDocumentClick)
     document.addEventListener('mousedown', this.onDocumentMouseDown)
   }
 
   public componentWillUnmount() {
+    document.removeEventListener('click', this.onDocumentClick)
     document.removeEventListener('mousedown', this.onDocumentMouseDown)
+  }
+
+  private onDocumentClick = (event: MouseEvent) => {
+    const { current: ref } = this.containerDivRef
+    const { target } = event
+
+    if (
+      ref !== null &&
+      ref.parentElement !== null &&
+      target instanceof Node &&
+      !ref.parentElement.contains(target) &&
+      this.props.onClickOutside !== undefined
+    ) {
+      this.props.onClickOutside(event)
+    }
   }
 
   private onDocumentMouseDown = (event: MouseEvent) => {
@@ -56,18 +89,23 @@ export class Popover extends React.Component<IPopoverProps> {
       ref.parentElement !== null &&
       target instanceof Node &&
       !ref.parentElement.contains(target) &&
-      this.props.onClickOutside !== undefined
+      this.props.onMousedownOutside !== undefined
     ) {
-      this.props.onClickOutside()
+      this.props.onMousedownOutside(event)
     }
   }
 
   public render() {
-    const classNames = ['popover-component', this.getClassNameForCaret()]
+    const cn = classNames(
+      'popover-component',
+      this.getClassNameForCaret(),
+      this.props.className,
+      this.props.appearEffect && `appear-${this.props.appearEffect}`
+    )
 
     return (
       <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div className={classNames.join(' ')} ref={this.containerDivRef}>
+        <div className={cn} ref={this.containerDivRef} style={this.props.style}>
           {this.props.children}
         </div>
       </FocusTrap>
@@ -75,6 +113,8 @@ export class Popover extends React.Component<IPopoverProps> {
   }
 
   private getClassNameForCaret() {
-    return `popover-caret-${this.props.caretPosition}`
+    return `popover-caret-${
+      this.props.caretPosition ?? PopoverCaretPosition.None
+    }`
   }
 }

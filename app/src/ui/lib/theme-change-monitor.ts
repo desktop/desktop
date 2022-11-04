@@ -1,20 +1,16 @@
-import { remote } from 'electron'
 import {
   ApplicableTheme,
   getCurrentlyAppliedTheme,
   supportsSystemThemeChanges,
 } from './application-theme'
-import { IDisposable, Disposable, Emitter } from 'event-kit'
+import { Disposable, Emitter } from 'event-kit'
+import { onNativeThemeUpdated } from '../main-process-proxy'
 
-class ThemeChangeMonitor implements IDisposable {
+class ThemeChangeMonitor {
   private readonly emitter = new Emitter()
 
   public constructor() {
     this.subscribe()
-  }
-
-  public dispose() {
-    remote.nativeTheme.removeAllListeners()
   }
 
   private subscribe = () => {
@@ -22,11 +18,11 @@ class ThemeChangeMonitor implements IDisposable {
       return
     }
 
-    remote.nativeTheme.addListener('updated', this.onThemeNotificationUpdated)
+    onNativeThemeUpdated(this.onThemeNotificationUpdated)
   }
 
-  private onThemeNotificationUpdated = (event: string, userInfo: any) => {
-    const theme = getCurrentlyAppliedTheme()
+  private onThemeNotificationUpdated = async () => {
+    const theme = await getCurrentlyAppliedTheme()
     this.emitThemeChanged(theme)
   }
 
@@ -41,8 +37,3 @@ class ThemeChangeMonitor implements IDisposable {
 
 // this becomes our singleton that we can subscribe to from anywhere
 export const themeChangeMonitor = new ThemeChangeMonitor()
-
-// this ensures we cleanup any existing subscription on exit
-remote.app.on('will-quit', () => {
-  themeChangeMonitor.dispose()
-})

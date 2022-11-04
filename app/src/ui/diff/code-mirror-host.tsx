@@ -1,8 +1,8 @@
 import * as React from 'react'
 import CodeMirror, {
   Doc,
-  EditorChangeLinkedList,
   Editor,
+  EditorChange,
   EditorConfiguration,
   LineHandle,
 } from 'codemirror'
@@ -13,10 +13,7 @@ import 'codemirror/addon/selection/mark-selection'
 // Autocompletion plugin
 import 'codemirror/addon/hint/show-hint'
 
-if (__DARWIN__) {
-  // This has to be required to support the `simple` scrollbar style.
-  require('codemirror/addon/scroll/simplescrollbars')
-}
+import 'codemirror/addon/scroll/simplescrollbars'
 
 import 'codemirror/addon/search/search'
 
@@ -44,7 +41,7 @@ interface ICodeMirrorHostProps {
   ) => void
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
-  readonly onChanges?: (cm: Editor, change: EditorChangeLinkedList[]) => void
+  readonly onChanges?: (cm: Editor, change: EditorChange[]) => void
 
   /** Callback for when the viewport changes due to scrolling or other updates */
   readonly onViewportChange?: (cm: Editor, from: number, to: number) => void
@@ -167,6 +164,14 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
     CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
     this.resizeObserver.observe(this.codeMirror.getWrapperElement())
+
+    if (this.wrapper !== null && this.wrapper.closest('dialog') !== null) {
+      document.addEventListener('dialog-appeared', this.onDialogAppeared)
+    }
+  }
+
+  private onDialogAppeared = () => {
+    requestAnimationFrame(this.onResized)
   }
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
@@ -202,6 +207,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
 
     this.resizeObserver.disconnect()
+    document.removeEventListener('dialog-show', this.onDialogAppeared)
   }
 
   public componentDidUpdate(prevProps: ICodeMirrorHostProps) {
@@ -231,7 +237,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
   }
 
-  private onChanges = (cm: Editor, changes: EditorChangeLinkedList[]) => {
+  private onChanges = (cm: Editor, changes: EditorChange[]) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }

@@ -1,5 +1,4 @@
 import * as path from 'path'
-import * as fs from 'fs-extra'
 import { promisify } from 'util'
 
 import { licenseOverrides } from './license-overrides'
@@ -8,6 +7,7 @@ import _legalEagle from 'legal-eagle'
 const legalEagle = promisify(_legalEagle)
 
 import { getVersion } from '../../app/package-info'
+import { readFile, writeFile } from 'fs/promises'
 
 export async function updateLicenseDump(
   projectRoot: string,
@@ -44,9 +44,7 @@ export async function updateLicenseDump(
   // this injects the current license and pins the source URL before we
   // dump the JSON file to disk
   const licenseSource = path.join(projectRoot, 'LICENSE')
-  const licenseText = await fs.readFile(licenseSource, {
-    encoding: 'utf-8',
-  })
+  const licenseText = await readFile(licenseSource, { encoding: 'utf-8' })
   const appVersion = getVersion()
 
   summary[`desktop@${appVersion}`] = {
@@ -56,7 +54,5 @@ export async function updateLicenseDump(
     sourceText: licenseText,
   }
 
-  await fs.writeFile(outPath, JSON.stringify(summary), {
-    encoding: 'utf8',
-  })
+  await writeFile(outPath, JSON.stringify(summary), { encoding: 'utf8' })
 }

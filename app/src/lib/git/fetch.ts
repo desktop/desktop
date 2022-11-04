@@ -14,12 +14,10 @@ async function getFetchArgs(
   account: IGitAccount | null,
   progressCallback?: (progress: IFetchProgress) => void
 ) {
-  const networkArguments = await gitNetworkArguments(repository, account)
-
   if (enableRecurseSubmodulesFlag()) {
     return progressCallback != null
       ? [
-          ...networkArguments,
+          ...gitNetworkArguments(),
           'fetch',
           '--progress',
           '--prune',
@@ -27,7 +25,7 @@ async function getFetchArgs(
           remote,
         ]
       : [
-          ...networkArguments,
+          ...gitNetworkArguments(),
           'fetch',
           '--prune',
           '--recurse-submodules=on-demand',
@@ -35,8 +33,8 @@ async function getFetchArgs(
         ]
   } else {
     return progressCallback != null
-      ? [...networkArguments, 'fetch', '--progress', '--prune', remote]
-      : [...networkArguments, 'fetch', '--prune', remote]
+      ? [...gitNetworkArguments(), 'fetch', '--progress', '--prune', remote]
+      : [...gitNetworkArguments(), 'fetch', '--prune', remote]
   }
 }
 
@@ -119,16 +117,15 @@ export async function fetchRefspec(
   remote: IRemote,
   refspec: string
 ): Promise<void> {
-  const options = {
-    successExitCodes: new Set([0, 128]),
-    env: await envForRemoteOperation(account, remote.url),
-  }
-
-  const networkArguments = await gitNetworkArguments(repository, account)
-
-  const args = [...networkArguments, 'fetch', remote.name, refspec]
-
-  await git(args, repository.path, 'fetchRefspec', options)
+  await git(
+    [...gitNetworkArguments(), 'fetch', remote.name, refspec],
+    repository.path,
+    'fetchRefspec',
+    {
+      successExitCodes: new Set([0, 128]),
+      env: await envForRemoteOperation(account, remote.url),
+    }
+  )
 }
 
 export async function fastForwardBranches(

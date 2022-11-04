@@ -64,6 +64,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     // I don't know and we may want to revisit it at some point but for
     // now an anchor will have to do.
     return (
+      // eslint-disable-next-line jsx-a11y/anchor-is-valid, jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
       <a
         className="close"
         onClick={this.onCloseButtonClick}

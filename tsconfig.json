@@ -2,8 +2,9 @@
   "compilerOptions": {
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2017",
+    "target": "ES2022",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "importHelpers": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
@@ -13,15 +14,9 @@
     "sourceMap": true,
     "jsx": "react",
     "strict": true,
-    "noEmit": true,
     "outDir": "./out",
-    "lib": ["ES2017", "DOM", "DOM.Iterable", "ES2018.Promise", "ES2020.string"]
+    "useUnknownInCatchVariables": false
   },
-  "plugins": [
-    {
-      "name": "typescript-tslint-plugin"
-    }
-  ],
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
     "node_modules",

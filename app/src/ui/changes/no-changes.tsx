@@ -8,16 +8,20 @@ import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 import { MenuBackedSuggestedAction } from '../suggested-actions'
-import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
 import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
-import { isCurrentBranchForcePush } from '../../lib/rebase'
+import {
+  ForcePushBranchState,
+  getCurrentBranchForcePushState,
+} from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
 import { SuggestedActionGroup } from '../suggested-actions'
+import { PreferencesTab } from '../../models/preferences'
+import { PopupType } from '../../models/popup'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -273,8 +277,11 @@ export class NoChanges extends React.Component<
   private onViewOnGitHubClicked = () =>
     this.props.dispatcher.recordSuggestedStepViewOnGitHub()
 
-  private openPreferences = () => {
-    executeMenuItemById('preferences')
+  private openIntegrationPreferences = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Integrations,
+    })
   }
 
   private renderOpenInExternalEditor() {
@@ -302,7 +309,7 @@ export class NoChanges extends React.Component<
     const description = (
       <>
         Select your editor in{' '}
-        <LinkButton onClick={this.openPreferences}>
+        <LinkButton onClick={this.openIntegrationPreferences}>
           {__DARWIN__ ? 'Preferences' : 'Options'}
         </LinkButton>
       </>
@@ -320,12 +327,8 @@ export class NoChanges extends React.Component<
     this.props.dispatcher.recordSuggestedStepOpenInExternalEditor()
 
   private renderRemoteAction() {
-    const {
-      remote,
-      aheadBehind,
-      branchesState,
-      tagsToPush,
-    } = this.props.repositoryState
+    const { remote, aheadBehind, branchesState, tagsToPush } =
+      this.props.repositoryState
     const { tip, defaultBranch, currentPullRequest } = branchesState
 
     if (tip.kind !== TipState.Valid) {
@@ -341,7 +344,9 @@ export class NoChanges extends React.Component<
       return this.renderPublishBranchAction(tip)
     }
 
-    const isForcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
+    const isForcePush =
+      getCurrentBranchForcePushState(branchesState, aheadBehind) ===
+      ForcePushBranchState.Recommended
     if (isForcePush) {
       // do not render an action currently after the rebase has completed, as
       // the default behaviour is currently to pull in changes from the tracking
@@ -704,9 +709,9 @@ export class NoChanges extends React.Component<
 
   public render() {
     return (
-      <div id="no-changes">
+      <div className="changes-interstitial">
         <div className="content">
-          <div className="header">
+          <div className="interstitial-header">
             <div className="text">
               <h1>No local changes</h1>
               <p>
@@ -714,7 +719,7 @@ export class NoChanges extends React.Component<
                 some friendly suggestions for what to do next.
               </p>
             </div>
-            <img src={PaperStackImage} className="blankslate-image" />
+            <img src={PaperStackImage} className="blankslate-image" alt="" />
           </div>
           {this.renderActions()}
         </div>

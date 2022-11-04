@@ -15,7 +15,6 @@ import {
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
 import { getOldPathOrDefault } from '../../../lib/get-old-path'
-import { enableTextDiffExpansion } from '../../../lib/feature-flag'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -34,10 +33,10 @@ interface ILineFilters {
   readonly newLineFilter: Array<number>
 }
 
-interface IFileContents {
+export interface IFileContents {
   readonly file: ChangedFile
-  readonly oldContents: string | null
-  readonly newContents: string | null
+  readonly oldContents: ReadonlyArray<string>
+  readonly newContents: ReadonlyArray<string>
   readonly canBeExpanded: boolean
 }
 
@@ -66,7 +65,7 @@ async function getOldFileContent(
     // actually committed to get the appropriate content.
     commitish = 'HEAD'
   } else if (file instanceof CommittedFileChange) {
-    commitish = `${file.commitish}^`
+    commitish = file.parentCommitish
   } else {
     return assertNever(file, 'Unknown file change type')
   }
@@ -107,27 +106,14 @@ async function getNewFileContent(
 
 export async function getFileContents(
   repo: Repository,
-  file: ChangedFile,
-  lineFilters: ILineFilters
+  file: ChangedFile
 ): Promise<IFileContents> {
-  // If text-diff expansion is enabled, we'll always want to load both the old
-  // and the new contents, so that we can expand the diff as needed.
-  const oldContentsPromise =
-    enableTextDiffExpansion() || lineFilters.oldLineFilter.length
-      ? getOldFileContent(repo, file)
-      : Promise.resolve(null)
-
-  const newContentsPromise =
-    enableTextDiffExpansion() || lineFilters.newLineFilter.length
-      ? getNewFileContent(repo, file)
-      : Promise.resolve(null)
-
   const [oldContents, newContents] = await Promise.all([
-    oldContentsPromise.catch(e => {
+    getOldFileContent(repo, file).catch(e => {
       log.error('Could not load old contents for syntax highlighting', e)
       return null
     }),
-    newContentsPromise.catch(e => {
+    getNewFileContent(repo, file).catch(e => {
       log.error('Could not load new contents for syntax highlighting', e)
       return null
     }),
@@ -135,8 +121,8 @@ export async function getFileContents(
 
   return {
     file,
-    oldContents: oldContents === null ? null : oldContents.toString('utf8'),
-    newContents: newContents === null ? null : newContents.toString('utf8'),
+    oldContents: oldContents?.toString('utf8').split(/\r?\n/) ?? [],
+    newContents: newContents?.toString('utf8').split(/\r?\n/) ?? [],
     canBeExpanded:
       newContents !== null &&
       newContents.length <= MaxDiffExpansionNewContentLength,

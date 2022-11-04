@@ -13,7 +13,7 @@ import { arrayEquals } from '../../lib/equality'
 import { syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IAuthor } from '../../models/author'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { IMenuItem } from '../../lib/menu-item'
 import { getLegacyStealthEmailForUser } from '../../lib/email'
 
@@ -73,7 +73,7 @@ function nextPosition(doc: Doc, pos: Position) {
  * are inclusive and this method takes that into account.
  */
 function posIsInsideMarkedText(doc: Doc, pos: Position) {
-  const marks = (doc.findMarksAt(pos) as any) as ActualTextMarker[]
+  const marks = doc.findMarksAt(pos) as any as ActualTextMarker[]
   const ix = doc.indexFromPos(pos)
 
   return marks.some(mark => {
@@ -190,7 +190,7 @@ function appendTextMarker(
   doc.replaceRange(text, from)
   const to = doc.posFromIndex(Infinity)
 
-  return (doc.markText(from, to, options) as any) as ActualTextMarker
+  return doc.markText(from, to, options) as any as ActualTextMarker
 }
 
 /**
@@ -338,13 +338,13 @@ function markRangeAsHandle(
 ): ActualTextMarker {
   const elem = renderHandleMarkReplacementElement(author)
 
-  return (doc.markText(from, to, {
+  return doc.markText(from, to, {
     atomic: true,
     className: 'handle',
     readOnly: false,
     replacedWith: elem,
     handleMouseEvents: true,
-  }) as any) as ActualTextMarker
+  }) as any as ActualTextMarker
 }
 
 function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
@@ -552,13 +552,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     // Create a temporary, atomic, marker so that the text can't be modified.
     // This marker will be styled in such a way as to indicate that it's
     // processing.
-    const tmpMark = (doc.markText(from, end, {
+    const tmpMark = doc.markText(from, end, {
       atomic: true,
       className: 'handle progress',
       readOnly: false,
       replacedWith: renderUnknownHandleMarkReplacementElement(username, false),
       handleMouseEvents: true,
-    }) as any) as ActualTextMarker
+    }) as any as ActualTextMarker
 
     // Note that it's important that this method isn't async up until
     // this point since show-hint expects a synchronous method
@@ -693,14 +693,14 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   private getAllHandleMarks(cm: Editor): Array<ActualTextMarker> {
-    return (cm.getDoc().getAllMarks() as any) as ActualTextMarker[]
+    return cm.getDoc().getAllMarks() as any as ActualTextMarker[]
   }
 
   private initializeCodeMirror(host: HTMLDivElement) {
     const CodeMirrorOptions: EditorConfiguration & {
       hintOptions: any
     } = {
-      mode: null,
+      mode: 'null',
       lineWrapping: true,
       extraKeys: {
         Tab: false,

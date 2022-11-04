@@ -1,7 +1,7 @@
 @import '../../mixins';
 
 /** A React component holding the commit message entry */
-#commit-message {
+.commit-message-component {
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
@@ -12,6 +12,7 @@
   padding: var(--spacing);
 
   .summary {
+    position: relative;
     display: flex;
     flex-direction: row;
 
@@ -30,11 +31,34 @@
       height: var(--text-field-height);
       margin-right: var(--spacing-half);
     }
+
+    &.with-length-hint input {
+      padding-right: 20px;
+    }
+
+    .length-hint {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 16px;
+      margin-right: 4px;
+      height: var(--text-field-height);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .octicon {
+        height: 12px;
+      }
+    }
   }
 
   &.with-co-authors .description-focus-container {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    .action-bar,
+    & {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
   }
 
   .co-authors-toggle {
@@ -59,6 +83,9 @@
   &.with-action-bar {
     .description-field textarea {
       min-height: 80px;
+
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
     }
   }
 
@@ -108,7 +135,9 @@
     .action-bar {
       padding: var(--spacing-half);
       background: var(--box-background-color);
-      border-radius: var(--border-radius);
+
+      border-bottom-left-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
 
       // We're not faking being a textbox any more
       cursor: default;
@@ -172,25 +201,16 @@
   .commit-button {
     max-width: 100%;
     margin-top: var(--spacing);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+
+    @include ellipsis;
 
     .octicon {
       flex-shrink: 0;
       flex-grow: 0;
       margin-right: var(--spacing-half);
-    }
-
-    /* Due to some weirdo bug in Chrome that affects Windows
-     * and possible other platforms we can't change the opacity
-     * for disabled buttons if the button also has a
-     * overflow: hidden property set. The workaround is to put
-     * the contents of the button in a block element and put
-     * ellipsis on that instead. See commit 67fad24ed
-     */
-    > span {
-      @include ellipsis;
+      height: 12px;
+      // In order to center it vertically in the button
+      margin-bottom: 1px;
     }
   }
 }

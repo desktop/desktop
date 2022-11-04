@@ -28,7 +28,7 @@ const workerUri = encodePathAsUrl(__dirname, 'highlighter.js')
  *                  modes we can significantly speed up the highlight process.
  */
 export function highlight(
-  contents: string,
+  contentLines: ReadonlyArray<string>,
   basename: string,
   extension: string,
   tabSize: number,
@@ -36,7 +36,7 @@ export function highlight(
 ): Promise<ITokens> {
   // Bail early if there's no content to highlight or if we don't
   // need any lines from this file.
-  if (!contents.length || !lines.length) {
+  if (!contentLines.length || !lines.length) {
     return Promise.resolve({})
   }
 
@@ -70,7 +70,7 @@ export function highlight(
     }
 
     const request: IHighlightRequest = {
-      contents,
+      contentLines,
       basename,
       extension,
       tabSize,

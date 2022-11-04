@@ -4,7 +4,6 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { getOS } from '../get-os'
-import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
@@ -22,9 +21,26 @@ import {
 } from '../local-storage'
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
-import { remote } from 'electron'
-import { Architecture, getArchitecture } from '../get-architecture'
+import { getAppArchitecture } from '../../ui/main-process-proxy'
+import { Architecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
+import { getNotificationsEnabled } from '../stores/notifications-store'
+import { isInApplicationFolder } from '../../ui/main-process-proxy'
+import { getRendererGUID } from '../get-renderer-guid'
+import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
+
+type PullRequestReviewStatFieldInfix =
+  | 'Approved'
+  | 'ChangesRequested'
+  | 'Commented'
+
+type PullRequestReviewStatFieldSuffix =
+  | 'NotificationCount'
+  | 'NotificationClicked'
+  | 'DialogSwitchToPullRequestCount'
+
+type PullRequestReviewStatField =
+  `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -174,6 +190,31 @@ const DefaultDailyMeasures: IDailyMeasures = {
   squashMergeSuccessfulCount: 0,
   squashMergeInvokedCount: 0,
   resetToCommitCount: 0,
+  opensCheckRunsPopover: 0,
+  viewsCheckOnline: 0,
+  viewsCheckJobStepOnline: 0,
+  rerunsChecks: 0,
+  checksFailedNotificationCount: 0,
+  checksFailedNotificationClicked: 0,
+  checksFailedDialogOpenCount: 0,
+  checksFailedDialogSwitchToPullRequestCount: 0,
+  checksFailedDialogRerunChecksCount: 0,
+  pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationClicked: 0,
+  pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationClicked: 0,
+  pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
+  pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationClicked: 0,
+  pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
+  multiCommitDiffWithUnreachableCommitWarningCount: 0,
+  multiCommitDiffFromHistoryCount: 0,
+  multiCommitDiffFromCompareCount: 0,
+  multiCommitDiffUnreachableCommitsDialogOpenedCount: 0,
+  submoduleDiffViewedFromChangesListCount: 0,
+  submoduleDiffViewedFromHistoryCount: 0,
+  openSubmoduleFromDiffCount: 0,
 }
 
 interface IOnboardingStats {
@@ -342,6 +383,9 @@ interface ICalculatedStats {
    * only relevant on macOS, null will be sent otherwise.
    */
   readonly launchedFromApplicationsFolder: boolean | null
+
+  /** Whether or not the user has enabled high-signal notifications */
+  readonly notificationsEnabled: boolean
 }
 
 type DailyStats = ICalculatedStats &
@@ -509,23 +553,25 @@ export class StatsStore implements IStatsStore {
     const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
     // isInApplicationsFolder is undefined when not running on Darwin
-    const launchedFromApplicationsFolder =
-      remote.app.isInApplicationsFolder?.() ?? null
+    const launchedFromApplicationsFolder = __DARWIN__
+      ? await isInApplicationFolder()
+      : null
 
     return {
       eventType: 'usage',
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
-      architecture: getArchitecture(remote.app),
+      architecture: await getAppArchitecture(),
       theme: getPersistedThemeName(),
       selectedTerminalEmulator,
       selectedTextEditor,
+      notificationsEnabled: getNotificationsEnabled(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
       ...onboardingStats,
-      guid: getGUID(),
+      guid: await getRendererGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
@@ -594,9 +640,8 @@ export class StatsStore implements IStatsStore {
 
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
-    const launches:
-      | ReadonlyArray<ILaunchStats>
-      | undefined = await this.db.launches.toArray()
+    const launches: ReadonlyArray<ILaunchStats> | undefined =
+      await this.db.launches.toArray()
     if (!launches || !launches.length) {
       return {
         mainReadyTime: -1,
@@ -629,9 +674,9 @@ export class StatsStore implements IStatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    const measures:
-      | IDailyMeasures
-      | undefined = await this.db.dailyMeasures.limit(1).first()
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures
+      .limit(1)
+      .first()
     return {
       ...DefaultDailyMeasures,
       ...measures,
@@ -980,9 +1025,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
-    void
-  > {
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       anyConflictsLeftOnMergeConflictsDialogDismissalCount:
         m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
@@ -1206,9 +1249,7 @@ export class StatsStore implements IStatsStore {
    * Record the number of times the user experiences the error
    * "Some of your changes would be overwritten" when switching branches
    */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
-    void
-  > {
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       errorWhenSwitchingBranchesWithUncommmittedChanges:
         m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
@@ -1609,8 +1650,10 @@ export class StatsStore implements IStatsStore {
         return this.recordSquashConflictsEncountered()
       case MultiCommitOperationKind.Reorder:
         return this.recordReorderConflictsEncountered()
-      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
+        // ignored because rebase records different stats
+        return
+      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Merge:
         log.error(
           `[recordOperationConflictsEncounteredCount] - Operation not supported: ${kind}`
@@ -1632,6 +1675,8 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.CherryPick:
         return this.recordCherryPickSuccessful()
       case MultiCommitOperationKind.Rebase:
+        // ignored because rebase records different stats
+        return
       case MultiCommitOperationKind.Merge:
         log.error(
           `[recordOperationSuccessful] - Operation not supported: ${kind}`
@@ -1650,8 +1695,9 @@ export class StatsStore implements IStatsStore {
         return this.recordSquashSuccessfulWithConflicts()
       case MultiCommitOperationKind.Reorder:
         return this.recordReorderSuccessfulWithConflicts()
-      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Rebase:
+        return this.recordRebaseSuccessAfterConflicts()
+      case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Merge:
         log.error(
           `[recordOperationSuccessfulWithConflicts] - Operation not supported: ${kind}`
@@ -1697,6 +1743,157 @@ export class StatsStore implements IStatsStore {
   public recordSquashMergeInvokedCount(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       squashMergeInvokedCount: m.squashMergeInvokedCount + 1,
+    }))
+  }
+
+  public recordCheckRunsPopoverOpened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      opensCheckRunsPopover: m.opensCheckRunsPopover + 1,
+    }))
+  }
+
+  public recordCheckViewedOnline(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      viewsCheckOnline: m.viewsCheckOnline + 1,
+    }))
+  }
+
+  public recordCheckJobStepViewedOnline(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      viewsCheckJobStepOnline: m.viewsCheckJobStepOnline + 1,
+    }))
+  }
+
+  public recordRerunChecks(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rerunsChecks: m.rerunsChecks + 1,
+    }))
+  }
+
+  public recordChecksFailedNotificationShown(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationCount: m.checksFailedNotificationCount + 1,
+    }))
+  }
+
+  public recordChecksFailedNotificationClicked(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogOpen(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogOpenCount: m.checksFailedDialogOpenCount + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogSwitchToPullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogSwitchToPullRequestCount:
+        m.checksFailedDialogSwitchToPullRequestCount + 1,
+    }))
+  }
+
+  public recordChecksFailedDialogRerunChecks(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedDialogRerunChecksCount:
+        m.checksFailedDialogRerunChecksCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffFromHistoryCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromHistoryCount: m.multiCommitDiffFromHistoryCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffFromCompareCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromCompareCount: m.multiCommitDiffFromCompareCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffWithUnreachableCommitWarningCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffWithUnreachableCommitWarningCount:
+        m.multiCommitDiffWithUnreachableCommitWarningCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffUnreachableCommitsDialogOpenedCount:
+        m.multiCommitDiffUnreachableCommitsDialogOpenedCount + 1,
+    }))
+  }
+
+  // Generates the stat field name for the given PR review type and suffix.
+  private getStatFieldForRequestReviewState(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ): PullRequestReviewStatField {
+    const infixMap: Record<
+      ValidNotificationPullRequestReviewState,
+      PullRequestReviewStatFieldInfix
+    > = {
+      CHANGES_REQUESTED: 'ChangesRequested',
+      APPROVED: 'Approved',
+      COMMENTED: 'Commented',
+    }
+
+    return `pullRequestReview${infixMap[reviewType]}${suffix}`
+  }
+
+  // Generic method to record stats related to Pull Request review notifications.
+  private recordPullRequestReviewStat(
+    reviewType: ValidNotificationPullRequestReviewState,
+    suffix: PullRequestReviewStatFieldSuffix
+  ) {
+    const statField = this.getStatFieldForRequestReviewState(reviewType, suffix)
+    return this.updateDailyMeasures(
+      m => ({ [statField]: m[statField] + 1 } as any)
+    )
+  }
+
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  public recordPullRequestReviewNotificationClicked(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(reviewType, 'NotificationClicked')
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'DialogSwitchToPullRequestCount'
+    )
+  }
+
+  public recordSubmoduleDiffViewedFromChangesList(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromChangesListCount:
+        m.submoduleDiffViewedFromChangesListCount + 1,
+    }))
+  }
+
+  public recordSubmoduleDiffViewedFromHistory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromHistoryCount:
+        m.submoduleDiffViewedFromHistoryCount + 1,
+    }))
+  }
+
+  public recordOpenSubmoduleFromDiffCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      openSubmoduleFromDiffCount: m.openSubmoduleFromDiffCount + 1,
     }))
   }
 

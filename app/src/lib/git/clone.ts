@@ -31,14 +31,12 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
-  const networkArguments = await gitNetworkArguments(null, options.account)
-
   const env = await envForRemoteOperation(options.account, url)
 
   const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
 
   const args = [
-    ...networkArguments,
+    ...gitNetworkArguments(),
     '-c',
     `init.defaultBranch=${defaultBranch}`,
     'clone',

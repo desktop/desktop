@@ -1,11 +1,11 @@
 # TypeScript Style Guide
 
-Most of our preferred style when writing typescript is configured in our [`tslint.json`](../../tslint.json) and [`.eslintrc.yml`](../../.eslintrc.yml) files.
+Most of our preferred style when writing typescript is configured in our [`.eslintrc.yml`](../../.eslintrc.yml) files.
 
 ## Do
  - Use camelCase for methods
  - Use PascalCase for class names
- - Enable [TSLint](https://palantir.github.io/tslint/usage/third-party-tools/) and [ESLint](https://eslint.org/docs/user-guide/integrations) in your editor
+ - [ESLint](https://eslint.org/docs/user-guide/integrations) in your editor
 
 # Documenting your code
 

@@ -30,8 +30,7 @@ import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
-import { enableCommitReordering } from '../../lib/feature-flag'
-import { DragAndDropIntroType } from './drag-and-drop-intro'
+
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
@@ -43,7 +42,7 @@ interface ICompareSidebarProps {
   readonly currentBranch: Branch | null
   readonly selectedCommitShas: ReadonlyArray<string>
   readonly onRevertCommit: (commit: Commit) => void
-  readonly onAmendCommit: () => void
+  readonly onAmendCommit: (commit: Commit, isLocalCommit: boolean) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly onCherryPick: (
@@ -54,8 +53,8 @@ interface ICompareSidebarProps {
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
-  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
-  readonly isCherryPickInProgress: boolean
+  readonly isMultiCommitOperationInProgress?: boolean
+  readonly shasToHighlight: ReadonlyArray<string>
 }
 
 interface ICompareSidebarState {
@@ -231,14 +230,13 @@ export class CompareSidebar extends React.Component<
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
         selectedSHAs={this.props.selectedCommitShas}
+        shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}
         canResetToCommits={formState.kind === HistoryTabMode.History}
         canUndoCommits={formState.kind === HistoryTabMode.History}
         canAmendCommits={formState.kind === HistoryTabMode.History}
         emoji={this.props.emoji}
-        reorderingEnabled={
-          enableCommitReordering() && formState.kind === HistoryTabMode.History
-        }
+        reorderingEnabled={formState.kind === HistoryTabMode.History}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onUndoCommit={this.onUndoCommit}
         onResetToCommit={this.onResetToCommit}
@@ -259,13 +257,13 @@ export class CompareSidebar extends React.Component<
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
-        tagsToPush={this.props.tagsToPush}
-        dragAndDropIntroTypesShown={this.props.dragAndDropIntroTypesShown}
-        onDragAndDropIntroSeen={this.onDragAndDropIntroSeen}
-        isCherryPickInProgress={this.props.isCherryPickInProgress}
+        tagsToPush={this.props.tagsToPush ?? []}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
         disableSquashing={formState.kind === HistoryTabMode.Compare}
+        isMultiCommitOperationInProgress={
+          this.props.isMultiCommitOperationInProgress
+        }
       />
     )
   }
@@ -314,10 +312,6 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.clearDragElement()
   }
 
-  private onDragAndDropIntroSeen = (intro: DragAndDropIntroType) => {
-    this.props.dispatcher.markDragAndDropIntroAsSeen(intro)
-  }
-
   private renderActiveTab(view: ICompareBranch) {
     return (
       <div className="compare-commit-list">
@@ -330,12 +324,8 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const {
-      defaultBranch,
-      branches,
-      recentBranches,
-      filterText,
-    } = this.props.compareState
+    const { defaultBranch, branches, recentBranches, filterText } =
+      this.props.compareState
 
     return (
       <BranchList
@@ -471,10 +461,14 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onCommitsSelected = (commits: ReadonlyArray<Commit>) => {
+  private onCommitsSelected = (
+    commits: ReadonlyArray<Commit>,
+    isContiguous: boolean
+  ) => {
     this.props.dispatcher.changeCommitSelection(
       this.props.repository,
-      commits.map(c => c.sha)
+      commits.map(c => c.sha),
+      isContiguous
     )
 
     this.loadChangedFilesScheduler.queue(() => {

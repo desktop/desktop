@@ -1,4 +1,3 @@
-import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   DiffHunk,
   DiffHunkExpansionType,
@@ -8,6 +7,7 @@ import {
   ITextDiff,
 } from '../../models/diff'
 import { getLargestLineNumber } from './diff-helpers'
+import { HiddenBidiCharsRegex } from '../../lib/diff-parser'
 
 /** How many new lines will be added to a diff hunk by default. */
 export const DefaultDiffExpansionStep = 20
@@ -90,10 +90,6 @@ export function getHunkHeaderExpansionType(
   hunkHeader: DiffHunkHeader,
   previousHunk: DiffHunk | null
 ): DiffHunkExpansionType {
-  if (!enableTextDiffExpansion()) {
-    return DiffHunkExpansionType.None
-  }
-
   const distanceToPrevious =
     previousHunk === null
       ? Infinity
@@ -273,6 +269,11 @@ export function expandTextDiffHunk(
     )
   })
 
+  // Look for hidden bidi chars in the new lines, if the diff didn't have any already
+  const hasHiddenBidiChars =
+    diff.hasHiddenBidiChars ||
+    newLines.some(line => HiddenBidiCharsRegex.test(line))
+
   // Update the resulting hunk header with the new line count
   const newHunkHeader = new DiffHunkHeader(
     isExpandingUp
@@ -394,6 +395,7 @@ export function expandTextDiffHunk(
     text: newDiffText,
     hunks: newHunks,
     maxLineNumber: getLargestLineNumber(newHunks),
+    hasHiddenBidiChars,
   }
 }
 
@@ -413,13 +415,14 @@ export function getTextDiffWithBottomDummyHunk(
   numberOfOldLines: number,
   numberOfNewLines: number
 ): ITextDiff | null {
-  if (hunks.length === 0) {
+  const lastHunk = hunks.at(-1)
+
+  if (lastHunk === undefined) {
     return null
   }
 
   // If the last hunk doesn't reach the end of the file, create a dummy hunk
   // at the end to allow expanding the diff down.
-  const lastHunk = hunks[hunks.length - 1]
   const lastHunkNewLine =
     lastHunk.header.newStartLine + lastHunk.header.newLineCount
 
@@ -436,14 +439,8 @@ export function getTextDiffWithBottomDummyHunk(
     dummyNewStartLine,
     numberOfNewLines - dummyNewStartLine + 1
   )
-  const dummyLine = new DiffLine(
-    '@@ @@',
-    DiffLineType.Hunk,
-    null,
-    null,
-    null,
-    false
-  )
+  // Use an empty line for this dummy hunk to keep the diff clean
+  const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, null, false)
   const dummyHunk = new DiffHunk(
     dummyHeader,
     [dummyLine],

@@ -6,6 +6,7 @@
 @import 'ui/window/focus';
 @import 'ui/window/zoom-info';
 @import 'ui/window/toast-notification';
+@import 'ui/window/tooltips';
 @import 'ui/file-list';
 @import 'ui/octicons';
 @import 'ui/list';
@@ -88,3 +89,17 @@
 @import 'ui/drag-elements';
 @import 'ui/drag-overlay';
 @import 'ui/dropdown-select-button';
+@import 'ui/check-runs/_ci-check-run-list-item';
+@import 'ui/check-runs/_ci-check-run-list';
+@import 'ui/check-runs/_ci-check-run-popover';
+@import 'ui/check-runs/ci-check-run-job-steps';
+@import 'ui/_pull-request-checks-failed';
+@import 'ui/_pull-request-review';
+@import 'ui/_sandboxed-markdown';
+@import 'ui/_pull-request-quick-view';
+@import 'ui/discard-changes-retry';
+@import 'ui/_git-email-not-found-warning';
+@import 'ui/_branch-select';
+@import 'ui/_popover-dropdown';
+@import 'ui/_pull-request-files-changed';
+@import 'ui/_pull-request-merge-status';

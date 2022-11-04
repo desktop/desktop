@@ -157,6 +157,9 @@ export async function mergeTrailers(
 ) {
   const args = ['interpret-trailers']
 
+  // See https://github.com/git/git/blob/ebf3c04b262aa/Documentation/git-interpret-trailers.txt#L129-L132
+  args.push('--no-divider')
+
   if (unfold) {
     args.push('--unfold')
   }
