@@ -85,9 +85,10 @@ export class PopupManager {
 
     const existingPopup = this.getPopupsOfType(popupToAdd.type)
 
+    const popup = { id: uuid(), ...popupToAdd }
     if (!enableStackedPopups()) {
-      this.popupStack = [popupToAdd, ...this.getPopupsOfType(PopupType.Error)]
-      return popupToAdd
+      this.popupStack = [popup, ...this.getPopupsOfType(PopupType.Error)]
+      return popup
     }
 
     if (existingPopup.length > 0) {
@@ -97,7 +98,6 @@ export class PopupManager {
       return popupToAdd
     }
 
-    const popup = { id: uuid(), ...popupToAdd }
     this.popupStack.push(popup)
     this.checkStackLength()
     return popup
