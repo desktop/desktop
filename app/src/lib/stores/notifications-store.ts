@@ -2,7 +2,9 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
+  isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
+import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { PullRequest } from '../../models/pull-request'
 import { API, APICheckConclusion } from '../api'
 import {
@@ -121,6 +123,10 @@ export class NotificationsStore {
       return
     }
 
+    if (!this.isValidRepositoryForEvent(repository, event)) {
+      return
+    }
+
     const pullRequests = await this.pullRequestCoordinator.getAllPullRequests(
       repository
     )
@@ -189,6 +195,10 @@ export class NotificationsStore {
   ) {
     const repository = this.repository
     if (repository === null) {
+      return
+    }
+
+    if (!this.isValidRepositoryForEvent(repository, event)) {
       return
     }
 
@@ -281,6 +291,31 @@ export class NotificationsStore {
     })
 
     this.statsStore.recordChecksFailedNotificationShown()
+  }
+
+  private isValidRepositoryForEvent(
+    repository: RepositoryWithGitHubRepository,
+    event: DesktopAliveEvent
+  ) {
+    // If it's a fork and set to contribute to the parent repository, try to
+    // match the parent repository.
+    if (
+      isRepositoryWithForkedGitHubRepository(repository) &&
+      repository.workflowPreferences.forkContributionTarget ===
+        ForkContributionTarget.Parent
+    ) {
+      const parentRepository = repository.gitHubRepository.parent
+      return (
+        parentRepository.owner.login === event.owner &&
+        parentRepository.name === event.repo
+      )
+    }
+
+    const ghRepository = repository.gitHubRepository
+    return (
+      ghRepository.owner.login === event.owner &&
+      ghRepository.name === event.repo
+    )
   }
 
   /**

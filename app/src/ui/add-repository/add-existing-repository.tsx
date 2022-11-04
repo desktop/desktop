@@ -11,6 +11,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { FoldoutType } from '../../lib/app-state'
 
 import untildify from 'untildify'
 import { showOpenDialog } from '../main-process-proxy'
@@ -265,6 +266,7 @@ export class AddExistingRepository extends React.Component<
     const repositories = await dispatcher.addRepositories([resolvedPath])
 
     if (repositories.length > 0) {
+      dispatcher.closeFoldout(FoldoutType.Repository)
       dispatcher.selectRepository(repositories[0])
       dispatcher.recordAddExistingRepository()
     }

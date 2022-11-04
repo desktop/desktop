@@ -1,6 +1,8 @@
 .open-pull-request {
-  width: 850px;
-  max-width: none;
+  width: 100%;
+  height: 100%;
+  max-width: calc(100% - var(--spacing-double) * 4);
+  max-height: calc(100% - var(--spacing-double) * 4);
 
   header.dialog-header {
     padding-bottom: var(--spacing);
@@ -21,6 +23,10 @@
 
   .open-pull-request-content {
     padding: var(--spacing);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex-grow: 1;
   }
 
   .open-pull-request-no-changes {

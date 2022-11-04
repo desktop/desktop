@@ -77,6 +77,10 @@ import {
   updatePreferredAppMenuItemLabels,
   updateAccounts,
   setWindowZoomFactor,
+  onShowInstallingUpdate,
+  sendWillQuitEvenIfUpdatingSync,
+  quitApp,
+  sendCancelQuittingSync,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -180,7 +184,7 @@ import {
   matchExistingRepository,
   urlMatchesRemote,
 } from '../repository-matching'
-import { isCurrentBranchForcePush } from '../rebase'
+import { ForcePushBranchState, getCurrentBranchForcePushState } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
@@ -584,6 +588,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.notificationsStore.onPullRequestReviewSubmitNotification(
       this.onPullRequestReviewSubmitNotification
     )
+
+    onShowInstallingUpdate(this.onShowInstallingUpdate)
   }
 
   private initializeWindowState = async () => {
@@ -651,6 +657,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._showPopup({
       type: PopupType.InvalidatedToken,
       account,
+    })
+  }
+
+  private onShowInstallingUpdate = () => {
+    this._showPopup({
+      type: PopupType.InstallingUpdate,
     })
   }
 
@@ -2233,10 +2245,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ?.name ?? undefined
     }
 
-    const isForcePushForCurrentRepository = isCurrentBranchForcePush(
-      branchesState,
-      aheadBehind
-    )
+    // From the menu, we'll offer to force-push whenever it's possible, regardless
+    // of whether or not the user performed any action we know would be followed
+    // by a force-push.
+    const isForcePushForCurrentRepository =
+      getCurrentBranchForcePushState(branchesState, aheadBehind) !==
+      ForcePushBranchState.NotAvailable
 
     const isStashedChangesVisible =
       changesState.selection.kind === ChangesSelectionKind.Stash
@@ -6575,6 +6589,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /**
+   * Multi selection on the commit list can give an order of 1, 5, 3 if that is
+   * how the user selected them. However, we want to main chronological ordering
+   * of the commits to reduce the chance of conflicts during interact rebasing.
+   * Thus, assuming 1 is the first commit made by the user and 5 is the last. We
+   * want the order to be, 1, 3, 5.
+   */
+  private orderCommitsByHistory(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    const { compareState } = this.repositoryStateCache.get(repository)
+    const { commitSHAs } = compareState
+
+    return [...commits].sort(
+      (a, b) => commitSHAs.indexOf(b.sha) - commitSHAs.indexOf(a.sha)
+    )
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _cherryPick(
     repository: Repository,
@@ -6585,13 +6618,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return CherryPickResult.UnableToStart
     }
 
+    const orderedCommits = this.orderCommitsByHistory(repository, commits)
+
     await this._refreshRepository(repository)
 
     const progressCallback =
       this.getMultiCommitOperationProgressCallBack(repository)
     const gitStore = this.gitStoreCache.get(repository)
     const result = await gitStore.performFailableOperation(() =>
-      cherryPick(repository, commits, progressCallback)
+      cherryPick(repository, orderedCommits, progressCallback)
     )
 
     return result || CherryPickResult.Error
@@ -7469,6 +7504,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.emitUpdate()
       }
     )
+  }
+
+  public _quitApp(evenIfUpdating: boolean) {
+    if (evenIfUpdating) {
+      sendWillQuitEvenIfUpdatingSync()
+    }
+
+    quitApp()
+  }
+
+  public _cancelQuittingApp() {
+    sendCancelQuittingSync()
   }
 }
 

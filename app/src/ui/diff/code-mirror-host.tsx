@@ -164,6 +164,14 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
     CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
     this.resizeObserver.observe(this.codeMirror.getWrapperElement())
+
+    if (this.wrapper !== null && this.wrapper.closest('dialog') !== null) {
+      document.addEventListener('dialog-appeared', this.onDialogAppeared)
+    }
+  }
+
+  private onDialogAppeared = () => {
+    requestAnimationFrame(this.onResized)
   }
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
@@ -199,6 +207,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
 
     this.resizeObserver.disconnect()
+    document.removeEventListener('dialog-show', this.onDialogAppeared)
   }
 
   public componentDidUpdate(prevProps: ICodeMirrorHostProps) {
