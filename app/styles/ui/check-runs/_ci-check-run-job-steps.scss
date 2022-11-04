@@ -1,0 +1,42 @@
+.ci-check-run-job-steps-list {
+  overflow-y: auto;
+  border-bottom: var(--base-border);
+
+  .ci-check-run-job-step {
+    background-color: var(--box-alt-background-color);
+
+    // This is the height of a check run step and check run group header so that
+    // when a first failed step is scroll into view it doesn't end up under the
+    // sticky headers (which are like fixed headers)
+    scroll-margin-top: 72px;
+
+    .job-step-duration {
+      color: var(--text-secondary-color);
+    }
+
+    &:hover {
+      /* 100% is baseline so 95% is 5% darker */
+      filter: brightness(95%);
+    }
+
+    .job-step-name span {
+      &:hover {
+        color: var(--link-button-color);
+        cursor: pointer !important;
+      }
+    }
+
+    .job-step-status-symbol,
+    .job-step-duration {
+      padding: var(--spacing-half) var(--spacing);
+      margin-top: 2px;
+    }
+
+    .job-step-name {
+      flex-grow: 1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+}

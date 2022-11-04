@@ -203,16 +203,21 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         <div className="welcome-left">
           <div className="welcome-content">
             {this.getComponentForCurrentStep()}
-            <img className="welcome-graphic-top" src={WelcomeLeftTopImageUri} />
+            <img
+              className="welcome-graphic-top"
+              src={WelcomeLeftTopImageUri}
+              alt=""
+            />
             <img
               className="welcome-graphic-bottom"
               src={WelcomeLeftBottomImageUri}
+              alt=""
             />
           </div>
         </div>
 
         <div className="welcome-right">
-          <img className="welcome-graphic" src={WelcomeRightImageUri} />
+          <img className="welcome-graphic" src={WelcomeRightImageUri} alt="" />
         </div>
       </UiView>
     )

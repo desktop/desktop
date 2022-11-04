@@ -231,8 +231,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     if (this.props.onFilterListResultsChanged !== undefined) {
-      const itemCount = this.state.rows.filter(row => row.kind === 'item')
-        .length
+      const itemCount = this.state.rows.filter(
+        row => row.kind === 'item'
+      ).length
 
       this.props.onFilterListResultsChanged(itemCount)
     }
@@ -249,6 +250,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       <TextBox
         ref={this.onTextBoxRef}
         type="search"
+        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus={true}
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"

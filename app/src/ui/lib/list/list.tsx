@@ -17,11 +17,6 @@ import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
-import {
-  AlmostImmediate,
-  clearAlmostImmediate,
-  setAlmostImmediate,
-} from '../../../lib/set-almost-immediate'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -79,8 +74,21 @@ interface IListProps {
    * The currently selected rows indexes. Used to attach a special
    * selection class on those row's containers as well as being used
    * for keyboard selection.
+   *
+   * It is expected that the use case for this is setting of the initially
+   * selected rows or clearing a list selection.
+   *
+   * N.B. Since it is used for keyboard selection, changing the ordering of
+   * elements in this array in a parent component may result in unexpected
+   * behaviors when a user modifies their selection via key commands.
+   * See #15536 lessons learned.
    */
   readonly selectedRows: ReadonlyArray<number>
+
+  /**
+   * Used to attach special classes to specific rows
+   */
+  readonly rowCustomClassNameMap?: Map<string, ReadonlyArray<number>>
 
   /**
    * This function will be called when a pointer device is pressed and then
@@ -281,7 +289,7 @@ export class List extends React.Component<IListProps, IListState> {
   private list: HTMLDivElement | null = null
   private grid: Grid | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateSizeTimeoutId: AlmostImmediate | null = null
+  private updateSizeTimeoutId: NodeJS.Immediate | null = null
 
   public constructor(props: IListProps) {
     super(props)
@@ -293,19 +301,19 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (ResizeObserver || false) {
       this.resizeObserver = new ResizeObserverClass(entries => {
-        for (const entry of entries) {
-          if (entry.target === this.list) {
+        for (const { target, contentRect } of entries) {
+          if (target === this.list && this.list !== null) {
             // We might end up causing a recursive update by updating the state
             // when we're reacting to a resize so we'll defer it until after
             // react is done with this frame.
             if (this.updateSizeTimeoutId !== null) {
-              clearAlmostImmediate(this.updateSizeTimeoutId)
+              clearImmediate(this.updateSizeTimeoutId)
             }
 
-            this.updateSizeTimeoutId = setAlmostImmediate(
+            this.updateSizeTimeoutId = setImmediate(
               this.onResized,
-              entry.target,
-              entry.contentRect
+              this.list,
+              contentRect
             )
           }
         }
@@ -474,7 +482,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private getNextPageRowIndex(direction: SelectionDirection) {
     const { selectedRows } = this.props
-    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
+    const lastSelection = selectedRows.at(-1) ?? 0
 
     return this.findNextPageSelectableRow(lastSelection, direction)
   }
@@ -529,11 +537,15 @@ export class List extends React.Component<IListProps, IListState> {
       this.props.onRowKeyDown(rowIndex, event)
     }
 
+    const hasModifier =
+      event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+
     // We give consumers the power to prevent the onRowClick event by subscribing
     // to the onRowKeyDown event and calling event.preventDefault. This lets
     // consumers add their own semantics for keyboard presses.
     if (
       !event.defaultPrevented &&
+      !hasModifier &&
       (event.key === 'Enter' || event.key === ' ')
     ) {
       this.toggleSelection(event)
@@ -542,8 +554,12 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onFocusContainerKeyDown = (event: React.KeyboardEvent<any>) => {
+    const hasModifier =
+      event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+
     if (
       !event.defaultPrevented &&
+      !hasModifier &&
       (event.key === 'Enter' || event.key === ' ')
     ) {
       this.toggleSelection(event)
@@ -597,9 +613,8 @@ export class List extends React.Component<IListProps, IListState> {
       return this.moveSelection(direction, source)
     }
 
-    const lastSelection = this.props.selectedRows[
-      this.props.selectedRows.length - 1
-    ]
+    const lastSelection =
+      this.props.selectedRows[this.props.selectedRows.length - 1]
 
     const selectionOrigin = this.props.selectedRows[0]
 
@@ -674,15 +689,12 @@ export class List extends React.Component<IListProps, IListState> {
     const firstSelection = selectedRows[0] ?? 0
     const range = createSelectionBetween(firstSelection, row)
 
-    if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(range, source)
-    }
+    this.props.onSelectionChanged?.(range, source)
 
-    if (this.props.onSelectedRangeChanged) {
-      const from = range[0] ?? 0
-      const to = range[range.length - 1] ?? 0
-      this.props.onSelectedRangeChanged(from, to, source)
-    }
+    const from = range.at(0) ?? 0
+    const to = range.at(-1) ?? 0
+
+    this.props.onSelectedRangeChanged?.(from, to, source)
 
     this.scrollRowToVisible(row)
   }
@@ -779,7 +791,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   public componentWillUnmount() {
     if (this.updateSizeTimeoutId !== null) {
-      clearAlmostImmediate(this.updateSizeTimeoutId)
+      clearImmediate(this.updateSizeTimeoutId)
       this.updateSizeTimeoutId = null
     }
 
@@ -800,10 +812,30 @@ export class List extends React.Component<IListProps, IListState> {
     this.focusRow = -1
   }
 
+  private getCustomRowClassNames = (rowIndex: number) => {
+    const { rowCustomClassNameMap } = this.props
+    if (rowCustomClassNameMap === undefined) {
+      return undefined
+    }
+
+    const customClasses = new Array<string>()
+    rowCustomClassNameMap.forEach(
+      (rows: ReadonlyArray<number>, className: string) => {
+        if (rows.includes(rowIndex)) {
+          customClasses.push(className)
+        }
+      }
+    )
+
+    return customClasses.length === 0 ? undefined : customClasses.join(' ')
+  }
+
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
     const selected = this.props.selectedRows.indexOf(rowIndex) !== -1
+    const customClasses = this.getCustomRowClassNames(rowIndex)
+
     const focused = rowIndex === this.focusRow
 
     // An unselectable row shouldn't be focusable
@@ -852,13 +884,13 @@ export class List extends React.Component<IListProps, IListState> {
         tabIndex={tabIndex}
         children={element}
         selectable={selectable}
+        className={customClasses}
       />
     )
   }
 
   public render() {
     let content: JSX.Element[] | JSX.Element | null
-
     if (this.resizeObserver) {
       content = this.renderContents(
         this.state.width ?? 0,
@@ -886,6 +918,7 @@ export class List extends React.Component<IListProps, IListState> {
     const role = this.props.ariaMode === 'menu' ? 'menu' : 'listbox'
 
     return (
+      // eslint-disable-next-line jsx-a11y/aria-activedescendant-has-tabindex
       <div
         ref={this.onRef}
         id={this.props.id}
@@ -941,7 +974,6 @@ export class List extends React.Component<IListProps, IListState> {
     // it with keyboard navigation and select an item.
     const tabIndex =
       this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
-
     return (
       <FocusContainer
         className="list-focus-container"
@@ -949,6 +981,7 @@ export class List extends React.Component<IListProps, IListState> {
       >
         <Grid
           aria-label={''}
+          // eslint-disable-next-line jsx-a11y/aria-role
           role={''}
           ref={this.onGridRef}
           autoContainerWidth={true}
@@ -1239,14 +1272,11 @@ export class List extends React.Component<IListProps, IListState> {
    * This method is a noop if the list has not yet been mounted.
    */
   public focus() {
-    if (
-      this.props.selectedRows.length > 0 &&
-      this.props.selectedRows[this.props.selectedRows.length - 1] <
-        this.props.rowCount
-    ) {
-      this.scrollRowToVisible(
-        this.props.selectedRows[this.props.selectedRows.length - 1]
-      )
+    const { selectedRows, rowCount } = this.props
+    const lastSelectedRow = selectedRows.at(-1)
+
+    if (lastSelectedRow !== undefined && lastSelectedRow < rowCount) {
+      this.scrollRowToVisible(lastSelectedRow)
     } else {
       if (this.grid) {
         const element = ReactDOM.findDOMNode(this.grid) as HTMLDivElement

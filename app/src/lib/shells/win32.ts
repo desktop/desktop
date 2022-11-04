@@ -1,13 +1,12 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
-import { pathExists } from 'fs-extra'
-
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { enableWSLDetection } from '../feature-flag'
 import { findGitOnPath } from '../is-git-on-path'
 import { parseEnumValue } from '../enum'
+import { pathExists } from '../../ui/lib/path-exists'
 
 export enum Shell {
   Cmd = 'Command Prompt',

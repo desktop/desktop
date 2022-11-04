@@ -19,7 +19,7 @@ describe('Update remote url', () => {
     name: 'my-repo',
     owner: {
       id: 42,
-      url: 'https://github.com/my-user',
+      html_url: 'https://github.com/my-user',
       login: 'my-user',
       avatar_url: 'https://github.com/my-user.png',
       type: 'User',

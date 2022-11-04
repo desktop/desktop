@@ -4,7 +4,7 @@ import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
-import { Commit, CommitOneLine } from '../models/commit'
+import { Commit } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -22,18 +22,20 @@ import {
   ICloneProgress,
   IMultiCommitOperationProgress,
 } from '../models/progress'
-import { Popup } from '../models/popup'
 
 import { SignInState } from './stores/sign-in-store'
 
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
+import {
+  ApplicableTheme,
+  ApplicationTheme,
+  ICustomTheme,
+} from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
@@ -43,8 +45,8 @@ import {
   MultiCommitOperationDetail,
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
-import { DragAndDropIntroType } from '../ui/history/drag-and-drop-intro'
 import { IChangesetData } from './git'
+import { Popup } from '../models/popup'
 
 export enum SelectionType {
   Repository,
@@ -97,7 +99,7 @@ export interface IAppState {
   /**
    * The current state of the window, ie maximized, minimized full-screen etc.
    */
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 
   /**
    * The current zoom factor of the window represented as a fractional number
@@ -160,13 +162,16 @@ export interface IAppState {
    * because it's used in the toolbar as well as the
    * repository.
    */
-  readonly sidebarWidth: number
+  readonly sidebarWidth: IConstrainedValue
 
   /** The width of the commit summary column in the history view */
-  readonly commitSummaryWidth: number
+  readonly commitSummaryWidth: IConstrainedValue
 
   /** The width of the files list in the stash view */
-  readonly stashedFilesWidth: number
+  readonly stashedFilesWidth: IConstrainedValue
+
+  /** The width of the files list in the pull request files changed view */
+  readonly pullRequestFilesListWidth: IConstrainedValue
 
   /**
    * Used to highlight access keys throughout the app when the
@@ -177,6 +182,9 @@ export interface IAppState {
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
 
+  /** Whether there is an update to showcase */
+  readonly isUpdateShowcaseVisible: boolean
+
   /** Whether we should ask the user to move the app to /Applications */
   readonly askToMoveToApplicationsFolderSetting: boolean
 
@@ -186,8 +194,17 @@ export interface IAppState {
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 
+  /** Whether we should show a confirmation dialog */
+  readonly askForConfirmationOnDiscardChangesPermanently: boolean
+
+  /** Should the app prompt the user to confirm a discard stash */
+  readonly askForConfirmationOnDiscardStash: boolean
+
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
+
+  /** Should the app prompt the user to confirm an undo commit? */
+  readonly askForConfirmationOnUndoCommit: boolean
 
   /** How the app should handle uncommitted changes when switching branches */
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
@@ -219,6 +236,9 @@ export interface IAppState {
   /** Whether we should hide white space changes in history diff */
   readonly hideWhitespaceInHistoryDiff: boolean
 
+  /** Whether we should hide white space changes in the pull request diff */
+  readonly hideWhitespaceInPullRequestDiff: boolean
+
   /** Whether we should show side by side diffs */
   readonly showSideBySideDiff: boolean
 
@@ -236,6 +256,9 @@ export interface IAppState {
 
   /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
+
+  /** The custom theme  */
+  readonly customTheme?: ICustomTheme
 
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
@@ -274,15 +297,20 @@ export interface IAppState {
   readonly commitSpellcheckEnabled: boolean
 
   /**
-   * List of drag & drop intro types that have been shown to the user.
-   */
-  readonly dragAndDropIntroTypesShown: ReadonlySet<DragAndDropIntroType>
-
-  /**
    * Record of what logged in users have been checked to see if thank you is in
    * order for external contributions in latest release.
    */
   readonly lastThankYou: ILastThankYou | undefined
+
+  /**
+   * Whether or not the CI status popover is visible.
+   */
+  readonly showCIStatusPopover: boolean
+
+  /**
+   * Whether or not the user enabled high-signal notifications.
+   */
+  readonly notificationsEnabled: boolean
 }
 
 export enum FoldoutType {
@@ -403,6 +431,16 @@ export interface IRepositoryState {
   readonly selectedSection: RepositorySectionTab
 
   /**
+   * The state of the current pull request view in the repository.
+   *
+   * It will be populated when a user initiates a pull request. It may have
+   * content to retain a users pull request state if they navigate
+   * away from the current pull request view and then back. It is returned
+   * to null after a pull request has been opened.
+   */
+  readonly pullRequestState: IPullRequestState | null
+
+  /**
    * The name and email that will be used for the author info
    * when committing barring any race where user.name/user.email is
    * updated between us reading it and a commit being made
@@ -411,8 +449,6 @@ export interface IRepositoryState {
   readonly commitAuthor: CommitIdentity | null
 
   readonly branchesState: IBranchesState
-
-  readonly rebaseState: IRebaseState
 
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
@@ -438,8 +474,8 @@ export interface IRepositoryState {
   /** Is a commit in progress? */
   readonly isCommitting: boolean
 
-  /** Is an amend in progress? */
-  readonly isAmending: boolean
+  /** Commit being amended, or null if none. */
+  readonly commitToAmend: Commit | null
 
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
@@ -499,6 +535,13 @@ export interface IBranchesState {
   readonly defaultBranch: Branch | null
 
   /**
+   * The default branch of the upstream remote in a forked GitHub repository
+   * with the ForkContributionTarget.Parent behavior, or null if it cannot be
+   * inferred or is another kind of repository.
+   */
+  readonly upstreamDefaultBranch: Branch | null
+
+  /**
    * A list of all branches (remote and local) that's currently in
    * the repository.
    */
@@ -531,46 +574,46 @@ export interface IBranchesState {
    */
   readonly pullWithRebase?: boolean
 
-  /** Tracking branches that have been rebased within Desktop */
-  readonly rebasedBranches: ReadonlyMap<string, string>
-}
-
-/** State associated with a rebase being performed on a repository */
-export interface IRebaseState {
-  /**
-   * The current step of the flow the user should see.
-   *
-   * `null` indicates that there is no rebase underway.
-   */
-  readonly step: RebaseFlowStep | null
-
-  /**
-   * The underlying Git information associated with the current rebase
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly progress: IMultiCommitOperationProgress | null
-
-  /**
-   * The known range of commits that will be applied to the repository
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly commits: ReadonlyArray<CommitOneLine> | null
-
-  /**
-   * Whether the user has done work to resolve any conflicts as part of this
-   * rebase, as the rebase flow should confirm the user wishes to abort the
-   * rebase and lose that work.
-   */
-  readonly userHasResolvedConflicts: boolean
+  /** Tracking branches that have been allowed to be force-pushed within Desktop */
+  readonly forcePushBranches: ReadonlyMap<string, string>
 }
 
 export interface ICommitSelection {
   /** The commits currently selected in the app */
   readonly shas: ReadonlyArray<string>
+
+  /**
+   * When multiple commits are selected, the diff is created using the rev range
+   * of firstSha^..lastSha in the selected shas. Thus comparing the trees of the
+   * the lastSha and the first parent of the first sha. However, our history
+   * list shows commits in chronological order. Thus, when a branch is merged,
+   * the commits from that branch are injected in their chronological order into
+   * the history list. Therefore, given a branch history of A, B, C, D,
+   * MergeCommit where B and C are from the merged branch, diffing on the
+   * selection of A through D would not have the changes from B an C.
+   *
+   * This is a list of the shas that are reachable by following the parent links
+   * (aka the graph) from the lastSha to the firstSha^ in the selection.
+   *
+   * Other notes: Given a selection A through D, executing `git diff A..D` would
+   * give us the changes since A but not including A; since the user will have
+   * selected A, we do `git diff A^..D` so that we include the changes of A.
+   * */
+  readonly shasInDiff: ReadonlyArray<string>
+
+  /**
+   * Whether the a selection of commits are group of adjacent to each other.
+   * Example: Given these are indexes of sha's in history, 3, 4, 5, 6 is contiguous as
+   * opposed to 3, 5, 8.
+   *
+   * Technically order does not matter, but shas are stored in order.
+   *
+   * Contiguous selections can be diffed. Non-contiguous selections can be
+   * cherry-picked, reordered, or squashed.
+   *
+   * Assumed that a selections of zero or one commit are contiguous.
+   * */
+  readonly isContiguous: boolean
 
   /** The changeset data associated with the selected commit */
   readonly changesetData: IChangesetData
@@ -721,6 +764,9 @@ export interface ICompareState {
 
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
+
+  /** The SHAs of commits to highlight in the compare list */
+  readonly shasToHighlight: ReadonlyArray<string>
 
   /**
    * A list of branches (remote and local) except the current branch, and
@@ -888,4 +934,47 @@ export type MultiCommitOperationConflictState = {
    * stored in state.
    */
   readonly theirBranch?: string
+}
+
+/**
+ * An interface for describing a desired value and a valid range
+ *
+ * Note that the value can be greater than `max` or less than `min`, it's
+ * an indication of the desired value. The real value needs to be validated
+ * or coerced using a function like `clamp`.
+ *
+ * Yeah this is a terrible name.
+ */
+export interface IConstrainedValue {
+  readonly value: number
+  readonly max: number
+  readonly min: number
+}
+
+/**
+ * The state of the current pull request view in the repository.
+ */
+export interface IPullRequestState {
+  /**
+   * The base branch of a a pull request - the branch the currently checked out
+   * branch would merge into
+   */
+  readonly baseBranch: Branch
+
+  /** The SHAs of commits of the pull request */
+  readonly commitSHAs: ReadonlyArray<string> | null
+
+  /**
+   * The commit selection, file selection and diff of the pull request.
+   *
+   * Note: By default the commit selection shas will be all the pull request
+   * shas and will mean the diff represents the merge base of the current branch
+   * and the the pull request base branch. This is different than the
+   * repositories commit selection where the diff of all commits represents the
+   * diff between the latest commit and the earliest commits parent.
+   */
+  readonly commitSelection: ICommitSelection
+
+  /** The result of merging the pull request branch into the base branch */
+  readonly mergeStatus: MergeTreeResult | null
 }

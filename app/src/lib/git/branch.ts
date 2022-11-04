@@ -76,7 +76,6 @@ export async function deleteRemoteBranch(
   remoteName: string,
   remoteBranchName: string
 ): Promise<true> {
-  const networkArguments = await gitNetworkArguments(repository, account)
   const remoteUrl =
     (await getRemoteURL(repository, remoteName).catch(err => {
       // If we can't get the URL then it's very unlikely Git will be able to
@@ -86,7 +85,12 @@ export async function deleteRemoteBranch(
       return null
     })) || getFallbackUrlForProxyResolve(account, repository)
 
-  const args = [...networkArguments, 'push', remoteName, `:${remoteBranchName}`]
+  const args = [
+    ...gitNetworkArguments(),
+    'push',
+    remoteName,
+    `:${remoteBranchName}`,
+  ]
 
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle

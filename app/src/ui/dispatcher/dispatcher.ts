@@ -1,10 +1,10 @@
-import { remote } from 'electron'
-import { Disposable, IDisposable } from 'event-kit'
+import { Disposable, DisposableLike } from 'event-kit'
 
 import {
   IAPIOrganization,
   IAPIPullRequest,
   IAPIFullRepository,
+  IAPICheckSuite,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -26,11 +26,12 @@ import {
   setGenericUsername,
 } from '../../lib/generic-git-auth'
 import {
-  isGitRepository,
   RebaseResult,
   PushOptions,
   getCommitsBetweenCommits,
   getBranches,
+  getRebaseSnapshot,
+  getRepositoryType,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -50,13 +51,8 @@ import {
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
 import { AppStore } from '../../lib/stores/app-store'
-import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
-import {
-  initializeNewRebaseFlow,
-  initializeRebaseFlowForConflictedRepository,
-} from '../../lib/rebase'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
@@ -90,24 +86,26 @@ import {
 import { TipState, IValidBranch } from '../../models/tip'
 import { Banner, BannerType } from '../../models/banner'
 
-import { ApplicationTheme } from '../lib/application-theme'
+import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
-import { executeMenuItem } from '../main-process-proxy'
+import {
+  executeMenuItem,
+  moveToApplicationsFolder,
+  isWindowFocused,
+  showOpenDialog,
+} from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
-  ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
-import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { resolveWithin } from '../../lib/path'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
 import { DragElement, DragType } from '../../models/drag-drop'
-import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
@@ -117,7 +115,10 @@ import {
   MultiCommitOperationStep,
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
-import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
+import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
+import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
+import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
+import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 
 /**
  * An error handler function.
@@ -233,9 +234,18 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    shas: ReadonlyArray<string>
-  ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, shas)
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean
+  ): void {
+    return this.appStore._changeCommitSelection(repository, shas, isContiguous)
+  }
+
+  /** Update the shas that should be highlighted */
+  public updateShasToHighlight(
+    repository: Repository,
+    shasToHighlight: ReadonlyArray<string>
+  ) {
+    this.appStore._updateShasToHighlight(repository, shasToHighlight)
   }
 
   /**
@@ -440,12 +450,39 @@ export class Dispatcher {
     initialBranch?: Branch | null
   ) {
     const repositoryState = this.repositoryStateManager.get(repository)
-    const initialStep = initializeNewRebaseFlow(repositoryState, initialBranch)
+    const initialStep = getMultiCommitOperationChooseBranchStep(
+      repositoryState,
+      initialBranch
+    )
 
-    this.setRebaseFlowStep(repository, initialStep)
+    const { tip } = repositoryState.branchesState
+    let currentBranch: Branch | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentBranch = tip.branch
+    } else {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the rebase flow'
+      )
+    }
+
+    this.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Rebase,
+        sourceBranch: null,
+        commits: [],
+        currentTip: tip.branch.tip.sha,
+      },
+      currentBranch,
+      [],
+      currentBranch.tip.sha
+    )
+
+    this.setMultiCommitOperationStep(repository, initialStep)
 
     this.showPopup({
-      type: PopupType.RebaseFlow,
+      type: PopupType.MultiCommitOperation,
       repository,
     })
   }
@@ -463,6 +500,22 @@ export class Dispatcher {
     const hasOverriddenForcePushCheck =
       options !== undefined && options.continueWithForcePush
 
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const originalBranchTip = getTipSha(branchesState.tip)
+
+    this.appStore._initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Rebase,
+        commits,
+        currentTip: baseBranch.tip.sha,
+        sourceBranch: baseBranch,
+      },
+      targetBranch,
+      commits,
+      originalBranchTip
+    )
+
     if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
       const showWarning = await this.warnAboutRemoteCommits(
         repository,
@@ -471,32 +524,26 @@ export class Dispatcher {
       )
 
       if (showWarning) {
-        this.setRebaseFlowStep(repository, {
-          kind: RebaseStep.WarnForcePush,
-          baseBranch,
+        this.setMultiCommitOperationStep(repository, {
+          kind: MultiCommitOperationStepKind.WarnForcePush,
           targetBranch,
+          baseBranch,
           commits,
         })
         return
       }
     }
 
-    this.initializeRebaseProgress(repository, commits)
-
-    const startRebaseAction = () => {
-      return this.rebase(repository, baseBranch, targetBranch)
-    }
-
-    this.setRebaseFlowStep(repository, {
-      kind: RebaseStep.ShowProgress,
-      rebaseAction: startRebaseAction,
-    })
+    await this.rebase(repository, baseBranch, targetBranch)
   }
 
   /**
    * Initialize and launch the rebase flow for a conflicted repository
    */
-  public async launchRebaseFlow(repository: Repository, targetBranch: string) {
+  public async launchRebaseOperation(
+    repository: Repository,
+    targetBranch: string
+  ) {
     await this.appStore._loadStatus(repository)
 
     const repositoryState = this.repositoryStateManager.get(repository)
@@ -515,16 +562,45 @@ export class Dispatcher {
       conflictState: updatedConflictState,
     }))
 
-    await this.setRebaseProgressFromState(repository)
+    const snapshot = await getRebaseSnapshot(repository)
+    if (snapshot === null) {
+      return
+    }
 
-    const initialStep = initializeRebaseFlowForConflictedRepository(
-      updatedConflictState
+    const { progress, commits } = snapshot
+    this.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Rebase,
+        sourceBranch: null,
+        commits,
+        currentTip: '',
+      },
+      null,
+      commits,
+      targetBranch
     )
 
-    this.setRebaseFlowStep(repository, initialStep)
+    this.repositoryStateManager.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        progress,
+      })
+    )
+
+    const { manualResolutions } = conflictState
+    this.setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ShowConflicts,
+      conflictState: {
+        kind: 'multiCommitOperation',
+        manualResolutions,
+        ourBranch: targetBranch,
+        theirBranch: undefined,
+      },
+    })
 
     this.showPopup({
-      type: PopupType.RebaseFlow,
+      type: PopupType.MultiCommitOperation,
       repository,
     })
   }
@@ -718,6 +794,11 @@ export class Dispatcher {
       }
 
       const addedRepositories = await this.addRepositories([path])
+
+      if (addedRepositories.length < 1) {
+        return null
+      }
+
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
 
@@ -774,9 +855,10 @@ export class Dispatcher {
   /** Discard the changes to the given files. */
   public discardChanges(
     repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true
   ): Promise<void> {
-    return this.appStore._discardChanges(repository, files)
+    return this.appStore._discardChanges(repository, files, moveToTrash)
   }
 
   /** Discard the changes from the given diff selection. */
@@ -794,18 +876,42 @@ export class Dispatcher {
     )
   }
 
-  /** Switch between amending the most recent commit and not. */
-  public async setAmendingRepository(
+  /** Start amending the most recent commit. */
+  public async startAmendingRepository(
     repository: Repository,
-    amending: boolean
+    commit: Commit,
+    isLocalCommit: boolean,
+    continueWithForcePush: boolean = false
   ) {
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const { tip } = repositoryState.branchesState
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    if (
+      askForConfirmationOnForcePush &&
+      !continueWithForcePush &&
+      !isLocalCommit &&
+      tip.kind === TipState.Valid
+    ) {
+      return this.showPopup({
+        type: PopupType.WarnForcePush,
+        operation: 'Amend',
+        onBegin: () => {
+          this.startAmendingRepository(repository, commit, isLocalCommit, true)
+        },
+      })
+    }
+
     await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
 
-    this.appStore._setAmendingRepository(repository, amending)
+    this.appStore._setRepositoryCommitToAmend(repository, commit)
 
-    if (amending) {
-      this.statsStore.recordAmendCommitStarted()
-    }
+    this.statsStore.recordAmendCommitStarted()
+  }
+
+  /** Stop amending the most recent commit. */
+  public async stopAmendingRepository(repository: Repository) {
+    this.appStore._setRepositoryCommitToAmend(repository, null)
   }
 
   /** Undo the given commit. */
@@ -852,6 +958,13 @@ export class Dispatcher {
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
     return this.appStore._setUpdateBannerVisibility(isVisible)
+  }
+
+  /**
+   * Set the update show case visibility
+   */
+  public setUpdateShowCaseVisibility(isVisible: boolean) {
+    return this.appStore._setUpdateShowCaseVisibility(isVisible)
   }
 
   /**
@@ -978,23 +1091,24 @@ export class Dispatcher {
 
   /**
    * Update the per-repository list of branches that can be force-pushed
-   * after a rebase is completed.
+   * after a rebase or amend is completed.
    */
-  private addRebasedBranchToForcePushList = (
+  private addBranchToForcePushList = (
     repository: Repository,
     tipWithBranch: IValidBranch,
-    beforeRebaseSha: string
+    beforeChangeSha: string
   ) => {
-    this.appStore._addRebasedBranchToForcePushList(
+    this.appStore._addBranchToForcePushList(
       repository,
       tipWithBranch,
-      beforeRebaseSha
+      beforeChangeSha
     )
   }
 
   private dropCurrentBranchFromForcePushList = (repository: Repository) => {
     const currentState = this.repositoryStateManager.get(repository)
-    const { rebasedBranches, tip } = currentState.branchesState
+    const { forcePushBranches: rebasedBranches, tip } =
+      currentState.branchesState
 
     if (tip.kind !== TipState.Valid) {
       return
@@ -1004,7 +1118,7 @@ export class Dispatcher {
     updatedMap.delete(tip.branch.nameWithoutRemote)
 
     this.repositoryStateManager.updateBranchesState(repository, () => ({
-      rebasedBranches: updatedMap,
+      forcePushBranches: updatedMap,
     }))
   }
 
@@ -1016,52 +1130,25 @@ export class Dispatcher {
     return this.appStore._setConflictsResolved(repository)
   }
 
-  /**
-   * Initialize the progress in application state based on the known commits
-   * that will be applied in the rebase.
-   *
-   * @param commits the list of commits that exist on the target branch which do
-   *                not exist on the base branch
-   */
-  public initializeRebaseProgress(
-    repository: Repository,
-    commits: ReadonlyArray<CommitOneLine>
-  ) {
-    return this.appStore._initializeRebaseProgress(repository, commits)
-  }
-
-  /**
-   * Update the rebase progress in application state by querying the Git
-   * repository state.
-   */
-  public setRebaseProgressFromState(repository: Repository) {
-    return this.appStore._setRebaseProgressFromState(repository)
-  }
-
-  /**
-   * Move the rebase flow to a new state.
-   */
-  public setRebaseFlowStep(
-    repository: Repository,
-    step: RebaseFlowStep
-  ): Promise<void> {
-    return this.appStore._setRebaseFlowStep(repository, step)
-  }
-
-  /** End the rebase flow and cleanup any related app state */
-  public endRebaseFlow(repository: Repository) {
-    return this.appStore._endRebaseFlow(repository)
-  }
-
   /** Starts a rebase for the given base and target branch */
   public async rebase(
     repository: Repository,
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<void> {
-    const stateBefore = this.repositoryStateManager.get(repository)
+    const { branchesState, multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
 
-    const beforeSha = getTipSha(stateBefore.branchesState.tip)
+    if (
+      multiCommitOperationState == null ||
+      multiCommitOperationState.operationDetail.kind !==
+        MultiCommitOperationKind.Rebase
+    ) {
+      return
+    }
+    const { commits } = multiCommitOperationState.operationDetail
+
+    const beforeSha = getTipSha(branchesState.tip)
 
     log.info(
       `[rebase] starting rebase for ${targetBranch.name} at ${beforeSha}`
@@ -1104,13 +1191,12 @@ export class Dispatcher {
         return
       }
 
-      const conflictsWithBranches: RebaseConflictState = {
-        ...conflictState,
-        baseBranch: baseBranch.name,
-        targetBranch: targetBranch.name,
-      }
-
-      this.switchToConflicts(repository, conflictsWithBranches)
+      return this.startMultiCommitOperationConflictFlow(
+        MultiCommitOperationKind.Rebase,
+        repository,
+        baseBranch.name,
+        targetBranch.name
+      )
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1120,22 +1206,12 @@ export class Dispatcher {
       }
 
       this.statsStore.recordRebaseSuccessWithoutConflicts()
-
-      await this.completeRebase(
-        repository,
-        {
-          type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch.name,
-          baseBranch: baseBranch.name,
-        },
-        tip,
-        beforeSha
-      )
+      await this.completeMultiCommitOperation(repository, commits.length)
     } else if (result === RebaseResult.Error) {
       // we were unable to successfully start the rebase, and an error should
       // be shown through the default error handling infrastructure, so we can
       // just abandon the rebase for now
-      this.endRebaseFlow(repository)
+      this.endMultiCommitOperation(repository)
     }
   }
 
@@ -1184,93 +1260,6 @@ export class Dispatcher {
     )
 
     return result
-  }
-
-  public processContinueRebaseResult(
-    result: RebaseResult,
-    conflictsState: RebaseConflictState,
-    repository: Repository
-  ) {
-    const stateAfter = this.repositoryStateManager.get(repository)
-    const { tip } = stateAfter.branchesState
-    const { targetBranch, baseBranch, originalBranchTip } = conflictsState
-
-    if (result === RebaseResult.ConflictsEncountered) {
-      const { conflictState } = stateAfter.changesState
-      if (conflictState === null) {
-        log.warn(
-          `[continueRebase] conflict state after rebase is null - unable to continue`
-        )
-        return
-      }
-
-      if (!isRebaseConflictState(conflictState)) {
-        log.warn(
-          `[continueRebase] conflict state after rebase is not rebase conflicts - unable to continue`
-        )
-        return
-      }
-
-      // ensure branches are persisted when transitioning back to conflicts
-      const conflictsWithBranches: RebaseConflictState = {
-        ...conflictState,
-        baseBranch,
-        targetBranch,
-      }
-
-      return this.switchToConflicts(repository, conflictsWithBranches)
-    } else if (result === RebaseResult.CompletedWithoutError) {
-      if (tip.kind !== TipState.Valid) {
-        log.warn(
-          `[continueRebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
-        )
-        return
-      }
-
-      this.statsStore.recordRebaseSuccessAfterConflicts()
-
-      return this.completeRebase(
-        repository,
-        {
-          type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch,
-          baseBranch: baseBranch,
-        },
-        tip,
-        originalBranchTip
-      )
-    }
-  }
-
-  /** Switch the rebase flow to show the latest conflicts */
-  private switchToConflicts = (
-    repository: Repository,
-    conflictState: RebaseConflictState
-  ) => {
-    this.setRebaseFlowStep(repository, {
-      kind: RebaseStep.ShowConflicts,
-      conflictState,
-    })
-  }
-
-  /** Tidy up the rebase flow after reaching the end */
-  private async completeRebase(
-    repository: Repository,
-    banner: Banner,
-    tip: IValidBranch,
-    originalBranchTip: string
-  ): Promise<void> {
-    this.closePopup()
-
-    this.setBanner(banner)
-
-    if (tip.kind === TipState.Valid) {
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
-    }
-
-    this.endRebaseFlow(repository)
-
-    await this.refreshRepository(repository)
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
@@ -1358,6 +1347,18 @@ export class Dispatcher {
     return this.appStore._appendIgnoreRule(repository, pattern)
   }
 
+  /**
+   * Convenience method to add the given file path(s) to the repository's gitignore.
+   *
+   * The file path will be escaped before adding.
+   */
+  public appendIgnoreFile(
+    repository: Repository,
+    filePath: string | string[]
+  ): Promise<void> {
+    return this.appStore._appendIgnoreFile(repository, filePath)
+  }
+
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
   public async openShell(
     path: string,
@@ -1399,8 +1400,9 @@ export class Dispatcher {
     return this.appStore.setStatsOptOut(optOut, userViewedPrompt)
   }
 
+  /** Moves the app to the /Applications folder on macOS. */
   public moveToApplicationsFolder() {
-    remote.app.moveToApplicationsFolder?.()
+    return moveToApplicationsFolder()
   }
 
   /**
@@ -1566,14 +1568,12 @@ export class Dispatcher {
    * Update the location of an existing repository and clear the missing flag.
    */
   public async relocateRepository(repository: Repository): Promise<void> {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const path = await showOpenDialog({
       properties: ['openDirectory'],
     })
 
-    if (filePaths.length > 0) {
-      const newPath = filePaths[0]
-      await this.updateRepositoryPath(repository, newPath)
+    if (path !== null) {
+      await this.updateRepositoryPath(repository, path)
     }
   }
 
@@ -1609,6 +1609,11 @@ export class Dispatcher {
     } else {
       this.commitStatusStore.stopBackgroundRefresh()
     }
+  }
+
+  public async initializeAppFocusState(): Promise<void> {
+    const isFocused = await isWindowFocused()
+    this.setAppFocusState(isFocused)
   }
 
   /**
@@ -1720,6 +1725,10 @@ export class Dispatcher {
     // up-to-date before performing the "Clone in Desktop" steps
     await this.appStore._refreshRepository(repository)
 
+    // if the repo has a remote, fetch before switching branches to ensure
+    // the checkout will be successful. This operation could be a no-op.
+    await this.appStore._fetch(repository, FetchType.UserInitiatedTask)
+
     await this.checkoutLocalBranch(repository, branchName)
 
     return repository
@@ -1736,9 +1745,8 @@ export class Dispatcher {
     }
 
     // Find the repository where the PR is created in Desktop.
-    let repository: Repository | null = this.getRepositoryFromPullRequest(
-      pullRequest
-    )
+    let repository: Repository | null =
+      this.getRepositoryFromPullRequest(pullRequest)
 
     if (repository !== null) {
       await this.selectRepository(repository)
@@ -1796,8 +1804,8 @@ export class Dispatcher {
         if (__DARWIN__) {
           // workaround for user reports that the application doesn't receive focus
           // after completing the OAuth signin in the browser
-          const window = remote.getCurrentWindow()
-          if (!window.isFocused()) {
+          const isFocused = await isWindowFocused()
+          if (!isFocused) {
             log.info(
               `refocusing the main window after the OAuth flow is completed`
             )
@@ -1814,31 +1822,23 @@ export class Dispatcher {
         // user may accidentally provide a folder within the repository
         // this ensures we use the repository root, if it is actually a repository
         // otherwise we consider it an untracked repository
-        const path = (await validatedRepositoryPath(action.path)) || action.path
-        const state = this.appStore.getState()
-        let existingRepository = matchExistingRepository(
-          state.repositories,
-          path
-        )
+        const path = await getRepositoryType(action.path)
+          .then(t =>
+            t.kind === 'regular' ? t.topLevelWorkingDirectory : action.path
+          )
+          .catch(e => {
+            log.error('Could not determine repository type', e)
+            return action.path
+          })
 
-        // in case this is valid git repository, there is no need to ask
-        // user for confirmation and it can be added automatically
-        if (existingRepository == null) {
-          const isRepository = await isGitRepository(path)
-          if (isRepository) {
-            const addedRepositories = await this.addRepositories([path])
-            existingRepository = addedRepositories[0]
-          }
-        }
+        const { repositories } = this.appStore.getState()
+        const existingRepository = matchExistingRepository(repositories, path)
 
         if (existingRepository) {
           await this.selectRepository(existingRepository)
           this.statsStore.recordAddExistingRepository()
         } else {
-          await this.showPopup({
-            type: PopupType.AddRepository,
-            path,
-          })
+          await this.showPopup({ type: PopupType.AddRepository, path })
         }
         break
 
@@ -1873,6 +1873,16 @@ export class Dispatcher {
    */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to retry discard changes
+   * after failure is not asked
+   */
+  public setConfirmDiscardChangesPermanentlySetting(
+    value: boolean
+  ): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesPermanentlySetting(value)
   }
 
   /**
@@ -1941,6 +1951,23 @@ export class Dispatcher {
       this.showPopup({
         type: PopupType.CloneRepository,
         initialURL: url,
+      })
+    })
+  }
+
+  public async openOrAddRepository(path: string): Promise<Repository | null> {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const existingRepository = repositories.find(r => r.path === path)
+
+    if (existingRepository) {
+      return await this.selectRepository(existingRepository)
+    }
+
+    return this.appStore._startOpenInDesktop(() => {
+      this.showPopup({
+        type: PopupType.AddRepository,
+        path,
       })
     })
   }
@@ -2055,6 +2082,12 @@ export class Dispatcher {
           retryAction.beforeCommit,
           retryAction.lastRetainedCommitRef
         )
+      case RetryActionType.DiscardChanges:
+        return this.discardChanges(
+          retryAction.repository,
+          retryAction.files,
+          false
+        )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -2083,6 +2116,19 @@ export class Dispatcher {
     file: CommittedFileChange | null = null
   ): Promise<void> {
     return this.appStore._setHideWhitespaceInHistoryDiff(
+      hideWhitespaceInDiff,
+      repository,
+      file
+    )
+  }
+
+  /** Change the hide whitespace in pull request diff setting */
+  public onHideWhitespaceInPullRequestDiffChanged(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null = null
+  ) {
+    this.appStore._setHideWhitespaceInPullRequestDiff(
       hideWhitespaceInDiff,
       repository,
       file
@@ -2151,6 +2197,13 @@ export class Dispatcher {
    */
   public showPullRequest(repository: Repository): Promise<void> {
     return this.appStore._showPullRequest(repository)
+  }
+
+  /**
+   * Open a browser and navigate to the provided pull request
+   */
+  public async showPullRequestByPR(pr: PullRequest): Promise<void> {
+    return this.appStore._showPullRequestByPR(pr)
   }
 
   /**
@@ -2298,8 +2351,16 @@ export class Dispatcher {
     await this.appStore._loadStatus(repository)
   }
 
+  public setConfirmDiscardStashSetting(value: boolean) {
+    return this.appStore._setConfirmDiscardStashSetting(value)
+  }
+
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
+  }
+
+  public setConfirmUndoCommitSetting(value: boolean) {
+    return this.appStore._setConfirmUndoCommitSetting(value)
   }
 
   /**
@@ -2327,6 +2388,11 @@ export class Dispatcher {
    */
   public mergeConflictDetectedFromExplicitMerge() {
     return this.statsStore.recordMergeConflictFromExplicitMerge()
+  }
+
+  /** Increments the `openSubmoduleFromDiffCount` metric */
+  public recordOpenSubmoduleFromDiffCount() {
+    return this.statsStore.recordOpenSubmoduleFromDiffCount()
   }
 
   /**
@@ -2362,6 +2428,13 @@ export class Dispatcher {
    */
   public setSelectedTheme(theme: ApplicationTheme) {
     return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Set the custom application-wide theme
+   */
+  public setCustomTheme(theme: ICustomTheme) {
+    return this.appStore._setCustomTheme(theme)
   }
 
   /**
@@ -2463,9 +2536,10 @@ export class Dispatcher {
    */
   public tryGetCommitStatus(
     repository: GitHubRepository,
-    ref: string
+    ref: string,
+    branchName?: string
   ): ICombinedRefCheck | null {
-    return this.commitStatusStore.tryGetStatus(repository, ref)
+    return this.commitStatusStore.tryGetStatus(repository, ref, branchName)
   }
 
   /**
@@ -2476,13 +2550,91 @@ export class Dispatcher {
    *                   fetch status.
    * @param callback   A callback which will be invoked whenever the
    *                   store updates a commit status for the given ref.
+   * @param branchName If we want to retrieve action workflow checks with the
+   *                   sub, we provide the branch name for it.
    */
   public subscribeToCommitStatus(
     repository: GitHubRepository,
     ref: string,
-    callback: StatusCallBack
-  ): IDisposable {
-    return this.commitStatusStore.subscribe(repository, ref, callback)
+    callback: StatusCallBack,
+    branchName?: string
+  ): DisposableLike {
+    return this.commitStatusStore.subscribe(
+      repository,
+      ref,
+      callback,
+      branchName
+    )
+  }
+
+  /**
+   * Invoke a manual refresh of the status for a particular ref
+   */
+  public manualRefreshSubscription(
+    repository: GitHubRepository,
+    ref: string,
+    pendingChecks: ReadonlyArray<IRefCheck>
+  ): Promise<void> {
+    return this.commitStatusStore.manualRefreshSubscription(
+      repository,
+      ref,
+      pendingChecks
+    )
+  }
+
+  /**
+   * Triggers GitHub to rerequest a list of check suites, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuites(
+    repository: GitHubRepository,
+    checkRuns: ReadonlyArray<IRefCheck>,
+    failedOnly: boolean
+  ): Promise<ReadonlyArray<boolean>> {
+    const promises = new Array<Promise<boolean>>()
+
+    // If it is one and in actions check, we can rerun it individually.
+    if (checkRuns.length === 1 && checkRuns[0].actionsWorkflow !== undefined) {
+      promises.push(
+        this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
+      )
+      return Promise.all(promises)
+    }
+
+    const checkSuiteIds = new Set<number>()
+    const workflowRunIds = new Set<number>()
+    for (const cr of checkRuns) {
+      if (failedOnly && cr.actionsWorkflow !== undefined) {
+        workflowRunIds.add(cr.actionsWorkflow.id)
+        continue
+      }
+
+      // There could still be failed ones that are not action and only way to
+      // rerun them is to rerun their whole check suite
+      if (cr.checkSuiteId !== null) {
+        checkSuiteIds.add(cr.checkSuiteId)
+      }
+    }
+
+    for (const id of workflowRunIds) {
+      promises.push(this.commitStatusStore.rerunFailedJobs(repository, id))
+    }
+
+    for (const id of checkSuiteIds) {
+      promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
+    }
+
+    return Promise.all(promises)
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    repository: GitHubRepository,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    return this.commitStatusStore.fetchCheckSuite(repository, checkSuiteId)
   }
 
   /**
@@ -2659,6 +2811,10 @@ export class Dispatcher {
     this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
   }
 
+  public setNotificationsEnabled(notificationsEnabled: boolean) {
+    this.appStore._setNotificationsEnabled(notificationsEnabled)
+  }
+
   public recordDiffOptionsViewed() {
     return this.statsStore.recordDiffOptionsViewed()
   }
@@ -2677,6 +2833,34 @@ export class Dispatcher {
     log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
   }
 
+  /** Initializes multi commit operation state for cherry pick if it is null */
+  public initializeMultiCommitOperationStateCherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
+  ): void {
+    if (
+      this.repositoryStateManager.get(repository).multiCommitOperationState !==
+      null
+    ) {
+      return
+    }
+
+    this.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.CherryPick,
+        sourceBranch,
+        branchCreated: false,
+        commits,
+      },
+      targetBranch,
+      commits,
+      sourceBranch?.tip.sha ?? null
+    )
+  }
+
   /** Starts a cherry pick of the given commits onto the target branch */
   public async cherryPick(
     repository: Repository,
@@ -2684,9 +2868,17 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>,
     sourceBranch: Branch | null
   ): Promise<void> {
+    // If uncommitted changes are stashed, we had to clear the multi commit
+    // operation in case user hit cancel. (This method only sets it, if it null)
+    this.initializeMultiCommitOperationStateCherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
+
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchMultiCommitOperationToShowProgress(repository)
-    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.CherryPick)
 
     const retry: RetryAction = {
       type: RetryActionType.CherryPick,
@@ -2779,6 +2971,14 @@ export class Dispatcher {
       return
     }
 
+    // If uncommitted changes are stashed, we had to clear the multi commit
+    // operation in case user hit cancel. (This method only sets it, if it null)
+    this.initializeMultiCommitOperationStateCherryPick(
+      repository,
+      targetBranch,
+      commits,
+      sourceBranch
+    )
     this.appStore._setMultiCommitOperationTargetBranch(repository, targetBranch)
     this.appStore._setCherryPickBranchCreated(repository, true)
     this.statsStore.recordCherryPickBranchCreatedCount()
@@ -2914,10 +3114,8 @@ export class Dispatcher {
    * show conflicts step
    */
   private startConflictCherryPickFlow(repository: Repository): void {
-    const {
-      changesState,
-      multiCommitOperationState,
-    } = this.repositoryStateManager.get(repository)
+    const { changesState, multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
     const { conflictState } = changesState
 
     if (
@@ -2993,7 +3191,7 @@ export class Dispatcher {
 
     switch (cherryPickResult) {
       case CherryPickResult.CompletedWithoutError:
-        await this.changeCommitSelection(repository, [commits[0].sha])
+        await this.changeCommitSelection(repository, [commits[0].sha], true)
         await this.completeMultiCommitOperation(repository, commits.length)
         break
       case CherryPickResult.ConflictsEncountered:
@@ -3024,11 +3222,6 @@ export class Dispatcher {
     return this.appStore._setCherryPickProgressFromState(repository)
   }
 
-  /** Method to mark a drag & drop intro as seen */
-  public markDragAndDropIntroAsSeen(intro: DragAndDropIntroType): void {
-    this.appStore._markDragAndDropIntroAsSeen(intro)
-  }
-
   /** Method to record cherry pick initiated via the context menu. */
   public recordCherryPickViaContextMenu() {
     this.statsStore.recordCherryPickViaContextMenu()
@@ -3057,7 +3250,8 @@ export class Dispatcher {
     sourceBranch: Branch | null
   ): Promise<void> {
     const { branchesState } = this.repositoryStateManager.get(repository)
-    const { defaultBranch, allBranches, tip } = branchesState
+    const { defaultBranch, upstreamDefaultBranch, allBranches, tip } =
+      branchesState
 
     if (tip.kind !== TipState.Valid) {
       this.appStore._clearCherryPickingHead(repository, null)
@@ -3069,12 +3263,6 @@ export class Dispatcher {
     const isGHRepo = isRepositoryWithGitHubRepository(repository)
     const upstreamGhRepo = isGHRepo
       ? getNonForkGitHubRepository(repository as RepositoryWithGitHubRepository)
-      : null
-    const upstreamDefaultBranch = isGHRepo
-      ? findDefaultUpstreamBranch(
-          repository as RepositoryWithGitHubRepository,
-          allBranches
-        )
       : null
 
     this.initializeMultiCommitOperation(
@@ -3101,6 +3289,19 @@ export class Dispatcher {
     }
 
     return this.appStore._setMultiCommitOperationStep(repository, step)
+  }
+
+  /** Set the multi commit operation target branch */
+  public setMultiCommitOperationTargetBranch(
+    repository: Repository,
+    targetBranch: Branch
+  ): void {
+    this.repositoryStateManager.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        targetBranch,
+      })
+    )
   }
 
   /** Set cherry-pick branch created state */
@@ -3142,8 +3343,6 @@ export class Dispatcher {
     if (this.appStore._checkForUncommittedChanges(repository, retry)) {
       return
     }
-
-    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.Reorder)
 
     const stateBefore = this.repositoryStateManager.get(repository)
     const { tip } = stateBefore.branchesState
@@ -3217,7 +3416,8 @@ export class Dispatcher {
       repository,
       result,
       commitsToReorder.length,
-      tip.branch.name
+      tip.branch.name,
+      `${MultiCommitOperationKind.Reorder.toLowerCase()} commit`
     )
   }
 
@@ -3251,8 +3451,6 @@ export class Dispatcher {
     if (this.appStore._checkForUncommittedChanges(repository, retry)) {
       return
     }
-
-    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.Squash)
 
     const stateBefore = this.repositoryStateManager.get(repository)
     const { tip } = stateBefore.branchesState
@@ -3326,7 +3524,8 @@ export class Dispatcher {
       repository,
       result,
       toSquash.length + 1,
-      tip.branch.name
+      tip.branch.name,
+      `${MultiCommitOperationKind.Squash.toLowerCase()} commit`
     )
   }
 
@@ -3378,7 +3577,8 @@ export class Dispatcher {
     repository: Repository,
     result: RebaseResult,
     totalNumberOfCommits: number,
-    targetBranchName: string
+    ourBranch: string,
+    theirBranch: string
   ): Promise<void> {
     // This will update the conflict state of the app. This is needed to start
     // conflict flow if squash results in conflict.
@@ -3390,7 +3590,11 @@ export class Dispatcher {
           // TODO: Look at history back to last retained commit and search for
           // squashed commit based on new commit message ... if there is more
           // than one, just take the most recent. (not likely?)
-          await this.changeCommitSelection(repository, [status.currentTip])
+          await this.changeCommitSelection(
+            repository,
+            [status.currentTip],
+            true
+          )
         }
 
         await this.completeMultiCommitOperation(
@@ -3403,8 +3607,8 @@ export class Dispatcher {
         this.startMultiCommitOperationConflictFlow(
           kind,
           repository,
-          targetBranchName,
-          `${kind.toLowerCase()} commit`
+          ourBranch,
+          theirBranch
         )
         break
       default:
@@ -3494,7 +3698,7 @@ export class Dispatcher {
       originalBranchTip !== null &&
       kind !== MultiCommitOperationKind.CherryPick
     ) {
-      this.addRebasedBranchToForcePushList(repository, tip, originalBranchTip)
+      this.addBranchToForcePushList(repository, tip, originalBranchTip)
     }
 
     this.statsStore.recordOperationSuccessful(kind)
@@ -3508,10 +3712,8 @@ export class Dispatcher {
     count: number,
     mcos: IMultiCommitOperationState
   ): Banner {
-    const {
-      operationDetail: { kind },
-      targetBranch,
-    } = mcos
+    const { operationDetail, targetBranch } = mcos
+    const { kind } = operationDetail
 
     const bannerBase = {
       count,
@@ -3536,6 +3738,16 @@ export class Dispatcher {
         }
         break
       case MultiCommitOperationKind.Rebase:
+        const sourceBranch =
+          operationDetail.kind === MultiCommitOperationKind.Rebase
+            ? operationDetail.sourceBranch
+            : null
+        banner = {
+          type: BannerType.SuccessfulRebase,
+          targetBranch: targetBranch !== null ? targetBranch.name : '',
+          baseBranch: sourceBranch !== null ? sourceBranch.name : undefined,
+        }
+        break
       case MultiCommitOperationKind.Merge:
         throw new Error(`Unexpected multi commit operation kind ${kind}`)
       default:
@@ -3605,10 +3817,8 @@ export class Dispatcher {
       type: BannerType.ConflictsFound,
       operationDescription,
       onOpenConflictsDialog: async () => {
-        const {
-          changesState,
-          multiCommitOperationState,
-        } = this.repositoryStateManager.get(repository)
+        const { changesState, multiCommitOperationState } =
+          this.repositoryStateManager.get(repository)
         const { conflictState } = changesState
 
         if (conflictState == null) {
@@ -3720,5 +3930,103 @@ export class Dispatcher {
       [],
       currentBranch.tip.sha
     )
+  }
+
+  public setShowCIStatusPopover(showCIStatusPopover: boolean) {
+    this.appStore._setShowCIStatusPopover(showCIStatusPopover)
+    if (showCIStatusPopover) {
+      this.statsStore.recordCheckRunsPopoverOpened()
+    }
+  }
+
+  public _toggleCIStatusPopover() {
+    this.appStore._toggleCIStatusPopover()
+  }
+
+  public recordCheckViewedOnline() {
+    this.statsStore.recordCheckViewedOnline()
+  }
+
+  public recordCheckJobStepViewedOnline() {
+    this.statsStore.recordCheckJobStepViewedOnline()
+  }
+
+  public recordRerunChecks() {
+    this.statsStore.recordRerunChecks()
+  }
+
+  public recordChecksFailedDialogSwitchToPullRequest() {
+    this.statsStore.recordChecksFailedDialogSwitchToPullRequest()
+  }
+
+  public recordChecksFailedDialogRerunChecks() {
+    this.statsStore.recordChecksFailedDialogRerunChecks()
+  }
+
+  public recordPullRequestReviewDialogSwitchToPullRequest(
+    reviewType: ValidNotificationPullRequestReviewState
+  ) {
+    this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
+  }
+
+  public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
+    this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
+
+    this.showPopup({
+      type: PopupType.UnreachableCommits,
+      selectedTab,
+    })
+  }
+
+  public startPullRequest(repository: Repository) {
+    this.appStore._startPullRequest(repository)
+  }
+
+  /**
+   * Change the selected changed file of the current pull request state.
+   */
+  public changePullRequestFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return this.appStore._changePullRequestFileSelection(repository, file)
+  }
+
+  /**
+   * Set the width of the file list column in the pull request files changed
+   */
+  public setPullRequestFileListWidth(width: number): Promise<void> {
+    return this.appStore._setPullRequestFileListWidth(width)
+  }
+
+  /**
+   * Reset the width of the file list column in the pull request files changed
+   */
+  public resetPullRequestFileListWidth(): Promise<void> {
+    return this.appStore._resetPullRequestFileListWidth()
+  }
+
+  public updatePullRequestBaseBranch(repository: Repository, branch: Branch) {
+    this.appStore._updatePullRequestBaseBranch(repository, branch)
+  }
+
+  /**
+   * Attempts to quit the app if it's not updating, unless requested to quit
+   * even if it is updating.
+   *
+   * @param evenIfUpdating Whether to quit even if the app is updating.
+   */
+  public quitApp(evenIfUpdating: boolean) {
+    this.appStore._quitApp(evenIfUpdating)
+  }
+
+  /**
+   * Cancels quitting the app. This could be needed if, on macOS, the user tries
+   * to quit the app while an update is in progress, but then after being
+   * informed about the issues that could cause they decided to not close the
+   * app yet.
+   */
+  public cancelQuittingApp() {
+    this.appStore._cancelQuittingApp()
   }
 }

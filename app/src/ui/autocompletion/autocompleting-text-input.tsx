@@ -15,7 +15,7 @@ interface IRange {
 }
 
 import getCaretCoordinates from 'textarea-caret'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -323,7 +323,6 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className}>
         {this.renderAutocompletions()}
-
         {this.renderTextInput()}
       </div>
     )
@@ -344,15 +343,15 @@ export abstract class AutocompletingTextInput<
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
     const range = autocompletionState.range
-    const autoCompleteText = autocompletionState.provider.getCompletionText(
-      item
-    )
+    const autoCompleteText =
+      autocompletionState.provider.getCompletionText(item)
 
     const textWithAutoCompleteText =
       originalText.substr(0, range.start - 1) + autoCompleteText + ' '
 
     const newText =
-      textWithAutoCompleteText + originalText.substr(range.start + range.length)
+      textWithAutoCompleteText +
+      originalText.substring(range.start + range.length)
 
     element.value = newText
 

@@ -5,12 +5,15 @@ import { Octicon, iconForStatus } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { mapStatus } from '../../lib/status'
 import { WorkingDirectoryFileChange } from '../../models/status'
+import { TooltipDirection } from '../lib/tooltip'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface IChangedFileProps {
   readonly file: WorkingDirectoryFileChange
   readonly include: boolean | null
   readonly availableWidth: number
   readonly disableSelection: boolean
+  readonly checkboxTooltip?: string
   readonly onIncludeChanged: (path: string, include: boolean) => void
 
   /** Callback called when user right-clicks on an item */
@@ -38,7 +41,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   public render() {
-    const { status, path } = this.props.file
+    const { file, availableWidth, disableSelection, checkboxTooltip } =
+      this.props
+    const { status, path } = file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -47,7 +52,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     const filePadding = 5
 
     const availablePathWidth =
-      this.props.availableWidth -
+      availableWidth -
       listItemPadding -
       checkboxWidth -
       filePadding -
@@ -55,15 +60,21 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
     return (
       <div className="file" onContextMenu={this.onContextMenu}>
-        <Checkbox
-          // The checkbox doesn't need to be tab reachable since we emulate
-          // checkbox behavior on the list item itself, ie hitting space bar
-          // while focused on a row will toggle selection.
-          tabIndex={-1}
-          value={this.checkboxValue}
-          onChange={this.handleCheckboxChange}
-          disabled={this.props.disableSelection}
-        />
+        <TooltippedContent
+          tooltip={checkboxTooltip}
+          direction={TooltipDirection.EAST}
+          tagName="div"
+        >
+          <Checkbox
+            // The checkbox doesn't need to be tab reachable since we emulate
+            // checkbox behavior on the list item itself, ie hitting space bar
+            // while focused on a row will toggle selection.
+            tabIndex={-1}
+            value={this.checkboxValue}
+            onChange={this.handleCheckboxChange}
+            disabled={disableSelection}
+          />
+        </TooltippedContent>
 
         <PathLabel
           path={path}
@@ -75,6 +86,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
           title={fileStatus}
+          tooltipDirection={TooltipDirection.EAST}
         />
       </div>
     )

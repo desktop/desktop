@@ -1,11 +1,15 @@
 @import '../../../styles/variables';
 
 #release-notes {
-  max-height: 450px;
+  max-height: 500px;
+  max-width: 800px;
 
   .dialog-content {
     // we'll own the layout inside here
-    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 335px;
+    padding: var(--spacing) var(--spacing-triple);
   }
 
   .dialog-header {
@@ -74,20 +78,15 @@
   }
 
   .container {
-    width: 600px;
-    max-height: 200px;
+    width: 675px;
     display: flex;
     flex-direction: row;
-    padding-left: var(--spacing-triple);
-    padding-right: var(--spacing-triple);
     overflow-x: hidden;
-    overflow-y: auto;
     justify-content: space-around;
 
     .column {
       flex: 1 1 275px;
-      max-width: 75%;
-      margin: 0 calc(var(--spacing) * 1.5);
+      margin: 0 calc(var(--spacing) * 1.5) 0 0;
       height: 100%;
 
       .section {

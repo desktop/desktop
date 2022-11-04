@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import * as fileSystem from '../../lib/file-system'
 
 import { getBlobContents } from './show'
 
@@ -8,6 +7,7 @@ import {
   WorkingDirectoryFileChange,
   FileChange,
   AppFileStatusKind,
+  SubmoduleStatus,
 } from '../../models/status'
 import {
   DiffType,
@@ -18,7 +18,6 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
-  IUnrenderableDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -26,6 +25,14 @@ import { spawnAndComplete } from './spawn'
 import { DiffParser } from '../diff-parser'
 import { getOldPathOrDefault } from '../get-old-path'
 import { getCaptures } from '../helpers/regex'
+import { readFile } from 'fs/promises'
+import { forceUnwrap } from '../fatal-error'
+import { git } from './core'
+import { NullTreeSHA } from './diff-index'
+import { GitError } from 'dugite'
+import { IChangesetData, parseRawLogWithNumstat } from './log'
+import { getConfigValue } from './config'
+import { getMergeBase } from './merge'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -133,6 +140,201 @@ export async function getCommitDiff(
 }
 
 /**
+ * Render the diff between two branches with --merge-base for a file
+ * (Show what would be the result of merge)
+ */
+export async function getBranchMergeBaseDiff(
+  repository: Repository,
+  file: FileChange,
+  baseBranchName: string,
+  comparisonBranchName: string,
+  hideWhitespaceInDiff: boolean = false,
+  latestCommit: string
+): Promise<IDiff> {
+  const args = [
+    'diff',
+    '--merge-base',
+    baseBranchName,
+    comparisonBranchName,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+    '--',
+    file.path,
+  ]
+
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
+  }
+
+  const result = await git(args, repository.path, 'getBranchMergeBaseDiff', {
+    maxBuffer: Infinity,
+  })
+
+  return buildDiff(
+    Buffer.from(result.combinedOutput),
+    repository,
+    file,
+    latestCommit
+  )
+}
+
+/**
+ * Render the difference between two commits for a file
+ *
+ */
+export async function getCommitRangeDiff(
+  repository: Repository,
+  file: FileChange,
+  commits: ReadonlyArray<string>,
+  hideWhitespaceInDiff: boolean = false,
+  useNullTreeSHA: boolean = false
+): Promise<IDiff> {
+  if (commits.length === 0) {
+    throw new Error('No commits to diff...')
+  }
+
+  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${commits[0]}^`
+  const latestCommit = commits.at(-1) ?? '' // can't be undefined since commits.length > 0
+  const args = [
+    'diff',
+    oldestCommitRef,
+    latestCommit,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--patch-with-raw',
+    '-z',
+    '--no-color',
+    '--',
+    file.path,
+  ]
+
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
+  }
+
+  const result = await git(args, repository.path, 'getCommitsDiff', {
+    maxBuffer: Infinity,
+    expectedErrors: new Set([GitError.BadRevision]),
+  })
+
+  // This should only happen if the oldest commit does not have a parent (ex:
+  // initial commit of a branch) and therefore `SHA^` is not a valid reference.
+  // In which case, we will retry with the null tree sha.
+  if (result.gitError === GitError.BadRevision && useNullTreeSHA === false) {
+    return getCommitRangeDiff(
+      repository,
+      file,
+      commits,
+      hideWhitespaceInDiff,
+      true
+    )
+  }
+
+  return buildDiff(
+    Buffer.from(result.combinedOutput),
+    repository,
+    file,
+    latestCommit
+  )
+}
+
+/**
+ * Get the files that were changed for the merge base comparison of two branches.
+ * (What would be the result of a merge)
+ */
+export async function getBranchMergeBaseChangedFiles(
+  repository: Repository,
+  baseBranchName: string,
+  comparisonBranchName: string,
+  latestComparisonBranchCommitRef: string
+): Promise<IChangesetData | null> {
+  const baseArgs = [
+    'diff',
+    '--merge-base',
+    baseBranchName,
+    comparisonBranchName,
+    '-C',
+    '-M',
+    '-z',
+    '--raw',
+    '--numstat',
+    '--',
+  ]
+
+  const mergeBaseCommit = await getMergeBase(
+    repository,
+    baseBranchName,
+    comparisonBranchName
+  )
+
+  if (mergeBaseCommit === null) {
+    return null
+  }
+
+  const result = await git(
+    baseArgs,
+    repository.path,
+    'getBranchMergeBaseChangedFiles'
+  )
+
+  return parseRawLogWithNumstat(
+    result.combinedOutput,
+    `${latestComparisonBranchCommitRef}`,
+    mergeBaseCommit
+  )
+}
+
+export async function getCommitRangeChangedFiles(
+  repository: Repository,
+  shas: ReadonlyArray<string>,
+  useNullTreeSHA: boolean = false
+): Promise<IChangesetData> {
+  if (shas.length === 0) {
+    throw new Error('No commits to diff...')
+  }
+
+  const oldestCommitRef = useNullTreeSHA ? NullTreeSHA : `${shas[0]}^`
+  const latestCommitRef = shas.at(-1) ?? '' // can't be undefined since shas.length > 0
+  const baseArgs = [
+    'diff',
+    oldestCommitRef,
+    latestCommitRef,
+    '-C',
+    '-M',
+    '-z',
+    '--raw',
+    '--numstat',
+    '--',
+  ]
+
+  const { stdout, gitError } = await git(
+    baseArgs,
+    repository.path,
+    'getCommitRangeChangedFiles',
+    {
+      expectedErrors: new Set([GitError.BadRevision]),
+    }
+  )
+
+  // This should only happen if the oldest commit does not have a parent (ex:
+  // initial commit of a branch) and therefore `SHA^` is not a valid reference.
+  // In which case, we will retry with the null tree sha.
+  if (gitError === GitError.BadRevision && useNullTreeSHA === false) {
+    const useNullTreeSHA = true
+    return getCommitRangeChangedFiles(repository, shas, useNullTreeSHA)
+  }
+
+  return parseRawLogWithNumstat(stdout, latestCommitRef, oldestCommitRef)
+}
+
+/**
  * Render the diff for a file within the repository working directory. The file will be
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
@@ -153,10 +355,14 @@ export async function getWorkingDirectoryDiff(
     '--no-color',
   ]
   const successExitCodes = new Set([0])
+  const isSubmodule = file.status.submoduleStatus !== undefined
 
+  // For added submodules, we'll use the "default" parameters, which are able
+  // to output the submodule commit.
   if (
-    file.status.kind === AppFileStatusKind.New ||
-    file.status.kind === AppFileStatusKind.Untracked
+    !isSubmodule &&
+    (file.status.kind === AppFileStatusKind.New ||
+      file.status.kind === AppFileStatusKind.Untracked)
   ) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
@@ -197,7 +403,7 @@ export async function getWorkingDirectoryDiff(
 async function getImageDiff(
   repository: Repository,
   file: FileChange,
-  commitish: string
+  oldestCommitish: string
 ): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
@@ -231,7 +437,7 @@ async function getImageDiff(
   } else {
     // File status can't be conflicted for a file in a commit
     if (file.status.kind !== AppFileStatusKind.Deleted) {
-      current = await getBlobImage(repository, file.path, commitish)
+      current = await getBlobImage(repository, file.path, oldestCommitish)
     }
 
     // File status can't be conflicted for a file in a commit
@@ -246,7 +452,7 @@ async function getImageDiff(
       previous = await getBlobImage(
         repository,
         getOldPathOrDefault(file),
-        `${commitish}^`
+        `${oldestCommitish}^`
       )
     }
   }
@@ -262,7 +468,7 @@ export async function convertDiff(
   repository: Repository,
   file: FileChange,
   diff: IRawDiff,
-  commitish: string,
+  oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   const extension = Path.extname(file.path).toLowerCase()
@@ -274,7 +480,7 @@ export async function convertDiff(
         kind: DiffType.Binary,
       }
     } else {
-      return getImageDiff(repository, file, commitish)
+      return getImageDiff(repository, file, oldestCommitish)
     }
   }
 
@@ -284,6 +490,7 @@ export async function convertDiff(
     hunks: diff.hunks,
     lineEndingsChange,
     maxLineNumber: diff.maxLineNumber,
+    hasHiddenBidiChars: diff.hasHiddenBidiChars,
   }
 }
 
@@ -322,7 +529,8 @@ function getMediaType(extension: string) {
  * about to `stderr` - this rule here will catch this and also the to/from
  * changes based on what the user has configured.
  */
-const lineEndingsChangeRegex = /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
+const lineEndingsChangeRegex =
+  /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
 
 /**
  * Utility function for inspecting the stderr output for the line endings
@@ -360,19 +568,74 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
 
   const pieces = result.split('\0')
   const parser = new DiffParser()
-  return parser.parse(pieces[pieces.length - 1])
+  return parser.parse(forceUnwrap(`Invalid diff output`, pieces.at(-1)))
 }
 
-function buildDiff(
+async function buildSubmoduleDiff(
   buffer: Buffer,
   repository: Repository,
   file: FileChange,
-  commitish: string,
+  status: SubmoduleStatus
+): Promise<IDiff> {
+  const path = file.path
+  const fullPath = Path.join(repository.path, path)
+  const url = await getConfigValue(repository, `submodule.${path}.url`, true)
+
+  let oldSHA = null
+  let newSHA = null
+
+  if (
+    status.commitChanged ||
+    file.status.kind === AppFileStatusKind.New ||
+    file.status.kind === AppFileStatusKind.Deleted
+  ) {
+    const diff = buffer.toString('utf-8')
+    const lines = diff.split('\n')
+    const baseRegex = 'Subproject commit ([^-]+)(-dirty)?$'
+    const oldSHARegex = new RegExp('-' + baseRegex)
+    const newSHARegex = new RegExp('\\+' + baseRegex)
+    const lineMatch = (regex: RegExp) =>
+      lines
+        .flatMap(line => {
+          const match = line.match(regex)
+          return match ? match[1] : []
+        })
+        .at(0) ?? null
+
+    oldSHA = lineMatch(oldSHARegex)
+    newSHA = lineMatch(newSHARegex)
+  }
+
+  return {
+    kind: DiffType.Submodule,
+    fullPath,
+    path,
+    url,
+    status,
+    oldSHA,
+    newSHA,
+  }
+}
+
+async function buildDiff(
+  buffer: Buffer,
+  repository: Repository,
+  file: FileChange,
+  oldestCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
+  if (file.status.submoduleStatus !== undefined) {
+    return buildSubmoduleDiff(
+      buffer,
+      repository,
+      file,
+      file.status.submoduleStatus
+    )
+  }
+
   if (!isValidBuffer(buffer)) {
     // the buffer's diff is too large to be renderable in the UI
-    return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })
+    return { kind: DiffType.Unrenderable }
   }
 
   const diff = diffFromRawDiffOutput(buffer)
@@ -387,12 +650,13 @@ function buildDiff(
       hunks: diff.hunks,
       lineEndingsChange,
       maxLineNumber: diff.maxLineNumber,
+      hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }
 
-    return Promise.resolve(largeTextDiff)
+    return largeTextDiff
   }
 
-  return convertDiff(repository, file, diff, commitish, lineEndingsChange)
+  return convertDiff(repository, file, diff, oldestCommitish, lineEndingsChange)
 }
 
 /**
@@ -430,9 +694,7 @@ export async function getWorkingDirectoryImage(
   repository: Repository,
   file: FileChange
 ): Promise<Image> {
-  const contents = await fileSystem.readFile(
-    Path.join(repository.path, file.path)
-  )
+  const contents = await readFile(Path.join(repository.path, file.path))
   return new Image(
     contents.toString('base64'),
     getMediaType(Path.extname(file.path)),

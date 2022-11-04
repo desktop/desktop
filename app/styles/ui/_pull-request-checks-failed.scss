@@ -1,0 +1,152 @@
+#pull-request-checks-failed {
+  .dialog-header {
+    height: unset;
+  }
+
+  .ci-check-run-dialog-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > .octicon {
+      width: 20px;
+      height: 20px;
+      color: var(--status-error-color);
+      margin-right: var(--spacing);
+    }
+
+    .title-container {
+      flex-grow: 1;
+
+      .pr-title {
+        display: flex;
+        column-gap: 4px;
+        align-items: center;
+        font-weight: normal;
+        font-size: var(--font-size);
+
+        .pr-number {
+          color: var(--text-secondary-color);
+        }
+
+        .octicon {
+          vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+          color: var(--pr-open-icon-color);
+
+          &.draft {
+            color: var(--pr-draft-icon-color);
+          }
+        }
+      }
+    }
+  }
+
+  .footer-question {
+    flex-grow: 1;
+
+    span {
+      vertical-align: sub;
+    }
+  }
+
+  .dialog-content {
+    padding: 0;
+
+    .ci-check-run-dialog-container {
+      height: 300px;
+      width: 100%;
+      overflow-y: hidden;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+
+      .ci-check-run-content {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: stretch;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        height: 100%;
+      }
+
+      .ci-check-run-list {
+        width: 40%;
+        border-radius: 0;
+        border-right: 1px solid var(--box-border-color);
+        overflow-y: auto;
+
+        // Make sure Octicons use the ambient color when the check run is
+        // selected and the list focused
+        .focus-within .ci-check-list-item.list-item.selected .octicon {
+          color: var(--text-color);
+        }
+
+        .ci-check-run-list-group-header {
+          padding-left: var(--spacing-double);
+        }
+
+        .ci-check-list-item {
+          padding-left: var(--spacing);
+        }
+      }
+
+      .ci-check-run-job-steps-container {
+        width: 60%;
+        overflow-y: auto;
+
+        .ci-check-run-job-steps-list {
+          border: none;
+        }
+
+        .no-steps-to-display {
+          display: flex;
+          padding: var(--spacing-double);
+          align-items: center;
+          height: 100%;
+
+          .text {
+            flex: 1;
+            margin-right: var(--spacing);
+
+            div {
+              margin-top: var(--spacing);
+            }
+          }
+
+          .blankslate-image {
+            flex: 0;
+            height: 140px;
+            width: 146px;
+            min-width: 140px;
+            min-height: 146px;
+            align-self: flex-end;
+          }
+        }
+
+        .loading-check-runs {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: var(--spacing);
+          padding-bottom: var(--spacing-double);
+
+          .blankslate-image {
+            width: 100%;
+            min-width: auto;
+          }
+
+          .title {
+            font-weight: var(--font-weight-semibold);
+          }
+
+          .call-to-action {
+            font-size: var(--font-size-sm);
+          }
+        }
+      }
+    }
+  }
+}

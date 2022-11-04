@@ -30,7 +30,9 @@ interface ISuggestedActionGroup {
  * Wraps a list of suggested action components with extra styling
  * and animations.
  */
-export const SuggestedActionGroup: React.FunctionComponent<ISuggestedActionGroup> = props => {
+export const SuggestedActionGroup: React.FunctionComponent<
+  ISuggestedActionGroup
+> = props => {
   const cn = 'suggested-action-group ' + (props.type ? props.type : 'normal')
   if (props.transitions === 'replace') {
     const enableTransitions =

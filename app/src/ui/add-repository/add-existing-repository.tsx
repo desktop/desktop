@@ -1,10 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
-
-import { remote } from 'electron'
 import { Dispatcher } from '../dispatcher'
-import { isGitRepository } from '../../lib/git'
-import { isBareRepository } from '../../lib/git'
+import { addSafeDirectory, getRepositoryType } from '../../lib/git'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -14,8 +11,11 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { FoldoutType } from '../../lib/app-state'
 
 import untildify from 'untildify'
+import { showOpenDialog } from '../main-process-proxy'
+import { Ref } from '../lib/ref'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -51,6 +51,9 @@ interface IAddExistingRepositoryState {
    */
   readonly showNonGitRepositoryWarning: boolean
   readonly isRepositoryBare: boolean
+  readonly isRepositoryUnsafe: boolean
+  readonly repositoryUnsafePath?: string
+  readonly isTrustingRepository: boolean
 }
 
 /** The component for adding an existing local repository. */
@@ -68,32 +71,63 @@ export class AddExistingRepository extends React.Component<
       isRepository: false,
       showNonGitRepositoryWarning: false,
       isRepositoryBare: false,
+      isRepositoryUnsafe: false,
+      isTrustingRepository: false,
     }
   }
 
   public async componentDidMount() {
-    const pathToCheck = this.state.path
-    // We'll only have a path at this point if the dialog was opened with a path
-    // to prefill.
-    if (pathToCheck.length < 1) {
+    const { path } = this.state
+
+    if (path.length !== 0) {
+      await this.validatePath(path)
+    }
+  }
+
+  private onTrustDirectory = async () => {
+    this.setState({ isTrustingRepository: true })
+    const { repositoryUnsafePath, path } = this.state
+    if (repositoryUnsafePath) {
+      await addSafeDirectory(repositoryUnsafePath)
+    }
+    await this.validatePath(path)
+    this.setState({ isTrustingRepository: false })
+  }
+
+  private async updatePath(path: string) {
+    this.setState({ path, isRepository: false })
+    await this.validatePath(path)
+  }
+
+  private async validatePath(path: string) {
+    if (path.length === 0) {
+      this.setState({
+        isRepository: false,
+        isRepositoryBare: false,
+        showNonGitRepositoryWarning: false,
+      })
       return
     }
 
-    const isRepository = await isGitRepository(pathToCheck)
-    // The path might have changed while we were checking, in which case we
-    // don't care about the result anymore.
-    if (this.state.path !== pathToCheck) {
-      return
-    }
+    const type = await getRepositoryType(path)
 
-    const isBare = await isBareRepository(this.state.path)
-    if (isBare === true) {
-      this.setState({ isRepositoryBare: true })
-      return
-    }
+    const isRepository = type.kind !== 'missing' && type.kind !== 'unsafe'
+    const isRepositoryUnsafe = type.kind === 'unsafe'
+    const isRepositoryBare = type.kind === 'bare'
+    const showNonGitRepositoryWarning = !isRepository || isRepositoryBare
+    const repositoryUnsafePath = type.kind === 'unsafe' ? type.path : undefined
 
-    this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
-    this.setState({ isRepositoryBare: false })
+    this.setState(state =>
+      path === state.path
+        ? {
+            isRepository,
+            isRepositoryBare,
+            isRepositoryUnsafe,
+            showNonGitRepositoryWarning,
+            repositoryUnsafePath,
+          }
+        : null
+    )
   }
 
   private renderWarning() {
@@ -109,6 +143,42 @@ export class AddExistingRepository extends React.Component<
             This directory appears to be a bare repository. Bare repositories
             are not currently supported.
           </p>
+        </Row>
+      )
+    }
+
+    const { isRepositoryUnsafe, repositoryUnsafePath, path } = this.state
+
+    if (isRepositoryUnsafe && repositoryUnsafePath !== undefined) {
+      // Git for Windows will replace backslashes with slashes in the error
+      // message so we'll do the same to not show "the repo at path c:/repo"
+      // when the entered path is `c:\repo`.
+      const convertedPath = __WIN32__ ? path.replaceAll('\\', '/') : path
+
+      return (
+        <Row className="warning-helper-text">
+          <Octicon symbol={OcticonSymbol.alert} />
+          <div>
+            <p>
+              The Git repository
+              {repositoryUnsafePath !== convertedPath && (
+                <>
+                  {' at '}
+                  <Ref>{repositoryUnsafePath}</Ref>
+                </>
+              )}{' '}
+              appears to be owned by another user on your machine. Adding
+              untrusted repositories may automatically execute files in the
+              repository.
+            </p>
+            <p>
+              If you trust the owner of the directory you can
+              <LinkButton onClick={this.onTrustDirectory}>
+                add an exception for this directory
+              </LinkButton>{' '}
+              in order to continue.
+            </p>
+          </div>
         </Row>
       )
     }
@@ -141,6 +211,7 @@ export class AddExistingRepository extends React.Component<
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
         onSubmit={this.addRepository}
         onDismissed={this.props.onDismissed}
+        loading={this.state.isTrustingRepository}
       >
         <DialogContent>
           <Row>
@@ -166,30 +237,21 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onPathChanged = async (path: string) => {
-    const isRepository = await isGitRepository(path)
-
-    this.setState({ path, isRepository })
+    if (this.state.path !== path) {
+      this.updatePath(path)
+    }
   }
 
   private showFilePicker = async () => {
-    const window = remote.getCurrentWindow()
-    const { filePaths } = await remote.dialog.showOpenDialog(window, {
+    const path = await showOpenDialog({
       properties: ['createDirectory', 'openDirectory'],
     })
-    if (filePaths.length === 0) {
+
+    if (path === null) {
       return
     }
 
-    const path = filePaths[0]
-    const isRepository = await isGitRepository(path)
-    const isRepositoryBare = await isBareRepository(path)
-
-    this.setState({
-      path,
-      isRepository,
-      showNonGitRepositoryWarning: !isRepository || isRepositoryBare,
-      isRepositoryBare,
-    })
+    this.updatePath(path)
   }
 
   private resolvedPath(path: string): string {
@@ -204,6 +266,7 @@ export class AddExistingRepository extends React.Component<
     const repositories = await dispatcher.addRepositories([resolvedPath])
 
     if (repositories.length > 0) {
+      dispatcher.closeFoldout(FoldoutType.Repository)
       dispatcher.selectRepository(repositories[0])
       dispatcher.recordAddExistingRepository()
     }

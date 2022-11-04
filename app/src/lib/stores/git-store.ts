@@ -1,5 +1,9 @@
 import * as Path from 'path'
-import { Repository } from '../../models/repository'
+import {
+  getNonForkGitHubRepository,
+  isRepositoryWithForkedGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -21,7 +25,11 @@ import {
 import { ComparisonMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
-import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
+import {
+  DiscardChangesError,
+  ErrorWithMetadata,
+  IErrorMetadata,
+} from '../error-with-metadata'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
 
@@ -59,7 +67,6 @@ import {
   getAheadBehind,
   revRange,
   revSymmetricDifference,
-  getSymbolicRef,
   getConfigValue,
   removeRemote,
   createTag,
@@ -67,6 +74,8 @@ import {
   deleteTag,
   MergeResult,
   createBranch,
+  updateRemoteHEAD,
+  getRemoteHEAD,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -90,7 +99,7 @@ import { StatsStore } from '../stats'
 import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
-import { stat } from 'fs-extra'
+import { stat } from 'fs/promises'
 import { findForkedRemotesToPrune } from './helpers/find-forked-remotes-to-prune'
 
 /** The number of commits to load from history per batch. */
@@ -115,6 +124,8 @@ export class GitStore extends BaseStore {
   private _tip: Tip = { kind: TipState.Unknown }
 
   private _defaultBranch: Branch | null = null
+
+  private _upstreamDefaultBranch: Branch | null = null
 
   private _localTags: Map<string, string> | null = null
 
@@ -187,7 +198,7 @@ export class GitStore extends BaseStore {
       log.debug(
         `reconciling history - adding ${
           commits.length
-        } commits before merge base ${mergeBase.substr(0, 8)}`
+        } commits before merge base ${mergeBase.substring(0, 8)}`
       )
 
       // rebuild the local history state by combining the commits _before_ the
@@ -471,6 +482,29 @@ export class GitStore extends BaseStore {
         )
         .sort((x, y) => compare(x.type, y.type))
         .shift() || null
+
+    // The upstream default branch is only relevant for forked GitHub repos when
+    // the fork behavior is contributing to the parent.
+    if (
+      !isRepositoryWithForkedGitHubRepository(this.repository) ||
+      getNonForkGitHubRepository(this.repository) ===
+        this.repository.gitHubRepository
+    ) {
+      this._upstreamDefaultBranch = null
+      return
+    }
+
+    const upstreamDefaultBranch =
+      (await getRemoteHEAD(this.repository, UpstreamRemoteName)) ??
+      defaultBranchName
+
+    this._upstreamDefaultBranch =
+      this._allBranches.find(
+        b =>
+          b.type === BranchType.Remote &&
+          b.remoteName === UpstreamRemoteName &&
+          b.nameWithoutRemote === upstreamDefaultBranch
+      ) || null
   }
 
   private addTagToPush(tagName: string) {
@@ -502,29 +536,16 @@ export class GitStore extends BaseStore {
    * name conventions.
    */
   private async resolveDefaultBranch(): Promise<string> {
-    const { gitHubRepository } = this.repository
-    if (gitHubRepository && gitHubRepository.defaultBranch != null) {
-      return gitHubRepository.defaultBranch
-    }
-
     if (this.currentRemote !== null) {
       // the Git server should use [remote]/HEAD to advertise
       // it's default branch, so see if it exists and matches
       // a valid branch on the remote and attempt to use that
-      const remoteNamespace = `refs/remotes/${this.currentRemote.name}/`
-      const match = await getSymbolicRef(
+      const branchName = await getRemoteHEAD(
         this.repository,
-        `${remoteNamespace}HEAD`
+        this.currentRemote.name
       )
-      if (
-        match != null &&
-        match.length > remoteNamespace.length &&
-        match.startsWith(remoteNamespace)
-      ) {
-        // strip out everything related to the remote because this
-        // is likely to be a tracked branch locally
-        // e.g. `main`, `develop`, etc
-        return match.substr(remoteNamespace.length)
+      if (branchName !== null) {
+        return branchName
       }
     }
 
@@ -581,6 +602,15 @@ export class GitStore extends BaseStore {
   /** The default branch or null if the default branch could not be inferred. */
   public get defaultBranch(): Branch | null {
     return this._defaultBranch
+  }
+
+  /**
+   * The default branch of the upstream remote in a forked GitHub repository
+   * with the ForkContributionTarget.Parent behavior, or null if it cannot be
+   * inferred or is another kind of repository.
+   */
+  public get upstreamDefaultBranch(): Branch | null {
+    return this._upstreamDefaultBranch
   }
 
   /** All branches, including the current branch and the default branch. */
@@ -766,9 +796,8 @@ export class GitStore extends BaseStore {
     const lines = unfolded.split('\n')
 
     // We don't know (I mean, we're fairly sure) what the separator character
-    // used for the trailer is so we call out to git to get all possible
-    // characters. We'll need them in a bit
-    const separators = await getTrailerSeparatorCharacters(this.repository)
+    // used for the trailer is so we call out to git to get all possibilities
+    let separators: string | undefined = undefined
 
     // We know that what we've got now is well formed so we can capture the leading
     // token, followed by the separator char and a single space, followed by the
@@ -783,7 +812,14 @@ export class GitStore extends BaseStore {
       const match = coAuthorRe.exec(line)
 
       // Not a trailer line, we're sure of that
-      if (!match || separators.indexOf(match[1]) === -1) {
+      if (!match) {
+        continue
+      }
+
+      // Only shell out for separators if we really need them
+      separators ??= await getTrailerSeparatorCharacters(this.repository)
+
+      if (separators.indexOf(match[1]) === -1) {
         continue
       }
 
@@ -1033,6 +1069,8 @@ export class GitStore extends BaseStore {
       () => fetchRepo(this.repository, account, remote, progressCallback),
       { backgroundTask, retryAction }
     )
+
+    await updateRemoteHEAD(this.repository, account, remote)
   }
 
   /**
@@ -1449,7 +1487,9 @@ export class GitStore extends BaseStore {
   }
 
   public async discardChanges(
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true,
+    askForConfirmationOnDiscardChangesPermanently: boolean = false
   ): Promise<void> {
     const pathsToCheckout = new Array<string>()
     const pathsToReset = new Array<string>()
@@ -1459,13 +1499,23 @@ export class GitStore extends BaseStore {
     await queueWorkHigh(files, async file => {
       const foundSubmodule = submodules.some(s => s.path === file.path)
 
-      if (file.status.kind !== AppFileStatusKind.Deleted && !foundSubmodule) {
-        // N.B. moveItemToTrash is synchronous can take a fair bit of time
-        // which is why we're running it inside this work queue that spreads
-        // out the calls across as many animation frames as it needs to.
-        this.shell.moveItemToTrash(
-          Path.resolve(this.repository.path, file.path)
-        )
+      if (
+        file.status.kind !== AppFileStatusKind.Deleted &&
+        !foundSubmodule &&
+        moveToTrash
+      ) {
+        // N.B. moveItemToTrash can take a fair bit of time which is why we're
+        // running it inside this work queue that spreads out the calls across
+        // as many animation frames as it needs to.
+        try {
+          await this.shell.moveItemToTrash(
+            Path.resolve(this.repository.path, file.path)
+          )
+        } catch (e) {
+          if (askForConfirmationOnDiscardChangesPermanently) {
+            throw new DiscardChangesError(e, this.repository, files)
+          }
+        }
       }
 
       if (
@@ -1635,5 +1685,29 @@ export class GitStore extends BaseStore {
     for (const remote of remotesToPrune) {
       await removeRemote(this.repository, remote.name)
     }
+  }
+
+  /**
+   * Returns the commits associated with merging the comparison branch into the
+   * base branch.
+   */
+  public async getCommitsBetweenBranches(
+    baseBranch: Branch,
+    comparisonBranch: Branch
+  ): Promise<ReadonlyArray<Commit>> {
+    const revisionRange = revRange(baseBranch.name, comparisonBranch.name)
+    const commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, revisionRange)
+    )
+
+    if (commits == null) {
+      return []
+    }
+
+    if (commits.length > 0) {
+      this.storeCommits(commits)
+    }
+
+    return commits
   }
 }

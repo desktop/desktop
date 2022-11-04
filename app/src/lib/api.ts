@@ -14,6 +14,8 @@ import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
+import JSZip from 'jszip'
+import { updateEndpointVersion } from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -77,16 +79,10 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
-type GitHubAccountType = 'User' | 'Organization'
+export type GitHubAccountType = 'User' | 'Organization'
 
-/** The OAuth scopes we want to request from GitHub.com. */
-const DotComOAuthScopes = ['repo', 'user', 'workflow']
-
-/**
- * The OAuth scopes we want to request from GitHub
- * Enterprise.
- */
-const EnterpriseOAuthScopes = ['repo', 'user']
+/** The OAuth scopes we want to request */
+const oauthScopes = ['repo', 'user', 'workflow']
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -196,9 +192,9 @@ export interface IAPIOrganization {
  */
 export interface IAPIIdentity {
   readonly id: number
-  readonly url: string
   readonly login: string
   readonly avatar_url: string
+  readonly html_url: string
   readonly type: GitHubAccountType
 }
 
@@ -212,7 +208,7 @@ export interface IAPIIdentity {
  */
 interface IAPIFullIdentity {
   readonly id: number
-  readonly url: string
+  readonly html_url: string
   readonly login: string
   readonly avatar_url: string
 
@@ -292,18 +288,23 @@ export interface IAPIIssue {
 export type APIRefState = 'failure' | 'pending' | 'success' | 'error'
 
 /** The overall status of a check run */
-export type APICheckStatus = 'queued' | 'in_progress' | 'completed'
+export enum APICheckStatus {
+  Queued = 'queued',
+  InProgress = 'in_progress',
+  Completed = 'completed',
+}
 
 /** The conclusion of a completed check run */
-export type APICheckConclusion =
-  | 'action_required'
-  | 'cancelled'
-  | 'timed_out'
-  | 'failure'
-  | 'neutral'
-  | 'success'
-  | 'skipped'
-  | 'stale'
+export enum APICheckConclusion {
+  ActionRequired = 'action_required',
+  Canceled = 'cancelled',
+  TimedOut = 'timed_out',
+  Failure = 'failure',
+  Neutral = 'neutral',
+  Success = 'success',
+  Skipped = 'skipped',
+  Stale = 'stale',
+}
 
 /**
  * The API response for a combined view of a commit
@@ -311,7 +312,7 @@ export type APICheckConclusion =
  */
 export interface IAPIRefStatusItem {
   readonly state: APIRefState
-  readonly target_url: string
+  readonly target_url: string | null
   readonly description: string
   readonly context: string
   readonly id: number
@@ -330,22 +331,88 @@ export interface IAPIRefCheckRun {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly name: string
-  readonly output: IAPIRefCheckRunOutput
   readonly check_suite: IAPIRefCheckRunCheckSuite
+  readonly app: IAPIRefCheckRunApp
+  readonly completed_at: string
+  readonly started_at: string
+  readonly html_url: string
+  readonly pull_requests: ReadonlyArray<IAPIPullRequest>
+}
+
+// NB. Only partially mapped
+export interface IAPIRefCheckRunApp {
+  readonly name: string
 }
 
 // NB. Only partially mapped
 export interface IAPIRefCheckRunOutput {
   readonly title: string | null
+  readonly summary: string | null
+  readonly text: string | null
 }
 
 export interface IAPIRefCheckRunCheckSuite {
   readonly id: number
 }
 
+export interface IAPICheckSuite {
+  readonly id: number
+  readonly rerequestable: boolean
+  readonly runs_rerequestable: boolean
+  readonly status: APICheckStatus
+  readonly created_at: string
+}
+
 export interface IAPIRefCheckRuns {
   readonly total_count: number
   readonly check_runs: IAPIRefCheckRun[]
+}
+
+interface IAPIWorkflowRuns {
+  readonly total_count: number
+  readonly workflow_runs: ReadonlyArray<IAPIWorkflowRun>
+}
+// NB. Only partially mapped
+export interface IAPIWorkflowRun {
+  readonly id: number
+  /**
+   * The workflow_id is the id of the workflow not the individual run.
+   **/
+  readonly workflow_id: number
+  readonly cancel_url: string
+  readonly created_at: string
+  readonly logs_url: string
+  readonly name: string
+  readonly rerun_url: string
+  readonly check_suite_id: number
+  readonly event: string
+}
+
+export interface IAPIWorkflowJobs {
+  readonly total_count: number
+  readonly jobs: IAPIWorkflowJob[]
+}
+
+// NB. Only partially mapped
+export interface IAPIWorkflowJob {
+  readonly id: number
+  readonly name: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly steps: ReadonlyArray<IAPIWorkflowJobStep>
+  readonly html_url: string
+}
+
+export interface IAPIWorkflowJobStep {
+  readonly name: string
+  readonly number: number
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly completed_at: string
+  readonly started_at: string
+  readonly log: string
 }
 
 /** Protected branch information returned by the GitHub API */
@@ -421,8 +488,24 @@ export interface IAPIPullRequest {
   readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
+  readonly body: string
   readonly state: 'open' | 'closed'
   readonly draft?: boolean
+}
+
+/** Information about a pull request review as returned by the GitHub API. */
+export interface IAPIPullRequestReview {
+  readonly id: number
+  readonly user: IAPIIdentity
+  readonly body: string
+  readonly html_url: string
+  readonly submitted_at: string
+  readonly state:
+    | 'APPROVED'
+    | 'DISMISSED'
+    | 'PENDING'
+    | 'COMMENTED'
+    | 'CHANGES_REQUESTED'
 }
 
 /** The metadata about a GitHub server. */
@@ -573,6 +656,15 @@ function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
+interface IAPIAliveSignedChannel {
+  readonly channel_name: string
+  readonly signed_channel: string
+}
+
+interface IAPIAliveWebSocket {
+  readonly url: string
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -601,6 +693,44 @@ export class API {
   public constructor(endpoint: string, token: string) {
     this.endpoint = endpoint
     this.token = token
+  }
+
+  /**
+   * Retrieves the name of the Alive channel used by Desktop to receive
+   * high-signal notifications.
+   */
+  public async getAliveDesktopChannel(): Promise<IAPIAliveSignedChannel | null> {
+    try {
+      const res = await this.request('GET', '/desktop_internal/alive-channel')
+      const signedChannel = await parsedResponse<IAPIAliveSignedChannel>(res)
+      return signedChannel
+    } catch (e) {
+      log.warn(`Alive channel request failed: ${e}`)
+      return null
+    }
+  }
+
+  /**
+   * Retrieves the URL for the Alive websocket.
+   *
+   * @returns The websocket URL if the request succeeded, null if the request
+   * failed with 404, otherwise it will throw an error.
+   *
+   * This behavior is expected by the AliveSession class constructor, to prevent
+   * it from hitting the endpoint many times if it's disabled.
+   */
+  public async getAliveWebSocketURL(): Promise<string | null> {
+    try {
+      const res = await this.request('GET', '/alive_internal/websocket-url')
+      if (res.status === HttpStatusCode.NotFound) {
+        return null
+      }
+      const websocket = await parsedResponse<IAPIAliveWebSocket>(res)
+      return websocket.url
+    } catch (e) {
+      log.warn(`Alive web socket request failed: ${e}`)
+      throw e
+    }
   }
 
   /** Fetch a repo by its owner and name. */
@@ -664,9 +794,7 @@ export class API {
   }
 
   /** Fetch all repos a user has access to. */
-  public async fetchRepositories(): Promise<ReadonlyArray<
-    IAPIRepository
-  > | null> {
+  public async fetchRepositories(): Promise<ReadonlyArray<IAPIRepository> | null> {
     try {
       const repositories = await this.fetchAll<IAPIRepository>('user/repos')
       // "But wait, repositories can't have a null owner" you say.
@@ -867,7 +995,7 @@ export class API {
           // updated_at field we can safely say that if the last item
           // is modified after our sinceTime then haven't reached the
           // end of updated PRs.
-          const last = results[results.length - 1]
+          const last = results.at(-1)
           return last !== undefined && Date.parse(last.updated_at) > sinceTime
         },
         // We can't ignore errors here as that might mean that we haven't
@@ -894,6 +1022,28 @@ export class API {
     } catch (e) {
       log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
       throw e
+    }
+  }
+
+  /**
+   * Fetch a single pull request review in the given repository
+   */
+  public async fetchPullRequestReview(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR review ${reviewId} for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return null
     }
   }
 
@@ -945,6 +1095,206 @@ export class API {
       )
       return null
     }
+  }
+
+  /**
+   * List workflow runs for a repository filtered by branch and event type of
+   * pull_request
+   */
+  public async fetchPRWorkflowRunsByBranchName(
+    owner: string,
+    name: string,
+    branchName: string
+  ): Promise<IAPIWorkflowRuns | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${encodeURIComponent(
+      branchName
+    )}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      return await parsedResponse<IAPIWorkflowRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Return the workflow run for a given check_suite_id.
+   *
+   * A check suite is a reference for a set check runs.
+   * A workflow run is a reference for set a of workflows for the GitHub Actions
+   * check runner.
+   *
+   * If a check suite is comprised of check runs ran by actions, there will be
+   * one workflow run that represents that check suite. Thus, if this api should
+   * either return an empty array indicating there are no actions runs for that
+   * check_suite_id (so check suite was not ran by actions) or an array with a
+   * single element.
+   */
+  public async fetchPRActionWorkflowRunByCheckSuiteId(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPIWorkflowRun | null> {
+    const path = `repos/${owner}/${name}/actions/runs?event=pull_request&check_suite_id=${checkSuiteId}`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, { customHeaders })
+    try {
+      const apiWorkflowRuns = await parsedResponse<IAPIWorkflowRuns>(response)
+
+      if (apiWorkflowRuns.workflow_runs.length > 0) {
+        return apiWorkflowRuns.workflow_runs[0]
+      }
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow runs for ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+    return null
+  }
+
+  /**
+   * List workflow run jobs for a given workflow run
+   */
+  public async fetchWorkflowRunJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<IAPIWorkflowJobs | null> {
+    const path = `repos/${owner}/${name}/actions/runs/${workflowRunId}/jobs`
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', path, {
+      customHeaders,
+    })
+    try {
+      return await parsedResponse<IAPIWorkflowJobs>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
+      )
+    }
+    return null
+  }
+
+  /**
+   * Get JSZip for a workflow run log archive.
+   *
+   * If it fails to retrieve or parse the zip file, it will return null.
+   */
+  public async fetchWorkflowRunJobLogs(logsUrl: string): Promise<JSZip | null> {
+    const customHeaders = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+    const response = await this.request('GET', logsUrl, {
+      customHeaders,
+    })
+
+    try {
+      const zipBlob = await response.blob()
+      return new JSZip().loadAsync(zipBlob)
+    } catch (e) {
+      // Sometimes a workflow provides a log url, but still returns a 404
+      // because a log file doesn't make sense for the workflow. Thus, we just
+      // want to fail without raising an error.
+    }
+
+    return null
+  }
+
+  /**
+   * Triggers GitHub to rerequest an existing check suite, without pushing new
+   * code to a repository.
+   */
+  public async rerequestCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}/rerequest`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed retry check suite id ${checkSuiteId} (${owner}/${name})`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Re-run all of the failed jobs and their dependent jobs in a workflow run
+   * using the id of the workflow run.
+   */
+  public async rerunFailedJobs(
+    owner: string,
+    name: string,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/runs/${workflowRunId}/rerun-failed-jobs`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun failed workflow jobs for (${owner}/${name}): ${workflowRunId}`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Re-run a job and its dependent jobs in a workflow run.
+   */
+  public async rerunJob(
+    owner: string,
+    name: string,
+    jobId: number
+  ): Promise<boolean> {
+    const path = `/repos/${owner}/${name}/actions/jobs/${jobId}/rerun`
+
+    return this.request('POST', path)
+      .then(x => x.ok)
+      .catch(err => {
+        log.debug(
+          `Failed to rerun workflow job (${owner}/${name}): ${jobId}`,
+          err
+        )
+        return false
+      })
+  }
+
+  /**
+   * Gets a single check suite using its id
+   */
+  public async fetchCheckSuite(
+    owner: string,
+    name: string,
+    checkSuiteId: number
+  ): Promise<IAPICheckSuite | null> {
+    const path = `/repos/${owner}/${name}/check-suites/${checkSuiteId}`
+    const response = await this.request('GET', path)
+
+    try {
+      return await parsedResponse<IAPICheckSuite>(response)
+    } catch (_) {
+      log.debug(
+        `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
+      )
+    }
+
+    return null
   }
 
   /**
@@ -1058,9 +1408,20 @@ export class API {
       options.reloadCache
     )
 
-    if (response.status === 401) {
+    // Only consider invalid token when the status is 401 and the response has
+    // the X-GitHub-Request-Id header, meaning it comes from GH(E) and not from
+    // any kind of proxy/gateway. For more info see #12943
+    // We're also not considering a token has been invalidated when the reason
+    // behind a 401 is the fact that any kind of 2 factor auth is required.
+    if (
+      response.status === 401 &&
+      response.headers.has('X-GitHub-Request-Id') &&
+      !response.headers.has('X-GitHub-OTP')
+    ) {
       API.emitTokenInvalidated(this.endpoint)
     }
+
+    tryUpdateEndpointVersionFromResponse(this.endpoint, response)
 
     return response
   }
@@ -1201,7 +1562,7 @@ export async function createAuthorization(
     'POST',
     'authorizations',
     {
-      scopes: getOAuthScopesForEndpoint(endpoint),
+      scopes: oauthScopes,
       client_id: ClientID,
       client_secret: ClientSecret,
       note: note,
@@ -1213,6 +1574,8 @@ export async function createAuthorization(
       ...optHeader,
     }
   )
+
+  tryUpdateEndpointVersionFromResponse(endpoint, response)
 
   try {
     const result = await parsedResponse<IAPIAuthorization>(response)
@@ -1320,6 +1683,8 @@ export async function fetchMetadata(
       'Content-Type': 'application/json',
     })
 
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
     const result = await parsedResponse<IServerMetadata>(response)
     if (!result || result.verifiable_password_authentication === undefined) {
       return null
@@ -1337,13 +1702,13 @@ export async function fetchMetadata(
 
 /** The note used for created authorizations. */
 async function getNote(): Promise<string> {
-  let localUsername = 'unknown'
-  try {
-    localUsername = await username()
-  } catch (e) {
+  let localUsername = await username()
+
+  if (localUsername === undefined) {
+    localUsername = 'unknown'
+
     log.error(
-      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`,
-      e
+      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`
     )
   }
 
@@ -1429,7 +1794,7 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scopes = getOAuthScopesForEndpoint(endpoint)
+  const scopes = oauthScopes
   const scope = encodeURIComponent(scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
@@ -1451,6 +1816,8 @@ export async function requestOAuthToken(
         code: code,
       }
     )
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
     const result = await parsedResponse<IAPIAccessToken>(response)
     return result.access_token
   } catch (e) {
@@ -1459,8 +1826,12 @@ export async function requestOAuthToken(
   }
 }
 
-function getOAuthScopesForEndpoint(endpoint: string) {
-  return endpoint === getDotComAPIEndpoint()
-    ? DotComOAuthScopes
-    : EnterpriseOAuthScopes
+function tryUpdateEndpointVersionFromResponse(
+  endpoint: string,
+  response: Response
+) {
+  const gheVersion = response.headers.get('x-github-enterprise-version')
+  if (gheVersion !== null) {
+    updateEndpointVersion(endpoint, gheVersion)
+  }
 }

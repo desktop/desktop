@@ -11,27 +11,25 @@ jobs:
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
+    permissions: read-all
     strategy:
       fail-fast: false
       matrix:
-        node: [14.15.4]
-        os: [macos-10.15, windows-2019]
+        node: [16.13.0]
+        os: [macos-11, windows-2019]
         arch: [x64, arm64]
         include:
-          - os: macos-10.15
+          - os: macos-11
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
     timeout-minutes: 60
-    env:
-      # Needed for macOS arm64 until hosted macos-11.0 runners become available
-      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
 
@@ -39,7 +37,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -64,7 +62,7 @@ jobs:
       - name: Validate changelog
         run: yarn validate-changelog
       - name: Ensure a clean working directory
-        run: yarn check-modified
+        run: git diff --name-status --exit-code
       - name: Build production app
         run: yarn build:prod
         env:
@@ -82,14 +80,10 @@ jobs:
         run: yarn test:setup
       - name: Run unit tests
         if: matrix.arch == 'x64'
-        run: yarn test:unit:cov
+        run: yarn test:unit
       - name: Run script tests
         if: matrix.arch == 'x64'
-        run: yarn test:script:cov
-      - name: Run integration tests
-        if: matrix.arch == 'x64'
-        timeout-minutes: 5
-        run: yarn test:integration
+        run: yarn test:script
       - name: Publish production app
         run: yarn run publish
         env:
@@ -98,9 +92,6 @@ jobs:
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
-          S3_KEY: ${{ secrets.S3_KEY }}
-          S3_SECRET: ${{ secrets.S3_SECRET }}
-          S3_BUCKET: github-desktop
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
           AZURE_BLOB_CONTAINER: ${{ secrets.AZURE_BLOB_CONTAINER }}

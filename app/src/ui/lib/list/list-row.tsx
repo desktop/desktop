@@ -93,6 +93,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     const style = { ...this.props.style, width: '100%' }
 
     return (
+      // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
       <div
         id={this.props.id}
         aria-setsize={this.props.rowCount}

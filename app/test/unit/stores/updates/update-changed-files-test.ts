@@ -126,7 +126,8 @@ describe('updateChangedFiles', () => {
       const { selection } = updateChangedFiles(prevState, status, false)
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const workingDirectorySelection =
+        selection as ChangesWorkingDirectorySelection
       const { selectedFileIDs } = workingDirectorySelection
       expect(selectedFileIDs).toHaveLength(1)
       // NOTE: `updateChangedFiles` sorts the paths and `app/package.json` will
@@ -150,7 +151,8 @@ describe('updateChangedFiles', () => {
       const { selection } = updateChangedFiles(prevState, status, false)
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const workingDirectorySelection =
+        selection as ChangesWorkingDirectorySelection
       const { selectedFileIDs } = workingDirectorySelection
       expect(selectedFileIDs).toHaveLength(1)
       expect(selectedFileIDs[0]).toBe(firstFile)
@@ -170,7 +172,8 @@ describe('updateChangedFiles', () => {
       const { selection } = updateChangedFiles(prevState, status, false)
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const workingDirectorySelection =
+        selection as ChangesWorkingDirectorySelection
       const { selectedFileIDs } = workingDirectorySelection
       expect(selectedFileIDs).toHaveLength(0)
     })
@@ -195,7 +198,8 @@ describe('updateChangedFiles', () => {
 
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
 
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const workingDirectorySelection =
+        selection as ChangesWorkingDirectorySelection
       expect(workingDirectorySelection.diff).toBeNull()
     })
 
@@ -220,7 +224,8 @@ describe('updateChangedFiles', () => {
 
       const { selection } = updateChangedFiles(prevState, status, false)
       expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
+      const workingDirectorySelection =
+        selection as ChangesWorkingDirectorySelection
       expect(workingDirectorySelection.diff).toBe(diff)
     })
   })

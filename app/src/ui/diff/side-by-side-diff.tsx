@@ -10,8 +10,8 @@ import {
 } from '../../models/diff'
 import {
   getLineFilters,
-  getFileContents,
   highlightContents,
+  IFileContents,
 } from './syntax-highlighting'
 import { ITokens, ILineTokens, IToken } from '../../lib/highlighter/types'
 import {
@@ -26,6 +26,8 @@ import {
   CellMeasurerCache,
   CellMeasurer,
   ListRowProps,
+  OverscanIndicesGetterParams,
+  defaultOverscanIndicesGetter,
 } from 'react-virtualized'
 import { SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
@@ -45,22 +47,22 @@ import {
   DiffColumn,
   getLineWidthFromDigitCount,
   getNumberOfDigits,
+  MaxIntraLineDiffStringLength,
+  getFirstAndLastClassesSideBySide,
 } from './diff-helpers'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-search-input'
-import { escapeRegExp } from '../../lib/helpers/regex'
-import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
-  getTextDiffWithBottomDummyHunk,
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
+import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
+import { escapeRegExp } from 'lodash'
 
 const DefaultRowHeight = 20
-const MaxLineLengthToCalculateDiff = 240
 
 export interface ISelectionPoint {
   readonly column: DiffColumn
@@ -75,6 +77,21 @@ export interface ISelection {
 
 type ModifiedLine = { line: DiffLine; diffLineNumber: number }
 
+const isElement = (n: Node): n is Element => n.nodeType === Node.ELEMENT_NODE
+const closestElement = (n: Node): Element | null =>
+  isElement(n) ? n : n.parentElement
+
+const closestRow = (n: Node, container: Element) => {
+  const row = closestElement(n)?.closest('div[role=row]')
+  if (row && container.contains(row)) {
+    const rowIndex =
+      row.ariaRowIndex !== null ? parseInt(row.ariaRowIndex, 10) : NaN
+    return isNaN(rowIndex) ? undefined : rowIndex
+  }
+
+  return undefined
+}
+
 interface ISideBySideDiffProps {
   readonly repository: Repository
 
@@ -83,6 +100,11 @@ interface ISideBySideDiffProps {
 
   /** The initial diff */
   readonly diff: ITextDiff
+
+  /**
+   * Contents of the old and new files related to the current text diff.
+   */
+  readonly fileContents: IFileContents | null
 
   /**
    * Called when the includedness of lines or a range of lines has changed.
@@ -112,6 +134,9 @@ interface ISideBySideDiffProps {
    * Whether we'll show the diff in a side-by-side layout.
    */
   readonly showSideBySideDiff: boolean
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ISideBySideDiffState {
@@ -134,7 +159,7 @@ interface ISideBySideDiffState {
    * column is doing it. This allows us to limit text selection to that
    * specific column via CSS.
    */
-  readonly selectingTextInRow?: 'before' | 'after'
+  readonly selectingTextInRow: 'before' | 'after'
 
   /**
    * The current diff selection. This is used while
@@ -186,12 +211,13 @@ export class SideBySideDiff extends React.Component<
   ISideBySideDiffState
 > {
   private virtualListRef = React.createRef<List>()
-
-  /** The content lines of the "new" file */
-  private newContentLines: ReadonlyArray<string> | null = null
+  private diffContainer: HTMLDivElement | null = null
 
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
+
+  private textSelectionStartRow: number | undefined = undefined
+  private textSelectionEndRow: number | undefined = undefined
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -200,6 +226,7 @@ export class SideBySideDiff extends React.Component<
       diff: props.diff,
       isSearching: false,
       selectedSearchResult: undefined,
+      selectingTextInRow: 'before',
     }
   }
 
@@ -211,12 +238,130 @@ export class SideBySideDiff extends React.Component<
     // Listen for the custom event find-text (see app.tsx)
     // and trigger the search plugin if we see it.
     document.addEventListener('find-text', this.showSearch)
+
+    document.addEventListener('cut', this.onCutOrCopy)
+    document.addEventListener('copy', this.onCutOrCopy)
+
+    document.addEventListener('selectionchange', this.onDocumentSelectionChange)
+  }
+
+  private onCutOrCopy = (ev: ClipboardEvent) => {
+    if (ev.defaultPrevented || !this.isEntireDiffSelected()) {
+      return
+    }
+
+    const lineTypes = this.props.showSideBySideDiff
+      ? this.state.selectingTextInRow === 'before'
+        ? [DiffLineType.Delete, DiffLineType.Context]
+        : [DiffLineType.Add, DiffLineType.Context]
+      : [DiffLineType.Add, DiffLineType.Delete, DiffLineType.Context]
+
+    const contents = this.state.diff.hunks
+      .flatMap(h =>
+        h.lines
+          .filter(line => lineTypes.includes(line.type))
+          .map(line => line.content)
+      )
+      .join('\n')
+
+    ev.preventDefault()
+    ev.clipboardData?.setData('text/plain', contents)
+  }
+
+  private onDocumentSelectionChange = (ev: Event) => {
+    if (!this.diffContainer) {
+      return
+    }
+
+    const selection = document.getSelection()
+
+    this.textSelectionStartRow = undefined
+    this.textSelectionEndRow = undefined
+
+    if (!selection || selection.isCollapsed) {
+      return
+    }
+
+    // Check to see if there's at least a partial selection within the
+    // diff container. If there isn't then we want to get out of here as
+    // quickly as possible.
+    if (!selection.containsNode(this.diffContainer, true)) {
+      return
+    }
+
+    if (this.isEntireDiffSelected(selection)) {
+      return
+    }
+
+    // Get the range to coerce uniform direction (i.e we don't want to have to
+    // care about whether the user is selecting right to left or left to right)
+    const range = selection.getRangeAt(0)
+    const { startContainer, endContainer } = range
+
+    // The (relative) happy path is when the user is currently selecting within
+    // the diff. That means that the start container will very likely be a text
+    // node somewhere within a row.
+    let startRow = closestRow(startContainer, this.diffContainer)
+
+    // If we couldn't find the row by walking upwards it's likely that the user
+    // has moved their selection to the container itself or beyond (i.e dragged
+    // their selection all the way up to the point where they're now selecting
+    // inside the commit details).
+    //
+    // If so we attempt to check if the first row we're currently rendering is
+    // encompassed in the selection
+    if (startRow === undefined) {
+      const firstRow = this.diffContainer.querySelector(
+        'div[role=row]:first-child'
+      )
+
+      if (firstRow && range.intersectsNode(firstRow)) {
+        startRow = closestRow(firstRow, this.diffContainer)
+      }
+    }
+
+    // If we don't have  starting row there's no point in us trying to find
+    // the end row.
+    if (startRow === undefined) {
+      return
+    }
+
+    let endRow = closestRow(endContainer, this.diffContainer)
+
+    if (endRow === undefined) {
+      const lastRow = this.diffContainer.querySelector(
+        'div[role=row]:last-child'
+      )
+
+      if (lastRow && range.intersectsNode(lastRow)) {
+        endRow = closestRow(lastRow, this.diffContainer)
+      }
+    }
+
+    this.textSelectionStartRow = startRow
+    this.textSelectionEndRow = endRow
+  }
+
+  private isEntireDiffSelected(selection = document.getSelection()) {
+    const { diffContainer } = this
+    const ancestor = selection?.getRangeAt(0).commonAncestorContainer
+
+    // This is an artefact of the selectAllChildren call in the onSelectAll
+    // handler. We can get away with checking for this since we're handling
+    // the select-all event coupled with the fact that we have CSS rules which
+    // prevents text selection within the diff unless focus resides within the
+    // diff container.
+    return ancestor === diffContainer
   }
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onWindowKeyDown)
     document.removeEventListener('mouseup', this.onEndSelection)
     document.removeEventListener('find-text', this.showSearch)
+    document.removeEventListener(
+      'selectionchange',
+      this.onDocumentSelectionChange
+    )
   }
 
   public componentDidUpdate(
@@ -232,15 +377,56 @@ export class SideBySideDiff extends React.Component<
 
     if (this.props.diff.text !== prevProps.diff.text) {
       this.diffToRestore = null
-      this.setState({ diff: this.props.diff })
+      this.setState({
+        diff: this.props.diff,
+      })
+    }
+
+    // Scroll to top if we switched to a new file
+    if (
+      this.virtualListRef.current !== null &&
+      this.props.file.id !== prevProps.file.id
+    ) {
+      this.virtualListRef.current.scrollToPosition(0)
+
+      // Reset selection
+      this.textSelectionStartRow = undefined
+      this.textSelectionEndRow = undefined
+
+      if (this.diffContainer) {
+        const selection = document.getSelection()
+        if (selection?.containsNode(this.diffContainer, true)) {
+          selection.empty()
+        }
+      }
     }
   }
 
+  private canExpandDiff() {
+    const contents = this.props.fileContents
+    return (
+      contents !== null &&
+      contents.canBeExpanded &&
+      contents.newContents.length > 0
+    )
+  }
+
+  private onDiffContainerRef = (ref: HTMLDivElement | null) => {
+    if (ref === null) {
+      this.diffContainer?.removeEventListener('select-all', this.onSelectAll)
+    } else {
+      ref.addEventListener('select-all', this.onSelectAll)
+    }
+    this.diffContainer = ref
+  }
+
   public render() {
+    const { diff } = this.state
+
     const rows = getDiffRows(
-      this.state.diff,
+      diff,
       this.props.showSideBySideDiff,
-      this.newContentLines !== null
+      this.canExpandDiff()
     )
     const containerClassName = classNames('side-by-side-diff-container', {
       'unified-diff': !this.props.showSideBySideDiff,
@@ -251,14 +437,23 @@ export class SideBySideDiff extends React.Component<
     })
 
     return (
-      <div className={containerClassName} onMouseDown={this.onMouseDown}>
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+      <div
+        className={containerClassName}
+        onMouseDown={this.onMouseDown}
+        onKeyDown={this.onKeyDown}
+      >
+        {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
         {this.state.isSearching && (
           <DiffSearchInput
             onSearch={this.onSearch}
             onClose={this.onSearchCancel}
           />
         )}
-        <div className="side-by-side-diff cm-s-default">
+        <div
+          className="side-by-side-diff cm-s-default"
+          ref={this.onDiffContainerRef}
+        >
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
               <List
@@ -269,6 +464,7 @@ export class SideBySideDiff extends React.Component<
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
                 ref={this.virtualListRef}
+                overscanIndicesGetter={this.overscanIndicesGetter}
                 // The following properties are passed to the list
                 // to make sure that it gets re-rendered when any of
                 // them change.
@@ -290,21 +486,54 @@ export class SideBySideDiff extends React.Component<
     )
   }
 
-  private renderRow = ({ index, parent, style, key }: ListRowProps) => {
-    const rows = getDiffRows(
-      this.state.diff,
-      this.props.showSideBySideDiff,
-      this.newContentLines !== null
-    )
-    const row = rows[index]
+  private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
+    const [start, end] = [this.textSelectionStartRow, this.textSelectionEndRow]
 
+    if (start === undefined || end === undefined) {
+      return defaultOverscanIndicesGetter(params)
+    }
+
+    const startIndex = Math.min(start, params.startIndex)
+    const stopIndex = Math.max(
+      params.stopIndex,
+      Math.min(params.cellCount - 1, end)
+    )
+
+    return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
+  }
+
+  private renderRow = ({ index, parent, style, key }: ListRowProps) => {
+    const { diff } = this.state
+    const rows = getDiffRows(
+      diff,
+      this.props.showSideBySideDiff,
+      this.canExpandDiff()
+    )
+
+    const row = rows[index]
     if (row === undefined) {
       return null
     }
 
-    const lineNumberWidth = `${getLineWidthFromDigitCount(
-      getNumberOfDigits(this.state.diff.maxLineNumber)
-    )}px`
+    const prev = rows[index - 1]
+    const next = rows[index + 1]
+
+    const beforeClassNames = getFirstAndLastClassesSideBySide(
+      row,
+      prev,
+      next,
+      DiffRowType.Deleted
+    )
+    const afterClassNames = getFirstAndLastClassesSideBySide(
+      row,
+      prev,
+      next,
+      DiffRowType.Added
+    )
+
+    const lineNumberWidth = getLineWidthFromDigitCount(
+      getNumberOfDigits(diff.maxLineNumber)
+    )
 
     const rowWithTokens = this.createFullRow(row, index)
 
@@ -319,7 +548,7 @@ export class SideBySideDiff extends React.Component<
         parent={parent}
         rowIndex={index}
       >
-        <div key={key} style={style}>
+        <div key={key} style={style} role="row" aria-rowindex={index}>
           <SideBySideDiffRow
             row={rowWithTokens}
             lineNumberWidth={lineNumberWidth}
@@ -338,6 +567,11 @@ export class SideBySideDiff extends React.Component<
             onContextMenuHunk={this.onContextMenuHunk}
             onContextMenuExpandHunk={this.onContextMenuExpandHunk}
             onContextMenuText={this.onContextMenuText}
+            onHideWhitespaceInDiffChanged={
+              this.props.onHideWhitespaceInDiffChanged
+            }
+            beforeClassNames={beforeClassNames}
+            afterClassNames={afterClassNames}
           />
         </div>
       </CellMeasurer>
@@ -353,8 +587,13 @@ export class SideBySideDiff extends React.Component<
   }
 
   private async initDiffSyntaxMode() {
-    const { file, repository } = this.props
-    const { diff } = this.state
+    const contents = this.props.fileContents
+
+    if (contents === null) {
+      return
+    }
+
+    const { diff: currentDiff } = this.state
 
     // Store the current props and state so that we can see if anything
     // changes from underneath us as we're making asynchronous
@@ -362,21 +601,8 @@ export class SideBySideDiff extends React.Component<
     const propsSnapshot = this.props
     const stateSnapshot = this.state
 
-    const lineFilters = getLineFilters(diff.hunks)
+    const lineFilters = getLineFilters(currentDiff.hunks)
     const tabSize = 4
-
-    const contents = await getFileContents(repository, file, lineFilters)
-
-    if (
-      !highlightParametersEqual(
-        this.props,
-        propsSnapshot,
-        this.state,
-        stateSnapshot
-      )
-    ) {
-      return
-    }
 
     const tokens = await highlightContents(contents, tabSize, lineFilters)
 
@@ -391,26 +617,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const newContentLines =
-      contents.newContents === null ? [] : contents.newContents.split('\n')
-    const oldContentLines =
-      contents.oldContents === null ? [] : contents.oldContents.split('\n')
-
-    const currentDiff = this.state.diff
-    const shouldEnableDiffExpansion =
-      enableTextDiffExpansion() && contents.canBeExpanded
-    const newDiff = shouldEnableDiffExpansion
-      ? getTextDiffWithBottomDummyHunk(
-          currentDiff,
-          currentDiff.hunks,
-          oldContentLines.length,
-          newContentLines.length
-        )
-      : null
-    this.newContentLines = shouldEnableDiffExpansion ? newContentLines : null
-
     this.setState({
-      diff: newDiff ?? currentDiff,
       beforeTokens: tokens.oldTokens,
       afterTokens: tokens.newTokens,
     })
@@ -558,10 +765,11 @@ export class SideBySideDiff extends React.Component<
     rowNumber: number,
     column: DiffColumn
   ): number | null {
+    const { diff } = this.state
     const rows = getDiffRows(
-      this.state.diff,
+      diff,
       this.props.showSideBySideDiff,
-      this.newContentLines !== null
+      this.canExpandDiff()
     )
     const row = rows[rowNumber]
 
@@ -609,6 +817,27 @@ export class SideBySideDiff extends React.Component<
       this.setState({ selectingTextInRow: 'before' })
     } else if (isSelectingAfterText !== null) {
       this.setState({ selectingTextInRow: 'after' })
+    }
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const modifiers = event.altKey || event.metaKey || event.shiftKey
+
+    if (!__DARWIN__ && event.key === 'a' && event.ctrlKey && !modifiers) {
+      this.onSelectAll(event)
+    }
+  }
+
+  /**
+   * Called when the user presses CtrlOrCmd+A while focused within the diff
+   * container or when the user triggers the select-all event. Note that this
+   * deals with text-selection whereas several other methods in this component
+   * named similarly deals with selection within the gutter.
+   */
+  private onSelectAll = (ev?: Event | React.SyntheticEvent<unknown>) => {
+    if (this.diffContainer) {
+      ev?.preventDefault()
+      document.getSelection()?.selectAllChildren(this.diffContainer)
     }
   }
 
@@ -715,6 +944,10 @@ export class SideBySideDiff extends React.Component<
         role: selectionLength > 0 ? 'copy' : undefined,
         enabled: selectionLength > 0,
       },
+      {
+        label: __DARWIN__ ? 'Select All' : 'Select all',
+        action: () => this.onSelectAll(),
+      },
     ]
 
     const expandMenuItem = this.buildExpandMenuItem()
@@ -760,11 +993,10 @@ export class SideBySideDiff extends React.Component<
   }
 
   private buildExpandMenuItem(): IMenuItem | null {
-    if (!enableTextDiffExpansion() || this.newContentLines === null) {
+    const { diff } = this.state
+    if (!this.canExpandDiff()) {
       return null
     }
-
-    const diff = this.state.diff
 
     return this.diffToRestore === null
       ? {
@@ -784,24 +1016,22 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onExpandWholeFile = () => {
-    if (this.newContentLines === null || this.newContentLines.length === 0) {
+    const contents = this.props.fileContents
+    const { diff } = this.state
+
+    if (contents === null || !this.canExpandDiff()) {
       return
     }
 
-    const updatedDiff = expandWholeTextDiff(
-      this.state.diff,
-      this.newContentLines
-    )
+    const updatedDiff = expandWholeTextDiff(diff, contents.newContents)
 
     if (updatedDiff === undefined) {
       return
     }
 
-    this.diffToRestore = this.state.diff
+    this.diffToRestore = diff
 
-    this.setState({
-      diff: updatedDiff,
-    })
+    this.setState({ diff: updatedDiff })
   }
 
   private onCollapseExpandedLines = () => {
@@ -809,9 +1039,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    this.setState({
-      diff: this.diffToRestore,
-    })
+    this.setState({ diff: this.diffToRestore })
 
     this.diffToRestore = null
   }
@@ -937,7 +1165,7 @@ export class SideBySideDiff extends React.Component<
         diff,
         showSideBySideDiff,
         searchQuery,
-        this.newContentLines !== null
+        this.canExpandDiff()
       )
       selectedSearchResult = 0
 
@@ -971,9 +1199,10 @@ export class SideBySideDiff extends React.Component<
 
   /** Expand a selected hunk. */
   private expandHunk(hunk: DiffHunk, kind: DiffExpansionKind) {
+    const contents = this.props.fileContents
     const { diff } = this.state
 
-    if (this.newContentLines === null || this.newContentLines.length === 0) {
+    if (contents === null || !this.canExpandDiff()) {
       return
     }
 
@@ -981,16 +1210,14 @@ export class SideBySideDiff extends React.Component<
       diff,
       hunk,
       kind,
-      this.newContentLines
+      contents.newContents
     )
 
     if (updatedDiff === undefined) {
       return
     }
 
-    this.setState({
-      diff: updatedDiff,
-    })
+    this.setState({ diff: updatedDiff })
   }
 }
 
@@ -1011,7 +1238,8 @@ function highlightParametersEqual(
     (newProps === prevProps ||
       (newProps.file.id === prevProps.file.id &&
         newProps.showSideBySideDiff === prevProps.showSideBySideDiff)) &&
-    newState.diff.text === prevState.diff.text
+    newState.diff.text === prevState.diff.text &&
+    prevProps.fileContents?.file.id === newProps.fileContents?.file.id
   )
 }
 
@@ -1132,17 +1360,17 @@ function getDiffRowsFromHunk(
 }
 
 function getModifiedRows(
-  addedDeletedLines: ReadonlyArray<ModifiedLine>,
+  addedOrDeletedLines: ReadonlyArray<ModifiedLine>,
   showSideBySideDiff: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
-  if (addedDeletedLines.length === 0) {
+  if (addedOrDeletedLines.length === 0) {
     return []
   }
-  const hunkStartLine = addedDeletedLines[0].diffLineNumber
+  const hunkStartLine = addedOrDeletedLines[0].diffLineNumber
   const addedLines = new Array<ModifiedLine>()
   const deletedLines = new Array<ModifiedLine>()
 
-  for (const line of addedDeletedLines) {
+  for (const line of addedOrDeletedLines) {
     if (line.line.type === DiffLineType.Add) {
       addedLines.push(line)
     } else if (line.line.type === DiffLineType.Delete) {
@@ -1165,8 +1393,8 @@ function getModifiedRows(
       const deletedLine = deletedLines[i]
 
       if (
-        addedLine.line.content.length < MaxLineLengthToCalculateDiff &&
-        deletedLine.line.content.length < MaxLineLengthToCalculateDiff
+        addedLine.line.content.length < MaxIntraLineDiffStringLength &&
+        deletedLine.line.content.length < MaxIntraLineDiffStringLength
       ) {
         const { before, after } = getDiffTokens(
           deletedLine.line.content,

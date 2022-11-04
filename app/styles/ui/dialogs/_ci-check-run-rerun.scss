@@ -1,0 +1,51 @@
+#rerun-check-runs {
+  max-width: 500px;
+
+  .dialog-content {
+    overflow: auto;
+  }
+
+  .check-run-rerun-list {
+    margin: var(--spacing) 0px;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    max-height: 300px;
+    padding: var(--spacing);
+    overflow: auto;
+
+    .ci-check-run-list-group-header {
+      &:not(.condensed) {
+        padding-left: 15px;
+      }
+    }
+  }
+
+  .non-re-run-info {
+    display: flex;
+
+    .octicon {
+      margin: 0px var(--spacing-half);
+    }
+  }
+
+  .loading-rerun-checks {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 100px;
+
+    .blankslate-image {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .call-to-action {
+      font-size: var(--font-size-sm);
+    }
+  }
+}

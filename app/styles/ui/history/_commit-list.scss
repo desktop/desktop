@@ -52,6 +52,22 @@
     }
   }
 
+  &.has-highlighted-commits {
+    .list-item {
+      transition: opacity 0.5s;
+
+      &:not(.highlighted) {
+        opacity: 30%;
+      }
+    }
+  }
+
+  &:not(.has-highlighted-commits) {
+    .list-item {
+      transition: opacity 0.25s;
+    }
+  }
+
   .focus-within {
     .list-item.selected {
       .commit {
@@ -70,6 +86,14 @@
         }
 
         background-color: var(--box-selected-active-background-color);
+      }
+    }
+  }
+
+  @include high-contrast {
+    .list-item:hover {
+      .commit {
+        color: var(--text-color);
       }
     }
   }

@@ -12,7 +12,10 @@ import {
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { Account } from '../../models/account'
 import { IAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
@@ -23,16 +26,23 @@ import {
   CopyFilePathLabel,
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
+  CopyRelativeFilePathLabel,
+  CopySelectedPathsLabel,
+  CopySelectedRelativePathsLabel,
 } from '../lib/context-menu'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu } from '../../lib/menu-item'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { Commit, ICommitContext } from '../../models/commit'
-import { RebaseConflictState, ConflictState } from '../../lib/app-state'
+import {
+  RebaseConflictState,
+  ConflictState,
+  Foldout,
+} from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -40,6 +50,10 @@ import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
+import { createObservableRef } from '../lib/observable-ref'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { Popup } from '../../models/popup'
+import { EOL } from 'os'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -117,6 +131,8 @@ interface IChangesListProps {
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
+  readonly isShowingModal: boolean
+  readonly isShowingFoldout: boolean
   readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges: boolean
@@ -142,7 +158,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
-  readonly isAmending: boolean
+  readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
 
   /**
@@ -155,8 +171,11 @@ interface IChangesListProps {
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 
+  /** Called when the given file should be ignored. */
+  readonly onIgnoreFile: (pattern: string | string[]) => void
+
   /** Called when the given pattern should be ignored. */
-  readonly onIgnore: (pattern: string | string[]) => void
+  readonly onIgnorePattern: (pattern: string | string[]) => void
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -220,6 +239,8 @@ export class ChangesList extends React.Component<
   IChangesListProps,
   IChangesState
 > {
+  private headerRef = createObservableRef<HTMLDivElement>()
+
   public constructor(props: IChangesListProps) {
     super(props)
     this.state = {
@@ -257,6 +278,18 @@ export class ChangesList extends React.Component<
 
     const file = workingDirectory.files[row]
     const selection = file.selection.getSelectionType()
+    const { submoduleStatus } = file.status
+
+    const isUncommittableSubmodule =
+      submoduleStatus !== undefined &&
+      file.status.kind === AppFileStatusKind.Modified &&
+      !submoduleStatus.commitChanged
+
+    const isPartiallyCommittableSubmodule =
+      submoduleStatus !== undefined &&
+      (submoduleStatus.commitChanged ||
+        file.status.kind === AppFileStatusKind.New) &&
+      (submoduleStatus.modifiedChanges || submoduleStatus.untrackedChanges)
 
     const includeAll =
       selection === DiffSelectionType.All
@@ -265,22 +298,31 @@ export class ChangesList extends React.Component<
         ? false
         : null
 
-    const include =
-      rebaseConflictState !== null
-        ? file.status.kind !== AppFileStatusKind.Untracked
-        : includeAll
+    const include = isUncommittableSubmodule
+      ? false
+      : rebaseConflictState !== null
+      ? file.status.kind !== AppFileStatusKind.Untracked
+      : includeAll
 
-    const disableSelection = isCommitting || rebaseConflictState !== null
+    const disableSelection =
+      isCommitting || rebaseConflictState !== null || isUncommittableSubmodule
+
+    const checkboxTooltip = isUncommittableSubmodule
+      ? 'This submodule change cannot be added to a commit in this repository because it contains changes that have not been committed.'
+      : isPartiallyCommittableSubmodule
+      ? 'Only changes that have been committed within the submodule will be added to this repository. You need to commit any other modified or untracked changes in the submodule before including them in this repository.'
+      : undefined
 
     return (
       <ChangedFile
         file={file}
-        include={include}
+        include={isPartiallyCommittableSubmodule && include ? null : include}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={onIncludeChanged}
         availableWidth={availableWidth}
         disableSelection={disableSelection}
+        checkboxTooltip={checkboxTooltip}
       />
     )
   }
@@ -401,6 +443,41 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private getCopyRelativePathMenuItem = (
+    file: WorkingDirectoryFileChange
+  ): IMenuItem => {
+    return {
+      label: CopyRelativeFilePathLabel,
+      action: () => clipboard.writeText(Path.normalize(file.path)),
+    }
+  }
+
+  private getCopySelectedPathsMenuItem = (
+    files: WorkingDirectoryFileChange[]
+  ): IMenuItem => {
+    return {
+      label: CopySelectedPathsLabel,
+      action: () => {
+        const fullPaths = files.map(file =>
+          Path.join(this.props.repository.path, file.path)
+        )
+        clipboard.writeText(fullPaths.join(EOL))
+      },
+    }
+  }
+
+  private getCopySelectedRelativePathsMenuItem = (
+    files: WorkingDirectoryFileChange[]
+  ): IMenuItem => {
+    return {
+      label: CopySelectedRelativePathsLabel,
+      action: () => {
+        const paths = files.map(file => Path.normalize(file.path))
+        clipboard.writeText(paths.join(EOL))
+      },
+    }
+  }
+
   private getRevealInFileManagerMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -477,7 +554,7 @@ export class ChangesList extends React.Component<
         label: __DARWIN__
           ? 'Ignore File (Add to .gitignore)'
           : 'Ignore file (add to .gitignore)',
-        action: () => this.props.onIgnore(path),
+        action: () => this.props.onIgnoreFile(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
     } else if (paths.length > 1) {
@@ -488,7 +565,7 @@ export class ChangesList extends React.Component<
         action: () => {
           // Filter out any .gitignores that happens to be selected, ignoring
           // those doesn't make sense.
-          this.props.onIgnore(
+          this.props.onIgnoreFile(
             paths.filter(path => Path.basename(path) !== GitIgnoreFileName)
           )
         },
@@ -505,14 +582,48 @@ export class ChangesList extends React.Component<
           label: __DARWIN__
             ? `Ignore All ${extension} Files (Add to .gitignore)`
             : `Ignore all ${extension} files (add to .gitignore)`,
-          action: () => this.props.onIgnore(`*${extension}`),
+          action: () => this.props.onIgnorePattern(`*${extension}`),
         })
       })
+
+    if (paths.length > 1) {
+      items.push(
+        { type: 'separator' },
+        {
+          label: __DARWIN__
+            ? 'Include Selected Files'
+            : 'Include selected files',
+          action: () => {
+            selectedFiles.map(file =>
+              this.props.onIncludeChanged(file.path, true)
+            )
+          },
+        },
+        {
+          label: __DARWIN__
+            ? 'Exclude Selected Files'
+            : 'Exclude selected files',
+          action: () => {
+            selectedFiles.map(file =>
+              this.props.onIncludeChanged(file.path, false)
+            )
+          },
+        },
+        { type: 'separator' },
+        this.getCopySelectedPathsMenuItem(selectedFiles),
+        this.getCopySelectedRelativePathsMenuItem(selectedFiles)
+      )
+    } else {
+      items.push(
+        { type: 'separator' },
+        this.getCopyPathMenuItem(file),
+        this.getCopyRelativePathMenuItem(file)
+      )
+    }
 
     const enabled = status.kind !== AppFileStatusKind.Deleted
     items.push(
       { type: 'separator' },
-      this.getCopyPathMenuItem(file),
       this.getRevealInFileManagerMenuItem(file),
       this.getOpenInExternalEditorMenuItem(file, enabled),
       {
@@ -545,6 +656,8 @@ export class ChangesList extends React.Component<
 
     items.push(
       this.getCopyPathMenuItem(file),
+      this.getCopyRelativePathMenuItem(file),
+      { type: 'separator' },
       this.getRevealInFileManagerMenuItem(file),
       this.getOpenInExternalEditorMenuItem(file, enabled),
       {
@@ -613,7 +726,7 @@ export class ChangesList extends React.Component<
       repositoryAccount,
       dispatcher,
       isCommitting,
-      isAmending,
+      commitToAmend,
       currentBranchProtected,
     } = this.props
 
@@ -666,15 +779,17 @@ export class ChangesList extends React.Component<
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
         commitAuthor={this.props.commitAuthor}
+        isShowingModal={this.props.isShowingModal}
+        isShowingFoldout={this.props.isShowingFoldout}
         anyFilesSelected={anyFilesSelected}
+        anyFilesAvailable={fileCount > 0}
         repository={repository}
         repositoryAccount={repositoryAccount}
-        dispatcher={dispatcher}
         commitMessage={this.props.commitMessage}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
-        commitToAmend={isAmending ? this.props.mostRecentLocalCommit : null}
+        commitToAmend={commitToAmend}
         showCoAuthoredBy={this.props.showCoAuthoredBy}
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
@@ -687,10 +802,50 @@ export class ChangesList extends React.Component<
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
-        persistCoAuthors={true}
-        persistCommitMessage={true}
+        onCoAuthorsUpdated={this.onCoAuthorsUpdated}
+        onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
+        onPersistCommitMessage={this.onPersistCommitMessage}
+        onCommitMessageFocusSet={this.onCommitMessageFocusSet}
+        onRefreshAuthor={this.onRefreshAuthor}
+        onShowPopup={this.onShowPopup}
+        onShowFoldout={this.onShowFoldout}
+        onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
+        onStopAmending={this.onStopAmending}
+        onShowCreateForkDialog={this.onShowCreateForkDialog}
       />
     )
+  }
+
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
+
+  private onShowCoAuthoredByChanged = (showCoAuthors: boolean) => {
+    const { dispatcher, repository } = this.props
+    dispatcher.setShowCoAuthoredBy(repository, showCoAuthors)
+  }
+
+  private onRefreshAuthor = () =>
+    this.props.dispatcher.refreshAuthor(this.props.repository)
+
+  private onCommitMessageFocusSet = () =>
+    this.props.dispatcher.setCommitMessageFocus(false)
+
+  private onPersistCommitMessage = (message: ICommitMessage) =>
+    this.props.dispatcher.setCommitMessage(this.props.repository, message)
+
+  private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
+  private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)
+
+  private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
+    this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
+
+  private onStopAmending = () =>
+    this.props.dispatcher.stopAmendingRepository(this.props.repository)
+
+  private onShowCreateForkDialog = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    }
   }
 
   private onStashEntryClicked = () => {
@@ -718,6 +873,7 @@ export class ChangesList extends React.Component<
     )
 
     return (
+      // eslint-disable-next-line jsx-a11y/role-supports-aria-props
       <button
         className={className}
         onClick={this.onStashEntryClicked}
@@ -748,33 +904,36 @@ export class ChangesList extends React.Component<
   }
 
   public render() {
-    const fileCount = this.props.workingDirectory.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesPlural}`
+    const { workingDirectory, rebaseConflictState, isCommitting } = this.props
+    const { files } = workingDirectory
 
-    const selectedChangeCount = this.props.workingDirectory.files.filter(
+    const filesPlural = files.length === 1 ? 'file' : 'files'
+    const filesDescription = `${files.length} changed ${filesPlural}`
+
+    const selectedChangeCount = files.filter(
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
-    const selectedFilesPlural = selectedChangeCount === 1 ? 'file' : 'files'
-    const selectedChangesDescription = `${selectedChangeCount} changed ${selectedFilesPlural} selected`
+    const totalFilesPlural = files.length === 1 ? 'file' : 'files'
+    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} selected`
 
     const includeAllValue = getIncludeAllValue(
-      this.props.workingDirectory,
-      this.props.rebaseConflictState
+      workingDirectory,
+      rebaseConflictState
     )
 
     const disableAllCheckbox =
-      fileCount === 0 ||
-      this.props.isCommitting ||
-      this.props.rebaseConflictState !== null
+      files.length === 0 || isCommitting || rebaseConflictState !== null
 
     return (
       <div className="changes-list-container file-list">
         <div
           className="header"
           onContextMenu={this.onContextMenu}
-          title={selectedChangesDescription}
+          ref={this.headerRef}
         >
+          <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
+            {selectedChangesDescription}
+          </Tooltip>
           <Checkbox
             label={filesDescription}
             value={includeAllValue}
@@ -784,15 +943,15 @@ export class ChangesList extends React.Component<
         </div>
         <List
           id="changes-list"
-          rowCount={this.props.workingDirectory.files.length}
+          rowCount={files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
           selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={{
-            workingDirectory: this.props.workingDirectory,
-            isCommitting: this.props.isCommitting,
+            workingDirectory: workingDirectory,
+            isCommitting: isCommitting,
           }}
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}

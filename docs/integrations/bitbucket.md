@@ -4,7 +4,7 @@
 
 To authenticate against Bitbucket repositories you will need to create a personal access token.
 
-1. Go to your Bitbucket account and select **Bitbucket settings** in the user profile dropdown.
+1. Go to your Bitbucket account and select **Personal settings** in the user profile dropdown.
 
 2. Select **App passwords**
 
@@ -14,7 +14,7 @@ To authenticate against Bitbucket repositories you will need to create a persona
 
 4. Under the **Details** section in **Add app password** enter a label for your password
 
-5. Under **Permissions** select `read` and `write` in the **Repositories** section to ensure that GitHub Desktop has the correct read/write access to your GitLab repositories.
+5. Under **Permissions** select `Read` and `Write` in the **Repositories** section to ensure that GitHub Desktop has the correct read/write access to your Bitbucket repositories.
 
 6. Click **Create** to create a new token, and then copy the token to your clipboard.
 

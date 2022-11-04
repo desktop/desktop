@@ -1,9 +1,6 @@
 import React from 'react'
-import {
-  getAheadBehind,
-  mergeTree,
-  revSymmetricDifference,
-} from '../../../lib/git'
+import { getAheadBehind, revSymmetricDifference } from '../../../lib/git'
+import { determineMergeability } from '../../../lib/git/merge-tree'
 import { promiseWithMinimumTimeout } from '../../../lib/promise'
 import { Branch } from '../../../models/branch'
 import { ComputedAction } from '../../../models/computed-action'
@@ -94,15 +91,18 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
   }
 
   protected updateStatus = async (branch: Branch) => {
-    const { currentBranch } = this.props
+    const { currentBranch, repository } = this.props
     this.mergeStatus = { kind: ComputedAction.Loading }
     this.updateMergeStatusPreview(branch)
 
     if (currentBranch != null) {
       this.mergeStatus = await promiseWithMinimumTimeout(
-        () => mergeTree(this.props.repository, currentBranch, branch),
+        () => determineMergeability(repository, currentBranch, branch),
         500
-      )
+      ).catch<MergeTreeResult>(e => {
+        log.error('Failed determining mergeability', e)
+        return { kind: ComputedAction.Clean }
+      })
 
       this.updateMergeStatusPreview(branch)
     }
