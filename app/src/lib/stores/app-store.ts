@@ -1751,6 +1751,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     setNumberArray(RecentRepositoriesKey, slicedRecentRepositories)
     this.recentRepositories = slicedRecentRepositories
+    this.notificationsStore.setRecentRepositories(
+      this.repositories.filter(r => this.recentRepositories.includes(r.id))
+    )
     this.emitUpdate()
   }
 
