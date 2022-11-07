@@ -84,6 +84,7 @@
 // for a class name one finds in tsx. We might want to consider not allowing
 // this in the future but that's for... the future.
 .commit-summary {
+
   &-title,
   &-meta {
     padding: var(--spacing);
@@ -175,7 +176,7 @@
       vertical-align: bottom; // For some reason, `bottom` places the text in the middle
     }
 
-    .sha {
+    .selectable {
       user-select: text;
     }
 

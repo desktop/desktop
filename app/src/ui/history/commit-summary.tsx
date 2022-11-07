@@ -430,7 +430,7 @@ export class CommitSummary extends React.Component<
         aria-label="SHA"
       >
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA className="sha" commit={selectedCommits[0]} />
+        <TooltippedCommitSHA className="selectable" commit={selectedCommits[0]} />
       </li>
     )
   }
@@ -641,7 +641,7 @@ export class CommitSummary extends React.Component<
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 
-        <span className="tags">{tags.join(', ')}</span>
+        <span className="tags selectable">{tags.join(', ')}</span>
       </li>
     )
   }
