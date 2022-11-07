@@ -163,6 +163,7 @@ import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
+import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -220,7 +221,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * modal dialog such as the preferences, or an error dialog.
    */
   private get isShowingModal() {
-    return this.state.currentPopup !== null || this.state.errors.length > 0
+    return this.state.currentPopup !== null
   }
 
   /**
@@ -228,8 +229,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    * passed popupType, so it can be used in render() without creating
    * multiple instances when the component gets re-rendered.
    */
-  private getOnPopupDismissedFn = memoizeOne((popupType: PopupType) => {
-    return () => this.onPopupDismissed(popupType)
+  private getOnPopupDismissedFn = memoizeOne((popupId: string) => {
+    return () => this.onPopupDismissed(popupId)
   })
 
   public constructor(props: IAppProps) {
@@ -359,7 +360,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onMenuEvent(name: MenuEvent): any {
     // Don't react to menu events when an error dialog is shown.
-    if (this.state.errors.length) {
+    if (name !== 'show-app-error' && this.state.errorCount > 1) {
       return
     }
 
@@ -458,6 +459,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.findText()
       case 'pull-request-check-run-failed':
         return this.testPullRequestCheckRunFailed()
+      case 'show-app-error':
+        return this.props.dispatcher.postError(
+          new Error('Test Error - to use default error handler' + uuid())
+        )
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -1376,8 +1381,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onPopupDismissed = (popupType: PopupType) => {
-    return this.props.dispatcher.closePopup(popupType)
+  private onPopupDismissed = (popupId: string) => {
+    return this.props.dispatcher.closePopupById(popupId)
   }
 
   private onContinueWithUntrustedCertificate = (
@@ -1393,18 +1398,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private currentPopupContent(): JSX.Element | null {
-    // Hide any dialogs while we're displaying an error
-    if (this.state.errors.length) {
-      return null
-    }
-
     const popup = this.state.currentPopup
 
     if (!popup) {
       return null
     }
 
-    const onPopupDismissedFn = this.getOnPopupDismissedFn(popup.type)
+    if (popup.id === undefined) {
+      // Should not be possible... but if it does we want to know about it.
+      sendNonFatalException(
+        'PopupNoId',
+        new Error(
+          `Attempted to open a popup of type '${popup.type}' without an Id`
+        )
+      )
+      return null
+    }
+
+    const onPopupDismissedFn = this.getOnPopupDismissedFn(popup.id)
 
     switch (popup.type) {
       case PopupType.RenameBranch:
@@ -2321,6 +2332,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.Error: {
+        return (
+          <AppError
+            error={popup.error}
+            onDismissed={onPopupDismissedFn}
+            onShowPopup={this.showPopup}
+            onRetryAction={this.onRetryAction}
+          />
+        )
+      }
       case PopupType.InstallingUpdate: {
         return (
           <InstallingUpdate
@@ -2495,25 +2516,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <FullScreenInfo windowState={this.state.windowState} />
   }
 
-  private clearError = (error: Error) => this.props.dispatcher.clearError(error)
-
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.props.dispatcher.setConfirmDiscardChangesSetting(value)
   }
 
   private onConfirmDiscardChangesPermanentlyChanged = (value: boolean) => {
     this.props.dispatcher.setConfirmDiscardChangesPermanentlySetting(value)
-  }
-
-  private renderAppError() {
-    return (
-      <AppError
-        errors={this.state.errors}
-        onClearError={this.clearError}
-        onShowPopup={this.showPopup}
-        onRetryAction={this.onRetryAction}
-      />
-    )
   }
 
   private onRetryAction = (retryAction: RetryAction) => {
@@ -2543,7 +2551,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
-        {this.renderAppError()}
         {this.renderDragElement()}
       </div>
     )
