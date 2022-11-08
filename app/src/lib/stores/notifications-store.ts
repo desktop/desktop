@@ -5,7 +5,7 @@ import {
   isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
-import { PullRequest } from '../../models/pull-request'
+import { getPullRequestCommitRef, PullRequest } from '../../models/pull-request'
 import { API, APICheckConclusion } from '../api'
 import {
   createCombinedCheckFromChecks,
@@ -74,6 +74,7 @@ export class NotificationsStore {
     null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
+  private skipCheckSuites: Set<number> = new Set()
 
   public constructor(
     private readonly accountsStore: AccountsStore,
@@ -213,6 +214,10 @@ export class NotificationsStore {
       return
     }
 
+    if (this.skipCheckSuites.has(event.check_suite_id)) {
+      return
+    }
+
     const pullRequests = await this.pullRequestCoordinator.getAllPullRequests(
       repository
     )
@@ -255,7 +260,20 @@ export class NotificationsStore {
       return
     }
 
-    const checks = await this.getChecksForRef(repository, pullRequest.head.ref)
+    const isForkContributingToParent =
+      isRepositoryWithForkedGitHubRepository(repository) &&
+      repository.workflowPreferences.forkContributionTarget ===
+        ForkContributionTarget.Parent
+
+    // Checks must be retrieved from the repository the PR belongs to
+    const checksRepository = isForkContributingToParent
+      ? repository.gitHubRepository.parent
+      : repository.gitHubRepository
+
+    const checks = await this.getChecksForRef(
+      checksRepository,
+      getPullRequestCommitRef(pullRequest.pullRequestNumber)
+    )
     if (checks === null) {
       return
     }
@@ -269,6 +287,14 @@ export class NotificationsStore {
     // scenario, just ignore the event and don't show a notification.
     if (numberOfFailedChecks === 0) {
       return
+    }
+
+    // Ignore any remaining notification for check suites that started along
+    // with this one.
+    for (const check of checks) {
+      if (check.checkSuiteId !== null) {
+        this.skipCheckSuites.add(check.checkSuiteId)
+      }
     }
 
     const pluralChecks =
@@ -342,9 +368,20 @@ export class NotificationsStore {
    * notifications for the currently selected repository will be shown.
    */
   public selectRepository(repository: Repository) {
+    if (repository.hash === this.repository?.hash) {
+      return
+    }
+
     this.repository = isRepositoryWithGitHubRepository(repository)
       ? repository
       : null
+    this.resetCache()
+  }
+
+  private resetCache() {
+    this.cachedCommits.clear()
+    this.skipCommitShas.clear()
+    this.skipCheckSuites.clear()
   }
 
   /**
@@ -373,22 +410,20 @@ export class NotificationsStore {
     return API.fromAccount(account)
   }
 
-  private async getChecksForRef(
-    repository: RepositoryWithGitHubRepository,
-    ref: string
-  ) {
-    const { gitHubRepository } = repository
-    const { owner, name } = gitHubRepository
+  private async getChecksForRef(repository: GitHubRepository, ref: string) {
+    const { owner, name } = repository
 
-    const api = await this.getAPIForRepository(gitHubRepository)
+    const api = await this.getAPIForRepository(repository)
 
     if (api === null) {
       return null
     }
 
+    // Hit these API endpoints reloading the cache to make sure we have the
+    // latest data at the time the notification is received.
     const [statuses, checkRuns] = await Promise.all([
-      api.fetchCombinedRefStatus(owner.login, name, ref),
-      api.fetchRefCheckRuns(owner.login, name, ref),
+      api.fetchCombinedRefStatus(owner.login, name, ref, true),
+      api.fetchRefCheckRuns(owner.login, name, ref, true),
     ])
 
     const checks = new Array<IRefCheck>()
