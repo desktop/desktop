@@ -147,16 +147,17 @@ export class NotificationsStore {
       return
     }
 
-    const { gitHubRepository } = repository
-    const api = await this.getAPIForRepository(gitHubRepository)
+    // PR reviews must be retrieved from the repository the PR belongs to
+    const pullsRepository = this.getContributingRepository(repository)
+    const api = await this.getAPIForRepository(pullsRepository)
 
     if (api === null) {
       return
     }
 
     const review = await api.fetchPullRequestReview(
-      gitHubRepository.owner.login,
-      gitHubRepository.name,
+      pullsRepository.owner.login,
+      pullsRepository.name,
       pullRequest.pullRequestNumber.toString(),
       event.review_id
     )
@@ -260,15 +261,8 @@ export class NotificationsStore {
       return
     }
 
-    const isForkContributingToParent =
-      isRepositoryWithForkedGitHubRepository(repository) &&
-      repository.workflowPreferences.forkContributionTarget ===
-        ForkContributionTarget.Parent
-
     // Checks must be retrieved from the repository the PR belongs to
-    const checksRepository = isForkContributingToParent
-      ? repository.gitHubRepository.parent
-      : repository.gitHubRepository
+    const checksRepository = this.getContributingRepository(repository)
 
     const checks = await this.getChecksForRef(
       checksRepository,
@@ -328,6 +322,19 @@ export class NotificationsStore {
     })
 
     this.statsStore.recordChecksFailedNotificationShown()
+  }
+
+  private getContributingRepository(
+    repository: RepositoryWithGitHubRepository
+  ) {
+    const isForkContributingToParent =
+      isRepositoryWithForkedGitHubRepository(repository) &&
+      repository.workflowPreferences.forkContributionTarget ===
+        ForkContributionTarget.Parent
+
+    return isForkContributingToParent
+      ? repository.gitHubRepository.parent
+      : repository.gitHubRepository
   }
 
   private isValidRepositoryForEvent(
