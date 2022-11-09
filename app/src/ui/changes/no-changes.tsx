@@ -27,6 +27,7 @@ import {
   IDropdownSuggestedActionOption,
 } from '../suggested-actions/dropdown-suggested-action'
 import { PullRequestSuggestedNextAction } from '../../models/pull-request'
+import { enableStartingPullRequests } from '../../lib/feature-flag'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -653,48 +654,78 @@ export class NoChanges extends React.Component<
 
   private renderCreatePullRequestAction(tip: IValidBranch) {
     const createMenuItem = this.getMenuItemInfo('create-pull-request')
-    const startMenuItem = this.getMenuItemInfo('start-pull-request')
-    if (createMenuItem === undefined || startMenuItem === undefined) {
-      log.error(
-        `Could not find matching menu item for 'create-pull-request' or 'start-pull-request'`
-      )
+    if (createMenuItem === undefined) {
+      log.error(`Could not find matching menu item for 'create-pull-request'`)
       return null
     }
 
+    const description = (
+      <>
+        The current branch (<Ref>{tip.branch.name}</Ref>) is already published
+        to GitHub. Create a pull request to propose and collaborate on your
+        changes.
+      </>
+    )
+
+    const title = `Create a Pull Request from your current branch`
+    const buttonText = `Create Pull Request`
+
+    if (!enableStartingPullRequests()) {
+      return (
+        <MenuBackedSuggestedAction
+          key="create-pr-action"
+          title={title}
+          menuItemId={'create-pull-request'}
+          description={description}
+          buttonText={buttonText}
+          discoverabilityContent={this.renderDiscoverabilityElements(
+            createMenuItem
+          )}
+          type="primary"
+          disabled={!createMenuItem.enabled}
+          onClick={this.onCreatePullRequestClicked}
+        />
+      )
+    }
+
+    const startMenuItem = this.getMenuItemInfo('start-pull-request')
+
+    if (startMenuItem === undefined) {
+      log.error(`Could not find matching menu item for 'start-pull-request'`)
+      return null
+    }
+
+    const createPullRequestAction: IDropdownSuggestedActionOption = {
+      title,
+      label: buttonText,
+      description,
+      value: PullRequestSuggestedNextAction.CreatePullRequest,
+      menuItemId: 'create-pull-request',
+      discoverabilityContent:
+        this.renderDiscoverabilityElements(createMenuItem),
+      disabled: !createMenuItem.enabled,
+      onClick: this.onCreatePullRequestClicked,
+    }
+
+    const previewPullRequestAction: IDropdownSuggestedActionOption = {
+      title: `Preview the Pull Request from your current branch`,
+      label: 'Preview Pull Request',
+      description: (
+        <>
+          The current branch (<Ref>{tip.branch.name}</Ref>) is already published
+          to GitHub. Preview the changes this pull request will have before
+          proposing your changes.
+        </>
+      ),
+      value: PullRequestSuggestedNextAction.PreviewPullRequest,
+      menuItemId: 'start-pull-request',
+      discoverabilityContent: this.renderDiscoverabilityElements(startMenuItem),
+      disabled: !createMenuItem.enabled,
+    }
+
     const pullRequestActions: ReadonlyArray<IDropdownSuggestedActionOption> = [
-      {
-        title: `Preview the Pull Request from your current branch`,
-        label: 'Preview Pull Request',
-        description: (
-          <>
-            The current branch (<Ref>{tip.branch.name}</Ref>) is already
-            published to GitHub. Preview the changes this pull request will have
-            before proposing your changes.
-          </>
-        ),
-        value: PullRequestSuggestedNextAction.PreviewPullRequest,
-        menuItemId: 'start-pull-request',
-        discoverabilityContent:
-          this.renderDiscoverabilityElements(startMenuItem),
-        disabled: !createMenuItem.enabled,
-      },
-      {
-        title: `Create a Pull Request from your current branch`,
-        label: 'Create Pull Request',
-        description: (
-          <>
-            The current branch (<Ref>{tip.branch.name}</Ref>) is already
-            published to GitHub. Create a pull request to propose and
-            collaborate on your changes.
-          </>
-        ),
-        value: PullRequestSuggestedNextAction.CreatePullRequest,
-        menuItemId: 'create-pull-request',
-        discoverabilityContent:
-          this.renderDiscoverabilityElements(createMenuItem),
-        disabled: !createMenuItem.enabled,
-        onClick: this.onCreatePullRequestClicked,
-      },
+      previewPullRequestAction,
+      createPullRequestAction as IDropdownSuggestedActionOption,
     ]
 
     return (
