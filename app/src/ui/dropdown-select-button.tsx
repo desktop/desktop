@@ -199,23 +199,25 @@ export class DropdownSelectButton extends React.Component<
     // method.
     return (
       <div className={containerClasses}>
-        <Button
-          className="invoke-button"
-          disabled={disabled}
-          type="submit"
-          tooltip={this.props.tooltip}
-          onButtonRef={this.onInvokeButtonRef}
-          onClick={this.onSubmit}
-        >
-          {selectedOption.label}
-        </Button>
-        <Button
-          className={dropdownClasses}
-          onClick={this.openSplitButtonDropdown}
-          type="button"
-        >
-          <Octicon symbol={OcticonSymbol.triangleDown} />
-        </Button>
+        <div className="dropdown-button-wrappers">
+          <Button
+            className="invoke-button"
+            disabled={disabled}
+            type="submit"
+            tooltip={this.props.tooltip}
+            onButtonRef={this.onInvokeButtonRef}
+            onClick={this.onSubmit}
+          >
+            {selectedOption.label}
+          </Button>
+          <Button
+            className={dropdownClasses}
+            onClick={this.openSplitButtonDropdown}
+            type="button"
+          >
+            <Octicon symbol={OcticonSymbol.triangleDown} />
+          </Button>
+        </div>
         {this.renderSplitButtonOptions()}
       </div>
     )

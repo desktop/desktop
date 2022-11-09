@@ -699,7 +699,8 @@ export class NoChanges extends React.Component<
 
     return (
       <DropdownSuggestedAction
-        key="create-pr-action"
+        key="pull-request-action"
+        className="pull-request-action"
         suggestedActions={pullRequestActions}
         selectedActionValue={this.props.pullRequestSuggestedNextAction}
         onSuggestedActionChanged={this.onPullRequestSuggestedActionChanged}

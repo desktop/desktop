@@ -6,6 +6,7 @@ import {
 import { MenuIDs } from '../../models/menu-ids'
 import { executeMenuItemById } from '../main-process-proxy'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
+import classNames from 'classnames'
 
 export interface IDropdownSuggestedActionOption
   extends IDropdownSelectButtonOption {
@@ -59,6 +60,12 @@ export interface IDropdownSuggestedActionProps {
   readonly selectedActionValue?: string | undefined
 
   readonly onSuggestedActionChanged: (action: string) => void
+
+  /**
+   * An optional additional class name to set in order to be able to apply
+   * specific styles to the dropdown suggested next action
+   */
+  readonly className?: string
 }
 
 interface IDropdownSuggestedActionState {
@@ -129,9 +136,14 @@ export class DropdownSuggestedAction extends React.Component<
       title,
     } = selectedAction
 
+    const className = classNames(
+      'suggested-action',
+      'primary',
+      this.props.className
+    )
 
     return (
-      <div className="suggested-action primary">
+      <div className={className}>
         {image && <div className="image-wrapper">{image}</div>}
         <div className="text-wrapper">
           <h2>{title}</h2>
