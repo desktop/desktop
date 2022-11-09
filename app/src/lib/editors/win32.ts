@@ -214,7 +214,7 @@ const editors: WindowsExternalEditor[] = [
       // 32-bit version of VSCodium (system)
       Wow64LocalMachineUninstallKey(
         '{763CBF88-25C6-4B10-952F-326AE657F16B}_is1'
-        ),
+      ),
       // ARM64 version of VSCodium (system)
       LocalMachineUninstallKey('{67DEE444-3D04-4258-B92A-BC1F0FF2CAE4}_is1'),
     ],
