@@ -668,8 +668,8 @@ export class NoChanges extends React.Component<
         description: (
           <>
             The current branch (<Ref>{tip.branch.name}</Ref>) is already
-            published to GitHub. Create a pull request to propose and
-            collaborate on your changes.
+            published to GitHub. Preview the changes this pull request will have
+            before proposing your changes.
           </>
         ),
         value: PullRequestSuggestedNextAction.PreviewPullRequest,
@@ -684,8 +684,8 @@ export class NoChanges extends React.Component<
         description: (
           <>
             The current branch (<Ref>{tip.branch.name}</Ref>) is already
-            published to GitHub. Preview the changes this pull request will
-            have.
+            published to GitHub. Create a pull request to propose and
+            collaborate on your changes.
           </>
         ),
         value: PullRequestSuggestedNextAction.CreatePullRequest,

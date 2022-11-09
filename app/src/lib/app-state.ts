@@ -315,7 +315,7 @@ export interface IAppState {
    */
   readonly notificationsEnabled: boolean
 
-  /** The users last chosen of pull request suggested next action. */
+  /** The users last chosen pull request suggested next action. */
   readonly pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined
