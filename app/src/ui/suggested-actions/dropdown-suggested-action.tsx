@@ -102,7 +102,7 @@ export class DropdownSuggestedAction extends React.Component<
         {image && <div className="image-wrapper">{image}</div>}
         <div className="text-wrapper">
           <h2>{title}</h2>
-          {description ?? <p className="description">{description}</p>}
+          {description && <p className="description">{description}</p>}
           {discoverabilityContent && (
             <p className="discoverability">{discoverabilityContent}</p>
           )}
