@@ -12,7 +12,7 @@ export interface IDropdownSelectButtonOption {
   readonly description?: string | JSX.Element
 
   /** The select option's value */
-  readonly value?: string
+  readonly value: string
 }
 
 interface IDropdownSelectButtonProps {

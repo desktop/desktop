@@ -26,6 +26,7 @@ import {
   DropdownSuggestedAction,
   IDropdownSuggestedActionOption,
 } from '../suggested-actions/dropdown-suggested-action'
+import { PullRequestSuggestedNextAction } from '../../models/pull-request'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -75,6 +76,9 @@ interface INoChangesProps {
    * opening the repository in an external editor.
    */
   readonly isExternalEditorAvailable: boolean
+
+  /** The user's preference of pull request suggested next action to use **/
+  readonly pullRequestSuggestedNextAction?: PullRequestSuggestedNextAction
 }
 
 /**
@@ -641,6 +645,12 @@ export class NoChanges extends React.Component<
     )
   }
 
+  private onPullRequestSuggestedActionChanged = (action: string) => {
+    this.props.dispatcher.setPullRequestSuggestedNextAction(
+      action as PullRequestSuggestedNextAction
+    )
+  }
+
   private renderCreatePullRequestAction(tip: IValidBranch) {
     const createMenuItem = this.getMenuItemInfo('create-pull-request')
     const startMenuItem = this.getMenuItemInfo('start-pull-request')
@@ -662,7 +672,7 @@ export class NoChanges extends React.Component<
             collaborate on your changes.
           </>
         ),
-        value: 'PreviewPullRequest',
+        value: PullRequestSuggestedNextAction.PreviewPullRequest,
         menuItemId: 'start-pull-request',
         discoverabilityContent:
           this.renderDiscoverabilityElements(startMenuItem),
@@ -678,7 +688,7 @@ export class NoChanges extends React.Component<
             have.
           </>
         ),
-        value: 'CreatePullRequest',
+        value: PullRequestSuggestedNextAction.CreatePullRequest,
         menuItemId: 'create-pull-request',
         discoverabilityContent:
           this.renderDiscoverabilityElements(createMenuItem),
@@ -691,6 +701,8 @@ export class NoChanges extends React.Component<
       <DropdownSuggestedAction
         key="create-pr-action"
         suggestedActions={pullRequestActions}
+        selectedActionValue={this.props.pullRequestSuggestedNextAction}
+        onSuggestedActionChanged={this.onPullRequestSuggestedActionChanged}
       />
     )
   }

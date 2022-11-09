@@ -32,6 +32,7 @@ import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
 import { clamp } from '../lib/clamp'
+import { PullRequestSuggestedNextAction } from '../models/pull-request'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -92,6 +93,9 @@ interface IRepositoryViewProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
+
+  /** The user's preference of pull request suggested next action to use **/
+  readonly pullRequestSuggestedNextAction?: PullRequestSuggestedNextAction
 }
 
 interface IRepositoryViewState {
@@ -465,6 +469,9 @@ export class RepositoryView extends React.Component<
               this.props.externalEditorLabel !== undefined
             }
             dispatcher={this.props.dispatcher}
+            pullRequestSuggestedNextAction={
+              this.props.pullRequestSuggestedNextAction
+            }
           />
         )
       }

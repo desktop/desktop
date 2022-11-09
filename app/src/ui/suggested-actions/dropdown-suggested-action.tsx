@@ -5,6 +5,7 @@ import {
 } from '../dropdown-select-button'
 import { MenuIDs } from '../../models/menu-ids'
 import { executeMenuItemById } from '../main-process-proxy'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 export interface IDropdownSuggestedActionOption
   extends IDropdownSelectButtonOption {
@@ -48,7 +49,16 @@ export interface IDropdownSuggestedActionOption
 }
 
 export interface IDropdownSuggestedActionProps {
+  /** The possible suggested next actions to select from
+   *
+   * This component assumes this is not an empty array.
+   */
   readonly suggestedActions: ReadonlyArray<IDropdownSuggestedActionOption>
+
+  /** The value of the selected next action to initialize the component with */
+  readonly selectedActionValue?: string | undefined
+
+  readonly onSuggestedActionChanged: (action: string) => void
 }
 
 interface IDropdownSuggestedActionState {
@@ -62,8 +72,16 @@ export class DropdownSuggestedAction extends React.Component<
   public constructor(props: IDropdownSuggestedActionProps) {
     super(props)
 
+    const { selectedActionValue, suggestedActions } = props
+    const firstAction = suggestedActions[0]
+    const selectedAction =
+      selectedActionValue !== undefined
+        ? suggestedActions.find(
+            a => a.value === this.props.selectedActionValue
+          ) ?? firstAction
+        : firstAction
     this.state = {
-      selectedAction: this.props.suggestedActions[0],
+      selectedAction,
     }
   }
 
@@ -71,11 +89,13 @@ export class DropdownSuggestedAction extends React.Component<
     const selectedAction = this.props.suggestedActions.find(
       a => a.value === option.value
     )
+
     if (selectedAction === undefined) {
       return
     }
 
     this.setState({ selectedAction })
+    this.props.onSuggestedActionChanged(selectedAction.value)
   }
 
   private onActionSubmitted = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -88,6 +108,18 @@ export class DropdownSuggestedAction extends React.Component<
   }
 
   public render() {
+    const { selectedAction } = this.state
+    if (selectedAction === undefined) {
+      // Shouldn't happen .. but if it did we don't want to crash app and tell dev what is up
+      sendNonFatalException(
+        'NoSuggestedActionsProvided',
+        new Error(
+          'The DropdownSuggestedActions component was provided an empty array. It requires an array of at least one item.'
+        )
+      )
+      return null
+    }
+
     const {
       description,
       image,
@@ -95,7 +127,8 @@ export class DropdownSuggestedAction extends React.Component<
       disabled,
       value,
       title,
-    } = this.state.selectedAction
+    } = selectedAction
+
 
     return (
       <div className="suggested-action primary">
