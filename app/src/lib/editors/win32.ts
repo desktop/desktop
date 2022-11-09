@@ -206,17 +206,17 @@ const editors: WindowsExternalEditor[] = [
       // 64-bit version of VSCodium (user)
       CurrentUserUninstallKey('{2E1F05D1-C245-4562-81EE-28188DB6FD17}_is1'),
       // 32-bit version of VSCodium (user)
-      CurrentUserUninstallKey('{C6065F05-9603-4FC4-8101-B9781A25D88E}}_is1'),
+      CurrentUserUninstallKey('{0FD05EB4-651E-4E78-A062-515204B47A3A}}_is1'),
       // ARM64 version of VSCodium (user)
-      CurrentUserUninstallKey('{3AEBF0C8-F733-4AD4-BADE-FDB816D53D7B}_is1'),
+      CurrentUserUninstallKey('{57FD70A5-1B8D-4875-9F40-C5553F094828}_is1'),
       // 64-bit version of VSCodium (system)
-      LocalMachineUninstallKey('{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}_is1'),
+      LocalMachineUninstallKey('{88DA3577-054F-4CA1-8122-7D820494CFFB}_is1'),
       // 32-bit version of VSCodium (system)
       Wow64LocalMachineUninstallKey(
-        '{E34003BB-9E10-4501-8C11-BE3FAA83F23F}_is1'
+        '{763CBF88-25C6-4B10-952F-326AE657F16B}_is1'
       ),
       // ARM64 version of VSCodium (system)
-      LocalMachineUninstallKey('{D1ACE434-89C5-48D1-88D3-E2991DF85475}_is1'),
+      LocalMachineUninstallKey('{67DEE444-3D04-4258-B92A-BC1F0FF2CAE4}_is1'),
     ],
     executableShimPaths: [['bin', 'codium.cmd']],
     displayNamePrefix: 'VSCodium',
