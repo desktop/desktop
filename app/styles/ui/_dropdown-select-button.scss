@@ -1,5 +1,6 @@
 .dropdown-select-button {
   position: relative;
+  display: flex;
 
   &.open-bottom {
     .invoke-button {
@@ -34,7 +35,6 @@
   }
 
   .invoke-button {
-    width: 88%;
     display: inline;
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
@@ -43,10 +43,11 @@
     height: 30px;
     // counter balances center for the 12% dropdown button
     padding-left: 12% !important;
+    flex-grow: 1;
   }
 
   .dropdown-button {
-    width: 12%;
+    min-width: 30px;
     padding: var(--spacing-half);
     margin: 0;
     border-bottom-left-radius: 0;
