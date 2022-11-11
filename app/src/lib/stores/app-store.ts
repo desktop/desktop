@@ -168,7 +168,7 @@ import {
   getCommitRangeChangedFiles,
   updateRemoteHEAD,
   getBranchMergeBaseChangedFiles,
-  getBranchMergeBaseDiff,
+  getBranchMergeBaseDiff, GitTaskCancelResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -5697,6 +5697,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return addedRepositories
+  }
+
+  public async _cancelCloningRepository(
+      repository:  CloningRepository,
+  ): Promise<GitTaskCancelResult>{
+    return this.cloningRepositoriesStore.cancelClone(repository)
   }
 
   public async _removeRepository(

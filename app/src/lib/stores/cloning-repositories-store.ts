@@ -3,7 +3,7 @@ import { ICloneProgress } from '../../models/progress'
 import { CloneOptions } from '../../models/clone-options'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 
-import { clone as cloneRepo } from '../git'
+import {clone as cloneRepo, GitTaskCancelResult, IGitTask} from '../git'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { BaseStore } from './base-store'
 
@@ -11,6 +11,7 @@ import { BaseStore } from './base-store'
 export class CloningRepositoriesStore extends BaseStore {
   private readonly _repositories = new Array<CloningRepository>()
   private readonly stateByID = new Map<number, ICloneProgress>()
+  private readonly taskById = new Map<number, IGitTask>()
 
   /**
    * Clone the repository at the URL to the path.
@@ -32,10 +33,18 @@ export class CloningRepositoriesStore extends BaseStore {
 
     let success = true
     try {
-      await cloneRepo(url, path, options, progress => {
+      console.log("meaw","here-1")
+      const {task} = await cloneRepo(url, path, options, progress => {
         this.stateByID.set(repository.id, progress)
         this.emitUpdate()
       })
+      console.log("meaw","here-2")
+      console.log(this.taskById)
+      console.log("meaw","here-3")
+      this.taskById.set(repository.id, task)
+      console.log("meaw","here-4")
+      console.log(this.taskById)
+      console.log("meaw","here-5")
     } catch (e) {
       success = false
 
@@ -78,5 +87,20 @@ export class CloningRepositoriesStore extends BaseStore {
     }
 
     this.emitUpdate()
+  }
+
+  public async cancelClone(repository: CloningRepository): Promise<GitTaskCancelResult>{
+    console.log("xyz-real-cancel: line 86");
+    console.log('xyz-repository.id:',repository.id)
+    console.log(this.taskById)
+    const task  = this.taskById.get(repository.id)
+    console.log('xyz-task is :',task===undefined)
+    console.log('xyz-task is :',task)
+    if(!task){
+      console.log("xyz-rejecting here");
+      return Promise.reject();
+    }
+    console.log("xyz-before cancel")
+    return task.cancel()
   }
 }

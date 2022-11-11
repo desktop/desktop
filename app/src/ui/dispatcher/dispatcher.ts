@@ -203,6 +203,21 @@ export class Dispatcher {
     return this.appStore._removeRepository(repository, moveToTrash)
   }
 
+
+  /**
+   * todo: maifee: write some cool doc, that sends her on top of the world
+   */
+  public async cancelCloningRepository(
+      repository: CloningRepository,
+  ): Promise<void> {
+    console.log("here-pong")
+    console.warn("here-pong")
+    await this.appStore._cancelCloningRepository(repository);
+    console.log("esxithere-pong")
+    console.warn("esxithere-pong")
+    // await this.removeRepository(repository, true);
+  }
+
   /** Update the repository's `missing` flag. */
   public async updateRepositoryMissing(
     repository: Repository,
