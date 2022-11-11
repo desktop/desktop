@@ -2,7 +2,7 @@ import {
   git,
   IGitExecutionOptions,
   gitNetworkArguments,
-  IGitResult,
+  IGitResult, IGitTask,
 } from './core'
 import { ICloneProgress } from '../../models/progress'
 import { CloneOptions } from '../../models/clone-options'
@@ -34,7 +34,8 @@ export async function clone(
   url: string,
   path: string,
   options: CloneOptions,
-  progressCallback?: (progress: ICloneProgress) => void
+  progressCallback?: (progress: ICloneProgress) => void,
+  getTask?: (task:IGitTask) => void,
 ): Promise<IGitResult> {
   const env = await envForRemoteOperation(options.account, url)
 
@@ -78,5 +79,5 @@ export async function clone(
 
   args.push('--', url, path)
 
-  return git(args, __dirname, 'clone', opts)
+  return git(args, __dirname, 'clone', opts, getTask)
 }

@@ -138,7 +138,8 @@ export async function git(
   args: string[],
   path: string,
   name: string,
-  options?: IGitExecutionOptions
+  options?: IGitExecutionOptions,
+  getTask?: (task:IGitTask) => void,
 ): Promise<IGitResult> {
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
@@ -178,6 +179,9 @@ export async function git(
     const commandName = `${name}: git ${args.join(' ')}`
 
     const task = GitProcess.execTask(args, path, opts)
+    if (getTask) {
+      getTask(task)
+    }
 
     const result = await GitPerf.measure(
       commandName,

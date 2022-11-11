@@ -33,18 +33,12 @@ export class CloningRepositoriesStore extends BaseStore {
 
     let success = true
     try {
-      console.log("meaw","here-1")
-      const {task} = await cloneRepo(url, path, options, progress => {
+      await cloneRepo(url, path, options, progress => {
         this.stateByID.set(repository.id, progress)
         this.emitUpdate()
+      },(task)=>{
+        this.taskById.set(repository.id, task)
       })
-      console.log("meaw","here-2")
-      console.log(this.taskById)
-      console.log("meaw","here-3")
-      this.taskById.set(repository.id, task)
-      console.log("meaw","here-4")
-      console.log(this.taskById)
-      console.log("meaw","here-5")
     } catch (e) {
       success = false
 
@@ -90,17 +84,10 @@ export class CloningRepositoriesStore extends BaseStore {
   }
 
   public async cancelClone(repository: CloningRepository): Promise<GitTaskCancelResult>{
-    console.log("xyz-real-cancel: line 86");
-    console.log('xyz-repository.id:',repository.id)
-    console.log(this.taskById)
     const task  = this.taskById.get(repository.id)
-    console.log('xyz-task is :',task===undefined)
-    console.log('xyz-task is :',task)
     if(!task){
-      console.log("xyz-rejecting here");
       return Promise.reject();
     }
-    console.log("xyz-before cancel")
     return task.cancel()
   }
 }
