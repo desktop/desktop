@@ -268,6 +268,7 @@ function createSelectionBetween(
 export class List extends React.Component<IListProps, IListState> {
   private fakeScroll: HTMLDivElement | null = null
   private focusRow = -1
+  private blurredRow = -1 // used to restore focus after a virtualized list destroys then recreates a row
 
   /**
    * The style prop for our child Grid. We keep this here in order
@@ -804,12 +805,25 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onFocusedItemRef = (element: HTMLDivElement | null) => {
+  private onFocusedItemRef = (element: HTMLDivElement | null, rowIndex: number) => {
     if (this.props.focusOnHover !== false && element !== null) {
       element.focus()
     }
 
     this.focusRow = -1
+  }
+
+  private onRefocusedItemRef = (element: HTMLDivElement | null, rowIndex: number) => {
+    if (
+      rowIndex === this.blurredRow &&
+      element !== null &&
+      // check that nothing else has gained focus since the row was unintentionally blurred
+      document.activeElement?.tagName === 'BODY'
+    ) {
+      element.focus({preventScroll: true})
+    }
+
+    this.blurredRow = -1
   }
 
   private getCustomRowClassNames = (rowIndex: number) => {
@@ -837,6 +851,7 @@ export class List extends React.Component<IListProps, IListState> {
     const customClasses = this.getCustomRowClassNames(rowIndex)
 
     const focused = rowIndex === this.focusRow
+    const blurred = rowIndex === this.blurredRow
 
     // An unselectable row shouldn't be focusable
     let tabIndex: number | undefined = undefined
@@ -845,7 +860,9 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     // We only need to keep a reference to the focused element
-    const ref = focused ? this.onFocusedItemRef : undefined
+    let ref = focused ? this.onFocusedItemRef : undefined
+    // if the item was unintentionally blurred (scrolling a virtualized list), we need to refocus it
+    ref = blurred ? this.onRefocusedItemRef : ref
 
     const row = this.props.rowRenderer(rowIndex)
 
@@ -961,6 +978,18 @@ export class List extends React.Component<IListProps, IListState> {
     this.fakeScroll = ref
   }
 
+  private onFocusWithinChanged = (isFocusedWithin: boolean) => {
+    // if the list was blurred (likely due to the focussed item in
+    // the virtualized list being unmounted)
+    if (!isFocusedWithin && document.activeElement?.tagName === 'BODY') {
+      // the last row in the selectedRows array is the most likely the most recently focused row
+      // but really we could select any of them because of how the other events handle focus
+      const blurredRow = this.props.selectedRows[this.props.selectedRows.length - 1];
+      // we'll use this to restore focus when the row is re-rendered
+      this.blurredRow = blurredRow;
+    }
+  }
+
   /**
    * Renders the react-virtualized Grid component
    *
@@ -978,6 +1007,7 @@ export class List extends React.Component<IListProps, IListState> {
       <FocusContainer
         className="list-focus-container"
         onKeyDown={this.onFocusContainerKeyDown}
+        onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <Grid
           aria-label={''}

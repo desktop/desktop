@@ -24,7 +24,7 @@ interface IListRowProps {
   readonly selected?: boolean
 
   /** callback to fire when the DOM element is created */
-  readonly onRef?: (element: HTMLDivElement | null) => void
+  readonly onRef?: (element: HTMLDivElement | null, rowIndex: number) => void
 
   /** callback to fire when the row receives a mouseover event */
   readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
@@ -53,6 +53,10 @@ interface IListRowProps {
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
+  private onRef = (element: HTMLDivElement | null) => {
+    this.props.onRef?.(element, this.props.rowIndex);
+  }
+
   private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
     this.props.onRowMouseOver(this.props.rowIndex, e)
   }
@@ -102,7 +106,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         role={role}
         className={className}
         tabIndex={this.props.tabIndex}
-        ref={this.props.onRef}
+        ref={this.onRef}
         onMouseOver={this.onRowMouseOver}
         onMouseDown={this.onRowMouseDown}
         onMouseUp={this.onRowMouseUp}
