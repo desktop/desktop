@@ -3,7 +3,7 @@ import { ICloneProgress } from '../../models/progress'
 import { CloneOptions } from '../../models/clone-options'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 
-import {clone as cloneRepo, GitTaskCancelResult, IGitTask} from '../git'
+import { clone as cloneRepo, GitTaskCancelResult, IGitTask } from '../git'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { BaseStore } from './base-store'
 
@@ -33,12 +33,18 @@ export class CloningRepositoriesStore extends BaseStore {
 
     let success = true
     try {
-      await cloneRepo(url, path, options, progress => {
-        this.stateByID.set(repository.id, progress)
-        this.emitUpdate()
-      },(task)=>{
-        this.taskById.set(repository.id, task)
-      })
+      await cloneRepo(
+        url,
+        path,
+        options,
+        progress => {
+          this.stateByID.set(repository.id, progress)
+          this.emitUpdate()
+        },
+        task => {
+          this.taskById.set(repository.id, task)
+        }
+      )
     } catch (e) {
       success = false
 
@@ -83,10 +89,12 @@ export class CloningRepositoriesStore extends BaseStore {
     this.emitUpdate()
   }
 
-  public async cancelClone(repository: CloningRepository): Promise<GitTaskCancelResult>{
-    const task  = this.taskById.get(repository.id)
-    if(!task){
-      return Promise.reject();
+  public async cancelClone(
+    repository: CloningRepository
+  ): Promise<GitTaskCancelResult> {
+    const task = this.taskById.get(repository.id)
+    if (!task) {
+      return Promise.reject()
     }
     return task.cancel()
   }

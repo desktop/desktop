@@ -4,7 +4,7 @@ import {
   GitError as DugiteError,
   IGitExecutionOptions as DugiteExecutionOptions,
   IGitTask as DugiteTask,
-  GitTaskCancelResult as DugiteTaskCancelResult
+  GitTaskCancelResult as DugiteTaskCancelResult,
 } from 'dugite'
 
 import { assertNever } from '../fatal-error'
@@ -75,7 +75,6 @@ export interface IGitResult extends DugiteResult {
   readonly task: IGitTask
 }
 
-
 export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
@@ -139,7 +138,7 @@ export async function git(
   path: string,
   name: string,
   options?: IGitExecutionOptions,
-  getTask?: (task:IGitTask) => void,
+  getTask?: (task: IGitTask) => void
 ): Promise<IGitResult> {
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
