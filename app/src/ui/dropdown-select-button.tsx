@@ -89,6 +89,56 @@ export class DropdownSelectButton extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    window.addEventListener('keydown', this.onKeyDown)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('keydown', this.onKeyDown)
+  }
+
+  private onKeyDown = (event: KeyboardEvent) => {
+    const { key } = event
+    if (
+      !this.state.showButtonOptions ||
+      !['ArrowUp', 'ArrowDown'].includes(key)
+    ) {
+      return
+    }
+
+    const buttons = this.optionsContainerRef?.querySelectorAll(
+      '.dropdown-select-button-options .button-component'
+    )
+
+    if (buttons === undefined) {
+      return
+    }
+
+    const foundCurrentIndex = [...buttons].findIndex(b =>
+      b.className.includes('focus')
+    )
+
+    let focusedOptionIndex = -1
+    if (foundCurrentIndex !== -1) {
+      if (key === 'ArrowUp') {
+        focusedOptionIndex =
+          foundCurrentIndex !== 0
+            ? foundCurrentIndex - 1
+            : this.props.options.length - 1
+      } else {
+        focusedOptionIndex =
+          foundCurrentIndex !== this.props.options.length - 1
+            ? foundCurrentIndex + 1
+            : 0
+      }
+    } else {
+      focusedOptionIndex = key === 'ArrowUp' ? this.props.options.length - 1 : 0
+    }
+
+    const button = buttons?.item(focusedOptionIndex) as HTMLButtonElement
+    button?.focus()
+  }
+
   private getSelectedOption(
     selectedValue: string | undefined
   ): IDropdownSelectButtonOption | null {
