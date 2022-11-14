@@ -54,7 +54,7 @@ interface IListRowProps {
 
 export class ListRow extends React.Component<IListRowProps, {}> {
   private onRef = (element: HTMLDivElement | null) => {
-    this.props.onRef?.(element, this.props.rowIndex);
+    this.props.onRef?.(element, this.props.rowIndex)
   }
 
   private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {

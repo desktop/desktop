@@ -805,7 +805,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onFocusedItemRef = (element: HTMLDivElement | null, rowIndex: number) => {
+  private onFocusedItemRef = (
+    element: HTMLDivElement | null,
+    rowIndex: number
+  ) => {
     if (this.props.focusOnHover !== false && element !== null) {
       element.focus()
     }
@@ -813,14 +816,17 @@ export class List extends React.Component<IListProps, IListState> {
     this.focusRow = -1
   }
 
-  private onRefocusedItemRef = (element: HTMLDivElement | null, rowIndex: number) => {
+  private onRefocusedItemRef = (
+    element: HTMLDivElement | null,
+    rowIndex: number
+  ) => {
     if (
       rowIndex === this.blurredRow &&
       element !== null &&
       // check that nothing else has gained focus since the row was unintentionally blurred
       document.activeElement?.tagName === 'BODY'
     ) {
-      element.focus({preventScroll: true})
+      element.focus({ preventScroll: true })
     }
 
     this.blurredRow = -1
@@ -984,9 +990,10 @@ export class List extends React.Component<IListProps, IListState> {
     if (!isFocusedWithin && document.activeElement?.tagName === 'BODY') {
       // the last row in the selectedRows array is the most likely the most recently focused row
       // but really we could select any of them because of how the other events handle focus
-      const blurredRow = this.props.selectedRows[this.props.selectedRows.length - 1];
+      const blurredRow =
+        this.props.selectedRows[this.props.selectedRows.length - 1]
       // we'll use this to restore focus when the row is re-rendered
-      this.blurredRow = blurredRow;
+      this.blurredRow = blurredRow
     }
   }
 
