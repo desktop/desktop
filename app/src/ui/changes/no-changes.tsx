@@ -646,10 +646,10 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private onPullRequestSuggestedActionChanged = (action: string) => {
-    this.props.dispatcher.setPullRequestSuggestedNextAction(
-      action as PullRequestSuggestedNextAction
-    )
+  private onPullRequestSuggestedActionChanged = (
+    action: PullRequestSuggestedNextAction
+  ) => {
+    this.props.dispatcher.setPullRequestSuggestedNextAction(action)
   }
 
   private renderCreatePullRequestAction(tip: IValidBranch) {
@@ -725,11 +725,11 @@ export class NoChanges extends React.Component<
 
     const pullRequestActions: ReadonlyArray<IDropdownSuggestedActionOption> = [
       previewPullRequestAction,
-      createPullRequestAction as IDropdownSuggestedActionOption,
+      createPullRequestAction,
     ]
 
     return (
-      <DropdownSuggestedAction
+      <DropdownSuggestedAction<PullRequestSuggestedNextAction>
         key="pull-request-action"
         className="pull-request-action"
         suggestedActions={pullRequestActions}

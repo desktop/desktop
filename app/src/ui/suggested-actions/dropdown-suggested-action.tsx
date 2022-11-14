@@ -49,7 +49,7 @@ export interface IDropdownSuggestedActionOption
   readonly menuItemId?: MenuIDs
 }
 
-export interface IDropdownSuggestedActionProps {
+export interface IDropdownSuggestedActionProps<T extends string> {
   /** The possible suggested next actions to select from
    *
    * This component assumes this is not an empty array.
@@ -57,9 +57,9 @@ export interface IDropdownSuggestedActionProps {
   readonly suggestedActions: ReadonlyArray<IDropdownSuggestedActionOption>
 
   /** The value of the selected next action to initialize the component with */
-  readonly selectedActionValue?: string | undefined
+  readonly selectedActionValue?: T
 
-  readonly onSuggestedActionChanged: (action: string) => void
+  readonly onSuggestedActionChanged: (action: T) => void
 
   /**
    * An optional additional class name to set in order to be able to apply
@@ -72,11 +72,11 @@ interface IDropdownSuggestedActionState {
   readonly selectedAction: IDropdownSuggestedActionOption
 }
 
-export class DropdownSuggestedAction extends React.Component<
-  IDropdownSuggestedActionProps,
+export class DropdownSuggestedAction<T extends string> extends React.Component<
+  IDropdownSuggestedActionProps<T>,
   IDropdownSuggestedActionState
 > {
-  public constructor(props: IDropdownSuggestedActionProps) {
+  public constructor(props: IDropdownSuggestedActionProps<T>) {
     super(props)
 
     const { selectedActionValue, suggestedActions } = props
