@@ -695,38 +695,40 @@ export class NoChanges extends React.Component<
       return null
     }
 
-    const createPullRequestAction: IDropdownSuggestedActionOption = {
-      title,
-      label: buttonText,
-      description,
-      value: PullRequestSuggestedNextAction.CreatePullRequest,
-      menuItemId: 'create-pull-request',
-      discoverabilityContent:
-        this.renderDiscoverabilityElements(createMenuItem),
-      disabled: !createMenuItem.enabled,
-      onClick: this.onCreatePullRequestClicked,
-    }
+    const createPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
+      {
+        title,
+        label: buttonText,
+        description,
+        value: PullRequestSuggestedNextAction.CreatePullRequest,
+        menuItemId: 'create-pull-request',
+        discoverabilityContent:
+          this.renderDiscoverabilityElements(createMenuItem),
+        disabled: !createMenuItem.enabled,
+        onClick: this.onCreatePullRequestClicked,
+      }
 
-    const previewPullRequestAction: IDropdownSuggestedActionOption = {
-      title: `Preview the Pull Request from your current branch`,
-      label: 'Preview Pull Request',
-      description: (
-        <>
-          The current branch (<Ref>{tip.branch.name}</Ref>) is already published
-          to GitHub. Preview the changes this pull request will have before
-          proposing your changes.
-        </>
-      ),
-      value: PullRequestSuggestedNextAction.PreviewPullRequest,
-      menuItemId: 'start-pull-request',
-      discoverabilityContent: this.renderDiscoverabilityElements(startMenuItem),
-      disabled: !createMenuItem.enabled,
-    }
+    const previewPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
+      {
+        title: `Preview the Pull Request from your current branch`,
+        label: 'Preview Pull Request',
+        description: (
+          <>
+            The current branch (<Ref>{tip.branch.name}</Ref>) is already
+            published to GitHub. Preview the changes this pull request will have
+            before proposing your changes.
+          </>
+        ),
+        value: PullRequestSuggestedNextAction.PreviewPullRequest,
+        menuItemId: 'start-pull-request',
+        discoverabilityContent:
+          this.renderDiscoverabilityElements(startMenuItem),
+        disabled: !createMenuItem.enabled,
+      }
 
-    const pullRequestActions: ReadonlyArray<IDropdownSuggestedActionOption> = [
-      previewPullRequestAction,
-      createPullRequestAction,
-    ]
+    const pullRequestActions: ReadonlyArray<
+      IDropdownSuggestedActionOption<PullRequestSuggestedNextAction>
+    > = [previewPullRequestAction, createPullRequestAction]
 
     return (
       <DropdownSuggestedAction<PullRequestSuggestedNextAction>

@@ -8,8 +8,8 @@ import { executeMenuItemById } from '../main-process-proxy'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import classNames from 'classnames'
 
-export interface IDropdownSuggestedActionOption
-  extends IDropdownSelectButtonOption {
+export interface IDropdownSuggestedActionOption<T extends string = string>
+  extends IDropdownSelectButtonOption<T> {
   /**
    * The title, or "header" text for a suggested
    * action.
@@ -49,12 +49,12 @@ export interface IDropdownSuggestedActionOption
   readonly menuItemId?: MenuIDs
 }
 
-export interface IDropdownSuggestedActionProps<T extends string> {
+export interface IDropdownSuggestedActionProps<T extends string = string> {
   /** The possible suggested next actions to select from
    *
    * This component assumes this is not an empty array.
    */
-  readonly suggestedActions: ReadonlyArray<IDropdownSuggestedActionOption>
+  readonly suggestedActions: ReadonlyArray<IDropdownSuggestedActionOption<T>>
 
   /** The value of the selected next action to initialize the component with */
   readonly selectedActionValue?: T
@@ -68,13 +68,15 @@ export interface IDropdownSuggestedActionProps<T extends string> {
   readonly className?: string
 }
 
-interface IDropdownSuggestedActionState {
-  readonly selectedAction: IDropdownSuggestedActionOption
+interface IDropdownSuggestedActionState<T extends string = string> {
+  readonly selectedAction: IDropdownSuggestedActionOption<T>
 }
 
-export class DropdownSuggestedAction<T extends string> extends React.Component<
+export class DropdownSuggestedAction<
+  T extends string = string
+> extends React.Component<
   IDropdownSuggestedActionProps<T>,
-  IDropdownSuggestedActionState
+  IDropdownSuggestedActionState<T>
 > {
   public constructor(props: IDropdownSuggestedActionProps<T>) {
     super(props)
@@ -92,7 +94,9 @@ export class DropdownSuggestedAction<T extends string> extends React.Component<
     }
   }
 
-  private onActionSelectionChange = (option: IDropdownSelectButtonOption) => {
+  private onActionSelectionChange = (
+    option: IDropdownSelectButtonOption<T>
+  ) => {
     const selectedAction = this.props.suggestedActions.find(
       a => a.value === option.value
     )
@@ -152,7 +156,7 @@ export class DropdownSuggestedAction<T extends string> extends React.Component<
             <p className="discoverability">{discoverabilityContent}</p>
           )}
         </div>
-        <DropdownSelectButton
+        <DropdownSelectButton<T>
           selectedValue={value}
           options={this.props.suggestedActions.map(({ label, value }) => ({
             label,
