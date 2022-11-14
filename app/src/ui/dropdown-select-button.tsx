@@ -99,6 +99,11 @@ export class DropdownSelectButton extends React.Component<
 
   private onKeyDown = (event: KeyboardEvent) => {
     const { key } = event
+    if (this.state.showButtonOptions && key === 'Escape') {
+      this.setState({ showButtonOptions: false })
+      return
+    }
+
     if (
       !this.state.showButtonOptions ||
       !['ArrowUp', 'ArrowDown'].includes(key)
