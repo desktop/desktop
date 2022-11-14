@@ -105,7 +105,7 @@ export class DropdownSelectButton extends React.Component<
   }
 
   private onSelectionChange = (selectedOption: IDropdownSelectButtonOption) => {
-    return (_event: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
+    return (_event?: React.MouseEvent<HTMLElement, MouseEvent>) => {
       this.setState({ selectedOption, showButtonOptions: false })
 
       const { onSelectChange } = this.props
@@ -141,6 +141,16 @@ export class DropdownSelectButton extends React.Component<
     )
   }
 
+  private renderOption = (o: IDropdownSelectButtonOption, i: number) => {
+    return (
+      <Button key={o.value} onClick={this.onSelectionChange(o)}>
+        {this.renderSelectedIcon(o)}
+        <div className="option-title">{o.label}</div>
+        <div className="option-description">{o.description}</div>
+      </Button>
+    )
+  }
+
   private renderSplitButtonOptions() {
     if (!this.state.showButtonOptions) {
       return
@@ -150,22 +160,14 @@ export class DropdownSelectButton extends React.Component<
     const { optionsPositionBottom: bottom } = this.state
     const openClass = bottom !== undefined ? 'open-top' : 'open-bottom'
     const classes = classNames('dropdown-select-button-options', openClass)
+
     return (
       <div
         className={classes}
         style={{ bottom }}
         ref={this.onOptionsContainerRef}
       >
-        <ul>
-          {options.map(o => (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
-            <li key={o.value} onClick={this.onSelectionChange(o)}>
-              {this.renderSelectedIcon(o)}
-              <div className="option-title">{o.label}</div>
-              <div className="option-description">{o.description}</div>
-            </li>
-          ))}
-        </ul>
+        {options.map((o, i) => this.renderOption(o, i))}
       </div>
     )
   }
