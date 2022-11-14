@@ -88,6 +88,10 @@
     padding: 0;
     margin: 0;
 
+    :first-child.button-component {
+      border-top: 1px solid var(--box-border-color);
+    }
+
     .button-component {
       padding: var(--spacing) var(--spacing-double);
       padding-left: var(--spacing-triple);
@@ -108,8 +112,12 @@
       &:hover,
       &:focus {
         outline: none;
-        color: var(--text-color);
-        background-color: var(--box-selected-background-color);
+        color: var(--box-selected-active-text-color);
+        background-color: var(--box-selected-active-background-color);
+
+        .option-description {
+          color: var(--box-selected-active-text-color);
+        }
       }
 
       .option-description {
