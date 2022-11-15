@@ -24,7 +24,7 @@ function assertNext(current: IPageInfo, expected: IPageInfo) {
   expect(nextPath).not.toBeNull()
   const { pathname, query } = URL.parse(nextPath!, true)
 
-  expect(pathname).toBe('/items')
+  expect(pathname).toBe('/ites')
 
   const per_page = parseInt(
     typeof query.per_page === 'string' ? query.per_page : '',
