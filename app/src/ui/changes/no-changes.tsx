@@ -688,10 +688,10 @@ export class NoChanges extends React.Component<
       )
     }
 
-    const startMenuItem = this.getMenuItemInfo('start-pull-request')
+    const startMenuItem = this.getMenuItemInfo('preview-pull-request')
 
     if (startMenuItem === undefined) {
-      log.error(`Could not find matching menu item for 'start-pull-request'`)
+      log.error(`Could not find matching menu item for 'preview-pull-request'`)
       return null
     }
 
@@ -720,7 +720,7 @@ export class NoChanges extends React.Component<
           </>
         ),
         value: PullRequestSuggestedNextAction.PreviewPullRequest,
-        menuItemId: 'start-pull-request',
+        menuItemId: 'preview-pull-request',
         discoverabilityContent:
           this.renderDiscoverabilityElements(startMenuItem),
         disabled: !createMenuItem.enabled,
