@@ -7,7 +7,9 @@ import { RebasePreview } from '../../models/rebase'
 import { Repository } from '../../models/repository'
 import { IDropdownSelectButtonOption } from '../dropdown-select-button'
 
-export function getMergeOptions(): ReadonlyArray<IDropdownSelectButtonOption> {
+export function getMergeOptions(): ReadonlyArray<
+  IDropdownSelectButtonOption<MultiCommitOperationKind>
+> {
   return [
     {
       label: 'Create a merge commit',

@@ -4,7 +4,7 @@ import { Button } from './lib/button'
 import { Octicon } from './octicons'
 import * as OcticonSymbol from './octicons/octicons.generated'
 
-export interface IDropdownSelectButtonOption<T extends string = string> {
+export interface IDropdownSelectButtonOption<T extends string> {
   /** The select option header label. */
   readonly label?: string | JSX.Element
 
@@ -15,7 +15,7 @@ export interface IDropdownSelectButtonOption<T extends string = string> {
   readonly value: T
 }
 
-interface IDropdownSelectButtonProps<T extends string = string> {
+interface IDropdownSelectButtonProps<T extends string> {
   /** The selection button options */
   readonly options: ReadonlyArray<IDropdownSelectButtonOption<T>>
 
@@ -40,7 +40,7 @@ interface IDropdownSelectButtonProps<T extends string = string> {
   ) => void
 }
 
-interface IDropdownSelectButtonState<T extends string = string> {
+interface IDropdownSelectButtonState<T extends string> {
   /** Whether the options are rendered */
   readonly showButtonOptions: boolean
 
@@ -131,7 +131,7 @@ export class DropdownSelectButton<
     this.optionsContainerRef = ref
   }
 
-  private renderSelectedIcon(option: IDropdownSelectButtonOption) {
+  private renderSelectedIcon(option: IDropdownSelectButtonOption<T>) {
     const { selectedOption } = this.state
     if (selectedOption === null || option.value !== selectedOption.value) {
       return
