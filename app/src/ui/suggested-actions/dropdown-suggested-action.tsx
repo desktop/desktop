@@ -8,7 +8,7 @@ import { executeMenuItemById } from '../main-process-proxy'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import classNames from 'classnames'
 
-export interface IDropdownSuggestedActionOption<T extends string = string>
+export interface IDropdownSuggestedActionOption<T extends string>
   extends IDropdownSelectButtonOption<T> {
   /**
    * The title, or "header" text for a suggested
@@ -49,7 +49,7 @@ export interface IDropdownSuggestedActionOption<T extends string = string>
   readonly menuItemId?: MenuIDs
 }
 
-export interface IDropdownSuggestedActionProps<T extends string = string> {
+export interface IDropdownSuggestedActionProps<T extends string> {
   /** The possible suggested next actions to select from
    *
    * This component assumes this is not an empty array.
@@ -68,13 +68,11 @@ export interface IDropdownSuggestedActionProps<T extends string = string> {
   readonly className?: string
 }
 
-interface IDropdownSuggestedActionState<T extends string = string> {
+interface IDropdownSuggestedActionState<T extends string> {
   readonly selectedAction: IDropdownSuggestedActionOption<T>
 }
 
-export class DropdownSuggestedAction<
-  T extends string = string
-> extends React.Component<
+export class DropdownSuggestedAction<T extends string> extends React.Component<
   IDropdownSuggestedActionProps<T>,
   IDropdownSuggestedActionState<T>
 > {

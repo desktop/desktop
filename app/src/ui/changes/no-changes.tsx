@@ -726,15 +726,11 @@ export class NoChanges extends React.Component<
         disabled: !createMenuItem.enabled,
       }
 
-    const pullRequestActions: ReadonlyArray<
-      IDropdownSuggestedActionOption<PullRequestSuggestedNextAction>
-    > = [previewPullRequestAction, createPullRequestAction]
-
     return (
-      <DropdownSuggestedAction<PullRequestSuggestedNextAction>
+      <DropdownSuggestedAction
         key="pull-request-action"
         className="pull-request-action"
-        suggestedActions={pullRequestActions}
+        suggestedActions={[previewPullRequestAction, createPullRequestAction]}
         selectedActionValue={this.props.pullRequestSuggestedNextAction}
         onSuggestedActionChanged={this.onPullRequestSuggestedActionChanged}
       />
