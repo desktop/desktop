@@ -45,6 +45,14 @@
     max-width: 600px;
   }
 
+  .pull-request-action {
+    .dropdown-select-button {
+      .invoke-button {
+        min-width: 150px;
+      }
+    }
+  }
+
   /** Lessen the padding at 1.5x zoom and above  **/
   @media screen and (max-width: 640px) {
     padding: var(--spacing-double);
