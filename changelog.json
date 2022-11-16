@@ -1,5 +1,17 @@
 {
   "releases": {
+    "3.1.3-beta3": [
+      "[Fixed] Using the key command of 'Shift' + 'ArrowDown' in the commit list adds the next commit to the current selection - #15536",
+      "[Fixed] Notifications of Pull Request reviews are displayed for forked repositories - #15580",
+      "[Fixed] Notifications when checks of a Pull Request fail are displayed for forked repositories - #15422",
+      "[Improved] User can preview a Pull Request from the suggested next actions.  - #15588",
+      "[Improved] The dropdown selection component is keyboard navigable - #15620",
+      "[Improved] 'Preview Pull Request' menu item availability is consistent with other menu items - #15590",
+      "[Improved] The diff view now highlights Arduino's `.ino` files as C++ source - #15555. Thanks @j-f1!",
+      "[Improved] Close repository list after creating or adding repositories - #15508. Thanks @angusdev!",
+      "[Improved] Always show an error message when an update fails - #15530",
+      "[Improved] Popups are stacked. Opening a popup will not discard an existing popup - #15496"
+    ],
     "3.1.3-beta2": [
       "[Added] Enable menu option to Force-push branches that have diverged - #15211",
       "[Added] Add menu option to Fetch the current repository at any time - #7805",
