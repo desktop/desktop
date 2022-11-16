@@ -271,11 +271,13 @@ export class NotificationsStore {
 
     // Make sure we haven't shown a notification for the check runs of this
     // check suite already.
+    // If one of more jobs are re-run, the check suite will have the same ID
+    // but different check runs.
     const checkSuiteCheckRunIds = checks.flatMap(check =>
       check.checkSuiteId === event.check_suite_id ? check.id : []
     )
 
-    if (checkSuiteCheckRunIds.some(id => this.skipCheckRuns.has(id))) {
+    if (checkSuiteCheckRunIds.every(id => this.skipCheckRuns.has(id))) {
       return
     }
 
