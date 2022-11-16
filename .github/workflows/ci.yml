@@ -25,7 +25,7 @@ jobs:
             friendlyName: Windows
     timeout-minutes: 60
     steps:
-      - name: Fail immediately # test 1 2
+      - name: Fail immediately # test 1 2 3
         run: exit 1
 
       - uses: actions/checkout@v3
