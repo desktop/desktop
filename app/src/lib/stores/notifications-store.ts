@@ -3,6 +3,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   isRepositoryWithForkedGitHubRepository,
+  getForkContributionTarget,
 } from '../../models/repository'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { getPullRequestCommitRef, PullRequest } from '../../models/pull-request'
@@ -74,7 +75,7 @@ export class NotificationsStore {
     null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
-  private skipCheckSuites: Set<number> = new Set()
+  private skipCheckRuns: Set<number> = new Set()
 
   public constructor(
     private readonly accountsStore: AccountsStore,
@@ -215,10 +216,6 @@ export class NotificationsStore {
       return
     }
 
-    if (this.skipCheckSuites.has(event.check_suite_id)) {
-      return
-    }
-
     const pullRequests = await this.pullRequestCoordinator.getAllPullRequests(
       repository
     )
@@ -272,6 +269,18 @@ export class NotificationsStore {
       return
     }
 
+    // Make sure we haven't shown a notification for the check runs of this
+    // check suite already.
+    // If one of more jobs are re-run, the check suite will have the same ID
+    // but different check runs.
+    const checkSuiteCheckRunIds = checks.flatMap(check =>
+      check.checkSuiteId === event.check_suite_id ? check.id : []
+    )
+
+    if (checkSuiteCheckRunIds.every(id => this.skipCheckRuns.has(id))) {
+      return
+    }
+
     const numberOfFailedChecks = checks.filter(
       check => check.conclusion === APICheckConclusion.Failure
     ).length
@@ -283,12 +292,10 @@ export class NotificationsStore {
       return
     }
 
-    // Ignore any remaining notification for check suites that started along
+    // Ignore any remaining notification for check runs that started along
     // with this one.
     for (const check of checks) {
-      if (check.checkSuiteId !== null) {
-        this.skipCheckSuites.add(check.checkSuiteId)
-      }
+      this.skipCheckRuns.add(check.id)
     }
 
     const pluralChecks =
@@ -329,8 +336,7 @@ export class NotificationsStore {
   ) {
     const isForkContributingToParent =
       isRepositoryWithForkedGitHubRepository(repository) &&
-      repository.workflowPreferences.forkContributionTarget ===
-        ForkContributionTarget.Parent
+      getForkContributionTarget(repository) === ForkContributionTarget.Parent
 
     return isForkContributingToParent
       ? repository.gitHubRepository.parent
@@ -345,8 +351,7 @@ export class NotificationsStore {
     // match the parent repository.
     if (
       isRepositoryWithForkedGitHubRepository(repository) &&
-      repository.workflowPreferences.forkContributionTarget ===
-        ForkContributionTarget.Parent
+      getForkContributionTarget(repository) === ForkContributionTarget.Parent
     ) {
       const parentRepository = repository.gitHubRepository.parent
       return (
@@ -388,7 +393,7 @@ export class NotificationsStore {
   private resetCache() {
     this.cachedCommits.clear()
     this.skipCommitShas.clear()
-    this.skipCheckSuites.clear()
+    this.skipCheckRuns.clear()
   }
 
   /**
