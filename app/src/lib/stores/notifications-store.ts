@@ -293,9 +293,7 @@ export class NotificationsStore {
     // Ignore any remaining notification for check runs that started along
     // with this one.
     for (const check of checks) {
-      if (check.checkSuiteId !== null) {
-        this.skipCheckRuns.add(check.id)
-      }
+      this.skipCheckRuns.add(check.id)
     }
 
     const pluralChecks =
