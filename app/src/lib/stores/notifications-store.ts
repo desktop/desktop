@@ -3,6 +3,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   isRepositoryWithForkedGitHubRepository,
+  getForkContributionTarget,
 } from '../../models/repository'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { getPullRequestCommitRef, PullRequest } from '../../models/pull-request'
@@ -329,8 +330,7 @@ export class NotificationsStore {
   ) {
     const isForkContributingToParent =
       isRepositoryWithForkedGitHubRepository(repository) &&
-      repository.workflowPreferences.forkContributionTarget ===
-        ForkContributionTarget.Parent
+      getForkContributionTarget(repository) === ForkContributionTarget.Parent
 
     return isForkContributingToParent
       ? repository.gitHubRepository.parent
@@ -345,8 +345,7 @@ export class NotificationsStore {
     // match the parent repository.
     if (
       isRepositoryWithForkedGitHubRepository(repository) &&
-      repository.workflowPreferences.forkContributionTarget ===
-        ForkContributionTarget.Parent
+      getForkContributionTarget(repository) === ForkContributionTarget.Parent
     ) {
       const parentRepository = repository.gitHubRepository.parent
       return (
