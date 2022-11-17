@@ -42,13 +42,24 @@ export class PopupManager {
   public constructor(private readonly popupLimit = defaultPopupStackLimit) {}
 
   /**
+   * Returns all the popups in the stack
+   *  If there are error popups, it returns on the top of the stack.
+   */
+  public get currentPopups(): ReadonlyArray<Popup> {
+    const errorPopups = this.getPopupsOfType(PopupType.Error)
+    const nonErrorPopups = this.popupStack.filter(
+      p => p.type !== PopupType.Error
+    )
+    return [...errorPopups, ...nonErrorPopups]
+  }
+
+  /**
    * Returns the last popup in the stack.
    *  If there are error popups, it returns the last popup of type error,
    *  otherwise returns the first non-error type popup.
    */
   public get currentPopup(): Popup | null {
-    const errorPopups = this.getPopupsOfType(PopupType.Error)
-    return errorPopups.at(-1) ?? this.popupStack.at(-1) ?? null
+    return this.currentPopups[0] ?? null
   }
 
   /**

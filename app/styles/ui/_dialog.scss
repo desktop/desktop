@@ -260,6 +260,10 @@ dialog {
     }
   }
 
+  &.hidden {
+    display: none;
+  }
+
   .dialog-content {
     padding: var(--spacing-double);
 

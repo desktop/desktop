@@ -104,6 +104,8 @@ interface IDialogProps {
    * of the loading operation.
    */
   readonly loading?: boolean
+
+  readonly isVisible?: boolean
 }
 
 interface IDialogState {
@@ -591,6 +593,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       {
         error: this.props.type === 'error',
         warning: this.props.type === 'warning',
+        hidden: this.props.isVisible === false,
       },
       this.props.className,
       'tooltip-host'

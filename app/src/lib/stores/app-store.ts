@@ -930,6 +930,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.popupManager.currentPopup,
+      currentPopups: this.popupManager.currentPopups,
       currentFoldout: this.currentFoldout,
       errorCount: this.popupManager.getPopupsOfType(PopupType.Error).length,
       showWelcomeFlow: this.showWelcomeFlow,

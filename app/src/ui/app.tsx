@@ -1398,12 +1398,22 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private currentPopupContent(): JSX.Element | null {
-    const popup = this.state.currentPopup
+    const popups = this.state.currentPopups
 
-    if (!popup) {
+    if (popups.length === 0) {
       return null
     }
 
+    return (
+      <>
+        {popups.map(popup => {
+          return this.renderPopupContent(popup)
+        })}
+      </>
+    )
+  }
+
+  private renderPopupContent(popup: Popup): JSX.Element | null {
     if (popup.id === undefined) {
       // Should not be possible... but if it does we want to know about it.
       sendNonFatalException(
@@ -1917,6 +1927,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PushRejectedDueToMissingWorkflowScope:
         return (
           <WorkflowPushRejectedDialog
+            key="workflow-push-reject"
             onDismissed={onPopupDismissedFn}
             rejectedPath={popup.rejectedPath}
             dispatcher={this.props.dispatcher}
@@ -1926,6 +1937,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.SAMLReauthRequired:
         return (
           <SAMLReauthRequiredDialog
+            key="SAML-reauth-required"
             onDismissed={onPopupDismissedFn}
             organizationName={popup.organizationName}
             endpoint={popup.endpoint}
@@ -1936,6 +1948,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.CreateFork:
         return (
           <CreateForkDialog
+            key="create-fork-dialog"
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
@@ -1969,6 +1982,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ChooseForkSettings: {
         return (
           <ChooseForkSettings
+            key="choose-fork-settings"
             repository={popup.repository}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
@@ -1986,6 +2000,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <LocalChangesOverwrittenDialog
+            key="local-changes-overwritten"
             repository={popup.repository}
             dispatcher={this.props.dispatcher}
             hasExistingStash={existingStash !== null}
@@ -1997,6 +2012,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.MoveToApplicationsFolder: {
         return (
           <MoveToApplicationsFolder
+            key="move-to-app-folder"
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
           />
@@ -2005,6 +2021,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ChangeRepositoryAlias: {
         return (
           <ChangeRepositoryAlias
+            key="change-repository-alias"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             onDismissed={onPopupDismissedFn}
@@ -2272,6 +2289,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <UnreachableCommitsDialog
+            key="unreachable-commits"
             selectedShas={shas}
             shasInDiff={shasInDiff}
             commitLookup={commitLookup}
@@ -2329,12 +2347,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             externalEditorLabel={externalEditorLabel}
             showSideBySideDiff={showSideBySideDiff}
             onDismissed={onPopupDismissedFn}
+            isVisible={popup.id === this.state.currentPopup?.id}
           />
         )
       }
       case PopupType.Error: {
         return (
           <AppError
+            key={'app-error' + popup.id}
             error={popup.error}
             onDismissed={onPopupDismissedFn}
             onShowPopup={this.showPopup}
