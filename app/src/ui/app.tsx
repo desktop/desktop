@@ -6,6 +6,7 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
+  IRepositoryState,
 } from '../lib/app-state'
 import { defaultErrorHandler, Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -1127,6 +1128,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     return state.repository
   }
 
+  private getRepositoryState(): IRepositoryState | null {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+
+    return selectedState.state
+  }
+
   private showRebaseDialog() {
     const repository = this.getRepository()
 
@@ -1314,7 +1327,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderPopup() {
     const {
       accounts,
-      selectedState,
       signInState,
       selectedCloneRepositoryTab,
       apiRepositories,
@@ -1345,7 +1357,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <AppPopup
         accounts={accounts}
-        selectedState={selectedState}
+        repositoryState={this.getRepositoryState()}
+        selectedRepository={this.getRepository()}
         signInState={signInState}
         selectedCloneRepositoryTab={selectedCloneRepositoryTab}
         apiRepositories={apiRepositories}

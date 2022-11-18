@@ -5,8 +5,7 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import {
   HistoryTabMode,
   IConstrainedValue,
-  PossibleSelections,
-  SelectionType,
+  IRepositoryState,
 } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
@@ -117,7 +116,9 @@ interface IDialogProps {
 
   // App state references
   readonly accounts: ReadonlyArray<Account>
-  readonly selectedState: PossibleSelections | null
+  readonly repositoryState: IRepositoryState | null
+  readonly selectedRepository: Repository | CloningRepository | null
+
   readonly signInState: SignInState | null
   readonly selectedCloneRepositoryTab: CloneRepositoryTab
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
@@ -157,10 +158,9 @@ export class AppPopup extends React.Component<IDialogProps> {
   })
 
   private getSelectedTutorialRepository() {
-    const { selectedState } = this.props
     const selectedRepository =
-      selectedState && selectedState.type === SelectionType.Repository
-        ? selectedState.repository
+      this.props.selectedRepository instanceof Repository
+        ? this.props.selectedRepository
         : null
 
     const isTutorialRepository =
@@ -249,15 +249,7 @@ export class AppPopup extends React.Component<IDialogProps> {
   }
 
   private getPullRequestState() {
-    const { selectedState } = this.props
-    if (
-      selectedState == null ||
-      selectedState.type !== SelectionType.Repository
-    ) {
-      return null
-    }
-
-    return selectedState.state.pullRequestState
+    return this.props.repositoryState?.pullRequestState ?? null
   }
 
   private getWarnForcePushDialogOnBegin(
@@ -287,15 +279,6 @@ export class AppPopup extends React.Component<IDialogProps> {
     this.props.dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.History,
     })
-  }
-
-  private getRepository(): Repository | CloningRepository | null {
-    const state = this.props.selectedState
-    if (state == null) {
-      return null
-    }
-
-    return state.repository
   }
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
@@ -347,12 +330,12 @@ export class AppPopup extends React.Component<IDialogProps> {
   }
 
   private openCurrentRepositoryInShell = () => {
-    const repository = this.getRepository()
-    if (!repository) {
+    const { selectedRepository } = this.props
+    if (!selectedRepository) {
       return
     }
 
-    this.openInShell(repository)
+    this.openInShell(selectedRepository)
   }
 
   private openInShell = (repository: Repository | CloningRepository) => {
@@ -394,10 +377,8 @@ export class AppPopup extends React.Component<IDialogProps> {
     switch (popup.type) {
       case PopupType.RenameBranch:
         const stash =
-          this.props.selectedState !== null &&
-          this.props.selectedState.type === SelectionType.Repository
-            ? this.props.selectedState.state.changesState.stashEntry
-            : null
+          this.props.repositoryState?.changesState.stashEntry ?? null
+
         return (
           <RenameBranch
             key="rename-branch"
@@ -469,7 +450,7 @@ export class AppPopup extends React.Component<IDialogProps> {
           />
         )
       case PopupType.Preferences:
-        let repository = this.getRepository()
+        let repository = this.props.selectedRepository
 
         if (repository instanceof CloningRepository) {
           repository = null
@@ -950,13 +931,8 @@ export class AppPopup extends React.Component<IDialogProps> {
         )
       }
       case PopupType.LocalChangesOverwritten:
-        const selectedState = this.props.selectedState
-
         const existingStash =
-          selectedState !== null &&
-          selectedState.type === SelectionType.Repository
-            ? selectedState.state.changesState.stashEntry
-            : null
+          this.props.repositoryState?.changesState.stashEntry ?? null
 
         return (
           <LocalChangesOverwrittenDialog
@@ -1043,17 +1019,14 @@ export class AppPopup extends React.Component<IDialogProps> {
           />
         )
       case PopupType.MultiCommitOperation: {
-        const { selectedState, emoji, askForConfirmationOnForcePush } =
+        const { repositoryState, emoji, askForConfirmationOnForcePush } =
           this.props
 
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
+        if (repositoryState === null) {
           return null
         }
 
-        const { changesState, multiCommitOperationState } = selectedState.state
+        const { changesState, multiCommitOperationState } = repositoryState
         const { workingDirectory, conflictState } = changesState
         if (multiCommitOperationState === null) {
           log.warn(
@@ -1225,19 +1198,16 @@ export class AppPopup extends React.Component<IDialogProps> {
         )
       }
       case PopupType.UnreachableCommits: {
-        const { selectedState, emoji } = this.props
+        const { repositoryState, emoji } = this.props
 
-        if (
-          selectedState == null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
+        if (repositoryState == null) {
           return null
         }
 
         const {
           commitLookup,
           commitSelection: { shas, shasInDiff },
-        } = selectedState.state
+        } = repositoryState
 
         return (
           <UnreachableCommitsDialog
