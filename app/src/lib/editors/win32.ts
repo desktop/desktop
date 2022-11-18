@@ -210,7 +210,7 @@ const editors: WindowsExternalEditor[] = [
       // ARM64 version of VSCodium (user)
       CurrentUserUninstallKey('{3AEBF0C8-F733-4AD4-BADE-FDB816D53D7B}_is1'),
       // 64-bit version of VSCodium (system)
-      LocalMachineUninstallKey('{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}_is1'),
+      LocalMachineUninstallKey('{88DA3577-054F-4CA1-8122-7D820494CFFB}_is1'),
       // 32-bit version of VSCodium (system)
       Wow64LocalMachineUninstallKey(
         '{E34003BB-9E10-4501-8C11-BE3FAA83F23F}_is1'
@@ -220,7 +220,7 @@ const editors: WindowsExternalEditor[] = [
     ],
     executableShimPaths: [['bin', 'codium.cmd']],
     displayNamePrefix: 'VSCodium',
-    publisher: 'Microsoft Corporation',
+    publisher: 'VSCodium',
   },
   {
     name: 'Sublime Text',
