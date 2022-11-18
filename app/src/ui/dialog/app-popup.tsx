@@ -2,11 +2,19 @@ import memoizeOne from 'memoize-one'
 import * as React from 'react'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { getDotComAPIEndpoint } from '../../lib/api'
-import { HistoryTabMode, IAppState, SelectionType } from '../../lib/app-state'
+import {
+  HistoryTabMode,
+  IConstrainedValue,
+  PossibleSelections,
+  SelectionType,
+} from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
+import { Shell } from '../../lib/shells'
+import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
+import { SignInState } from '../../lib/stores/sign-in-store'
 import { Account } from '../../models/account'
 import { Branch } from '../../models/branch'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -24,6 +32,7 @@ import {
 } from '../../models/repository'
 import { RetryAction } from '../../models/retry-actions'
 import { TipState } from '../../models/tip'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { About } from '../about'
 import { Acknowledgements } from '../acknowledgements'
 import { AddExistingRepository, CreateRepository } from '../add-repository'
@@ -56,6 +65,7 @@ import { InstallingUpdate } from '../installing-update/installing-update'
 import { InvalidatedToken } from '../invalidated-token/invalidated-token'
 import { InitializeLFS, AttributeMismatch } from '../lfs'
 import { getVersion, getName } from '../lib/app-proxy'
+import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
 import { LocalChangesOverwrittenDialog } from '../local-changes-overwritten/local-changes-overwritten-dialog'
 import { showCertificateTrustDialog } from '../main-process-proxy'
 import { CommitConflictsWarning } from '../merge-conflicts'
@@ -94,7 +104,6 @@ import { UpstreamAlreadyExists } from '../upstream-already-exists'
 import { WorkflowPushRejectedDialog } from '../workflow-push-rejected/workflow-push-rejected'
 
 interface IDialogProps {
-  readonly appState: IAppState
   readonly dispatcher: Dispatcher
   readonly repositoryViewRef: React.RefObject<RepositoryView>
   readonly repositoryStateManager: RepositoryStateCache
@@ -105,6 +114,36 @@ interface IDialogProps {
   readonly buildAutocompletionProviders: (
     repository: Repository
   ) => ReadonlyArray<IAutocompletionProvider<any>>
+
+  // App state references
+  readonly accounts: ReadonlyArray<Account>
+  readonly selectedState: PossibleSelections | null
+  readonly signInState: SignInState | null
+  readonly selectedCloneRepositoryTab: CloneRepositoryTab
+  readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+  readonly emoji: Map<string, string>
+  readonly commitSpellcheckEnabled: boolean
+  readonly resolvedExternalEditor: string | null
+  readonly hideWhitespaceInPullRequestDiff: boolean
+  readonly pullRequestFilesListWidth: IConstrainedValue
+  readonly currentPopup: Popup | null
+
+  // Preference dialog app state references
+  readonly askForConfirmationOnRepositoryRemoval: boolean
+  readonly askForConfirmationOnDiscardChanges: boolean
+  readonly askForConfirmationOnDiscardChangesPermanently: boolean
+  readonly askForConfirmationOnDiscardStash: boolean
+  readonly askForConfirmationOnForcePush: boolean
+  readonly askForConfirmationOnUndoCommit: boolean
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly selectedExternalEditor: string | null
+  readonly useWindowsOpenSSH: boolean
+  readonly notificationsEnabled: boolean
+  readonly optOutOfUsageTracking: boolean
+  readonly selectedShell: Shell
+  readonly selectedTheme: ApplicationTheme
+  readonly customTheme?: ICustomTheme
+  readonly repositoryIndicatorsEnabled: boolean
 }
 
 export class AppPopup extends React.Component<IDialogProps> {
@@ -118,7 +157,7 @@ export class AppPopup extends React.Component<IDialogProps> {
   })
 
   private getSelectedTutorialRepository() {
-    const { selectedState } = this.props.appState
+    const { selectedState } = this.props
     const selectedRepository =
       selectedState && selectedState.type === SelectionType.Repository
         ? selectedState.repository
@@ -210,7 +249,7 @@ export class AppPopup extends React.Component<IDialogProps> {
   }
 
   private getPullRequestState() {
-    const { selectedState } = this.props.appState
+    const { selectedState } = this.props
     if (
       selectedState == null ||
       selectedState.type !== SelectionType.Repository
@@ -251,7 +290,7 @@ export class AppPopup extends React.Component<IDialogProps> {
   }
 
   private getRepository(): Repository | CloningRepository | null {
-    const state = this.props.appState.selectedState
+    const state = this.props.selectedState
     if (state == null) {
       return null
     }
@@ -272,14 +311,14 @@ export class AppPopup extends React.Component<IDialogProps> {
   }
 
   private getDotComAccount(): Account | null {
-    const dotComAccount = this.props.appState.accounts.find(
+    const dotComAccount = this.props.accounts.find(
       a => a.endpoint === getDotComAPIEndpoint()
     )
     return dotComAccount || null
   }
 
   private getEnterpriseAccount(): Account | null {
-    const enterpriseAccount = this.props.appState.accounts.find(
+    const enterpriseAccount = this.props.accounts.find(
       a => a.endpoint !== getDotComAPIEndpoint()
     )
     return enterpriseAccount || null
@@ -333,7 +372,7 @@ export class AppPopup extends React.Component<IDialogProps> {
   }
 
   private currentPopupContent(): JSX.Element | null {
-    const popup = this.props.appState.currentPopup
+    const popup = this.props.currentPopup
 
     if (!popup) {
       return null
@@ -355,9 +394,9 @@ export class AppPopup extends React.Component<IDialogProps> {
     switch (popup.type) {
       case PopupType.RenameBranch:
         const stash =
-          this.props.appState.selectedState !== null &&
-          this.props.appState.selectedState.type === SelectionType.Repository
-            ? this.props.appState.selectedState.state.changesState.stashEntry
+          this.props.selectedState !== null &&
+          this.props.selectedState.type === SelectionType.Repository
+            ? this.props.selectedState.state.changesState.stashEntry
             : null
         return (
           <RenameBranch
@@ -409,7 +448,7 @@ export class AppPopup extends React.Component<IDialogProps> {
             dispatcher={this.props.dispatcher}
             files={popup.files}
             confirmDiscardChanges={
-              this.props.appState.askForConfirmationOnDiscardChanges
+              this.props.askForConfirmationOnDiscardChanges
             }
             showDiscardChangesSetting={showSetting}
             discardingAllChanges={discardingAllChanges}
@@ -443,44 +482,36 @@ export class AppPopup extends React.Component<IDialogProps> {
             dispatcher={this.props.dispatcher}
             dotComAccount={this.getDotComAccount()}
             confirmRepositoryRemoval={
-              this.props.appState.askForConfirmationOnRepositoryRemoval
+              this.props.askForConfirmationOnRepositoryRemoval
             }
             confirmDiscardChanges={
-              this.props.appState.askForConfirmationOnDiscardChanges
+              this.props.askForConfirmationOnDiscardChanges
             }
             confirmDiscardChangesPermanently={
-              this.props.appState.askForConfirmationOnDiscardChangesPermanently
+              this.props.askForConfirmationOnDiscardChangesPermanently
             }
-            confirmDiscardStash={
-              this.props.appState.askForConfirmationOnDiscardStash
-            }
-            confirmForcePush={this.props.appState.askForConfirmationOnForcePush}
-            confirmUndoCommit={
-              this.props.appState.askForConfirmationOnUndoCommit
-            }
-            uncommittedChangesStrategy={
-              this.props.appState.uncommittedChangesStrategy
-            }
-            selectedExternalEditor={this.props.appState.selectedExternalEditor}
-            useWindowsOpenSSH={this.props.appState.useWindowsOpenSSH}
-            notificationsEnabled={this.props.appState.notificationsEnabled}
-            optOutOfUsageTracking={this.props.appState.optOutOfUsageTracking}
+            confirmDiscardStash={this.props.askForConfirmationOnDiscardStash}
+            confirmForcePush={this.props.askForConfirmationOnForcePush}
+            confirmUndoCommit={this.props.askForConfirmationOnUndoCommit}
+            uncommittedChangesStrategy={this.props.uncommittedChangesStrategy}
+            selectedExternalEditor={this.props.selectedExternalEditor}
+            useWindowsOpenSSH={this.props.useWindowsOpenSSH}
+            notificationsEnabled={this.props.notificationsEnabled}
+            optOutOfUsageTracking={this.props.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
             repository={repository}
             onDismissed={onPopupDismissedFn}
-            selectedShell={this.props.appState.selectedShell}
-            selectedTheme={this.props.appState.selectedTheme}
-            customTheme={this.props.appState.customTheme}
-            repositoryIndicatorsEnabled={
-              this.props.appState.repositoryIndicatorsEnabled
-            }
+            selectedShell={this.props.selectedShell}
+            selectedTheme={this.props.selectedTheme}
+            customTheme={this.props.customTheme}
+            repositoryIndicatorsEnabled={this.props.repositoryIndicatorsEnabled}
           />
         )
       case PopupType.RepositorySettings: {
         const repository = popup.repository
         const state = this.props.repositoryStateManager.get(repository)
         const repositoryAccount = getAccountForRepository(
-          this.props.appState.accounts,
+          this.props.accounts,
           repository
         )
 
@@ -500,7 +531,7 @@ export class AppPopup extends React.Component<IDialogProps> {
         return (
           <SignIn
             key="sign-in"
-            signInState={this.props.appState.signInState}
+            signInState={this.props.signInState}
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
           />
@@ -532,9 +563,9 @@ export class AppPopup extends React.Component<IDialogProps> {
             initialURL={popup.initialURL}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
-            selectedTab={this.props.appState.selectedCloneRepositoryTab}
+            selectedTab={this.props.selectedCloneRepositoryTab}
             onTabSelected={this.onCloneRepositoriesTabSelected}
-            apiRepositories={this.props.appState.apiRepositories}
+            apiRepositories={this.props.apiRepositories}
             onRefreshRepositories={this.onRefreshRepositories}
           />
         )
@@ -604,7 +635,7 @@ export class AppPopup extends React.Component<IDialogProps> {
             key="publish"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
-            accounts={this.props.appState.accounts}
+            accounts={this.props.accounts}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -723,7 +754,7 @@ export class AppPopup extends React.Component<IDialogProps> {
         return (
           <ReleaseNotes
             key="release-notes"
-            emoji={this.props.appState.emoji}
+            emoji={this.props.emoji}
             newReleases={popup.newReleases}
             onDismissed={onPopupDismissedFn}
           />
@@ -771,7 +802,7 @@ export class AppPopup extends React.Component<IDialogProps> {
           />
         )
       case PopupType.ConfirmForcePush: {
-        const { askForConfirmationOnForcePush } = this.props.appState
+        const { askForConfirmationOnForcePush } = this.props
 
         return (
           <ConfirmForcePush
@@ -829,7 +860,7 @@ export class AppPopup extends React.Component<IDialogProps> {
             key="confirm-discard-stash-dialog"
             dispatcher={this.props.dispatcher}
             askForConfirmationOnDiscardStash={
-              this.props.appState.askForConfirmationOnDiscardStash
+              this.props.askForConfirmationOnDiscardStash
             }
             repository={repository}
             stash={stash}
@@ -919,7 +950,7 @@ export class AppPopup extends React.Component<IDialogProps> {
         )
       }
       case PopupType.LocalChangesOverwritten:
-        const selectedState = this.props.appState.selectedState
+        const selectedState = this.props.selectedState
 
         const existingStash =
           selectedState !== null &&
@@ -958,7 +989,7 @@ export class AppPopup extends React.Component<IDialogProps> {
         return (
           <ThankYou
             key="thank-you"
-            emoji={this.props.appState.emoji}
+            emoji={this.props.emoji}
             userContributions={popup.userContributions}
             friendlyName={popup.friendlyName}
             latestVersion={popup.latestVersion}
@@ -983,7 +1014,7 @@ export class AppPopup extends React.Component<IDialogProps> {
         )
 
         const repositoryAccount = getAccountForRepository(
-          this.props.appState.accounts,
+          this.props.accounts,
           popup.repository
         )
 
@@ -995,9 +1026,7 @@ export class AppPopup extends React.Component<IDialogProps> {
             coAuthors={popup.coAuthors}
             commitAuthor={repositoryState.commitAuthor}
             commitMessage={popup.commitMessage}
-            commitSpellcheckEnabled={
-              this.props.appState.commitSpellcheckEnabled
-            }
+            commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
             dialogButtonText={popup.dialogButtonText}
             dialogTitle={popup.dialogTitle}
             dispatcher={this.props.dispatcher}
@@ -1014,7 +1043,8 @@ export class AppPopup extends React.Component<IDialogProps> {
           />
         )
       case PopupType.MultiCommitOperation: {
-        const { selectedState, emoji } = this.props.appState
+        const { selectedState, emoji, askForConfirmationOnForcePush } =
+          this.props
 
         if (
           selectedState === null ||
@@ -1041,11 +1071,9 @@ export class AppPopup extends React.Component<IDialogProps> {
             conflictState={conflictState}
             emoji={emoji}
             workingDirectory={workingDirectory}
-            askForConfirmationOnForcePush={
-              this.props.appState.askForConfirmationOnForcePush
-            }
+            askForConfirmationOnForcePush={askForConfirmationOnForcePush}
             openFileInExternalEditor={this.openFileInExternalEditor}
-            resolvedExternalEditor={this.props.appState.resolvedExternalEditor}
+            resolvedExternalEditor={this.props.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
           />
         )
@@ -1059,9 +1087,7 @@ export class AppPopup extends React.Component<IDialogProps> {
             repository={repository}
             commit={commit}
             isWorkingDirectoryClean={isWorkingDirectoryClean}
-            confirmUndoCommit={
-              this.props.appState.askForConfirmationOnUndoCommit
-            }
+            confirmUndoCommit={this.props.askForConfirmationOnUndoCommit}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -1132,7 +1158,7 @@ export class AppPopup extends React.Component<IDialogProps> {
             commitMessage={popup.commitMessage}
             commitSha={popup.commitSha}
             checks={popup.checks}
-            accounts={this.props.appState.accounts}
+            accounts={this.props.accounts}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
           />
@@ -1152,7 +1178,7 @@ export class AppPopup extends React.Component<IDialogProps> {
         )
       }
       case PopupType.WarnForcePush: {
-        const { askForConfirmationOnForcePush } = this.props.appState
+        const { askForConfirmationOnForcePush } = this.props
         return (
           <WarnForcePushDialog
             key="warn-force-push"
@@ -1191,15 +1217,16 @@ export class AppPopup extends React.Component<IDialogProps> {
             pullRequest={popup.pullRequest}
             review={popup.review}
             numberOfComments={popup.numberOfComments}
-            emoji={this.props.appState.emoji}
-            accounts={this.props.appState.accounts}
+            emoji={this.props.emoji}
+            accounts={this.props.accounts}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
           />
         )
       }
       case PopupType.UnreachableCommits: {
-        const { selectedState, emoji } = this.props.appState
+        const { selectedState, emoji } = this.props
+
         if (
           selectedState == null ||
           selectedState.type !== SelectionType.Repository
@@ -1240,7 +1267,7 @@ export class AppPopup extends React.Component<IDialogProps> {
         }
 
         const { pullRequestFilesListWidth, hideWhitespaceInPullRequestDiff } =
-          this.props.appState
+          this.props
 
         const {
           allBranches,

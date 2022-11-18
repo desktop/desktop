@@ -1312,9 +1312,68 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderPopup() {
+    const {
+      accounts,
+      selectedState,
+      signInState,
+      selectedCloneRepositoryTab,
+      apiRepositories,
+      emoji,
+      commitSpellcheckEnabled,
+      resolvedExternalEditor,
+      hideWhitespaceInPullRequestDiff,
+      pullRequestFilesListWidth,
+      currentPopup,
+
+      askForConfirmationOnRepositoryRemoval,
+      askForConfirmationOnDiscardChanges,
+      askForConfirmationOnDiscardChangesPermanently,
+      askForConfirmationOnDiscardStash,
+      askForConfirmationOnForcePush,
+      askForConfirmationOnUndoCommit,
+      uncommittedChangesStrategy,
+      selectedExternalEditor,
+      useWindowsOpenSSH,
+      notificationsEnabled,
+      optOutOfUsageTracking,
+      selectedShell,
+      selectedTheme,
+      customTheme,
+      repositoryIndicatorsEnabled,
+    } = this.state
+
     return (
       <AppPopup
-        appState={this.state}
+        accounts={accounts}
+        selectedState={selectedState}
+        signInState={signInState}
+        selectedCloneRepositoryTab={selectedCloneRepositoryTab}
+        apiRepositories={apiRepositories}
+        emoji={emoji}
+        commitSpellcheckEnabled={commitSpellcheckEnabled}
+        resolvedExternalEditor={resolvedExternalEditor}
+        hideWhitespaceInPullRequestDiff={hideWhitespaceInPullRequestDiff}
+        pullRequestFilesListWidth={pullRequestFilesListWidth}
+        currentPopup={currentPopup}
+        askForConfirmationOnRepositoryRemoval={
+          askForConfirmationOnRepositoryRemoval
+        }
+        askForConfirmationOnDiscardChanges={askForConfirmationOnDiscardChanges}
+        askForConfirmationOnDiscardChangesPermanently={
+          askForConfirmationOnDiscardChangesPermanently
+        }
+        askForConfirmationOnDiscardStash={askForConfirmationOnDiscardStash}
+        askForConfirmationOnForcePush={askForConfirmationOnForcePush}
+        askForConfirmationOnUndoCommit={askForConfirmationOnUndoCommit}
+        uncommittedChangesStrategy={uncommittedChangesStrategy}
+        selectedExternalEditor={selectedExternalEditor}
+        useWindowsOpenSSH={useWindowsOpenSSH}
+        notificationsEnabled={notificationsEnabled}
+        optOutOfUsageTracking={optOutOfUsageTracking}
+        selectedShell={selectedShell}
+        selectedTheme={selectedTheme}
+        customTheme={customTheme}
+        repositoryIndicatorsEnabled={repositoryIndicatorsEnabled}
         dispatcher={this.props.dispatcher}
         repositoryViewRef={this.repositoryViewRef}
         repositoryStateManager={this.props.repositoryStateManager}
