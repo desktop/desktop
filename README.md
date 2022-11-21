@@ -4,7 +4,17 @@
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
 uses [React](https://reactjs.org/).
 
-![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
+<picture>
+  <source
+    srcset="https://user-images.githubusercontent.com/634063/202742848-63fa1488-6254-49b5-af7c-96a6b50ea8af.png"
+    media="(prefers-color-scheme: dark)"
+  />
+  <img
+    width="1072"
+    src="https://user-images.githubusercontent.com/634063/202742985-bb3b3b94-8aca-404a-8d8a-fd6a6f030672.png"
+    alt="A screenshot of the GitHub Desktop application showing changes being viewed and committed with two attributed co-authors"
+  />
+</picture>
 
 ## Where can I get it?
 
