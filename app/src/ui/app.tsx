@@ -165,6 +165,7 @@ import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
 import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
+import { DialogVisibleContext } from './dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1407,7 +1408,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <>
         {popups.map(popup => {
-          return this.renderPopupContent(popup)
+          const value = { isVisible: this.state.currentPopup?.id === popup.id }
+          return (
+            <DialogVisibleContext.Provider key={popup.id} value={value}>
+              {this.renderPopupContent(popup)}
+            </DialogVisibleContext.Provider>
+          )
         })}
       </>
     )
@@ -2347,7 +2353,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             externalEditorLabel={externalEditorLabel}
             showSideBySideDiff={showSideBySideDiff}
             onDismissed={onPopupDismissedFn}
-            isVisible={popup.id === this.state.currentPopup?.id}
           />
         )
       }

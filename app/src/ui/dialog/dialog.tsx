@@ -4,6 +4,14 @@ import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 
+export interface IDialogVisibleContext {
+  isVisible: boolean
+}
+
+export const DialogVisibleContext = React.createContext<IDialogVisibleContext>({
+  isVisible: false,
+})
+
 /**
  * The time (in milliseconds) from when the dialog is mounted
  * until it can be dismissed. See the isAppearing property in
@@ -140,6 +148,11 @@ interface IDialogState {
  * out of the dialog without first dismissing it.
  */
 export class Dialog extends React.Component<IDialogProps, IDialogState> {
+  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+  static contextType = DialogVisibleContext
+  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+  declare context: React.ContextType<typeof DialogVisibleContext>
+
   private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
@@ -156,6 +169,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   public constructor(props: IDialogProps) {
     super(props)
+
     this.state = { isAppearing: true }
 
     // Observe size changes and let codemirror know
@@ -254,8 +268,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (!this.dialogElement) {
       return
     }
-
-    this.dialogElement.showModal()
 
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
@@ -444,6 +456,22 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (!this.props.title && this.state.titleId) {
       this.updateTitleId()
     }
+
+    this.updateDialogVisibility()
+  }
+
+  private updateDialogVisibility = () => {
+    if (this.dialogElement == null) {
+      return
+    }
+
+    if (this.context.isVisible && !this.dialogElement.open) {
+      this.dialogElement.showModal()
+    }
+
+    if (!this.context.isVisible && this.dialogElement.open) {
+      this.dialogElement.close()
+    }
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {
@@ -593,7 +621,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       {
         error: this.props.type === 'error',
         warning: this.props.type === 'warning',
-        hidden: this.props.isVisible === false,
       },
       this.props.className,
       'tooltip-host'

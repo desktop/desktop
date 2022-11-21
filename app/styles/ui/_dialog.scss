@@ -260,10 +260,6 @@ dialog {
     }
   }
 
-  &.hidden {
-    display: none;
-  }
-
   .dialog-content {
     padding: var(--spacing-double);
 
@@ -496,4 +492,8 @@ dialog {
     fill: var(--dialog-warning-color);
     margin-right: var(--spacing-half);
   }
+}
+
+dialog:not([open]) {
+  display: none !important;
 }

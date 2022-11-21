@@ -390,7 +390,3 @@ export type PopupDetail =
     }
 
 export type Popup = IBasePopup & PopupDetail
-
-export interface IPopupDialogProps {
-  readonly isVisible: boolean
-}

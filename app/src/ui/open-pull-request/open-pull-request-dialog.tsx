@@ -13,9 +13,8 @@ import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
-import { IPopupDialogProps } from '../../models/popup'
 
-interface IOpenPullRequestDialogProps extends IPopupDialogProps {
+interface IOpenPullRequestDialogProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
@@ -206,7 +205,6 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   public render() {
     return (
       <Dialog
-        isVisible={this.props.isVisible}
         className="open-pull-request"
         onSubmit={this.onCreatePullRequest}
         onDismissed={this.props.onDismissed}
