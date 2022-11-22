@@ -345,8 +345,10 @@ export class CommitListItem extends React.PureComponent<
         deleteTagsMenuItem
       )
     }
-    const darwinTagsLabel = this.props.commit.tags.length > 1 ? 'Copy Tags' : 'Copy Tag';
-    const windowTagsLabel = this.props.commit.tags.length > 1 ? 'Copy tags' : 'Copy tag';
+    const darwinTagsLabel =
+      this.props.commit.tags.length > 1 ? 'Copy Tags' : 'Copy Tag'
+    const windowTagsLabel =
+      this.props.commit.tags.length > 1 ? 'Copy tags' : 'Copy tag'
     items.push(
       {
         label: __DARWIN__ ? 'Cherry-pick Commit…' : 'Cherry-pick commit…',
@@ -361,7 +363,7 @@ export class CommitListItem extends React.PureComponent<
       {
         label: __DARWIN__ ? darwinTagsLabel : windowTagsLabel,
         action: this.onCopyTags,
-        enabled: this.props.commit.tags.length > 0
+        enabled: this.props.commit.tags.length > 0,
       },
       {
         label: viewOnGitHubLabel,
