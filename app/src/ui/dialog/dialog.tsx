@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
+import memoizeOne from 'memoize-one'
 
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
@@ -172,6 +173,20 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private disableClickDismissalTimeoutId: number | null = null
   private disableClickDismissal = false
 
+  private updateDialogAvailability = memoizeOne((isTopMost: boolean) => {
+    if (this.dialogElement == null) {
+      return
+    }
+
+    if (isTopMost && !this.dialogElement.open) {
+      this.onDialogIsTopMost(this.dialogElement)
+    }
+
+    if (!isTopMost && this.dialogElement.open) {
+      this.onDialogIsNotTopMost(this.dialogElement)
+    }
+  })
+
   /**
    * Resize observer used for tracking width changes and
    * refreshing the internal codemirror instance when
@@ -277,15 +292,15 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
-    if (!this.dialogElement) {
-      return
-    }
+    this.updateDialogAvailability(this.context.isTopMost)
+  }
 
-    this.updateDialogAvailability()
+  private onDialogIsTopMost(dialogElement: HTMLDialogElement) {
+    dialogElement.showModal()
 
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
-    this.dialogElement.dispatchEvent(
+    dialogElement.dispatchEvent(
       new CustomEvent('dialog-show', {
         bubbles: true,
         cancelable: false,
@@ -299,22 +314,20 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     window.addEventListener('focus', this.onWindowFocus)
 
-    this.resizeObserver.observe(this.dialogElement)
+    this.resizeObserver.observe(dialogElement)
     window.addEventListener('resize', this.scheduleResizeEvent)
   }
 
-  private updateDialogAvailability = () => {
-    if (this.dialogElement == null) {
-      return
-    }
+  private onDialogIsNotTopMost(dialogElement: HTMLDialogElement) {
+    dialogElement.close()
 
-    if (this.context.isTopMost && !this.dialogElement.open) {
-      this.dialogElement.showModal()
-    }
+    this.clearDismissGraceTimeout()
 
-    if (!this.context.isTopMost && this.dialogElement.open) {
-      this.dialogElement.close()
-    }
+    window.removeEventListener('focus', this.onWindowFocus)
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
+
+    this.resizeObserver.disconnect()
+    window.removeEventListener('resize', this.scheduleResizeEvent)
   }
 
   /**
@@ -467,17 +480,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentWillUnmount() {
-    this.clearDismissGraceTimeout()
-
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
     }
-
-    window.removeEventListener('focus', this.onWindowFocus)
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
-
-    this.resizeObserver.disconnect()
-    window.removeEventListener('resize', this.scheduleResizeEvent)
   }
 
   public componentDidUpdate() {
@@ -485,7 +490,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       this.updateTitleId()
     }
 
-    this.updateDialogAvailability()
+    this.updateDialogAvailability(this.context.isTopMost)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {
