@@ -173,7 +173,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private disableClickDismissalTimeoutId: number | null = null
   private disableClickDismissal = false
 
-  private updateDialogAvailability = memoizeOne((isTopMost: boolean) => {
+  private checkWhetherDialogIsTopMost = memoizeOne((isTopMost: boolean) => {
     if (this.dialogElement == null) {
       return
     }
@@ -292,7 +292,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
-    this.updateDialogAvailability(this.context.isTopMost)
+    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
   }
 
   private onDialogIsTopMost(dialogElement: HTMLDialogElement) {
@@ -318,8 +318,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     window.addEventListener('resize', this.scheduleResizeEvent)
   }
 
-  private onDialogIsNotTopMost(dialogElement: HTMLDialogElement) {
-    dialogElement.close()
+  private onDialogIsNotTopMost(dialogElement?: HTMLDialogElement) {
+    dialogElement?.close()
 
     this.clearDismissGraceTimeout()
 
@@ -483,6 +483,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
     }
+    this.onDialogIsNotTopMost()
   }
 
   public componentDidUpdate() {
@@ -490,7 +491,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       this.updateTitleId()
     }
 
-    this.updateDialogAvailability(this.context.isTopMost)
+    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {

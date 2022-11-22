@@ -11,7 +11,13 @@ import {
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API, IAPIRepository, IAPIRepositoryCloneInfo } from '../../lib/api'
-import { Dialog, DialogError, DialogFooter, DialogContent } from '../dialog'
+import {
+  Dialog,
+  DialogError,
+  DialogFooter,
+  DialogContent,
+  DialogStackContext,
+} from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
@@ -24,6 +30,7 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
+import memoizeOne from 'memoize-one'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -148,6 +155,17 @@ export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
+  public static contextType = DialogStackContext
+  public declare context: React.ContextType<typeof DialogStackContext>
+
+  private checkWhetherDialogIsTopMost = memoizeOne((isTopMost: boolean) => {
+    if (isTopMost) {
+      this.onDialogIsTopMost()
+    } else {
+      this.onDialogIsNotTopMost()
+    }
+  })
+
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -192,6 +210,8 @@ export class CloneRepository extends React.Component<
     if (prevProps.initialURL !== this.props.initialURL) {
       this.updateUrl(this.props.initialURL || '')
     }
+
+    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
   }
 
   public componentDidMount() {
@@ -200,7 +220,7 @@ export class CloneRepository extends React.Component<
       this.updateUrl(initialURL)
     }
 
-    window.addEventListener('focus', this.onWindowFocus)
+    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
   }
 
   private initializePath = async () => {
@@ -225,6 +245,14 @@ export class CloneRepository extends React.Component<
   }
 
   public componentWillUnmount() {
+    this.onDialogIsNotTopMost()
+  }
+
+  private onDialogIsTopMost() {
+    window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  private onDialogIsNotTopMost() {
     window.removeEventListener('focus', this.onWindowFocus)
   }
 
