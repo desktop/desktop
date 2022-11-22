@@ -281,7 +281,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    this.dialogElement.showModal()
+    this.updateDialogAvailability()
 
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
@@ -301,6 +301,20 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     this.resizeObserver.observe(this.dialogElement)
     window.addEventListener('resize', this.scheduleResizeEvent)
+  }
+
+  private updateDialogAvailability = () => {
+    if (this.dialogElement == null) {
+      return
+    }
+
+    if (this.context.isTopMost && !this.dialogElement.open) {
+      this.dialogElement.showModal()
+    }
+
+    if (!this.context.isTopMost && this.dialogElement.open) {
+      this.dialogElement.close()
+    }
   }
 
   /**
@@ -470,6 +484,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (!this.props.title && this.state.titleId) {
       this.updateTitleId()
     }
+
+    this.updateDialogAvailability()
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {

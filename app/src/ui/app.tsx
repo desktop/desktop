@@ -165,6 +165,7 @@ import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
 import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
+import { DialogStackContext, IDialogStackContext } from './dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1407,7 +1408,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <>
         {allPopups.map(popup => {
-          return <div key={popup.id}>{this.popupContent(popup)}</div>
+          const dialogStackContext: IDialogStackContext = {
+            isTopMost: this.state.currentPopup?.id === popup.id,
+          }
+          return (
+            <DialogStackContext.Provider
+              key={popup.id}
+              value={dialogStackContext}
+            >
+              {this.popupContent(popup)}
+            </DialogStackContext.Provider>
+          )
         })}
       </>
     )
