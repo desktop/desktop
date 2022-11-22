@@ -130,7 +130,7 @@ dialog {
   }
 
   &:not([open]) {
-    display: none !important;
+    display: none;
   }
 
   // The dialog embeds a fieldset as the first child of the form element
