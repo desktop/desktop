@@ -166,6 +166,7 @@ import { createCommitURL } from '../lib/commit-url'
 import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
 import { DialogStackContext, IDialogStackContext } from './dialog'
+import { enableStackedPopups } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1399,7 +1400,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private allPopupContent(): JSX.Element | null {
-    const { allPopups } = this.state
+    let { allPopups } = this.state
+
+    if (!enableStackedPopups() && this.state.currentPopup !== null) {
+      allPopups = [this.state.currentPopup]
+    }
 
     if (allPopups.length === 0) {
       return null
