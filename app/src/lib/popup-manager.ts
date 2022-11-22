@@ -47,8 +47,19 @@ export class PopupManager {
    *  otherwise returns the first non-error type popup.
    */
   public get currentPopup(): Popup | null {
+    return this.allPopups.at(-1) ?? null
+  }
+
+  /**
+   * Returns all the popups in the stack. If there are error popups, it returns
+   *  them on the top of the stack (the end of the array -> last on, last off).
+   */
+  public get allPopups(): ReadonlyArray<Popup> {
     const errorPopups = this.getPopupsOfType(PopupType.Error)
-    return errorPopups.at(-1) ?? this.popupStack.at(-1) ?? null
+    const nonErrorPopups = this.popupStack.filter(
+      p => p.type !== PopupType.Error
+    )
+    return [...nonErrorPopups, ...errorPopups]
   }
 
   /**
