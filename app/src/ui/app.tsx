@@ -1397,13 +1397,23 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onUpdateAvailableDismissed = () =>
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
-  private currentPopupContent(): JSX.Element | null {
-    const popup = this.state.currentPopup
+  private allPopupContent(): JSX.Element | null {
+    const { allPopups } = this.state
 
-    if (!popup) {
+    if (allPopups.length === 0) {
       return null
     }
 
+    return (
+      <>
+        {allPopups.map(popup => {
+          return <div key={popup.id}>{this.popupContent(popup)}</div>
+        })}
+      </>
+    )
+  }
+
+  private popupContent(popup: Popup): JSX.Element | null {
     if (popup.id === undefined) {
       // Should not be possible... but if it does we want to know about it.
       sendNonFatalException(
@@ -2461,8 +2471,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.TermsAndConditions })
   }
 
-  private renderPopup() {
-    const popupContent = this.currentPopupContent()
+  private renderPopups() {
+    const popupContent = this.allPopupContent()
 
     return (
       <TransitionGroup>
@@ -2550,7 +2560,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderToolbar()}
         {this.renderBanner()}
         {this.renderRepository()}
-        {this.renderPopup()}
+        {this.renderPopups()}
         {this.renderDragElement()}
       </div>
     )
