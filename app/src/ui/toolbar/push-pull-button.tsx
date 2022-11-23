@@ -7,12 +7,16 @@ import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
 
 import { Dispatcher } from '../dispatcher'
-import { Octicon, syncClockwise } from '../octicons'
+import { Octicon, OcticonSymbolType, syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import classNames from 'classnames'
+import { assertNever } from '../../lib/fatal-error'
+import { DropdownState } from './dropdown'
+import { Button } from '../lib/button'
+import FocusTrap from 'focus-trap-react'
 
 interface IPushPullButtonProps {
   /**
@@ -151,6 +155,32 @@ function unbornRepositoryButton() {
   )
 }
 
+function dropdownIcon(state: DropdownState): OcticonSymbolType {
+  // @TODO: Remake triangle octicon in a 12px version,
+  // right now it's scaled badly on normal dpi monitors.
+  if (state === 'open') {
+    return OcticonSymbol.triangleUp
+  } else if (state === 'closed') {
+    return OcticonSymbol.triangleDown
+  } else {
+    return assertNever(state, `Unknown dropdown state ${state}`)
+  }
+}
+
+function renderDropdownButton(): JSX.Element {
+  // if (this.props.showDisclosureArrow === false) {
+  //   return null
+  // }
+
+  // const state = this.props.dropdownState
+
+  return (
+    <Button className="toolbar-dropdown-button">
+      <Octicon symbol={dropdownIcon('closed')} className="dropdownArrow" />
+    </Button>
+  )
+}
+
 function detachedHeadButton(rebaseInProgress: boolean) {
   const description = rebaseInProgress
     ? 'Rebase in progress'
@@ -207,6 +237,7 @@ function fetchButton(
       description={renderLastFetched(lastFetched)}
       icon={syncClockwise}
       onClick={onClick}
+      auxiliaryView={renderDropdownButton()}
     >
       {renderAheadBehind(aheadBehind, numTagsToPush)}
     </ToolbarButton>
@@ -318,6 +349,38 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   }
 
   public render() {
+    return (
+      <div className="push-pull-dropdown-button">
+        {this.renderButton()}
+        <FocusTrap
+          active={true}
+          focusTrapOptions={{ clickOutsideDeactivates: true }}
+        >
+          <div className="push-pull-dropdown">
+            {this.renderDropdownItem()}
+            {this.renderDropdownItem()}
+            {this.renderDropdownItem()}
+          </div>
+        </FocusTrap>
+      </div>
+    )
+  }
+
+  public renderDropdownItem() {
+    return (
+      <Button className="push-pull-dropdown-item">
+        <Octicon symbol={forcePushIcon} />
+        <div className="text-container">
+          <div className="title">Force push to origin</div>
+          <div className="detail">
+            Overwrite any changes on the remote with your local changes.
+          </div>
+        </div>
+      </Button>
+    )
+  }
+
+  private renderButton() {
     const {
       progress,
       networkActionInProgress,

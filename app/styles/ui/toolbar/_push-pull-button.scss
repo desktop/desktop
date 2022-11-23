@@ -1,0 +1,50 @@
+.push-pull-dropdown-button {
+  display: flex;
+  flex-direction: column;
+  max-width: min-content;
+
+  .push-pull-dropdown {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1px;
+    z-index: 0;
+    border: 1px solid var(--box-border-color);
+
+    .push-pull-dropdown-item {
+      padding: 10px;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      color: var(--text-color);
+      background-color: var(--box-background-color);
+
+      &:not(:last-child) {
+        border-bottom: 1px solid var(--box-border-color);
+      }
+
+      .octicon {
+        height: 16px;
+        width: 16px;
+      }
+
+      &:hover {
+        background-color: var(--box-hover-background-color);
+        color: var(--box-hover-text-color);
+      }
+
+      .text-container {
+        display: flex;
+        flex-direction: column;
+        row-gap: 3px;
+
+        .title {
+          font-weight: 600;
+        }
+
+        .detail {
+          color: var(--text-secondary-color);
+        }
+      }
+    }
+  }
+}

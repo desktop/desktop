@@ -130,6 +130,8 @@ export interface IToolbarButtonProps {
    * the tooltip.
    */
   readonly isOverflowed?: ((target: TooltipTarget) => boolean) | boolean
+
+  readonly auxiliaryView?: JSX.Element
 }
 
 /**
@@ -227,6 +229,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
           {this.renderText()}
           {this.props.children}
         </Button>
+        {this.props.auxiliaryView}
       </div>
     )
   }
