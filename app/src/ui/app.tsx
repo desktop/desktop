@@ -437,7 +437,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.goToCommitMessage()
       case 'open-pull-request':
         return this.openPullRequest()
-      case 'start-pull-request':
+      case 'preview-pull-request':
         return this.startPullRequest()
       case 'install-cli':
         return this.props.dispatcher.installCLI()
@@ -3044,6 +3044,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           aheadBehindStore={this.props.aheadBehindStore}
           commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
           onCherryPick={this.startCherryPickWithoutBranch}
+          pullRequestSuggestedNextAction={state.pullRequestSuggestedNextAction}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

@@ -22,6 +22,12 @@ import { Dispatcher } from '../dispatcher'
 import { SuggestedActionGroup } from '../suggested-actions'
 import { PreferencesTab } from '../../models/preferences'
 import { PopupType } from '../../models/popup'
+import {
+  DropdownSuggestedAction,
+  IDropdownSuggestedActionOption,
+} from '../suggested-actions/dropdown-suggested-action'
+import { PullRequestSuggestedNextAction } from '../../models/pull-request'
+import { enableStartingPullRequests } from '../../lib/feature-flag'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -71,6 +77,9 @@ interface INoChangesProps {
    * opening the repository in an external editor.
    */
   readonly isExternalEditorAvailable: boolean
+
+  /** The user's preference of pull request suggested next action to use **/
+  readonly pullRequestSuggestedNextAction?: PullRequestSuggestedNextAction
 }
 
 /**
@@ -637,12 +646,16 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private renderCreatePullRequestAction(tip: IValidBranch) {
-    const itemId: MenuIDs = 'create-pull-request'
-    const menuItem = this.getMenuItemInfo(itemId)
+  private onPullRequestSuggestedActionChanged = (
+    action: PullRequestSuggestedNextAction
+  ) => {
+    this.props.dispatcher.setPullRequestSuggestedNextAction(action)
+  }
 
-    if (menuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
+  private renderCreatePullRequestAction(tip: IValidBranch) {
+    const createMenuItem = this.getMenuItemInfo('create-pull-request')
+    if (createMenuItem === undefined) {
+      log.error(`Could not find matching menu item for 'create-pull-request'`)
       return null
     }
 
@@ -657,17 +670,69 @@ export class NoChanges extends React.Component<
     const title = `Create a Pull Request from your current branch`
     const buttonText = `Create Pull Request`
 
+    if (!enableStartingPullRequests()) {
+      return (
+        <MenuBackedSuggestedAction
+          key="create-pr-action"
+          title={title}
+          menuItemId={'create-pull-request'}
+          description={description}
+          buttonText={buttonText}
+          discoverabilityContent={this.renderDiscoverabilityElements(
+            createMenuItem
+          )}
+          type="primary"
+          disabled={!createMenuItem.enabled}
+          onClick={this.onCreatePullRequestClicked}
+        />
+      )
+    }
+
+    const startMenuItem = this.getMenuItemInfo('preview-pull-request')
+
+    if (startMenuItem === undefined) {
+      log.error(`Could not find matching menu item for 'preview-pull-request'`)
+      return null
+    }
+
+    const createPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
+      {
+        title,
+        label: buttonText,
+        description,
+        value: PullRequestSuggestedNextAction.CreatePullRequest,
+        menuItemId: 'create-pull-request',
+        discoverabilityContent:
+          this.renderDiscoverabilityElements(createMenuItem),
+        disabled: !createMenuItem.enabled,
+        onClick: this.onCreatePullRequestClicked,
+      }
+
+    const previewPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
+      {
+        title: `Preview the Pull Request from your current branch`,
+        label: 'Preview Pull Request',
+        description: (
+          <>
+            The current branch (<Ref>{tip.branch.name}</Ref>) is already
+            published to GitHub. Preview the changes this pull request will have
+            before proposing your changes.
+          </>
+        ),
+        value: PullRequestSuggestedNextAction.PreviewPullRequest,
+        menuItemId: 'preview-pull-request',
+        discoverabilityContent:
+          this.renderDiscoverabilityElements(startMenuItem),
+        disabled: !createMenuItem.enabled,
+      }
+
     return (
-      <MenuBackedSuggestedAction
-        key="create-pr-action"
-        title={title}
-        menuItemId={itemId}
-        description={description}
-        buttonText={buttonText}
-        discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
-        type="primary"
-        disabled={!menuItem.enabled}
-        onClick={this.onCreatePullRequestClicked}
+      <DropdownSuggestedAction
+        key="pull-request-action"
+        className="pull-request-action"
+        suggestedActions={[previewPullRequestAction, createPullRequestAction]}
+        selectedActionValue={this.props.pullRequestSuggestedNextAction}
+        onSuggestedActionChanged={this.onPullRequestSuggestedActionChanged}
       />
     )
   }

@@ -11,7 +11,10 @@ import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
-import { PullRequest } from '../models/pull-request'
+import {
+  PullRequest,
+  PullRequestSuggestedNextAction,
+} from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
@@ -311,6 +314,11 @@ export interface IAppState {
    * Whether or not the user enabled high-signal notifications.
    */
   readonly notificationsEnabled: boolean
+
+  /** The users last chosen pull request suggested next action. */
+  readonly pullRequestSuggestedNextAction:
+    | PullRequestSuggestedNextAction
+    | undefined
 }
 
 export enum FoldoutType {

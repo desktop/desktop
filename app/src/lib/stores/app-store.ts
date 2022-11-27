@@ -29,7 +29,11 @@ import {
   GitHubRepository,
   hasWritePermission,
 } from '../../models/github-repository'
-import { PullRequest } from '../../models/pull-request'
+import {
+  defaultPullRequestSuggestedNextAction,
+  PullRequest,
+  PullRequestSuggestedNextAction,
+} from '../../models/pull-request'
 import {
   forkPullRequestRemoteName,
   IRemote,
@@ -383,6 +387,9 @@ const MaxInvalidFoldersToDisplay = 3
 
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const customThemeKey = 'custom-theme-key'
+const pullRequestSuggestedNextActionKey =
+  'pull-request-suggested-next-action-key'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -505,6 +512,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** A service for managing the stack of open popups */
   private popupManager = new PopupManager()
+
+  private pullRequestSuggestedNextAction:
+    | PullRequestSuggestedNextAction
+    | undefined = undefined
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -968,6 +979,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
+      pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
     }
   }
 
@@ -2083,6 +2095,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
+
+    this.pullRequestSuggestedNextAction =
+      getEnum(
+        pullRequestSuggestedNextActionKey,
+        PullRequestSuggestedNextAction
+      ) ?? defaultPullRequestSuggestedNextAction
 
     this.emitUpdateNow()
 
@@ -7519,6 +7537,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _cancelQuittingApp() {
     sendCancelQuittingSync()
+  }
+
+  public _setPullRequestSuggestedNextAction(
+    value: PullRequestSuggestedNextAction
+  ) {
+    this.pullRequestSuggestedNextAction = value
+
+    localStorage.setItem(pullRequestSuggestedNextActionKey, value)
+
+    this.emitUpdate()
   }
 }
 
