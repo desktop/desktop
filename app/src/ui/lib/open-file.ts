@@ -2,10 +2,17 @@ import { shell } from '../../lib/app-shell'
 import { Dispatcher } from '../dispatcher'
 
 export async function openFile(
-  fullPath: string,
+  fullPath: string | string[],
   dispatcher: Dispatcher
 ): Promise<void> {
-  const result = await shell.openExternal(`file://${fullPath}`)
+  let result
+  if (typeof fullPath === 'string') {
+    result = await shell.openExternal(`file://${fullPath}`)
+  } else {
+    for (const path of fullPath) {
+      result = await shell.openExternal(`file://${path}`)
+    }
+  }
 
   if (!result) {
     const error = {

@@ -38,6 +38,7 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { Commit, ICommitContext } from '../../models/commit'
+import { openFile } from '../lib/open-file'
 import {
   RebaseConflictState,
   ConflictState,
@@ -478,6 +479,14 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private onOpenItems = (paths: string[]) => {
+    const fullPaths = []
+    for (const path of paths) {
+      fullPaths.push(Path.join(this.props.repository.path, path))
+    }
+    openFile(fullPaths, this.props.dispatcher)
+  }
+
   private getRevealInFileManagerMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -589,6 +598,31 @@ export class ChangesList extends React.Component<
     if (paths.length > 1) {
       items.push(
         { type: 'separator' },
+        {
+          label: __DARWIN__
+            ? 'Open Selected Files In Default Editor'
+            : 'Open selected file in default editor',
+          action: () => {
+            const paths = selectedFiles.map(file => Path.normalize(file.path))
+            this.onOpenItems(paths)
+          },
+        },
+        {
+          label: __DARWIN__
+            ? `Open Selected Files In ${this.props.externalEditorLabel}`
+            : `Open selected files in ${this.props.externalEditorLabel}`,
+          action: () => {
+            const fullPaths = []
+            const filePaths = selectedFiles.map(file =>
+              Path.normalize(file.path)
+            )
+            for (const file of filePaths) {
+              fullPaths.push(Path.join(this.props.repository.path, file))
+            }
+            console.log(filePaths)
+            this.props.onOpenInExternalEditor(fullPaths.join(','))
+          },
+        },
         {
           label: __DARWIN__
             ? 'Include Selected Files'
