@@ -245,6 +245,28 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'Microsoft Corporation',
   },
   {
+    name: 'Visual Studio Codium (Insiders)',
+    registryKeys: [
+      // 64-bit version of VSCodium - Insiders (user)
+      CurrentUserUninstallKey('{20F79D0D-A9AC-4220-9A81-CE675FFB6B41}_is1'),
+      // 32-bit version of VSCodium - Insiders (user)
+      CurrentUserUninstallKey('{ED2E5618-3E7E-4888-BF3C-A6CCC84F586F}_is1'),
+      // ARM64 version of VSCodium - Insiders (user)
+      CurrentUserUninstallKey('{2E362F92-14EA-455A-9ABD-3E656BBBFE71}_is1'),
+      // 64-bit version of VSCodium - Insiders (system)
+      LocalMachineUninstallKey('{B2E0DDB2-120E-4D34-9F7E-8C688FF839A2}_is1'),
+      // 32-bit version of VSCodium - Insiders (system)
+      Wow64LocalMachineUninstallKey(
+        '{EF35BB36-FA7E-4BB9-B7DA-D1E09F2DA9C9}_is1'
+      ),
+      // ARM64 version of VSCodium - Insiders (system)
+      LocalMachineUninstallKey('{44721278-64C6-4513-BC45-D48E07830599}_is1'),
+    ],
+    executableShimPaths: [['bin', 'codium-insiders.cmd']],
+    displayNamePrefix: 'VSCodium (Insiders)',
+    publisher: 'VSCodium',
+  },
+  {
     name: 'Sublime Text',
     registryKeys: [
       // Sublime Text 4 (and newer?)
