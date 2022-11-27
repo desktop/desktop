@@ -28,19 +28,16 @@ export async function launchExternalEditor(
     // Desktop app is closed.
     detached: true,
   }
-
+  const pathsToOpen = fullPath.split(',')
   if (editor.usesShell) {
-    const pathsToOpen = fullPath.split(',')
     spawn(`"${editorPath}"`, pathsToOpen, { ...opts, shell: true })
   } else if (__DARWIN__) {
     // In macOS we can use `open`, which will open the right executable file
     // for us, we only need the path to the editor .app folder.
-    const pathsToOpen = fullPath.split(',')
     pathsToOpen.forEach(fullPath => {
       spawn('open', ['-a', editorPath, fullPath], opts)
     })
   } else {
-    const pathsToOpen = fullPath.split(',')
     spawn(editorPath, pathsToOpen, opts)
   }
 }
