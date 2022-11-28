@@ -56,11 +56,7 @@ export abstract class DialogStackContextConsumer<K, T> extends React.Component<
   /** The method called when the dialog is not top most in the stack. */
   protected abstract onDialogIsNotTopMost(): void
 
-  public componentDidUpdate(
-    _prevProps?: Readonly<any>,
-    _prevState?: Readonly<{}>,
-    _snapshot?: any
-  ): void {
+  public componentDidUpdate(prevProps: K): void {
     this.checkWhetherDialogIsTopMost(this.context.isTopMost)
   }
 

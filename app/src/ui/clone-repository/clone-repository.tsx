@@ -194,7 +194,7 @@ export class CloneRepository extends DialogStackContextConsumer<
       this.updateUrl(this.props.initialURL || '')
     }
 
-    super.componentDidUpdate()
+    super.componentDidUpdate(prevProps)
   }
 
   public componentDidMount() {

@@ -466,12 +466,12 @@ export class Dialog extends DialogStackContextConsumer<
     super.componentWillUnmount()
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: IDialogProps) {
     if (!this.props.title && this.state.titleId) {
       this.updateTitleId()
     }
 
-    super.componentDidUpdate()
+    super.componentDidUpdate(prevProps)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {
