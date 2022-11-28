@@ -165,7 +165,10 @@ import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
 import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
-import { DialogStackContext, IDialogStackContext } from './dialog'
+import {
+  DialogStackContext,
+  IDialogStackContext,
+} from './dialog/dialog-stack-context-consumer'
 import { enableStackedPopups } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60

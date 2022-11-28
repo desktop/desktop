@@ -22,13 +22,7 @@ import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogError,
-  DialogStackContext,
-} from '../dialog'
+import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
@@ -42,7 +36,7 @@ import { mkdir } from 'fs/promises'
 import { directoryExists } from '../../lib/directory-exists'
 import { FoldoutType } from '../../lib/app-state'
 import { join } from 'path'
-import memoizeOne from 'memoize-one'
+import { DialogStackContextConsumer } from '../dialog/dialog-stack-context-consumer'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -118,21 +112,10 @@ interface ICreateRepositoryState {
 }
 
 /** The Create New Repository component. */
-export class CreateRepository extends React.Component<
+export class CreateRepository extends DialogStackContextConsumer<
   ICreateRepositoryProps,
   ICreateRepositoryState
 > {
-  public static contextType = DialogStackContext
-  public declare context: React.ContextType<typeof DialogStackContext>
-
-  private checkWhetherDialogIsTopMost = memoizeOne((isTopMost: boolean) => {
-    if (isTopMost) {
-      this.onDialogIsTopMost()
-    } else {
-      this.onDialogIsNotTopMost()
-    }
-  })
-
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
@@ -162,12 +145,8 @@ export class CreateRepository extends React.Component<
     }
   }
 
-  public componentDidUpdate(): void {
-    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
-  }
-
   public async componentDidMount() {
-    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
+    super.componentDidMount()
 
     const gitIgnoreNames = await getGitIgnoreNames()
     const licenses = await getLicenses()
@@ -180,15 +159,11 @@ export class CreateRepository extends React.Component<
     this.updateReadMeExists(path, this.state.name)
   }
 
-  public componentWillUnmount() {
-    this.onDialogIsNotTopMost()
-  }
-
-  private onDialogIsTopMost() {
+  protected onDialogIsTopMost() {
     window.addEventListener('focus', this.onWindowFocus)
   }
 
-  private onDialogIsNotTopMost() {
+  protected onDialogIsNotTopMost() {
     window.removeEventListener('focus', this.onWindowFocus)
   }
 

@@ -11,13 +11,7 @@ import {
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API, IAPIRepository, IAPIRepositoryCloneInfo } from '../../lib/api'
-import {
-  Dialog,
-  DialogError,
-  DialogFooter,
-  DialogContent,
-  DialogStackContext,
-} from '../dialog'
+import { Dialog, DialogError, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
@@ -30,7 +24,7 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
-import memoizeOne from 'memoize-one'
+import { DialogStackContextConsumer } from '../dialog/dialog-stack-context-consumer'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -151,21 +145,10 @@ interface IGitHubTabState extends IBaseTabState {
 }
 
 /** The component for cloning a repository. */
-export class CloneRepository extends React.Component<
+export class CloneRepository extends DialogStackContextConsumer<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
-  public static contextType = DialogStackContext
-  public declare context: React.ContextType<typeof DialogStackContext>
-
-  private checkWhetherDialogIsTopMost = memoizeOne((isTopMost: boolean) => {
-    if (isTopMost) {
-      this.onDialogIsTopMost()
-    } else {
-      this.onDialogIsNotTopMost()
-    }
-  })
-
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -211,7 +194,7 @@ export class CloneRepository extends React.Component<
       this.updateUrl(this.props.initialURL || '')
     }
 
-    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
+    super.componentDidUpdate()
   }
 
   public componentDidMount() {
@@ -220,7 +203,7 @@ export class CloneRepository extends React.Component<
       this.updateUrl(initialURL)
     }
 
-    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
+    super.componentDidMount()
   }
 
   private initializePath = async () => {
@@ -244,15 +227,11 @@ export class CloneRepository extends React.Component<
     this.updateUrl(selectedTabState.url)
   }
 
-  public componentWillUnmount() {
-    this.onDialogIsNotTopMost()
-  }
-
-  private onDialogIsTopMost() {
+  protected onDialogIsTopMost() {
     window.addEventListener('focus', this.onWindowFocus)
   }
 
-  private onDialogIsNotTopMost() {
+  protected onDialogIsNotTopMost() {
     window.removeEventListener('focus', this.onWindowFocus)
   }
 
