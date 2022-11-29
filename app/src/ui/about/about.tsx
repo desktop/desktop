@@ -16,7 +16,7 @@ import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
-import memoizeOne from 'memoize-one'
+import { WindowEvents } from '../window-events'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -71,16 +71,6 @@ interface IAboutState {
 export class About extends React.Component<IAboutProps, IAboutState> {
   private updateStoreEventHandle: Disposable | null = null
 
-  private updateKeyboardSubscription = memoizeOne((isTopMost: boolean) => {
-    if (isTopMost) {
-      window.addEventListener('keydown', this.onKeyDown)
-      window.addEventListener('keyup', this.onKeyUp)
-    } else {
-      window.removeEventListener('keydown', this.onKeyDown)
-      window.removeEventListener('keyup', this.onKeyUp)
-    }
-  })
-
   public constructor(props: IAboutProps) {
     super(props)
 
@@ -106,8 +96,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
-
-    this.updateKeyboardSubscription(false)
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
@@ -296,8 +284,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   public render() {
-    this.updateKeyboardSubscription(this.props.isTopMost)
-
     const name = this.props.applicationName
     const version = this.props.applicationVersion
     const releaseNotesLink = (
@@ -344,6 +330,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           {this.renderBetaLink()}
         </DialogContent>
         <DefaultDialogFooter />
+
+        <WindowEvents
+          keyup={this.props.isTopMost ? this.onKeyUp : undefined}
+          keydown={this.props.isTopMost ? this.onKeyDown : undefined}
+        />
       </Dialog>
     )
   }
