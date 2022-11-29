@@ -24,7 +24,7 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
-import { DialogStackContextConsumer } from '../dialog/dialog-stack-context-consumer'
+import memoizeOne from 'memoize-one'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -66,6 +66,8 @@ interface ICloneRepositoryProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  readonly isTopMost: boolean
 }
 
 interface ICloneRepositoryState {
@@ -145,10 +147,16 @@ interface IGitHubTabState extends IBaseTabState {
 }
 
 /** The component for cloning a repository. */
-export class CloneRepository extends DialogStackContextConsumer<
+export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
+  private updateWindowFocusSubscription = memoizeOne((isTopMost: boolean) =>
+    isTopMost
+      ? window.addEventListener('focus', this.onWindowFocus)
+      : window.removeEventListener('focus', this.onWindowFocus)
+  )
+
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -193,8 +201,6 @@ export class CloneRepository extends DialogStackContextConsumer<
     if (prevProps.initialURL !== this.props.initialURL) {
       this.updateUrl(this.props.initialURL || '')
     }
-
-    super.componentDidUpdate(prevProps)
   }
 
   public componentDidMount() {
@@ -202,8 +208,6 @@ export class CloneRepository extends DialogStackContextConsumer<
     if (initialURL) {
       this.updateUrl(initialURL)
     }
-
-    super.componentDidMount()
   }
 
   private initializePath = async () => {
@@ -227,15 +231,13 @@ export class CloneRepository extends DialogStackContextConsumer<
     this.updateUrl(selectedTabState.url)
   }
 
-  protected onDialogIsTopMost() {
-    window.addEventListener('focus', this.onWindowFocus)
-  }
-
-  protected onDialogIsNotTopMost() {
-    window.removeEventListener('focus', this.onWindowFocus)
+  public componentWillUnmount() {
+    this.updateWindowFocusSubscription(false)
   }
 
   public render() {
+    this.updateWindowFocusSubscription(this.props.isTopMost)
+
     const { error } = this.getSelectedTabState()
     return (
       <Dialog

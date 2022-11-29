@@ -1,4 +1,3 @@
-import memoizeOne from 'memoize-one'
 import * as React from 'react'
 
 export interface IDialogStackContext {
@@ -25,46 +24,3 @@ export interface IDialogStackContext {
 export const DialogStackContext = React.createContext<IDialogStackContext>({
   isTopMost: false,
 })
-
-/**
- * A base component for any dialogs that consume the dialog stack context.
- *
- * This houses logic to respond to when the `isTopMost` changes on the
- * `DialogStackContext` by providing two abstract methods of `onDialogIsTopMost`
- * and `onDialogIsNotTopMost` and implementing a `checkWhetherDialogIsTopMost
- * method that called via the components implementations of React component
- * lifecycle methods.
- */
-export abstract class DialogStackContextConsumer<K, T> extends React.Component<
-  K,
-  T
-> {
-  public static contextType = DialogStackContext
-  public declare context: React.ContextType<typeof DialogStackContext>
-
-  protected checkWhetherDialogIsTopMost = memoizeOne((isTopMost: boolean) => {
-    if (isTopMost) {
-      this.onDialogIsTopMost()
-    } else {
-      this.onDialogIsNotTopMost()
-    }
-  })
-
-  /** The method called when the dialog is the top most in the stack. */
-  protected abstract onDialogIsTopMost(): void
-
-  /** The method called when the dialog is not top most in the stack. */
-  protected abstract onDialogIsNotTopMost(): void
-
-  public componentDidUpdate(prevProps: K): void {
-    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
-  }
-
-  public componentDidMount() {
-    this.checkWhetherDialogIsTopMost(this.context.isTopMost)
-  }
-
-  public componentWillUnmount() {
-    this.onDialogIsNotTopMost()
-  }
-}

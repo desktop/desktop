@@ -1602,27 +1602,37 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CreateRepository:
         return (
-          <CreateRepository
-            key="create-repository"
-            onDismissed={onPopupDismissedFn}
-            dispatcher={this.props.dispatcher}
-            initialPath={popup.path}
-          />
+          <DialogStackContext.Consumer>
+            {({ isTopMost }) => (
+              <CreateRepository
+                key="create-repository"
+                onDismissed={onPopupDismissedFn}
+                dispatcher={this.props.dispatcher}
+                initialPath={popup.path}
+                isTopMost={isTopMost}
+              />
+            )}
+          </DialogStackContext.Consumer>
         )
       case PopupType.CloneRepository:
         return (
-          <CloneRepository
-            key="clone-repository"
-            dotComAccount={this.getDotComAccount()}
-            enterpriseAccount={this.getEnterpriseAccount()}
-            initialURL={popup.initialURL}
-            onDismissed={onPopupDismissedFn}
-            dispatcher={this.props.dispatcher}
-            selectedTab={this.state.selectedCloneRepositoryTab}
-            onTabSelected={this.onCloneRepositoriesTabSelected}
-            apiRepositories={this.state.apiRepositories}
-            onRefreshRepositories={this.onRefreshRepositories}
-          />
+          <DialogStackContext.Consumer>
+            {({ isTopMost }) => (
+              <CloneRepository
+                key="clone-repository"
+                dotComAccount={this.getDotComAccount()}
+                enterpriseAccount={this.getEnterpriseAccount()}
+                initialURL={popup.initialURL}
+                onDismissed={onPopupDismissedFn}
+                dispatcher={this.props.dispatcher}
+                selectedTab={this.state.selectedCloneRepositoryTab}
+                onTabSelected={this.onCloneRepositoriesTabSelected}
+                apiRepositories={this.state.apiRepositories}
+                onRefreshRepositories={this.onRefreshRepositories}
+                isTopMost={isTopMost}
+              />
+            )}
+          </DialogStackContext.Consumer>
         )
       case PopupType.CreateBranch: {
         const state = this.props.repositoryStateManager.get(popup.repository)
@@ -1672,17 +1682,24 @@ export class App extends React.Component<IAppProps, IAppState> {
         const version = __DEV__ ? __SHA__.substring(0, 10) : getVersion()
 
         return (
-          <About
-            key="about"
-            onDismissed={onPopupDismissedFn}
-            applicationName={getName()}
-            applicationVersion={version}
-            applicationArchitecture={process.arch}
-            onCheckForUpdates={this.onCheckForUpdates}
-            onCheckForNonStaggeredUpdates={this.onCheckForNonStaggeredUpdates}
-            onShowAcknowledgements={this.showAcknowledgements}
-            onShowTermsAndConditions={this.showTermsAndConditions}
-          />
+          <DialogStackContext.Consumer>
+            {({ isTopMost }) => (
+              <About
+                key="about"
+                onDismissed={onPopupDismissedFn}
+                applicationName={getName()}
+                applicationVersion={version}
+                applicationArchitecture={process.arch}
+                onCheckForUpdates={this.onCheckForUpdates}
+                onCheckForNonStaggeredUpdates={
+                  this.onCheckForNonStaggeredUpdates
+                }
+                onShowAcknowledgements={this.showAcknowledgements}
+                onShowTermsAndConditions={this.showTermsAndConditions}
+                isTopMost={isTopMost}
+              />
+            )}
+          </DialogStackContext.Consumer>
         )
       case PopupType.PublishRepository:
         return (

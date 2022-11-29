@@ -36,7 +36,7 @@ import { mkdir } from 'fs/promises'
 import { directoryExists } from '../../lib/directory-exists'
 import { FoldoutType } from '../../lib/app-state'
 import { join } from 'path'
-import { DialogStackContextConsumer } from '../dialog/dialog-stack-context-consumer'
+import memoizeOne from 'memoize-one'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -72,6 +72,8 @@ interface ICreateRepositoryProps {
 
   /** Prefills path input so user doesn't have to. */
   readonly initialPath?: string
+
+  readonly isTopMost: boolean
 }
 
 interface ICreateRepositoryState {
@@ -112,10 +114,16 @@ interface ICreateRepositoryState {
 }
 
 /** The Create New Repository component. */
-export class CreateRepository extends DialogStackContextConsumer<
+export class CreateRepository extends React.Component<
   ICreateRepositoryProps,
   ICreateRepositoryState
 > {
+  private updateWindowFocusSubscription = memoizeOne((isTopMost: boolean) =>
+    isTopMost
+      ? window.addEventListener('focus', this.onWindowFocus)
+      : window.removeEventListener('focus', this.onWindowFocus)
+  )
+
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
@@ -146,8 +154,6 @@ export class CreateRepository extends DialogStackContextConsumer<
   }
 
   public async componentDidMount() {
-    super.componentDidMount()
-
     const gitIgnoreNames = await getGitIgnoreNames()
     const licenses = await getLicenses()
 
@@ -159,12 +165,8 @@ export class CreateRepository extends DialogStackContextConsumer<
     this.updateReadMeExists(path, this.state.name)
   }
 
-  protected onDialogIsTopMost() {
-    window.addEventListener('focus', this.onWindowFocus)
-  }
-
-  protected onDialogIsNotTopMost() {
-    window.removeEventListener('focus', this.onWindowFocus)
+  public componentWillUnmount() {
+    this.updateWindowFocusSubscription(false)
   }
 
   private initializePath = async () => {
@@ -569,6 +571,8 @@ export class CreateRepository extends DialogStackContextConsumer<
   }
 
   public render() {
+    this.updateWindowFocusSubscription(this.props.isTopMost)
+
     const disabled =
       this.state.path === null ||
       this.state.path.length === 0 ||

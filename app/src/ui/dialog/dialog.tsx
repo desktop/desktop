@@ -4,7 +4,7 @@ import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 import memoizeOne from 'memoize-one'
-import { DialogStackContextConsumer } from './dialog-stack-context-consumer'
+import { DialogStackContext } from './dialog-stack-context-consumer'
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -139,29 +139,19 @@ interface IDialogState {
  * underlying elements. It's not possible to use the tab key to move focus
  * out of the dialog without first dismissing it.
  */
-export class Dialog extends DialogStackContextConsumer<
-  IDialogProps,
-  IDialogState
-> {
+export class Dialog extends React.Component<IDialogProps, IDialogState> {
+  public static contextType = DialogStackContext
+  public declare context: React.ContextType<typeof DialogStackContext>
+
   private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
   private disableClickDismissalTimeoutId: number | null = null
   private disableClickDismissal = false
 
-  protected checkWhetherDialogIsTopMost = memoizeOne((isTopMost: boolean) => {
-    if (this.dialogElement == null) {
-      return
-    }
-
-    if (isTopMost && !this.dialogElement.open) {
-      this.onDialogIsTopMost()
-    }
-
-    if (!isTopMost && this.dialogElement.open) {
-      this.onDialogIsNotTopMost()
-    }
-  })
+  protected updateDialogIsTopMost = memoizeOne((isTopMost: boolean) =>
+    isTopMost ? this.onDialogIsTopMost() : this.onDialogIsNotTopMost()
+  )
 
   /**
    * Resize observer used for tracking width changes and
@@ -268,7 +258,7 @@ export class Dialog extends DialogStackContextConsumer<
   }
 
   protected onDialogIsTopMost() {
-    if (this.dialogElement == null) {
+    if (this.dialogElement == null || this.dialogElement.open) {
       return
     }
 
@@ -463,7 +453,7 @@ export class Dialog extends DialogStackContextConsumer<
       releaseUniqueId(this.state.titleId)
     }
 
-    super.componentWillUnmount()
+    this.updateDialogIsTopMost(false)
   }
 
   public componentDidUpdate(prevProps: IDialogProps) {
@@ -471,7 +461,7 @@ export class Dialog extends DialogStackContextConsumer<
       this.updateTitleId()
     }
 
-    super.componentDidUpdate(prevProps)
+    this.updateDialogIsTopMost(this.context.isTopMost)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {
