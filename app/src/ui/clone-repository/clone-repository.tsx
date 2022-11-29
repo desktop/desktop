@@ -24,7 +24,6 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
-import memoizeOne from 'memoize-one'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -151,12 +150,6 @@ export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
-  private updateWindowFocusSubscription = memoizeOne((isTopMost: boolean) =>
-    isTopMost
-      ? window.addEventListener('focus', this.onWindowFocus)
-      : window.removeEventListener('focus', this.onWindowFocus)
-  )
-
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -208,6 +201,8 @@ export class CloneRepository extends React.Component<
     if (initialURL) {
       this.updateUrl(initialURL)
     }
+
+    window.addEventListener('focus', this.onWindowFocus)
   }
 
   private initializePath = async () => {
@@ -232,12 +227,10 @@ export class CloneRepository extends React.Component<
   }
 
   public componentWillUnmount() {
-    this.updateWindowFocusSubscription(false)
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   public render() {
-    this.updateWindowFocusSubscription(this.props.isTopMost)
-
     const { error } = this.getSelectedTabState()
     return (
       <Dialog
