@@ -24,7 +24,7 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
-import { DialogStackContextConsumer } from '../dialog/dialog-stack-context-consumer'
+import { IsTopMostService } from '../dialog/is-top-most-service'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -66,6 +66,9 @@ interface ICloneRepositoryProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /** Whether the dialog is the top most in the dialog stack */
+  readonly isTopMost: boolean
 }
 
 interface ICloneRepositoryState {
@@ -145,10 +148,20 @@ interface IGitHubTabState extends IBaseTabState {
 }
 
 /** The component for cloning a repository. */
-export class CloneRepository extends DialogStackContextConsumer<
+export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
+  private isTopMostService: IsTopMostService = new IsTopMostService(
+    () => {
+      this.validatePath()
+      window.addEventListener('focus', this.onWindowFocus)
+    },
+    () => {
+      window.removeEventListener('focus', this.onWindowFocus)
+    }
+  )
+
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -194,7 +207,7 @@ export class CloneRepository extends DialogStackContextConsumer<
       this.updateUrl(this.props.initialURL || '')
     }
 
-    super.componentDidUpdate(prevProps)
+    this.isTopMostService.check(this.props.isTopMost)
   }
 
   public componentDidMount() {
@@ -203,7 +216,11 @@ export class CloneRepository extends DialogStackContextConsumer<
       this.updateUrl(initialURL)
     }
 
-    super.componentDidMount()
+    this.isTopMostService.check(this.props.isTopMost)
+  }
+
+  public componentWillUnmount(): void {
+    this.isTopMostService.unmount()
   }
 
   private initializePath = async () => {
@@ -225,14 +242,6 @@ export class CloneRepository extends DialogStackContextConsumer<
     // initial path
     const selectedTabState = this.getSelectedTabState()
     this.updateUrl(selectedTabState.url)
-  }
-
-  protected onDialogIsTopMost() {
-    window.addEventListener('focus', this.onWindowFocus)
-  }
-
-  protected onDialogIsNotTopMost() {
-    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   public render() {

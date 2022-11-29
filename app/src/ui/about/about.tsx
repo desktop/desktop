@@ -16,7 +16,7 @@ import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
-import { DialogStackContextConsumer } from '../dialog/dialog-stack-context-consumer'
+import { IsTopMostService } from '../dialog/is-top-most-service'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -55,6 +55,9 @@ interface IAboutProps {
 
   /** A function to call when the user wants to see Terms and Conditions. */
   readonly onShowTermsAndConditions: () => void
+
+  /** Whether the dialog is the top most in the dialog stack */
+  readonly isTopMost: boolean
 }
 
 interface IAboutState {
@@ -66,11 +69,18 @@ interface IAboutState {
  * A dialog that presents information about the
  * running application such as name and version.
  */
-export class About extends DialogStackContextConsumer<
-  IAboutProps,
-  IAboutState
-> {
+export class About extends React.Component<IAboutProps, IAboutState> {
   private updateStoreEventHandle: Disposable | null = null
+  private isTopMostService: IsTopMostService = new IsTopMostService(
+    () => {
+      window.addEventListener('keydown', this.onKeyDown)
+      window.addEventListener('keyup', this.onKeyUp)
+    },
+    () => {
+      window.removeEventListener('keydown', this.onKeyDown)
+      window.removeEventListener('keyup', this.onKeyUp)
+    }
+  )
 
   public constructor(props: IAboutProps) {
     super(props)
@@ -90,7 +100,11 @@ export class About extends DialogStackContextConsumer<
       this.onUpdateStateChanged
     )
     this.setState({ updateState: updateStore.state })
-    super.componentDidMount()
+    this.isTopMostService.check(this.props.isTopMost)
+  }
+
+  public componentDidUpdate(): void {
+    this.isTopMostService.check(this.props.isTopMost)
   }
 
   public componentWillUnmount() {
@@ -98,17 +112,7 @@ export class About extends DialogStackContextConsumer<
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
-    super.componentWillUnmount()
-  }
-
-  protected onDialogIsTopMost() {
-    window.addEventListener('keydown', this.onKeyDown)
-    window.addEventListener('keyup', this.onKeyUp)
-  }
-
-  protected onDialogIsNotTopMost() {
-    window.removeEventListener('keydown', this.onKeyDown)
-    window.removeEventListener('keyup', this.onKeyUp)
+    this.isTopMostService.unmount()
   }
 
   private onKeyDown = (event: KeyboardEvent) => {

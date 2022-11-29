@@ -165,11 +165,8 @@ import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
 import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
-import {
-  DialogStackContext,
-  IDialogStackContext,
-} from './dialog/dialog-stack-context-consumer'
 import { enableStackedPopups } from '../lib/feature-flag'
+import { DialogStackContext } from './dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1416,15 +1413,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <>
         {allPopups.map(popup => {
-          const dialogStackContext: IDialogStackContext = {
-            isTopMost: this.state.currentPopup?.id === popup.id,
-          }
+          const isTopMost = this.state.currentPopup?.id === popup.id
           return (
             <DialogStackContext.Provider
               key={popup.id}
-              value={dialogStackContext}
+              value={{
+                isTopMost,
+              }}
             >
-              {this.popupContent(popup)}
+              {this.popupContent(popup, isTopMost)}
             </DialogStackContext.Provider>
           )
         })}
@@ -1432,7 +1429,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private popupContent(popup: Popup): JSX.Element | null {
+  private popupContent(popup: Popup, isTopMost: boolean): JSX.Element | null {
     if (popup.id === undefined) {
       // Should not be possible... but if it does we want to know about it.
       sendNonFatalException(
@@ -1607,6 +1604,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             initialPath={popup.path}
+            isTopMost={isTopMost}
           />
         )
       case PopupType.CloneRepository:
@@ -1622,6 +1620,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onTabSelected={this.onCloneRepositoriesTabSelected}
             apiRepositories={this.state.apiRepositories}
             onRefreshRepositories={this.onRefreshRepositories}
+            isTopMost={isTopMost}
           />
         )
       case PopupType.CreateBranch: {
@@ -1682,6 +1681,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onCheckForNonStaggeredUpdates={this.onCheckForNonStaggeredUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
+            isTopMost={isTopMost}
           />
         )
       case PopupType.PublishRepository:

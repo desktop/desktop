@@ -3,8 +3,32 @@ import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
-import memoizeOne from 'memoize-one'
-import { DialogStackContextConsumer } from './dialog-stack-context-consumer'
+import { IsTopMostService } from './is-top-most-service'
+
+export interface IDialogStackContext {
+  /** Whether or not this dialog is the top most one in the stack to be
+   * interacted with by the user. This will also determine if event listeners
+   * will be active or not. */
+  isTopMost: boolean
+}
+
+/**
+ * The DialogStackContext is used to communicate between the `Dialog` and the
+ * `App` information that is mostly unique to the `Dialog` component such as
+ * whether it is at the top of the popup stack. Some, but not the vast majority,
+ * custom popup components in between may also utilize this to enable and
+ * disable event listeners in response to changes in whether it is the top most
+ * popup.
+ *
+ * NB *** React.Context is not the preferred method of passing data to child
+ * components for this code base. We are choosing to use it here as implementing
+ * prop drilling would be extremely tedious and would lead to adding  `Dialog`
+ * props on 60+ components that would not otherwise use them. ***
+ *
+ */
+export const DialogStackContext = React.createContext<IDialogStackContext>({
+  isTopMost: false,
+})
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -139,29 +163,24 @@ interface IDialogState {
  * underlying elements. It's not possible to use the tab key to move focus
  * out of the dialog without first dismissing it.
  */
-export class Dialog extends DialogStackContextConsumer<
-  IDialogProps,
-  IDialogState
-> {
+export class Dialog extends React.Component<IDialogProps, IDialogState> {
+  public static contextType = DialogStackContext
+  public declare context: React.ContextType<typeof DialogStackContext>
+
+  private isTopMostService: IsTopMostService = new IsTopMostService(
+    () => {
+      this.onDialogIsTopMost()
+    },
+    () => {
+      this.onDialogIsNotTopMost()
+    }
+  )
+
   private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
   private disableClickDismissalTimeoutId: number | null = null
   private disableClickDismissal = false
-
-  protected checkWhetherDialogIsTopMost = memoizeOne((isTopMost: boolean) => {
-    if (this.dialogElement == null) {
-      return
-    }
-
-    if (isTopMost && !this.dialogElement.open) {
-      this.onDialogIsTopMost()
-    }
-
-    if (!isTopMost && this.dialogElement.open) {
-      this.onDialogIsNotTopMost()
-    }
-  })
 
   /**
    * Resize observer used for tracking width changes and
@@ -267,12 +286,18 @@ export class Dialog extends DialogStackContextConsumer<
     this.updateTitleId()
   }
 
+  public componentDidMount() {
+    this.isTopMostService.check(this.context.isTopMost)
+  }
+
   protected onDialogIsTopMost() {
     if (this.dialogElement == null) {
       return
     }
 
-    this.dialogElement.showModal()
+    if (!this.dialogElement.open) {
+      this.dialogElement.showModal()
+    }
 
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
@@ -295,9 +320,8 @@ export class Dialog extends DialogStackContextConsumer<
   }
 
   protected onDialogIsNotTopMost() {
-    if (this.dialogElement !== null) {
+    if (this.dialogElement !== null && this.dialogElement.open) {
       this.dialogElement?.close()
-      return
     }
 
     this.clearDismissGraceTimeout()
@@ -463,7 +487,7 @@ export class Dialog extends DialogStackContextConsumer<
       releaseUniqueId(this.state.titleId)
     }
 
-    super.componentWillUnmount()
+    this.isTopMostService.unmount()
   }
 
   public componentDidUpdate(prevProps: IDialogProps) {
@@ -471,7 +495,7 @@ export class Dialog extends DialogStackContextConsumer<
       this.updateTitleId()
     }
 
-    super.componentDidUpdate(prevProps)
+    this.isTopMostService.check(this.context.isTopMost)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {

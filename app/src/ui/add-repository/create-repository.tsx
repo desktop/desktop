@@ -36,7 +36,7 @@ import { mkdir } from 'fs/promises'
 import { directoryExists } from '../../lib/directory-exists'
 import { FoldoutType } from '../../lib/app-state'
 import { join } from 'path'
-import { DialogStackContextConsumer } from '../dialog/dialog-stack-context-consumer'
+import { IsTopMostService } from '../dialog/is-top-most-service'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -72,6 +72,9 @@ interface ICreateRepositoryProps {
 
   /** Prefills path input so user doesn't have to. */
   readonly initialPath?: string
+
+  /** Whether the dialog is the top most in the dialog stack */
+  readonly isTopMost: boolean
 }
 
 interface ICreateRepositoryState {
@@ -112,10 +115,20 @@ interface ICreateRepositoryState {
 }
 
 /** The Create New Repository component. */
-export class CreateRepository extends DialogStackContextConsumer<
+export class CreateRepository extends React.Component<
   ICreateRepositoryProps,
   ICreateRepositoryState
 > {
+  private isTopMostService: IsTopMostService = new IsTopMostService(
+    () => {
+      this.updateReadMeExists(this.state.path, this.state.name)
+      window.addEventListener('focus', this.onWindowFocus)
+    },
+    () => {
+      window.removeEventListener('focus', this.onWindowFocus)
+    }
+  )
+
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
@@ -146,7 +159,7 @@ export class CreateRepository extends DialogStackContextConsumer<
   }
 
   public async componentDidMount() {
-    super.componentDidMount()
+    this.isTopMostService.check(this.props.isTopMost)
 
     const gitIgnoreNames = await getGitIgnoreNames()
     const licenses = await getLicenses()
@@ -159,12 +172,12 @@ export class CreateRepository extends DialogStackContextConsumer<
     this.updateReadMeExists(path, this.state.name)
   }
 
-  protected onDialogIsTopMost() {
-    window.addEventListener('focus', this.onWindowFocus)
+  public componentDidUpdate(): void {
+    this.isTopMostService.check(this.props.isTopMost)
   }
 
-  protected onDialogIsNotTopMost() {
-    window.removeEventListener('focus', this.onWindowFocus)
+  public componentWillUnmount(): void {
+    this.isTopMostService.unmount()
   }
 
   private initializePath = async () => {
