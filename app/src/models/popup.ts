@@ -380,6 +380,7 @@ export type PopupDetail =
       repository: Repository
       nonLocalCommitSHA: string | null
       showSideBySideDiff: boolean
+      currentBranchHasPullRequest: boolean
     }
   | {
       type: PopupType.Error

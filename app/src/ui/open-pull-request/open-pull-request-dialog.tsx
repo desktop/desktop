@@ -62,6 +62,9 @@ interface IOpenPullRequestDialogProps {
    * it's SHA  */
   readonly nonLocalCommitSHA: string | null
 
+  /** Whether the current branch already has a pull request*/
+  readonly currentBranchHasPullRequest: boolean
+
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
 }
@@ -69,10 +72,18 @@ interface IOpenPullRequestDialogProps {
 /** The component for start a pull request. */
 export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialogProps> {
   private onCreatePullRequest = () => {
-    this.props.dispatcher.createPullRequest(this.props.repository)
-    // TODO: create pr from dialog pr stat?
-    this.props.dispatcher.recordCreatePullRequest()
-    this.props.onDismissed()
+    const { currentBranchHasPullRequest, dispatcher, repository, onDismissed } =
+      this.props
+
+    if (currentBranchHasPullRequest) {
+      dispatcher.showPullRequest(repository)
+    } else {
+      dispatcher.createPullRequest(repository)
+      // TODO: create pr from dialog pr stat?
+      dispatcher.recordCreatePullRequest()
+    }
+
+    onDismissed()
   }
 
   private onBranchChange = (branch: Branch) => {
@@ -180,21 +191,34 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderFooter() {
-    const { mergeStatus, commitSHAs } = this.props.pullRequestState
-    const gitHubRepository = this.props.repository.gitHubRepository
+    const { currentBranchHasPullRequest, pullRequestState, repository } =
+      this.props
+    const { mergeStatus, commitSHAs } = pullRequestState
+    const gitHubRepository = repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
-    const buttonTitle = `Create pull request on GitHub${
+
+    const viewCreate = currentBranchHasPullRequest ? 'View' : ' Create'
+    const buttonTitle = `${viewCreate} pull request on GitHub${
       isEnterprise ? ' Enterprise' : ''
     }.`
+
+    const okButton = (
+      <>
+        {currentBranchHasPullRequest && (
+          <Octicon symbol={OcticonSymbol.linkExternal} />
+        )}
+        {__DARWIN__
+          ? `${viewCreate} Pull Request`
+          : `${viewCreate} pull request`}
+      </>
+    )
 
     return (
       <DialogFooter>
         <PullRequestMergeStatus mergeStatus={mergeStatus} />
         <OkCancelButtonGroup
-          okButtonText={
-            __DARWIN__ ? 'Create Pull Request' : 'Create pull request'
-          }
+          okButtonText={okButton}
           okButtonTitle={buttonTitle}
           cancelButtonText="Cancel"
           okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
