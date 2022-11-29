@@ -1,0 +1,28 @@
+class Solution {
+    int len=0;
+    public int minCost(int n, int[] cuts) {
+        len=n;
+       Arrays.sort(cuts);
+        int l=cuts.length;
+        int dp[][]=new int[l+1][l+1];
+        return helper(n,0,cuts.length,cuts,dp);
+    }
+    public int helper(int n,int si,int ei,int cuts[],int dp[][] ){
+        int ans=(int)1e8;
+        if(si>=ei) return 0;
+        if(dp[si][ei]!=0) return dp[si][ei];
+        for(int cut=si;cut<ei;cut++){
+          int le=si==0?0:cuts[si-1];
+          int re=ei==cuts.length?len:cuts[ei];
+
+          int cost=re-le;
+
+          int left=helper(le,si,cut,cuts,dp);
+          int right=helper(re,cut+1,ei,cuts,dp);
+
+          int oans=left+cost+right;
+          ans=Math.min(oans,ans);
+        }
+        return dp[si][ei]=ans;
+    }
+}
