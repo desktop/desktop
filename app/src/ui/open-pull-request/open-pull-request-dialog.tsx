@@ -69,7 +69,8 @@ interface IOpenPullRequestDialogProps {
 /** The component for start a pull request. */
 export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialogProps> {
   private onCreatePullRequest = () => {
-    this.props.dispatcher.createPullRequest(this.props.repository)
+    const { baseBranch } = this.props.pullRequestState
+    this.props.dispatcher.createPullRequest(this.props.repository, baseBranch)
     // TODO: create pr from dialog pr stat?
     this.props.dispatcher.recordCreatePullRequest()
   }
