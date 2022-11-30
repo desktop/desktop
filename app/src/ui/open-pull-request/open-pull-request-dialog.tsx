@@ -13,6 +13,8 @@ import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
+import { CloningRepository } from '../../models/cloning-repository'
+import { Button } from '../lib/button'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -194,6 +196,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     const { currentBranchHasPullRequest, pullRequestState, repository } =
       this.props
     const { mergeStatus, commitSHAs } = pullRequestState
+    const isHostedOnGitHub = isRepositoryHostedOnGitHub(repository)
     const gitHubRepository = repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
@@ -217,12 +220,15 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     return (
       <DialogFooter>
         <PullRequestMergeStatus mergeStatus={mergeStatus} />
-        <OkCancelButtonGroup
-          okButtonText={okButton}
-          okButtonTitle={buttonTitle}
-          cancelButtonText="Cancel"
-          okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
-        />
+        {isHostedOnGitHub && (
+          <OkCancelButtonGroup
+            okButtonText={okButton}
+            okButtonTitle={buttonTitle}
+            cancelButtonText="Cancel"
+            okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
+          />
+        )}
+        {!isHostedOnGitHub && <Button type="reset">Close</Button>}
       </DialogFooter>
     )
   }
@@ -240,4 +246,18 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       </Dialog>
     )
   }
+}
+
+function isRepositoryHostedOnGitHub(
+  repository: Repository | CloningRepository
+) {
+  if (
+    !repository ||
+    repository instanceof CloningRepository ||
+    !repository.gitHubRepository
+  ) {
+    return false
+  }
+
+  return repository.gitHubRepository.htmlURL !== null
 }
