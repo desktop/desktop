@@ -535,7 +535,7 @@ export class GitStore extends BaseStore {
    * using the available API data, remote information or branch
    * name conventions.
    */
-  private async resolveDefaultBranch(): Promise<string> {
+  public async resolveDefaultBranch(): Promise<string> {
     if (this.currentRemote !== null) {
       // the Git server should use [remote]/HEAD to advertise
       // it's default branch, so see if it exists and matches
