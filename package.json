@@ -155,7 +155,7 @@
     "@types/webpack-hot-middleware": "^2.25.6",
     "@types/webpack-merge": "^5.0.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "19.0.0",
+    "electron": "19.1.8",
     "electron-builder": "^22.7.0",
     "electron-packager": "^15.1.0",
     "electron-winstaller": "^5.0.0",
