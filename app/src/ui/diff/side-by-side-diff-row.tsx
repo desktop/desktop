@@ -436,6 +436,12 @@ export class SideBySideDiffRow extends React.Component<
       return null
     }
 
+    // In unified mode, the hunk handle left position depends on the line gutter
+    // width.
+    const style: React.CSSProperties = this.props.showSideBySideDiff
+      ? {}
+      : { left: this.lineGutterWidth }
+
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
@@ -444,6 +450,7 @@ export class SideBySideDiffRow extends React.Component<
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
         onContextMenu={this.onContextMenuHunk}
+        style={style}
       ></div>
     )
   }
