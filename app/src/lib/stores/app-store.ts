@@ -7377,6 +7377,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
+    if (this.popupManager.areTherePopupsOfType(PopupType.StartPullRequest)) {
+      return
+    }
+
     const { allBranches, recentBranches, defaultBranch } = branchesState
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
