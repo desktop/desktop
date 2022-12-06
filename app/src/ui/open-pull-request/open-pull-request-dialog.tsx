@@ -3,7 +3,10 @@ import { IConstrainedValue, IPullRequestState } from '../../lib/app-state'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { Branch } from '../../models/branch'
 import { ImageDiffType } from '../../models/diff'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
@@ -13,7 +16,6 @@ import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
-import { CloningRepository } from '../../models/cloning-repository'
 import { Button } from '../lib/button'
 
 interface IOpenPullRequestDialogProps {
@@ -196,7 +198,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     const { currentBranchHasPullRequest, pullRequestState, repository } =
       this.props
     const { mergeStatus, commitSHAs } = pullRequestState
-    const isHostedOnGitHub = isRepositoryHostedOnGitHub(repository)
+    const isHostedOnGitHub = isRepositoryWithGitHubRepository(repository)
     const gitHubRepository = repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
@@ -246,18 +248,4 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       </Dialog>
     )
   }
-}
-
-function isRepositoryHostedOnGitHub(
-  repository: Repository | CloningRepository
-) {
-  if (
-    !repository ||
-    repository instanceof CloningRepository ||
-    !repository.gitHubRepository
-  ) {
-    return false
-  }
-
-  return repository.gitHubRepository.htmlURL !== null
 }
