@@ -7381,6 +7381,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    this.statsStore.recordPreviewedPullRequest()
+
     const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
       branchesState
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =

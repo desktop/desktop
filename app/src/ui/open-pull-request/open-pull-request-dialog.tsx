@@ -83,8 +83,8 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       dispatcher.showPullRequest(repository)
     } else {
       dispatcher.createPullRequest(repository)
-      // TODO: create pr from dialog pr stat?
       dispatcher.recordCreatePullRequest()
+      dispatcher.recordCreatePullRequestFromPreview()
     }
 
     onDismissed()

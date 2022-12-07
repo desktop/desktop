@@ -2457,6 +2457,10 @@ export class Dispatcher {
     return this.statsStore.recordCreatePullRequest()
   }
 
+  public recordCreatePullRequestFromPreview() {
+    return this.statsStore.recordCreatePullRequestFromPreview()
+  }
+
   public recordWelcomeWizardInitiated() {
     return this.statsStore.recordWelcomeWizardInitiated()
   }
