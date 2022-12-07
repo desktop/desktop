@@ -7392,7 +7392,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const { allBranches, recentBranches, defaultBranch } = branchesState
+    if (this.popupManager.areTherePopupsOfType(PopupType.StartPullRequest)) {
+      return
+    }
+
+    const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
+      branchesState
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
@@ -7410,6 +7415,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ? commitSHAs[0]
           : null,
       showSideBySideDiff,
+      currentBranchHasPullRequest: currentPullRequest !== null,
     })
   }
 
