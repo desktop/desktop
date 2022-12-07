@@ -7412,7 +7412,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { branchesState, localCommitSHAs } =
       this.repositoryStateCache.get(repository)
-    const { allBranches, recentBranches, defaultBranch } = branchesState
+    const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
+      branchesState
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
@@ -7432,6 +7433,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       externalEditorLabel: selectedExternalEditor ?? undefined,
       nonLocalCommitSHA,
       showSideBySideDiff,
+      currentBranchHasPullRequest: currentPullRequest !== null,
     })
   }
 

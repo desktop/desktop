@@ -40,6 +40,12 @@
 
   .dialog-footer {
     flex-direction: row;
+
+    .button-group {
+      .octicon {
+        margin-right: var(--spacing-half);
+      }
+    }
   }
 
   .pull-request-merge-status {
