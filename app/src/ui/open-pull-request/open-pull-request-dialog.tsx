@@ -3,10 +3,7 @@ import { IConstrainedValue, IPullRequestState } from '../../lib/app-state'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { Branch } from '../../models/branch'
 import { ImageDiffType } from '../../models/diff'
-import {
-  isRepositoryWithGitHubRepository,
-  Repository,
-} from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
@@ -16,7 +13,6 @@ import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
-import { Button } from '../lib/button'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -38,14 +34,20 @@ interface IOpenPullRequestDialogProps {
   readonly defaultBranch: Branch | null
 
   /**
-   * See IBranchesState.allBranches
+   * Branches in the repo with the repo's default remote
+   *
+   * We only want branches that are also on dotcom such that, when we ask a user
+   * to create a pull request, the base branch also exists on dotcom.
    */
-  readonly allBranches: ReadonlyArray<Branch>
+  readonly prBaseBranches: ReadonlyArray<Branch>
 
   /**
-   * See IBranchesState.recentBranches
+   * Recent branches with the repo's default remote
+   *
+   * We only want branches that are also on dotcom such that, when we ask a user
+   * to create a pull request, the base branch also exists on dotcom.
    */
-  readonly recentBranches: ReadonlyArray<Branch>
+  readonly prRecentBaseBranches: ReadonlyArray<Branch>
 
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
@@ -100,8 +102,8 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       currentBranch,
       pullRequestState,
       defaultBranch,
-      allBranches,
-      recentBranches,
+      prBaseBranches,
+      prRecentBaseBranches,
     } = this.props
     const { baseBranch, commitSHAs } = pullRequestState
     return (
@@ -109,8 +111,8 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         baseBranch={baseBranch}
         currentBranch={currentBranch}
         defaultBranch={defaultBranch}
-        allBranches={allBranches}
-        recentBranches={recentBranches}
+        prBaseBranches={prBaseBranches}
+        prRecentBaseBranches={prRecentBaseBranches}
         commitCount={commitSHAs?.length ?? 0}
         onBranchChange={this.onBranchChange}
         onDismissed={this.props.onDismissed}

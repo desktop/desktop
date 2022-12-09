@@ -7383,16 +7383,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
       branchesState
+    /*  We only want branches that are also on dotcom such that, when we ask a
+     *  user to create a pull request, the base branch also exists on dotcom.
+     *
+     *  Other notes: A repo can only create a pull request if it is hosted on
+     *  dotcom.
+     */
+    const prBaseBranches = allBranches.filter(
+      b => b.upstreamRemoteName === gitStore.defaultRemote?.name
+    )
+    const prRecentBaseBranches = recentBranches.filter(
+      b => b.upstreamRemoteName === gitStore.defaultRemote?.name
+    )
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
     this._showPopup({
       type: PopupType.StartPullRequest,
-      allBranches,
+      prBaseBranches,
+      prRecentBaseBranches,
       currentBranch,
       defaultBranch,
       imageDiffType,
-      recentBranches,
       repository,
       externalEditorLabel: selectedExternalEditor ?? undefined,
       nonLocalCommitSHA:
