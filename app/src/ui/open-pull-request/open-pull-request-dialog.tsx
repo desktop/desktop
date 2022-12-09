@@ -198,7 +198,6 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     const { currentBranchHasPullRequest, pullRequestState, repository } =
       this.props
     const { mergeStatus, commitSHAs } = pullRequestState
-    const isHostedOnGitHub = isRepositoryWithGitHubRepository(repository)
     const gitHubRepository = repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
@@ -222,15 +221,13 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     return (
       <DialogFooter>
         <PullRequestMergeStatus mergeStatus={mergeStatus} />
-        {isHostedOnGitHub && (
-          <OkCancelButtonGroup
-            okButtonText={okButton}
-            okButtonTitle={buttonTitle}
-            cancelButtonText="Cancel"
-            okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
-          />
-        )}
-        {!isHostedOnGitHub && <Button type="reset">Close</Button>}
+
+        <OkCancelButtonGroup
+          okButtonText={okButton}
+          okButtonTitle={buttonTitle}
+          cancelButtonText="Cancel"
+          okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
+        />
       </DialogFooter>
     )
   }
