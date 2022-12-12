@@ -8,6 +8,7 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
+  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -46,6 +47,8 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
+  getForkContributionTarget,
+  isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -263,7 +266,10 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
-import { WorkflowPreferences } from '../../models/workflow-preferences'
+import {
+  ForkContributionTarget,
+  WorkflowPreferences,
+} from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
@@ -7389,11 +7395,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
      *  Other notes: A repo can only create a pull request if it is hosted on
      *  dotcom.
      */
+    const remote =
+      isRepositoryWithForkedGitHubRepository(repository) &&
+      getForkContributionTarget(repository) === ForkContributionTarget.Parent
+        ? UpstreamRemoteName
+        : gitStore.defaultRemote?.name
     const prBaseBranches = allBranches.filter(
-      b => b.upstreamRemoteName === gitStore.defaultRemote?.name
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
     )
     const prRecentBaseBranches = recentBranches.filter(
-      b => b.upstreamRemoteName === gitStore.defaultRemote?.name
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
     )
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
