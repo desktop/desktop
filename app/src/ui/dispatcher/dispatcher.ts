@@ -2193,8 +2193,11 @@ export class Dispatcher {
    * openCreatePullRequestInBrowser method which immediately opens the
    * create pull request page without showing a dialog.
    */
-  public createPullRequest(repository: Repository): Promise<void> {
-    return this.appStore._createPullRequest(repository)
+  public createPullRequest(
+    repository: Repository,
+    baseBranch?: Branch
+  ): Promise<void> {
+    return this.appStore._createPullRequest(repository, baseBranch)
   }
 
   /**
