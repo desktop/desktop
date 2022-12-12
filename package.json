@@ -73,7 +73,7 @@
     "eslint-plugin-json": "^2.1.1",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "7.26.1",
-    "express": "^4.15.0",
+    "express": "^4.17.3",
     "fake-indexeddb": "^2.0.4",
     "file-loader": "^6.2.0",
     "front-matter": "^2.3.0",
