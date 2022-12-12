@@ -1995,7 +1995,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /**
-   * Increments the `createPullRequestFromPreviewCount` metric
+   * Increments the `previewedPullRequestCount` metric
    */
   public recordPreviewedPullRequest(): Promise<void> {
     return this.updateDailyMeasures(m => ({
