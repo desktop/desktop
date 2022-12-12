@@ -146,7 +146,11 @@ export interface IDailyMeasures {
   /** The number of times the user committed a conflicted merge outside the merge conflicts dialog */
   readonly unguidedConflictedMergeCompletionCount: number
 
-  /** The number of times the user is taken to the create pull request page on dotcom */
+  /** The number of times the user is taken to the create pull request page on dotcom including.
+   *
+   * NB - This metric tracks all times including when
+   * `createPullRequestFromPreviewCount` this is tracked.
+   * */
   readonly createPullRequestCount: number
 
   /** The number of times the user is taken to the create pull request page on dotcom from the preview dialog */
