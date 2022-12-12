@@ -7417,9 +7417,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       branchesState
     /*  We only want branches that are also on dotcom such that, when we ask a
      *  user to create a pull request, the base branch also exists on dotcom.
-     *
-     *  Other notes: A repo can only create a pull request if it is hosted on
-     *  dotcom.
      */
     const remote = isRepositoryAForkContributingToParent(repository)
       ? UpstreamRemoteName
