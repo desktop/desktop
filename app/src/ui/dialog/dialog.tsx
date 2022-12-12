@@ -214,6 +214,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private onDismissGraceTimer = () => {
     this.setState({ isAppearing: false })
+
+    this.dialogElement?.dispatchEvent(
+      new CustomEvent('dialog-appeared', {
+        bubbles: true,
+        cancelable: false,
+      })
+    )
   }
 
   private isDismissable() {
@@ -590,6 +597,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     )
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       <dialog
         ref={this.onDialogRef}
         id={this.props.id}

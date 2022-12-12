@@ -3,7 +3,6 @@ import { Account, accountEquals } from '../../models/account'
 import { API } from '../api'
 import { AliveSession, AliveEvent, Subscription } from '@github/alive-client'
 import { Emitter } from 'event-kit'
-import { enableHighSignalNotifications } from '../feature-flag'
 import { supportsAliveSessions } from '../endpoint-capabilities'
 
 /** Checks whether or not an account is included in a list of accounts. */
@@ -107,7 +106,7 @@ export class AliveStore {
   }
 
   private subscribeToAccounts = async (accounts: ReadonlyArray<Account>) => {
-    if (!this.enabled || !enableHighSignalNotifications()) {
+    if (!this.enabled) {
       return
     }
 

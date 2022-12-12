@@ -168,8 +168,8 @@ const sendErrorWithContext = (
           extra.windowZoomFactor = `${currentState.windowZoomFactor}`
         }
 
-        if (currentState.errors.length > 0) {
-          extra.activeAppErrors = `${currentState.errors.length}`
+        if (currentState.errorCount > 0) {
+          extra.activeAppErrors = `${currentState.errorCount}`
         }
 
         extra.repositoryCount = `${currentState.repositories.length}`
@@ -201,6 +201,11 @@ process.on(
     sendErrorWithContext(error, context, true)
   }
 )
+
+// HACK: this is a workaround for a known crash in the Dev Tools on Electron 19
+// See https://github.com/electron/electron/issues/34350
+window.onerror = e =>
+  e === 'Uncaught EvalError: Possible side-effect in debug-evaluate'
 
 /**
  * Chromium won't crash on an unhandled rejection (similar to how it won't crash
@@ -246,7 +251,7 @@ const pullRequestCoordinator = new PullRequestCoordinator(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache()
+const repositoryStateManager = new RepositoryStateCache(statsStore)
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 

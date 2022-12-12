@@ -37,7 +37,7 @@ export async function getRepositoryType(path: string): Promise<RepositoryType> {
     }
 
     const unsafeMatch =
-      /fatal: unsafe repository \('(.+)\' is owned by someone else\)/.exec(
+      /fatal: detected dubious ownership in repository at '(.+)'/.exec(
         result.stderr
       )
     if (unsafeMatch) {

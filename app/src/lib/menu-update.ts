@@ -10,7 +10,8 @@ import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
-import { enableSquashMerging } from './feature-flag'
+import { findContributionTargetDefaultBranch } from './branch'
+import { enableStartingPullRequests } from './feature-flag'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -102,17 +103,13 @@ function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
   return true
 }
 
-const squashAndMergeMenuIds: ReadonlyArray<MenuIDs> = enableSquashMerging()
-  ? ['squash-and-merge-branch']
-  : []
-
 const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
   'discard-all-changes',
   'stash-all-changes',
   'preferences',
-  'update-branch',
+  'update-branch-with-contribution-target-branch',
   'compare-to-branch',
   'merge-branch',
   'rebase-branch',
@@ -139,7 +136,8 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'clone-repository',
   'about',
   'create-pull-request',
-  ...squashAndMergeMenuIds,
+  ...(enableStartingPullRequests() ? ['preview-pull-request' as MenuIDs] : []),
+  'squash-and-merge-branch',
 ]
 
 function getAllMenusDisabledBuilder(): MenuStateBuilder {
@@ -164,13 +162,14 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let onDetachedHead = false
   let hasChangedFiles = false
   let hasConflicts = false
-  let hasDefaultBranch = false
   let hasPublishedBranch = false
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
   let rebaseInProgress = false
   let branchHasStashEntry = false
+  let onContributionTargetDefaultBranch = false
+  let hasContributionTargetDefaultBranch = false
 
   // check that its a github repo and if so, that is has issues enabled
   const repoIssuesEnabled =
@@ -185,12 +184,18 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     const tip = branchesState.tip
     const defaultBranch = branchesState.defaultBranch
 
-    hasDefaultBranch = Boolean(defaultBranch)
-
     onBranch = tip.kind === TipState.Valid
     onDetachedHead = tip.kind === TipState.Detached
     tipStateIsUnknown = tip.kind === TipState.Unknown
     branchIsUnborn = tip.kind === TipState.Unborn
+    const contributionTarget = findContributionTargetDefaultBranch(
+      selectedState.repository,
+      branchesState
+    )
+    hasContributionTargetDefaultBranch = contributionTarget !== null
+    onContributionTargetDefaultBranch =
+      tip.kind === TipState.Valid &&
+      contributionTarget?.name === tip.branch.name
 
     // If we are:
     //  1. on the default branch, or
@@ -261,13 +266,13 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
-      'update-branch',
-      onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
+      'update-branch-with-contribution-target-branch',
+      onBranch &&
+        hasContributionTargetDefaultBranch &&
+        !onContributionTargetDefaultBranch
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
-    if (enableSquashMerging()) {
-      menuStateBuilder.setEnabled('squash-and-merge-branch', onBranch)
-    }
+    menuStateBuilder.setEnabled('squash-and-merge-branch', onBranch)
     menuStateBuilder.setEnabled('rebase-branch', onBranch)
     menuStateBuilder.setEnabled(
       'compare-on-github',
@@ -288,6 +293,13 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       'create-pull-request',
       isHostedOnGitHub && !branchIsUnborn && !onDetachedHead
     )
+    if (enableStartingPullRequests()) {
+      menuStateBuilder.setEnabled(
+        'preview-pull-request',
+        !branchIsUnborn && !onDetachedHead
+      )
+    }
+
     menuStateBuilder.setEnabled(
       'push',
       !branchIsUnborn && !onDetachedHead && !networkActionInProgress
@@ -327,7 +339,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.disable('view-repository-on-github')
     menuStateBuilder.disable('create-pull-request')
-
+    if (enableStartingPullRequests()) {
+      menuStateBuilder.disable('preview-pull-request')
+    }
     if (
       selectedState &&
       selectedState.type === SelectionType.MissingRepository
@@ -343,11 +357,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('discard-all-changes')
     menuStateBuilder.disable('stash-all-changes')
-    menuStateBuilder.disable('update-branch')
+    menuStateBuilder.disable('update-branch-with-contribution-target-branch')
     menuStateBuilder.disable('merge-branch')
-    if (enableSquashMerging()) {
-      menuStateBuilder.disable('squash-and-merge-branch')
-    }
+    menuStateBuilder.disable('squash-and-merge-branch')
     menuStateBuilder.disable('rebase-branch')
 
     menuStateBuilder.disable('push')

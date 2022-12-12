@@ -2,6 +2,17 @@ import { RequestChannels, RequestResponseChannels } from '../lib/ipc-shared'
 // eslint-disable-next-line no-restricted-imports
 import { ipcMain } from 'electron'
 import { IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
+import { isTrustedIPCSender } from './trusted-ipc-sender'
+
+type RequestChannelListener<T extends keyof RequestChannels> = (
+  event: IpcMainEvent,
+  ...args: Parameters<RequestChannels[T]>
+) => void
+
+type RequestResponseChannelListener<T extends keyof RequestResponseChannels> = (
+  event: IpcMainInvokeEvent,
+  ...args: Parameters<RequestResponseChannels[T]>
+) => ReturnType<RequestResponseChannels[T]>
 
 /**
  * Subscribes to the specified IPC channel and provides strong typing of
@@ -10,12 +21,9 @@ import { IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
  */
 export function on<T extends keyof RequestChannels>(
   channel: T,
-  listener: (
-    event: IpcMainEvent,
-    ...args: Parameters<RequestChannels[T]>
-  ) => void
+  listener: RequestChannelListener<T>
 ) {
-  ipcMain.on(channel, (event, ...args) => listener(event, ...(args as any)))
+  ipcMain.on(channel, safeListener(listener))
 }
 
 /**
@@ -25,12 +33,9 @@ export function on<T extends keyof RequestChannels>(
  */
 export function once<T extends keyof RequestChannels>(
   channel: T,
-  listener: (
-    event: IpcMainEvent,
-    ...args: Parameters<RequestChannels[T]>
-  ) => void
+  listener: RequestChannelListener<T>
 ) {
-  ipcMain.once(channel, (event, ...args) => listener(event, ...(args as any)))
+  ipcMain.once(channel, safeListener(listener))
 }
 
 /**
@@ -40,10 +45,22 @@ export function once<T extends keyof RequestChannels>(
  */
 export function handle<T extends keyof RequestResponseChannels>(
   channel: T,
-  listener: (
-    event: IpcMainInvokeEvent,
-    ...args: Parameters<RequestResponseChannels[T]>
-  ) => ReturnType<RequestResponseChannels[T]>
+  listener: RequestResponseChannelListener<T>
 ) {
-  ipcMain.handle(channel, (event, ...args) => listener(event, ...(args as any)))
+  ipcMain.handle(channel, safeListener(listener))
+}
+
+function safeListener<E extends IpcMainEvent | IpcMainInvokeEvent, R>(
+  listener: (event: E, ...a: any) => R
+) {
+  return (event: E, ...args: any) => {
+    if (!isTrustedIPCSender(event.sender)) {
+      log.error(
+        `IPC message received from invalid sender: ${event.senderFrame.url}`
+      )
+      return
+    }
+
+    return listener(event, ...args)
+  }
 }

@@ -342,6 +342,7 @@ body.theme-dark {
 
   /** Inline paths and code */
   --path-segment-background: #{$gray-700};
+  --path-segment-background-focus: #{lighten($gray-700, 5%)};
 
   .blankslate-image {
     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);

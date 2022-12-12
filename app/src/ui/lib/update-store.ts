@@ -22,6 +22,8 @@ import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
 import { offsetFromNow } from '../../lib/offset-from'
 import { gte, SemVer } from 'semver'
+import { getRendererGUID } from '../../lib/get-renderer-guid'
+import { getVersion } from './app-proxy'
 
 /** The last version a showcase was seen. */
 export const lastShowCaseVersionSeen = 'version-of-last-showcase'
@@ -47,6 +49,7 @@ export enum UpdateStatus {
 export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
+  isX64ToARM64ImmediateAutoUpdate: boolean
   newReleases: ReadonlyArray<ReleaseSummary> | null
 }
 
@@ -56,6 +59,7 @@ class UpdateStore {
   private status = UpdateStatus.UpdateNotChecked
   private lastSuccessfulCheck: Date | null = null
   private newReleases: ReadonlyArray<ReleaseSummary> | null = null
+  private isX64ToARM64ImmediateAutoUpdate: boolean = false
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
@@ -112,8 +116,29 @@ class UpdateStore {
 
   private onUpdateDownloaded = async () => {
     this.newReleases = await generateReleaseSummary()
+    // We know it's an "immediate" auto-update from x64 to arm64 if the app is
+    // running on arm64 under x64 emulation and there is only one new release
+    // and it's the same version we have right now (which means we spoofed
+    // Central with an old version of the app).
+    this.isX64ToARM64ImmediateAutoUpdate =
+      this.supportsImmediateUpdateFromEmulatedX64ToARM64() &&
+      this.newReleases !== null &&
+      this.newReleases.length === 1 &&
+      this.newReleases[0].latestVersion === getVersion() &&
+      (await isRunningUnderARM64Translation())
     this.status = UpdateStatus.UpdateReady
     this.emitDidChange()
+  }
+
+  /**
+   * Whether or not the app supports auto-updating x64 apps running under ARM
+   * translation to ARM64 builds IMMEDIATELY instead of waiting for the next
+   * release.
+   */
+  private supportsImmediateUpdateFromEmulatedX64ToARM64(): boolean {
+    // Because of how Squirrel.Windows works, this is only available for macOS.
+    // See: https://github.com/desktop/desktop/pull/14998
+    return __DARWIN__
   }
 
   /** Register a function to call when the auto updater state changes. */
@@ -143,24 +168,62 @@ class UpdateStore {
       status: this.status,
       lastSuccessfulCheck: this.lastSuccessfulCheck,
       newReleases: this.newReleases,
+      isX64ToARM64ImmediateAutoUpdate: this.isX64ToARM64ImmediateAutoUpdate,
     }
   }
 
   /**
    * Check for updates.
    *
-   * @param inBackground - Are we checking for updates in the background, or was
+   * @param inBackground  - Are we checking for updates in the background, or was
    *                       this check user-initiated?
+   * @param skipGuidCheck - If true, don't check the GUID. If true, this will
+   *                       effectively disable the staggered releases system and
+   *                       attempt to retrieve the latest available deployment.
    */
-  public async checkForUpdates(inBackground: boolean) {
+  public async checkForUpdates(inBackground: boolean, skipGuidCheck: boolean) {
     // An update has been downloaded and the app is waiting to be restarted.
     // Checking for updates again may result in the running app being nuked
-    // when it finds a subsequent update.
-    if (__WIN32__ && this.status === UpdateStatus.UpdateReady) {
+    // when it finds a subsequent update on Windows, or the "Quit and Update"
+    // button to crash the app if in the subsequent check, there is no update
+    // available anymore due to a disabled update.
+    if (this.status === UpdateStatus.UpdateReady) {
       return
     }
 
-    let updatesURL = __UPDATES_URL__
+    const updatesUrl = await this.getUpdatesUrl(skipGuidCheck)
+
+    if (updatesUrl === null) {
+      return
+    }
+
+    this.userInitiatedUpdate = !inBackground
+
+    const error = await checkForUpdates(updatesUrl)
+
+    if (error !== undefined) {
+      this.emitError(error)
+    }
+  }
+
+  private async getUpdatesUrl(skipGuidCheck: boolean) {
+    let url = null
+
+    try {
+      url = new URL(__UPDATES_URL__)
+    } catch (e) {
+      log.error('Error parsing updates url', e)
+      return __UPDATES_URL__
+    }
+
+    // Send the GUID to the update server for staggered release support
+    url.searchParams.set('guid', await getRendererGUID())
+
+    if (skipGuidCheck) {
+      // This will effectively disable the staggered releases system and attempt
+      // to retrieve the latest available deployment.
+      url.searchParams.set('skipGuidCheck', '1')
+    }
 
     // If the app is running under arm64 to x64 translation, we need to tweak the
     // update URL here to point at the arm64 binary.
@@ -168,21 +231,20 @@ class UpdateStore {
       enableUpdateFromEmulatedX64ToARM64() &&
       (await isRunningUnderARM64Translation()) === true
     ) {
-      const url = new URL(updatesURL)
       url.pathname = url.pathname.replace(
         /\/desktop\/desktop\/(x64\/)?latest/,
         '/desktop/desktop/arm64/latest'
       )
-      updatesURL = url.toString()
+
+      // If we want the app to force an auto-update from x64 to arm64 right
+      // after being installed, we need to spoof a really old version to trick
+      // both Central and Squirrel into thinking we need the update.
+      if (this.supportsImmediateUpdateFromEmulatedX64ToARM64()) {
+        url.searchParams.set('version', '0.0.64')
+      }
     }
 
-    this.userInitiatedUpdate = !inBackground
-
-    const error = await checkForUpdates(updatesURL)
-
-    if (error !== undefined) {
-      this.emitError(error)
-    }
+    return url.toString()
   }
 
   /** Quit and install the update. */

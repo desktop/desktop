@@ -1,5 +1,145 @@
 {
   "releases": {
+    "3.1.3-beta3": [
+      "[Fixed] Using the key command of 'Shift' + 'ArrowDown' in the commit list adds the next commit to the current selection - #15536",
+      "[Fixed] Notifications of Pull Request reviews are displayed for forked repositories - #15580",
+      "[Fixed] Notifications when checks of a Pull Request fail are displayed for forked repositories - #15422",
+      "[Improved] User can preview a Pull Request from the suggested next actions.  - #15588",
+      "[Improved] The dropdown selection component is keyboard navigable - #15620",
+      "[Improved] 'Preview Pull Request' menu item availability is consistent with other menu items - #15590",
+      "[Improved] The diff view now highlights Arduino's `.ino` files as C++ source - #15555. Thanks @j-f1!",
+      "[Improved] Close repository list after creating or adding repositories - #15508. Thanks @angusdev!",
+      "[Improved] Always show an error message when an update fails - #15530",
+      "[Improved] Popups are stacked. Opening a popup will not discard an existing popup - #15496"
+    ],
+    "3.1.3-beta2": [
+      "[Added] Enable menu option to Force-push branches that have diverged - #15211",
+      "[Added] Add menu option to Fetch the current repository at any time - #7805",
+      "[Added] Support VSCodium as an external editor - #15348. Thanks @daniel-ciaglia!",
+      "[Fixed] Prevent closing the GitHub Desktop while it's being updated - #7055, #5197",
+      "[Fixed] Notifications are shown only when they are relevant to the current repository - #15487",
+      "[Fixed] Disable reorder, squashing, cherry-picking while an action of this type is in progress. - #15468",
+      "[Fixed] Fix repository change indicator not visible if selected and in focus - #7651. Thanks @angusdev!",
+      "[Fixed] Close 'Resolve conflicts before Rebase' dialog will not disable menu items - #13081. Thanks @angusdev!",
+      "[Fixed] Tooltips are positioned properly if mouse is not moved - #13636. Thanks @angusdev!",
+      "[Fixed] Fix tooltips of long commit author emails not breaking properly - #15424. Thanks @angusdev!",
+      "[Fixed] Clone repository progress bar no longer hidden by repository list - #11953. Thanks @angusdev!",
+      "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) while amending a commit - #15445",
+      "[Improved] Pull request preview dialog width and height is responsive - #15500"
+    ],
+    "3.1.3-beta1": ["[Improved] Upgrade embedded Git to 2.35.5"],
+    "3.1.2": ["[Improved] Upgrade embedded Git to 2.35.5"],
+    "3.1.2-beta1": [
+      "[Added] You can preview the changes a pull request from your current branch would make - #11517",
+      "[Fixed] App correctly remembers undo commit prompt setting - #15408",
+      "[Improved] Add support for zooming out at the 67%, 75%, 80% and 90% zoom levels - #15401. Thanks @sathvikrijo!",
+      "[Improved] Add option to disable discard stash confirmation - #15379. Thanks @tsvetilian-ty!"
+    ],
+    "3.1.1": [
+      "[Fixed] App correctly remembers undo commit prompt setting - #15408"
+    ],
+    "3.1.0": [
+      "[Added] You can diff a consecutive range of commits - #14682",
+      "[Added] Submodule changes now display an explanatory, interactive diff screen - #15176",
+      "[Fixed] Enable update from upstream default branch when contributing to a fork - #15299",
+      "[Fixed] Fix crash installing updates that were downloaded a long time ago on macOS - #15275",
+      "[Fixed] Tooltips are positioned accurately when the user prefers reduced motion - #15249",
+      "[Improved] Add option to disable Undo Commit confirmation - #15134. Thanks @geophilusd!",
+      "[Improved] Update submodules when fetching, pulling and checking out branches - #8221 #9174"
+    ],
+    "3.0.9-beta1": [
+      "[Fixed] Enable update from upstream default branch when contributing to a fork - #15299",
+      "[Fixed] Fix crash installing updates that were downloaded a long time ago on macOS - #15275",
+      "[Fixed] Tooltips are positioned accurately when the user prefers reduced motion - #15249",
+      "[Fixed] Add option to disable Undo Commit popup - #15134. Thanks @geophilusd!"
+    ],
+    "3.0.8": [
+      "[Fixed] Fix system animations on Windows - #14037",
+      "[Fixed] The app window doesn't overlap the taskbar on Windows - #14263",
+      "[Fixed] The app window doesn't fit on the screen when using scaled UI on Windows - #13940"
+    ],
+    "3.0.8-beta1": [
+      "[Added] Add support for Lite XL editor on Linux & macOS - #15180. Thanks @KaMeHb-UA!",
+      "[Added] Add Neovide support on macOS - #14929. Thanks @Yohannfra!",
+      "[Fixed] Text selection is preserved while scrolling diffs in split mode - #13701",
+      "[Improved] Update submodules when fetching, pulling and checking out branches - #8221 #9174",
+      "[Improved] Avoid truncating long menu item labels on Windows - #14868",
+      "[Improved] Add \"Learn more\" link to \"Commit Reachability\" dialog - #15208",
+      "[Improved] Improve submodule support with a new diff screen with more detailed information - #15176"
+    ],
+    "3.0.7": [
+      "[Fixed] Do not show login prompt when repositories are fetched - #15163",
+      "[Improved] On Apple silicon devices running unoptimized builds, auto-update on first run to an optimized build - #14998"
+    ],
+    "3.0.7-beta1": [
+      "[Added] Add Emacs integration for macOS - #15130. Thanks @zipperer!",
+      "[Fixed] Do not show login prompt when repositories are fetched - #15163"
+    ],
+    "3.0.6": [
+      "[Added] Add Warp terminal integration for macOS - #14329. Thanks @lhvy!",
+      "[Added] Add context menu to the Current Branch and Current Repository toolbar - #13148. Thanks @uttiya10!",
+      "[Fixed] Older versions of Sublime Text and SlickEdit are also recognized as external editors - #15117. Thanks @vbwx!",
+      "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) - #14689. Thanks @tsvetilian-ty!",
+      "[Fixed] Add PyCharm Community Edition support on macOS - #15016. Thanks @tsvetilian-ty!",
+      "[Fixed] Unified diff line gutter context menu items for discard changes no longer enabled when whitespace is hidden - #15003",
+      "[Fixed] 'Show Whitespace Changes' popover appears as expected on unified diff - #15003",
+      "[Fixed] On pull or fetch, make sure the default branch is updated to match the repository settings - #14266",
+      "[Fixed] Show 'Email' label on the preferences form when user is not signed in - #13736. Thanks @andymckay!",
+      "[Fixed] Fix invalid URL state while the \"Clone Repository\" modal is open - #7961. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix commit description with three lines overflowing when it shouldn't - #14791. Thanks @HeCorr!",
+      "[Fixed] Fix notifications on Windows 10 builds prior to the Creators Update - #14714",
+      "[Fixed] 'Update from default branch` menu item allows quick merge of upstream - #14145. Thanks @uttiya10!",
+      "[Improved] Add ability to skip staggered release to ensure the latest version is downloaded - #14883"
+    ],
+    "3.0.6-beta3": [
+      "[Fixed] Older versions of Sublime Text and SlickEdit are also recognized as external editors - #15117. Thanks @vbwx!",
+      "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) - #14689. Thanks @tsvetilian-ty!",
+      "[Improved] Add ability to skip staggered release to ensure the latest version is downloaded - #14883"
+    ],
+    "3.0.6-beta2": [
+      "[Fixed] Add PyCharm Community Edition support on macOS - #15016. Thanks @tsvetilian-ty!",
+      "[Fixed] Unified diff line gutter context menu items for discard changes no longer enabled when whitespace is hidden - #15003",
+      "[Fixed] 'Show Whitespace Changes' popover appears as expected on unified diff - #15003",
+      "[Fixed] On pull or fetch, make sure the default branch is updated to match the repository settings - #14266",
+      "[Fixed] Show 'Email' label on the preferences form when user is not signed in - #13736. Thanks @andymckay!"
+    ],
+    "3.0.6-beta1": [
+      "[Added] You can diff a consecutive range of commits. - #14682",
+      "[Added] Add Warp terminal integration for macOS - #14329. Thanks @lhvy!",
+      "[Added] Add context menu to the Current Branch and Current Repository toolbar - #13148. Thanks @uttiya10!",
+      "[Fixed] Fix invalid URL state while the \"Clone Repository\" modal is open - #7961. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix commit description with three lines overflowing when it shouldn't - #14791. Thanks @HeCorr!",
+      "[Fixed] Fix notifications on Windows 10 builds prior to the Creators Update - #14714",
+      "[Fixed] 'Update from default branch` menu item allows quick merge of upstream - #14145. Thanks @uttiya10!",
+      "[Improved] On Apple silicon devices running unoptimized builds, auto-update on first run to an optimized build - #14998"
+    ],
+    "3.0.5": [
+      "[Fixed] Surface again Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user"
+    ],
+    "3.0.5-beta1": [
+      "[Fixed] Surface again Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user"
+    ],
+    "3.0.4": ["[Improved] Upgrade embedded Git to 2.35.4"],
+    "3.0.4-beta1": ["[Improved] Upgrade embedded Git to 2.35.4"],
+    "3.0.3": [
+      "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
+      "[Fixed] On Windows, remember the app's zoom level on update - #5315",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Improved] Add context menu option to copy repository paths - #14785. Thanks @novialriptide!",
+      "[Improved] Allow copying paths when multiple files are selected - #14638. Thanks @tsvetilian-ty!",
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676"
+    ],
+    "3.0.3-beta1": [
+      "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
+      "[Fixed] On Windows, remember the apps zoom level on update - #5315",
+      "[Fixed] Fix Markdown syntax highlighting - #14710",
+      "[Improved] Add context menu option to copy repository paths - #14785. Thanks @novialriptide!",
+      "[Improved] Allow copying paths when multiple files are selected - #14638. Thanks @tsvetilian-ty!",
+      "[Improved] Add support for SSH password prompts when accessing repositories - #14676",
+      "[Improved] Upgrade to Electron v19.0.0 - #14813"
+    ],
     "3.0.2": [
       "[Fixed] Fix crash launching the app on macOS High Sierra - #14712",
       "[Fixed] Terminate all GitHub Desktop processes on Windows when the app is closed - #14733. Thanks @tsvetilian-ty!"
@@ -517,11 +657,11 @@
       "[Fixed] Disable partial change selection in split view while whitespace changes are hidden - #12129"
     ],
     "2.8.1-beta2": [
-      "[Improved] Add complete support for macOS on Apple Silicon devices - #12091",
-      "[Improved] From now on, macOS x64 builds running on Apple Silicon devices will auto update to arm64 builds"
+      "[Improved] Add complete support for macOS on Apple silicon devices - #12091",
+      "[Improved] From now on, macOS x64 builds running on Apple silicon devices will auto update to arm64 builds"
     ],
     "2.8.1-beta1": [
-      "[New] Preliminary support for macOS on Apple Silicon devices - #9691. Thanks @dennisameling!"
+      "[New] Preliminary support for macOS on Apple silicon devices - #9691. Thanks @dennisameling!"
     ],
     "2.8.0": [
       "[New] Expand diffs to view more context around your changes - #7014",

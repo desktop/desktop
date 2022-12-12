@@ -32,6 +32,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['org.vim.MacVim'],
   },
   {
+    name: 'Neovide',
+    bundleIdentifiers: ['com.neovide.neovide'],
+  },
+  {
     name: 'Visual Studio Code',
     bundleIdentifiers: ['com.microsoft.VSCode'],
   },
@@ -41,7 +45,7 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'VSCodium',
-    bundleIdentifiers: ['com.visualstudio.code.oss'],
+    bundleIdentifiers: ['com.visualstudio.code.oss', 'com.vscodium'],
   },
   {
     name: 'Sublime Text',
@@ -62,6 +66,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'PyCharm',
     bundleIdentifiers: ['com.jetbrains.PyCharm'],
+  },
+  {
+    name: 'PyCharm Community Edition',
+    bundleIdentifiers: ['com.jetbrains.pycharm.ce'],
   },
   {
     name: 'RubyMine',
@@ -128,6 +136,14 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Nova',
     bundleIdentifiers: ['com.panic.Nova'],
   },
+  {
+    name: 'Emacs',
+    bundleIdentifiers: ['org.gnu.Emacs'],
+  },
+  {
+    name: 'Lite XL',
+    bundleIdentifiers: ['com.lite-xl'],
+  },
 ]
 
 async function findApplication(
@@ -144,11 +160,7 @@ async function findApplication(
           : Promise.reject(e)
       )
 
-      if (installPath === null) {
-        return null
-      }
-
-      if (await pathExists(installPath)) {
+      if (installPath && (await pathExists(installPath))) {
         return installPath
       }
 

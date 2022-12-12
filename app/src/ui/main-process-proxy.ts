@@ -164,6 +164,9 @@ export const checkForUpdates = invokeProxy('check-for-updates', 1)
 /** Tell the main process to quit the app and install updates */
 export const quitAndInstallUpdate = sendProxy('quit-and-install-updates', 0)
 
+/** Tell the main process to quit the app */
+export const quitApp = sendProxy('quit-app', 0)
+
 /** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
   errorHandler: (evt: Electron.IpcRendererEvent, error: Error) => void
@@ -198,6 +201,12 @@ export function onAutoUpdaterUpdateDownloaded(eventHandler: () => void) {
 /** Subscribes to the native theme updated event originating from the main process */
 export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
+}
+
+/** Subscribes to the "show installing update dialog" event originating from the
+ * main process */
+export function onShowInstallingUpdate(eventHandler: () => void) {
+  ipcRenderer.on('show-installing-update', eventHandler)
 }
 
 /** Tell the main process to set the native theme source */
@@ -271,6 +280,29 @@ export const isRunningUnderARM64Translation = invokeProxy(
 export function sendWillQuitSync() {
   // eslint-disable-next-line no-sync
   ipcRenderer.sendSync('will-quit')
+}
+
+/**
+ * Tell the main process that we're going to quit, even if the app is installing
+ * an update. This means it should allow the window to close.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendWillQuitEvenIfUpdatingSync() {
+  // eslint-disable-next-line no-sync
+  ipcRenderer.sendSync('will-quit-even-if-updating')
+}
+
+/**
+ * Tell the main process that the user cancelled quitting.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendCancelQuittingSync() {
+  // eslint-disable-next-line no-sync
+  ipcRenderer.sendSync('cancel-quitting')
 }
 
 /**

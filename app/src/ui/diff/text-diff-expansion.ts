@@ -1,4 +1,3 @@
-import { enableTextDiffExpansion } from '../../lib/feature-flag'
 import {
   DiffHunk,
   DiffHunkExpansionType,
@@ -91,10 +90,6 @@ export function getHunkHeaderExpansionType(
   hunkHeader: DiffHunkHeader,
   previousHunk: DiffHunk | null
 ): DiffHunkExpansionType {
-  if (!enableTextDiffExpansion()) {
-    return DiffHunkExpansionType.None
-  }
-
   const distanceToPrevious =
     previousHunk === null
       ? Infinity

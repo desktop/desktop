@@ -195,10 +195,14 @@ const DefaultDailyMeasures: IDailyMeasures = {
   viewsCheckJobStepOnline: 0,
   rerunsChecks: 0,
   checksFailedNotificationCount: 0,
+  checksFailedNotificationFromRecentRepoCount: 0,
+  checksFailedNotificationFromNonRecentRepoCount: 0,
   checksFailedNotificationClicked: 0,
   checksFailedDialogOpenCount: 0,
   checksFailedDialogSwitchToPullRequestCount: 0,
   checksFailedDialogRerunChecksCount: 0,
+  pullRequestReviewNotificationFromRecentRepoCount: 0,
+  pullRequestReviewNotificationFromNonRecentRepoCount: 0,
   pullRequestReviewApprovedNotificationCount: 0,
   pullRequestReviewApprovedNotificationClicked: 0,
   pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
@@ -208,6 +212,13 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullRequestReviewChangesRequestedNotificationCount: 0,
   pullRequestReviewChangesRequestedNotificationClicked: 0,
   pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
+  multiCommitDiffWithUnreachableCommitWarningCount: 0,
+  multiCommitDiffFromHistoryCount: 0,
+  multiCommitDiffFromCompareCount: 0,
+  multiCommitDiffUnreachableCommitsDialogOpenedCount: 0,
+  submoduleDiffViewedFromChangesListCount: 0,
+  submoduleDiffViewedFromHistoryCount: 0,
+  openSubmoduleFromDiffCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1769,6 +1780,20 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordChecksFailedNotificationFromRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationFromRecentRepoCount:
+        m.checksFailedNotificationFromRecentRepoCount + 1,
+    }))
+  }
+
+  public recordChecksFailedNotificationFromNonRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      checksFailedNotificationFromNonRecentRepoCount:
+        m.checksFailedNotificationFromNonRecentRepoCount + 1,
+    }))
+  }
+
   public recordChecksFailedNotificationClicked(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
@@ -1795,6 +1820,32 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordMultiCommitDiffFromHistoryCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromHistoryCount: m.multiCommitDiffFromHistoryCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffFromCompareCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffFromCompareCount: m.multiCommitDiffFromCompareCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffWithUnreachableCommitWarningCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffWithUnreachableCommitWarningCount:
+        m.multiCommitDiffWithUnreachableCommitWarningCount + 1,
+    }))
+  }
+
+  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      multiCommitDiffUnreachableCommitsDialogOpenedCount:
+        m.multiCommitDiffUnreachableCommitsDialogOpenedCount + 1,
+    }))
+  }
+
   // Generates the stat field name for the given PR review type and suffix.
   private getStatFieldForRequestReviewState(
     reviewType: ValidNotificationPullRequestReviewState,
@@ -1810,6 +1861,20 @@ export class StatsStore implements IStatsStore {
     }
 
     return `pullRequestReview${infixMap[reviewType]}${suffix}`
+  }
+
+  public recordPullRequestReviewNotiificationFromRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      pullRequestReviewNotificationFromRecentRepoCount:
+        m.pullRequestReviewNotificationFromRecentRepoCount + 1,
+    }))
+  }
+
+  public recordPullRequestReviewNotiificationFromNonRecentRepo(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      pullRequestReviewNotificationFromNonRecentRepoCount:
+        m.pullRequestReviewNotificationFromNonRecentRepoCount + 1,
+    }))
   }
 
   // Generic method to record stats related to Pull Request review notifications.
@@ -1842,6 +1907,26 @@ export class StatsStore implements IStatsStore {
       reviewType,
       'DialogSwitchToPullRequestCount'
     )
+  }
+
+  public recordSubmoduleDiffViewedFromChangesList(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromChangesListCount:
+        m.submoduleDiffViewedFromChangesListCount + 1,
+    }))
+  }
+
+  public recordSubmoduleDiffViewedFromHistory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      submoduleDiffViewedFromHistoryCount:
+        m.submoduleDiffViewedFromHistoryCount + 1,
+    }))
+  }
+
+  public recordOpenSubmoduleFromDiffCount(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      openSubmoduleFromDiffCount: m.openSubmoduleFromDiffCount + 1,
+    }))
   }
 
   /** Post some data to our stats endpoint. */

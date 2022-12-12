@@ -4,15 +4,13 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
-import { RepositorySectionTab } from '../../lib/app-state'
 
 interface IDiffOptionsProps {
-  readonly sourceTab: RepositorySectionTab
+  readonly isInteractiveDiff: boolean
   readonly hideWhitespaceChanges: boolean
   readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
-  ) => Promise<void>
+  ) => void
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
@@ -131,13 +129,6 @@ export class DiffOptions extends React.Component<
   }
 
   private renderHideWhitespaceChanges() {
-    if (
-      this.props.sourceTab === RepositorySectionTab.Changes &&
-      !enableHideWhitespaceInDiffOption()
-    ) {
-      return
-    }
-
     return (
       <section>
         <h3>Whitespace</h3>
@@ -152,7 +143,7 @@ export class DiffOptions extends React.Component<
             __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
           }
         />
-        {this.props.sourceTab === RepositorySectionTab.Changes && (
+        {this.props.isInteractiveDiff && (
           <p className="secondary-text">
             Interacting with individual lines or hunks will be disabled while
             hiding whitespace.

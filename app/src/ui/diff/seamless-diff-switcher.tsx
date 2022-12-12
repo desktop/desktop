@@ -17,11 +17,7 @@ import {
   ILargeTextDiff,
 } from '../../models/diff'
 import { Loading } from '../lib/loading'
-import {
-  getFileContents,
-  getLineFilters,
-  IFileContents,
-} from './syntax-highlighting'
+import { getFileContents, IFileContents } from './syntax-highlighting'
 import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
 
 /**
@@ -68,6 +64,9 @@ interface ISeamlessDiffSwitcherProps {
    * system-assigned application for said file type.
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule?: (fullPath: string) => void
 
   /**
    * Called when the user is viewing an image diff and requests
@@ -257,11 +256,9 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     this.loadingState = { file: fileToLoad, diff }
 
-    const lineFilters = getLineFilters(diff.hunks)
     const fileContents = await getFileContents(
       this.props.repository,
-      fileToLoad,
-      lineFilters
+      fileToLoad
     )
 
     this.loadingState = null
@@ -315,6 +312,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       onDiscardChanges,
       file,
       onOpenBinaryFile,
+      onOpenSubmodule,
       onChangeImageDiffType,
       onHideWhitespaceInDiffChanged,
     } = this.state.propSnapshot
@@ -349,6 +347,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
             onDiscardChanges={isLoadingDiff ? noop : onDiscardChanges}
             onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
+            onOpenSubmodule={isLoadingDiff ? noop : onOpenSubmodule}
             onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
             onHideWhitespaceInDiffChanged={
               isLoadingDiff ? noop : onHideWhitespaceInDiffChanged

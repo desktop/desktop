@@ -6,18 +6,24 @@ interface IPromptsPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
+  readonly confirmDiscardStash: boolean
   readonly confirmForcePush: boolean
+  readonly confirmUndoCommit: boolean
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
+  readonly onConfirmDiscardStashChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
+  readonly onConfirmUndoCommitChanged: (checked: boolean) => void
 }
 
 interface IPromptsPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
+  readonly confirmDiscardStash: boolean
   readonly confirmForcePush: boolean
+  readonly confirmUndoCommit: boolean
 }
 
 export class Prompts extends React.Component<
@@ -32,7 +38,9 @@ export class Prompts extends React.Component<
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
+      confirmDiscardStash: this.props.confirmDiscardStash,
       confirmForcePush: this.props.confirmForcePush,
+      confirmUndoCommit: this.props.confirmUndoCommit,
     }
   }
 
@@ -54,6 +62,15 @@ export class Prompts extends React.Component<
     this.props.onConfirmDiscardChangesPermanentlyChanged(value)
   }
 
+  private onConfirmDiscardStashChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmDiscardStash: value })
+    this.props.onConfirmDiscardStashChanged(value)
+  }
+
   private onConfirmForcePushChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
@@ -61,6 +78,15 @@ export class Prompts extends React.Component<
 
     this.setState({ confirmForcePush: value })
     this.props.onConfirmForcePushChanged(value)
+  }
+
+  private onConfirmUndoCommitChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmUndoCommit: value })
+    this.props.onConfirmUndoCommitChanged(value)
   }
 
   private onConfirmRepositoryRemovalChanged = (
@@ -104,11 +130,27 @@ export class Prompts extends React.Component<
           onChange={this.onConfirmDiscardChangesPermanentlyChanged}
         />
         <Checkbox
+          label="Discarding stash"
+          value={
+            this.state.confirmDiscardStash
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onConfirmDiscardStashChanged}
+        />
+        <Checkbox
           label="Force pushing"
           value={
             this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
           }
           onChange={this.onConfirmForcePushChanged}
+        />
+        <Checkbox
+          label="Undo commit"
+          value={
+            this.state.confirmUndoCommit ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onConfirmUndoCommitChanged}
         />
       </DialogContent>
     )
