@@ -7,7 +7,7 @@ import { Ref } from '../lib/ref'
 
 interface IOpenPullRequestDialogHeaderProps {
   /** The base branch of the pull request */
-  readonly baseBranch: Branch
+  readonly baseBranch: Branch | null
 
   /** The branch of the pull request */
   readonly currentBranch: Branch
