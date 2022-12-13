@@ -44,6 +44,7 @@ These editors are currently supported:
  - [Notepad++](https://notepad-plus-plus.org/)
  - [RStudio](https://rstudio.com/)
  - [Aptana Studio](http://www.aptana.com/)
+ - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
 
 These are defined in a list at the top of the file:
 
@@ -257,6 +258,7 @@ These editors are currently supported:
  - [Aptana Studio](http://www.aptana.com/)
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Lite XL](https://lite-xl.com/)
+ - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
 
 These are defined in a list at the top of the file:
 
