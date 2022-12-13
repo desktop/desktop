@@ -428,6 +428,14 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'GoLand ',
     publisher: 'JetBrains s.r.o.',
   },
+  {
+    name: 'JetBrains Fleet',
+    registryKeys: [LocalMachineUninstallKey('Fleet')],
+    toolboxShellScriptName: 'fleet',
+    installLocationRegistryKey: 'DisplayIcon',
+    displayNamePrefix: 'Fleet ',
+    publisher: 'JetBrains s.r.o.',
+  },
 ]
 
 function getKeyOrEmpty(
