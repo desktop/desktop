@@ -5959,7 +5959,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._openInBrowser(url.toString())
   }
 
-  public async _createPullRequest(repository: Repository): Promise<void> {
+  public async _createPullRequest(
+    repository: Repository,
+    baseBranch?: Branch
+  ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
@@ -5972,24 +5975,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const branch = tip.branch
+    const compareBranch = tip.branch
     const aheadBehind = state.aheadBehind
 
     if (aheadBehind == null) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
-        branch,
+        branch: compareBranch,
       })
     } else if (aheadBehind.ahead > 0) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
-        branch,
+        branch: compareBranch,
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      await this._openCreatePullRequestInBrowser(repository, branch)
+      await this._openCreatePullRequestInBrowser(
+        repository,
+        compareBranch,
+        baseBranch
+      )
     }
   }
 
@@ -6084,15 +6091,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _openCreatePullRequestInBrowser(
     repository: Repository,
-    branch: Branch
+    compareBranch: Branch,
+    baseBranch?: Branch
   ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
-    const urlEncodedBranchName = encodeURIComponent(branch.nameWithoutRemote)
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
+    const encodedBaseBranch =
+      baseBranch !== undefined
+        ? encodeURIComponent(baseBranch.nameWithoutRemote) + '...'
+        : ''
+    const encodedCompareBranch = encodeURIComponent(
+      compareBranch.nameWithoutRemote
+    )
+    const compareString = `${encodedBaseBranch}${encodedCompareBranch}`
+    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${compareString}`
 
     await this._openInBrowser(baseURL)
 
@@ -7378,7 +7393,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const { allBranches, recentBranches, defaultBranch } = branchesState
+    if (this.popupManager.areTherePopupsOfType(PopupType.StartPullRequest)) {
+      return
+    }
+
+    const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
+      branchesState
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
@@ -7396,6 +7416,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ? commitSHAs[0]
           : null,
       showSideBySideDiff,
+      currentBranchHasPullRequest: currentPullRequest !== null,
     })
   }
 

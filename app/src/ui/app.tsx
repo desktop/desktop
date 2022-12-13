@@ -2339,6 +2339,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           recentBranches,
           repository,
           showSideBySideDiff,
+          currentBranchHasPullRequest,
         } = popup
 
         return (
@@ -2357,6 +2358,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             externalEditorLabel={externalEditorLabel}
             showSideBySideDiff={showSideBySideDiff}
+            currentBranchHasPullRequest={currentBranchHasPullRequest}
             onDismissed={onPopupDismissedFn}
           />
         )
