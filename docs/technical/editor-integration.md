@@ -203,6 +203,25 @@ location with an interface that doesn't change between updates.
 Desktop will confirm this file exists on disk before launching - if it's
 missing or lost it won't let you launch the external editor.
 
+### Support for JetBrains Toolbox editors
+
+Now GitHub Desktop support editors installed through JetBrains Toolbox. 
+The technique used to achieve that is using `toolboxShellScriptName` parameter
+to check if, in the default section for scripts in JetBrainsm Toolbox a script
+with the corresponding name exists.
+
+
+```ts
+{
+  name: 'JetBrains PyCharm',
+  ...
+  toolboxShellScriptName: 'pycharm',
+},
+```
+
+The current method supports only the default generated JetBrains Toolbox shell 
+scripts.
+
 ## macOS
 
 The source for the editor integration on macOS is found in
