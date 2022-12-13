@@ -144,6 +144,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Lite XL',
     bundleIdentifiers: ['com.lite-xl'],
   },
+  {
+    name: 'JetBrains Fleet',
+    bundleIdentifiers: ['Fleet.app'],
+  },
 ]
 
 async function findApplication(
