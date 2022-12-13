@@ -43,23 +43,23 @@ export class PopupManager {
 
   /**
    * Returns the last popup in the stack.
+   *
+   * The stack is sorted such that:
    *  If there are error popups, it returns the last popup of type error,
    *  otherwise returns the first non-error type popup.
    */
   public get currentPopup(): Popup | null {
-    return this.allPopups.at(-1) ?? null
+    return this.popupStack.at(-1) ?? null
   }
 
   /**
-   * Returns all the popups in the stack. If there are error popups, it returns
-   *  them on the top of the stack (the end of the array -> last on, last off).
+   * Returns all the popups in the stack.
+   *
+   * The stack is sorted such that:
+   *  If there are error popups, they will be the last on the stack.
    */
   public get allPopups(): ReadonlyArray<Popup> {
-    const errorPopups = this.getPopupsOfType(PopupType.Error)
-    const nonErrorPopups = this.popupStack.filter(
-      p => p.type !== PopupType.Error
-    )
-    return [...nonErrorPopups, ...errorPopups]
+    return this.popupStack
   }
 
   /**
@@ -109,9 +109,23 @@ export class PopupManager {
       return popupToAdd
     }
 
-    this.popupStack.push(popup)
+    this.insertBeforeErrorPopups(popup)
     this.checkStackLength()
     return popup
+  }
+
+  /** Adds a non-Error type popup before any error popups. */
+  private insertBeforeErrorPopups(popup: Popup) {
+    const indexLastError = this.popupStack.findIndex(
+      p => p.type === PopupType.Error
+    )
+
+    if (indexLastError === -1) {
+      this.popupStack.push(popup)
+      return
+    }
+
+    this.popupStack.splice(indexLastError, 0, popup)
   }
 
   /*
