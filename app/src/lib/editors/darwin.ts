@@ -145,7 +145,7 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.lite-xl'],
   },
   {
-    name: 'JetBrains Fleet',
+    name: 'Fleet',
     bundleIdentifiers: ['Fleet.app'],
   },
 ]
