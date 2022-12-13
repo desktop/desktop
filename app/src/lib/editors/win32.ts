@@ -21,6 +21,8 @@ type RegistryKey = { key: HKEY; subKey: string }
 type WindowsExternalEditorJetbrainsToolbox = {
   /**
    * Default shell script name for JetBrains Products
+   * To get the script name go to:
+   * JetBrains Toolbox > Editor settings > Shell script name
    * Note: Don't use on JetBrains community and edu editions
    */
   readonly toolboxShellScriptName?: string
