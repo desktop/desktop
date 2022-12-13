@@ -1415,12 +1415,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {allPopups.map(popup => {
           const isTopMost = this.state.currentPopup?.id === popup.id
           return (
-            <DialogStackContext.Provider
-              key={popup.id}
-              value={{
-                isTopMost,
-              }}
-            >
+            <DialogStackContext.Provider key={popup.id} value={{ isTopMost }}>
               {this.popupContent(popup, isTopMost)}
             </DialogStackContext.Provider>
           )
