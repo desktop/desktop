@@ -18,6 +18,14 @@ interface IWindowsAppInformation {
 
 type RegistryKey = { key: HKEY; subKey: string }
 
+type WindowsExternalEditorJetbrainsToolbox = {
+  /**
+   * Default shell script name for JetBrains Products
+   * Note: Don't use on JetBrains community and edu editions
+   */
+  readonly toolboxShellScriptName?: string
+}
+
 type WindowsExternalEditorPathInfo =
   | {
       /**
@@ -60,7 +68,8 @@ type WindowsExternalEditor = {
 
   /** Value of the Publisher registry key that belongs to this editor. */
   readonly publisher: string
-} & WindowsExternalEditorPathInfo
+} & WindowsExternalEditorPathInfo &
+  WindowsExternalEditorJetbrainsToolbox
 
 const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
   key,
@@ -312,6 +321,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains Webstorm',
     registryKeys: registryKeysForJetBrainsIDE('WebStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('webstorm'),
+    toolboxShellScriptName: 'webstorm',
     displayNamePrefix: 'WebStorm',
     publisher: 'JetBrains s.r.o.',
   },
@@ -319,6 +329,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains Phpstorm',
     registryKeys: registryKeysForJetBrainsIDE('PhpStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
+    toolboxShellScriptName: 'phpstorm',
     displayNamePrefix: 'PhpStorm',
     publisher: 'JetBrains s.r.o.',
   },
@@ -326,6 +337,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'Android Studio',
     registryKeys: [LocalMachineUninstallKey('Android Studio')],
     installLocationRegistryKey: 'UninstallString',
+    toolboxShellScriptName: 'studio',
     executableShimPaths: [
       ['..', 'bin', `studio64.exe`],
       ['..', 'bin', `studio.exe`],
@@ -349,6 +361,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains Rider',
     registryKeys: registryKeysForJetBrainsIDE('JetBrains Rider'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('rider'),
+    toolboxShellScriptName: 'rider',
     displayNamePrefix: 'JetBrains Rider',
     publisher: 'JetBrains s.r.o.',
   },
@@ -363,6 +376,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains IntelliJ Idea',
     registryKeys: registryKeysForJetBrainsIDE('IntelliJ IDEA'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('idea'),
+    toolboxShellScriptName: 'idea',
     displayNamePrefix: 'IntelliJ IDEA ',
     publisher: 'JetBrains s.r.o.',
   },
@@ -379,6 +393,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains PyCharm',
     registryKeys: registryKeysForJetBrainsIDE('PyCharm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('pycharm'),
+    toolboxShellScriptName: 'pycharm',
     displayNamePrefix: 'PyCharm ',
     publisher: 'JetBrains s.r.o.',
   },
@@ -393,6 +408,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains CLion',
     registryKeys: registryKeysForJetBrainsIDE('CLion'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('clion'),
+    toolboxShellScriptName: 'clion',
     displayNamePrefix: 'CLion ',
     publisher: 'JetBrains s.r.o.',
   },
@@ -400,6 +416,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains RubyMine',
     registryKeys: registryKeysForJetBrainsIDE('RubyMine'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('rubymine'),
+    toolboxShellScriptName: 'rubymine',
     displayNamePrefix: 'RubyMine ',
     publisher: 'JetBrains s.r.o.',
   },
@@ -407,6 +424,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'JetBrains GoLand',
     registryKeys: registryKeysForJetBrainsIDE('GoLand'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('goland'),
+    toolboxShellScriptName: 'goland',
     displayNamePrefix: 'GoLand ',
     publisher: 'JetBrains s.r.o.',
   },
@@ -462,6 +480,31 @@ async function findApplication(editor: WindowsExternalEditor) {
       }
 
       log.debug(`Executable for ${editor.name} not found at '${path}'`)
+    }
+  }
+
+  if (editor.toolboxShellScriptName) {
+    const toolboxRegistryReference = [
+      CurrentUserUninstallKey('toolbox'),
+      Wow64LocalMachineUninstallKey('toolbox'),
+    ]
+
+    for (const { key, subKey } of toolboxRegistryReference) {
+      const keys = enumerateValues(key, subKey)
+
+      if (keys.length > 0) {
+        const editorPathInToolbox = Path.join(
+          getKeyOrEmpty(keys, 'UninstallString'),
+          '..',
+          '..',
+          'scripts',
+          `${editor.toolboxShellScriptName}.cmd`
+        )
+        const exists = await pathExists(editorPathInToolbox)
+        if (exists) {
+          return editorPathInToolbox
+        }
+      }
     }
   }
 
