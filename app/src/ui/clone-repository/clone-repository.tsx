@@ -24,7 +24,7 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
-import { IsTopMostService } from '../dialog/is-top-most-service'
+import { isTopMostDialog } from '../dialog/is-top-most'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -152,7 +152,7 @@ export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
-  private isTopMostService: IsTopMostService = new IsTopMostService(
+  private checkIsTopMostDialog = isTopMostDialog(
     () => {
       this.validatePath()
       window.addEventListener('focus', this.onWindowFocus)
@@ -207,7 +207,7 @@ export class CloneRepository extends React.Component<
       this.updateUrl(this.props.initialURL || '')
     }
 
-    this.isTopMostService.check(this.props.isTopMost)
+    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentDidMount() {
@@ -216,11 +216,11 @@ export class CloneRepository extends React.Component<
       this.updateUrl(initialURL)
     }
 
-    this.isTopMostService.check(this.props.isTopMost)
+    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentWillUnmount(): void {
-    this.isTopMostService.unmount()
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   private initializePath = async () => {

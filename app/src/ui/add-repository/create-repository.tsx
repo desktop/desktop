@@ -36,7 +36,7 @@ import { mkdir } from 'fs/promises'
 import { directoryExists } from '../../lib/directory-exists'
 import { FoldoutType } from '../../lib/app-state'
 import { join } from 'path'
-import { IsTopMostService } from '../dialog/is-top-most-service'
+import { isTopMostDialog } from '../dialog/is-top-most'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -119,7 +119,7 @@ export class CreateRepository extends React.Component<
   ICreateRepositoryProps,
   ICreateRepositoryState
 > {
-  private isTopMostService: IsTopMostService = new IsTopMostService(
+  private checkIsTopMostDialog = isTopMostDialog(
     () => {
       this.updateReadMeExists(this.state.path, this.state.name)
       window.addEventListener('focus', this.onWindowFocus)
@@ -159,7 +159,7 @@ export class CreateRepository extends React.Component<
   }
 
   public async componentDidMount() {
-    this.isTopMostService.check(this.props.isTopMost)
+    this.checkIsTopMostDialog(this.props.isTopMost)
 
     const gitIgnoreNames = await getGitIgnoreNames()
     const licenses = await getLicenses()
@@ -173,11 +173,11 @@ export class CreateRepository extends React.Component<
   }
 
   public componentDidUpdate(): void {
-    this.isTopMostService.check(this.props.isTopMost)
+    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentWillUnmount(): void {
-    this.isTopMostService.unmount()
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   private initializePath = async () => {

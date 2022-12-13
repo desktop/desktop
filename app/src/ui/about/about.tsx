@@ -16,7 +16,7 @@ import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
-import { IsTopMostService } from '../dialog/is-top-most-service'
+import { isTopMostDialog } from '../dialog/is-top-most'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -71,7 +71,7 @@ interface IAboutState {
  */
 export class About extends React.Component<IAboutProps, IAboutState> {
   private updateStoreEventHandle: Disposable | null = null
-  private isTopMostService: IsTopMostService = new IsTopMostService(
+  private checkIsTopMostDialog = isTopMostDialog(
     () => {
       window.addEventListener('keydown', this.onKeyDown)
       window.addEventListener('keyup', this.onKeyUp)
@@ -100,11 +100,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.onUpdateStateChanged
     )
     this.setState({ updateState: updateStore.state })
-    this.isTopMostService.check(this.props.isTopMost)
+    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentDidUpdate(): void {
-    this.isTopMostService.check(this.props.isTopMost)
+    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentWillUnmount() {
@@ -112,7 +112,8 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
-    this.isTopMostService.unmount()
+    window.removeEventListener('keydown', this.onKeyDown)
+    window.removeEventListener('keyup', this.onKeyUp)
   }
 
   private onKeyDown = (event: KeyboardEvent) => {

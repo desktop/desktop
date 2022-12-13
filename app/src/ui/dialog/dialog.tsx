@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
-import { IsTopMostService } from './is-top-most-service'
+import { isTopMostDialog } from './is-top-most'
 
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
@@ -167,7 +167,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   public static contextType = DialogStackContext
   public declare context: React.ContextType<typeof DialogStackContext>
 
-  private isTopMostService: IsTopMostService = new IsTopMostService(
+  private checkIsTopMostDialog = isTopMostDialog(
     () => {
       this.onDialogIsTopMost()
     },
@@ -287,7 +287,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
-    this.isTopMostService.check(this.context.isTopMost)
+    this.checkIsTopMostDialog(this.context.isTopMost)
   }
 
   protected onDialogIsTopMost() {
@@ -487,7 +487,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       releaseUniqueId(this.state.titleId)
     }
 
-    this.isTopMostService.unmount()
+    this.onDialogIsNotTopMost()
   }
 
   public componentDidUpdate(prevProps: IDialogProps) {
@@ -495,7 +495,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       this.updateTitleId()
     }
 
-    this.isTopMostService.check(this.context.isTopMost)
+    this.checkIsTopMostDialog(this.context.isTopMost)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {
