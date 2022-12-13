@@ -3,7 +3,10 @@ import { IConstrainedValue, IPullRequestState } from '../../lib/app-state'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { Branch } from '../../models/branch'
 import { ImageDiffType } from '../../models/diff'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { DialogFooter, OkCancelButtonGroup, Dialog } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
@@ -13,6 +16,7 @@ import { OpenPullRequestDialogHeader } from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
+import { Button } from '../lib/button'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -62,6 +66,9 @@ interface IOpenPullRequestDialogProps {
    * it's SHA  */
   readonly nonLocalCommitSHA: string | null
 
+  /** Whether the current branch already has a pull request*/
+  readonly currentBranchHasPullRequest: boolean
+
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
 }
@@ -69,9 +76,18 @@ interface IOpenPullRequestDialogProps {
 /** The component for start a pull request. */
 export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialogProps> {
   private onCreatePullRequest = () => {
-    this.props.dispatcher.createPullRequest(this.props.repository)
-    // TODO: create pr from dialog pr stat?
-    this.props.dispatcher.recordCreatePullRequest()
+    const { currentBranchHasPullRequest, dispatcher, repository, onDismissed } =
+      this.props
+
+    if (currentBranchHasPullRequest) {
+      dispatcher.showPullRequest(repository)
+    } else {
+      dispatcher.createPullRequest(repository)
+      // TODO: create pr from dialog pr stat?
+      dispatcher.recordCreatePullRequest()
+    }
+
+    onDismissed()
   }
 
   private onBranchChange = (branch: Branch) => {
@@ -179,25 +195,42 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   }
 
   private renderFooter() {
-    const { mergeStatus, commitSHAs } = this.props.pullRequestState
-    const gitHubRepository = this.props.repository.gitHubRepository
+    const { currentBranchHasPullRequest, pullRequestState, repository } =
+      this.props
+    const { mergeStatus, commitSHAs } = pullRequestState
+    const isHostedOnGitHub = isRepositoryWithGitHubRepository(repository)
+    const gitHubRepository = repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
-    const buttonTitle = `Create pull request on GitHub${
+
+    const viewCreate = currentBranchHasPullRequest ? 'View' : ' Create'
+    const buttonTitle = `${viewCreate} pull request on GitHub${
       isEnterprise ? ' Enterprise' : ''
     }.`
+
+    const okButton = (
+      <>
+        {currentBranchHasPullRequest && (
+          <Octicon symbol={OcticonSymbol.linkExternal} />
+        )}
+        {__DARWIN__
+          ? `${viewCreate} Pull Request`
+          : `${viewCreate} pull request`}
+      </>
+    )
 
     return (
       <DialogFooter>
         <PullRequestMergeStatus mergeStatus={mergeStatus} />
-        <OkCancelButtonGroup
-          okButtonText={
-            __DARWIN__ ? 'Create Pull Request' : 'Create pull request'
-          }
-          okButtonTitle={buttonTitle}
-          cancelButtonText="Cancel"
-          okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
-        />
+        {isHostedOnGitHub && (
+          <OkCancelButtonGroup
+            okButtonText={okButton}
+            okButtonTitle={buttonTitle}
+            cancelButtonText="Cancel"
+            okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}
+          />
+        )}
+        {!isHostedOnGitHub && <Button type="reset">Close</Button>}
       </DialogFooter>
     )
   }
