@@ -220,7 +220,7 @@ export class CloneRepository extends React.Component<
   }
 
   public componentWillUnmount(): void {
-    window.removeEventListener('focus', this.onWindowFocus)
+    this.checkIsTopMostDialog(false)
   }
 
   private initializePath = async () => {
