@@ -129,6 +129,10 @@ dialog {
     opacity: 1;
   }
 
+  &:not([open]) {
+    display: none;
+  }
+
   // The dialog embeds a fieldset as the first child of the form element
   // in order to be able to disable all form elements and buttons in one
   // swoop. This resets all styles for that fieldset.
