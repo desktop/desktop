@@ -116,16 +116,16 @@ export class PopupManager {
 
   /** Adds a non-Error type popup before any error popups. */
   private insertBeforeErrorPopups(popup: Popup) {
-    const indexLastError = this.popupStack.findIndex(
-      p => p.type === PopupType.Error
-    )
-
-    if (indexLastError === -1) {
-      this.popupStack.push(popup)
+    if (this.popupStack.at(-1)?.type !== PopupType.Error) {
+      this.popupStack = this.popupStack.concat(popup)
       return
     }
 
-    this.popupStack.splice(indexLastError, 0, popup)
+    const errorPopups = this.getPopupsOfType(PopupType.Error)
+    const nonErrorPopups = this.popupStack.filter(
+      p => p.type !== PopupType.Error
+    )
+    this.popupStack = [...nonErrorPopups, popup, ...errorPopups]
   }
 
   /*
