@@ -37,7 +37,7 @@ const defaultPopupStackLimit = 50
  *      displayed as error text with a ok button.
  */
 export class PopupManager {
-  private popupStack = new Array<Popup>()
+  private popupStack: ReadonlyArray<Popup> = []
 
   public constructor(private readonly popupLimit = defaultPopupStackLimit) {}
 
@@ -135,7 +135,7 @@ export class PopupManager {
    **/
   public addErrorPopup(error: Error): Popup {
     const popup: Popup = { id: uuid(), type: PopupType.Error, error }
-    this.popupStack.push(popup)
+    this.popupStack = this.popupStack.concat(popup)
     this.checkStackLength()
     return popup
   }
