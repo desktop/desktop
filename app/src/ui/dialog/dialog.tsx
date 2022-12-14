@@ -487,7 +487,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       releaseUniqueId(this.state.titleId)
     }
 
-    this.onDialogIsNotTopMost()
+    this.checkIsTopMostDialog(false)
   }
 
   public componentDidUpdate(prevProps: IDialogProps) {

@@ -112,8 +112,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
-    window.removeEventListener('keydown', this.onKeyDown)
-    window.removeEventListener('keyup', this.onKeyUp)
+    this.checkIsTopMostDialog(false)
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
