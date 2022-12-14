@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.1.3": [
+      "[Fixed] Disable reorder, squashing, cherry-picking while an action of this type is in progress. - #15468",
+      "[Fixed] Using the key command of 'Shift' + 'ArrowDown' adds the next commit below the current selection to the selection - #15549",
+      "[Fixed] Close 'Resolve conflicts before Rebase' dialog will not disable menu items - #13081. Thanks @angusdev!",
+      "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) while amending a commit - #15445"
+    ],
     "3.1.2": ["[Improved] Upgrade embedded Git to 2.35.5"],
     "3.1.1": [
       "[Fixed] App correctly remembers undo commit prompt setting - #15408"
