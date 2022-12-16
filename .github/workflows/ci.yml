@@ -57,6 +57,8 @@ jobs:
         env:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
+      - name: Validate Electron version
+        run: yarn run validate-electron-version
       - name: Lint
         run: yarn lint
       - name: Validate changelog
