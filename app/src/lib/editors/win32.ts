@@ -490,27 +490,35 @@ async function findApplication(editor: WindowsExternalEditor) {
     }
   }
 
-  if (editor.jetBrainsToolboxScriptName) {
-    const toolboxRegistryReference = [
-      CurrentUserUninstallKey('toolbox'),
-      Wow64LocalMachineUninstallKey('toolbox'),
-    ]
+  return findJetBrainsToolboxApplication(editor)
+}
 
-    for (const { key, subKey } of toolboxRegistryReference) {
-      const keys = enumerateValues(key, subKey)
+/**
+ * Find JetBrain products installed through JetBrains Toolbox
+ */
+async function findJetBrainsToolboxApplication(editor: WindowsExternalEditor) {
+  if (!editor.jetBrainsToolboxScriptName) {
+    return null
+  }
 
-      if (keys.length > 0) {
-        const editorPathInToolbox = Path.join(
-          getKeyOrEmpty(keys, 'UninstallString'),
-          '..',
-          '..',
-          'scripts',
-          `${editor.jetBrainsToolboxScriptName}.cmd`
-        )
-        const exists = await pathExists(editorPathInToolbox)
-        if (exists) {
-          return editorPathInToolbox
-        }
+  const toolboxRegistryReference = [
+    CurrentUserUninstallKey('toolbox'),
+    Wow64LocalMachineUninstallKey('toolbox'),
+  ]
+
+  for (const { key, subKey } of toolboxRegistryReference) {
+    const keys = enumerateValues(key, subKey)
+    if (keys.length > 0) {
+      const editorPathInToolbox = Path.join(
+        getKeyOrEmpty(keys, 'UninstallString'),
+        '..',
+        '..',
+        'scripts',
+        `${editor.jetBrainsToolboxScriptName}.cmd`
+      )
+      const exists = await pathExists(editorPathInToolbox)
+      if (exists) {
+        return editorPathInToolbox
       }
     }
   }
