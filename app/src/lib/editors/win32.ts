@@ -62,10 +62,12 @@ type WindowsExternalEditor = {
   readonly publisher: string
 
   /**
-   * Default shell script name for JetBrains Products
+   * Default shell script name for JetBrains Product
    * To get the script name go to:
    * JetBrains Toolbox > Editor settings > Shell script name
-   * Note: Don't use on JetBrains community and edu editions
+   *
+   * Go to `/docs/techical/editor-integration.md` for more information on
+   * how to use this field.
    */
   readonly jetBrainsToolboxScriptName?: string
 } & WindowsExternalEditorPathInfo

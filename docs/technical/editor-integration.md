@@ -206,19 +206,31 @@ missing or lost it won't let you launch the external editor.
 
 ### Support for JetBrains Toolbox editors
 
-Now GitHub Desktop support editors installed through JetBrains Toolbox. 
-The technique used to achieve that is using `toolboxShellScriptName` parameter
-to check if, in the default section for scripts in JetBrainsm Toolbox a script
+Now GitHub Desktop support editors installed through JetBrains Toolbox.
+The technique used to achieve that is using `jetBrainsToolboxScriptName` field
+to check if, in the default section for scripts in JetBrainsm Toolbox, a script
 with the corresponding name exists.
-
 
 ```ts
 {
   name: 'JetBrains PyCharm',
   ...
-  toolboxShellScriptName: 'pycharm',
+  jetBrainsToolboxScriptName: 'pycharm',
 },
 ```
+
+**Note:** Don't use `jetBrainsToolboxScriptName` field on JetBrains community and edu
+editions. When JetBrains Toolbox generates the scripts. It doesn't consider the
+different editions, so when a new product edition is installed, it generates a shell
+script with the same name that overrides the existing one. So it's impossible to
+differentiate between the various editions of the same product.
+
+**Overriding example:**
+1. Install JetBrains PyCharm Community
+2. At this point, JetBrains Toolbox will generate a shell script called `pycharm`
+3. Install JetBrains PyCharm Professional
+4. JetBrains Toolbox will generate a new script with the same name, `pycharm`
+and will override the script generated for the community version
 
 The current method supports only the default generated JetBrains Toolbox shell 
 scripts.
