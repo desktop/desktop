@@ -7326,6 +7326,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startPullRequest(repository: Repository) {
+    await this._fetch(repository, FetchType.UserInitiatedTask)
+
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { defaultBranch, tip } = branchesState
 
