@@ -15,6 +15,7 @@ import {
 } from './environment'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { CommitOneLine } from '../../models/commit'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
@@ -32,12 +33,12 @@ async function getCheckoutArgs(
   if (enableRecurseSubmodulesFlag()) {
     return branch.type === BranchType.Remote
       ? baseArgs.concat(
-          branch.name,
-          '-b',
-          branch.nameWithoutRemote,
-          '--recurse-submodules',
-          '--'
-        )
+        branch.name,
+        '-b',
+        branch.nameWithoutRemote,
+        '--recurse-submodules',
+        '--'
+      )
       : baseArgs.concat(branch.name, '--recurse-submodules', '--')
   } else {
     return branch.type === BranchType.Remote
@@ -104,6 +105,66 @@ export async function checkoutBranch(
   )
 
   await git(args, repository.path, 'checkoutBranch', opts)
+
+  // we return `true` here so `GitStore.performFailableGitOperation`
+  // will return _something_ differentiable from `undefined` if this succeeds
+  return true
+}
+
+/**
+ * Check out the given commit.
+ * Literally invokes `git checkout <commit SHA>`.
+ *
+ * @param repository - The repository in which the branch checkout should
+ *                     take place
+ *
+ * @param commit     - The commit that should be checked out
+ *
+ * @param progressCallback - An optional function which will be invoked
+ *                           with information about the current progress
+ *                           of the checkout operation. When provided this
+ *                           enables the '--progress' command line flag for
+ *                           'git checkout'.
+ */
+export async function checkoutCommit(
+  repository: Repository,
+  account: IGitAccount | null,
+  commit: CommitOneLine,
+  progressCallback?: ProgressCallback
+): Promise<true> {
+  let opts: IGitExecutionOptions = {
+    env: await envForRemoteOperation(
+      account,
+      getFallbackUrlForProxyResolve(account, repository)
+    ),
+    expectedErrors: AuthenticationErrors,
+  }
+
+  if (progressCallback) {
+    const title = `Checking out commit ${commit.sha}`
+    const kind = 'checkout'
+    const targetCommit = commit.sha
+
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
+      new CheckoutProgressParser(),
+      progress => {
+        if (progress.kind === 'progress') {
+          const description = progress.details.text
+          const value = progress.percent
+
+          progressCallback({ kind, title, description, value, targetBranch: targetCommit })
+        }
+      }
+    )
+
+    // Initial progress
+    progressCallback({ kind, title, value: 0, targetBranch: targetCommit })
+  }
+
+  const args = ["checkout", commit.sha]
+
+  await git(args, repository.path, 'checkoutCommit', opts)
 
   // we return `true` here so `GitStore.performFailableGitOperation`
   // will return _something_ differentiable from `undefined` if this succeeds

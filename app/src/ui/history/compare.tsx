@@ -249,6 +249,7 @@ export class CompareSidebar extends React.Component<
         onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
         onCreateBranch={this.onCreateBranch}
+        onCheckoutCommit={this.onCheckoutCommit}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
@@ -591,6 +592,11 @@ export class CompareSidebar extends React.Component<
       repository,
       targetCommit: commit,
     })
+  }
+
+  private onCheckoutCommit = (commit: CommitOneLine) => {
+    const { repository, dispatcher } = this.props
+    dispatcher.checkoutCommit(repository, commit)
   }
 
   private onDeleteTag = (tagName: string) => {

@@ -1,4 +1,5 @@
 import { Branch } from '../models/branch'
+import { CommitOneLine } from '../models/commit'
 
 type MergeOrPullConflictsErrorContext = {
   /** The Git operation that triggered the conflicted state */
@@ -18,7 +19,16 @@ type CheckoutBranchErrorContext = {
   readonly branchToCheckout: Branch
 }
 
+type CheckoutCommitErrorContext = {
+  /** The Git operation that triggered the error */
+  readonly kind: 'checkout'
+
+  /** The branch associated with the current tip of the repository, "ours" in Git terminology */
+  readonly commitToCheckout: CommitOneLine
+}
+
 /** A custom shape of data for actions to provide to help with error handling */
 export type GitErrorContext =
   | MergeOrPullConflictsErrorContext
   | CheckoutBranchErrorContext
+  | CheckoutCommitErrorContext

@@ -37,6 +37,7 @@ interface ICommitProps {
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateBranch?: (commit: CommitOneLine) => void
+  readonly onCheckoutCommit?: (commit: CommitOneLine) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onAmendCommit?: (commit: Commit, isLocalCommit: boolean) => void
@@ -325,6 +326,16 @@ export class CommitListItem extends React.PureComponent<
         action: () => {
           if (this.props.onCreateBranch) {
             this.props.onCreateBranch(this.props.commit)
+          }
+        },
+      },
+      {
+        label: __DARWIN__
+          ? 'Checkout Commit'
+          : 'Checkout commit',
+        action: () => {
+          if (this.props.onCheckoutCommit) {
+            this.props.onCheckoutCommit(this.props.commit)
           }
         },
       },

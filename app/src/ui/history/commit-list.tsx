@@ -70,6 +70,12 @@ interface ICommitListProps {
    */
   readonly onCreateBranch?: (commit: CommitOneLine) => void
 
+  /**
+   * Callback to fire to create a branch from a given commit in the current
+   * repository
+   */
+  readonly onCheckoutCommit?: (commit: CommitOneLine) => void
+
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag?: (targetCommitSha: string) => void
 
@@ -204,6 +210,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         commit={commit}
         emoji={this.props.emoji}
         onCreateBranch={this.props.onCreateBranch}
+        onCheckoutCommit={this.props.onCheckoutCommit}
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
@@ -266,9 +273,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     }
 
     if (numUnpushedTags > 0) {
-      return `This commit has ${numUnpushedTags} tag${
-        numUnpushedTags > 1 ? 's' : ''
-      } to push`
+      return `This commit has ${numUnpushedTags} tag${numUnpushedTags > 1 ? 's' : ''
+        } to push`
     }
 
     return undefined
@@ -408,7 +414,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           onScroll={this.onScroll}
           insertionDragType={
             reorderingEnabled === true &&
-            isMultiCommitOperationInProgress === false
+              isMultiCommitOperationInProgress === false
               ? DragType.Commit
               : undefined
           }
