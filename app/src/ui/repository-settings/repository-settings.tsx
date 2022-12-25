@@ -382,12 +382,13 @@ export class RepositorySettings extends React.Component<
 
   private onRemoteUrlChanged = (url: string) => {
     const remote = this.props.remote
+    const modifiedUrl = url.trim();
 
     if (!remote) {
       return
     }
 
-    const newRemote = { ...remote, url }
+    const newRemote = { ...remote, modifiedUrl }
     this.setState({ remote: newRemote })
   }
 
