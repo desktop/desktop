@@ -19,6 +19,7 @@ import { PopoverCaretPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { getTabSize } from '../lib/tabsize'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -319,9 +320,11 @@ export class SideBySideDiffRow extends React.Component<
   private renderContent(
     data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator' | 'tokens'>
   ) {
+    const content = data.content.replace('\t', ' '.repeat(getTabSize()))
+
     return (
       <div className="content" onContextMenu={this.props.onContextMenuText}>
-        {syntaxHighlightLine(data.content, data.tokens)}
+        {syntaxHighlightLine(content, data.tokens)}
         {data.noNewLineIndicator && (
           <Octicon
             symbol={narrowNoNewlineSymbol}
