@@ -320,7 +320,7 @@ export class SideBySideDiffRow extends React.Component<
   private renderContent(
     data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator' | 'tokens'>
   ) {
-    const content = data.content.replace('\t', ' '.repeat(getTabSize()))
+    const content = data.content.replace(/\t/g, ' '.repeat(getTabSize()))
 
     return (
       <div className="content" onContextMenu={this.props.onContextMenuText}>
