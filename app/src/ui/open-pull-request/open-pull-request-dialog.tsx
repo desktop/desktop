@@ -17,6 +17,7 @@ import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
 import { Button } from '../lib/button'
+import { getTabSize } from '../lib/tabsize'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -166,6 +167,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         selectedFile={file}
         showSideBySideDiff={this.props.showSideBySideDiff}
         repository={repository}
+        tabSize={getTabSize()}
       />
     )
   }

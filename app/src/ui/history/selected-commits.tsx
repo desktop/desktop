@@ -188,8 +188,13 @@ export class SelectedCommits extends React.Component<
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
         onHighlightShas={this.onHighlightShas}
         showUnreachableCommits={this.showUnreachableCommits}
+        onTabSizeChanged={this.onTabSizeChanged}
       />
     )
+  }
+
+  private onTabSizeChanged = (value: number) => {
+    
   }
 
   private showUnreachableCommits = (selectedTab: UnreachableCommitsTab) => {

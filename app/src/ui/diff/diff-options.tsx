@@ -4,6 +4,8 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { getAvailableTabSizes, getTabSize, setTabSize } from '../lib/tabsize'
+import { Select } from '../lib/select'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -11,6 +13,7 @@ interface IDiffOptionsProps {
   readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
   ) => void
+  readonly onTabSizeChanged: (value: number) => void
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
@@ -21,6 +24,7 @@ interface IDiffOptionsProps {
 
 interface IDiffOptionsState {
   readonly isPopoverOpen: boolean
+  readonly tabSize: number
 }
 
 export class DiffOptions extends React.Component<
@@ -33,6 +37,7 @@ export class DiffOptions extends React.Component<
     super(props)
     this.state = {
       isPopoverOpen: false,
+      tabSize: getTabSize(),
     }
   }
 
@@ -73,6 +78,15 @@ export class DiffOptions extends React.Component<
     )
   }
 
+  private onTabSizeChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    const value = parseInt(event.currentTarget.value)
+    setTabSize(value);
+    this.setState({ tabSize: value })
+    return this.props.onTabSizeChanged(value)
+  }
+
   public render() {
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
@@ -93,6 +107,7 @@ export class DiffOptions extends React.Component<
       >
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
+        {this.renderTabSize()}
       </Popover>
     )
   }
@@ -149,6 +164,22 @@ export class DiffOptions extends React.Component<
             hiding whitespace.
           </p>
         )}
+      </section>
+    )
+  }
+
+  private renderTabSize() {
+    const tabSizeOptions = getAvailableTabSizes();
+
+    return (
+      <section>
+        <h3>Tab size</h3>
+        <Select
+          value={this.state.tabSize.toString()}
+          onChange={this.onTabSizeChanged}
+        >
+          {tabSizeOptions.map(n => (<option key={n}>{n}</option>))}
+        </Select>
       </section>
     )
   }

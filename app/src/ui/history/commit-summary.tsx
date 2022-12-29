@@ -59,6 +59,8 @@ interface ICommitSummaryProps {
 
   /** Called to show unreachable commits dialog */
   readonly showUnreachableCommits: (tab: UnreachableCommitsTab) => void
+
+  readonly onTabSizeChanged: (value: number) => void
 }
 
 interface ICommitSummaryState {
@@ -511,6 +513,9 @@ export class CommitSummary extends React.Component<
                 hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
                 onHideWhitespaceChangesChanged={
                   this.props.onHideWhitespaceInDiffChanged
+                }
+                onTabSizeChanged={
+                  this.props.onTabSizeChanged
                 }
                 showSideBySideDiff={this.props.showSideBySideDiff}
                 onShowSideBySideDiffChanged={

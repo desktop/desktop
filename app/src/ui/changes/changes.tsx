@@ -51,6 +51,8 @@ interface IChangesProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  readonly onTabSizeChanged: (value: number) => void
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -108,6 +110,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
           onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+          onTabSizeChanged={this.props.onTabSizeChanged}
         />
 
         <SeamlessDiffSwitcher

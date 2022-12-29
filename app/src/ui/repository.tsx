@@ -503,9 +503,14 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
+          onTabSizeChanged={this.onTabSizeChanged}
         />
       )
     }
+  }
+
+  private onTabSizeChanged = (value: number) => {
+    
   }
 
   private onOpenBinaryFile = (fullPath: string) => {

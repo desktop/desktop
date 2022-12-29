@@ -57,6 +57,8 @@ interface IPullRequestFilesChangedProps {
   /** If the latest commit of the pull request is not local, this will contain
    * it's SHA  */
   readonly nonLocalCommitSHA: string | null
+
+  readonly tabSize: number
 }
 
 interface IPullRequestFilesChangedState {
@@ -224,6 +226,10 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
+  private onTabSizeChanged = (value: number) => {
+    
+  }
+
   private renderHeader() {
     const { hideWhitespaceInDiff } = this.props
     const { showSideBySideDiff } = this.state
@@ -237,6 +243,7 @@ export class PullRequestFilesChanged extends React.Component<
           hideWhitespaceChanges={hideWhitespaceInDiff}
           onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
           showSideBySideDiff={showSideBySideDiff}
+          onTabSizeChanged={this.onTabSizeChanged}
           onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
           onDiffOptionsOpened={this.onDiffOptionsOpened}
         />

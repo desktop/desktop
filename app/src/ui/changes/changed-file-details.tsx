@@ -26,6 +26,8 @@ interface IChangedFileDetailsProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  readonly onTabSizeChanged: (value: number) => void
 }
 
 /** Displays information about a file */
@@ -64,6 +66,7 @@ export class ChangedFileDetails extends React.Component<
         onHideWhitespaceChangesChanged={
           this.props.onHideWhitespaceInDiffChanged
         }
+        onTabSizeChanged={this.props.onTabSizeChanged}
         hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
         onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
         showSideBySideDiff={this.props.showSideBySideDiff}
