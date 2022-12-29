@@ -226,9 +226,7 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
-  private onTabSizeChanged = (value: number) => {
-    
-  }
+  private onTabSizeChanged = (value: number) => {}
 
   private renderHeader() {
     const { hideWhitespaceInDiff } = this.props

@@ -193,9 +193,7 @@ export class SelectedCommits extends React.Component<
     )
   }
 
-  private onTabSizeChanged = (value: number) => {
-    
-  }
+  private onTabSizeChanged = (value: number) => {}
 
   private showUnreachableCommits = (selectedTab: UnreachableCommitsTab) => {
     this.props.dispatcher.showUnreachableCommits(selectedTab)

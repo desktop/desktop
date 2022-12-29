@@ -514,9 +514,7 @@ export class CommitSummary extends React.Component<
                 onHideWhitespaceChangesChanged={
                   this.props.onHideWhitespaceInDiffChanged
                 }
-                onTabSizeChanged={
-                  this.props.onTabSizeChanged
-                }
+                onTabSizeChanged={this.props.onTabSizeChanged}
                 showSideBySideDiff={this.props.showSideBySideDiff}
                 onShowSideBySideDiffChanged={
                   this.props.onShowSideBySideDiffChanged

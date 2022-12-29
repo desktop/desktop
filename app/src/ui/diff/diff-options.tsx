@@ -78,12 +78,11 @@ export class DiffOptions extends React.Component<
     )
   }
 
-  private onTabSizeChanged = (
-    event: React.FormEvent<HTMLSelectElement>
-  ) => {
+  private onTabSizeChanged = (event: React.FormEvent<HTMLSelectElement>) => {
     const value = parseInt(event.currentTarget.value)
-    setTabSize(value);
+    setTabSize(value)
     this.setState({ tabSize: value })
+
     return this.props.onTabSizeChanged(value)
   }
 
@@ -169,7 +168,7 @@ export class DiffOptions extends React.Component<
   }
 
   private renderTabSize() {
-    const tabSizeOptions = getAvailableTabSizes();
+    const tabSizeOptions = getAvailableTabSizes()
 
     return (
       <section>
@@ -178,7 +177,9 @@ export class DiffOptions extends React.Component<
           value={this.state.tabSize.toString()}
           onChange={this.onTabSizeChanged}
         >
-          {tabSizeOptions.map(n => (<option key={n}>{n}</option>))}
+          {tabSizeOptions.map(n => (
+            <option key={n}>{n}</option>
+          ))}
         </Select>
       </section>
     )

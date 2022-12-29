@@ -509,9 +509,7 @@ export class RepositoryView extends React.Component<
     }
   }
 
-  private onTabSizeChanged = (value: number) => {
-    
-  }
+  private onTabSizeChanged = (value: number) => {}
 
   private onOpenBinaryFile = (fullPath: string) => {
     openFile(fullPath, this.props.dispatcher)
