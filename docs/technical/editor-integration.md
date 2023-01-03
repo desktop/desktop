@@ -307,6 +307,7 @@ These editors are currently supported:
  - [Neovim](https://neovim.io/)
  - [Code](https://github.com/elementary/code)
  - [Lite XL](https://lite-xl.com/)
+ - [Emacs](https://www.gnu.org/software/emacs/)
 
 These are defined in a list at the top of the file:
 
