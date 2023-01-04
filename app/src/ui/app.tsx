@@ -2325,13 +2325,13 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state
 
         const {
-          allBranches,
+          prBaseBranches,
           currentBranch,
           defaultBranch,
           imageDiffType,
           externalEditorLabel,
           nonLocalCommitSHA,
-          recentBranches,
+          prRecentBaseBranches,
           repository,
           showSideBySideDiff,
           currentBranchHasPullRequest,
@@ -2340,7 +2340,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <OpenPullRequestDialog
             key="open-pull-request"
-            allBranches={allBranches}
+            prBaseBranches={prBaseBranches}
             currentBranch={currentBranch}
             defaultBranch={defaultBranch}
             dispatcher={this.props.dispatcher}
@@ -2349,7 +2349,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             imageDiffType={imageDiffType}
             nonLocalCommitSHA={nonLocalCommitSHA}
             pullRequestState={pullRequestState}
-            recentBranches={recentBranches}
+            prRecentBaseBranches={prRecentBaseBranches}
             repository={repository}
             externalEditorLabel={externalEditorLabel}
             showSideBySideDiff={showSideBySideDiff}
