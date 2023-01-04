@@ -293,7 +293,7 @@ export class RepositorySettings extends React.Component<
           await this.props.dispatcher.setRemoteURL(
             this.props.repository,
             this.props.remote.name,
-            this.state.remote.url
+            this.state.remote.url.trim()
           )
         } catch (e) {
           log.error(
@@ -382,7 +382,6 @@ export class RepositorySettings extends React.Component<
 
   private onRemoteUrlChanged = (url: string) => {
     const remote = this.props.remote
-    url = url.trim()
 
     if (!remote) {
       return
