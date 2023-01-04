@@ -104,6 +104,12 @@ export class OpenPullRequestDialogHeader extends React.Component<
             allBranches={prBaseBranches}
             recentBranches={prRecentBaseBranches}
             onChange={onBranchChange}
+            noBranchesMessage={
+              <>
+                Sorry, I can't find a that remote branch. <br />
+                You can only open pull requests against remote branches.
+              </>
+            }
           />{' '}
           from <Ref>{currentBranch.name}</Ref>.
         </div>
