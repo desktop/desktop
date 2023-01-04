@@ -7426,6 +7426,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    this.statsStore.recordPreviewedPullRequest()
+
     const { branchesState, localCommitSHAs } =
       this.repositoryStateCache.get(repository)
     const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
