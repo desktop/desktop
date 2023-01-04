@@ -7449,6 +7449,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.repositoryStateCache.get(repository)
     const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
       branchesState
+    const gitStore = this.gitStoreCache.get(repository)
     /*  We only want branches that are also on dotcom such that, when we ask a
      *  user to create a pull request, the base branch also exists on dotcom.
      */
