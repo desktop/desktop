@@ -217,7 +217,7 @@ export function getForkContributionTarget(
 /**
  * Returns whether the fork is contributing to the parent
  */
-export function isRepositoryAForkContributingToParent(
+export function isForkedRepositoryContributingToParent(
   repository: Repository
 ): boolean {
   return (

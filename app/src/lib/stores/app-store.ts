@@ -47,7 +47,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
-  isRepositoryAForkContributingToParent,
+  isForkedRepositoryContributingToParent,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -6102,7 +6102,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { parent, owner, name, htmlURL } = gitHubRepository
     const isForkContributingToParent =
-      isRepositoryAForkContributingToParent(repository)
+    isForkedRepositoryContributingToParent(repository)
 
     const baseForkPreface =
       isForkContributingToParent && parent !== null
@@ -7418,7 +7418,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     /*  We only want branches that are also on dotcom such that, when we ask a
      *  user to create a pull request, the base branch also exists on dotcom.
      */
-    const remote = isRepositoryAForkContributingToParent(repository)
+    const remote = isForkedRepositoryContributingToParent(repository)
       ? UpstreamRemoteName
       : gitStore.defaultRemote?.name
     const prBaseBranches = allBranches.filter(
