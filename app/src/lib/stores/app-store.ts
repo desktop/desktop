@@ -6102,7 +6102,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { parent, owner, name, htmlURL } = gitHubRepository
     const isForkContributingToParent =
-    isForkedRepositoryContributingToParent(repository)
+      isForkedRepositoryContributingToParent(repository)
 
     const baseForkPreface =
       isForkContributingToParent && parent !== null
