@@ -119,6 +119,7 @@ export interface IAppState {
   readonly showWelcomeFlow: boolean
   readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
+  readonly allPopups: ReadonlyArray<Popup>
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
 
@@ -967,7 +968,7 @@ export interface IPullRequestState {
    * The base branch of a a pull request - the branch the currently checked out
    * branch would merge into
    */
-  readonly baseBranch: Branch
+  readonly baseBranch: Branch | null
 
   /** The SHAs of commits of the pull request */
   readonly commitSHAs: ReadonlyArray<string> | null
@@ -981,7 +982,7 @@ export interface IPullRequestState {
    * repositories commit selection where the diff of all commits represents the
    * diff between the latest commit and the earliest commits parent.
    */
-  readonly commitSelection: ICommitSelection
+  readonly commitSelection: ICommitSelection | null
 
   /** The result of merging the pull request branch into the base branch */
   readonly mergeStatus: MergeTreeResult | null

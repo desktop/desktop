@@ -932,6 +932,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.popupManager.currentPopup,
+      allPopups: this.popupManager.allPopups,
       currentFoldout: this.currentFoldout,
       errorCount: this.popupManager.getPopupsOfType(PopupType.Error).length,
       showWelcomeFlow: this.showWelcomeFlow,
@@ -7326,23 +7327,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { defaultBranch, tip } = branchesState
+    const { tip, defaultBranch } =
+      this.repositoryStateCache.get(repository).branchesState
 
-    if (defaultBranch === null || tip.kind !== TipState.Valid) {
+    if (tip.kind !== TipState.Valid) {
+      // Shouldn't even be able to get here if so - just a type check
       return
     }
+
     const currentBranch = tip.branch
     this._initializePullRequestPreview(repository, defaultBranch, currentBranch)
   }
 
   private async _initializePullRequestPreview(
     repository: Repository,
-    baseBranch: Branch,
+    baseBranch: Branch | null,
     currentBranch: Branch
   ) {
-    const { branchesState, localCommitSHAs } =
-      this.repositoryStateCache.get(repository)
+    if (baseBranch === null) {
+      this.showPullRequestPopupNoBaseBranch(repository, currentBranch)
+      return
+    }
+
     const gitStore = this.gitStoreCache.get(repository)
 
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
@@ -7409,10 +7415,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
+    this.showPullRequestPopup(repository, currentBranch, commitSHAs)
+  }
+
+  public showPullRequestPopupNoBaseBranch(
+    repository: Repository,
+    currentBranch: Branch
+  ) {
+    this.repositoryStateCache.initializePullRequestState(repository, {
+      baseBranch: null,
+      commitSHAs: null,
+      commitSelection: null,
+      mergeStatus: null,
+    })
+
+    this.emitUpdate()
+
+    this.showPullRequestPopup(repository, currentBranch, [])
+  }
+
+  public showPullRequestPopup(
+    repository: Repository,
+    currentBranch: Branch,
+    commitSHAs: ReadonlyArray<string>
+  ) {
     if (this.popupManager.areTherePopupsOfType(PopupType.StartPullRequest)) {
       return
     }
 
+    this.statsStore.recordPreviewedPullRequest()
+
+    const { branchesState, localCommitSHAs } =
+      this.repositoryStateCache.get(repository)
     const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
       branchesState
     /*  We only want branches that are also on dotcom such that, when we ask a
@@ -7430,6 +7464,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
+    const nonLocalCommitSHA =
+      commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
+        ? commitSHAs[0]
+        : null
+
     this._showPopup({
       type: PopupType.StartPullRequest,
       prBaseBranches,
@@ -7439,10 +7478,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType,
       repository,
       externalEditorLabel: selectedExternalEditor ?? undefined,
-      nonLocalCommitSHA:
-        commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
-          ? commitSHAs[0]
-          : null,
+      nonLocalCommitSHA,
       showSideBySideDiff,
       currentBranchHasPullRequest: currentPullRequest !== null,
     })
@@ -7464,7 +7500,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const currentBranch = branchesState.tip.branch
     const { baseBranch, commitSHAs } = pullRequestState
-    if (commitSHAs === null) {
+    if (commitSHAs === null || baseBranch === null) {
       return
     }
 

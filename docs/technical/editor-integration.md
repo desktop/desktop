@@ -307,6 +307,9 @@ These editors are currently supported:
  - [Neovim](https://neovim.io/)
  - [Code](https://github.com/elementary/code)
  - [Lite XL](https://lite-xl.com/)
+ - [JetBrains PHPStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [Emacs](https://www.gnu.org/software/emacs/)
 
 These are defined in a list at the top of the file:
 

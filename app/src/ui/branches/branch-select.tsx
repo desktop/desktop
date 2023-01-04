@@ -9,7 +9,7 @@ import { IBranchListItem } from './group-branches'
 
 interface IBranchSelectProps {
   /** The initially selected branch. */
-  readonly branch: Branch
+  readonly branch: Branch | null
 
   /**
    * See IBranchesState.defaultBranch

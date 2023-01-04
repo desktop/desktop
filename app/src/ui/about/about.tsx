@@ -16,6 +16,7 @@ import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
+import { isTopMostDialog } from '../dialog/is-top-most'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -54,6 +55,9 @@ interface IAboutProps {
 
   /** A function to call when the user wants to see Terms and Conditions. */
   readonly onShowTermsAndConditions: () => void
+
+  /** Whether the dialog is the top most in the dialog stack */
+  readonly isTopMost: boolean
 }
 
 interface IAboutState {
@@ -67,6 +71,16 @@ interface IAboutState {
  */
 export class About extends React.Component<IAboutProps, IAboutState> {
   private updateStoreEventHandle: Disposable | null = null
+  private checkIsTopMostDialog = isTopMostDialog(
+    () => {
+      window.addEventListener('keydown', this.onKeyDown)
+      window.addEventListener('keyup', this.onKeyUp)
+    },
+    () => {
+      window.removeEventListener('keydown', this.onKeyDown)
+      window.removeEventListener('keyup', this.onKeyUp)
+    }
+  )
 
   public constructor(props: IAboutProps) {
     super(props)
@@ -86,8 +100,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.onUpdateStateChanged
     )
     this.setState({ updateState: updateStore.state })
-    window.addEventListener('keydown', this.onKeyDown)
-    window.addEventListener('keyup', this.onKeyUp)
+    this.checkIsTopMostDialog(this.props.isTopMost)
+  }
+
+  public componentDidUpdate(): void {
+    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentWillUnmount() {
@@ -95,8 +112,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
     }
-    window.removeEventListener('keydown', this.onKeyDown)
-    window.removeEventListener('keyup', this.onKeyUp)
+    this.checkIsTopMostDialog(false)
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
