@@ -1,6 +1,10 @@
 .dropdown-select-button {
   position: relative;
 
+  .dropdown-button-wrappers {
+    display: flex;
+  }
+
   &.open-bottom {
     .invoke-button {
       border-bottom-left-radius: 0;
@@ -34,19 +38,16 @@
   }
 
   .invoke-button {
-    width: 88%;
     display: inline;
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
     margin-right: 0;
-    float: left;
     height: 30px;
-    // counter balances center for the 12% dropdown button
-    padding-left: 12% !important;
+    flex-grow: 1;
   }
 
   .dropdown-button {
-    width: 12%;
+    min-width: 30px;
     padding: var(--spacing-half);
     margin: 0;
     border-bottom-left-radius: 0;
@@ -85,29 +86,50 @@
     box-shadow: var(--base-box-shadow);
     width: 99.9%;
 
-    ul {
-      padding: 0;
-      margin: 0;
+    padding: 0;
+    margin: 0;
 
-      li {
-        list-style-type: none;
-        padding: var(--spacing) var(--spacing-double);
-        padding-left: var(--spacing-triple);
-        border-bottom: 1px solid var(--box-border-color);
+    :first-child.button-component {
+      border-top: 1px solid var(--box-border-color);
+    }
+
+    .button-component {
+      padding: var(--spacing) var(--spacing-double);
+      padding-left: var(--spacing-triple);
+      border-bottom: 1px solid var(--box-border-color);
+      height: auto;
+      padding: var(--spacing) var(--spacing-double);
+      padding-left: var(--spacing-triple);
+      border-bottom: 1px solid var(--box-border-color);
+      text-align: inherit;
+      white-space: normal;
+      border-radius: 0;
+      line-height: 1.5;
+      margin: 0;
+      border-right: 0;
+      border-left: 0;
+      border-top: 0;
+      width: 100%;
+
+      &:hover,
+      &:focus {
+        outline: none;
+        color: var(--box-selected-active-text-color);
+        background-color: var(--box-selected-active-background-color);
 
         .option-description {
-          color: var(--text-secondary-color);
-          font-size: var(--font-size-sm);
-        }
-
-        .selected-option-indicator {
-          position: absolute;
-          left: var(--spacing);
+          color: var(--box-selected-active-text-color);
         }
       }
 
-      li:hover {
-        background-color: var(--box-selected-background-color);
+      .option-description {
+        color: var(--text-secondary-color);
+        font-size: var(--font-size-sm);
+      }
+
+      .selected-option-indicator {
+        position: absolute;
+        left: var(--spacing);
       }
     }
   }

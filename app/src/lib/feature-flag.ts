@@ -46,7 +46,7 @@ export function enableWSLDetection(): boolean {
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return false
+  return enableBetaFeatures()
 }
 
 /**
@@ -110,5 +110,15 @@ export function enableSubmoduleDiff(): boolean {
 
 /** Should we enable starting pull requests? */
 export function enableStartingPullRequests(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
+}
+
+/** Should we enable starting pull requests? */
+export function enableStackedPopups(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we enable mechanism to prevent closing while the app is updating? */
+export function enablePreventClosingWhileUpdating(): boolean {
+  return enableBetaFeatures()
 }

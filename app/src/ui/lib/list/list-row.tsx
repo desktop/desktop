@@ -24,7 +24,7 @@ interface IListRowProps {
   readonly selected?: boolean
 
   /** callback to fire when the DOM element is created */
-  readonly onRef?: (element: HTMLDivElement | null) => void
+  readonly onRowRef?: (index: number, element: HTMLDivElement | null) => void
 
   /** callback to fire when the row receives a mouseover event */
   readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
@@ -41,6 +41,18 @@ interface IListRowProps {
   /** callback to fire when the row receives a keyboard event */
   readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
 
+  /** called when the row (or any of its descendants) receives focus */
+  readonly onRowFocus?: (
+    index: number,
+    e: React.FocusEvent<HTMLDivElement>
+  ) => void
+
+  /** called when the row (and all of its descendants) loses focus */
+  readonly onRowBlur?: (
+    index: number,
+    e: React.FocusEvent<HTMLDivElement>
+  ) => void
+
   /**
    * Whether or not this list row is going to be selectable either through
    * keyboard navigation, pointer clicks, or both. This is used to determine
@@ -53,6 +65,10 @@ interface IListRowProps {
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
+  private onRef = (elem: HTMLDivElement | null) => {
+    this.props.onRowRef?.(this.props.rowIndex, elem)
+  }
+
   private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
     this.props.onRowMouseOver(this.props.rowIndex, e)
   }
@@ -71,6 +87,14 @@ export class ListRow extends React.Component<IListRowProps, {}> {
 
   private onRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     this.props.onRowKeyDown(this.props.rowIndex, e)
+  }
+
+  private onFocus = (e: React.FocusEvent<HTMLDivElement>) => {
+    this.props.onRowFocus?.(this.props.rowIndex, e)
+  }
+
+  private onBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    this.props.onRowBlur?.(this.props.rowIndex, e)
   }
 
   public render() {
@@ -102,13 +126,15 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         role={role}
         className={className}
         tabIndex={this.props.tabIndex}
-        ref={this.props.onRef}
+        ref={this.onRef}
         onMouseOver={this.onRowMouseOver}
         onMouseDown={this.onRowMouseDown}
         onMouseUp={this.onRowMouseUp}
         onClick={this.onRowClick}
         onKeyDown={this.onRowKeyDown}
         style={style}
+        onFocus={this.onFocus}
+        onBlur={this.onBlur}
       >
         {this.props.children}
       </div>

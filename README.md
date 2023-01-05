@@ -4,7 +4,17 @@
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
 uses [React](https://reactjs.org/).
 
-![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
+<picture>
+  <source
+    srcset="https://user-images.githubusercontent.com/634063/202742848-63fa1488-6254-49b5-af7c-96a6b50ea8af.png"
+    media="(prefers-color-scheme: dark)"
+  />
+  <img
+    width="1072"
+    src="https://user-images.githubusercontent.com/634063/202742985-bb3b3b94-8aca-404a-8d8a-fd6a6f030672.png"
+    alt="A screenshot of the GitHub Desktop application showing changes being viewed and committed with two attributed co-authors"
+  />
+</picture>
 
 ## Where can I get it?
 
@@ -41,8 +51,7 @@ The release notes for the latest beta versions are available [here](https://desk
 
 There are several community-supported package managers that can be used to
 install GitHub Desktop:
- - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
-      `c:\> choco install github-desktop`
+ - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:/> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
       `$ brew install --cask github`
 
@@ -84,6 +93,10 @@ familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
 If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
+
+## Building Desktop
+
+To get your development environment set up for building Desktop, see [setup.md](./docs/contributing/setup.md).
 
 ## More Resources
 

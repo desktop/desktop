@@ -27,6 +27,9 @@ interface IStashDiffViewerProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
+  /** Should the app propt the user to confirm a discard stash */
+  readonly askForConfirmationOnDiscardStash: boolean
+
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
@@ -113,6 +116,9 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           repository={repository}
           dispatcher={dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
+          askForConfirmationOnDiscardStash={
+            this.props.askForConfirmationOnDiscardStash
+          }
         />
         <div className="commit-details">
           <Resizable
