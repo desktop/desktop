@@ -619,7 +619,11 @@ export class CloneRepository extends React.Component<
     const dirPath = tabState.path
     if (lastParsedIdentifier) {
       if (parsed) {
-        newPath = Path.join(Path.dirname(dirPath), parsed.name)
+        if (parsed?.name !== '/') {
+          newPath = Path.join(Path.dirname(dirPath), parsed.name)
+        } else {
+          newPath = dirPath
+        }
       } else {
         newPath = Path.dirname(dirPath)
       }
