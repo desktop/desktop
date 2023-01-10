@@ -11,7 +11,7 @@ import { Octicon, syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RelativeTime } from '../relative-time'
 
-import { ToolbarButtonStyle } from './button'
+import { ToolbarButton, ToolbarButtonStyle } from './button'
 import classNames from 'classnames'
 import {
   DropdownState,
@@ -73,6 +73,18 @@ interface IPushPullButtonProps {
 
 interface IPushPullButtonState {
   readonly isOpen: boolean
+}
+
+enum DropdownItemType {
+  Fetch,
+  ForcePush,
+}
+
+type DropdownItem = {
+  readonly title: string
+  readonly description: string
+  readonly action: () => void
+  readonly icon: OcticonSymbol.OcticonSymbolType
 }
 
 function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
@@ -144,14 +156,23 @@ export class PushPullButton extends React.Component<
   }
 
   /** The common props for all button states */
-  private defaultDropdownProps(): IToolbarDropdownProps {
+  private defaultButtonProps() {
     return {
+      buttonClassName: 'push-pull-button',
+      style: ToolbarButtonStyle.Subtitle,
+    }
+  }
+
+  /** The common props for all dropdown states */
+  private defaultDropdownProps(): Omit<
+    IToolbarDropdownProps,
+    'dropdownContentRenderer'
+  > {
+    return {
+      ...this.defaultButtonProps(),
       dropdownStyle: ToolbarDropdownStyle.MultiOption,
       dropdownState: this.state.isOpen ? 'open' : 'closed',
       onDropdownStateChanged: this.onDropdownStateChanged,
-      dropdownContentRenderer: this.dropdownContentRenderer,
-      buttonClassName: 'push-pull-button',
-      style: ToolbarButtonStyle.Subtitle,
     }
   }
 
@@ -174,23 +195,25 @@ export class PushPullButton extends React.Component<
     )
   }
 
-  private dropdownContentRenderer = () => {
-    return (
-      <div className="push-pull-dropdown-button">
-        {/* {this.renderButton()}
+  private getDropdownContentRenderer(
+    itemTypes: ReadonlyArray<DropdownItemType>
+  ) {
+    return () => {
+      return (
+        <div className="push-pull-dropdown-button">
+          {/* {this.renderButton()}
          <FocusTrap
            active={true}
            focusTrapOptions={{ clickOutsideDeactivates: true }}
          > */}
-        <div className="push-pull-dropdown">
-          {this.renderDropdownItem()}
-          {this.renderDropdownItem()}
-          {this.renderDropdownItem()}
-        </div>
-        {/* //   </FocusTrap>
+          <div className="push-pull-dropdown">
+            {itemTypes.map(this.renderDropdownItem)}
+          </div>
+          {/* //   </FocusTrap>
       //   <div className="push-pull-dropdown-backdrop" /> */}
-      </div>
-    )
+        </div>
+      )
+    }
   }
 
   private onDropdownStateChanged = (
@@ -204,15 +227,35 @@ export class PushPullButton extends React.Component<
     return this.renderButton()
   }
 
-  public renderDropdownItem() {
+  private getDropdownItemWithType(type: DropdownItemType): DropdownItem {
+    const { remoteName } = this.props
+
+    switch (type) {
+      case DropdownItemType.Fetch:
+        return {
+          title: `Fetch ${remoteName}`,
+          description: `Fetch the latest changes from ${remoteName}`,
+          action: this.fetch,
+          icon: syncClockwise,
+        }
+      case DropdownItemType.ForcePush:
+        return {
+          title: `Force push ${remoteName}`,
+          description: `Overwrite any changes on ${remoteName} with your local changes`,
+          action: this.forcePushWithLease,
+          icon: forcePushIcon,
+        }
+    }
+  }
+
+  public renderDropdownItem = (type: DropdownItemType) => {
+    const item = this.getDropdownItemWithType(type)
     return (
-      <Button className="push-pull-dropdown-item">
-        <Octicon symbol={forcePushIcon} />
+      <Button className="push-pull-dropdown-item" onClick={item.action}>
+        <Octicon symbol={item.icon} />
         <div className="text-container">
-          <div className="title">Force push to origin</div>
-          <div className="detail">
-            Overwrite any changes on the remote with your local changes.
-          </div>
+          <div className="title">{item.title}</div>
+          <div className="detail">{item.description}</div>
         </div>
       </Button>
     )
@@ -302,8 +345,8 @@ export class PushPullButton extends React.Component<
 
   private progressButton(progress: Progress, networkActionInProgress: boolean) {
     return (
-      <ToolbarDropdown
-        {...this.defaultDropdownProps()}
+      <ToolbarButton
+        {...this.defaultButtonProps()}
         title={progress.title}
         description={progress.description || 'Hang on…'}
         progressValue={progress.value}
@@ -317,8 +360,8 @@ export class PushPullButton extends React.Component<
 
   private publishRepositoryButton(onClick: () => void) {
     return (
-      <ToolbarDropdown
-        {...this.defaultDropdownProps()}
+      <ToolbarButton
+        {...this.defaultButtonProps()}
         title="Publish repository"
         description="Publish this repository to GitHub"
         className="push-pull-button"
@@ -331,8 +374,8 @@ export class PushPullButton extends React.Component<
 
   private unbornRepositoryButton() {
     return (
-      <ToolbarDropdown
-        {...this.defaultDropdownProps()}
+      <ToolbarButton
+        {...this.defaultButtonProps()}
         title="Publish branch"
         description="Cannot publish unborn HEAD"
         icon={OcticonSymbol.upload}
@@ -347,8 +390,8 @@ export class PushPullButton extends React.Component<
       : 'Cannot publish detached HEAD'
 
     return (
-      <ToolbarDropdown
-        {...this.defaultDropdownProps()}
+      <ToolbarButton
+        {...this.defaultButtonProps()}
         title="Publish branch"
         description={description}
         icon={OcticonSymbol.upload}
@@ -382,6 +425,9 @@ export class PushPullButton extends React.Component<
         icon={OcticonSymbol.upload}
         onClick={onClick}
         className={className}
+        dropdownContentRenderer={this.getDropdownContentRenderer([
+          DropdownItemType.Fetch,
+        ])}
       />
     )
   }
@@ -395,15 +441,13 @@ export class PushPullButton extends React.Component<
   ) {
     const title = `Fetch ${remoteName}`
     return (
-      <ToolbarDropdown
-        {...this.defaultDropdownProps()}
+      <ToolbarButton
+        {...this.defaultButtonProps()}
         title={title}
         description={renderLastFetched(lastFetched)}
         icon={syncClockwise}
         onClick={onClick}
-      >
-        {renderAheadBehind(aheadBehind, numTagsToPush)}
-      </ToolbarDropdown>
+      />
     )
   }
 
@@ -426,6 +470,10 @@ export class PushPullButton extends React.Component<
         description={renderLastFetched(lastFetched)}
         icon={OcticonSymbol.arrowDown}
         onClick={onClick}
+        dropdownContentRenderer={this.getDropdownContentRenderer([
+          DropdownItemType.Fetch,
+          DropdownItemType.ForcePush,
+        ])}
       >
         {renderAheadBehind(aheadBehind, numTagsToPush)}
       </ToolbarDropdown>
@@ -446,6 +494,9 @@ export class PushPullButton extends React.Component<
         description={renderLastFetched(lastFetched)}
         icon={OcticonSymbol.arrowUp}
         onClick={onClick}
+        dropdownContentRenderer={this.getDropdownContentRenderer([
+          DropdownItemType.Fetch,
+        ])}
       >
         {renderAheadBehind(aheadBehind, numTagsToPush)}
       </ToolbarDropdown>
@@ -466,6 +517,9 @@ export class PushPullButton extends React.Component<
         description={renderLastFetched(lastFetched)}
         icon={forcePushIcon}
         onClick={onClick}
+        dropdownContentRenderer={this.getDropdownContentRenderer([
+          DropdownItemType.Fetch,
+        ])}
       >
         {renderAheadBehind(aheadBehind, numTagsToPush)}
       </ToolbarDropdown>
