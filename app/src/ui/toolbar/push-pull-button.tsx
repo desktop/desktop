@@ -20,6 +20,7 @@ import {
   ToolbarDropdownStyle,
 } from './dropdown'
 import { Button } from '../lib/button'
+import { FoldoutType } from '../../lib/app-state'
 
 interface IPushPullButtonProps {
   /**
@@ -69,15 +70,22 @@ interface IPushPullButtonProps {
    * The number of tags that would get pushed if the user performed a push.
    */
   readonly numTagsToPush: number
-}
 
-interface IPushPullButtonState {
-  readonly isOpen: boolean
+  /** Whether or not the push-pull dropdown is currently open */
+  readonly isDropdownOpen: boolean
+
+  /**
+   * An event handler for when the drop down is opened, or closed, by a pointer
+   * event or by pressing the space or enter key while focused.
+   *
+   * @param state    - The new state of the drop down
+   */
+  readonly onDropdownStateChanged: (state: DropdownState) => void
 }
 
 enum DropdownItemType {
-  Fetch,
-  ForcePush,
+  Fetch = 'fetch',
+  ForcePush = 'force-push',
 }
 
 type DropdownItem = {
@@ -146,19 +154,11 @@ const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<
-  IPushPullButtonProps,
-  IPushPullButtonState
-> {
-  public constructor(props: IPushPullButtonProps) {
-    super(props)
-    this.state = { isOpen: false }
-  }
-
+export class PushPullButton extends React.Component<IPushPullButtonProps> {
   /** The common props for all button states */
   private defaultButtonProps() {
     return {
-      buttonClassName: 'push-pull-button',
+      className: 'push-pull-button',
       style: ToolbarButtonStyle.Subtitle,
     }
   }
@@ -169,26 +169,35 @@ export class PushPullButton extends React.Component<
     'dropdownContentRenderer'
   > {
     return {
-      ...this.defaultButtonProps(),
+      buttonClassName: 'push-pull-button',
+      style: ToolbarButtonStyle.Subtitle,
       dropdownStyle: ToolbarDropdownStyle.MultiOption,
-      dropdownState: this.state.isOpen ? 'open' : 'closed',
-      onDropdownStateChanged: this.onDropdownStateChanged,
+      dropdownState: this.props.isDropdownOpen ? 'open' : 'closed',
+      onDropdownStateChanged: this.props.onDropdownStateChanged,
     }
   }
 
+  private closeDropdown() {
+    this.props.dispatcher.closeFoldout(FoldoutType.PushPull)
+  }
+
   private push = () => {
+    this.closeDropdown()
     this.props.dispatcher.push(this.props.repository)
   }
 
   private forcePushWithLease = () => {
+    this.closeDropdown()
     this.props.dispatcher.confirmOrForcePush(this.props.repository)
   }
 
   private pull = () => {
+    this.closeDropdown()
     this.props.dispatcher.pull(this.props.repository)
   }
 
   private fetch = () => {
+    this.closeDropdown()
     this.props.dispatcher.fetch(
       this.props.repository,
       FetchType.UserInitiatedTask
@@ -201,7 +210,7 @@ export class PushPullButton extends React.Component<
     return () => {
       return (
         <div className="push-pull-dropdown-button">
-          {/* {this.renderButton()}
+          {/*
          <FocusTrap
            active={true}
            focusTrapOptions={{ clickOutsideDeactivates: true }}
@@ -209,18 +218,10 @@ export class PushPullButton extends React.Component<
           <div className="push-pull-dropdown">
             {itemTypes.map(this.renderDropdownItem)}
           </div>
-          {/* //   </FocusTrap>
-      //   <div className="push-pull-dropdown-backdrop" /> */}
+          {/* </FocusTrap> */}
         </div>
       )
     }
-  }
-
-  private onDropdownStateChanged = (
-    state: DropdownState,
-    source: 'keyboard' | 'pointer'
-  ) => {
-    this.setState({ isOpen: state === 'open' })
   }
 
   public render() {
@@ -251,7 +252,11 @@ export class PushPullButton extends React.Component<
   public renderDropdownItem = (type: DropdownItemType) => {
     const item = this.getDropdownItemWithType(type)
     return (
-      <Button className="push-pull-dropdown-item" onClick={item.action}>
+      <Button
+        className="push-pull-dropdown-item"
+        key={type}
+        onClick={item.action}
+      >
         <Octicon symbol={item.icon} />
         <div className="text-container">
           <div className="title">{item.title}</div>

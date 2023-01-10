@@ -2800,6 +2800,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName = tip.branch.upstreamRemoteName
     }
 
+    const currentFoldout = this.state.currentFoldout
+
+    const isDropdownOpen =
+      currentFoldout !== null && currentFoldout.type === FoldoutType.PushPull
+
     const isForcePush =
       getCurrentBranchForcePushState(branchesState, aheadBehind) ===
       ForcePushBranchState.Recommended
@@ -2821,6 +2826,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.PushBranch
         }
+        isDropdownOpen={isDropdownOpen}
+        onDropdownStateChanged={this.onPushPullDropdownStateChanged}
       />
     )
   }
@@ -2882,6 +2889,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     branch: Branch
   ) => {
     this.props.dispatcher.openCreatePullRequestInBrowser(repository, branch)
+  }
+
+  private onPushPullDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.PushPull })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.PushPull)
+    }
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
