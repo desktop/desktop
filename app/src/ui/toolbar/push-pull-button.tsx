@@ -210,15 +210,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     return () => {
       return (
         <div className="push-pull-dropdown-button">
-          {/*
-         <FocusTrap
-           active={true}
-           focusTrapOptions={{ clickOutsideDeactivates: true }}
-         > */}
           <div className="push-pull-dropdown">
             {itemTypes.map(this.renderDropdownItem)}
           </div>
-          {/* </FocusTrap> */}
         </div>
       )
     }
