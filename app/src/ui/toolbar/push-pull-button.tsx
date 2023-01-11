@@ -23,6 +23,8 @@ import { Button } from '../lib/button'
 import { FoldoutType } from '../../lib/app-state'
 import { ForcePushBranchState } from '../../lib/rebase'
 
+const DropdownItemClassName = 'push-pull-dropdown-item'
+
 interface IPushPullButtonProps {
   /**
    * The ahead/behind count for the current branch. If null, it indicates the
@@ -211,7 +213,10 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     return () => {
       return (
         <>
-          {/* The <div> element has a child <button> element that allows keyboard interaction */}
+          {/*
+          This <div> is not interactive, but its children are, so we need to
+          disable the jsx-a11y/no-static-element-interactions rule.
+          */}
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <div
             className="push-pull-dropdown"
@@ -234,7 +239,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     event.preventDefault()
     const dropdown = event.currentTarget
     const items = dropdown.querySelectorAll<HTMLElement>(
-      '.push-pull-dropdown-item'
+      `.${DropdownItemClassName}`
     )
     const focusedItem = dropdown.querySelector<HTMLElement>(':focus')
     if (!focusedItem) {
@@ -289,7 +294,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     const item = this.getDropdownItemWithType(type)
     return (
       <Button
-        className="push-pull-dropdown-item"
+        className={DropdownItemClassName}
         key={type}
         onClick={item.action}
       >
