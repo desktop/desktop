@@ -219,11 +219,11 @@ with the corresponding name exists.
 },
 ```
 
-**Note:** Don't use `jetBrainsToolboxScriptName` field on JetBrains community and edu
-editions. When JetBrains Toolbox generates the scripts. It doesn't consider the
-different editions, so when a new product edition is installed, it generates a shell
-script with the same name that overrides the existing one. So it's impossible to
-differentiate between the various editions of the same product.
+**Note:** Use `jetBrainsToolboxScriptName` field only on the main edition of 
+the product. When JetBrains Toolbox generates the scripts, it doesn't consider the
+different editions, so when a new product edition is installed, it generates a
+shell script with the same name that overrides the existing one. So it's
+impossible to differentiate between the various editions of the same product.
 
 **Overriding example:**
 1. Install JetBrains PyCharm Community
