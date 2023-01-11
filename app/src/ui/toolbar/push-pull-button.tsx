@@ -210,13 +210,42 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
   ) {
     return () => {
       return (
-        <div className="push-pull-dropdown-button">
-          <div className="push-pull-dropdown">
+        <>
+          {/* The <div> element has a child <button> element that allows keyboard interaction */}
+          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+          <div
+            className="push-pull-dropdown"
+            onKeyDown={this.onDropdownKeyDown}
+          >
             {itemTypes.map(this.renderDropdownItem)}
           </div>
-        </div>
+        </>
       )
     }
+  }
+
+  private onDropdownKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    // Allow using Up and Down arrow keys to navigate the dropdown items
+    // (equivalent to Tab and Shift+Tab)
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+      return
+    }
+
+    event.preventDefault()
+    const dropdown = event.currentTarget
+    const items = dropdown.querySelectorAll<HTMLElement>(
+      '.push-pull-dropdown-item'
+    )
+    const focusedItem = dropdown.querySelector<HTMLElement>(':focus')
+    if (!focusedItem) {
+      return
+    }
+
+    const focusedIndex = Array.from(items).indexOf(focusedItem)
+    const nextIndex =
+      event.key === 'ArrowDown' ? focusedIndex + 1 : focusedIndex - 1
+    const nextItem = items[nextIndex % items.length]
+    nextItem?.focus()
   }
 
   public render() {

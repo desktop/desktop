@@ -1,61 +1,56 @@
-.push-pull-dropdown-button {
+.push-pull-dropdown {
   display: flex;
   flex-direction: column;
+  margin-top: 1px;
+  z-index: 0;
   max-width: 100%;
 
-  .push-pull-dropdown {
+  .push-pull-dropdown-item {
     display: flex;
-    flex-direction: column;
-    margin-top: 1px;
-    z-index: 0;
+    flex-direction: row;
+    height: fit-content;
+    padding: 10px;
+    gap: 10px;
+    color: var(--text-color);
+    background-color: var(--box-background-color);
+    white-space: normal;
 
-    .push-pull-dropdown-item {
+    // Unset styles from Button component
+    text-align: unset;
+    border: unset;
+    border-radius: unset;
+
+    .octicon {
+      height: 16px;
+      width: 16px;
+    }
+
+    &:hover {
+      background-color: var(--box-hover-background-color);
+      color: var(--box-hover-text-color);
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--box-border-color);
+    }
+
+    .text-container {
       display: flex;
-      flex-direction: row;
-      height: fit-content;
-      padding: 10px;
-      gap: 10px;
-      color: var(--text-color);
-      background-color: var(--box-background-color);
-      white-space: normal;
+      flex-direction: column;
+      row-gap: 3px;
 
-      // Unset styles from Button component
-      text-align: unset;
-      border: unset;
-      border-radius: unset;
-
-      .octicon {
-        height: 16px;
-        width: 16px;
+      .title {
+        font-weight: 600;
       }
 
-      &:hover {
-        background-color: var(--box-hover-background-color);
-        color: var(--box-hover-text-color);
-      }
+      .detail {
+        color: var(--text-secondary-color);
 
-      &:not(:last-child) {
-        border-bottom: 1px solid var(--box-border-color);
-      }
+        .warning {
+          color: var(--toolbar-dropdown-text-warning-color);
 
-      .text-container {
-        display: flex;
-        flex-direction: column;
-        row-gap: 3px;
-
-        .title {
-          font-weight: 600;
-        }
-
-        .detail {
-          color: var(--text-secondary-color);
-
-          .warning {
-            color: var(--toolbar-dropdown-text-warning-color);
-
-            .warning-title {
-              font-weight: 600;
-            }
+          .warning-title {
+            font-weight: 600;
           }
         }
       }
