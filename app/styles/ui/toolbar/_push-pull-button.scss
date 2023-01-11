@@ -26,8 +26,8 @@
     }
 
     &:hover {
-      background-color: var(--box-hover-background-color);
-      color: var(--box-hover-text-color);
+      background-color: var(--box-hover-background-color) !important;
+      color: var(--box-hover-text-color) !important;
     }
 
     &:not(:last-child) {
