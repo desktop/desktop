@@ -21,6 +21,7 @@ import {
 } from './dropdown'
 import { Button } from '../lib/button'
 import { FoldoutType } from '../../lib/app-state'
+import { ForcePushBranchState } from '../../lib/rebase'
 
 interface IPushPullButtonProps {
   /**
@@ -60,8 +61,8 @@ interface IPushPullButtonProps {
   /** Is the detached HEAD state related to a rebase or not? */
   readonly rebaseInProgress: boolean
 
-  /** If the current branch has been rebased, the user is permitted to force-push */
-  readonly isForcePush: boolean
+  /** Force push state of the current branch */
+  readonly forcePushBranchState: ForcePushBranchState
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
@@ -284,7 +285,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       rebaseInProgress,
       lastFetched,
       pullWithRebase,
-      isForcePush,
+      forcePushBranchState,
     } = this.props
 
     if (progress !== null) {
@@ -324,7 +325,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       )
     }
 
-    if (isForcePush) {
+    if (forcePushBranchState === ForcePushBranchState.Recommended) {
       return this.forcePushButton(
         remoteName,
         aheadBehind,
@@ -341,6 +342,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
         numTagsToPush,
         lastFetched,
         pullWithRebase || false,
+        forcePushBranchState,
         this.pull
       )
     }
@@ -468,11 +470,18 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     numTagsToPush: number,
     lastFetched: Date | null,
     pullWithRebase: boolean,
+    forcePushBranchState: ForcePushBranchState,
     onClick: () => void
   ) {
     const title = pullWithRebase
       ? `Pull ${remoteName} with rebase`
       : `Pull ${remoteName}`
+
+    const dropdownItemTypes = [DropdownItemType.Fetch]
+
+    if (forcePushBranchState !== ForcePushBranchState.NotAvailable) {
+      dropdownItemTypes.push(DropdownItemType.ForcePush)
+    }
 
     return (
       <ToolbarDropdown
@@ -481,10 +490,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
         description={renderLastFetched(lastFetched)}
         icon={OcticonSymbol.arrowDown}
         onClick={onClick}
-        dropdownContentRenderer={this.getDropdownContentRenderer([
-          DropdownItemType.Fetch,
-          DropdownItemType.ForcePush,
-        ])}
+        dropdownContentRenderer={this.getDropdownContentRenderer(
+          dropdownItemTypes
+        )}
       >
         {renderAheadBehind(aheadBehind, numTagsToPush)}
       </ToolbarDropdown>
