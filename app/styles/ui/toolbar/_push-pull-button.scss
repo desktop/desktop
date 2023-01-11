@@ -49,6 +49,14 @@
 
         .detail {
           color: var(--text-secondary-color);
+
+          .warning {
+            color: var(--toolbar-dropdown-text-warning-color);
+
+            .warning-title {
+              font-weight: 600;
+            }
+          }
         }
       }
     }

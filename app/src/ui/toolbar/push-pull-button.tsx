@@ -90,7 +90,7 @@ enum DropdownItemType {
 
 type DropdownItem = {
   readonly title: string
-  readonly description: string
+  readonly description: string | JSX.Element
   readonly action: () => void
   readonly icon: OcticonSymbol.OcticonSymbolType
 }
@@ -236,7 +236,19 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       case DropdownItemType.ForcePush:
         return {
           title: `Force push ${remoteName}`,
-          description: `Overwrite any changes on ${remoteName} with your local changes`,
+          description: (
+            <>
+              Overwrite any changes on {remoteName} with your local changes
+              <br />
+              <br />
+              <div className="warning">
+                <span className="warning-title">Warning:</span> A force push
+                will rewrite history on the remote. Any collaborators working on
+                this branch will need to reset their own local branch to match
+                the history of the remote.
+              </div>
+            </>
+          ),
           action: this.forcePushWithLease,
           icon: forcePushIcon,
         }
