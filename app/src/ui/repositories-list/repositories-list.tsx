@@ -136,6 +136,7 @@ export class RepositoriesList extends React.Component<
         key={repository.id}
         repository={repository}
         needsDisambiguation={item.needsDisambiguation}
+        minimalUniquePrefix={item.minimalUniquePrefix}
         askForConfirmationOnRemoveRepository={
           this.props.askForConfirmationOnRemoveRepository
         }

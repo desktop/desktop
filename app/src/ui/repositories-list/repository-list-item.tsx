@@ -47,6 +47,9 @@ interface IRepositoryListItemProps {
   /** Does the repository need to be disambiguated in the list? */
   readonly needsDisambiguation: boolean
 
+  /** The prefix for a local repository that needs to be disambiguated */
+  readonly minimalUniquePrefix: string | null
+
   /** The label for the user's preferred shell. */
   readonly shellLabel: string
 
@@ -79,6 +82,12 @@ export class RepositoryListItem extends React.Component<
     let prefix: string | null = null
     if (this.props.needsDisambiguation && gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
+    } else if (
+      this.props.needsDisambiguation &&
+      this.props.minimalUniquePrefix !== null &&
+      alias === null
+    ) {
+      prefix = `${this.props.minimalUniquePrefix}/`
     }
 
     const classNameList = classNames('name', {

@@ -8,6 +8,7 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { IAheadBehind } from '../../models/branch'
+import path from 'path'
 
 /**
  * Special, reserved repository group names
@@ -30,6 +31,7 @@ export interface IRepositoryListItem extends IFilterListItem {
   readonly id: string
   readonly repository: Repositoryish
   readonly needsDisambiguation: boolean
+  readonly minimalUniquePrefix: string | null
   readonly aheadBehind: IAheadBehind | null
   readonly changedFilesCount: number
 }
@@ -37,6 +39,29 @@ export interface IRepositoryListItem extends IFilterListItem {
 const fallbackValue = {
   changedFilesCount: 0,
   aheadBehind: null,
+}
+
+function minimalPrefix(r: Repositoryish, paths: string[]) {
+  const ownPath = r.path
+  const otherPaths = paths.filter(p => p !== ownPath)
+  const ownWithoutBasename = path.parse(ownPath).dir
+  const othersWithoutBasename = otherPaths.map(p => path.parse(p).dir)
+  const parts = ownWithoutBasename.split(path.sep)
+  const othersParts = othersWithoutBasename.map(p => p.split(path.sep))
+
+  const prefixParts = []
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const part = parts[i]
+    prefixParts.unshift(part)
+    if (othersParts.some(other => other[other.length - 1] === part)) {
+      othersParts.forEach(other => other.pop())
+      continue
+    }
+    break
+  }
+
+  const minimalPrefix = prefixParts.join(path.sep)
+  return minimalPrefix.length !== 0 ? minimalPrefix : null
 }
 
 export function groupRepositories(
@@ -77,17 +102,21 @@ export function groupRepositories(
       return
     }
 
-    const names = new Map<string, number>()
+    const pathsByNames = new Map<string, string[]>()
     for (const repository of repositories) {
-      const existingCount = names.get(repository.name) || 0
-      names.set(repository.name, existingCount + 1)
+      const existingPaths: string[] = pathsByNames.get(repository.name) || []
+      existingPaths.push(repository.path)
+      pathsByNames.set(repository.name, existingPaths)
     }
 
     repositories.sort((x, y) =>
       caseInsensitiveCompare(repositorySortingKey(x), repositorySortingKey(y))
     )
+
     const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
-      const nameCount = names.get(r.name) || 0
+      const nameCount = pathsByNames.get(r.name)?.length || 0
+      const minimalUniquePrefix =
+        nameCount > 1 ? minimalPrefix(r, pathsByNames.get(r.name)!) : null
       const { aheadBehind, changedFilesCount } =
         localRepositoryStateLookup.get(r.id) || fallbackValue
       const repositoryText =
@@ -97,8 +126,8 @@ export function groupRepositories(
         text: repositoryText,
         id: r.id.toString(),
         repository: r,
-        needsDisambiguation:
-          nameCount > 1 && identifier === KnownRepositoryGroup.Enterprise,
+        needsDisambiguation: nameCount > 1,
+        minimalUniquePrefix: minimalUniquePrefix,
         aheadBehind,
         changedFilesCount,
       }
@@ -130,14 +159,16 @@ export function makeRecentRepositoriesGroup(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
 ): IFilterListGroup<IRepositoryListItem> {
-  const names = new Map<string, number>()
+  const pathsByNames = new Map<string, string[]>()
   for (const id of recentRepositories) {
     const repository = repositories.find(r => r.id === id)
     if (repository !== undefined) {
       const alias = repository instanceof Repository ? repository.alias : null
       const name = alias ?? repository.name
-      const existingCount = names.get(name) || 0
-      names.set(name, existingCount + 1)
+
+      const existingPaths: string[] = pathsByNames.get(name) || []
+      existingPaths.push(repository.path)
+      pathsByNames.set(name, existingPaths)
     }
   }
 
@@ -157,12 +188,17 @@ export function makeRecentRepositoriesGroup(
       repository instanceof Repository
         ? [repositoryAlias ?? repository.name, nameOf(repository)]
         : [repository.name]
-    const nameCount = names.get(repositoryAlias ?? repository.name) || 0
+    const nameCount = pathsByNames.get(repository.name)?.length || 0
+    const minimalUniquePrefix =
+      nameCount > 1
+        ? minimalPrefix(repository, pathsByNames.get(repository.name)!)
+        : null
     items.push({
       text: repositoryText,
       id: id.toString(),
       repository,
       needsDisambiguation: nameCount > 1,
+      minimalUniquePrefix: minimalUniquePrefix,
       aheadBehind,
       changedFilesCount,
     })
