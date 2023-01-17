@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.1.4": ["[Improved] Upgrade embedded Git to 2.35.6"],
     "3.1.3": [
       "[Fixed] Disable reorder, squashing, cherry-picking while an action of this type is in progress. - #15468",
       "[Fixed] Using the key command of 'Shift' + 'ArrowDown' adds the next commit below the current selection to the selection - #15549",
