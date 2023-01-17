@@ -44,6 +44,7 @@ These editors are currently supported:
  - [Notepad++](https://notepad-plus-plus.org/)
  - [RStudio](https://rstudio.com/)
  - [Aptana Studio](http://www.aptana.com/)
+ - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
 
 These are defined in a list at the top of the file:
 
@@ -203,6 +204,37 @@ location with an interface that doesn't change between updates.
 Desktop will confirm this file exists on disk before launching - if it's
 missing or lost it won't let you launch the external editor.
 
+### Support for JetBrains Toolbox editors
+
+Now GitHub Desktop support editors installed through JetBrains Toolbox.
+The technique used to achieve that is using `jetBrainsToolboxScriptName` field
+to check if, in the default section for scripts in JetBrainsm Toolbox, a script
+with the corresponding name exists.
+
+```ts
+{
+  name: 'JetBrains PyCharm',
+  ...
+  jetBrainsToolboxScriptName: 'pycharm',
+},
+```
+
+**Note:** Use `jetBrainsToolboxScriptName` field only on the main edition of 
+the product. When JetBrains Toolbox generates the scripts, it doesn't consider the
+different editions, so when a new product edition is installed, it generates a
+shell script with the same name that overrides the existing one. So it's
+impossible to differentiate between the various editions of the same product.
+
+**Overriding example:**
+1. Install JetBrains PyCharm Community
+2. At this point, JetBrains Toolbox will generate a shell script called `pycharm`
+3. Install JetBrains PyCharm Professional
+4. JetBrains Toolbox will generate a new script with the same name, `pycharm`
+and will override the script generated for the community version
+
+The current method supports only the default generated JetBrains Toolbox shell 
+scripts.
+
 ## macOS
 
 The source for the editor integration on macOS is found in
@@ -238,6 +270,7 @@ These editors are currently supported:
  - [Aptana Studio](http://www.aptana.com/)
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Lite XL](https://lite-xl.com/)
+ - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
 
 These are defined in a list at the top of the file:
 
@@ -307,6 +340,9 @@ These editors are currently supported:
  - [Neovim](https://neovim.io/)
  - [Code](https://github.com/elementary/code)
  - [Lite XL](https://lite-xl.com/)
+ - [JetBrains PHPStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [Emacs](https://www.gnu.org/software/emacs/)
 
 These are defined in a list at the top of the file:
 

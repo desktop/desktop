@@ -1,5 +1,23 @@
 {
   "releases": {
+    "3.1.3": [
+      "[Fixed] Disable reorder, squashing, cherry-picking while an action of this type is in progress. - #15468",
+      "[Fixed] Using the key command of 'Shift' + 'ArrowDown' adds the next commit below the current selection to the selection - #15549",
+      "[Fixed] Close 'Resolve conflicts before Rebase' dialog will not disable menu items - #13081. Thanks @angusdev!",
+      "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) while amending a commit - #15445"
+    ],
+    "3.1.3-beta4": [
+      "[Fixed] Hide window instead of hiding the app on macOS - #15511. Thanks @angusdev!",
+      "[Fixed] Only left mouse clicks invoke dragging in the commit list - #15313",
+      "[Fixed] Ensure selected list items stay selected when scrolling - #2957",
+      "[Fixed] Stick to one tooltip at a time in the repository list  - #15583",
+      "[Fixed] Preview Pull Request opens when there is not a local default branch - #15704",
+      "[Fixed] Preview Pull Request suggested next action available on first app open without interaction - #15703",
+      "[Improved] Ability to copy tag names from the commit list - #15137. Thanks @Shivareddy-Aluri!",
+      "[Improved] Stacked popups remember their state when hidden due to another popup opening - #15668",
+      "[Improved] Create pull request from pull request preview opens to compare against the user's selected base branch - #15706",
+      "[Improved] On Preview Pull Request dialog, submit button closes the dialog - #15695"
+    ],
     "3.1.3-beta3": [
       "[Fixed] Using the key command of 'Shift' + 'ArrowDown' in the commit list adds the next commit to the current selection - #15536",
       "[Fixed] Notifications of Pull Request reviews are displayed for forked repositories - #15580",
