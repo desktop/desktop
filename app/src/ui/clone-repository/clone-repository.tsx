@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
+import { FoldoutType } from '../../lib/app-state'
 import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
@@ -23,6 +24,7 @@ import { ClickSource } from '../lib/list'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
+import { isTopMostDialog } from '../dialog/is-top-most'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -64,6 +66,9 @@ interface ICloneRepositoryProps {
    * available for cloning.
    */
   readonly onRefreshRepositories: (account: Account) => void
+
+  /** Whether the dialog is the top most in the dialog stack */
+  readonly isTopMost: boolean
 }
 
 interface ICloneRepositoryState {
@@ -147,6 +152,16 @@ export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
+  private checkIsTopMostDialog = isTopMostDialog(
+    () => {
+      this.validatePath()
+      window.addEventListener('focus', this.onWindowFocus)
+    },
+    () => {
+      window.removeEventListener('focus', this.onWindowFocus)
+    }
+  )
+
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -191,6 +206,8 @@ export class CloneRepository extends React.Component<
     if (prevProps.initialURL !== this.props.initialURL) {
       this.updateUrl(this.props.initialURL || '')
     }
+
+    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentDidMount() {
@@ -199,7 +216,11 @@ export class CloneRepository extends React.Component<
       this.updateUrl(initialURL)
     }
 
-    window.addEventListener('focus', this.onWindowFocus)
+    this.checkIsTopMostDialog(this.props.isTopMost)
+  }
+
+  public componentWillUnmount(): void {
+    this.checkIsTopMostDialog(false)
   }
 
   private initializePath = async () => {
@@ -221,10 +242,6 @@ export class CloneRepository extends React.Component<
     // initial path
     const selectedTabState = this.getSelectedTabState()
     this.updateUrl(selectedTabState.url)
-  }
-
-  public componentWillUnmount() {
-    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   public render() {
@@ -728,6 +745,7 @@ export class CloneRepository extends React.Component<
 
     const { url, defaultBranch } = cloneInfo
 
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     try {
       this.cloneImpl(url.trim(), path, defaultBranch)
     } catch (e) {

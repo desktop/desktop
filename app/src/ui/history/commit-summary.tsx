@@ -12,7 +12,6 @@ import { CommitAttribution } from '../lib/commit-attribution'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
-import { RepositorySectionTab } from '../../lib/app-state'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { AppFileStatusKind } from '../../models/status'
@@ -431,7 +430,10 @@ export class CommitSummary extends React.Component<
         aria-label="SHA"
       >
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA className="sha" commit={selectedCommits[0]} />
+        <TooltippedCommitSHA
+          className="selectable"
+          commit={selectedCommits[0]}
+        />
       </li>
     )
   }
@@ -505,7 +507,7 @@ export class CommitSummary extends React.Component<
               title="Diff Options"
             >
               <DiffOptions
-                sourceTab={RepositorySectionTab.History}
+                isInteractiveDiff={false}
                 hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
                 onHideWhitespaceChangesChanged={
                   this.props.onHideWhitespaceInDiffChanged
@@ -642,7 +644,7 @@ export class CommitSummary extends React.Component<
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 
-        <span className="tags">{tags.join(', ')}</span>
+        <span className="tags selectable">{tags.join(', ')}</span>
       </li>
     )
   }

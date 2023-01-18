@@ -3,6 +3,32 @@ import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
+import { isTopMostDialog } from './is-top-most'
+
+export interface IDialogStackContext {
+  /** Whether or not this dialog is the top most one in the stack to be
+   * interacted with by the user. This will also determine if event listeners
+   * will be active or not. */
+  isTopMost: boolean
+}
+
+/**
+ * The DialogStackContext is used to communicate between the `Dialog` and the
+ * `App` information that is mostly unique to the `Dialog` component such as
+ * whether it is at the top of the popup stack. Some, but not the vast majority,
+ * custom popup components in between may also utilize this to enable and
+ * disable event listeners in response to changes in whether it is the top most
+ * popup.
+ *
+ * NB *** React.Context is not the preferred method of passing data to child
+ * components for this code base. We are choosing to use it here as implementing
+ * prop drilling would be extremely tedious and would lead to adding  `Dialog`
+ * props on 60+ components that would not otherwise use them. ***
+ *
+ */
+export const DialogStackContext = React.createContext<IDialogStackContext>({
+  isTopMost: false,
+})
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -138,6 +164,18 @@ interface IDialogState {
  * out of the dialog without first dismissing it.
  */
 export class Dialog extends React.Component<IDialogProps, IDialogState> {
+  public static contextType = DialogStackContext
+  public declare context: React.ContextType<typeof DialogStackContext>
+
+  private checkIsTopMostDialog = isTopMostDialog(
+    () => {
+      this.onDialogIsTopMost()
+    },
+    () => {
+      this.onDialogIsNotTopMost()
+    }
+  )
+
   private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
@@ -214,6 +252,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private onDismissGraceTimer = () => {
     this.setState({ isAppearing: false })
+
+    this.dialogElement?.dispatchEvent(
+      new CustomEvent('dialog-appeared', {
+        bubbles: true,
+        cancelable: false,
+      })
+    )
   }
 
   private isDismissable() {
@@ -242,11 +287,17 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
-    if (!this.dialogElement) {
+    this.checkIsTopMostDialog(this.context.isTopMost)
+  }
+
+  protected onDialogIsTopMost() {
+    if (this.dialogElement == null) {
       return
     }
 
-    this.dialogElement.showModal()
+    if (!this.dialogElement.open) {
+      this.dialogElement.showModal()
+    }
 
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
@@ -266,6 +317,20 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     this.resizeObserver.observe(this.dialogElement)
     window.addEventListener('resize', this.scheduleResizeEvent)
+  }
+
+  protected onDialogIsNotTopMost() {
+    if (this.dialogElement !== null && this.dialogElement.open) {
+      this.dialogElement?.close()
+    }
+
+    this.clearDismissGraceTimeout()
+
+    window.removeEventListener('focus', this.onWindowFocus)
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
+
+    this.resizeObserver.disconnect()
+    window.removeEventListener('resize', this.scheduleResizeEvent)
   }
 
   /**
@@ -418,23 +483,19 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentWillUnmount() {
-    this.clearDismissGraceTimeout()
-
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
     }
 
-    window.removeEventListener('focus', this.onWindowFocus)
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
-
-    this.resizeObserver.disconnect()
-    window.removeEventListener('resize', this.scheduleResizeEvent)
+    this.checkIsTopMostDialog(false)
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: IDialogProps) {
     if (!this.props.title && this.state.titleId) {
       this.updateTitleId()
     }
+
+    this.checkIsTopMostDialog(this.context.isTopMost)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {

@@ -6,7 +6,6 @@ import { Octicon, iconForStatus } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { mapStatus } from '../../lib/status'
 import { DiffOptions } from '../diff/diff-options'
-import { RepositorySectionTab } from '../../lib/app-state'
 
 interface IChangedFileDetailsProps {
   readonly path: string
@@ -61,7 +60,7 @@ export class ChangedFileDetails extends React.Component<
 
     return (
       <DiffOptions
-        sourceTab={RepositorySectionTab.Changes}
+        isInteractiveDiff={true}
         onHideWhitespaceChangesChanged={
           this.props.onHideWhitespaceInDiffChanged
         }

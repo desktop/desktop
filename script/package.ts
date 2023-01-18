@@ -102,7 +102,11 @@ function packageWindows() {
   }
 
   if (shouldMakeDelta()) {
-    options.remoteReleases = getUpdatesURL()
+    const url = new URL(getUpdatesURL())
+    // Make sure Squirrel.Windows isn't affected by partially or completely
+    // disabled releases.
+    url.searchParams.set('bypassStaggeredRelease', '1')
+    options.remoteReleases = url.toString()
   }
 
   if (isAppveyor() || isGitHubActions()) {

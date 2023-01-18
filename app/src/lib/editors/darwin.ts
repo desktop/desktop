@@ -45,7 +45,7 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'VSCodium',
-    bundleIdentifiers: ['com.visualstudio.code.oss'],
+    bundleIdentifiers: ['com.visualstudio.code.oss', 'com.vscodium'],
   },
   {
     name: 'Sublime Text',
@@ -143,6 +143,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Lite XL',
     bundleIdentifiers: ['com.lite-xl'],
+  },
+  {
+    name: 'Fleet',
+    bundleIdentifiers: ['Fleet.app'],
   },
 ]
 

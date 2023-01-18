@@ -1053,11 +1053,14 @@ export class API {
   public async fetchCombinedRefStatus(
     owner: string,
     name: string,
-    ref: string
+    ref: string,
+    reloadCache: boolean = false
   ): Promise<IAPIRefStatus | null> {
     const safeRef = encodeURIComponent(ref)
     const path = `repos/${owner}/${name}/commits/${safeRef}/status?per_page=100`
-    const response = await this.request('GET', path)
+    const response = await this.request('GET', path, {
+      reloadCache,
+    })
 
     try {
       return await parsedResponse<IAPIRefStatus>(response)
@@ -1076,7 +1079,8 @@ export class API {
   public async fetchRefCheckRuns(
     owner: string,
     name: string,
-    ref: string
+    ref: string,
+    reloadCache: boolean = false
   ): Promise<IAPIRefCheckRuns | null> {
     const safeRef = encodeURIComponent(ref)
     const path = `repos/${owner}/${name}/commits/${safeRef}/check-runs?per_page=100`
@@ -1084,7 +1088,10 @@ export class API {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
 
-    const response = await this.request('GET', path, { customHeaders: headers })
+    const response = await this.request('GET', path, {
+      customHeaders: headers,
+      reloadCache,
+    })
 
     try {
       return await parsedResponse<IAPIRefCheckRuns>(response)

@@ -8,6 +8,7 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
+  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -29,7 +30,11 @@ import {
   GitHubRepository,
   hasWritePermission,
 } from '../../models/github-repository'
-import { PullRequest } from '../../models/pull-request'
+import {
+  defaultPullRequestSuggestedNextAction,
+  PullRequest,
+  PullRequestSuggestedNextAction,
+} from '../../models/pull-request'
 import {
   forkPullRequestRemoteName,
   IRemote,
@@ -42,6 +47,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
+  isForkedRepositoryContributingToParent,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -77,6 +83,10 @@ import {
   updatePreferredAppMenuItemLabels,
   updateAccounts,
   setWindowZoomFactor,
+  onShowInstallingUpdate,
+  sendWillQuitEvenIfUpdatingSync,
+  quitApp,
+  sendCancelQuittingSync,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -180,7 +190,7 @@ import {
   matchExistingRepository,
   urlMatchesRemote,
 } from '../repository-matching'
-import { isCurrentBranchForcePush } from '../rebase'
+import { ForcePushBranchState, getCurrentBranchForcePushState } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
@@ -304,6 +314,7 @@ import { offsetFromNow } from '../offset-from'
 import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
+import { PopupManager } from '../popup-manager'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -323,15 +334,20 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const defaultStashedFilesWidth: number = 250
 const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 
+const defaultPullRequestFileListWidth: number = 250
+const pullRequestFileListConfigKey: string = 'pull-request-files-width'
+
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
+const confirmDiscardStashDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const confirmDiscardStashKey: string = 'confirmDiscardStash'
 const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
@@ -348,6 +364,9 @@ const hideWhitespaceInChangesDiffDefault = false
 const hideWhitespaceInChangesDiffKey = 'hide-whitespace-in-changes-diff'
 const hideWhitespaceInHistoryDiffDefault = false
 const hideWhitespaceInHistoryDiffKey = 'hide-whitespace-in-diff'
+const hideWhitespaceInPullRequestDiffDefault = false
+const hideWhitespaceInPullRequestDiffKey =
+  'hide-whitespace-in-pull-request-diff'
 
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
@@ -370,6 +389,9 @@ const MaxInvalidFoldersToDisplay = 3
 
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const customThemeKey = 'custom-theme-key'
+const pullRequestSuggestedNextActionKey =
+  'pull-request-suggested-next-action-key'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -388,10 +410,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private showWelcomeFlow = false
   private focusCommitMessage = false
-  private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
   private currentBanner: Banner | null = null
-  private errors: ReadonlyArray<Error> = new Array<Error>()
   private emitQueued = false
 
   private readonly localRepositoryStateLookup = new Map<
@@ -424,6 +444,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private sidebarWidth = constrain(defaultSidebarWidth)
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
+  private pullRequestFileListWidth = constrain(defaultPullRequestFileListWidth)
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
@@ -437,6 +458,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
+  private confirmDiscardStash: boolean = confirmDiscardStashDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private confirmUndoCommit: boolean = confirmUndoCommitDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -444,6 +466,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     hideWhitespaceInChangesDiffDefault
   private hideWhitespaceInHistoryDiff: boolean =
     hideWhitespaceInHistoryDiffDefault
+  private hideWhitespaceInPullRequestDiff: boolean =
+    hideWhitespaceInPullRequestDiffDefault
   /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
@@ -487,6 +511,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
   private showCIStatusPopover: boolean = false
+
+  /** A service for managing the stack of open popups */
+  private popupManager = new PopupManager()
+
+  private pullRequestSuggestedNextAction:
+    | PullRequestSuggestedNextAction
+    | undefined = undefined
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -570,6 +601,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.notificationsStore.onPullRequestReviewSubmitNotification(
       this.onPullRequestReviewSubmitNotification
     )
+
+    onShowInstallingUpdate(this.onShowInstallingUpdate)
   }
 
   private initializeWindowState = async () => {
@@ -627,7 +660,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // If there is a currently open popup, don't do anything here. Since the
     // app can only show one popup at a time, we don't want to close the current
     // one in favor of the error we're about to show.
-    if (this.currentPopup !== null) {
+    if (this.popupManager.isAPopupOpen) {
       return
     }
 
@@ -637,6 +670,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._showPopup({
       type: PopupType.InvalidatedToken,
       account,
+    })
+  }
+
+  private onShowInstallingUpdate = () => {
+    this._showPopup({
+      type: PopupType.InstallingUpdate,
     })
   }
 
@@ -892,15 +931,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
-      currentPopup: this.currentPopup,
+      currentPopup: this.popupManager.currentPopup,
+      allPopups: this.popupManager.allPopups,
       currentFoldout: this.currentFoldout,
-      errors: this.errors,
+      errorCount: this.popupManager.getPopupsOfType(PopupType.Error).length,
       showWelcomeFlow: this.showWelcomeFlow,
       focusCommitMessage: this.focusCommitMessage,
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       stashedFilesWidth: this.stashedFilesWidth,
+      pullRequestFilesListWidth: this.pullRequestFileListWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
@@ -913,6 +954,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
+      askForConfirmationOnDiscardStash: this.confirmDiscardStash,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       askForConfirmationOnUndoCommit: this.confirmUndoCommit,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
@@ -920,6 +962,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType: this.imageDiffType,
       hideWhitespaceInChangesDiff: this.hideWhitespaceInChangesDiff,
       hideWhitespaceInHistoryDiff: this.hideWhitespaceInHistoryDiff,
+      hideWhitespaceInPullRequestDiff: this.hideWhitespaceInPullRequestDiff,
       showSideBySideDiff: this.showSideBySideDiff,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
@@ -939,6 +982,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastThankYou: this.lastThankYou,
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
+      pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
     }
   }
 
@@ -1426,17 +1470,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (tip.kind === TipState.Valid && aheadBehind.behind > 0) {
-      const mergeTreePromise = promiseWithMinimumTimeout(
-        () => determineMergeability(repository, tip.branch, action.branch),
-        500
+      this.currentMergeTreePromise = this.setupMergabilityPromise(
+        repository,
+        tip.branch,
+        action.branch
       )
-        .catch(err => {
-          log.warn(
-            `Error occurred while trying to merge ${tip.branch.name} (${tip.branch.tip.sha}) and ${action.branch.name} (${action.branch.tip.sha})`,
-            err
-          )
-          return null
-        })
         .then(mergeStatus => {
           this.repositoryStateCache.updateCompareState(repository, () => ({
             mergeStatus,
@@ -1444,16 +1482,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           this.emitUpdate()
         })
-
-      const cleanup = () => {
-        this.currentMergeTreePromise = null
-      }
-
-      // TODO: when we have Promise.prototype.finally available we
-      //       should use that here to make this intent clearer
-      mergeTreePromise.then(cleanup, cleanup)
-
-      this.currentMergeTreePromise = mergeTreePromise
+        .finally(() => {
+          this.currentMergeTreePromise = null
+        })
 
       return this.currentMergeTreePromise
     } else {
@@ -1463,6 +1494,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return this.emitUpdate()
     }
+  }
+
+  private setupMergabilityPromise(
+    repository: Repository,
+    baseBranch: Branch,
+    compareBranch: Branch
+  ) {
+    return promiseWithMinimumTimeout(
+      () => determineMergeability(repository, baseBranch, compareBranch),
+      500
+    ).catch(err => {
+      log.warn(
+        `Error occurred while trying to merge ${baseBranch.name} (${baseBranch.tip.sha}) and ${compareBranch.name} (${compareBranch.tip.sha})`,
+        err
+      )
+      return null
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1717,6 +1765,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     setNumberArray(RecentRepositoriesKey, slicedRecentRepositories)
     this.recentRepositories = slicedRecentRepositories
+    this.notificationsStore.setRecentRepositories(
+      this.repositories.filter(r => this.recentRepositories.includes(r.id))
+    )
     this.emitUpdate()
   }
 
@@ -1951,8 +2002,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stashedFilesWidth = constrain(
       getNumber(stashedFilesWidthConfigKey, defaultStashedFilesWidth)
     )
+    this.pullRequestFileListWidth = constrain(
+      getNumber(pullRequestFileListConfigKey, defaultPullRequestFileListWidth)
+    )
 
     this.updateResizableConstraints()
+    // TODO: Initiliaze here for now... maybe move to dialog mounting
+    this.updatePullRequestResizableConstraints()
 
     this.askToMoveToApplicationsFolderSetting = getBoolean(
       askToMoveToApplicationsFolderKey,
@@ -1972,6 +2028,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChangesPermanently = getBoolean(
       confirmDiscardChangesPermanentlyKey,
       confirmDiscardChangesPermanentlyDefault
+    )
+
+    this.confirmDiscardStash = getBoolean(
+      confirmDiscardStashKey,
+      confirmDiscardStashDefault
     )
 
     this.askForConfirmationOnForcePush = getBoolean(
@@ -2011,6 +2072,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hideWhitespaceInHistoryDiffKey,
       false
     )
+    this.hideWhitespaceInPullRequestDiff = getBoolean(
+      hideWhitespaceInPullRequestDiffKey,
+      false
+    )
     this.commitSpellcheckEnabled = getBoolean(
       commitSpellcheckEnabledKey,
       commitSpellcheckEnabledDefault
@@ -2033,6 +2098,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
+
+    this.pullRequestSuggestedNextAction =
+      getEnum(
+        pullRequestSuggestedNextActionKey,
+        PullRequestSuggestedNextAction
+      ) ?? defaultPullRequestSuggestedNextAction
 
     this.emitUpdateNow()
 
@@ -2075,6 +2146,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, filesMax)
     this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, filesMax)
+  }
+
+  /**
+   * Calculate the constraints of the resizable pane in the pull request dialog
+   * whenever the window dimensions change.
+   */
+  private updatePullRequestResizableConstraints() {
+    // TODO: Get width of PR dialog -> determine if we will have default width
+    // for pr dialog. The goal is for it expand to fill some percent of
+    // available window so it will change on window resize. We may have some max
+    // value and min value of where to derive a default is we cannot obtain the
+    // width for some reason (like initialization nad no pr dialog is open)
+    // Thoughts -> ß
+    // 1. Use dialog id to grab dialog if exists, else use default
+    // 2. Pass dialog width up when and call this contrainst on dialog mounting
+    //    to initialize and subscribe to window resize inside dialog to be able
+    //    to pass up dialog width on window resize.
+
+    // Get the width of the dialog
+    const available = 850
+    const dialogPadding = 20
+
+    // This is a pretty silly width for a diff but it will fit ~9 chars per line
+    // in unified mode after subtracting the width of the unified gutter and ~4
+    // chars per side in split diff mode. No one would want to use it this way
+    // but it doesn't break the layout and it allows users to temporarily
+    // maximize the width of the file list to see long path names.
+    const diffPaneMinWidth = 150
+    const filesListMax = available - dialogPadding - diffPaneMinWidth
+
+    this.pullRequestFileListWidth = constrain(
+      this.pullRequestFileListWidth,
+      100,
+      filesListMax
+    )
   }
 
   private updateSelectedExternalEditor(
@@ -2163,10 +2269,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ?.name ?? undefined
     }
 
-    const isForcePushForCurrentRepository = isCurrentBranchForcePush(
-      branchesState,
-      aheadBehind
-    )
+    // From the menu, we'll offer to force-push whenever it's possible, regardless
+    // of whether or not the user performed any action we know would be followed
+    // by a force-push.
+    const isForcePushForCurrentRepository =
+      getCurrentBranchForcePushState(branchesState, aheadBehind) !==
+      ForcePushBranchState.NotAvailable
 
     const isStashedChangesVisible =
       changesState.selection.kind === ChangesSelectionKind.Stash
@@ -2440,7 +2548,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (
       displayingBanner ||
-      isConflictsFlow(this.currentPopup, multiCommitOperationState)
+      isConflictsFlow(
+        this.popupManager.areTherePopupsOfType(PopupType.MultiCommitOperation),
+        multiCommitOperationState
+      )
     ) {
       return
     }
@@ -2530,7 +2641,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { multiCommitOperationState } = state
     if (
       userIsStartingMultiCommitOperation(
-        this.currentPopup,
+        this.popupManager.currentPopup,
         multiCommitOperationState
       )
     ) {
@@ -3412,32 +3523,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
-    this._closePopup()
-
     // Always close the app menu when showing a pop up. This is only
     // applicable on Windows where we draw a custom app menu.
     this._closeFoldout(FoldoutType.AppMenu)
 
-    this.currentPopup = popup
+    this.popupManager.addPopup(popup)
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(popupType?: PopupType) {
-    const currentPopup = this.currentPopup
-    if (currentPopup == null) {
+    const currentPopup = this.popupManager.currentPopup
+    if (currentPopup === null) {
       return
     }
 
-    if (popupType !== undefined && currentPopup.type !== popupType) {
+    if (popupType === undefined) {
+      this.popupManager.removePopup(currentPopup)
+    } else {
+      if (currentPopup.type !== popupType) {
+        return
+      }
+
+      if (currentPopup.type === PopupType.CloneRepository) {
+        this._completeOpenInDesktop(() => Promise.resolve(null))
+      }
+
+      this.popupManager.removePopupByType(popupType)
+    }
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _closePopupById(popupId: string) {
+    if (this.popupManager.currentPopup === null) {
       return
     }
 
-    if (currentPopup.type === PopupType.CloneRepository) {
-      this._completeOpenInDesktop(() => Promise.resolve(null))
-    }
-
-    this.currentPopup = null
+    this.popupManager.removePopupById(popupId)
     this.emitUpdate()
   }
 
@@ -3859,17 +3983,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _pushError(error: Error): Promise<void> {
-    const newErrors = Array.from(this.errors)
-    newErrors.push(error)
-    this.errors = newErrors
-    this.emitUpdate()
-
-    return Promise.resolve()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clearError(error: Error): Promise<void> {
-    this.errors = this.errors.filter(e => e !== error)
+    this.popupManager.addErrorPopup(error)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -5193,6 +5307,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public _setConfirmDiscardStashSetting(value: boolean): Promise<void> {
+    this.confirmDiscardStash = value
+
+    setBoolean(confirmDiscardStashKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
   public _setConfirmForcePushSetting(value: boolean): Promise<void> {
     this.askForConfirmationOnForcePush = value
     setBoolean(confirmForcePushKey, value)
@@ -5276,6 +5399,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.updateChangesWorkingDirectoryDiff(repository)
     } else {
       return this._changeFileSelection(repository, file)
+    }
+  }
+
+  public _setHideWhitespaceInPullRequestDiff(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null
+  ) {
+    setBoolean(hideWhitespaceInPullRequestDiffKey, hideWhitespaceInDiff)
+    this.hideWhitespaceInPullRequestDiff = hideWhitespaceInDiff
+
+    if (file !== null) {
+      this._changePullRequestFileSelection(repository, file)
     }
   }
 
@@ -5825,7 +5961,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._openInBrowser(url.toString())
   }
 
-  public async _createPullRequest(repository: Repository): Promise<void> {
+  public async _createPullRequest(
+    repository: Repository,
+    baseBranch?: Branch
+  ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
@@ -5838,24 +5977,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const branch = tip.branch
+    const compareBranch = tip.branch
     const aheadBehind = state.aheadBehind
 
     if (aheadBehind == null) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
-        branch,
+        branch: compareBranch,
       })
     } else if (aheadBehind.ahead > 0) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
-        branch,
+        branch: compareBranch,
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      await this._openCreatePullRequestInBrowser(repository, branch)
+      await this._openCreatePullRequestInBrowser(
+        repository,
+        compareBranch,
+        baseBranch
+      )
     }
   }
 
@@ -5950,15 +6093,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _openCreatePullRequestInBrowser(
     repository: Repository,
-    branch: Branch
+    compareBranch: Branch,
+    baseBranch?: Branch
   ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
-    const urlEncodedBranchName = encodeURIComponent(branch.nameWithoutRemote)
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
+    const { parent, owner, name, htmlURL } = gitHubRepository
+    const isForkContributingToParent =
+      isForkedRepositoryContributingToParent(repository)
+
+    const baseForkPreface =
+      isForkContributingToParent && parent !== null
+        ? `${parent.owner.login}:${parent.name}:`
+        : ''
+    const encodedBaseBranch =
+      baseBranch !== undefined
+        ? baseForkPreface +
+          encodeURIComponent(baseBranch.nameWithoutRemote) +
+          '...'
+        : ''
+
+    const compareForkPreface = isForkContributingToParent
+      ? `${owner.login}:${name}:`
+      : ''
+
+    const encodedCompareBranch =
+      compareForkPreface + encodeURIComponent(compareBranch.nameWithoutRemote)
+
+    const compareString = `${encodedBaseBranch}${encodedCompareBranch}`
+    const baseURL = `${htmlURL}/pull/new/${compareString}`
 
     await this._openInBrowser(baseURL)
 
@@ -6407,13 +6573,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         path,
         (title, value, description) => {
           if (
-            this.currentPopup !== null &&
-            this.currentPopup.type === PopupType.CreateTutorialRepository
+            this.popupManager.currentPopup?.type ===
+            PopupType.CreateTutorialRepository
           ) {
-            this.currentPopup = {
-              ...this.currentPopup,
+            this.popupManager.updatePopup({
+              ...this.popupManager.currentPopup,
               progress: { kind: 'generic', title, value, description },
-            }
+            })
             this.emitUpdate()
           }
         }
@@ -7161,33 +7327,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { defaultBranch, tip } = branchesState
+    const { tip, defaultBranch } =
+      this.repositoryStateCache.get(repository).branchesState
 
-    if (defaultBranch === null || tip.kind !== TipState.Valid) {
+    if (tip.kind !== TipState.Valid) {
+      // Shouldn't even be able to get here if so - just a type check
       return
     }
 
     const currentBranch = tip.branch
+    this._initializePullRequestPreview(repository, defaultBranch, currentBranch)
+  }
+
+  private async _initializePullRequestPreview(
+    repository: Repository,
+    baseBranch: Branch | null,
+    currentBranch: Branch
+  ) {
+    if (baseBranch === null) {
+      this.showPullRequestPopupNoBaseBranch(repository, currentBranch)
+      return
+    }
+
     const gitStore = this.gitStoreCache.get(repository)
 
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
-      defaultBranch,
+      baseBranch,
       currentBranch
     )
 
-    const commitSHAs = pullRequestCommits.map(c => c.sha)
+    const commitsBetweenBranches = pullRequestCommits.map(c => c.sha)
 
     // A user may compare two branches with no changes between them.
     const emptyChangeSet = { files: [], linesAdded: 0, linesDeleted: 0 }
     const changesetData =
-      commitSHAs.length > 0
+      commitsBetweenBranches.length > 0
         ? await gitStore.performFailableOperation(() =>
             getBranchMergeBaseChangedFiles(
               repository,
-              defaultBranch.name,
+              baseBranch.name,
               currentBranch.name,
-              commitSHAs[0]
+              commitsBetweenBranches[0]
             )
           )
         : emptyChangeSet
@@ -7196,25 +7376,113 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const hasMergeBase = changesetData !== null
+    // We don't care how many commits exist on the unrelated history that
+    // can't be merged.
+    const commitSHAs = hasMergeBase ? commitsBetweenBranches : []
+
     this.repositoryStateCache.initializePullRequestState(repository, {
-      baseBranch: defaultBranch,
+      baseBranch,
       commitSHAs,
       commitSelection: {
         shas: commitSHAs,
         shasInDiff: commitSHAs,
         isContiguous: true,
-        changesetData,
+        changesetData: changesetData ?? emptyChangeSet,
         file: null,
         diff: null,
       },
+      mergeStatus:
+        commitSHAs.length > 0 || !hasMergeBase
+          ? {
+              kind: hasMergeBase
+                ? ComputedAction.Loading
+                : ComputedAction.Invalid,
+            }
+          : null,
     })
 
-    if (changesetData.files.length > 0) {
+    this.emitUpdate()
+
+    if (commitSHAs.length > 0) {
+      this.setupPRMergeTreePromise(repository, baseBranch, currentBranch)
+    }
+
+    if (changesetData !== null && changesetData.files.length > 0) {
       await this._changePullRequestFileSelection(
         repository,
         changesetData.files[0]
       )
     }
+
+    this.showPullRequestPopup(repository, currentBranch, commitSHAs)
+  }
+
+  public showPullRequestPopupNoBaseBranch(
+    repository: Repository,
+    currentBranch: Branch
+  ) {
+    this.repositoryStateCache.initializePullRequestState(repository, {
+      baseBranch: null,
+      commitSHAs: null,
+      commitSelection: null,
+      mergeStatus: null,
+    })
+
+    this.emitUpdate()
+
+    this.showPullRequestPopup(repository, currentBranch, [])
+  }
+
+  public showPullRequestPopup(
+    repository: Repository,
+    currentBranch: Branch,
+    commitSHAs: ReadonlyArray<string>
+  ) {
+    if (this.popupManager.areTherePopupsOfType(PopupType.StartPullRequest)) {
+      return
+    }
+
+    this.statsStore.recordPreviewedPullRequest()
+
+    const { branchesState, localCommitSHAs } =
+      this.repositoryStateCache.get(repository)
+    const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
+      branchesState
+    const gitStore = this.gitStoreCache.get(repository)
+    /*  We only want branches that are also on dotcom such that, when we ask a
+     *  user to create a pull request, the base branch also exists on dotcom.
+     */
+    const remote = isForkedRepositoryContributingToParent(repository)
+      ? UpstreamRemoteName
+      : gitStore.defaultRemote?.name
+    const prBaseBranches = allBranches.filter(
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
+    )
+    const prRecentBaseBranches = recentBranches.filter(
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
+    )
+    const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
+      this.getState()
+
+    const nonLocalCommitSHA =
+      commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
+        ? commitSHAs[0]
+        : null
+
+    this._showPopup({
+      type: PopupType.StartPullRequest,
+      prBaseBranches,
+      prRecentBaseBranches,
+      currentBranch,
+      defaultBranch,
+      imageDiffType,
+      repository,
+      externalEditorLabel: selectedExternalEditor ?? undefined,
+      nonLocalCommitSHA,
+      showSideBySideDiff,
+      currentBranchHasPullRequest: currentPullRequest !== null,
+    })
   }
 
   public async _changePullRequestFileSelection(
@@ -7233,7 +7501,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const currentBranch = branchesState.tip.branch
     const { baseBranch, commitSHAs } = pullRequestState
-    if (commitSHAs === null) {
+    if (commitSHAs === null || baseBranch === null) {
       return
     }
 
@@ -7244,6 +7512,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         diff: null,
       })
     )
+
     this.emitUpdate()
 
     if (commitSHAs.length === 0) {
@@ -7261,7 +7530,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             file,
             baseBranch.name,
             currentBranch.name,
-            this.hideWhitespaceInHistoryDiff,
+            this.hideWhitespaceInPullRequestDiff,
             commitSHAs[0]
           )
         )) ?? null
@@ -7281,6 +7550,88 @@ export class AppStore extends TypedBaseStore<IAppState> {
         diff,
       })
     )
+
+    this.emitUpdate()
+  }
+
+  public _setPullRequestFileListWidth(width: number): Promise<void> {
+    this.pullRequestFileListWidth = {
+      ...this.pullRequestFileListWidth,
+      value: width,
+    }
+    setNumber(pullRequestFileListConfigKey, width)
+    this.updatePullRequestResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetPullRequestFileListWidth(): Promise<void> {
+    this.pullRequestFileListWidth = {
+      ...this.pullRequestFileListWidth,
+      value: defaultPullRequestFileListWidth,
+    }
+    localStorage.removeItem(pullRequestFileListConfigKey)
+    this.updatePullRequestResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _updatePullRequestBaseBranch(
+    repository: Repository,
+    baseBranch: Branch
+  ) {
+    const { branchesState, pullRequestState } =
+      this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    if (pullRequestState === null) {
+      // This would mean the user submitted PR after requesting base branch
+      // update.
+      return
+    }
+
+    this._initializePullRequestPreview(repository, baseBranch, tip.branch)
+  }
+
+  private setupPRMergeTreePromise(
+    repository: Repository,
+    baseBranch: Branch,
+    compareBranch: Branch
+  ) {
+    this.setupMergabilityPromise(repository, baseBranch, compareBranch).then(
+      (mergeStatus: MergeTreeResult | null) => {
+        this.repositoryStateCache.updatePullRequestState(repository, () => ({
+          mergeStatus,
+        }))
+        this.emitUpdate()
+      }
+    )
+  }
+
+  public _quitApp(evenIfUpdating: boolean) {
+    if (evenIfUpdating) {
+      sendWillQuitEvenIfUpdatingSync()
+    }
+
+    quitApp()
+  }
+
+  public _cancelQuittingApp() {
+    sendCancelQuittingSync()
+  }
+
+  public _setPullRequestSuggestedNextAction(
+    value: PullRequestSuggestedNextAction
+  ) {
+    this.pullRequestSuggestedNextAction = value
+
+    localStorage.setItem(pullRequestSuggestedNextActionKey, value)
 
     this.emitUpdate()
   }
