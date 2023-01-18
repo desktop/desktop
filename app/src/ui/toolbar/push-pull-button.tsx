@@ -19,11 +19,11 @@ import {
   ToolbarDropdown,
   ToolbarDropdownStyle,
 } from './dropdown'
-import { Button } from '../lib/button'
 import { FoldoutType } from '../../lib/app-state'
 import { ForcePushBranchState } from '../../lib/rebase'
+import { PushPullButtonDropDown } from './push-pull-button-dropdown'
 
-const DropdownItemClassName = 'push-pull-dropdown-item'
+export const DropdownItemClassName = 'push-pull-dropdown-item'
 
 interface IPushPullButtonProps {
   /**
@@ -86,12 +86,12 @@ interface IPushPullButtonProps {
   readonly onDropdownStateChanged: (state: DropdownState) => void
 }
 
-enum DropdownItemType {
+export enum DropdownItemType {
   Fetch = 'fetch',
   ForcePush = 'force-push',
 }
 
-type DropdownItem = {
+export type DropdownItem = {
   readonly title: string
   readonly description: string | JSX.Element
   readonly action: () => void
@@ -142,7 +142,7 @@ function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
+export const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
   w: 10,
   h: 16,
   d:
@@ -212,100 +212,18 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
   ) {
     return () => {
       return (
-        <>
-          {/*
-          This <div> is not interactive, but its children are, so we need to
-          disable the jsx-a11y/no-static-element-interactions rule.
-          */}
-          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-          <div
-            className="push-pull-dropdown"
-            onKeyDown={this.onDropdownKeyDown}
-          >
-            {itemTypes.map(this.renderDropdownItem)}
-          </div>
-        </>
+        <PushPullButtonDropDown
+          itemTypes={itemTypes}
+          remoteName={this.props.remoteName}
+          fetch={this.fetch}
+          forcePushWithLease={this.forcePushWithLease}
+        />
       )
     }
   }
 
-  private onDropdownKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    // Allow using Up and Down arrow keys to navigate the dropdown items
-    // (equivalent to Tab and Shift+Tab)
-    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
-      return
-    }
-
-    event.preventDefault()
-    const dropdown = event.currentTarget
-    const items = dropdown.querySelectorAll<HTMLElement>(
-      `.${DropdownItemClassName}`
-    )
-    const focusedItem = dropdown.querySelector<HTMLElement>(':focus')
-    if (!focusedItem) {
-      return
-    }
-
-    const focusedIndex = Array.from(items).indexOf(focusedItem)
-    const nextIndex =
-      event.key === 'ArrowDown' ? focusedIndex + 1 : focusedIndex - 1
-    // http://javascript.about.com/od/problemsolving/a/modulobug.htm
-    const nextItem = items[(nextIndex + items.length) % items.length]
-    nextItem?.focus()
-  }
-
   public render() {
     return this.renderButton()
-  }
-
-  private getDropdownItemWithType(type: DropdownItemType): DropdownItem {
-    const { remoteName } = this.props
-
-    switch (type) {
-      case DropdownItemType.Fetch:
-        return {
-          title: `Fetch ${remoteName}`,
-          description: `Fetch the latest changes from ${remoteName}`,
-          action: this.fetch,
-          icon: syncClockwise,
-        }
-      case DropdownItemType.ForcePush:
-        return {
-          title: `Force push ${remoteName}`,
-          description: (
-            <>
-              Overwrite any changes on {remoteName} with your local changes
-              <br />
-              <br />
-              <div className="warning">
-                <span className="warning-title">Warning:</span> A force push
-                will rewrite history on the remote. Any collaborators working on
-                this branch will need to reset their own local branch to match
-                the history of the remote.
-              </div>
-            </>
-          ),
-          action: this.forcePushWithLease,
-          icon: forcePushIcon,
-        }
-    }
-  }
-
-  public renderDropdownItem = (type: DropdownItemType) => {
-    const item = this.getDropdownItemWithType(type)
-    return (
-      <Button
-        className={DropdownItemClassName}
-        key={type}
-        onClick={item.action}
-      >
-        <Octicon symbol={item.icon} />
-        <div className="text-container">
-          <div className="title">{item.title}</div>
-          <div className="detail">{item.description}</div>
-        </div>
-      </Button>
-    )
   }
 
   private renderButton() {
