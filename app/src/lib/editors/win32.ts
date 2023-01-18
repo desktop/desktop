@@ -12,7 +12,7 @@ import { IFoundEditor } from './found-editor'
 
 interface IWindowsAppInformation {
   displayName: string
-  publisher: string
+  publisher: string | string[]
   installLocation: string
 }
 
@@ -59,7 +59,7 @@ type WindowsExternalEditor = {
   readonly displayNamePrefix: string
 
   /** Value of the Publisher registry key that belongs to this editor. */
-  readonly publisher: string
+  readonly publisher: string | string[]
 
   /**
    * Default shell script name for JetBrains Product
@@ -211,7 +211,6 @@ const editors: WindowsExternalEditor[] = [
     publisher: 'Microsoft Corporation',
   },
   {
-    // current version of codium with updated registry keys.
     name: 'Visual Studio Codium',
     registryKeys: [
       // 64-bit version of VSCodium (user)
@@ -231,28 +230,7 @@ const editors: WindowsExternalEditor[] = [
     ],
     executableShimPaths: [['bin', 'codium.cmd']],
     displayNamePrefix: 'VSCodium',
-    publisher: 'VSCodium',
-  },
-  {
-    // older version of codium, with the old keys
-    name: 'Visual Studio Codium',
-    registryKeys: [
-      // 32-bit version of old codium (user)
-      CurrentUserUninstallKey('{C6065F05-9603-4FC4-8101-B9781A25D88E}}_is1'),
-      // ARM64 version of old codium (user)
-      CurrentUserUninstallKey('{3AEBF0C8-F733-4AD4-BADE-FDB816D53D7B}_is1'),
-      // 64-bit version of old codium (system)
-      LocalMachineUninstallKey('{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}_is1'),
-      // 32-bit version of old codium (system)
-      Wow64LocalMachineUninstallKey(
-        '{E34003BB-9E10-4501-8C11-BE3FAA83F23F}_is1'
-      ),
-      // ARM64 version of old codium (system)
-      LocalMachineUninstallKey('{D1ACE434-89C5-48D1-88D3-E2991DF85475}_is1'),
-    ],
-    executableShimPaths: [['bin', 'codium.cmd']],
-    displayNamePrefix: 'VSCodium',
-    publisher: 'Microsoft Corporation',
+    publisher: ['VSCodium', 'Microsoft Corporation'],
   },
   {
     name: 'Visual Studio Codium (Insiders)',
