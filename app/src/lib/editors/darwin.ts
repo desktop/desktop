@@ -92,6 +92,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.WebStorm'],
   },
   {
+    name: 'CLion',
+    bundleIdentifiers: ['com.jetbrains.CLion'],
+  },
+  {
     name: 'Typora',
     bundleIdentifiers: ['abnerworks.Typora'],
   },
