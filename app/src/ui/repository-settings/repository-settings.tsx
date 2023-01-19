@@ -286,14 +286,15 @@ export class RepositorySettings extends React.Component<
   private onSubmit = async () => {
     this.setState({ disabled: true, errors: undefined })
     const errors = new Array<JSX.Element | string>()
+    const modifiedUrl = this.state.remote?.url.trim()
 
     if (this.state.remote && this.props.remote) {
-      if (this.state.remote.url !== this.props.remote.url) {
+      if (modifiedUrl !== this.props.remote.url) {
         try {
           await this.props.dispatcher.setRemoteURL(
             this.props.repository,
             this.props.remote.name,
-            this.state.remote.url.trim()
+            this.state.remote.url
           )
         } catch (e) {
           log.error(
