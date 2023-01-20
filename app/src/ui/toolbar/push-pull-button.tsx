@@ -270,13 +270,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     const { ahead, behind } = aheadBehind
 
     if (ahead === 0 && behind === 0 && numTagsToPush === 0) {
-      return this.fetchButton(
-        remoteName,
-        aheadBehind,
-        numTagsToPush,
-        lastFetched,
-        this.fetch
-      )
+      return this.fetchButton(remoteName, lastFetched, this.fetch)
     }
 
     if (forcePushBranchState === ForcePushBranchState.Recommended) {
@@ -422,8 +416,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
 
   private fetchButton(
     remoteName: string,
-    aheadBehind: IAheadBehind,
-    numTagsToPush: number,
     lastFetched: Date | null,
     onClick: () => void
   ) {
