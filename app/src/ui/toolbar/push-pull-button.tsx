@@ -78,6 +78,9 @@ interface IPushPullButtonProps {
   /** Whether or not the push-pull dropdown is currently open */
   readonly isDropdownOpen: boolean
 
+  /** Will the app prompt the user to confirm a force push? */
+  readonly askForConfirmationOnForcePush: boolean
+
   /**
    * An event handler for when the drop down is opened, or closed, by a pointer
    * event or by pressing the space or enter key while focused.
@@ -218,6 +221,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
           remoteName={this.props.remoteName}
           fetch={this.fetch}
           forcePushWithLease={this.forcePushWithLease}
+          askForConfirmationOnForcePush={
+            this.props.askForConfirmationOnForcePush
+          }
         />
       )
     }
