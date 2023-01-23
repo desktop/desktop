@@ -289,18 +289,21 @@ export class RepositorySettings extends React.Component<
 
     if (this.state.remote && this.props.remote) {
       const trimmedUrl = this.state.remote.url.trim()
-      try {
-        await this.props.dispatcher.setRemoteURL(
-          this.props.repository,
-          this.props.remote.name,
-          trimmedUrl
-        )
-      } catch (e) {
-        log.error(
-          `RepositorySettings: unable to set remote URL at ${this.props.repository.path}`,
-          e
-        )
-        errors.push(`Failed setting the remote URL: ${e}`)
+
+      if (trimmedUrl !== this.props.remote.url) {
+        try {
+          await this.props.dispatcher.setRemoteURL(
+            this.props.repository,
+            this.props.remote.name,
+            trimmedUrl
+          )
+        } catch (e) {
+          log.error(
+            `RepositorySettings: unable to set remote URL at ${this.props.repository.path}`,
+            e
+          )
+          errors.push(`Failed setting the remote URL: ${e}`)
+        }
       }
     }
 
