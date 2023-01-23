@@ -17,7 +17,7 @@
       "[Fixed] Notifications are shown only when they are relevant to the current repository - #15487",
       "[Fixed] The repository change indicator is visible if repository list item is selected and in focus - #7651. Thanks @angusdev!",
       "[Fixed] Tooltips are positioned properly if mouse is not moved - #13636. Thanks @angusdev!",
-      "[Fixed] Fix tooltips of long commit author emails not breaking properly - #15424. Thanks @angusdev!",
+      "[Fixed] Tooltips of long commit author emails wrap to multiple lines - #15424. Thanks @angusdev!",
       "[Fixed] Clone repository progress bar no longer hidden by repository list - #11953. Thanks @angusdev!",
       "[Improved] Ability to copy tag names from the commit list - #15137. Thanks @Shivareddy-Aluri!",
       "[Improved] The dropdown selection component is keyboard navigable - #15620",
