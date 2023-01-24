@@ -327,6 +327,7 @@ export enum FoldoutType {
   Branch,
   AppMenu,
   AddMenu,
+  PushPull,
 }
 
 export type AppMenuFoldout = {
@@ -358,6 +359,7 @@ export type Foldout =
   | { type: FoldoutType.AddMenu }
   | BranchFoldout
   | AppMenuFoldout
+  | { type: FoldoutType.PushPull }
 
 export enum RepositorySectionTab {
   Changes,

@@ -122,3 +122,8 @@ export function enableStackedPopups(): boolean {
 export function enablePreventClosingWhileUpdating(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should we enable the new push-pull-fetch dropdown? */
+export function enablePushPullFetchDropdown(): boolean {
+  return enableBetaFeatures()
+}

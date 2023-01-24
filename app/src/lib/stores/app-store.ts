@@ -8,6 +8,7 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
+  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -46,6 +47,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
+  isForkedRepositoryContributingToParent,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -6099,15 +6101,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const { parent, owner, name, htmlURL } = gitHubRepository
+    const isForkContributingToParent =
+      isForkedRepositoryContributingToParent(repository)
+
+    const baseForkPreface =
+      isForkContributingToParent && parent !== null
+        ? `${parent.owner.login}:${parent.name}:`
+        : ''
     const encodedBaseBranch =
       baseBranch !== undefined
-        ? encodeURIComponent(baseBranch.nameWithoutRemote) + '...'
+        ? baseForkPreface +
+          encodeURIComponent(baseBranch.nameWithoutRemote) +
+          '...'
         : ''
-    const encodedCompareBranch = encodeURIComponent(
-      compareBranch.nameWithoutRemote
-    )
+
+    const compareForkPreface = isForkContributingToParent
+      ? `${owner.login}:${name}:`
+      : ''
+
+    const encodedCompareBranch =
+      compareForkPreface + encodeURIComponent(compareBranch.nameWithoutRemote)
+
     const compareString = `${encodedBaseBranch}${encodedCompareBranch}`
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${compareString}`
+    const baseURL = `${htmlURL}/pull/new/${compareString}`
 
     await this._openInBrowser(baseURL)
 
@@ -7426,10 +7443,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    this.statsStore.recordPreviewedPullRequest()
+
     const { branchesState, localCommitSHAs } =
       this.repositoryStateCache.get(repository)
     const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
       branchesState
+    const gitStore = this.gitStoreCache.get(repository)
+    /*  We only want branches that are also on dotcom such that, when we ask a
+     *  user to create a pull request, the base branch also exists on dotcom.
+     */
+    const remote = isForkedRepositoryContributingToParent(repository)
+      ? UpstreamRemoteName
+      : gitStore.defaultRemote?.name
+    const prBaseBranches = allBranches.filter(
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
+    )
+    const prRecentBaseBranches = recentBranches.filter(
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
+    )
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
@@ -7440,11 +7472,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._showPopup({
       type: PopupType.StartPullRequest,
-      allBranches,
+      prBaseBranches,
+      prRecentBaseBranches,
       currentBranch,
       defaultBranch,
       imageDiffType,
-      recentBranches,
       repository,
       externalEditorLabel: selectedExternalEditor ?? undefined,
       nonLocalCommitSHA,

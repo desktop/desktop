@@ -33,6 +33,9 @@ interface IBranchSelectProps {
 
   /** Called when the user changes the selected branch. */
   readonly onChange?: (branch: Branch) => void
+
+  /** Optional: No branches message */
+  readonly noBranchesMessage?: string | JSX.Element
 }
 
 interface IBranchSelectState {
@@ -74,8 +77,13 @@ export class BranchSelect extends React.Component<
   }
 
   public render() {
-    const { currentBranch, defaultBranch, recentBranches, allBranches } =
-      this.props
+    const {
+      currentBranch,
+      defaultBranch,
+      recentBranches,
+      allBranches,
+      noBranchesMessage,
+    } = this.props
 
     const { filterText, selectedBranch } = this.state
 
@@ -97,6 +105,7 @@ export class BranchSelect extends React.Component<
           canCreateNewBranch={false}
           renderBranch={this.renderBranch}
           onItemClick={this.onItemClick}
+          noBranchesMessage={noBranchesMessage}
         />
       </PopoverDropdown>
     )
