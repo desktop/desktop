@@ -199,7 +199,7 @@ function packageApp() {
       new RegExp('/\\.git($|/)'),
       new RegExp('/node_modules/\\.bin($|/)'),
     ],
-    appCopyright: 'Copyright © 2017 GitHub, Inc.',
+    appCopyright: 'Copyright © 2023 GitHub, Inc.',
 
     // macOS
     appBundleId: getBundleID(),

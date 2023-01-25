@@ -252,6 +252,7 @@ These editors are currently supported:
  - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
+ - [JetBrains CLion](https://www.jetbrains.com/clion/)
  - [RStudio](https://rstudio.com/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)

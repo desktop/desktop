@@ -25,6 +25,7 @@
       "[Improved] Close repository list after creating or adding repositories - #15508. Thanks @angusdev!",
       "[Improved] Always show an error message when an update fails - #15530"
     ],
+    "3.1.4": ["[Improved] Upgrade embedded Git to 2.35.6"],
     "3.1.4-beta1": [
       "[Added] Add support for JetBrains Toolbox and JetBrains Fleet editor for Windows - #12912. Thanks @tsvetilian-ty!",
       "[Added] Add support for Emacs editor for Linux - #15857. Thanks @zipperer!",
