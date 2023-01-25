@@ -689,11 +689,11 @@ app.on('activate', () => {
 })
 
 app.on('web-contents-created', (event, contents) => {
-  contents.on('new-window', (event, url) => {
-    // Prevent links or window.open from opening new windows
-    event.preventDefault()
+  contents.setWindowOpenHandler(({ url }) => {
     log.warn(`Prevented new window to: ${url}`)
+    return { action: 'deny' }
   })
+
   // prevent link navigation within our windows
   // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
   contents.on('will-navigate', (event, url) => {
