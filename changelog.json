@@ -1,5 +1,30 @@
 {
   "releases": {
+    "3.1.5": [
+      "[Added] Enable menu option to Force-push branches that have diverged - #15211",
+      "[Added] Add menu option to Fetch the current repository at any time - #7805",
+      "[Added] Add support for JetBrains Toolbox and JetBrains Fleet editor for Windows - #12912. Thanks @tsvetilian-ty!",
+      "[Added] Add support for Emacs editor for Linux - #15857. Thanks @zipperer!",
+      "[Added] Add Jetbrains PhpStorm and WebStorm Editors for Linux - #15375. Thanks @patinthehat!",
+      "[Added] Support VSCodium as an external editor - #15348. Thanks @daniel-ciaglia!",
+      "[Fixed] Hide window instead of hiding the app on macOS - #15511. Thanks @angusdev!",
+      "[Fixed] Only left mouse clicks invoke dragging in the commit list - #15313",
+      "[Fixed] Selected list items stay selected when scrolling - #2957",
+      "[Fixed] Stick to one tooltip at a time in the repository list  - #15583",
+      "[Fixed] Notifications of Pull Request reviews are displayed for forked repositories - #15580",
+      "[Fixed] Notifications when checks of a Pull Request fail are displayed for forked repositories - #15422",
+      "[Fixed] Prevent closing GitHub Desktop while it's being updated - #7055, #5197",
+      "[Fixed] Notifications are shown only when they are relevant to the current repository - #15487",
+      "[Fixed] The repository change indicator is visible if repository list item is selected and in focus - #7651. Thanks @angusdev!",
+      "[Fixed] Tooltips are positioned properly if mouse is not moved - #13636. Thanks @angusdev!",
+      "[Fixed] Tooltips of long commit author emails wrap to multiple lines - #15424. Thanks @angusdev!",
+      "[Fixed] Clone repository progress bar no longer hidden by repository list - #11953. Thanks @angusdev!",
+      "[Improved] Ability to copy tag names from the commit list - #15137. Thanks @Shivareddy-Aluri!",
+      "[Improved] The dropdown selection component is keyboard navigable - #15620",
+      "[Improved] The diff view now highlights Arduino's `.ino` files as C++ source - #15555. Thanks @j-f1!",
+      "[Improved] Close repository list after creating or adding repositories - #15508. Thanks @angusdev!",
+      "[Improved] Always show an error message when an update fails - #15530"
+    ],
     "3.1.4": ["[Improved] Upgrade embedded Git to 2.35.6"],
     "3.1.4-beta1": [
       "[Added] Add support for JetBrains Toolbox and JetBrains Fleet editor for Windows - #12912. Thanks @tsvetilian-ty!",
