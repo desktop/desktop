@@ -3,7 +3,7 @@
     "3.1.6-beta1": [
       "[Added] Add fetch and force-push actions in a dropdown as an alternative to the main Pull/Push/Publish action button - #15907",
       "[Added] Add JetBrains CLion support on macOS - #15881. Thanks @tsvetilian-ty!",
-      "[Fixed] VSCodium Registry support fixed - #15585. Thanks @voidei!",
+      "[Fixed] Fix support for latest versions of VSCodium on Windows - #15585. Thanks @voidei!",
       "[Improved] Upgrade to Electron v22.0.3 - #15831",
       "[Improved] Upgrade embedded Git to 2.39.1 and Git LFS to 3.3.0 - #15915"
     ],
