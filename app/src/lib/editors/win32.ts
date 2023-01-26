@@ -405,7 +405,7 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
     installLocationRegistryKey: 'DisplayIcon',
     displayNamePrefix: 'RStudio',
-    publishers: ['RStudio'],
+    publishers: ['RStudio', 'Posit Software'],
   },
   {
     name: 'JetBrains IntelliJ Idea',
