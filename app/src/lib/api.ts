@@ -1129,6 +1129,61 @@ export class API {
     }
   }
 
+  public async fetchPullRequestReviews(
+    owner: string,
+    name: string,
+    prNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR reviews for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  public async fetchPullRequestReviewComments(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR review comments for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  public async fetchPullRequestComments(
+    owner: string,
+    name: string,
+    prNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR comments for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
   /**
    * Get the combined status for the given ref.
    */
