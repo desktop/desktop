@@ -1686,4 +1686,28 @@ export class GitStore extends BaseStore {
       await removeRemote(this.repository, remote.name)
     }
   }
+
+  /**
+   * Returns the commits associated with merging the comparison branch into the
+   * base branch.
+   */
+  public async getCommitsBetweenBranches(
+    baseBranch: Branch,
+    comparisonBranch: Branch
+  ): Promise<ReadonlyArray<Commit>> {
+    const revisionRange = revRange(baseBranch.name, comparisonBranch.name)
+    const commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, revisionRange)
+    )
+
+    if (commits == null) {
+      return []
+    }
+
+    if (commits.length > 0) {
+      this.storeCommits(commits)
+    }
+
+    return commits
+  }
 }

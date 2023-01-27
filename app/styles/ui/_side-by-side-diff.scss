@@ -7,6 +7,13 @@
   user-select: contain;
   position: relative;
 
+  &:not(:focus-within) .content {
+    &,
+    * {
+      user-select: none;
+    }
+  }
+
   &.selecting-before .after,
   &.selecting-after .before {
     span,
@@ -307,6 +314,8 @@
   }
 
   &.unified-diff {
+    --line-gutter-right-border-width: 4px;
+
     .row {
       .before,
       .after {
@@ -316,12 +325,27 @@
       }
 
       .hunk-handle {
-        left: 100px;
+        // `left` depends on the line number length at runtime
+        transform: translateX(calc(-50% + var(--line-gutter-right-border-width) / 2));
       }
 
-      &.hunk-info .line-number {
-        background: var(--diff-hunk-gutter-background-color);
-        border-color: var(--diff-hunk-border-color);
+      &.hunk-info {
+        .line-number {
+          background: var(--diff-hunk-gutter-background-color);
+          border-color: var(--diff-hunk-border-color);
+        }
+        .hunk-expansion-handle {
+          background: var(--diff-hunk-gutter-background-color);
+          border-right-width: 1px;
+          border-right-style: solid;
+          border-color: var(--diff-hunk-gutter-background-color);
+          align-self: stretch;
+          align-items: center;
+
+          &.selectable:hover {
+            border-color: var(--diff-hover-background-color);
+          }
+        }
       }
 
       .line-number {
@@ -342,8 +366,13 @@
       }
     }
 
-    &.editable .row .line-number {
-      border-right-width: 4px;
+    &.editable .row {
+      .line-number {
+        border-right-width: var(--line-gutter-right-border-width);
+      }
+      .hunk-expansion-handle {
+        border-right-width: var(--line-gutter-right-border-width);
+      }
     }
   }
 

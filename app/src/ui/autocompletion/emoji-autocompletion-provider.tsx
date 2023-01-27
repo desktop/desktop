@@ -90,7 +90,7 @@ export class EmojiAutocompletionProvider
 
     return (
       <div className="emoji" key={emoji}>
-        <img className="icon" src={this.emoji.get(emoji)} />
+        <img className="icon" src={this.emoji.get(emoji)} alt={emoji} />
         {this.renderHighlightedTitle(hit)}
       </div>
     )

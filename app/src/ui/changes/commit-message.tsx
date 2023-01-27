@@ -351,7 +351,7 @@ export class CommitMessage extends React.Component<
     if (
       isShortcutKey &&
       event.key === 'Enter' &&
-      this.canCommit() &&
+      (this.canCommit() || this.canAmend()) &&
       this.canExcecuteCommitShortcut()
     ) {
       this.createCommit()
@@ -766,6 +766,7 @@ export class CommitMessage extends React.Component<
     })
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       <div
         role="group"
         aria-label="Create commit"

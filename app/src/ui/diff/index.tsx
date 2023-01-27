@@ -19,6 +19,7 @@ import {
   ITextDiff,
   ILargeTextDiff,
   ImageDiffType,
+  ISubmoduleDiff,
 } from '../../models/diff'
 import { Button } from '../lib/button'
 import {
@@ -31,6 +32,7 @@ import { TextDiff } from './text-diff'
 import { SideBySideDiff } from './side-by-side-diff'
 import { enableExperimentalDiffViewer } from '../../lib/feature-flag'
 import { IFileContents } from './syntax-highlighting'
+import { SubmoduleDiff } from './submodule-diff'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -80,6 +82,9 @@ interface IDiffProps {
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
 
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule?: (fullPath: string) => void
+
   /**
    * Called when the user is viewing an image diff and requests
    * to change the diff presentation mode.
@@ -121,6 +126,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         return this.renderText(diff)
       case DiffType.Binary:
         return this.renderBinaryFile()
+      case DiffType.Submodule:
+        return this.renderSubmoduleDiff(diff)
       case DiffType.Image:
         return this.renderImage(diff)
       case DiffType.LargeText: {
@@ -168,7 +175,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderLargeTextDiff() {
     return (
       <div className="panel empty large-diff">
-        <img src={NoDiffImage} className="blankslate-image" />
+        <img src={NoDiffImage} className="blankslate-image" alt="" />
         <p>
           The diff is too large to be displayed by default.
           <br />
@@ -185,7 +192,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderUnrenderableDiff() {
     return (
       <div className="panel empty large-diff">
-        <img src={NoDiffImage} />
+        <img src={NoDiffImage} alt="" />
         <p>The diff is too large to be displayed.</p>
       </div>
     )
@@ -241,6 +248,16 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
 
     return this.renderTextDiff(diff)
+  }
+
+  private renderSubmoduleDiff(diff: ISubmoduleDiff) {
+    return (
+      <SubmoduleDiff
+        onOpenSubmodule={this.props.onOpenSubmodule}
+        diff={diff}
+        readOnly={this.props.readOnly}
+      />
+    )
   }
 
   private renderBinaryFile() {

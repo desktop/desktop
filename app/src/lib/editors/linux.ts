@@ -58,6 +58,22 @@ const editors: ILinuxExternalEditor[] = [
     name: 'Code',
     paths: ['/usr/bin/io.elementary.code'],
   },
+  {
+    name: 'Lite XL',
+    paths: ['/usr/bin/lite-xl'],
+  },
+  {
+    name: 'Jetbrains PhpStorm',
+    paths: ['/snap/bin/phpstorm'],
+  },
+  {
+    name: 'Jetbrains WebStorm',
+    paths: ['/snap/bin/webstorm'],
+  },
+  {
+    name: 'Emacs',
+    paths: ['/snap/bin/emacs', '/usr/local/bin/emacs', '/usr/bin/emacs'],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {

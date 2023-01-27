@@ -26,6 +26,8 @@ import {
   CellMeasurerCache,
   CellMeasurer,
   ListRowProps,
+  OverscanIndicesGetterParams,
+  defaultOverscanIndicesGetter,
 } from 'react-virtualized'
 import { SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
@@ -74,6 +76,21 @@ export interface ISelection {
 }
 
 type ModifiedLine = { line: DiffLine; diffLineNumber: number }
+
+const isElement = (n: Node): n is Element => n.nodeType === Node.ELEMENT_NODE
+const closestElement = (n: Node): Element | null =>
+  isElement(n) ? n : n.parentElement
+
+const closestRow = (n: Node, container: Element) => {
+  const row = closestElement(n)?.closest('div[role=row]')
+  if (row && container.contains(row)) {
+    const rowIndex =
+      row.ariaRowIndex !== null ? parseInt(row.ariaRowIndex, 10) : NaN
+    return isNaN(rowIndex) ? undefined : rowIndex
+  }
+
+  return undefined
+}
 
 interface ISideBySideDiffProps {
   readonly repository: Repository
@@ -142,7 +159,7 @@ interface ISideBySideDiffState {
    * column is doing it. This allows us to limit text selection to that
    * specific column via CSS.
    */
-  readonly selectingTextInRow?: 'before' | 'after'
+  readonly selectingTextInRow: 'before' | 'after'
 
   /**
    * The current diff selection. This is used while
@@ -194,9 +211,13 @@ export class SideBySideDiff extends React.Component<
   ISideBySideDiffState
 > {
   private virtualListRef = React.createRef<List>()
+  private diffContainer: HTMLDivElement | null = null
 
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
+
+  private textSelectionStartRow: number | undefined = undefined
+  private textSelectionEndRow: number | undefined = undefined
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -205,6 +226,7 @@ export class SideBySideDiff extends React.Component<
       diff: props.diff,
       isSearching: false,
       selectedSearchResult: undefined,
+      selectingTextInRow: 'before',
     }
   }
 
@@ -216,12 +238,130 @@ export class SideBySideDiff extends React.Component<
     // Listen for the custom event find-text (see app.tsx)
     // and trigger the search plugin if we see it.
     document.addEventListener('find-text', this.showSearch)
+
+    document.addEventListener('cut', this.onCutOrCopy)
+    document.addEventListener('copy', this.onCutOrCopy)
+
+    document.addEventListener('selectionchange', this.onDocumentSelectionChange)
+  }
+
+  private onCutOrCopy = (ev: ClipboardEvent) => {
+    if (ev.defaultPrevented || !this.isEntireDiffSelected()) {
+      return
+    }
+
+    const lineTypes = this.props.showSideBySideDiff
+      ? this.state.selectingTextInRow === 'before'
+        ? [DiffLineType.Delete, DiffLineType.Context]
+        : [DiffLineType.Add, DiffLineType.Context]
+      : [DiffLineType.Add, DiffLineType.Delete, DiffLineType.Context]
+
+    const contents = this.state.diff.hunks
+      .flatMap(h =>
+        h.lines
+          .filter(line => lineTypes.includes(line.type))
+          .map(line => line.content)
+      )
+      .join('\n')
+
+    ev.preventDefault()
+    ev.clipboardData?.setData('text/plain', contents)
+  }
+
+  private onDocumentSelectionChange = (ev: Event) => {
+    if (!this.diffContainer) {
+      return
+    }
+
+    const selection = document.getSelection()
+
+    this.textSelectionStartRow = undefined
+    this.textSelectionEndRow = undefined
+
+    if (!selection || selection.isCollapsed) {
+      return
+    }
+
+    // Check to see if there's at least a partial selection within the
+    // diff container. If there isn't then we want to get out of here as
+    // quickly as possible.
+    if (!selection.containsNode(this.diffContainer, true)) {
+      return
+    }
+
+    if (this.isEntireDiffSelected(selection)) {
+      return
+    }
+
+    // Get the range to coerce uniform direction (i.e we don't want to have to
+    // care about whether the user is selecting right to left or left to right)
+    const range = selection.getRangeAt(0)
+    const { startContainer, endContainer } = range
+
+    // The (relative) happy path is when the user is currently selecting within
+    // the diff. That means that the start container will very likely be a text
+    // node somewhere within a row.
+    let startRow = closestRow(startContainer, this.diffContainer)
+
+    // If we couldn't find the row by walking upwards it's likely that the user
+    // has moved their selection to the container itself or beyond (i.e dragged
+    // their selection all the way up to the point where they're now selecting
+    // inside the commit details).
+    //
+    // If so we attempt to check if the first row we're currently rendering is
+    // encompassed in the selection
+    if (startRow === undefined) {
+      const firstRow = this.diffContainer.querySelector(
+        'div[role=row]:first-child'
+      )
+
+      if (firstRow && range.intersectsNode(firstRow)) {
+        startRow = closestRow(firstRow, this.diffContainer)
+      }
+    }
+
+    // If we don't have  starting row there's no point in us trying to find
+    // the end row.
+    if (startRow === undefined) {
+      return
+    }
+
+    let endRow = closestRow(endContainer, this.diffContainer)
+
+    if (endRow === undefined) {
+      const lastRow = this.diffContainer.querySelector(
+        'div[role=row]:last-child'
+      )
+
+      if (lastRow && range.intersectsNode(lastRow)) {
+        endRow = closestRow(lastRow, this.diffContainer)
+      }
+    }
+
+    this.textSelectionStartRow = startRow
+    this.textSelectionEndRow = endRow
+  }
+
+  private isEntireDiffSelected(selection = document.getSelection()) {
+    const { diffContainer } = this
+    const ancestor = selection?.getRangeAt(0).commonAncestorContainer
+
+    // This is an artefact of the selectAllChildren call in the onSelectAll
+    // handler. We can get away with checking for this since we're handling
+    // the select-all event coupled with the fact that we have CSS rules which
+    // prevents text selection within the diff unless focus resides within the
+    // diff container.
+    return ancestor === diffContainer
   }
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onWindowKeyDown)
     document.removeEventListener('mouseup', this.onEndSelection)
     document.removeEventListener('find-text', this.showSearch)
+    document.removeEventListener(
+      'selectionchange',
+      this.onDocumentSelectionChange
+    )
   }
 
   public componentDidUpdate(
@@ -248,6 +388,17 @@ export class SideBySideDiff extends React.Component<
       this.props.file.id !== prevProps.file.id
     ) {
       this.virtualListRef.current.scrollToPosition(0)
+
+      // Reset selection
+      this.textSelectionStartRow = undefined
+      this.textSelectionEndRow = undefined
+
+      if (this.diffContainer) {
+        const selection = document.getSelection()
+        if (selection?.containsNode(this.diffContainer, true)) {
+          selection.empty()
+        }
+      }
     }
   }
 
@@ -258,6 +409,15 @@ export class SideBySideDiff extends React.Component<
       contents.canBeExpanded &&
       contents.newContents.length > 0
     )
+  }
+
+  private onDiffContainerRef = (ref: HTMLDivElement | null) => {
+    if (ref === null) {
+      this.diffContainer?.removeEventListener('select-all', this.onSelectAll)
+    } else {
+      ref.addEventListener('select-all', this.onSelectAll)
+    }
+    this.diffContainer = ref
   }
 
   public render() {
@@ -277,7 +437,12 @@ export class SideBySideDiff extends React.Component<
     })
 
     return (
-      <div className={containerClassName} onMouseDown={this.onMouseDown}>
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+      <div
+        className={containerClassName}
+        onMouseDown={this.onMouseDown}
+        onKeyDown={this.onKeyDown}
+      >
         {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
         {this.state.isSearching && (
           <DiffSearchInput
@@ -285,7 +450,10 @@ export class SideBySideDiff extends React.Component<
             onClose={this.onSearchCancel}
           />
         )}
-        <div className="side-by-side-diff cm-s-default">
+        <div
+          className="side-by-side-diff cm-s-default"
+          ref={this.onDiffContainerRef}
+        >
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
               <List
@@ -296,6 +464,7 @@ export class SideBySideDiff extends React.Component<
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
                 ref={this.virtualListRef}
+                overscanIndicesGetter={this.overscanIndicesGetter}
                 // The following properties are passed to the list
                 // to make sure that it gets re-rendered when any of
                 // them change.
@@ -315,6 +484,22 @@ export class SideBySideDiff extends React.Component<
         </div>
       </div>
     )
+  }
+
+  private overscanIndicesGetter = (params: OverscanIndicesGetterParams) => {
+    const [start, end] = [this.textSelectionStartRow, this.textSelectionEndRow]
+
+    if (start === undefined || end === undefined) {
+      return defaultOverscanIndicesGetter(params)
+    }
+
+    const startIndex = Math.min(start, params.startIndex)
+    const stopIndex = Math.max(
+      params.stopIndex,
+      Math.min(params.cellCount - 1, end)
+    )
+
+    return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
@@ -363,7 +548,7 @@ export class SideBySideDiff extends React.Component<
         parent={parent}
         rowIndex={index}
       >
-        <div key={key} style={style}>
+        <div key={key} style={style} role="row" aria-rowindex={index}>
           <SideBySideDiffRow
             row={rowWithTokens}
             lineNumberWidth={lineNumberWidth}
@@ -635,6 +820,27 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const modifiers = event.altKey || event.metaKey || event.shiftKey
+
+    if (!__DARWIN__ && event.key === 'a' && event.ctrlKey && !modifiers) {
+      this.onSelectAll(event)
+    }
+  }
+
+  /**
+   * Called when the user presses CtrlOrCmd+A while focused within the diff
+   * container or when the user triggers the select-all event. Note that this
+   * deals with text-selection whereas several other methods in this component
+   * named similarly deals with selection within the gutter.
+   */
+  private onSelectAll = (ev?: Event | React.SyntheticEvent<unknown>) => {
+    if (this.diffContainer) {
+      ev?.preventDefault()
+      document.getSelection()?.selectAllChildren(this.diffContainer)
+    }
+  }
+
   private onStartSelection = (
     row: number,
     column: DiffColumn,
@@ -737,6 +943,10 @@ export class SideBySideDiff extends React.Component<
         // When using role="copy", the enabled attribute is not taken into account.
         role: selectionLength > 0 ? 'copy' : undefined,
         enabled: selectionLength > 0,
+      },
+      {
+        label: __DARWIN__ ? 'Select All' : 'Select all',
+        action: () => this.onSelectAll(),
       },
     ]
 

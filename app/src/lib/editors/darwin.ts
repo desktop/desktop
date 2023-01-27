@@ -32,6 +32,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['org.vim.MacVim'],
   },
   {
+    name: 'Neovide',
+    bundleIdentifiers: ['com.neovide.neovide'],
+  },
+  {
     name: 'Visual Studio Code',
     bundleIdentifiers: ['com.microsoft.VSCode'],
   },
@@ -41,7 +45,7 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'VSCodium',
-    bundleIdentifiers: ['com.visualstudio.code.oss'],
+    bundleIdentifiers: ['com.visualstudio.code.oss', 'com.vscodium'],
   },
   {
     name: 'Sublime Text',
@@ -86,6 +90,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'WebStorm',
     bundleIdentifiers: ['com.jetbrains.WebStorm'],
+  },
+  {
+    name: 'CLion',
+    bundleIdentifiers: ['com.jetbrains.CLion'],
   },
   {
     name: 'Typora',
@@ -135,6 +143,14 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Emacs',
     bundleIdentifiers: ['org.gnu.Emacs'],
+  },
+  {
+    name: 'Lite XL',
+    bundleIdentifiers: ['com.lite-xl'],
+  },
+  {
+    name: 'Fleet',
+    bundleIdentifiers: ['Fleet.app'],
   },
 ]
 

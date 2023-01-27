@@ -3,13 +3,21 @@
   // See https://css-tricks.com/flexbox-truncated-text/
   min-width: 0;
 
+  display: flex;
+  flex-direction: row;
+
   & > .toolbar-button {
     width: 100%;
     height: 100%;
   }
 
+  & .toolbar-dropdown-arrow-button {
+    width: 39px;
+  }
+
   &.open {
-    & > .toolbar-button > button {
+    &.foldout-style > .toolbar-button > button,
+    &.multi-option-style > .toolbar-dropdown-arrow-button > button {
       color: var(--toolbar-button-active-color);
       background-color: var(--toolbar-button-active-background-color);
 

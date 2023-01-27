@@ -19,13 +19,13 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v10.15.4
+v16.13.0
 
 $ yarn -v
-1.15.2
+1.21.1
 
 $ python --version
-Python 2.7.15
+Python 3.9.x
 ```
 
 There are also [additional resources](tooling.md) to configure your favorite

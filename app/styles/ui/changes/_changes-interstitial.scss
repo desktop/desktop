@@ -1,4 +1,4 @@
-#no-changes {
+.changes-interstitial {
   padding: var(--spacing-quad);
   width: 100%;
   min-height: 100%;
@@ -8,7 +8,7 @@
   overflow-y: auto;
   overflow-x: hidden;
 
-  .header {
+  .interstitial-header {
     display: flex;
     flex-direction: row;
 
@@ -43,6 +43,14 @@
   .content {
     width: 100%;
     max-width: 600px;
+  }
+
+  .pull-request-action {
+    .dropdown-select-button {
+      .invoke-button {
+        min-width: 150px;
+      }
+    }
   }
 
   /** Lessen the padding at 1.5x zoom and above  **/

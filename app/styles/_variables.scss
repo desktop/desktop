@@ -248,6 +248,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-button-focus-progress-color: #{$gray-700};
   --toolbar-button-hover-progress-color: #{$gray-700};
   --toolbar-dropdown-open-progress-color: #{$gray-200};
+  --toolbar-dropdown-text-warning-color: #{$yellow-800};
+  --toolbar-dropdown-text-hover-color: var(--box-hover-text-color);
 
   /**
    * App menu bar colors (Windows/Linux only)
@@ -449,6 +451,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** Inline paths and code */
   --path-segment-background: #{$blue-000};
+  --path-segment-background-focus: #{darken($blue-000, 5%)};
   --path-segment-padding: var(--spacing-third);
 
   // http://easings.net/#easeOutBack

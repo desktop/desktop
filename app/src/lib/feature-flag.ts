@@ -30,7 +30,7 @@ function enableBetaFeatures(): boolean {
 
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export function enableReadmeOverwriteWarning(): boolean {
@@ -46,7 +46,7 @@ export function enableWSLDetection(): boolean {
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return false
+  return enableBetaFeatures()
 }
 
 /**
@@ -66,16 +66,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
   }
 
   return enableBetaFeatures()
-}
-
-/**
- * Should we allow x64 apps running under ARM translation to auto-update to
- * ARM64 builds IMMEDIATELY instead of waiting for the next release?
- */
-export function enableImmediateUpdateFromEmulatedX64ToARM64(): boolean {
-  // Because of how Squirrel.Windows works, this is only available for macOS.
-  // See: https://github.com/desktop/desktop/pull/14998
-  return __DARWIN__ && enableBetaFeatures()
 }
 
 /** Should we allow resetting to a previous commit? */
@@ -110,5 +100,30 @@ export function enablePullRequestQuickView(): boolean {
 
 /** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
 export function enableMultiCommitDiffs(): boolean {
+  return true
+}
+
+/** Should we enable the new interstitial for submodule diffs? */
+export function enableSubmoduleDiff(): boolean {
+  return true
+}
+
+/** Should we enable starting pull requests? */
+export function enableStartingPullRequests(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we enable starting pull requests? */
+export function enableStackedPopups(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we enable mechanism to prevent closing while the app is updating? */
+export function enablePreventClosingWhileUpdating(): boolean {
+  return true
+}
+
+/** Should we enable the new push-pull-fetch dropdown? */
+export function enablePushPullFetchDropdown(): boolean {
   return enableBetaFeatures()
 }

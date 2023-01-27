@@ -2,6 +2,7 @@ export type MenuEvent =
   | 'push'
   | 'force-push'
   | 'pull'
+  | 'fetch'
   | 'show-changes'
   | 'show-history'
   | 'add-local-repository'
@@ -42,3 +43,5 @@ export type MenuEvent =
   | 'find-text'
   | 'create-issue-in-repository-on-github'
   | 'pull-request-check-run-failed'
+  | 'preview-pull-request'
+  | 'show-app-error'

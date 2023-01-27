@@ -131,6 +131,7 @@ export class BranchListItem extends React.Component<
     })
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
         onContextMenu={this.onContextMenu}
         className={className}

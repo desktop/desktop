@@ -1,7 +1,7 @@
 body > .tooltip,
 .tooltip-host > .tooltip {
   display: flex;
-  position: fixed;
+  position: absolute;
   left: 0;
   top: 0;
   z-index: var(--tooltip-z-index);
@@ -11,6 +11,7 @@ body > .tooltip,
   max-width: 300px;
 
   word-wrap: break-word;
+  word-break: break-word;
   overflow-wrap: break-word;
 
   background-color: var(--tooltip-background-color);
@@ -202,4 +203,10 @@ body > .tooltip,
       }
     }
   }
+}
+
+.tooltip-host {
+  // Tooltips are positioned absolutely relative to their hosts so the hosts
+  // need to be position: relative or position: absolute.
+  position: relative;
 }
