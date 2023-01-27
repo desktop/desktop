@@ -553,6 +553,9 @@ export class CommitSummary extends React.Component<
       }
     }
 
+    const hasFileDescription =
+      filesAdded + filesModified + filesRemoved + filesRemoved > 0
+
     const filesLongDescription = (
       <>
         {filesAdded > 0 ? (
@@ -598,7 +601,9 @@ export class CommitSummary extends React.Component<
       <TooltippedContent
         className="commit-summary-meta-item without-truncation"
         tooltipClassName="changed-files-description-tooltip"
-        tooltip={fileCount > 0 ? filesLongDescription : undefined}
+        tooltip={
+          fileCount > 0 && hasFileDescription ? filesLongDescription : undefined
+        }
       >
         <Octicon symbol={OcticonSymbol.diff} />
         {filesShortDescription}
