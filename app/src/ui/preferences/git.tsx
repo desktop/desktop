@@ -63,6 +63,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
       <DialogContent>
         {this.renderGitConfigAuthorInfo()}
         {this.renderDefaultBranchSetting()}
+        {this.renderGitProjectsFolderSetting()}
       </DialogContent>
     )
   }
@@ -136,6 +137,21 @@ export class Git extends React.Component<IGitProps, IGitState> {
 
         <p className="git-settings-description">
           These preferences will edit your global Git config.
+        </p>
+      </div>
+    )
+  }
+
+  private renderGitProjectsFolderSetting() {
+    return <this.GitProjectsFolder />
+  }
+
+  private GitProjectsFolder() {
+    return (
+      <div className="git-projects-folder">
+        <h2>Git projects folder</h2>
+        <p>
+          <strong>Not yet implemented</strong>
         </p>
       </div>
     )
