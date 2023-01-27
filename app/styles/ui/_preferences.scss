@@ -1,6 +1,7 @@
 #preferences {
   .preferences-container {
     display: flex;
+
     .tab-container {
       border-left: var(--base-border);
       flex: 1;
@@ -79,6 +80,10 @@
     font-size: var(--font-size-sm);
     color: var(--text-secondary-color);
   }
+
+  .git-projects-folder {
+    margin-top: var(--spacing-double);
+  }
 }
 
 #external-editor-error {
@@ -93,9 +98,11 @@
   .custom-theme-selecter-header {
     display: flex;
     width: 375px;
+
     button {
       margin-left: auto;
     }
+
     h2 {
       margin-bottom: 0;
     }
@@ -119,10 +126,12 @@
     border: 1px solid black;
     width: 100%;
     height: 50px;
+
     &:hover {
       border-width: 2px;
       outline: 1px solid rgb(228, 228, 228);
     }
+
     margin: auto;
   }
 

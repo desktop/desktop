@@ -6,11 +6,16 @@ import { Ref } from '../lib/ref'
 import { RadioButton } from '../lib/radio-button'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
+import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
+import { Button } from '../lib/button'
+import { showOpenDialog } from '../main-process-proxy'
 
 interface IGitProps {
   readonly name: string
   readonly email: string
   readonly defaultBranch: string
+  readonly gitRepositoriesPath: string
 
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
@@ -27,6 +32,7 @@ interface IGitState {
    * enter a custom branch name.
    */
   readonly defaultBranchIsOther: boolean
+  readonly gitRepositoriesPath: string
 }
 
 // This will be the prepopulated branch name on the "other" input
@@ -43,6 +49,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
       defaultBranchIsOther: !SuggestedBranchNames.includes(
         this.props.defaultBranch
       ),
+      gitRepositoriesPath: this.props.gitRepositoriesPath,
     }
   }
 
@@ -143,18 +150,38 @@ export class Git extends React.Component<IGitProps, IGitState> {
   }
 
   private renderGitProjectsFolderSetting() {
-    return <this.GitProjectsFolder />
-  }
+    const { gitRepositoriesPath } = this.state
 
-  private GitProjectsFolder() {
     return (
       <div className="git-projects-folder">
-        <h2>Git projects folder</h2>
-        <p>
-          <strong>Not yet implemented</strong>
+        <h2>Folder for Git projects</h2>
+        <Row>
+          <TextBox
+            value={gitRepositoriesPath}
+            placeholder={"Choose a folder..."}
+          />
+          <Button onClick={this.showFilePicker}>Choose...</Button>
+        </Row>
+
+        <p className="git-settings-description">
+          This folder will be used to store your Git repositories.
         </p>
       </div>
     )
+  }
+
+  private showFilePicker = async () => {
+    const path = await showOpenDialog({
+      properties: ['createDirectory', 'openDirectory'],
+    })
+
+    if (path === null) {
+      return
+    }
+
+    return this.setState({
+      gitRepositoriesPath: path
+    })
   }
 
   /**

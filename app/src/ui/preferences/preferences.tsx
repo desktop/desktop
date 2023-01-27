@@ -70,6 +70,7 @@ interface IPreferencesState {
   readonly committerName: string
   readonly committerEmail: string
   readonly defaultBranch: string
+  readonly gitRepositoriesPath: string
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
   readonly initialDefaultBranch: string | null
@@ -112,6 +113,7 @@ export class Preferences extends React.Component<
       committerName: '',
       committerEmail: '',
       defaultBranch: '',
+      gitRepositoriesPath: '',
       initialCommitterName: null,
       initialCommitterEmail: null,
       initialDefaultBranch: null,
@@ -171,6 +173,7 @@ export class Preferences extends React.Component<
       committerName,
       committerEmail,
       defaultBranch: initialDefaultBranch,
+      gitRepositoriesPath: '',
       initialCommitterName,
       initialCommitterEmail,
       initialDefaultBranch,
@@ -309,6 +312,7 @@ export class Preferences extends React.Component<
               name={this.state.committerName}
               email={this.state.committerEmail}
               defaultBranch={this.state.defaultBranch}
+              gitRepositoriesPath={this.state.gitRepositoriesPath}
               dotComAccount={this.props.dotComAccount}
               enterpriseAccount={this.props.enterpriseAccount}
               onNameChanged={this.onCommitterNameChanged}
