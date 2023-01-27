@@ -508,6 +508,15 @@ export interface IAPIPullRequestReview {
     | 'CHANGES_REQUESTED'
 }
 
+/** Represents both issue comments and PR review comments */
+export interface IAPIComment {
+  readonly id: number
+  readonly body: string
+  readonly html_url: string
+  readonly user: IAPIIdentity
+  readonly created_at: string
+}
+
 /** The metadata about a GitHub server. */
 export interface IServerMetadata {
   /**
@@ -730,6 +739,79 @@ export class API {
     } catch (e) {
       log.warn(`Alive web socket request failed: ${e}`)
       throw e
+    }
+  }
+
+  /**
+   * Fetch an issue comment (i.e. a comment on an issue or pull request).
+   *
+   * @param owner The owner of the repository
+   * @param name The name of the repository
+   * @param commentId The ID of the comment
+   *
+   * @returns The comment if it was found, null if it wasn't, or an error
+   * occurred.
+   */
+  public async fetchIssueComment(
+    owner: string,
+    name: string,
+    commentId: string
+  ): Promise<IAPIComment | null> {
+    try {
+      const response = await this.request(
+        'GET',
+        `repos/${owner}/${name}/issues/comments/${commentId}`
+      )
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(
+          `fetchIssueComment: '${owner}/${name}/issues/comments/${commentId}' returned a 404`
+        )
+        return null
+      }
+      return await parsedResponse<IAPIComment>(response)
+    } catch (e) {
+      log.warn(
+        `fetchIssueComment: an error occurred for '${owner}/${name}/issues/comments/${commentId}'`,
+        e
+      )
+      return null
+    }
+  }
+
+  /**
+   * Fetch a pull request review comment (i.e. a comment that was posted as part
+   * of a review of a pull request).
+   *
+   * @param owner The owner of the repository
+   * @param name The name of the repository
+   * @param commentId The ID of the comment
+   *
+   * @returns The comment if it was found, null if it wasn't, or an error
+   * occurred.
+   */
+  public async fetchPullRequestReviewComment(
+    owner: string,
+    name: string,
+    commentId: string
+  ): Promise<IAPIComment | null> {
+    try {
+      const response = await this.request(
+        'GET',
+        `repos/${owner}/${name}/pulls/comments/${commentId}`
+      )
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(
+          `fetchPullRequestReviewComment: '${owner}/${name}/pulls/comments/${commentId}' returned a 404`
+        )
+        return null
+      }
+      return await parsedResponse<IAPIComment>(response)
+    } catch (e) {
+      log.warn(
+        `fetchPullRequestReviewComment: an error occurred for '${owner}/${name}/pulls/comments/${commentId}'`,
+        e
+      )
+      return null
     }
   }
 

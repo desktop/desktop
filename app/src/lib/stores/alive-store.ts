@@ -31,10 +31,21 @@ export interface IDesktopPullRequestReviewSubmitAliveEvent {
   readonly number_of_comments: number
 }
 
+export interface IDesktopPullRequestCommentAliveEvent {
+  readonly type: 'pr-comment'
+  readonly subtype: 'review-comment' | 'issue-comment'
+  readonly timestamp: number
+  readonly owner: string
+  readonly repo: string
+  readonly pull_request_number: number
+  readonly comment_id: string
+}
+
 /** Represents an Alive event relevant to Desktop. */
 export type DesktopAliveEvent =
   | IDesktopChecksFailedAliveEvent
   | IDesktopPullRequestReviewSubmitAliveEvent
+  | IDesktopPullRequestCommentAliveEvent
 interface IAliveSubscription {
   readonly account: Account
   readonly subscription: Subscription<AliveStore>
