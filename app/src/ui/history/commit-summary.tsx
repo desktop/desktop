@@ -554,7 +554,7 @@ export class CommitSummary extends React.Component<
     }
 
     const hasFileDescription =
-      filesAdded + filesModified + filesRemoved + filesRemoved > 0
+      filesAdded + filesModified + filesRemoved + filesRenamed > 0
 
     const filesLongDescription = (
       <>
