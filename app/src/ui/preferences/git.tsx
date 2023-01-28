@@ -23,6 +23,7 @@ interface IGitProps {
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
   readonly onDefaultBranchChanged: (defaultBranch: string) => void
+  readonly onGitRepositoriesPathChanged: (gitRepositoriesPath: string) => void
 }
 
 interface IGitState {
@@ -158,13 +159,14 @@ export class Git extends React.Component<IGitProps, IGitState> {
         <Row>
           <TextBox
             value={gitRepositoriesPath}
+            onValueChanged={this.onGitRepositoriesPathChanged}
             placeholder={"Choose a folder..."}
           />
           <Button onClick={this.showFilePicker}>Choose...</Button>
         </Row>
 
         <p className="git-settings-description">
-          This folder will be used to store your Git repositories.
+          This folder will be scanned for new repositories to be added to GitHub Desktop when it starts.
         </p>
       </div>
     )
@@ -179,9 +181,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
       return
     }
 
-    return this.setState({
-      gitRepositoriesPath: path
-    })
+    return this.onGitRepositoriesPathChanged(path)
   }
 
   /**
@@ -200,5 +200,11 @@ export class Git extends React.Component<IGitProps, IGitState> {
     })
 
     this.props.onDefaultBranchChanged(defaultBranch)
+  }
+
+  private onGitRepositoriesPathChanged = (repositoriesPath: string) => {
+    this.setState({ gitRepositoriesPath: repositoriesPath })
+
+    this.props.onGitRepositoriesPathChanged(repositoriesPath)
   }
 }

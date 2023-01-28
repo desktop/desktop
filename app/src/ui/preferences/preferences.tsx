@@ -318,6 +318,7 @@ export class Preferences extends React.Component<
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
+              onGitRepositoriesPathChanged={this.onGitRepositoriesPathChanged}
             />
           </>
         )
@@ -457,6 +458,10 @@ export class Preferences extends React.Component<
 
   private onDefaultBranchChanged = (defaultBranch: string) => {
     this.setState({ defaultBranch })
+  }
+
+  private onGitRepositoriesPathChanged = (repositoriesPath: string) => {
+    this.setState({ gitRepositoriesPath: repositoriesPath })
   }
 
   private onSelectedEditorChanged = (editor: string) => {
