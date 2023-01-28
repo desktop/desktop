@@ -63,6 +63,10 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/usr/bin/lite-xl'],
   },
   {
+    name: 'Jetbrains Intellij IDEA Comunity',
+    paths: ['/snap/bin/intellij-idea-community'],
+  },
+  {
     name: 'Jetbrains PhpStorm',
     paths: ['/snap/bin/phpstorm'],
   },
