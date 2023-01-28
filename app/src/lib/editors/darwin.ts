@@ -152,6 +152,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Fleet',
     bundleIdentifiers: ['Fleet.app'],
   },
+  {
+    name: 'Zed',
+    bundleIdentifiers: ['dev.zed.Zed'],
+  },
 ]
 
 async function findApplication(
