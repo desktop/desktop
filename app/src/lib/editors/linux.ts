@@ -24,8 +24,25 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/usr/bin/nvim'],
   },
   {
+    name: 'Neovim-Qt',
+    paths: ['/usr/bin/nvim-qt'],
+  },
+  {
+    name: 'Neovide',
+    paths: ['/usr/bin/neovide'],
+  },
+  {
+    name: 'gVim',
+    paths: ['/usr/bin/gvim'],
+  },
+  {
     name: 'Visual Studio Code',
-    paths: ['/usr/share/code/bin/code', '/snap/bin/code', '/usr/bin/code'],
+    paths: [
+      '/usr/share/code/bin/code',
+      '/snap/bin/code',
+      '/usr/bin/code',
+      '/mnt/c/Program Files/Microsoft VS Code/bin/code',
+    ],
   },
   {
     name: 'Visual Studio Code (Insiders)',
@@ -33,7 +50,11 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'VSCodium',
-    paths: ['/usr/bin/codium', '/var/lib/flatpak/app/com.vscodium.codium'],
+    paths: [
+      '/usr/bin/codium',
+      '/var/lib/flatpak/app/com.vscodium.codium',
+      '/usr/share/vscodium-bin/bin/codium',
+    ],
   },
   {
     name: 'Sublime Text',
@@ -73,6 +94,34 @@ const editors: ILinuxExternalEditor[] = [
   {
     name: 'Emacs',
     paths: ['/snap/bin/emacs', '/usr/local/bin/emacs', '/usr/bin/emacs'],
+  },
+  {
+    name: 'Kate',
+    paths: ['/usr/bin/kate'],
+  },
+  {
+    name: 'GEdit',
+    paths: ['/usr/bin/gedit'],
+  },
+  {
+    name: 'GNOME Text Editor',
+    paths: ['/usr/bin/gnome-text-editor'],
+  },
+  {
+    name: 'GNOME Builder',
+    paths: ['/usr/bin/gnome-builder'],
+  },
+  {
+    name: 'Notepadqq',
+    paths: ['/usr/bin/notepadqq'],
+  },
+  {
+    name: 'Geany',
+    paths: ['/usr/bin/geany'],
+  },
+  {
+    name: 'Mousepad',
+    paths: ['/usr/bin/mousepad'],
   },
 ]
 
