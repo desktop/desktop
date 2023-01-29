@@ -75,7 +75,7 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/snap/bin/idea', '.local/share/JetBrains/Toolbox/scripts/idea'],
   },
   {
-    name: 'Jetbrains PyCharm',
+    name: 'JetBrains PyCharm',
     paths: ['/snap/bin/pycharm', '.local/share/JetBrains/Toolbox/scripts/pycharm'],
   },
   {
