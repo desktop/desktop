@@ -79,6 +79,7 @@ import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
+import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 
 if (__DEV__) {
   installDevGlobals()
@@ -258,6 +259,11 @@ const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 const commitStatusStore = new CommitStatusStore(accountsStore)
 const aheadBehindStore = new AheadBehindStore()
 
+const notificationsDebugStore = new NotificationsDebugStore(
+  accountsStore,
+  pullRequestCoordinator
+)
+
 const aliveStore = new AliveStore(accountsStore)
 
 const notificationsStore = new NotificationsStore(
@@ -353,6 +359,7 @@ ReactDOM.render(
     issuesStore={issuesStore}
     gitHubUserStore={gitHubUserStore}
     aheadBehindStore={aheadBehindStore}
+    notificationsDebugStore={notificationsDebugStore}
     startTime={startTime}
   />,
   document.getElementById('desktop-app-container')!

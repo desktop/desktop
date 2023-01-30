@@ -32,6 +32,7 @@ import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 import { AheadBehindStore } from '../../src/lib/stores/ahead-behind-store'
 import { AliveStore } from '../../src/lib/stores/alive-store'
 import { NotificationsStore } from '../../src/lib/stores/notifications-store'
+import { NotificationsDebugStore } from '../../src/lib/stores/notifications-debug-store'
 
 describe('App', () => {
   let appStore: AppStore
@@ -41,6 +42,7 @@ describe('App', () => {
   let githubUserStore: GitHubUserStore
   let issuesStore: IssuesStore
   let aheadBehindStore: AheadBehindStore
+  let notificationsDebugStore: NotificationsDebugStore
 
   beforeEach(async () => {
     const db = new TestGitHubUserDatabase()
@@ -75,6 +77,11 @@ describe('App', () => {
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
     const commitStatusStore = new CommitStatusStore(accountsStore)
     aheadBehindStore = new AheadBehindStore()
+
+    notificationsDebugStore = new NotificationsDebugStore(
+      accountsStore,
+      pullRequestCoordinator
+    )
 
     const aliveStore = new AliveStore(accountsStore)
 
@@ -117,6 +124,7 @@ describe('App', () => {
         issuesStore={issuesStore}
         gitHubUserStore={githubUserStore}
         aheadBehindStore={aheadBehindStore}
+        notificationsDebugStore={notificationsDebugStore}
         startTime={0}
       />
     ) as unknown as React.Component<any, any>

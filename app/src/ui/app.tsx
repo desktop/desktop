@@ -164,6 +164,8 @@ import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
 import { enableStackedPopups } from '../lib/feature-flag'
 import { DialogStackContext } from './dialog'
+import { TestNotifications } from './test-notifications/test-notifications'
+import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -185,6 +187,7 @@ interface IAppProps {
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly aheadBehindStore: AheadBehindStore
+  readonly notificationsDebugStore: NotificationsDebugStore
   readonly startTime: number
 }
 
@@ -489,6 +492,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    this.props.dispatcher.showPopup({ type: PopupType.TestNotifications })
+
+    if (1 !== NaN) {
+      return
+    }
     showNotification({
       title: 'Test notification',
       body: 'Click here! This is a test notification',
@@ -2370,6 +2378,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           <InstallingUpdate
             key="installing-update"
             dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.TestNotifications: {
+        return (
+          <TestNotifications
+            key="test-notifications"
+            dispatcher={this.props.dispatcher}
+            notificationsDebugStore={this.props.notificationsDebugStore}
             onDismissed={onPopupDismissedFn}
           />
         )

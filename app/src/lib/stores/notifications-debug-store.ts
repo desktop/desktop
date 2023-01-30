@@ -2,13 +2,13 @@ import { GitHubRepository } from '../../models/github-repository'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { API } from '../api'
 import { AccountsStore } from './accounts-store'
-import { NotificationsStore } from './notifications-store'
+//import { NotificationsStore } from './notifications-store'
 import { PullRequestCoordinator } from './pull-request-coordinator'
 
 export class NotificationsDebugStore {
   public constructor(
     private readonly accountsStore: AccountsStore,
-    private readonly notificationsStore: NotificationsStore,
+    //private readonly notificationsStore: NotificationsStore,
     private readonly pullRequestCoordinator: PullRequestCoordinator
   ) {
     //this.aliveStore.onAliveEventReceived(this.onAliveEventReceived)

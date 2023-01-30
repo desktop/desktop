@@ -89,6 +89,7 @@ export enum PopupType {
   StartPullRequest = 'StartPullRequest',
   Error = 'Error',
   InstallingUpdate = 'InstallingUpdate',
+  TestNotifications = 'TestNotifications',
 }
 
 interface IBasePopup {
@@ -388,6 +389,9 @@ export type PopupDetail =
     }
   | {
       type: PopupType.InstallingUpdate
+    }
+  | {
+      type: PopupType.TestNotifications
     }
 
 export type Popup = IBasePopup & PopupDetail
