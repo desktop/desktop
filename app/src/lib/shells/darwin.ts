@@ -11,6 +11,7 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Kitty = 'Kitty',
   Alacritty = 'Alacritty',
+  Tabby = 'Tabby',
   WezTerm = 'WezTerm',
   Warp = 'Warp',
 }
@@ -35,6 +36,8 @@ function getBundleID(shell: Shell): string {
       return 'net.kovidgoyal.kitty'
     case Shell.Alacritty:
       return 'io.alacritty'
+    case Shell.Tabby:
+      return 'org.tabby'
     case Shell.WezTerm:
       return 'com.github.wez.wezterm'
     case Shell.Warp:
@@ -64,6 +67,7 @@ export async function getAvailableShells(): Promise<
     powerShellCorePath,
     kittyPath,
     alacrittyPath,
+    tabbyPath,
     wezTermPath,
     warpPath,
   ] = await Promise.all([
@@ -73,6 +77,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.PowerShellCore),
     getShellPath(Shell.Kitty),
     getShellPath(Shell.Alacritty),
+    getShellPath(Shell.Tabby),
     getShellPath(Shell.WezTerm),
     getShellPath(Shell.Warp),
   ])
@@ -102,6 +107,11 @@ export async function getAvailableShells(): Promise<
   if (alacrittyPath) {
     const alacrittyExecutable = `${alacrittyPath}/Contents/MacOS/alacritty`
     shells.push({ shell: Shell.Alacritty, path: alacrittyExecutable })
+  }
+
+  if (tabbyPath) {
+    const tabbyExecutable = `${tabbyPath}/Contents/MacOS/Tabby`
+    shells.push({ shell: Shell.Tabby, path: tabbyExecutable })
   }
 
   if (wezTermPath) {
