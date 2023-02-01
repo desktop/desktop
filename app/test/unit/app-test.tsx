@@ -78,11 +78,6 @@ describe('App', () => {
     const commitStatusStore = new CommitStatusStore(accountsStore)
     aheadBehindStore = new AheadBehindStore()
 
-    notificationsDebugStore = new NotificationsDebugStore(
-      accountsStore,
-      pullRequestCoordinator
-    )
-
     const aliveStore = new AliveStore(accountsStore)
 
     const notificationsStore = new NotificationsStore(
@@ -92,6 +87,12 @@ describe('App', () => {
       statsStore
     )
     notificationsStore.setNotificationsEnabled(false)
+
+    notificationsDebugStore = new NotificationsDebugStore(
+      accountsStore,
+      notificationsStore,
+      pullRequestCoordinator
+    )
 
     appStore = new AppStore(
       githubUserStore,

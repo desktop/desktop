@@ -259,11 +259,6 @@ const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 const commitStatusStore = new CommitStatusStore(accountsStore)
 const aheadBehindStore = new AheadBehindStore()
 
-const notificationsDebugStore = new NotificationsDebugStore(
-  accountsStore,
-  pullRequestCoordinator
-)
-
 const aliveStore = new AliveStore(accountsStore)
 
 const notificationsStore = new NotificationsStore(
@@ -271,6 +266,12 @@ const notificationsStore = new NotificationsStore(
   aliveStore,
   pullRequestCoordinator,
   statsStore
+)
+
+const notificationsDebugStore = new NotificationsDebugStore(
+  accountsStore,
+  notificationsStore,
+  pullRequestCoordinator
 )
 
 const appStore = new AppStore(

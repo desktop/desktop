@@ -2,6 +2,7 @@ import React from 'react'
 import { IAPIComment, IAPIPullRequestReview } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { NotificationsDebugStore } from '../../lib/stores/notifications-debug-store'
+import { isValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 import { PullRequest } from '../../models/pull-request'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import {
@@ -44,7 +45,6 @@ const TestNotificationFlows: ReadonlyArray<TestNotificationFlow> = [
     type: TestNotificationType.PullRequestReviewComment,
     steps: [
       TestNotificationStepKind.SelectPullRequest,
-      TestNotificationStepKind.SelectPullRequestReview,
       TestNotificationStepKind.SelectPullRequestComment,
     ],
   },
@@ -52,15 +52,16 @@ const TestNotificationFlows: ReadonlyArray<TestNotificationFlow> = [
 
 type TestNotificationStepSelectPullRequestResult = {
   readonly kind: TestNotificationStepKind.SelectPullRequest
-  readonly pullRequestNumber: number
+  readonly pullRequest: PullRequest
 }
 type TestNotificationStepSelectPullRequestReviewResult = {
   readonly kind: TestNotificationStepKind.SelectPullRequestReview
-  readonly reviewId: number
+  readonly review: IAPIPullRequestReview
 }
 type TestNotificationStepSelectPullRequestCommentResult = {
   readonly kind: TestNotificationStepKind.SelectPullRequestComment
-  readonly commentId: number
+  readonly comment: IAPIComment
+  readonly isIssueComment: boolean
 }
 
 type TestNotificationStepResultMap = Map<
@@ -140,10 +141,61 @@ export class TestNotifications extends React.Component<
     )
   }
 
+  private doFinalAction() {
+    const selectedFlow = this.state.selectedFlow
+
+    if (selectedFlow === null) {
+      return
+    }
+
+    switch (selectedFlow.type) {
+      case TestNotificationType.PullRequestReview: {
+        const pullRequestNumber = this.getPullRequest()
+        const review = this.getReview()
+
+        if (
+          pullRequestNumber === null ||
+          review === null ||
+          !isValidNotificationPullRequestReview(review)
+        ) {
+          return
+        }
+
+        this.props.notificationsDebugStore.simulatePullRequestReviewNotification(
+          this.props.repository.gitHubRepository,
+          pullRequestNumber,
+          review
+        )
+        break
+      }
+      case TestNotificationType.PullRequestReviewComment: {
+        const pullRequest = this.getPullRequest()
+        const commentInfo = this.getCommentInfo()
+
+        if (pullRequest === null || commentInfo === null) {
+          return
+        }
+
+        const { comment, isIssueComment } = commentInfo
+
+        this.props.notificationsDebugStore.simulatePullRequestCommentNotification(
+          this.props.repository.gitHubRepository,
+          pullRequest,
+          comment,
+          isIssueComment
+        )
+        break
+      }
+      default:
+        assertNever(selectedFlow.type, `Unknown flow type: ${selectedFlow}`)
+    }
+  }
+
   private prepareForNextStep() {
     const nextStep = this.state.selectedFlow?.steps[this.state.stepResults.size]
 
     if (nextStep === undefined) {
+      this.doFinalAction()
       return
     }
 
@@ -168,14 +220,17 @@ export class TestNotifications extends React.Component<
           loading: true,
         })
 
-        const pullRequestNumber = this.getPullRequestNumber()
+        const pullRequest = this.getPullRequest()
 
-        if (pullRequestNumber === null) {
+        if (pullRequest === null) {
           return
         }
 
         this.props.notificationsDebugStore
-          .getPullRequestReviews(this.props.repository, pullRequestNumber)
+          .getPullRequestReviews(
+            this.props.repository,
+            pullRequest.pullRequestNumber
+          )
           .then(reviews => {
             console.log('reviews', reviews)
             this.setState({
@@ -190,19 +245,22 @@ export class TestNotifications extends React.Component<
           loading: true,
         })
 
-        const pullRequestNumber = this.getPullRequestNumber()
+        const pullRequest = this.getPullRequest()
 
-        if (pullRequestNumber === null) {
+        if (pullRequest === null) {
           return
         }
-        const reviewId = this.getReviewId()
+        const reviewId = this.getReview()
 
         if (reviewId === null) {
           return
         }
 
         this.props.notificationsDebugStore
-          .getPullRequestComments(this.props.repository, pullRequestNumber)
+          .getPullRequestComments(
+            this.props.repository,
+            pullRequest.pullRequestNumber
+          )
           .then(comments => {
             this.setState({
               comments,
@@ -216,7 +274,7 @@ export class TestNotifications extends React.Component<
     }
   }
 
-  private getPullRequestNumber(): number | null {
+  private getPullRequest(): PullRequest | null {
     const pullRequestResult = this.state.stepResults.get(
       TestNotificationStepKind.SelectPullRequest
     )
@@ -225,10 +283,10 @@ export class TestNotifications extends React.Component<
       return null
     }
 
-    return pullRequestResult.pullRequestNumber
+    return pullRequestResult.pullRequest
   }
 
-  private getReviewId(): number | null {
+  private getReview(): IAPIPullRequestReview | null {
     const reviewResult = this.state.stepResults.get(
       TestNotificationStepKind.SelectPullRequestReview
     )
@@ -237,7 +295,22 @@ export class TestNotifications extends React.Component<
       return null
     }
 
-    return reviewResult.reviewId
+    return reviewResult.review
+  }
+
+  private getCommentInfo() {
+    const commentResult = this.state.stepResults.get(
+      TestNotificationStepKind.SelectPullRequestComment
+    )
+
+    if (commentResult === undefined) {
+      return null
+    }
+
+    return {
+      comment: commentResult.comment,
+      isIssueComment: commentResult.isIssueComment,
+    }
   }
 
   private renderCurrentStep() {
@@ -253,8 +326,13 @@ export class TestNotifications extends React.Component<
       )
     }
 
-    const currentStep =
-      this.state.selectedFlow.steps[this.state.stepResults.size]
+    const currentStep = this.state.selectedFlow.steps.at(
+      this.state.stepResults.size
+    )
+
+    if (currentStep === undefined) {
+      return <p>Done!</p>
+    }
 
     switch (currentStep) {
       case TestNotificationStepKind.SelectPullRequest:
@@ -273,12 +351,18 @@ export class TestNotifications extends React.Component<
       return <Loading />
     }
 
+    const { pullRequests } = this.state
+
+    if (pullRequests.length === 0) {
+      return <p>No pull requests found</p>
+    }
+
     return (
       <div>
-        List of PRs:
+        Pull requests:
         <List
           rowHeight={40}
-          rowCount={this.state.pullRequests.length}
+          rowCount={pullRequests.length}
           rowRenderer={this.renderPullRequestRow}
           selectedRows={[]}
           onRowClick={this.onPullRequestRowClick}
@@ -292,7 +376,7 @@ export class TestNotifications extends React.Component<
     const stepResults = this.state.stepResults
     stepResults.set(TestNotificationStepKind.SelectPullRequest, {
       kind: TestNotificationStepKind.SelectPullRequest,
-      pullRequestNumber: pullRequest.pullRequestNumber,
+      pullRequest: pullRequest,
     })
 
     this.setState(
@@ -310,16 +394,41 @@ export class TestNotifications extends React.Component<
       return <Loading />
     }
 
+    const { reviews } = this.state
+
+    if (reviews.length === 0) {
+      return <p>No reviews found</p>
+    }
+
     return (
       <div>
-        List of PR reviews:
+        Reviews:
         <List
           rowHeight={40}
-          rowCount={this.state.reviews.length}
+          rowCount={reviews.length}
           rowRenderer={this.renderPullRequestReviewRow}
           selectedRows={[]}
+          onRowClick={this.onPullRequestReviewRowClick}
         />
       </div>
+    )
+  }
+
+  private onPullRequestReviewRowClick = (row: number) => {
+    const review = this.state.reviews[row]
+    const stepResults = this.state.stepResults
+    stepResults.set(TestNotificationStepKind.SelectPullRequestReview, {
+      kind: TestNotificationStepKind.SelectPullRequestReview,
+      review: review,
+    })
+
+    this.setState(
+      {
+        stepResults,
+      },
+      () => {
+        this.prepareForNextStep()
+      }
     )
   }
 
@@ -328,16 +437,42 @@ export class TestNotifications extends React.Component<
       return <Loading />
     }
 
+    const { comments } = this.state
+
+    if (comments.length === 0) {
+      return <p>No comments found</p>
+    }
+
     return (
       <div>
-        List of PR comments:
+        Comments:
         <List
           rowHeight={40}
-          rowCount={this.state.comments.length}
+          rowCount={comments.length}
           rowRenderer={this.renderPullRequestCommentRow}
           selectedRows={[]}
+          onRowClick={this.onPullRequestCommentRowClick}
         />
       </div>
+    )
+  }
+
+  private onPullRequestCommentRowClick = (row: number) => {
+    const comment = this.state.comments[row]
+    const stepResults = this.state.stepResults
+    stepResults.set(TestNotificationStepKind.SelectPullRequestComment, {
+      kind: TestNotificationStepKind.SelectPullRequestComment,
+      comment: comment,
+      isIssueComment: comment.html_url.includes('#issuecomment-'),
+    })
+
+    this.setState(
+      {
+        stepResults,
+      },
+      () => {
+        this.prepareForNextStep()
+      }
     )
   }
 
@@ -369,13 +504,56 @@ export class TestNotifications extends React.Component<
         <DialogContent>{this.renderCurrentStep()}</DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText="OK"
+            okButtonText="Close"
             okButtonDisabled={false}
             cancelButtonDisabled={false}
-            onCancelButtonClick={this.onDismissed}
+            cancelButtonVisible={this.state.selectedFlow !== null}
+            cancelButtonText="Back"
+            onCancelButtonClick={this.onBack}
           />
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onBack = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const { selectedFlow, stepResults } = this.state
+    if (selectedFlow === null) {
+      return
+    }
+
+    if (stepResults.size === 0) {
+      this.setState(
+        {
+          selectedFlow: null,
+          stepResults: new Map(),
+        },
+        () => {
+          this.prepareForNextStep()
+        }
+      )
+    }
+
+    const steps = selectedFlow.steps
+    const lastStep = steps.at(stepResults.size - 1)
+    if (lastStep === undefined) {
+      return
+    }
+
+    const newStepResults: Map<TestNotificationStepKind, any> = new Map(
+      stepResults
+    )
+    newStepResults.delete(lastStep)
+
+    this.setState(
+      {
+        stepResults: newStepResults as TestNotificationStepResultMap,
+      },
+      () => {
+        this.prepareForNextStep()
+      }
+    )
+
+    event.preventDefault()
   }
 }

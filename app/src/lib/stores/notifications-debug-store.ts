@@ -1,18 +1,18 @@
 import { GitHubRepository } from '../../models/github-repository'
+import { PullRequest } from '../../models/pull-request'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
-import { API } from '../api'
+import { API, IAPIComment } from '../api'
+import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { AccountsStore } from './accounts-store'
-//import { NotificationsStore } from './notifications-store'
+import { NotificationsStore } from './notifications-store'
 import { PullRequestCoordinator } from './pull-request-coordinator'
 
 export class NotificationsDebugStore {
   public constructor(
     private readonly accountsStore: AccountsStore,
-    //private readonly notificationsStore: NotificationsStore,
+    private readonly notificationsStore: NotificationsStore,
     private readonly pullRequestCoordinator: PullRequestCoordinator
-  ) {
-    //this.aliveStore.onAliveEventReceived(this.onAliveEventReceived)
-  }
+  ) {}
 
   private async getAccountForRepository(repository: GitHubRepository) {
     const { endpoint } = repository
@@ -97,5 +97,38 @@ export class NotificationsDebugStore {
     )
 
     return [...issueComments, ...singleReviewComments]
+  }
+
+  public simulatePullRequestReviewNotification(
+    repository: GitHubRepository,
+    pullRequest: PullRequest,
+    review: ValidNotificationPullRequestReview
+  ) {
+    this.notificationsStore.simulateAliveEvent({
+      type: 'pr-review-submit',
+      timestamp: new Date(review.submitted_at).getTime(),
+      owner: repository.owner.login,
+      repo: repository.name,
+      pull_request_number: pullRequest.pullRequestNumber,
+      state: review.state,
+      review_id: review.id.toString(),
+    })
+  }
+
+  public simulatePullRequestCommentNotification(
+    repository: GitHubRepository,
+    pullRequest: PullRequest,
+    comment: IAPIComment,
+    isIssueComment: boolean
+  ) {
+    this.notificationsStore.simulateAliveEvent({
+      type: 'pr-comment',
+      subtype: isIssueComment ? 'issue-comment' : 'review-comment',
+      timestamp: new Date(comment.created_at).getTime(),
+      owner: repository.owner.login,
+      repo: repository.name,
+      pull_request_number: pullRequest.pullRequestNumber,
+      comment_id: comment.id.toString(),
+    })
   }
 }
