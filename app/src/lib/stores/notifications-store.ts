@@ -49,8 +49,7 @@ type OnChecksFailedCallback = (
 type OnPullRequestReviewSubmitCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
-  review: ValidNotificationPullRequestReview,
-  numberOfComments: number
+  review: ValidNotificationPullRequestReview
 ) => void
 
 type OnPullRequestCommentCallback = (
@@ -261,12 +260,7 @@ export class NotificationsStore {
     const onClick = () => {
       this.statsStore.recordPullRequestReviewNotificationClicked(review.state)
 
-      this.onPullRequestReviewSubmitCallback?.(
-        repository,
-        pullRequest,
-        review,
-        event.number_of_comments
-      )
+      this.onPullRequestReviewSubmitCallback?.(repository, pullRequest, review)
     }
 
     if (skipNotification) {
