@@ -75,6 +75,8 @@ export class NotificationsDebugStore {
       pullRequestNumber.toString()
     )
 
+    const issueCommentIds = new Set(issueComments.map(c => c.id))
+
     // Fetch review comments of type COMMENTED and with no body
     const allReviews = await api.fetchPullRequestReviews(
       ghRepository.owner.login,
@@ -97,9 +99,10 @@ export class NotificationsDebugStore {
       )
     )
 
-    const singleReviewComments = allReviewComments.flatMap(comments =>
-      comments.length === 1 ? comments : []
-    )
+    // Only reviews with one comment, and that comment is not an issue comment
+    const singleReviewComments = allReviewComments
+      .flatMap(comments => (comments.length === 1 ? comments : []))
+      .filter(comment => !issueCommentIds.has(comment.id))
 
     return [...issueComments, ...singleReviewComments]
   }
