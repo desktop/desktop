@@ -392,6 +392,7 @@ export type PopupDetail =
     }
   | {
       type: PopupType.TestNotifications
+      repository: RepositoryWithGitHubRepository
     }
 
 export type Popup = IBasePopup & PopupDetail

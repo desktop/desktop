@@ -1,7 +1,9 @@
 import React from 'react'
+import { IAPIComment, IAPIPullRequestReview } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { NotificationsDebugStore } from '../../lib/stores/notifications-debug-store'
 import { PullRequest } from '../../models/pull-request'
+import { RepositoryWithGitHubRepository } from '../../models/repository'
 import {
   Dialog,
   DialogContent,
@@ -48,33 +50,45 @@ const TestNotificationFlows: ReadonlyArray<TestNotificationFlow> = [
   },
 ]
 
-type TestNotificationStepResult =
-  | {
-      readonly kind: TestNotificationStepKind.SelectPullRequest
-      readonly pullRequestNumber: number
-    }
-  | {
-      readonly kind: TestNotificationStepKind.SelectPullRequestReview
-      readonly reviewId: number
-    }
-  | {
-      readonly kind: TestNotificationStepKind.SelectPullRequestComment
-      readonly commentId: number
-    }
+type TestNotificationStepSelectPullRequestResult = {
+  readonly kind: TestNotificationStepKind.SelectPullRequest
+  readonly pullRequestNumber: number
+}
+type TestNotificationStepSelectPullRequestReviewResult = {
+  readonly kind: TestNotificationStepKind.SelectPullRequestReview
+  readonly reviewId: number
+}
+type TestNotificationStepSelectPullRequestCommentResult = {
+  readonly kind: TestNotificationStepKind.SelectPullRequestComment
+  readonly commentId: number
+}
+
+type TestNotificationStepResultMap = Map<
+  TestNotificationStepKind.SelectPullRequest,
+  TestNotificationStepSelectPullRequestResult
+> &
+  Map<
+    TestNotificationStepKind.SelectPullRequestReview,
+    TestNotificationStepSelectPullRequestReviewResult
+  > &
+  Map<
+    TestNotificationStepKind.SelectPullRequestComment,
+    TestNotificationStepSelectPullRequestCommentResult
+  >
 
 interface ITestNotificationsState {
   readonly selectedFlow: TestNotificationFlow | null
-  readonly stepResults: ReadonlyMap<
-    TestNotificationStepKind,
-    TestNotificationStepResult
-  >
+  readonly stepResults: TestNotificationStepResultMap
   readonly loading: boolean
   readonly pullRequests: ReadonlyArray<PullRequest>
+  readonly reviews: ReadonlyArray<IAPIPullRequestReview>
+  readonly comments: ReadonlyArray<IAPIComment>
 }
 
 interface ITestNotificationsProps {
   readonly dispatcher: Dispatcher
   readonly notificationsDebugStore: NotificationsDebugStore
+  readonly repository: RepositoryWithGitHubRepository
   readonly onDismissed: () => void
 }
 
@@ -90,6 +104,8 @@ export class TestNotifications extends React.Component<
       stepResults: new Map(),
       loading: false,
       pullRequests: [],
+      reviews: [],
+      comments: [],
     }
   }
 
@@ -113,9 +129,115 @@ export class TestNotifications extends React.Component<
   private getOnNotificationTypeClick = (type: TestNotificationType) => () => {
     const selectedFlow =
       TestNotificationFlows.find(f => f.type === type) ?? null
-    this.setState({
-      selectedFlow,
-    })
+
+    this.setState(
+      {
+        selectedFlow,
+      },
+      () => {
+        this.prepareForNextStep()
+      }
+    )
+  }
+
+  private prepareForNextStep() {
+    const nextStep = this.state.selectedFlow?.steps[this.state.stepResults.size]
+
+    if (nextStep === undefined) {
+      return
+    }
+
+    switch (nextStep) {
+      case TestNotificationStepKind.SelectPullRequest: {
+        this.setState({
+          loading: true,
+        })
+
+        this.props.notificationsDebugStore
+          .getPullRequests(this.props.repository)
+          .then(pullRequests => {
+            this.setState({
+              pullRequests,
+              loading: false,
+            })
+          })
+        break
+      }
+      case TestNotificationStepKind.SelectPullRequestReview: {
+        this.setState({
+          loading: true,
+        })
+
+        const pullRequestNumber = this.getPullRequestNumber()
+
+        if (pullRequestNumber === null) {
+          return
+        }
+
+        this.props.notificationsDebugStore
+          .getPullRequestReviews(this.props.repository, pullRequestNumber)
+          .then(reviews => {
+            console.log('reviews', reviews)
+            this.setState({
+              reviews,
+              loading: false,
+            })
+          })
+        break
+      }
+      case TestNotificationStepKind.SelectPullRequestComment: {
+        this.setState({
+          loading: true,
+        })
+
+        const pullRequestNumber = this.getPullRequestNumber()
+
+        if (pullRequestNumber === null) {
+          return
+        }
+        const reviewId = this.getReviewId()
+
+        if (reviewId === null) {
+          return
+        }
+
+        this.props.notificationsDebugStore
+          .getPullRequestComments(this.props.repository, pullRequestNumber)
+          .then(comments => {
+            this.setState({
+              comments,
+              loading: false,
+            })
+          })
+        break
+      }
+      default:
+        assertNever(nextStep, `Unknown step: ${nextStep}`)
+    }
+  }
+
+  private getPullRequestNumber(): number | null {
+    const pullRequestResult = this.state.stepResults.get(
+      TestNotificationStepKind.SelectPullRequest
+    )
+
+    if (pullRequestResult === undefined) {
+      return null
+    }
+
+    return pullRequestResult.pullRequestNumber
+  }
+
+  private getReviewId(): number | null {
+    const reviewResult = this.state.stepResults.get(
+      TestNotificationStepKind.SelectPullRequestReview
+    )
+
+    if (reviewResult === undefined) {
+      return null
+    }
+
+    return reviewResult.reviewId
   }
 
   private renderCurrentStep() {
@@ -155,25 +277,80 @@ export class TestNotifications extends React.Component<
       <div>
         List of PRs:
         <List
-          rowHeight={100}
+          rowHeight={40}
           rowCount={this.state.pullRequests.length}
           rowRenderer={this.renderPullRequestRow}
+          selectedRows={[]}
+          onRowClick={this.onPullRequestRowClick}
+        />
+      </div>
+    )
+  }
+
+  private onPullRequestRowClick = (row: number) => {
+    const pullRequest = this.state.pullRequests[row]
+    const stepResults = this.state.stepResults
+    stepResults.set(TestNotificationStepKind.SelectPullRequest, {
+      kind: TestNotificationStepKind.SelectPullRequest,
+      pullRequestNumber: pullRequest.pullRequestNumber,
+    })
+
+    this.setState(
+      {
+        stepResults,
+      },
+      () => {
+        this.prepareForNextStep()
+      }
+    )
+  }
+
+  private renderSelectPullRequestReview() {
+    if (this.state.loading) {
+      return <Loading />
+    }
+
+    return (
+      <div>
+        List of PR reviews:
+        <List
+          rowHeight={40}
+          rowCount={this.state.reviews.length}
+          rowRenderer={this.renderPullRequestReviewRow}
           selectedRows={[]}
         />
       </div>
     )
   }
 
+  private renderSelectPullRequestComment() {
+    if (this.state.loading) {
+      return <Loading />
+    }
+
+    return (
+      <div>
+        List of PR comments:
+        <List
+          rowHeight={40}
+          rowCount={this.state.comments.length}
+          rowRenderer={this.renderPullRequestCommentRow}
+          selectedRows={[]}
+        />
+      </div>
+    )
+  }
+
+  private renderPullRequestCommentRow = (row: number) => {
+    return <div>{this.state.comments[row].body}</div>
+  }
+
+  private renderPullRequestReviewRow = (row: number) => {
+    return <div>{this.state.reviews[row].body}</div>
+  }
+
   private renderPullRequestRow = (row: number) => {
     return <div>{this.state.pullRequests[row].title}</div>
-  }
-
-  private renderSelectPullRequestReview() {
-    return null
-  }
-
-  private renderSelectPullRequestComment() {
-    return null
   }
 
   public render() {
@@ -183,7 +360,6 @@ export class TestNotifications extends React.Component<
         onSubmit={this.onDismissed}
         dismissable={true}
         onDismissed={this.onDismissed}
-        type="warning"
       >
         <DialogHeader
           title="Test Notifications"

@@ -492,7 +492,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    this.props.dispatcher.showPopup({ type: PopupType.TestNotifications })
+    // if current repository is not repository with github repository, return
+    const repository = this.getRepository()
+    if (
+      repository == null ||
+      repository instanceof CloningRepository ||
+      !isRepositoryWithGitHubRepository(repository)
+    ) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.TestNotifications,
+      repository,
+    })
 
     if (1 !== NaN) {
       return
@@ -2388,6 +2401,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="test-notifications"
             dispatcher={this.props.dispatcher}
             notificationsDebugStore={this.props.notificationsDebugStore}
+            repository={popup.repository}
             onDismissed={onPopupDismissedFn}
           />
         )
