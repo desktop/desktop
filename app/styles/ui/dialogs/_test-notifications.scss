@@ -3,7 +3,22 @@
     height: 200px;
 
     .row-content {
-      white-space: nowrap;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+
+      .main-content {
+        flex-grow: 1;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+
+      .right-accessory {
+        flex-grow: 0;
+        flex-shrink: 0;
+        margin-left: 10px;
+      }
     }
   }
 }

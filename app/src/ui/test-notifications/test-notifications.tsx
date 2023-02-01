@@ -1,5 +1,5 @@
 import React from 'react'
-import { IAPIComment } from '../../lib/api'
+import { getHTMLURL, IAPIComment } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { NotificationsDebugStore } from '../../lib/stores/notifications-debug-store'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
@@ -16,6 +16,8 @@ import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { List } from '../lib/list'
 import { Loading } from '../lib/loading'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 enum TestNotificationType {
   PullRequestReview,
@@ -91,6 +93,41 @@ interface ITestNotificationsProps {
   readonly notificationsDebugStore: NotificationsDebugStore
   readonly repository: RepositoryWithGitHubRepository
   readonly onDismissed: () => void
+}
+
+class TestNotificationItemRowContent extends React.Component<{
+  readonly leftAccessory?: JSX.Element
+  readonly html_url?: string
+  readonly dispatcher: Dispatcher
+}> {
+  public render() {
+    const { leftAccessory, html_url, children } = this.props
+
+    return (
+      <div className="row-content">
+        {leftAccessory && <div className="left-accessory">{leftAccessory}</div>}
+        <div className="main-content">{children}</div>
+        {html_url && (
+          <div className="right-accessory">
+            <Button onClick={this.onExternalLinkClick}>
+              <Octicon symbol={OcticonSymbol.linkExternal} />
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  private onExternalLinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const { dispatcher, html_url } = this.props
+
+    if (html_url === undefined) {
+      return
+    }
+
+    e.stopPropagation()
+    dispatcher.openInBrowser(html_url)
+  }
 }
 
 export class TestNotifications extends React.Component<
@@ -470,11 +507,14 @@ export class TestNotifications extends React.Component<
   private renderPullRequestCommentRow = (row: number) => {
     const comment = this.state.comments[row]
     return (
-      <div className="row-content">
+      <TestNotificationItemRowContent
+        dispatcher={this.props.dispatcher}
+        html_url={comment.html_url}
+      >
         {comment.body}
         <br />
         by <i>{comment.user.login}</i>
-      </div>
+      </TestNotificationItemRowContent>
     )
   }
 
@@ -482,26 +522,35 @@ export class TestNotifications extends React.Component<
     const review = this.state.reviews[row]
 
     return (
-      <div className="row-content">
+      <TestNotificationItemRowContent
+        dispatcher={this.props.dispatcher}
+        html_url={review.html_url}
+      >
         ({review.state}) {review.body || <i>Review without body</i>}
         <br />
         by <i>{review.user.login}</i>
-      </div>
+      </TestNotificationItemRowContent>
     )
   }
 
   private renderPullRequestRow = (row: number) => {
     const pullRequest = this.state.pullRequests[row]
+    const repository = this.props.repository.gitHubRepository
+    const endpointHtmlUrl = getHTMLURL(repository.endpoint)
+    const htmlURL = `${endpointHtmlUrl}/${repository.owner.login}/${repository.name}/pull/${pullRequest.pullRequestNumber}`
 
     return (
-      <div className="row-content">
+      <TestNotificationItemRowContent
+        dispatcher={this.props.dispatcher}
+        html_url={htmlURL}
+      >
         <b>
           #{pullRequest.pullRequestNumber}
           {pullRequest.draft ? ' (Draft)' : ''}:
         </b>{' '}
         {pullRequest.title} <br />
         by <i>{pullRequest.author}</i>
-      </div>
+      </TestNotificationItemRowContent>
     )
   }
 
