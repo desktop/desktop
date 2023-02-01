@@ -192,6 +192,7 @@ export class TestNotifications extends React.Component<
 
     if (nextStep === undefined) {
       this.doFinalAction()
+      this.back()
       return
     }
 
@@ -482,7 +483,7 @@ export class TestNotifications extends React.Component<
 
     return (
       <div className="row-content">
-        ({review.state}) {review.body || 'Review without body'}
+        ({review.state}) {review.body || <i>Review without body</i>}
         <br />
         by <i>{review.user.login}</i>
       </div>
@@ -533,6 +534,11 @@ export class TestNotifications extends React.Component<
   }
 
   private onBack = (event: React.MouseEvent<HTMLButtonElement>) => {
+    this.back()
+    event.preventDefault()
+  }
+
+  private back() {
     const { selectedFlow, stepResults } = this.state
     if (selectedFlow === null) {
       return
@@ -569,7 +575,5 @@ export class TestNotifications extends React.Component<
         this.prepareForNextStep()
       }
     )
-
-    event.preventDefault()
   }
 }
