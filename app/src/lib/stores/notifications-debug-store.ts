@@ -2,7 +2,10 @@ import { GitHubRepository } from '../../models/github-repository'
 import { PullRequest } from '../../models/pull-request'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { API, IAPIComment } from '../api'
-import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
+import {
+  isValidNotificationPullRequestReview,
+  ValidNotificationPullRequestReview,
+} from '../valid-notification-pull-request-review'
 import { AccountsStore } from './accounts-store'
 import { NotificationsStore } from './notifications-store'
 import { PullRequestCoordinator } from './pull-request-coordinator'
@@ -46,11 +49,13 @@ export class NotificationsDebugStore {
 
     const ghRepository = repository.gitHubRepository
 
-    return api.fetchPullRequestReviews(
+    const reviews = await api.fetchPullRequestReviews(
       ghRepository.owner.login,
       ghRepository.name,
       pullRequestNumber.toString()
     )
+
+    return reviews.filter(isValidNotificationPullRequestReview)
   }
 
   public async getPullRequestComments(

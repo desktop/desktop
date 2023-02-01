@@ -1,8 +1,8 @@
 import React from 'react'
-import { IAPIComment, IAPIPullRequestReview } from '../../lib/api'
+import { IAPIComment } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { NotificationsDebugStore } from '../../lib/stores/notifications-debug-store'
-import { isValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
+import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 import { PullRequest } from '../../models/pull-request'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import {
@@ -56,7 +56,7 @@ type TestNotificationStepSelectPullRequestResult = {
 }
 type TestNotificationStepSelectPullRequestReviewResult = {
   readonly kind: TestNotificationStepKind.SelectPullRequestReview
-  readonly review: IAPIPullRequestReview
+  readonly review: ValidNotificationPullRequestReview
 }
 type TestNotificationStepSelectPullRequestCommentResult = {
   readonly kind: TestNotificationStepKind.SelectPullRequestComment
@@ -82,7 +82,7 @@ interface ITestNotificationsState {
   readonly stepResults: TestNotificationStepResultMap
   readonly loading: boolean
   readonly pullRequests: ReadonlyArray<PullRequest>
-  readonly reviews: ReadonlyArray<IAPIPullRequestReview>
+  readonly reviews: ReadonlyArray<ValidNotificationPullRequestReview>
   readonly comments: ReadonlyArray<IAPIComment>
 }
 
@@ -153,11 +153,7 @@ export class TestNotifications extends React.Component<
         const pullRequestNumber = this.getPullRequest()
         const review = this.getReview()
 
-        if (
-          pullRequestNumber === null ||
-          review === null ||
-          !isValidNotificationPullRequestReview(review)
-        ) {
+        if (pullRequestNumber === null || review === null) {
           return
         }
 
@@ -232,7 +228,6 @@ export class TestNotifications extends React.Component<
             pullRequest.pullRequestNumber
           )
           .then(reviews => {
-            console.log('reviews', reviews)
             this.setState({
               reviews,
               loading: false,
@@ -281,7 +276,7 @@ export class TestNotifications extends React.Component<
     return pullRequestResult.pullRequest
   }
 
-  private getReview(): IAPIPullRequestReview | null {
+  private getReview(): ValidNotificationPullRequestReview | null {
     const reviewResult = this.state.stepResults.get(
       TestNotificationStepKind.SelectPullRequestReview
     )
