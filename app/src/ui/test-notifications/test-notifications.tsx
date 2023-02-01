@@ -250,11 +250,6 @@ export class TestNotifications extends React.Component<
         if (pullRequest === null) {
           return
         }
-        const reviewId = this.getReview()
-
-        if (reviewId === null) {
-          return
-        }
 
         this.props.notificationsDebugStore
           .getPullRequestComments(
