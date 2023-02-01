@@ -477,15 +477,41 @@ export class TestNotifications extends React.Component<
   }
 
   private renderPullRequestCommentRow = (row: number) => {
-    return <div>{this.state.comments[row].body}</div>
+    const comment = this.state.comments[row]
+    return (
+      <div className="row-content">
+        {comment.body}
+        <br />
+        by <i>{comment.user.login}</i>
+      </div>
+    )
   }
 
   private renderPullRequestReviewRow = (row: number) => {
-    return <div>{this.state.reviews[row].body}</div>
+    const review = this.state.reviews[row]
+
+    return (
+      <div className="row-content">
+        ({review.state}) {review.body || 'Review without body'}
+        <br />
+        by <i>{review.user.login}</i>
+      </div>
+    )
   }
 
   private renderPullRequestRow = (row: number) => {
-    return <div>{this.state.pullRequests[row].title}</div>
+    const pullRequest = this.state.pullRequests[row]
+
+    return (
+      <div className="row-content">
+        <b>
+          #{pullRequest.pullRequestNumber}
+          {pullRequest.draft ? ' (Draft)' : ''}:
+        </b>{' '}
+        {pullRequest.title} <br />
+        by <i>{pullRequest.author}</i>
+      </div>
+    )
   }
 
   public render() {
