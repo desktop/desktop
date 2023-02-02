@@ -132,7 +132,7 @@ export async function spawnAndComplete(
         })
         return
       } else {
-        log.error(stderr.toString())
+        log.error(`Error in spawnAndComplete, stderr:\n${stderr}`)
         reject(
           new Error(
             `Git returned an unexpected exit code '${code}' which should be handled by the caller (${name}).'`
