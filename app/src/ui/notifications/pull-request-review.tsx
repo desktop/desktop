@@ -46,7 +46,7 @@ interface IPullRequestReviewState {
 }
 
 /**
- * Dialog to show the result of a CI check run.
+ * Dialog to show a pull request review.
  */
 export class PullRequestReview extends React.Component<
   IPullRequestReviewProps,

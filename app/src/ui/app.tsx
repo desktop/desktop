@@ -2283,7 +2283,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PullRequestReview: {
         return (
           <PullRequestReview
-            key="pull-request-checks-failed"
+            key="pull-request-review"
             dispatcher={this.props.dispatcher}
             shouldCheckoutBranch={popup.shouldCheckoutBranch}
             shouldChangeRepository={popup.shouldChangeRepository}
