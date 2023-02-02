@@ -64,11 +64,17 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'JetBrains PhpStorm',
-    paths: ['/snap/bin/phpstorm', '.local/share/JetBrains/Toolbox/scripts/phpstorm'],
+    paths: [
+      '/snap/bin/phpstorm',
+      '.local/share/JetBrains/Toolbox/scripts/phpstorm',
+    ],
   },
   {
     name: 'JetBrains WebStorm',
-    paths: ['/snap/bin/webstorm', '.local/share/JetBrains/Toolbox/scripts/webstorm'],
+    paths: [
+      '/snap/bin/webstorm',
+      '.local/share/JetBrains/Toolbox/scripts/webstorm',
+    ],
   },
   {
     name: 'IntelliJ IDEA',
@@ -76,11 +82,17 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'JetBrains PyCharm',
-    paths: ['/snap/bin/pycharm', '.local/share/JetBrains/Toolbox/scripts/pycharm'],
+    paths: [
+      '/snap/bin/pycharm',
+      '.local/share/JetBrains/Toolbox/scripts/pycharm',
+    ],
   },
   {
     name: 'Android Studio',
-    paths: ['/snap/bin/studio', '.local/share/JetBrains/Toolbox/scripts/studio'],
+    paths: [
+      '/snap/bin/studio',
+      '.local/share/JetBrains/Toolbox/scripts/studio',
+    ],
   },
   {
     name: 'Emacs',
