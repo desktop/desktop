@@ -19,6 +19,7 @@
     padding: var(--spacing);
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
+    align-items: center;
 
     .ci-check-run-list-title-container {
       flex: 1;
