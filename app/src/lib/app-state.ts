@@ -59,15 +59,15 @@ export enum SelectionType {
 
 export type PossibleSelections =
   | {
-      type: SelectionType.Repository
-      repository: Repository
-      state: IRepositoryState
-    }
+    type: SelectionType.Repository
+    repository: Repository
+    state: IRepositoryState
+  }
   | {
-      type: SelectionType.CloningRepository
-      repository: CloningRepository
-      progress: ICloneProgress
-    }
+    type: SelectionType.CloningRepository
+    repository: CloningRepository
+    progress: ICloneProgress
+  }
   | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
@@ -249,6 +249,9 @@ export interface IAppState {
   /** The user's preferred shell. */
   readonly selectedShell: Shell
 
+  /** The location where the user stores his Git Repositories. */
+  readonly gitRepositoriesPath: string
+
   /** The current repository filter text. */
   readonly repositoryFilterText: string
 
@@ -318,8 +321,8 @@ export interface IAppState {
 
   /** The users last chosen pull request suggested next action. */
   readonly pullRequestSuggestedNextAction:
-    | PullRequestSuggestedNextAction
-    | undefined
+  | PullRequestSuggestedNextAction
+  | undefined
 }
 
 export enum FoldoutType {

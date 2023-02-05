@@ -1439,7 +1439,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RenameBranch:
         const stash =
           this.state.selectedState !== null &&
-          this.state.selectedState.type === SelectionType.Repository
+            this.state.selectedState.type === SelectionType.Repository
             ? this.state.selectedState.state.changesState.stashEntry
             : null
         return (
@@ -1546,6 +1546,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
+            gitRepositoriesPath={this.state.gitRepositoriesPath}
             selectedTheme={this.state.selectedTheme}
             customTheme={this.state.customTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
@@ -2001,7 +2002,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const existingStash =
           selectedState !== null &&
-          selectedState.type === SelectionType.Repository
+            selectedState.type === SelectionType.Repository
             ? selectedState.state.changesState.stashEntry
             : null
 

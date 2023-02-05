@@ -60,6 +60,7 @@ interface IPreferencesProps {
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
+  readonly gitRepositoriesPath: string
   readonly selectedTheme: ApplicationTheme
   readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
@@ -173,7 +174,7 @@ export class Preferences extends React.Component<
       committerName,
       committerEmail,
       defaultBranch: initialDefaultBranch,
-      gitRepositoriesPath: '',
+      gitRepositoriesPath: this.props.gitRepositoriesPath,
       initialCommitterName,
       initialCommitterEmail,
       initialDefaultBranch,
@@ -595,6 +596,7 @@ export class Preferences extends React.Component<
       )
     }
     await this.props.dispatcher.setShell(this.state.selectedShell)
+    await this.props.dispatcher.setGitRepositoriesPath(this.state.gitRepositoriesPath)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges
     )

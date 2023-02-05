@@ -373,6 +373,8 @@ const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
 const shellKey = 'shell'
 
+const gitRepositoriesPathKey = 'git-repositories-path'
+
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
 
 // background fetching should occur hourly when Desktop is active, but this
@@ -480,6 +482,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
+
+  /** The path where the user stores his repositories */
+  private gitRepositoriesPath: string = ''
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''
@@ -965,6 +970,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hideWhitespaceInPullRequestDiff: this.hideWhitespaceInPullRequestDiff,
       showSideBySideDiff: this.showSideBySideDiff,
       selectedShell: this.selectedShell,
+      gitRepositoriesPath: this.gitRepositoriesPath,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
@@ -1322,8 +1328,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // and it also exists in the repository
     const defaultBranch =
       currentBranch != null &&
-      cachedDefaultBranch != null &&
-      currentBranch.name !== cachedDefaultBranch.name
+        cachedDefaultBranch != null &&
+        currentBranch.name !== cachedDefaultBranch.name
         ? cachedDefaultBranch
         : null
 
@@ -1640,17 +1646,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const diff =
       shas.length > 1
         ? await getCommitRangeDiff(
-            repository,
-            file,
-            shas,
-            this.hideWhitespaceInHistoryDiff
-          )
+          repository,
+          file,
+          shas,
+          this.hideWhitespaceInHistoryDiff
+        )
         : await getCommitDiff(
-            repository,
-            file,
-            shas[0],
-            this.hideWhitespaceInHistoryDiff
-          )
+          repository,
+          file,
+          shas[0],
+          this.hideWhitespaceInHistoryDiff
+        )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection
@@ -2055,6 +2061,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
+
+    const gitRepositoriesPathValue = localStorage.getItem(
+      gitRepositoriesPathKey
+    )
+    console.log('Git Repositories Path: ', gitRepositoriesPathValue)
+    this.gitRepositoriesPath = gitRepositoriesPathValue
+      ? gitRepositoriesPathValue
+      : ''
 
     this.updateMenuLabelsForSelectedRepository()
 
@@ -2573,7 +2587,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (
         multiCommitOperationState !== null &&
         multiCommitOperationState.operationDetail.kind ===
-          MultiCommitOperationKind.CherryPick &&
+        MultiCommitOperationKind.CherryPick &&
         multiCommitOperationState.operationDetail.sourceBranch !== null
       ) {
         theirBranch =
@@ -2609,7 +2623,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       multiCommitOperationState !== null &&
       multiCommitOperationState.operationDetail.kind ===
-        MultiCommitOperationKind.Merge &&
+      MultiCommitOperationKind.Merge &&
       multiCommitOperationState.operationDetail.sourceBranch !== null
     ) {
       theirBranch = multiCommitOperationState.operationDetail.sourceBranch.name
@@ -2870,7 +2884,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const currentFiles =
         stashEntry !== null &&
-        stashEntry.files.kind === StashedChangesLoadStates.Loaded
+          stashEntry.files.kind === StashedChangesLoadStates.Loaded
           ? stashEntry.files.files
           : []
 
@@ -2965,7 +2979,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       changesStateAfterLoad.selection.kind !== ChangesSelectionKind.Stash ||
       changesStateAfterLoad.selection.selectedStashedFile !==
-        selectionBeforeLoad.selectedStashedFile
+      selectionBeforeLoad.selectedStashedFile
     ) {
       return
     }
@@ -5366,6 +5380,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public _setGitRepositoriesPath(path: string): Promise<void> {
+    this.gitRepositoriesPath = path
+    localStorage.setItem(gitRepositoriesPathKey, path)
+    this.emitUpdate()
+
+    console.log(`Setting git repositories path to ${this.gitRepositoriesPath}`)
+    console.log(
+      `Current localStorage value: ${localStorage.getItem(
+        gitRepositoriesPathKey
+      )}`
+    )
+
+    return Promise.resolve()
+  }
+
   public _changeImageDiffType(type: ImageDiffType): Promise<void> {
     this.imageDiffType = type
     localStorage.setItem(imageDiffTypeKey, JSON.stringify(this.imageDiffType))
@@ -5788,11 +5817,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return `The following paths aren't Git repositories:\n\n${invalidPaths
       .slice(0, MaxInvalidFoldersToDisplay)
       .map(path => `- ${path}`)
-      .join('\n')}${
-      invalidPaths.length > MaxInvalidFoldersToDisplay
+      .join('\n')}${invalidPaths.length > MaxInvalidFoldersToDisplay
         ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
         : ''
-    }`
+      }`
   }
 
   private async withAuthenticatingUser<T>(
@@ -6112,8 +6140,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const encodedBaseBranch =
       baseBranch !== undefined
         ? baseForkPreface +
-          encodeURIComponent(baseBranch.nameWithoutRemote) +
-          '...'
+        encodeURIComponent(baseBranch.nameWithoutRemote) +
+        '...'
         : ''
 
     const compareForkPreface = isForkContributingToParent
@@ -6254,8 +6282,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitError(
         new Error(
           `Couldn't find branch '${headRefName}' in remote '${remote.name}'. ` +
-            `A common reason for this is that the PR author has deleted their ` +
-            `branch or their forked repository.`
+          `A common reason for this is that the PR author has deleted their ` +
+          `branch or their forked repository.`
         )
       )
       return
@@ -6403,7 +6431,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changesState.conflictState === null ||
       multiCommitOperationState === null ||
       multiCommitOperationState.step.kind !==
-        MultiCommitOperationStepKind.ShowConflicts
+      MultiCommitOperationStepKind.ShowConflicts
     ) {
       return
     }
@@ -7363,13 +7391,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const changesetData =
       commitsBetweenBranches.length > 0
         ? await gitStore.performFailableOperation(() =>
-            getBranchMergeBaseChangedFiles(
-              repository,
-              baseBranch.name,
-              currentBranch.name,
-              commitsBetweenBranches[0]
-            )
+          getBranchMergeBaseChangedFiles(
+            repository,
+            baseBranch.name,
+            currentBranch.name,
+            commitsBetweenBranches[0]
           )
+        )
         : emptyChangeSet
 
     if (changesetData === undefined) {
@@ -7395,10 +7423,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       mergeStatus:
         commitSHAs.length > 0 || !hasMergeBase
           ? {
-              kind: hasMergeBase
-                ? ComputedAction.Loading
-                : ComputedAction.Invalid,
-            }
+            kind: hasMergeBase
+              ? ComputedAction.Loading
+              : ComputedAction.Invalid,
+          }
           : null,
     })
 
