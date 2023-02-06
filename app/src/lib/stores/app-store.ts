@@ -2065,7 +2065,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitRepositoriesPathValue = localStorage.getItem(
       gitRepositoriesPathKey
     )
-    console.log('Git Repositories Path: ', gitRepositoriesPathValue)
+
     this.gitRepositoriesPath = gitRepositoriesPathValue
       ? gitRepositoriesPathValue
       : ''
@@ -5384,13 +5384,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.gitRepositoriesPath = path
     localStorage.setItem(gitRepositoriesPathKey, path)
     this.emitUpdate()
-
-    console.log(`Setting git repositories path to ${this.gitRepositoriesPath}`)
-    console.log(
-      `Current localStorage value: ${localStorage.getItem(
-        gitRepositoriesPathKey
-      )}`
-    )
 
     return Promise.resolve()
   }
