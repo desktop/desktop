@@ -93,10 +93,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
-import {
-  ForcePushBranchState,
-  getCurrentBranchForcePushState,
-} from '../lib/rebase'
+import { getCurrentBranchForcePushState } from '../lib/rebase'
 import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
@@ -2800,9 +2797,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName = tip.branch.upstreamRemoteName
     }
 
-    const isForcePush =
-      getCurrentBranchForcePushState(branchesState, aheadBehind) ===
-      ForcePushBranchState.Recommended
+    const currentFoldout = this.state.currentFoldout
+
+    const isDropdownOpen =
+      currentFoldout !== null && currentFoldout.type === FoldoutType.PushPull
+
+    const forcePushBranchState = getCurrentBranchForcePushState(
+      branchesState,
+      aheadBehind
+    )
 
     return (
       <PushPullButton
@@ -2817,10 +2820,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         tipState={tip.kind}
         pullWithRebase={pullWithRebase}
         rebaseInProgress={rebaseInProgress}
-        isForcePush={isForcePush}
+        forcePushBranchState={forcePushBranchState}
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.PushBranch
         }
+        isDropdownOpen={isDropdownOpen}
+        askForConfirmationOnForcePush={this.state.askForConfirmationOnForcePush}
+        onDropdownStateChanged={this.onPushPullDropdownStateChanged}
       />
     )
   }
@@ -2882,6 +2888,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     branch: Branch
   ) => {
     this.props.dispatcher.openCreatePullRequestInBrowser(repository, branch)
+  }
+
+  private onPushPullDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.PushPull })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.PushPull)
+    }
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {

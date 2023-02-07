@@ -37,15 +37,15 @@
     }
   }
 
-  .toolbar-dropdown {
-    &.branch-button {
+  .toolbar-button {
+    &.branch-toolbar-button {
       width: 230px;
     }
-  }
-
-  .toolbar-button {
     &.revert-progress {
       width: 230px;
+    }
+    &.toolbar-dropdown-arrow-button {
+      width: 39px;
     }
   }
 }
