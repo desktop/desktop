@@ -1,20 +1,14 @@
 import * as React from 'react'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
-import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { LinkButton } from '../lib/link-button'
-import classNames from 'classnames'
-import { Avatar } from '../lib/avatar'
-import { formatRelative } from '../../lib/format-relative'
-import { getStealthEmailForUser } from '../../lib/email'
 import { IAPIComment } from '../../lib/api'
+import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
+import { PullRequestCommentLike } from './pull-request-comment-like'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
@@ -57,101 +51,42 @@ export class PullRequestComment extends React.Component<
   }
 
   public render() {
-    const { title, pullRequestNumber } = this.props.pullRequest
+    const {
+      dispatcher,
+      accounts,
+      repository,
+      pullRequest,
+      emoji,
+      comment,
+      onSubmit,
+      onDismissed,
+    } = this.props
 
-    const header = (
-      <div className="pull-request-comment-like-dialog-header">
-        {this.renderPullRequestIcon()}
-        <span className="pr-title">
-          <span className="pr-title">{title}</span>{' '}
-          <span className="pr-number">#{pullRequestNumber}</span>{' '}
-        </span>
-      </div>
-    )
+    const icon = getPullRequestReviewStateIcon('COMMENTED')
 
     return (
-      <Dialog
-        id="pull-request-comment"
-        type="normal"
-        title={header}
-        dismissable={false}
-        onSubmit={this.props.onSubmit}
-        onDismissed={this.props.onDismissed}
-        loading={this.state.switchingToPullRequest}
-      >
-        <DialogContent>
-          <div className="comment-container">
-            {this.renderTimelineItem()}
-            {this.renderCommentBubble()}
-          </div>
-        </DialogContent>
-        <DialogFooter>{this.renderFooterContent()}</DialogFooter>
-      </Dialog>
+      <PullRequestCommentLike
+        dispatcher={dispatcher}
+        accounts={accounts}
+        repository={repository}
+        pullRequest={pullRequest}
+        emoji={emoji}
+        eventDate={new Date(comment.created_at)}
+        eventVerb="commented"
+        eventIconSymbol={icon.symbol}
+        eventIconClass={icon.className}
+        externalURL={comment.html_url}
+        user={comment.user}
+        body={comment.body}
+        switchingToPullRequest={this.state.switchingToPullRequest}
+        renderFooterContent={this.renderFooterContent}
+        onSubmit={onSubmit}
+        onDismissed={onDismissed}
+      />
     )
   }
 
-  private renderTimelineItem() {
-    const { comment, repository } = this.props
-    const { user } = comment
-    const { endpoint } = repository.gitHubRepository
-    const userAvatar = {
-      name: user.login,
-      email: getStealthEmailForUser(user.id, user.login, endpoint),
-      avatarURL: user.avatar_url,
-      endpoint: endpoint,
-    }
-
-    const timelineItemClass = classNames('timeline-item', 'with-comment')
-
-    const submittedAt = new Date(comment.created_at)
-    const diff = submittedAt.getTime() - Date.now()
-    const relativeReviewDate = formatRelative(diff)
-
-    return (
-      <div className="timeline-item-container">
-        {this.renderDashedTimelineLine('top')}
-        <div className={timelineItemClass}>
-          <Avatar user={userAvatar} title={null} size={40} />
-          <div className="review-icon-container pr-review-commented">
-            <Octicon symbol={OcticonSymbol.eye} />
-          </div>
-          <div className="summary">
-            <LinkButton uri={comment.user.html_url} className="author">
-              {comment.user.login}
-            </LinkButton>{' '}
-            commented your pull request{' '}
-            <LinkButton uri={comment.html_url} className="submission-date">
-              {relativeReviewDate}
-            </LinkButton>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  private renderCommentBubble() {
-    return (
-      <div className="comment-bubble-container">
-        <div className="comment-bubble">{this.renderReviewBody()}</div>
-        {this.renderDashedTimelineLine('bottom')}
-      </div>
-    )
-  }
-
-  private renderDashedTimelineLine(type: 'top' | 'bottom') {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className={`timeline-line ${type}`}
-      >
-        {/* Need to use 0.5 for X to prevent nearest neighbour filtering causing
-        the line to appear semi-transparent. */}
-        <line x1="0.5" y1="0" x2="0.5" y2="100%" />
-      </svg>
-    )
-  }
-
-  private renderFooterContent() {
+  private renderFooterContent = () => {
     const { shouldChangeRepository, shouldCheckoutBranch, comment } = this.props
 
     let okButtonTitle: undefined | string = undefined
@@ -188,45 +123,6 @@ export class PullRequestComment extends React.Component<
         </div>
         {okCancelButtonGroup}
       </Row>
-    )
-  }
-
-  private onMarkdownLinkClicked = (url: string) => {
-    this.props.dispatcher.openInBrowser(url)
-  }
-
-  private renderReviewBody() {
-    const { comment, emoji, pullRequest } = this.props
-    const { base } = pullRequest
-
-    return (
-      <SandboxedMarkdown
-        markdown={comment.body}
-        emoji={emoji}
-        baseHref={base.gitHubRepository.htmlURL ?? undefined}
-        repository={base.gitHubRepository}
-        onMarkdownLinkClicked={this.onMarkdownLinkClicked}
-        markdownContext={'PullRequestComment'}
-      />
-    )
-  }
-
-  private renderPullRequestIcon = () => {
-    const { pullRequest } = this.props
-
-    const cls = classNames('pull-request-icon', {
-      draft: pullRequest.draft,
-    })
-
-    return (
-      <Octicon
-        className={cls}
-        symbol={
-          pullRequest.draft
-            ? OcticonSymbol.gitPullRequestDraft
-            : OcticonSymbol.gitPullRequest
-        }
-      />
     )
   }
 
