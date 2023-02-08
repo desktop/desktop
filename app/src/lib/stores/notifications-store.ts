@@ -37,6 +37,7 @@ import {
   ValidNotificationPullRequestReview,
 } from '../valid-notification-pull-request-review'
 import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
+import { enablePullRequestCommentNotifications } from '../feature-flag'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -137,6 +138,10 @@ export class NotificationsStore {
     event: IDesktopPullRequestCommentAliveEvent,
     skipNotification: boolean
   ) {
+    if (!enablePullRequestCommentNotifications()) {
+      return
+    }
+
     const repository = this.repository
     if (repository === null) {
       return
