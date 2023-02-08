@@ -64,7 +64,7 @@ export class PullRequestReview extends React.Component<
     const { title, pullRequestNumber } = this.props.pullRequest
 
     const header = (
-      <div className="pull-request-review-dialog-header">
+      <div className="pull-request-comment-like-dialog-header">
         {this.renderPullRequestIcon()}
         <span className="pr-title">
           <span className="pr-title">{title}</span>{' '}
@@ -84,7 +84,7 @@ export class PullRequestReview extends React.Component<
         loading={this.state.switchingToPullRequest}
       >
         <DialogContent>
-          <div className="review-container">
+          <div className="comment-container">
             {this.renderTimelineItem()}
             {this.renderCommentBubble()}
           </div>
@@ -125,7 +125,7 @@ export class PullRequestReview extends React.Component<
           <Avatar user={userAvatar} title={null} size={40} />
           {this.renderReviewIcon()}
           <div className="summary">
-            <LinkButton uri={review.user.html_url} className="reviewer">
+            <LinkButton uri={review.user.html_url} className="author">
               {review.user.login}
             </LinkButton>{' '}
             {verb} your pull request{' '}

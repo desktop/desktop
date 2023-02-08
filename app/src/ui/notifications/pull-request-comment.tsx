@@ -60,7 +60,7 @@ export class PullRequestComment extends React.Component<
     const { title, pullRequestNumber } = this.props.pullRequest
 
     const header = (
-      <div className="pull-request-review-dialog-header">
+      <div className="pull-request-comment-like-dialog-header">
         {this.renderPullRequestIcon()}
         <span className="pr-title">
           <span className="pr-title">{title}</span>{' '}
@@ -71,7 +71,7 @@ export class PullRequestComment extends React.Component<
 
     return (
       <Dialog
-        id="pull-request-review"
+        id="pull-request-comment"
         type="normal"
         title={header}
         dismissable={false}
@@ -80,7 +80,7 @@ export class PullRequestComment extends React.Component<
         loading={this.state.switchingToPullRequest}
       >
         <DialogContent>
-          <div className="review-container">
+          <div className="comment-container">
             {this.renderTimelineItem()}
             {this.renderCommentBubble()}
           </div>
@@ -112,8 +112,11 @@ export class PullRequestComment extends React.Component<
         {this.renderDashedTimelineLine('top')}
         <div className={timelineItemClass}>
           <Avatar user={userAvatar} title={null} size={40} />
+          <div className="review-icon-container pr-review-commented">
+            <Octicon symbol={OcticonSymbol.eye} />
+          </div>
           <div className="summary">
-            <LinkButton uri={comment.user.html_url} className="reviewer">
+            <LinkButton uri={comment.user.html_url} className="author">
               {comment.user.login}
             </LinkButton>{' '}
             commented your pull request{' '}
