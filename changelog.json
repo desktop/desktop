@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.1.7-test1": [
+      "[Improved] The misattributed warning popover is accessible through keyboard navigation"
+    ],
     "3.1.6": [
       "[Improved] Upgrade embedded Git to 2.39.1 and Git LFS to 3.3.0 - #15915"
     ],
