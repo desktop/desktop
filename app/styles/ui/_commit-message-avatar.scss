@@ -3,7 +3,7 @@
   position: relative;
 
   // override default button styles
-  .button-component {
+  .avatar-button {
     overflow: inherit;
     text-overflow: inherit;
     white-space: inherit;
@@ -15,6 +15,11 @@
     color: inherit;
     background-color: none;
     border-radius: none;
+    margin-right: var(--spacing-half);
+
+    .avatar {
+      margin-right: 0;
+    }
   }
 
   .warning-badge {
