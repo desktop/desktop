@@ -1,8 +1,12 @@
+import classNames from 'classnames'
 import React from 'react'
 import { getHTMLURL, IAPIComment } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { NotificationsDebugStore } from '../../lib/stores/notifications-debug-store'
-import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
+import {
+  ValidNotificationPullRequestReview,
+  ValidNotificationPullRequestReviewState,
+} from '../../lib/valid-notification-pull-request-review'
 import { PullRequest } from '../../models/pull-request'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import {
@@ -16,6 +20,7 @@ import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { List } from '../lib/list'
 import { Loading } from '../lib/loading'
+import { getPullRequestReviewStateIcon } from '../notifications/pull-request-review-helpers'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 
@@ -346,10 +351,14 @@ export class TestNotifications extends React.Component<
       return (
         <div>
           <p>Select the type of notification to display:</p>
-          {this.renderNotificationType(TestNotificationType.PullRequestReview)}
-          {this.renderNotificationType(
-            TestNotificationType.PullRequestReviewComment
-          )}
+          <div className="notification-type-list">
+            {this.renderNotificationType(
+              TestNotificationType.PullRequestReview
+            )}
+            {this.renderNotificationType(
+              TestNotificationType.PullRequestReviewComment
+            )}
+          </div>
         </div>
       )
     }
@@ -510,6 +519,7 @@ export class TestNotifications extends React.Component<
       <TestNotificationItemRowContent
         dispatcher={this.props.dispatcher}
         html_url={comment.html_url}
+        leftAccessory={this.renderReviewStateIcon('COMMENTED')}
       >
         {comment.body}
         <br />
@@ -525,11 +535,23 @@ export class TestNotifications extends React.Component<
       <TestNotificationItemRowContent
         dispatcher={this.props.dispatcher}
         html_url={review.html_url}
+        leftAccessory={this.renderReviewStateIcon(review.state)}
       >
-        ({review.state}) {review.body || <i>Review without body</i>}
+        {review.body || <i>Review without body</i>}
         <br />
         by <i>{review.user.login}</i>
       </TestNotificationItemRowContent>
+    )
+  }
+
+  private renderReviewStateIcon = (
+    state: ValidNotificationPullRequestReviewState
+  ) => {
+    const icon = getPullRequestReviewStateIcon(state)
+    return (
+      <div className={classNames('review-icon-container', icon.className)}>
+        <Octicon symbol={icon.symbol} />
+      </div>
     )
   }
 
@@ -543,6 +565,7 @@ export class TestNotifications extends React.Component<
       <TestNotificationItemRowContent
         dispatcher={this.props.dispatcher}
         html_url={htmlURL}
+        leftAccessory={this.renderPullRequestStateIcon(pullRequest)}
       >
         <b>
           #{pullRequest.pullRequestNumber}
@@ -551,6 +574,21 @@ export class TestNotifications extends React.Component<
         {pullRequest.title} <br />
         by <i>{pullRequest.author}</i>
       </TestNotificationItemRowContent>
+    )
+  }
+
+  private renderPullRequestStateIcon = (
+    pullRequest: PullRequest
+  ): JSX.Element => {
+    return (
+      <Octicon
+        className={pullRequest.draft ? 'pr-draft-icon' : 'pr-icon'}
+        symbol={
+          pullRequest.draft
+            ? OcticonSymbol.gitPullRequestDraft
+            : OcticonSymbol.gitPullRequest
+        }
+      />
     )
   }
 
