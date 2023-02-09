@@ -72,6 +72,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.pycharm.ce'],
   },
   {
+    name: 'DataSpell',
+    bundleIdentifiers: ['com.jetbrains.DataSpell'],
+  },
+  {
     name: 'RubyMine',
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
   },
