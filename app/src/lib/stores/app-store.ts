@@ -7300,8 +7300,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private onPullRequestReviewSubmitNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    review: ValidNotificationPullRequestReview,
-    numberOfComments: number
+    review: ValidNotificationPullRequestReview
   ) => {
     const selectedRepository =
       this.selectedRepository ?? (await this._selectRepository(repository))
@@ -7322,7 +7321,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       review,
       pullRequest,
       repository,
-      numberOfComments,
     })
   }
 

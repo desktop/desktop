@@ -28,7 +28,6 @@ export interface IDesktopPullRequestReviewSubmitAliveEvent {
   readonly pull_request_number: number
   readonly state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED'
   readonly review_id: string
-  readonly number_of_comments: number
 }
 
 /** Represents an Alive event relevant to Desktop. */
