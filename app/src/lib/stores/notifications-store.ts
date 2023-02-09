@@ -104,6 +104,12 @@ export class NotificationsStore {
   public onNotificationEventReceived: NotificationCallback<DesktopAliveEvent> =
     async (event, id, userInfo) => this.handleAliveEvent(userInfo, true)
 
+  public simulateAliveEvent(event: DesktopAliveEvent) {
+    if (__DEV__) {
+      this.handleAliveEvent(event, false)
+    }
+  }
+
   private async handleAliveEvent(
     e: DesktopAliveEvent,
     skipNotification: boolean
