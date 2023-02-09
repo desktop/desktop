@@ -127,3 +127,7 @@ export function enablePreventClosingWhileUpdating(): boolean {
 export function enablePushPullFetchDropdown(): boolean {
   return enableBetaFeatures()
 }
+
+export function enablePullRequestCommentNotifications(): boolean {
+  return enableDevelopmentFeatures()
+}
