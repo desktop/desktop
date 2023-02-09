@@ -84,12 +84,36 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/usr/bin/lite-xl'],
   },
   {
-    name: 'Jetbrains PhpStorm',
-    paths: ['/snap/bin/phpstorm'],
+    name: 'JetBrains PhpStorm',
+    paths: [
+      '/snap/bin/phpstorm',
+      '.local/share/JetBrains/Toolbox/scripts/phpstorm',
+    ],
   },
   {
-    name: 'Jetbrains WebStorm',
-    paths: ['/snap/bin/webstorm'],
+    name: 'JetBrains WebStorm',
+    paths: [
+      '/snap/bin/webstorm',
+      '.local/share/JetBrains/Toolbox/scripts/webstorm',
+    ],
+  },
+  {
+    name: 'IntelliJ IDEA',
+    paths: ['/snap/bin/idea', '.local/share/JetBrains/Toolbox/scripts/idea'],
+  },
+  {
+    name: 'JetBrains PyCharm',
+    paths: [
+      '/snap/bin/pycharm',
+      '.local/share/JetBrains/Toolbox/scripts/pycharm',
+    ],
+  },
+  {
+    name: 'Android Studio',
+    paths: [
+      '/snap/bin/studio',
+      '.local/share/JetBrains/Toolbox/scripts/studio',
+    ],
   },
   {
     name: 'Emacs',

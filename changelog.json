@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.1.6": [
+      "[Improved] Upgrade embedded Git to 2.39.1 and Git LFS to 3.3.0 - #15915"
+    ],
     "3.1.6-beta2": [
       "[Fixed] Fix crash launching the app on Apple silicon devices - #16011",
       "[Fixed] Trim leading and trailing whitespaces in URLs of repository remotes - #15821. Thanks @Shivareddy-Aluri!",
