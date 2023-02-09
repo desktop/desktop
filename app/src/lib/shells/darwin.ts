@@ -145,6 +145,12 @@ export function launch(
     // It uses --working-directory command to start the shell
     // in the specified working directory.
     return spawn(foundShell.path, ['--working-directory', path])
+  } else if (foundShell.shell === Shell.Tabby) {
+    // Tabby cannot open files in the folder format.
+    //
+    // It uses open command to start the shell
+    // in the specified working directory.
+    return spawn(foundShell.path, ['open', path])
   } else if (foundShell.shell === Shell.WezTerm) {
     // WezTerm, like Alacritty, "cannot open files in the 'folder' format."
     //
