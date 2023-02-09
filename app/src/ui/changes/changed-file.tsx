@@ -58,18 +58,20 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       filePadding -
       statusWidth
 
+    const ariaLabel = `${path} - File status: ${mapStatus(status)}`
+
     return (
-      <div className="file" onContextMenu={this.onContextMenu}>
+      <div
+        className="file"
+        onContextMenu={this.onContextMenu}
+        aria-label={ariaLabel}
+      >
         <TooltippedContent
           tooltip={checkboxTooltip}
           direction={TooltipDirection.EAST}
           tagName="div"
         >
           <Checkbox
-            // The checkbox doesn't need to be tab reachable since we emulate
-            // checkbox behavior on the list item itself, ie hitting space bar
-            // while focused on a row will toggle selection.
-            tabIndex={-1}
             value={this.checkboxValue}
             onChange={this.handleCheckboxChange}
             disabled={disableSelection}
