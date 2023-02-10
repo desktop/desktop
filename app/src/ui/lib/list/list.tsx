@@ -1015,9 +1015,15 @@ export class List extends React.Component<IListProps, IListState> {
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <Grid
-          aria-label={''}
-          // eslint-disable-next-line jsx-a11y/aria-role
-          role={''}
+          // react-virtualized will use defaults if we pass undefined or omit
+          // the aria-label, role, and containerRole props but if we pass null
+          // it will omit the attributes which is what we want here since we're
+          // setting the role on the list div itself. Unfortunately the type
+          // definitions don't reflect the fact that null is a valid value which
+          // is why we're using null! here.
+          aria-label={null!}
+          role={null!}
+          containerRole={null!}
           ref={this.onGridRef}
           autoContainerWidth={true}
           width={width}
