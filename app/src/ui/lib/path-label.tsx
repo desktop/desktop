@@ -12,6 +12,9 @@ interface IPathLabelProps {
   readonly status: AppFileStatus
 
   readonly availableWidth?: number
+
+  /** aria hidden value */
+  readonly ariaHidden?: boolean
 }
 
 /** The pixel width reserved to give the resize arrow padding on either side. */
@@ -42,7 +45,7 @@ export class PathLabel extends React.Component<IPathLabelProps, {}> {
         : undefined
       return (
         // eslint-disable-next-line jsx-a11y/label-has-associated-control
-        <label {...props}>
+        <label {...props} aria-hidden={this.props.ariaHidden}>
           <PathText path={status.oldPath} availableWidth={segmentWidth} />
           <Octicon className="rename-arrow" symbol={OcticonSymbol.arrowRight} />
           <PathText path={this.props.path} availableWidth={segmentWidth} />
@@ -51,7 +54,7 @@ export class PathLabel extends React.Component<IPathLabelProps, {}> {
     } else {
       return (
         // eslint-disable-next-line jsx-a11y/label-has-associated-control
-        <label {...props}>
+        <label {...props} aria-hidden={this.props.ariaHidden}>
           <PathText path={this.props.path} availableWidth={availableWidth} />
         </label>
       )
