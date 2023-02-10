@@ -106,6 +106,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
 
   private onContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
     console.log(this.props.rowIndex)
+    console.log(e.currentTarget)
     this.props.onContextMenu?.(this.props.rowIndex, e)
   }
 
