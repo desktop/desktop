@@ -189,6 +189,18 @@ interface IListProps {
   readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
   /**
+   * A handler called whenever a context menu event is received on the
+   * row container element.
+   *
+   * The context menu is invoked when a user right clicks the row or
+   * uses keyboard shortcut.
+   */
+  readonly onRowContextMenu?: (
+    row: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+
+  /**
    * A handler called whenever the user drops items on the list to be inserted.
    *
    * @param row - The index of the row where the user intends to insert the new
@@ -607,6 +619,13 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onRowContextMenu = (
+    row: number,
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    this.props.onRowContextMenu?.(row, e)
+  }
+
   private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
       if (!this.props.selectedRows.includes(row)) {
@@ -914,6 +933,7 @@ export class List extends React.Component<IListProps, IListState> {
         onRowMouseOver={this.onRowMouseOver}
         onRowFocus={this.onRowFocus}
         onRowBlur={this.onRowBlur}
+        onContextMenu={this.onRowContextMenu}
         style={params.style}
         tabIndex={tabIndex}
         children={element}
