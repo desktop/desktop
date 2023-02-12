@@ -44,6 +44,7 @@ export interface IRowRendererParams {
 export type ClickSource = IMouseClickSource | IKeyboardSource
 
 interface IListProps {
+  readonly ignoreOnRowRef?: boolean
   /**
    * Mandatory callback for rendering the contents of a particular
    * row. The callback is not responsible for the outer wrapper
@@ -827,6 +828,10 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onRowRef = (rowIndex: number, element: HTMLDivElement | null) => {
+    if (this.props.ignoreOnRowRef) {
+      return
+    }
+
     if (element === null) {
       this.rowRefs.delete(rowIndex)
     } else {
