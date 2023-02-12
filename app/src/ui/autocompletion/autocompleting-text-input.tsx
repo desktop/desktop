@@ -200,6 +200,7 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className} style={{ top, left, height }}>
         <List
+          ignoreOnRowRef={true}
           rowCount={items.length}
           rowHeight={RowHeight}
           selectedRows={[selectedRow]}
