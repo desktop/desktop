@@ -291,6 +291,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   protected onDialogIsTopMost() {
+    console.log('onDialogIsTopMost')
+
     if (this.dialogElement == null) {
       return
     }
@@ -382,6 +384,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
    *
    *  4. Any remaining button
    *
+   *  5. The dialog close button
+   *
    */
   private focusFirstSuitableChild() {
     const dialog = this.dialogElement
@@ -411,6 +415,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     // anchor tag masquerading as a button)
     let firstTabbable: HTMLElement | null = null
 
+    const closeButton = dialog.querySelector(':scope > header button.close')
+
     const excludedInputTypes = [
       ':not([type=button])',
       ':not([type=submit])',
@@ -423,6 +429,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     const inputSelector = `input${excludedInputTypes.join('')}, textarea`
     const buttonSelector =
       'input[type=button], input[type=submit] input[type=reset], button'
+
     const submitSelector = 'input[type=submit], button[type=submit]'
 
     for (const candidate of dialog.querySelectorAll(selector)) {
@@ -444,16 +451,28 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         candidate.matches(submitSelector)
       ) {
         firstSubmitButton = candidate
-      } else if (firstButton === null && candidate.matches(buttonSelector)) {
+      } else if (
+        firstButton === null &&
+        candidate.matches(buttonSelector) &&
+        candidate !== closeButton
+      ) {
         firstButton = candidate
       }
     }
 
-    const newActive =
-      firstExplicit[1] || firstTabbable || firstSubmitButton || firstButton
+    const focusCandidates = [
+      firstExplicit[1],
+      firstTabbable,
+      firstSubmitButton,
+      firstButton,
+      closeButton,
+    ]
 
-    if (newActive !== null) {
-      newActive.focus()
+    for (const focusCandidate of focusCandidates) {
+      if (focusCandidate instanceof HTMLElement) {
+        focusCandidate.focus()
+        break
+      }
     }
   }
 
