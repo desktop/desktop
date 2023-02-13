@@ -231,8 +231,6 @@ interface IListProps {
    */
   readonly focusOnHover?: boolean
 
-  readonly ariaMode?: 'list' | 'menu'
-
   /**
    * The number of pixels from the top of the list indicating
    * where to scroll do on rendering of the list.
@@ -906,7 +904,6 @@ export class List extends React.Component<IListProps, IListState> {
         rowCount={this.props.rowCount}
         rowIndex={rowIndex}
         selected={selected}
-        ariaMode={this.props.ariaMode}
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
@@ -949,8 +946,6 @@ export class List extends React.Component<IListProps, IListState> {
           }`
         : undefined
 
-    const role = this.props.ariaMode === 'menu' ? 'menu' : 'listbox'
-
     return (
       // eslint-disable-next-line jsx-a11y/aria-activedescendant-has-tabindex
       <div
@@ -958,8 +953,8 @@ export class List extends React.Component<IListProps, IListState> {
         id={this.props.id}
         className="list"
         onKeyDown={this.onKeyDown}
-        role={role}
         aria-activedescendant={activeDescendant}
+        role="listbox"
       >
         {content}
       </div>
