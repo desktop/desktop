@@ -79,6 +79,7 @@ import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
+import { Grid } from 'react-virtualized'
 
 if (__DEV__) {
   installDevGlobals()
@@ -344,6 +345,17 @@ ipcRenderer.on('blur', () => {
 ipcRenderer.on('url-action', (_, action) =>
   dispatcher.dispatchURLAction(action)
 )
+
+// react-virtualized will use defaults if we pass undefined or omit
+// the aria-label, role, and containerRole props and we want to set
+// our own a11y props on the parent of the Grid component which is
+// why we're hacking our way around this here.
+;(function (defaults: Record<string, unknown>, types: Record<string, unknown>) {
+  ;['aria-label'].forEach(k => {
+    delete defaults[k]
+    delete types[k]
+  })
+})(Grid.defaultProps, Grid.propTypes)
 
 ReactDOM.render(
   <App

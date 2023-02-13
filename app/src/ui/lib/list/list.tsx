@@ -938,24 +938,8 @@ export class List extends React.Component<IListProps, IListState> {
       )
     }
 
-    // we select the last item from the selection array for this prop
-    const activeDescendant =
-      this.props.selectedRows.length && this.state.rowIdPrefix
-        ? `${this.state.rowIdPrefix}-${
-            this.props.selectedRows[this.props.selectedRows.length - 1]
-          }`
-        : undefined
-
     return (
-      // eslint-disable-next-line jsx-a11y/aria-activedescendant-has-tabindex
-      <div
-        ref={this.onRef}
-        id={this.props.id}
-        className="list"
-        onKeyDown={this.onKeyDown}
-        aria-activedescendant={activeDescendant}
-        role="listbox"
-      >
+      <div ref={this.onRef} id={this.props.id} className="list">
         {content}
       </div>
     )
@@ -1003,6 +987,20 @@ export class List extends React.Component<IListProps, IListState> {
     // it with keyboard navigation and select an item.
     const tabIndex =
       this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
+
+    // we select the last item from the selection array for this prop
+    const activeDescendant =
+      this.props.selectedRows.length && this.state.rowIdPrefix
+        ? `${this.state.rowIdPrefix}-${
+            this.props.selectedRows[this.props.selectedRows.length - 1]
+          }`
+        : undefined
+
+    const containerProps: React.HTMLProps<HTMLDivElement> = {
+      onKeyDown: this.onKeyDown,
+      'aria-activedescendant': activeDescendant,
+    }
+
     return (
       <FocusContainer
         className="list-focus-container"
@@ -1010,17 +1008,11 @@ export class List extends React.Component<IListProps, IListState> {
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <Grid
-          // react-virtualized will use defaults if we pass undefined or omit
-          // the aria-label, role, and containerRole props but if we pass null
-          // it will omit the attributes which is what we want here since we're
-          // setting the role on the list div itself. Unfortunately the type
-          // definitions don't reflect the fact that null is a valid value which
-          // is why we're using null! here.
-          aria-label={null!}
-          role={null!}
-          containerRole={null!}
+          role="listbox"
           ref={this.onGridRef}
           autoContainerWidth={true}
+          containerRole="presentation"
+          containerProps={containerProps}
           width={width}
           height={height}
           columnWidth={width}
