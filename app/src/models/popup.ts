@@ -361,7 +361,6 @@ export type PopupDetail =
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
       review: ValidNotificationPullRequestReview
-      numberOfComments: number
       shouldCheckoutBranch: boolean
       shouldChangeRepository: boolean
     }

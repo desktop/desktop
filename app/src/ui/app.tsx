@@ -2262,14 +2262,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PullRequestReview: {
         return (
           <PullRequestReview
-            key="pull-request-checks-failed"
+            key="pull-request-review"
             dispatcher={this.props.dispatcher}
             shouldCheckoutBranch={popup.shouldCheckoutBranch}
             shouldChangeRepository={popup.shouldChangeRepository}
             repository={popup.repository}
             pullRequest={popup.pullRequest}
             review={popup.review}
-            numberOfComments={popup.numberOfComments}
             emoji={this.state.emoji}
             accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
