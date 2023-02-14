@@ -47,7 +47,10 @@ interface IDialogHeaderProps {
  * might be necessary to use this component directly.
  */
 export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
-  private onCloseButtonClick = () => {
+  private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    /** This prevent default is a preventative measure since the dialog is akin
+     * to a big Form element. We wouldn't any surprise form handling. */
+    e.preventDefault()
     if (this.props.onDismissed) {
       this.props.onDismissed()
     }
