@@ -300,7 +300,9 @@ export class List extends React.Component<IListProps, IListState> {
    * on each render would cause it to rerender constantly).
    */
   private getContainerProps = memoizeOne(
-    (activeDescendant: string | undefined) => ({
+    (
+      activeDescendant: string | undefined
+    ): React.HTMLProps<HTMLDivElement> => ({
       onKeyDown: this.onKeyDown,
       'aria-activedescendant': activeDescendant,
     })
@@ -1012,7 +1014,6 @@ export class List extends React.Component<IListProps, IListState> {
         : undefined
 
     const containerProps = this.getContainerProps(activeDescendant)
-
 
     return (
       <FocusContainer
