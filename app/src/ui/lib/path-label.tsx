@@ -44,19 +44,17 @@ export class PathLabel extends React.Component<IPathLabelProps, {}> {
         ? availableWidth / 2 - ResizeArrowPadding
         : undefined
       return (
-        // eslint-disable-next-line jsx-a11y/label-has-associated-control
-        <label {...props} aria-hidden={this.props.ariaHidden}>
+        <span {...props} aria-hidden={this.props.ariaHidden}>
           <PathText path={status.oldPath} availableWidth={segmentWidth} />
           <Octicon className="rename-arrow" symbol={OcticonSymbol.arrowRight} />
           <PathText path={this.props.path} availableWidth={segmentWidth} />
-        </label>
+        </span>
       )
     } else {
       return (
-        // eslint-disable-next-line jsx-a11y/label-has-associated-control
-        <label {...props} aria-hidden={this.props.ariaHidden}>
+        <span {...props} aria-hidden={this.props.ariaHidden}>
           <PathText path={this.props.path} availableWidth={availableWidth} />
-        </label>
+        </span>
       )
     }
   }
