@@ -385,7 +385,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
    *  5. The dialog close button
    *
    */
-  private focusFirstSuitableChild() {
+  public focusFirstSuitableChild() {
     const dialog = this.dialogElement
 
     if (dialog === null) {
