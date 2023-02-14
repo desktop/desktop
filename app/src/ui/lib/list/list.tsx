@@ -17,6 +17,7 @@ import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
+import memoizeOne from 'memoize-one'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -290,6 +291,20 @@ export class List extends React.Component<IListProps, IListState> {
   private grid: Grid | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: NodeJS.Immediate | null = null
+
+  /**
+   * Get the props for the inner scroll container (called containerProps on the
+   * Grid component). This is memoized to avoid causing the Grid component to
+   * rerender every time the list component rerenders (the Grid component is a
+   * pure component so a complex object like containerProps being instantiated
+   * on each render would cause it to rerender constantly).
+   */
+  private getContainerProps = memoizeOne(
+    (activeDescendant: string | undefined) => ({
+      onKeyDown: this.onKeyDown,
+      'aria-activedescendant': activeDescendant,
+    })
+  )
 
   public constructor(props: IListProps) {
     super(props)
@@ -996,10 +1011,8 @@ export class List extends React.Component<IListProps, IListState> {
           }`
         : undefined
 
-    const containerProps: React.HTMLProps<HTMLDivElement> = {
-      onKeyDown: this.onKeyDown,
-      'aria-activedescendant': activeDescendant,
-    }
+    const containerProps = this.getContainerProps(activeDescendant)
+
 
     return (
       <FocusContainer
