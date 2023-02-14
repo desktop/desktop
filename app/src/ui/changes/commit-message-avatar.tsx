@@ -72,7 +72,11 @@ export class CommitMessageAvatar extends React.Component<
     return (
       <div className="commit-message-avatar-component">
         {this.props.warningBadgeVisible && (
-          <Button className="avatar-button" onClick={this.onAvatarClick}>
+          <Button
+            className="avatar-button"
+            ariaLabel="Commit may be misattributed. View warning."
+            onClick={this.onAvatarClick}
+          >
             {this.renderWarningBadge()}
             <Avatar user={this.props.user} title={this.props.title} />
           </Button>
