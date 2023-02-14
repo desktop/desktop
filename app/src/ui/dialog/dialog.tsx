@@ -383,7 +383,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
    *  4. Any remaining button
    *
    */
-  private focusFirstSuitableChild() {
+  public focusFirstSuitableChild() {
     const dialog = this.dialogElement
 
     if (dialog === null) {
