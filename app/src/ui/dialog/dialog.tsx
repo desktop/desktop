@@ -291,8 +291,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   protected onDialogIsTopMost() {
-    console.log('onDialogIsTopMost')
-
     if (this.dialogElement == null) {
       return
     }
