@@ -336,6 +336,11 @@ export class List extends React.Component<IListProps, IListState> {
     ): React.HTMLProps<HTMLDivElement> => ({
       onKeyDown: this.onKeyDown,
       'aria-activedescendant': activeDescendant,
+      'aria-multiselectable':
+        this.props.selectionMode === 'multi' ||
+        this.props.selectionMode === 'range'
+          ? 'true'
+          : undefined,
     })
   )
 
