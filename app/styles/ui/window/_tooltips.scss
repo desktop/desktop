@@ -193,6 +193,10 @@ body > .tooltip,
         color: var(--color-deleted);
       }
 
+      .files-renamed-icon {
+        color: var(--color-renamed);
+      }
+
       .octicon {
         margin-right: var(--spacing-third);
         vertical-align: bottom; // For some reason, `bottom` places the text in the middle

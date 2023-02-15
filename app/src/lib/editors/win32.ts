@@ -471,6 +471,14 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'Fleet ',
     publishers: ['JetBrains s.r.o.'],
   },
+  {
+    name: 'JetBrains DataSpell',
+    registryKeys: registryKeysForJetBrainsIDE('DataSpell'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('dataspell'),
+    jetBrainsToolboxScriptName: 'dataspell',
+    displayNamePrefix: 'DataSpell ',
+    publishers: ['JetBrains s.r.o.'],
+  },
 ]
 
 function getKeyOrEmpty(

@@ -508,6 +508,15 @@ export interface IAPIPullRequestReview {
     | 'CHANGES_REQUESTED'
 }
 
+/** Represents both issue comments and PR review comments */
+export interface IAPIComment {
+  readonly id: number
+  readonly body: string
+  readonly html_url: string
+  readonly user: IAPIIdentity
+  readonly created_at: string
+}
+
 /** The metadata about a GitHub server. */
 export interface IServerMetadata {
   /**
@@ -1044,6 +1053,64 @@ export class API {
         e
       )
       return null
+    }
+  }
+
+  /** Fetches all reviews from a given pull request. */
+  public async fetchPullRequestReviews(
+    owner: string,
+    name: string,
+    prNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR reviews for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  /** Fetches all review comments from a given pull request. */
+  public async fetchPullRequestReviewComments(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR review comments for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  /** Fetches all comments from a given pull request. */
+  public async fetchPullRequestComments(
+    owner: string,
+    name: string,
+    prNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR comments for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
     }
   }
 

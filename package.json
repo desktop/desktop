@@ -85,7 +85,7 @@
     "jest-diff": "^25.0.0",
     "jest-extended": "^0.11.2",
     "jest-localstorage-mock": "^2.3.0",
-    "jszip": "^3.7.1",
+    "jszip": "^3.8.0",
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^2.5.3",
