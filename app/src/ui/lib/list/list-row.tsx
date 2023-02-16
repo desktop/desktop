@@ -62,6 +62,9 @@ interface IListRowProps {
 
   /** a custom css class to apply to the row */
   readonly className?: string
+
+  /** aria label value */
+  readonly ariaLabel?: string
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -123,6 +126,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
         aria-selected={this.props.selected}
+        aria-label={this.props.ariaLabel}
         role={role}
         className={className}
         tabIndex={this.props.tabIndex}
