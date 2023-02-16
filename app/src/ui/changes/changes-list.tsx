@@ -967,4 +967,3 @@ export class ChangesList extends React.Component<
     )
   }
 }
-
