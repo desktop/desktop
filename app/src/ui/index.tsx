@@ -79,6 +79,7 @@ import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
+import { Grid } from 'react-virtualized'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 
 if (__DEV__) {
@@ -351,6 +352,26 @@ ipcRenderer.on('blur', () => {
 ipcRenderer.on('url-action', (_, action) =>
   dispatcher.dispatchURLAction(action)
 )
+
+// react-virtualized will use the literal string "grid" as the 'aria-label'
+// attribute unless we override it. This is a problem because aria-label should
+// not be set unless there's a compelling reason for it[1].
+//
+// Similarly the default props call for the 'aria-readonly' attribute to be set
+// to true which according to MDN doesn't fit our use case[2]:
+//
+// > This indicates to the user that an interactive element that would normally
+// > be focusable and copyable has been placed in a read-only (not disabled)
+// > state.
+//
+// 1. https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-label
+// 2. https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-readonly
+;(function (defaults: Record<string, unknown>, types: Record<string, unknown>) {
+  ;['aria-label', 'aria-readonly'].forEach(k => {
+    delete defaults[k]
+    delete types[k]
+  })
+})(Grid.defaultProps, Grid.propTypes)
 
 ReactDOM.render(
   <App
