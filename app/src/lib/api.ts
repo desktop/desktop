@@ -1168,7 +1168,7 @@ export class API {
     }
   }
 
-  /** Fetches all comments from a given pull request. */
+  /** Fetches all review comments from a given pull request. */
   public async fetchPullRequestComments(
     owner: string,
     name: string,
@@ -1181,6 +1181,25 @@ export class API {
     } catch (e) {
       log.debug(
         `failed fetching PR comments for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  /** Fetches all comments from a given issue. */
+  public async fetchIssueComments(
+    owner: string,
+    name: string,
+    issueNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/issues/${issueNumber}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching issue comments for ${owner}/${name}/issues/${issueNumber}`,
         e
       )
       return []
