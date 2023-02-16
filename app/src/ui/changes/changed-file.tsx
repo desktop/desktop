@@ -58,14 +58,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       filePadding -
       statusWidth
 
-    const screenReaderDescription = `${path}  ${mapStatus(status)}`
-
     return (
-      <div
-        className="file"
-        onContextMenu={this.onContextMenu}
-        aria-label={screenReaderDescription}
-      >
+      <div className="file" onContextMenu={this.onContextMenu}>
         <TooltippedContent
           tooltip={checkboxTooltip}
           direction={TooltipDirection.EAST}

@@ -63,7 +63,12 @@ interface IListRowProps {
   /** a custom css class to apply to the row */
   readonly className?: string
 
-  /** aria label value */
+  /**
+   * aria label value for screen readers
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
   readonly ariaLabel?: string
 }
 
