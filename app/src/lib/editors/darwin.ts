@@ -72,6 +72,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.pycharm.ce'],
   },
   {
+    name: 'DataSpell',
+    bundleIdentifiers: ['com.jetbrains.DataSpell'],
+  },
+  {
     name: 'RubyMine',
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
   },
@@ -90,6 +94,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'WebStorm',
     bundleIdentifiers: ['com.jetbrains.WebStorm'],
+  },
+  {
+    name: 'CLion',
+    bundleIdentifiers: ['com.jetbrains.CLion'],
   },
   {
     name: 'Typora',

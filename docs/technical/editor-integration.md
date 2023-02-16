@@ -45,6 +45,7 @@ These editors are currently supported:
  - [RStudio](https://rstudio.com/)
  - [Aptana Studio](http://www.aptana.com/)
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
+ - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
 
 These are defined in a list at the top of the file:
 
@@ -252,6 +253,7 @@ These editors are currently supported:
  - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
+ - [JetBrains CLion](https://www.jetbrains.com/clion/)
  - [RStudio](https://rstudio.com/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
@@ -271,6 +273,7 @@ These editors are currently supported:
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Lite XL](https://lite-xl.com/)
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
+ - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
 
 These are defined in a list at the top of the file:
 

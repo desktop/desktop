@@ -93,10 +93,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
-import {
-  ForcePushBranchState,
-  getCurrentBranchForcePushState,
-} from '../lib/rebase'
+import { getCurrentBranchForcePushState } from '../lib/rebase'
 import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
@@ -151,7 +148,6 @@ import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-
 import { clamp } from '../lib/clamp'
 import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
 import * as ipcRenderer from '../lib/ipc-renderer'
-import { showNotification } from '../lib/notifications/show-notification'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { generateDevReleaseSummary } from '../lib/release-notes'
 import { PullRequestReview } from './notifications/pull-request-review'
@@ -167,6 +163,8 @@ import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
 import { enableStackedPopups } from '../lib/feature-flag'
 import { DialogStackContext } from './dialog'
+import { TestNotifications } from './test-notifications/test-notifications'
+import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -188,6 +186,7 @@ interface IAppProps {
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly aheadBehindStore: AheadBehindStore
+  readonly notificationsDebugStore: NotificationsDebugStore
   readonly startTime: number
 }
 
@@ -492,10 +491,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    showNotification({
-      title: 'Test notification',
-      body: 'Click here! This is a test notification',
-      onClick: () => this.props.dispatcher.showPopup({ type: PopupType.About }),
+    // if current repository is not repository with github repository, return
+    const repository = this.getRepository()
+    if (
+      repository == null ||
+      repository instanceof CloningRepository ||
+      !isRepositoryWithGitHubRepository(repository)
+    ) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.TestNotifications,
+      repository,
     })
   }
 
@@ -2265,14 +2273,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PullRequestReview: {
         return (
           <PullRequestReview
-            key="pull-request-checks-failed"
+            key="pull-request-review"
             dispatcher={this.props.dispatcher}
             shouldCheckoutBranch={popup.shouldCheckoutBranch}
             shouldChangeRepository={popup.shouldChangeRepository}
             repository={popup.repository}
             pullRequest={popup.pullRequest}
             review={popup.review}
-            numberOfComments={popup.numberOfComments}
             emoji={this.state.emoji}
             accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
@@ -2373,6 +2380,17 @@ export class App extends React.Component<IAppProps, IAppState> {
           <InstallingUpdate
             key="installing-update"
             dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.TestNotifications: {
+        return (
+          <TestNotifications
+            key="test-notifications"
+            dispatcher={this.props.dispatcher}
+            notificationsDebugStore={this.props.notificationsDebugStore}
+            repository={popup.repository}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2800,9 +2818,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName = tip.branch.upstreamRemoteName
     }
 
-    const isForcePush =
-      getCurrentBranchForcePushState(branchesState, aheadBehind) ===
-      ForcePushBranchState.Recommended
+    const currentFoldout = this.state.currentFoldout
+
+    const isDropdownOpen =
+      currentFoldout !== null && currentFoldout.type === FoldoutType.PushPull
+
+    const forcePushBranchState = getCurrentBranchForcePushState(
+      branchesState,
+      aheadBehind
+    )
 
     return (
       <PushPullButton
@@ -2817,10 +2841,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         tipState={tip.kind}
         pullWithRebase={pullWithRebase}
         rebaseInProgress={rebaseInProgress}
-        isForcePush={isForcePush}
+        forcePushBranchState={forcePushBranchState}
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.PushBranch
         }
+        isDropdownOpen={isDropdownOpen}
+        askForConfirmationOnForcePush={this.state.askForConfirmationOnForcePush}
+        onDropdownStateChanged={this.onPushPullDropdownStateChanged}
       />
     )
   }
@@ -2882,6 +2909,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     branch: Branch
   ) => {
     this.props.dispatcher.openCreatePullRequestInBrowser(repository, branch)
+  }
+
+  private onPushPullDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.PushPull })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.PushPull)
+    }
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
