@@ -48,8 +48,7 @@ type OnChecksFailedCallback = (
 type OnPullRequestReviewSubmitCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
-  review: ValidNotificationPullRequestReview,
-  numberOfComments: number
+  review: ValidNotificationPullRequestReview
 ) => void
 
 /**
@@ -104,6 +103,12 @@ export class NotificationsStore {
 
   public onNotificationEventReceived: NotificationCallback<DesktopAliveEvent> =
     async (event, id, userInfo) => this.handleAliveEvent(userInfo, true)
+
+  public simulateAliveEvent(event: DesktopAliveEvent) {
+    if (__DEV__) {
+      this.handleAliveEvent(event, false)
+    }
+  }
 
   private async handleAliveEvent(
     e: DesktopAliveEvent,
@@ -175,12 +180,7 @@ export class NotificationsStore {
     const onClick = () => {
       this.statsStore.recordPullRequestReviewNotificationClicked(review.state)
 
-      this.onPullRequestReviewSubmitCallback?.(
-        repository,
-        pullRequest,
-        review,
-        event.number_of_comments
-      )
+      this.onPullRequestReviewSubmitCallback?.(repository, pullRequest, review)
     }
 
     if (skipNotification) {
