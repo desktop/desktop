@@ -66,6 +66,7 @@ export class PullRequestComment extends React.Component<
 
     return (
       <PullRequestCommentLike
+        id="pull-request-comment"
         dispatcher={dispatcher}
         accounts={accounts}
         repository={repository}
