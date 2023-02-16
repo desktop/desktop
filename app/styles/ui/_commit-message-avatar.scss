@@ -2,6 +2,27 @@
   // With this, the popover's absolute position will be relative to its parent
   position: relative;
 
+  .avatar-button {
+    // override default button styles
+    overflow: inherit;
+    text-overflow: inherit;
+    white-space: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    padding: inherit;
+    border: none;
+    height: inherit;
+    color: inherit;
+    background-color: none;
+
+    border-radius: 50%;
+    margin-right: var(--spacing-half);
+
+    .avatar {
+      margin-right: 0;
+    }
+  }
+
   .warning-badge {
     background-color: var(--commit-warning-badge-background-color);
     border: var(--commit-warning-badge-border-color) 1px solid;
