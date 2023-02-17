@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.1.8": [
+      "[Added] Add JetBrains CLion support on macOS - #15881. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix crash launching the app on Apple silicon devices - #16011",
+      "[Fixed] Trim leading and trailing whitespace in URLs of repository remotes - #15821. Thanks @Shivareddy-Aluri!",
+      "[Fixed] Fix support for the latest versions of RStudio on Windows - #15810",
+      "[Fixed] Fix support for latest versions of VSCodium on Windows - #15585. Thanks @voidei!"
+    ],
     "3.1.7-beta1": ["[Improved] Upgrade embedded Git to 2.39.2"],
     "3.1.6-beta2": [
       "[Fixed] Fix crash launching the app on Apple silicon devices - #16011",
