@@ -8,9 +8,6 @@ interface IListRowProps {
   /** the index of the row in the list */
   readonly rowIndex: number
 
-  /** the accessibility mode to assign to the row */
-  readonly ariaMode?: 'list' | 'menu'
-
   /** custom styles to provide to the row */
   readonly style?: React.CSSProperties
 
@@ -105,8 +102,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       { 'not-selectable': this.props.selectable === false },
       this.props.className
     )
-    const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
-
     // react-virtualized gives us an explicit pixel width for rows, but that
     // width doesn't take into account whether or not the scroll bar needs
     // width too, e.g., on macOS when "Show scroll bars" is set to "Always."
@@ -123,7 +118,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
         aria-selected={this.props.selected}
-        role={role}
+        role="option"
         className={className}
         tabIndex={this.props.tabIndex}
         ref={this.onRef}
