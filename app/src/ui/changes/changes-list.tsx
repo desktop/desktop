@@ -318,7 +318,6 @@ export class ChangesList extends React.Component<
         file={file}
         include={isPartiallyCommittableSubmodule && include ? null : include}
         key={file.id}
-        onContextMenu={this.onItemContextMenu}
         onIncludeChanged={onIncludeChanged}
         availableWidth={availableWidth}
         disableSelection={disableSelection}
@@ -678,9 +677,12 @@ export class ChangesList extends React.Component<
   }
 
   private onItemContextMenu = (
-    file: WorkingDirectoryFileChange,
+    row: number,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
+    const { workingDirectory } = this.props
+    const file = workingDirectory.files[row]
+
     if (this.props.isCommitting) {
       return
     }
@@ -965,6 +967,7 @@ export class ChangesList extends React.Component<
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
           onRowKeyDown={this.onRowKeyDown}
+          onRowContextMenu={this.onItemContextMenu}
         />
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}

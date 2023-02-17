@@ -50,6 +50,13 @@ interface IListRowProps {
     e: React.FocusEvent<HTMLDivElement>
   ) => void
 
+  /** Called back for when the context menu is invoked (user right clicks of
+   * uses keyboard shortcuts) */
+  readonly onContextMenu?: (
+    index: number,
+    e: React.MouseEvent<HTMLDivElement>
+  ) => void
+
   /**
    * Whether or not this list row is going to be selectable either through
    * keyboard navigation, pointer clicks, or both. This is used to determine
@@ -102,6 +109,10 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     this.props.onRowBlur?.(this.props.rowIndex, e)
   }
 
+  private onContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onContextMenu?.(this.props.rowIndex, e)
+  }
+
   public render() {
     const selected = this.props.selected
     const className = classNames(
@@ -139,6 +150,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         style={style}
         onFocus={this.onFocus}
         onBlur={this.onBlur}
+        onContextMenu={this.onContextMenu}
       >
         {this.props.children}
       </div>
