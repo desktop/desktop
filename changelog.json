@@ -2,7 +2,8 @@
   "releases": {
     "3.1.8-test3": [
       "[Improved] Changes List item's context menu keyboard accessible",
-      "[Improved] Changes List file status are screen reader announced"
+      "[Improved] Changes List file status are screen reader announced",
+      "[Improved] Changes List file announces focused file position"
     ],
     "3.1.7": ["[Improved] Upgrade embedded Git to 2.39.2"],
     "3.1.7-beta1": ["[Improved] Upgrade embedded Git to 2.39.2"],
