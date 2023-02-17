@@ -80,6 +80,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           path={path}
           status={status}
           availableWidth={availablePathWidth}
+          ariaHidden={true}
         />
 
         <Octicon

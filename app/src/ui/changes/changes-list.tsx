@@ -49,7 +49,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
-import { hasConflictedFiles } from '../../lib/status'
+import { hasConflictedFiles, mapStatus } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
@@ -325,6 +325,13 @@ export class ChangesList extends React.Component<
         checkboxTooltip={checkboxTooltip}
       />
     )
+  }
+
+  private getFileAriaLabel = (row: number): string => {
+    const { workingDirectory } = this.props
+    const { path, status } = workingDirectory.files[row]
+
+    return `${path}  ${mapStatus(status)}`
   }
 
   private onDiscardAllChanges = () => {
@@ -946,6 +953,7 @@ export class ChangesList extends React.Component<
           rowCount={files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
+          getRowAriaLabel={this.getFileAriaLabel}
           selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}

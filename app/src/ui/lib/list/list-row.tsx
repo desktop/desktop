@@ -59,6 +59,14 @@ interface IListRowProps {
 
   /** a custom css class to apply to the row */
   readonly className?: string
+
+  /**
+   * aria label value for screen readers
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly ariaLabel?: string
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -118,6 +126,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
         aria-selected={this.props.selected}
+        aria-label={this.props.ariaLabel}
         role="option"
         className={className}
         tabIndex={this.props.tabIndex}
