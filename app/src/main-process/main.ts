@@ -155,6 +155,10 @@ if (__WIN32__ && process.argv.length > 1) {
   }
 }
 
+if (__LINUX__ && process.argv.length > 1) {
+  handlePossibleProtocolLauncherArgs(process.argv)
+}
+
 initializeDesktopNotifications()
 
 function handleAppURL(url: string) {
