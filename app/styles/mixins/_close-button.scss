@@ -27,5 +27,9 @@
     &:hover {
       color: var(--text-color);
     }
+
+    &:focus {
+      outline: 0;
+    }
   }
 }

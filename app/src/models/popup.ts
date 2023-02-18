@@ -89,7 +89,6 @@ export enum PopupType {
   StartPullRequest = 'StartPullRequest',
   Error = 'Error',
   InstallingUpdate = 'InstallingUpdate',
-  TestNotifications = 'TestNotifications',
 }
 
 interface IBasePopup {
@@ -362,6 +361,7 @@ export type PopupDetail =
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
       review: ValidNotificationPullRequestReview
+      numberOfComments: number
       shouldCheckoutBranch: boolean
       shouldChangeRepository: boolean
     }
@@ -371,16 +371,15 @@ export type PopupDetail =
     }
   | {
       type: PopupType.StartPullRequest
-      prBaseBranches: ReadonlyArray<Branch>
+      allBranches: ReadonlyArray<Branch>
       currentBranch: Branch
       defaultBranch: Branch | null
       externalEditorLabel?: string
       imageDiffType: ImageDiffType
-      prRecentBaseBranches: ReadonlyArray<Branch>
+      recentBranches: ReadonlyArray<Branch>
       repository: Repository
       nonLocalCommitSHA: string | null
       showSideBySideDiff: boolean
-      currentBranchHasPullRequest: boolean
     }
   | {
       type: PopupType.Error
@@ -388,10 +387,6 @@ export type PopupDetail =
     }
   | {
       type: PopupType.InstallingUpdate
-    }
-  | {
-      type: PopupType.TestNotifications
-      repository: RepositoryWithGitHubRepository
     }
 
 export type Popup = IBasePopup & PopupDetail

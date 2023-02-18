@@ -162,8 +162,6 @@ interface Window {
 
 interface HTMLDialogElement {
   showModal: () => void
-  close: (returnValue?: string | undefined) => void
-  open: boolean
 }
 /**
  * Obtain the number of elements of a tuple type

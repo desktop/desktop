@@ -41,12 +41,3 @@ export class PullRequest {
     public readonly body: string
   ) {}
 }
-
-/** The types of pull request suggested next actions */
-export enum PullRequestSuggestedNextAction {
-  PreviewPullRequest = 'PreviewPullRequest',
-  CreatePullRequest = 'CreatePullRequest',
-}
-
-export const defaultPullRequestSuggestedNextAction =
-  PullRequestSuggestedNextAction.PreviewPullRequest

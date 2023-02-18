@@ -193,14 +193,10 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
     'its tracked branch.'
 
   return (
-    <TooltippedContent
-      className="ahead-behind"
-      tagName="div"
-      tooltip={aheadBehindTooltip}
-    >
+    <div className="ahead-behind" title={aheadBehindTooltip}>
       {ahead > 0 && <Octicon symbol={OcticonSymbol.arrowUp} />}
       {behind > 0 && <Octicon symbol={OcticonSymbol.arrowDown} />}
-    </TooltippedContent>
+    </div>
   )
 }
 

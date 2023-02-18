@@ -1,7 +1,7 @@
 import {
   WebRequest,
   OnBeforeRequestListenerDetails,
-  CallbackResponse,
+  Response,
   OnBeforeSendHeadersListenerDetails,
   BeforeSendResponse,
   OnCompletedListenerDetails,
@@ -112,7 +112,7 @@ export class OrderedWebRequest {
 
   public readonly onBeforeRequest: AsyncListenerSet<
     OnBeforeRequestListenerDetails,
-    CallbackResponse
+    Response
   >
 
   public readonly onBeforeSendHeaders: AsyncListenerSet<
@@ -140,7 +140,7 @@ export class OrderedWebRequest {
     this.onBeforeRequest = new AsyncListenerSet(
       webRequest.onBeforeRequest.bind(webRequest),
       async (listeners, details) => {
-        let response: CallbackResponse = {}
+        let response: Response = {}
 
         for (const listener of listeners) {
           response = await listener(details)

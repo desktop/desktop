@@ -13,26 +13,7 @@ import { TooltipTarget } from '../lib/tooltip'
 
 export type DropdownState = 'open' | 'closed'
 
-/** Represents the style of the dropdown */
-export enum ToolbarDropdownStyle {
-  /**
-   * The dropdown is rendered as a single button and, when expanded, takes the
-   * full height of the window.
-   */
-  Foldout,
-
-  /**
-   * The dropdown is rendered as two buttons: one is the toolbar button itself,
-   * and the other one is the expand/collapse button.
-   * When expanded, it only takes the height of the content.
-   */
-  MultiOption,
-}
-
 export interface IToolbarDropdownProps {
-  /** The style of the dropdown. Default: Foldout */
-  readonly dropdownStyle?: ToolbarDropdownStyle
-
   /** The primary button text, describing its function */
   readonly title?: string
 
@@ -92,8 +73,6 @@ export interface IToolbarDropdownProps {
    * used to prevent the default action or stop the event from bubbling.
    */
   readonly onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void
-
-  readonly onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * A function that's called whenever something is dragged over the
@@ -206,8 +185,7 @@ export class ToolbarDropdown extends React.Component<
   IToolbarDropdownProps,
   IToolbarDropdownState
 > {
-  private innerButton = React.createRef<ToolbarButton>()
-  private rootDiv = React.createRef<HTMLDivElement>()
+  private innerButton: ToolbarButton | null = null
   private focusTrapOptions: FocusTrapOptions
 
   public constructor(props: IToolbarDropdownProps) {
@@ -246,25 +224,13 @@ export class ToolbarDropdown extends React.Component<
     }
 
     const state = this.props.dropdownState
-    const dropdownIcon = (
-      <Octicon symbol={this.dropdownIcon(state)} className="dropdownArrow" />
-    )
 
-    return this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption ? (
-      <ToolbarButton
-        className="toolbar-dropdown-arrow-button"
-        onClick={this.onToggleDropdownClick}
-      >
-        {dropdownIcon}
-      </ToolbarButton>
-    ) : (
-      dropdownIcon
+    return (
+      <Octicon symbol={this.dropdownIcon(state)} className="dropdownArrow" />
     )
   }
 
-  private onToggleDropdownClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const newState: DropdownState =
       this.props.dropdownState === 'open' ? 'closed' : 'open'
 
@@ -281,22 +247,13 @@ export class ToolbarDropdown extends React.Component<
     this.props.onDropdownStateChanged(newState, source)
   }
 
-  private onMainButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption) {
-      this.props.onClick?.(event)
-      return
-    }
-
-    this.onToggleDropdownClick(event)
-  }
-
   private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.props.onContextMenu?.(event)
   }
 
   private updateClientRectIfNecessary() {
-    if (this.props.dropdownState === 'open' && this.rootDiv.current) {
-      const newRect = this.rootDiv.current.getBoundingClientRect()
+    if (this.props.dropdownState === 'open' && this.innerButton) {
+      const newRect = this.innerButton.getButtonBoundingClientRect()
       if (newRect) {
         const currentRect = this.state.clientRect
 
@@ -309,6 +266,10 @@ export class ToolbarDropdown extends React.Component<
 
   public componentDidMount() {
     this.updateClientRectIfNecessary()
+  }
+
+  public componentWillUnmount() {
+    this.innerButton = null
   }
 
   public componentDidUpdate() {
@@ -344,16 +305,12 @@ export class ToolbarDropdown extends React.Component<
       return undefined
     }
 
-    const heightStyle: React.CSSProperties =
-      this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption
-        ? { maxHeight: '100%', width: rect.width }
-        : { height: '100%', minWidth: rect.width }
-
     return {
       position: 'absolute',
       marginLeft: rect.left,
+      minWidth: rect.width,
+      height: '100%',
       top: 0,
-      ...heightStyle,
     }
   }
 
@@ -397,21 +354,22 @@ export class ToolbarDropdown extends React.Component<
     )
   }
 
+  private onRef = (ref: ToolbarButton | null) => {
+    this.innerButton = ref
+  }
+
   /**
    * Programmatically move keyboard focus to the button element.
    */
   public focusButton = () => {
-    if (this.innerButton.current) {
-      this.innerButton.current.focusButton()
+    if (this.innerButton) {
+      this.innerButton.focusButton()
     }
   }
 
   public render() {
     const className = classNames(
       'toolbar-dropdown',
-      this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption
-        ? 'multi-option-style'
-        : 'foldout-style',
       this.props.dropdownState,
       this.props.className
     )
@@ -425,17 +383,16 @@ export class ToolbarDropdown extends React.Component<
         role={this.props.role}
         aria-expanded={ariaExpanded}
         onDragOver={this.props.onDragOver}
-        ref={this.rootDiv}
       >
         {this.renderDropdownContents()}
         <ToolbarButton
           className={this.props.buttonClassName}
-          ref={this.innerButton}
+          ref={this.onRef}
           icon={this.props.icon}
           title={this.props.title}
           description={this.props.description}
           tooltip={this.props.tooltip}
-          onClick={this.onMainButtonClick}
+          onClick={this.onClick}
           onContextMenu={this.onContextMenu}
           onMouseEnter={this.props.onMouseEnter}
           style={this.props.style}
@@ -450,11 +407,8 @@ export class ToolbarDropdown extends React.Component<
           isOverflowed={this.props.isOverflowed}
         >
           {this.props.children}
-          {this.props.dropdownStyle !== ToolbarDropdownStyle.MultiOption &&
-            this.renderDropdownArrow()}
+          {this.renderDropdownArrow()}
         </ToolbarButton>
-        {this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption &&
-          this.renderDropdownArrow()}
       </div>
     )
   }

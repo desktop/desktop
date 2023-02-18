@@ -47,10 +47,7 @@ interface IDialogHeaderProps {
  * might be necessary to use this component directly.
  */
 export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
-  private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    /** This prevent default is a preventative measure since the dialog is akin
-     * to a big Form element. We wouldn't any surprise form handling. */
-    e.preventDefault()
+  private onCloseButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (this.props.onDismissed) {
       this.props.onDismissed()
     }
@@ -61,14 +58,21 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
       return null
     }
 
+    // We're intentionally using <a> here instead of <button> because
+    // we can't prevent chromium from giving it focus when the the dialog
+    // appears. Setting tabindex to -1 doesn't work. This might be a bug,
+    // I don't know and we may want to revisit it at some point but for
+    // now an anchor will have to do.
     return (
-      <button
+      // eslint-disable-next-line jsx-a11y/anchor-is-valid, jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
+      <a
         className="close"
         onClick={this.onCloseButtonClick}
         aria-label="close"
+        role="button"
       >
         <Octicon symbol={OcticonSymbol.x} />
-      </button>
+      </a>
     )
   }
 

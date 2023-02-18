@@ -29,7 +29,7 @@
     flex-grow: 1;
   }
 
-  .open-pull-request-message {
+  .open-pull-request-no-changes {
     height: 100%;
     display: flex;
     align-items: center;
@@ -40,12 +40,6 @@
 
   .dialog-footer {
     flex-direction: row;
-
-    .button-group {
-      .octicon {
-        margin-right: var(--spacing-half);
-      }
-    }
   }
 
   .pull-request-merge-status {
