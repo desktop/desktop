@@ -3,6 +3,8 @@ import {
   IGitResult as DugiteResult,
   GitError as DugiteError,
   IGitExecutionOptions as DugiteExecutionOptions,
+  IGitTask as DugiteTask,
+  GitTaskCancelResult as DugiteTaskCancelResult,
 } from 'dugite'
 
 import { assertNever } from '../fatal-error'
@@ -39,6 +41,9 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
   readonly trackLFSProgress?: boolean
 }
 
+export type IGitTask = DugiteTask
+export type GitTaskCancelResult = DugiteTaskCancelResult
+
 /**
  * The result of using `git`. This wraps dugite's results to provide
  * the parsed error if one occurs.
@@ -63,7 +68,13 @@ export interface IGitResult extends DugiteResult {
    * working directory which is... super confusing, I know)
    */
   readonly path: string
+
+  /**
+   * todo: maifee, write doc, something cool
+   */
+  readonly task: IGitTask
 }
+
 export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
@@ -126,7 +137,8 @@ export async function git(
   args: string[],
   path: string,
   name: string,
-  options?: IGitExecutionOptions
+  options?: IGitExecutionOptions,
+  getTask?: (task: IGitTask) => void
 ): Promise<IGitResult> {
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
@@ -165,8 +177,14 @@ export async function git(
 
     const commandName = `${name}: git ${args.join(' ')}`
 
-    const result = await GitPerf.measure(commandName, () =>
-      GitProcess.exec(args, path, opts)
+    const task = GitProcess.execTask(args, path, opts)
+    if (getTask) {
+      getTask(task)
+    }
+
+    const result = await GitPerf.measure(
+      commandName,
+      () => GitProcess.execTask(args, path, opts).result
     ).catch(err => {
       // If this is an exception thrown by Node.js (as opposed to
       // dugite) let's keep the salient details but include the name of
@@ -200,6 +218,7 @@ export async function git(
       gitErrorDescription,
       combinedOutput,
       path,
+      task,
     }
 
     let acceptableError = true

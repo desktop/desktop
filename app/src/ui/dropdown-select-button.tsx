@@ -4,7 +4,7 @@ import { Button } from './lib/button'
 import { Octicon } from './octicons'
 import * as OcticonSymbol from './octicons/octicons.generated'
 
-export interface IDropdownSelectButtonOption<T extends string> {
+export interface IDropdownSelectButtonOption {
   /** The select option header label. */
   readonly label?: string | JSX.Element
 
@@ -12,15 +12,15 @@ export interface IDropdownSelectButtonOption<T extends string> {
   readonly description?: string | JSX.Element
 
   /** The select option's value */
-  readonly value: T
+  readonly value?: string
 }
 
-interface IDropdownSelectButtonProps<T extends string> {
+interface IDropdownSelectButtonProps {
   /** The selection button options */
-  readonly options: ReadonlyArray<IDropdownSelectButtonOption<T>>
+  readonly options: ReadonlyArray<IDropdownSelectButtonOption>
 
   /** The selection option value */
-  readonly selectedValue?: T
+  readonly selectedValue?: string
 
   /** Whether or not the button is enabled */
   readonly disabled?: boolean
@@ -30,22 +30,22 @@ interface IDropdownSelectButtonProps<T extends string> {
 
   /** Callback for when the button selection changes*/
   readonly onSelectChange?: (
-    selectedOption: IDropdownSelectButtonOption<T>
+    selectedOption: IDropdownSelectButtonOption
   ) => void
 
   /** Callback for when button is selected option button is clicked */
   readonly onSubmit?: (
     event: React.MouseEvent<HTMLButtonElement>,
-    selectedOption: IDropdownSelectButtonOption<T>
+    selectedOption: IDropdownSelectButtonOption
   ) => void
 }
 
-interface IDropdownSelectButtonState<T extends string> {
+interface IDropdownSelectButtonState {
   /** Whether the options are rendered */
   readonly showButtonOptions: boolean
 
   /** The currently selected option */
-  readonly selectedOption: IDropdownSelectButtonOption<T> | null
+  readonly selectedOption: IDropdownSelectButtonOption | null
 
   /**
    * The adjusting position of the options popover. This is calculated based
@@ -54,16 +54,14 @@ interface IDropdownSelectButtonState<T extends string> {
   readonly optionsPositionBottom?: string
 }
 
-export class DropdownSelectButton<
-  T extends string = string
-> extends React.Component<
-  IDropdownSelectButtonProps<T>,
-  IDropdownSelectButtonState<T>
+export class DropdownSelectButton extends React.Component<
+  IDropdownSelectButtonProps,
+  IDropdownSelectButtonState
 > {
   private invokeButtonRef: HTMLButtonElement | null = null
   private optionsContainerRef: HTMLDivElement | null = null
 
-  public constructor(props: IDropdownSelectButtonProps<T>) {
+  public constructor(props: IDropdownSelectButtonProps) {
     super(props)
 
     this.state = {
@@ -91,64 +89,9 @@ export class DropdownSelectButton<
     }
   }
 
-  public componentDidMount() {
-    window.addEventListener('keydown', this.onKeyDown)
-  }
-
-  public componentWillUnmount() {
-    window.removeEventListener('keydown', this.onKeyDown)
-  }
-
-  private onKeyDown = (event: KeyboardEvent) => {
-    const { key } = event
-    if (this.state.showButtonOptions && key === 'Escape') {
-      this.setState({ showButtonOptions: false })
-      return
-    }
-
-    if (
-      !this.state.showButtonOptions ||
-      !['ArrowUp', 'ArrowDown'].includes(key)
-    ) {
-      return
-    }
-
-    const buttons = this.optionsContainerRef?.querySelectorAll(
-      '.dropdown-select-button-options .button-component'
-    )
-
-    if (buttons === undefined) {
-      return
-    }
-
-    const foundCurrentIndex = [...buttons].findIndex(b =>
-      b.className.includes('focus')
-    )
-
-    let focusedOptionIndex = -1
-    if (foundCurrentIndex !== -1) {
-      if (key === 'ArrowUp') {
-        focusedOptionIndex =
-          foundCurrentIndex !== 0
-            ? foundCurrentIndex - 1
-            : this.props.options.length - 1
-      } else {
-        focusedOptionIndex =
-          foundCurrentIndex !== this.props.options.length - 1
-            ? foundCurrentIndex + 1
-            : 0
-      }
-    } else {
-      focusedOptionIndex = key === 'ArrowUp' ? this.props.options.length - 1 : 0
-    }
-
-    const button = buttons?.item(focusedOptionIndex) as HTMLButtonElement
-    button?.focus()
-  }
-
   private getSelectedOption(
-    selectedValue: T | undefined
-  ): IDropdownSelectButtonOption<T> | null {
+    selectedValue: string | undefined
+  ): IDropdownSelectButtonOption | null {
     const { options } = this.props
     if (options.length === 0) {
       return null
@@ -161,10 +104,8 @@ export class DropdownSelectButton<
     return selectedOption
   }
 
-  private onSelectionChange = (
-    selectedOption: IDropdownSelectButtonOption<T>
-  ) => {
-    return (_event?: React.MouseEvent<HTMLElement, MouseEvent>) => {
+  private onSelectionChange = (selectedOption: IDropdownSelectButtonOption) => {
+    return (_event: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
       this.setState({ selectedOption, showButtonOptions: false })
 
       const { onSelectChange } = this.props
@@ -186,7 +127,7 @@ export class DropdownSelectButton<
     this.optionsContainerRef = ref
   }
 
-  private renderSelectedIcon(option: IDropdownSelectButtonOption<T>) {
+  private renderSelectedIcon(option: IDropdownSelectButtonOption) {
     const { selectedOption } = this.state
     if (selectedOption === null || option.value !== selectedOption.value) {
       return
@@ -200,16 +141,6 @@ export class DropdownSelectButton<
     )
   }
 
-  private renderOption = (o: IDropdownSelectButtonOption<T>) => {
-    return (
-      <Button key={o.value} onClick={this.onSelectionChange(o)}>
-        {this.renderSelectedIcon(o)}
-        <div className="option-title">{o.label}</div>
-        <div className="option-description">{o.description}</div>
-      </Button>
-    )
-  }
-
   private renderSplitButtonOptions() {
     if (!this.state.showButtonOptions) {
       return
@@ -219,14 +150,22 @@ export class DropdownSelectButton<
     const { optionsPositionBottom: bottom } = this.state
     const openClass = bottom !== undefined ? 'open-top' : 'open-bottom'
     const classes = classNames('dropdown-select-button-options', openClass)
-
     return (
       <div
         className={classes}
         style={{ bottom }}
         ref={this.onOptionsContainerRef}
       >
-        {options.map(o => this.renderOption(o))}
+        <ul>
+          {options.map(o => (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+            <li key={o.value} onClick={this.onSelectionChange(o)}>
+              {this.renderSelectedIcon(o)}
+              <div className="option-title">{o.label}</div>
+              <div className="option-description">{o.description}</div>
+            </li>
+          ))}
+        </ul>
       </div>
     )
   }
@@ -260,25 +199,23 @@ export class DropdownSelectButton<
     // method.
     return (
       <div className={containerClasses}>
-        <div className="dropdown-button-wrappers">
-          <Button
-            className="invoke-button"
-            disabled={disabled}
-            type="submit"
-            tooltip={this.props.tooltip}
-            onButtonRef={this.onInvokeButtonRef}
-            onClick={this.onSubmit}
-          >
-            {selectedOption.label}
-          </Button>
-          <Button
-            className={dropdownClasses}
-            onClick={this.openSplitButtonDropdown}
-            type="button"
-          >
-            <Octicon symbol={OcticonSymbol.triangleDown} />
-          </Button>
-        </div>
+        <Button
+          className="invoke-button"
+          disabled={disabled}
+          type="submit"
+          tooltip={this.props.tooltip}
+          onButtonRef={this.onInvokeButtonRef}
+          onClick={this.onSubmit}
+        >
+          {selectedOption.label}
+        </Button>
+        <Button
+          className={dropdownClasses}
+          onClick={this.openSplitButtonDropdown}
+          type="button"
+        >
+          <Octicon symbol={OcticonSymbol.triangleDown} />
+        </Button>
         {this.renderSplitButtonOptions()}
       </div>
     )

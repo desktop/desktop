@@ -288,14 +288,12 @@ export class RepositorySettings extends React.Component<
     const errors = new Array<JSX.Element | string>()
 
     if (this.state.remote && this.props.remote) {
-      const trimmedUrl = this.state.remote.url.trim()
-
-      if (trimmedUrl !== this.props.remote.url) {
+      if (this.state.remote.url !== this.props.remote.url) {
         try {
           await this.props.dispatcher.setRemoteURL(
             this.props.repository,
             this.props.remote.name,
-            trimmedUrl
+            this.state.remote.url
           )
         } catch (e) {
           log.error(

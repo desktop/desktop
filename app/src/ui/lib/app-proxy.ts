@@ -8,6 +8,7 @@ export type PathType =
   | 'home'
   | 'appData'
   | 'userData'
+  | 'cache'
   | 'temp'
   | 'exe'
   | 'module'
@@ -20,7 +21,6 @@ export type PathType =
   | 'recent'
   | 'logs'
   | 'crashDumps'
-  | 'sessionData'
 
 /**
  * Get the version of the app.

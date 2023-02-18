@@ -213,15 +213,3 @@ export function getForkContributionTarget(
     ? repository.workflowPreferences.forkContributionTarget
     : ForkContributionTarget.Parent
 }
-
-/**
- * Returns whether the fork is contributing to the parent
- */
-export function isForkedRepositoryContributingToParent(
-  repository: Repository
-): boolean {
-  return (
-    isRepositoryWithForkedGitHubRepository(repository) &&
-    getForkContributionTarget(repository) === ForkContributionTarget.Parent
-  )
-}

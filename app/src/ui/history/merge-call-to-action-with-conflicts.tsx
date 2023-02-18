@@ -96,24 +96,25 @@ export class MergeCallToActionWithConflicts extends React.Component<
     })
   }
 
-  private onOperationChange = (
-    option: IDropdownSelectButtonOption<MultiCommitOperationKind>
-  ) => {
-    this.setState({ selectedOperation: option.value })
-    if (option.value === MultiCommitOperationKind.Rebase) {
+  private onOperationChange = (option: IDropdownSelectButtonOption) => {
+    const value = option.value as MultiCommitOperationKind
+    this.setState({ selectedOperation: value })
+    if (value === MultiCommitOperationKind.Rebase) {
       this.updateRebasePreview(this.props.comparisonBranch)
     }
   }
 
   private onOperationInvoked = async (
     event: React.MouseEvent<HTMLButtonElement>,
-    selectedOption: IDropdownSelectButtonOption<MultiCommitOperationKind>
+    selectedOption: IDropdownSelectButtonOption
   ) => {
     event.preventDefault()
 
     const { dispatcher, repository } = this.props
 
-    await this.dispatchOperation(selectedOption.value)
+    await this.dispatchOperation(
+      selectedOption.value as MultiCommitOperationKind
+    )
 
     dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.History,

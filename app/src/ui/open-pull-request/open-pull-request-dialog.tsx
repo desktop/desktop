@@ -34,20 +34,14 @@ interface IOpenPullRequestDialogProps {
   readonly defaultBranch: Branch | null
 
   /**
-   * Branches in the repo with the repo's default remote
-   *
-   * We only want branches that are also on dotcom such that, when we ask a user
-   * to create a pull request, the base branch also exists on dotcom.
+   * See IBranchesState.allBranches
    */
-  readonly prBaseBranches: ReadonlyArray<Branch>
+  readonly allBranches: ReadonlyArray<Branch>
 
   /**
-   * Recent branches with the repo's default remote
-   *
-   * We only want branches that are also on dotcom such that, when we ask a user
-   * to create a pull request, the base branch also exists on dotcom.
+   * See IBranchesState.recentBranches
    */
-  readonly prRecentBaseBranches: ReadonlyArray<Branch>
+  readonly recentBranches: ReadonlyArray<Branch>
 
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
@@ -68,9 +62,6 @@ interface IOpenPullRequestDialogProps {
    * it's SHA  */
   readonly nonLocalCommitSHA: string | null
 
-  /** Whether the current branch already has a pull request*/
-  readonly currentBranchHasPullRequest: boolean
-
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
 }
@@ -78,19 +69,9 @@ interface IOpenPullRequestDialogProps {
 /** The component for start a pull request. */
 export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialogProps> {
   private onCreatePullRequest = () => {
-    const { currentBranchHasPullRequest, dispatcher, repository, onDismissed } =
-      this.props
-
-    if (currentBranchHasPullRequest) {
-      dispatcher.showPullRequest(repository)
-    } else {
-      const { baseBranch } = this.props.pullRequestState
-      dispatcher.createPullRequest(repository, baseBranch ?? undefined)
-      dispatcher.recordCreatePullRequest()
-      dispatcher.recordCreatePullRequestFromPreview()
-    }
-
-    onDismissed()
+    this.props.dispatcher.createPullRequest(this.props.repository)
+    // TODO: create pr from dialog pr stat?
+    this.props.dispatcher.recordCreatePullRequest()
   }
 
   private onBranchChange = (branch: Branch) => {
@@ -103,8 +84,8 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       currentBranch,
       pullRequestState,
       defaultBranch,
-      prBaseBranches,
-      prRecentBaseBranches,
+      allBranches,
+      recentBranches,
     } = this.props
     const { baseBranch, commitSHAs } = pullRequestState
     return (
@@ -112,8 +93,8 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         baseBranch={baseBranch}
         currentBranch={currentBranch}
         defaultBranch={defaultBranch}
-        prBaseBranches={prBaseBranches}
-        prRecentBaseBranches={prRecentBaseBranches}
+        allBranches={allBranches}
+        recentBranches={recentBranches}
         commitCount={commitSHAs?.length ?? 0}
         onBranchChange={this.onBranchChange}
         onDismissed={this.props.onDismissed}
@@ -125,7 +106,6 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     return (
       <div className="open-pull-request-content">
         {this.renderNoChanges()}
-        {this.renderNoDefaultBranch()}
         {this.renderFilesChanged()}
       </div>
     )
@@ -143,11 +123,6 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       nonLocalCommitSHA,
     } = this.props
     const { commitSelection } = pullRequestState
-    if (commitSelection === null) {
-      // type checking - will render no default branch message
-      return
-    }
-
     const { diff, file, changesetData, shas } = commitSelection
     const { files } = changesetData
 
@@ -175,12 +150,8 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   private renderNoChanges() {
     const { pullRequestState, currentBranch } = this.props
     const { commitSelection, baseBranch, mergeStatus } = pullRequestState
-    if (commitSelection === null || baseBranch === null) {
-      // type checking - will render no default branch message
-      return
-    }
-
     const { shas } = commitSelection
+
     if (shas.length !== 0) {
       return
     }
@@ -197,7 +168,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       </>
     )
     return (
-      <div className="open-pull-request-message">
+      <div className="open-pull-request-no-changes">
         <div>
           <Octicon symbol={OcticonSymbol.gitPullRequest} />
           <h3>There are no changes.</h3>
@@ -207,54 +178,22 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
     )
   }
 
-  private renderNoDefaultBranch() {
-    const { baseBranch } = this.props.pullRequestState
-
-    if (baseBranch !== null) {
-      return
-    }
-
-    return (
-      <div className="open-pull-request-message">
-        <div>
-          <Octicon symbol={OcticonSymbol.gitPullRequest} />
-          <h3>Could not find a default branch to compare against.</h3>
-          Select a base branch above.
-        </div>
-      </div>
-    )
-  }
-
   private renderFooter() {
-    const { currentBranchHasPullRequest, pullRequestState, repository } =
-      this.props
-    const { mergeStatus, commitSHAs } = pullRequestState
-    const gitHubRepository = repository.gitHubRepository
+    const { mergeStatus, commitSHAs } = this.props.pullRequestState
+    const gitHubRepository = this.props.repository.gitHubRepository
     const isEnterprise =
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
-
-    const viewCreate = currentBranchHasPullRequest ? 'View' : ' Create'
-    const buttonTitle = `${viewCreate} pull request on GitHub${
+    const buttonTitle = `Create pull request on GitHub${
       isEnterprise ? ' Enterprise' : ''
     }.`
-
-    const okButton = (
-      <>
-        {currentBranchHasPullRequest && (
-          <Octicon symbol={OcticonSymbol.linkExternal} />
-        )}
-        {__DARWIN__
-          ? `${viewCreate} Pull Request`
-          : `${viewCreate} pull request`}
-      </>
-    )
 
     return (
       <DialogFooter>
         <PullRequestMergeStatus mergeStatus={mergeStatus} />
-
         <OkCancelButtonGroup
-          okButtonText={okButton}
+          okButtonText={
+            __DARWIN__ ? 'Create Pull Request' : 'Create pull request'
+          }
           okButtonTitle={buttonTitle}
           cancelButtonText="Cancel"
           okButtonDisabled={commitSHAs === null || commitSHAs.length === 0}

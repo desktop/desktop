@@ -68,10 +68,7 @@ import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
-import {
-  PullRequest,
-  PullRequestSuggestedNextAction,
-} from '../../models/pull-request'
+import { PullRequest } from '../../models/pull-request'
 import {
   Repository,
   RepositoryWithGitHubRepository,
@@ -204,6 +201,16 @@ export class Dispatcher {
     moveToTrash: boolean
   ): Promise<void> {
     return this.appStore._removeRepository(repository, moveToTrash)
+  }
+
+  /**
+   * todo: maifee: write some cool doc
+   */
+  public async cancelCloningRepository(
+    repository: CloningRepository
+  ): Promise<void> {
+    await this.appStore._cancelCloningRepository(repository)
+    await this.removeRepository(repository, true)
   }
 
   /** Update the repository's `missing` flag. */
@@ -2193,11 +2200,8 @@ export class Dispatcher {
    * openCreatePullRequestInBrowser method which immediately opens the
    * create pull request page without showing a dialog.
    */
-  public createPullRequest(
-    repository: Repository,
-    baseBranch?: Branch
-  ): Promise<void> {
-    return this.appStore._createPullRequest(repository, baseBranch)
+  public createPullRequest(repository: Repository): Promise<void> {
+    return this.appStore._createPullRequest(repository)
   }
 
   /**
@@ -2458,10 +2462,6 @@ export class Dispatcher {
    */
   public recordCreatePullRequest() {
     return this.statsStore.recordCreatePullRequest()
-  }
-
-  public recordCreatePullRequestFromPreview() {
-    return this.statsStore.recordCreatePullRequestFromPreview()
   }
 
   public recordWelcomeWizardInitiated() {
@@ -4040,15 +4040,5 @@ export class Dispatcher {
    */
   public cancelQuittingApp() {
     this.appStore._cancelQuittingApp()
-  }
-
-  /**
-   * Sets the user's preference for which pull request suggested next action to
-   * use
-   */
-  public setPullRequestSuggestedNextAction(
-    value: PullRequestSuggestedNextAction
-  ) {
-    return this.appStore._setPullRequestSuggestedNextAction(value)
   }
 }

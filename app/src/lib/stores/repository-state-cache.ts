@@ -286,8 +286,7 @@ export class RepositoryStateCache {
     }
 
     const oldState = pullRequestState.commitSelection
-    const commitSelection =
-      oldState === null ? null : merge(oldState, fn(oldState))
+    const commitSelection = merge(oldState, fn(oldState))
     this.updatePullRequestState(repository, () => ({
       commitSelection,
     }))

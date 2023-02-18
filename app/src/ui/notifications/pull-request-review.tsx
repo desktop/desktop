@@ -1,17 +1,24 @@
 import * as React from 'react'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
+import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import {
   getPullRequestReviewStateIcon,
   getVerbForPullRequestReview,
 } from './pull-request-review-helpers'
 import { LinkButton } from '../lib/link-button'
+import classNames from 'classnames'
+import { Avatar } from '../lib/avatar'
+import { formatRelative } from '../../lib/format-relative'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
-import { PullRequestCommentLike } from './pull-request-comment-like'
+import { getStealthEmailForUser } from '../../lib/email'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -19,6 +26,7 @@ interface IPullRequestReviewProps {
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
   readonly review: ValidNotificationPullRequestReview
+  readonly numberOfComments: number
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
@@ -39,7 +47,7 @@ interface IPullRequestReviewState {
 }
 
 /**
- * Dialog to show a pull request review.
+ * Dialog to show the result of a CI check run.
  */
 export class PullRequestReview extends React.Component<
   IPullRequestReviewProps,
@@ -54,42 +62,115 @@ export class PullRequestReview extends React.Component<
   }
 
   public render() {
-    const {
-      dispatcher,
-      accounts,
-      repository,
-      pullRequest,
-      emoji,
-      review,
-      onSubmit,
-      onDismissed,
-    } = this.props
+    const { title, pullRequestNumber } = this.props.pullRequest
 
-    const icon = getPullRequestReviewStateIcon(review.state)
+    const header = (
+      <div className="pull-request-review-dialog-header">
+        {this.renderPullRequestIcon()}
+        <span className="pr-title">
+          <span className="pr-title">{title}</span>{' '}
+          <span className="pr-number">#{pullRequestNumber}</span>{' '}
+        </span>
+      </div>
+    )
 
     return (
-      <PullRequestCommentLike
-        dispatcher={dispatcher}
-        accounts={accounts}
-        repository={repository}
-        pullRequest={pullRequest}
-        emoji={emoji}
-        eventDate={new Date(review.submitted_at)}
-        eventVerb={getVerbForPullRequestReview(review)}
-        eventIconSymbol={icon.symbol}
-        eventIconClass={icon.className}
-        externalURL={review.html_url}
-        user={review.user}
-        body={review.body}
-        switchingToPullRequest={this.state.switchingToPullRequest}
-        renderFooterContent={this.renderFooterContent}
-        onSubmit={onSubmit}
-        onDismissed={onDismissed}
-      />
+      <Dialog
+        id="pull-request-review"
+        type="normal"
+        title={header}
+        dismissable={false}
+        onSubmit={this.props.onSubmit}
+        onDismissed={this.props.onDismissed}
+        loading={this.state.switchingToPullRequest}
+      >
+        <DialogContent>
+          <div className="review-container">
+            {this.renderTimelineItem()}
+            {this.renderCommentBubble()}
+          </div>
+        </DialogContent>
+        <DialogFooter>{this.renderFooterContent()}</DialogFooter>
+      </Dialog>
     )
   }
 
-  private renderFooterContent = () => {
+  private renderTimelineItem() {
+    const { review, repository } = this.props
+    const { user } = review
+    const { endpoint } = repository.gitHubRepository
+    const verb = getVerbForPullRequestReview(review)
+    const userAvatar = {
+      name: user.login,
+      email: getStealthEmailForUser(user.id, user.login, endpoint),
+      avatarURL: user.avatar_url,
+      endpoint: endpoint,
+    }
+
+    const bottomLine = this.shouldRenderCommentBubble()
+      ? null
+      : this.renderDashedTimelineLine('bottom')
+
+    const timelineItemClass = classNames('timeline-item', {
+      'with-comment': this.shouldRenderCommentBubble(),
+    })
+
+    const submittedAt = new Date(review.submitted_at)
+    const diff = submittedAt.getTime() - Date.now()
+    const relativeReviewDate = formatRelative(diff)
+
+    return (
+      <div className="timeline-item-container">
+        {this.renderDashedTimelineLine('top')}
+        <div className={timelineItemClass}>
+          <Avatar user={userAvatar} title={null} size={40} />
+          {this.renderReviewIcon()}
+          <div className="summary">
+            <LinkButton uri={review.user.html_url} className="reviewer">
+              {review.user.login}
+            </LinkButton>{' '}
+            {verb} your pull request{' '}
+            <LinkButton uri={review.html_url} className="submission-date">
+              {relativeReviewDate}
+            </LinkButton>
+          </div>
+        </div>
+        {bottomLine}
+      </div>
+    )
+  }
+
+  private shouldRenderCommentBubble() {
+    return this.props.review.body !== ''
+  }
+
+  private renderCommentBubble() {
+    if (!this.shouldRenderCommentBubble()) {
+      return null
+    }
+
+    return (
+      <div className="comment-bubble-container">
+        <div className="comment-bubble">{this.renderReviewBody()}</div>
+        {this.renderDashedTimelineLine('bottom')}
+      </div>
+    )
+  }
+
+  private renderDashedTimelineLine(type: 'top' | 'bottom') {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={`timeline-line ${type}`}
+      >
+        {/* Need to use 0.5 for X to prevent nearest neighbour filtering causing
+        the line to appear semi-transparent. */}
+        <line x1="0.5" y1="0" x2="0.5" y2="100%" />
+      </svg>
+    )
+  }
+
+  private renderFooterContent() {
     const { review, shouldChangeRepository, shouldCheckoutBranch } = this.props
     const isApprovedReview = review.state === 'APPROVED'
 
@@ -129,6 +210,56 @@ export class PullRequestReview extends React.Component<
         </div>
         {okCancelButtonGroup}
       </Row>
+    )
+  }
+
+  private onMarkdownLinkClicked = (url: string) => {
+    this.props.dispatcher.openInBrowser(url)
+  }
+
+  private renderReviewBody() {
+    const { review, emoji, pullRequest } = this.props
+    const { base } = pullRequest
+
+    return (
+      <SandboxedMarkdown
+        markdown={review.body}
+        emoji={emoji}
+        baseHref={base.gitHubRepository.htmlURL ?? undefined}
+        repository={base.gitHubRepository}
+        onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+        markdownContext={'PullRequestComment'}
+      />
+    )
+  }
+
+  private renderPullRequestIcon = () => {
+    const { pullRequest } = this.props
+
+    const cls = classNames('pull-request-icon', {
+      draft: pullRequest.draft,
+    })
+
+    return (
+      <Octicon
+        className={cls}
+        symbol={
+          pullRequest.draft
+            ? OcticonSymbol.gitPullRequestDraft
+            : OcticonSymbol.gitPullRequest
+        }
+      />
+    )
+  }
+
+  private renderReviewIcon = () => {
+    const { review } = this.props
+
+    const icon = getPullRequestReviewStateIcon(review.state)
+    return (
+      <div className={classNames('review-icon-container', icon.className)}>
+        <Octicon symbol={icon.symbol} />
+      </div>
     )
   }
 

@@ -43,5 +43,5 @@ export type MenuEvent =
   | 'find-text'
   | 'create-issue-in-repository-on-github'
   | 'pull-request-check-run-failed'
-  | 'preview-pull-request'
+  | 'start-pull-request'
   | 'show-app-error'

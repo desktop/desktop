@@ -140,9 +140,9 @@ export class AppWindow {
         // https://github.com/desktop/desktop/issues/12838
         if (this.window.isFullScreen()) {
           this.window.setFullScreen(false)
-          this.window.once('leave-full-screen', () => this.window.hide())
+          this.window.once('leave-full-screen', () => app.hide())
         } else {
-          this.window.hide()
+          app.hide()
         }
         return
       }

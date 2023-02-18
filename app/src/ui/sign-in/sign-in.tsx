@@ -41,8 +41,6 @@ const SignInWithBrowserTitle = __DARWIN__
 const DefaultTitle = 'Sign in'
 
 export class SignIn extends React.Component<ISignInProps, ISignInState> {
-  private readonly dialogRef = React.createRef<Dialog>()
-
   public constructor(props: ISignInProps) {
     super(props)
 
@@ -51,18 +49,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       username: '',
       password: '',
       otpToken: '',
-    }
-  }
-
-  public componentDidUpdate(prevProps: ISignInProps) {
-    // Whenever the sign in step changes we replace the dialog contents which
-    // means we need to re-focus the first suitable child element as it's
-    // essentially a "new" dialog we're showing only the dialog component itself
-    // doesn't know that.
-    if (prevProps.signInState !== null && this.props.signInState !== null) {
-      if (prevProps.signInState.kind !== this.props.signInState.kind) {
-        this.dialogRef.current?.focusFirstSuitableChild()
-      }
     }
   }
 
@@ -175,7 +161,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         <OkCancelButtonGroup
           okButtonText={primaryButtonText}
           okButtonDisabled={disableSubmit}
-          onCancelButtonClick={this.onDismissed}
         />
       </DialogFooter>
     )
@@ -339,7 +324,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         onDismissed={this.onDismissed}
         onSubmit={this.onSubmit}
         loading={state.loading}
-        ref={this.dialogRef}
       >
         {errors}
         {this.renderStep()}

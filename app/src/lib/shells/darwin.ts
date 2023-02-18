@@ -11,7 +11,6 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Kitty = 'Kitty',
   Alacritty = 'Alacritty',
-  Tabby = 'Tabby',
   WezTerm = 'WezTerm',
   Warp = 'Warp',
 }
@@ -36,8 +35,6 @@ function getBundleID(shell: Shell): string {
       return 'net.kovidgoyal.kitty'
     case Shell.Alacritty:
       return 'io.alacritty'
-    case Shell.Tabby:
-      return 'org.tabby'
     case Shell.WezTerm:
       return 'com.github.wez.wezterm'
     case Shell.Warp:
@@ -67,7 +64,6 @@ export async function getAvailableShells(): Promise<
     powerShellCorePath,
     kittyPath,
     alacrittyPath,
-    tabbyPath,
     wezTermPath,
     warpPath,
   ] = await Promise.all([
@@ -77,7 +73,6 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.PowerShellCore),
     getShellPath(Shell.Kitty),
     getShellPath(Shell.Alacritty),
-    getShellPath(Shell.Tabby),
     getShellPath(Shell.WezTerm),
     getShellPath(Shell.Warp),
   ])
@@ -107,11 +102,6 @@ export async function getAvailableShells(): Promise<
   if (alacrittyPath) {
     const alacrittyExecutable = `${alacrittyPath}/Contents/MacOS/alacritty`
     shells.push({ shell: Shell.Alacritty, path: alacrittyExecutable })
-  }
-
-  if (tabbyPath) {
-    const tabbyExecutable = `${tabbyPath}/Contents/MacOS/Tabby`
-    shells.push({ shell: Shell.Tabby, path: tabbyExecutable })
   }
 
   if (wezTermPath) {
@@ -145,12 +135,6 @@ export function launch(
     // It uses --working-directory command to start the shell
     // in the specified working directory.
     return spawn(foundShell.path, ['--working-directory', path])
-  } else if (foundShell.shell === Shell.Tabby) {
-    // Tabby cannot open files in the folder format.
-    //
-    // It uses open command to start the shell
-    // in the specified working directory.
-    return spawn(foundShell.path, ['open', path])
   } else if (foundShell.shell === Shell.WezTerm) {
     // WezTerm, like Alacritty, "cannot open files in the 'folder' format."
     //
