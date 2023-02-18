@@ -11,7 +11,10 @@ import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
-import { PullRequest } from '../models/pull-request'
+import {
+  PullRequest,
+  PullRequestSuggestedNextAction,
+} from '../models/pull-request'
 import { IAuthor } from '../models/author'
 import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
@@ -116,6 +119,7 @@ export interface IAppState {
   readonly showWelcomeFlow: boolean
   readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
+  readonly allPopups: ReadonlyArray<Popup>
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
 
@@ -311,6 +315,11 @@ export interface IAppState {
    * Whether or not the user enabled high-signal notifications.
    */
   readonly notificationsEnabled: boolean
+
+  /** The users last chosen pull request suggested next action. */
+  readonly pullRequestSuggestedNextAction:
+    | PullRequestSuggestedNextAction
+    | undefined
 }
 
 export enum FoldoutType {
@@ -318,6 +327,7 @@ export enum FoldoutType {
   Branch,
   AppMenu,
   AddMenu,
+  PushPull,
 }
 
 export type AppMenuFoldout = {
@@ -349,6 +359,7 @@ export type Foldout =
   | { type: FoldoutType.AddMenu }
   | BranchFoldout
   | AppMenuFoldout
+  | { type: FoldoutType.PushPull }
 
 export enum RepositorySectionTab {
   Changes,
@@ -959,7 +970,7 @@ export interface IPullRequestState {
    * The base branch of a a pull request - the branch the currently checked out
    * branch would merge into
    */
-  readonly baseBranch: Branch
+  readonly baseBranch: Branch | null
 
   /** The SHAs of commits of the pull request */
   readonly commitSHAs: ReadonlyArray<string> | null
@@ -973,7 +984,7 @@ export interface IPullRequestState {
    * repositories commit selection where the diff of all commits represents the
    * diff between the latest commit and the earliest commits parent.
    */
-  readonly commitSelection: ICommitSelection
+  readonly commitSelection: ICommitSelection | null
 
   /** The result of merging the pull request branch into the base branch */
   readonly mergeStatus: MergeTreeResult | null

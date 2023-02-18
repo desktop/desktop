@@ -37,18 +37,29 @@ const defaultPopupStackLimit = 50
  *      displayed as error text with a ok button.
  */
 export class PopupManager {
-  private popupStack = new Array<Popup>()
+  private popupStack: ReadonlyArray<Popup> = []
 
   public constructor(private readonly popupLimit = defaultPopupStackLimit) {}
 
   /**
    * Returns the last popup in the stack.
+   *
+   * The stack is sorted such that:
    *  If there are error popups, it returns the last popup of type error,
    *  otherwise returns the first non-error type popup.
    */
   public get currentPopup(): Popup | null {
-    const errorPopups = this.getPopupsOfType(PopupType.Error)
-    return errorPopups.at(-1) ?? this.popupStack.at(-1) ?? null
+    return this.popupStack.at(-1) ?? null
+  }
+
+  /**
+   * Returns all the popups in the stack.
+   *
+   * The stack is sorted such that:
+   *  If there are error popups, they will be the last on the stack.
+   */
+  public get allPopups(): ReadonlyArray<Popup> {
+    return this.popupStack
   }
 
   /**
@@ -98,9 +109,23 @@ export class PopupManager {
       return popupToAdd
     }
 
-    this.popupStack.push(popup)
+    this.insertBeforeErrorPopups(popup)
     this.checkStackLength()
     return popup
+  }
+
+  /** Adds a non-Error type popup before any error popups. */
+  private insertBeforeErrorPopups(popup: Popup) {
+    if (this.popupStack.at(-1)?.type !== PopupType.Error) {
+      this.popupStack = this.popupStack.concat(popup)
+      return
+    }
+
+    const errorPopups = this.getPopupsOfType(PopupType.Error)
+    const nonErrorPopups = this.popupStack.filter(
+      p => p.type !== PopupType.Error
+    )
+    this.popupStack = [...nonErrorPopups, popup, ...errorPopups]
   }
 
   /*
@@ -110,7 +135,7 @@ export class PopupManager {
    **/
   public addErrorPopup(error: Error): Popup {
     const popup: Popup = { id: uuid(), type: PopupType.Error, error }
-    this.popupStack.push(popup)
+    this.popupStack = this.popupStack.concat(popup)
     this.checkStackLength()
     return popup
   }

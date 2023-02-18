@@ -115,10 +115,15 @@ export function enableStartingPullRequests(): boolean {
 
 /** Should we enable starting pull requests? */
 export function enableStackedPopups(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /** Should we enable mechanism to prevent closing while the app is updating? */
 export function enablePreventClosingWhileUpdating(): boolean {
+  return true
+}
+
+/** Should we enable the new push-pull-fetch dropdown? */
+export function enablePushPullFetchDropdown(): boolean {
   return enableBetaFeatures()
 }

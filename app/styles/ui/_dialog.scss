@@ -22,6 +22,8 @@
 @import 'dialogs/unreachable-commits';
 @import 'dialogs/open-pull-request';
 @import 'dialogs/installing-update';
+@import 'dialogs/test-notifications';
+@import 'dialogs/pull-request-comment-like';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -129,6 +131,10 @@ dialog {
     opacity: 1;
   }
 
+  &:not([open]) {
+    display: none;
+  }
+
   // The dialog embeds a fieldset as the first child of the form element
   // in order to be able to disable all form elements and buttons in one
   // swoop. This resets all styles for that fieldset.
@@ -204,10 +210,6 @@ dialog {
 
       &:hover {
         color: var(--text-color);
-      }
-
-      &:focus {
-        outline: 0;
       }
     }
     @include close-button;

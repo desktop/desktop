@@ -183,7 +183,7 @@ export class BranchDropdown extends React.Component<
 
     const isOpen = this.props.isOpen
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
-    const buttonClassName = classNames('nudge-arrow', {
+    const buttonClassName = classNames('branch-toolbar-button', 'nudge-arrow', {
       'nudge-arrow-up': this.props.shouldNudge,
     })
 

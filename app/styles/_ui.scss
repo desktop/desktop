@@ -21,6 +21,7 @@
 @import 'ui/toolbar/toolbar';
 @import 'ui/toolbar/button';
 @import 'ui/toolbar/dropdown';
+@import 'ui/toolbar/push-pull-button';
 @import 'ui/tab-bar';
 @import 'ui/panel';
 @import 'ui/popup';
@@ -94,7 +95,6 @@
 @import 'ui/check-runs/_ci-check-run-popover';
 @import 'ui/check-runs/ci-check-run-job-steps';
 @import 'ui/_pull-request-checks-failed';
-@import 'ui/_pull-request-review';
 @import 'ui/_sandboxed-markdown';
 @import 'ui/_pull-request-quick-view';
 @import 'ui/discard-changes-retry';
