@@ -50,8 +50,8 @@ sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/shiftkey-packages.
 #### [@mwt](https://github.com/mwt) package feed
 
 ```sh
-wget -qO - https://mirror.mwt.me/ghd/gpgkey | gpg --dearmor | sudo tee /etc/apt/keyrings/mwt-desktop.asc > /dev/null
-sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/mwt-desktop.asc] https://mirror.mwt.me/ghd/deb/ any main" > /etc/apt/sources.list.d/mwt-desktop.list'
+wget -qO - https://mirror.mwt.me/shiftkey-desktop/gpgkey | gpg --dearmor | sudo tee /etc/apt/keyrings/mwt-desktop.asc > /dev/null
+sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/mwt-desktop.asc] https://mirror.mwt.me/shiftkey-desktop/deb/ any main" > /etc/apt/sources.list.d/mwt-desktop.list'
 ```
 
 #### Installation
@@ -78,8 +78,8 @@ sudo sh -c 'echo -e "[shiftkey-packages]\nname=GitHub Desktop\nbaseurl=https://r
 #### [@mwt](https://github.com/mwt) package feed
 
 ```sh
-sudo rpm --import https://mirror.mwt.me/ghd/gpgkey
-sudo sh -c 'echo -e "[mwt-packages]\nname=GitHub Desktop\nbaseurl=https://mirror.mwt.me/ghd/rpm\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=https://mirror.mwt.me/ghd/gpgkey" > /etc/yum.repos.d/mwt-packages.repo'
+sudo rpm --import https://mirror.mwt.me/shiftkey-desktop/gpgkey
+sudo sh -c 'echo -e "[mwt-packages]\nname=GitHub Desktop\nbaseurl=https://mirror.mwt.me/shiftkey-desktop/rpm\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://mirror.mwt.me/shiftkey-desktop/gpgkey" > /etc/yum.repos.d/mwt-packages.repo'
 ```
 
 #### Installation
