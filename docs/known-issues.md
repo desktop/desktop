@@ -231,6 +231,24 @@ If you see an error that says "Not enough resources are available to process thi
 
 ## Linux
 
+### The PackageCloud package feed is no longer working
+
+The PackageCloud feed has been closed down. If you are seeing errors about this you should remove the configuration for this feed and refer to the [README](https://github.com/shiftkey/desktop#repositories)
+for the new settings.
+
+#### APT configuration
+
+```
+sudo rm /etc/apt/trusted.gpg.d/shiftkey-desktop.asc
+sudo rm /etc/apt/sources.list.d/packagecloud-shiftkey-desktop.list
+```
+
+#### RPM configuration
+
+```
+sudo rm /etc/apt/sources.list.d/packagecloud-shiftkey-desktop.list
+```
+
 ### I get a white screen when launching Desktop
 
 Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a white screen. If you are running GitHub Desktop within virtualization software like Parallels Desktop, hardware accelerated graphics may not be available.
