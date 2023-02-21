@@ -8,9 +8,6 @@ interface IListRowProps {
   /** the index of the row in the list */
   readonly rowIndex: number
 
-  /** the accessibility mode to assign to the row */
-  readonly ariaMode?: 'list' | 'menu'
-
   /** custom styles to provide to the row */
   readonly style?: React.CSSProperties
 
@@ -53,6 +50,13 @@ interface IListRowProps {
     e: React.FocusEvent<HTMLDivElement>
   ) => void
 
+  /** Called back for when the context menu is invoked (user right clicks of
+   * uses keyboard shortcuts) */
+  readonly onContextMenu?: (
+    index: number,
+    e: React.MouseEvent<HTMLDivElement>
+  ) => void
+
   /**
    * Whether or not this list row is going to be selectable either through
    * keyboard navigation, pointer clicks, or both. This is used to determine
@@ -62,6 +66,14 @@ interface IListRowProps {
 
   /** a custom css class to apply to the row */
   readonly className?: string
+
+  /**
+   * aria label value for screen readers
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly ariaLabel?: string
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -97,6 +109,10 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     this.props.onRowBlur?.(this.props.rowIndex, e)
   }
 
+  private onContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onContextMenu?.(this.props.rowIndex, e)
+  }
+
   public render() {
     const selected = this.props.selected
     const className = classNames(
@@ -105,8 +121,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       { 'not-selectable': this.props.selectable === false },
       this.props.className
     )
-    const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
-
     // react-virtualized gives us an explicit pixel width for rows, but that
     // width doesn't take into account whether or not the scroll bar needs
     // width too, e.g., on macOS when "Show scroll bars" is set to "Always."
@@ -123,7 +137,8 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
         aria-selected={this.props.selected}
-        role={role}
+        aria-label={this.props.ariaLabel}
+        role="option"
         className={className}
         tabIndex={this.props.tabIndex}
         ref={this.onRef}
@@ -135,6 +150,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         style={style}
         onFocus={this.onFocus}
         onBlur={this.onBlur}
+        onContextMenu={this.onContextMenu}
       >
         {this.props.children}
       </div>

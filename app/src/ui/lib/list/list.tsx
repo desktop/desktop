@@ -17,6 +17,7 @@ import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
+import memoizeOne from 'memoize-one'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -189,6 +190,18 @@ interface IListProps {
   readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
   /**
+   * A handler called whenever a context menu event is received on the
+   * row container element.
+   *
+   * The context menu is invoked when a user right clicks the row or
+   * uses keyboard shortcut.
+   */
+  readonly onRowContextMenu?: (
+    row: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+
+  /**
    * A handler called whenever the user drops items on the list to be inserted.
    *
    * @param row - The index of the row where the user intends to insert the new
@@ -231,13 +244,20 @@ interface IListProps {
    */
   readonly focusOnHover?: boolean
 
-  readonly ariaMode?: 'list' | 'menu'
-
   /**
    * The number of pixels from the top of the list indicating
    * where to scroll do on rendering of the list.
    */
   readonly setScrollTop?: number
+
+  /**
+   * Optional callback for providing an aria label for screen readers for each
+   * row.
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly getRowAriaLabel?: (row: number) => string | undefined
 }
 
 interface IListState {
@@ -292,6 +312,22 @@ export class List extends React.Component<IListProps, IListState> {
   private grid: Grid | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: NodeJS.Immediate | null = null
+
+  /**
+   * Get the props for the inner scroll container (called containerProps on the
+   * Grid component). This is memoized to avoid causing the Grid component to
+   * rerender every time the list component rerenders (the Grid component is a
+   * pure component so a complex object like containerProps being instantiated
+   * on each render would cause it to rerender constantly).
+   */
+  private getContainerProps = memoizeOne(
+    (
+      activeDescendant: string | undefined
+    ): React.HTMLProps<HTMLDivElement> => ({
+      onKeyDown: this.onKeyDown,
+      'aria-activedescendant': activeDescendant,
+    })
+  )
 
   public constructor(props: IListProps) {
     super(props)
@@ -607,6 +643,13 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onRowContextMenu = (
+    row: number,
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    this.props.onRowContextMenu?.(row, e)
+  }
+
   private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
       if (!this.props.selectedRows.includes(row)) {
@@ -898,6 +941,11 @@ export class List extends React.Component<IListProps, IListState> {
       ? `${this.state.rowIdPrefix}-${rowIndex}`
       : undefined
 
+    const ariaLabel =
+      this.props.getRowAriaLabel !== undefined
+        ? this.props.getRowAriaLabel(rowIndex)
+        : undefined
+
     return (
       <ListRow
         key={params.key}
@@ -906,7 +954,7 @@ export class List extends React.Component<IListProps, IListState> {
         rowCount={this.props.rowCount}
         rowIndex={rowIndex}
         selected={selected}
-        ariaMode={this.props.ariaMode}
+        ariaLabel={ariaLabel}
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
@@ -914,6 +962,7 @@ export class List extends React.Component<IListProps, IListState> {
         onRowMouseOver={this.onRowMouseOver}
         onRowFocus={this.onRowFocus}
         onRowBlur={this.onRowBlur}
+        onContextMenu={this.onRowContextMenu}
         style={params.style}
         tabIndex={tabIndex}
         children={element}
@@ -941,26 +990,8 @@ export class List extends React.Component<IListProps, IListState> {
       )
     }
 
-    // we select the last item from the selection array for this prop
-    const activeDescendant =
-      this.props.selectedRows.length && this.state.rowIdPrefix
-        ? `${this.state.rowIdPrefix}-${
-            this.props.selectedRows[this.props.selectedRows.length - 1]
-          }`
-        : undefined
-
-    const role = this.props.ariaMode === 'menu' ? 'menu' : 'listbox'
-
     return (
-      // eslint-disable-next-line jsx-a11y/aria-activedescendant-has-tabindex
-      <div
-        ref={this.onRef}
-        id={this.props.id}
-        className="list"
-        onKeyDown={this.onKeyDown}
-        role={role}
-        aria-activedescendant={activeDescendant}
-      >
+      <div ref={this.onRef} id={this.props.id} className="list">
         {content}
       </div>
     )
@@ -1008,6 +1039,17 @@ export class List extends React.Component<IListProps, IListState> {
     // it with keyboard navigation and select an item.
     const tabIndex =
       this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
+
+    // we select the last item from the selection array for this prop
+    const activeDescendant =
+      this.props.selectedRows.length && this.state.rowIdPrefix
+        ? `${this.state.rowIdPrefix}-${
+            this.props.selectedRows[this.props.selectedRows.length - 1]
+          }`
+        : undefined
+
+    const containerProps = this.getContainerProps(activeDescendant)
+
     return (
       <FocusContainer
         className="list-focus-container"
@@ -1015,11 +1057,11 @@ export class List extends React.Component<IListProps, IListState> {
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <Grid
-          aria-label={''}
-          // eslint-disable-next-line jsx-a11y/aria-role
-          role={''}
+          role="listbox"
           ref={this.onGridRef}
           autoContainerWidth={true}
+          containerRole="presentation"
+          containerProps={containerProps}
           width={width}
           height={height}
           columnWidth={width}

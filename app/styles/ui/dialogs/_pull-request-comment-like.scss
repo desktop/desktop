@@ -1,4 +1,5 @@
-#pull-request-review {
+#pull-request-review,
+#pull-request-comment {
   --avatar-size: 40px;
   min-width: 500px;
 
@@ -6,7 +7,7 @@
     height: unset;
   }
 
-  .pull-request-review-dialog-header {
+  .pull-request-comment-like-dialog-header {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -44,7 +45,7 @@
     max-height: 300px;
     overflow: auto;
 
-    .review-container {
+    .comment-container {
       .timeline-line {
         width: 1px;
         height: 24px;
@@ -103,7 +104,7 @@
           .link-button-component {
             color: unset;
 
-            &.reviewer {
+            &.author {
               font-weight: bold;
             }
           }

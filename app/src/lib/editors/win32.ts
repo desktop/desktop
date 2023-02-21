@@ -405,7 +405,7 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
     installLocationRegistryKey: 'DisplayIcon',
     displayNamePrefix: 'RStudio',
-    publishers: ['RStudio'],
+    publishers: ['RStudio', 'Posit Software'],
   },
   {
     name: 'JetBrains IntelliJ Idea',
@@ -469,6 +469,14 @@ const editors: WindowsExternalEditor[] = [
     jetBrainsToolboxScriptName: 'fleet',
     installLocationRegistryKey: 'DisplayIcon',
     displayNamePrefix: 'Fleet ',
+    publishers: ['JetBrains s.r.o.'],
+  },
+  {
+    name: 'JetBrains DataSpell',
+    registryKeys: registryKeysForJetBrainsIDE('DataSpell'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('dataspell'),
+    jetBrainsToolboxScriptName: 'dataspell',
+    displayNamePrefix: 'DataSpell ',
     publishers: ['JetBrains s.r.o.'],
   },
 ]

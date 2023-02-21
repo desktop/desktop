@@ -78,6 +78,13 @@ export interface IButtonProps {
   readonly ariaExpanded?: boolean
 
   /**
+   * Typically the contents of a button serve the purpose of describing the
+   * buttons use. However, ariaLabel can be used if the contents do not suffice.
+   * Such as when a button wraps an image and there is no text.
+   */
+  readonly ariaLabel?: string
+
+  /**
    * Whether to only show the tooltip when the tooltip target overflows its
    * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
    */
@@ -134,6 +141,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         role={this.props.role}
         aria-expanded={this.props.ariaExpanded}
         aria-disabled={disabled ? 'true' : undefined}
+        aria-label={this.props.ariaLabel}
       >
         {tooltip && (
           <Tooltip
