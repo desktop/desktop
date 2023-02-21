@@ -206,13 +206,13 @@ export class RepositoriesList extends React.Component<
     const groups =
       this.props.repositories.length > recentRepositoriesThreshold
         ? [
-            makeRecentRepositoriesGroup(
-              this.props.recentRepositories,
-              this.props.repositories,
-              this.props.localRepositoryStateLookup
-            ),
-            ...baseGroups,
-          ]
+          makeRecentRepositoriesGroup(
+            this.props.recentRepositories,
+            this.props.repositories,
+            this.props.localRepositoryStateLookup
+          ),
+          ...baseGroups,
+        ]
         : baseGroups
 
     return (
@@ -315,6 +315,12 @@ export class RepositoriesList extends React.Component<
           : 'Add existing repository…',
         action: this.onAddExistingRepository,
       },
+      {
+        label: __DARWIN__
+          ? 'Add Existing Repositories From Folder…'
+          : 'Add existing repositories from folder…',
+        action: this.onAddRepositoriesFromFolder
+      }
     ]
 
     showContextualMenu(items)
@@ -333,6 +339,10 @@ export class RepositoriesList extends React.Component<
 
   private onCreateNewRepository = () => {
     this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
+  }
+
+  private onAddRepositoriesFromFolder = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.AddRepositoriesFromFolder })
   }
 
   private onChangeRepositoryAlias = (repository: Repository) => {

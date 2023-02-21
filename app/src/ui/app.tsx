@@ -165,6 +165,7 @@ import { enableStackedPopups } from '../lib/feature-flag'
 import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
+import { AddRepositoriesFromFolder } from './add-repository/add-repositories-folder'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -382,6 +383,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.chooseRepository()
       case 'add-local-repository':
         return this.showAddLocalRepo()
+      case 'add-repositories-from-folder':
+        return this.showAddRepositoriesFromFolder()
       case 'create-branch':
         return this.showCreateBranch()
       case 'show-branches':
@@ -828,6 +831,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private showAddLocalRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+  }
+
+  private showAddRepositoriesFromFolder = () => {
+    return this.props.dispatcher.showPopup({
+      type: PopupType.AddRepositoriesFromFolder,
+      path: this.state.gitRepositoriesPath,
+    })
   }
 
   private showCreateRepository = () => {
@@ -1609,6 +1619,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             initialPath={popup.path}
             isTopMost={isTopMost}
+          />
+        )
+      case PopupType.AddRepositoriesFromFolder:
+        return (
+          <AddRepositoriesFromFolder
+            key="add-repositories-from-folder"
+            onDismissed={onPopupDismissedFn}
+            dispatcher={this.props.dispatcher}
           />
         )
       case PopupType.CloneRepository:

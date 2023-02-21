@@ -155,7 +155,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
 
     return (
       <div className="git-projects-folder">
-        <h2>Folder for Git projects</h2>
+        <h2>Folder for Git repositories</h2>
         <Row>
           <TextBox
             value={gitRepositoriesPath}
@@ -166,7 +166,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
         </Row>
 
         <p className="git-settings-description">
-          This folder will be scanned for new repositories to be added to GitHub Desktop when it starts.
+          This folder will be used by GitHub Desktop to look for new repositories to be added to the app.
         </p>
       </div>
     )
