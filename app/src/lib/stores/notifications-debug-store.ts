@@ -76,42 +76,19 @@ export class NotificationsDebugStore {
 
     const ghRepository = repository.gitHubRepository
 
-    const issueComments = await api.fetchPullRequestComments(
+    const issueComments = await api.fetchIssueComments(
       ghRepository.owner.login,
       ghRepository.name,
       pullRequestNumber.toString()
     )
 
-    const issueCommentIds = new Set(issueComments.map(c => c.id))
-
-    // Fetch review comments of type COMMENTED and with no body
-    const allReviews = await api.fetchPullRequestReviews(
+    const reviewComments = await api.fetchPullRequestComments(
       ghRepository.owner.login,
       ghRepository.name,
       pullRequestNumber.toString()
     )
 
-    const commentedReviewsWithNoBody = allReviews.filter(
-      review => review.state === 'COMMENTED' && !review.body
-    )
-
-    const allReviewComments = await Promise.all(
-      commentedReviewsWithNoBody.map(review =>
-        api.fetchPullRequestReviewComments(
-          ghRepository.owner.login,
-          ghRepository.name,
-          pullRequestNumber.toString(),
-          review.id.toString()
-        )
-      )
-    )
-
-    // Only reviews with one comment, and that comment is not an issue comment
-    const singleReviewComments = allReviewComments
-      .flatMap(comments => (comments.length === 1 ? comments : []))
-      .filter(comment => !issueCommentIds.has(comment.id))
-
-    return [...issueComments, ...singleReviewComments]
+    return [...issueComments, ...reviewComments]
   }
 
   /** Simulate a notification for the given pull request review. */

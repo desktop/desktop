@@ -26,7 +26,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 
 enum TestNotificationType {
   PullRequestReview,
-  PullRequestReviewComment,
+  PullRequestComment,
 }
 
 enum TestNotificationStepKind {
@@ -49,7 +49,7 @@ const TestNotificationFlows: ReadonlyArray<TestNotificationFlow> = [
     ],
   },
   {
-    type: TestNotificationType.PullRequestReviewComment,
+    type: TestNotificationType.PullRequestComment,
     steps: [
       TestNotificationStepKind.SelectPullRequest,
       TestNotificationStepKind.SelectPullRequestComment,
@@ -162,7 +162,7 @@ export class TestNotifications extends React.Component<
     const title =
       type === TestNotificationType.PullRequestReview
         ? 'Pull Request Review'
-        : 'Pull Request Review Comment'
+        : 'Pull Request Comment'
 
     return (
       <Button onClick={this.getOnNotificationTypeClick(type)}>{title}</Button>
@@ -206,7 +206,7 @@ export class TestNotifications extends React.Component<
         )
         break
       }
-      case TestNotificationType.PullRequestReviewComment: {
+      case TestNotificationType.PullRequestComment: {
         const pullRequest = this.getPullRequest()
         const commentInfo = this.getCommentInfo()
 
@@ -356,7 +356,7 @@ export class TestNotifications extends React.Component<
               TestNotificationType.PullRequestReview
             )}
             {this.renderNotificationType(
-              TestNotificationType.PullRequestReviewComment
+              TestNotificationType.PullRequestComment
             )}
           </div>
         </div>
