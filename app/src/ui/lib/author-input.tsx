@@ -292,6 +292,7 @@ function renderHandleMarkReplacementElement(author: IAuthor) {
   elem.classList.add('handle')
   elem.title = `${author.name} <${author.email}>`
   elem.innerText = getDisplayTextForAuthor(author)
+  elem.ariaLabel = getDisplayTextForAuthor(author)
 
   return elem
 }
@@ -306,6 +307,7 @@ function renderUnknownHandleMarkReplacementElement(
   elem.title = isError
     ? `Could not find user with username ${username}`
     : `Searching for @${username}`
+  elem.ariaLabel = elem.title
 
   const symbol = isError ? OcticonSymbol.stop : syncClockwise
 
@@ -344,6 +346,9 @@ function markRangeAsHandle(
     readOnly: false,
     replacedWith: elem,
     handleMouseEvents: true,
+    attributes: {
+      ariaLabel: getDisplayTextForAuthor(author),
+    },
   }) as any as ActualTextMarker
 }
 
@@ -859,6 +864,9 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   public render() {
+    const authors = this.props.authors.map(getDisplayTextForAuthor)
+    const ariaLabel = `Co-Authors: ${authors.join(', ')}`
+
     const className = classNames(
       'author-input-component',
       this.props.className,
@@ -866,6 +874,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         disabled: this.props.disabled,
       }
     )
-    return <div className={className} ref={this.onContainerRef} />
+    return (
+      <div
+        className={className}
+        aria-label={ariaLabel}
+        aria-autocomplete="list"
+        ref={this.onContainerRef}
+      />
+    )
   }
 }
