@@ -729,7 +729,13 @@ function createWindow() {
       electron: '>=1.2.1',
     }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
+    const axeDevTools = {
+      id: 'lhdoppojpmngadmnindnejefpokejbdd',
+      electron: '>=1.2.1',
+      Permissions: ['tabs', 'debugger'],
+    }
+
+    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens, axeDevTools]
 
     for (const extension of extensions) {
       try {

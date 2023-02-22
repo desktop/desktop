@@ -7,7 +7,7 @@ import {
 } from '../../models/repository'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { getPullRequestCommitRef, PullRequest } from '../../models/pull-request'
-import { API, APICheckConclusion } from '../api'
+import { API, APICheckConclusion, IAPIComment } from '../api'
 import {
   createCombinedCheckFromChecks,
   getLatestCheckRunsByName,
@@ -24,6 +24,7 @@ import {
   AliveStore,
   DesktopAliveEvent,
   IDesktopChecksFailedAliveEvent,
+  IDesktopPullRequestCommentAliveEvent,
   IDesktopPullRequestReviewSubmitAliveEvent,
 } from './alive-store'
 import { setBoolean, getBoolean } from '../local-storage'
@@ -36,6 +37,7 @@ import {
   ValidNotificationPullRequestReview,
 } from '../valid-notification-pull-request-review'
 import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
+import { enablePullRequestCommentNotifications } from '../feature-flag'
 
 type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -48,8 +50,13 @@ type OnChecksFailedCallback = (
 type OnPullRequestReviewSubmitCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
-  review: ValidNotificationPullRequestReview,
-  numberOfComments: number
+  review: ValidNotificationPullRequestReview
+) => void
+
+type OnPullRequestCommentCallback = (
+  repository: RepositoryWithGitHubRepository,
+  pullRequest: PullRequest,
+  comment: IAPIComment
 ) => void
 
 /**
@@ -72,6 +79,8 @@ export class NotificationsStore {
   private recentRepositories: ReadonlyArray<Repository> = []
   private onChecksFailedCallback: OnChecksFailedCallback | null = null
   private onPullRequestReviewSubmitCallback: OnPullRequestReviewSubmitCallback | null =
+    null
+  private onPullRequestCommentCallback: OnPullRequestCommentCallback | null =
     null
   private cachedCommits: Map<string, Commit> = new Map()
   private skipCommitShas: Set<string> = new Set()
@@ -105,6 +114,12 @@ export class NotificationsStore {
   public onNotificationEventReceived: NotificationCallback<DesktopAliveEvent> =
     async (event, id, userInfo) => this.handleAliveEvent(userInfo, true)
 
+  public simulateAliveEvent(event: DesktopAliveEvent) {
+    if (__DEV__) {
+      this.handleAliveEvent(event, false)
+    }
+  }
+
   private async handleAliveEvent(
     e: DesktopAliveEvent,
     skipNotification: boolean
@@ -114,7 +129,88 @@ export class NotificationsStore {
         return this.handleChecksFailedEvent(e, skipNotification)
       case 'pr-review-submit':
         return this.handlePullRequestReviewSubmitEvent(e, skipNotification)
+      case 'pr-comment':
+        return this.handlePullRequestCommentEvent(e, skipNotification)
     }
+  }
+
+  private async handlePullRequestCommentEvent(
+    event: IDesktopPullRequestCommentAliveEvent,
+    skipNotification: boolean
+  ) {
+    if (!enablePullRequestCommentNotifications()) {
+      return
+    }
+
+    const repository = this.repository
+    if (repository === null) {
+      return
+    }
+
+    if (!this.isValidRepositoryForEvent(repository, event)) {
+      if (this.isRecentRepositoryEvent(event)) {
+        this.statsStore.recordPullRequestReviewNotiificationFromRecentRepo()
+      } else {
+        this.statsStore.recordPullRequestReviewNotiificationFromNonRecentRepo()
+      }
+      return
+    }
+
+    const pullRequests = await this.pullRequestCoordinator.getAllPullRequests(
+      repository
+    )
+    const pullRequest = pullRequests.find(
+      pr => pr.pullRequestNumber === event.pull_request_number
+    )
+
+    // If the PR is not in cache, it probably means the user didn't work on it
+    // recently, so we don't want to show a notification.
+    if (pullRequest === undefined) {
+      return
+    }
+
+    // Fetch comment from API depending on event subtype
+    const api = await this.getAPIForRepository(repository.gitHubRepository)
+    if (api === null) {
+      return
+    }
+
+    const comment =
+      event.subtype === 'issue-comment'
+        ? await api.fetchIssueComment(event.owner, event.repo, event.comment_id)
+        : await api.fetchPullRequestReviewComment(
+            event.owner,
+            event.repo,
+            event.comment_id
+          )
+
+    if (comment === null) {
+      return
+    }
+
+    const title = `@${comment.user.login} commented your pull request`
+    const body = `${pullRequest.title} #${
+      pullRequest.pullRequestNumber
+    }\n${truncateWithEllipsis(comment.body, 50)}`
+    const onClick = () => {
+      // TODO: this.statsStore.recordPullRequestReviewNotificationClicked(review.state)
+
+      this.onPullRequestCommentCallback?.(repository, pullRequest, comment)
+    }
+
+    if (skipNotification) {
+      onClick()
+      return
+    }
+
+    showNotification({
+      title,
+      body,
+      userInfo: event,
+      onClick,
+    })
+
+    // TODO: this.statsStore.recordPullRequestReviewNotificationShown(review.state)
   }
 
   private async handlePullRequestReviewSubmitEvent(
@@ -175,12 +271,7 @@ export class NotificationsStore {
     const onClick = () => {
       this.statsStore.recordPullRequestReviewNotificationClicked(review.state)
 
-      this.onPullRequestReviewSubmitCallback?.(
-        repository,
-        pullRequest,
-        review,
-        event.number_of_comments
-      )
+      this.onPullRequestReviewSubmitCallback?.(repository, pullRequest, review)
     }
 
     if (skipNotification) {
@@ -474,5 +565,12 @@ export class NotificationsStore {
     callback: OnPullRequestReviewSubmitCallback
   ) {
     this.onPullRequestReviewSubmitCallback = callback
+  }
+
+  /** Observe when the user reacted to a "PR comment" notification. */
+  public onPullRequestCommentNotification(
+    callback: OnPullRequestCommentCallback
+  ) {
+    this.onPullRequestCommentCallback = callback
   }
 }

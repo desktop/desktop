@@ -95,6 +95,7 @@ import {
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
+  IAPIComment,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -600,6 +601,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.notificationsStore.onPullRequestReviewSubmitNotification(
       this.onPullRequestReviewSubmitNotification
+    )
+
+    this.notificationsStore.onPullRequestCommentNotification(
+      this.onPullRequestCommentNotification
     )
 
     onShowInstallingUpdate(this.onShowInstallingUpdate)
@@ -7300,8 +7305,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private onPullRequestReviewSubmitNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    review: ValidNotificationPullRequestReview,
-    numberOfComments: number
+    review: ValidNotificationPullRequestReview
   ) => {
     const selectedRepository =
       this.selectedRepository ?? (await this._selectRepository(repository))
@@ -7322,7 +7326,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
       review,
       pullRequest,
       repository,
-      numberOfComments,
+    })
+  }
+
+  private onPullRequestCommentNotification = async (
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    comment: IAPIComment
+  ) => {
+    const selectedRepository =
+      this.selectedRepository ?? (await this._selectRepository(repository))
+
+    const state = this.repositoryStateCache.get(repository)
+
+    const { branchesState } = state
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    return this._showPopup({
+      type: PopupType.PullRequestComment,
+      shouldCheckoutBranch:
+        currentBranch !== null && currentBranch.name !== pullRequest.head.ref,
+      shouldChangeRepository:
+        selectedRepository === null ||
+        selectedRepository.hash !== repository.hash,
+      comment,
+      pullRequest,
+      repository,
     })
   }
 
