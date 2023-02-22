@@ -5,20 +5,17 @@ import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
-import {
-  getPullRequestReviewStateIcon,
-  getVerbForPullRequestReview,
-} from './pull-request-review-helpers'
 import { LinkButton } from '../lib/link-button'
-import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
+import { IAPIComment } from '../../lib/api'
+import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
 import { PullRequestCommentLike } from './pull-request-comment-like'
 
-interface IPullRequestReviewProps {
+interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
   readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
-  readonly review: ValidNotificationPullRequestReview
+  readonly comment: IAPIComment
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
@@ -34,18 +31,18 @@ interface IPullRequestReviewProps {
   readonly onDismissed: () => void
 }
 
-interface IPullRequestReviewState {
+interface IPullRequestCommentState {
   readonly switchingToPullRequest: boolean
 }
 
 /**
- * Dialog to show a pull request review.
+ * Dialog to show a pull request comment.
  */
-export class PullRequestReview extends React.Component<
-  IPullRequestReviewProps,
-  IPullRequestReviewState
+export class PullRequestComment extends React.Component<
+  IPullRequestCommentProps,
+  IPullRequestCommentState
 > {
-  public constructor(props: IPullRequestReviewProps) {
+  public constructor(props: IPullRequestCommentProps) {
     super(props)
 
     this.state = {
@@ -60,28 +57,28 @@ export class PullRequestReview extends React.Component<
       repository,
       pullRequest,
       emoji,
-      review,
+      comment,
       onSubmit,
       onDismissed,
     } = this.props
 
-    const icon = getPullRequestReviewStateIcon(review.state)
+    const icon = getPullRequestReviewStateIcon('COMMENTED')
 
     return (
       <PullRequestCommentLike
-        id="pull-request-review"
+        id="pull-request-comment"
         dispatcher={dispatcher}
         accounts={accounts}
         repository={repository}
         pullRequest={pullRequest}
         emoji={emoji}
-        eventDate={new Date(review.submitted_at)}
-        eventVerb={getVerbForPullRequestReview(review)}
+        eventDate={new Date(comment.created_at)}
+        eventVerb="commented"
         eventIconSymbol={icon.symbol}
         eventIconClass={icon.className}
-        externalURL={review.html_url}
-        user={review.user}
-        body={review.body}
+        externalURL={comment.html_url}
+        user={comment.user}
+        body={comment.body}
         switchingToPullRequest={this.state.switchingToPullRequest}
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
@@ -91,21 +88,18 @@ export class PullRequestReview extends React.Component<
   }
 
   private renderFooterContent = () => {
-    const { review, shouldChangeRepository, shouldCheckoutBranch } = this.props
-    const isApprovedReview = review.state === 'APPROVED'
+    const { shouldChangeRepository, shouldCheckoutBranch, comment } = this.props
 
     let okButtonTitle: undefined | string = undefined
 
-    if (!isApprovedReview) {
-      if (shouldChangeRepository) {
-        okButtonTitle = __DARWIN__
-          ? 'Switch to Repository and Pull Request'
-          : 'Switch to repository and pull request'
-      } else if (shouldCheckoutBranch) {
-        okButtonTitle = __DARWIN__
-          ? 'Switch to Pull Request'
-          : 'Switch to pull request'
-      }
+    if (shouldChangeRepository) {
+      okButtonTitle = __DARWIN__
+        ? 'Switch to Repository and Pull Request'
+        : 'Switch to repository and pull request'
+    } else if (shouldCheckoutBranch) {
+      okButtonTitle = __DARWIN__
+        ? 'Switch to Pull Request'
+        : 'Switch to pull request'
     }
 
     const okCancelButtonGroup = (
@@ -126,7 +120,7 @@ export class PullRequestReview extends React.Component<
     return (
       <Row>
         <div className="footer-links">
-          <LinkButton uri={review.html_url}>{openInBrowserText}</LinkButton>
+          <LinkButton uri={comment.html_url}>{openInBrowserText}</LinkButton>
         </div>
         {okCancelButtonGroup}
       </Row>
@@ -142,19 +136,15 @@ export class PullRequestReview extends React.Component<
       pullRequest,
       shouldChangeRepository,
       shouldCheckoutBranch,
-      review,
     } = this.props
 
-    const isApprovedReview = review.state === 'APPROVED'
-
-    // Only switch to the PR when needed, if it's not an approved review
-    if (!isApprovedReview && (shouldChangeRepository || shouldCheckoutBranch)) {
+    if (shouldChangeRepository || shouldCheckoutBranch) {
       this.setState({ switchingToPullRequest: true })
       await dispatcher.selectRepository(repository)
       await dispatcher.checkoutPullRequest(repository, pullRequest)
       this.setState({ switchingToPullRequest: false })
 
-      dispatcher.recordPullRequestReviewDialogSwitchToPullRequest(review.state)
+      // TODO: dispatcher.recordPullRequestReviewDialogSwitchToPullRequest(review.state)
     }
 
     this.props.onDismissed()
