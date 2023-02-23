@@ -165,7 +165,7 @@ import { enableStackedPopups } from '../lib/feature-flag'
 import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
-import { AddRepositoriesFromFolder } from './add-repository/add-repositories-folder'
+import { AddRepositoriesFromFolder } from './add-repository/add-repositories-from-folder'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1627,6 +1627,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="add-repositories-from-folder"
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
+            gitRepositoriesPath={this.state.gitRepositoriesPath}
           />
         )
       case PopupType.CloneRepository:
