@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.1.9-test1": [
+      "[Improved] Make the add/remove co-authors button keyboard accessible"
+    ],
     "3.1.9-beta2": ["[Fixed] Fixed production build startup crash - #16191"],
     "3.1.9-beta1": [
       "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
