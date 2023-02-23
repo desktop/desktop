@@ -366,7 +366,7 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
     return
   }
 
-  ;(cm as any).showHint()
+  cm.showHint()
 }
 
 /**
