@@ -5,6 +5,7 @@ import CodeMirror, {
   Doc,
   Position,
   TextMarkerOptions,
+  ShowHintOptions,
 } from 'codemirror'
 import classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
@@ -49,6 +50,10 @@ interface IAuthorInputProps {
    * disabled. When disabled the component will not accept focus.
    */
   readonly disabled: boolean
+}
+
+interface IAuthorInputState {
+  readonly activeAutocompleteItemId: string | undefined
 }
 
 /**
@@ -225,50 +230,6 @@ interface ActualTextMarker extends TextMarkerOptions {
   changed(): void
 }
 
-function renderUnknownUserAutocompleteItem(
-  elem: HTMLElement,
-  self: any,
-  data: any
-) {
-  const text = data.username as string
-  const user = document.createElement('div')
-  user.classList.add('user', 'unknown')
-
-  const username = document.createElement('span')
-  username.className = 'username'
-  username.innerText = text
-  user.appendChild(username)
-
-  const description = document.createElement('span')
-  description.className = 'description'
-  description.innerText = `Search for user`
-  user.appendChild(description)
-
-  elem.appendChild(user)
-}
-
-function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
-  const author = data.author as IAuthor
-  const user = document.createElement('div')
-  user.className = 'user'
-
-  // This will always be non-null when we get it from the
-  // autocompletion provider but let's be extra cautious
-  if (author.username) {
-    const username = document.createElement('span')
-    username.className = 'username'
-    username.innerText = author.username
-    user.appendChild(username)
-  }
-
-  const name = document.createElement('span')
-  name.className = 'name'
-  name.innerText = author.name
-
-  user.appendChild(name)
-  elem.appendChild(user)
-}
-
 /**
  * Returns an email address which can be used on the host side to
  * look up the user which is to be given attribution.
@@ -390,7 +351,10 @@ function authorFromUserHit(user: IUserHit): IAuthor {
  * Intended primarily for co-authors but written in a general enough
  * fashion to deal only with authors in general.
  */
-export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
+export class AuthorInput extends React.Component<
+  IAuthorInputProps,
+  IAuthorInputState
+> {
   /**
    * The codemirror instance if mounted, otherwise null
    */
@@ -439,8 +403,18 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   private readonly markAuthorMap = new Map<ActualTextMarker, IAuthor>()
   private readonly authorMarkMap = new Map<IAuthor, ActualTextMarker>()
 
+  // Reference to the hint container div
+  private hintContainerRef = React.createRef<HTMLDivElement>()
+
+  // Mutation observer for class of autocomplete items
+  private readonly autocompleteItemClassMutationObserver: MutationObserver
+
   public constructor(props: IAuthorInputProps) {
     super(props)
+
+    this.autocompleteItemClassMutationObserver = new MutationObserver(
+      this.onAutocompleteItemClassMutation
+    )
 
     // Observe size changes and let codemirror know
     // when it needs to refresh.
@@ -470,7 +444,20 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       }
     })
 
-    this.state = {}
+    this.state = {
+      activeAutocompleteItemId: undefined,
+    }
+  }
+
+  private onAutocompleteItemClassMutation = (mutations: MutationRecord[]) => {
+    for (const mutation of mutations) {
+      const target = mutation.target as HTMLElement
+      if (target.classList.contains('CodeMirror-hint-active')) {
+        this.setState({ activeAutocompleteItemId: target.id })
+        return
+      }
+    }
+    this.setState({ activeAutocompleteItemId: undefined })
   }
 
   public focus() {
@@ -654,7 +641,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       .map(author => ({
         author,
         text: getDisplayTextForAuthor(author),
-        render: renderUserAutocompleteItem,
+        render: this.renderUserAutocompleteItem,
         className: 'autocompletion-item',
         hint: this.applyCompletion,
       }))
@@ -662,14 +649,74 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     if (!exactMatch && needle.length > 0) {
       list.push({
         text: `@${needle}`,
-        username: needle,
-        render: renderUnknownUserAutocompleteItem,
+        render: this.renderUnknownUserAutocompleteItem,
         className: 'autocompletion-item',
         hint: this.applyUnknownUserCompletion,
       })
     }
 
     return { list, from, to }
+  }
+
+  private renderUnknownUserAutocompleteItem = (
+    elem: HTMLElement,
+    self: any,
+    data: any
+  ) => {
+    const text = data.username as string
+    const user = document.createElement('div')
+    user.classList.add('user', 'unknown')
+
+    const username = document.createElement('span')
+    username.className = 'username'
+    username.innerText = text
+    user.appendChild(username)
+
+    const description = document.createElement('span')
+    description.className = 'description'
+    description.innerText = `Search for user`
+    user.appendChild(description)
+
+    elem.appendChild(user)
+
+    elem.id = 'unknown-user-autocomplete-item'
+    this.autocompleteItemClassMutationObserver.observe(elem, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+  }
+
+  private renderUserAutocompleteItem = (
+    elem: HTMLElement,
+    self: any,
+    data: any
+  ) => {
+    const author = data.author as IAuthor
+    const user = document.createElement('div')
+    user.className = 'user'
+
+    // This will always be non-null when we get it from the
+    // autocompletion provider but let's be extra cautious
+    if (author.username) {
+      const username = document.createElement('span')
+      username.className = 'username'
+      username.innerText = author.username
+      user.appendChild(username)
+    }
+
+    const name = document.createElement('span')
+    name.className = 'name'
+    name.innerText = author.name
+
+    user.appendChild(name)
+    elem.appendChild(user)
+
+    elem.id = `user-autocomplete-item-${author.username}`
+
+    this.autocompleteItemClassMutationObserver.observe(elem, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
   }
 
   private updatePlaceholderVisibility(cm: Editor) {
@@ -703,7 +750,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
 
   private initializeCodeMirror(host: HTMLDivElement) {
     const CodeMirrorOptions: EditorConfiguration & {
-      hintOptions: any
+      hintOptions: ShowHintOptions
     } = {
       mode: 'null',
       lineWrapping: true,
@@ -728,7 +775,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         closeOnUnfocus: true,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
-        container: host,
+        container: this.hintContainerRef.current,
       },
     }
 
@@ -880,8 +927,19 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         aria-label={ariaLabel}
         aria-autocomplete="list"
         aria-haspopup="listbox"
+        aria-controls="author-input-hint-container"
+        tabIndex={this.props.disabled ? -1 : 0}
+        aria-activedescendant={this.state.activeAutocompleteItemId}
         ref={this.onContainerRef}
-      />
+        // role="textbox"
+        // contentEditable={true}
+      >
+        <div
+          id="author-input-hint-container"
+          ref={this.hintContainerRef}
+          role="listbox"
+        />
+      </div>
     )
   }
 }
