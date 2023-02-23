@@ -879,6 +879,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         className={className}
         aria-label={ariaLabel}
         aria-autocomplete="list"
+        aria-haspopup="listbox"
         ref={this.onContainerRef}
       />
     )
