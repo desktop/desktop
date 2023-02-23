@@ -1,10 +1,12 @@
 import * as React from 'react'
+import * as Path from 'path'
 import { Dialog, DialogContent, DialogFooter, OkCancelButtonGroup } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { showOpenDialog } from '../main-process-proxy'
+import untildify from 'untildify'
 
 interface IAddRepositoriesFromFolderProps {
   readonly dispatcher: Dispatcher
@@ -35,6 +37,7 @@ export class AddRepositoriesFromFolder extends React.Component<
       <Dialog
         id="add-repositories-from-folder"
         title="Add Repositories from Folder"
+        onSubmit={this.addRepositories}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
@@ -80,5 +83,23 @@ export class AddRepositoriesFromFolder extends React.Component<
     if (this.state.path !== path) {
       this.setState({ path })
     }
+  }
+
+  private resolvedPath(path: string): string {
+    return Path.resolve('/', untildify(path))
+  }
+
+  private addRepositories = async () => {
+    const { dispatcher } = this.props
+
+    const resolvedPath = this.resolvedPath(this.state.path)
+
+
+
+    const repositories = await dispatcher.addRepositories([resolvedPath])
+
+    console.log('repositories', repositories)
+
+    this.props.onDismissed()
   }
 }
