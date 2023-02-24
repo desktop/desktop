@@ -5745,26 +5745,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _addRepositoriesFromPath(
     path: string
-  ) {
+  ): Promise<ReadonlyArray<Repository>> {
     const subdirectories = await this.getSubdirectories(path)
-    const possibleRepositories = new Array<string>()
+    const addedRepositories = new Array<Repository>()
 
     for (const subdirectory of subdirectories) {
       const subdirectoryAbsolutePath = Path.join(path, subdirectory)
 
       const repositoryType = await getRepositoryType(subdirectoryAbsolutePath).catch(e => {
         log.error('Could not determine repository type', e)
+
         return { kind: 'missing' } as RepositoryType
       })
 
-      if (repositoryType.kind === 'regular') {
-        possibleRepositories.push(subdirectoryAbsolutePath)
+      const existing = matchExistingRepository(this.repositories, subdirectoryAbsolutePath)
+
+      if (repositoryType.kind === 'regular' && existing === undefined) {
+        const addedRepository = await this.repositoriesStore.addRepository(subdirectoryAbsolutePath)
+        addedRepositories.push(addedRepository)
       }
     }
 
-    if (possibleRepositories.length > 0) {
-      this._addRepositories(possibleRepositories)
-    }
+    return addedRepositories
   }
 
   public async _removeRepository(
@@ -5827,8 +5829,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async getSubdirectories(
     path: string
-  ) {
-    const subdirectories = await FileSystem.readdir(path);
+  ): Promise<ReadonlyArray<string>> {
+    const subdirectories = await FileSystem.readdir(path).catch(e => {
+      this.emitError(new Error(`Could not read directory ${path}`))
+      return []
+    });
+
     console.log(subdirectories);
     return subdirectories;
   }
