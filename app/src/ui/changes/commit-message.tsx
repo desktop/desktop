@@ -530,7 +530,6 @@ export class CommitMessage extends React.Component<
       <button
         className="co-authors-toggle"
         onClick={this.onCoAuthorToggleButtonClick}
-        tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
         disabled={this.props.isCommitting === true}
       >
