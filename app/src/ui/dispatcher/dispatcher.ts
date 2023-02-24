@@ -163,6 +163,12 @@ export class Dispatcher {
     return this.appStore._addRepositories(paths)
   }
 
+  public addRepositoriesFromPath(
+    path: string
+  ) {
+    return this.appStore._addRepositoriesFromPath(path)
+  }
+
   /**
    * Add a tutorial repository.
    *

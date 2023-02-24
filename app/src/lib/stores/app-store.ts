@@ -1,4 +1,5 @@
 import * as Path from 'path'
+import * as FileSystem from 'fs/promises'
 import {
   AccountsStore,
   CloningRepositoriesStore,
@@ -5742,6 +5743,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return addedRepositories
   }
 
+  public async _addRepositoriesFromPath(
+    path: string
+  ) {
+    const subdirectories = await this.getSubdirectories(path)
+
+    console.log(subdirectories)
+  }
+
   public async _removeRepository(
     repository: Repository | CloningRepository,
     moveToTrash: boolean
@@ -5798,6 +5807,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
       await this._selectRepository(updatedRepository)
     }
+  }
+
+  private async getSubdirectories(
+    path: string
+  ) {
+    const subdirectories = await FileSystem.readdir(path);
+    console.log(subdirectories);
+    return subdirectories;
   }
 
   private getInvalidRepoPathsMessage(

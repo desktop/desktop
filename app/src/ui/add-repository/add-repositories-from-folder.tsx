@@ -94,11 +94,7 @@ export class AddRepositoriesFromFolder extends React.Component<
 
     const resolvedPath = this.resolvedPath(this.state.path)
 
-
-
-    const repositories = await dispatcher.addRepositories([resolvedPath])
-
-    console.log('repositories', repositories)
+    await dispatcher.addRepositoriesFromPath(resolvedPath)
 
     this.props.onDismissed()
   }
