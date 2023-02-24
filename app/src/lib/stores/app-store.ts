@@ -5747,8 +5747,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     path: string
   ) {
     const subdirectories = await this.getSubdirectories(path)
+    const possibleRepositories = new Array<string>()
 
-    console.log(subdirectories)
+    for (const subdirectory of subdirectories) {
+      const subdirectoryAbsolutePath = Path.join(path, subdirectory)
+
+      const repositoryType = await getRepositoryType(subdirectoryAbsolutePath).catch(e => {
+        log.error('Could not determine repository type', e)
+        return { kind: 'missing' } as RepositoryType
+      })
+
+      if (repositoryType.kind === 'regular') {
+        possibleRepositories.push(subdirectoryAbsolutePath)
+      }
+    }
+
+    if (possibleRepositories.length > 0) {
+      this._addRepositories(possibleRepositories)
+    }
   }
 
   public async _removeRepository(
