@@ -166,6 +166,7 @@ import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { AddRepositoriesFromFolder } from './add-repository/add-repositories-from-folder'
+import { PullRequestComment } from './notifications/pull-request-comment'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2412,6 +2413,23 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             notificationsDebugStore={this.props.notificationsDebugStore}
             repository={popup.repository}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.PullRequestComment: {
+        return (
+          <PullRequestComment
+            key="pull-request-comment"
+            dispatcher={this.props.dispatcher}
+            shouldCheckoutBranch={popup.shouldCheckoutBranch}
+            shouldChangeRepository={popup.shouldChangeRepository}
+            repository={popup.repository}
+            pullRequest={popup.pullRequest}
+            comment={popup.comment}
+            emoji={this.state.emoji}
+            accounts={this.state.accounts}
+            onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
           />
         )

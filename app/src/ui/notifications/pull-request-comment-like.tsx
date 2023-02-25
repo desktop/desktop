@@ -16,6 +16,7 @@ import { getStealthEmailForUser } from '../../lib/email'
 import { IAPIIdentity } from '../../lib/api'
 
 interface IPullRequestCommentLikeProps {
+  readonly id?: string
   readonly dispatcher: Dispatcher
   readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
@@ -58,7 +59,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
 
     return (
       <Dialog
-        id="pull-request-review"
+        id={this.props.id}
         type="normal"
         title={header}
         dismissable={false}

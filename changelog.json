@@ -1,5 +1,27 @@
 {
   "releases": {
+    "3.1.9-beta2": ["[Fixed] Fixed production build startup crash - #16191"],
+    "3.1.9-beta1": [
+      "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
+      "[Added] Add JetBrains DataSpell support on Windows - #16020. Thanks @tsvetilian-ty!",
+      "[Added] Add JetBrains DataSpell support on macOS- #16020. Thanks @jm-rivera!",
+      "[Added] Editors installed with JetBrains Toolbox supported on Linux - #16029. Thanks @adil192!",
+      "[Added] Support for numerous additional editors on Linux - #16030. Thanks @shiftkey!",
+      "[Fixed] Include renamed files in the commit summary changed files tooltip - #15155. Thanks @haykam821!",
+      "[Improved] The context menu for a file in the changed files list can be invoked by keyboard shortcuts - #16114",
+      "[Improved] The file status of a changed file is announced with voice over - #16098",
+      "[Improved] The changes list announces file selection position with voice over - #16108",
+      "[Improved] The 'x' close button on dialogs is keyboard accessible - #16110",
+      "[Improved] Focus on first suitable child in sign in flow - #16125",
+      "[Improved] The misattributed warning popover is accessible through keyboard navigation - #16100"
+    ],
+    "3.1.8": [
+      "[Added] Add JetBrains CLion support on macOS - #15881. Thanks @tsvetilian-ty!",
+      "[Fixed] Fix crash launching the app on Apple silicon devices - #16011",
+      "[Fixed] Trim leading and trailing whitespace in URLs of repository remotes - #15821. Thanks @Shivareddy-Aluri!",
+      "[Fixed] Fix support for the latest versions of RStudio on Windows - #15810",
+      "[Fixed] Fix support for latest versions of VSCodium on Windows - #15585. Thanks @voidei!"
+    ],
     "3.1.7": ["[Improved] Upgrade embedded Git to 2.39.2"],
     "3.1.7-beta1": ["[Improved] Upgrade embedded Git to 2.39.2"],
     "3.1.6": [
