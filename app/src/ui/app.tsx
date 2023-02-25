@@ -1626,6 +1626,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <AddRepositoriesFromFolder
             key="add-repositories-from-folder"
             onDismissed={onPopupDismissedFn}
+            onShowGitPreferences={this.onShowGitPreferences}
             dispatcher={this.props.dispatcher}
             gitRepositoriesPath={this.state.gitRepositoriesPath}
           />
@@ -2478,6 +2479,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onRefreshRepositories = (account: Account) => {
     this.props.dispatcher.refreshApiRepositories(account)
+  }
+
+  private onShowGitPreferences = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Git,
+    })
   }
 
   private onShowAdvancedPreferences = () => {

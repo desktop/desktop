@@ -7,10 +7,12 @@ import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { showOpenDialog } from '../main-process-proxy'
 import untildify from 'untildify'
+import { LinkButton } from '../lib/link-button'
 
 interface IAddRepositoriesFromFolderProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+  readonly onShowGitPreferences: () => void
   readonly gitRepositoriesPath: string
 }
 
@@ -40,7 +42,7 @@ export class AddRepositoriesFromFolder extends React.Component<
     return (
       <Dialog
         id="add-repositories-from-folder"
-        title="Add Repositories from Folder"
+        title={__DARWIN__ ? 'Add Repositories from Folder' : 'Add repositories from folder'}
         onSubmit={this.addRepositories}
         onDismissed={this.props.onDismissed}
         loading={this.state.loading}
@@ -59,6 +61,7 @@ export class AddRepositoriesFromFolder extends React.Component<
           <p>
             If you have a folder with multiple Git repositories, you can add them all at once by
             choosing the folder here.
+            Change the default path in the <LinkButton onClick={this.showGitPreferences}>preferences</LinkButton>.
           </p>
         </DialogContent>
         <DialogFooter>
@@ -69,6 +72,11 @@ export class AddRepositoriesFromFolder extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private showGitPreferences = () => {
+    this.props.onDismissed()
+    this.props.onShowGitPreferences()
   }
 
   private showFilePicker = async () => {

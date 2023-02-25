@@ -5831,11 +5831,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     path: string
   ): Promise<ReadonlyArray<string>> {
     const subdirectories = await FileSystem.readdir(path).catch(e => {
+      log.error(`Could not read directory ${path}`, e)
       this.emitError(new Error(`Could not read directory ${path}`))
       return []
     });
 
-    console.log(subdirectories);
     return subdirectories;
   }
 

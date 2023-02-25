@@ -114,7 +114,7 @@ export class Preferences extends React.Component<
       committerName: '',
       committerEmail: '',
       defaultBranch: '',
-      gitRepositoriesPath: '',
+      gitRepositoriesPath: this.props.gitRepositoriesPath,
       initialCommitterName: null,
       initialCommitterEmail: null,
       initialDefaultBranch: null,
