@@ -36,8 +36,8 @@ export class AppWindow {
   private _rendererReadyTime: number | null = null
   private isDownloadingUpdate: boolean = false
 
-  private minWidth = 960
-  private minHeight = 660
+  private minWidth = 480
+  private minHeight = 330
 
   // See https://github.com/desktop/desktop/pull/11162
   private shouldMaximizeOnShow = false
