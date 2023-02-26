@@ -163,6 +163,8 @@
     "electron-packager": "^17.1.1",
     "eslint-plugin-github": "^4.10.1",
     "markdownlint-cli": "^0.32.2",
+    "patch-package": "^6.5.1",
+    "postinstall-postinstall": "^2.1.0",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0"
   },
