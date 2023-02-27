@@ -3377,6 +3377,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.recordDragStartedAndCanceled()
     }
   }
+
+  private launchAwesomeNewFeature = (
+    options: IAwesomeness,
+    areYouSure: boolean
+  ) => {
+    if (!areYouSure) {
+      return
+    }
+
+    this.props.dispatcher.launchTheAwesomeness(options)
+  }
 }
 
 function NoRepositorySelected() {
