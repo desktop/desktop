@@ -4051,4 +4051,10 @@ export class Dispatcher {
   ) {
     return this.appStore._setPullRequestSuggestedNextAction(value)
   }
+
+  public llaunchTheAwesomeness(options: IAwesomeness) {
+    debugger
+    console.log(options)
+    return this.appStore._launchTheAwesomeness(options)
+  }
 }
