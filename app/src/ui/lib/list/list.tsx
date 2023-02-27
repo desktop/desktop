@@ -813,7 +813,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (scrollToRow !== undefined && prevProps.scrollToRow !== scrollToRow) {
       // Prefer scrollTop position over scrollToRow
       if (setScrollTop === undefined) {
-        this.scrollRowToVisible(scrollToRow)
+        this.scrollRowToVisible(scrollToRow, false)
       }
     }
 
