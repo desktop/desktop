@@ -3,8 +3,7 @@
     "3.2.0": [
       "[New] Preview your pull request - view a diff of changes in your current branch.",
       "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
-      "[Added] Add JetBrains DataSpell support on Windows - #16020. Thanks @tsvetilian-ty!",
-      "[Added] Add JetBrains DataSpell support on macOS- #16020. Thanks @jm-rivera!",
+      "[Added] Add JetBrains DataSpell support - #16020. Thanks @tsvetilian-ty and @jm-rivera!",
       "[Added] Editors installed with JetBrains Toolbox supported on Linux - #16029. Thanks @adil192!",
       "[Added] Support for numerous additional editors on Linux - #16030. Thanks @shiftkey!",
       "[Fixed] Include renamed files in the commit summary changed files tooltip - #15155. Thanks @haykam821!",
