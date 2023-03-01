@@ -122,6 +122,7 @@ import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
+
 /**
  * An error handler function.
  *
@@ -4052,6 +4053,8 @@ export class Dispatcher {
   }
 
   public launchTheAwesomeness(options: IAwesomeness) {
+    debugger
+    console.log(options)
     return this.appStore._launchTheAwesomeness(options)
   }
 }
