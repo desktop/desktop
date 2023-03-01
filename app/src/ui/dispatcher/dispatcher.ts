@@ -4053,7 +4053,8 @@ export class Dispatcher {
   }
 
   public launchTheAwesomeness(options: IAwesomeness) {
-    address the problem
+    debugger
+    console.log(options)
     return this.appStore._launchTheAwesomeness(options)
   }
 }
