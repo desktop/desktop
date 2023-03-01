@@ -743,6 +743,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.updateCurrentTutorialStep(repository)
   }
 
+  public _launchTheAwesomeness(options: any) {
+    console.log(options)
+  }
+
   public async _pauseTutorial(repository: Repository) {
     this.tutorialAssessor.pauseTutorial()
     await this.updateCurrentTutorialStep(repository)
