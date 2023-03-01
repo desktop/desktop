@@ -1,5 +1,19 @@
 {
   "releases": {
+    "3.2.0": [
+      "[New] Preview your pull request - view a diff of changes in your current branch.",
+      "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
+      "[Added] Add JetBrains DataSpell support - #16020. Thanks @tsvetilian-ty and @jm-rivera!",
+      "[Added] Editors installed with JetBrains Toolbox supported on Linux - #16029. Thanks @adil192!",
+      "[Added] Support for numerous additional editors on Linux - #16030. Thanks @shiftkey!",
+      "[Fixed] Include renamed files in the commit summary changed files tooltip - #15155. Thanks @haykam821!",
+      "[Improved] The context menu for a file in the changed files list can be invoked by keyboard shortcuts - #16114",
+      "[Improved] The file status of a changed file is announced by screen readers - #16098",
+      "[Improved] The changes list announces file selection position with screen readers - #16108",
+      "[Improved] The 'x' close button on dialogs is keyboard accessible - #16110",
+      "[Improved] Focus on first suitable child in sign in flow - #16125",
+      "[Improved] The misattributed warning popover is accessible through keyboard navigation - #16100"
+    ],
     "3.1.9-beta2": ["[Fixed] Fixed production build startup crash - #16191"],
     "3.1.9-beta1": [
       "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
