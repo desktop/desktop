@@ -28,7 +28,7 @@ export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWa
     }
 
     return (
-      <div className="git-email-not-found-warning">
+      <div id="git-email-not-found-warning">
         <span className="warning-icon">⚠️</span> This email address doesn't
         match {this.getAccountTypeDescription()}, so your commits will be
         wrongly attributed.{' '}
