@@ -68,6 +68,9 @@ export interface ITextBoxProps {
 
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
+
+  /** Optional aria-describedby attribute for input  */
+  readonly ariaDescribedBy?: string
 }
 
 interface ITextBoxState {
@@ -255,6 +258,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           tabIndex={this.props.tabIndex}
           onContextMenu={this.onContextMenu}
           spellCheck={this.props.spellcheck === true}
+          aria-describedby={this.props.ariaDescribedBy}
         />
       </div>
     )
