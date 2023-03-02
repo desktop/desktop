@@ -155,7 +155,7 @@ export class CommitMessageAvatar extends React.Component<
         </Row>
         <Row>
           <Select
-            label="Email"
+            label="Your Account Emails"
             value={this.state.accountEmail}
             onChange={this.onSelectedGitHubEmailChange}
           >
