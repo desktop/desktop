@@ -170,6 +170,7 @@ export class GitConfigUserForm extends React.Component<
         <TextBox
           ref={this.emailInputRef}
           label={label}
+          ariaDescribedBy="git-email-not-found-warning"
           type="email"
           value={this.props.email}
           disabled={this.props.disabled}
