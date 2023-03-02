@@ -70,7 +70,7 @@ export interface ITextBoxProps {
   readonly spellcheck?: boolean
 
   /** Optional aria-label attribute */
-  readonly ariaLabel: string
+  readonly ariaLabel?: string
 }
 
 interface ITextBoxState {
