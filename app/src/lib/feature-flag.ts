@@ -129,5 +129,5 @@ export function enablePushPullFetchDropdown(): boolean {
 }
 
 export function enablePullRequestCommentNotifications(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
