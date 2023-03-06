@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.1-test1": [
+      "[Improved] Other email input in \"Git\" preferences/Options and misattributed popover email select have a screen readable label."
+    ],
     "3.2.0": [
       "[New] Preview your pull request - view a diff of changes in your current branch.",
       "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
