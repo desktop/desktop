@@ -101,10 +101,9 @@ export class GitConfigUserForm extends React.Component<
         </Row>
         {this.renderEmailDropdown()}
         {this.renderEmailTextBox()}
-        <GitEmailNotFoundWarning
-          accounts={this.accounts}
-          email={this.props.email}
-        />
+        {this.state.emailIsOther ? (
+          <GitEmailNotFoundWarning accounts={this.accounts} />
+        ) : null}
       </div>
     )
   }

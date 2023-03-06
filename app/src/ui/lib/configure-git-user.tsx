@@ -340,10 +340,7 @@ export class ConfigureGitUser extends React.Component<
         />
 
         {this.account !== null && (
-          <GitEmailNotFoundWarning
-            accounts={[this.account]}
-            email={this.state.manualEmail}
-          />
+          <GitEmailNotFoundWarning accounts={[this.account]} />
         )}
 
         <Row>
