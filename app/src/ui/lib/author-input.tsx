@@ -683,6 +683,7 @@ export class AuthorInput extends React.Component<
     if (!exactMatch && needle.length > 0) {
       list.push({
         text: `@${needle}`,
+        username: needle,
         render: this.renderUnknownUserAutocompleteItem,
         className: 'autocompletion-item',
         hint: this.applyUnknownUserCompletion,
@@ -786,7 +787,7 @@ export class AuthorInput extends React.Component<
 
   private initializeCodeMirror(host: HTMLDivElement) {
     const CodeMirrorOptions: EditorConfiguration & {
-      hintOptions: ShowHintOptions
+      hintOptions: any
     } = {
       mode: 'null',
       lineWrapping: true,
