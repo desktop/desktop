@@ -67,7 +67,7 @@ body.theme-dark {
   // to decide what states to support (active selection, selection, etc).
 
   --box-background-color: #{darken($gray-900, 3%)};
-  --box-alt-background-color: #{$gray-800};
+  --box-alt-background-color: #{lighten($gray-900, 3%)};
 
   /**
    * Background color for skeleton or "loading" boxes
@@ -79,6 +79,10 @@ body.theme-dark {
    * Border color for boxes.
    */
   --box-border-color: #141414;
+
+  // slightly lighter of gray-500 to get 3:1 contrast ratio against
+  // --box-alt-background-color
+  --box-border-contrast-color: #{lighten($gray-500, 3%)};
   --box-border-accent-color: #{$blue};
 
   /**
@@ -146,6 +150,7 @@ body.theme-dark {
   --co-author-tag-border-color: #{$blue-700};
 
   --base-border: 1px solid var(--box-border-color);
+  --contrast-border: 1px solid var(--box-border-contrast-color);
 
   --shadow-color: #{rgba(black, 0.5)};
   --base-box-shadow: 0 2px 7px var(--shadow-color);
