@@ -53,6 +53,7 @@ interface IAuthorInputProps {
 
 interface IAuthorInputState {
   readonly activeAutocompleteItemId: string | undefined
+  readonly numberOfAutocompleteItems: number
 }
 
 /**
@@ -447,6 +448,7 @@ export class AuthorInput extends React.Component<
 
     this.state = {
       activeAutocompleteItemId: undefined,
+      numberOfAutocompleteItems: 0,
     }
   }
 
@@ -476,22 +478,30 @@ export class AuthorInput extends React.Component<
       return
     }
 
-    const ulNode = mutation.addedNodes.item(0)
-    if (ulNode === null || ulNode.nodeName.toLowerCase() !== 'ul') {
-      this.setState({ activeAutocompleteItemId: undefined })
-      return
-    }
+    let ulNodeFound = false
 
-    const ul = ulNode as HTMLElement
-    ul.id = 'author-input-hint-container'
-    ul.setAttribute('role', 'listbox')
-    ul.ariaLabel = 'suggestions'
-
-    for (const li of ul.children) {
-      const item = li as HTMLElement
-      if (item.tagName.toLowerCase() === 'li') {
-        this.updateAutocompleteInfoWithItem(item)
+    mutation.target.childNodes.forEach(node => {
+      if (node.nodeName.toLowerCase() !== 'ul') {
+        return
       }
+
+      ulNodeFound = true
+
+      const ul = node as HTMLElement
+      ul.id = 'author-input-hint-container'
+      ul.setAttribute('role', 'listbox')
+      ul.ariaLabel = 'suggestions'
+
+      for (const li of ul.children) {
+        const item = li as HTMLElement
+        if (item.tagName.toLowerCase() === 'li') {
+          this.updateAutocompleteInfoWithItem(item)
+        }
+      }
+    })
+
+    if (!ulNodeFound) {
+      this.setState({ activeAutocompleteItemId: undefined })
     }
   }
 
@@ -694,6 +704,8 @@ export class AuthorInput extends React.Component<
         hint: this.applyUnknownUserCompletion,
       })
     }
+
+    this.setState({ numberOfAutocompleteItems: list.length })
 
     return { list, from, to }
   }
@@ -966,19 +978,34 @@ export class AuthorInput extends React.Component<
         disabled: this.props.disabled,
       }
     )
+
+    const { activeAutocompleteItemId, numberOfAutocompleteItems } = this.state
+
+    const autocompleteVisible = activeAutocompleteItemId !== undefined
+
     return (
       <div
         className={className}
         role="combobox"
-        aria-expanded={this.state.activeAutocompleteItemId !== undefined}
+        aria-expanded={autocompleteVisible}
         aria-label={ariaLabel}
         aria-autocomplete="list"
         aria-haspopup="listbox"
         aria-controls="author-input-hint-container"
         tabIndex={this.props.disabled ? -1 : 0}
-        aria-activedescendant={this.state.activeAutocompleteItemId}
+        aria-activedescendant={activeAutocompleteItemId}
         ref={this.onContainerRef}
-      />
+      >
+        {autocompleteVisible && (
+          <div
+            className="screen-reader-only"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {numberOfAutocompleteItems} suggestions
+          </div>
+        )}
+      </div>
     )
   }
 }
