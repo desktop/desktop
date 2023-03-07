@@ -403,17 +403,19 @@ export class AuthorInput extends React.Component<
   private readonly markAuthorMap = new Map<ActualTextMarker, IAuthor>()
   private readonly authorMarkMap = new Map<IAuthor, ActualTextMarker>()
 
-  // Reference to the hint container div
-  private hintContainerRef = React.createRef<HTMLDivElement>()
-
   // Mutation observer for class of autocomplete items
   private readonly autocompleteItemClassMutationObserver: MutationObserver
+  private readonly autocompleteListChildMutationObserver: MutationObserver
 
   public constructor(props: IAuthorInputProps) {
     super(props)
 
     this.autocompleteItemClassMutationObserver = new MutationObserver(
       this.onAutocompleteItemClassMutation
+    )
+
+    this.autocompleteListChildMutationObserver = new MutationObserver(
+      this.onAutocompleteListChildMutation
     )
 
     // Observe size changes and let codemirror know
@@ -450,14 +452,42 @@ export class AuthorInput extends React.Component<
   }
 
   private onAutocompleteItemClassMutation = (mutations: MutationRecord[]) => {
+    let activeItemFound = false
+
     for (const mutation of mutations) {
       const target = mutation.target as HTMLElement
       if (target.classList.contains('CodeMirror-hint-active')) {
+        target.ariaSelected = 'true'
         this.setState({ activeAutocompleteItemId: target.id })
-        return
+        activeItemFound = true
+      } else {
+        target.ariaSelected = null
       }
     }
-    this.setState({ activeAutocompleteItemId: undefined })
+
+    if (!activeItemFound) {
+      this.setState({ activeAutocompleteItemId: undefined })
+    }
+  }
+
+  private onAutocompleteListChildMutation = (mutations: MutationRecord[]) => {
+    const mutation = mutations.at(0)
+
+    if (mutation === undefined) {
+      return
+    }
+
+    const ulNode = mutation.addedNodes.item(0)
+    if (ulNode === null || ulNode.nodeName.toLowerCase() !== 'ul') {
+      this.autocompleteItemClassMutationObserver.disconnect()
+      this.setState({ activeAutocompleteItemId: undefined })
+      return
+    }
+
+    const ul = ulNode as HTMLElement
+    ul.id = 'author-input-hint-container'
+    ul.setAttribute('role', 'listbox')
+    ul.ariaLabel = 'suggestions'
   }
 
   public focus() {
@@ -511,9 +541,13 @@ export class AuthorInput extends React.Component<
   private onContainerRef = (elem: HTMLDivElement) => {
     if (elem) {
       this.editor = this.initializeCodeMirror(elem)
+      this.autocompleteListChildMutationObserver.observe(elem, {
+        childList: true,
+      })
       this.resizeObserver.observe(elem)
     } else {
       this.editor = null
+      this.autocompleteListChildMutationObserver.disconnect()
       this.resizeObserver.disconnect()
     }
   }
@@ -712,6 +746,8 @@ export class AuthorInput extends React.Component<
     elem.appendChild(user)
 
     elem.id = `user-autocomplete-item-${author.username}`
+    elem.setAttribute('role', 'option')
+    elem.ariaLabel = `${author.name} ${author.username}`
 
     this.autocompleteItemClassMutationObserver.observe(elem, {
       attributes: true,
@@ -775,7 +811,7 @@ export class AuthorInput extends React.Component<
         closeOnUnfocus: true,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
-        container: this.hintContainerRef.current,
+        container: host,
       },
     }
 
@@ -924,6 +960,8 @@ export class AuthorInput extends React.Component<
     return (
       <div
         className={className}
+        role="combobox"
+        aria-expanded={this.state.activeAutocompleteItemId !== undefined}
         aria-label={ariaLabel}
         aria-autocomplete="list"
         aria-haspopup="listbox"
@@ -931,15 +969,7 @@ export class AuthorInput extends React.Component<
         tabIndex={this.props.disabled ? -1 : 0}
         aria-activedescendant={this.state.activeAutocompleteItemId}
         ref={this.onContainerRef}
-        // role="textbox"
-        // contentEditable={true}
-      >
-        <div
-          id="author-input-hint-container"
-          ref={this.hintContainerRef}
-          role="listbox"
-        />
-      </div>
+      />
     )
   }
 }
