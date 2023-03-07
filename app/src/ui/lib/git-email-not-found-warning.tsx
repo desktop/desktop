@@ -16,8 +16,8 @@ interface IGitEmailNotFoundWarningProps {
 }
 
 interface IGitEmailNotFoundWarningState {
-  /** The email address sent in via props, but state is debounced. */
-  readonly debouncedEmail: string
+  /** The generated message debounced for the screen reader */
+  readonly debouncedMessage: JSX.Element | null
 }
 
 /**
@@ -28,21 +28,21 @@ export class GitEmailNotFoundWarning extends React.Component<
   IGitEmailNotFoundWarningProps,
   IGitEmailNotFoundWarningState
 > {
-  private onEmailChanged = debounce((email: string) => {
-    this.setState({ debouncedEmail: email })
-  }, 1500)
+  private onEmailChanged = debounce((message: JSX.Element | null) => {
+    this.setState({ debouncedMessage: message })
+  }, 1000)
 
   public constructor(props: IGitEmailNotFoundWarningProps) {
     super(props)
 
     this.state = {
-      debouncedEmail: props.email,
+      debouncedMessage: this.buildMessage(),
     }
   }
 
   public componentDidUpdate(prevProps: IGitEmailNotFoundWarningProps) {
     if (prevProps.email !== this.props.email) {
-      this.onEmailChanged(this.props.email)
+      this.onEmailChanged(this.buildMessage())
     }
   }
 
@@ -50,16 +50,15 @@ export class GitEmailNotFoundWarning extends React.Component<
     this.onEmailChanged.cancel()
   }
 
-  public render() {
-    const { accounts } = this.props
-    const { debouncedEmail } = this.state
+  private buildMessage() {
+    const { accounts, email } = this.props
 
-    if (accounts.length === 0 || debouncedEmail.trim().length === 0) {
+    if (accounts.length === 0 || email.trim().length === 0) {
       return null
     }
 
     const isAttributableEmail = accounts.some(account =>
-      isAttributableEmailFor(account, debouncedEmail)
+      isAttributableEmailFor(account, email)
     )
 
     const verb = !isAttributableEmail ? 'does not match' : 'matches'
@@ -82,17 +81,42 @@ export class GitEmailNotFoundWarning extends React.Component<
     ) : null
 
     return (
-      <div
-        id="git-email-not-found-warning"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        {indicatorIcon}
+      <>
+        <span>{indicatorIcon}</span>
         <span>
           This email address {verb} {this.getAccountTypeDescription()}.
         </span>{' '}
         {info}
-      </div>
+      </>
+    )
+  }
+
+  public render() {
+    const { accounts, email } = this.props
+    const { debouncedMessage } = this.state
+
+    if (accounts.length === 0 || email.trim().length === 0) {
+      return null
+    }
+
+    /**
+     * Here we put the message in the top div for visual users immediately  and
+     * in the bottom div for screen readers. The screen reader content is
+     * debounced to avoid frequent updates from typing in the email field.
+     */
+    return (
+      <>
+        <div className="git-email-not-found-warning">{this.buildMessage()}</div>
+
+        <div
+          id="git-email-not-found-warning-for-screen-readers"
+          className="sr-only"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {debouncedMessage}
+        </div>
+      </>
     )
   }
 
