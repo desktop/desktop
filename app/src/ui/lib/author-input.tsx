@@ -5,7 +5,6 @@ import CodeMirror, {
   Doc,
   Position,
   TextMarkerOptions,
-  ShowHintOptions,
 } from 'codemirror'
 import classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
@@ -452,21 +451,21 @@ export class AuthorInput extends React.Component<
   }
 
   private onAutocompleteItemClassMutation = (mutations: MutationRecord[]) => {
-    let activeItemFound = false
-
     for (const mutation of mutations) {
       const target = mutation.target as HTMLElement
-      if (target.classList.contains('CodeMirror-hint-active')) {
-        target.ariaSelected = 'true'
-        this.setState({ activeAutocompleteItemId: target.id })
-        activeItemFound = true
-      } else {
-        target.ariaSelected = null
-      }
+      this.updateAutocompleteInfoWithItem(target)
     }
+  }
 
-    if (!activeItemFound) {
-      this.setState({ activeAutocompleteItemId: undefined })
+  private updateAutocompleteInfoWithItem(item: HTMLElement) {
+    if (item.classList.contains('CodeMirror-hint-active')) {
+      item.ariaSelected = 'true'
+      this.setState({ activeAutocompleteItemId: item.id })
+    } else {
+      item.ariaSelected = null
+      if (this.state.activeAutocompleteItemId === item.id) {
+        this.setState({ activeAutocompleteItemId: undefined })
+      }
     }
   }
 
@@ -479,7 +478,6 @@ export class AuthorInput extends React.Component<
 
     const ulNode = mutation.addedNodes.item(0)
     if (ulNode === null || ulNode.nodeName.toLowerCase() !== 'ul') {
-      this.autocompleteItemClassMutationObserver.disconnect()
       this.setState({ activeAutocompleteItemId: undefined })
       return
     }
@@ -488,6 +486,13 @@ export class AuthorInput extends React.Component<
     ul.id = 'author-input-hint-container'
     ul.setAttribute('role', 'listbox')
     ul.ariaLabel = 'suggestions'
+
+    for (const li of ul.children) {
+      const item = li as HTMLElement
+      if (item.tagName.toLowerCase() === 'li') {
+        this.updateAutocompleteInfoWithItem(item)
+      }
+    }
   }
 
   public focus() {
@@ -715,6 +720,9 @@ export class AuthorInput extends React.Component<
     elem.appendChild(user)
 
     elem.id = 'unknown-user-autocomplete-item'
+    elem.setAttribute('role', 'option')
+    elem.ariaLabel = `Search for user ${text}`
+
     this.autocompleteItemClassMutationObserver.observe(elem, {
       attributes: true,
       attributeFilter: ['class'],
@@ -748,7 +756,7 @@ export class AuthorInput extends React.Component<
 
     elem.id = `user-autocomplete-item-${author.username}`
     elem.setAttribute('role', 'option')
-    elem.ariaLabel = `${author.name} ${author.username}`
+    elem.ariaLabel = `${author.username} (${author.name})`
 
     this.autocompleteItemClassMutationObserver.observe(elem, {
       attributes: true,
