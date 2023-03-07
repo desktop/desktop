@@ -82,11 +82,8 @@ export class GitEmailNotFoundWarning extends React.Component<
 
     return (
       <>
-        <span>{indicatorIcon}</span>
-        <span>
-          This email address {verb} {this.getAccountTypeDescription()}.
-        </span>{' '}
-        {info}
+        {indicatorIcon}
+        This email address {verb} {this.getAccountTypeDescription()}. {info}
       </>
     )
   }
