@@ -52,6 +52,7 @@ interface IAuthorInputProps {
 }
 
 interface IAuthorInputState {
+  readonly autocompleteVisible: boolean
   readonly activeAutocompleteItemId: string | undefined
   readonly numberOfAutocompleteItems: number
 }
@@ -407,6 +408,8 @@ export class AuthorInput extends React.Component<
   private readonly autocompleteItemClassMutationObserver: MutationObserver
   private readonly autocompleteListChildMutationObserver: MutationObserver
 
+  private numberOfAutocompleteItems: number = 0
+
   public constructor(props: IAuthorInputProps) {
     super(props)
 
@@ -447,28 +450,27 @@ export class AuthorInput extends React.Component<
     })
 
     this.state = {
+      autocompleteVisible: false,
       activeAutocompleteItemId: undefined,
       numberOfAutocompleteItems: 0,
     }
   }
 
   private onAutocompleteItemClassMutation = (mutations: MutationRecord[]) => {
+    let activeItemId: string | undefined = undefined
+
     for (const mutation of mutations) {
       const target = mutation.target as HTMLElement
-      this.updateAutocompleteInfoWithItem(target)
-    }
-  }
 
-  private updateAutocompleteInfoWithItem(item: HTMLElement) {
-    if (item.classList.contains('CodeMirror-hint-active')) {
-      item.ariaSelected = 'true'
-      this.setState({ activeAutocompleteItemId: item.id })
-    } else {
-      item.ariaSelected = null
-      if (this.state.activeAutocompleteItemId === item.id) {
-        this.setState({ activeAutocompleteItemId: undefined })
+      if (target.classList.contains('CodeMirror-hint-active')) {
+        target.ariaSelected = 'true'
+        activeItemId = target.id
+      } else {
+        target.ariaSelected = null
       }
     }
+
+    this.setState({ activeAutocompleteItemId: activeItemId })
   }
 
   private onAutocompleteListChildMutation = (mutations: MutationRecord[]) => {
@@ -478,14 +480,12 @@ export class AuthorInput extends React.Component<
       return
     }
 
-    let ulNodeFound = false
+    let activeItemId: string | undefined = undefined
 
-    mutation.target.childNodes.forEach(node => {
+    for (const node of mutation.target.childNodes) {
       if (node.nodeName.toLowerCase() !== 'ul') {
-        return
+        continue
       }
-
-      ulNodeFound = true
 
       const ul = node as HTMLElement
       ul.id = 'author-input-hint-container'
@@ -494,14 +494,31 @@ export class AuthorInput extends React.Component<
 
       for (const li of ul.children) {
         const item = li as HTMLElement
-        if (item.tagName.toLowerCase() === 'li') {
-          this.updateAutocompleteInfoWithItem(item)
+        if (item.tagName.toLowerCase() !== 'li') {
+          continue
+        }
+
+        if (item.classList.contains('CodeMirror-hint-active')) {
+          item.ariaSelected = 'true'
+          activeItemId = item.id
+        } else {
+          item.ariaSelected = null
         }
       }
-    })
+    }
 
-    if (!ulNodeFound) {
-      this.setState({ activeAutocompleteItemId: undefined })
+    if (activeItemId === undefined) {
+      this.setState({
+        autocompleteVisible: false,
+        activeAutocompleteItemId: undefined,
+        numberOfAutocompleteItems: 0,
+      })
+    } else {
+      this.setState({
+        autocompleteVisible: true,
+        numberOfAutocompleteItems: this.numberOfAutocompleteItems,
+        activeAutocompleteItemId: activeItemId,
+      })
     }
   }
 
@@ -705,7 +722,7 @@ export class AuthorInput extends React.Component<
       })
     }
 
-    this.setState({ numberOfAutocompleteItems: list.length })
+    this.numberOfAutocompleteItems = list.length
 
     return { list, from, to }
   }
@@ -979,30 +996,32 @@ export class AuthorInput extends React.Component<
       }
     )
 
-    const { activeAutocompleteItemId, numberOfAutocompleteItems } = this.state
-
-    const autocompleteVisible = activeAutocompleteItemId !== undefined
+    const {
+      activeAutocompleteItemId,
+      numberOfAutocompleteItems,
+      autocompleteVisible,
+    } = this.state
 
     return (
-      <div
-        className={className}
-        role="combobox"
-        aria-expanded={autocompleteVisible}
-        aria-label={ariaLabel}
-        aria-autocomplete="list"
-        aria-haspopup="listbox"
-        aria-controls="author-input-hint-container"
-        tabIndex={this.props.disabled ? -1 : 0}
-        aria-activedescendant={activeAutocompleteItemId}
-        ref={this.onContainerRef}
-      >
+      <div className={className}>
+        <div
+          tabIndex={-1}
+          role="combobox"
+          placeholder="Co-Authors"
+          aria-expanded={autocompleteVisible}
+          aria-label={autocompleteVisible ? undefined : ariaLabel}
+          aria-autocomplete="list"
+          aria-haspopup="listbox"
+          aria-controls="author-input-hint-container"
+          aria-activedescendant={activeAutocompleteItemId}
+          contentEditable={!this.props.disabled && autocompleteVisible}
+          ref={this.onContainerRef}
+        />
         {autocompleteVisible && (
-          <div
-            className="screen-reader-only"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {numberOfAutocompleteItems} suggestions
+          <div className="screen-reader-only">
+            <div aria-live="polite">
+              {numberOfAutocompleteItems} suggestions
+            </div>
           </div>
         )}
       </div>
