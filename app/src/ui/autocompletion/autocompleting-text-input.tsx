@@ -72,6 +72,7 @@ interface IAutocompletionState<T> {
   readonly range: IRange
   readonly rangeText: string
   readonly selectedItem: T | null
+  readonly selectedRowId: string | undefined
 }
 
 /**
@@ -110,6 +111,8 @@ export abstract class AutocompletingTextInput<
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
+
+  private autocompletionListRef: List | null = null
 
   /**
    * To be implemented by subclasses. It must return the element tag name which
@@ -200,6 +203,8 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className} style={{ top, left, height }}>
         <List
+          accessibleListId="autocomplete-container"
+          ref={this.onAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
           selectedRows={[selectedRow]}
@@ -214,6 +219,20 @@ export abstract class AutocompletingTextInput<
         />
       </div>
     )
+  }
+
+  private onAutocompletionListRef = (ref: List | null) => {
+    this.autocompletionListRef = ref
+    const { autocompletionState } = this.state
+    if (ref && autocompletionState && autocompletionState.selectedItem) {
+      const { items, selectedItem } = autocompletionState
+      this.setState({
+        autocompletionState: {
+          ...autocompletionState,
+          selectedRowId: ref.getRowId(items.indexOf(selectedItem)),
+        },
+      })
+    }
   }
 
   private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
@@ -242,6 +261,10 @@ export abstract class AutocompletingTextInput<
     const newAutoCompletionState = {
       ...currentAutoCompletionState,
       selectedItem: newSelectedItem,
+      selectedRowId:
+        newSelectedItem === null
+          ? undefined
+          : this.autocompletionListRef?.getRowId(row) ?? undefined,
     }
 
     this.setState({ autocompletionState: newAutoCompletionState })
@@ -273,6 +296,13 @@ export abstract class AutocompletingTextInput<
   }
 
   private renderTextInput() {
+    const autocompleteVisible =
+      this.state.autocompletionState !== null &&
+      this.state.autocompletionState.items.length > 0
+
+    const activeAutocompleteItemId: string | undefined =
+      this.state.autocompletionState?.selectedRowId ?? undefined
+
     const props = {
       type: 'text',
       placeholder: this.props.placeholder,
@@ -285,6 +315,14 @@ export abstract class AutocompletingTextInput<
       disabled: this.props.disabled,
       'aria-required': this.props.isRequired ? true : false,
       spellCheck: this.props.spellcheck,
+      autoComplete: 'off',
+      'aria-expanded': autocompleteVisible,
+      // 'aria-label': {autocompleteVisible ? undefined : ariaLabel},
+      'aria-autocomplete': 'list' as const,
+      'aria-haspopup': 'listbox' as const,
+      'aria-controls': 'autocomplete-container',
+      'aria-owns': 'autocomplete-container',
+      'aria-activedescendant': activeAutocompleteItemId,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
@@ -428,6 +466,10 @@ export abstract class AutocompletingTextInput<
         const newAutoCompletionState = {
           ...currentAutoCompletionState,
           selectedItem: newSelectedItem,
+          selectedRowId:
+            newSelectedItem === null
+              ? undefined
+              : this.autocompletionListRef?.getRowId(nextRow) ?? undefined,
         }
 
         this.setState({ autocompletionState: newAutoCompletionState })
@@ -471,7 +513,14 @@ export abstract class AutocompletingTextInput<
           const items = await provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
-          return { provider, items, range, selectedItem, rangeText: text }
+          return {
+            provider,
+            items,
+            range,
+            selectedItem,
+            selectedRowId: undefined,
+            rangeText: text,
+          }
         }
       }
     }

@@ -228,6 +228,9 @@ interface IListProps {
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   readonly id?: string
 
+  /** The unique identifier of the accessible list component (optional) */
+  readonly accessibleListId?: string
+
   /** The row that should be scrolled to when the list is rendered. */
   readonly scrollToRow?: number
 
@@ -357,6 +360,12 @@ export class List extends React.Component<IListProps, IListState> {
         }
       })
     }
+  }
+
+  public getRowId(row: number): string | undefined {
+    return this.state.rowIdPrefix === undefined
+      ? undefined
+      : `${this.state.rowIdPrefix}-${row}`
   }
 
   private onResized = (target: HTMLElement, contentRect: ClientRect) => {
@@ -1043,9 +1052,9 @@ export class List extends React.Component<IListProps, IListState> {
     // we select the last item from the selection array for this prop
     const activeDescendant =
       this.props.selectedRows.length && this.state.rowIdPrefix
-        ? `${this.state.rowIdPrefix}-${
+        ? this.getRowId(
             this.props.selectedRows[this.props.selectedRows.length - 1]
-          }`
+          )
         : undefined
 
     const containerProps = this.getContainerProps(activeDescendant)
@@ -1057,6 +1066,7 @@ export class List extends React.Component<IListProps, IListState> {
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <Grid
+          id={this.props.accessibleListId}
           role="listbox"
           ref={this.onGridRef}
           autoContainerWidth={true}
