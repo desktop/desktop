@@ -350,7 +350,10 @@ export class CICheckRunPopover extends React.PureComponent<
             checkRuns
           )}
         </div>
-        <div className="ci-check-run-list-title-container">
+        <div
+          id="ci-check-run-header"
+          className="ci-check-run-list-title-container"
+        >
           <div className="title">
             {this.getTitle(
               allSuccessIsh,
@@ -403,6 +406,7 @@ export class CICheckRunPopover extends React.PureComponent<
     return (
       <div className="ci-check-list-popover">
         <Popover
+          ariaLabelledby="ci-check-run-header"
           caretPosition={PopoverCaretPosition.Top}
           onClickOutside={this.props.closePopover}
           style={this.getPopoverPositioningStyles()}
