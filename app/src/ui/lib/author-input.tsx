@@ -321,12 +321,12 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
     return
   }
 
-  const cursor = doc.getCursor()
-  const p = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
+  // const cursor = doc.getCursor()
+  // const p = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
 
-  if (posEquals(cursor, p)) {
-    return
-  }
+  // if (posEquals(cursor, p)) {
+  //   return
+  // }
 
   cm.showHint()
 }
@@ -481,6 +481,7 @@ export class AuthorInput extends React.Component<
     }
 
     let activeItemId: string | undefined = undefined
+    let ulFound: boolean = false
 
     for (const node of mutation.target.childNodes) {
       if (node.nodeName.toLowerCase() !== 'ul') {
@@ -491,6 +492,7 @@ export class AuthorInput extends React.Component<
       ul.id = 'author-input-hint-container'
       ul.setAttribute('role', 'listbox')
       ul.ariaLabel = 'suggestions'
+      ulFound = true
 
       for (const li of ul.children) {
         const item = li as HTMLElement
@@ -507,7 +509,9 @@ export class AuthorInput extends React.Component<
       }
     }
 
-    if (activeItemId === undefined) {
+    console.log('CHILD LIST MUTATION, UL FOUND: ', ulFound)
+
+    if (!ulFound) {
       this.setState({
         autocompleteVisible: false,
         activeAutocompleteItemId: undefined,
@@ -1013,8 +1017,11 @@ export class AuthorInput extends React.Component<
           aria-autocomplete="list"
           aria-haspopup="listbox"
           aria-controls="author-input-hint-container"
-          aria-activedescendant={activeAutocompleteItemId}
-          contentEditable={!this.props.disabled && autocompleteVisible}
+          aria-owns="author-input-hint-container"
+          aria-activedescendant={
+            autocompleteVisible ? activeAutocompleteItemId : undefined
+          }
+          contentEditable={false}
           ref={this.onContainerRef}
         />
         {autocompleteVisible && (
