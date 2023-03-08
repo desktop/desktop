@@ -20,13 +20,6 @@ interface ICommitMessageAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
 
-  /**
-   * The title of the avatar.
-   * Defaults to the name and email if undefined and is
-   * skipped completely if title is null
-   */
-  readonly title?: string | JSX.Element | null
-
   /** Current email address configured by the user. */
   readonly email?: string
 
@@ -78,13 +71,11 @@ export class CommitMessageAvatar extends React.Component<
             onClick={this.onAvatarClick}
           >
             {this.renderWarningBadge()}
-            <Avatar user={this.props.user} title={this.props.title} />
+            <Avatar user={this.props.user} />
           </Button>
         )}
 
-        {!this.props.warningBadgeVisible && (
-          <Avatar user={this.props.user} title={this.props.title} />
-        )}
+        {!this.props.warningBadgeVisible && <Avatar user={this.props.user} />}
 
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
