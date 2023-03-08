@@ -91,6 +91,7 @@ export class DiffOptions extends React.Component<
         caretPosition={PopoverCaretPosition.TopRight}
         onClickOutside={this.closePopover}
       >
+        <h3>Diff {__DARWIN__ ? 'Preferences' : 'Options'}</h3>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </Popover>
@@ -107,7 +108,7 @@ export class DiffOptions extends React.Component<
   private renderShowSideBySide() {
     return (
       <section>
-        <h3>Diff display</h3>
+        <h4>Diff display</h4>
         <RadioButton
           value="Unified"
           checked={!this.props.showSideBySideDiff}
@@ -131,7 +132,7 @@ export class DiffOptions extends React.Component<
   private renderHideWhitespaceChanges() {
     return (
       <section>
-        <h3>Whitespace</h3>
+        <h4>Whitespace</h4>
         <Checkbox
           value={
             this.props.hideWhitespaceChanges
