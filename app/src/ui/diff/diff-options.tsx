@@ -88,10 +88,13 @@ export class DiffOptions extends React.Component<
   private renderPopover() {
     return (
       <Popover
+        ariaLabelledby="diff-options-popover-header"
         caretPosition={PopoverCaretPosition.TopRight}
         onClickOutside={this.closePopover}
       >
-        <h3>Diff {__DARWIN__ ? 'Preferences' : 'Options'}</h3>
+        <h3 id="diff-options-popover-header">
+          Diff {__DARWIN__ ? 'Preferences' : 'Options'}
+        </h3>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </Popover>
