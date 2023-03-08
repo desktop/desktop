@@ -1507,7 +1507,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       }
     }
 
-    if (isSameDiff) {
+    if (!isSameDiff) {
       this.diffToRestore = null
       this.setState({ diff: this.props.diff })
     }
