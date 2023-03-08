@@ -111,6 +111,7 @@ export class Popover extends React.Component<IPopoverProps> {
           ref={this.containerDivRef}
           style={this.props.style}
           aria-labelledby={this.props.ariaLabelledby}
+          role="dialog"
         >
           {this.props.children}
         </div>
