@@ -58,7 +58,7 @@ interface IFetchAllOptions<T> {
    * @param results  All results retrieved thus far
    * @param page     The last fetched page of results
    */
-  continue?: (results: ReadonlyArray<T>) => boolean
+  continue?: (results: ReadonlyArray<T>) => boolean | Promise<boolean>
 
   /**
    * An optional callback which is invoked after each page of results is loaded
@@ -1583,7 +1583,7 @@ export class API {
       nextPath = opts.getNextPagePath
         ? opts.getNextPagePath(response)
         : getNextPagePathFromLink(response)
-    } while (nextPath && (!opts.continue || opts.continue(buf)))
+    } while (nextPath && (!opts.continue || (await opts.continue(buf))))
 
     return buf
   }
