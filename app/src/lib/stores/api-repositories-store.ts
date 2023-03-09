@@ -163,32 +163,48 @@ export class ApiRepositoriesStore extends BaseStore {
    * the provided account has explicit permissions to access.
    */
   public async loadRepositories(account: Account) {
-    const existingRepositories = this.getAccountState(account)
+    const currentState = this.getAccountState(account)
 
-    if (existingRepositories !== undefined && existingRepositories.loading) {
+    if (currentState?.loading) {
       return
     }
 
-    this.updateAccount(account, { loading: true, repositories: [] })
+    this.updateAccount(account, { loading: true })
 
+    // We don't want to throw away the existing list of repositories if we're
+    // refreshing the list of repositories but we'll need to keep track of
+    // whether any repositories got deleted on the host so that we can remove
+    // them from our local state. We start out by adding all the repositories
+    // that we've seen up until this point to a map and then we'll remove them
+    // one by one as we load the fresh list from the API. Any repositories
+    // remaining in the map once we're done loading we can assume have been
+    // deleted on the host.
+    const missing = new Map<string, IAPIRepository>()
     const repositories = new Map<string, IAPIRepository>()
 
-    const addRepos = (page: ReadonlyArray<IAPIRepository>) => {
-      page.forEach(r => repositories.set(r.clone_url, r))
+    currentState?.repositories.forEach(r => {
+      missing.set(r.clone_url, r)
+      repositories.set(r.clone_url, r)
+    })
+
+    const addPage = (page: ReadonlyArray<IAPIRepository>) => {
+      page.forEach(r => {
+        repositories.set(r.clone_url, r)
+        missing.delete(r.clone_url)
+      })
       this.updateAccount(account, { repositories: [...repositories.values()] })
     }
 
     const api = API.fromAccount(resolveAccount(account, this.accountState))
 
-    // The vast majority of users have very few repositories and no org
-    // affiliations. We'll start by making one request to load all repositories
-    // available to the user regardless of affiliation and only if that request
-    // isn't enough to load all repositories will we divvy up the requests and
-    // load repositories by owner and collaborator+org affiliation separately.
-    // This way we can avoid making unnecessary requests to the API for the
-    // majority of users while still improving the user experience for those users
-    // who have access to a lot of repositories and orgs.
-
+    // The vast majority of users have few repositories and no org affiliations.
+    // We'll start by making one request to load all repositories available to
+    // the user regardless of affiliation and only if that request isn't enough
+    // to load all repositories will we divvy up the requests and load
+    // repositories by owner and collaborator+org affiliation separately. This
+    // way we can avoid making unnecessary requests to the API for the majority
+    // of users while still improving the user experience for those users who
+    // have access to a lot of repositories and orgs.
     let moreResultsAvailable = false
     await api.streamUserRepositories(addRepos, undefined, {
       continue() {
@@ -205,6 +221,11 @@ export class ApiRepositoriesStore extends BaseStore {
           'collaborator,organization_member'
         ),
       ])
+    }
+
+    if (missing.size) {
+      missing.forEach((_, clone_url) => repositories.delete(clone_url))
+      this.updateAccount(account, { repositories: [...repositories.values()] })
     }
 
     this.updateAccount(account, { loading: false })
