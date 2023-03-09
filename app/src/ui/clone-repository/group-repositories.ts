@@ -36,25 +36,16 @@ function getIcon(gitHubRepo: IAPIRepository): OcticonSymbolType {
   return OcticonSymbol.repo
 }
 
-function convert(
-  repositories: ReadonlyArray<IAPIRepository>
-): ReadonlyArray<ICloneableRepositoryListItem> {
-  const repos: ReadonlyArray<ICloneableRepositoryListItem> = repositories.map(
-    repo => {
-      const icon = getIcon(repo)
-
-      return {
-        id: repo.html_url,
-        text: [`${repo.owner.login}/${repo.name}`],
-        url: repo.clone_url,
-        name: repo.name,
-        icon,
-      }
-    }
-  )
-
-  return repos
-}
+const toListItems = (repositories: ReadonlyArray<IAPIRepository>) =>
+  repositories
+    .map<ICloneableRepositoryListItem>(repo => ({
+      id: repo.html_url,
+      text: [`${repo.owner.login}/${repo.name}`],
+      url: repo.clone_url,
+      name: repo.name,
+      icon: getIcon(repo),
+    }))
+    .sort((x, y) => compare(x.name, y.name))
 
 export function groupRepositories(
   repositories: ReadonlyArray<IAPIRepository>,
@@ -67,7 +58,7 @@ export function groupRepositories(
   )
 
   return entries(groups)
-    .map(([identifier, repos]) => ({ identifier, items: convert(repos) }))
+    .map(([identifier, repos]) => ({ identifier, items: toListItems(repos) }))
     .sort((x, y) =>
       x.identifier === YourRepositoriesIdentifier
         ? -1
