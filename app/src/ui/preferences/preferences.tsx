@@ -485,28 +485,14 @@ export class Preferences extends React.Component<
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
-    const index = this.state.selectedIndex
-    switch (index) {
-      case PreferencesTab.Accounts:
-      case PreferencesTab.Appearance:
-        return null
-      case PreferencesTab.Notifications:
-      case PreferencesTab.Integrations:
-      case PreferencesTab.Advanced:
-      case PreferencesTab.Prompts:
-      case PreferencesTab.Git: {
-        return (
-          <DialogFooter>
-            <OkCancelButtonGroup
-              okButtonText="Save"
-              okButtonDisabled={hasDisabledError}
-            />
-          </DialogFooter>
-        )
-      }
-      default:
-        return assertNever(index, `Unknown tab index: ${index}`)
-    }
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText="Save"
+          okButtonDisabled={hasDisabledError}
+        />
+      </DialogFooter>
+    )
   }
 
   private onSave = async () => {
