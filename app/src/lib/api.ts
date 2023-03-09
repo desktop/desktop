@@ -922,7 +922,10 @@ export class API {
         },
       })
     } catch (error) {
-      log.warn(`fetchRepositoriesByPage failed`, error)
+      log.warn(
+        `streamUserRepositories: failed with endpoint ${this.endpoint}`,
+        error
+      )
     }
   }
 
