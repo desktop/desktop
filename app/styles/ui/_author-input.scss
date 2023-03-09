@@ -17,10 +17,19 @@
     }
   }
 
+  .shadow-input {
+    @include textboxish;
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+    width: fit-content;
+  }
+
   @include textboxish;
 
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: baseline;
 
   border-top-left-radius: 0;

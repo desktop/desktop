@@ -3,8 +3,10 @@ import classNames from 'classnames'
 import {
   UserAutocompletionProvider,
   AutocompletingInput,
+  IUserHit,
 } from '../autocompletion'
 import { IAuthor } from '../../models/author'
+import { getLegacyStealthEmailForUser } from '../../lib/email'
 
 interface IAuthorInputProps {
   /**
@@ -63,11 +65,11 @@ interface IAuthorInputProps {
  * that's used and if they don't then we'll generate a stealth email
  * address.
  */
-// function getEmailAddressForUser(user: IUserHit) {
-//   return user.email && user.email.length > 0
-//     ? user.email
-//     : getLegacyStealthEmailForUser(user.username, user.endpoint)
-// }
+function getEmailAddressForUser(user: IUserHit) {
+  return user.email && user.email.length > 0
+    ? user.email
+    : getLegacyStealthEmailForUser(user.username, user.endpoint)
+}
 
 // function getDisplayTextForAuthor(author: IAuthor) {
 //   return author.username === null ? author.name : `@${author.username}`
@@ -80,13 +82,13 @@ interface IAuthorInputProps {
  * If the IUserHit object lacks an email address we'll
  * attempt to create a stealth email address.
  */
-// function authorFromUserHit(user: IUserHit): IAuthor {
-//   return {
-//     name: user.name || user.username,
-//     email: getEmailAddressForUser(user),
-//     username: user.username,
-//   }
-// }
+function authorFromUserHit(user: IUserHit): IAuthor {
+  return {
+    name: user.name || user.username,
+    email: getEmailAddressForUser(user),
+    username: user.username,
+  }
+}
 
 /**
  * Autocompletable input field for possible authors of a commit.
@@ -110,14 +112,17 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
   // private readonly markAuthorMap = new Map<ActualTextMarker, IAuthor>()
   // private readonly authorMarkMap = new Map<IAuthor, ActualTextMarker>()
 
-  private textAreaRef = React.createRef<AutocompletingInput>()
+  private autocompletingInputRef =
+    React.createRef<AutocompletingInput<IUserHit>>()
+  private shadowInputRef = React.createRef<HTMLDivElement>()
+  private inputRef: HTMLInputElement | null = null
 
   public constructor(props: IAuthorInputProps) {
     super(props)
   }
 
   public focus() {
-    this.textAreaRef.current?.focus()
+    this.autocompletingInputRef.current?.focus()
   }
 
   public render() {
@@ -134,20 +139,66 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
 
     return (
       <div className={className}>
-        <div className="label">Co-Authors</div>
-        <AutocompletingInput
+        <div className="label">Co-Authors&nbsp;</div>
+        <div className="shadow-input" ref={this.shadowInputRef} />
+        {this.renderAuthors()}
+        <AutocompletingInput<IUserHit>
           // className={descriptionClassName}
           placeholder="@username"
           // value={this.state.description || ''}
-          // onValueChanged={this.onDescriptionChanged}
           autocompletionProviders={[this.props.autoCompleteProvider]}
-          ref={this.textAreaRef}
-          // onElementRef={this.onDescriptionTextAreaRef}
+          ref={this.autocompletingInputRef}
+          onElementRef={this.onInputRef}
+          onAutocompleteItemSelected={this.onAutocompleteItemSelected}
+          onValueChanged={this.onCoAuthorsValueChanged}
           // onContextMenu={this.onAutocompletingInputContextMenu}
           // disabled={this.props.isCommitting === true}
           // spellcheck={this.props.commitSpellcheckEnabled}
         />
       </div>
     )
+  }
+
+  private onCoAuthorsValueChanged = (value: string) => {
+    // Set the value to the shadow input div and then measure its width
+    // to set the width of the input field.
+    if (this.shadowInputRef.current === null || this.inputRef === null) {
+      return
+    }
+    this.shadowInputRef.current.textContent = value
+    const valueWidth = this.shadowInputRef.current.clientWidth
+    this.shadowInputRef.current.textContent = this.inputRef.placeholder
+    const placeholderWidth = this.shadowInputRef.current.clientWidth
+    this.inputRef.style.width = `${Math.max(valueWidth, placeholderWidth)}px`
+  }
+
+  private onInputRef = (input: HTMLInputElement | null) => {
+    if (input === null) {
+      return
+    }
+
+    this.inputRef = input
+  }
+
+  private onAutocompleteItemSelected = (item: IUserHit) => {
+    this.props.onAuthorsUpdated([
+      ...this.props.authors,
+      authorFromUserHit(item),
+    ])
+
+    if (this.inputRef !== null) {
+      this.inputRef.value = ''
+      this.onCoAuthorsValueChanged('')
+    }
+  }
+
+  private renderAuthors() {
+    return this.props.authors.map((author, index) => {
+      return (
+        <div key={index} className="handle">
+          @{author.username}
+        </div>
+      )
+    })
   }
 }

@@ -17,7 +17,7 @@ interface IRange {
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../../lib/menu-item'
 
-interface IAutocompletingTextInputProps<ElementType> {
+interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /**
    * An optional className to be applied to the rendered
    * top level element of the component.
@@ -46,6 +46,9 @@ interface IAutocompletingTextInputProps<ElementType> {
 
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
+
+  /** Called when an autocomplete item has been selected. */
+  readonly onAutocompleteItemSelected?: (value: AutocompleteItemType) => void
 
   /**
    * A list of autocompletion providers that should be enabled for this
@@ -102,10 +105,11 @@ interface IAutocompletingTextInputState<T> {
 
 /** A text area which provides autocompletions as the user types. */
 export abstract class AutocompletingTextInput<
-  ElementType extends HTMLInputElement | HTMLTextAreaElement
+  ElementType extends HTMLInputElement | HTMLTextAreaElement,
+  AutocompleteItemType extends Object
 > extends React.Component<
-  IAutocompletingTextInputProps<ElementType>,
-  IAutocompletingTextInputState<Object>
+  IAutocompletingTextInputProps<ElementType, AutocompleteItemType>,
+  IAutocompletingTextInputState<AutocompleteItemType>
 > {
   private element: ElementType | null = null
 
@@ -120,7 +124,9 @@ export abstract class AutocompletingTextInput<
    */
   protected abstract getElementTagName(): 'textarea' | 'input'
 
-  public constructor(props: IAutocompletingTextInputProps<ElementType>) {
+  public constructor(
+    props: IAutocompletingTextInputProps<ElementType, AutocompleteItemType>
+  ) {
     super(props)
 
     this.state = { autocompletionState: null }
@@ -375,7 +381,10 @@ export abstract class AutocompletingTextInput<
     this.element.selectionEnd = newCaretPosition
   }
 
-  private insertCompletion(item: Object, source: 'mouseclick' | 'keyboard') {
+  private insertCompletion(
+    item: AutocompleteItemType,
+    source: 'mouseclick' | 'keyboard'
+  ) {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
@@ -408,6 +417,8 @@ export abstract class AutocompletingTextInput<
     } else {
       this.setCursorPosition(newCaretPosition)
     }
+
+    this.props.onAutocompleteItemSelected?.(item)
 
     this.close()
   }
@@ -492,7 +503,7 @@ export abstract class AutocompletingTextInput<
   private async attemptAutocompletion(
     str: string,
     caretPosition: number
-  ): Promise<IAutocompletionState<any> | null> {
+  ): Promise<IAutocompletionState<AutocompleteItemType> | null> {
     for (const provider of this.props.autocompletionProviders) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
