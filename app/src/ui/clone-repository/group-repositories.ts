@@ -59,9 +59,13 @@ export function groupRepositories(
 
   return entries(groups)
     .map(([identifier, repos]) => ({ identifier, items: toListItems(repos) }))
-    .sort((x, y) =>
-      x.identifier === YourRepositoriesIdentifier
-        ? -1
-        : compare(x.identifier, y.identifier)
-    )
+    .sort((x, y) => {
+      if (x.identifier === YourRepositoriesIdentifier) {
+        return -1
+      } else if (y.identifier === YourRepositoriesIdentifier) {
+        return 1
+      } else {
+        return compare(x.identifier, y.identifier)
+      }
+    })
 }
