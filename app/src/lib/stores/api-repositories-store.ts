@@ -154,28 +154,38 @@ export class ApiRepositoriesStore extends BaseStore {
     this.emitUpdate()
   }
 
+  private getAccountState(account: Account) {
+    return this.accountState.get(resolveAccount(account, this.accountState))
+  }
+
   /**
    * Request that the store loads the list of repositories that
    * the provided account has explicit permissions to access.
    */
   public async loadRepositories(account: Account) {
-    const existingAccount = resolveAccount(account, this.accountState)
-    const existingRepositories = this.accountState.get(existingAccount)
+    const existingRepositories = this.getAccountState(account)
 
     if (existingRepositories !== undefined && existingRepositories.loading) {
       return
     }
 
-    this.updateAccount(existingAccount, { loading: true })
+    this.updateAccount(account, { loading: true, repositories: [] })
 
-    const api = API.fromAccount(existingAccount)
-    const repositories = await api.fetchRepositories()
+    let repositories: ReadonlyArray<IAPIRepository> = []
 
-    if (repositories === null) {
-      this.updateAccount(account, { loading: false })
-    } else {
-      this.updateAccount(account, { loading: false, repositories })
+    const addRepos = (page: ReadonlyArray<IAPIRepository>) => {
+      repositories = repositories ? [...repositories, ...page] : page
+      this.updateAccount(account, { repositories })
     }
+
+    const api = API.fromAccount(resolveAccount(account, this.accountState))
+
+    await Promise.all([
+      api.streamUserRepositories(addRepos, 'owner'),
+      api.streamUserRepositories(addRepos, 'collaborator,organization_member'),
+    ])
+
+    this.updateAccount(account, { loading: false })
   }
 
   public getState(): ReadonlyMap<Account, IAccountRepositories> {

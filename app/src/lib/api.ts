@@ -26,6 +26,15 @@ if (envAdditionalCookies !== undefined) {
   document.cookie += '; ' + envAdditionalCookies
 }
 
+type AffiliationFilter =
+  | 'owner'
+  | 'collaborator'
+  | 'organization_member'
+  | 'owner,collabor'
+  | 'owner,organization_member'
+  | 'collaborator,organization_member'
+  | 'owner,collaborator,organization_member'
+
 /**
  * Optional set of configurable settings for the fetchAll method
  */
@@ -47,8 +56,9 @@ interface IFetchAllOptions<T> {
    * `(results) => results.length < 500`
    *
    * @param results  All results retrieved thus far
+   * @param page     The last fetched page of results
    */
-  continue?: (results: ReadonlyArray<T>) => boolean
+  continue?: (results: ReadonlyArray<T>, page: ReadonlyArray<T>) => boolean
 
   /**
    * Calculate the next page path given the response.
@@ -875,22 +885,34 @@ export class API {
     }
   }
 
-  /** Fetch all repos a user has access to. */
-  public async fetchRepositories(): Promise<ReadonlyArray<IAPIRepository> | null> {
+  /**
+   * Fetch all repos a user has access to in a streaming fashion. The callback
+   * will be called for each new page fetched from the API.
+   */
+  public async streamUserRepositories(
+    callback: (repos: ReadonlyArray<IAPIRepository>) => void,
+    affiliation: AffiliationFilter = 'owner,collaborator,organization_member'
+  ) {
     try {
-      const repositories = await this.fetchAll<IAPIRepository>('user/repos')
-      // "But wait, repositories can't have a null owner" you say.
-      // Ordinarily you'd be correct but turns out there's super
-      // rare circumstances where a user has been deleted but the
-      // repository hasn't. Such cases are usually addressed swiftly
-      // but in some cases like GitHub Enterprise instances
-      // they can linger for longer than we'd like so we'll make
-      // sure to exclude any such dangling repository, chances are
-      // they won't be cloneable anyway.
-      return repositories.filter(x => x.owner !== null)
+      await this.fetchAll<IAPIRepository>(
+        `user/repos?affiliation=${encodeURIComponent(affiliation)}`,
+        {
+          // "But wait, repositories can't have a null owner" you say.
+          // Ordinarily you'd be correct but turns out there's super
+          // rare circumstances where a user has been deleted but the
+          // repository hasn't. Such cases are usually addressed swiftly
+          // but in some cases like GitHub Enterprise instances
+          // they can linger for longer than we'd like so we'll make
+          // sure to exclude any such dangling repository, chances are
+          // they won't be cloneable anyway.
+          continue: (_, page) => {
+            callback(page.filter(x => x.owner !== null))
+            return true
+          },
+        }
+      )
     } catch (error) {
-      log.warn(`fetchRepositories: ${error}`)
-      return null
+      log.warn(`fetchRepositoriesByPage failed`, error)
     }
   }
 
@@ -1534,6 +1556,7 @@ export class API {
     const params = { per_page: `${opts.perPage}` }
 
     let nextPath: string | null = urlWithQueryString(path, params)
+    let page: ReadonlyArray<T> = []
     do {
       const response: Response = await this.request('GET', nextPath)
       if (opts.suppressErrors !== false && !response.ok) {
@@ -1541,15 +1564,15 @@ export class API {
         return buf
       }
 
-      const items = await parsedResponse<ReadonlyArray<T>>(response)
-      if (items) {
-        buf.push(...items)
+      page = await parsedResponse<ReadonlyArray<T>>(response)
+      if (page) {
+        buf.push(...page)
       }
 
       nextPath = opts.getNextPagePath
         ? opts.getNextPagePath(response)
         : getNextPagePathFromLink(response)
-    } while (nextPath && (!opts.continue || opts.continue(buf)))
+    } while (nextPath && (!opts.continue || (await opts.continue(buf, page))))
 
     return buf
   }
