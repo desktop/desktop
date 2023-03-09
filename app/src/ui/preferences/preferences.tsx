@@ -98,6 +98,8 @@ interface IPreferencesState {
    */
   readonly existingLockFilePath?: string
   readonly repositoryIndicatorsEnabled: boolean
+
+  readonly initiallySelectedTheme: ApplicationTheme
 }
 
 /** The app-level preferences component. */
@@ -132,6 +134,7 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
+      initiallySelectedTheme: this.props.selectedTheme,
     }
   }
 
@@ -191,12 +194,20 @@ export class Preferences extends React.Component<
     })
   }
 
+  private onCancel = () => {
+    if (this.state.initiallySelectedTheme !== this.props.selectedTheme) {
+      this.onSelectedThemeChanged(this.state.initiallySelectedTheme)
+    }
+
+    this.props.onDismissed()
+  }
+
   public render() {
     return (
       <Dialog
         id="preferences"
         title={__DARWIN__ ? 'Preferences' : 'Options'}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onCancel}
         onSubmit={this.onSave}
       >
         <div className="preferences-container">
