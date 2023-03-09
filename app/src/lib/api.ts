@@ -899,28 +899,28 @@ export class API {
    */
   public async streamUserRepositories(
     callback: (repos: ReadonlyArray<IAPIRepository>) => void,
-    affiliation: AffiliationFilter = 'owner,collaborator,organization_member',
+    affiliation?: AffiliationFilter,
     options?: IFetchAllOptions<IAPIRepository>
   ) {
     try {
-      await this.fetchAll<IAPIRepository>(
-        `user/repos?affiliation=${affiliation}`,
-        {
-          ...options,
-          // "But wait, repositories can't have a null owner" you say.
-          // Ordinarily you'd be correct but turns out there's super
-          // rare circumstances where a user has been deleted but the
-          // repository hasn't. Such cases are usually addressed swiftly
-          // but in some cases like GitHub Enterprise instances
-          // they can linger for longer than we'd like so we'll make
-          // sure to exclude any such dangling repository, chances are
-          // they won't be cloneable anyway.
-          onPage: page => {
-            callback(page.filter(x => x.owner !== null))
-            options?.onPage?.(page)
-          },
-        }
-      )
+      const base = 'user/repos'
+      const path = affiliation ? `${base}?affiliation=${affiliation}` : base
+
+      await this.fetchAll<IAPIRepository>(path, {
+        ...options,
+        // "But wait, repositories can't have a null owner" you say.
+        // Ordinarily you'd be correct but turns out there's super
+        // rare circumstances where a user has been deleted but the
+        // repository hasn't. Such cases are usually addressed swiftly
+        // but in some cases like GitHub Enterprise instances
+        // they can linger for longer than we'd like so we'll make
+        // sure to exclude any such dangling repository, chances are
+        // they won't be cloneable anyway.
+        onPage: page => {
+          callback(page.filter(x => x.owner !== null))
+          options?.onPage?.(page)
+        },
+      })
     } catch (error) {
       log.warn(`fetchRepositoriesByPage failed`, error)
     }
