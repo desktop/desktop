@@ -206,7 +206,8 @@ export class ApiRepositoriesStore extends BaseStore {
     // of users while still improving the user experience for those users who
     // have access to a lot of repositories and orgs.
     let moreResultsAvailable = false
-    await api.streamUserRepositories(addRepos, undefined, {
+    await api.streamUserRepositories(addPage, undefined, {
+      perPage: 30,
       continue() {
         moreResultsAvailable = true
         return false
