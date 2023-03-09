@@ -171,19 +171,41 @@ export class ApiRepositoriesStore extends BaseStore {
 
     this.updateAccount(account, { loading: true, repositories: [] })
 
-    let repositories: ReadonlyArray<IAPIRepository> = []
+    const repositories = new Map<string, IAPIRepository>()
 
     const addRepos = (page: ReadonlyArray<IAPIRepository>) => {
-      repositories = repositories ? [...repositories, ...page] : page
-      this.updateAccount(account, { repositories })
+      page.forEach(r => repositories.set(r.clone_url, r))
+      this.updateAccount(account, { repositories: [...repositories.values()] })
     }
 
     const api = API.fromAccount(resolveAccount(account, this.accountState))
 
-    await Promise.all([
-      api.streamUserRepositories(addRepos, 'owner'),
-      api.streamUserRepositories(addRepos, 'collaborator,organization_member'),
-    ])
+    // The vast majority of users have very few repositories and no org
+    // affiliations. We'll start by making one request to load all repositories
+    // available to the user regardless of affiliation and only if that request
+    // isn't enough to load all repositories will we divvy up the requests and
+    // load repositories by owner and collaborator+org affiliation separately.
+    // This way we can avoid making unnecessary requests to the API for the
+    // majority of users while still improving the user experience for those users
+    // who have access to a lot of repositories and orgs.
+
+    let moreResultsAvailable = false
+    await api.streamUserRepositories(addRepos, undefined, {
+      continue() {
+        moreResultsAvailable = true
+        return false
+      },
+    })
+
+    if (moreResultsAvailable) {
+      await Promise.all([
+        api.streamUserRepositories(addRepos, 'owner'),
+        api.streamUserRepositories(
+          addRepos,
+          'collaborator,organization_member'
+        ),
+      ])
+    }
 
     this.updateAccount(account, { loading: false })
   }
