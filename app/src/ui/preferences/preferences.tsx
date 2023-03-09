@@ -40,6 +40,7 @@ import {
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
+import { Notifications } from './notifications'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -222,6 +223,10 @@ export class Preferences extends React.Component<
               Appearance
             </span>
             <span>
+              <Octicon className="icon" symbol={OcticonSymbol.bell} />
+              Notifications
+            </span>
+            <span>
               <Octicon className="icon" symbol={OcticonSymbol.question} />
               Prompts
             </span>
@@ -329,6 +334,14 @@ export class Preferences extends React.Component<
           />
         )
         break
+      case PreferencesTab.Notifications:
+        View = (
+          <Notifications
+            notificationsEnabled={this.state.notificationsEnabled}
+            onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
+          />
+        )
+        break
       case PreferencesTab.Prompts: {
         View = (
           <Prompts
@@ -358,12 +371,10 @@ export class Preferences extends React.Component<
         View = (
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
-            notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
-            onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
@@ -479,6 +490,7 @@ export class Preferences extends React.Component<
       case PreferencesTab.Accounts:
       case PreferencesTab.Appearance:
         return null
+      case PreferencesTab.Notifications:
       case PreferencesTab.Integrations:
       case PreferencesTab.Advanced:
       case PreferencesTab.Prompts:
