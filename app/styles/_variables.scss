@@ -35,7 +35,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --link-button-hover-color: #{$blue-600};
   --link-button-selected-hover-color: #{$blue-200};
 
-  --secondary-button-background: #{$gray-000};
+  --secondary-button-background: #{$gray-100};
+  --secondary-button-border-color: var(--box-border-contrast-color);
+  --secondary-button-hover-border-color: var(--box-border-contrast-color);
   --secondary-button-hover-background: #{$white};
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};

@@ -32,6 +32,8 @@ body.theme-dark {
   --link-button-selected-hover-color: #{$blue-300};
 
   --secondary-button-background: #{$gray-800};
+  --secondary-button-border-color: var(--box-border-contrast-color);
+  --secondary-button-hover-border-color: #{$gray-300};
   --secondary-button-hover-background: var(--secondary-button-background);
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
