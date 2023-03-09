@@ -1,8 +1,9 @@
 import { IAPIRepository } from '../../lib/api'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
-import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbolType } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { entries, groupBy } from 'lodash'
+import { compare } from '../../lib/compare'
 
 /** The identifier for the "Your Repositories" grouping. */
 export const YourRepositoriesIdentifier = 'your-repositories'
@@ -59,29 +60,15 @@ export function groupRepositories(
   repositories: ReadonlyArray<IAPIRepository>,
   login: string
 ): ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>> {
-  const userRepos = repositories.filter(repo => repo.owner.type === 'User')
-  const orgRepos = repositories.filter(
-    repo => repo.owner.type === 'Organization'
+  const groups = groupBy(repositories, x =>
+    x.owner.login === login ? YourRepositoriesIdentifier : x.owner.login
   )
 
-  const groups = [
-    {
-      identifier: YourRepositoriesIdentifier,
-      items: convert(userRepos),
-    },
-  ]
-
-  const orgs = orgRepos.map(repo => repo.owner.login)
-  const distinctOrgs = Array.from(new Set(orgs))
-
-  for (const org of distinctOrgs.sort(caseInsensitiveCompare)) {
-    const orgRepositories = orgRepos.filter(repo => repo.owner.login === org)
-
-    groups.push({
-      identifier: org,
-      items: convert(orgRepositories),
-    })
-  }
-
-  return groups
+  return entries(groups)
+    .map(([identifier, repos]) => ({ identifier, items: convert(repos) }))
+    .sort((x, y) =>
+      x.identifier === YourRepositoriesIdentifier
+        ? -1
+        : compare(x.identifier, y.identifier)
+    )
 }
