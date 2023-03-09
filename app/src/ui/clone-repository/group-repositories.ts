@@ -3,7 +3,7 @@ import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { OcticonSymbolType } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { entries, groupBy } from 'lodash'
-import { compare } from '../../lib/compare'
+import { caseInsensitiveEquals, compare } from '../../lib/compare'
 
 /** The identifier for the "Your Repositories" grouping. */
 export const YourRepositoriesIdentifier = 'your-repositories'
@@ -61,7 +61,9 @@ export function groupRepositories(
   login: string
 ): ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>> {
   const groups = groupBy(repositories, x =>
-    x.owner.login === login ? YourRepositoriesIdentifier : x.owner.login
+    caseInsensitiveEquals(x.owner.login, login)
+      ? YourRepositoriesIdentifier
+      : x.owner.login
   )
 
   return entries(groups)
