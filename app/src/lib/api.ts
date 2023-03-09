@@ -58,7 +58,15 @@ interface IFetchAllOptions<T> {
    * @param results  All results retrieved thus far
    * @param page     The last fetched page of results
    */
-  continue?: (results: ReadonlyArray<T>, page: ReadonlyArray<T>) => boolean
+  continue?: (results: ReadonlyArray<T>) => boolean
+
+  /**
+   * An optional callback which is invoked after each page of results is loaded
+   * from the API. This can be used to enable streaming of results.
+   *
+   * @param page The last fetched page of results
+   */
+  onPage?: (page: ReadonlyArray<T>) => void
 
   /**
    * Calculate the next page path given the response.
@@ -891,12 +899,14 @@ export class API {
    */
   public async streamUserRepositories(
     callback: (repos: ReadonlyArray<IAPIRepository>) => void,
-    affiliation: AffiliationFilter = 'owner,collaborator,organization_member'
+    affiliation: AffiliationFilter = 'owner,collaborator,organization_member',
+    options?: IFetchAllOptions<IAPIRepository>
   ) {
     try {
       await this.fetchAll<IAPIRepository>(
-        `user/repos?affiliation=${encodeURIComponent(affiliation)}`,
+        `user/repos?affiliation=${affiliation}`,
         {
+          ...options,
           // "But wait, repositories can't have a null owner" you say.
           // Ordinarily you'd be correct but turns out there's super
           // rare circumstances where a user has been deleted but the
@@ -905,9 +915,9 @@ export class API {
           // they can linger for longer than we'd like so we'll make
           // sure to exclude any such dangling repository, chances are
           // they won't be cloneable anyway.
-          continue: (_, page) => {
+          onPage: page => {
             callback(page.filter(x => x.owner !== null))
-            return true
+            options?.onPage?.(page)
           },
         }
       )
@@ -1567,12 +1577,13 @@ export class API {
       page = await parsedResponse<ReadonlyArray<T>>(response)
       if (page) {
         buf.push(...page)
+        opts.onPage?.(page)
       }
 
       nextPath = opts.getNextPagePath
         ? opts.getNextPagePath(response)
         : getNextPagePathFromLink(response)
-    } while (nextPath && (!opts.continue || (await opts.continue(buf, page))))
+    } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
   }
