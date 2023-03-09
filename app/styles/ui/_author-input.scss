@@ -1,62 +1,77 @@
 @import '../mixins';
 
 .author-input-component {
-  &.disabled .CodeMirror {
+  &.disabled {
     @include textboxish-disabled-styles;
   }
 
-  .CodeMirror {
-    @include textboxish;
+  input {
+    border: none;
+    background: none;
+    box-shadow: none;
 
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: 0;
-    height: auto;
+    &:focus {
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+  }
 
-    .label {
-      color: var(--text-secondary-color);
+  @include textboxish;
+
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 0;
+
+  height: auto;
+
+  .label {
+    color: var(--text-secondary-color);
+  }
+
+  .placeholder {
+    color: var(--text-secondary-color);
+    cursor: text;
+  }
+
+  .handle {
+    border-radius: var(--border-radius);
+    border: 1px solid var(--co-author-tag-border-color);
+    background: var(--co-author-tag-background-color);
+    padding: 1px 2px;
+    margin: 0px 2px;
+
+    &.progress {
+      background: transparent;
     }
 
-    .placeholder {
-      color: var(--text-secondary-color);
-      cursor: text;
+    &.error {
+      background: var(--form-error-background);
+      color: var(--form-error-text-color);
+      border-color: var(--form-error-border-color);
+
+      svg {
+        padding-bottom: 2px;
+      }
     }
 
-    .handle {
-      border-radius: var(--border-radius);
-      border: 1px solid var(--co-author-tag-border-color);
-      background: var(--co-author-tag-background-color);
-      padding: 1px 2px;
-      margin: 0px 2px;
-
-      &.progress {
-        background: transparent;
-      }
-
-      &.error {
-        background: var(--form-error-background);
-        color: var(--form-error-text-color);
-        border-color: var(--form-error-border-color);
-
-        svg {
-          padding-bottom: 2px;
-        }
-      }
-
-      &.progress,
-      &.error {
-        svg {
-          height: 9px;
-          margin-left: 3px;
-          margin-right: 3px;
-          vertical-align: middle;
-          fill: currentColor;
-        }
+    &.progress,
+    &.error {
+      svg {
+        height: 9px;
+        margin-left: 3px;
+        margin-right: 3px;
+        vertical-align: middle;
+        fill: currentColor;
       }
     }
   }
 
-  .CodeMirror-focused {
+  &:focus-within {
     @include textboxish-focus-styles;
     border-top-width: 1px;
     border-top-style: solid;

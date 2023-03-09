@@ -317,7 +317,6 @@ export abstract class AutocompletingTextInput<
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
       'aria-expanded': autocompleteVisible,
-      // 'aria-label': {autocompleteVisible ? undefined : ariaLabel},
       'aria-autocomplete': 'list' as const,
       'aria-haspopup': 'listbox' as const,
       'aria-controls': 'autocomplete-container',

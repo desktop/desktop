@@ -134,6 +134,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
 
     return (
       <div className={className}>
+        <div className="label">Co-Authors</div>
         <AutocompletingInput
           // className={descriptionClassName}
           placeholder="@username"
