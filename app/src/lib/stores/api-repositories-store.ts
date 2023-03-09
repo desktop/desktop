@@ -215,12 +215,13 @@ export class ApiRepositoriesStore extends BaseStore {
     })
 
     if (moreResultsAvailable) {
+      // For users with more than a 100 available repositories we'll stream each
+      // of the three different affiliation types separately to  minimize the
+      // time it takes to load all repositories.
       await Promise.all([
-        api.streamUserRepositories(addRepos, 'owner'),
-        api.streamUserRepositories(
-          addRepos,
-          'collaborator,organization_member'
-        ),
+        api.streamUserRepositories(addPage, 'owner'),
+        api.streamUserRepositories(addPage, 'collaborator'),
+        api.streamUserRepositories(addPage, 'organization_member'),
       ])
     }
 
