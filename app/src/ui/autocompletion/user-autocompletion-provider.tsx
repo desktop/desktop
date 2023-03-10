@@ -7,7 +7,9 @@ import { Account } from '../../models/account'
 import { IMentionableUser } from '../../lib/databases/index'
 
 /** An autocompletion hit for a user. */
-export interface IUserHit {
+export type KnownUserHit = {
+  readonly kind: 'known-user'
+
   /** The username. */
   readonly username: string
 
@@ -27,11 +29,21 @@ export interface IUserHit {
   readonly endpoint: string
 }
 
+export type UnknownUserHit = {
+  readonly kind: 'unknown-user'
+
+  /** The username. */
+  readonly username: string
+}
+
+export type UserHit = KnownUserHit | UnknownUserHit
+
 function userToHit(
   repository: GitHubRepository,
   user: IMentionableUser
-): IUserHit {
+): UserHit {
   return {
+    kind: 'known-user',
     username: user.login,
     name: user.name,
     email: user.email,
@@ -41,7 +53,7 @@ function userToHit(
 
 /** The autocompletion provider for user mentions in a GitHub repository. */
 export class UserAutocompletionProvider
-  implements IAutocompletionProvider<IUserHit>
+  implements IAutocompletionProvider<UserHit>
 {
   public readonly kind = 'user'
 
@@ -65,7 +77,7 @@ export class UserAutocompletionProvider
 
   public async getAutocompletionItems(
     text: string
-  ): Promise<ReadonlyArray<IUserHit>> {
+  ): Promise<ReadonlyArray<UserHit>> {
     const users = await this.gitHubUserStore.getMentionableUsersMatching(
       this.repository,
       text
@@ -80,16 +92,21 @@ export class UserAutocompletionProvider
     return filtered.map(x => userToHit(this.repository, x))
   }
 
-  public renderItem(item: IUserHit): JSX.Element {
-    return (
+  public renderItem(item: UserHit): JSX.Element {
+    return item.kind === 'known-user' ? (
       <div className="user" key={item.username}>
         <span className="username">{item.username}</span>
         <span className="name">{item.name}</span>
       </div>
+    ) : (
+      <div className="user unknown" key={item.username}>
+        <span className="username">{item.username}</span>
+        <span className="description">Search for user</span>
+      </div>
     )
   }
 
-  public getCompletionText(item: IUserHit): string {
+  public getCompletionText(item: UserHit): string {
     return `@${item.username}`
   }
 
@@ -103,7 +120,7 @@ export class UserAutocompletionProvider
    *
    * @param login   The login (i.e. handle) of the user
    */
-  public async exactMatch(login: string): Promise<IUserHit | null> {
+  public async exactMatch(login: string): Promise<UserHit | null> {
     if (this.account === null) {
       return null
     }
@@ -121,5 +138,12 @@ export class UserAutocompletionProvider
 export class CoAuthorAutocompletionProvider extends UserAutocompletionProvider {
   public getRegExp(): RegExp {
     return /(?:^|\n| )(?:@)?([a-z\d\\+-][a-z\d_-]*)?/g
+  }
+
+  public async getAutocompletionItems(
+    text: string
+  ): Promise<ReadonlyArray<UserHit>> {
+    const hits = await super.getAutocompletionItems(text)
+    return [...hits, { kind: 'unknown-user', username: text }]
   }
 }

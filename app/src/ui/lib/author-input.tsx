@@ -3,7 +3,8 @@ import classNames from 'classnames'
 import {
   UserAutocompletionProvider,
   AutocompletingInput,
-  IUserHit,
+  UserHit,
+  KnownUserHit,
 } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { getLegacyStealthEmailForUser } from '../../lib/email'
@@ -65,7 +66,7 @@ interface IAuthorInputProps {
  * that's used and if they don't then we'll generate a stealth email
  * address.
  */
-function getEmailAddressForUser(user: IUserHit) {
+function getEmailAddressForUser(user: KnownUserHit) {
   return user.email && user.email.length > 0
     ? user.email
     : getLegacyStealthEmailForUser(user.username, user.endpoint)
@@ -82,7 +83,7 @@ function getEmailAddressForUser(user: IUserHit) {
  * If the IUserHit object lacks an email address we'll
  * attempt to create a stealth email address.
  */
-function authorFromUserHit(user: IUserHit): IAuthor {
+function authorFromUserHit(user: KnownUserHit): IAuthor {
   return {
     name: user.name || user.username,
     email: getEmailAddressForUser(user),
@@ -113,7 +114,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
   // private readonly authorMarkMap = new Map<IAuthor, ActualTextMarker>()
 
   private autocompletingInputRef =
-    React.createRef<AutocompletingInput<IUserHit>>()
+    React.createRef<AutocompletingInput<UserHit>>()
   private shadowInputRef = React.createRef<HTMLDivElement>()
   private inputRef: HTMLInputElement | null = null
 
@@ -142,7 +143,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
         <div className="label">Co-Authors&nbsp;</div>
         <div className="shadow-input" ref={this.shadowInputRef} />
         {this.renderAuthors()}
-        <AutocompletingInput<IUserHit>
+        <AutocompletingInput<UserHit>
           // className={descriptionClassName}
           placeholder="@username"
           // value={this.state.description || ''}
@@ -180,7 +181,11 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
     this.inputRef = input
   }
 
-  private onAutocompleteItemSelected = (item: IUserHit) => {
+  private onAutocompleteItemSelected = (item: UserHit) => {
+    if (item.kind !== 'known-user') {
+      return
+    }
+
     this.props.onAuthorsUpdated([
       ...this.props.authors,
       authorFromUserHit(item),
